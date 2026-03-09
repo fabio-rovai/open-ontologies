@@ -29,43 +29,44 @@ Two projects work together:
 
 ## How it works
 
-You provide domain requirements in natural language. Claude generates Turtle/OWL, then calls the MCP tools to validate, load, query, and persist it — in a loop until it's right.
-
-```text
-You: "Build me a Pizza ontology with 49 toppings and 22 named pizzas"
-                    │
-                    ▼
-        Claude generates Turtle (from its training knowledge)
-                    │
-                    ▼
-        onto_validate ──→ syntax ok? if not, Claude fixes and retries
-        onto_load     ──→ loads into Oxigraph triple store
-        onto_stats    ──→ 95 classes, 8 properties — correct count?
-        onto_lint     ──→ missing labels? missing domains? Claude fixes
-        onto_query    ──→ SPARQL to verify structure and competency questions
-        onto_save     ──→ persists to .ttl file
-        onto_version  ──→ saves snapshot for rollback
-```
-
-No Protege. No GUI. No manual class creation. Claude is the ontology engineer, OpenCheir is the runtime.
+You provide domain requirements in natural language. Claude generates Turtle/OWL, then **dynamically decides** which MCP tools to call based on what each tool returns — validating, fixing, re-loading, querying, iterating until the ontology is correct.
 
 ```mermaid
 flowchart TD
-    You["You — natural language"]
-    Claude["Claude — generates OWL, calls tools"]
-    MCP["MCP Protocol (stdio)"]
-    OpenCheir["OpenCheir — MCP server (Rust)"]
-    Ontology["Ontology Module — 15 tools"]
-    Oxigraph["Oxigraph — RDF/SPARQL engine"]
-    Files["Files — .ttl, .owl, .nt"]
+    You["You — 'Build me a Pizza ontology'"]
+    Claude["Claude generates Turtle"]
+    Validate["onto_validate"]
+    Fix["Claude fixes errors"]
+    Load["onto_load"]
+    Stats["onto_stats"]
+    Lint["onto_lint"]
+    Query["onto_query — SPARQL"]
+    Save["onto_save"]
+    Version["onto_version"]
 
-    You -->|"Build me a Pizza ontology"| Claude
-    Claude -->|"onto_validate, onto_load, ..."| MCP
-    MCP --> OpenCheir
-    OpenCheir --> Ontology
-    Ontology --> Oxigraph
-    Ontology --> Files
+    You --> Claude
+    Claude --> Validate
+    Validate -->|"syntax errors"| Fix
+    Fix --> Validate
+    Validate -->|"ok"| Load
+    Load --> Stats
+    Stats -->|"wrong counts"| Claude
+    Stats -->|"ok"| Lint
+    Lint -->|"issues"| Fix
+    Lint -->|"clean"| Query
+    Query -->|"gaps found"| Claude
+    Query -->|"all correct"| Version
+    Version --> Save
 ```
+
+This is not a fixed pipeline inside the MCP server. The MCP server exposes 15 individual tools — **Claude is the orchestrator** that decides what to call next based on results. If `onto_validate` fails, Claude fixes the Turtle and retries. If `onto_stats` shows wrong counts, Claude regenerates. If `onto_lint` finds missing labels, Claude adds them.
+
+No Protege. No GUI. No manual class creation. Claude is the ontology engineer, OpenCheir is the runtime.
+
+The workflow is codified in two places so Claude follows it consistently:
+
+- **[`CLAUDE.md`](CLAUDE.md)** — loaded automatically when you open Claude Code in this repo. Describes the generate → validate → verify → iterate → persist workflow.
+- **[`/ontology-engineer` skill](skills/ontology-engineer.md)** — portable skill you can use from any project. Invoke it with `/ontology-engineer` in Claude Code.
 
 ## Tools
 
