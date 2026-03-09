@@ -2,22 +2,34 @@
 
 AI-native ontology engine — build production ontologies in minutes instead of months.
 
+## Why not just ask Claude directly?
+
+You can ask Claude to generate an ontology in a single prompt — and it will. Claude knows OWL, RDF, BORO, 4D modeling, and every methodology from its training data. No fine-tuning, no plugins.
+
+**But a single-shot generation has real problems:**
+
+| Problem | What goes wrong |
+| ------- | --------------- |
+| No validation | Claude sometimes generates invalid Turtle — wrong prefixes, unclosed brackets, bad URIs. You won't know until you try to load it. |
+| No verification | Did Claude actually produce 49 toppings or did it skip some? Without SPARQL, you're counting by hand. |
+| No iteration | You can't diff what changed between versions. You can't lint for missing labels. You can't run competency questions as SPARQL. |
+| No persistence | The ontology only lives in the chat context. Close the window, it's gone. No versioning, no rollback. |
+| No scale | Claude's context window can hold ~2,000 triples. Real ontologies (IES4: 10,000+ triples) need an actual triple store. |
+| No integration | You can't push to a SPARQL endpoint, pull from a remote ontology, or resolve owl:imports chains. |
+
+**Open Ontologies solves every one of these.** It's a proper RDF/SPARQL engine (Oxigraph) exposed as 15 MCP tools that Claude calls automatically. Generate → validate → load → query → iterate → persist.
+
 ## What is it?
 
-Open Ontologies is an [MCP server](https://modelcontextprotocol.io/) that gives Claude the ability to work with ontologies end-to-end. It runs as a module inside [OpenCheir](https://github.com/fabio-rovai/opencheir), which exposes 15 `onto_*` tools via the Model Context Protocol.
+Two projects work together:
 
-**The idea:** Claude already knows OWL, RDF, BORO, 4D modeling, and every ontology methodology from its training data. It can generate valid Turtle/OWL directly. But it can't parse RDF files, execute SPARQL queries, or persist triples. Open Ontologies handles the parts Claude physically cannot do.
+- **[OpenCheir](https://github.com/fabio-rovai/opencheir)** — the MCP server. Written in Rust, runs as a single binary. Handles the protocol, tool routing, enforcement rules, audit trails, and the Oxigraph triple store. This is what Claude Code connects to.
+
+- **Open Ontologies** (this repo) — the documentation, benchmarks, and reference ontologies that prove the approach works. Clone this to see the comparison data, run the benchmarks yourself, and use the reference ontologies as starting points.
 
 ## How it works
 
-There are no special skills, plugins, or fine-tuning. Claude's ontology knowledge is native — it learned OWL, RDF, SPARQL, and methodologies like BORO from public standards, tutorials, and academic literature during training.
-
-You provide two things:
-
-1. **Domain requirements** — what you want to model, in natural language (e.g. "build a Pizza ontology" or a requirements doc with competency questions)
-2. **Methodology guidance** (optional) — if you need a specific approach like BORO/4D patterns, tell Claude or provide a background prompt
-
-Claude generates the Turtle/OWL directly, then uses the MCP tools to validate and persist it:
+You provide domain requirements in natural language. Claude generates Turtle/OWL, then calls the MCP tools to validate, load, query, and persist it — in a loop until it's right.
 
 ```text
 You: "Build me a Pizza ontology with 49 toppings and 22 named pizzas"
@@ -26,23 +38,24 @@ You: "Build me a Pizza ontology with 49 toppings and 22 named pizzas"
         Claude generates Turtle (from its training knowledge)
                     │
                     ▼
-        onto_validate ──→ checks OWL syntax
-        onto_load     ──→ loads into in-memory store
-        onto_stats    ──→ 95 classes, 8 properties
-        onto_lint     ──→ checks labels, domains, ranges
-        onto_query    ──→ runs SPARQL to verify structure
-        onto_save     ──→ persists to file
+        onto_validate ──→ syntax ok? if not, Claude fixes and retries
+        onto_load     ──→ loads into Oxigraph triple store
+        onto_stats    ──→ 95 classes, 8 properties — correct count?
+        onto_lint     ──→ missing labels? missing domains? Claude fixes
+        onto_query    ──→ SPARQL to verify structure and competency questions
+        onto_save     ──→ persists to .ttl file
+        onto_version  ──→ saves snapshot for rollback
 ```
 
-No Protege. No GUI. No manual class creation. No skills or plugins. Claude is the ontology engineer, Open Ontologies is the toolkit.
+No Protege. No GUI. No manual class creation. Claude is the ontology engineer, OpenCheir is the runtime.
 
 ```mermaid
 flowchart TD
     You["You — natural language"]
     Claude["Claude — generates OWL, calls tools"]
     MCP["MCP Protocol (stdio)"]
-    OpenCheir["OpenCheir — MCP server"]
-    Ontology["Ontology Module — ontology.rs"]
+    OpenCheir["OpenCheir — MCP server (Rust)"]
+    Ontology["Ontology Module — 15 tools"]
     Oxigraph["Oxigraph — RDF/SPARQL engine"]
     Files["Files — .ttl, .owl, .nt"]
 
@@ -153,7 +166,20 @@ The AI produces 50% fewer triples because it skips exhaustive pairwise disjointn
 **What we did (AI-native approach):**
 
 **Input to Claude:** Three documents providing context (all included in [`benchmark/reference/`](benchmark/reference/)):
-c- Zero external tools — Claude generated the Turtle directly
+
+- [`background_prompt.txt`](benchmark/reference/background_prompt.txt) — explains BORO/4D methodology, perdurantism, mereotopology
+- [`instructions.txt`](benchmark/reference/instructions.txt) — structural requirements: 4D Entity+State pattern, ClassOf hierarchies, property conventions
+- [`custom_instructions.txt`](benchmark/reference/custom_instructions.txt) — the actual domain brief: UK building/energy performance, 9 competency questions
+
+Claude reads these, then generates the complete Turtle file in one pass. Tools validate and verify.
+
+**Result:**
+
+- **100% compliance** — 86/86 checks passed
+- 318 triples, 36 classes, 12 properties
+- Full 4D/BORO patterns: Entity+State pairs, BoundingStates, ClassOf
+- All 9 competency questions covered
+- Zero external tools — Claude generated the Turtle directly
 
 **Files:**
 
@@ -169,17 +195,26 @@ c- Zero external tools — Claude generated the Turtle directly
 
 ## Replicate it yourself
 
-### 1. Install OpenCheir
-
-Open Ontologies runs inside [OpenCheir](https://github.com/fabio-rovai/opencheir). You need Rust 1.80+.
+### 1. Clone both repos
 
 ```bash
+# The MCP server (required — this is the runtime)
 git clone https://github.com/fabio-rovai/opencheir.git
+
+# The benchmarks and reference ontologies (optional — to verify claims and use as starting points)
+git clone https://github.com/fabio-rovai/open-ontologies.git
+```
+
+### 2. Build OpenCheir
+
+You need Rust 1.80+.
+
+```bash
 cd opencheir
 cargo build --release
 ```
 
-### 2. Connect to Claude Code
+### 3. Connect to Claude Code
 
 Add to `~/.claude/settings.json`:
 
@@ -196,7 +231,7 @@ Add to `~/.claude/settings.json`:
 
 Restart Claude Code. You should see the `onto_*` tools available.
 
-### 3. Build your first ontology
+### 4. Build your first ontology
 
 Open Claude Code and type:
 
@@ -216,7 +251,7 @@ Claude will:
 
 That's it. No Protege, no GUI, no manual class creation.
 
-### 4. Try with your own domain
+### 5. Try with your own domain
 
 For a simple ontology (like Pizza), one sentence is enough. For complex methodologies (like BORO/4D), give Claude context:
 
@@ -229,7 +264,7 @@ Validate it and run compliance checks.
 
 Or point Claude at a requirements document — it can read files directly.
 
-### 5. Run the benchmarks
+### 6. Run the benchmarks
 
 To verify the comparison results yourself:
 
