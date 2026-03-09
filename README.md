@@ -6,17 +6,24 @@ AI-native ontology engine — build production ontologies in minutes instead of 
 
 Open Ontologies is an [MCP server](https://modelcontextprotocol.io/) that gives Claude the ability to work with ontologies end-to-end. It runs as a module inside [OpenCheir](https://github.com/fabio-rovai/opencheir), which exposes 15 `onto_*` tools via the Model Context Protocol.
 
-**The idea:** Claude already knows OWL, RDF, BORO, 4D modeling, and every ontology methodology — but it can't parse RDF files, execute SPARQL queries, or persist triples. Open Ontologies handles the parts Claude physically cannot do.
+**The idea:** Claude already knows OWL, RDF, BORO, 4D modeling, and every ontology methodology from its training data. It can generate valid Turtle/OWL directly. But it can't parse RDF files, execute SPARQL queries, or persist triples. Open Ontologies handles the parts Claude physically cannot do.
 
 ## How it works
 
-You talk to Claude in natural language. Claude generates OWL/Turtle and calls the MCP tools to validate, load, query, and persist the ontology.
+There are no special skills, plugins, or fine-tuning. Claude's ontology knowledge is native — it learned OWL, RDF, SPARQL, and methodologies like BORO from public standards, tutorials, and academic literature during training.
+
+You provide two things:
+
+1. **Domain requirements** — what you want to model, in natural language (e.g. "build a Pizza ontology" or a requirements doc with competency questions)
+2. **Methodology guidance** (optional) — if you need a specific approach like BORO/4D patterns, tell Claude or provide a background prompt
+
+Claude generates the Turtle/OWL directly, then uses the MCP tools to validate and persist it:
 
 ```text
 You: "Build me a Pizza ontology with 49 toppings and 22 named pizzas"
                     │
                     ▼
-        Claude generates Turtle
+        Claude generates Turtle (from its training knowledge)
                     │
                     ▼
         onto_validate ──→ checks OWL syntax
@@ -27,7 +34,7 @@ You: "Build me a Pizza ontology with 49 toppings and 22 named pizzas"
         onto_save     ──→ persists to file
 ```
 
-No Protege. No GUI. No manual class creation. Claude is the ontology engineer, Open Ontologies is the toolkit.
+No Protege. No GUI. No manual class creation. No skills or plugins. Claude is the ontology engineer, Open Ontologies is the toolkit.
 
 ```mermaid
 flowchart TD
@@ -93,6 +100,8 @@ flowchart TD
 
 **What we did (AI-native approach):**
 
+**Input to Claude:** One sentence — "Build a Pizza ontology following the Manchester tutorial specification." No custom prompts, no background documents, no examples. Claude knows the Pizza tutorial from its training data.
+
 | Step | What you tell Claude | Tool used | Time |
 | ---- | -------------------- | --------- | ---- |
 | 1 | "Build a Pizza ontology following the Manchester tutorial spec" | Claude generates Turtle | 2 min |
@@ -143,9 +152,17 @@ The AI produces 50% fewer triples because it skips exhaustive pairwise disjointn
 
 **What we did (AI-native approach):**
 
+**Input to Claude:** Three documents providing context (all included in [`benchmark/reference/`](benchmark/reference/)):
+
+- [`background_prompt.txt`](benchmark/reference/background_prompt.txt) — explains BORO/4D methodology, perdurantism, mereotopology (general ontology engineering guidance)
+- [`instructions.txt`](benchmark/reference/instructions.txt) — structural requirements: alphabetical ordering, 4D Entity+State pattern, ClassOf hierarchies, property conventions
+- [`custom_instructions.txt`](benchmark/reference/custom_instructions.txt) — the actual domain brief: UK building/energy performance, 9 competency questions, use cases
+
+Claude reads these, then generates the complete Turtle file in one pass:
+
 | Step | What you tell Claude | Tool used | Time |
 | ---- | -------------------- | --------- | ---- |
-| 1 | "Build a building domain extension following IES4/BORO patterns" | Claude generates Turtle | 3 min |
+| 1 | "Build a building domain extension following IES4/BORO patterns" + 3 context files | Claude generates Turtle | 3 min |
 | 2 | "Validate it" | `onto_validate` | 5 sec |
 | 3 | "Load and run the compliance checks" | `onto_load` → `onto_query` | 10 sec |
 
