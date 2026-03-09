@@ -117,7 +117,12 @@ The 4 missing classes (`UnclosedPizza`, `SpicyPizzaEquivalent`, `VegetarianPizza
 
 The AI produces 50% fewer triples because it skips exhaustive pairwise disjointness declarations (398 pairs in reference vs 101 in AI) — mechanical axioms that a reasoner can infer from the hierarchy.
 
-**Full comparison:** [`benchmark/PIZZA_COMPARISON.md`](benchmark/PIZZA_COMPARISON.md)
+**Files:**
+
+- Reference: [`benchmark/reference/pizza-reference.owl`](benchmark/reference/pizza-reference.owl) — the original Manchester OWL file (6,858 lines)
+- AI-generated: [`benchmark/generated/pizza-ai.ttl`](benchmark/generated/pizza-ai.ttl) — Claude's Turtle output
+- Comparison script: [`benchmark/pizza_compare.py`](benchmark/pizza_compare.py)
+- Full comparison: [`benchmark/PIZZA_COMPARISON.md`](benchmark/PIZZA_COMPARISON.md)
 
 ### IES4 Building Domain — BORO/4D Methodology
 
@@ -152,7 +157,17 @@ The AI produces 50% fewer triples because it skips exhaustive pairwise disjointn
 - All 9 competency questions covered
 - Zero external tools — Claude generated the Turtle directly
 
-**Full comparison:** [`benchmark/BORO_COMPARISON.md`](benchmark/BORO_COMPARISON.md)
+**Files:**
+
+- Reference upper ontology: [`benchmark/reference/ies4.ttl`](benchmark/reference/ies4.ttl) — the full IES4 standard (249K)
+- Reference SHACL shapes: [`benchmark/reference/ies4.shacl`](benchmark/reference/ies4.shacl) — validation rules (106K)
+- Reference instructions: [`benchmark/reference/instructions.txt`](benchmark/reference/instructions.txt) — the domain brief given to Claude
+- AI-generated extension: [`benchmark/generated/ies-building-extension.ttl`](benchmark/generated/ies-building-extension.ttl) — Claude's output
+- BORO handcrafted: [`benchmark/reference/boro-building-handcrafted.ttl`](benchmark/reference/boro-building-handcrafted.ttl) — traditional BORO for comparison
+- BORO AI-generated: [`benchmark/generated/boro-building-ai.ttl`](benchmark/generated/boro-building-ai.ttl) — Claude's BORO version
+- Compliance script: [`benchmark/compare.py`](benchmark/compare.py) — runs 86 checks
+- BORO comparison script: [`benchmark/boro_compare.py`](benchmark/boro_compare.py)
+- Full comparison: [`benchmark/BORO_COMPARISON.md`](benchmark/BORO_COMPARISON.md)
 
 ### Run benchmarks
 
