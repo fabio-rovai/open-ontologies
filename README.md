@@ -105,7 +105,7 @@ The workflow is codified in two places so Claude follows it consistently:
 | 5 | Add `hasSpiciness` property, create `Spiciness` value partition (`Hot`/`Medium`/`Mild`) | 15 min |
 | 6 | Add spiciness restrictions to each topping class individually | 20 min |
 | 7 | Make all sibling classes disjoint (click "Make siblings disjoint" per group) | 10 min |
-| 8 | Create 22 named pizzas (`Margherita`, `American`, ...) with `someValuesFrom` restrictions | 45 min |
+| 8 | Create 24 named pizzas (`Margherita`, `American`, ...) with `someValuesFrom` restrictions | 45 min |
 | 9 | Add closure axioms (`allValuesFrom`) to each named pizza | 30 min |
 | 10 | Define `VegetarianPizza`, `MeatyPizza`, `SpicyPizza` as equivalent classes | 20 min |
 | 11 | Run reasoner, debug, iterate | 20 min |
@@ -138,7 +138,7 @@ The workflow is codified in two places so Claude follows it consistently:
 
 The 4 missing classes (`UnclosedPizza`, `SpicyPizzaEquivalent`, `VegetarianPizzaEquivalent1`, `VegetarianPizzaEquivalent2`) are teaching artifacts — they exist only to demonstrate OWL syntax variants in the tutorial, not actual domain concepts.
 
-The AI produces 50% fewer triples because it skips exhaustive pairwise disjointness declarations (398 pairs in reference vs 101 in AI) — mechanical axioms that a reasoner can infer from the hierarchy.
+The AI produces 50% fewer triples because it uses compact `owl:AllDisjointClasses` declarations instead of exhaustive pairwise `owl:disjointWith` axioms (398 pairs in reference vs 101 in AI) — same semantics, fewer triples.
 
 **Files:**
 
@@ -180,7 +180,7 @@ Claude reads these, then generates the complete Turtle file in one pass. Tools v
 - 318 triples, 36 classes, 12 properties
 - Full 4D/BORO patterns: Entity+State pairs, BoundingStates, ClassOf
 - All 9 competency questions covered
-- Zero external tools — Claude generated the Turtle directly
+- One-pass generation — Claude produced valid Turtle directly, tools validated afterward
 
 **Files:**
 
@@ -208,7 +208,7 @@ git clone https://github.com/fabio-rovai/open-ontologies.git
 
 ### 2. Build OpenCheir
 
-You need Rust 1.80+.
+You need Rust 1.85+ (edition 2024).
 
 ```bash
 cd opencheir
