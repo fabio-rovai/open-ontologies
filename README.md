@@ -42,9 +42,41 @@ flowchart TD
 
 ## Benchmarks
 
-### Pizza Ontology (Manchester University Tutorial)
+### Pizza Ontology — Manchester University Tutorial
 
-AI-generated vs the [canonical OWL tutorial](https://github.com/owlcs/pizza-ontology) — 99 classes, 8 properties, 2332 triples:
+**Source:** The [Manchester Pizza Tutorial](https://www.michaeldebellis.com/post/new-protege-pizza-tutorial) is the most widely used OWL teaching material. Students build a Pizza ontology step-by-step in Protege over ~4 hours. The reference OWL file is [published on GitHub](https://github.com/owlcs/pizza-ontology).
+
+**What the tutorial teaches (traditional approach):**
+
+| Step | What you do in Protege | Time |
+| ---- | ---------------------- | ---- |
+| 1 | Create blank ontology, set IRI | 5 min |
+| 2 | Add `Pizza`, `PizzaTopping`, `PizzaBase` classes via GUI | 10 min |
+| 3 | Create `hasTopping`, `hasBase` object properties, set domains/ranges | 15 min |
+| 4 | Add 49 topping subclasses (`MozzarellaTopping`, `HamTopping`, ...) one by one | 30 min |
+| 5 | Add `hasSpiciness` property, create `Spiciness` value partition (`Hot`/`Medium`/`Mild`) | 15 min |
+| 6 | Add spiciness restrictions to each topping class individually | 20 min |
+| 7 | Make all sibling classes disjoint (click "Make siblings disjoint" per group) | 10 min |
+| 8 | Create 22 named pizzas (`Margherita`, `American`, ...) with `someValuesFrom` restrictions | 45 min |
+| 9 | Add closure axioms (`allValuesFrom`) to each named pizza | 30 min |
+| 10 | Define `VegetarianPizza`, `MeatyPizza`, `SpicyPizza` as equivalent classes | 20 min |
+| 11 | Run reasoner, debug, iterate | 20 min |
+
+**Result:** 99 classes, 8 properties, 2,332 triples.
+
+**What we did (AI-native approach):**
+
+| Step | What you tell Claude | Tool used | Time |
+| ---- | -------------------- | --------- | ---- |
+| 1 | "Build a Pizza ontology following the Manchester tutorial spec" | Claude generates Turtle | 2 min |
+| 2 | "Validate it" | `onto_validate` | 5 sec |
+| 3 | "Load and check stats" | `onto_load` → `onto_stats` | 5 sec |
+| 4 | "Lint it" | `onto_lint` | 5 sec |
+| 5 | "Diff against the reference" | `onto_diff` | 5 sec |
+
+**Result:** 95 classes, 8 properties, 1,168 triples. ~5 minutes total.
+
+**Comparison:**
 
 | Metric | Reference | AI-Generated | Coverage |
 | ------ | --------- | ------------ | -------- |
@@ -54,11 +86,38 @@ AI-generated vs the [canonical OWL tutorial](https://github.com/owlcs/pizza-onto
 | Named Pizzas | 24 | 24 | **100%** |
 | Total triples | 2,332 | 1,168 | 50% size |
 
-96% domain coverage in 50% of the triples. The 4 missing classes are teaching artifacts, not domain concepts. Traditional approach: ~4 hours in Protege. AI-native: ~5 minutes.
+The 4 missing classes (`UnclosedPizza`, `SpicyPizzaEquivalent`, `VegetarianPizzaEquivalent1`, `VegetarianPizzaEquivalent2`) are teaching artifacts — they exist only to demonstrate OWL syntax variants in the tutorial, not actual domain concepts.
 
-### IES4 Building Domain (BORO/4D)
+The AI produces 50% fewer triples because it skips exhaustive pairwise disjointness declarations (398 pairs in reference vs 101 in AI) — mechanical axioms that a reasoner can infer from the hierarchy.
 
-Tested against the IES4 (UK Information Exchange Standard) building domain extension:
+**Full comparison:** [`benchmark/PIZZA_COMPARISON.md`](benchmark/PIZZA_COMPARISON.md)
+
+### IES4 Building Domain — BORO/4D Methodology
+
+**Source:** The [IES4 standard](https://github.com/dstl/IES4) is the UK government's Information Exchange Standard, built on BORO (Business Objects Reference Ontology) and 4D perdurantist modeling. It's a real-world upper ontology used in defence and intelligence.
+
+**What an ontology engineer does (traditional approach):**
+
+| Step | What you do | Time |
+| ---- | ----------- | ---- |
+| 1 | Read the IES4 spec (200+ pages), understand BORO/4D patterns | 2-3 days |
+| 2 | Import IES4 upper ontology into Protege | 30 min |
+| 3 | Create Entity+State pairs for each domain concept | 2-3 hours |
+| 4 | Add BoundingStates, ClassOf hierarchies | 1-2 hours |
+| 5 | Define properties linking states to entities | 1 hour |
+| 6 | Write SHACL shapes for validation | 2-3 hours |
+| 7 | Run validation against IES4 SHACL shapes | 30 min |
+| 8 | Debug and iterate until compliant | 1-2 days |
+
+**What we did (AI-native approach):**
+
+| Step | What you tell Claude | Tool used | Time |
+| ---- | -------------------- | --------- | ---- |
+| 1 | "Build a building domain extension following IES4/BORO patterns" | Claude generates Turtle | 3 min |
+| 2 | "Validate it" | `onto_validate` | 5 sec |
+| 3 | "Load and run the compliance checks" | `onto_load` → `onto_query` | 10 sec |
+
+**Result:**
 
 - **100% compliance** — 86/86 checks passed
 - 318 triples, 36 classes, 12 properties
@@ -66,10 +125,13 @@ Tested against the IES4 (UK Information Exchange Standard) building domain exten
 - All 9 competency questions covered
 - Zero external tools — Claude generated the Turtle directly
 
+**Full comparison:** [`benchmark/BORO_COMPARISON.md`](benchmark/BORO_COMPARISON.md)
+
 ### Run benchmarks
 
 ```bash
 cd benchmark
+pip install rdflib
 python3 pizza_compare.py   # Pizza ontology comparison
 python3 compare.py         # IES4 compliance check
 ```
