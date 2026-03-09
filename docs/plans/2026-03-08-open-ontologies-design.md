@@ -84,11 +84,15 @@ IES4 (UK Information Exchange Standard) building domain extension:
 - All 9 competency questions covered
 - Zero external tools needed — Claude generated the Turtle directly
 
-## Phase 2 (Planned)
+## Phase 2 (Implemented)
 
-Network-dependent tools for collaborative ontology work:
-- `onto_push` / `onto_pull` — sync with remote triple stores
-- `onto_publish` — publish to ontology registries
-- `onto_ingest` — stream from Kafka/webhooks
-- `onto_deps` / `onto_impact` — dependency and impact analysis
-- `onto_changelog` — semantic versioning and changelogs
+Remote sync and versioning tools:
+
+- `onto_pull` — fetch ontology from remote URL or SPARQL endpoint
+- `onto_push` — push ontology to a SPARQL endpoint
+- `onto_import` — resolve and load owl:imports chain
+- `onto_version` — save a named snapshot of the current store
+- `onto_history` — list saved version snapshots
+- `onto_rollback` — restore a previous version
+
+Enforcer rule: `onto_version_before_push` warns if pushing without a saved version snapshot.

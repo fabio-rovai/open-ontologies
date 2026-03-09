@@ -1,0 +1,557 @@
+# MIT License
+#
+# Copyright (c) 2025
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# baseURI: http://example.org/ontology/boro-building-handcrafted
+#
+# Hand-crafted BORO/4D perdurantist ontology for the building domain.
+# Follows traditional ontology engineering practice: maximally explicit,
+# verbose, every intermediate class spelled out, full Entity+State pairs,
+# ClassOf powertype hierarchies, and BoundingState lifecycle markers.
+
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix dc:     <http://purl.org/dc/elements/1.1/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann:   <http://purl.org/vocab/vann/> .
+@prefix ies:    <http://ies.data.gov.uk/ontology/ies4#> .
+@prefix borob:  <http://example.org/ontology/boro-building-handcrafted#> .
+
+# ============================================================================
+# Ontology declaration
+# ============================================================================
+
+<http://example.org/ontology/boro-building-handcrafted> a owl:Ontology ;
+    rdfs:label "BORO Building Domain Ontology (Hand-crafted)"^^xsd:string ;
+    rdfs:comment "A traditional hand-crafted BORO/4D extensionalist ontology for the building domain. Follows classic ontology engineering patterns: every Entity has a corresponding State, every State has a ClassOfState, lifecycle is tracked via BoundingStates, and intermediate classes are spelled out explicitly. Uses IES4 as the upper ontology."^^xsd:string ;
+    owl:imports <http://ies.data.gov.uk/ontology/ies4> ;
+    dcterms:title "BORO Building Domain Extension (Hand-crafted)"^^xsd:string ;
+    dcterms:description "Domain ontology for buildings, rooms, floors, and occupancy following the BORO/4D perdurantist approach. Created by hand using traditional ontology engineering methodology."^^xsd:string ;
+    dcterms:license <https://opensource.org/licenses/MIT> ;
+    dcterms:created "2025"^^xsd:string ;
+    dcterms:publisher "Open Ontologies Project"^^xsd:string ;
+    vann:preferredNamespacePrefix "borob"^^xsd:string ;
+    vann:preferredNamespaceUri "http://example.org/ontology/boro-building-handcrafted#"^^xsd:string .
+
+# ============================================================================
+# SECTION 1: Core Entity Classes
+# Each entity follows the BORO pattern of requiring a paired State class.
+# The Entity represents the whole-life individual; the State represents
+# a temporal part (time-slice) of that individual.
+# ============================================================================
+
+# --- Building ---
+
+borob:Building a rdfs:Class ;
+    rdfs:label "Building"^^xsd:string ;
+    rdfs:comment "A man-made structure with walls and a roof, standing permanently in one place. In the BORO 4D ontology, a Building is the whole-life Entity that extends from construction to demolition. Temporal aspects (e.g. when it was occupied, when it was renovated) are captured via BuildingState temporal parts."^^xsd:string ;
+    rdfs:subClassOf ies:Facility,
+        ies:Asset .
+
+borob:BuildingState a rdfs:Class ;
+    rdfs:label "Building State"^^xsd:string ;
+    rdfs:comment "A temporal part (time-slice) of a Building. A BuildingState captures the properties that are true of the Building for a bounded period of time. For example, a Building may have one BuildingState while it is under construction and another while it is in active use."^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+# --- Floor ---
+
+borob:Floor a rdfs:Class ;
+    rdfs:label "Floor"^^xsd:string ;
+    rdfs:comment "A horizontal level or storey within a Building. A Floor is a PartOfFacility, meaning it is a structural subdivision of the Building. Each Floor is a distinct Entity in its own right and may contain multiple Rooms."^^xsd:string ;
+    rdfs:subClassOf ies:PartOfFacility .
+
+borob:FloorState a rdfs:Class ;
+    rdfs:label "Floor State"^^xsd:string ;
+    rdfs:comment "A temporal part (time-slice) of a Floor. A FloorState captures the properties that hold for the Floor during a bounded time interval, such as its current use designation or occupancy status."^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+# --- Room ---
+
+borob:Room a rdfs:Class ;
+    rdfs:label "Room"^^xsd:string ;
+    rdfs:comment "An enclosed space within a Building, typically bounded by walls, a floor, and a ceiling. A Room is a PartOfFacility. In the BORO approach, a Room is the whole-life individual; its temporal aspects are captured via RoomState."^^xsd:string ;
+    rdfs:subClassOf ies:PartOfFacility .
+
+borob:RoomState a rdfs:Class ;
+    rdfs:label "Room State"^^xsd:string ;
+    rdfs:comment "A temporal part (time-slice) of a Room. A RoomState captures properties of the Room that may change over time, such as its designated function (office, meeting room, storage) or its occupancy."^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+# --- Dwelling ---
+
+borob:Dwelling a rdfs:Class ;
+    rdfs:label "Dwelling"^^xsd:string ;
+    rdfs:comment "A self-contained unit of accommodation used for residential purposes. A Dwelling may be a whole Building (e.g. a detached house) or part of one (e.g. a flat). A Dwelling is a PartOfFacility. In the BORO approach the Dwelling is the whole-life individual."^^xsd:string ;
+    rdfs:subClassOf ies:PartOfFacility .
+
+borob:DwellingState a rdfs:Class ;
+    rdfs:label "Dwelling State"^^xsd:string ;
+    rdfs:comment "A temporal part (time-slice) of a Dwelling. A DwellingState captures properties that hold for the Dwelling during a bounded period, such as the number of current occupants or the current EPC rating."^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+# --- BuildingElement ---
+
+borob:BuildingElement a rdfs:Class ;
+    rdfs:label "Building Element"^^xsd:string ;
+    rdfs:comment "A physical component or structural element that is part of a Building, such as a wall, roof, window, or door. This is an intermediate class that provides a common supertype for all physical building components. BuildingElement is an Asset because it is a man-made artefact."^^xsd:string ;
+    rdfs:subClassOf ies:Asset .
+
+borob:BuildingElementState a rdfs:Class ;
+    rdfs:label "Building Element State"^^xsd:string ;
+    rdfs:comment "A temporal part (time-slice) of a BuildingElement. Captures properties such as the element's current condition, material composition, or installation status during a bounded period."^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+# --- Wall ---
+
+borob:Wall a rdfs:Class ;
+    rdfs:label "Wall"^^xsd:string ;
+    rdfs:comment "A vertical structural element of a Building that encloses or divides space. A Wall is a BuildingElement."^^xsd:string ;
+    rdfs:subClassOf borob:BuildingElement .
+
+borob:WallState a rdfs:Class ;
+    rdfs:label "Wall State"^^xsd:string ;
+    rdfs:comment "A temporal part (time-slice) of a Wall. Captures time-varying properties such as insulation thickness, surface finish, or structural condition."^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+# --- Roof ---
+
+borob:Roof a rdfs:Class ;
+    rdfs:label "Roof"^^xsd:string ;
+    rdfs:comment "The topmost covering element of a Building. A Roof is a BuildingElement."^^xsd:string ;
+    rdfs:subClassOf borob:BuildingElement .
+
+borob:RoofState a rdfs:Class ;
+    rdfs:label "Roof State"^^xsd:string ;
+    rdfs:comment "A temporal part (time-slice) of a Roof. Captures time-varying properties such as material condition, waterproofing status, or insulation state."^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+# --- Window ---
+
+borob:Window a rdfs:Class ;
+    rdfs:label "Window"^^xsd:string ;
+    rdfs:comment "An opening in a Wall fitted with glass or other transparent material, allowing light and sometimes air to pass through. A Window is a BuildingElement."^^xsd:string ;
+    rdfs:subClassOf borob:BuildingElement .
+
+borob:WindowState a rdfs:Class ;
+    rdfs:label "Window State"^^xsd:string ;
+    rdfs:comment "A temporal part (time-slice) of a Window. Captures time-varying properties such as glazing type (single, double, triple) or condition."^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+# --- Door ---
+
+borob:Door a rdfs:Class ;
+    rdfs:label "Door"^^xsd:string ;
+    rdfs:comment "A hinged, sliding, or revolving barrier at the entrance to a Building, Room, or passage. A Door is a BuildingElement."^^xsd:string ;
+    rdfs:subClassOf borob:BuildingElement .
+
+borob:DoorState a rdfs:Class ;
+    rdfs:label "Door State"^^xsd:string ;
+    rdfs:comment "A temporal part (time-slice) of a Door. Captures time-varying properties such as lock status, material condition, or fire rating."^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+# ============================================================================
+# SECTION 2: Event Classes
+# Events are temporal individuals that represent things that happen.
+# In BORO/IES4, events are Elements (not Entities), so they do not
+# require paired State classes.
+# ============================================================================
+
+borob:OccupancyEvent a rdfs:Class ;
+    rdfs:label "Occupancy Event"^^xsd:string ;
+    rdfs:comment "An Event in which one or more Persons begin or end their occupancy of a Dwelling or Room. The OccupancyEvent marks a transition in the occupancy status of the space."^^xsd:string ;
+    rdfs:subClassOf ies:Event .
+
+borob:ConstructionEvent a rdfs:Class ;
+    rdfs:label "Construction Event"^^xsd:string ;
+    rdfs:comment "An Event that represents the activity of constructing a Building. The ConstructionEvent typically produces a ConstructedState BoundingState at the Building."^^xsd:string ;
+    rdfs:subClassOf ies:Event .
+
+borob:DemolitionEvent a rdfs:Class ;
+    rdfs:label "Demolition Event"^^xsd:string ;
+    rdfs:comment "An Event that represents the activity of demolishing a Building. The DemolitionEvent typically produces a DemolishedState BoundingState at the Building."^^xsd:string ;
+    rdfs:subClassOf ies:Event .
+
+borob:RenovationEvent a rdfs:Class ;
+    rdfs:label "Renovation Event"^^xsd:string ;
+    rdfs:comment "An Event that represents a renovation or refurbishment activity on a Building, Dwelling, or BuildingElement. A RenovationEvent may change the state of the renovated Entity."^^xsd:string ;
+    rdfs:subClassOf ies:Event .
+
+borob:InspectionEvent a rdfs:Class ;
+    rdfs:label "Inspection Event"^^xsd:string ;
+    rdfs:comment "An Event in which a Building, Dwelling, or BuildingElement is formally inspected. The InspectionEvent may produce an InspectionReport document."^^xsd:string ;
+    rdfs:subClassOf ies:Event .
+
+# ============================================================================
+# SECTION 3: BoundingState Classes
+# BoundingStates mark the temporal boundaries (beginning or end) of
+# an Entity's existence or a State's duration. This is a core BORO
+# pattern for lifecycle modelling.
+# ============================================================================
+
+borob:ConstructedState a rdfs:Class ;
+    rdfs:label "Constructed State"^^xsd:string ;
+    rdfs:comment "A BoundingState that marks the point at which a Building came into existence through construction. The ConstructedState is the isStartOf the Building's first BuildingState."^^xsd:string ;
+    rdfs:subClassOf ies:BoundingState .
+
+borob:DemolishedState a rdfs:Class ;
+    rdfs:label "Demolished State"^^xsd:string ;
+    rdfs:comment "A BoundingState that marks the point at which a Building ceased to exist through demolition. The DemolishedState is the isEndOf the Building's final BuildingState."^^xsd:string ;
+    rdfs:subClassOf ies:BoundingState .
+
+borob:OccupiedState a rdfs:Class ;
+    rdfs:label "Occupied State"^^xsd:string ;
+    rdfs:comment "A BoundingState that marks the beginning of a period during which a Dwelling or Room is occupied by one or more Persons. The OccupiedState is the isStartOf an occupancy-related DwellingState or RoomState."^^xsd:string ;
+    rdfs:subClassOf ies:BoundingState .
+
+borob:VacatedState a rdfs:Class ;
+    rdfs:label "Vacated State"^^xsd:string ;
+    rdfs:comment "A BoundingState that marks the end of a period during which a Dwelling or Room was occupied. The VacatedState is the isEndOf an occupancy-related DwellingState or RoomState."^^xsd:string ;
+    rdfs:subClassOf ies:BoundingState .
+
+borob:InstalledState a rdfs:Class ;
+    rdfs:label "Installed State"^^xsd:string ;
+    rdfs:comment "A BoundingState that marks the point at which a BuildingElement was installed within a Building or Dwelling. The InstalledState is the isStartOf the BuildingElement's active state."^^xsd:string ;
+    rdfs:subClassOf ies:BoundingState .
+
+borob:RemovedState a rdfs:Class ;
+    rdfs:label "Removed State"^^xsd:string ;
+    rdfs:comment "A BoundingState that marks the point at which a BuildingElement was removed from a Building or Dwelling. The RemovedState is the isEndOf the BuildingElement's active state."^^xsd:string ;
+    rdfs:subClassOf ies:BoundingState .
+
+# ============================================================================
+# SECTION 4: ClassOf Powertype Classes
+# In BORO, the ClassOf pattern provides a meta-level classification.
+# ClassOfEntity allows categorising types of entities without creating
+# concrete subclasses for every possible category. ClassOfState does
+# the same for states.
+# ============================================================================
+
+borob:ClassOfBuilding a rdfs:Class ;
+    rdfs:label "Class Of Building"^^xsd:string ;
+    rdfs:comment "A ClassOfEntity whose instances are types of Buildings that share a common characteristic, such as 'Detached House', 'Semi-Detached House', 'Terraced House', 'Flat', or 'Bungalow'. This is the BORO powertype pattern applied to Building."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+borob:ClassOfBuildingState a rdfs:Class ;
+    rdfs:label "Class Of Building State"^^xsd:string ;
+    rdfs:comment "A ClassOfState whose instances are types of BuildingState that share a common characteristic, such as 'Under Construction', 'In Active Use', or 'Derelict'."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfState .
+
+borob:ClassOfRoom a rdfs:Class ;
+    rdfs:label "Class Of Room"^^xsd:string ;
+    rdfs:comment "A ClassOfEntity whose instances are types of Rooms that share a common function or purpose, such as 'Kitchen', 'Bathroom', 'Bedroom', 'Living Room', or 'Garage'."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+borob:ClassOfRoomState a rdfs:Class ;
+    rdfs:label "Class Of Room State"^^xsd:string ;
+    rdfs:comment "A ClassOfState whose instances are types of RoomState that share a common characteristic."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfState .
+
+borob:ClassOfFloor a rdfs:Class ;
+    rdfs:label "Class Of Floor"^^xsd:string ;
+    rdfs:comment "A ClassOfEntity whose instances are types of Floors, such as 'Ground Floor', 'First Floor', 'Basement'."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+borob:ClassOfFloorState a rdfs:Class ;
+    rdfs:label "Class Of Floor State"^^xsd:string ;
+    rdfs:comment "A ClassOfState whose instances are types of FloorState."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfState .
+
+borob:ClassOfDwelling a rdfs:Class ;
+    rdfs:label "Class Of Dwelling"^^xsd:string ;
+    rdfs:comment "A ClassOfEntity whose instances are types of Dwellings, such as 'Studio Flat', 'One-Bedroom Flat', 'Two-Bedroom House'."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+borob:ClassOfDwellingState a rdfs:Class ;
+    rdfs:label "Class Of Dwelling State"^^xsd:string ;
+    rdfs:comment "A ClassOfState whose instances are types of DwellingState."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfState .
+
+borob:ClassOfBuildingElement a rdfs:Class ;
+    rdfs:label "Class Of Building Element"^^xsd:string ;
+    rdfs:comment "A ClassOfEntity whose instances are types of BuildingElements, such as 'Load-bearing Wall', 'Partition Wall', 'Pitched Roof', 'Flat Roof'."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+borob:ClassOfBuildingElementState a rdfs:Class ;
+    rdfs:label "Class Of Building Element State"^^xsd:string ;
+    rdfs:comment "A ClassOfState whose instances are types of BuildingElementState."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfState .
+
+# ============================================================================
+# SECTION 5: Intermediate Classification Classes
+# These additional intermediate classes provide fine-grained
+# classification of occupancy patterns and element conditions.
+# This is typical of hand-crafted BORO ontologies: maximum
+# explicitness at the cost of verbosity.
+# ============================================================================
+
+borob:OccupancyType a rdfs:Class ;
+    rdfs:label "Occupancy Type"^^xsd:string ;
+    rdfs:comment "A ClassOfEntity that classifies the nature of occupancy, distinguishing between owner-occupied, privately rented, socially rented, and vacant."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+borob:BuildingCondition a rdfs:Class ;
+    rdfs:label "Building Condition"^^xsd:string ;
+    rdfs:comment "A ClassOfState that classifies the physical condition of a Building, such as 'Good', 'Fair', 'Poor', or 'Derelict'."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfState .
+
+borob:ElementMaterial a rdfs:Class ;
+    rdfs:label "Element Material"^^xsd:string ;
+    rdfs:comment "A ClassOfEntity that classifies the primary material of a BuildingElement, such as 'Brick', 'Timber', 'Concrete', 'Steel', 'Glass'."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+borob:FloorLevelDesignation a rdfs:Class ;
+    rdfs:label "Floor Level Designation"^^xsd:string ;
+    rdfs:comment "A ClassOfEntity that classifies a Floor by its vertical position within a Building, such as 'Basement', 'Ground', 'First', 'Second', etc. This intermediate class is necessary because the same physical building may use different floor-numbering conventions."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+# ============================================================================
+# SECTION 6: Object Properties
+# All properties follow the IES4 pattern of being subPropertyOf one of
+# the fundamental relationship types: ies:relationship, ies:isPartOf,
+# ies:isStateOf, ies:isIdentifiedBy, ies:inPeriod.
+# ============================================================================
+
+borob:containsFloor a owl:ObjectProperty ;
+    rdfs:label "contains Floor"^^xsd:string ;
+    rdfs:comment "Relates a Building to a Floor that is structurally contained within it. This is a part-whole relationship: the Floor is part of the Building."^^xsd:string ;
+    rdfs:domain borob:Building ;
+    rdfs:range borob:Floor ;
+    rdfs:subPropertyOf ies:isPartOf .
+
+borob:containsRoom a owl:ObjectProperty ;
+    rdfs:label "contains Room"^^xsd:string ;
+    rdfs:comment "Relates a Floor to a Room that is located on that Floor. This is a part-whole relationship: the Room is part of the Floor."^^xsd:string ;
+    rdfs:domain borob:Floor ;
+    rdfs:range borob:Room ;
+    rdfs:subPropertyOf ies:isPartOf .
+
+borob:containsDwelling a owl:ObjectProperty ;
+    rdfs:label "contains Dwelling"^^xsd:string ;
+    rdfs:comment "Relates a Building to a Dwelling that is contained within it. A Building may contain one or more Dwellings. This is a part-whole relationship."^^xsd:string ;
+    rdfs:domain borob:Building ;
+    rdfs:range borob:Dwelling ;
+    rdfs:subPropertyOf ies:isPartOf .
+
+borob:hasElement a owl:ObjectProperty ;
+    rdfs:label "has Element"^^xsd:string ;
+    rdfs:comment "Relates a Building (or BuildingState) to a BuildingElement that forms part of its physical structure. This is a part-whole relationship."^^xsd:string ;
+    rdfs:domain borob:Building ;
+    rdfs:range borob:BuildingElement ;
+    rdfs:subPropertyOf ies:isPartOf .
+
+borob:roomInDwelling a owl:ObjectProperty ;
+    rdfs:label "room In Dwelling"^^xsd:string ;
+    rdfs:comment "Relates a Room to the Dwelling it belongs to. A Room may be part of a Dwelling's accommodation space."^^xsd:string ;
+    rdfs:domain borob:Room ;
+    rdfs:range borob:Dwelling ;
+    rdfs:subPropertyOf ies:isPartOf .
+
+borob:elementInRoom a owl:ObjectProperty ;
+    rdfs:label "element In Room"^^xsd:string ;
+    rdfs:comment "Relates a BuildingElement to the Room in which it is located. For example, a Window may be elementInRoom a particular Room."^^xsd:string ;
+    rdfs:domain borob:BuildingElement ;
+    rdfs:range borob:Room ;
+    rdfs:subPropertyOf ies:relationship .
+
+borob:occupiedBy a owl:ObjectProperty ;
+    rdfs:label "occupied By"^^xsd:string ;
+    rdfs:comment "Relates a DwellingState or RoomState to the Person (or PersonState) who occupies the space during that temporal state. This models occupancy as a time-varying property."^^xsd:string ;
+    rdfs:domain borob:DwellingState ;
+    rdfs:range ies:Person ;
+    rdfs:subPropertyOf ies:relationship .
+
+borob:constructedBy a owl:ObjectProperty ;
+    rdfs:label "constructed By"^^xsd:string ;
+    rdfs:comment "Relates a ConstructionEvent to the Organisation responsible for the construction activity."^^xsd:string ;
+    rdfs:domain borob:ConstructionEvent ;
+    rdfs:range ies:Organisation ;
+    rdfs:subPropertyOf ies:relationship .
+
+borob:targetOfRenovation a owl:ObjectProperty ;
+    rdfs:label "target Of Renovation"^^xsd:string ;
+    rdfs:comment "Relates a RenovationEvent to the Building, Dwelling, or BuildingElement that is the target of the renovation work."^^xsd:string ;
+    rdfs:domain borob:RenovationEvent ;
+    rdfs:range borob:Building ;
+    rdfs:subPropertyOf ies:relationship .
+
+borob:inspectedEntity a owl:ObjectProperty ;
+    rdfs:label "inspected Entity"^^xsd:string ;
+    rdfs:comment "Relates an InspectionEvent to the Building, Dwelling, or BuildingElement that was inspected."^^xsd:string ;
+    rdfs:domain borob:InspectionEvent ;
+    rdfs:range borob:Building ;
+    rdfs:subPropertyOf ies:relationship .
+
+borob:hasMaterial a owl:ObjectProperty ;
+    rdfs:label "has Material"^^xsd:string ;
+    rdfs:comment "Relates a BuildingElement (or BuildingElementState) to the ElementMaterial that describes its primary construction material."^^xsd:string ;
+    rdfs:domain borob:BuildingElement ;
+    rdfs:range borob:ElementMaterial ;
+    rdfs:subPropertyOf ies:relationship .
+
+borob:hasOccupancyType a owl:ObjectProperty ;
+    rdfs:label "has Occupancy Type"^^xsd:string ;
+    rdfs:comment "Relates a DwellingState to the OccupancyType that classifies the nature of its occupancy during that temporal state."^^xsd:string ;
+    rdfs:domain borob:DwellingState ;
+    rdfs:range borob:OccupancyType ;
+    rdfs:subPropertyOf ies:relationship .
+
+borob:hasCondition a owl:ObjectProperty ;
+    rdfs:label "has Condition"^^xsd:string ;
+    rdfs:comment "Relates a BuildingState to the BuildingCondition that classifies the physical condition of the Building during that temporal state."^^xsd:string ;
+    rdfs:domain borob:BuildingState ;
+    rdfs:range borob:BuildingCondition ;
+    rdfs:subPropertyOf ies:relationship .
+
+borob:hasFloorLevel a owl:ObjectProperty ;
+    rdfs:label "has Floor Level"^^xsd:string ;
+    rdfs:comment "Relates a Floor to the FloorLevelDesignation that identifies its vertical position within the Building."^^xsd:string ;
+    rdfs:domain borob:Floor ;
+    rdfs:range borob:FloorLevelDesignation ;
+    rdfs:subPropertyOf ies:relationship .
+
+# ============================================================================
+# SECTION 7: Datatype Properties
+# ============================================================================
+
+borob:floorArea a owl:DatatypeProperty ;
+    rdfs:label "floor Area"^^xsd:string ;
+    rdfs:comment "The floor area of a Room, Dwelling, or Building in square metres."^^xsd:string ;
+    rdfs:domain borob:Room ;
+    rdfs:range xsd:decimal ;
+    rdfs:subPropertyOf ies:attribute .
+
+borob:yearConstructed a owl:DatatypeProperty ;
+    rdfs:label "year Constructed"^^xsd:string ;
+    rdfs:comment "The year in which a Building was constructed. This is a convenience attribute; the full temporal provenance is modelled via ConstructedState and ParticularPeriod."^^xsd:string ;
+    rdfs:domain borob:Building ;
+    rdfs:range xsd:gYear ;
+    rdfs:subPropertyOf ies:attribute .
+
+borob:numberOfFloors a owl:DatatypeProperty ;
+    rdfs:label "number Of Floors"^^xsd:string ;
+    rdfs:comment "The number of above-ground floors (storeys) in a Building."^^xsd:string ;
+    rdfs:domain borob:Building ;
+    rdfs:range xsd:integer ;
+    rdfs:subPropertyOf ies:attribute .
+
+borob:roomCapacity a owl:DatatypeProperty ;
+    rdfs:label "room Capacity"^^xsd:string ;
+    rdfs:comment "The maximum number of persons a Room can accommodate."^^xsd:string ;
+    rdfs:domain borob:Room ;
+    rdfs:range xsd:integer ;
+    rdfs:subPropertyOf ies:attribute .
+
+# ============================================================================
+# SECTION 8: ClassOf Instances (Named Individuals)
+# These provide enumerated values for the ClassOf powertypes.
+# ============================================================================
+
+# --- ClassOfBuilding instances ---
+borob:DetachedHouse a borob:ClassOfBuilding ;
+    rdfs:label "Detached House"^^xsd:string ;
+    rdfs:comment "A free-standing residential building not joined to any other building."^^xsd:string .
+
+borob:SemiDetachedHouse a borob:ClassOfBuilding ;
+    rdfs:label "Semi-Detached House"^^xsd:string ;
+    rdfs:comment "A residential building joined to another building on one side."^^xsd:string .
+
+borob:TerracedHouse a borob:ClassOfBuilding ;
+    rdfs:label "Terraced House"^^xsd:string ;
+    rdfs:comment "A residential building joined to other buildings on both sides."^^xsd:string .
+
+borob:FlatBlock a borob:ClassOfBuilding ;
+    rdfs:label "Flat / Apartment Block"^^xsd:string ;
+    rdfs:comment "A multi-storey building containing multiple self-contained dwelling units."^^xsd:string .
+
+# --- ClassOfRoom instances ---
+borob:Kitchen a borob:ClassOfRoom ;
+    rdfs:label "Kitchen"^^xsd:string ;
+    rdfs:comment "A room used primarily for food preparation and cooking."^^xsd:string .
+
+borob:Bathroom a borob:ClassOfRoom ;
+    rdfs:label "Bathroom"^^xsd:string ;
+    rdfs:comment "A room containing a bath or shower and typically a toilet."^^xsd:string .
+
+borob:Bedroom a borob:ClassOfRoom ;
+    rdfs:label "Bedroom"^^xsd:string ;
+    rdfs:comment "A room used primarily for sleeping."^^xsd:string .
+
+borob:LivingRoom a borob:ClassOfRoom ;
+    rdfs:label "Living Room"^^xsd:string ;
+    rdfs:comment "A room used primarily for relaxation and socialising."^^xsd:string .
+
+# --- OccupancyType instances ---
+borob:OwnerOccupied a borob:OccupancyType ;
+    rdfs:label "Owner-Occupied"^^xsd:string ;
+    rdfs:comment "The dwelling is occupied by the person who owns it."^^xsd:string .
+
+borob:PrivatelyRented a borob:OccupancyType ;
+    rdfs:label "Privately Rented"^^xsd:string ;
+    rdfs:comment "The dwelling is rented from a private landlord."^^xsd:string .
+
+borob:SociallyRented a borob:OccupancyType ;
+    rdfs:label "Socially Rented"^^xsd:string ;
+    rdfs:comment "The dwelling is rented from a social housing provider."^^xsd:string .
+
+borob:Vacant a borob:OccupancyType ;
+    rdfs:label "Vacant"^^xsd:string ;
+    rdfs:comment "The dwelling is currently unoccupied."^^xsd:string .
+
+# --- BuildingCondition instances ---
+borob:ConditionGood a borob:BuildingCondition ;
+    rdfs:label "Good"^^xsd:string ;
+    rdfs:comment "The building is in good structural and cosmetic condition."^^xsd:string .
+
+borob:ConditionFair a borob:BuildingCondition ;
+    rdfs:label "Fair"^^xsd:string ;
+    rdfs:comment "The building is in acceptable condition with some minor defects."^^xsd:string .
+
+borob:ConditionPoor a borob:BuildingCondition ;
+    rdfs:label "Poor"^^xsd:string ;
+    rdfs:comment "The building has significant defects requiring attention."^^xsd:string .
+
+# --- ElementMaterial instances ---
+borob:Brick a borob:ElementMaterial ;
+    rdfs:label "Brick"^^xsd:string ;
+    rdfs:comment "Construction material made from fired clay."^^xsd:string .
+
+borob:Timber a borob:ElementMaterial ;
+    rdfs:label "Timber"^^xsd:string ;
+    rdfs:comment "Construction material made from wood."^^xsd:string .
+
+borob:Concrete a borob:ElementMaterial ;
+    rdfs:label "Concrete"^^xsd:string ;
+    rdfs:comment "Construction material made from cement, aggregate, and water."^^xsd:string .
+
+# --- FloorLevelDesignation instances ---
+borob:Basement a borob:FloorLevelDesignation ;
+    rdfs:label "Basement"^^xsd:string ;
+    rdfs:comment "A floor level below ground level."^^xsd:string .
+
+borob:GroundFloor a borob:FloorLevelDesignation ;
+    rdfs:label "Ground Floor"^^xsd:string ;
+    rdfs:comment "The floor level at ground level."^^xsd:string .
+
+borob:FirstFloor a borob:FloorLevelDesignation ;
+    rdfs:label "First Floor"^^xsd:string ;
+    rdfs:comment "The floor level above the ground floor."^^xsd:string .

@@ -4,6 +4,22 @@ AI-native ontology engine. Built with [OpenCheir](https://github.com/fabio-rovai
 
 Claude is the ontology intelligence — it knows OWL, BORO, 4D modeling, every methodology. This engine handles what Claude physically cannot: RDF parsing, SPARQL execution, format conversion, and persistence.
 
+```mermaid
+flowchart TD
+    Claude["Claude — Ontology Intelligence"]
+    MCP["MCP Protocol"]
+    Gateway["Gateway — server.rs"]
+    Domain["Domain — ontology.rs"]
+    Store["Store — graph.rs"]
+    Oxigraph["Oxigraph — RDF/SPARQL Engine"]
+
+    Claude --> MCP
+    MCP --> Gateway
+    Gateway --> Domain
+    Domain --> Store
+    Store --> Oxigraph
+```
+
 ## Tools
 
 | Tool | Purpose |
@@ -17,6 +33,12 @@ Claude is the ontology intelligence — it knows OWL, BORO, 4D modeling, every m
 | `onto_diff` | Compare two ontology files (added/removed triples) |
 | `onto_lint` | Check for missing labels, comments, domains |
 | `onto_clear` | Clear in-memory store |
+| `onto_pull` | Fetch ontology from remote URL or SPARQL endpoint |
+| `onto_push` | Push ontology to a SPARQL endpoint |
+| `onto_import` | Resolve and load owl:imports chain |
+| `onto_version` | Save a named snapshot of the current store |
+| `onto_history` | List saved version snapshots |
+| `onto_rollback` | Restore a previous version |
 
 ## Benchmark
 
