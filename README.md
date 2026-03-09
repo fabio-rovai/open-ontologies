@@ -1,23 +1,50 @@
 # Open Ontologies
 
-AI-native ontology engine. Built with [OpenCheir](https://github.com/fabio-rovai/opencheir).
+AI-native ontology engine — build production ontologies in minutes instead of months.
 
-Claude is the ontology intelligence — it knows OWL, BORO, 4D modeling, every methodology. This engine handles what Claude physically cannot: RDF parsing, SPARQL execution, format conversion, and persistence.
+## What is it?
+
+Open Ontologies is an [MCP server](https://modelcontextprotocol.io/) that gives Claude the ability to work with ontologies end-to-end. It runs as a module inside [OpenCheir](https://github.com/fabio-rovai/opencheir), which exposes 15 `onto_*` tools via the Model Context Protocol.
+
+**The idea:** Claude already knows OWL, RDF, BORO, 4D modeling, and every ontology methodology — but it can't parse RDF files, execute SPARQL queries, or persist triples. Open Ontologies handles the parts Claude physically cannot do.
+
+## How it works
+
+You talk to Claude in natural language. Claude generates OWL/Turtle and calls the MCP tools to validate, load, query, and persist the ontology.
+
+```text
+You: "Build me a Pizza ontology with 49 toppings and 22 named pizzas"
+                    │
+                    ▼
+        Claude generates Turtle
+                    │
+                    ▼
+        onto_validate ──→ checks OWL syntax
+        onto_load     ──→ loads into in-memory store
+        onto_stats    ──→ 95 classes, 8 properties
+        onto_lint     ──→ checks labels, domains, ranges
+        onto_query    ──→ runs SPARQL to verify structure
+        onto_save     ──→ persists to file
+```
+
+No Protege. No GUI. No manual class creation. Claude is the ontology engineer, Open Ontologies is the toolkit.
 
 ```mermaid
 flowchart TD
-    Claude["Claude — Ontology Intelligence"]
-    MCP["MCP Protocol"]
-    Gateway["Gateway — server.rs"]
-    Domain["Domain — ontology.rs"]
-    Store["Store — graph.rs"]
-    Oxigraph["Oxigraph — RDF/SPARQL Engine"]
+    You["You — natural language"]
+    Claude["Claude — generates OWL, calls tools"]
+    MCP["MCP Protocol (stdio)"]
+    OpenCheir["OpenCheir — MCP server"]
+    Ontology["Ontology Module — ontology.rs"]
+    Oxigraph["Oxigraph — RDF/SPARQL engine"]
+    Files["Files — .ttl, .owl, .nt"]
 
-    Claude --> MCP
-    MCP --> Gateway
-    Gateway --> Domain
-    Domain --> Store
-    Store --> Oxigraph
+    You -->|"Build me a Pizza ontology"| Claude
+    Claude -->|"onto_validate, onto_load, ..."| MCP
+    MCP --> OpenCheir
+    OpenCheir --> Ontology
+    Ontology --> Oxigraph
+    Ontology --> Files
 ```
 
 ## Tools
