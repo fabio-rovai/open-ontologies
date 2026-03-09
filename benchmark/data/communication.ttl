@@ -1,0 +1,45 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ies: <http://ies.data.gov.uk/ontology/ies4#> . 
+@prefix data: <http://data.gov.uk/testdata#> .
+
+data:Fred a ies:Person .
+data:Brenda a ies:Person .
+data:LAX a ies:Airport .
+data:Wetwang a ies:RegionOfCountry .
+data:0044987654321 a ies:TelephoneNumber .
+data:123456789012345 a ies:IMEI .
+data:001234567890 a ies:TelephoneNumber . 
+
+data:FredBrendaCall a ies:VoiceCall .
+
+data:FredBrendaCaller a ies:Caller ;
+  ies:isPartOf data:FredBrendaCall ;
+  ies:happensIn data:Wetwang .
+
+data:FredBrendaCallee a ies:Callee ;
+  ies:isPartOf data:FredBrendaCall ;
+  ies:happensIn data:LAX .
+
+data:FredInCall a ies:PersonInCommunication ;
+  ies:isParticipantIn data:FredBrendaCaller ;
+  ies:isParticipationOf data:Fred .
+
+data:BrendaInCall a ies:PersonInCommunication ;
+  ies:isParticipantIn data:FredBrendaCallee ;
+  ies:isParticipationOf data:Brenda .
+
+data:FredsPhoneInCall a ies:DeviceInCommunication ;
+  ies:isParticipantIn data:FredBrendaCaller ;
+  ies:isIdentifiedBy data:0044987654321 ;
+  ies:isParticipationOf data:FredsMobile .
+
+data:BrendaAccountInCall a ies:AccountInCommunication ;
+  ies:isParticipantIn data:FredBrendaCallee ;
+  ies:hasRegisteredCommsID data:001234567890 .
+
+data:FredsMobile a ies:MobileHandset ;
+  ies:isIdentifiedBy data:123456789012345 .
+
+
+
+

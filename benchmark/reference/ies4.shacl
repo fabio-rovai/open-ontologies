@@ -1,0 +1,3706 @@
+@prefix ies: <http://ies.data.gov.uk/ontology/ies4#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+ies:ACopyOfDomainShape a sh:NodeShape ;
+    sh:class ies:IndividualDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:aCopyOf .
+
+ies:ACopyOfRangeShape a sh:NodeShape ;
+    sh:class ies:WorkOfDocumentation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:aCopyOf .
+
+ies:AccentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Accent .
+
+ies:AccountAdminEventShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AccountAdminEvent .
+
+ies:AccountForCardDomainShape a sh:NodeShape ;
+    sh:class ies:BankCard ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:accountForCard .
+
+ies:AccountForCardRangeShape a sh:NodeShape ;
+    sh:class ies:FinancialAccount ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:accountForCard .
+
+ies:AccountHolderShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AccountHolder .
+
+ies:AccountInCommunicationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AccountInCommunication .
+
+ies:AccountNumberShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AccountNumber .
+
+ies:AccountProviderDomainShape a sh:NodeShape ;
+    sh:class ies:Account ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:accountProvider .
+
+ies:AccountProviderRangeShape a sh:NodeShape ;
+    sh:class ies:Organisation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:accountProvider .
+
+ies:AccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Account .
+
+ies:AccountStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AccountState .
+
+ies:AccusedShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Accused .
+
+ies:ActiveEventParticipantShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ActiveEventParticipant .
+
+ies:ActorShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Actor .
+
+ies:ActorStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ActorState .
+
+ies:AddressShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Address .
+
+ies:AdministeredAccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AdministeredAccount .
+
+ies:AfterDomainShape a sh:NodeShape ;
+    sh:class ies:Element ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:after .
+
+ies:AfterRangeShape a sh:NodeShape ;
+    sh:class ies:Element ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:after .
+
+ies:AgreementExecutionShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AgreementExecution .
+
+ies:AgreementNameShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AgreementName .
+
+ies:AgreementStageShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AgreementStage .
+
+ies:AircraftShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Aircraft .
+
+ies:AirportShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Airport .
+
+ies:AllHaveCharacteristicDomainShape a sh:NodeShape ;
+    sh:class ies:ClassOfElement ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:allHaveCharacteristic .
+
+ies:AllHaveCharacteristicRangeShape a sh:NodeShape ;
+    sh:class ies:Characteristic ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:allHaveCharacteristic .
+
+ies:AllHaveDispositionDomainShape a sh:NodeShape ;
+    sh:class ies:ClassOfElement ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:allHaveDisposition .
+
+ies:AllHaveDispositionRangeShape a sh:NodeShape ;
+    sh:class ies:DispositionalClass ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:allHaveDisposition .
+
+ies:AllianceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Alliance .
+
+ies:AlliedToDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:alliedTo .
+
+ies:AlliedToRangeShape a sh:NodeShape ;
+    sh:class ies:Alliance ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:alliedTo .
+
+ies:AllocatedSeatNumberDomainShape a sh:NodeShape ;
+    sh:class ies:Ticket ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:allocatedSeatNumber .
+
+ies:AltitudeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Altitude .
+
+ies:AmountOfMoneyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AmountOfMoney .
+
+ies:AmountOfSubstanceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AmountOfSubstance .
+
+ies:AncestorOfDomainShape a sh:NodeShape ;
+    sh:class ies:Person ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:ancestorOf .
+
+ies:AncestorOfRangeShape a sh:NodeShape ;
+    sh:class ies:Person ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:ancestorOf .
+
+ies:AndGroupDomainShape a sh:NodeShape ;
+    sh:class ies:SecurityLabel ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:andGroup .
+
+ies:ArbitraryOverlapShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ArbitraryOverlap .
+
+ies:ArbitraryPeriodShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ArbitraryPeriod .
+
+ies:AreaOfCoverageDomainShape a sh:NodeShape ;
+    sh:class ies:TravelCard ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:areaOfCoverage .
+
+ies:AreaOfCoverageRangeShape a sh:NodeShape ;
+    sh:class ies:Location ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:areaOfCoverage .
+
+ies:ArrestShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Arrest .
+
+ies:ArrestedShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Arrested .
+
+ies:ArrestingOfficerShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ArrestingOfficer .
+
+ies:ArrivalShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Arrival .
+
+ies:AssessToBeTrueShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AssessToBeTrue .
+
+ies:AssessedDomainShape a sh:NodeShape ;
+    sh:class ies:AssessToBeTrue ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:assessed .
+
+ies:AssessedRangeShape a sh:NodeShape ;
+    sh:class rdfs:Resource ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:assessed .
+
+ies:AssessmentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Assessment .
+
+ies:AssessorShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Assessor .
+
+ies:AssetShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Asset .
+
+ies:AssetStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AssetState .
+
+ies:AssociatedCarrierDomainShape a sh:NodeShape ;
+    sh:class ies:TravelTicket ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:associatedCarrier .
+
+ies:AssociatedCarrierRangeShape a sh:NodeShape ;
+    sh:class ies:Organisation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:associatedCarrier .
+
+ies:AssociatedPersonNameDomainShape a sh:NodeShape ;
+    sh:class ies:AccountState,
+        ies:IdentityDocument,
+        ies:PaymentArtefact,
+        ies:Ticket ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:associatedPersonName .
+
+ies:AtWarShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AtWar .
+
+ies:AttackerShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Attacker .
+
+ies:AttendanceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Attendance .
+
+ies:AttributeDomainShape a sh:NodeShape ;
+    sh:class ies:Thing ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:attribute .
+
+ies:AuthorisationDocumentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AuthorisationDocument .
+
+ies:AuthorisationRequestShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AuthorisationRequest .
+
+ies:AuthorisationRequesterShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AuthorisationRequester .
+
+ies:AuthorisationReviewerShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AuthorisationReviewer .
+
+ies:AuthorisationStageShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AuthorisationStage .
+
+ies:AuthorisedActorShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:AuthorisedActor .
+
+ies:AuthoriserShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Authoriser .
+
+ies:AuthorisesAccessToDomainShape a sh:NodeShape ;
+    sh:class ies:Ticket ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:authorisesAccessTo .
+
+ies:AuthorisesAccessToRangeShape a sh:NodeShape ;
+    sh:class ies:Event ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:authorisesAccessTo .
+
+ies:BankBranchShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:BankBranch .
+
+ies:BankCardShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:BankCard .
+
+ies:BankShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Bank .
+
+ies:BeginBoundOfClassDomainShape a sh:NodeShape ;
+    sh:class ies:TimeBoundedClass ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:beginBoundOfClass .
+
+ies:BeginBoundOfClassRangeShape a sh:NodeShape ;
+    sh:class ies:ParticularPeriod ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:beginBoundOfClass .
+
+ies:BirthCertificateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:BirthCertificate .
+
+ies:BirthStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:BirthState .
+
+ies:BoardingCardNumberShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:BoardingCardNumber .
+
+ies:BookShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Book .
+
+ies:BookedPassengerShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:BookedPassenger .
+
+ies:BookingAgentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:BookingAgent .
+
+ies:BookingPaymentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:BookingPayment .
+
+ies:BookingReferenceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:BookingReference .
+
+ies:BoundingStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:BoundingState .
+
+ies:BranchCodeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:BranchCode .
+
+ies:BrandingDomainShape a sh:NodeShape ;
+    sh:class ies:PaymentArtefact ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:branding .
+
+ies:BrandingRangeShape a sh:NodeShape ;
+    sh:class ies:Organisation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:branding .
+
+ies:BusinessEventShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:BusinessEvent .
+
+ies:CBRadioHandsetShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CBRadioHandset .
+
+ies:CalleeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Callee .
+
+ies:CallerShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Caller .
+
+ies:CallsignShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Callsign .
+
+ies:CapabilityShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Capability .
+
+ies:CarTravelShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CarTravel .
+
+ies:CardNumberShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CardNumber .
+
+ies:CardUsedShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CardUsed .
+
+ies:CarrierServiceDomainShape a sh:NodeShape ;
+    sh:class ies:TravelService ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:carrierService .
+
+ies:CarrierServiceRangeShape a sh:NodeShape ;
+    sh:class ies:Organisation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:carrierService .
+
+ies:CarrierShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Carrier .
+
+ies:CashPaymentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CashPayment .
+
+ies:CasualtyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Casualty .
+
+ies:CellularBaseStationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CellularBaseStation .
+
+ies:ChangeOfGovernmentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ChangeOfGovernment .
+
+ies:CharacteristicShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Characteristic .
+
+ies:ChartersDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:charters .
+
+ies:ChartersRangeShape a sh:NodeShape ;
+    sh:class ies:Transit ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:charters .
+
+ies:CheckInShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CheckIn .
+
+ies:CinemaTicketShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CinemaTicket .
+
+ies:ClassOfAmountOfMoneyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ClassOfAmountOfMoney .
+
+ies:ClassOfAssetShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ClassOfAsset .
+
+ies:ClassOfClassOfElementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ClassOfClassOfElement .
+
+ies:ClassOfClassOfEntityShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ClassOfClassOfEntity .
+
+ies:ClassOfElementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ClassOfElement .
+
+ies:ClassOfEntityShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ClassOfEntity .
+
+ies:ClassOfEventShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ClassOfEvent .
+
+ies:ClassOfIndividualDocumentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ClassOfIndividualDocument .
+
+ies:ClassOfMeasureValueShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ClassOfMeasureValue .
+
+ies:ClassOfPersonShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ClassOfPerson .
+
+ies:ClassOfPersonStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ClassOfPersonState .
+
+ies:ClassOfRepresentationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ClassOfRepresentation .
+
+ies:ClassOfResponsibleActorShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ClassOfResponsibleActor .
+
+ies:ClassOfResponsibleActorStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ClassOfResponsibleActorState .
+
+ies:ClassOfStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ClassOfState .
+
+ies:CloseAccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CloseAccount .
+
+ies:CoLocationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CoLocation .
+
+ies:CoercedByDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:coercedBy .
+
+ies:CoercedByRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:coercedBy .
+
+ies:ColourShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Colour .
+
+ies:CommercialOrganisationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CommercialOrganisation .
+
+ies:CommunicationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Communication .
+
+ies:CommunicationsAccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CommunicationsAccount .
+
+ies:CommunicationsAccountStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CommunicationsAccountState .
+
+ies:CommunicationsDeviceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CommunicationsDevice .
+
+ies:CommunicationsIdentifierRangeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CommunicationsIdentifierRange .
+
+ies:CommunicationsIdentifierShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CommunicationsIdentifier .
+
+ies:CompetitionShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Competition .
+
+ies:CompetitorShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Competitor .
+
+ies:ConcertTicketShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ConcertTicket .
+
+ies:ConferenceHostShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ConferenceHost .
+
+ies:ConferenceParticipantShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ConferenceParticipant .
+
+ies:ConfidenceDomainShape a sh:NodeShape ;
+    sh:class ies:AssessToBeTrue ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:confidence .
+
+ies:ContactDetailsOnBookingDomainShape a sh:NodeShape ;
+    sh:class ies:TravelBooking ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:contactDetailsOnBooking .
+
+ies:ContentCategoryShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ContentCategory .
+
+ies:ContinuousStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ContinuousState .
+
+ies:CookieOnDeviceDomainShape a sh:NodeShape ;
+    sh:class ies:Cookie ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:cookieOnDevice .
+
+ies:CookieOnDeviceRangeShape a sh:NodeShape ;
+    sh:class ies:Device ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:cookieOnDevice .
+
+ies:CookieOriginSiteDomainShape a sh:NodeShape ;
+    sh:class ies:Cookie ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:cookieOriginSite .
+
+ies:CookieOriginSiteRangeShape a sh:NodeShape ;
+    sh:class ies:Webpage ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:cookieOriginSite .
+
+ies:CookieShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Cookie .
+
+ies:CooperationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Cooperation .
+
+ies:CooperatorShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Cooperator .
+
+ies:CountryOfRegistrationDomainShape a sh:NodeShape ;
+    sh:class ies:Account,
+        ies:Organisation,
+        ies:Vehicle ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:countryOfRegistration .
+
+ies:CountryOfRegistrationRangeShape a sh:NodeShape ;
+    sh:class ies:Country ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:countryOfRegistration .
+
+ies:CountryShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Country .
+
+ies:CountryUsingDialCodeDomainShape a sh:NodeShape ;
+    sh:class ies:TelephoneCountryCode ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:countryUsingDialCode .
+
+ies:CountryUsingDialCodeRangeShape a sh:NodeShape ;
+    sh:class ies:Country ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:countryUsingDialCode .
+
+ies:CousinOfDomainShape a sh:NodeShape ;
+    sh:class ies:Person ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:cousinOf .
+
+ies:CousinOfRangeShape a sh:NodeShape ;
+    sh:class ies:Person ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:cousinOf .
+
+ies:CreateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Create .
+
+ies:CreatedContentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CreatedContent .
+
+ies:CreatedShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Created .
+
+ies:CreatorShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Creator .
+
+ies:CreditCardShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CreditCard .
+
+ies:CriminalActivityShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CriminalActivity .
+
+ies:CriminalOrganisationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CriminalOrganisation .
+
+ies:CrossingOfDomainShape a sh:NodeShape ;
+    sh:class ies:Crossing ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:crossingOf .
+
+ies:CrossingOfRangeShape a sh:NodeShape ;
+    sh:class ies:Location ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:crossingOf .
+
+ies:CrossingShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Crossing .
+
+ies:CurrencyAmountDomainShape a sh:NodeShape ;
+    sh:class ies:AmountOfMoney ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:currencyAmount .
+
+ies:CurrencyDenominationDomainShape a sh:NodeShape ;
+    sh:class ies:AmountOfMoney ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:currencyDenomination .
+
+ies:CurrencyDenominationRangeShape a sh:NodeShape ;
+    sh:class ies:Currency ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:currencyDenomination .
+
+ies:CurrencyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Currency .
+
+ies:CustomerIdentifierShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CustomerIdentifier .
+
+ies:CustomerShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Customer .
+
+ies:CyberStalkingShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:CyberStalking .
+
+ies:DataKeyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DataKey .
+
+ies:DataObjectShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DataObject .
+
+ies:DatabaseItemShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DatabaseItem .
+
+ies:DatabaseRowShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DatabaseRow .
+
+ies:DatabaseShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Database .
+
+ies:DatabaseTableShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DatabaseTable .
+
+ies:DeathStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DeathState .
+
+ies:DebitCardShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DebitCard .
+
+ies:DeclarationOfWarShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DeclarationOfWar .
+
+ies:DeclaredTargetShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DeclaredTarget .
+
+ies:DeclaringPartyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DeclaringParty .
+
+ies:DeliveryAddressShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DeliveryAddress .
+
+ies:DeliveryRecipientShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DeliveryRecipient .
+
+ies:DeliveryShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Delivery .
+
+ies:DemocraticChangeOfGovernmentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DemocraticChangeOfGovernment .
+
+ies:DepartmentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Department .
+
+ies:DepartureShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Departure .
+
+ies:DestroyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Destroy .
+
+ies:DestroyedShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Destroyed .
+
+ies:DestroyerShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Destroyer .
+
+ies:DeviceInCommunicationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DeviceInCommunication .
+
+ies:DeviceOnlineShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DeviceOnline .
+
+ies:DeviceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Device .
+
+ies:DeviceStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DeviceState .
+
+ies:DialInNumberDomainShape a sh:NodeShape ;
+    sh:class ies:TeleConference ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:dialInNumber .
+
+ies:DisagreementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Disagreement .
+
+ies:DiscontinuousStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DiscontinuousState .
+
+ies:DislikesShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Dislikes .
+
+ies:DispositionalClassShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DispositionalClass .
+
+ies:DisrespectfulOfDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:disrespectfulOf .
+
+ies:DisrespectfulOfRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:disrespectfulOf .
+
+ies:DistrustsDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:distrusts .
+
+ies:DistrustsRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:distrusts .
+
+ies:DocumentFormatShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DocumentFormat .
+
+ies:DocumentIdentifiesDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:documentIdentifies .
+
+ies:DocumentIdentifiesRangeShape a sh:NodeShape ;
+    sh:class ies:Person ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:documentIdentifies .
+
+ies:DocumentSectionShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DocumentSection .
+
+ies:DocumentedByDomainShape a sh:NodeShape ;
+    sh:class ies:Thing ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:documentedBy .
+
+ies:DocumentedByRangeShape a sh:NodeShape ;
+    sh:class ies:WorkOfDocumentation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:documentedBy .
+
+ies:DomainNameShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DomainName .
+
+ies:DrivingLicenceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:DrivingLicence .
+
+ies:DurationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Duration .
+
+ies:EastingShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Easting .
+
+ies:EducationalOrganisationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:EducationalOrganisation .
+
+ies:ElectionShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Election .
+
+ies:ElectoralCandidateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ElectoralCandidate .
+
+ies:ElectoralRegionShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ElectoralRegion .
+
+ies:ElectricCurrentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ElectricCurrent .
+
+ies:ElementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Element .
+
+ies:EmailAccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:EmailAccount .
+
+ies:EmailAddressShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:EmailAddress .
+
+ies:EmployedByDomainShape a sh:NodeShape ;
+    sh:class ies:PersonState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:employedBy .
+
+ies:EncodedDataShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:EncodedData .
+
+ies:EndBoundOfClassDomainShape a sh:NodeShape ;
+    sh:class ies:TimeBoundedClass ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:endBoundOfClass .
+
+ies:EndBoundOfClassRangeShape a sh:NodeShape ;
+    sh:class ies:ParticularPeriod ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:endBoundOfClass .
+
+ies:EndToEndActivityShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:EndToEndActivity .
+
+ies:EndToEndAgreementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:EndToEndAgreement .
+
+ies:EndToEndAuthorisationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:EndToEndAuthorisation .
+
+ies:EndToEndTransactionShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:EndToEndTransaction .
+
+ies:EndsInDomainShape a sh:NodeShape ;
+    sh:class ies:ArbitraryPeriod ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:endsIn .
+
+ies:EnemyOfDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:enemyOf .
+
+ies:EnemyOfRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:enemyOf .
+
+ies:EntertainmentEventShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:EntertainmentEvent .
+
+ies:EntertainmentTicketShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:EntertainmentTicket .
+
+ies:EntityInTransitShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:EntityInTransit .
+
+ies:EntityShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Entity .
+
+ies:EthnicityShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Ethnicity .
+
+ies:EventDateTimeDomainShape a sh:NodeShape ;
+    sh:class ies:EntertainmentTicket ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:eventDateTime .
+
+ies:EventDateTimeRangeShape a sh:NodeShape ;
+    sh:class ies:ParticularPeriod ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:eventDateTime .
+
+ies:EventParticipantShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:EventParticipant .
+
+ies:EventShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Event .
+
+ies:EventStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:EventState .
+
+ies:EvidentialPhotographShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:EvidentialPhotograph .
+
+ies:ExchangePayloadShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ExchangePayload .
+
+ies:ExcludedFromDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:excludedFrom .
+
+ies:ExcludedFromRangeShape a sh:NodeShape ;
+    sh:class ies:Location ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:excludedFrom .
+
+ies:FacilityShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Facility .
+
+ies:FamiliallyRelatedToDomainShape a sh:NodeShape ;
+    sh:class ies:PersonState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:familiallyRelatedTo .
+
+ies:FamiliallyRelatedToRangeShape a sh:NodeShape ;
+    sh:class ies:Person ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:familiallyRelatedTo .
+
+ies:FearfulOfDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:fearfulOf .
+
+ies:FearfulOfRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:fearfulOf .
+
+ies:FerryTicketShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:FerryTicket .
+
+ies:FinancialAccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:FinancialAccount .
+
+ies:FiniteClassOfElementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:FiniteClassOfElement .
+
+ies:FiniteMembershipCountDomainShape a sh:NodeShape ;
+    sh:class ies:FiniteClassOfElement ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:finiteMembershipCount .
+
+ies:FirstLineOfAddressShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:FirstLineOfAddress .
+
+ies:FlightShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Flight .
+
+ies:FlightTicketShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:FlightTicket .
+
+ies:FootballMatchTicketShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:FootballMatchTicket .
+
+ies:ForgeryShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Forgery .
+
+ies:FormatDomainShape a sh:NodeShape ;
+    sh:class ies:WorkOfDocumentation ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:format .
+
+ies:FormatOfIndividualDocumentDomainShape a sh:NodeShape ;
+    sh:class ies:IndividualDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:formatOfIndividualDocument .
+
+ies:FormatOfIndividualDocumentRangeShape a sh:NodeShape ;
+    sh:class ies:DocumentFormat ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:formatOfIndividualDocument .
+
+ies:FormatRangeShape a sh:NodeShape ;
+    sh:class ies:DocumentFormat ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:format .
+
+ies:FoundOrganisationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:FoundOrganisation .
+
+ies:FriendOfDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:friendOf .
+
+ies:FriendOfRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:friendOf .
+
+ies:GMLShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:GML .
+
+ies:GenderShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Gender .
+
+ies:GeoIdentityShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:GeoIdentity .
+
+ies:GeoJSONShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:GeoJSON .
+
+ies:GeoObjectShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:GeoObject .
+
+ies:GeoPointShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:GeoPoint .
+
+ies:GeoRepresentationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:GeoRepresentation .
+
+ies:GeographicFeatureShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:GeographicFeature .
+
+ies:GivenNameShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:GivenName .
+
+ies:GovernedPopulationDomainShape a sh:NodeShape ;
+    sh:class ies:Government ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:governedPopulation .
+
+ies:GovernedPopulationRangeShape a sh:NodeShape ;
+    sh:class ies:RegionalConstituency ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:governedPopulation .
+
+ies:GovernedRegionDomainShape a sh:NodeShape ;
+    sh:class ies:Government ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:governedRegion .
+
+ies:GovernedRegionRangeShape a sh:NodeShape ;
+    sh:class ies:Location ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:governedRegion .
+
+ies:GovernmentOrganisationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:GovernmentOrganisation .
+
+ies:GovernmentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Government .
+
+ies:GrantOfAuthorityShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:GrantOfAuthority .
+
+ies:GroupDescriptionDomainShape a sh:NodeShape ;
+    sh:class ies:GroupOfItems ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:groupDescription .
+
+ies:GroupNameDomainShape a sh:NodeShape ;
+    sh:class ies:GroupOfItems ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:groupName .
+
+ies:GroupOfItemsShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:GroupOfItems .
+
+ies:HackingShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Hacking .
+
+ies:HandlingCaveatDomainShape a sh:NodeShape ;
+    sh:class ies:SecurityLabel ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:handlingCaveat .
+
+ies:HasAccessToDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasAccessTo .
+
+ies:HasAccessToRangeShape a sh:NodeShape ;
+    sh:class ies:Entity ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasAccessTo .
+
+ies:HasAuthorDomainShape a sh:NodeShape ;
+    sh:class ies:WorkOfDocumentation ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasAuthor .
+
+ies:HasAuthorRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasAuthor .
+
+ies:HasCharacteristicDomainShape a sh:NodeShape ;
+    sh:class ies:Element ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasCharacteristic .
+
+ies:HasCharacteristicRangeShape a sh:NodeShape ;
+    sh:class ies:Characteristic ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasCharacteristic .
+
+ies:HasCountryOfIssueDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument,
+        ies:TravelCard ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasCountryOfIssue .
+
+ies:HasCountryOfIssueRangeShape a sh:NodeShape ;
+    sh:class ies:Country ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasCountryOfIssue .
+
+ies:HasEmergencyContactAddressDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasEmergencyContactAddress .
+
+ies:HasEmergencyContactAddressRangeShape a sh:NodeShape ;
+    sh:class ies:Address ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasEmergencyContactAddress .
+
+ies:HasEthnicityDomainShape a sh:NodeShape ;
+    sh:class ies:Person ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasEthnicity .
+
+ies:HasEthnicityRangeShape a sh:NodeShape ;
+    sh:class ies:Ethnicity ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasEthnicity .
+
+ies:HasGeneticGenderDomainShape a sh:NodeShape ;
+    sh:class ies:Person ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasGeneticGender .
+
+ies:HasGeneticGenderRangeShape a sh:NodeShape ;
+    sh:class ies:Gender ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasGeneticGender .
+
+ies:HasIdentifiedGenderDomainShape a sh:NodeShape ;
+    sh:class ies:PersonState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasIdentifiedGender .
+
+ies:HasIdentifiedGenderRangeShape a sh:NodeShape ;
+    sh:class ies:Gender ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasIdentifiedGender .
+
+ies:HasLanguageProficiencyDomainShape a sh:NodeShape ;
+    sh:class ies:PersonState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasLanguageProficiency .
+
+ies:HasLanguageProficiencyRangeShape a sh:NodeShape ;
+    sh:class ies:LanguageProficiency ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasLanguageProficiency .
+
+ies:HasNameDomainShape a sh:NodeShape ;
+    sh:class ies:Thing ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasName .
+
+ies:HasNameRangeShape a sh:NodeShape ;
+    sh:class ies:Name ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasName .
+
+ies:HasPublisherDomainShape a sh:NodeShape ;
+    sh:class ies:WorkOfDocumentation ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasPublisher .
+
+ies:HasPublisherRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasPublisher .
+
+ies:HasRegisteredCommsIDDomainShape a sh:NodeShape ;
+    sh:class ies:CommunicationsAccountState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasRegisteredCommsID .
+
+ies:HasRegisteredCommsIDRangeShape a sh:NodeShape ;
+    sh:class ies:CommunicationsIdentifier ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasRegisteredCommsID .
+
+ies:HasReligionDomainShape a sh:NodeShape ;
+    sh:class ies:PersonState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasReligion .
+
+ies:HasReligionRangeShape a sh:NodeShape ;
+    sh:class ies:Religion ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasReligion .
+
+ies:HasStatedAddressDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument,
+        ies:TravelCard ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasStatedAddress .
+
+ies:HasStatedAddressRangeShape a sh:NodeShape ;
+    sh:class ies:Address ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasStatedAddress .
+
+ies:HasStatedCountryOfResidenceDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasStatedCountryOfResidence .
+
+ies:HasStatedCountryOfResidenceRangeShape a sh:NodeShape ;
+    sh:class ies:Country ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasStatedCountryOfResidence .
+
+ies:HasStatedNationalityDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasStatedNationality .
+
+ies:HasStatedNationalityRangeShape a sh:NodeShape ;
+    sh:class ies:Nation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasStatedNationality .
+
+ies:HasStatedPlaceOfBirthDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasStatedPlaceOfBirth .
+
+ies:HasStatedPlaceOfBirthRangeShape a sh:NodeShape ;
+    sh:class ies:RegionOfCountry ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasStatedPlaceOfBirth .
+
+ies:HasStatedPlaceOfIssueDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasStatedPlaceOfIssue .
+
+ies:HasStatedPlaceOfIssueRangeShape a sh:NodeShape ;
+    sh:class ies:RegionOfCountry ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasStatedPlaceOfIssue .
+
+ies:HasThemeDomainShape a sh:NodeShape ;
+    sh:class ies:Event ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasTheme .
+
+ies:HasThemeRangeShape a sh:NodeShape ;
+    sh:class ies:Thing ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasTheme .
+
+ies:HasValueDomainShape a sh:NodeShape ;
+    sh:class ies:Measure ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hasValue .
+
+ies:HasValueRangeShape a sh:NodeShape ;
+    sh:class ies:MeasureValue ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hasValue .
+
+ies:HatesShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Hates .
+
+ies:HealthServiceIdentifierShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:HealthServiceIdentifier .
+
+ies:HmlConfidenceDomainShape a sh:NodeShape ;
+    sh:class ies:AssessToBeTrue ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hmlConfidence .
+
+ies:HoldsAccountDomainShape a sh:NodeShape ;
+    sh:class ies:AccountHolder ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:holdsAccount .
+
+ies:HoldsAccountRangeShape a sh:NodeShape ;
+    sh:class ies:Account ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:holdsAccount .
+
+ies:HostedOnDomainShape a sh:NodeShape ;
+    sh:class ies:WebResourceState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:hostedOn .
+
+ies:HostedOnRangeShape a sh:NodeShape ;
+    sh:class ies:OnlineService ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:hostedOn .
+
+ies:IATACodeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IATACode .
+
+ies:IBANShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IBAN .
+
+ies:ICAOCodeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ICAOCode .
+
+ies:IMEIShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IMEI .
+
+ies:IMSIShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IMSI .
+
+ies:IPAddressRangeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IPAddressRange .
+
+ies:IPAddressShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IPAddress .
+
+ies:IPPhoneHandsetShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IPPhoneHandset .
+
+ies:IPv4AddressShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IPv4Address .
+
+ies:IPv6AddressShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IPv6Address .
+
+ies:ISO19125-WKTShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ISO19125-WKT .
+
+ies:ISO3166_1Alpha_3Shape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ISO3166_1Alpha_3 .
+
+ies:ISO4217CodeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ISO4217Code .
+
+ies:ISO639-3CodeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ISO639-3Code .
+
+ies:IdAuthenticityDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:idAuthenticity .
+
+ies:IdDateOfBirthDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:idDateOfBirth .
+
+ies:IdDateOfBirthRangeShape a sh:NodeShape ;
+    sh:class ies:ParticularPeriod ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:idDateOfBirth .
+
+ies:IdDateOfIssueDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:idDateOfIssue .
+
+ies:IdDateOfIssueRangeShape a sh:NodeShape ;
+    sh:class ies:ParticularPeriod ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:idDateOfIssue .
+
+ies:IdEmergencyContactNameDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:idEmergencyContactName .
+
+ies:IdEmergencyContactTelNoDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:idEmergencyContactTelNo .
+
+ies:IdFamilyNameDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:idFamilyName .
+
+ies:IdGenderDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:idGender .
+
+ies:IdGenderRangeShape a sh:NodeShape ;
+    sh:class ies:Gender ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:idGender .
+
+ies:IdGivenNamesDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:idGivenNames .
+
+ies:IdLowerRangeDomainShape a sh:NodeShape ;
+    sh:class ies:CommunicationsIdentifierRange ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:idLowerRange .
+
+ies:IdLowerRangeRangeShape a sh:NodeShape ;
+    sh:class ies:CommunicationsIdentifier ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:idLowerRange .
+
+ies:IdOnCardDomainShape a sh:NodeShape ;
+    sh:class ies:NationalIdentityCard ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:idOnCard .
+
+ies:IdOnCardRangeShape a sh:NodeShape ;
+    sh:class ies:NationalIdentityNumber ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:idOnCard .
+
+ies:IdUpperRangeDomainShape a sh:NodeShape ;
+    sh:class ies:CommunicationsIdentifierRange ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:idUpperRange .
+
+ies:IdUpperRangeRangeShape a sh:NodeShape ;
+    sh:class ies:CommunicationsIdentifier ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:idUpperRange .
+
+ies:IdUsedInCheckInShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IdUsedInCheckIn .
+
+ies:IdentifierShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Identifier .
+
+ies:IdentityDocumentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IdentityDocument .
+
+ies:IlrProficiencyDomainShape a sh:NodeShape ;
+    sh:class ies:LanguageProficiency ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:ilrProficiency .
+
+ies:InCategoryDomainShape a sh:NodeShape ;
+    sh:class ies:Representation ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:inCategory .
+
+ies:InCategoryRangeShape a sh:NodeShape ;
+    sh:class ies:ContentCategory ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:inCategory .
+
+ies:InDisagreementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:InDisagreement .
+
+ies:InGroupDomainShape a sh:NodeShape ;
+    sh:class ies:Thing ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:inGroup .
+
+ies:InGroupRangeShape a sh:NodeShape ;
+    sh:class ies:GroupOfItems ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:inGroup .
+
+ies:InLanguageDomainShape a sh:NodeShape ;
+    sh:class ies:Representation ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:inLanguage .
+
+ies:InLanguageRangeShape a sh:NodeShape ;
+    sh:class ies:Language ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:inLanguage .
+
+ies:InLocationRangeShape a sh:NodeShape ;
+    sh:class ies:Location ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:inLocation .
+
+ies:InPeriodDomainShape a sh:NodeShape ;
+    sh:class ies:Element ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:inPeriod .
+
+ies:InPeriodRangeShape a sh:NodeShape ;
+    sh:class ies:PeriodOfTime ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:inPeriod .
+
+ies:InPossessionOfRangeShape a sh:NodeShape ;
+    sh:class ies:Asset ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:inPossessionOf .
+
+ies:InPostShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:InPost .
+
+ies:InRepresentationDomainShape a sh:NodeShape ;
+    sh:class ies:Representation ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:inRepresentation .
+
+ies:InRepresentationRangeShape a sh:NodeShape ;
+    sh:class ies:Representation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:inRepresentation .
+
+ies:InResidenceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:InResidence .
+
+ies:InSchemeDomainShape a sh:NodeShape ;
+    sh:class ies:Name ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:inScheme .
+
+ies:InSchemeRangeShape a sh:NodeShape ;
+    sh:class ies:NamingScheme ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:inScheme .
+
+ies:InWorkShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:InWork .
+
+ies:InWorshipShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:InWorship .
+
+ies:IncarceratingOrganisationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IncarceratingOrganisation .
+
+ies:IncarcerationFacilityShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IncarcerationFacility .
+
+ies:IncarcerationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Incarceration .
+
+ies:IncomingGovernmentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IncomingGovernment .
+
+ies:IncumbentRepresentativeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IncumbentRepresentative .
+
+ies:IndividualDocumentIDShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IndividualDocumentID .
+
+ies:IndividualDocumentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IndividualDocument .
+
+ies:InfluencedByDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:influencedBy .
+
+ies:InfluencedByRangeShape a sh:NodeShape ;
+    sh:class ies:Thing ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:influencedBy .
+
+ies:InformationContentDomainShape a sh:NodeShape ;
+    sh:class ies:WebResourceState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:informationContent .
+
+ies:InformationContentRangeShape a sh:NodeShape ;
+    sh:class ies:Representation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:informationContent .
+
+ies:InstalledStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:InstalledState .
+
+ies:InstanceOfSoftwareShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:InstanceOfSoftware .
+
+ies:IntelligenceAgencyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IntelligenceAgency .
+
+ies:IntelligenceOperationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:IntelligenceOperation .
+
+ies:InteractiveCommunicationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:InteractiveCommunication .
+
+ies:InterestedInDomainShape a sh:NodeShape ;
+    sh:class ies:Interested ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:interestedIn .
+
+ies:InterestedInRangeShape a sh:NodeShape ;
+    sh:class ies:Thing ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:interestedIn .
+
+ies:InterestedShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Interested .
+
+ies:InternationalCoalitionShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:InternationalCoalition .
+
+ies:IntimidatedByDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:intimidatedBy .
+
+ies:IntimidatedByRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:intimidatedBy .
+
+ies:InvestigationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Investigation .
+
+ies:InvestigatorShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Investigator .
+
+ies:IsAuthorisedForUseWithPassportDomainShape a sh:NodeShape ;
+    sh:class ies:TravelVisa ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:isAuthorisedForUseWithPassport .
+
+ies:IsAuthorisedForUseWithPassportRangeShape a sh:NodeShape ;
+    sh:class ies:Passport ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:isAuthorisedForUseWithPassport .
+
+ies:IsCentroidOfDomainShape a sh:NodeShape ;
+    sh:class ies:PointOnEarthSurface ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:isCentroidOf .
+
+ies:IsDisposedToDomainShape a sh:NodeShape ;
+    sh:class ies:Element ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:isDisposedTo .
+
+ies:IsDisposedToRangeShape a sh:NodeShape ;
+    sh:class ies:DispositionalClass ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:isDisposedTo .
+
+ies:IsEndOfDomainShape a sh:NodeShape ;
+    sh:class ies:BoundingState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:isEndOf .
+
+ies:IsIdentifiedByDomainShape a sh:NodeShape ;
+    sh:class ies:Thing ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:isIdentifiedBy .
+
+ies:IsIdentifiedByRangeShape a sh:NodeShape ;
+    sh:class ies:Identifier ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:isIdentifiedBy .
+
+ies:IsLegalTenderInDomainShape a sh:NodeShape ;
+    sh:class ies:Currency ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:isLegalTenderIn .
+
+ies:IsLegalTenderInRangeShape a sh:NodeShape ;
+    sh:class ies:Country ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:isLegalTenderIn .
+
+ies:IsPartOfDomainShape a sh:NodeShape ;
+    sh:class ies:Element ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:isPartOf .
+
+ies:IsPartOfRangeShape a sh:NodeShape ;
+    sh:class ies:Element ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:isPartOf .
+
+ies:IsParticipantInDomainShape a sh:NodeShape ;
+    sh:class ies:EventParticipant ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:isParticipantIn .
+
+ies:IsParticipantInRangeShape a sh:NodeShape ;
+    sh:class ies:Event ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:isParticipantIn .
+
+ies:IsParticipationOfDomainShape a sh:NodeShape ;
+    sh:class ies:EventParticipant ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:isParticipationOf .
+
+ies:IsParticipationOfRangeShape a sh:NodeShape ;
+    sh:class ies:Entity ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:isParticipationOf .
+
+ies:IsPrimaryForOrganisationDomainShape a sh:NodeShape ;
+    sh:class ies:Thing ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:isPrimaryForOrganisation .
+
+ies:IsPrimaryForOrganisationRangeShape a sh:NodeShape ;
+    sh:class ies:Organisation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:isPrimaryForOrganisation .
+
+ies:IsRepresentedAsDomainShape a sh:NodeShape ;
+    sh:class ies:Thing ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:isRepresentedAs .
+
+ies:IsRepresentedAsRangeShape a sh:NodeShape ;
+    sh:class ies:Representation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:isRepresentedAs .
+
+ies:IsStartOfDomainShape a sh:NodeShape ;
+    sh:class ies:BoundingState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:isStartOf .
+
+ies:IsStateOfDomainShape a sh:NodeShape ;
+    sh:class ies:State ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:isStateOf .
+
+ies:IsStateOfRangeShape a sh:NodeShape ;
+    sh:class ies:Element ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:isStateOf .
+
+ies:IsTeacherOfDomainShape a sh:NodeShape ;
+    sh:class ies:PersonState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:isTeacherOf .
+
+ies:IsTeacherOfRangeShape a sh:NodeShape ;
+    sh:class ies:Person ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:isTeacherOf .
+
+ies:Iso8601PeriodRepresentationDomainShape a sh:NodeShape ;
+    sh:class ies:ParticularPeriod ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:iso8601PeriodRepresentation .
+
+ies:IssuerIdentificationNumberDomainShape a sh:NodeShape ;
+    sh:class ies:BankCard ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:issuerIdentificationNumber .
+
+ies:IssuingAgencyDomainShape a sh:NodeShape ;
+    sh:class ies:TravelTicket ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:issuingAgency .
+
+ies:IssuingAgencyRangeShape a sh:NodeShape ;
+    sh:class ies:Organisation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:issuingAgency .
+
+ies:JointAccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:JointAccount .
+
+ies:JourneyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Journey .
+
+ies:JsonDataShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:JsonData .
+
+ies:JurisdictionOfRightsDomainShape a sh:NodeShape ;
+    sh:class ies:Rights ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:jurisdictionOfRights .
+
+ies:JurisdictionOfRightsRangeShape a sh:NodeShape ;
+    sh:class ies:Nation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:jurisdictionOfRights .
+
+ies:KnownAssociateOfDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:knownAssociateOf .
+
+ies:KnownAssociateOfRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:knownAssociateOf .
+
+ies:LandlineHandsetShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:LandlineHandset .
+
+ies:LandlineTelephoneAccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:LandlineTelephoneAccount .
+
+ies:LanguageProficiencyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:LanguageProficiency .
+
+ies:LanguageShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Language .
+
+ies:LatitudeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Latitude .
+
+ies:LawEnforcementOrganisationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:LawEnforcementOrganisation .
+
+ies:LawEnforcementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:LawEnforcement .
+
+ies:LeadInvestigatorShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:LeadInvestigator .
+
+ies:LengthShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Length .
+
+ies:LifecycleEventShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:LifecycleEvent .
+
+ies:LikesShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Likes .
+
+ies:LineOfAddressShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:LineOfAddress .
+
+ies:LiveCastShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:LiveCast .
+
+ies:LocationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Location .
+
+ies:LocationStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:LocationState .
+
+ies:LogoffShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Logoff .
+
+ies:LogonShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Logon .
+
+ies:LongitudeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Longitude .
+
+ies:LovesShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Loves .
+
+ies:LowerBoundDomainShape a sh:NodeShape ;
+    sh:class ies:MeasureRange ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:lowerBound .
+
+ies:LowerBoundRangeShape a sh:NodeShape ;
+    sh:class ies:Measure ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:lowerBound .
+
+ies:LuminousIntensityShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:LuminousIntensity .
+
+ies:MACAddressShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:MACAddress .
+
+ies:MaintainsDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:maintains .
+
+ies:MaintainsRangeShape a sh:NodeShape ;
+    sh:class ies:Entity ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:maintains .
+
+ies:MakeDomainShape a sh:NodeShape ;
+    sh:class ies:Asset ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:make .
+
+ies:MakeRangeShape a sh:NodeShape ;
+    sh:class ies:Organisation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:make .
+
+ies:MaliciousAccountUseShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:MaliciousAccountUse .
+
+ies:MapGridAreaShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:MapGridArea .
+
+ies:MarriageShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Marriage .
+
+ies:MarriedShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Married .
+
+ies:MassShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Mass .
+
+ies:MeasureRangeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:MeasureRange .
+
+ies:MeasureShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Measure .
+
+ies:MeasureUnitDomainShape a sh:NodeShape ;
+    sh:class ies:MeasureValue ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:measureUnit .
+
+ies:MeasureUnitRangeShape a sh:NodeShape ;
+    sh:class ies:UnitOfMeasure ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:measureUnit .
+
+ies:MeasureValueShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:MeasureValue .
+
+ies:MediaFileShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:MediaFile .
+
+ies:MeetingChairShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:MeetingChair .
+
+ies:MeetingShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Meeting .
+
+ies:MessageContentDomainShape a sh:NodeShape ;
+    sh:class ies:Message ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:messageContent .
+
+ies:MessageShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Message .
+
+ies:MilitaryAttackShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:MilitaryAttack .
+
+ies:MilitaryEventShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:MilitaryEvent .
+
+ies:MilitaryOrganisationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:MilitaryOrganisation .
+
+ies:MissionPurposeDomainShape a sh:NodeShape ;
+    sh:class ies:OperationalEvent ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:missionPurpose .
+
+ies:MobileHandsetShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:MobileHandset .
+
+ies:MobileTelephoneAccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:MobileTelephoneAccount .
+
+ies:ModifierShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Modifier .
+
+ies:ModifyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Modify .
+
+ies:MoneyTransferShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:MoneyTransfer .
+
+ies:MovementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Movement .
+
+ies:MovingShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Moving .
+
+ies:NameShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Name .
+
+ies:NamingSchemeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:NamingScheme .
+
+ies:NationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Nation .
+
+ies:NationalIdentityCardShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:NationalIdentityCard .
+
+ies:NationalIdentityNumberShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:NationalIdentityNumber .
+
+ies:NationalityDomainShape a sh:NodeShape ;
+    sh:class ies:PersonState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:nationality .
+
+ies:NationalityRangeShape a sh:NodeShape ;
+    sh:class ies:Nation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:nationality .
+
+ies:NatureOfInterestDomainShape a sh:NodeShape ;
+    sh:class ies:Interested ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:natureOfInterest .
+
+ies:NearToDomainShape a sh:NodeShape ;
+    sh:class ies:Entity ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:nearTo .
+
+ies:NearToRangeShape a sh:NodeShape ;
+    sh:class ies:Entity ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:nearTo .
+
+ies:NegotiationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Negotiation .
+
+ies:NegotiatorShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Negotiator .
+
+ies:NetworkInterfaceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:NetworkInterface .
+
+ies:NicknameShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Nickname .
+
+ies:NonDisclosureAgreementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:NonDisclosureAgreement .
+
+ies:NorthingShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Northing .
+
+ies:NotForProfitOrganisationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:NotForProfitOrganisation .
+
+ies:NotifyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Notify .
+
+ies:OSGridReferenceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OSGridReference .
+
+ies:ObjectContentDomainShape a sh:NodeShape ;
+    sh:class ies:DataObject ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:objectContent .
+
+ies:ObjectContentReferenceDomainShape a sh:NodeShape ;
+    sh:class ies:DataObject ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:objectContentReference .
+
+ies:ObjectNameShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ObjectName .
+
+ies:ObservationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Observation .
+
+ies:ObservedShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Observed .
+
+ies:ObserverShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Observer .
+
+ies:ObserverStatusShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ObserverStatus .
+
+ies:OfferForSaleShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OfferForSale .
+
+ies:OnJourneyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OnJourney .
+
+ies:OnlineAccountInUseShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OnlineAccountInUse .
+
+ies:OnlineAccountProviderDomainShape a sh:NodeShape ;
+    sh:class ies:OnlineAccount ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:onlineAccountProvider .
+
+ies:OnlineAccountProviderRangeShape a sh:NodeShape ;
+    sh:class ies:OnlineService ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:onlineAccountProvider .
+
+ies:OnlineAccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OnlineAccount .
+
+ies:OnlineAccountStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OnlineAccountState .
+
+ies:OnlineArtefactInEventShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OnlineArtefactInEvent .
+
+ies:OnlineArtefactShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OnlineArtefact .
+
+ies:OnlineCommentOnDomainShape a sh:NodeShape ;
+    sh:class ies:OnlineComment ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:onlineCommentOn .
+
+ies:OnlineCommentOnRangeShape a sh:NodeShape ;
+    sh:class ies:OnlineArtefact ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:onlineCommentOn .
+
+ies:OnlineCommentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OnlineComment .
+
+ies:OnlineContentCreationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OnlineContentCreation .
+
+ies:OnlineContentEventShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OnlineContentEvent .
+
+ies:OnlineEventShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OnlineEvent .
+
+ies:OnlineLikeOfDomainShape a sh:NodeShape ;
+    sh:class ies:OnlineLike ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:onlineLikeOf .
+
+ies:OnlineLikeOfRangeShape a sh:NodeShape ;
+    sh:class ies:OnlineArtefact ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:onlineLikeOf .
+
+ies:OnlineLikeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OnlineLike .
+
+ies:OnlineMessageShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OnlineMessage .
+
+ies:OnlinePublisherDomainShape a sh:NodeShape ;
+    sh:class ies:OnlineArtefact ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:onlinePublisher .
+
+ies:OnlinePublisherRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:onlinePublisher .
+
+ies:OnlineServiceProviderDomainShape a sh:NodeShape ;
+    sh:class ies:OnlineService ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:onlineServiceProvider .
+
+ies:OnlineServiceProviderRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:onlineServiceProvider .
+
+ies:OnlineServiceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OnlineService .
+
+ies:OnlineShopShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OnlineShop .
+
+ies:OpenAccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OpenAccount .
+
+ies:OperatingSystemShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OperatingSystem .
+
+ies:OperationalEventShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OperationalEvent .
+
+ies:OperatorShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Operator .
+
+ies:OpposedToDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:opposedTo .
+
+ies:OpposedToRangeShape a sh:NodeShape ;
+    sh:class ies:ClassOfElement ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:opposedTo .
+
+ies:OrGroupDomainShape a sh:NodeShape ;
+    sh:class ies:SecurityLabel ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:orGroup .
+
+ies:OrganisationIdentifierShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OrganisationIdentifier .
+
+ies:OrganisationNameShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OrganisationName .
+
+ies:OrganisationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Organisation .
+
+ies:OrganisationStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OrganisationState .
+
+ies:OriginatingSystemDomainShape a sh:NodeShape ;
+    sh:class rdf:Statement ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:originatingSystem .
+
+ies:OriginatingSystemRangeShape a sh:NodeShape ;
+    sh:class ies:System ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:originatingSystem .
+
+ies:OriginatorDomainShape a sh:NodeShape ;
+    sh:class rdf:Statement ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:originator .
+
+ies:OriginatorRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:originator .
+
+ies:OutgoingGovernmentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:OutgoingGovernment .
+
+ies:OwnsDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:owns .
+
+ies:OwnsRangeShape a sh:NodeShape ;
+    sh:class ies:Asset ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:owns .
+
+ies:ParentOfDomainShape a sh:NodeShape ;
+    sh:class ies:Person ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:parentOf .
+
+ies:ParentOfRangeShape a sh:NodeShape ;
+    sh:class ies:Person ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:parentOf .
+
+ies:ParkedShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Parked .
+
+ies:PartNumberShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PartNumber .
+
+ies:PartOfFacilityShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PartOfFacility .
+
+ies:ParticularPeriodShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ParticularPeriod .
+
+ies:PartyInCommunicationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PartyInCommunication .
+
+ies:PartyToAgreementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PartyToAgreement .
+
+ies:PassengerNameShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PassengerName .
+
+ies:PassengerShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Passenger .
+
+ies:PassportShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Passport .
+
+ies:PayloadContentsDomainShape a sh:NodeShape ;
+    sh:class ies:ExchangePayload ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:payloadContents .
+
+ies:PayloadContentsRangeShape a sh:NodeShape ;
+    sh:class rdfs:Resource ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:payloadContents .
+
+ies:PayloadLabelDomainShape a sh:NodeShape ;
+    sh:class ies:ExchangePayload ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:payloadLabel .
+
+ies:PayloadLabelRangeShape a sh:NodeShape ;
+    sh:class ies:SecurityLabel ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:payloadLabel .
+
+ies:PaymentArtefactProviderDomainShape a sh:NodeShape ;
+    sh:class ies:PaymentArtefact ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:paymentArtefactProvider .
+
+ies:PaymentArtefactProviderRangeShape a sh:NodeShape ;
+    sh:class ies:Organisation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:paymentArtefactProvider .
+
+ies:PaymentArtefactShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PaymentArtefact .
+
+ies:PeaceTreatyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PeaceTreaty .
+
+ies:PeriodOfTimeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PeriodOfTime .
+
+ies:PermittedNationalityDomainShape a sh:NodeShape ;
+    sh:class ies:SecurityLabel ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:permittedNationality .
+
+ies:PermittedOrganisationDomainShape a sh:NodeShape ;
+    sh:class ies:SecurityLabel ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:permittedOrganisation .
+
+ies:PerpetratorShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Perpetrator .
+
+ies:PersonHeightShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PersonHeight .
+
+ies:PersonInCommunicationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PersonInCommunication .
+
+ies:PersonInTransitShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PersonInTransit .
+
+ies:PersonNameShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PersonName .
+
+ies:PersonShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Person .
+
+ies:PersonStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PersonState .
+
+ies:PersonTitleShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PersonTitle .
+
+ies:PersonalRadioHandsetShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PersonalRadioHandset .
+
+ies:PlaceNameShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PlaceName .
+
+ies:PointOnEarthSurfaceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PointOnEarthSurface .
+
+ies:PolicyAnnouncementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PolicyAnnouncement .
+
+ies:PoliticalAgreementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PoliticalAgreement .
+
+ies:PoliticalAnnouncementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PoliticalAnnouncement .
+
+ies:PoliticalEventShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PoliticalEvent .
+
+ies:PortShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Port .
+
+ies:PossibleWorldShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PossibleWorld .
+
+ies:PostModificationStateDomainShape a sh:NodeShape ;
+    sh:class ies:Modify ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:postModificationState .
+
+ies:PostModificationStateRangeShape a sh:NodeShape ;
+    sh:class ies:State ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:postModificationState .
+
+ies:PostShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Post .
+
+ies:PostStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PostState .
+
+ies:PostalCodeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:PostalCode .
+
+ies:PreModificationStateDomainShape a sh:NodeShape ;
+    sh:class ies:Modify ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:preModificationState .
+
+ies:PreModificationStateRangeShape a sh:NodeShape ;
+    sh:class ies:State ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:preModificationState .
+
+ies:PresenceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Presence .
+
+ies:PrisonerShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Prisoner .
+
+ies:ProsecutionShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Prosecution .
+
+ies:ProsecutorShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Prosecutor .
+
+ies:ProtectiveMarkingDomainShape a sh:NodeShape ;
+    sh:class ies:SecurityLabel ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:protectiveMarking .
+
+ies:PublicationDateDomainShape a sh:NodeShape ;
+    sh:class ies:WorkOfDocumentation ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:publicationDate .
+
+ies:PublicationDateRangeShape a sh:NodeShape ;
+    sh:class ies:ParticularPeriod ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:publicationDate .
+
+ies:PurchaseShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Purchase .
+
+ies:PurchaserShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Purchaser .
+
+ies:QuantityDeliveredDomainShape a sh:NodeShape ;
+    sh:class ies:Delivery ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:quantityDelivered .
+
+ies:QuantityOfferedDomainShape a sh:NodeShape ;
+    sh:class ies:OfferForSale ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:quantityOffered .
+
+ies:QuantityPurchasedDomainShape a sh:NodeShape ;
+    sh:class ies:Purchase ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:quantityPurchased .
+
+ies:RadioCoverageAreaShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:RadioCoverageArea .
+
+ies:RadioCoverageDomainShape a sh:NodeShape ;
+    sh:class ies:RadioMast ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:radioCoverage .
+
+ies:RadioCoverageRangeShape a sh:NodeShape ;
+    sh:class ies:RadioCoverageArea ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:radioCoverage .
+
+ies:RadioMastShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:RadioMast .
+
+ies:RatificationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Ratification .
+
+ies:RealEstateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:RealEstate .
+
+ies:ReceivingAccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ReceivingAccount .
+
+ies:RecipientShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Recipient .
+
+ies:ReconnaisanceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Reconnaisance .
+
+ies:RecurrentPeriodRepresentationDomainShape a sh:NodeShape ;
+    sh:class ies:RecurringPeriod ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:recurrentPeriodRepresentation .
+
+ies:RecurringPeriodShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:RecurringPeriod .
+
+ies:ReferenceNumberShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ReferenceNumber .
+
+ies:RegionOfCountryShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:RegionOfCountry .
+
+ies:RegionOfWorldShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:RegionOfWorld .
+
+ies:RegionalConstituencyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:RegionalConstituency .
+
+ies:RegistrationNumberShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:RegistrationNumber .
+
+ies:RelationshipDomainShape a sh:NodeShape ;
+    sh:class ies:Thing ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:relationship .
+
+ies:RelationshipRangeShape a sh:NodeShape ;
+    sh:class ies:Thing ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:relationship .
+
+ies:ReligionShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Religion .
+
+ies:ReligionStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ReligionState .
+
+ies:ReligiousOrganisationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ReligiousOrganisation .
+
+ies:RentalAgreementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:RentalAgreement .
+
+ies:RentalProviderShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:RentalProvider .
+
+ies:RentedShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Rented .
+
+ies:RenterShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Renter .
+
+ies:ReplaceablePartShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ReplaceablePart .
+
+ies:ReportShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Report .
+
+ies:RepresentationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Representation .
+
+ies:RepresentationValueDomainShape a sh:NodeShape ;
+    sh:class ies:Representation ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:representationValue .
+
+ies:RequestDocumentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:RequestDocument .
+
+ies:RequestForQuotationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:RequestForQuotation .
+
+ies:ReservationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Reservation .
+
+ies:ResidesInDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:residesIn .
+
+ies:ResidesInRangeShape a sh:NodeShape ;
+    sh:class ies:Location ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:residesIn .
+
+ies:RespectfulOfDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:respectfulOf .
+
+ies:RespectfulOfRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:respectfulOf .
+
+ies:ResponsibleActorShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ResponsibleActor .
+
+ies:ResponsibleActorStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ResponsibleActorState .
+
+ies:RetailerShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Retailer .
+
+ies:RightsShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Rights .
+
+ies:RightsToDomainShape a sh:NodeShape ;
+    sh:class ies:Rights ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:rightsTo .
+
+ies:RightsToRangeShape a sh:NodeShape ;
+    sh:class ies:Element ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:rightsTo .
+
+ies:RoadVehicleShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:RoadVehicle .
+
+ies:RoomNumberShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:RoomNumber .
+
+ies:SIMCardShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SIMCard .
+
+ies:SMSShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SMS .
+
+ies:SailingShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Sailing .
+
+ies:SatellitePhoneHandsetShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SatellitePhoneHandset .
+
+ies:ScheduledArrivalPortDomainShape a sh:NodeShape ;
+    sh:class ies:TravelService ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:scheduledArrivalPort .
+
+ies:ScheduledArrivalPortRangeShape a sh:NodeShape ;
+    sh:class ies:Port ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:scheduledArrivalPort .
+
+ies:ScheduledArrivalTimeDomainShape a sh:NodeShape ;
+    sh:class ies:TravelService ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:scheduledArrivalTime .
+
+ies:ScheduledDeparturePortDomainShape a sh:NodeShape ;
+    sh:class ies:TravelService ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:scheduledDeparturePort .
+
+ies:ScheduledDeparturePortRangeShape a sh:NodeShape ;
+    sh:class ies:Port ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:scheduledDeparturePort .
+
+ies:ScheduledDepartureTimeDomainShape a sh:NodeShape ;
+    sh:class ies:TravelService ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:scheduledDepartureTime .
+
+ies:SchemaObjectShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SchemaObject .
+
+ies:SchemeMasteredInDomainShape a sh:NodeShape ;
+    sh:class ies:NamingScheme ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:schemeMasteredIn .
+
+ies:SchemeMasteredInRangeShape a sh:NodeShape ;
+    sh:class ies:System ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:schemeMasteredIn .
+
+ies:SchemeOwnerDomainShape a sh:NodeShape ;
+    sh:class ies:NamingScheme ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:schemeOwner .
+
+ies:SchemeOwnerRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:schemeOwner .
+
+ies:ScreenNameShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ScreenName .
+
+ies:SeatNumberShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SeatNumber .
+
+ies:SecurityLabelShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SecurityLabel .
+
+ies:SenderShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Sender .
+
+ies:SendingAccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SendingAccount .
+
+ies:SerialNumberShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SerialNumber .
+
+ies:ServiceNameShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ServiceName .
+
+ies:ServiceProviderShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ServiceProvider .
+
+ies:ServiceUserShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ServiceUser .
+
+ies:ShipShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Ship .
+
+ies:SiblingOfDomainShape a sh:NodeShape ;
+    sh:class ies:Person ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:siblingOf .
+
+ies:SiblingOfRangeShape a sh:NodeShape ;
+    sh:class ies:Person ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:siblingOf .
+
+ies:SignatoryShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Signatory .
+
+ies:SimilarEntitiesShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SimilarEntities .
+
+ies:SimilarEntityDomainShape a sh:NodeShape ;
+    sh:class ies:Entity ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:similarEntity .
+
+ies:SimilarEntityRangeShape a sh:NodeShape ;
+    sh:class ies:SimilarEntities ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:similarEntity .
+
+ies:SocialMediaPageShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SocialMediaPage .
+
+ies:SocialMediaPostShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SocialMediaPost .
+
+ies:SocialServicesIdentifierShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SocialServicesIdentifier .
+
+ies:SocialisingShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Socialising .
+
+ies:SoftwareShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Software .
+
+ies:SpokenLanguageDomainShape a sh:NodeShape ;
+    sh:class ies:LanguageProficiency ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:spokenLanguage .
+
+ies:SpokenLanguageRangeShape a sh:NodeShape ;
+    sh:class ies:Language ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:spokenLanguage .
+
+ies:StalkingShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Stalking .
+
+ies:StandardMeasureShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:StandardMeasure .
+
+ies:StandardMeasureValueShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:StandardMeasureValue .
+
+ies:StartsInDomainShape a sh:NodeShape ;
+    sh:class ies:ArbitraryPeriod ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:startsIn .
+
+ies:StateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:State .
+
+ies:StatementLabelDomainShape a sh:NodeShape ;
+    sh:class rdf:Statement ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:statementLabel .
+
+ies:StatementLabelRangeShape a sh:NodeShape ;
+    sh:class ies:SecurityLabel ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:statementLabel .
+
+ies:StoreCardShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:StoreCard .
+
+ies:StrengthOfInterestDomainShape a sh:NodeShape ;
+    sh:class ies:Interested ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:strengthOfInterest .
+
+ies:StuffShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Stuff .
+
+ies:SubjectOfInterestShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SubjectOfInterest .
+
+ies:SubjectOfOperationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SubjectOfOperation .
+
+ies:SummitShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Summit .
+
+ies:SupplierShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Supplier .
+
+ies:SurnameShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Surname .
+
+ies:SurveillanceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Surveillance .
+
+ies:SurveillanceWarrantShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SurveillanceWarrant .
+
+ies:SystemShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:System .
+
+ies:SystemStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:SystemState .
+
+ies:TOIDShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TOID .
+
+ies:TargetLocationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TargetLocation .
+
+ies:TeamShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Team .
+
+ies:TeleConferenceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TeleConference .
+
+ies:TelephoneAccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TelephoneAccount .
+
+ies:TelephoneCountryCodeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TelephoneCountryCode .
+
+ies:TelephoneNumberRangeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TelephoneNumberRange .
+
+ies:TelephoneNumberShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TelephoneNumber .
+
+ies:TemperatureShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Temperature .
+
+ies:TendencyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Tendency .
+
+ies:TerrorAttackShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TerrorAttack .
+
+ies:TerroristOrganisationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TerroristOrganisation .
+
+ies:TheatreTicketShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TheatreTicket .
+
+ies:ThingShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Thing .
+
+ies:TicketArrivalLocationDomainShape a sh:NodeShape ;
+    sh:class ies:TravelTicket ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:ticketArrivalLocation .
+
+ies:TicketArrivalLocationRangeShape a sh:NodeShape ;
+    sh:class ies:Port ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:ticketArrivalLocation .
+
+ies:TicketDepartureLocationDomainShape a sh:NodeShape ;
+    sh:class ies:TravelTicket ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:ticketDepartureLocation .
+
+ies:TicketDepartureLocationRangeShape a sh:NodeShape ;
+    sh:class ies:Port ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:ticketDepartureLocation .
+
+ies:TicketShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Ticket .
+
+ies:TicketUsedInCheckInShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TicketUsedInCheckIn .
+
+ies:TimeBoundedClassShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TimeBoundedClass .
+
+ies:TitleShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Title .
+
+ies:TradeAgreementShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TradeAgreement .
+
+ies:TradeEventShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TradeEvent .
+
+ies:TradedAssetShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TradedAsset .
+
+ies:TradedItemTypeDomainShape a sh:NodeShape ;
+    sh:class ies:TradeEvent ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:tradedItemType .
+
+ies:TradedItemTypeRangeShape a sh:NodeShape ;
+    sh:class ies:ClassOfEntity ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:tradedItemType .
+
+ies:TrainTicketShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TrainTicket .
+
+ies:TrainTravelShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TrainTravel .
+
+ies:TransferValueDomainShape a sh:NodeShape ;
+    sh:class ies:MoneyTransfer ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:transferValue .
+
+ies:TransferValueRangeShape a sh:NodeShape ;
+    sh:class ies:AmountOfMoney ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:transferValue .
+
+ies:TransitShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Transit .
+
+ies:TravelBookingShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TravelBooking .
+
+ies:TravelCardShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TravelCard .
+
+ies:TravelLegShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TravelLeg .
+
+ies:TravelReservationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TravelReservation .
+
+ies:TravelServiceIdentifierShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TravelServiceIdentifier .
+
+ies:TravelServiceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TravelService .
+
+ies:TravelTicketShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TravelTicket .
+
+ies:TravelVisaShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:TravelVisa .
+
+ies:TreatyShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Treaty .
+
+ies:TrustsDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:trusts .
+
+ies:TrustsRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:trusts .
+
+ies:UN_LOCODEShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:UN_LOCODE .
+
+ies:URLShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:URL .
+
+ies:UnitOfMeasureShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:UnitOfMeasure .
+
+ies:UpdateAccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:UpdateAccount .
+
+ies:UpperBoundDomainShape a sh:NodeShape ;
+    sh:class ies:MeasureRange ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:upperBound .
+
+ies:UpperBoundRangeShape a sh:NodeShape ;
+    sh:class ies:Measure ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:upperBound .
+
+ies:UriSchemeDomainShape a sh:NodeShape ;
+    sh:class ies:WebResourceState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:uriScheme .
+
+ies:UriSchemeNameDomainShape a sh:NodeShape ;
+    sh:class ies:WebResourceState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:uriSchemeName .
+
+ies:UserOfRangeShape a sh:NodeShape ;
+    sh:class ies:Asset ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:userOf .
+
+ies:UsernameShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Username .
+
+ies:UsuallyParkedShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:UsuallyParked .
+
+ies:VafNumberDomainShape a sh:NodeShape ;
+    sh:class ies:TravelVisa ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:vafNumber .
+
+ies:ValidFromDateDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument,
+        ies:PaymentArtefact,
+        ies:TravelTicket ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:validFromDate .
+
+ies:ValidFromDateRangeShape a sh:NodeShape ;
+    sh:class ies:ParticularPeriod ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:validFromDate .
+
+ies:ValidToDateDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument,
+        ies:PaymentArtefact,
+        ies:TravelTicket ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:validToDate .
+
+ies:ValidToDateRangeShape a sh:NodeShape ;
+    sh:class ies:ParticularPeriod ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:validToDate .
+
+ies:ValueInAmperesShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ValueInAmperes .
+
+ies:ValueInCandelaShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ValueInCandela .
+
+ies:ValueInKelvinShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ValueInKelvin .
+
+ies:ValueInKilogramsShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ValueInKilograms .
+
+ies:ValueInMetresShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ValueInMetres .
+
+ies:ValueInMolesShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ValueInMoles .
+
+ies:ValueInSecondsShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:ValueInSeconds .
+
+ies:VehicleControllerShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:VehicleController .
+
+ies:VehicleIdentificationNumberShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:VehicleIdentificationNumber .
+
+ies:VehicleNameShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:VehicleName .
+
+ies:VehicleShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Vehicle .
+
+ies:VehicleStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:VehicleState .
+
+ies:VehicleUsedShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:VehicleUsed .
+
+ies:VenueStatedOnTicketDomainShape a sh:NodeShape ;
+    sh:class ies:EntertainmentTicket ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:venueStatedOnTicket .
+
+ies:VenueStatedOnTicketRangeShape a sh:NodeShape ;
+    sh:class ies:Facility ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:venueStatedOnTicket .
+
+ies:VersionNumberShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:VersionNumber .
+
+ies:VersionOfDocumentShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:VersionOfDocument .
+
+ies:VersionOfDomainShape a sh:NodeShape ;
+    sh:class ies:VersionOfDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:versionOf .
+
+ies:VersionOfRangeShape a sh:NodeShape ;
+    sh:class ies:WorkOfDocumentation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:versionOf .
+
+ies:VictimShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Victim .
+
+ies:VideoConferenceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:VideoConference .
+
+ies:VisitingShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Visiting .
+
+ies:VisitsDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:visits .
+
+ies:VisitsRangeShape a sh:NodeShape ;
+    sh:class ies:Location ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:visits .
+
+ies:VoiceCallShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:VoiceCall .
+
+ies:VoipAccountShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:VoipAccount .
+
+ies:VotingAttendeeShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:VotingAttendee .
+
+ies:WarShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:War .
+
+ies:WarrantShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Warrant .
+
+ies:WarrantryShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Warrantry .
+
+ies:WasAuthorisedByDomainShape a sh:NodeShape ;
+    sh:class ies:IdentityDocument ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:wasAuthorisedBy .
+
+ies:WasAuthorisedByRangeShape a sh:NodeShape ;
+    sh:class ies:Organisation ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:wasAuthorisedBy .
+
+ies:WeaponLocationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:WeaponLocation .
+
+ies:WebResourceShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:WebResource .
+
+ies:WebResourceStateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:WebResourceState .
+
+ies:WebpageShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Webpage .
+
+ies:What3wordsShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:What3words .
+
+ies:WinningCandidateShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:WinningCandidate .
+
+ies:WithdrawFromSaleShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:WithdrawFromSale .
+
+ies:WitnessShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:Witness .
+
+ies:WorkOfDocumentationShape a sh:NodeShape ;
+    sh:severity sh:Warning ;
+    sh:targetClass ies:WorkOfDocumentation .
+
+ies:WorksForDomainShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActorState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:worksFor .
+
+ies:WorksForRangeShape a sh:NodeShape ;
+    sh:class ies:ResponsibleActor ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:worksFor .
+
+ies:WorksWithDomainShape a sh:NodeShape ;
+    sh:class ies:PersonState ;
+    sh:severity sh:Warning ;
+    sh:targetSubjectsOf ies:worksWith .
+
+ies:WorksWithRangeShape a sh:NodeShape ;
+    sh:class ies:Person ;
+    sh:severity sh:Warning ;
+    sh:targetObjectsOf ies:worksWith .
+

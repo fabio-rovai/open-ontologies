@@ -1,0 +1,16 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ies: <http://ies.data.gov.uk/ontology/ies4#> . 
+@prefix data: <http://data.gov.uk/testdata#> .
+@prefix iso8601: <http://iso.org/iso8601#> .
+
+data:AcmeInc a ies:Organisation .
+data:Barry a ies:Person .
+data:Fred a ies:Person ;
+    ies:siblingOf data:Barry .
+data:FredState2 a ies:PersonState ;
+    ies:isStateOf data:Fred ;
+    ies:worksFor data:AcmeInc .
+data:FredEmployedStart a ies:BoundingState ;
+    ies:inPeriod iso8601:20111205T080000 ;
+    ies:isStartOf data:FredState2 .
+iso8601:20111205T080000 a ies:ParticularPeriod .

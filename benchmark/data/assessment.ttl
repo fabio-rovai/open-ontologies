@@ -1,0 +1,56 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ies: <http://ies.data.gov.uk/ontology/ies4#> .
+@prefix data: <http://data.gov.uk/testdata#> .
+
+data:Scenario1 a ies:PossibleWorld .
+data:Scenario2 a ies:PossibleWorld .
+data:Scenario3 a ies:PossibleWorld .
+data:Vladimir a ies:Person .
+data:Barry a ies:Person .
+data:Fred a ies:Person .
+data:ddosAttackOnAcmeInc a ies:Hacking .
+
+data:BarHackingS3 ies:isPartOf data:Scenario3 ;
+  ies:isParticipantIn data:ddosAttackOnAcmeInc ;
+  ies:isParticipationOf data:Barry ;
+  a ies:Perpetrator .
+
+data:BarryHackingS2 ies:isPartOf data:Scenario2 ;
+  ies:isParticipantIn data:ddosAttackOnAcmeInc ;
+  ies:isParticipationOf data:Barry ;
+  a ies:Perpetrator .
+
+data:FreHackingS3 ies:isPartOf data:Scenario3 ;
+  ies:isParticipantIn data:ddosAttackOnAcmeInc ;
+  ies:isParticipationOf data:Fred ;
+  a ies:Perpetrator .
+
+data:FredHackingS1 ies:isPartOf data:Scenario1 ;
+  ies:isParticipantIn data:ddosAttackOnAcmeInc ;
+  ies:isParticipationOf data:Fred ;
+  a ies:Perpetrator .
+
+data:S1Assessment ies:assessed data:Scenario1 ;
+  ies:hmlConfidence "HIGH" ;
+  a ies:AssessToBeTrue .
+
+data:S1Assessor ies:isParticipantIn data:S1Assessment ;
+  ies:isParticipationOf data:Vladimir ;
+  a ies:Assessor .
+
+data:S2Assessment ies:assessed data:Scenario2 ;
+  ies:hmlConfidence "MEDIUM" ;
+  a ies:AssessToBeTrue .
+
+data:S2Assessor ies:isParticipantIn data:S2Assessment ;
+  ies:isParticipationOf data:Vladimir ;
+  a ies:Assessor .
+
+data:S3Assessment ies:assessed data:Scenario3 ;
+  ies:hmlConfidence "LOW" ;
+  a ies:AssessToBeTrue .
+
+data:S3Assessor ies:isParticipantIn data:S3Assessment ;
+  ies:isParticipationOf data:Vladimir ;
+  a ies:Assessor .
+  

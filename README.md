@@ -1,0 +1,69 @@
+# Open Ontologies
+
+AI-native ontology engine. Built with [OpenCheir](https://github.com/fabio-rovai/opencheir).
+
+Claude is the ontology intelligence — it knows OWL, BORO, 4D modeling, every methodology. This engine handles what Claude physically cannot: RDF parsing, SPARQL execution, format conversion, and persistence.
+
+## Tools
+
+| Tool | Purpose |
+| ---- | ------- |
+| `onto_validate` | Validate RDF/OWL syntax (file or inline Turtle) |
+| `onto_convert` | Convert between formats (Turtle, N-Triples, RDF/XML, N-Quads, TriG) |
+| `onto_load` | Load RDF into in-memory graph store |
+| `onto_query` | Run SPARQL queries against loaded ontology |
+| `onto_save` | Save ontology store to file |
+| `onto_stats` | Triple count, classes, properties, individuals |
+| `onto_diff` | Compare two ontology files (added/removed triples) |
+| `onto_lint` | Check for missing labels, comments, domains |
+| `onto_clear` | Clear in-memory store |
+
+## Benchmark
+
+Tested against the IES4 (UK Information Exchange Standard) building domain extension:
+
+- **100% compliance** — 86/86 checks passed
+- 318 triples, 36 classes, 12 properties
+- Full 4D/BORO patterns: Entity+State pairs, BoundingStates, ClassOf
+- All 9 competency questions covered
+- Zero external tools — Claude generated the Turtle directly
+
+Run it yourself:
+
+```bash
+cd benchmark
+python compare.py
+```
+
+## Stack
+
+- **Rust** (edition 2024) — single binary, no JVM
+- **Oxigraph** — pure Rust RDF/SPARQL engine
+- **OpenCheir** — MCP server framework with enforcer, lineage, memory
+
+## Install
+
+Open Ontologies ships as part of OpenCheir:
+
+```bash
+git clone https://github.com/fabio-rovai/opencheir.git
+cd opencheir
+cargo build --release
+```
+
+Add to Claude Code (`~/.claude/settings.json`):
+
+```json
+{
+  "mcpServers": {
+    "opencheir": {
+      "command": "/path/to/opencheir",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+## License
+
+MIT

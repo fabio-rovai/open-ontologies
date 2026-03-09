@@ -1,0 +1,27 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ies: <http://ies.data.gov.uk/ontology/ies4#> . 
+@prefix data: <http://data.gov.uk/testdata#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+data:Fred a ies:Person .
+data:FredBorn ies:isStartOf data:Fred ;
+  ies:hasCharacteristic data:Mass1 .
+data:FredAtMedical ies:isStateOf data:Fred ;
+  ies:hasCharacteristic data:Mass2 .
+data:Pounds a ies:UnitOfMeasure .
+
+data:Mass1 a ies:Mass ;
+  ies:hasValue [ 
+    a ies:ValueInKilograms ;
+    ies:representationValue "3.0"^^xsd:decimal 
+  ] ,
+  [ 
+    a ies:MeasureValue ;
+    ies:representationValue "6.61"^^xsd:decimal ;
+    ies:measureUnit data:Pounds
+  ] .
+data:Mass2 a ies:Mass ;
+  ies:hasValue [ 
+    a ies:ValueInKilograms ;
+    ies:representationValue "25.0"^^xsd:decimal 
+  ] .

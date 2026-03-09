@@ -1,0 +1,26 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ies: <http://ies.data.gov.uk/ontology/ies4#> . 
+@prefix data: <http://data.gov.uk/testdata#> .
+@prefix iso8601: <http://iso.org/iso8601#> .
+
+data:Fred a ies:Person .
+data:FredBorn a ies:BirthState ;
+  ies:inPeriod iso8601:19840921T210400 ;
+  ies:inLocation data:UniversityHospital ;
+  ies:isStartOf data:Fred .
+data:FredAtMedical a ies:PersonState ;
+  ies:inPeriod iso8601:19910306T113000 ;
+  ies:inLocation data:AcmeHealthCentre ;
+  ies:isStateOf data:Fred .
+data:FredAtFatFighters a ies:PersonState ;
+  ies:inPeriod iso8601:20141218T181000 ;
+  ies:inLocation data:FatFightersClub ;
+  ies:isStateOf data:Fred .
+
+iso8601:19840921T210400 a ies:ParticularPeriod .
+iso8601:19910306T113000 a ies:ParticularPeriod .
+iso8601:20141218T181000 a ies:ParticularPeriod .
+
+data:UniversityHospital a ies:Facility .
+data:AcmeHealthCentre a ies:Facility .
+data:FatFightersClub a ies:Facility .

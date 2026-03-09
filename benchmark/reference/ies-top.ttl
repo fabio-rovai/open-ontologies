@@ -1,0 +1,278 @@
+# MIT License
+#
+# Crown Copyright (c) 2025
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal.
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is# furnished to do so, subject to the following conditions:#
+# The above copyright notice and this permission notice shall be included in all# copies or substantial portions of the Software.#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
+
+# baseURI: http://purl.org/ies/top/v0/ont
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+@prefix ies_top: <http://purl.org/ies/top/v0/ont/> .
+
+<http://purl.org/ies/top/v0/ont> rdf:type owl:Ontology . 
+
+# Ontology Definition & Metadata
+ies_top: a owl:Ontology ;
+   dcterms:title "ies-top"@en-GB ;
+   dcterms:description
+   """
+   A top level ontology grounded in Extensional Four-Dimensionalism.
+   """@en-GB ;
+   dcterms:created "2025-09-30"^^xsd:date ;
+   dcterms:modified "2025-09-30"^^xsd:date ;
+   dcterms:publisher "UK Department for Business and Trade"@en-GB ;
+   dcterms:language "en-GB" ;
+   dcterms:license <https://spdx.org/licenses/MIT.html> ;
+   dcterms:rights "Crown Copyright 2020-2025"@en-GB ;
+   dcterms:dateCopyrighted "2025"^^xsd:gYear ;
+   vann:preferredNamespacePrefix "ies_top" ;
+   vann:preferredNamespaceUri "http://purl.org/ies/top/v0/ont/" ;
+   owl:versionInfo "0.1.0 (RC1)" .
+
+ies_top:couple rdf:type rdf:Property . 
+ies_top:couple rdfs:label "couple" . 
+ies_top:couple dcterms:identifier "{85FEAFD9-50A0-42ea-9CC7-8DC7B055F47B}" . 
+ies_top:couple rdfs:comment "A two placed tuple. Realized in RDF as a rdf:property. " . 
+ies_top:couple rdfs:domain ies_top:Thing . 
+ies_top:couple rdfs:range ies_top:Thing . 
+ies_top:entirelyAfter rdf:type rdf:Property . 
+ies_top:entirelyAfter rdfs:label "entirely after" . 
+ies_top:entirelyAfter dcterms:identifier "{1E663E8C-8B98-410d-A373-CE8E2DADAA1F}" . 
+ies_top:entirelyAfter rdfs:comment "A relationship (between universe-mates) where one ends before the other starts." . 
+ies_top:entirelyAfter rdfs:subPropertyOf ies_top:relationshipBetweenUniverseMates . 
+ies_top:FourPlaceTuple rdf:type rdfs:Class . 
+ies_top:FourPlaceTuple rdfs:label "Four Place Tuple" . 
+ies_top:FourPlaceTuple dcterms:identifier "{9A10F900-2011-45d3-9201-85B9E5A2784A}" . 
+ies_top:FourPlaceTuple rdfs:comment "A Tuple with four places." . 
+ies_top:FourPlaceTuple rdfs:subClassOf ies_top:Tuple . 
+ies_top:groundingRelation rdf:type rdf:Property . 
+ies_top:groundingRelation rdfs:label "grounding relation" . 
+ies_top:groundingRelation dcterms:identifier "{45345E32-79B0-4d24-8424-2531ACDF691A}" . 
+ies_top:groundingRelation rdfs:comment "A Thing which is one of the four basic relationships between two Things. Realized in RDF as a rdf:property." . 
+ies_top:IntermittentTimespan rdf:type rdfs:Class . 
+ies_top:IntermittentTimespan rdfs:label "Intermittent Timespan" . 
+ies_top:IntermittentTimespan dcterms:identifier "{ED41858D-A919-4e57-9C60-E2333556C826}" . 
+ies_top:IntermittentTimespan rdfs:comment "An interrupted timespan which is also a fusion of timespans." . 
+ies_top:IntermittentTimespan rdfs:subClassOf ies_top:Timespan . 
+ies_top:IntermittentTimespan rdfs:subClassOf ies_top:TemporallyIntermittentState . 
+ies_top:intersectionOf rdf:type rdf:Property . 
+ies_top:intersectionOf rdfs:label "intersection of" . 
+ies_top:intersectionOf dcterms:identifier "{B79F1B38-5B0E-4647-A661-CC8836BA68D0}" . 
+ies_top:intersectionOf rdfs:comment "A couple between a SetOfOverlappingSpatiotemporalExtents and an SpatiotemporalExtent which is the intersection of their overlap. Note, there is no Intersection subClassOf of SpatiotemporalExtent because in someway, any extent can be considered a intersection of others." . 
+ies_top:intersectionOf rdfs:subPropertyOf ies_top:couple . 
+ies_top:intersectionOf rdfs:domain ies_top:SpatiotemporalExtent . 
+ies_top:intersectionOf rdfs:range ies_top:SetOfOverlappingSpatiotemporalExtents . 
+ies_top:isAFinishOf rdf:type rdf:Property . 
+ies_top:isAFinishOf rdfs:label "is a finish of" . 
+ies_top:isAFinishOf dcterms:identifier "{291C902A-0CAC-467e-9C3A-AD8EE537CB3D}" . 
+ies_top:isAFinishOf rdfs:comment "An isTemporalPartOf that places a state as one (but not always the only) temporal part at the conclusion of another." . 
+ies_top:isAFinishOf rdfs:subPropertyOf ies_top:isTemporalPartOf . 
+ies_top:isAStartOf rdf:type rdf:Property . 
+ies_top:isAStartOf rdfs:label "is a start of" . 
+ies_top:isAStartOf dcterms:identifier "{C939A967-D8A7-4a4b-BAC3-CA1631A54B82}" . 
+ies_top:isAStartOf rdfs:comment "An isTemporalPartOf that places a state as one (but not always the only) temporal part at the beginning of another." . 
+ies_top:isAStartOf rdfs:subPropertyOf ies_top:isTemporalPartOf . 
+ies_top:isImproperPartOf rdf:type rdf:Property . 
+ies_top:isImproperPartOf rdfs:label "is improper part of" . 
+ies_top:isImproperPartOf dcterms:identifier "{A46E9E64-6238-42d3-96AB-E0AB6C532636}" . 
+ies_top:isImproperPartOf rdfs:comment "An isPartOf that asserts the two states are identical i.e. the part is identical to the whole." . 
+ies_top:isImproperPartOf rdfs:subPropertyOf ies_top:isPartOf . 
+ies_top:isPartOf rdf:type rdf:Property . 
+ies_top:isPartOf rdfs:label "is part of" . 
+ies_top:isPartOf dcterms:identifier "{B51571E4-8AC5-4387-BB47-AB110E15F586}" . 
+ies_top:isPartOf rdfs:comment "A partWhole relation between two states, where both states are bound to the same universe (universe-mates)." . 
+ies_top:isPartOf rdfs:range ies_top:State . 
+ies_top:isPartOf rdfs:subPropertyOf ies_top:partWhole . 
+ies_top:isPartOf rdfs:domain ies_top:State . 
+ies_top:isTemporalPartOf rdf:type rdf:Property . 
+ies_top:isTemporalPartOf rdfs:label "is temporal part of" . 
+ies_top:isTemporalPartOf dcterms:identifier "{91245399-D5D7-4ad7-A8DA-C0DB2F9E4332}" . 
+ies_top:isTemporalPartOf rdfs:comment "An isPartOf that asserts the spatial extent of the (whole) state is co-extensive with the spatial extent of the (part) state for a particular period of time." . 
+ies_top:isTemporalPartOf rdfs:subPropertyOf ies_top:isPartOf . 
+ies_top:partWhole rdf:type rdf:Property . 
+ies_top:partWhole rdfs:label "part whole" . 
+ies_top:partWhole dcterms:identifier "{CED45081-FC65-43bf-A953-25232EF7820B}" . 
+ies_top:partWhole rdfs:comment "A grounding relation placing one element as part of another (the whole)." . 
+ies_top:partWhole rdfs:subPropertyOf ies_top:groundingRelation . 
+ies_top:partWhole rdfs:range ies_top:SpatiotemporalExtent . 
+ies_top:partWhole rdfs:domain ies_top:SpatiotemporalExtent . 
+ies_top:Period rdf:type rdfs:Class . 
+ies_top:Period rdfs:label "Period" . 
+ies_top:Period dcterms:identifier "{D77A3301-53BB-4820-A86A-F7C6A0D4C9A4}" . 
+ies_top:Period rdfs:comment "A connected and uninterrupted Timespan." . 
+ies_top:Period rdfs:subClassOf ies_top:TemporallyContinuousState . 
+ies_top:Period rdfs:subClassOf ies_top:Timespan . 
+ies_top:powertype rdf:type rdf:Property . 
+ies_top:powertype rdfs:label "powertype" . 
+ies_top:powertype dcterms:identifier "{82F50D01-425F-400f-B147-6228C9019FDE}" . 
+ies_top:powertype rdfs:comment "An rdf:type relation that asserts one Set is the powerset of the other (see Cantors theorem)." . 
+ies_top:powertype rdfs:domain rdfs:Class . 
+ies_top:powertype rdfs:subPropertyOf rdf:type . 
+ies_top:relationship rdf:type rdf:Property . 
+ies_top:relationship rdfs:label "relationship" . 
+ies_top:relationship dcterms:identifier "{5CC94004-05D7-45ec-A5C8-56CFFE8A3A39}" . 
+ies_top:relationship rdfs:comment "A couple between any two spatiotemporal extents." . 
+ies_top:relationship rdfs:range ies_top:SpatiotemporalExtent . 
+ies_top:relationship rdfs:subPropertyOf ies_top:couple . 
+ies_top:relationship rdfs:domain ies_top:SpatiotemporalExtent . 
+ies_top:relationshipBetweenStates rdf:type rdf:Property . 
+ies_top:relationshipBetweenStates rdfs:label "relationship between states" . 
+ies_top:relationshipBetweenStates dcterms:identifier "{4F36C24C-39A3-472d-94C3-B2BBD48F951F}" . 
+ies_top:relationshipBetweenStates rdfs:comment "A relationship between any two states, where a state is a universe-bound element." . 
+ies_top:relationshipBetweenStates rdfs:range ies_top:State . 
+ies_top:relationshipBetweenStates rdfs:subPropertyOf ies_top:relationship . 
+ies_top:relationshipBetweenStates rdfs:domain ies_top:State . 
+ies_top:relationshipBetweenUniverseMates rdf:type rdf:Property . 
+ies_top:relationshipBetweenUniverseMates rdfs:label "relationship between universe mates" . 
+ies_top:relationshipBetweenUniverseMates dcterms:identifier "{030E8B68-77EB-4013-BD03-33198A229C83}" . 
+ies_top:relationshipBetweenUniverseMates rdfs:comment "A relationshipBetweenStates where those states are part of the same universe as one another." . 
+ies_top:relationshipBetweenUniverseMates rdfs:subPropertyOf ies_top:relationshipBetweenStates . 
+ies_top:Set rdf:type rdfs:Class . 
+ies_top:Set rdfs:label "Set" . 
+ies_top:Set dcterms:identifier "{059B5013-017B-496f-B104-EA82B69B8792}" . 
+ies_top:Set rdfs:comment "A Thing that is an unordered collection of other Things, sometimes referred to as a class or kind." . 
+ies_top:Set rdfs:subClassOf ies_top:Thing . 
+ies_top:Set rdfs:subClassOf rdfs:Class . 
+ies_top:SetOfDisjointSpatiotemporalExtents rdf:type rdfs:Class . 
+ies_top:SetOfDisjointSpatiotemporalExtents rdfs:label "Set Of Disjoint Spatiotemporal Extents" . 
+ies_top:SetOfDisjointSpatiotemporalExtents dcterms:identifier "{2733C396-A001-42fb-945F-B4F26E120B33}" . 
+ies_top:SetOfDisjointSpatiotemporalExtents rdfs:comment "A set of spatio-temporal extents which are disjoint from one another i.e. they do not overlap." . 
+ies_top:SetOfDisjointSpatiotemporalExtents rdfs:subClassOf ies_top:SetOfSpatiotemporalExtents . 
+ies_top:SetOfOverlappingSpatiotemporalExtents rdf:type rdfs:Class . 
+ies_top:SetOfOverlappingSpatiotemporalExtents rdfs:label "Set Of Overlapping Spatiotemporal Extents" . 
+ies_top:SetOfOverlappingSpatiotemporalExtents dcterms:identifier "{AF81B43D-1F08-4ab8-A4A2-521A71183550}" . 
+ies_top:SetOfOverlappingSpatiotemporalExtents rdfs:comment "A set of spatio-temporal extents that overlap either partially or completely with one another." . 
+ies_top:SetOfOverlappingSpatiotemporalExtents rdfs:subClassOf ies_top:SetOfSpatiotemporalExtents . 
+ies_top:SetOfSetOfSpatiotemporalExtents rdf:type rdfs:Class . 
+ies_top:SetOfSetOfSpatiotemporalExtents rdfs:label "Set Of Set Of Spatiotemporal Extents" . 
+ies_top:SetOfSetOfSpatiotemporalExtents dcterms:identifier "{33A6E9F9-54B5-4045-8733-CE821D972C6F}" . 
+ies_top:SetOfSetOfSpatiotemporalExtents rdfs:comment "A Set that contains sets of spatio-temporal extents." . 
+ies_top:SetOfSetOfSpatiotemporalExtents rdfs:subClassOf ies_top:Set . 
+ies_top:SetOfSetOfStates rdf:type rdfs:Class . 
+ies_top:SetOfSetOfStates rdfs:label "Set Of Set Of States" . 
+ies_top:SetOfSetOfStates dcterms:identifier "{44A34647-EA2F-4635-8DD4-9E48008A85AF}" . 
+ies_top:SetOfSetOfStates rdfs:subClassOf ies_top:SetOfSetOfSpatiotemporalExtents . 
+ies_top:SetOfSpatiotemporalExtents rdf:type rdfs:Class . 
+ies_top:SetOfSpatiotemporalExtents rdfs:label "Set Of Spatiotemporal Extents" . 
+ies_top:SetOfSpatiotemporalExtents dcterms:identifier "{0C4A5CA9-A706-4653-AB55-69D2FCAB0D23}" . 
+ies_top:SetOfSpatiotemporalExtents rdfs:comment "A Set that contains spatio-temporal extents." . 
+ies_top:SetOfSpatiotemporalExtents rdfs:subClassOf ies_top:Set . 
+ies_top:SetOfSpatiotemporalExtents ies_top:powertype ies_top:SetOfSetOfSpatiotemporalExtents . 
+ies_top:SetOfStates rdf:type rdfs:Class . 
+ies_top:SetOfStates rdfs:label "Set Of States" . 
+ies_top:SetOfStates dcterms:identifier "{E25C3B00-4CA3-40f4-9443-15C9DC4EE972}" . 
+ies_top:SetOfStates rdfs:subClassOf ies_top:SetOfSpatiotemporalExtents . 
+ies_top:SetOfStates ies_top:powertype ies_top:SetOfSetOfStates . 
+ies_top:SpatiotemporalExtent rdf:type rdfs:Class . 
+ies_top:SpatiotemporalExtent rdfs:label "Spatiotemporal Extent" . 
+ies_top:SpatiotemporalExtent dcterms:identifier "{DCB3F671-0FA3-4de6-B037-A011C432A087}" . 
+ies_top:SpatiotemporalExtent rdfs:comment "A Thing that is a part of the pluriverse - and so has a 4D extent." . 
+ies_top:SpatiotemporalExtent rdfs:subClassOf ies_top:Thing . 
+ies_top:SpatiotemporalExtent ies_top:powertype ies_top:SetOfSpatiotemporalExtents . 
+ies_top:State rdf:type rdfs:Class . 
+ies_top:State rdfs:label "State" . 
+ies_top:State dcterms:identifier "{885FC001-7738-47ab-8870-30D004A57180}" . 
+ies_top:State rdfs:comment "A SpatiotemporalExtent that is universe-bound i.e. an element which is part of one and only one universe." . 
+ies_top:State rdfs:subClassOf ies_top:SpatiotemporalExtent . 
+ies_top:State ies_top:powertype ies_top:SetOfStates . 
+ies_top:Stuff rdf:type rdfs:Class . 
+ies_top:Stuff rdfs:label "Stuff" . 
+ies_top:Stuff dcterms:identifier "{0F8A7A2E-896C-4b09-AFDE-F63807BDC767}" . 
+ies_top:Stuff rdfs:comment "A spatiotemporal extent that is highly dissective or generally uncountable. Any division of it yields the same type of spatiotemporal extent e.g. if you cut sand in half, you still have sand. As well as sand, other examples include water, gas and coffee." . 
+ies_top:Stuff rdfs:subClassOf ies_top:SpatiotemporalExtent . 
+ies_top:subSuperRelation rdf:type rdf:Property . 
+ies_top:subSuperRelation rdfs:label "sub super relation" . 
+ies_top:subSuperRelation dcterms:identifier "{D6EC5416-51C4-457f-9EAE-4482A118D9B3}" . 
+ies_top:subSuperRelation rdfs:comment "A grounding relation which is either a sub-super relation between Sets (rdfs:subClassOf) or Tuples, including Couples (rdfs:subPropertyOf)." . 
+ies_top:subSuperRelation rdfs:subPropertyOf ies_top:groundingRelation . 
+ies_top:TemporallyContinuousState rdf:type rdfs:Class . 
+ies_top:TemporallyContinuousState rdfs:label "Temporally Continuous State" . 
+ies_top:TemporallyContinuousState dcterms:identifier "{01FBE830-DC8B-4c9d-8CDA-D8D2BFD22DFE}" . 
+ies_top:TemporallyContinuousState rdfs:comment "A state that is temporally continuous or temporally uninterrupted." . 
+ies_top:TemporallyContinuousState rdfs:subClassOf ies_top:State . 
+ies_top:TemporallyIntermittentState rdf:type rdfs:Class . 
+ies_top:TemporallyIntermittentState rdfs:label "Temporally Intermittent State" . 
+ies_top:TemporallyIntermittentState dcterms:identifier "{54795BB4-0A44-4837-AD45-2E51EDE3DD2F}" . 
+ies_top:TemporallyIntermittentState rdfs:comment "A state that is temporally dissected - i.e. it is not continuous, but a fusion of states." . 
+ies_top:TemporallyIntermittentState rdfs:subClassOf ies_top:State . 
+ies_top:Thing rdf:type rdfs:Class . 
+ies_top:Thing rdfs:label "Thing" . 
+ies_top:Thing dcterms:identifier "{27C6BCF1-9FFE-4172-AC2C-E32653B43014}" . 
+ies_top:Thing rdfs:comment "Either a SpatiotemporalExtent, Set, or Tuple." . 
+ies_top:Thing rdfs:subClassOf rdfs:Resource . 
+ies_top:ThreePlaceTuple rdf:type rdfs:Class . 
+ies_top:ThreePlaceTuple rdfs:label "Three Place Tuple" . 
+ies_top:ThreePlaceTuple dcterms:identifier "{462AB7C2-3866-4085-B0F4-7E14A989CC5C}" . 
+ies_top:ThreePlaceTuple rdfs:comment "A Tuple with three places." . 
+ies_top:ThreePlaceTuple rdfs:subClassOf ies_top:Tuple . 
+ies_top:Timespan rdf:type rdfs:Class . 
+ies_top:Timespan rdfs:label "Timespan" . 
+ies_top:Timespan dcterms:identifier "{B9900E87-E85C-4378-8AFE-D3A5EF0168A0}" . 
+ies_top:Timespan rdfs:comment "A State (i.e. universe-bound spatiotemporal extent) that is a temporal part of a universe. Note: a universe is an improper temporal part of itself - and so a maximal timespan." . 
+ies_top:Timespan rdfs:subClassOf ies_top:State . 
+ies_top:Tuple rdf:type rdfs:Class . 
+ies_top:Tuple rdfs:label "Tuple" . 
+ies_top:Tuple dcterms:identifier "{B65C4468-4E79-4857-8A01-1DA50501E692}" . 
+ies_top:Tuple rdfs:comment "A Thing that is an (ordered) sequence of Things. Each position in the sequence identified by a tuplePlace." . 
+ies_top:Tuple rdfs:subClassOf ies_top:Thing . 
+ies_top:tuplePlace rdf:type rdf:Property . 
+ies_top:tuplePlace rdfs:label "tuple place" . 
+ies_top:tuplePlace dcterms:identifier "{E0C16B56-3271-444b-8F2F-01756C2DDE60}" . 
+ies_top:tuplePlace rdfs:comment "A grounding relation which identifies a part of a Tuple." . 
+ies_top:tuplePlace rdfs:subPropertyOf ies_top:groundingRelation . 
+ies_top:tuplePlace rdfs:domain ies_top:Tuple . 
+ies_top:tuplePlace rdfs:range ies_top:Thing . 
+ies_top:tuplePlace_1 rdf:type rdf:Property . 
+ies_top:tuplePlace_1 rdfs:label "tuple place_1" . 
+ies_top:tuplePlace_1 dcterms:identifier "{C9DC8B44-EE16-4d29-9E5C-0326218C5914}" . 
+ies_top:tuplePlace_1 rdfs:comment "The first place in a Tuple." . 
+ies_top:tuplePlace_1 rdfs:subPropertyOf ies_top:tuplePlace . 
+ies_top:tuplePlace_2 rdf:type rdf:Property . 
+ies_top:tuplePlace_2 rdfs:label "tuple place_2" . 
+ies_top:tuplePlace_2 dcterms:identifier "{B97DD954-1164-43b7-9DE8-D4E350A8C2E6}" . 
+ies_top:tuplePlace_2 rdfs:comment "The second place in a Tuple." . 
+ies_top:tuplePlace_2 rdfs:subPropertyOf ies_top:tuplePlace . 
+ies_top:tuplePlace_3 rdf:type rdf:Property . 
+ies_top:tuplePlace_3 rdfs:label "tuple place_3" . 
+ies_top:tuplePlace_3 dcterms:identifier "{E719F16E-EC6B-47bb-848D-16544E31316C}" . 
+ies_top:tuplePlace_3 rdfs:comment "The third place in a Tuple." . 
+ies_top:tuplePlace_3 rdfs:subPropertyOf ies_top:tuplePlace . 
+ies_top:tuplePlace_4 rdf:type rdf:Property . 
+ies_top:tuplePlace_4 rdfs:label "tuple place_4" . 
+ies_top:tuplePlace_4 dcterms:identifier "{8BD2E8CE-A8C4-41af-BC35-832A68D6B53C}" . 
+ies_top:tuplePlace_4 rdfs:comment "The fourth place in a Tuple." . 
+ies_top:tuplePlace_4 rdfs:subPropertyOf ies_top:tuplePlace . 
+ies_top:Universe rdf:type rdfs:Class . 
+ies_top:Universe rdfs:label "Universe" . 
+ies_top:Universe dcterms:identifier "{6DC85AE1-CA5E-4fd1-8B67-AFD244D1D01D}" . 
+ies_top:Universe rdfs:comment "A maximal spatiotemporal connected extent that includes everything in a universe, irrespective of any indexing, such as whether it is present now, in the past, or in the future. This is sometimes referred to as a world." . 
+ies_top:Universe rdfs:subClassOf ies_top:Period . 
+ies_top:pluriverse rdf:type ies_top:SpatiotemporalExtent . 
+ies_top:pluriverse rdfs:label "pluriverse" . 
+ies_top:pluriverse dcterms:identifier "{1BC7317E-5D13-45ae-938A-3F273B194EDC}" . 
+ies_top:pluriverse rdfs:comment "An instance of SpatiotemporalExtent which is the sum of all universes (where everything in each universe is part of that universe). Put another way, this has everything in every universe as a part." . 
+rdf:type rdfs:subPropertyOf ies_top:groundingRelation . 
+rdfs:subClassOf rdfs:subPropertyOf ies_top:subSuperRelation . 
+rdfs:subPropertyOf rdfs:subPropertyOf ies_top:subSuperRelation . 

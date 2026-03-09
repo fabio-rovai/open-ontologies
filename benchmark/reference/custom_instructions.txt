@@ -1,0 +1,89 @@
+= IES Building Requirements
+
+== Overview
+
+The IES Building extension is an extension to `ies-common` with the purpose of sharing data about buildings.  It currently primarily concentrates on data required to describe the urban, mainly residential, environment.  Special attention is given to the data associated with energy performance reviews.
+
+== Potential sources of sample data
+
+Sample data will be available from the UK National Address database and the England Energy Performance Certificate database.
+
+==  Use Cases
+
+1. Allow retrofit agents to identify target areas for improving the energy efficiency
+
+- *Context:* Many homes in the UK can benefit from the UK Government grant programme to improve their energy performance.  In order to support these initiatives, we need to be able to describe the energy efficiency of domestic properties and the dwellings within them.
+
+- *Problem:* Data needs to be sourced from multiple sources, and conformed to a standard so that we can query these different data sets.
+
+- *Solution:* This domain ontology sets out the way in which the data is to be conformed to the standard.
+
+==  Stories
+
+=== Data Modeller
+
+- "As a data modeller, I want to make the data that I supply conform to the standard so that will be able to curate more useful standardized data products"
+
+- "As a data modeller, I want to interpret data within my domain in a standardized manner, ensuring I clearly understand the intended purpose and potential applications."
+
+== IES Review
+
+=== Current Limitations
+
+`ies-common` at version 4.3 does not have enough resolution to describe buildings to support the requirements.
+
+=== Proposed Extensions
+
+'ies-building' is proposed as a domain ontology currently specialized to residential buildings and their energy performance.
+
+
+== Definition of Done
+
+- [ ] All competency questions answerable
+- [ ] Validation queries pass
+- [ ] Documentation complete
+- [ ] Exemplar data provided
+- [ ] QA Review approval received
+
+== Competency Questions
+
+=== CQ1
+
+**Context:** As a retrofit agent, I want to know all the residential properties with a particular energy performance score above or below a certain level.
+
+=== CQ2
+
+**Context:** Same as CQ1, but based on a particular EPC letter (A-G)
+
+=== CQ3
+
+**Context:** As CQ1 and CQ2, but restricted to a single UK postal code
+
+=== CQ4
+
+**Context:** As in CQ1-3, but for a group of postal codes
+
+=== CQ5
+
+**Context:** As in CQ1-3, but for an area defined by a latitude/longitude boundary
+
+=== CQ6
+
+**Context:** As in CQ1-3, but for an area defined by an UK Ordnance Survey boundary
+
+=== CQ7
+
+**Context:** As in any of CQ1-6, with the specific details of:
+
+- Window Insulation
+- Wall Insulation
+- Floor Insulation
+- Ceiling Insulation
+
+=== CQ8
+
+**Context:** As in any of CQ1-6, with specific details of the heating systems installed with particular emphasis on the fuel types used
+
+=== CQ9
+
+**Context** Provide the details of the energy performance review for a single property identified by the UPRN for that property

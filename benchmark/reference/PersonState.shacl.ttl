@@ -1,0 +1,53 @@
+@prefix ies_top: <http://purl.org/ies/top/v0/ont/> .
+@prefix ies_top_sh: <http://purl.org/ies/top/v0/shapes/> .
+@prefix ies_core: <http://purl.org/ies/core/v0/ont/> .
+@prefix ies_core_sh: <http://purl.org/ies/core/v0/shapes/> .
+@prefix sh:  <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ies_top_sh:ies_top sh:declare [
+    sh:prefix "ies_top" ;
+    sh:namespace "http://purl.org/ies/top/v0/ont/"^^xsd:anyURI
+] .
+ies_core_sh:ies_core sh:declare [
+    sh:prefix "ies_core" ;
+    sh:namespace "http://purl.org/ies/core/v0/ont/"^^xsd:anyURI
+] .
+
+ies_core_sh:PersonStateShape
+    a sh:NodeShape ;
+    sh:targetSubjectsOf ies_top:isTemporalPartOf ;
+    sh:property [
+        sh:class    ies_core:Gender ;
+        sh:path     ies_core:hasIdentifiedGender ;
+    ] ;
+    sh:property [
+        sh:class    ies_core:Skill ;
+        sh:path     ies_core:hasSkill ;
+    ] ;
+    sh:sparql [
+    a sh:SPARQLConstraint ;
+    sh:prefixes (
+        ies_top_sh:ies_top
+        ies_core_sh:ies_core
+    ) ;
+    sh:message "States of a non-Person must NOT have person-only properties" ;
+    sh:select """
+        SELECT ?this
+        WHERE 
+        {
+            ?this ies_top:isTemporalPartOf ?whole_life_state.
+            FILTER NOT EXISTS {?whole_life_state a ies_core:Person .}
+        {
+            ?this ies_core:hasIdentifiedGender ?gender
+        } 
+        UNION {
+            ?this ies_core:hasName ?person_name .
+            ?person_name a ies_core:PersonName .
+        } 
+        UNION {
+            ?this ies_core:hasSkill ?skill
+        }
+        }
+    """
+    ] .

@@ -1,0 +1,63 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ies: <http://ies.data.gov.uk/ontology/ies4#> . 
+@prefix data: <http://data.gov.uk/testdata#> .
+@prefix iso8601: <http://iso.org/iso8601#> .
+
+data:Fred a ies:Person .
+data:FredsHouse a ies:Address .
+data:LK176LPX a ies:RoadVehicle .
+data:LHR a ies:Airport .
+data:LAX a ies:Airport .
+iso8601:20180812T0530 a ies:ParticularPeriod .
+iso8601:20180812T0645 a ies:ParticularPeriod .
+iso8601:20180812T0830 a ies:ParticularPeriod .
+iso8601:20180812T1440 a ies:ParticularPeriod .
+
+data:FredJourney a ies:Journey .
+
+data:FredOffToLA a ies:OnJourney ;
+  ies:isParticipationOf data:Fred ;
+  ies:isParticipantIn data:FredJourney .
+
+data:FredFirstLeg a ies:VehicleController ;
+  ies:isParticipantIn data:FredDrivesToLHR ;
+  ies:isParticipationOf data:Fred .
+
+data:FredSecondLeg a ies:Passenger ;
+  ies:isParticipantIn data:BA856%402017-12-01 ;
+  ies:isParticipationOf data:Fred ;
+  ies:seatNumber "33B" .
+
+data:FredDrivesToLHR a ies:CarTravel ;
+  ies:isPartOf data:FredJourney .
+
+data:FredDepartHome a ies:Departure ;
+  ies:isStartOf data:FredDrivesToLHR ;
+  ies:inPeriod iso8601:20180812T0530 ;
+  ies:inLocation data:FredsHouse .
+
+data:LK176LPXtoLHR a ies:VehicleUsed ;
+  ies:isParticipantIn data:FredDrivesToLHR ;
+  ies:isParticipationOf data:LK176LPX .
+
+data:FredArriveLHR a ies:Arrival ;
+  ies:isEndOf data:FredDrivesToLHR ;
+  ies:inPeriod iso8601:20180812T0645 ;
+  ies:inLocation data:LHR .
+
+data:BA856%402017-12-01 a ies:Flight ;
+  ies:isPartOf data:FredJourney .
+
+data:FredDepartLHR a ies:Departure ;
+  ies:isStartOf data:BA856%402017-12-01 ;
+  ies:inPeriod iso8601:20180812T0830 ;
+  ies:inLocation data:LHR .
+
+data:BA856 a ies:TravelService ;
+  ies:isScheduledDeparturePort data:LHR; 
+  ies:isScheduledArrivalPort data:LAX .
+
+data:FredArriveLAX a ies:Arrival ;
+  ies:isEndOf data:BA856%402017-12-01 ;
+  ies:inPeriod iso8601:20180812T1440 ;
+  ies:inLocation data:LAX .

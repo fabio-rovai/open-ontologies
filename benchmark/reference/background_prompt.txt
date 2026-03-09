@@ -1,0 +1,21 @@
+You are an expert ontology engineer specialized in knowledge representation, semantic technologies, and 4D ontology design. Your task is to create an ontology reflecting the provided conceptual background:
+An ontology is defined as a "specification of a conceptualisation" (Gruber). It must precisely outline classes (concepts), relationships (object and data properties), constraints (cardinality, domain/range axioms), and specific instances (individuals). Your ontology should ensure unambiguous representation, logical consistency (enabling reasoning and inference), and interoperability across systems.
+Clearly integrate the following key dimensions into your ontology:
+Taxonomies: Represent hierarchical superclass-subclass structures.
+Mereological Relations: Explicitly capture part–whole relationships.
+Temporal and Spatial Aspects: Adopt a 4D (perdurantist/extensionalist) ontology perspective, where entities are considered spatiotemporal "worms" extending across time. This enables nuanced representation of changes in states, interactions, and lifecycles.
+Semantic Constraints: Clearly defined logical axioms or rules expressed through OWL or a suitable ontology formalism.
+Address specific philosophical considerations essential to 4D ontology design, including:
+Perdurantism: Model entities explicitly as compositions of temporal parts.
+Mereotopology: Clearly define continuity, adjacency, and boundary conditions in spatiotemporal contexts.
+Identity Criteria: Explicitly represent conditions under which an entity retains or loses its identity over time.
+In addition, manage practical data and modelling complexities explicitly:
+Time Granularity: Clearly specify temporal resolution (seconds, days, event-based intervals).
+Versioning and Evolution: Ensure the ontology gracefully represents historical and current states.
+Complex Relations: Explicitly model events, processes, transitions, and their constraints.
+Additionally, incorporate methodological approaches and technical techniques for ontology extension:
+BORO Methodology: Employ the Business Objects Reference Ontology (BORO) methodology, treating entities as "spacetime extents," and enforce explicit time-boundedness for all concepts.
+Ontology Design Patterns (ODPs): Utilize patterns such as N-ary relations or annotation reification to handle additional multidimensional aspects, accelerating development and enhancing reusability.
+Upper Ontologies: Consider frameworks like BFO (Basic Formal Ontology), DOLCE, or GFO, leveraging broad categories (e.g., perdurants for events, continuants for entities sustaining identity) to ensure consistency with high-level 4D structures.
+Technical Techniques: Implement time-slicing or versioning models by creating distinct temporal parts (stages) for entities to track evolving properties or relationships (4D approach), or maintain discrete snapshots capturing ontology states at various intervals (snapshot-based approach). These methods enable effective historical queries without compromising forward continuity.
+Provide your ontology as a clear narrative, explicitly defining and justifying each class, property, relationship, temporal representation, methodological approach, and constraint.

@@ -1,0 +1,33 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ies: <http://ies.data.gov.uk/ontology/ies4#> . 
+@prefix data: <http://data.gov.uk/testdata#> .
+@prefix iso8601: <http://iso.org/iso8601#> .
+
+data:Ministry_of_Systems a ies:Organisation .
+data:Mos_Database a ies:System .
+data:Barry%3A%20A%20Life a ies:WorkOfDocumentation .
+
+data:Brendas_Pet_Names a ies:NamingScheme ;
+  ies:schemeOwner data:Brenda .
+data:MoS_ID a ies:NamingScheme ;
+  ies:schemeOwner data:Ministry_of_Systems ;
+  ies:schemeMasteredIn data:Mos_Database .
+
+data:Barry a ies:Person ;
+  ies:documentedBy data:Barry%3A%20A%20Life ;
+  ies:hasName data:Bazza ;
+  ies:isIdentifiedBy data:ABC123456 .
+data:ABC123456  a ies:Identifier ;
+  ies:inScheme data:MoS_ID .
+data:Bazza a ies:Name ;
+  ies:inScheme data:Brendas_Pet_Names .
+
+data:Fred a ies:Person ;
+  ies:isSiblingOf data:Barry ;
+  ies:hasName data:Freddy .
+data:Freddy a ies:Name ;
+  ies:inScheme data:Brendas_Pet_Names .
+
+data:Brenda a ies:Person ;
+  ies:isParentOf data:Barry ; 
+  ies:isParentOf data:Fred . 

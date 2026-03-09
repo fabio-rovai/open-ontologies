@@ -1,0 +1,10 @@
+@prefix ies_top: <http://purl.org/ies/top/v0/ont/> .
+@prefix ies_core: <http://purl.org/ies/core/v0/ont/> .
+
+_:org1 a ies_core:Organisation .
+
+_:org1State ies_top:isTemporalPartOf _:org1 ;
+    ies_core:hasIdentifiedGender _:org1Gender .
+
+_:org1Gender a ies_core:Gender .
+

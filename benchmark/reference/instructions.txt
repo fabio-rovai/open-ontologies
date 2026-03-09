@@ -1,0 +1,69 @@
+Instruction: Please create a Turtle/OWL file (.ttl) that extends the IES Common Ontology with new classes, states, and properties in a specific domain (“XYZ Domain”) - Do not use XYZ tho, it is an example. The final snippet must follow these rules and structural steps strictly:
+
+Namespaces & Setup
+
+Begin with a set of common prefixes:
+
+@prefix owl:      <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+@prefix dc:       <http://purl.org/dc/elements/1.1/> .
+@prefix dcterms:  <http://purl.org/dc/terms/> .
+@prefix sh:       <http://www.w3.org/ns/shacl#> .
+@prefix vann:     <http://purl.org/vocab/vann/> .
+@prefix ies:      <http://informationexchangestandard.org/ontology/ies#> .
+@prefix xyz:      <http://example.org/xyz-domain#> .
+After the prefixes, include an owl:Ontology declaration specifically for xyz: with a short label and a short comment describing your domain.
+License Boilerplate and Metadata
+
+Include an MIT license block or similarly open license (verbatim text, such as standard MIT lines).
+Provide minimal ontology metadata (using dcterms:, vann: or similar) to match a style that includes:
+dcterms:title, dcterms:description, dcterms:license, dcterms:created (a year or date), dcterms:modified, dcterms:publisher, dcterms:language, etc.
+Use UK Government or similar references in your examples of metadata (mirroring the original style exactly).
+Class Definitions
+
+Order: List classes in alphabetical order.
+4D Pattern: For each new domain concept, create both an “Entity” class (subclass of ies:Element, ies:Asset, or ies:Location) and a matching <Name>State class (subclass of ies:State).
+ClassOf: For classification of those classes or their states, define “ClassOfXYZ,” “ClassOfXYZState” (subclass of ies:ClassOfEntity or ies:ClassOfState).
+Object and Data Properties
+
+In alphabetical order, define the newly introduced properties.
+Each new property is declared as either:
+A subproperty of ies:relationship or ies:isPartOf, or
+A subproperty of ies:isIdentifiedBy if it deals with identifiers or naming.
+Write a rdfs:comment, rdfs:domain, and rdfs:range for each property.
+Indent or format them similarly to the standard approach, always in alphabetical order.
+Examples of Usage / Named Individuals
+
+Provide at least two or three example individuals to illustrate how to use:
+A “ClassOf…” concept (e.g., “ClassOfWall” might be used with an instance xyz:BrickWall).
+A bounding state (like “ConstructedState” or “DestroyedState”) that references the main entity. Show an example time slice with ies:isStateOf linking to the entity.
+Optionally include a measure (like a thickness or other measure value) with ies:MeasureValue or ies:StandardMeasureValue and relate it to the new domain entity or state.
+No Reference to the Original Snippet
+
+Absolutely avoid referencing or copying text from the original snippet.
+The structure, ordering, property patterns, bounding states, and “ClassOf…” usage must be identical, but the actual code must be newly written for the “XYZ Domain.”
+Final Deliverable
+
+Output a single Turtle file that includes all of the above sections in the same order:
+Prefixes
+Ontology definition block
+License block / metadata
+Classes in alphabetical order
+Object and data properties in alphabetical order
+2–3 examples of usage (named individuals)
+Names and Comments
+
+Use domain‐specific names that reflect your “XYZ Domain” but do not mention the snippet you’re replicating or any other snippet by name.
+Use short rdfs:label and rdfs:comment text for each item, in a style consistent with typical IES 4D modeling.
+Specific Requirements to Mirror the Target Structure
+Alphabetical Organization: The entire snippet should be sorted in alphabetical order for classes and then for properties, matching the approach:
+“########### Class definitions in alphabetical order”
+Then each class with a short block of RDF statements, etc.
+Grouping: Group classes in one big block, then properties in a second big block, each in alphabetical order.
+4D Extensional Consistency:
+Each entity <Thing> must also have a <Thing>State (subclass of ies:State).
+Each “ClassOfThing” must be a subclass of ies:ClassOfEntity.
+Each “ClassOfThingState” must be a subclass of ies:ClassOfState.
+No snippet from elsewhere: This final snippet must stand alone, not referencing or copying from any other snippet. The style, structure, and ordering must, however, be exactly the same as the unmentioned example (alphabetical class ordering, bounding states, measure usage, usage of subproperties, etc.).

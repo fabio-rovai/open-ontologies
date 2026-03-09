@@ -1,0 +1,16 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> . 
+@prefix ies: <http://ies.data.gov.uk/ontology/ies4#> . 
+@prefix data: <http://data.gov.uk/testdata#> .
+@prefix iso8601: <http://iso.org/iso8601#> .
+
+data:AppleIPhone a ies:ClassOfEntity .
+data:AppleIPhone7Plus a ies:ClassOfEntity ;
+  rdfs:subClassOf data:AppleIPhone .
+data:All_AppleIPhone7Plus_Built_From_Nov_2016 a ies:TimeBoundedClass ;
+  rdfs:subClassOf data:AppleIPhone7Plus ;
+  ies:beginBoundingOfClass iso8601:20161101 .
+data:1111-2222-3333-5555 a ies:MobileHandset ,
+                           ies:AppleIPhone7Plus .
+
+iso8601:20161101 a ies:ParticularPeriod .

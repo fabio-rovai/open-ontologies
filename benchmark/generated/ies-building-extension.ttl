@@ -1,0 +1,467 @@
+# MIT License
+#
+# Copyright (c) 2025
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# baseURI: http://example.org/ontology/ies-building
+
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ies: <http://ies.data.gov.uk/ontology/ies4#> .
+@prefix bldg: <http://example.org/ontology/ies-building#> .
+
+<http://example.org/ontology/ies-building> rdf:type owl:Ontology ;
+    rdfs:label "IES Building Extension"^^xsd:string ;
+    rdfs:comment "An extension to the IES4 ontology for describing buildings, dwellings, and energy performance in the residential built environment. Follows the 4D extensionalist (BORO) approach."^^xsd:string ;
+    owl:imports <http://ies.data.gov.uk/ontology/ies4> ;
+    dcterms:title "IES Building Domain Extension"^^xsd:string ;
+    dcterms:description "Domain ontology for residential buildings and energy performance, supporting retrofit agent use cases."^^xsd:string ;
+    dcterms:license <https://opensource.org/licenses/MIT> ;
+    dcterms:created "2025"^^xsd:string ;
+    dcterms:modified "2025"^^xsd:string ;
+    dcterms:publisher "Open Ontologies Project"^^xsd:string ;
+    dcterms:language "en"^^xsd:string ;
+    vann:preferredNamespacePrefix "bldg"^^xsd:string ;
+    vann:preferredNamespaceUri "http://example.org/ontology/ies-building#"^^xsd:string .
+
+########### Class definitions in alphabetical order ###########
+
+bldg:Building a rdfs:Class ;
+    rdfs:label "Building"^^xsd:string ;
+    rdfs:comment "A man-made structure with a roof and walls, standing permanently in one place. A Building is a Location and an Asset."^^xsd:string ;
+    rdfs:subClassOf ies:Facility,
+        ies:Asset .
+
+bldg:BuildingState a rdfs:Class ;
+    rdfs:label "Building State"^^xsd:string ;
+    rdfs:comment "A temporal state of a Building"^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+bldg:CeilingInsulation a rdfs:Class ;
+    rdfs:label "Ceiling Insulation"^^xsd:string ;
+    rdfs:comment "An InsulationElement that is installed in the ceiling of a building"^^xsd:string ;
+    rdfs:subClassOf bldg:InsulationElement .
+
+bldg:CeilingInsulationState a rdfs:Class ;
+    rdfs:label "Ceiling Insulation State"^^xsd:string ;
+    rdfs:comment "A temporal state of a CeilingInsulation element"^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+bldg:ClassOfBuilding a rdfs:Class ;
+    rdfs:label "Class Of Building"^^xsd:string ;
+    rdfs:comment "A ClassOfEntity whose instances are all Buildings sharing a common characteristic - e.g. detached house, semi-detached, flat, etc."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+bldg:ClassOfBuildingState a rdfs:Class ;
+    rdfs:label "Class Of Building State"^^xsd:string ;
+    rdfs:comment "A ClassOfState whose instances are temporal states of Buildings sharing a common characteristic"^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfState .
+
+bldg:ClassOfDwelling a rdfs:Class ;
+    rdfs:label "Class Of Dwelling"^^xsd:string ;
+    rdfs:comment "A ClassOfEntity whose instances are all Dwellings sharing a common characteristic"^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+bldg:ClassOfDwellingState a rdfs:Class ;
+    rdfs:label "Class Of Dwelling State"^^xsd:string ;
+    rdfs:comment "A ClassOfState whose instances are temporal states of Dwellings sharing a common characteristic"^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfState .
+
+bldg:ClassOfHeatingSystem a rdfs:Class ;
+    rdfs:label "Class Of Heating System"^^xsd:string ;
+    rdfs:comment "A ClassOfEntity whose instances are all HeatingSystems sharing a common type - e.g. gas boiler, heat pump, electric storage"^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+bldg:ClassOfHeatingSystemState a rdfs:Class ;
+    rdfs:label "Class Of Heating System State"^^xsd:string ;
+    rdfs:comment "A ClassOfState whose instances are temporal states of HeatingSystems"^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfState .
+
+bldg:ClassOfInsulationElement a rdfs:Class ;
+    rdfs:label "Class Of Insulation Element"^^xsd:string ;
+    rdfs:comment "A ClassOfEntity whose instances are InsulationElements sharing a common type"^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+bldg:ClassOfInsulationElementState a rdfs:Class ;
+    rdfs:label "Class Of Insulation Element State"^^xsd:string ;
+    rdfs:comment "A ClassOfState whose instances are temporal states of InsulationElements"^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfState .
+
+bldg:ConstructedState a rdfs:Class ;
+    rdfs:label "Constructed State"^^xsd:string ;
+    rdfs:comment "A BoundingState marking the point at which a Building was constructed"^^xsd:string ;
+    rdfs:subClassOf ies:BoundingState .
+
+bldg:DemolishedState a rdfs:Class ;
+    rdfs:label "Demolished State"^^xsd:string ;
+    rdfs:comment "A BoundingState marking the point at which a Building was demolished"^^xsd:string ;
+    rdfs:subClassOf ies:BoundingState .
+
+bldg:Dwelling a rdfs:Class ;
+    rdfs:label "Dwelling"^^xsd:string ;
+    rdfs:comment "A PartOfFacility that is a self-contained unit of accommodation used for residential purposes. A Dwelling may be a whole Building (e.g. a detached house) or part of one (e.g. a flat)."^^xsd:string ;
+    rdfs:subClassOf ies:PartOfFacility .
+
+bldg:DwellingState a rdfs:Class ;
+    rdfs:label "Dwelling State"^^xsd:string ;
+    rdfs:comment "A temporal state of a Dwelling"^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+bldg:EnergyPerformanceCertificate a rdfs:Class ;
+    rdfs:label "Energy Performance Certificate"^^xsd:string ;
+    rdfs:comment "A Document that records the energy performance assessment of a Dwelling at a particular point in time. An EPC is issued following an energy performance review."^^xsd:string ;
+    rdfs:subClassOf ies:Document .
+
+bldg:EnergyPerformanceCertificateState a rdfs:Class ;
+    rdfs:label "Energy Performance Certificate State"^^xsd:string ;
+    rdfs:comment "A temporal state of an EnergyPerformanceCertificate"^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+bldg:EnergyPerformanceReview a rdfs:Class ;
+    rdfs:label "Energy Performance Review"^^xsd:string ;
+    rdfs:comment "An Event in which the energy performance of a Dwelling is assessed. The review produces an EnergyPerformanceCertificate."^^xsd:string ;
+    rdfs:subClassOf ies:Event .
+
+bldg:EnergyRating a rdfs:Class ;
+    rdfs:label "Energy Rating"^^xsd:string ;
+    rdfs:comment "A Characteristic representing a standardised energy efficiency rating. Used to classify the energy performance of a Dwelling."^^xsd:string ;
+    rdfs:subClassOf ies:Characteristic .
+
+bldg:EnergyRatingBand a rdfs:Class ;
+    rdfs:label "Energy Rating Band"^^xsd:string ;
+    rdfs:comment "A ClassOfEntity representing a lettered energy rating band (A through G) as defined by the UK EPC scheme."^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+bldg:FloorInsulation a rdfs:Class ;
+    rdfs:label "Floor Insulation"^^xsd:string ;
+    rdfs:comment "An InsulationElement that is installed in the floor of a building"^^xsd:string ;
+    rdfs:subClassOf bldg:InsulationElement .
+
+bldg:FloorInsulationState a rdfs:Class ;
+    rdfs:label "Floor Insulation State"^^xsd:string ;
+    rdfs:comment "A temporal state of a FloorInsulation element"^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+bldg:FuelType a rdfs:Class ;
+    rdfs:label "Fuel Type"^^xsd:string ;
+    rdfs:comment "A ClassOfEntity representing a type of fuel used by a HeatingSystem - e.g. mains gas, electricity, oil, solid fuel, LPG"^^xsd:string ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+bldg:HeatingSystem a rdfs:Class ;
+    rdfs:label "Heating System"^^xsd:string ;
+    rdfs:comment "An Asset that provides heating to a Dwelling. A HeatingSystem uses a particular FuelType."^^xsd:string ;
+    rdfs:subClassOf ies:Asset .
+
+bldg:HeatingSystemState a rdfs:Class ;
+    rdfs:label "Heating System State"^^xsd:string ;
+    rdfs:comment "A temporal state of a HeatingSystem"^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+bldg:InsulationElement a rdfs:Class ;
+    rdfs:label "Insulation Element"^^xsd:string ;
+    rdfs:comment "An Asset that provides thermal insulation to a Building or Dwelling. Subtypes include wall, floor, ceiling, and window insulation."^^xsd:string ;
+    rdfs:subClassOf ies:Asset .
+
+bldg:InsulationElementState a rdfs:Class ;
+    rdfs:label "Insulation Element State"^^xsd:string ;
+    rdfs:comment "A temporal state of an InsulationElement"^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+bldg:InstalledState a rdfs:Class ;
+    rdfs:label "Installed State"^^xsd:string ;
+    rdfs:comment "A BoundingState marking the point at which an Asset (e.g. HeatingSystem, InsulationElement) was installed in a Dwelling"^^xsd:string ;
+    rdfs:subClassOf ies:BoundingState .
+
+bldg:PostalCode a rdfs:Class ;
+    rdfs:label "Postal Code"^^xsd:string ;
+    rdfs:comment "A GeoIdentity that is a UK postal code used to identify a geographic area"^^xsd:string ;
+    rdfs:subClassOf ies:GeoIdentity .
+
+bldg:RetrofitIntervention a rdfs:Class ;
+    rdfs:label "Retrofit Intervention"^^xsd:string ;
+    rdfs:comment "An Event in which improvements are made to a Dwelling to improve its energy performance - e.g. installing insulation, replacing a heating system"^^xsd:string ;
+    rdfs:subClassOf ies:Event .
+
+bldg:UPRN a rdfs:Class ;
+    rdfs:label "UPRN"^^xsd:string ;
+    rdfs:comment "A GeoIdentity that is a Unique Property Reference Number, as defined by the UK Ordnance Survey, used to uniquely identify an addressable location."^^xsd:string ;
+    rdfs:subClassOf ies:GeoIdentity .
+
+bldg:WallInsulation a rdfs:Class ;
+    rdfs:label "Wall Insulation"^^xsd:string ;
+    rdfs:comment "An InsulationElement that is installed in the walls of a building"^^xsd:string ;
+    rdfs:subClassOf bldg:InsulationElement .
+
+bldg:WallInsulationState a rdfs:Class ;
+    rdfs:label "Wall Insulation State"^^xsd:string ;
+    rdfs:comment "A temporal state of a WallInsulation element"^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+bldg:WindowInsulation a rdfs:Class ;
+    rdfs:label "Window Insulation"^^xsd:string ;
+    rdfs:comment "An InsulationElement that is installed in or replaces the windows of a building - e.g. double glazing, triple glazing"^^xsd:string ;
+    rdfs:subClassOf bldg:InsulationElement .
+
+bldg:WindowInsulationState a rdfs:Class ;
+    rdfs:label "Window Insulation State"^^xsd:string ;
+    rdfs:comment "A temporal state of a WindowInsulation element"^^xsd:string ;
+    rdfs:subClassOf ies:State .
+
+########### Object and data properties in alphabetical order ###########
+
+bldg:containsDwelling a owl:ObjectProperty ;
+    rdfs:label "contains Dwelling"^^xsd:string ;
+    rdfs:comment "Relates a Building to a Dwelling contained within it"^^xsd:string ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:Dwelling ;
+    rdfs:subPropertyOf ies:isPartOf .
+
+bldg:energyRatingBand a owl:ObjectProperty ;
+    rdfs:label "energy Rating Band"^^xsd:string ;
+    rdfs:comment "Relates an EnergyPerformanceCertificate to the EnergyRatingBand (A-G) assigned"^^xsd:string ;
+    rdfs:domain bldg:EnergyPerformanceCertificate ;
+    rdfs:range bldg:EnergyRatingBand ;
+    rdfs:subPropertyOf ies:relationship .
+
+bldg:energyScore a owl:DatatypeProperty ;
+    rdfs:label "energy Score"^^xsd:string ;
+    rdfs:comment "The numeric energy performance score (typically 1-100) recorded on an EPC"^^xsd:string ;
+    rdfs:domain bldg:EnergyPerformanceCertificate ;
+    rdfs:range xsd:integer ;
+    rdfs:subPropertyOf ies:attribute .
+
+bldg:hasEPC a owl:ObjectProperty ;
+    rdfs:label "has EPC"^^xsd:string ;
+    rdfs:comment "Relates a Dwelling (or DwellingState) to its EnergyPerformanceCertificate"^^xsd:string ;
+    rdfs:domain bldg:Dwelling ;
+    rdfs:range bldg:EnergyPerformanceCertificate ;
+    rdfs:subPropertyOf ies:relationship .
+
+bldg:hasHeatingSystem a owl:ObjectProperty ;
+    rdfs:label "has Heating System"^^xsd:string ;
+    rdfs:comment "Relates a Dwelling to a HeatingSystem installed in it"^^xsd:string ;
+    rdfs:domain bldg:Dwelling ;
+    rdfs:range bldg:HeatingSystem ;
+    rdfs:subPropertyOf ies:isPartOf .
+
+bldg:hasInsulation a owl:ObjectProperty ;
+    rdfs:label "has Insulation"^^xsd:string ;
+    rdfs:comment "Relates a Dwelling to an InsulationElement installed in it"^^xsd:string ;
+    rdfs:domain bldg:Dwelling ;
+    rdfs:range bldg:InsulationElement ;
+    rdfs:subPropertyOf ies:isPartOf .
+
+bldg:hasUPRN a owl:ObjectProperty ;
+    rdfs:label "has UPRN"^^xsd:string ;
+    rdfs:comment "Relates an addressable Location to its Unique Property Reference Number"^^xsd:string ;
+    rdfs:domain ies:Location ;
+    rdfs:range bldg:UPRN ;
+    rdfs:subPropertyOf ies:isIdentifiedBy .
+
+bldg:insulationThickness a owl:DatatypeProperty ;
+    rdfs:label "insulation Thickness"^^xsd:string ;
+    rdfs:comment "The thickness of an InsulationElement in millimetres"^^xsd:string ;
+    rdfs:domain bldg:InsulationElement ;
+    rdfs:range xsd:decimal ;
+    rdfs:subPropertyOf ies:attribute .
+
+bldg:reviewDate a owl:ObjectProperty ;
+    rdfs:label "review Date"^^xsd:string ;
+    rdfs:comment "Relates an EnergyPerformanceReview to the ParticularPeriod when it was conducted"^^xsd:string ;
+    rdfs:domain bldg:EnergyPerformanceReview ;
+    rdfs:range ies:ParticularPeriod ;
+    rdfs:subPropertyOf ies:inPeriod .
+
+bldg:reviewedDwelling a owl:ObjectProperty ;
+    rdfs:label "reviewed Dwelling"^^xsd:string ;
+    rdfs:comment "Relates an EnergyPerformanceReview to the Dwelling that was assessed"^^xsd:string ;
+    rdfs:domain bldg:EnergyPerformanceReview ;
+    rdfs:range bldg:Dwelling ;
+    rdfs:subPropertyOf ies:relationship .
+
+bldg:resultedInEPC a owl:ObjectProperty ;
+    rdfs:label "resulted In EPC"^^xsd:string ;
+    rdfs:comment "Relates an EnergyPerformanceReview to the EnergyPerformanceCertificate produced"^^xsd:string ;
+    rdfs:domain bldg:EnergyPerformanceReview ;
+    rdfs:range bldg:EnergyPerformanceCertificate ;
+    rdfs:subPropertyOf ies:relationship .
+
+bldg:usesFuel a owl:ObjectProperty ;
+    rdfs:label "uses Fuel"^^xsd:string ;
+    rdfs:comment "Relates a HeatingSystem to the FuelType it uses"^^xsd:string ;
+    rdfs:domain bldg:HeatingSystem ;
+    rdfs:range bldg:FuelType ;
+    rdfs:subPropertyOf ies:relationship .
+
+########### Examples of usage / named individuals ###########
+
+# --- Energy Rating Bands (A-G) ---
+
+bldg:BandA a bldg:EnergyRatingBand ;
+    rdfs:label "Band A"^^xsd:string ;
+    rdfs:comment "EPC Band A: 92-100 SAP points"^^xsd:string .
+
+bldg:BandB a bldg:EnergyRatingBand ;
+    rdfs:label "Band B"^^xsd:string ;
+    rdfs:comment "EPC Band B: 81-91 SAP points"^^xsd:string .
+
+bldg:BandC a bldg:EnergyRatingBand ;
+    rdfs:label "Band C"^^xsd:string ;
+    rdfs:comment "EPC Band C: 69-80 SAP points"^^xsd:string .
+
+bldg:BandD a bldg:EnergyRatingBand ;
+    rdfs:label "Band D"^^xsd:string ;
+    rdfs:comment "EPC Band D: 55-68 SAP points"^^xsd:string .
+
+bldg:BandE a bldg:EnergyRatingBand ;
+    rdfs:label "Band E"^^xsd:string ;
+    rdfs:comment "EPC Band E: 39-54 SAP points"^^xsd:string .
+
+bldg:BandF a bldg:EnergyRatingBand ;
+    rdfs:label "Band F"^^xsd:string ;
+    rdfs:comment "EPC Band F: 21-38 SAP points"^^xsd:string .
+
+bldg:BandG a bldg:EnergyRatingBand ;
+    rdfs:label "Band G"^^xsd:string ;
+    rdfs:comment "EPC Band G: 1-20 SAP points"^^xsd:string .
+
+# --- Fuel Type Instances ---
+
+bldg:MainsGas a bldg:FuelType ;
+    rdfs:label "Mains Gas"^^xsd:string .
+
+bldg:Electricity a bldg:FuelType ;
+    rdfs:label "Electricity"^^xsd:string .
+
+bldg:Oil a bldg:FuelType ;
+    rdfs:label "Oil"^^xsd:string .
+
+bldg:SolidFuel a bldg:FuelType ;
+    rdfs:label "Solid Fuel"^^xsd:string .
+
+bldg:LPG a bldg:FuelType ;
+    rdfs:label "LPG"^^xsd:string .
+
+# --- ClassOfBuilding Instances ---
+
+bldg:DetachedHouse a bldg:ClassOfBuilding ;
+    rdfs:label "Detached House"^^xsd:string .
+
+bldg:SemiDetachedHouse a bldg:ClassOfBuilding ;
+    rdfs:label "Semi-Detached House"^^xsd:string .
+
+bldg:TerracedHouse a bldg:ClassOfBuilding ;
+    rdfs:label "Terraced House"^^xsd:string .
+
+bldg:Flat a bldg:ClassOfBuilding ;
+    rdfs:label "Flat"^^xsd:string .
+
+bldg:Bungalow a bldg:ClassOfBuilding ;
+    rdfs:label "Bungalow"^^xsd:string .
+
+# --- ClassOfHeatingSystem Instances ---
+
+bldg:GasBoiler a bldg:ClassOfHeatingSystem ;
+    rdfs:label "Gas Boiler"^^xsd:string .
+
+bldg:HeatPump a bldg:ClassOfHeatingSystem ;
+    rdfs:label "Heat Pump"^^xsd:string .
+
+bldg:ElectricStorageHeater a bldg:ClassOfHeatingSystem ;
+    rdfs:label "Electric Storage Heater"^^xsd:string .
+
+# --- Example: A dwelling with EPC review (4D pattern) ---
+
+# The building
+<http://data.gov.uk/testdata#building42> a bldg:Building ;
+    ies:inLocation <http://data.gov.uk/testdata#sw1a1aa> ;
+    rdfs:label "42 Example Street"^^xsd:string .
+
+<http://data.gov.uk/testdata#building42> ies:similarEntity bldg:SemiDetachedHouse .
+
+# UPRN identifier
+<http://data.gov.uk/testdata#uprn123456789> a bldg:UPRN ;
+    ies:representationValue "123456789"^^xsd:string .
+
+<http://data.gov.uk/testdata#building42> bldg:hasUPRN <http://data.gov.uk/testdata#uprn123456789> .
+
+# The dwelling within the building
+<http://data.gov.uk/testdata#dwelling42> a bldg:Dwelling ;
+    ies:inLocation <http://data.gov.uk/testdata#building42> ;
+    rdfs:label "42 Example Street, Ground Floor"^^xsd:string .
+
+# Postal code
+<http://data.gov.uk/testdata#sw1a1aa> a bldg:PostalCode ;
+    ies:representationValue "SW1A 1AA"^^xsd:string .
+
+# Heating system with fuel type (4D: state tracks installation period)
+<http://data.gov.uk/testdata#heater42> a bldg:HeatingSystem ;
+    bldg:usesFuel bldg:MainsGas .
+
+<http://data.gov.uk/testdata#heater42> ies:similarEntity bldg:GasBoiler .
+
+<http://data.gov.uk/testdata#dwelling42> bldg:hasHeatingSystem <http://data.gov.uk/testdata#heater42> .
+
+# Insulation: wall insulation with thickness measure
+<http://data.gov.uk/testdata#wallIns42> a bldg:WallInsulation ;
+    bldg:insulationThickness "100"^^xsd:decimal .
+
+<http://data.gov.uk/testdata#dwelling42> bldg:hasInsulation <http://data.gov.uk/testdata#wallIns42> .
+
+# Installation bounding state (4D temporal part)
+<http://data.gov.uk/testdata#wallInsInstalled> a bldg:InstalledState ;
+    ies:isStartOf <http://data.gov.uk/testdata#wallIns42State1> ;
+    ies:inPeriod <http://iso.org/iso8601#20200315T000000> .
+
+<http://iso.org/iso8601#20200315T000000> a ies:ParticularPeriod .
+
+<http://data.gov.uk/testdata#wallIns42State1> a bldg:WallInsulationState ;
+    ies:isStateOf <http://data.gov.uk/testdata#wallIns42> ;
+    ies:inLocation <http://data.gov.uk/testdata#dwelling42> .
+
+# EPC review event (4D: event with temporal and spatial context)
+<http://data.gov.uk/testdata#epcReview42> a bldg:EnergyPerformanceReview ;
+    bldg:reviewedDwelling <http://data.gov.uk/testdata#dwelling42> ;
+    bldg:resultedInEPC <http://data.gov.uk/testdata#epc42> ;
+    bldg:reviewDate <http://iso.org/iso8601#20230615T000000> .
+
+<http://iso.org/iso8601#20230615T000000> a ies:ParticularPeriod .
+
+# The EPC document
+<http://data.gov.uk/testdata#epc42> a bldg:EnergyPerformanceCertificate ;
+    bldg:energyScore "65"^^xsd:integer ;
+    bldg:energyRatingBand bldg:BandD ;
+    rdfs:label "EPC for 42 Example Street"^^xsd:string .
+
+# Construction bounding state (4D: when the building came into existence)
+<http://data.gov.uk/testdata#building42Constructed> a bldg:ConstructedState ;
+    ies:isStartOf <http://data.gov.uk/testdata#building42State1> ;
+    ies:inPeriod <http://iso.org/iso8601#19650101T000000> .
+
+<http://iso.org/iso8601#19650101T000000> a ies:ParticularPeriod .
+
+<http://data.gov.uk/testdata#building42State1> a bldg:BuildingState ;
+    ies:isStateOf <http://data.gov.uk/testdata#building42> .
