@@ -17,15 +17,15 @@ You can ask Claude to generate an ontology in a single prompt — and it will. C
 | No scale | Claude's context window can hold ~2,000 triples. Real ontologies (IES4: 10,000+ triples) need an actual triple store. |
 | No integration | You can't push to a SPARQL endpoint, pull from a remote ontology, or resolve owl:imports chains. |
 
-**Open Ontologies solves every one of these.** It's a proper RDF/SPARQL engine (Oxigraph) exposed as 15 ontology MCP tools that Claude calls automatically. Generate → validate → load → query → iterate → persist.
+**Open Ontologies solves every one of these.** It's a proper RDF/SPARQL engine (Oxigraph) exposed as 16 ontology MCP tools that Claude calls automatically. Generate → validate → load → query → iterate → persist.
 
 ## What is it?
 
-Two projects work together:
+Open Ontologies is a standalone MCP server for AI-native ontology engineering. It exposes 16 tools that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store.
 
-- **[OpenCheir](https://github.com/fabio-rovai/opencheir)** — the MCP server. Written in Rust, runs as a single binary. 37 tools covering ontology engineering, enforcement (with hot-reload), multi-agent domain locking, lineage, memory, QA, and search. This is what Claude Code connects to.
+Written in Rust, ships as a single binary. No JVM, no Protege, no GUI.
 
-- **Open Ontologies** (this repo) — the documentation, benchmarks, and reference ontologies that prove the approach works. Clone this to see the comparison data, run the benchmarks yourself, and use the reference ontologies as starting points.
+**Optional companion:** [OpenCheir](https://github.com/fabio-rovai/opencheir) adds workflow enforcement, audit trails, and multi-agent orchestration. Its enforcer rules can govern ontology workflows (e.g., warn if saving without validating). But Open Ontologies works perfectly on its own.
 
 ## How it works
 
@@ -59,14 +59,30 @@ flowchart TD
     Version --> Save
 ```
 
-This is not a fixed pipeline inside the MCP server. The MCP server exposes 15 ontology tools (37 total) — **Claude is the orchestrator** that decides what to call next based on results. If `onto_validate` fails, Claude fixes the Turtle and retries. If `onto_stats` shows wrong counts, Claude regenerates. If `onto_lint` finds missing labels, Claude adds them.
+This is not a fixed pipeline. The MCP server exposes 16 ontology tools — **Claude is the orchestrator** that decides what to call next based on results. If `onto_validate` fails, Claude fixes the Turtle and retries. If `onto_stats` shows wrong counts, Claude regenerates. If `onto_lint` finds missing labels, Claude adds them.
 
-No Protege. No GUI. No manual class creation. Claude is the ontology engineer, OpenCheir is the runtime.
+No Protege. No GUI. No manual class creation. Claude is the ontology engineer, Open Ontologies is the runtime.
 
 The workflow is codified in two places so Claude follows it consistently:
 
 - **[`CLAUDE.md`](CLAUDE.md)** — loaded automatically when you open Claude Code in this repo. Describes the generate → validate → verify → iterate → persist workflow.
 - **[`/ontology-engineer` skill](skills/ontology-engineer.md)** — portable skill you can use from any project. Invoke it with `/ontology-engineer` in Claude Code.
+
+### Architecture
+
+```mermaid
+flowchart TD
+    Claude["Claude"]
+    MCP["Open Ontologies MCP Server"]
+    OntologyService["OntologyService"]
+    GraphStore["GraphStore — Oxigraph"]
+    StateDb["StateDb — SQLite"]
+
+    Claude --> MCP
+    MCP --> OntologyService
+    OntologyService --> GraphStore
+    OntologyService --> StateDb
+```
 
 ## Tools
 
@@ -87,6 +103,7 @@ The workflow is codified in two places so Claude follows it consistently:
 | `onto_version` | Save a named snapshot of the current store |
 | `onto_history` | List saved version snapshots |
 | `onto_rollback` | Restore a previous version |
+| `onto_status` | Server health and loaded triple count |
 
 ## Benchmarks
 
@@ -196,34 +213,26 @@ Claude reads these, then generates the complete Turtle file in one pass. Tools v
 
 ## Replicate it yourself
 
-### 1. Clone both repos
-
-```bash
-# The MCP server (required — this is the runtime)
-git clone https://github.com/fabio-rovai/opencheir.git
-
-# The benchmarks and reference ontologies (optional — to verify claims and use as starting points)
-git clone https://github.com/fabio-rovai/open-ontologies.git
-```
-
-### 2. Build OpenCheir
+### 1. Build Open Ontologies
 
 You need Rust 1.85+ (edition 2024).
 
 ```bash
-cd opencheir
+git clone https://github.com/fabio-rovai/open-ontologies.git
+cd open-ontologies
 cargo build --release
+./target/release/open-ontologies init
 ```
 
-### 3. Connect to Claude Code
+### 2. Connect to Claude Code
 
 Add to `~/.claude/settings.json`:
 
 ```json
 {
   "mcpServers": {
-    "opencheir": {
-      "command": "/path/to/opencheir/target/release/opencheir",
+    "open-ontologies": {
+      "command": "/path/to/open-ontologies/target/release/open-ontologies",
       "args": ["serve"]
     }
   }
@@ -231,6 +240,25 @@ Add to `~/.claude/settings.json`:
 ```
 
 Restart Claude Code. You should see the `onto_*` tools available.
+
+### 3. (Optional) Add OpenCheir for governance
+
+For workflow enforcement, audit trails, and multi-agent orchestration:
+
+```json
+{
+  "mcpServers": {
+    "open-ontologies": {
+      "command": "/path/to/open-ontologies/target/release/open-ontologies",
+      "args": ["serve"]
+    },
+    "opencheir": {
+      "command": "/path/to/opencheir/target/release/opencheir",
+      "args": ["serve"]
+    }
+  }
+}
+```
 
 ### 4. Build your first ontology
 
@@ -243,15 +271,6 @@ and defined classes (VegetarianPizza, MeatyPizza, SpicyPizza).
 Validate it, load it, and show me the stats.
 ```
 
-Claude will:
-
-1. Generate the complete Turtle file (~600 lines)
-2. Call `onto_validate` to check OWL syntax
-3. Call `onto_load` to load it into the in-memory store
-4. Call `onto_stats` to show you: 95 classes, 8 properties, 1168 triples
-
-That's it. No Protege, no GUI, no manual class creation.
-
 ### 5. Try with your own domain
 
 For a simple ontology (like Pizza), one sentence is enough. For complex methodologies (like BORO/4D), give Claude context:
@@ -263,11 +282,7 @@ Use 4D Entity+State pairs, ClassOf hierarchies, and alphabetical ordering.
 Validate it and run compliance checks.
 ```
 
-Or point Claude at a requirements document — it can read files directly.
-
 ### 6. Run the benchmarks
-
-To verify the comparison results yourself:
 
 ```bash
 cd benchmark
@@ -279,8 +294,9 @@ python3 compare.py         # IES4: 86/86 compliance checks passed
 ## Stack
 
 - **Rust** (edition 2024) — single binary, no JVM
-- **Oxigraph** — pure Rust RDF/SPARQL engine
-- **OpenCheir** — MCP server framework with enforcer (hot-reload), domain locking, lineage, memory, QA
+- **Oxigraph 0.4** — pure Rust RDF/SPARQL engine
+- **rmcp** — MCP protocol implementation
+- **SQLite** — ontology version storage
 
 ## License
 

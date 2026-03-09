@@ -58,12 +58,14 @@ Claude dynamically decides the next tool call based on what the previous tool re
 | `onto_history` | To list saved version snapshots |
 | `onto_rollback` | To restore a previous version if something goes wrong |
 
-## Enforcer Rules
+## Enforcer Rules (Optional)
 
-OpenCheir enforces workflow safety rules automatically:
+If [OpenCheir](https://github.com/fabio-rovai/opencheir) is also connected as an MCP server, its enforcer rules provide workflow safety:
 
 - **onto_validate_after_save** — warns if you save 3+ times without validating
 - **onto_version_before_push** — warns if you push without saving a version snapshot first
+
+These rules are optional — Open Ontologies works perfectly without OpenCheir.
 
 ## Benchmarks
 
