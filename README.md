@@ -17,13 +17,13 @@ You can ask Claude to generate an ontology in a single prompt — and it will. C
 | No scale | Claude's context window can hold ~2,000 triples. Real ontologies (IES4: 10,000+ triples) need an actual triple store. |
 | No integration | You can't push to a SPARQL endpoint, pull from a remote ontology, or resolve owl:imports chains. |
 
-**Open Ontologies solves every one of these.** It's a proper RDF/SPARQL engine (Oxigraph) exposed as 15 MCP tools that Claude calls automatically. Generate → validate → load → query → iterate → persist.
+**Open Ontologies solves every one of these.** It's a proper RDF/SPARQL engine (Oxigraph) exposed as 15 ontology MCP tools that Claude calls automatically. Generate → validate → load → query → iterate → persist.
 
 ## What is it?
 
 Two projects work together:
 
-- **[OpenCheir](https://github.com/fabio-rovai/opencheir)** — the MCP server. Written in Rust, runs as a single binary. Handles the protocol, tool routing, enforcement rules, audit trails, and the Oxigraph triple store. This is what Claude Code connects to.
+- **[OpenCheir](https://github.com/fabio-rovai/opencheir)** — the MCP server. Written in Rust, runs as a single binary. 37 tools covering ontology engineering, enforcement (with hot-reload), multi-agent domain locking, lineage, memory, QA, and search. This is what Claude Code connects to.
 
 - **Open Ontologies** (this repo) — the documentation, benchmarks, and reference ontologies that prove the approach works. Clone this to see the comparison data, run the benchmarks yourself, and use the reference ontologies as starting points.
 
@@ -59,7 +59,7 @@ flowchart TD
     Version --> Save
 ```
 
-This is not a fixed pipeline inside the MCP server. The MCP server exposes 15 individual tools — **Claude is the orchestrator** that decides what to call next based on results. If `onto_validate` fails, Claude fixes the Turtle and retries. If `onto_stats` shows wrong counts, Claude regenerates. If `onto_lint` finds missing labels, Claude adds them.
+This is not a fixed pipeline inside the MCP server. The MCP server exposes 15 ontology tools (37 total) — **Claude is the orchestrator** that decides what to call next based on results. If `onto_validate` fails, Claude fixes the Turtle and retries. If `onto_stats` shows wrong counts, Claude regenerates. If `onto_lint` finds missing labels, Claude adds them.
 
 No Protege. No GUI. No manual class creation. Claude is the ontology engineer, OpenCheir is the runtime.
 
@@ -280,7 +280,7 @@ python3 compare.py         # IES4: 86/86 compliance checks passed
 
 - **Rust** (edition 2024) — single binary, no JVM
 - **Oxigraph** — pure Rust RDF/SPARQL engine
-- **OpenCheir** — MCP server framework with enforcer, lineage, memory
+- **OpenCheir** — MCP server framework with enforcer (hot-reload), domain locking, lineage, memory, QA
 
 ## License
 
