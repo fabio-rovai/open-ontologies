@@ -1,0 +1,27 @@
+{
+  "reference": {
+    "triples": 2332,
+    "classes": 99,
+    "properties": 8,
+    "disjoint_pairs": 398
+  },
+  "ai_generated": {
+    "triples": 1168,
+    "classes": 95,
+    "properties": 8,
+    "disjoint_pairs": 101
+  },
+  "coverage": {
+    "classes_pct": 96.0,
+    "properties_pct": 100.0,
+    "disjoint_pct": 23.9,
+    "weighted_score": 75.5
+  },
+  "missing_classes": [
+    "SpicyPizzaEquivalent",
+    "UnclosedPizza",
+    "VegetarianPizzaEquivalent1",
+    "VegetarianPizzaEquivalent2"
+  ],
+  "extra_classes": []
+}
