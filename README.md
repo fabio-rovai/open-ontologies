@@ -153,26 +153,7 @@ The AI produces 50% fewer triples because it skips exhaustive pairwise disjointn
 **What we did (AI-native approach):**
 
 **Input to Claude:** Three documents providing context (all included in [`benchmark/reference/`](benchmark/reference/)):
-
-- [`background_prompt.txt`](benchmark/reference/background_prompt.txt) — explains BORO/4D methodology, perdurantism, mereotopology (general ontology engineering guidance)
-- [`instructions.txt`](benchmark/reference/instructions.txt) — structural requirements: alphabetical ordering, 4D Entity+State pattern, ClassOf hierarchies, property conventions
-- [`custom_instructions.txt`](benchmark/reference/custom_instructions.txt) — the actual domain brief: UK building/energy performance, 9 competency questions, use cases
-
-Claude reads these, then generates the complete Turtle file in one pass:
-
-| Step | What you tell Claude | Tool used | Time |
-| ---- | -------------------- | --------- | ---- |
-| 1 | "Build a building domain extension following IES4/BORO patterns" + 3 context files | Claude generates Turtle | 3 min |
-| 2 | "Validate it" | `onto_validate` | 5 sec |
-| 3 | "Load and run the compliance checks" | `onto_load` → `onto_query` | 10 sec |
-
-**Result:**
-
-- **100% compliance** — 86/86 checks passed
-- 318 triples, 36 classes, 12 properties
-- Full 4D/BORO patterns: Entity+State pairs, BoundingStates, ClassOf
-- All 9 competency questions covered
-- Zero external tools — Claude generated the Turtle directly
+c- Zero external tools — Claude generated the Turtle directly
 
 **Files:**
 
@@ -186,24 +167,11 @@ Claude reads these, then generates the complete Turtle file in one pass:
 - BORO comparison script: [`benchmark/boro_compare.py`](benchmark/boro_compare.py)
 - Full comparison: [`benchmark/BORO_COMPARISON.md`](benchmark/BORO_COMPARISON.md)
 
-### Run benchmarks
+## Replicate it yourself
 
-```bash
-cd benchmark
-pip install rdflib
-python3 pizza_compare.py   # Pizza ontology comparison
-python3 compare.py         # IES4 compliance check
-```
+### 1. Install OpenCheir
 
-## Stack
-
-- **Rust** (edition 2024) — single binary, no JVM
-- **Oxigraph** — pure Rust RDF/SPARQL engine
-- **OpenCheir** — MCP server framework with enforcer, lineage, memory
-
-## Install
-
-Open Ontologies ships as part of OpenCheir:
+Open Ontologies runs inside [OpenCheir](https://github.com/fabio-rovai/opencheir). You need Rust 1.80+.
 
 ```bash
 git clone https://github.com/fabio-rovai/opencheir.git
@@ -211,18 +179,72 @@ cd opencheir
 cargo build --release
 ```
 
-Add to Claude Code (`~/.claude/settings.json`):
+### 2. Connect to Claude Code
+
+Add to `~/.claude/settings.json`:
 
 ```json
 {
   "mcpServers": {
     "opencheir": {
-      "command": "/path/to/opencheir",
+      "command": "/path/to/opencheir/target/release/opencheir",
       "args": ["serve"]
     }
   }
 }
 ```
+
+Restart Claude Code. You should see the `onto_*` tools available.
+
+### 3. Build your first ontology
+
+Open Claude Code and type:
+
+```text
+Build me a Pizza ontology following the Manchester University tutorial.
+Include all 49 toppings, 22 named pizzas, spiciness value partition,
+and defined classes (VegetarianPizza, MeatyPizza, SpicyPizza).
+Validate it, load it, and show me the stats.
+```
+
+Claude will:
+
+1. Generate the complete Turtle file (~600 lines)
+2. Call `onto_validate` to check OWL syntax
+3. Call `onto_load` to load it into the in-memory store
+4. Call `onto_stats` to show you: 95 classes, 8 properties, 1168 triples
+
+That's it. No Protege, no GUI, no manual class creation.
+
+### 4. Try with your own domain
+
+For a simple ontology (like Pizza), one sentence is enough. For complex methodologies (like BORO/4D), give Claude context:
+
+```text
+I need a building domain ontology following IES4/BORO patterns.
+Here are the requirements: [paste your competency questions]
+Use 4D Entity+State pairs, ClassOf hierarchies, and alphabetical ordering.
+Validate it and run compliance checks.
+```
+
+Or point Claude at a requirements document — it can read files directly.
+
+### 5. Run the benchmarks
+
+To verify the comparison results yourself:
+
+```bash
+cd benchmark
+pip install rdflib
+python3 pizza_compare.py   # Pizza: 96% class coverage, 100% properties
+python3 compare.py         # IES4: 86/86 compliance checks passed
+```
+
+## Stack
+
+- **Rust** (edition 2024) — single binary, no JVM
+- **Oxigraph** — pure Rust RDF/SPARQL engine
+- **OpenCheir** — MCP server framework with enforcer, lineage, memory
 
 ## License
 
