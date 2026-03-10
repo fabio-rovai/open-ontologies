@@ -32,5 +32,6 @@ calamine = "0.26"
 arrow = { version = "54", default-features = false, features = ["csv", "json"] }
 parquet = { version = "54", default-features = false, features = ["arrow"] }
 
+
 [dev-dependencies]
 tempfile = "3"

@@ -569,7 +569,7 @@ impl OpenOntologiesServer {
             .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
     }
 
-    #[tool(name = "onto_reason", description = "Run RDFS or OWL-RL inference rules over the loaded ontology. Materializes inferred triples (subclass propagation, domain/range inference, transitive/symmetric properties).")]
+    #[tool(name = "onto_reason", description = "Run RDFS or OWL-RL inference over the loaded ontology. Profiles: 'rdfs' (subclass, domain/range), 'owl-rl' (+ transitive/symmetric/inverse, sameAs, equivalentClass), 'owl-rl-ext' (+ someValuesFrom, allValuesFrom, hasValue, intersectionOf, unionOf). Materializes inferred triples.")]
     async fn onto_reason(&self, Parameters(input): Parameters<OntoReasonInput>) -> String {
         use crate::reason::Reasoner;
         let profile = input.profile.as_deref().unwrap_or("rdfs");

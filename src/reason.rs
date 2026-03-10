@@ -1,220 +1,470 @@
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 use crate::graph::GraphStore;
 
-/// RDFS inference rules as (name, SPARQL UPDATE) tuples.
-const RDFS_RULES: &[(&str, &str)] = &[
-    (
-        "rdfs9-subclass",
-        "INSERT { ?x a ?super } WHERE { \
-         ?x a ?sub . \
-         ?sub <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?super . \
-         FILTER(?sub != ?super) \
-         FILTER NOT EXISTS { ?x a ?super } }",
-    ),
-    (
-        "rdfs11-subclass-trans",
-        "INSERT { ?a <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?c } WHERE { \
-         ?a <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?b . \
-         ?b <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?c . \
-         FILTER(?a != ?b && ?b != ?c && ?a != ?c) \
-         FILTER NOT EXISTS { ?a <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?c } }",
-    ),
-    (
-        "rdfs2-domain",
-        "INSERT { ?s a ?class } WHERE { \
-         ?s ?p ?o . \
-         ?p <http://www.w3.org/2000/01/rdf-schema#domain> ?class . \
-         FILTER NOT EXISTS { ?s a ?class } }",
-    ),
-    (
-        "rdfs3-range",
-        "INSERT { ?o a ?class } WHERE { \
-         ?s ?p ?o . \
-         ?p <http://www.w3.org/2000/01/rdf-schema#range> ?class . \
-         FILTER(isIRI(?o)) \
-         FILTER NOT EXISTS { ?o a ?class } }",
-    ),
-    (
-        "rdfs5-subprop-trans",
-        "INSERT { ?a <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> ?c } WHERE { \
-         ?a <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> ?b . \
-         ?b <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> ?c . \
-         FILTER(?a != ?b && ?b != ?c && ?a != ?c) \
-         FILTER NOT EXISTS { ?a <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> ?c } }",
-    ),
-    (
-        "rdfs7-subprop",
-        "INSERT { ?s ?super ?o } WHERE { \
-         ?s ?sub ?o . \
-         ?sub <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> ?super . \
-         FILTER(?sub != ?super) \
-         FILTER NOT EXISTS { ?s ?super ?o } }",
-    ),
-];
+// Well-known IRIs
+const RDF_TYPE: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+const RDFS_SUBCLASS: &str = "<http://www.w3.org/2000/01/rdf-schema#subClassOf>";
+const RDFS_SUBPROP: &str = "<http://www.w3.org/2000/01/rdf-schema#subPropertyOf>";
+const RDFS_DOMAIN: &str = "<http://www.w3.org/2000/01/rdf-schema#domain>";
+const RDFS_RANGE: &str = "<http://www.w3.org/2000/01/rdf-schema#range>";
+const OWL_TRANSITIVE: &str = "<http://www.w3.org/2002/07/owl#TransitiveProperty>";
+const OWL_SYMMETRIC: &str = "<http://www.w3.org/2002/07/owl#SymmetricProperty>";
+const OWL_INVERSE: &str = "<http://www.w3.org/2002/07/owl#inverseOf>";
+const OWL_SAMEAS: &str = "<http://www.w3.org/2002/07/owl#sameAs>";
+const OWL_EQUIV_CLASS: &str = "<http://www.w3.org/2002/07/owl#equivalentClass>";
+const OWL_EQUIV_PROP: &str = "<http://www.w3.org/2002/07/owl#equivalentProperty>";
+const OWL_SOME_VALUES: &str = "<http://www.w3.org/2002/07/owl#someValuesFrom>";
+const OWL_ALL_VALUES: &str = "<http://www.w3.org/2002/07/owl#allValuesFrom>";
+const OWL_HAS_VALUE: &str = "<http://www.w3.org/2002/07/owl#hasValue>";
+const OWL_ON_PROPERTY: &str = "<http://www.w3.org/2002/07/owl#onProperty>";
+const OWL_INTERSECTION: &str = "<http://www.w3.org/2002/07/owl#intersectionOf>";
+const OWL_UNION: &str = "<http://www.w3.org/2002/07/owl#unionOf>";
+const RDF_FIRST: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#first>";
+const RDF_REST: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#rest>";
+const RDF_NIL: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>";
 
-/// OWL RL inference rules (additional, on top of RDFS).
-const OWL_RL_RULES: &[(&str, &str)] = &[
-    (
-        "owl-transitive",
-        "INSERT { ?x ?p ?z } WHERE { \
-         ?p a <http://www.w3.org/2002/07/owl#TransitiveProperty> . \
-         ?x ?p ?y . \
-         ?y ?p ?z . \
-         FILTER(?x != ?z) \
-         FILTER NOT EXISTS { ?x ?p ?z } }",
-    ),
-    (
-        "owl-symmetric",
-        "INSERT { ?o ?p ?s } WHERE { \
-         ?p a <http://www.w3.org/2002/07/owl#SymmetricProperty> . \
-         ?s ?p ?o . \
-         FILTER NOT EXISTS { ?o ?p ?s } }",
-    ),
-    (
-        "owl-inverse",
-        "INSERT { ?o ?q ?s } WHERE { \
-         ?p <http://www.w3.org/2002/07/owl#inverseOf> ?q . \
-         ?s ?p ?o . \
-         FILTER NOT EXISTS { ?o ?q ?s } }",
-    ),
-    (
-        "owl-sameas-sym",
-        "INSERT { ?b <http://www.w3.org/2002/07/owl#sameAs> ?a } WHERE { \
-         ?a <http://www.w3.org/2002/07/owl#sameAs> ?b . \
-         FILTER NOT EXISTS { ?b <http://www.w3.org/2002/07/owl#sameAs> ?a } }",
-    ),
-];
+/// Intern strings to u32 IDs for efficient reasoning.
+struct Interner {
+    to_id: HashMap<String, u32>,
+    to_str: Vec<String>,
+}
 
-/// Reasoner that runs RDFS and OWL-RL inference rules via iterative
-/// SPARQL INSERT WHERE queries against a `GraphStore`.
+impl Interner {
+    fn new() -> Self {
+        Self {
+            to_id: HashMap::new(),
+            to_str: Vec::new(),
+        }
+    }
+
+    fn intern(&mut self, s: &str) -> u32 {
+        if let Some(&id) = self.to_id.get(s) {
+            return id;
+        }
+        let id = self.to_str.len() as u32;
+        self.to_str.push(s.to_string());
+        self.to_id.insert(s.to_string(), id);
+        id
+    }
+
+    fn resolve(&self, id: u32) -> &str {
+        &self.to_str[id as usize]
+    }
+}
+
+/// OWL2-RL reasoner using interned u32 triples and fixpoint iteration.
+///
+/// Profiles:
+///   "rdfs"       — RDFS rules (subclass, domain/range, subproperty)
+///   "owl-rl"     — RDFS + core OWL-RL (transitive, symmetric, inverse,
+///                  sameAs, equivalentClass/Property)
+///   "owl-rl-ext" — All above + someValuesFrom, allValuesFrom, hasValue,
+///                  intersectionOf, unionOf
 pub struct Reasoner;
 
 impl Reasoner {
-    /// Run inference rules against the graph store.
-    ///
-    /// `profile`: "rdfs" or "owl-rl" (owl-rl includes rdfs rules).
-    /// `materialize`: if true, insert inferred triples into the store.
-    ///                if false, count what would be inferred without modifying the store.
     pub fn run(
         graph: &Arc<GraphStore>,
         profile: &str,
         materialize: bool,
     ) -> anyhow::Result<String> {
-        let rules: Vec<(&str, &str)> = match profile {
-            "owl-rl" => RDFS_RULES
-                .iter()
-                .chain(OWL_RL_RULES.iter())
-                .copied()
-                .collect(),
-            _ => RDFS_RULES.to_vec(),
-        };
-
         let profile_used = match profile {
             "owl-rl" => "owl-rl",
+            "owl-rl-ext" => "owl-rl-ext",
             _ => "rdfs",
         };
+        let include_owl = profile_used == "owl-rl" || profile_used == "owl-rl-ext";
+        let include_ext = profile_used == "owl-rl-ext";
 
-        if !materialize {
-            return Self::dry_run(graph, &rules, profile_used);
+        // Extract and intern all triples
+        let raw_triples = graph.all_triples()?;
+        let mut interner = Interner::new();
+        let mut facts: Vec<(u32, u32, u32)> = Vec::with_capacity(raw_triples.len());
+        for (s, p, o) in &raw_triples {
+            facts.push((interner.intern(s), interner.intern(p), interner.intern(o)));
         }
 
-        let mut total_inferred: usize = 0;
-        let mut iterations: usize = 0;
+        // Intern well-known IRIs
+        let rdf_type = interner.intern(RDF_TYPE);
+        let rdfs_subclass = interner.intern(RDFS_SUBCLASS);
+        let rdfs_subprop = interner.intern(RDFS_SUBPROP);
+        let owl_sameas = interner.intern(OWL_SAMEAS);
+
+        // Pre-extract static schema relations
+        let domain_map: Vec<(u32, u32)> = facts.iter()
+            .filter(|&&(_, p, _)| p == interner.intern(RDFS_DOMAIN))
+            .map(|&(s, _, o)| (s, o)).collect();
+        let range_map: Vec<(u32, u32)> = facts.iter()
+            .filter(|&&(_, p, _)| p == interner.intern(RDFS_RANGE))
+            .map(|&(s, _, o)| (s, o)).collect();
+        let transitive_set: HashSet<u32> = facts.iter()
+            .filter(|&&(_, p, o)| p == rdf_type && o == interner.intern(OWL_TRANSITIVE))
+            .map(|&(s, _, _)| s).collect();
+        let symmetric_set: HashSet<u32> = facts.iter()
+            .filter(|&&(_, p, o)| p == rdf_type && o == interner.intern(OWL_SYMMETRIC))
+            .map(|&(s, _, _)| s).collect();
+        let inverse_pairs: Vec<(u32, u32)> = facts.iter()
+            .filter(|&&(_, p, _)| p == interner.intern(OWL_INVERSE))
+            .map(|&(s, _, o)| (s, o)).collect();
+        let equiv_class: Vec<(u32, u32)> = facts.iter()
+            .filter(|&&(_, p, _)| p == interner.intern(OWL_EQUIV_CLASS))
+            .map(|&(s, _, o)| (s, o)).collect();
+        let equiv_prop: Vec<(u32, u32)> = facts.iter()
+            .filter(|&&(_, p, _)| p == interner.intern(OWL_EQUIV_PROP))
+            .map(|&(s, _, o)| (s, o)).collect();
+
+        // OWL restriction structures (for owl-rl-ext)
+        let owl_on_property = interner.intern(OWL_ON_PROPERTY);
+        let owl_some_values = interner.intern(OWL_SOME_VALUES);
+        let owl_all_values = interner.intern(OWL_ALL_VALUES);
+        let owl_has_value = interner.intern(OWL_HAS_VALUE);
+
+        let mut restr_prop: HashMap<u32, u32> = HashMap::new();
+        let mut restr_svf: HashMap<u32, u32> = HashMap::new();
+        let mut restr_avf: HashMap<u32, u32> = HashMap::new();
+        let mut restr_hv: HashMap<u32, u32> = HashMap::new();
+
+        if include_ext {
+            for &(s, p, o) in &facts {
+                if p == owl_on_property { restr_prop.insert(s, o); }
+                if p == owl_some_values { restr_svf.insert(s, o); }
+                if p == owl_all_values { restr_avf.insert(s, o); }
+                if p == owl_has_value { restr_hv.insert(s, o); }
+            }
+        }
+
+        // svf_rules: (property, filler_class, restriction_node)
+        let svf_rules: Vec<(u32, u32, u32)> = restr_svf.iter()
+            .filter_map(|(&r, &filler)| restr_prop.get(&r).map(|&prop| (prop, filler, r)))
+            .collect();
+        // hv_rules: (property, value, restriction_node)
+        let hv_rules: Vec<(u32, u32, u32)> = restr_hv.iter()
+            .filter_map(|(&r, &val)| restr_prop.get(&r).map(|&prop| (prop, val, r)))
+            .collect();
+        // avf_rules: (property, filler_class, restriction_node)
+        let _avf_rules: Vec<(u32, u32, u32)> = restr_avf.iter()
+            .filter_map(|(&r, &filler)| restr_prop.get(&r).map(|&prop| (prop, filler, r)))
+            .collect();
+
+        // Parse RDF lists for intersectionOf/unionOf
+        let mut intersection_classes: Vec<(u32, Vec<u32>)> = Vec::new();
+        let mut union_classes: Vec<(u32, Vec<u32>)> = Vec::new();
+        if include_ext {
+            let rdf_first = interner.intern(RDF_FIRST);
+            let rdf_rest = interner.intern(RDF_REST);
+            let rdf_nil = interner.intern(RDF_NIL);
+            let owl_intersection = interner.intern(OWL_INTERSECTION);
+            let owl_union = interner.intern(OWL_UNION);
+
+            let first_map: HashMap<u32, u32> = facts.iter()
+                .filter(|&&(_, p, _)| p == rdf_first)
+                .map(|&(s, _, o)| (s, o)).collect();
+            let rest_map: HashMap<u32, u32> = facts.iter()
+                .filter(|&&(_, p, _)| p == rdf_rest)
+                .map(|&(s, _, o)| (s, o)).collect();
+
+            let walk_list = |head: u32| -> Vec<u32> {
+                let mut items = Vec::new();
+                let mut cur = head;
+                for _ in 0..100 {
+                    if cur == rdf_nil { break; }
+                    if let Some(&item) = first_map.get(&cur) { items.push(item); }
+                    cur = *rest_map.get(&cur).unwrap_or(&rdf_nil);
+                }
+                items
+            };
+
+            for &(s, p, o) in &facts {
+                if p == owl_intersection {
+                    let items = walk_list(o);
+                    if !items.is_empty() { intersection_classes.push((s, items)); }
+                }
+                if p == owl_union {
+                    let items = walk_list(o);
+                    if !items.is_empty() { union_classes.push((s, items)); }
+                }
+            }
+        }
+
+        // ── Fixpoint iteration ──────────────────────────────────────
+        let mut triple_set: HashSet<(u32, u32, u32)> = facts.iter().copied().collect();
+        let initial_size = triple_set.len();
+        let mut iterations = 0;
 
         loop {
             iterations += 1;
-            let before = graph.triple_count();
+            let before = triple_set.len();
+            let mut new: Vec<(u32, u32, u32)> = Vec::new();
 
-            for (_name, rule) in &rules {
-                // Ignore errors on individual rules — some may not match anything
-                let _ = graph.sparql_update(rule);
+            // Build per-iteration indices
+            let type_idx: Vec<(u32, u32)> = triple_set.iter()
+                .filter(|&&(_, p, _)| p == rdf_type)
+                .map(|&(s, _, o)| (s, o)).collect();
+            let subclass_idx: Vec<(u32, u32)> = triple_set.iter()
+                .filter(|&&(_, p, _)| p == rdfs_subclass)
+                .map(|&(s, _, o)| (s, o)).collect();
+            let subprop_idx: Vec<(u32, u32)> = triple_set.iter()
+                .filter(|&&(_, p, _)| p == rdfs_subprop)
+                .map(|&(s, _, o)| (s, o)).collect();
+
+            // Build a subclass lookup: sub → [super]
+            let mut sub_to_super: HashMap<u32, Vec<u32>> = HashMap::new();
+            for &(sub, sup) in &subclass_idx {
+                sub_to_super.entry(sub).or_default().push(sup);
             }
 
-            let after = graph.triple_count();
-            let delta = after.saturating_sub(before);
-            total_inferred += delta;
+            // ── RDFS rules ──────────────────────────────────────────
 
-            if delta == 0 || iterations >= 20 {
-                break;
-            }
-        }
-
-        // Gather a sample of inferred triples
-        let sample = Self::sample_inferences(graph);
-
-        Ok(serde_json::json!({
-            "profile_used": profile_used,
-            "inferred_count": total_inferred,
-            "iterations": iterations,
-            "sample_inferences": sample
-        })
-        .to_string())
-    }
-
-    /// Dry run: snapshot the store, run rules on a temporary copy,
-    /// count inferred triples, discard the copy. Original store is unchanged.
-    fn dry_run(
-        graph: &Arc<GraphStore>,
-        rules: &[(&str, &str)],
-        profile_used: &str,
-    ) -> anyhow::Result<String> {
-        let snapshot = graph.serialize("ntriples")?;
-        let temp_store = Arc::new(GraphStore::new());
-        temp_store.load_ntriples(&snapshot)?;
-
-        let mut total_inferred: usize = 0;
-        let mut iterations: usize = 0;
-
-        loop {
-            iterations += 1;
-            let before = temp_store.triple_count();
-
-            for (_name, rule) in rules {
-                let _ = temp_store.sparql_update(rule);
-            }
-
-            let after = temp_store.triple_count();
-            let delta = after.saturating_sub(before);
-            total_inferred += delta;
-
-            if delta == 0 || iterations >= 20 {
-                break;
-            }
-        }
-
-        let sample = Self::sample_inferences(&temp_store);
-
-        Ok(serde_json::json!({
-            "profile_used": profile_used,
-            "inferred_count": total_inferred,
-            "iterations": iterations,
-            "dry_run": true,
-            "sample_inferences": sample
-        })
-        .to_string())
-    }
-
-    /// Retrieve a small sample of rdf:type triples for reporting.
-    fn sample_inferences(store: &Arc<GraphStore>) -> Vec<String> {
-        let query = "SELECT ?s ?type WHERE { ?s a ?type } LIMIT 10";
-        match store.sparql_select(query) {
-            Ok(result) => {
-                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&result) {
-                    if let Some(results) = parsed["results"].as_array() {
-                        return results
-                            .iter()
-                            .filter_map(|row| {
-                                let s = row["s"].as_str()?;
-                                let t = row["type"].as_str()?;
-                                Some(format!("{} a {}", s, t))
-                            })
-                            .collect();
+            // rdfs9: x type sub, sub subClassOf super → x type super
+            for &(x, sub) in &type_idx {
+                if let Some(supers) = sub_to_super.get(&sub) {
+                    for &sup in supers {
+                        if sub != sup {
+                            new.push((x, rdf_type, sup));
+                        }
                     }
                 }
-                Vec::new()
             }
-            Err(_) => Vec::new(),
+
+            // rdfs11: a subClassOf b, b subClassOf c → a subClassOf c
+            for &(a, b) in &subclass_idx {
+                if let Some(cs) = sub_to_super.get(&b) {
+                    for &c in cs {
+                        if a != b && b != c && a != c {
+                            new.push((a, rdfs_subclass, c));
+                        }
+                    }
+                }
+            }
+
+            // rdfs2: s p o, p domain class → s type class
+            for &(prop, cls) in &domain_map {
+                for &(s, p, _) in &triple_set.iter().collect::<Vec<_>>() {
+                    if *p == prop { new.push((*s, rdf_type, cls)); }
+                }
+            }
+
+            // rdfs3: s p o, p range class → o type class (IRI only)
+            for &(prop, cls) in &range_map {
+                for &(_, p, o) in &triple_set.iter().collect::<Vec<_>>() {
+                    if *p == prop && interner.resolve(*o).starts_with('<') {
+                        new.push((*o, rdf_type, cls));
+                    }
+                }
+            }
+
+            // rdfs5: subproperty transitivity
+            let mut subp_to_super: HashMap<u32, Vec<u32>> = HashMap::new();
+            for &(sub, sup) in &subprop_idx {
+                subp_to_super.entry(sub).or_default().push(sup);
+            }
+            for &(a, b) in &subprop_idx {
+                if let Some(cs) = subp_to_super.get(&b) {
+                    for &c in cs {
+                        if a != b && b != c && a != c {
+                            new.push((a, rdfs_subprop, c));
+                        }
+                    }
+                }
+            }
+
+            // rdfs7: s sub o, sub subPropertyOf super → s super o
+            for &(sub, sup) in &subprop_idx {
+                if sub != sup {
+                    for &(s, p, o) in &triple_set.iter().collect::<Vec<_>>() {
+                        if *p == sub { new.push((*s, sup, *o)); }
+                    }
+                }
+            }
+
+            // ── OWL-RL rules ────────────────────────────────────────
+            if include_owl {
+                // Transitive: x P y, y P z → x P z
+                for &tp in &transitive_set {
+                    let pairs: Vec<(u32, u32)> = triple_set.iter()
+                        .filter(|&&(_, p, _)| p == tp)
+                        .map(|&(s, _, o)| (s, o)).collect();
+                    let mut by_subj: HashMap<u32, Vec<u32>> = HashMap::new();
+                    for &(s, o) in &pairs {
+                        by_subj.entry(s).or_default().push(o);
+                    }
+                    for &(x, y) in &pairs {
+                        if let Some(zs) = by_subj.get(&y) {
+                            for &z in zs {
+                                if x != z { new.push((x, tp, z)); }
+                            }
+                        }
+                    }
+                }
+
+                // Symmetric: s P o → o P s
+                for &sp in &symmetric_set {
+                    let to_add: Vec<_> = triple_set.iter()
+                        .filter(|&&(_, p, _)| p == sp)
+                        .map(|&(s, _, o)| (o, sp, s)).collect();
+                    new.extend(to_add);
+                }
+
+                // Inverse: s P o, P inverseOf Q → o Q s (both directions)
+                for &(p, q) in &inverse_pairs {
+                    let fwd: Vec<_> = triple_set.iter()
+                        .filter(|&&(_, pred, _)| pred == p)
+                        .map(|&(s, _, o)| (o, q, s)).collect();
+                    let rev: Vec<_> = triple_set.iter()
+                        .filter(|&&(_, pred, _)| pred == q)
+                        .map(|&(s, _, o)| (o, p, s)).collect();
+                    new.extend(fwd);
+                    new.extend(rev);
+                }
+
+                // sameAs: symmetry + transitivity
+                let sameas: Vec<(u32, u32)> = triple_set.iter()
+                    .filter(|&&(_, p, _)| p == owl_sameas)
+                    .map(|&(s, _, o)| (s, o)).collect();
+                for &(a, b) in &sameas {
+                    new.push((b, owl_sameas, a));
+                }
+
+                // equivalentClass → bidirectional subClassOf
+                for &(a, b) in &equiv_class {
+                    new.push((a, rdfs_subclass, b));
+                    new.push((b, rdfs_subclass, a));
+                }
+
+                // equivalentProperty → bidirectional subPropertyOf
+                for &(a, b) in &equiv_prop {
+                    new.push((a, rdfs_subprop, b));
+                    new.push((b, rdfs_subprop, a));
+                }
+            }
+
+            // ── OWL-RL extended (someValuesFrom, hasValue, intersection, union)
+            if include_ext {
+                // Build type lookup: instance → set of classes
+                let mut inst_types: HashMap<u32, HashSet<u32>> = HashMap::new();
+                for &(x, cls) in &type_idx {
+                    inst_types.entry(x).or_default().insert(cls);
+                }
+
+                // cls-svf1: x P y, y type filler, restriction(P, svf=filler),
+                //           class subClassOf restriction → x type class
+                for &(prop, filler, restr) in &svf_rules {
+                    let prop_pairs: Vec<(u32, u32)> = triple_set.iter()
+                        .filter(|&&(_, p, _)| p == prop)
+                        .map(|&(s, _, o)| (s, o)).collect();
+
+                    let filler_insts: HashSet<u32> = type_idx.iter()
+                        .filter(|&&(_, cls)| cls == filler)
+                        .map(|&(inst, _)| inst).collect();
+
+                    // Classes whose superclass is this restriction
+                    let parent_classes: Vec<u32> = subclass_idx.iter()
+                        .filter(|&&(_, sup)| sup == restr)
+                        .map(|&(sub, _)| sub).collect();
+
+                    for &(x, y) in &prop_pairs {
+                        if filler_insts.contains(&y) || y == filler {
+                            new.push((x, rdf_type, restr));
+                            for &cls in &parent_classes {
+                                new.push((x, rdf_type, cls));
+                            }
+                        }
+                    }
+                }
+
+                // cls-hv: x type class, class subClassOf restriction(P, hasValue v) → x P v
+                // and:    x P v, restriction(P, hasValue v) → x type restriction
+                for &(prop, val, restr) in &hv_rules {
+                    let parent_classes: Vec<u32> = subclass_idx.iter()
+                        .filter(|&&(_, sup)| sup == restr)
+                        .map(|&(sub, _)| sub).collect();
+
+                    for &cls in &parent_classes {
+                        for &(x, c) in &type_idx {
+                            if c == cls {
+                                new.push((x, prop, val));
+                            }
+                        }
+                    }
+                    for &(s, p, o) in &triple_set.iter().collect::<Vec<_>>() {
+                        if *p == prop && *o == val {
+                            new.push((*s, rdf_type, restr));
+                        }
+                    }
+                }
+
+                // cls-int: x type ALL members → x type intersection class
+                for (cls, members) in &intersection_classes {
+                    for &(x, _) in &type_idx {
+                        if let Some(x_types) = inst_types.get(&x) {
+                            if members.iter().all(|m| x_types.contains(m)) {
+                                new.push((x, rdf_type, *cls));
+                            }
+                        }
+                    }
+                }
+
+                // cls-uni: x type ANY member → x type union class
+                for (cls, members) in &union_classes {
+                    for &(x, c) in &type_idx {
+                        if members.contains(&c) {
+                            new.push((x, rdf_type, *cls));
+                        }
+                    }
+                }
+            }
+
+            // Insert new triples (dedup against existing)
+            for t in new {
+                triple_set.insert(t);
+            }
+
+            if triple_set.len() == before || iterations >= 50 {
+                break;
+            }
         }
+
+        let inferred_count = triple_set.len() - initial_size;
+
+        // Materialize inferred triples
+        if materialize && inferred_count > 0 {
+            let original: HashSet<(u32, u32, u32)> = facts.iter().copied().collect();
+            let mut ntriples = String::new();
+            for &(s, p, o) in &triple_set {
+                if !original.contains(&(s, p, o)) {
+                    ntriples.push_str(interner.resolve(s));
+                    ntriples.push(' ');
+                    ntriples.push_str(interner.resolve(p));
+                    ntriples.push(' ');
+                    ntriples.push_str(interner.resolve(o));
+                    ntriples.push_str(" .\n");
+                }
+            }
+            graph.load_ntriples(&ntriples)?;
+        }
+
+        // Sample
+        let original: HashSet<(u32, u32, u32)> = facts.iter().copied().collect();
+        let sample: Vec<String> = triple_set.iter()
+            .filter(|t| !original.contains(t))
+            .filter(|&&(_, p, _)| p == rdf_type)
+            .take(10)
+            .map(|&(s, _, o)| format!("{} a {}", interner.resolve(s), interner.resolve(o)))
+            .collect();
+
+        let mut result = serde_json::json!({
+            "profile_used": profile_used,
+            "inferred_count": inferred_count,
+            "iterations": iterations,
+            "initial_triples": initial_size,
+            "final_triples": triple_set.len(),
+            "sample_inferences": sample
+        });
+        if !materialize {
+            result["dry_run"] = serde_json::json!(true);
+        }
+        Ok(result.to_string())
     }
 }

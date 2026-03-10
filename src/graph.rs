@@ -245,6 +245,20 @@ impl GraphStore {
         Ok(format!("Pushed to {}: HTTP {}", endpoint, resp.status()))
     }
 
+    /// Extract all triples as (subject, predicate, object) string tuples.
+    pub fn all_triples(&self) -> anyhow::Result<Vec<(String, String, String)>> {
+        let store = self.store.lock().unwrap();
+        let mut triples = Vec::new();
+        for quad in store.iter() {
+            let quad = quad?;
+            let s = quad.subject.to_string();
+            let p = quad.predicate.to_string();
+            let o = quad.object.to_string();
+            triples.push((s, p, o));
+        }
+        Ok(triples)
+    }
+
     fn detect_format(path: &str) -> RdfFormat {
         if path.ends_with(".ttl") || path.ends_with(".turtle") {
             RdfFormat::Turtle
