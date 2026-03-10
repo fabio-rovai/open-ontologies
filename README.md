@@ -166,7 +166,14 @@ flowchart TD
 
 ## Benchmarks
 
-### Pizza Ontology — Manchester University Tutorial
+Open Ontologies covers two distinct capabilities, each benchmarked separately:
+
+- **Ontology generation** — building an ontology schema (TBox) from requirements
+- **Ontology extension** — mapping real-world data (ABox) into an existing ontology
+
+### Ontology Generation
+
+#### Pizza Ontology — Manchester University Tutorial
 
 **Source:** The [Manchester Pizza Tutorial](https://www.michaeldebellis.com/post/new-protege-pizza-tutorial) is the most widely used OWL teaching material. Students build a Pizza ontology step-by-step in Protege over ~4 hours. The reference OWL file is [published on GitHub](https://github.com/owlcs/pizza-ontology).
 
@@ -223,7 +230,58 @@ The AI produces 50% fewer triples because it uses compact `owl:AllDisjointClasse
 - Comparison script: [`benchmark/pizza_compare.py`](benchmark/pizza_compare.py)
 - Full comparison: [`benchmark/PIZZA_COMPARISON.md`](benchmark/PIZZA_COMPARISON.md)
 
-### Pizza Extension — Handcrafted vs AI Pipeline
+#### IES4 Building Domain — BORO/4D Methodology
+
+**Source:** The [IES4 standard](https://github.com/dstl/IES4) is the UK government's Information Exchange Standard, built on BORO (Business Objects Reference Ontology) and 4D perdurantist modeling. It's a real-world upper ontology used in defence and intelligence.
+
+**What an ontology engineer does (traditional approach):**
+
+| Step | What you do | Time |
+| ---- | ----------- | ---- |
+| 1 | Read the IES4 spec (200+ pages), understand BORO/4D patterns | 2-3 days |
+| 2 | Import IES4 upper ontology into Protege | 30 min |
+| 3 | Create Entity+State pairs for each domain concept | 2-3 hours |
+| 4 | Add BoundingStates, ClassOf hierarchies | 1-2 hours |
+| 5 | Define properties linking states to entities | 1 hour |
+| 6 | Write SHACL shapes for validation | 2-3 hours |
+| 7 | Run validation against IES4 SHACL shapes | 30 min |
+| 8 | Debug and iterate until compliant | 1-2 days |
+
+**What we did (AI-native approach):**
+
+**Input to Claude:** Three documents providing context (all included in [`benchmark/reference/`](benchmark/reference/)):
+
+- [`background_prompt.txt`](benchmark/reference/background_prompt.txt) — explains BORO/4D methodology, perdurantism, mereotopology
+- [`instructions.txt`](benchmark/reference/instructions.txt) — structural requirements: 4D Entity+State pattern, ClassOf hierarchies, property conventions
+- [`custom_instructions.txt`](benchmark/reference/custom_instructions.txt) — the actual domain brief: UK building/energy performance, 9 competency questions
+
+Claude reads these, then generates the complete Turtle file in one pass. Tools validate and verify.
+
+**Result:**
+
+- **100% compliance** — 86/86 checks passed
+- 318 triples, 36 classes, 12 properties
+- Full 4D/BORO patterns: Entity+State pairs, BoundingStates, ClassOf
+- All 9 competency questions covered
+- One-pass generation — Claude produced valid Turtle directly, tools validated afterward
+
+**Files:**
+
+- Reference upper ontology: [`benchmark/reference/ies4.ttl`](benchmark/reference/ies4.ttl) — the full IES4 standard (249K)
+- Reference SHACL shapes: [`benchmark/reference/ies4.shacl`](benchmark/reference/ies4.shacl) — validation rules (106K)
+- Reference instructions: [`benchmark/reference/instructions.txt`](benchmark/reference/instructions.txt) — the domain brief given to Claude
+- AI-generated extension: [`benchmark/generated/ies-building-extension.ttl`](benchmark/generated/ies-building-extension.ttl) — Claude's output
+- BORO handcrafted: [`benchmark/reference/boro-building-handcrafted.ttl`](benchmark/reference/boro-building-handcrafted.ttl) — traditional BORO for comparison
+- BORO AI-generated: [`benchmark/generated/boro-building-ai.ttl`](benchmark/generated/boro-building-ai.ttl) — Claude's BORO version
+- Compliance script: [`benchmark/compare.py`](benchmark/compare.py) — runs 86 checks
+- BORO comparison script: [`benchmark/boro_compare.py`](benchmark/boro_compare.py)
+- Full comparison: [`benchmark/BORO_COMPARISON.md`](benchmark/BORO_COMPARISON.md)
+
+### Ontology Extension
+
+Ontology extension is a different task from ontology generation. Given an **existing** ontology (the rules/schema) and a **new dataset** (CSV, JSON, etc.), the goal is to map the data into the ontology's structure — creating RDF instances (ABox) that conform to the ontology's classes and properties (TBox). The ontology then enables reasoning over the data: inferring facts that aren't explicitly stated.
+
+#### Pizza Extension — Mapping Data to the Manchester Ontology
 
 **What this tests:** The Manchester Pizza OWL was built by domain experts in Protege over 20+ years. It defines 22 named pizzas with exact OWL restrictions specifying their toppings — e.g., `Margherita rdfs:subClassOf (hasTopping some MozzarellaTopping)`. This IS the handcrafted reference.
 
@@ -293,9 +351,7 @@ After ingesting the CSV and running RDFS reasoning (`onto_reason`), the reasoner
 | Soho | Vegetarian | Vegetarian | YES |
 | Veneziana | Vegetarian | Vegetarian | YES |
 
-Accuracy: 12/13 (92%).
-
-The one miss (Napoletana) is caused by the `Anchovy` → `AnchoviesTopping` naming gap — the IRI `pizza:AnchovyTopping` doesn't exist in the fish class hierarchy, so the reasoner can't classify it as non-vegetarian. With Claude-refined mapping this becomes 100%.
+Accuracy: 12/13 (92%). The one miss (Napoletana) is caused by the `Anchovy` → `AnchoviesTopping` naming gap — the IRI `pizza:AnchovyTopping` doesn't exist in the fish class hierarchy, so the reasoner can't classify it as non-vegetarian. With Claude-refined mapping this becomes 100%.
 
 **Summary:**
 
@@ -316,53 +372,6 @@ The one miss (Napoletana) is caused by the `Anchovy` → `AnchoviesTopping` nami
 - SHACL shapes: [`benchmark/data/pizza-shapes.ttl`](benchmark/data/pizza-shapes.ttl)
 - Extension comparison: [`benchmark/extension_compare.py`](benchmark/extension_compare.py) — topping coverage + IRI accuracy
 - Reasoning benchmark: [`benchmark/pizza_extend_compare.py`](benchmark/pizza_extend_compare.py) — vegetarian classification
-
-### IES4 Building Domain — BORO/4D Methodology
-
-**Source:** The [IES4 standard](https://github.com/dstl/IES4) is the UK government's Information Exchange Standard, built on BORO (Business Objects Reference Ontology) and 4D perdurantist modeling. It's a real-world upper ontology used in defence and intelligence.
-
-**What an ontology engineer does (traditional approach):**
-
-| Step | What you do | Time |
-| ---- | ----------- | ---- |
-| 1 | Read the IES4 spec (200+ pages), understand BORO/4D patterns | 2-3 days |
-| 2 | Import IES4 upper ontology into Protege | 30 min |
-| 3 | Create Entity+State pairs for each domain concept | 2-3 hours |
-| 4 | Add BoundingStates, ClassOf hierarchies | 1-2 hours |
-| 5 | Define properties linking states to entities | 1 hour |
-| 6 | Write SHACL shapes for validation | 2-3 hours |
-| 7 | Run validation against IES4 SHACL shapes | 30 min |
-| 8 | Debug and iterate until compliant | 1-2 days |
-
-**What we did (AI-native approach):**
-
-**Input to Claude:** Three documents providing context (all included in [`benchmark/reference/`](benchmark/reference/)):
-
-- [`background_prompt.txt`](benchmark/reference/background_prompt.txt) — explains BORO/4D methodology, perdurantism, mereotopology
-- [`instructions.txt`](benchmark/reference/instructions.txt) — structural requirements: 4D Entity+State pattern, ClassOf hierarchies, property conventions
-- [`custom_instructions.txt`](benchmark/reference/custom_instructions.txt) — the actual domain brief: UK building/energy performance, 9 competency questions
-
-Claude reads these, then generates the complete Turtle file in one pass. Tools validate and verify.
-
-**Result:**
-
-- **100% compliance** — 86/86 checks passed
-- 318 triples, 36 classes, 12 properties
-- Full 4D/BORO patterns: Entity+State pairs, BoundingStates, ClassOf
-- All 9 competency questions covered
-- One-pass generation — Claude produced valid Turtle directly, tools validated afterward
-
-**Files:**
-
-- Reference upper ontology: [`benchmark/reference/ies4.ttl`](benchmark/reference/ies4.ttl) — the full IES4 standard (249K)
-- Reference SHACL shapes: [`benchmark/reference/ies4.shacl`](benchmark/reference/ies4.shacl) — validation rules (106K)
-- Reference instructions: [`benchmark/reference/instructions.txt`](benchmark/reference/instructions.txt) — the domain brief given to Claude
-- AI-generated extension: [`benchmark/generated/ies-building-extension.ttl`](benchmark/generated/ies-building-extension.ttl) — Claude's output
-- BORO handcrafted: [`benchmark/reference/boro-building-handcrafted.ttl`](benchmark/reference/boro-building-handcrafted.ttl) — traditional BORO for comparison
-- BORO AI-generated: [`benchmark/generated/boro-building-ai.ttl`](benchmark/generated/boro-building-ai.ttl) — Claude's BORO version
-- Compliance script: [`benchmark/compare.py`](benchmark/compare.py) — runs 86 checks
-- BORO comparison script: [`benchmark/boro_compare.py`](benchmark/boro_compare.py)
-- Full comparison: [`benchmark/BORO_COMPARISON.md`](benchmark/BORO_COMPARISON.md)
 
 ## Replicate it yourself
 
