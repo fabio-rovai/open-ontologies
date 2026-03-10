@@ -25,6 +25,12 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 chrono = "0.4"
 anyhow = "1"
+csv = "1"
+quick-xml = { version = "0.37", features = ["serialize"] }
+serde_yaml = "0.9"
+calamine = "0.26"
+arrow = { version = "54", default-features = false, features = ["csv", "json"] }
+parquet = { version = "54", default-features = false }
 
 [dev-dependencies]
 tempfile = "3"
