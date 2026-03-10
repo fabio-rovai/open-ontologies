@@ -103,6 +103,68 @@ pub struct OntoRollbackInput {
     pub label: String,
 }
 
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoIngestInput {
+    /// Path to the data file (CSV, JSON, NDJSON, XML, YAML, XLSX, Parquet)
+    pub path: String,
+    /// Data format (auto-detected from extension if omitted): csv, json, ndjson, xml, yaml, xlsx, parquet
+    pub format: Option<String>,
+    /// Mapping config as JSON string or path to mapping JSON file
+    pub mapping: Option<String>,
+    /// If true, treat mapping as inline JSON (default: false = file path)
+    pub inline_mapping: Option<bool>,
+    /// Base IRI for generated instances (default: http://example.org/data/)
+    pub base_iri: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoMapInput {
+    /// Path to sample data file to generate mapping for
+    pub data_path: String,
+    /// Data format (auto-detected if omitted)
+    pub format: Option<String>,
+    /// Optional path to save the generated mapping config
+    pub save_path: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoShaclInput {
+    /// Path to SHACL shapes file OR inline SHACL Turtle content
+    pub shapes: String,
+    /// If true, treat shapes as inline Turtle content
+    pub inline: Option<bool>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoReasonInput {
+    /// Reasoning profile: rdfs (default), owl-rl
+    pub profile: Option<String>,
+    /// If true (default), add inferred triples to the store. If false, dry-run only.
+    pub materialize: Option<bool>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoExtendInput {
+    /// Path to the data file
+    pub data_path: String,
+    /// Data format (auto-detected if omitted)
+    pub format: Option<String>,
+    /// Mapping config (inline JSON or file path)
+    pub mapping: Option<String>,
+    /// If true, treat mapping as inline JSON
+    pub inline_mapping: Option<bool>,
+    /// Base IRI for generated instances
+    pub base_iri: Option<String>,
+    /// Path to SHACL shapes file or inline Turtle
+    pub shapes: Option<String>,
+    /// If true, treat shapes as inline Turtle
+    pub inline_shapes: Option<bool>,
+    /// Reasoning profile (rdfs, owl-rl). Omit to skip reasoning.
+    pub reason_profile: Option<String>,
+    /// If true (default), stop pipeline on SHACL violations
+    pub stop_on_violations: Option<bool>,
+}
+
 // ─── OpenOntologiesServer ───────────────────────────────────────────────────
 
 /// MCP server that exposes all Open Ontologies tools to Claude via stdin/stdout.
@@ -370,6 +432,244 @@ impl OpenOntologiesServer {
         use crate::ontology::OntologyService;
         OntologyService::rollback_version(&self.db, &self.graph, &input.label)
             .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
+    }
+
+    // ── Data ingestion & reasoning ─────────────────────────────────────────
+
+    #[tool(name = "onto_ingest", description = "Parse a structured data file (CSV, JSON, NDJSON, XML, YAML, XLSX, Parquet) into RDF triples and load into the ontology store. Optionally uses a mapping config to control field-to-predicate mapping.")]
+    async fn onto_ingest(&self, Parameters(input): Parameters<OntoIngestInput>) -> String {
+        use crate::ingest::DataIngester;
+        use crate::mapping::MappingConfig;
+
+        let base_iri = input.base_iri.as_deref().unwrap_or("http://example.org/data/");
+
+        // Parse data file
+        let rows = match DataIngester::parse_file(&input.path) {
+            Ok(r) => r,
+            Err(e) => return format!(r#"{{"error":"Failed to parse {}: {}"}}"#, input.path, e),
+        };
+
+        if rows.is_empty() {
+            return r#"{"ok":true,"triples_loaded":0,"warnings":["No data rows found"]}"#.to_string();
+        }
+
+        // Get or generate mapping
+        let mapping = if let Some(ref mapping_str) = input.mapping {
+            if input.inline_mapping.unwrap_or(false) {
+                match serde_json::from_str::<MappingConfig>(mapping_str) {
+                    Ok(m) => m,
+                    Err(e) => return format!(r#"{{"error":"Invalid mapping JSON: {}"}}"#, e),
+                }
+            } else {
+                match std::fs::read_to_string(mapping_str) {
+                    Ok(content) => match serde_json::from_str::<MappingConfig>(&content) {
+                        Ok(m) => m,
+                        Err(e) => return format!(r#"{{"error":"Invalid mapping file: {}"}}"#, e),
+                    },
+                    Err(e) => return format!(r#"{{"error":"Cannot read mapping file: {}"}}"#, e),
+                }
+            }
+        } else {
+            let headers = DataIngester::extract_headers(&rows);
+            MappingConfig::from_headers(&headers, base_iri, &format!("{}Thing", base_iri))
+        };
+
+        // Convert to N-Triples and load
+        let ntriples = mapping.rows_to_ntriples(&rows);
+        match self.graph.load_ntriples(&ntriples) {
+            Ok(count) => {
+                serde_json::json!({
+                    "ok": true,
+                    "triples_loaded": count,
+                    "rows_processed": rows.len(),
+                    "mapping_fields": mapping.mappings.len(),
+                }).to_string()
+            }
+            Err(e) => format!(r#"{{"error":"Failed to load triples: {}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_map", description = "Generate a mapping config by inspecting a data file's schema against the currently loaded ontology. Returns a JSON mapping that can be reviewed and passed to onto_ingest.")]
+    async fn onto_map(&self, Parameters(input): Parameters<OntoMapInput>) -> String {
+        use crate::ingest::DataIngester;
+        use crate::mapping::MappingConfig;
+
+        let rows = match DataIngester::parse_file(&input.data_path) {
+            Ok(r) => r,
+            Err(e) => return format!(r#"{{"error":"Failed to parse {}: {}"}}"#, input.data_path, e),
+        };
+        let headers = DataIngester::extract_headers(&rows);
+
+        // Get ontology classes and properties from the store
+        let classes_query = r#"SELECT DISTINCT ?c WHERE {
+            { ?c a <http://www.w3.org/2002/07/owl#Class> }
+            UNION
+            { ?c a <http://www.w3.org/2000/01/rdf-schema#Class> }
+        }"#;
+        let props_query = r#"SELECT DISTINCT ?p WHERE {
+            { ?p a <http://www.w3.org/2002/07/owl#ObjectProperty> }
+            UNION
+            { ?p a <http://www.w3.org/2002/07/owl#DatatypeProperty> }
+            UNION
+            { ?p a <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> }
+        }"#;
+
+        let classes = self.graph.sparql_select(classes_query).unwrap_or_default();
+        let props = self.graph.sparql_select(props_query).unwrap_or_default();
+
+        let extract_iris = |json: &str, var: &str| -> Vec<String> {
+            serde_json::from_str::<serde_json::Value>(json)
+                .ok()
+                .and_then(|v| v["results"].as_array().cloned())
+                .unwrap_or_default()
+                .iter()
+                .filter_map(|r| r[var].as_str().map(|s| s.trim_matches(|c| c == '<' || c == '>').to_string()))
+                .collect()
+        };
+
+        let class_iris = extract_iris(&classes, "c");
+        let prop_iris = extract_iris(&props, "p");
+
+        let mapping = MappingConfig::from_headers(
+            &headers,
+            "http://example.org/data/",
+            class_iris.first().map(|s| s.as_str()).unwrap_or("http://example.org/Thing"),
+        );
+
+        let result = serde_json::json!({
+            "mapping": mapping,
+            "data_fields": headers,
+            "ontology_classes": class_iris,
+            "ontology_properties": prop_iris,
+        });
+
+        if let Some(ref save_path) = input.save_path {
+            if let Ok(json) = serde_json::to_string_pretty(&mapping) {
+                if let Err(e) = std::fs::write(save_path, &json) {
+                    return format!(r#"{{"error":"Cannot write mapping file: {}"}}"#, e);
+                }
+            }
+        }
+
+        result.to_string()
+    }
+
+    #[tool(name = "onto_shacl", description = "Validate the loaded ontology data against SHACL shapes. Checks cardinality (minCount/maxCount), datatypes, and class constraints. Returns a conformance report with violations.")]
+    async fn onto_shacl(&self, Parameters(input): Parameters<OntoShaclInput>) -> String {
+        use crate::shacl::ShaclValidator;
+        let shapes = if input.inline.unwrap_or(false) {
+            input.shapes.clone()
+        } else {
+            match std::fs::read_to_string(&input.shapes) {
+                Ok(c) => c,
+                Err(e) => return format!(r#"{{"error":"Cannot read shapes file: {}"}}"#, e),
+            }
+        };
+        ShaclValidator::validate(&self.graph, &shapes)
+            .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
+    }
+
+    #[tool(name = "onto_reason", description = "Run RDFS or OWL-RL inference rules over the loaded ontology. Materializes inferred triples (subclass propagation, domain/range inference, transitive/symmetric properties).")]
+    async fn onto_reason(&self, Parameters(input): Parameters<OntoReasonInput>) -> String {
+        use crate::reason::Reasoner;
+        let profile = input.profile.as_deref().unwrap_or("rdfs");
+        let materialize = input.materialize.unwrap_or(true);
+        Reasoner::run(&self.graph, profile, materialize)
+            .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
+    }
+
+    #[tool(name = "onto_extend", description = "Convenience pipeline: ingest data → validate with SHACL → run OWL reasoning, all in one call. Combines onto_ingest + onto_shacl + onto_reason.")]
+    async fn onto_extend(&self, Parameters(input): Parameters<OntoExtendInput>) -> String {
+        use crate::ingest::DataIngester;
+        use crate::mapping::MappingConfig;
+        use crate::shacl::ShaclValidator;
+        use crate::reason::Reasoner;
+
+        let base_iri = input.base_iri.as_deref().unwrap_or("http://example.org/data/");
+
+        // 1. Ingest
+        let rows = match DataIngester::parse_file(&input.data_path) {
+            Ok(r) => r,
+            Err(e) => return format!(r#"{{"error":"Ingest failed: {}"}}"#, e),
+        };
+
+        let mapping = if let Some(ref mapping_str) = input.mapping {
+            if input.inline_mapping.unwrap_or(false) {
+                match serde_json::from_str::<MappingConfig>(mapping_str) {
+                    Ok(m) => m,
+                    Err(e) => return format!(r#"{{"error":"Invalid mapping: {}"}}"#, e),
+                }
+            } else {
+                match std::fs::read_to_string(mapping_str) {
+                    Ok(content) => match serde_json::from_str::<MappingConfig>(&content) {
+                        Ok(m) => m,
+                        Err(e) => return format!(r#"{{"error":"Invalid mapping file: {}"}}"#, e),
+                    },
+                    Err(e) => return format!(r#"{{"error":"Cannot read mapping: {}"}}"#, e),
+                }
+            }
+        } else {
+            let headers = DataIngester::extract_headers(&rows);
+            MappingConfig::from_headers(&headers, base_iri, &format!("{}Thing", base_iri))
+        };
+
+        let ntriples = mapping.rows_to_ntriples(&rows);
+        let triples_loaded = match self.graph.load_ntriples(&ntriples) {
+            Ok(c) => c,
+            Err(e) => return format!(r#"{{"error":"Failed to load triples: {}"}}"#, e),
+        };
+
+        // 2. SHACL (optional)
+        let mut shacl_result = serde_json::json!({"skipped": true});
+        if let Some(ref shapes_input) = input.shapes {
+            let shapes = if input.inline_shapes.unwrap_or(false) {
+                shapes_input.clone()
+            } else {
+                match std::fs::read_to_string(shapes_input) {
+                    Ok(c) => c,
+                    Err(e) => return format!(r#"{{"error":"Cannot read shapes: {}"}}"#, e),
+                }
+            };
+            match ShaclValidator::validate(&self.graph, &shapes) {
+                Ok(report) => {
+                    if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&report) {
+                        let stop = input.stop_on_violations.unwrap_or(true);
+                        if stop && parsed["conforms"] == false {
+                            return serde_json::json!({
+                                "stage": "shacl",
+                                "triples_ingested": triples_loaded,
+                                "shacl": parsed,
+                                "stopped": true,
+                                "message": "Pipeline stopped due to SHACL violations",
+                            }).to_string();
+                        }
+                        shacl_result = parsed;
+                    }
+                }
+                Err(e) => return format!(r#"{{"error":"SHACL validation failed: {}"}}"#, e),
+            }
+        }
+
+        // 3. Reasoning (optional)
+        let mut reason_result = serde_json::json!({"skipped": true});
+        if let Some(ref profile) = input.reason_profile {
+            match Reasoner::run(&self.graph, profile, true) {
+                Ok(report) => {
+                    if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&report) {
+                        reason_result = parsed;
+                    }
+                }
+                Err(e) => return format!(r#"{{"error":"Reasoning failed: {}"}}"#, e),
+            }
+        }
+
+        serde_json::json!({
+            "ok": true,
+            "triples_ingested": triples_loaded,
+            "rows_processed": rows.len(),
+            "shacl": shacl_result,
+            "reasoning": reason_result,
+        }).to_string()
     }
 }
 

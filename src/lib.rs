@@ -3,5 +3,7 @@ pub mod graph;
 pub mod ingest;
 pub mod mapping;
 pub mod ontology;
+pub mod reason;
 pub mod server;
+pub mod shacl;
 pub mod state;
