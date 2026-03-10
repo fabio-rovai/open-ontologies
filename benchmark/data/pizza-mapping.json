@@ -9,11 +9,6 @@
       "datatype": "http://www.w3.org/2001/XMLSchema#string"
     },
     {
-      "field": "base",
-      "predicate": "http://www.co-ode.org/ontologies/pizza/pizza.owl#hasBase",
-      "lookup": true
-    },
-    {
       "field": "topping1",
       "predicate": "http://www.co-ode.org/ontologies/pizza/pizza.owl#hasTopping",
       "lookup": true
@@ -34,9 +29,19 @@
       "lookup": true
     },
     {
-      "field": "price",
-      "predicate": "http://www.co-ode.org/ontologies/pizza/pizza.owl#hasPrice",
-      "datatype": "http://www.w3.org/2001/XMLSchema#decimal"
+      "field": "topping5",
+      "predicate": "http://www.co-ode.org/ontologies/pizza/pizza.owl#hasTopping",
+      "lookup": true
+    },
+    {
+      "field": "topping6",
+      "predicate": "http://www.co-ode.org/ontologies/pizza/pizza.owl#hasTopping",
+      "lookup": true
+    },
+    {
+      "field": "topping7",
+      "predicate": "http://www.co-ode.org/ontologies/pizza/pizza.owl#hasTopping",
+      "lookup": true
     }
   ]
 }

@@ -1,109 +1,125 @@
 """
-Pizza Ontology Extension Benchmark
-===================================
+Pizza Ontology Extension: Reasoning Benchmark
+==============================================
 
-Demonstrates the data extension pipeline:
+Demonstrates the data extension pipeline and tests reasoning accuracy:
 1. Load the AI-generated Pizza ontology (TBox)
-2. Ingest restaurant menu data from CSV (ABox)
-3. Validate with SHACL shapes
-4. Run RDFS reasoning to infer topping categories
-5. Compare inferred vegetarian classification against ground truth
+2. Ingest restaurant menu CSV data (ABox) using the mapping config
+3. Run RDFS reasoning to propagate subclass relationships
+4. Classify vegetarian pizzas from the topping hierarchy
+5. Compare against ground truth from the Manchester reference
 
 Requirements: pip install rdflib
 """
 
 import csv
-import json
 from pathlib import Path
-from rdflib import Graph, Namespace, RDF, RDFS, OWL, Literal, URIRef, XSD
+from rdflib import Graph, Namespace, RDF, RDFS, OWL, URIRef, BNode, Literal, XSD
 
 PIZZA = Namespace("http://www.co-ode.org/ontologies/pizza/pizza.owl#")
+REF_NS = Namespace("https://raw.githubusercontent.com/owlcs/pizza-ontology/refs/heads/master/pizza.owl#")
 BASE = Path(__file__).parent
 
 
 def load_ontology():
-    """Load the AI-generated Pizza ontology."""
+    """Load the AI-generated Pizza ontology (TBox)."""
     g = Graph()
     g.parse(str(BASE / "generated" / "pizza-ai.ttl"), format="turtle")
     return g
 
 
+def load_reference_vegetarian():
+    """Get vegetarian classification from the Manchester reference.
+    A pizza is vegetarian if none of its toppings are Meat or Fish."""
+    ref = Graph()
+    ref.parse(str(BASE / "reference" / "pizza-reference.owl"), format="xml")
+
+    # Get meat/fish topping classes
+    meat = {REF_NS.MeatTopping}
+    fish = {REF_NS.FishTopping}
+    for sub in ref.subjects(RDFS.subClassOf, REF_NS.MeatTopping):
+        meat.add(sub)
+    for sub in ref.subjects(RDFS.subClassOf, REF_NS.FishTopping):
+        fish.add(sub)
+
+    veg_map = {}
+    for pizza_uri in ref.subjects(RDFS.subClassOf, REF_NS.NamedPizza):
+        name = str(pizza_uri).split("#")[-1]
+        if name == "UnclosedPizza":
+            continue
+
+        toppings = set()
+        for restriction in ref.objects(pizza_uri, RDFS.subClassOf):
+            if not isinstance(restriction, BNode):
+                continue
+            on_prop = list(ref.objects(restriction, OWL.onProperty))
+            some_val = list(ref.objects(restriction, OWL.someValuesFrom))
+            if on_prop and some_val:
+                prop = str(on_prop[0]).split("#")[-1]
+                val = some_val[0]
+                if prop == "hasTopping" and not isinstance(val, BNode):
+                    toppings.add(val)
+
+        is_veg = not any(t in meat or t in fish for t in toppings)
+        veg_map[name] = is_veg
+
+    return veg_map
+
+
 def ingest_csv(g):
-    """Ingest pizza-menu.csv into the ontology graph using the mapping config."""
-    with open(BASE / "data" / "pizza-mapping.json") as f:
-        mapping = json.load(f)
-
+    """Ingest pizza-menu.csv into the graph, mapping toppings to ontology IRIs."""
     with open(BASE / "data" / "pizza-menu.csv") as f:
-        reader = csv.DictReader(f)
-        rows = list(reader)
+        rows = list(csv.DictReader(f))
 
-    base = mapping["base_iri"]
-    pizza_class = URIRef(mapping["class"])
+    # Build topping name → class IRI lookup from ontology
+    topping_lookup = {}
+    for cls in g.subjects(RDF.type, OWL.Class):
+        local = str(cls).split("#")[-1]
+        if local.endswith("Topping"):
+            short = local.replace("Topping", "").lower()
+            topping_lookup[short] = cls
+        else:
+            # Handle PineKernels (no "Topping" suffix in ontology)
+            topping_lookup[local.lower()] = cls
 
     loaded = 0
     for row in rows:
-        name = row[mapping["id_field"]].strip()
+        name = row["name"].strip()
         if not name:
             continue
-        subject = URIRef(f"{base}{name}")
-        g.add((subject, RDF.type, pizza_class))
+        subject = PIZZA[name]
+        g.add((subject, RDF.type, PIZZA.NamedPizza))
+        g.add((subject, RDFS.label, Literal(name, datatype=XSD.string)))
 
-        for field_map in mapping["mappings"]:
-            value = row.get(field_map["field"], "").strip()
-            if not value:
-                continue
-            pred = URIRef(field_map["predicate"])
-            if field_map.get("lookup"):
-                obj = URIRef(f"{base}{value}")
-            elif "datatype" in field_map and field_map["datatype"]:
-                obj = Literal(value, datatype=URIRef(field_map["datatype"]))
-            else:
-                obj = Literal(value)
-            g.add((subject, pred, obj))
-            loaded += 1
+        for key in sorted(row.keys()):
+            if key.startswith("topping") and row[key].strip():
+                raw = row[key].strip()
+                # Try to resolve to ontology class
+                lookup_key = raw.lower()
+                if lookup_key in topping_lookup:
+                    topping_iri = topping_lookup[lookup_key]
+                else:
+                    # Fallback: construct IRI with Topping suffix
+                    topping_iri = PIZZA[raw + "Topping"]
+                g.add((subject, PIZZA.hasTopping, topping_iri))
+                loaded += 1
 
     return rows, loaded
 
 
-def check_shacl_constraints(g):
-    """Check SHACL-like constraints against the loaded data."""
-    # Every NamedPizza must have at least 1 topping
-    violations = []
-    for pizza_inst in g.subjects(RDF.type, PIZZA.NamedPizza):
-        toppings = list(g.objects(pizza_inst, PIZZA.hasTopping))
-        bases = list(g.objects(pizza_inst, PIZZA.hasBase))
-        labels = list(g.objects(pizza_inst, RDFS.label))
-        name = str(pizza_inst).split("#")[-1]
-
-        if len(toppings) < 1:
-            violations.append(f"{name}: missing hasTopping (minCount 1)")
-        if len(bases) < 1:
-            violations.append(f"{name}: missing hasBase (minCount 1)")
-        if len(bases) > 1:
-            violations.append(f"{name}: too many hasBase (maxCount 1)")
-        if len(labels) < 1:
-            violations.append(f"{name}: missing rdfs:label (minCount 1)")
-
-    return violations
-
-
 def run_rdfs_reasoning(g):
-    """Apply RDFS subclass reasoning to infer topping categories."""
-    # Materialise: if X is a MeatTopping and MeatTopping rdfs:subClassOf PizzaTopping,
-    # then X rdf:type PizzaTopping.
+    """Apply RDFS reasoning to propagate subclass types."""
     new_triples = 0
     changed = True
     iterations = 0
-    while changed and iterations < 10:
+    while changed and iterations < 20:
         changed = False
         iterations += 1
         to_add = []
-        # rdfs9: if X rdf:type A and A rdfs:subClassOf B, then X rdf:type B
         for x, _, a in g.triples((None, RDF.type, None)):
             for b in g.objects(a, RDFS.subClassOf):
                 if (x, RDF.type, b) not in g:
                     to_add.append((x, RDF.type, b))
-        # rdfs11: if A rdfs:subClassOf B and B rdfs:subClassOf C, then A rdfs:subClassOf C
         for a, _, b in g.triples((None, RDFS.subClassOf, None)):
             for c in g.objects(b, RDFS.subClassOf):
                 if (a, RDFS.subClassOf, c) not in g:
@@ -117,158 +133,95 @@ def run_rdfs_reasoning(g):
 
 
 def classify_vegetarian(g):
-    """
-    Classify pizzas as vegetarian based on their toppings.
-
-    A pizza is vegetarian if NONE of its toppings are instances of
-    MeatTopping or FishTopping (or any subclass thereof).
-    """
-    # Collect all meat/fish topping classes (including subclasses)
-    meat_classes = set()
-    fish_classes = set()
-
-    # Direct subclasses
+    """Classify pizzas as vegetarian using the materialised type hierarchy."""
+    meat_classes = {PIZZA.MeatTopping}
+    fish_classes = {PIZZA.FishTopping}
     for sub in g.subjects(RDFS.subClassOf, PIZZA.MeatTopping):
         meat_classes.add(sub)
-    meat_classes.add(PIZZA.MeatTopping)
-
     for sub in g.subjects(RDFS.subClassOf, PIZZA.FishTopping):
         fish_classes.add(sub)
-    fish_classes.add(PIZZA.FishTopping)
-
-    # Map topping names to their ontology classes
-    # The toppings in the CSV are short names like "Pepperoni" — we need to find
-    # which ontology class they map to (e.g., pizza:PepperoniSausageTopping)
-    topping_name_to_classes = {}
-    for topping_class in g.subjects(RDF.type, OWL.Class):
-        local = str(topping_class).split("#")[-1]
-        # Strip "Topping" suffix for matching
-        short = local.replace("Topping", "")
-        topping_name_to_classes[short.lower()] = topping_class
 
     results = {}
     for pizza_inst in g.subjects(RDF.type, PIZZA.NamedPizza):
         name = str(pizza_inst).split("#")[-1]
-        topping_iris = list(g.objects(pizza_inst, PIZZA.hasTopping))
+        toppings = list(g.objects(pizza_inst, PIZZA.hasTopping))
 
-        is_vegetarian = True
-        topping_details = []
+        is_veg = True
+        for t in toppings:
+            t_types = set(g.objects(t, RDF.type))
+            # If the topping IRI is itself a class in the hierarchy, check directly
+            if t in meat_classes or t in fish_classes:
+                is_veg = False
+                break
+            # Also check if any of its types are meat/fish
+            if t_types & meat_classes or t_types & fish_classes:
+                is_veg = False
+                break
 
-        for t_iri in topping_iris:
-            t_name = str(t_iri).split("#")[-1]
-
-            # Find the matching ontology class for this topping
-            matched_class = None
-            for short, cls in topping_name_to_classes.items():
-                if t_name.lower() == short or t_name.lower() in short:
-                    matched_class = cls
-                    break
-
-            is_meat = matched_class in meat_classes if matched_class else False
-            is_fish = matched_class in fish_classes if matched_class else False
-
-            # Also check by name patterns as fallback
-            meat_names = {"pepperoni", "sausage", "ham", "chicken", "beef", "salami", "parmaham"}
-            fish_names = {"anchovy", "prawn", "tuna", "mixedseafood"}
-
-            if t_name.lower() in meat_names:
-                is_meat = True
-            if t_name.lower() in fish_names:
-                is_fish = True
-
-            category = "meat" if is_meat else ("fish" if is_fish else "vegetarian")
-            topping_details.append((t_name, category))
-
-            if is_meat or is_fish:
-                is_vegetarian = False
-
-        results[name] = {
-            "inferred_vegetarian": is_vegetarian,
-            "toppings": topping_details,
-        }
+        results[name] = is_veg
 
     return results
 
 
 def main():
     print("=" * 70)
-    print("Pizza Ontology Extension Benchmark")
+    print("Pizza Extension: Reasoning Benchmark")
     print("=" * 70)
 
-    # Step 1: Load ontology
-    print("\n1. Loading AI-generated Pizza ontology...")
+    # Load TBox
+    print("\n1. Loading AI-generated Pizza ontology (TBox)...")
     g = load_ontology()
     tbox_triples = len(g)
-    print(f"   TBox loaded: {tbox_triples} triples")
+    print(f"   {tbox_triples} triples")
 
-    # Step 2: Ingest CSV data
-    print("\n2. Ingesting restaurant menu data (pizza-menu.csv)...")
+    # Ingest CSV
+    print("\n2. Ingesting pizza-menu.csv...")
     rows, triples_loaded = ingest_csv(g)
     abox_triples = len(g) - tbox_triples
-    print(f"   Rows processed: {len(rows)}")
-    print(f"   ABox triples added: {abox_triples}")
-    print(f"   Total triples: {len(g)}")
+    print(f"   {len(rows)} rows → {abox_triples} ABox triples")
 
-    # Step 3: SHACL validation
-    print("\n3. Validating against SHACL shapes...")
-    violations = check_shacl_constraints(g)
-    if violations:
-        print(f"   VIOLATIONS ({len(violations)}):")
-        for v in violations:
-            print(f"     - {v}")
-    else:
-        print("   All constraints satisfied")
-
-    # Step 4: RDFS reasoning
-    print("\n4. Running RDFS reasoning...")
+    # Reason
+    print("\n3. Running RDFS reasoning...")
     new_triples, iterations = run_rdfs_reasoning(g)
-    print(f"   Inferred {new_triples} new triples in {iterations} iterations")
-    print(f"   Total triples after reasoning: {len(g)}")
+    print(f"   {new_triples} inferred triples in {iterations} iterations")
 
-    # Step 5: Classify vegetarian and compare
-    print("\n5. Classifying pizzas (reasoning vs ground truth)...")
+    # Classify
+    print("\n4. Classifying vegetarian pizzas...")
     inferred = classify_vegetarian(g)
 
-    # Ground truth from CSV
-    ground_truth = {}
-    with open(BASE / "data" / "pizza-menu.csv") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            ground_truth[row["name"].strip()] = row["vegetarian"].strip().lower() == "true"
+    # Ground truth from Manchester reference
+    ref_veg = load_reference_vegetarian()
 
-    print(f"\n{'Pizza':<25} {'Ground Truth':<15} {'Inferred':<15} {'Match':>5}")
-    print("-" * 65)
+    print(f"\n{'Pizza':<22} {'Reference':<15} {'Inferred':<15} {'Match':>5}")
+    print("-" * 62)
 
     correct = 0
     total = 0
-    for name, truth in ground_truth.items():
-        inf = inferred.get(name, {})
-        inf_veg = inf.get("inferred_vegetarian", None)
-        match = inf_veg == truth if inf_veg is not None else False
+    for name in sorted(inferred.keys()):
+        if name not in ref_veg:
+            continue
+        truth = ref_veg[name]
+        inf = inferred[name]
+        match = truth == inf
         correct += 1 if match else 0
         total += 1
 
         truth_str = "Vegetarian" if truth else "Non-veg"
-        inf_str = "Vegetarian" if inf_veg else "Non-veg" if inf_veg is not None else "???"
+        inf_str = "Vegetarian" if inf else "Non-veg"
         match_str = "YES" if match else "NO"
+        print(f"{name:<22} {truth_str:<15} {inf_str:<15} {match_str:>5}")
 
-        print(f"{name:<25} {truth_str:<15} {inf_str:<15} {match_str:>5}")
+    accuracy = correct / total * 100 if total else 0
+    print("-" * 62)
+    print(f"\nClassification accuracy: {correct}/{total} ({accuracy:.0f}%)")
 
-    accuracy = (correct / total * 100) if total > 0 else 0
-
-    print("-" * 65)
-    print(f"\nAccuracy: {correct}/{total} ({accuracy:.0f}%)")
-
-    # Summary
-    print("\n" + "=" * 70)
-    print("Summary")
-    print("=" * 70)
-    print(f"  TBox (ontology):           {tbox_triples} triples")
-    print(f"  ABox (data):               {abox_triples} triples")
-    print(f"  Inferred (reasoning):      {new_triples} triples")
-    print(f"  SHACL violations:          {len(violations)}")
-    print(f"  Vegetarian classification: {correct}/{total} correct ({accuracy:.0f}%)")
-    print(f"  Data formats supported:    CSV, JSON, NDJSON, XML, YAML, XLSX, Parquet")
+    print(f"""
+Summary
+  TBox triples:       {tbox_triples}
+  ABox triples:       {abox_triples}
+  Inferred triples:   {new_triples}
+  Reasoning accuracy: {correct}/{total} ({accuracy:.0f}%)
+  Ground truth:       Manchester reference OWL (handcrafted)""")
 
 
 if __name__ == "__main__":

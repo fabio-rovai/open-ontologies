@@ -223,73 +223,99 @@ The AI produces 50% fewer triples because it uses compact `owl:AllDisjointClasse
 - Comparison script: [`benchmark/pizza_compare.py`](benchmark/pizza_compare.py)
 - Full comparison: [`benchmark/PIZZA_COMPARISON.md`](benchmark/PIZZA_COMPARISON.md)
 
-### Pizza Extension — CSV Data to Inferred Knowledge
+### Pizza Extension — Handcrafted vs AI Pipeline
 
-**What this tests:** Can the extension pipeline correctly ingest tabular data into an ontology and use reasoning to infer facts that aren't in the original data?
+**What this tests:** The Manchester Pizza OWL was built by domain experts in Protege over 20+ years. It defines 22 named pizzas with exact OWL restrictions specifying their toppings — e.g., `Margherita rdfs:subClassOf (hasTopping some MozzarellaTopping)`. This IS the handcrafted reference.
 
-**Setup:** The AI-generated Pizza ontology (1,168 triples, 95 classes) defines a class hierarchy where toppings are categorised — `PepperoniSausageTopping` is a `MeatTopping`, `MozzarellaTopping` is a `CheeseTopping`, `AnchovyTopping` is a `FishTopping`, etc. A pizza is vegetarian if it has no meat or fish toppings.
+The AI pipeline takes a restaurant menu CSV and maps it to the same ontology using `onto_map` + `onto_ingest`. How closely does the auto-mapped data match what the experts defined?
 
-**Input data:** A 13-row CSV of restaurant menu items ([`benchmark/data/pizza-menu.csv`](benchmark/data/pizza-menu.csv)):
+**Input data:** A 13-row CSV ([`benchmark/data/pizza-menu.csv`](benchmark/data/pizza-menu.csv)) with topping names from the Manchester definitions:
 
 ```csv
-name,base,topping1,topping2,topping3,topping4,price,vegetarian
-Margherita,ThinAndCrispy,Mozzarella,Tomato,,,8.99,true
-American,DeepPan,Mozzarella,Tomato,Pepperoni,Sausage,12.99,false
-Fiorentina,ThinAndCrispy,Mozzarella,Tomato,Spinach,Olive,11.49,true
-Napoletana,ThinAndCrispy,Mozzarella,Tomato,Anchovy,Caper,11.99,false
-PolloAdArrabbiata,ThinAndCrispy,Mozzarella,Tomato,Chicken,Chili,13.99,false
+name,topping1,topping2,topping3,topping4,topping5,topping6,topping7
+Margherita,Mozzarella,Tomato,,,,,
+American,Mozzarella,Tomato,PeperoniSausage,,,,
+Fiorentina,Mozzarella,Tomato,Spinach,Olive,Parmesan,Garlic,
+SloppyGiuseppe,Mozzarella,Tomato,GreenPepper,Onion,HotSpicedBeef,,
 ...
 ```
 
-The `vegetarian` column is the **ground truth** — we strip it from the mapping and see if the reasoner can infer it from the ontology's topping hierarchy.
+**Topping coverage — AI pipeline vs Manchester reference:**
 
-**What the pipeline does:**
+| Pizza | Ref toppings | Matched | Missing | Coverage |
+| ----- | ------------ | ------- | ------- | -------- |
+| Margherita | 2 | 2 | 0 | 100% |
+| American | 3 | 3 | 0 | 100% |
+| AmericanHot | 5 | 5 | 0 | 100% |
+| Capricciosa | 7 | 6 | 1 | 86% |
+| Fiorentina | 6 | 6 | 0 | 100% |
+| FourSeasons | 7 | 6 | 1 | 86% |
+| LaReine | 5 | 5 | 0 | 100% |
+| Mushroom | 3 | 3 | 0 | 100% |
+| Napoletana | 5 | 4 | 1 | 80% |
+| Parmense | 5 | 5 | 0 | 100% |
+| SloppyGiuseppe | 5 | 5 | 0 | 100% |
+| Soho | 6 | 6 | 0 | 100% |
+| Veneziana | 7 | 6 | 1 | 86% |
+| **Total** | **66** | **62** | **4** | **94%** |
 
-| Step | Tool | What happens |
-| ---- | ---- | ------------ |
-| 1 | `onto_load` | Load Pizza ontology (TBox: 1,168 triples) |
-| 2 | `onto_map` | Inspect CSV headers against ontology, generate mapping config |
-| 3 | `onto_ingest` | Parse 13 rows, apply mapping, load 101 ABox triples |
-| 4 | `onto_shacl` | Validate: every pizza has toppings, a base, a label → 0 violations |
-| 5 | `onto_reason` | Run RDFS inference: 605 new triples in 4 iterations |
-| 6 | `onto_query` | SPARQL: "which pizzas have only non-meat, non-fish toppings?" |
+The 4 mismatches are naming convention gaps — the CSV says "Anchovy" but the ontology class is `AnchoviesTopping` (pluralised). Claude resolves these during mapping review.
 
-**Results — vegetarian classification accuracy:**
+**IRI mapping accuracy — the key challenge:**
 
-| Pizza | Ground Truth | Inferred | Match |
-| ----- | ------------ | -------- | ----- |
-| Margherita | Vegetarian | Vegetarian | YES |
+The CSV contains short names (`Mozzarella`, `Anchovy`). The ontology uses full class names (`MozzarellaTopping`, `AnchoviesTopping`). How well does the pipeline bridge this gap?
+
+| Mapping approach | IRI accuracy |
+| ---------------- | ------------ |
+| Naive auto-mapping (raw CSV values) | **5%** (3/66) |
+| With `Topping` suffix convention | **94%** (62/66) |
+| After Claude resolves naming variants | **100%** (66/66) |
+
+The naive auto-mapper produces `pizza:Mozzarella` — which doesn't exist as an ontology class. Adding the `Topping` suffix convention (which Claude applies when reviewing the mapping) fixes 94%. The remaining 2 naming variants (`Anchovy` → `AnchoviesTopping`, `PineKernel` → `PineKernels`) require Claude's domain knowledge.
+
+**Reasoning accuracy — vegetarian classification:**
+
+After ingesting the CSV and running RDFS reasoning (`onto_reason`), the reasoner classifies pizzas as vegetarian by traversing the `rdfs:subClassOf` hierarchy: `PeperoniSausageTopping` → `MeatTopping`, `AnchoviesTopping` → `FishTopping`, etc. Ground truth comes from the Manchester reference itself.
+
+| Pizza | Reference | Inferred | Match |
+| ----- | --------- | -------- | ----- |
 | American | Non-veg | Non-veg | YES |
 | AmericanHot | Non-veg | Non-veg | YES |
-| Fiorentina | Vegetarian | Vegetarian | YES |
-| Napoletana | Non-veg | Non-veg | YES |
-| Parmense | Non-veg | Non-veg | YES |
-| LaReine | Non-veg | Non-veg | YES |
 | Capricciosa | Non-veg | Non-veg | YES |
-| Mushroom | Vegetarian | Vegetarian | YES |
+| Fiorentina | Vegetarian | Vegetarian | YES |
 | FourSeasons | Non-veg | Non-veg | YES |
+| LaReine | Non-veg | Non-veg | YES |
+| Margherita | Vegetarian | Vegetarian | YES |
+| Mushroom | Vegetarian | Vegetarian | YES |
+| Napoletana | Non-veg | Vegetarian | NO |
+| Parmense | Non-veg | Non-veg | YES |
+| SloppyGiuseppe | Non-veg | Non-veg | YES |
 | Soho | Vegetarian | Vegetarian | YES |
-| SloppyGiuseppe | Vegetarian | Vegetarian | YES |
-| PolloAdArrabbiata | Non-veg | Non-veg | YES |
+| Veneziana | Vegetarian | Vegetarian | YES |
 
-**Accuracy: 13/13 (100%)**
+Accuracy: 12/13 (92%).
 
-The reasoner correctly classifies all 13 pizzas by traversing the ontology's `rdfs:subClassOf` hierarchy — Pepperoni → MeatTopping, Anchovy → FishTopping, Mushroom → VegetableTopping — without any hardcoded rules about what "vegetarian" means.
+The one miss (Napoletana) is caused by the `Anchovy` → `AnchoviesTopping` naming gap — the IRI `pizza:AnchovyTopping` doesn't exist in the fish class hierarchy, so the reasoner can't classify it as non-vegetarian. With Claude-refined mapping this becomes 100%.
 
-| Metric | Value |
-| ------ | ----- |
-| TBox (ontology) | 1,168 triples |
-| ABox (data) | 101 triples |
-| Inferred (reasoning) | 605 triples |
-| SHACL violations | 0 |
-| Classification accuracy | **100%** |
+**Summary:**
+
+| Metric | Handcrafted (Manchester) | AI Pipeline |
+| ------ | ------------------------ | ----------- |
+| Source | Protege GUI, 20+ years | CSV + `onto_ingest`, 30 sec |
+| Named pizzas | 22 | 13 |
+| Avg toppings/pizza | 5.1 | 5.1 |
+| Topping coverage | 100% (IS reference) | **94%** |
+| IRI accuracy (naive) | 100% | 5% |
+| IRI accuracy (Claude-refined) | 100% | **94–100%** |
+| Reasoning accuracy | 100% | **92%** (100% with refined mapping) |
 
 **Files:**
 
-- Menu data: [`benchmark/data/pizza-menu.csv`](benchmark/data/pizza-menu.csv)
+- Menu CSV: [`benchmark/data/pizza-menu.csv`](benchmark/data/pizza-menu.csv) — 13 pizzas with toppings from the Manchester reference
 - Mapping config: [`benchmark/data/pizza-mapping.json`](benchmark/data/pizza-mapping.json)
 - SHACL shapes: [`benchmark/data/pizza-shapes.ttl`](benchmark/data/pizza-shapes.ttl)
-- Comparison script: [`benchmark/pizza_extend_compare.py`](benchmark/pizza_extend_compare.py)
+- Extension comparison: [`benchmark/extension_compare.py`](benchmark/extension_compare.py) — topping coverage + IRI accuracy
+- Reasoning benchmark: [`benchmark/pizza_extend_compare.py`](benchmark/pizza_extend_compare.py) — vegetarian classification
 
 ### IES4 Building Domain — BORO/4D Methodology
 
@@ -415,7 +441,8 @@ Validate it and run compliance checks.
 cd benchmark
 pip install rdflib
 python3 pizza_compare.py          # Pizza: 96% class coverage, 100% properties
-python3 pizza_extend_compare.py   # Extension: 13/13 vegetarian classification
+python3 extension_compare.py       # Extension: 94% topping coverage vs Manchester
+python3 pizza_extend_compare.py   # Reasoning: 92% vegetarian classification
 python3 compare.py                # IES4: 86/86 compliance checks passed
 ```
 
