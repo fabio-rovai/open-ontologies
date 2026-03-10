@@ -17,11 +17,11 @@ You can ask Claude to generate an ontology in a single prompt — and it will. C
 | No scale | Claude's context window can hold ~2,000 triples. Real ontologies (IES4: 10,000+ triples) need an actual triple store. |
 | No integration | You can't push to a SPARQL endpoint, pull from a remote ontology, or resolve owl:imports chains. |
 
-**Open Ontologies solves every one of these.** It's a proper RDF/SPARQL engine (Oxigraph) exposed as 16 ontology MCP tools that Claude calls automatically. Generate → validate → load → query → iterate → persist.
+**Open Ontologies solves every one of these.** It's a proper RDF/SPARQL engine (Oxigraph) exposed as 21 MCP tools that Claude calls automatically. Generate → validate → load → query → iterate → persist.
 
 ## What is it?
 
-Open Ontologies is a standalone MCP server for AI-native ontology engineering. It exposes 16 tools that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store.
+Open Ontologies is a standalone MCP server for AI-native ontology engineering. It exposes 21 tools that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store.
 
 Written in Rust, ships as a single binary. No JVM, no Protege, no GUI.
 
@@ -59,7 +59,7 @@ flowchart TD
     Version --> Save
 ```
 
-This is not a fixed pipeline. The MCP server exposes 16 ontology tools — **Claude is the orchestrator** that decides what to call next based on results. If `onto_validate` fails, Claude fixes the Turtle and retries. If `onto_stats` shows wrong counts, Claude regenerates. If `onto_lint` finds missing labels, Claude adds them.
+This is not a fixed pipeline. The MCP server exposes 21 ontology tools — **Claude is the orchestrator** that decides what to call next based on results. If `onto_validate` fails, Claude fixes the Turtle and retries. If `onto_stats` shows wrong counts, Claude regenerates. If `onto_lint` finds missing labels, Claude adds them.
 
 No Protege. No GUI. No manual class creation. Claude is the ontology engineer, Open Ontologies is the runtime.
 
@@ -104,6 +104,11 @@ flowchart TD
 | `onto_history` | List saved version snapshots |
 | `onto_rollback` | Restore a previous version |
 | `onto_status` | Server health and loaded triple count |
+| `onto_ingest` | Parse structured data (CSV/JSON/XML/YAML/XLSX/Parquet) into RDF |
+| `onto_map` | Generate mapping config from data schema + ontology |
+| `onto_shacl` | Validate data against SHACL shapes |
+| `onto_reason` | Run RDFS/OWL-RL inference (materialize triples) |
+| `onto_extend` | Full pipeline: ingest → validate → reason |
 
 ## Benchmarks
 
