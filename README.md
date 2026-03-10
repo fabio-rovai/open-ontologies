@@ -96,7 +96,7 @@ flowchart LR
    - `rdfs` — subclass, domain/range, subproperty closure
    - `owl-rl` — adds transitive/symmetric/inverse, sameAs, equivalentClass
    - `owl-rl-ext` — adds someValuesFrom, allValuesFrom, hasValue, intersectionOf, unionOf
-   - `owl-dl` — full OWL2-DL tableaux reasoner: satisfiability testing, classification, complement, disjunction with backtracking, unsatisfiable class detection
+   - `owl-dl` — native SHOIQ tableaux reasoner: satisfiability testing, parallel agent-based classification, qualified number restrictions with node merging, inverse/symmetric roles, functional properties, complement/disjunction with backtracking, ABox consistency checking, explanation traces, unsatisfiable class detection
 
 5. **Query** — `onto_query` runs SPARQL against the combined ontology + data + inferred triples. You can now ask "which pizzas are vegetarian?" and get answers derived from the ontology's class hierarchy, not from a hardcoded column.
 
@@ -165,7 +165,7 @@ flowchart TD
 | `onto_ingest` | Parse structured data (CSV/JSON/XML/YAML/XLSX/Parquet) into RDF |
 | `onto_map` | Generate mapping config from data schema + ontology |
 | `onto_shacl` | Validate data against SHACL shapes |
-| `onto_reason` | Run inference: rdfs, owl-rl, owl-rl-ext, or owl-dl (tableaux) |
+| `onto_reason` | Run inference: rdfs, owl-rl, owl-rl-ext, or owl-dl (native SHOIQ tableaux with parallel agent classification) |
 | `onto_extend` | Full pipeline: ingest → validate → reason |
 
 ## Benchmarks
@@ -376,6 +376,72 @@ Accuracy: 12/13 (92%). The one miss (Napoletana) is caused by the `Anchovy` → 
 - SHACL shapes: [`benchmark/data/pizza-shapes.ttl`](benchmark/data/pizza-shapes.ttl)
 - Extension comparison: [`benchmark/extension_compare.py`](benchmark/extension_compare.py) — topping coverage + IRI accuracy
 - Reasoning benchmark: [`benchmark/pizza_extend_compare.py`](benchmark/pizza_extend_compare.py) — vegetarian classification
+
+### OWL2-DL Reasoning
+
+#### Native SHOIQ Tableaux Engine
+
+Open Ontologies includes a native Rust implementation of a tableaux decision procedure for the SHOIQ Description Logic — the logical foundation of OWL2-DL.
+
+**Why this matters:** Most OWL reasoners (HermiT, Pellet, FaCT++) are Java-based and require a JVM. ELK is fast but limited to EL++. There is no production-quality native DL reasoner in Rust — until now.
+
+**Description Logic coverage:**
+
+| DL Feature | Symbol | OWL Construct | Status |
+| --------- | ------ | ------------- | ------ |
+| Atomic negation | ¬A | complementOf | ✅ |
+| Conjunction | C ⊓ D | intersectionOf | ✅ |
+| Disjunction | C ⊔ D | unionOf | ✅ |
+| Existential | ∃R.C | someValuesFrom | ✅ |
+| Universal | ∀R.C | allValuesFrom | ✅ |
+| Min cardinality | ≥n R.C | minQualifiedCardinality | ✅ |
+| Max cardinality | ≤n R.C | maxQualifiedCardinality | ✅ |
+| Role hierarchy | R ⊑ S | subPropertyOf | ✅ |
+| Transitive roles | Trans(R) | TransitiveProperty | ✅ |
+| Inverse roles | R⁻ | inverseOf | ✅ |
+| Symmetric roles | Sym(R) | SymmetricProperty | ✅ |
+| Functional | Fun(R) | FunctionalProperty | ✅ |
+| ABox reasoning | a:C | NamedIndividual | ✅ |
+
+**Architecture — Agent-based parallel classification:**
+
+The reasoner uses an agent-based decomposition pattern for classification:
+
+1. **Satisfiability Agent** — Tests each named class for satisfiability in parallel using rayon worker threads
+2. **Subsumption Agent** — Tests pairwise subsumptions in parallel, pruned by told-subsumer transitive closure
+3. **Explanation Agent** — Traces clash derivations to explain why classes are unsatisfiable
+4. **ABox Agent** — Checks individual consistency and infers additional types
+
+Each agent operates independently, enabling the O(n²) classification to scale across all available CPU cores.
+
+**Key implementation details:**
+
+- **Node merging for MaxCard (≤n R.C)** — When a node has more role-successors than allowed, the tableau non-deterministically merges successor nodes, combining their labels and edges. This is the "complex route" that distinguishes full SHOIQ from simpler clash-based cardinality handling.
+- **Inverse role propagation** — When a node is created via ∃R.C, the parent is accessible as an R⁻-successor. Universal restrictions ∀R⁻.C propagate backward through these inverse edges.
+- **Subset blocking** — Ensures termination: a node is blocked when an ancestor has a superset of its labels.
+- **Dependency-aware backtracking** — Disjunction branches (⊔-rule) and MaxCard merges (≤-rule) use full tableau cloning for correct backtracking.
+- **String interning** — All IRIs compressed to u32 for cache-friendly set operations.
+
+**MCP tools for agent orchestration:**
+
+| Tool | Purpose |
+| ---- | ------- |
+| `onto_reason` (profile: `owl-dl`) | Full classification with all agents |
+| `onto_dl_explain` | Explain why a specific class is unsatisfiable |
+| `onto_dl_check` | Check if class A ⊑ class B with justification trace |
+
+The JSON output includes agent metrics showing task distribution and timing:
+
+```json
+{
+  "agents": {
+    "satisfiability_agent": {"classes_checked": 15, "satisfiable_found": 14, "time_ms": 2},
+    "subsumption_agent": {"pairs_tested": 182, "subsumptions_found": 8, "time_ms": 5},
+    "parallel_workers": 8,
+    "total_time_ms": 7
+  }
+}
+```
 
 ## Replicate it yourself
 

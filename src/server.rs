@@ -144,6 +144,20 @@ pub struct OntoReasonInput {
 }
 
 #[derive(Deserialize, JsonSchema)]
+pub struct OntoDlExplainInput {
+    /// IRI of the class to explain unsatisfiability for
+    pub class_iri: String,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoDlCheckInput {
+    /// IRI of the sub-class (the more specific class)
+    pub sub_class: String,
+    /// IRI of the super-class (the more general class)
+    pub super_class: String,
+}
+
+#[derive(Deserialize, JsonSchema)]
 pub struct OntoExtendInput {
     /// Path to the data file
     pub data_path: String,
@@ -569,12 +583,26 @@ impl OpenOntologiesServer {
             .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
     }
 
-    #[tool(name = "onto_reason", description = "Run inference over the loaded ontology. Profiles: 'rdfs' (subclass, domain/range), 'owl-rl' (+ transitive/symmetric/inverse, sameAs, equivalentClass), 'owl-rl-ext' (+ someValuesFrom, allValuesFrom, hasValue, intersectionOf, unionOf), 'owl-dl' (full OWL2-DL tableaux: satisfiability, classification, complement, disjunction with backtracking). Materializes inferred triples.")]
+    #[tool(name = "onto_reason", description = "Run inference over the loaded ontology. Profiles: 'rdfs' (subclass, domain/range), 'owl-rl' (+ transitive/symmetric/inverse, sameAs, equivalentClass), 'owl-rl-ext' (+ someValuesFrom, allValuesFrom, hasValue, intersectionOf, unionOf), 'owl-dl' (Full OWL2-DL SHOIQ tableaux: satisfiability, classification, qualified number restrictions with node merging, inverse/symmetric roles, functional properties, parallel agent-based classification, explanation traces, ABox reasoning). Materializes inferred triples.")]
     async fn onto_reason(&self, Parameters(input): Parameters<OntoReasonInput>) -> String {
         use crate::reason::Reasoner;
         let profile = input.profile.as_deref().unwrap_or("rdfs");
         let materialize = input.materialize.unwrap_or(true);
         Reasoner::run(&self.graph, profile, materialize)
+            .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
+    }
+
+    #[tool(name = "onto_dl_explain", description = "Explain why a class is unsatisfiable using DL tableaux reasoning. Returns an explanation trace showing the logical contradictions that make the class impossible to instantiate.")]
+    async fn onto_dl_explain(&self, Parameters(input): Parameters<OntoDlExplainInput>) -> String {
+        use crate::tableaux::DlReasoner;
+        DlReasoner::explain_class(&self.graph, &input.class_iri)
+            .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
+    }
+
+    #[tool(name = "onto_dl_check", description = "Check if one class is subsumed by another using DL tableaux reasoning. Returns whether sub_class is a subclass of super_class, with justification.")]
+    async fn onto_dl_check(&self, Parameters(input): Parameters<OntoDlCheckInput>) -> String {
+        use crate::tableaux::DlReasoner;
+        DlReasoner::check_subsumption(&self.graph, &input.sub_class, &input.super_class)
             .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
     }
 

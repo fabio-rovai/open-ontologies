@@ -25,6 +25,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 chrono = "0.4"
 anyhow = "1"
+rayon = "1.10"
 csv = "1"
 quick-xml = { version = "0.37", features = ["serialize"] }
 serde_yaml = "0.9"
