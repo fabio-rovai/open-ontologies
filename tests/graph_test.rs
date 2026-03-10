@@ -96,3 +96,29 @@ fn test_get_stats() {
     assert!(stats.contains("classes"));
     assert!(stats.contains("triples"));
 }
+
+#[test]
+fn test_sparql_update_insert() {
+    let store = GraphStore::new();
+    let ttl = r#"
+        @prefix ex: <http://example.org/> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        ex:Cat rdfs:subClassOf ex:Animal .
+        ex:Tabby a ex:Cat .
+    "#;
+    store.load_turtle(ttl, None).unwrap();
+    assert_eq!(store.triple_count(), 2);
+
+    // Insert inferred triple: Tabby is also an Animal via subclass
+    let update = r#"
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        INSERT { ?x a ?super }
+        WHERE {
+            ?x a ?sub .
+            ?sub rdfs:subClassOf ?super .
+        }
+    "#;
+    let result = store.sparql_update(update);
+    assert!(result.is_ok());
+    assert_eq!(store.triple_count(), 3); // original 2 + 1 inferred
+}

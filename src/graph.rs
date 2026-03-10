@@ -127,6 +127,16 @@ impl GraphStore {
         }
     }
 
+    /// Run a SPARQL UPDATE (INSERT/DELETE) against the store.
+    /// Returns the number of new triples (delta).
+    pub fn sparql_update(&self, update: &str) -> anyhow::Result<usize> {
+        let store = self.store.lock().unwrap();
+        let before = store.len()?;
+        store.update(update)?;
+        let after = store.len()?;
+        Ok(after.saturating_sub(before))
+    }
+
     pub fn serialize(&self, format: &str) -> anyhow::Result<String> {
         let store = self.store.lock().unwrap();
         let rdf_format = Self::parse_format(format)?;
