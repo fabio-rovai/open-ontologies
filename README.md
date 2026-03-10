@@ -63,6 +63,60 @@ This is not a fixed pipeline. The MCP server exposes 21 ontology tools — **Cla
 
 No Protege. No GUI. No manual class creation. Claude is the ontology engineer, Open Ontologies is the runtime.
 
+### Extending ontologies with data
+
+An ontology without data is a schema without rows. Open Ontologies lets you feed structured datasets — CSV, JSON, XML, YAML, XLSX, Parquet — into a loaded ontology. The data becomes RDF instances (ABox) governed by the ontology's classes and properties (TBox).
+
+```mermaid
+flowchart LR
+    Data["CSV / JSON / XLSX / ..."]
+    Map["onto_map — generate mapping"]
+    Ingest["onto_ingest — parse to RDF"]
+    Validate["onto_shacl — check constraints"]
+    Reason["onto_reason — infer new facts"]
+    Query["onto_query — ask questions"]
+
+    Data --> Map
+    Map --> Ingest
+    Ingest --> Validate
+    Validate -->|violations| Map
+    Validate -->|ok| Reason
+    Reason --> Query
+```
+
+**How it works:**
+
+1. **Map** — `onto_map` reads your data file's column headers and the loaded ontology's classes/properties. It generates a JSON mapping config that links each field to an RDF predicate. Claude reviews and refines the mapping — e.g., linking a `base` column to `pizza:hasBase` as a lookup (IRI reference) rather than a string literal.
+
+2. **Ingest** — `onto_ingest` parses the data file, applies the mapping, converts each row to N-Triples, and loads them into the Oxigraph store. A 13-row CSV produces ~100 triples (one `rdf:type` + one per field per row).
+
+3. **Validate** — `onto_shacl` checks the loaded data against SHACL shapes: does every pizza have at least one topping? Exactly one base? A label? Violations are reported as JSON so Claude can fix the mapping and re-ingest.
+
+4. **Reason** — `onto_reason` runs RDFS or OWL-RL inference. Subclass hierarchies propagate — if `PepperoniSausageTopping` is a `MeatTopping`, the reasoner materialises that relationship. This enables downstream classification: a pizza with only non-meat, non-fish toppings is vegetarian.
+
+5. **Query** — `onto_query` runs SPARQL against the combined ontology + data + inferred triples. You can now ask "which pizzas are vegetarian?" and get answers derived from the ontology's class hierarchy, not from a hardcoded column.
+
+**The mapping config** is the key bridge between tabular data and RDF:
+
+```json
+{
+  "base_iri": "http://www.co-ode.org/ontologies/pizza/pizza.owl#",
+  "id_field": "name",
+  "class": "http://www.co-ode.org/ontologies/pizza/pizza.owl#NamedPizza",
+  "mappings": [
+    { "field": "base", "predicate": "pizza:hasBase", "lookup": true },
+    { "field": "topping1", "predicate": "pizza:hasTopping", "lookup": true },
+    { "field": "price", "predicate": "pizza:hasPrice", "datatype": "xsd:decimal" }
+  ]
+}
+```
+
+- **`lookup: true`** — the value is an IRI reference (links to another entity), not a string literal
+- **`datatype`** — typed literal (decimal, integer, date, etc.)
+- **Neither** — plain string literal
+
+You can also skip the step-by-step and use `onto_extend` to run the full pipeline (ingest → SHACL → reason) in one call.
+
 The workflow is codified in two places so Claude follows it consistently:
 
 - **[`CLAUDE.md`](CLAUDE.md)** — loaded automatically when you open Claude Code in this repo. Describes the generate → validate → verify → iterate → persist workflow.
@@ -168,6 +222,74 @@ The AI produces 50% fewer triples because it uses compact `owl:AllDisjointClasse
 - AI-generated: [`benchmark/generated/pizza-ai.ttl`](benchmark/generated/pizza-ai.ttl) — Claude's Turtle output
 - Comparison script: [`benchmark/pizza_compare.py`](benchmark/pizza_compare.py)
 - Full comparison: [`benchmark/PIZZA_COMPARISON.md`](benchmark/PIZZA_COMPARISON.md)
+
+### Pizza Extension — CSV Data to Inferred Knowledge
+
+**What this tests:** Can the extension pipeline correctly ingest tabular data into an ontology and use reasoning to infer facts that aren't in the original data?
+
+**Setup:** The AI-generated Pizza ontology (1,168 triples, 95 classes) defines a class hierarchy where toppings are categorised — `PepperoniSausageTopping` is a `MeatTopping`, `MozzarellaTopping` is a `CheeseTopping`, `AnchovyTopping` is a `FishTopping`, etc. A pizza is vegetarian if it has no meat or fish toppings.
+
+**Input data:** A 13-row CSV of restaurant menu items ([`benchmark/data/pizza-menu.csv`](benchmark/data/pizza-menu.csv)):
+
+```csv
+name,base,topping1,topping2,topping3,topping4,price,vegetarian
+Margherita,ThinAndCrispy,Mozzarella,Tomato,,,8.99,true
+American,DeepPan,Mozzarella,Tomato,Pepperoni,Sausage,12.99,false
+Fiorentina,ThinAndCrispy,Mozzarella,Tomato,Spinach,Olive,11.49,true
+Napoletana,ThinAndCrispy,Mozzarella,Tomato,Anchovy,Caper,11.99,false
+PolloAdArrabbiata,ThinAndCrispy,Mozzarella,Tomato,Chicken,Chili,13.99,false
+...
+```
+
+The `vegetarian` column is the **ground truth** — we strip it from the mapping and see if the reasoner can infer it from the ontology's topping hierarchy.
+
+**What the pipeline does:**
+
+| Step | Tool | What happens |
+| ---- | ---- | ------------ |
+| 1 | `onto_load` | Load Pizza ontology (TBox: 1,168 triples) |
+| 2 | `onto_map` | Inspect CSV headers against ontology, generate mapping config |
+| 3 | `onto_ingest` | Parse 13 rows, apply mapping, load 101 ABox triples |
+| 4 | `onto_shacl` | Validate: every pizza has toppings, a base, a label → 0 violations |
+| 5 | `onto_reason` | Run RDFS inference: 605 new triples in 4 iterations |
+| 6 | `onto_query` | SPARQL: "which pizzas have only non-meat, non-fish toppings?" |
+
+**Results — vegetarian classification accuracy:**
+
+| Pizza | Ground Truth | Inferred | Match |
+| ----- | ------------ | -------- | ----- |
+| Margherita | Vegetarian | Vegetarian | YES |
+| American | Non-veg | Non-veg | YES |
+| AmericanHot | Non-veg | Non-veg | YES |
+| Fiorentina | Vegetarian | Vegetarian | YES |
+| Napoletana | Non-veg | Non-veg | YES |
+| Parmense | Non-veg | Non-veg | YES |
+| LaReine | Non-veg | Non-veg | YES |
+| Capricciosa | Non-veg | Non-veg | YES |
+| Mushroom | Vegetarian | Vegetarian | YES |
+| FourSeasons | Non-veg | Non-veg | YES |
+| Soho | Vegetarian | Vegetarian | YES |
+| SloppyGiuseppe | Vegetarian | Vegetarian | YES |
+| PolloAdArrabbiata | Non-veg | Non-veg | YES |
+
+**Accuracy: 13/13 (100%)**
+
+The reasoner correctly classifies all 13 pizzas by traversing the ontology's `rdfs:subClassOf` hierarchy — Pepperoni → MeatTopping, Anchovy → FishTopping, Mushroom → VegetableTopping — without any hardcoded rules about what "vegetarian" means.
+
+| Metric | Value |
+| ------ | ----- |
+| TBox (ontology) | 1,168 triples |
+| ABox (data) | 101 triples |
+| Inferred (reasoning) | 605 triples |
+| SHACL violations | 0 |
+| Classification accuracy | **100%** |
+
+**Files:**
+
+- Menu data: [`benchmark/data/pizza-menu.csv`](benchmark/data/pizza-menu.csv)
+- Mapping config: [`benchmark/data/pizza-mapping.json`](benchmark/data/pizza-mapping.json)
+- SHACL shapes: [`benchmark/data/pizza-shapes.ttl`](benchmark/data/pizza-shapes.ttl)
+- Comparison script: [`benchmark/pizza_extend_compare.py`](benchmark/pizza_extend_compare.py)
 
 ### IES4 Building Domain — BORO/4D Methodology
 
@@ -292,8 +414,9 @@ Validate it and run compliance checks.
 ```bash
 cd benchmark
 pip install rdflib
-python3 pizza_compare.py   # Pizza: 96% class coverage, 100% properties
-python3 compare.py         # IES4: 86/86 compliance checks passed
+python3 pizza_compare.py          # Pizza: 96% class coverage, 100% properties
+python3 pizza_extend_compare.py   # Extension: 13/13 vegetarian classification
+python3 compare.py                # IES4: 86/86 compliance checks passed
 ```
 
 ## Stack

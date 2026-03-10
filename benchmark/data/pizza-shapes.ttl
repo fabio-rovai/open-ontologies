@@ -1,0 +1,22 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix pizza: <http://www.co-ode.org/ontologies/pizza/pizza.owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Every NamedPizza must have at least one topping
+pizza:NamedPizzaShape a sh:NodeShape ;
+    sh:targetClass pizza:NamedPizza ;
+    sh:property [
+        sh:path pizza:hasTopping ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path pizza:hasBase ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+    ] .

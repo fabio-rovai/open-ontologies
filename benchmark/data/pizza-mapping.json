@@ -1,0 +1,42 @@
+{
+  "base_iri": "http://www.co-ode.org/ontologies/pizza/pizza.owl#",
+  "id_field": "name",
+  "class": "http://www.co-ode.org/ontologies/pizza/pizza.owl#NamedPizza",
+  "mappings": [
+    {
+      "field": "name",
+      "predicate": "http://www.w3.org/2000/01/rdf-schema#label",
+      "datatype": "http://www.w3.org/2001/XMLSchema#string"
+    },
+    {
+      "field": "base",
+      "predicate": "http://www.co-ode.org/ontologies/pizza/pizza.owl#hasBase",
+      "lookup": true
+    },
+    {
+      "field": "topping1",
+      "predicate": "http://www.co-ode.org/ontologies/pizza/pizza.owl#hasTopping",
+      "lookup": true
+    },
+    {
+      "field": "topping2",
+      "predicate": "http://www.co-ode.org/ontologies/pizza/pizza.owl#hasTopping",
+      "lookup": true
+    },
+    {
+      "field": "topping3",
+      "predicate": "http://www.co-ode.org/ontologies/pizza/pizza.owl#hasTopping",
+      "lookup": true
+    },
+    {
+      "field": "topping4",
+      "predicate": "http://www.co-ode.org/ontologies/pizza/pizza.owl#hasTopping",
+      "lookup": true
+    },
+    {
+      "field": "price",
+      "predicate": "http://www.co-ode.org/ontologies/pizza/pizza.owl#hasPrice",
+      "datatype": "http://www.w3.org/2001/XMLSchema#decimal"
+    }
+  ]
+}

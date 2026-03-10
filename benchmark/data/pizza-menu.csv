@@ -1,0 +1,14 @@
+name,base,topping1,topping2,topping3,topping4,price,vegetarian
+Margherita,ThinAndCrispy,Mozzarella,Tomato,,,8.99,true
+American,DeepPan,Mozzarella,Tomato,Pepperoni,Sausage,12.99,false
+AmericanHot,DeepPan,Mozzarella,Tomato,Pepperoni,Jalapeno,13.49,false
+Fiorentina,ThinAndCrispy,Mozzarella,Tomato,Spinach,Olive,11.49,true
+Napoletana,ThinAndCrispy,Mozzarella,Tomato,Anchovy,Caper,11.99,false
+Parmense,ThinAndCrispy,Mozzarella,Tomato,Ham,Parmesan,12.49,false
+LaReine,DeepPan,Mozzarella,Tomato,Ham,Mushroom,12.99,false
+Capricciosa,DeepPan,Mozzarella,Tomato,Ham,Olive,12.49,false
+Mushroom,ThinAndCrispy,Mozzarella,Tomato,Mushroom,,9.99,true
+FourSeasons,DeepPan,Mozzarella,Tomato,Ham,Mushroom,14.99,false
+Soho,ThinAndCrispy,Mozzarella,Tomato,Olive,Parmesan,10.99,true
+SloppyGiuseppe,DeepPan,Mozzarella,Tomato,GreenPepper,Onion,11.99,true
+PolloAdArrabbiata,ThinAndCrispy,Mozzarella,Tomato,Chicken,Chili,13.99,false
