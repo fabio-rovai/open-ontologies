@@ -7,3 +7,4 @@ pub mod reason;
 pub mod server;
 pub mod shacl;
 pub mod state;
+pub mod tableaux;

@@ -92,7 +92,11 @@ flowchart LR
 
 3. **Validate** — `onto_shacl` checks the loaded data against SHACL shapes: does every pizza have at least one topping? Exactly one base? A label? Violations are reported as JSON so Claude can fix the mapping and re-ingest.
 
-4. **Reason** — `onto_reason` runs RDFS or OWL-RL inference. Subclass hierarchies propagate — if `PepperoniSausageTopping` is a `MeatTopping`, the reasoner materialises that relationship. This enables downstream classification: a pizza with only non-meat, non-fish toppings is vegetarian.
+4. **Reason** — `onto_reason` runs inference over the ontology. Four profiles available:
+   - `rdfs` — subclass, domain/range, subproperty closure
+   - `owl-rl` — adds transitive/symmetric/inverse, sameAs, equivalentClass
+   - `owl-rl-ext` — adds someValuesFrom, allValuesFrom, hasValue, intersectionOf, unionOf
+   - `owl-dl` — full OWL2-DL tableaux reasoner: satisfiability testing, classification, complement, disjunction with backtracking, unsatisfiable class detection
 
 5. **Query** — `onto_query` runs SPARQL against the combined ontology + data + inferred triples. You can now ask "which pizzas are vegetarian?" and get answers derived from the ontology's class hierarchy, not from a hardcoded column.
 
@@ -161,7 +165,7 @@ flowchart TD
 | `onto_ingest` | Parse structured data (CSV/JSON/XML/YAML/XLSX/Parquet) into RDF |
 | `onto_map` | Generate mapping config from data schema + ontology |
 | `onto_shacl` | Validate data against SHACL shapes |
-| `onto_reason` | Run RDFS/OWL-RL inference (materialize triples) |
+| `onto_reason` | Run inference: rdfs, owl-rl, owl-rl-ext, or owl-dl (tableaux) |
 | `onto_extend` | Full pipeline: ingest → validate → reason |
 
 ## Benchmarks

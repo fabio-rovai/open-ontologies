@@ -70,6 +70,11 @@ impl Reasoner {
         profile: &str,
         materialize: bool,
     ) -> anyhow::Result<String> {
+        // Delegate OWL-DL to tableaux reasoner
+        if profile == "owl-dl" {
+            return crate::tableaux::DlReasoner::run(graph, materialize);
+        }
+
         let profile_used = match profile {
             "owl-rl" => "owl-rl",
             "owl-rl-ext" => "owl-rl-ext",
