@@ -3,6 +3,7 @@ pub mod graph;
 pub mod ingest;
 pub mod lineage;
 pub mod monitor;
+pub mod plan;
 pub mod mapping;
 pub mod ontology;
 pub mod reason;
