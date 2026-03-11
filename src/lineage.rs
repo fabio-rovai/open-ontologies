@@ -13,7 +13,7 @@ impl LineageLog {
 
     /// Generate a new session ID (short hex).
     pub fn new_session(&self) -> String {
-        format!("{:08x}", rand_id())
+        format!("{:016x}", rand_id())
     }
 
     /// Record a lineage event.
@@ -62,10 +62,13 @@ impl LineageLog {
     }
 }
 
-fn rand_id() -> u32 {
+fn rand_id() -> u64 {
+    use std::sync::atomic::{AtomicU64, Ordering};
     use std::time::SystemTime;
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
     let d = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
         .unwrap();
-    (d.as_nanos() & 0xFFFF_FFFF) as u32
+    let seq = COUNTER.fetch_add(1, Ordering::Relaxed);
+    (d.as_nanos() as u64).wrapping_add(seq)
 }
