@@ -12,6 +12,65 @@ CREATE TABLE IF NOT EXISTS ontology_versions (
     format TEXT NOT NULL DEFAULT 'ntriples',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS monitor_watchers (
+    id TEXT PRIMARY KEY,
+    check_type TEXT NOT NULL,
+    threshold REAL NOT NULL DEFAULT 0.0,
+    severity TEXT NOT NULL DEFAULT 'warning',
+    action TEXT NOT NULL DEFAULT 'notify',
+    query TEXT,
+    message TEXT,
+    enabled INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS monitor_state (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS drift_feedback (
+    id TEXT PRIMARY KEY,
+    from_iri TEXT NOT NULL,
+    to_iri TEXT NOT NULL,
+    predicted TEXT NOT NULL,
+    confidence REAL NOT NULL,
+    actual TEXT,
+    signal_domain_range INTEGER NOT NULL DEFAULT 0,
+    signal_label_sim REAL NOT NULL DEFAULT 0.0,
+    signal_hierarchy INTEGER NOT NULL DEFAULT 0,
+    signal_individuals INTEGER NOT NULL DEFAULT 0,
+    timestamp TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS iri_locks (
+    iri TEXT PRIMARY KEY,
+    locked_at TEXT NOT NULL DEFAULT (datetime('now')),
+    reason TEXT
+);
+
+CREATE TABLE IF NOT EXISTS lineage_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,
+    seq INTEGER NOT NULL,
+    timestamp TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    operation TEXT NOT NULL,
+    details TEXT
+);
+
+CREATE TABLE IF NOT EXISTS enforce_rules (
+    id TEXT PRIMARY KEY,
+    rule_pack TEXT NOT NULL,
+    query TEXT NOT NULL,
+    severity TEXT NOT NULL DEFAULT 'warning',
+    message TEXT,
+    enabled INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE INDEX IF NOT EXISTS idx_lineage_session ON lineage_events(session_id);
+CREATE INDEX IF NOT EXISTS idx_lineage_seq ON lineage_events(session_id, seq);
+CREATE INDEX IF NOT EXISTS idx_enforce_pack ON enforce_rules(rule_pack);
 ";
 
 /// Minimal SQLite state store for ontology versioning.
