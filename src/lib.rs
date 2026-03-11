@@ -1,4 +1,5 @@
 pub mod config;
+pub mod drift;
 pub mod graph;
 pub mod ingest;
 pub mod lineage;
