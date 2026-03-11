@@ -1,4 +1,5 @@
 pub mod config;
+pub mod clinical;
 pub mod drift;
 pub mod enforce;
 pub mod graph;
