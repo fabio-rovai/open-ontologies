@@ -62,6 +62,47 @@ Claude dynamically decides the next tool call based on what the previous tool re
 | `onto_shacl` | To validate loaded data against SHACL shapes (cardinality, datatypes, classes) |
 | `onto_reason` | To run RDFS or OWL-RL inference, materializing inferred triples |
 | `onto_extend` | To run the full pipeline: ingest → SHACL validate → reason in one call |
+| `onto_plan` | Before applying changes — shows added/removed classes, blast radius, risk score |
+| `onto_apply` | After plan + enforce — applies changes in `safe` or `migrate` mode |
+| `onto_lock` | To protect production IRIs from removal |
+| `onto_drift` | To compare two versions — rename detection, drift velocity, self-calibrating confidence |
+| `onto_enforce` | After loading — design pattern checks: `generic`, `boro`, `value_partition`, or custom rules |
+| `onto_monitor` | After apply — run SPARQL watchers with threshold alerts |
+| `onto_monitor_clear` | To clear blocked state after resolving monitor alerts |
+| `onto_crosswalk` | To look up clinical terminology mappings (ICD-10 ↔ SNOMED ↔ MeSH) |
+| `onto_enrich` | To add skos:exactMatch triples linking classes to clinical codes |
+| `onto_validate_clinical` | To check class labels against clinical crosswalk terminology |
+| `onto_lineage` | To view the session's lineage trail (plan → enforce → apply → monitor → drift) |
+
+## Ontology Lifecycle
+
+When evolving an ontology in production, follow this Terraform-style cycle. Claude decides which steps to include based on the change.
+
+### Plan
+
+1. Call `onto_plan` with the proposed Turtle — returns added/removed classes/properties, blast radius, risk score
+2. If any IRIs are locked (`onto_lock`), locked violations will appear in the plan — resolve before proceeding
+3. Review the risk score: `low` (additions only), `medium` (modifications), `high` (removals with dependents)
+
+### Enforce
+
+4. Call `onto_enforce` with a rule pack (`generic`, `boro`, `value_partition`) — checks design pattern compliance
+5. Fix any violations before applying
+
+### Apply
+
+6. Call `onto_apply` with mode `safe` (clear + reload) or `migrate` (add owl:equivalentClass/Property bridges)
+7. Lineage is recorded automatically
+
+### Monitor
+
+8. Call `onto_monitor` to run SPARQL watchers — alerts trigger notify, block, or auto-rollback actions
+9. If blocked, resolve the issue and call `onto_monitor_clear`
+
+### Drift
+
+1. Call `onto_drift` to compare versions — drift velocity, rename detection with self-calibrating confidence
+2. Feed back rename accuracy to improve future confidence scores
 
 ## Data Extension Workflow
 

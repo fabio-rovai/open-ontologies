@@ -17,11 +17,11 @@ You can ask Claude to generate an ontology in a single prompt — and it will. C
 | No scale | Claude's context window can hold ~2,000 triples. Real ontologies (IES4: 10,000+ triples) need an actual triple store. |
 | No integration | You can't push to a SPARQL endpoint, pull from a remote ontology, or resolve owl:imports chains. |
 
-**Open Ontologies solves every one of these.** It's a proper RDF/SPARQL engine (Oxigraph) exposed as 21 MCP tools that Claude calls automatically. Generate → validate → load → query → iterate → persist.
+**Open Ontologies solves every one of these.** It's a proper RDF/SPARQL engine (Oxigraph) exposed as 35 MCP tools that Claude calls automatically. Generate → validate → load → query → iterate → persist — plus a full Terraform-style lifecycle for managing ontology evolution in production.
 
 ## What is it?
 
-Open Ontologies is a standalone MCP server for AI-native ontology engineering. It exposes 21 tools that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store.
+Open Ontologies is a standalone MCP server for AI-native ontology engineering. It exposes 35 tools that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — plus plan changes, detect drift, enforce design patterns, monitor health, manage clinical crosswalks, and track lineage.
 
 Written in Rust, ships as a single binary. No JVM, no Protege, no GUI.
 
@@ -59,7 +59,7 @@ flowchart TD
     Version --> Save
 ```
 
-This is not a fixed pipeline. The MCP server exposes 21 ontology tools — **Claude is the orchestrator** that decides what to call next based on results. If `onto_validate` fails, Claude fixes the Turtle and retries. If `onto_stats` shows wrong counts, Claude regenerates. If `onto_lint` finds missing labels, Claude adds them.
+This is not a fixed pipeline. The MCP server exposes 35 ontology tools — **Claude is the orchestrator** that decides what to call next based on results. If `onto_validate` fails, Claude fixes the Turtle and retries. If `onto_stats` shows wrong counts, Claude regenerates. If `onto_lint` finds missing labels, Claude adds them.
 
 No Protege. No GUI. No manual class creation. Claude is the ontology engineer, Open Ontologies is the runtime.
 
@@ -135,11 +135,31 @@ flowchart TD
     OntologyService["OntologyService"]
     GraphStore["GraphStore — Oxigraph"]
     StateDb["StateDb — SQLite"]
+    Planner["Planner — plan / apply / migrate"]
+    DriftDetector["DriftDetector — version comparison"]
+    Enforcer["Enforcer — design pattern rules"]
+    Monitor["Monitor — SPARQL watchers"]
+    Lineage["LineageLog — audit trail"]
+    Clinical["ClinicalCrosswalks — Parquet"]
 
     Claude --> MCP
     MCP --> OntologyService
+    MCP --> Planner
+    MCP --> DriftDetector
+    MCP --> Enforcer
+    MCP --> Monitor
+    MCP --> Lineage
+    MCP --> Clinical
     OntologyService --> GraphStore
     OntologyService --> StateDb
+    Planner --> GraphStore
+    Planner --> StateDb
+    DriftDetector --> StateDb
+    Enforcer --> GraphStore
+    Enforcer --> StateDb
+    Monitor --> GraphStore
+    Monitor --> StateDb
+    Lineage --> StateDb
 ```
 
 ## Tools
@@ -167,6 +187,18 @@ flowchart TD
 | `onto_shacl` | Validate data against SHACL shapes |
 | `onto_reason` | Run inference: rdfs, owl-rl, owl-rl-ext, or owl-dl (native SHOIQ tableaux with parallel agent classification) |
 | `onto_extend` | Full pipeline: ingest → validate → reason |
+| **Lifecycle** | |
+| `onto_plan` | Terraform-style plan — diff current vs proposed, show added/removed classes/properties, blast radius, risk score |
+| `onto_apply` | Apply a planned change: `safe` (clear + reload) or `migrate` (add owl:equivalentClass/Property bridges) |
+| `onto_lock` | Lock an IRI to prevent removal (e.g., production classes) |
+| `onto_drift` | Detect drift between two ontology versions — renames, velocity, self-calibrating confidence |
+| `onto_enforce` | Run design pattern enforcement: `generic`, `boro`, `value_partition`, or custom SPARQL rules |
+| `onto_monitor` | Run active SPARQL watchers with threshold comparison — notify, block, or auto-rollback |
+| `onto_monitor_clear` | Clear monitor block state after resolving alerts |
+| `onto_crosswalk` | Look up clinical terminology crosswalks (ICD-10 ↔ SNOMED ↔ MeSH) from Parquet file |
+| `onto_enrich` | Add skos:exactMatch triples linking ontology classes to clinical codes |
+| `onto_validate_clinical` | Validate ontology class labels against clinical crosswalk terminology |
+| `onto_lineage` | View compressed lineage trail for the current session (plan → enforce → apply → monitor → drift) |
 
 ## Benchmarks
 
@@ -443,6 +475,48 @@ The JSON output includes agent metrics showing task distribution and timing:
 }
 ```
 
+### Ontology Lifecycle
+
+Production ontologies change over time — classes are added, properties renamed, hierarchies refactored. Open Ontologies provides a Terraform-style lifecycle to manage these changes safely.
+
+```mermaid
+flowchart LR
+    Plan["onto_plan"]
+    Enforce["onto_enforce"]
+    Apply["onto_apply"]
+    Monitor["onto_monitor"]
+    Drift["onto_drift"]
+
+    Plan -->|"risk score"| Enforce
+    Enforce -->|"compliance"| Apply
+    Apply -->|"safe / migrate"| Monitor
+    Monitor -->|"watchers"| Drift
+    Drift -->|"velocity"| Plan
+```
+
+**Plan** — `onto_plan` diffs the current ontology against a proposed Turtle file. It reports added/removed classes and properties, counts affected triples (blast radius), and assigns a risk score: `low` (additions only), `medium` (modifications), `high` (removals with dependents). IRIs can be locked (`onto_lock`) to prevent accidental removal of production classes.
+
+**Enforce** — `onto_enforce` runs design pattern checks against the loaded ontology. Three built-in packs:
+
+- `generic` — orphan classes, missing domains/ranges/labels
+- `boro` — IES4/BORO compliance: entities must have State subclasses
+- `value_partition` — sibling classes must be declared disjoint
+
+Custom rules can be added as ASK/SELECT SPARQL queries.
+
+**Apply** — `onto_apply` executes the planned changes. Two modes:
+
+- `safe` — clears the store and reloads with the new version
+- `migrate` — adds `owl:equivalentClass` and `owl:equivalentProperty` bridge triples so consumers can follow renames
+
+**Monitor** — `onto_monitor` runs configurable SPARQL watchers with threshold comparison. Each watcher has an action: `notify`, `block_next_apply`, `auto_rollback`, or `log`. Blocked state prevents `onto_apply` until cleared with `onto_monitor_clear`.
+
+**Drift** — `onto_drift` compares two ontology versions and computes drift velocity (proportion of vocabulary that changed). It detects renames using Jaro-Winkler string similarity, domain/range matching, and hierarchy position. Confidence scores self-calibrate via a SQLite-backed feedback loop — record correct/incorrect rename detections with `onto_drift` feedback, and the weights adjust over time.
+
+**Lineage** — Every lifecycle operation is recorded to an append-only lineage log. `onto_lineage` returns a compressed event trail: `session:seq:timestamp:type:operation:details`. This provides a complete audit trail of who changed what and when.
+
+**Clinical crosswalks** — `onto_crosswalk` looks up ICD-10, SNOMED CT, and MeSH mappings from a Parquet-backed crosswalk file. `onto_enrich` inserts `skos:exactMatch` triples linking ontology classes to clinical codes. `onto_validate_clinical` checks that class labels align with standard clinical terminology.
+
 ## Replicate it yourself
 
 ### 1. Build Open Ontologies
@@ -530,7 +604,8 @@ python3 compare.py                # IES4: 86/86 compliance checks passed
 - **Rust** (edition 2024) — single binary, no JVM
 - **Oxigraph 0.4** — pure Rust RDF/SPARQL engine
 - **rmcp** — MCP protocol implementation
-- **SQLite** — ontology version storage
+- **SQLite** (rusqlite) — state, versions, lineage, monitor, enforcer rules, drift feedback
+- **Apache Arrow/Parquet** — clinical crosswalk file format
 
 ## License
 
