@@ -179,6 +179,72 @@ pub struct OntoExtendInput {
     pub stop_on_violations: Option<bool>,
 }
 
+// ─── v2 input structs ───────────────────────────────────────────────────────
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoPlanInput {
+    /// New ontology as inline Turtle content
+    pub new_turtle: String,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoApplyInput {
+    /// Apply mode: "safe" (default), "force" (ignores monitor), "migrate" (adds bridges)
+    pub mode: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoLockInput {
+    /// IRIs to lock (prevent removal)
+    pub iris: Vec<String>,
+    /// Reason for locking
+    pub reason: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoDriftInput {
+    /// First version as inline Turtle
+    pub version_a: String,
+    /// Second version as inline Turtle
+    pub version_b: String,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoEnforceInput {
+    /// Rule pack to enforce: "generic", "boro", "value_partition", or custom pack name
+    pub rule_pack: String,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoMonitorInput {
+    /// Inline JSON array of watchers to add, or omit to just run existing watchers
+    pub watchers: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoCrosswalkInput {
+    /// Clinical code to look up (e.g. "I10")
+    pub code: String,
+    /// Source system (e.g. "ICD10", "SNOMED", "MeSH")
+    pub source_system: String,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoEnrichInput {
+    /// IRI of the ontology class to enrich
+    pub class_iri: String,
+    /// Clinical code to map to
+    pub code: String,
+    /// Code system (e.g. "ICD10")
+    pub system: String,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoLineageInput {
+    /// Session ID to query (omit for current session)
+    pub session_id: Option<String>,
+}
+
 // ─── OpenOntologiesServer ───────────────────────────────────────────────────
 
 /// MCP server that exposes all Open Ontologies tools to Claude via stdin/stdout.
@@ -187,21 +253,33 @@ pub struct OpenOntologiesServer {
     tool_router: ToolRouter<Self>,
     db: StateDb,
     graph: Arc<GraphStore>,
+    session_id: String,
 }
 
 impl OpenOntologiesServer {
     /// Create a new server with all tools wired to domain services.
     pub fn new(db: StateDb) -> Self {
+        let lineage = crate::lineage::LineageLog::new(db.clone());
+        let session_id = lineage.new_session();
         Self {
             tool_router: Self::tool_router(),
             db,
             graph: Arc::new(GraphStore::new()),
+            session_id,
         }
     }
 
     /// Return the list of all registered tool definitions.
     pub fn list_tool_definitions(&self) -> Vec<Tool> {
         self.tool_router.list_all()
+    }
+
+    fn lineage(&self) -> crate::lineage::LineageLog {
+        crate::lineage::LineageLog::new(self.db.clone())
+    }
+
+    fn monitor(&self) -> crate::monitor::Monitor {
+        crate::monitor::Monitor::new(self.db.clone(), self.graph.clone())
     }
 }
 
@@ -604,6 +682,148 @@ impl OpenOntologiesServer {
         use crate::tableaux::DlReasoner;
         DlReasoner::check_subsumption(&self.graph, &input.sub_class, &input.super_class)
             .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
+    }
+
+    // ── v2: Lifecycle tools ─────────────────────────────────────────────────
+
+    #[tool(name = "onto_plan", description = "Terraform-style plan: diff current store against proposed Turtle. Shows added/removed classes/properties, blast radius, risk score, and locked IRI violations.")]
+    async fn onto_plan(&self, Parameters(input): Parameters<OntoPlanInput>) -> String {
+        let planner = crate::plan::Planner::new(self.db.clone(), self.graph.clone());
+        match planner.plan(&input.new_turtle) {
+            Ok(result) => {
+                self.lineage().record(&self.session_id, "P", "plan", "computed");
+                result
+            }
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_apply", description = "Apply the last plan. Modes: 'safe' (clear+reload, checks monitor), 'force' (ignores monitor), 'migrate' (adds owl:equivalentClass/Property bridges for renames).")]
+    async fn onto_apply(&self, Parameters(input): Parameters<OntoApplyInput>) -> String {
+        let mode = input.mode.as_deref().unwrap_or("safe");
+        let planner = crate::plan::Planner::new(self.db.clone(), self.graph.clone());
+        match planner.apply(mode) {
+            Ok(result) => {
+                self.lineage().record(&self.session_id, "A", "apply", mode);
+                let monitor_result = self.monitor().run_watchers();
+                if monitor_result.status != "ok" {
+                    let mut parsed: serde_json::Value = serde_json::from_str(&result).unwrap_or_default();
+                    parsed["monitor"] = serde_json::to_value(&monitor_result).unwrap_or_default();
+                    return parsed.to_string();
+                }
+                result
+            }
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_lock", description = "Lock IRIs to prevent removal during plan/apply. Locked IRIs will show as violations in plan output.")]
+    async fn onto_lock(&self, Parameters(input): Parameters<OntoLockInput>) -> String {
+        let planner = crate::plan::Planner::new(self.db.clone(), self.graph.clone());
+        let reason = input.reason.as_deref().unwrap_or("locked");
+        for iri in &input.iris {
+            planner.lock_iri(iri, reason);
+        }
+        serde_json::json!({
+            "ok": true,
+            "locked": input.iris,
+            "reason": reason,
+        }).to_string()
+    }
+
+    #[tool(name = "onto_drift", description = "Detect drift between two ontology versions. Returns added/removed terms, likely renames with confidence scores, and drift velocity.")]
+    async fn onto_drift(&self, Parameters(input): Parameters<OntoDriftInput>) -> String {
+        let detector = crate::drift::DriftDetector::new(self.db.clone());
+        match detector.detect(&input.version_a, &input.version_b) {
+            Ok(result) => {
+                self.lineage().record(&self.session_id, "D", "drift", "detected");
+                result
+            }
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_enforce", description = "Enforce design patterns on the loaded ontology. Built-in packs: 'generic' (orphan classes, missing domain/range/label), 'boro' (BORO 4D patterns), 'value_partition' (disjoint/covering checks). Also runs any custom rules stored for the pack.")]
+    async fn onto_enforce(&self, Parameters(input): Parameters<OntoEnforceInput>) -> String {
+        let enforcer = crate::enforce::Enforcer::new(self.db.clone(), self.graph.clone());
+        match enforcer.enforce(&input.rule_pack) {
+            Ok(result) => {
+                self.lineage().record(&self.session_id, "E", "enforce", &input.rule_pack);
+                result
+            }
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_monitor", description = "Run active monitoring watchers. Optionally add new watchers via inline JSON. Returns ok/alert/blocked status with details.")]
+    async fn onto_monitor(&self, Parameters(input): Parameters<OntoMonitorInput>) -> String {
+        let monitor = self.monitor();
+
+        // Add watchers if provided
+        if let Some(ref watchers_json) = input.watchers {
+            if let Ok(watchers) = serde_json::from_str::<Vec<crate::monitor::Watcher>>(watchers_json) {
+                for w in watchers {
+                    monitor.add_watcher(w);
+                }
+            }
+        }
+
+        let result = monitor.run_watchers();
+        self.lineage().record(&self.session_id, "M", "monitor", &result.status);
+        serde_json::to_string(&result).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
+    }
+
+    #[tool(name = "onto_monitor_clear", description = "Clear the monitor blocked flag, allowing apply operations to proceed.")]
+    fn onto_monitor_clear(&self) -> String {
+        self.monitor().clear_blocked();
+        r#"{"ok":true,"message":"Monitor block cleared"}"#.to_string()
+    }
+
+    #[tool(name = "onto_crosswalk", description = "Look up clinical crosswalk mappings for a code and system (ICD10, SNOMED, MeSH). Requires data/crosswalks.parquet.")]
+    async fn onto_crosswalk(&self, Parameters(input): Parameters<OntoCrosswalkInput>) -> String {
+        match crate::clinical::ClinicalCrosswalks::load("data/crosswalks.parquet") {
+            Ok(cw) => {
+                let results = cw.lookup(&input.code, &input.source_system);
+                serde_json::json!({
+                    "code": input.code,
+                    "system": input.source_system,
+                    "mappings": results.iter().map(|r| serde_json::json!({
+                        "target_code": r.target_code,
+                        "target_system": r.target_system,
+                        "relation": r.relation,
+                        "source_label": r.source_label,
+                        "target_label": r.target_label,
+                    })).collect::<Vec<_>>(),
+                }).to_string()
+            }
+            Err(e) => format!(r#"{{"error":"Crosswalks not loaded: {}. Run scripts/build_crosswalks.py first."}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_enrich", description = "Enrich an ontology class with a SKOS mapping triple from the clinical crosswalks.")]
+    async fn onto_enrich(&self, Parameters(input): Parameters<OntoEnrichInput>) -> String {
+        match crate::clinical::ClinicalCrosswalks::load("data/crosswalks.parquet") {
+            Ok(cw) => cw.enrich(&self.graph, &input.class_iri, &input.code, &input.system),
+            Err(e) => format!(r#"{{"error":"Crosswalks not loaded: {}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_validate_clinical", description = "Validate all class labels in the loaded ontology against clinical crosswalk data. Shows which terms match known clinical codes.")]
+    fn onto_validate_clinical(&self) -> String {
+        match crate::clinical::ClinicalCrosswalks::load("data/crosswalks.parquet") {
+            Ok(cw) => cw.validate_clinical(&self.graph),
+            Err(e) => format!(r#"{{"error":"Crosswalks not loaded: {}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_lineage", description = "Get the compact lineage log for the current or specified session.")]
+    async fn onto_lineage(&self, Parameters(input): Parameters<OntoLineageInput>) -> String {
+        let session = input.session_id.as_deref().unwrap_or(&self.session_id);
+        let events = self.lineage().get_compact(session);
+        serde_json::json!({
+            "session_id": session,
+            "events": events.trim(),
+        }).to_string()
     }
 
     #[tool(name = "onto_extend", description = "Convenience pipeline: ingest data → validate with SHACL → run OWL reasoning, all in one call. Combines onto_ingest + onto_shacl + onto_reason.")]
