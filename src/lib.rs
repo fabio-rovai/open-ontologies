@@ -1,3 +1,4 @@
+pub mod align;
 pub mod config;
 pub mod clinical;
 pub mod drift;
