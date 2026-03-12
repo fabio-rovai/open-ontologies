@@ -1,0 +1,18 @@
+[
+    [
+        "has base",
+        "has ingredient"
+    ],
+    [
+        "has topping",
+        "has ingredient"
+    ],
+    [
+        "is base of",
+        "is ingredient of"
+    ],
+    [
+        "is topping of",
+        "is ingredient of"
+    ]
+]

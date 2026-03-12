@@ -1,0 +1,722 @@
+@prefix : <http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#> .
+
+<http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident> rdf:type owl:Ontology ;
+                                                                        owl:versionIRI <http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident/1.0.0> .
+
+#################################################################
+#    Annotation properties
+#################################################################
+
+###  http://www.w3.org/2004/02/skos/core#altLabel
+<http://www.w3.org/2004/02/skos/core#altLabel> rdf:type owl:AnnotationProperty .
+
+
+#################################################################
+#    Object Properties
+#################################################################
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#communicated
+:communicated rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has
+:has rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_actor
+:has_actor rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_capacity
+:has_capacity rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_cause
+:has_cause rdf:type owl:ObjectProperty ;
+           owl:inverseOf :is_cause_of .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_end_place
+:has_end_place rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_flashpoint
+:has_flashpoint rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_gas_pressure
+:has_gas_pressure rdf:type owl:ObjectProperty ;
+                  rdfs:domain :Pipeline .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_object
+:has_object rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_operator
+:has_operator rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_organization
+:has_organization rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_owner
+:has_owner rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_place
+:has_place rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_role
+:has_role rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_start_place
+:has_start_place rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_time
+:has_time rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#in_contact_with
+:in_contact_with rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#is_cause_of
+:is_cause_of rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#related_to
+:related_to rdf:type owl:ObjectProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#working_with
+:working_with rdf:type owl:ObjectProperty .
+
+
+#################################################################
+#    Data properties
+#################################################################
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_capacity
+:has_capacity rdf:type owl:DatatypeProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_cause
+:has_cause rdf:type owl:DatatypeProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_economic_status
+:has_economic_status rdf:type owl:DatatypeProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_message
+:has_message rdf:type owl:DatatypeProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_organization
+:has_organization rdf:type owl:DatatypeProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_pressure
+:has_pressure rdf:type owl:DatatypeProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_price
+:has_price rdf:type owl:DatatypeProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_security_level
+:has_security_level rdf:type owl:DatatypeProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_sentiment
+:has_sentiment rdf:type owl:DatatypeProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_status
+:has_status rdf:type owl:DatatypeProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_storage_levels
+:has_storage_levels rdf:type owl:DatatypeProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_time_stamp
+:has_time_stamp rdf:type owl:DatatypeProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#has_volume
+:has_volume rdf:type owl:DatatypeProperty .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#request_message
+:request_message rdf:type owl:DatatypeProperty .
+
+
+###  http://xmlns.com/foaf/0.1/name
+<http://xmlns.com/foaf/0.1/name> rdf:type owl:DatatypeProperty ;
+                                 rdfs:range rdfs:Literal .
+
+
+#################################################################
+#    Classes
+#################################################################
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Agent
+:Agent rdf:type owl:Class ;
+       owl:disjointWith :Place .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Area
+:Area rdf:type owl:Class ;
+      rdfs:subClassOf :Geographic_Places .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Capacity
+:Capacity rdf:type owl:Class ;
+          rdfs:subClassOf [ rdf:type owl:Restriction ;
+                            owl:onProperty :has_capacity ;
+                            owl:someValuesFrom rdfs:Literal
+                          ] ,
+                          [ rdf:type owl:Restriction ;
+                            owl:onProperty :has_time_stamp ;
+                            owl:someValuesFrom rdfs:Literal
+                          ] .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#City
+:City rdf:type owl:Class ;
+      rdfs:subClassOf :Geographic_Places ;
+      owl:disjointWith :Sea .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Comment
+:Comment rdf:type owl:Class ;
+         rdfs:subClassOf :Communication ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :has_actor ;
+                           owl:someValuesFrom <http://xmlns.com/foaf/0.1/Agent>
+                         ] ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :has_message ;
+                           owl:someValuesFrom rdfs:Literal
+                         ] .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Communication
+:Communication rdf:type owl:Class .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Country
+:Country rdf:type owl:Class ;
+         rdfs:subClassOf :Geographic_Places ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :has ;
+                           owl:someValuesFrom :Gas_Supply
+                         ] ;
+         owl:disjointWith :Sea .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Economy
+:Economy rdf:type owl:Class .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Energy_Ministry
+:Energy_Ministry rdf:type owl:Class ;
+                 rdfs:subClassOf :Ministry .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Gas_Pressure
+:Gas_Pressure rdf:type owl:Class ;
+              rdfs:subClassOf [ rdf:type owl:Restriction ;
+                                owl:onProperty :has_pressure ;
+                                owl:someValuesFrom rdfs:Literal
+                              ] ,
+                              [ rdf:type owl:Restriction ;
+                                owl:onProperty :has_time_stamp ;
+                                owl:someValuesFrom rdfs:Literal
+                              ] .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Gas_Supply
+:Gas_Supply rdf:type owl:Class ;
+            rdfs:subClassOf [ rdf:type owl:Restriction ;
+                              owl:onProperty :has ;
+                              owl:someValuesFrom :Gas_Pressure
+                            ] ,
+                            [ rdf:type owl:Restriction ;
+                              owl:onProperty :has_security_level ;
+                              owl:someValuesFrom rdfs:Literal
+                            ] ,
+                            [ rdf:type owl:Restriction ;
+                              owl:onProperty :has_storage_levels ;
+                              owl:someValuesFrom rdfs:Literal
+                            ] .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Geographic_Places
+:Geographic_Places rdf:type owl:Class ;
+                   rdfs:subClassOf :sem:Place .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Government
+:Government rdf:type owl:Class ;
+            rdfs:subClassOf <http://xmlns.com/foaf/0.1/Agent> .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Island
+:Island rdf:type owl:Class ;
+        rdfs:subClassOf :Geographic_Places ;
+        owl:disjointWith :Sea .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Ministry
+:Ministry rdf:type owl:Class ;
+          rdfs:subClassOf <http://xmlns.com/foaf/0.1/Agent> .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Operator
+:Operator rdf:type owl:Class ;
+          rdfs:subClassOf :Role .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Pipeline
+:Pipeline rdf:type owl:Class ;
+          rdfs:subClassOf [ rdf:type owl:Restriction ;
+                            owl:onProperty :has_capacity ;
+                            owl:someValuesFrom :Capacity
+                          ] ,
+                          [ rdf:type owl:Restriction ;
+                            owl:onProperty :has_end_place ;
+                            owl:someValuesFrom :sem:Place
+                          ] ,
+                          [ rdf:type owl:Restriction ;
+                            owl:onProperty :has_operator ;
+                            owl:someValuesFrom :Operator
+                          ] ,
+                          [ rdf:type owl:Restriction ;
+                            owl:onProperty :has_start_place ;
+                            owl:someValuesFrom :sem:Place
+                          ] ,
+                          [ rdf:type owl:Restriction ;
+                            owl:onProperty :has_volume ;
+                            owl:someValuesFrom rdfs:Literal
+                          ] .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Place
+:Place rdf:type owl:Class .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#President
+:President rdf:type owl:Class ;
+           rdfs:subClassOf :Role .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Request
+:Request rdf:type owl:Class ;
+         rdfs:subClassOf :Communication ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :has_actor ;
+                           owl:someValuesFrom :sem:Actor
+                         ] ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :has_object ;
+                           owl:someValuesFrom :sem:Object
+                         ] ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :has_message ;
+                           owl:someValuesFrom rdfs:Literal
+                         ] .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Role
+:Role rdf:type owl:Class .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Sea
+:Sea rdf:type owl:Class ;
+     rdfs:subClassOf :Geographic_Places .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Ship
+:Ship rdf:type owl:Class .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Statement
+:Statement rdf:type owl:Class ;
+           rdfs:subClassOf :Communication ,
+                           [ rdf:type owl:Restriction ;
+                             owl:onProperty :has_actor ;
+                             owl:someValuesFrom <http://xmlns.com/foaf/0.1/Agent>
+                           ] ,
+                           [ rdf:type owl:Restriction ;
+                             owl:onProperty :has_message ;
+                             owl:someValuesFrom rdfs:Literal
+                           ] .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Twitter
+:Twitter rdf:type owl:Class ;
+         rdfs:subClassOf :Communication ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :has_message ;
+                           owl:someValuesFrom rdfs:Literal
+                         ] .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Warning
+:Warning rdf:type owl:Class ;
+         rdfs:subClassOf :Communication .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#Website
+:Website rdf:type owl:Class ;
+         rdfs:subClassOf :Communication .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#sem:Actor
+:sem:Actor rdf:type owl:Class ;
+           rdfs:subClassOf <http://xmlns.com/foaf/0.1/Agent> .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#sem:Authority
+:sem:Authority rdf:type owl:Class ;
+               rdfs:subClassOf <http://xmlns.com/foaf/0.1/Agent> .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#sem:Event
+:sem:Event rdf:type owl:Class ;
+           rdfs:subClassOf [ rdf:type owl:Restriction ;
+                             owl:onProperty :has_actor ;
+                             owl:someValuesFrom :sem:Actor
+                           ] ,
+                           [ rdf:type owl:Restriction ;
+                             owl:onProperty :has_place ;
+                             owl:someValuesFrom :sem:Place
+                           ] ,
+                           [ rdf:type owl:Restriction ;
+                             owl:onProperty :has_time ;
+                             owl:someValuesFrom :sem:Time
+                           ] .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#sem:Object
+:sem:Object rdf:type owl:Class .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#sem:Place
+:sem:Place rdf:type owl:Class .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#sem:Time
+:sem:Time rdf:type owl:Class ;
+          rdfs:subClassOf [ rdf:type owl:Restriction ;
+                            owl:onProperty :has_time_stamp ;
+                            owl:someValuesFrom rdfs:Literal
+                          ] .
+
+
+###  http://xmlns.com/foaf/0.1/Agent
+<http://xmlns.com/foaf/0.1/Agent> rdf:type owl:Class .
+
+
+###  http://xmlns.com/foaf/0.1/Person
+<http://xmlns.com/foaf/0.1/Person> rdf:type owl:Class ;
+                                   rdfs:subClassOf <http://xmlns.com/foaf/0.1/Agent> ,
+                                                   [ rdf:type owl:Restriction ;
+                                                     owl:onProperty :has ;
+                                                     owl:someValuesFrom :Role
+                                                   ] .
+
+
+#################################################################
+#    Individuals
+#################################################################
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#baltic_sea
+:baltic_sea rdf:type owl:NamedIndividual ,
+                     :Sea .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#bornholm
+:bornholm rdf:type owl:NamedIndividual ,
+                   :Island .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#danish_area
+:danish_area rdf:type owl:NamedIndividual ,
+                      :Area .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#danish_authorities
+:danish_authorities rdf:type owl:NamedIndividual ,
+                             :sem:Authority ;
+                    :communicated :request1 ;
+                    rdfs:label "Danish Authorities" ;
+                    <http://www.w3.org/2004/02/skos/core#altLabel> "Danish Maritime Authorities" .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#denmark
+:denmark rdf:type owl:NamedIndividual ,
+                  :Country .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#denmarks_energy_agency
+:denmarks_energy_agency rdf:type owl:NamedIndividual ,
+                                 <http://xmlns.com/foaf/0.1/Agent> ;
+                        :communicated :statement1 .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#denmarks_energy_ministry
+:denmarks_energy_ministry rdf:type owl:NamedIndividual ,
+                                   :Energy_Ministry ;
+                          :related_to :pressure_drop .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#energy_war
+:energy_war rdf:type owl:NamedIndividual ,
+                     :sem:Event ;
+            :has_actor :europe ,
+                       :moscow ;
+            :has_flashpoint :nord_stream_pipeline_1 .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#europe
+:europe rdf:type owl:NamedIndividual ,
+                 :Area .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#gas_leak
+:gas_leak rdf:type owl:NamedIndividual ,
+                   :sem:Event ;
+          :has_object :nord_stream_pipeline_2 ;
+          :has_place :baltic_sea ,
+                     :danish_area ;
+          :has_time_stamp "September 26, 202211:06 PM GMT+2" .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#german_gas
+:german_gas rdf:type owl:NamedIndividual ,
+                     :Gas_Supply ;
+            :has_cause :invasion ;
+            :has_price "high" ;
+            :has_security_level "unchanged" ;
+            :has_storage_levels "91%" .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#german_government
+:german_government rdf:type owl:NamedIndividual ,
+                            :Government ;
+                   :in_contact_with :danish_authorities ;
+                   :working_with :local_law_enforcement .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#german_network_regulator
+:german_network_regulator rdf:type owl:NamedIndividual ,
+                                   <http://xmlns.com/foaf/0.1/Person> .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#germany
+:germany rdf:type owl:NamedIndividual ,
+                  :Country ;
+         :has :german_gas .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#invasion
+:invasion rdf:type owl:NamedIndividual ,
+                   :sem:Event ;
+          :has_actor :russia ;
+          :has_object :ukraine ;
+          :has_time_stamp "February" .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#klaus_mueller
+:klaus_mueller rdf:type owl:NamedIndividual ,
+                        :President ,
+                        <http://xmlns.com/foaf/0.1/Person> ,
+                        [ rdf:type owl:Restriction ;
+                          owl:onProperty :has_role ;
+                          owl:someValuesFrom :President
+                        ] ;
+               :communicated :twitter_message ;
+               :has_organization :german_network_regulator ,
+                                 "The German network regulator" .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#local_law_enforcement
+:local_law_enforcement rdf:type owl:NamedIndividual ,
+                                <http://xmlns.com/foaf/0.1/Agent> .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#moscow
+:moscow rdf:type owl:NamedIndividual ,
+                 :City .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#navigation_warning1
+:navigation_warning1 rdf:type owl:NamedIndividual ,
+                              :Warning ;
+                     :has_actor :danish_authorities .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#nord_stream_ag
+:nord_stream_ag rdf:type owl:NamedIndividual ,
+                         <http://xmlns.com/foaf/0.1/Agent> ;
+                :has :nordstream_ag_website .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#nord_stream_pipeline_1
+:nord_stream_pipeline_1 rdf:type owl:NamedIndividual ,
+                                 :Pipeline ;
+                        :has_capacity :reduced_capacity ,
+                                      :stopped_capacity ;
+                        :has_operator :operator_ns1 ;
+                        rdfs:label "nord stream pipeline 1" ;
+                        <http://www.w3.org/2004/02/skos/core#altLabel> "pipeline" ,
+                                                                       "the gas pipeline" ,
+                                                                       "the pipeline" .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#nord_stream_pipeline_2
+:nord_stream_pipeline_2 rdf:type owl:NamedIndividual ,
+                                 :Pipeline ;
+                        :has_end_place :germany ;
+                        :has_gas_pressure :pressure_score1 ,
+                                          :pressure_score2 ;
+                        :has_operator :operator_ns2 ;
+                        :has_owner :russia ;
+                        :has_place :baltic_sea ;
+                        :has_start_place :stpetersburg ;
+                        :has_status "cancelled by germany" ,
+                                    "defunct" ;
+                        :has_volume "300 million cubic metres" ;
+                        rdfs:label "nord stream pipeline 2" ;
+                        <http://www.w3.org/2004/02/skos/core#altLabel> "pipeline" ,
+                                                                       "the gas pipeline" ,
+                                                                       "the pipeline" .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#nordstream_ag_website
+:nordstream_ag_website rdf:type owl:NamedIndividual ,
+                                :Website .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#operator_ns1
+:operator_ns1 rdf:type owl:NamedIndividual ,
+                       :Operator ,
+                       <http://xmlns.com/foaf/0.1/Person> .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#operator_ns2
+:operator_ns2 rdf:type owl:NamedIndividual ,
+                       :Operator ,
+                       <http://xmlns.com/foaf/0.1/Person> .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#pressure_drop
+:pressure_drop rdf:type owl:NamedIndividual ,
+                        :sem:Event ;
+               :has_object :nord_stream_pipeline_1 ,
+                           :nord_stream_pipeline_2 ;
+               :related_to :gas_leak ;
+               :has_cause "unknown" ;
+               :has_message "situation is tense" ;
+               rdfs:label "pressure drop" ;
+               <http://www.w3.org/2004/02/skos/core#altLabel> "pressure plummet" .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#pressure_score1
+:pressure_score1 rdf:type owl:NamedIndividual ,
+                          :Gas_Pressure ;
+                 :has_pressure 105 ;
+                 :has_time_stamp "18:00 pm" .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#pressure_score2
+:pressure_score2 rdf:type owl:NamedIndividual ,
+                          :Gas_Pressure ;
+                 :has_pressure 7 ;
+                 :has_time_stamp "06:00 am" .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#reduced_capacity
+:reduced_capacity rdf:type owl:NamedIndividual ,
+                           :Capacity ;
+                  :has_capacity "reduced" ;
+                  :has_time_stamp "mid-June until August" .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#request1
+:request1 rdf:type owl:NamedIndividual ,
+                   :Request ;
+          :has_actor :danish_authorities ;
+          :has_cause :gas_leak ;
+          :has_object :ships ;
+          :has_message "steer clear of a five nautical mile radius off the island  of Bornholm" .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#russia
+:russia rdf:type owl:NamedIndividual ,
+                 :Country .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#ships
+:ships rdf:type owl:NamedIndividual ,
+                :Ship .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#statement1
+:statement1 rdf:type owl:NamedIndividual ,
+                     :Statement ;
+            :has_message "A leak today occurred on the Nord Stream 2 pipeline in the Danish area." .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#stopped_capacity
+:stopped_capacity rdf:type owl:NamedIndividual ,
+                           :Capacity ;
+                  :has_capacity "stopped" ;
+                  :has_time_stamp "August" .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#stopping_supplies
+:stopping_supplies rdf:type owl:NamedIndividual ,
+                            :sem:Event ;
+                   :has_object :nord_stream_pipeline_1 ;
+                   :has_time_stamp "August" .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#stpetersburg
+:stpetersburg rdf:type owl:NamedIndividual ,
+                       :City .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#twitter_message
+:twitter_message rdf:type owl:NamedIndividual ,
+                          :Twitter ;
+                 :has_message "the pressure drop in both pipelines underscores the German network regulator's assessment that the situation is tense." .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#ukraine
+:ukraine rdf:type owl:NamedIndividual ,
+                  :Country .
+
+
+###  http://ontology.tno.nl/knowledgegraphextraction/nord_stream_incident#western_economies
+:western_economies rdf:type owl:NamedIndividual ,
+                            :Economy ;
+                   :has_cause :invasion ;
+                   :has_economic_status "low" .
+
+
+###  Generated by the OWL API (version 4.5.29.2024-05-13T12:11:03Z) https://github.com/owlcs/owlapi

@@ -1,0 +1,82 @@
+[
+    [
+        "Actor",
+        "Agent"
+    ],
+    [
+        "Area",
+        "Geographic Places"
+    ],
+    [
+        "Authority",
+        "Agent"
+    ],
+    [
+        "City",
+        "Geographic Places"
+    ],
+    [
+        "Comment",
+        "Communication"
+    ],
+    [
+        "Country",
+        "Geographic Places"
+    ],
+    [
+        "Energy Ministry",
+        "Ministry"
+    ],
+    [
+        "Geographic Places",
+        "Place"
+    ],
+    [
+        "Government",
+        "Agent"
+    ],
+    [
+        "Island",
+        "Geographic Places"
+    ],
+    [
+        "Ministry",
+        "Agent"
+    ],
+    [
+        "Operator",
+        "Role"
+    ],
+    [
+        "Person",
+        "Agent"
+    ],
+    [
+        "President",
+        "Role"
+    ],
+    [
+        "Request",
+        "Communication"
+    ],
+    [
+        "Sea",
+        "Geographic Places"
+    ],
+    [
+        "Statement",
+        "Communication"
+    ],
+    [
+        "Twitter",
+        "Communication"
+    ],
+    [
+        "Warning",
+        "Communication"
+    ],
+    [
+        "Website",
+        "Communication"
+    ]
+]

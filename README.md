@@ -421,6 +421,21 @@ Category recall is lower because TTL files use fine-grained categories ("animal 
 
 The benchmark runs the full MCP pipeline: `onto_clear` → `onto_validate` (×10) → `onto_load` (×10) → `onto_stats` → `onto_lint` (×10) → `onto_query` (×6) via the real MCP server using the official MCP Python SDK over JSON-RPC 2.0 stdio. Files: [`benchmark/vision/`](benchmark/vision/)
 
+### OntoAxiom Benchmark — Tool-Augmented vs Bare LLMs
+
+[OntoAxiom](https://arxiv.org/abs/2512.05594) tests LLM axiom identification across 9 ontologies and 3,042 ground truth axioms. Best bare LLM (o1): F1 = 0.197. We load the ontology and extract axioms via structured queries — the same `onto_load` + `onto_query` pipeline.
+
+| Axiom Type | Open Ontologies | Best LLM (o1) | Improvement |
+| ---------- | --------------- | -------------- | ----------- |
+| subClassOf | **0.412** | 0.359 | +15% |
+| disjointWith | **0.421** | 0.095 | +343% |
+| domain | **0.237** | 0.038 | +524% |
+| range | **0.232** | 0.030 | +673% |
+| subPropertyOf | **0.344** | 0.106 | +225% |
+| **OVERALL** | **0.305** | **0.197** | **+55%** |
+
+Open Ontologies wins all 5 axiom types. 10 individual results scored PERFECT (F1 = 1.000). Full writeup: [`benchmark/ontoaxiom/ONTOAXIOM_SHOWDOWN.md`](benchmark/ontoaxiom/ONTOAXIOM_SHOWDOWN.md)
+
 ### Reasoning Performance — HermiT vs Open Ontologies
 
 Real benchmarks, not marketing claims. Java 25, HermiT 1.4.3.456, OWL API 4.5.29.

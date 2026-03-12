@@ -1,0 +1,226 @@
+[
+    [
+        "Abstract Individual",
+        "Individual"
+    ],
+    [
+        "Abstract Individual Type",
+        "Type"
+    ],
+    [
+        "Anti Rigid Type",
+        "Non Rigid Type"
+    ],
+    [
+        "Aspect",
+        "Endurant"
+    ],
+    [
+        "Category",
+        "Non Sortal"
+    ],
+    [
+        "Category",
+        "Rigid Type"
+    ],
+    [
+        "Collection",
+        "Object"
+    ],
+    [
+        "Comparative Relationship Type",
+        "Relationship Type"
+    ],
+    [
+        "Concrete Individual",
+        "Individual"
+    ],
+    [
+        "Concrete Individual Type",
+        "Type"
+    ],
+    [
+        "Endurant",
+        "Concrete Individual"
+    ],
+    [
+        "Endurant Type",
+        "Concrete Individual Type"
+    ],
+    [
+        "Event",
+        "Concrete Individual"
+    ],
+    [
+        "Event Type",
+        "Concrete Individual Type"
+    ],
+    [
+        "Extrinsic Aspect",
+        "Aspect"
+    ],
+    [
+        "Extrinsic Mode",
+        "Extrinsic Aspect"
+    ],
+    [
+        "Fixed Collection",
+        "Collection"
+    ],
+    [
+        "Functional Complex",
+        "Object"
+    ],
+    [
+        "Instant",
+        "Abstract Individual"
+    ],
+    [
+        "Intrinsic Aspect",
+        "Aspect"
+    ],
+    [
+        "Intrinsic Mode",
+        "Intrinsic Aspect"
+    ],
+    [
+        "Kind",
+        "Rigid Type"
+    ],
+    [
+        "Kind",
+        "Sortal"
+    ],
+    [
+        "Material Relationship Type",
+        "Relationship Type"
+    ],
+    [
+        "Mixin",
+        "Non Sortal"
+    ],
+    [
+        "Mixin",
+        "Semi Rigid Type"
+    ],
+    [
+        "Non Rigid Type",
+        "Endurant Type"
+    ],
+    [
+        "Non Sortal",
+        "Endurant Type"
+    ],
+    [
+        "Object",
+        "Endurant"
+    ],
+    [
+        "Participation",
+        "Event"
+    ],
+    [
+        "Phase",
+        "Anti Rigid Type"
+    ],
+    [
+        "Phase",
+        "Sortal"
+    ],
+    [
+        "Phase Mixin",
+        "Anti Rigid Type"
+    ],
+    [
+        "Phase Mixin",
+        "Non Sortal"
+    ],
+    [
+        "Quality",
+        "Intrinsic Aspect"
+    ],
+    [
+        "Quality Value",
+        "Abstract Individual"
+    ],
+    [
+        "Quality Value Attribution Situation",
+        "Situation"
+    ],
+    [
+        "Quantity",
+        "Object"
+    ],
+    [
+        "Relationship Type",
+        "Type"
+    ],
+    [
+        "Relator",
+        "Extrinsic Aspect"
+    ],
+    [
+        "Rigid Type",
+        "Endurant Type"
+    ],
+    [
+        "Role",
+        "Anti Rigid Type"
+    ],
+    [
+        "Role",
+        "Sortal"
+    ],
+    [
+        "Role Mixin",
+        "Anti Rigid Type"
+    ],
+    [
+        "Role Mixin",
+        "Non Sortal"
+    ],
+    [
+        "Semi Rigid Type",
+        "Non Rigid Type"
+    ],
+    [
+        "Situation",
+        "Concrete Individual"
+    ],
+    [
+        "Situation Type",
+        "Concrete Individual Type"
+    ],
+    [
+        "Sortal",
+        "Endurant Type"
+    ],
+    [
+        "Sub Kind",
+        "Rigid Type"
+    ],
+    [
+        "Sub Kind",
+        "Sortal"
+    ],
+    [
+        "Temporary Constitution Situation",
+        "Situation"
+    ],
+    [
+        "Temporary Instantiation Situation",
+        "Situation"
+    ],
+    [
+        "Temporary Parthood Situation",
+        "Situation"
+    ],
+    [
+        "Temporary Relationship Situation",
+        "Situation"
+    ],
+    [
+        "Variable Collection",
+        "Collection"
+    ]
+]

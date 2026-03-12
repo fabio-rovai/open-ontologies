@@ -1,0 +1,238 @@
+[
+    [
+        "Activity",
+        "NE Event"
+    ],
+    [
+        "Analog Signal",
+        "Signal"
+    ],
+    [
+        "Arrangement",
+        "NE Event"
+    ],
+    [
+        "Arranger",
+        "Agent"
+    ],
+    [
+        "Audio File",
+        "Document"
+    ],
+    [
+        "Audio File",
+        "Medium"
+    ],
+    [
+        "CD",
+        "Medium"
+    ],
+    [
+        "Composer",
+        "Agent"
+    ],
+    [
+        "Composition",
+        "NE Event"
+    ],
+    [
+        "Conductor",
+        "Agent"
+    ],
+    [
+        "Corporate Body",
+        "Organization"
+    ],
+    [
+        "DAT",
+        "Medium"
+    ],
+    [
+        "DCC",
+        "Medium"
+    ],
+    [
+        "DVDA",
+        "Medium"
+    ],
+    [
+        "Digital Signal",
+        "Signal"
+    ],
+    [
+        "E K",
+        "Medium"
+    ],
+    [
+        "Festival",
+        "NE Event"
+    ],
+    [
+        "Instrumentation",
+        "Arrangement"
+    ],
+    [
+        "Label",
+        "Corporate Body"
+    ],
+    [
+        "Libretto",
+        "Musical Expression"
+    ],
+    [
+        "Listener",
+        "Agent"
+    ],
+    [
+        "Lyrics",
+        "Musical Expression"
+    ],
+    [
+        "MD",
+        "Medium"
+    ],
+    [
+        "Magnetic Tape",
+        "Medium"
+    ],
+    [
+        "Medium",
+        "Musical Item"
+    ],
+    [
+        "Membership",
+        "NE Event"
+    ],
+    [
+        "Movement",
+        "Musical Work"
+    ],
+    [
+        "Music Artist",
+        "Agent"
+    ],
+    [
+        "Music Group",
+        "Group"
+    ],
+    [
+        "Music Group",
+        "Music Artist"
+    ],
+    [
+        "Musical Expression",
+        "Expression"
+    ],
+    [
+        "Musical Manifestation",
+        "Manifestation"
+    ],
+    [
+        "Musical Work",
+        "Work"
+    ],
+    [
+        "Orchestration",
+        "Arrangement"
+    ],
+    [
+        "Performance",
+        "NE Event"
+    ],
+    [
+        "Performer",
+        "Agent"
+    ],
+    [
+        "Published Libretto",
+        "Musical Manifestation"
+    ],
+    [
+        "Published Lyrics",
+        "Musical Manifestation"
+    ],
+    [
+        "Published Score",
+        "Musical Manifestation"
+    ],
+    [
+        "Record",
+        "Musical Manifestation"
+    ],
+    [
+        "Recording",
+        "NE Event"
+    ],
+    [
+        "Recording Session",
+        "NE Event"
+    ],
+    [
+        "Release",
+        "Musical Manifestation"
+    ],
+    [
+        "Release Event",
+        "NE Event"
+    ],
+    [
+        "SACD",
+        "Medium"
+    ],
+    [
+        "Score",
+        "Musical Expression"
+    ],
+    [
+        "Show",
+        "NE Event"
+    ],
+    [
+        "Signal",
+        "Musical Expression"
+    ],
+    [
+        "Signal Group",
+        "Musical Expression"
+    ],
+    [
+        "Solo Music Artist",
+        "Music Artist"
+    ],
+    [
+        "Solo Music Artist",
+        "Person"
+    ],
+    [
+        "Sound",
+        "Musical Expression"
+    ],
+    [
+        "Sound",
+        "NE Event"
+    ],
+    [
+        "Sound Engineer",
+        "Agent"
+    ],
+    [
+        "Stream",
+        "Medium"
+    ],
+    [
+        "Torrent",
+        "Medium"
+    ],
+    [
+        "Track",
+        "Musical Manifestation"
+    ],
+    [
+        "Transcription",
+        "NE Event"
+    ],
+    [
+        "Vinyl",
+        "Medium"
+    ]
+]

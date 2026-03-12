@@ -1,0 +1,82 @@
+[
+    [
+        "Document",
+        "Document"
+    ],
+    [
+        "Feature",
+        "Feature"
+    ],
+    [
+        "Infrastructure Manager",
+        "Organization"
+    ],
+    [
+        "Infrastructure Object",
+        "Feature"
+    ],
+    [
+        "Manufacturer",
+        "Organization"
+    ],
+    [
+        "Net Element",
+        "Topological Object"
+    ],
+    [
+        "Net Relation",
+        "Topological Object"
+    ],
+    [
+        "Operational Point",
+        "Infrastructure Object"
+    ],
+    [
+        "Organization",
+        "Agent"
+    ],
+    [
+        "Platform Edge",
+        "Infrastructure Object"
+    ],
+    [
+        "Point",
+        "Spatial Thing"
+    ],
+    [
+        "Section Of Line",
+        "Infrastructure Object"
+    ],
+    [
+        "Siding",
+        "Track"
+    ],
+    [
+        "Signal",
+        "Infrastructure Object"
+    ],
+    [
+        "Special Area",
+        "Infrastructure Object"
+    ],
+    [
+        "Special Tunnel Area",
+        "Special Area"
+    ],
+    [
+        "Topological Object",
+        "Feature"
+    ],
+    [
+        "Track",
+        "Infrastructure Object"
+    ],
+    [
+        "Tunnel",
+        "Infrastructure Object"
+    ],
+    [
+        "Vehicle Keeper",
+        "Organization"
+    ]
+]
