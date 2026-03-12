@@ -68,3 +68,46 @@ fn test_lint_ontology() {
     // Person has no label/comment, should be flagged
     assert!(report.contains("Person"));
 }
+
+#[test]
+fn test_lint_with_feedback_suppression() {
+    use open_ontologies::ontology::OntologyService;
+    use open_ontologies::state::StateDb;
+    use open_ontologies::feedback::record_tool_feedback;
+
+    let tmp = tempfile::NamedTempFile::new().unwrap();
+    let path = tmp.path().to_path_buf();
+    std::mem::forget(tmp);
+    let db = StateDb::open(&path).unwrap();
+
+    let ttl = r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix ex: <http://example.org/> .
+        ex:Dog a owl:Class .
+    "#;
+
+    // Without feedback, missing_label should appear
+    let result = OntologyService::lint_with_feedback(ttl, Some(&db)).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert!(v["issue_count"].as_u64().unwrap() > 0);
+    assert_eq!(v["suppressed_count"].as_u64().unwrap(), 0);
+
+    // Find the entity string used in the lint output for Dog
+    let issues = v["issues"].as_array().unwrap();
+    let dog_issue = issues.iter().find(|i| {
+        i["type"].as_str().unwrap_or("") == "missing_label" &&
+        i["entity"].as_str().unwrap_or("").contains("example.org/Dog")
+    });
+    assert!(dog_issue.is_some(), "Should have missing_label for Dog");
+    let entity_str = dog_issue.unwrap()["entity"].as_str().unwrap();
+
+    // Dismiss 3 times using the exact entity string from lint output
+    for _ in 0..3 {
+        record_tool_feedback(&db, "lint", "missing_label", entity_str, false).unwrap();
+    }
+
+    // Now the issue should be suppressed
+    let result = OntologyService::lint_with_feedback(ttl, Some(&db)).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert!(v["suppressed_count"].as_u64().unwrap() > 0);
+}
