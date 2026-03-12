@@ -20,12 +20,12 @@
     },
     "rdf_pipeline": {
       "description": "Claude vision \u2192 structured Turtle with ontology, validated with Open Ontologies",
-      "avg_object_recall": 1.0,
+      "avg_object_recall": 0.95,
       "avg_object_precision": 0.35,
-      "avg_category_recall": 0.91,
-      "avg_objects_per_image": 18.3,
-      "total_triples": 2967,
-      "total_relationships": 208,
+      "avg_category_recall": 0.33,
+      "avg_objects_per_image": 29.7,
+      "total_triples": 2540,
+      "total_relationships": 204,
       "ttl_files_generated": 10,
       "queryable": true,
       "relationships": true,
@@ -43,10 +43,10 @@
         "category_recall": 1.0
       },
       "rdf_pipeline": {
-        "objects_detected": 20,
+        "objects_detected": 46,
         "object_recall": 1.0,
-        "object_precision": 0.25,
-        "category_recall": 1.0,
+        "object_precision": 0.3,
+        "category_recall": 0.67,
         "triples": 370,
         "relationships": 20
       }
@@ -61,12 +61,12 @@
         "category_recall": 0.33
       },
       "rdf_pipeline": {
-        "objects_detected": 21,
-        "object_recall": 1.0,
-        "object_precision": 0.24,
-        "category_recall": 0.67,
-        "triples": 300,
-        "relationships": 22
+        "objects_detected": 27,
+        "object_recall": 0.75,
+        "object_precision": 0.26,
+        "category_recall": 0.33,
+        "triples": 184,
+        "relationships": 23
       }
     },
     "img_2.jpg": {
@@ -79,12 +79,12 @@
         "category_recall": 1.0
       },
       "rdf_pipeline": {
-        "objects_detected": 15,
+        "objects_detected": 24,
         "object_recall": 1.0,
-        "object_precision": 0.53,
-        "category_recall": 1.0,
+        "object_precision": 0.54,
+        "category_recall": 0.0,
         "triples": 254,
-        "relationships": 14
+        "relationships": 12
       }
     },
     "img_3.jpg": {
@@ -97,10 +97,10 @@
         "category_recall": 0.75
       },
       "rdf_pipeline": {
-        "objects_detected": 14,
+        "objects_detected": 27,
         "object_recall": 1.0,
-        "object_precision": 0.36,
-        "category_recall": 1.0,
+        "object_precision": 0.37,
+        "category_recall": 0.75,
         "triples": 286,
         "relationships": 32
       }
@@ -115,12 +115,12 @@
         "category_recall": 1.0
       },
       "rdf_pipeline": {
-        "objects_detected": 21,
+        "objects_detected": 24,
         "object_recall": 1.0,
-        "object_precision": 0.29,
-        "category_recall": 1.0,
+        "object_precision": 0.33,
+        "category_recall": 0.67,
         "triples": 275,
-        "relationships": 18
+        "relationships": 23
       }
     },
     "img_5.jpg": {
@@ -133,12 +133,12 @@
         "category_recall": 0.67
       },
       "rdf_pipeline": {
-        "objects_detected": 14,
+        "objects_detected": 34,
         "object_recall": 1.0,
-        "object_precision": 0.36,
-        "category_recall": 1.0,
+        "object_precision": 0.15,
+        "category_recall": 0.0,
         "triples": 355,
-        "relationships": 16
+        "relationships": 13
       }
     },
     "img_6.jpg": {
@@ -151,12 +151,12 @@
         "category_recall": 1.0
       },
       "rdf_pipeline": {
-        "objects_detected": 19,
+        "objects_detected": 25,
         "object_recall": 1.0,
-        "object_precision": 0.42,
-        "category_recall": 1.0,
-        "triples": 250,
-        "relationships": 22
+        "object_precision": 0.52,
+        "category_recall": 0.25,
+        "triples": 155,
+        "relationships": 8
       }
     },
     "img_7.jpg": {
@@ -169,12 +169,12 @@
         "category_recall": 0.5
       },
       "rdf_pipeline": {
-        "objects_detected": 25,
+        "objects_detected": 40,
         "object_recall": 1.0,
         "object_precision": 0.28,
-        "category_recall": 0.75,
-        "triples": 320,
-        "relationships": 28
+        "category_recall": 0.0,
+        "triples": 259,
+        "relationships": 30
       }
     },
     "img_8.jpg": {
@@ -187,12 +187,12 @@
         "category_recall": 1.0
       },
       "rdf_pipeline": {
-        "objects_detected": 16,
+        "objects_detected": 22,
         "object_recall": 1.0,
-        "object_precision": 0.5,
-        "category_recall": 1.0,
+        "object_precision": 0.32,
+        "category_recall": 0.25,
         "triples": 257,
-        "relationships": 16
+        "relationships": 25
       }
     },
     "img_9.jpg": {
@@ -205,12 +205,12 @@
         "category_recall": 0.67
       },
       "rdf_pipeline": {
-        "objects_detected": 18,
-        "object_recall": 1.0,
-        "object_precision": 0.28,
-        "category_recall": 0.67,
-        "triples": 300,
-        "relationships": 20
+        "objects_detected": 28,
+        "object_recall": 0.75,
+        "object_precision": 0.43,
+        "category_recall": 0.33,
+        "triples": 145,
+        "relationships": 18
       }
     }
   }

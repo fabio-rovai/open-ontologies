@@ -3,23 +3,28 @@
 
 Computes object recall, category recall, and structural metrics across
 10 real photographs processed by parallel Claude agents.
+
+RDF pipeline data is extracted directly from the actual TTL files —
+no hardcoded values.
 """
 import json
 import os
+import re
 import glob
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASET_DIR = os.path.join(SCRIPT_DIR, "dataset")
 
-
-def fuzzy_match(detected: str, ground_truth_set: set) -> bool:
-    """Check if a detected label fuzzy-matches any ground truth label."""
-    d = detected.lower().strip()
-    for gt in ground_truth_set:
-        g = gt.lower().strip()
-        if d == g or d in g or g in d:
-            return True
-    return False
+# Spatial relationship labels to exclude from object lists
+SPATIAL_LABELS = {
+    "above", "below", "behind", "in front of", "beside", "left of", "right of",
+    "near", "inside", "on top of", "beneath", "surrounding", "centered in",
+    "submerged in", "covered by", "surrounded by", "part of", "floating on",
+    "covering", "clinging to", "composed of", "above-left of", "resting on",
+    "between", "exhibited by", "provided by", "contains", "habitat for",
+    "standing on", "illuminated by", "same as", "source of", "illuminates",
+    "filters through", "on", "leading up to", "partially obscured by",
+}
 
 
 def compute_recall(detected: list, ground_truth: list) -> float:
@@ -47,6 +52,36 @@ def compute_precision(detected: list, ground_truth: list) -> float:
         if any(dl == g or dl in g or g in dl for g in gt_set):
             hits += 1
     return hits / len(detected)
+
+
+def extract_from_ttl(ttl_path):
+    """Extract objects, categories, and counts from a TTL file."""
+    content = open(ttl_path).read()
+
+    # rdfs:label values (exclude spatial relationship labels)
+    labels = []
+    for m in re.findall(r'rdfs:label\s+"([^"]+)"', content):
+        if m.lower() not in SPATIAL_LABELS:
+            labels.append(m)
+
+    # skos:altLabel values
+    alt_labels = re.findall(r'skos:altLabel\s+"([^"]+)"', content)
+
+    # Categories
+    categories = sorted(set(re.findall(r'schema:category\s+"([^"]+)"', content)))
+
+    # Relationship count (spatial predicates)
+    rel_patterns = r'ex:spatialRelation|ex:near|ex:above|ex:below|ex:beside|ex:inside|ex:behind|ex:leftOf|ex:rightOf|ex:surrounding|ex:partOf|ex:adjacentTo'
+    relationships = len(re.findall(rel_patterns, content))
+
+    # Combined object list (labels + altLabels, deduplicated)
+    all_objects = list(dict.fromkeys(labels + alt_labels))
+
+    return {
+        "objects": all_objects,
+        "categories": categories,
+        "relationships": relationships,
+    }
 
 
 # Ground truth (manual annotation)
@@ -97,88 +132,39 @@ pure_claude = {
     },
 }
 
-# RDF Pipeline v2 results — with skos:altLabel synonyms for matching
-# "all_labels" includes rdfs:label + all skos:altLabel values
-rdf_pipeline = {
-    "img_1.jpg": {
-        "objects": ["truck", "vehicle", "steering wheel", "dashboard", "windshield", "tree",
-                     "plant", "bush", "leaves", "rust", "metal", "seat", "gauges", "sky",
-                     "steering column", "glass", "moss", "dirt", "foliage", "branches"],
-        "categories": ["vehicle", "nature", "decay", "material"],
-        "triples": 370, "relationships": 20,
-    },
-    "img_2.jpg": {
-        "objects": ["laptop", "notebook", "pen", "camera", "earphones", "earbuds", "headphones",
-                     "desk", "wooden desk", "screen", "keyboard", "sketches", "notes",
-                     "camera lens", "earphone cable"],
-        "categories": ["technology", "workspace", "photography", "stationery"],
-        "triples": 254, "relationships": 14,
-    },
-    "img_3.jpg": {
-        "objects": ["frog", "amphibian", "duckweed", "water", "pond", "eyes", "insect",
-                     "frog head", "frog nostrils", "eyelids", "skin", "camouflage",
-                     "vegetation mat", "wildlife"],
-        "categories": ["animal", "amphibian", "nature", "water", "aquatic plant", "insect"],
-        "triples": 286, "relationships": 32,
-    },
-    "img_4.jpg": {
-        "objects": ["sky", "trees", "conifers", "pines", "evergreens", "forest", "woods",
-                     "field", "meadow", "grassland", "hill", "hills", "grass", "tree trunks",
-                     "mist", "haze", "fog", "canopy", "slope", "clouds", "landscape"],
-        "categories": ["landscape", "nature", "forest", "vegetation", "terrain"],
-        "triples": 275, "relationships": 18,
-    },
-    "img_5.jpg": {
-        "objects": ["boardwalk", "wood planks", "wooden planks", "deck boards", "planks",
-                     "sky", "buildings", "tower", "water tower", "horizon",
-                     "sunlight", "shadows", "nail holes", "rooflines"],
-        "categories": ["architecture", "urban", "nature", "outdoor"],
-        "triples": 355, "relationships": 16,
-    },
-    "img_6.jpg": {
-        "objects": ["canoe", "boat", "people", "persons", "paddlers", "paddler", "person",
-                     "paddle", "oar", "water", "lake", "fog", "mist", "reflection",
-                     "hat", "jacket", "coat", "sky", "horizon"],
-        "categories": ["recreation", "water", "nature", "people", "watercraft"],
-        "triples": 250, "relationships": 22,
-    },
-    "img_7.jpg": {
-        "objects": ["ocean", "sea", "beach", "sand", "coastline", "coast", "shoreline",
-                     "cliffs", "bluffs", "buildings", "houses", "homes", "roads", "streets",
-                     "trees", "vegetation", "greenery", "boat", "vessel",
-                     "golf course", "waves", "surf", "haze", "canyon", "headland"],
-        "categories": ["landscape", "nature", "coastal", "urban", "water", "aerial"],
-        "triples": 320, "relationships": 28,
-    },
-    "img_8.jpg": {
-        "objects": ["fawn", "deer", "animal", "leaves", "fallen leaves", "trees", "forest",
-                     "sunlight", "light", "branch", "log", "dust motes", "foliage",
-                     "spots", "forest floor", "backlight"],
-        "categories": ["animal", "wildlife", "nature", "forest", "vegetation"],
-        "triples": 257, "relationships": 16,
-    },
-    "img_9.jpg": {
-        "objects": ["cat", "feline", "tabby", "nose", "whiskers", "vibrissae",
-                     "fur", "coat", "hair", "mouth", "lips", "nostrils", "muzzle",
-                     "philtrum", "chin", "nose bridge", "whisker pads", "eyelids"],
-        "categories": ["animal", "pet", "body part", "covering"],
-        "triples": 300, "relationships": 20,
-    },
-    "img_10.jpg": {
-        "objects": ["van", "volkswagen", "VW bus", "camper van", "vehicle", "minibus",
-                     "trees", "foliage", "vegetation", "road", "asphalt", "street",
-                     "wheels", "tires", "windows", "roof", "rust", "corrosion",
-                     "fallen leaves", "door", "bumper"],
-        "categories": ["vehicle", "nature", "transportation", "vintage"],
-        "triples": 300, "relationships": 22,
-    },
-}
+# RDF Pipeline — extract directly from actual TTL files
+rdf_pipeline = {}
+for ttl in sorted(glob.glob(os.path.join(DATASET_DIR, "img_*.ttl"))):
+    img_key = os.path.basename(ttl).replace(".ttl", ".jpg")
+    rdf_pipeline[img_key] = extract_from_ttl(ttl)
+
+# Get validated triple counts from MCP pipeline results
+mcp_results_path = os.path.join(DATASET_DIR, "mcp_pipeline_results.json")
+if os.path.exists(mcp_results_path):
+    with open(mcp_results_path) as f:
+        mcp_results = json.load(f)
+    total_triples_from_mcp = mcp_results.get("total_triples_validated", 0)
+else:
+    total_triples_from_mcp = 0
+
+# Get per-file triple counts by running onto_validate via CLI
+OO_BIN = os.path.join(SCRIPT_DIR, "..", "..", "target", "release", "open-ontologies")
+import subprocess
+for img_key, data in rdf_pipeline.items():
+    ttl_path = os.path.join(DATASET_DIR, img_key.replace(".jpg", ".ttl"))
+    try:
+        result = subprocess.run(
+            [OO_BIN, "validate", ttl_path],
+            capture_output=True, text=True, timeout=10
+        )
+        parsed = json.loads(result.stdout.strip())
+        data["triples"] = parsed.get("triple_count", parsed.get("triples", 0))
+    except Exception:
+        data["triples"] = 0
 
 
 def main():
     results = {}
-    total_manual_obj = 0
-    total_manual_cat = 0
 
     for img in sorted(ground_truth.keys()):
         gt = ground_truth[img]

@@ -122,8 +122,8 @@ The reasoner is **conservative by design** — it will flag a safe mushroom as s
 
 | Metric | Manual | Pure Claude | RDF Pipeline |
 | ------ | ------ | ----------- | ------------ |
-| Object Recall | 100% | 89% | **100%** |
-| Category Recall | 100% | 79% | **91%** |
+| Object Recall | 100% | 89% | **95%** |
+| Category Recall | 100% | 79% | 32% |
 | Total RDF Triples | 0 | 0 | **2,540** |
 | skos:altLabel Synonyms | 0 | 0 | **612** |
 | SPARQL Queryable | No | No | **Yes** |
@@ -131,9 +131,9 @@ The reasoner is **conservative by design** — it will flag a safe mushroom as s
 | Effort per image | ~2 min | ~8 sec | ~8 sec |
 | Scales to 1000+ images | No | Yes | Yes |
 
-**Why RDF Pipeline beats Pure Claude on recall:** The v2 pipeline uses `skos:altLabel` to generate synonym expansions for every detected object (e.g., "whiskers" + "vibrissae" + "whisker pads"), covering more matching surface. Pure Claude returns loose text that often uses a single label per object.
+**Object recall:** Both approaches detect most ground truth objects. The RDF pipeline uses `skos:altLabel` synonyms (612 total) to expand matching surface, achieving 95% recall. Category recall is lower (32%) because the TTL files use fine-grained categories ("animal body part", "vehicle part") while ground truth uses broad labels ("animal", "vehicle").
 
-**Why this matters:** Pure Claude gives you flat text — you can't query "find all images containing animals near water." The RDF pipeline produces a queryable knowledge graph with 2,540 triples and 612 synonyms across 10 images.
+**Why this matters:** Pure Claude gives you flat text — you can't query "find all images containing animals near water." The RDF pipeline produces a queryable knowledge graph with 2,540 triples, 204 spatial relationships, and 612 synonyms across 10 images.
 
 **Full MCP pipeline:** The benchmark runs the complete `onto_clear` → `onto_validate` (×10) → `onto_load` (×10) → `onto_stats` → `onto_lint` (×10) → `onto_query` (×6) tool chain via the real MCP server (`open-ontologies serve`), using the official MCP Python SDK over JSON-RPC 2.0 stdio. All 10 images validated, loaded into Oxigraph, linted clean, and queried with SPARQL — the same protocol Claude uses.
 
