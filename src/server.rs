@@ -253,6 +253,28 @@ pub struct OntoImportSchemaInput {
     pub base_iri: Option<String>,
 }
 
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoAlignInput {
+    /// Source ontology: inline Turtle content or file path
+    pub source: String,
+    /// Target ontology: inline Turtle content or file path. If omitted, aligns against loaded store
+    pub target: Option<String>,
+    /// Minimum confidence threshold for auto-apply (default 0.85)
+    pub min_confidence: Option<f64>,
+    /// If true, return candidates only without inserting triples (default false)
+    pub dry_run: Option<bool>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoAlignFeedbackInput {
+    /// Source class IRI from the alignment candidate
+    pub source_iri: String,
+    /// Target class IRI from the alignment candidate
+    pub target_iri: String,
+    /// Whether the alignment candidate was correct
+    pub accepted: bool,
+}
+
 // ─── OpenOntologiesServer ───────────────────────────────────────────────────
 
 /// MCP server that exposes all Open Ontologies tools to Claude via stdin/stdout.
@@ -948,6 +970,59 @@ impl OpenOntologiesServer {
                 "base_iri": base_iri,
             }).to_string(),
             Err(e) => format!(r#"{{"error":"Failed to load: {}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_align", description = "Detect alignment candidates (owl:equivalentClass, skos:exactMatch, rdfs:subClassOf) between two ontologies using label similarity, property overlap, parent overlap, instance overlap, restriction patterns, and graph neighborhood. Auto-applies high-confidence matches above threshold.")]
+    async fn onto_align(&self, Parameters(input): Parameters<OntoAlignInput>) -> String {
+        let engine = crate::align::AlignmentEngine::new(self.db.clone(), self.graph.clone());
+
+        // Read source (file path or inline)
+        let source = if std::path::Path::new(&input.source).exists() {
+            match std::fs::read_to_string(&input.source) {
+                Ok(s) => s,
+                Err(e) => return format!(r#"{{"error":"Failed to read source: {}"}}"#, e),
+            }
+        } else {
+            input.source
+        };
+
+        // Read target (file path, inline, or None)
+        let target = match input.target {
+            Some(t) => {
+                if std::path::Path::new(&t).exists() {
+                    match std::fs::read_to_string(&t) {
+                        Ok(s) => Some(s),
+                        Err(e) => return format!(r#"{{"error":"Failed to read target: {}"}}"#, e),
+                    }
+                } else {
+                    Some(t)
+                }
+            }
+            None => None,
+        };
+
+        let min_conf = input.min_confidence.unwrap_or(0.85);
+        let dry_run = input.dry_run.unwrap_or(false);
+
+        match engine.align(&source, target.as_deref(), min_conf, dry_run) {
+            Ok(result) => {
+                self.lineage().record(&self.session_id, "AL", "align", &format!("threshold={}", min_conf));
+                result
+            }
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_align_feedback", description = "Accept or reject an alignment candidate to improve future confidence scoring. Stores feedback in align_feedback table for self-calibrating weights.")]
+    async fn onto_align_feedback(&self, Parameters(input): Parameters<OntoAlignFeedbackInput>) -> String {
+        let engine = crate::align::AlignmentEngine::new(self.db.clone(), self.graph.clone());
+        match engine.record_feedback(&input.source_iri, &input.target_iri, "user_feedback", input.accepted) {
+            Ok(result) => {
+                self.lineage().record(&self.session_id, "AF", "align_feedback", if input.accepted { "accepted" } else { "rejected" });
+                result
+            }
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
         }
     }
 }
