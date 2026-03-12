@@ -206,6 +206,38 @@ enum Commands {
         reject: bool,
     },
 
+    // ─── Feedback ────────────────────────────────────────────────
+    /// Accept or dismiss a lint issue
+    LintFeedback {
+        /// Lint rule ID (e.g. "missing_label", "missing_comment")
+        #[arg(long)]
+        rule_id: String,
+        /// Entity IRI that triggered the issue
+        #[arg(long)]
+        entity: String,
+        /// Accept the issue as valid
+        #[arg(long, default_value_t = false)]
+        accept: bool,
+        /// Dismiss/ignore the issue
+        #[arg(long, default_value_t = false)]
+        dismiss: bool,
+    },
+    /// Accept or dismiss an enforce violation
+    EnforceFeedback {
+        /// Enforce rule ID (e.g. "orphan_class", "missing_domain")
+        #[arg(long)]
+        rule_id: String,
+        /// Entity IRI that triggered the violation
+        #[arg(long)]
+        entity: String,
+        /// Accept the violation as valid
+        #[arg(long, default_value_t = false)]
+        accept: bool,
+        /// Dismiss/override the violation
+        #[arg(long, default_value_t = false)]
+        dismiss: bool,
+    },
+
     // ─── Clinical ─────────────────────────────────────────────────
     /// Look up clinical terminology crosswalk
     Crosswalk {
@@ -398,6 +430,7 @@ async fn main() -> anyhow::Result<()> {
         }
         Commands::Lint { input } => {
             use open_ontologies::ontology::OntologyService;
+            let (db, _graph) = setup(&cli.data_dir)?;
             let content = if input == "-" {
                 let mut buf = String::new();
                 std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
@@ -405,7 +438,7 @@ async fn main() -> anyhow::Result<()> {
             } else {
                 std::fs::read_to_string(&input)?
             };
-            let result = OntologyService::lint(&content).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            let result = OntologyService::lint_with_feedback(&content, Some(&db)).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             if cli.pretty {
                 if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
                     println!("{}", serde_json::to_string_pretty(&v).unwrap());
@@ -747,8 +780,8 @@ async fn main() -> anyhow::Result<()> {
         }
         Commands::Enforce { pack } => {
             let (db, graph) = setup(&cli.data_dir)?;
-            let enforcer = open_ontologies::enforce::Enforcer::new(db, graph);
-            let result = enforcer.enforce(&pack)
+            let enforcer = open_ontologies::enforce::Enforcer::new(db.clone(), graph);
+            let result = enforcer.enforce_with_feedback(&pack, Some(&db))
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             if cli.pretty {
                 if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
@@ -889,6 +922,36 @@ async fn main() -> anyhow::Result<()> {
             let engine = open_ontologies::align::AlignmentEngine::new(db, graph);
             let accepted = accept || !reject;
             let result = engine.record_feedback(&source, &target, "user_feedback", accepted)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            if cli.pretty {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
+                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
+                } else {
+                    println!("{}", result);
+                }
+            } else {
+                println!("{}", result);
+            }
+        }
+        Commands::LintFeedback { rule_id, entity, accept, dismiss } => {
+            let (db, _graph) = setup(&cli.data_dir)?;
+            let accepted = accept || !dismiss;
+            let result = open_ontologies::feedback::record_tool_feedback(&db, "lint", &rule_id, &entity, accepted)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            if cli.pretty {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
+                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
+                } else {
+                    println!("{}", result);
+                }
+            } else {
+                println!("{}", result);
+            }
+        }
+        Commands::EnforceFeedback { rule_id, entity, accept, dismiss } => {
+            let (db, _graph) = setup(&cli.data_dir)?;
+            let accepted = accept || !dismiss;
+            let result = open_ontologies::feedback::record_tool_feedback(&db, "enforce", &rule_id, &entity, accepted)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             if cli.pretty {
                 if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
