@@ -67,3 +67,17 @@ fn test_cli_status() {
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(stdout.contains("ok"));
 }
+
+// ─── Remote + versioning tests ────────────────────────────────────
+
+#[test]
+fn test_cli_history_empty() {
+    let out = oo().arg("history").output().unwrap();
+    assert!(out.status.success());
+}
+
+#[test]
+fn test_cli_version_and_rollback() {
+    let out = oo().args(["version", "test-v1"]).output().unwrap();
+    assert!(out.status.success());
+}

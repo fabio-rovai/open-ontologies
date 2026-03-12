@@ -420,6 +420,98 @@ async fn main() -> anyhow::Result<()> {
             }), cli.pretty);
         }
 
+        // ─── Remote ─────────────────────────────────────────────────
+        Commands::Pull { url, sparql, query } => {
+            let (_db, graph) = setup(&cli.data_dir)?;
+            let content = if sparql {
+                let q = query.as_deref().unwrap_or("CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }");
+                GraphStore::fetch_sparql(&url, q).await?
+            } else {
+                GraphStore::fetch_url(&url).await?
+            };
+            match graph.load_turtle(&content, None) {
+                Ok(count) => output_json(&serde_json::json!({"ok": true, "triples_loaded": count, "source": url}), cli.pretty),
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": format!("Parse error: {}", e)}), cli.pretty);
+                    std::process::exit(1);
+                }
+            }
+        }
+        Commands::Push { endpoint, graph: graph_name } => {
+            let (_db, graph) = setup(&cli.data_dir)?;
+            let content = graph.serialize("ntriples")?;
+            match GraphStore::push_sparql(&endpoint, &content).await {
+                Ok(msg) => output_json(&serde_json::json!({"ok": true, "message": msg}), cli.pretty),
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                    std::process::exit(1);
+                }
+            }
+            let _ = graph_name; // reserved for future named graph support
+        }
+        Commands::ImportOwl { max_depth } => {
+            let (_db, graph) = setup(&cli.data_dir)?;
+            let mut imported = Vec::new();
+            let mut to_import: Vec<String> = Vec::new();
+
+            let query = "SELECT ?import WHERE { ?onto <http://www.w3.org/2002/07/owl#imports> ?import }";
+            if let Ok(result) = graph.sparql_select(query) {
+                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&result) {
+                    if let Some(results) = parsed["results"].as_array() {
+                        for row in results {
+                            if let Some(uri) = row["import"].as_str() {
+                                let uri = uri.trim_matches(|c| c == '<' || c == '>');
+                                to_import.push(uri.to_string());
+                            }
+                        }
+                    }
+                }
+            }
+
+            let mut depth = 0;
+            while !to_import.is_empty() && depth < max_depth {
+                let batch = to_import.drain(..).collect::<Vec<_>>();
+                for url in batch {
+                    if imported.contains(&url) { continue; }
+                    match GraphStore::fetch_url(&url).await {
+                        Ok(content) => {
+                            if let Ok(count) = graph.load_turtle(&content, None) {
+                                eprintln!("Imported {} ({} triples)", url, count);
+                                imported.push(url);
+                            }
+                        }
+                        Err(e) => eprintln!("Failed to import {}: {}", url, e),
+                    }
+                }
+                depth += 1;
+            }
+
+            output_json(&serde_json::json!({"ok": true, "imported": imported.len(), "urls": imported}), cli.pretty);
+        }
+
+        // ─── Versioning ────────────────────────────────────────────
+        Commands::Version { label } => {
+            use open_ontologies::ontology::OntologyService;
+            let (db, graph) = setup(&cli.data_dir)?;
+            let result = OntologyService::save_version(&db, &graph, &label)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            println!("{}", result);
+        }
+        Commands::History => {
+            use open_ontologies::ontology::OntologyService;
+            let (db, _graph) = setup(&cli.data_dir)?;
+            let result = OntologyService::list_versions(&db)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            println!("{}", result);
+        }
+        Commands::Rollback { label } => {
+            use open_ontologies::ontology::OntologyService;
+            let (db, graph) = setup(&cli.data_dir)?;
+            let result = OntologyService::rollback_version(&db, &graph, &label)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            println!("{}", result);
+        }
+
         // ─── Stub remaining subcommands ───────────────────────────
         _ => {
             output_json(&serde_json::json!({"error": "not implemented"}), cli.pretty);
