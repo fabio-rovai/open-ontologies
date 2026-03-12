@@ -1,4 +1,5 @@
-# Open Ontologies: A Terraforming MCP for Knowledge Graphs: validate, classify, and govern AI-generated ontologies.
+# Open Ontologies: 
+## A Terraforming MCP for Knowledge Graphs: validate, classify, and govern AI-generated ontologies.
 
 [![CI](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml/badge.svg)](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
