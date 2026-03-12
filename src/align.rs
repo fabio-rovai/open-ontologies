@@ -410,6 +410,30 @@ impl AlignmentEngine {
         // in align_feedback, which we add in the feedback task.
         Self::DEFAULT_WEIGHTS.to_vec()
     }
+
+    /// Record user feedback on an alignment candidate.
+    pub fn record_feedback(
+        &self,
+        source_iri: &str,
+        target_iri: &str,
+        predicted_relation: &str,
+        accepted: bool,
+    ) -> anyhow::Result<String> {
+        let conn = self.db.conn();
+        conn.execute(
+            "INSERT INTO align_feedback (source_iri, target_iri, predicted_relation, accepted)
+             VALUES (?1, ?2, ?3, ?4)",
+            rusqlite::params![source_iri, target_iri, predicted_relation, accepted as i32],
+        )?;
+
+        Ok(serde_json::json!({
+            "ok": true,
+            "source_iri": source_iri,
+            "target_iri": target_iri,
+            "predicted_relation": predicted_relation,
+            "accepted": accepted,
+        }).to_string())
+    }
 }
 
 /// Jaccard similarity between two sets of strings.
@@ -623,5 +647,32 @@ mod tests {
         };
         let sim = AlignmentEngine::label_similarity(&a, &b);
         assert!(sim > 0.95, "CamelCase split should match: {}", sim);
+    }
+
+    #[test]
+    fn test_align_feedback() {
+        let tmp = tempfile::NamedTempFile::new().unwrap();
+        let path = tmp.path().to_path_buf();
+        std::mem::forget(tmp);
+        let db = StateDb::open(&path).unwrap();
+        let graph = Arc::new(GraphStore::new());
+
+        let engine = AlignmentEngine::new(db.clone(), graph);
+        let result = engine.record_feedback(
+            "http://ex.org/Dog",
+            "http://other.org/Canine",
+            "owl:equivalentClass",
+            true,
+        ).unwrap();
+
+        let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["ok"].as_bool().unwrap(), true);
+
+        // Verify it was stored
+        let conn = db.conn();
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM align_feedback", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 1);
     }
 }
