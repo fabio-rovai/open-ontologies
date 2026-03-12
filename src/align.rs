@@ -153,6 +153,85 @@ impl AlignmentEngine {
         jaccard_similarity(&parents_a, &parents_b)
     }
 
+    /// Compute instance overlap — shared individuals typed under both classes (by local name).
+    fn instance_overlap(store_a: &GraphStore, class_a: &str, store_b: &GraphStore, class_b: &str) -> f64 {
+        let query_a = format!(
+            r#"SELECT DISTINCT ?ind WHERE {{ ?ind a <{class_a}> . FILTER(isIRI(?ind)) }}"#
+        );
+        let query_b = format!(
+            r#"SELECT DISTINCT ?ind WHERE {{ ?ind a <{class_b}> . FILTER(isIRI(?ind)) }}"#
+        );
+        let inds_a: Vec<String> = Self::extract_iris(store_a, &query_a, "ind")
+            .iter().map(|s| local_name(s)).collect();
+        let inds_b: Vec<String> = Self::extract_iris(store_b, &query_b, "ind")
+            .iter().map(|s| local_name(s)).collect();
+        jaccard_similarity(&inds_a, &inds_b)
+    }
+
+    /// Compute restriction similarity — compare owl:someValuesFrom / owl:allValuesFrom restrictions.
+    fn restriction_similarity(store_a: &GraphStore, class_a: &str, store_b: &GraphStore, class_b: &str) -> f64 {
+        let restriction_query = |class: &str| format!(
+            r#"SELECT DISTINCT ?prop ?filler WHERE {{
+                <{class}> <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?r .
+                ?r a <http://www.w3.org/2002/07/owl#Restriction> .
+                ?r <http://www.w3.org/2002/07/owl#onProperty> ?prop .
+                {{
+                    ?r <http://www.w3.org/2002/07/owl#someValuesFrom> ?filler .
+                }} UNION {{
+                    ?r <http://www.w3.org/2002/07/owl#allValuesFrom> ?filler .
+                }}
+            }}"#
+        );
+
+        let extract_restriction_sigs = |store: &GraphStore, class: &str| -> Vec<String> {
+            let query = restriction_query(class);
+            let result = match store.sparql_select(&query) {
+                Ok(r) => r,
+                Err(_) => return Vec::new(),
+            };
+            let parsed: serde_json::Value = match serde_json::from_str(&result) {
+                Ok(v) => v,
+                Err(_) => return Vec::new(),
+            };
+            parsed["results"]
+                .as_array()
+                .unwrap_or(&Vec::new())
+                .iter()
+                .filter_map(|row| {
+                    let prop = row["prop"].as_str()?;
+                    let filler = row["filler"].as_str()?;
+                    Some(format!("{}→{}", local_name(prop), local_name(filler)))
+                })
+                .collect()
+        };
+
+        let sigs_a = extract_restriction_sigs(store_a, class_a);
+        let sigs_b = extract_restriction_sigs(store_b, class_b);
+        jaccard_similarity(&sigs_a, &sigs_b)
+    }
+
+    /// Compute graph neighborhood similarity — 2-hop property comparison.
+    fn neighborhood_similarity(store_a: &GraphStore, class_a: &str, store_b: &GraphStore, class_b: &str) -> f64 {
+        let neighborhood_query = |class: &str| format!(
+            r#"SELECT DISTINCT ?prop WHERE {{
+                {{
+                    ?prop <http://www.w3.org/2000/01/rdf-schema#domain> <{class}> .
+                }} UNION {{
+                    <{class}> <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?parent .
+                    ?prop <http://www.w3.org/2000/01/rdf-schema#domain> ?parent .
+                }} UNION {{
+                    ?prop <http://www.w3.org/2000/01/rdf-schema#range> <{class}> .
+                }}
+            }}"#
+        );
+
+        let neigh_a: Vec<String> = Self::extract_iris(store_a, &neighborhood_query(class_a), "prop")
+            .iter().map(|s| local_name(s)).collect();
+        let neigh_b: Vec<String> = Self::extract_iris(store_b, &neighborhood_query(class_b), "prop")
+            .iter().map(|s| local_name(s)).collect();
+        jaccard_similarity(&neigh_a, &neigh_b)
+    }
+
     /// Compute label similarity between two classes (best match across all label variants).
     fn label_similarity(a: &ClassInfo, b: &ClassInfo) -> f64 {
         let mut best = 0.0f64;
