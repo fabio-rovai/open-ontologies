@@ -1,4 +1,5 @@
 use open_ontologies::enforce::Enforcer;
+use open_ontologies::feedback::record_tool_feedback;
 use open_ontologies::graph::GraphStore;
 use open_ontologies::state::StateDb;
 use std::sync::Arc;
@@ -181,4 +182,55 @@ fn test_enforce_compliance_score() {
 
     let score = parsed["compliance"].as_f64().unwrap();
     assert!(score >= 0.0 && score <= 1.0);
+}
+
+#[test]
+fn test_enforce_with_feedback_suppression() {
+    let tmp = NamedTempFile::new().unwrap();
+    let path = tmp.path().to_path_buf();
+    std::mem::forget(tmp);
+    let db = StateDb::open(&path).unwrap();
+    let graph = Arc::new(GraphStore::new());
+
+    // Load a class with no label (triggers missing_label rule in generic pack)
+    graph
+        .load_turtle(
+            r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix ex: <http://example.org/> .
+        ex:Dog a owl:Class .
+    "#,
+            None,
+        )
+        .unwrap();
+
+    let enforcer = Enforcer::new(db.clone(), graph.clone());
+
+    // Without feedback, violations should appear
+    let result = enforcer.enforce_with_feedback("generic", Some(&db)).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&result).unwrap();
+    let violations = v["violations"].as_array().unwrap();
+    assert!(violations.len() > 0);
+    assert_eq!(v["suppressed_count"].as_u64().unwrap(), 0);
+
+    // Find the entity string for the missing_label violation on Dog
+    let dog_violation = violations.iter().find(|v| {
+        v["rule"].as_str().unwrap_or("") == "missing_label"
+            && v["entity"].as_str().unwrap_or("").contains("example.org/Dog")
+    });
+    assert!(
+        dog_violation.is_some(),
+        "Should have missing_label violation for Dog"
+    );
+    let entity_str = dog_violation.unwrap()["entity"].as_str().unwrap();
+
+    // Dismiss 3 times using exact entity string
+    for _ in 0..3 {
+        record_tool_feedback(&db, "enforce", "missing_label", entity_str, false).unwrap();
+    }
+
+    // Now that violation should be suppressed
+    let result = enforcer.enforce_with_feedback("generic", Some(&db)).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert!(v["suppressed_count"].as_u64().unwrap() > 0);
 }

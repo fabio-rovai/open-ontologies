@@ -1,0 +1,34 @@
+[
+    [
+        "Document",
+        "Organization"
+    ],
+    [
+        "Document",
+        "Project"
+    ],
+    [
+        "Organization",
+        "Document"
+    ],
+    [
+        "Organization",
+        "Person"
+    ],
+    [
+        "Person",
+        "Organization"
+    ],
+    [
+        "Person",
+        "Project"
+    ],
+    [
+        "Project",
+        "Document"
+    ],
+    [
+        "Project",
+        "Person"
+    ]
+]

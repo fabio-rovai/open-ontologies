@@ -1,0 +1,102 @@
+[
+    [
+        "as WKT",
+        "has serialization"
+    ],
+    [
+        "end location",
+        "has geometry"
+    ],
+    [
+        "end location",
+        "location"
+    ],
+    [
+        "etcs system functionalities next five years",
+        "top data property"
+    ],
+    [
+        "hot axle box detector direction",
+        "top object property"
+    ],
+    [
+        "identifier",
+        "notation"
+    ],
+    [
+        "im code",
+        "identifier"
+    ],
+    [
+        "length of platform",
+        "length"
+    ],
+    [
+        "length of section of line",
+        "length"
+    ],
+    [
+        "length of siding",
+        "length"
+    ],
+    [
+        "length of tunnel",
+        "length"
+    ],
+    [
+        "line reference tunnel end",
+        "line reference"
+    ],
+    [
+        "line reference tunnel start",
+        "line reference"
+    ],
+    [
+        "lineside distance indication positioning",
+        "top object property"
+    ],
+    [
+        "location",
+        "based near"
+    ],
+    [
+        "permission charging electric energy traction standstill",
+        "top data property"
+    ],
+    [
+        "siding id",
+        "identifier"
+    ],
+    [
+        "signal id",
+        "identifier"
+    ],
+    [
+        "start location",
+        "has geometry"
+    ],
+    [
+        "start location",
+        "location"
+    ],
+    [
+        "taf TAP code",
+        "identifier"
+    ],
+    [
+        "track id",
+        "identifier"
+    ],
+    [
+        "track load capability",
+        "top object property"
+    ],
+    [
+        "tunnel identification",
+        "identifier"
+    ],
+    [
+        "uopid",
+        "identifier"
+    ]
+]

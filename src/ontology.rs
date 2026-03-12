@@ -96,14 +96,8 @@ impl OntologyService {
         .to_string())
     }
 
-    /// Lint an ontology -- check for missing labels, comments, domains.
-    pub fn lint(content: &str) -> anyhow::Result<String> {
-        let store = Store::new()?;
-        let reader = Cursor::new(content.as_bytes());
-        for quad in RdfParser::from_format(RdfFormat::Turtle).for_reader(reader) {
-            store.insert(&quad?)?;
-        }
-
+    /// Collect raw lint issues from a Store.
+    fn collect_lint_issues(store: &Store) -> anyhow::Result<Vec<serde_json::Value>> {
         let mut issues: Vec<serde_json::Value> = Vec::new();
 
         // Find classes without rdfs:label
@@ -172,11 +166,59 @@ impl OntologyService {
             }
         }
 
+        Ok(issues)
+    }
+
+    /// Lint an ontology with feedback-based suppression.
+    pub fn lint_with_feedback(content: &str, db: Option<&crate::state::StateDb>) -> anyhow::Result<String> {
+        let store = Store::new()?;
+        let reader = Cursor::new(content.as_bytes());
+        for quad in RdfParser::from_format(RdfFormat::Turtle).for_reader(reader) {
+            store.insert(&quad?)?;
+        }
+
+        let raw_issues = Self::collect_lint_issues(&store)?;
+        let mut issues: Vec<serde_json::Value> = Vec::new();
+        let mut suppressed_count: u64 = 0;
+
+        for issue in raw_issues {
+            if let Some(db) = db {
+                let rule_id = issue["type"].as_str().unwrap_or("");
+                let entity = issue["entity"].as_str().unwrap_or("");
+                match crate::feedback::get_feedback_adjustment(db, "lint", rule_id, entity) {
+                    crate::feedback::FeedbackAction::Suppress => {
+                        suppressed_count += 1;
+                        continue;
+                    }
+                    crate::feedback::FeedbackAction::Downgrade => {
+                        let original = issue["severity"].as_str().unwrap_or("info");
+                        let downgraded = crate::feedback::downgrade_severity(original);
+                        let mut adjusted = issue.clone();
+                        adjusted["original_severity"] = serde_json::json!(original);
+                        adjusted["adjusted_severity"] = serde_json::json!(downgraded);
+                        adjusted["severity"] = serde_json::json!(downgraded);
+                        issues.push(adjusted);
+                    }
+                    crate::feedback::FeedbackAction::Keep => {
+                        issues.push(issue);
+                    }
+                }
+            } else {
+                issues.push(issue);
+            }
+        }
+
         Ok(serde_json::json!({
             "issues": issues,
             "issue_count": issues.len(),
+            "suppressed_count": suppressed_count,
         })
         .to_string())
+    }
+
+    /// Lint an ontology -- check for missing labels, comments, domains.
+    pub fn lint(content: &str) -> anyhow::Result<String> {
+        Self::lint_with_feedback(content, None)
     }
 
     /// Save a named version (snapshot) of the current graph store.

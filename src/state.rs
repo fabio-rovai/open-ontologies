@@ -82,6 +82,16 @@ CREATE TABLE IF NOT EXISTS align_feedback (
 );
 
 CREATE INDEX IF NOT EXISTS idx_align_feedback_iris ON align_feedback(source_iri, target_iri);
+
+CREATE TABLE IF NOT EXISTS tool_feedback (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tool TEXT NOT NULL,
+    rule_id TEXT NOT NULL,
+    entity TEXT NOT NULL,
+    accepted INTEGER NOT NULL,
+    timestamp TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_tool_feedback ON tool_feedback(tool, rule_id, entity);
 ";
 
 /// Minimal SQLite state store for ontology versioning.

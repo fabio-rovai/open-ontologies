@@ -1,0 +1,34 @@
+[
+    [
+        "consumes",
+        "is used for"
+    ],
+    [
+        "controls",
+        "targets"
+    ],
+    [
+        "has device kind",
+        "has feature kind"
+    ],
+    [
+        "is controlled by",
+        "is target of"
+    ],
+    [
+        "is observed by",
+        "is target of"
+    ],
+    [
+        "observes",
+        "targets"
+    ],
+    [
+        "produces",
+        "is used for"
+    ],
+    [
+        "stores",
+        "is used for"
+    ]
+]

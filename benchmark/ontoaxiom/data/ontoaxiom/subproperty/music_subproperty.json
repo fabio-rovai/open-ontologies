@@ -1,0 +1,326 @@
+[
+    [
+        "amazon asin",
+        "is primary topic of"
+    ],
+    [
+        "arranged in",
+        "is factor of"
+    ],
+    [
+        "arrangement of",
+        "factor"
+    ],
+    [
+        "available as",
+        "exemplar"
+    ],
+    [
+        "biography",
+        "is primary topic of"
+    ],
+    [
+        "catalogue number",
+        "uuid"
+    ],
+    [
+        "composed in",
+        "produced in"
+    ],
+    [
+        "composer",
+        "agent"
+    ],
+    [
+        "conducted",
+        "event"
+    ],
+    [
+        "conducted",
+        "is agent in"
+    ],
+    [
+        "conductor",
+        "agent"
+    ],
+    [
+        "contains sample from",
+        "derived from"
+    ],
+    [
+        "derived from",
+        "source"
+    ],
+    [
+        "discography",
+        "is primary topic of"
+    ],
+    [
+        "discogs",
+        "is primary topic of"
+    ],
+    [
+        "djmix of",
+        "derived from"
+    ],
+    [
+        "download",
+        "is primary topic of"
+    ],
+    [
+        "ean",
+        "gtin"
+    ],
+    [
+        "engineer",
+        "agent"
+    ],
+    [
+        "engineered",
+        "event"
+    ],
+    [
+        "engineered",
+        "is agent in"
+    ],
+    [
+        "event homepage",
+        "is primary topic of"
+    ],
+    [
+        "fanpage",
+        "is primary topic of"
+    ],
+    [
+        "free download",
+        "download"
+    ],
+    [
+        "free download",
+        "is primary topic of"
+    ],
+    [
+        "genre",
+        "genre"
+    ],
+    [
+        "grid",
+        "uuid"
+    ],
+    [
+        "headliner",
+        "performer"
+    ],
+    [
+        "homepage",
+        "is primary topic of"
+    ],
+    [
+        "image",
+        "depiction"
+    ],
+    [
+        "imdb",
+        "is primary topic of"
+    ],
+    [
+        "instrument",
+        "factor"
+    ],
+    [
+        "ipi",
+        "uuid"
+    ],
+    [
+        "ismn",
+        "uuid"
+    ],
+    [
+        "isrc",
+        "uuid"
+    ],
+    [
+        "iswc",
+        "uuid"
+    ],
+    [
+        "item",
+        "available as"
+    ],
+    [
+        "lc",
+        "uuid"
+    ],
+    [
+        "listened",
+        "event"
+    ],
+    [
+        "listened",
+        "is agent in"
+    ],
+    [
+        "listener",
+        "agent"
+    ],
+    [
+        "mailorder",
+        "is primary topic of"
+    ],
+    [
+        "mashup of",
+        "derived from"
+    ],
+    [
+        "media type",
+        "format"
+    ],
+    [
+        "medley of",
+        "derived from"
+    ],
+    [
+        "member",
+        "member"
+    ],
+    [
+        "musicbrainz",
+        "is primary topic of"
+    ],
+    [
+        "musicbrainz guid",
+        "uuid"
+    ],
+    [
+        "musicmoz",
+        "is primary topic of"
+    ],
+    [
+        "myspace",
+        "is primary topic of"
+    ],
+    [
+        "olga",
+        "is primary topic of"
+    ],
+    [
+        "onlinecommunity",
+        "is primary topic of"
+    ],
+    [
+        "paid download",
+        "download"
+    ],
+    [
+        "paid download",
+        "is primary topic of"
+    ],
+    [
+        "performance of",
+        "factor"
+    ],
+    [
+        "performed",
+        "event"
+    ],
+    [
+        "performed",
+        "is agent in"
+    ],
+    [
+        "performed in",
+        "is factor of"
+    ],
+    [
+        "performer",
+        "agent"
+    ],
+    [
+        "preview",
+        "available as"
+    ],
+    [
+        "preview download",
+        "download"
+    ],
+    [
+        "preview download",
+        "is primary topic of"
+    ],
+    [
+        "produced score",
+        "product"
+    ],
+    [
+        "produced signal",
+        "product"
+    ],
+    [
+        "produced signal group",
+        "product"
+    ],
+    [
+        "produced sound",
+        "product"
+    ],
+    [
+        "produced work",
+        "product"
+    ],
+    [
+        "published as",
+        "embodiment"
+    ],
+    [
+        "recorded in",
+        "is factor of"
+    ],
+    [
+        "recording of",
+        "factor"
+    ],
+    [
+        "release",
+        "product"
+    ],
+    [
+        "remaster of",
+        "derived from"
+    ],
+    [
+        "remix of",
+        "derived from"
+    ],
+    [
+        "remixer",
+        "interpreter"
+    ],
+    [
+        "review",
+        "is primary topic of"
+    ],
+    [
+        "sampled version of",
+        "derived from"
+    ],
+    [
+        "sampler",
+        "interpreter"
+    ],
+    [
+        "singer",
+        "performer"
+    ],
+    [
+        "upc",
+        "gtin"
+    ],
+    [
+        "uuid",
+        "identifier"
+    ],
+    [
+        "wikipedia",
+        "is primary topic of"
+    ]
+]

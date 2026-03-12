@@ -1,0 +1,54 @@
+[
+    [
+        "has beginning",
+        "has time"
+    ],
+    [
+        "has duration",
+        "has temporal duration"
+    ],
+    [
+        "has duration description",
+        "has temporal duration"
+    ],
+    [
+        "has end",
+        "has time"
+    ],
+    [
+        "in date time",
+        "in temporal position"
+    ],
+    [
+        "in time position",
+        "in temporal position"
+    ],
+    [
+        "interval after",
+        "after"
+    ],
+    [
+        "interval after",
+        "interval disjoint"
+    ],
+    [
+        "interval before",
+        "before"
+    ],
+    [
+        "interval before",
+        "interval disjoint"
+    ],
+    [
+        "interval during",
+        "interval in"
+    ],
+    [
+        "interval finishes",
+        "interval in"
+    ],
+    [
+        "interval starts",
+        "interval in"
+    ]
+]

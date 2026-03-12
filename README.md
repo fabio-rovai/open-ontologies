@@ -2,9 +2,10 @@
 
 [![CI](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml/badge.svg)](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![MCP Badge](https://lobehub.com/badge/mcp/fabio-rovai-open-ontologies)](https://lobehub.com/mcp/fabio-rovai-open-ontologies)
 
 
-Open Ontologies is a standalone MCP server and CLI for AI-native ontology engineering. It exposes 37 tools that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — plus plan changes, detect drift, enforce design patterns, monitor health, align ontologies, and track lineage.
+Open Ontologies is a standalone MCP server and CLI for AI-native ontology engineering. It exposes 39 tools that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — plus plan changes, detect drift, enforce design patterns, monitor health, align ontologies, track lineage, and learn from user feedback.
 
 Written in Rust, ships as a single binary. No JVM, no Protege, no GUI.
 
@@ -21,7 +22,10 @@ cargo build --release
 ./target/release/open-ontologies init
 ```
 
-### 2. Connect to Claude Code
+### 2. Connect to your MCP client
+
+<details>
+<summary><strong>Claude Code</strong></summary>
 
 Add to `~/.claude/settings.json`:
 
@@ -37,6 +41,41 @@ Add to `~/.claude/settings.json`:
 ```
 
 Restart Claude Code. The `onto_*` tools are now available.
+</details>
+
+<details>
+<summary><strong>Claude Desktop</strong></summary>
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+
+```json
+{
+  "mcpServers": {
+    "open-ontologies": {
+      "command": "/path/to/open-ontologies/target/release/open-ontologies",
+      "args": ["serve"]
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>Cursor / Windsurf / any MCP-compatible IDE</strong></summary>
+
+Add to your MCP settings (usually `.cursor/mcp.json` or equivalent):
+
+```json
+{
+  "mcpServers": {
+    "open-ontologies": {
+      "command": "/path/to/open-ontologies/target/release/open-ontologies",
+      "args": ["serve"]
+    }
+  }
+}
+```
+</details>
 
 ### 3. Build your first ontology
 
@@ -120,7 +159,7 @@ This is not a fixed pipeline. Claude is the orchestrator — it decides what to 
 
 ## Tools
 
-37 tools organized by function:
+39 tools organized by function:
 
 | Category | Tools | Purpose |
 | -------- | ----- | ------- |
@@ -132,6 +171,7 @@ This is not a fixed pipeline. Claude is the orchestrator — it decides what to 
 | **Lifecycle** | `plan`, `apply`, `lock`, `drift`, `enforce`, `monitor`, `monitor-clear`, `lineage` | Terraform-style change management |
 | **Alignment** | `align`, `align-feedback` | Cross-ontology class matching with self-calibrating confidence |
 | **Clinical** | `crosswalk`, `enrich`, `validate-clinical` | ICD-10 / SNOMED / MeSH crosswalks |
+| **Feedback** | `lint-feedback`, `enforce-feedback` | Self-calibrating suppression — teach lint/enforce to stop repeating dismissed warnings |
 | **Reasoning** | `reason` (rdfs, owl-rl, owl-rl-ext, owl-dl), `dl_explain`, `dl_check` | Native SHOIQ tableaux reasoner |
 
 All tools are available both as MCP tools (prefixed `onto_`) and as CLI subcommands.
@@ -233,6 +273,8 @@ flowchart LR
 **Drift** — Compares versions, detects renames via Jaro-Winkler similarity, computes drift velocity. Self-calibrating confidence via SQLite feedback loop.
 
 **Lineage** — Append-only audit trail of all lifecycle operations.
+
+**Feedback** — Lint and enforce learn from your decisions. Dismiss a warning 3 times and it's suppressed; accept it once and it sticks. Same self-calibrating pattern used by `align` and `drift`.
 
 ### Schema Alignment
 
@@ -378,6 +420,46 @@ The reasoner is conservative — it flags safe mushrooms as suspicious before ev
 Category recall is lower because TTL files use fine-grained categories ("animal body part", "vehicle part") while ground truth uses broad labels ("animal", "vehicle"). The value is in queryability — you can't ask "find all images containing animals near water" with flat text labels.
 
 The benchmark runs the full MCP pipeline: `onto_clear` → `onto_validate` (×10) → `onto_load` (×10) → `onto_stats` → `onto_lint` (×10) → `onto_query` (×6) via the real MCP server using the official MCP Python SDK over JSON-RPC 2.0 stdio. Files: [`benchmark/vision/`](benchmark/vision/)
+
+### OntoAxiom Benchmark — Tool-Augmented vs Bare LLMs
+
+[OntoAxiom](https://arxiv.org/abs/2512.05594) tests LLM axiom identification across 9 ontologies and 3,042 ground truth axioms. Best bare LLM (o1): F1 = 0.197. We load the ontology and extract axioms via structured queries — the same `onto_load` + `onto_query` pipeline.
+
+| Axiom Type | Open Ontologies | Best LLM (o1) | Improvement |
+| ---------- | --------------- | -------------- | ----------- |
+| subClassOf | **0.412** | 0.359 | +15% |
+| disjointWith | **0.421** | 0.095 | +343% |
+| domain | **0.237** | 0.038 | +524% |
+| range | **0.232** | 0.030 | +673% |
+| subPropertyOf | **0.344** | 0.106 | +225% |
+| **OVERALL** | **0.305** | **0.197** | **+55%** |
+
+Open Ontologies wins all 5 axiom types. 10 individual results scored PERFECT (F1 = 1.000). Full writeup: [`benchmark/ontoaxiom/ONTOAXIOM_SHOWDOWN.md`](benchmark/ontoaxiom/ONTOAXIOM_SHOWDOWN.md)
+
+### Reasoning Performance — HermiT vs Open Ontologies
+
+Real benchmarks, not marketing claims. Java 25, HermiT 1.4.3.456, OWL API 4.5.29.
+
+**Pizza Ontology (4,179 triples)**
+
+| Tool | Time | Result |
+| ---- | ---- | ------ |
+| HermiT | 213ms | 312 subsumptions |
+| Open Ontologies (OWL-RL) | 43ms | Load + rule-based inference |
+| Open Ontologies (OWL-DL) | 19ms | Consistency check, SHOIQ tableaux |
+
+**LUBM Scaling (load + reason cycle)**
+
+| Axioms | Open Ontologies | HermiT | Speedup |
+| ------ | --------------- | ------- | ------- |
+| 1,000 | 15ms | 112ms | **7.5x** |
+| 5,000 | 14ms | 410ms | **29x** |
+| 10,000 | 14ms | 1,200ms | **86x** |
+| 50,000 | 15ms | 24,490ms | **1,633x** |
+
+OO's time stays flat — OWL-RL is SPARQL-based rule application, not tableaux expansion. HermiT's tableaux algorithm grows super-linearly with ontology size. Both produce correct results; different reasoning strategies for different use cases.
+
+Scripts and results: [`benchmark/reasoner/`](benchmark/reasoner/)
 
 ## Architecture
 
