@@ -10,11 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      CARGO_INCREMENTAL: 0
+      CARGO_PROFILE_DEV_DEBUG: 0
     steps:
       - uses: actions/checkout@v4
       - name: Free disk space
         run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/powershell
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/powershell /usr/local/share/chromium /usr/local/share/edge
+          sudo apt-get clean
           df -h
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -23,7 +26,7 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y libpq-dev
       - name: Build
-        run: cargo build --all-targets
+        run: cargo build
       - name: Test
         run: cargo test
       - name: Clippy
@@ -31,4 +34,4 @@ jobs:
       - name: Audit
         run: |
           cargo install cargo-audit
-          cargo audit --ignore RUSTSEC-2023-0071
+          cargo audit

@@ -32,7 +32,7 @@ serde_yaml = "0.9"
 calamine = "0.26"
 arrow = { version = "54", default-features = false, features = ["csv", "json"] }
 parquet = { version = "54", default-features = false, features = ["arrow"] }
-sqlx = { version = "0.8", features = ["runtime-tokio", "postgres"], optional = true }
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "postgres"], optional = true }
 
 [features]
 default = ["postgres"]
