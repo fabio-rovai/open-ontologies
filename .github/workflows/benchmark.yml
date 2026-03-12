@@ -5,9 +5,12 @@ on:
 jobs:
   benchmark:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -19,6 +22,12 @@ jobs:
         run: pip install matplotlib
       - name: Build Open Ontologies
         run: cargo build --release
+      - name: Download reasoner JARs
+        run: bash benchmark/reasoner/setup_jars.sh
+      - name: Run Pizza correctness
+        run: |
+          export OO_BIN=./target/release/open-ontologies
+          cd benchmark/reasoner && bash run_pizza_correctness.sh
       - name: Run LUBM performance
         run: |
           export OO_BIN=./target/release/open-ontologies
