@@ -1,6 +1,9 @@
 # Open Ontologies
 
-AI-native ontology engine — build production ontologies in minutes instead of months.
+[![CI](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml/badge.svg)](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+Terraform for Knowledge Graphs — validate, classify, and govern AI-generated ontologies.
 
 ## Why not just ask Claude directly?
 
@@ -18,6 +21,36 @@ You can ask Claude to generate an ontology in a single prompt — and it will. C
 | No integration | You can't push to a SPARQL endpoint, pull from a remote ontology, or resolve owl:imports chains. |
 
 **Open Ontologies solves every one of these.** It's a proper RDF/SPARQL engine (Oxigraph) exposed as 35 MCP tools that Claude calls automatically. Generate → validate → load → query → iterate → persist — plus a full Terraform-style lifecycle for managing ontology evolution in production.
+
+## The problem: AI generates knowledge, but can't guarantee consistency
+
+LLMs can extract entities, build schemas, and generate ontologies. But they can't guarantee the result is logically consistent, structurally valid, or safe to deploy.
+
+**Open Ontologies is the safety and automation layer.** Like Terraform validates infrastructure before applying it, Open Ontologies validates ontologies before they go live. Plan changes, detect drift, enforce design patterns, monitor health — with a full audit trail.
+
+Position it in your stack:
+
+| Layer | Tool | What it does |
+| ----- | ---- | ------------ |
+| Generation | Claude / GPT / LLaMA | Generates OWL/RDF from natural language |
+| **Validation** | **Open Ontologies** | **Validates, classifies, enforces, monitors** |
+| Storage | SPARQL endpoint / triplestore | Persists the production ontology |
+| Consumption | Your app / API / pipeline | Queries the knowledge graph |
+
+## Demo: Database → Ontology in 3 commands
+
+```bash
+# Import a PostgreSQL schema as OWL
+open-ontologies import-schema postgres://demo:demo@localhost/shop
+
+# Classify with native OWL2-DL reasoner
+open-ontologies reason --profile owl-dl
+
+# Query the result
+open-ontologies query "SELECT ?c ?label WHERE { ?c a owl:Class . ?c rdfs:label ?label }"
+```
+
+See [`benchmark/demo/`](benchmark/demo/) for a full Docker-based example.
 
 ## What is it?
 
@@ -200,7 +233,52 @@ flowchart TD
 | `onto_validate_clinical` | Validate ontology class labels against clinical crosswalk terminology |
 | `onto_lineage` | View compressed lineage trail for the current session (plan → enforce → apply → monitor → drift) |
 
+## CLI
+
+Open Ontologies ships as a single binary with subcommands mirroring every MCP tool. Use it standalone or as an MCP server.
+
+```bash
+open-ontologies <command> [args] [--pretty] [--data-dir ~/.open-ontologies]
+```
+
+| Category | Commands |
+| -------- | -------- |
+| Core | `validate`, `load`, `save`, `clear`, `stats`, `query`, `diff`, `lint`, `convert`, `status` |
+| Remote | `pull`, `push`, `import-owl` |
+| Schema | `import-schema` (PostgreSQL → OWL) |
+| Data | `map`, `ingest`, `shacl`, `reason`, `extend` |
+| Versioning | `version`, `history`, `rollback` |
+| Lifecycle | `plan`, `apply`, `lock`, `drift`, `enforce`, `monitor`, `monitor-clear`, `lineage` |
+| Clinical | `crosswalk`, `enrich`, `validate-clinical` |
+| Server | `init`, `serve` (MCP server mode) |
+
+Run `open-ontologies --help` for full usage.
+
 ## Benchmarks
+
+### Reasoner Performance
+
+Open Ontologies includes a native Rust OWL2-DL reasoner (SHOIQ tableaux). Benchmark it against Java reasoners:
+
+| Reasoner | Language | JVM required | Parallel | SHOIQ |
+| -------- | -------- | ------------ | -------- | ----- |
+| **Open Ontologies** | Rust | No | Yes (rayon) | Yes |
+| HermiT | Java | Yes | No | Yes |
+| Pellet | Java | Yes | No | Yes |
+
+Run the benchmarks yourself:
+
+```bash
+# Correctness: compare subsumptions against HermiT/Pellet on Pizza ontology
+cd benchmark/reasoner && bash run_pizza_correctness.sh
+
+# Performance: LUBM-style ontologies at 1K–50K axioms
+cd benchmark/reasoner && bash run_lubm_performance.sh
+```
+
+See [`benchmark/reasoner/README.md`](benchmark/reasoner/README.md) for Java setup instructions.
+
+### Ontology Generation & Extension
 
 Open Ontologies covers two distinct capabilities, each benchmarked separately:
 
