@@ -4,6 +4,14 @@ fn oo() -> Command {
     Command::new(env!("CARGO_BIN_EXE_open-ontologies"))
 }
 
+/// Create an oo() command with an isolated temp data-dir to avoid SQLite lock
+/// conflicts when tests run in parallel.
+fn oo_isolated(dir: &tempfile::TempDir) -> Command {
+    let mut cmd = oo();
+    cmd.arg("--data-dir").arg(dir.path());
+    cmd
+}
+
 #[test]
 fn test_cli_help() {
     let out = oo().arg("--help").output().unwrap();
@@ -48,7 +56,8 @@ fn test_cli_validate_stdin() {
 
 #[test]
 fn test_cli_stats_empty() {
-    let out = oo().arg("stats").output().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let out = oo_isolated(&dir).arg("stats").output().unwrap();
     assert!(out.status.success());
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(stdout.contains("classes"));
@@ -56,13 +65,15 @@ fn test_cli_stats_empty() {
 
 #[test]
 fn test_cli_clear() {
-    let out = oo().arg("clear").output().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let out = oo_isolated(&dir).arg("clear").output().unwrap();
     assert!(out.status.success());
 }
 
 #[test]
 fn test_cli_status() {
-    let out = oo().arg("status").output().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let out = oo_isolated(&dir).arg("status").output().unwrap();
     assert!(out.status.success());
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(stdout.contains("ok"));
@@ -72,13 +83,15 @@ fn test_cli_status() {
 
 #[test]
 fn test_cli_history_empty() {
-    let out = oo().arg("history").output().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let out = oo_isolated(&dir).arg("history").output().unwrap();
     assert!(out.status.success());
 }
 
 #[test]
 fn test_cli_version_and_rollback() {
-    let out = oo().args(["version", "test-v1"]).output().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let out = oo_isolated(&dir).args(["version", "test-v1"]).output().unwrap();
     assert!(out.status.success());
 }
 
@@ -86,7 +99,8 @@ fn test_cli_version_and_rollback() {
 
 #[test]
 fn test_cli_reason_empty_store() {
-    let out = oo().args(["reason", "--profile", "rdfs"]).output().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let out = oo_isolated(&dir).args(["reason", "--profile", "rdfs"]).output().unwrap();
     assert!(out.status.success());
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(stdout.contains("inferred") || stdout.contains("triples"));
@@ -98,7 +112,7 @@ fn test_cli_ingest_csv() {
     let csv_path = dir.path().join("data.csv");
     std::fs::write(&csv_path, "name,age\nAlice,30\nBob,25").unwrap();
 
-    let out = oo()
+    let out = oo_isolated(&dir)
         .args(["ingest", csv_path.to_str().unwrap()])
         .output().unwrap();
     assert!(out.status.success());
@@ -108,7 +122,8 @@ fn test_cli_ingest_csv() {
 
 #[test]
 fn test_cli_enforce_generic() {
-    let out = oo().args(["enforce", "generic"]).output().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let out = oo_isolated(&dir).args(["enforce", "generic"]).output().unwrap();
     assert!(out.status.success());
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(stdout.contains("compliance") || stdout.contains("violations"));
@@ -124,7 +139,7 @@ fn test_cli_plan() {
         ex:Dog a owl:Class .
     "#).unwrap();
 
-    let out = oo().args(["plan", ttl_path.to_str().unwrap()]).output().unwrap();
+    let out = oo_isolated(&dir).args(["plan", ttl_path.to_str().unwrap()]).output().unwrap();
     assert!(out.status.success());
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(stdout.contains("risk_score") || stdout.contains("added"));
@@ -155,12 +170,14 @@ fn test_cli_drift() {
 
 #[test]
 fn test_cli_lineage() {
-    let out = oo().arg("lineage").output().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let out = oo_isolated(&dir).arg("lineage").output().unwrap();
     assert!(out.status.success());
 }
 
 #[test]
 fn test_cli_monitor_clear() {
-    let out = oo().arg("monitor-clear").output().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let out = oo_isolated(&dir).arg("monitor-clear").output().unwrap();
     assert!(out.status.success());
 }
