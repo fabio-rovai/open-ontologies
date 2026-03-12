@@ -76,6 +76,83 @@ impl AlignmentEngine {
         class_map.into_values().collect()
     }
 
+    /// Extract property IRIs whose domain is the given class.
+    fn extract_properties(store: &GraphStore, class_iri: &str) -> Vec<String> {
+        let query = format!(
+            r#"SELECT DISTINCT ?prop WHERE {{
+                ?prop <http://www.w3.org/2000/01/rdf-schema#domain> <{class_iri}> .
+            }}"#
+        );
+        Self::extract_iris(store, &query, "prop")
+    }
+
+    /// Extract rdfs:subClassOf parents for a class.
+    fn extract_parents(store: &GraphStore, class_iri: &str) -> Vec<String> {
+        let query = format!(
+            r#"SELECT DISTINCT ?parent WHERE {{
+                <{class_iri}> <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?parent .
+                FILTER(isIRI(?parent))
+            }}"#
+        );
+        Self::extract_iris(store, &query, "parent")
+    }
+
+    /// Extract property ranges for a class's properties.
+    fn extract_ranges(store: &GraphStore, class_iri: &str) -> Vec<String> {
+        let query = format!(
+            r#"SELECT DISTINCT ?range WHERE {{
+                ?prop <http://www.w3.org/2000/01/rdf-schema#domain> <{class_iri}> .
+                ?prop <http://www.w3.org/2000/01/rdf-schema#range> ?range .
+            }}"#
+        );
+        Self::extract_iris(store, &query, "range")
+    }
+
+    /// Helper: run a SPARQL SELECT and extract a single variable's values.
+    fn extract_iris(store: &GraphStore, query: &str, var: &str) -> Vec<String> {
+        let result = match store.sparql_select(query) {
+            Ok(r) => r,
+            Err(_) => return Vec::new(),
+        };
+        let parsed: serde_json::Value = match serde_json::from_str(&result) {
+            Ok(v) => v,
+            Err(_) => return Vec::new(),
+        };
+        parsed["results"]
+            .as_array()
+            .unwrap_or(&Vec::new())
+            .iter()
+            .filter_map(|row| {
+                row[var]
+                    .as_str()
+                    .map(|s| s.trim_matches(|c| c == '<' || c == '>').to_string())
+            })
+            .collect()
+    }
+
+    /// Compute property signature overlap (Jaccard on domain properties + ranges).
+    fn property_overlap(store_a: &GraphStore, class_a: &str, store_b: &GraphStore, class_b: &str) -> f64 {
+        let props_a = Self::extract_properties(store_a, class_a);
+        let props_b = Self::extract_properties(store_b, class_b);
+        let ranges_a = Self::extract_ranges(store_a, class_a);
+        let ranges_b = Self::extract_ranges(store_b, class_b);
+
+        // Combine property local names + range local names for comparison
+        let sig_a: Vec<String> = props_a.iter().chain(ranges_a.iter()).map(|s| local_name(s)).collect();
+        let sig_b: Vec<String> = props_b.iter().chain(ranges_b.iter()).map(|s| local_name(s)).collect();
+
+        jaccard_similarity(&sig_a, &sig_b)
+    }
+
+    /// Compute parent overlap (Jaccard on rdfs:subClassOf parents by local name).
+    fn parent_overlap(store_a: &GraphStore, class_a: &str, store_b: &GraphStore, class_b: &str) -> f64 {
+        let parents_a: Vec<String> = Self::extract_parents(store_a, class_a)
+            .iter().map(|s| local_name(s)).collect();
+        let parents_b: Vec<String> = Self::extract_parents(store_b, class_b)
+            .iter().map(|s| local_name(s)).collect();
+        jaccard_similarity(&parents_a, &parents_b)
+    }
+
     /// Compute label similarity between two classes (best match across all label variants).
     fn label_similarity(a: &ClassInfo, b: &ClassInfo) -> f64 {
         let mut best = 0.0f64;
@@ -90,6 +167,18 @@ impl AlignmentEngine {
         }
         best
     }
+}
+
+/// Jaccard similarity between two sets of strings.
+fn jaccard_similarity(a: &[String], b: &[String]) -> f64 {
+    if a.is_empty() && b.is_empty() {
+        return 0.0;
+    }
+    let set_a: std::collections::HashSet<&str> = a.iter().map(|s| s.as_str()).collect();
+    let set_b: std::collections::HashSet<&str> = b.iter().map(|s| s.as_str()).collect();
+    let intersection = set_a.intersection(&set_b).count() as f64;
+    let union = set_a.union(&set_b).count() as f64;
+    if union == 0.0 { 0.0 } else { intersection / union }
 }
 
 /// Metadata about a class extracted from an ontology.
@@ -150,6 +239,30 @@ mod tests {
         // Exact label match should give 1.0
         let sim = AlignmentEngine::label_similarity(&a, &b);
         assert!((sim - 1.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_property_overlap_identical() {
+        let a = vec!["http://ex.org/hasName".into(), "http://ex.org/hasAge".into()];
+        let b = vec!["http://ex.org/hasName".into(), "http://ex.org/hasAge".into()];
+        let sim = jaccard_similarity(&a, &b);
+        assert!((sim - 1.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_property_overlap_partial() {
+        let a = vec!["http://ex.org/hasName".into(), "http://ex.org/hasAge".into()];
+        let b = vec!["http://ex.org/hasName".into(), "http://ex.org/hasColor".into()];
+        let sim = jaccard_similarity(&a, &b);
+        assert!((sim - 1.0 / 3.0).abs() < 0.001); // intersection=1, union=3
+    }
+
+    #[test]
+    fn test_property_overlap_empty() {
+        let a: Vec<String> = vec![];
+        let b: Vec<String> = vec![];
+        let sim = jaccard_similarity(&a, &b);
+        assert!((sim - 0.0).abs() < 0.001);
     }
 
     #[test]
