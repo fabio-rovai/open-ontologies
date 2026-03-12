@@ -176,6 +176,36 @@ enum Commands {
         session: Option<String>,
     },
 
+    // ─── Alignment ────────────────────────────────────────────────
+    /// Detect alignment candidates between two ontologies
+    Align {
+        /// Source ontology file
+        source: String,
+        /// Target ontology file (if omitted, aligns against loaded store)
+        target: Option<String>,
+        /// Minimum confidence threshold (default 0.85)
+        #[arg(long, default_value = "0.85")]
+        min_confidence: f64,
+        /// Dry run — show candidates without inserting triples
+        #[arg(long)]
+        dry_run: bool,
+    },
+    /// Accept or reject an alignment candidate
+    AlignFeedback {
+        /// Source class IRI
+        #[arg(long)]
+        source: String,
+        /// Target class IRI
+        #[arg(long)]
+        target: String,
+        /// Accept the candidate
+        #[arg(long, conflicts_with = "reject")]
+        accept: bool,
+        /// Reject the candidate
+        #[arg(long, conflicts_with = "accept")]
+        reject: bool,
+    },
+
     // ─── Clinical ─────────────────────────────────────────────────
     /// Look up clinical terminology crosswalk
     Crosswalk {
@@ -833,6 +863,42 @@ async fn main() -> anyhow::Result<()> {
         Commands::ImportSchema { .. } => {
             output_json(&serde_json::json!({"error": "import-schema requires the 'postgres' feature (compile with --features postgres)"}), cli.pretty);
             std::process::exit(1);
+        }
+        Commands::Align { source, target, min_confidence, dry_run } => {
+            let (db, graph) = setup(&cli.data_dir)?;
+            let source_ttl = std::fs::read_to_string(&source)?;
+            let target_ttl = match target {
+                Some(ref t) => Some(std::fs::read_to_string(t)?),
+                None => None,
+            };
+            let engine = open_ontologies::align::AlignmentEngine::new(db, graph);
+            let result = engine.align(&source_ttl, target_ttl.as_deref(), min_confidence, dry_run)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            if cli.pretty {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
+                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
+                } else {
+                    println!("{}", result);
+                }
+            } else {
+                println!("{}", result);
+            }
+        }
+        Commands::AlignFeedback { source, target, accept, reject } => {
+            let (db, graph) = setup(&cli.data_dir)?;
+            let engine = open_ontologies::align::AlignmentEngine::new(db, graph);
+            let accepted = accept || !reject;
+            let result = engine.record_feedback(&source, &target, "user_feedback", accepted)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            if cli.pretty {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
+                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
+                } else {
+                    println!("{}", result);
+                }
+            } else {
+                println!("{}", result);
+            }
         }
     }
 
