@@ -1,5 +1,4 @@
 /// Database schema introspection and OWL generation.
-
 pub struct TableInfo {
     pub name: String,
     pub columns: Vec<ColumnInfo>,

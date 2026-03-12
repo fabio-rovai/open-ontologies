@@ -180,14 +180,13 @@ impl DataIngester {
                     }
                 }
                 Ok(Event::Text(e)) => {
-                    if depth == 3 {
-                        if let (Some(row), Some(field)) =
+                    if depth == 3
+                        && let (Some(row), Some(field)) =
                             (&mut current_row, &current_field)
                         {
                             let text = e.unescape().unwrap_or_default().to_string();
                             row.insert(field.clone(), text);
                         }
-                    }
                 }
                 Ok(Event::End(_)) => {
                     match depth {
@@ -234,7 +233,7 @@ impl DataIngester {
 
         let headers: Vec<String> = header_row
             .iter()
-            .map(|cell| Self::calamine_cell_to_string(cell))
+            .map(Self::calamine_cell_to_string)
             .collect();
 
         let mut rows = Vec::new();

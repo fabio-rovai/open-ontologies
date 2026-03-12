@@ -1,0 +1,112 @@
+@prefix ex: <http://example.org/image/> .
+@prefix schema: <http://schema.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# === Image Node ===
+
+ex:img_1 a schema:ImageObject ;
+    schema:name "img_1.jpg" ;
+    schema:description "Interior view of an abandoned, rusted truck cab overtaken by surrounding vegetation, showing a worn steering wheel, corroded dashboard and instruments, a dirty cracked windshield, and a large tree visible through the glass." ;
+    schema:keywords "abandoned vehicle", "truck interior", "decay", "nature reclaiming", "rust", "steering wheel", "dashboard", "windshield", "tree", "overgrown" ;
+    schema:contentLocation "outdoor rural setting" ;
+    ex:detectedObjectCount "5"^^xsd:integer .
+
+# === Object 1: Truck (vehicle cab) ===
+
+ex:img1_obj_1 a schema:Car ;
+    rdf:type ex:AbandonedVehicle ;
+    rdfs:label "Truck" ;
+    schema:category "vehicle" ;
+    schema:description "An old, heavily rusted and abandoned truck cab. The body panels and interior surfaces show extensive corrosion and weathering. The vehicle has been stationary long enough for vegetation to grow around and into it." ;
+    schema:material "metal, rubber" ;
+    schema:additionalProperty [
+        schema:name "condition" ;
+        schema:value "severely rusted and abandoned"
+    ] ;
+    ex:confidence "0.95"^^xsd:decimal ;
+    ex:boundingBoxRegion "entire frame" ;
+    ex:spatialRelation ex:img1_obj_5 ;
+    ex:spatialRelationLabel "surrounded by" .
+
+# === Object 2: Steering Wheel ===
+
+ex:img1_obj_2 a ex:VehiclePart ;
+    rdfs:label "Steering wheel" ;
+    schema:category "vehicle" ;
+    schema:description "A thin-rimmed, dark-colored steering wheel typical of a mid-20th-century truck. It is mounted on a steering column angled toward the left side of the cab. The rim appears worn and aged." ;
+    schema:material "metal, rubber" ;
+    schema:isPartOf ex:img1_obj_1 ;
+    ex:confidence "0.98"^^xsd:decimal ;
+    ex:boundingBoxRegion "center-left" ;
+    ex:spatialRelation ex:img1_obj_3 ;
+    ex:spatialRelationLabel "in front of" .
+
+# === Object 3: Dashboard ===
+
+ex:img1_obj_3 a ex:VehiclePart ;
+    rdfs:label "Dashboard" ;
+    schema:category "vehicle" ;
+    schema:description "The corroded metal dashboard of the truck, showing an instrument cluster area on the right side and various rusted controls. The surface is heavily oxidized with patches of flaking paint and rust." ;
+    schema:material "metal" ;
+    schema:isPartOf ex:img1_obj_1 ;
+    schema:additionalProperty [
+        schema:name "condition" ;
+        schema:value "heavily corroded and rusted"
+    ] ;
+    ex:confidence "0.93"^^xsd:decimal ;
+    ex:boundingBoxRegion "center-right" ;
+    ex:spatialRelation ex:img1_obj_4 ;
+    ex:spatialRelationLabel "below" .
+
+# === Object 4: Windshield ===
+
+ex:img1_obj_4 a ex:VehiclePart ;
+    rdfs:label "Windshield" ;
+    schema:category "vehicle" ;
+    schema:description "A dirty, hazy windshield with grime, water stains, and possible cracks. It is partially transparent, allowing the tree and green foliage outside to be visible through it. The glass has a cloudy, weathered appearance." ;
+    schema:material "glass" ;
+    schema:isPartOf ex:img1_obj_1 ;
+    schema:additionalProperty [
+        schema:name "condition" ;
+        schema:value "dirty, hazy, weathered"
+    ] ;
+    ex:confidence "0.92"^^xsd:decimal ;
+    ex:boundingBoxRegion "upper half" ;
+    ex:spatialRelation ex:img1_obj_5 ;
+    ex:spatialRelationLabel "in front of" ;
+    ex:spatialRelation ex:img1_obj_3 ;
+    ex:spatialRelationLabel "above" .
+
+# === Object 5: Tree ===
+
+ex:img1_obj_5 a schema:Thing ;
+    rdf:type ex:Vegetation ;
+    rdfs:label "Tree" ;
+    schema:category "nature" ;
+    schema:description "A large, mature tree with a thick trunk and spreading canopy of green leaves, visible through and above the windshield. Dense green foliage and undergrowth also surround the vehicle on all visible sides." ;
+    schema:additionalProperty [
+        schema:name "foliage" ;
+        schema:value "dense green leaves, full canopy"
+    ] ;
+    ex:confidence "0.90"^^xsd:decimal ;
+    ex:boundingBoxRegion "background, visible through windshield and around vehicle" ;
+    ex:spatialRelation ex:img1_obj_1 ;
+    ex:spatialRelationLabel "behind and around" .
+
+# === Additional Spatial Relationships ===
+
+ex:img1_obj_2 schema:spatialCoverage "center-left of cab interior" .
+ex:img1_obj_3 schema:spatialCoverage "center-right of cab interior" .
+ex:img1_obj_4 schema:spatialCoverage "upper portion of frame, between interior and exterior" .
+ex:img1_obj_5 schema:spatialCoverage "background exterior, visible through and around the cab" .
+ex:img1_obj_1 schema:spatialCoverage "entire frame, foreground to midground" .
+
+# === Scene-Level Annotations ===
+
+ex:img_1 ex:scene "abandoned vehicle interior" ;
+    ex:dominantColors "green, brown, rust, grey" ;
+    ex:mood "melancholic, post-apocalyptic, nature reclaiming" ;
+    ex:lightingCondition "natural daylight, overcast or filtered through canopy" ;
+    ex:photographicStyle "close-up interior shot, shallow to moderate depth of field" .

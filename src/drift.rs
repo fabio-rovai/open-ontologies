@@ -77,6 +77,7 @@ impl DriftDetector {
     }
 
     /// Record feedback for a rename prediction.
+    #[allow(clippy::too_many_arguments)]
     pub fn record_feedback(
         &self,
         from_iri: &str,
@@ -144,7 +145,7 @@ impl DriftDetector {
         }
 
         // Compute correlation of each signal with correctness
-        let n = rows.len() as f64;
+        let _n = rows.len() as f64;
         let mut weights = vec![0.0f64; 4];
         for row in &rows {
             weights[0] += row.0 * row.4;
@@ -174,7 +175,7 @@ impl DriftDetector {
         if let Ok(json) = store.sparql_select(class_query) {
             for iri in parse_iris(&json, "c") {
                 vocab.entry(iri.clone()).or_insert_with(|| VocabEntry {
-                    iri: iri,
+                    iri,
                     kind: "class".to_string(),
                     label: None,
                     domain: None,
@@ -191,7 +192,7 @@ impl DriftDetector {
         if let Ok(json) = store.sparql_select(prop_query) {
             for iri in parse_iris(&json, "p") {
                 vocab.entry(iri.clone()).or_insert_with(|| VocabEntry {
-                    iri: iri,
+                    iri,
                     kind: "property".to_string(),
                     label: None,
                     domain: None,
@@ -202,9 +203,9 @@ impl DriftDetector {
 
         // Labels
         let label_query = "SELECT ?s ?l WHERE { ?s <http://www.w3.org/2000/01/rdf-schema#label> ?l }";
-        if let Ok(json) = store.sparql_select(label_query) {
-            if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json) {
-                if let Some(results) = parsed["results"].as_array() {
+        if let Ok(json) = store.sparql_select(label_query)
+            && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
+                && let Some(results) = parsed["results"].as_array() {
                     for row in results {
                         if let (Some(s), Some(l)) = (row["s"].as_str(), row["l"].as_str()) {
                             let s = s.trim_matches(|c| c == '<' || c == '>');
@@ -215,17 +216,15 @@ impl DriftDetector {
                         }
                     }
                 }
-            }
-        }
 
         // Domain/Range
         let dr_query = "SELECT ?p ?d ?r WHERE { \
             OPTIONAL { ?p <http://www.w3.org/2000/01/rdf-schema#domain> ?d } \
             OPTIONAL { ?p <http://www.w3.org/2000/01/rdf-schema#range> ?r } \
         }";
-        if let Ok(json) = store.sparql_select(dr_query) {
-            if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json) {
-                if let Some(results) = parsed["results"].as_array() {
+        if let Ok(json) = store.sparql_select(dr_query)
+            && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
+                && let Some(results) = parsed["results"].as_array() {
                     for row in results {
                         if let Some(p) = row["p"].as_str() {
                             let p = p.trim_matches(|c| c == '<' || c == '>');
@@ -240,8 +239,6 @@ impl DriftDetector {
                         }
                     }
                 }
-            }
-        }
 
         vocab
     }

@@ -403,11 +403,10 @@ impl Reasoner {
                 // cls-int: x type ALL members → x type intersection class
                 for (cls, members) in &intersection_classes {
                     for &(x, _) in &type_idx {
-                        if let Some(x_types) = inst_types.get(&x) {
-                            if members.iter().all(|m| x_types.contains(m)) {
+                        if let Some(x_types) = inst_types.get(&x)
+                            && members.iter().all(|m| x_types.contains(m)) {
                                 new.push((x, rdf_type, *cls));
                             }
-                        }
                     }
                 }
 

@@ -1,0 +1,106 @@
+@prefix ex: <http://example.org/image/> .
+@prefix schema: <http://schema.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# === Image node ===
+ex:img_5 a schema:ImageObject ;
+    schema:description "A low-angle close-up photograph of a weathered wooden boardwalk with planks receding into the distance, a clear blue sky above, and blurred buildings including a cylindrical tower structure visible on the horizon." ;
+    schema:keywords "boardwalk, wooden deck, planks, sky, buildings, tower, shallow depth of field, outdoor, waterfront" ;
+    schema:contentUrl "img_5.jpg" ;
+    ex:hasObject ex:img5_obj_1 ,
+                 ex:img5_obj_2 ,
+                 ex:img5_obj_3 ,
+                 ex:img5_obj_4 ,
+                 ex:img5_obj_5 ,
+                 ex:img5_obj_6 .
+
+# === Object 1: Wooden boardwalk surface ===
+ex:img5_obj_1 a schema:Thing ;
+    rdf:type ex:PhysicalObject ;
+    rdfs:label "Wooden boardwalk surface" ;
+    schema:category "Structure" ;
+    schema:material "Wood" ;
+    ex:confidence "0.98"^^xsd:decimal ;
+    ex:dominatesFrame true ;
+    schema:description "Weathered wooden planks forming a boardwalk or deck, seen from a very low angle with visible grain, gaps between planks, and surface wear." ;
+    schema:spatialCoverage "foreground, lower two-thirds of frame" .
+
+# === Object 2: Wooden planks (individual) ===
+ex:img5_obj_2 a schema:Thing ;
+    rdf:type ex:PhysicalObject ;
+    rdfs:label "Wooden planks" ;
+    schema:category "Component" ;
+    ex:confidence "0.97"^^xsd:decimal ;
+    schema:description "Individual horizontal wooden planks with visible grain texture, small cracks, and debris in the gaps between them." ;
+    schema:spatialCoverage "foreground, extending toward midground" ;
+    ex:spatialRelation [ a ex:SpatialRelation ;
+        ex:subject ex:img5_obj_2 ;
+        ex:predicate "partOf" ;
+        ex:object ex:img5_obj_1 ] .
+
+# === Object 3: Clear blue sky ===
+ex:img5_obj_3 a schema:Thing ;
+    rdf:type ex:NaturalFeature ;
+    rdfs:label "Clear blue sky" ;
+    schema:category "Sky" ;
+    ex:confidence "0.97"^^xsd:decimal ;
+    schema:color "Blue" ;
+    schema:description "A clear blue sky with no visible clouds, occupying the upper portion of the frame." ;
+    schema:spatialCoverage "upper third of frame, background" ;
+    ex:spatialRelation [ a ex:SpatialRelation ;
+        ex:subject ex:img5_obj_3 ;
+        ex:predicate "above" ;
+        ex:object ex:img5_obj_1 ] .
+
+# === Object 4: Cylindrical tower structure ===
+ex:img5_obj_4 a schema:Thing ;
+    rdf:type ex:PhysicalObject ;
+    rdfs:label "Cylindrical tower structure" ;
+    schema:category "Building" ;
+    ex:confidence "0.72"^^xsd:decimal ;
+    schema:description "A blurred cylindrical or tower-like structure visible on the horizon, possibly a water tower, observation tower, or industrial structure." ;
+    schema:spatialCoverage "center-right background, at horizon line" ;
+    ex:spatialRelation [ a ex:SpatialRelation ;
+        ex:subject ex:img5_obj_4 ;
+        ex:predicate "behind" ;
+        ex:object ex:img5_obj_1 ] ,
+    [ a ex:SpatialRelation ;
+        ex:subject ex:img5_obj_4 ;
+        ex:predicate "below" ;
+        ex:object ex:img5_obj_3 ] .
+
+# === Object 5: Background buildings ===
+ex:img5_obj_5 a schema:Thing ;
+    rdf:type ex:PhysicalObject ;
+    rdfs:label "Background buildings" ;
+    schema:category "Building" ;
+    ex:confidence "0.65"^^xsd:decimal ;
+    schema:description "Low-rise blurred building silhouettes visible along the horizon line, likely part of a waterfront or coastal settlement." ;
+    schema:spatialCoverage "background, along horizon line left to right" ;
+    ex:spatialRelation [ a ex:SpatialRelation ;
+        ex:subject ex:img5_obj_5 ;
+        ex:predicate "behind" ;
+        ex:object ex:img5_obj_1 ] ,
+    [ a ex:SpatialRelation ;
+        ex:subject ex:img5_obj_5 ;
+        ex:predicate "leftOf" ;
+        ex:object ex:img5_obj_4 ] .
+
+# === Object 6: Horizon line ===
+ex:img5_obj_6 a schema:Thing ;
+    rdf:type ex:VisualFeature ;
+    rdfs:label "Horizon line" ;
+    schema:category "Boundary" ;
+    ex:confidence "0.90"^^xsd:decimal ;
+    schema:description "The horizon line where the boardwalk surface meets the sky, running roughly horizontally across the upper third of the image." ;
+    schema:spatialCoverage "horizontal band at upper third of frame" ;
+    ex:spatialRelation [ a ex:SpatialRelation ;
+        ex:subject ex:img5_obj_6 ;
+        ex:predicate "separates" ;
+        ex:object ex:img5_obj_1 ] ,
+    [ a ex:SpatialRelation ;
+        ex:subject ex:img5_obj_6 ;
+        ex:predicate "separates" ;
+        ex:object ex:img5_obj_3 ] .

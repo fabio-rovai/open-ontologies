@@ -458,9 +458,9 @@ impl OpenOntologiesServer {
         let mut to_import: Vec<String> = Vec::new();
 
         let query = "SELECT ?import WHERE { ?onto <http://www.w3.org/2002/07/owl#imports> ?import }";
-        if let Ok(result) = self.graph.sparql_select(query) {
-            if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&result) {
-                if let Some(results) = parsed["results"].as_array() {
+        if let Ok(result) = self.graph.sparql_select(query)
+            && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&result)
+                && let Some(results) = parsed["results"].as_array() {
                     for row in results {
                         if let Some(uri) = row["import"].as_str() {
                             let uri = uri.trim_matches(|c| c == '<' || c == '>');
@@ -468,12 +468,10 @@ impl OpenOntologiesServer {
                         }
                     }
                 }
-            }
-        }
 
         let mut depth = 0;
         while !to_import.is_empty() && depth < max_depth {
-            let batch = to_import.drain(..).collect::<Vec<_>>();
+            let batch = std::mem::take(&mut to_import);
             for url in batch {
                 if imported.contains(&url) { continue; }
                 match GraphStore::fetch_url(&url).await {
@@ -481,9 +479,9 @@ impl OpenOntologiesServer {
                         match self.graph.load_turtle(&content, None) {
                             Ok(_count) => {
                                 imported.push(url.clone());
-                                if let Ok(result) = self.graph.sparql_select(query) {
-                                    if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&result) {
-                                        if let Some(results) = parsed["results"].as_array() {
+                                if let Ok(result) = self.graph.sparql_select(query)
+                                    && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&result)
+                                        && let Some(results) = parsed["results"].as_array() {
                                             for row in results {
                                                 if let Some(uri) = row["import"].as_str() {
                                                     let uri = uri.trim_matches(|c| c == '<' || c == '>').to_string();
@@ -493,8 +491,6 @@ impl OpenOntologiesServer {
                                                 }
                                             }
                                         }
-                                    }
-                                }
                             }
                             Err(e) => { imported.push(format!("FAILED:{}: {}", url, e)); }
                         }
@@ -643,13 +639,11 @@ impl OpenOntologiesServer {
             "ontology_properties": prop_iris,
         });
 
-        if let Some(ref save_path) = input.save_path {
-            if let Ok(json) = serde_json::to_string_pretty(&mapping) {
-                if let Err(e) = std::fs::write(save_path, &json) {
+        if let Some(ref save_path) = input.save_path
+            && let Ok(json) = serde_json::to_string_pretty(&mapping)
+                && let Err(e) = std::fs::write(save_path, &json) {
                     return format!(r#"{{"error":"Cannot write mapping file: {}"}}"#, e);
                 }
-            }
-        }
 
         result.to_string()
     }
@@ -768,13 +762,12 @@ impl OpenOntologiesServer {
         let monitor = self.monitor();
 
         // Add watchers if provided
-        if let Some(ref watchers_json) = input.watchers {
-            if let Ok(watchers) = serde_json::from_str::<Vec<crate::monitor::Watcher>>(watchers_json) {
+        if let Some(ref watchers_json) = input.watchers
+            && let Ok(watchers) = serde_json::from_str::<Vec<crate::monitor::Watcher>>(watchers_json) {
                 for w in watchers {
                     monitor.add_watcher(w);
                 }
             }
-        }
 
         let result = monitor.run_watchers();
         self.lineage().record(&self.session_id, "M", "monitor", &result.status);

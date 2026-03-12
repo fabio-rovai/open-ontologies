@@ -1,0 +1,157 @@
+@prefix ex: <http://example.org/image/> .
+@prefix schema: <http://schema.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# === Image node ===
+ex:img_7
+    rdf:type schema:ImageObject ;
+    schema:description "Aerial photograph of a coastal landscape showing a deep blue ocean, sandy beach, eroded sandstone cliffs, a golf course with manicured green fairways, residential neighborhoods with houses and roads, and hillside vegetation. The viewpoint is from high altitude looking down at an oblique angle." ;
+    schema:keywords "aerial view, coastline, ocean, beach, cliffs, golf course, residential area, California coast, landscape, bird's-eye view" .
+
+# === Object: Ocean ===
+ex:img7_obj_1
+    rdf:type schema:BodyOfWater ;
+    rdfs:label "Ocean"@en ;
+    schema:category "water body" ;
+    schema:description "Deep blue ocean occupying the lower-left and bottom portions of the image, with darker tones in deep water transitioning to turquoise near the shore" ;
+    ex:confidence "0.98"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "adjacent to beach" ;
+        schema:spatialCoverage ex:img7_obj_2
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "below cliffs" ;
+        schema:spatialCoverage ex:img7_obj_3
+    ] .
+
+# === Object: Sandy Beach ===
+ex:img7_obj_2
+    rdf:type schema:Beach ;
+    rdfs:label "Sandy Beach"@en ;
+    schema:category "landform" ;
+    schema:description "Curved sandy beach forming a crescent shape along the shoreline, with pale sand visible between the ocean and the base of the cliffs" ;
+    ex:confidence "0.96"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "between ocean and cliffs" ;
+        schema:spatialCoverage ex:img7_obj_1 ,
+                               ex:img7_obj_3
+    ] .
+
+# === Object: Sandstone Cliffs ===
+ex:img7_obj_3
+    rdf:type schema:Landform ;
+    rdfs:label "Sandstone Cliffs"@en ;
+    schema:category "geological formation" ;
+    schema:description "Eroded tan and brown sandstone bluffs rising steeply from the beach, with visible geological layering and erosion patterns running across the center of the image" ;
+    ex:confidence "0.94"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "above beach" ;
+        schema:spatialCoverage ex:img7_obj_2
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "below residential area" ;
+        schema:spatialCoverage ex:img7_obj_5
+    ] .
+
+# === Object: Golf Course ===
+ex:img7_obj_4
+    rdf:type schema:GolfCourse ;
+    rdfs:label "Golf Course"@en ;
+    schema:category "recreational facility" ;
+    schema:description "Manicured golf course with bright green fairways and landscaped areas visible on the coastal terrace near the cliff edge, at the right-center of the image" ;
+    ex:confidence "0.88"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "adjacent to cliffs" ;
+        schema:spatialCoverage ex:img7_obj_3
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "adjacent to residential area" ;
+        schema:spatialCoverage ex:img7_obj_5
+    ] .
+
+# === Object: Residential Area ===
+ex:img7_obj_5
+    rdf:type schema:Residence ;
+    rdfs:label "Residential Neighborhood"@en ;
+    schema:category "built environment" ;
+    schema:description "Suburban residential neighborhoods with houses, streets, and driveways spread across the upper portion of the image, extending inland from the cliff tops" ;
+    ex:confidence "0.93"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "above cliffs" ;
+        schema:spatialCoverage ex:img7_obj_3
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "interspersed with vegetation" ;
+        schema:spatialCoverage ex:img7_obj_6
+    ] .
+
+# === Object: Hillside Vegetation ===
+ex:img7_obj_6
+    rdf:type schema:Landform ;
+    rdfs:label "Hillside Vegetation"@en ;
+    schema:category "natural vegetation" ;
+    schema:description "Patches of green and brown vegetation covering the hillsides and canyon areas between residential developments, including scrubland and scattered trees" ;
+    ex:confidence "0.90"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "on cliffs and hillsides" ;
+        schema:spatialCoverage ex:img7_obj_3
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "between residential areas" ;
+        schema:spatialCoverage ex:img7_obj_5
+    ] .
+
+# === Object: Shallow Water / Surf Zone ===
+ex:img7_obj_7
+    rdf:type schema:BodyOfWater ;
+    rdfs:label "Shallow Water Zone"@en ;
+    schema:category "water body" ;
+    schema:description "Turquoise and light-colored shallow water zone near the shoreline where the ocean floor is visible through the water, with possible sediment plumes" ;
+    ex:confidence "0.91"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "between deep ocean and beach" ;
+        schema:spatialCoverage ex:img7_obj_1 ,
+                               ex:img7_obj_2
+    ] .
+
+# === Object: Roads ===
+ex:img7_obj_8
+    rdf:type schema:Road ;
+    rdfs:label "Roads"@en ;
+    schema:category "infrastructure" ;
+    schema:description "Network of roads and streets winding through the residential areas and along the cliff tops, visible as grey lines in the upper portion of the image" ;
+    ex:confidence "0.85"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "within residential area" ;
+        schema:spatialCoverage ex:img7_obj_5
+    ] .
+
+# === Object: Small Vessel ===
+ex:img7_obj_9
+    rdf:type schema:Vehicle ;
+    rdfs:label "Small Vessel"@en ;
+    schema:category "watercraft" ;
+    schema:description "A small white object on the ocean surface, likely a boat, visible in the lower-center area of the image near the shallow water zone" ;
+    ex:confidence "0.62"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "on ocean surface" ;
+        schema:spatialCoverage ex:img7_obj_1
+    ] .
+
+# === Object: Canyon / Ravine ===
+ex:img7_obj_10
+    rdf:type schema:Landform ;
+    rdfs:label "Coastal Canyon"@en ;
+    schema:category "geological formation" ;
+    schema:description "A canyon or ravine cutting through the cliffs from the residential area down toward the beach, visible as a darker indentation in the cliff face" ;
+    ex:confidence "0.82"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "cutting through cliffs" ;
+        schema:spatialCoverage ex:img7_obj_3
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "leading to beach" ;
+        schema:spatialCoverage ex:img7_obj_2
+    ] .

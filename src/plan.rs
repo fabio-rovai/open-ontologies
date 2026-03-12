@@ -233,9 +233,9 @@ impl Planner {
 
     fn extract_iris(&self, store: &GraphStore, query: &str, var: &str) -> HashSet<String> {
         let mut set = HashSet::new();
-        if let Ok(json) = store.sparql_select(query) {
-            if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json) {
-                if let Some(results) = parsed["results"].as_array() {
+        if let Ok(json) = store.sparql_select(query)
+            && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
+                && let Some(results) = parsed["results"].as_array() {
                     for row in results {
                         if let Some(iri) = row[var].as_str() {
                             let iri = iri.trim_matches(|c| c == '<' || c == '>');
@@ -243,8 +243,6 @@ impl Planner {
                         }
                     }
                 }
-            }
-        }
         set
     }
 
@@ -254,11 +252,11 @@ impl Planner {
              {{ <{iri}> ?p ?o }} UNION {{ ?s <{iri}> ?o }} UNION {{ ?s ?p <{iri}> }} \
              }}"
         );
-        if let Ok(json) = self.graph.sparql_select(&query) {
-            if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json) {
-                if let Some(results) = parsed["results"].as_array() {
-                    if let Some(first) = results.first() {
-                        if let Some(count_str) = first["count"].as_str() {
+        if let Ok(json) = self.graph.sparql_select(&query)
+            && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
+                && let Some(results) = parsed["results"].as_array()
+                    && let Some(first) = results.first()
+                        && let Some(count_str) = first["count"].as_str() {
                             let cleaned = count_str
                                 .trim_matches('"')
                                 .split("^^")
@@ -267,10 +265,6 @@ impl Planner {
                                 .trim_matches('"');
                             return cleaned.parse().unwrap_or(0);
                         }
-                    }
-                }
-            }
-        }
         0
     }
 }

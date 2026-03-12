@@ -1,0 +1,52 @@
+{
+  "img_1.jpg": {
+    "objects": ["truck", "steering wheel", "dashboard", "windshield", "tree"],
+    "scene": "abandoned vehicle interior",
+    "categories": ["vehicle", "nature", "decay"]
+  },
+  "img_2.jpg": {
+    "objects": ["laptop", "notebook", "pen", "camera", "earphones", "desk"],
+    "scene": "workspace on wooden desk",
+    "categories": ["technology", "workspace", "photography"]
+  },
+  "img_3.jpg": {
+    "objects": ["frog", "duckweed", "water"],
+    "scene": "frog camouflaged in duckweed pond",
+    "categories": ["animal", "amphibian", "nature", "water"]
+  },
+  "img_4.jpg": {
+    "objects": ["trees", "forest", "hill", "field", "sky"],
+    "scene": "coniferous forest treeline on overcast day",
+    "categories": ["landscape", "nature", "forest"]
+  },
+  "img_5.jpg": {
+    "objects": ["boardwalk", "wood planks", "buildings", "sky"],
+    "scene": "wooden boardwalk with shallow depth of field",
+    "categories": ["architecture", "urban", "outdoor"]
+  },
+  "img_6.jpg": {
+    "objects": ["canoe", "people", "paddle", "lake", "water", "fog"],
+    "scene": "two people canoeing on foggy lake",
+    "categories": ["recreation", "water", "nature", "people"]
+  },
+  "img_7.jpg": {
+    "objects": ["coastline", "ocean", "beach", "cliffs", "buildings", "roads"],
+    "scene": "aerial view of coastal town and beach",
+    "categories": ["landscape", "aerial", "ocean", "urban"]
+  },
+  "img_8.jpg": {
+    "objects": ["deer", "fawn", "forest", "leaves", "sunlight"],
+    "scene": "young fawn standing in autumn forest",
+    "categories": ["animal", "wildlife", "nature", "forest"]
+  },
+  "img_9.jpg": {
+    "objects": ["cat", "nose", "whiskers", "fur"],
+    "scene": "extreme close-up of cat nose and mouth",
+    "categories": ["animal", "pet", "macro"]
+  },
+  "img_10.jpg": {
+    "objects": ["van", "volkswagen", "vehicle", "trees"],
+    "scene": "vintage blue VW camper van parked on road",
+    "categories": ["vehicle", "vintage", "automotive"]
+  }
+}

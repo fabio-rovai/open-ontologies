@@ -455,9 +455,9 @@ async fn main() -> anyhow::Result<()> {
             let mut to_import: Vec<String> = Vec::new();
 
             let query = "SELECT ?import WHERE { ?onto <http://www.w3.org/2002/07/owl#imports> ?import }";
-            if let Ok(result) = graph.sparql_select(query) {
-                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&result) {
-                    if let Some(results) = parsed["results"].as_array() {
+            if let Ok(result) = graph.sparql_select(query)
+                && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&result)
+                    && let Some(results) = parsed["results"].as_array() {
                         for row in results {
                             if let Some(uri) = row["import"].as_str() {
                                 let uri = uri.trim_matches(|c| c == '<' || c == '>');
@@ -465,12 +465,10 @@ async fn main() -> anyhow::Result<()> {
                             }
                         }
                     }
-                }
-            }
 
             let mut depth = 0;
             while !to_import.is_empty() && depth < max_depth {
-                let batch = to_import.drain(..).collect::<Vec<_>>();
+                let batch = std::mem::take(&mut to_import);
                 for url in batch {
                     if imported.contains(&url) { continue; }
                     match GraphStore::fetch_url(&url).await {
@@ -643,12 +641,8 @@ async fn main() -> anyhow::Result<()> {
             };
 
             // 3. Reason (optional)
-            let reason_result = if let Some(ref prof) = profile {
-                Some(Reasoner::run(&graph, prof, true)
-                    .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e)))
-            } else {
-                None
-            };
+            let reason_result = profile.as_ref().map(|prof| Reasoner::run(&graph, prof, true)
+                    .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e)));
 
             output_json(&serde_json::json!({
                 "ok": true,

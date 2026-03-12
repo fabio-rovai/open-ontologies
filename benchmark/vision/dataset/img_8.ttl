@@ -1,0 +1,128 @@
+@prefix ex: <http://example.org/image/> .
+@prefix schema: <http://schema.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# === Image Node ===
+ex:img_8 a schema:ImageObject ;
+    schema:description "A young fallow deer fawn with white spots standing in a sunlit forest clearing, surrounded by fallen leaves and soft golden backlight filtering through the trees." ;
+    schema:keywords "deer, fawn, fallow deer, spotted, forest, woodland, autumn, sunlight, wildlife, nature" ;
+    schema:contentUrl "img_8.jpg" ;
+    schema:width "1024"^^xsd:integer ;
+    schema:height "1024"^^xsd:integer .
+
+# === Object: Fallow Deer Fawn ===
+ex:img8_obj_1 a schema:Thing ;
+    rdf:type ex:Animal ;
+    rdfs:label "Fallow deer fawn" ;
+    schema:category "Wildlife" ;
+    schema:description "A young fallow deer (Dama dama) with characteristic white spots on brown fur, large ears, and dark eyes, standing alert and looking slightly to the left." ;
+    ex:confidence "0.97"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "standing on" ;
+        ex:target ex:img8_obj_2
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "in front of" ;
+        ex:target ex:img8_obj_3
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "below" ;
+        ex:target ex:img8_obj_5
+    ] ;
+    schema:spatialCoverage "center-foreground" .
+
+# === Object: Forest Floor / Fallen Leaves ===
+ex:img8_obj_2 a schema:Thing ;
+    rdf:type ex:GroundCover ;
+    rdfs:label "Forest floor with fallen leaves" ;
+    schema:category "Terrain" ;
+    schema:description "A layer of dry brown and tan fallen leaves covering the forest floor, typical of autumn woodland." ;
+    ex:confidence "0.95"^^xsd:decimal ;
+    schema:spatialCoverage "bottom" ;
+    ex:spatialRelation [
+        rdfs:label "beneath" ;
+        ex:target ex:img8_obj_1
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "beneath" ;
+        ex:target ex:img8_obj_3
+    ] .
+
+# === Object: Trees / Forest Background ===
+ex:img8_obj_3 a schema:Thing ;
+    rdf:type ex:Vegetation ;
+    rdfs:label "Deciduous forest trees" ;
+    schema:category "Vegetation" ;
+    schema:description "Multiple bare and partially leafed deciduous trees forming a soft, bokeh-blurred woodland background." ;
+    ex:confidence "0.90"^^xsd:decimal ;
+    schema:spatialCoverage "background" ;
+    ex:spatialRelation [
+        rdfs:label "behind" ;
+        ex:target ex:img8_obj_1
+    ] .
+
+# === Object: Sunlight / Golden Backlight ===
+ex:img8_obj_4 a schema:Thing ;
+    rdf:type ex:LightingCondition ;
+    rdfs:label "Golden backlight" ;
+    schema:category "Lighting" ;
+    schema:description "Warm golden sunlight filtering through the trees from behind, creating a soft backlit glow around the fawn and illuminating airborne particles." ;
+    ex:confidence "0.92"^^xsd:decimal ;
+    schema:spatialCoverage "background-upper" ;
+    ex:spatialRelation [
+        rdfs:label "illuminates" ;
+        ex:target ex:img8_obj_1
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "filters through" ;
+        ex:target ex:img8_obj_3
+    ] .
+
+# === Object: Fallen Tree Branch / Log ===
+ex:img8_obj_5 a schema:Thing ;
+    rdf:type ex:NaturalObject ;
+    rdfs:label "Fallen tree branch" ;
+    schema:category "Natural debris" ;
+    schema:description "A thick dark tree branch or log extending horizontally across the upper-right portion of the frame above the deer." ;
+    ex:confidence "0.88"^^xsd:decimal ;
+    schema:spatialCoverage "upper-right" ;
+    ex:spatialRelation [
+        rdfs:label "above" ;
+        ex:target ex:img8_obj_1
+    ] .
+
+# === Object: Airborne Particles / Dust Motes ===
+ex:img8_obj_6 a schema:Thing ;
+    rdf:type ex:AtmosphericElement ;
+    rdfs:label "Airborne dust motes" ;
+    schema:category "Atmospheric effect" ;
+    schema:description "Tiny particles and dust motes visible in the air, illuminated by the golden backlight creating a magical, ethereal atmosphere." ;
+    ex:confidence "0.80"^^xsd:decimal ;
+    schema:spatialCoverage "center-background" ;
+    ex:spatialRelation [
+        rdfs:label "surrounding" ;
+        ex:target ex:img8_obj_1
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "illuminated by" ;
+        ex:target ex:img8_obj_4
+    ] .
+
+# === Object: Autumn Foliage (background) ===
+ex:img8_obj_7 a schema:Thing ;
+    rdf:type ex:Vegetation ;
+    rdfs:label "Autumn foliage" ;
+    schema:category "Vegetation" ;
+    schema:description "Patches of warm golden and amber foliage visible in the blurred background, indicating autumn season." ;
+    ex:confidence "0.82"^^xsd:decimal ;
+    schema:spatialCoverage "background-right" ;
+    ex:spatialRelation [
+        rdfs:label "behind" ;
+        ex:target ex:img8_obj_1
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "part of" ;
+        ex:target ex:img8_obj_3
+    ] .

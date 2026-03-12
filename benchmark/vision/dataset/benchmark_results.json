@@ -1,0 +1,217 @@
+{
+  "dataset": "10 real photographs (picsum.photos)",
+  "approach_comparison": {
+    "manual_annotation": {
+      "description": "Human expert labels objects and categories",
+      "effort": "~2 min per image",
+      "queryable": false,
+      "relationships": false,
+      "confidence_scores": false
+    },
+    "pure_claude": {
+      "description": "Claude vision returns JSON text labels",
+      "avg_object_recall": 0.89,
+      "avg_object_precision": 0.54,
+      "avg_category_recall": 0.79,
+      "avg_objects_per_image": 8.5,
+      "queryable": false,
+      "relationships": false,
+      "confidence_scores": false
+    },
+    "rdf_pipeline": {
+      "description": "Claude vision \u2192 structured Turtle with ontology, validated with Open Ontologies",
+      "avg_object_recall": 0.73,
+      "avg_object_precision": 0.6,
+      "avg_category_recall": 0.68,
+      "avg_objects_per_image": 7.2,
+      "total_triples": 989,
+      "total_relationships": 88,
+      "ttl_files_generated": 10,
+      "queryable": true,
+      "relationships": true,
+      "confidence_scores": true
+    }
+  },
+  "per_image": {
+    "img_1.jpg": {
+      "gt_objects": 5,
+      "gt_categories": 3,
+      "pure_claude": {
+        "objects_detected": 10,
+        "object_recall": 1.0,
+        "object_precision": 0.5,
+        "category_recall": 1.0
+      },
+      "rdf_pipeline": {
+        "objects_detected": 5,
+        "object_recall": 1.0,
+        "object_precision": 1.0,
+        "category_recall": 0.67,
+        "triples": 88,
+        "relationships": 6
+      }
+    },
+    "img_10.jpg": {
+      "gt_objects": 4,
+      "gt_categories": 3,
+      "pure_claude": {
+        "objects_detected": 10,
+        "object_recall": 0.5,
+        "object_precision": 0.2,
+        "category_recall": 0.33
+      },
+      "rdf_pipeline": {
+        "objects_detected": 10,
+        "object_recall": 0.5,
+        "object_precision": 0.1,
+        "category_recall": 0.33,
+        "triples": 98,
+        "relationships": 10
+      }
+    },
+    "img_2.jpg": {
+      "gt_objects": 6,
+      "gt_categories": 3,
+      "pure_claude": {
+        "objects_detected": 10,
+        "object_recall": 0.83,
+        "object_precision": 0.5,
+        "category_recall": 1.0
+      },
+      "rdf_pipeline": {
+        "objects_detected": 6,
+        "object_recall": 0.83,
+        "object_precision": 0.83,
+        "category_recall": 1.0,
+        "triples": 126,
+        "relationships": 8
+      }
+    },
+    "img_3.jpg": {
+      "gt_objects": 3,
+      "gt_categories": 4,
+      "pure_claude": {
+        "objects_detected": 4,
+        "object_recall": 1.0,
+        "object_precision": 0.75,
+        "category_recall": 0.75
+      },
+      "rdf_pipeline": {
+        "objects_detected": 7,
+        "object_recall": 1.0,
+        "object_precision": 0.86,
+        "category_recall": 0.75,
+        "triples": 104,
+        "relationships": 12
+      }
+    },
+    "img_4.jpg": {
+      "gt_objects": 5,
+      "gt_categories": 3,
+      "pure_claude": {
+        "objects_detected": 7,
+        "object_recall": 1.0,
+        "object_precision": 0.71,
+        "category_recall": 1.0
+      },
+      "rdf_pipeline": {
+        "objects_detected": 7,
+        "object_recall": 0.4,
+        "object_precision": 0.43,
+        "category_recall": 0.67,
+        "triples": 97,
+        "relationships": 8
+      }
+    },
+    "img_5.jpg": {
+      "gt_objects": 4,
+      "gt_categories": 3,
+      "pure_claude": {
+        "objects_detected": 6,
+        "object_recall": 0.75,
+        "object_precision": 0.5,
+        "category_recall": 0.67
+      },
+      "rdf_pipeline": {
+        "objects_detected": 6,
+        "object_recall": 0.75,
+        "object_precision": 0.5,
+        "category_recall": 0.67,
+        "triples": 82,
+        "relationships": 6
+      }
+    },
+    "img_6.jpg": {
+      "gt_objects": 6,
+      "gt_categories": 4,
+      "pure_claude": {
+        "objects_detected": 8,
+        "object_recall": 0.83,
+        "object_precision": 0.62,
+        "category_recall": 1.0
+      },
+      "rdf_pipeline": {
+        "objects_detected": 7,
+        "object_recall": 0.83,
+        "object_precision": 1.0,
+        "category_recall": 1.0,
+        "triples": 84,
+        "relationships": 10
+      }
+    },
+    "img_7.jpg": {
+      "gt_objects": 6,
+      "gt_categories": 4,
+      "pure_claude": {
+        "objects_detected": 14,
+        "object_recall": 1.0,
+        "object_precision": 0.43,
+        "category_recall": 0.5
+      },
+      "rdf_pipeline": {
+        "objects_detected": 10,
+        "object_recall": 0.67,
+        "object_precision": 0.4,
+        "category_recall": 0.5,
+        "triples": 110,
+        "relationships": 12
+      }
+    },
+    "img_8.jpg": {
+      "gt_objects": 5,
+      "gt_categories": 4,
+      "pure_claude": {
+        "objects_detected": 10,
+        "object_recall": 1.0,
+        "object_precision": 0.5,
+        "category_recall": 1.0
+      },
+      "rdf_pipeline": {
+        "objects_detected": 7,
+        "object_recall": 0.6,
+        "object_precision": 0.43,
+        "category_recall": 0.25,
+        "triples": 94,
+        "relationships": 8
+      }
+    },
+    "img_9.jpg": {
+      "gt_objects": 4,
+      "gt_categories": 3,
+      "pure_claude": {
+        "objects_detected": 6,
+        "object_recall": 1.0,
+        "object_precision": 0.67,
+        "category_recall": 0.67
+      },
+      "rdf_pipeline": {
+        "objects_detected": 7,
+        "object_recall": 0.75,
+        "object_precision": 0.43,
+        "category_recall": 1.0,
+        "triples": 106,
+        "relationships": 8
+      }
+    }
+  }
+}

@@ -1,0 +1,147 @@
+@prefix ex: <http://example.org/image/> .
+@prefix schema: <http://schema.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# === Image node ===
+ex:img_3
+    rdf:type schema:ImageObject ;
+    rdfs:label "Frog camouflaged in duckweed-covered water" ;
+    schema:description "A frog partially submerged in still water densely covered with duckweed. The frog is heavily camouflaged by duckweed clinging to its head and body, with only its prominent eyes and the top of its head clearly visible above the water surface." ;
+    schema:keywords "frog, duckweed, camouflage, pond, wildlife, amphibian, green, water surface, macro photography" ;
+    schema:contentUrl "img_3.jpg" ;
+    schema:hasPart ex:img3_obj_1 ,
+                   ex:img3_obj_2 ,
+                   ex:img3_obj_3 ,
+                   ex:img3_obj_4 ,
+                   ex:img3_obj_5 ,
+                   ex:img3_obj_6 ,
+                   ex:img3_obj_7 .
+
+# === Object 1: Frog ===
+ex:img3_obj_1
+    rdf:type schema:Thing ;
+    rdfs:label "Frog" ;
+    schema:category "Amphibian" ;
+    schema:description "A frog partially submerged in water, heavily covered with duckweed providing natural camouflage. Only the top of its head and eyes protrude above the water surface." ;
+    ex:confidence "0.95"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "centered in frame" ;
+        schema:description "The frog is positioned at the center of the image"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "submerged in" ;
+        schema:targetObject ex:img3_obj_3 ;
+        schema:description "The frog is partially submerged in the pond water"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "covered by" ;
+        schema:targetObject ex:img3_obj_4 ;
+        schema:description "The frog is covered with duckweed plants providing camouflage"
+    ] .
+
+# === Object 2: Frog eyes ===
+ex:img3_obj_2
+    rdf:type schema:Thing ;
+    rdfs:label "Frog eyes" ;
+    schema:category "Animal body part" ;
+    schema:description "Two large, round, dark eyes with textured eyelids visible above the water surface. The eyes are the most prominent and identifiable feature of the camouflaged frog." ;
+    ex:confidence "0.97"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "part of" ;
+        schema:targetObject ex:img3_obj_1 ;
+        schema:description "The eyes are part of the frog"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "above" ;
+        schema:targetObject ex:img3_obj_3 ;
+        schema:description "The eyes protrude above the water surface"
+    ] .
+
+# === Object 3: Pond water ===
+ex:img3_obj_3
+    rdf:type schema:Thing ;
+    rdfs:label "Pond water" ;
+    schema:category "Water body" ;
+    schema:description "Still, calm pond water visible beneath the dense layer of duckweed. The water surface is almost entirely obscured by floating vegetation." ;
+    ex:confidence "0.90"^^xsd:decimal ;
+    schema:spatialCoverage "Entire image background" ;
+    ex:spatialRelation [
+        rdfs:label "beneath" ;
+        schema:targetObject ex:img3_obj_4 ;
+        schema:description "The water lies beneath the floating duckweed layer"
+    ] .
+
+# === Object 4: Duckweed (Lemna) ===
+ex:img3_obj_4
+    rdf:type schema:Thing ;
+    rdfs:label "Duckweed" ;
+    schema:category "Aquatic plant" ;
+    schema:description "A dense mat of tiny green duckweed (Lemna) plants covering the entire water surface. The individual fronds are small, round, and bright green, forming a continuous carpet across the pond." ;
+    ex:confidence "0.96"^^xsd:decimal ;
+    schema:spatialCoverage "Entire water surface" ;
+    ex:spatialRelation [
+        rdfs:label "floating on" ;
+        schema:targetObject ex:img3_obj_3 ;
+        schema:description "The duckweed floats on the surface of the pond water"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "covering" ;
+        schema:targetObject ex:img3_obj_1 ;
+        schema:description "Duckweed covers the frog, providing camouflage"
+    ] .
+
+# === Object 5: Frog head ===
+ex:img3_obj_5
+    rdf:type schema:Thing ;
+    rdfs:label "Frog head" ;
+    schema:category "Animal body part" ;
+    schema:description "The top of the frog's head, textured and bumpy, partially visible above the water surface and covered with duckweed fronds clinging to its skin." ;
+    ex:confidence "0.93"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "part of" ;
+        schema:targetObject ex:img3_obj_1 ;
+        schema:description "The head is part of the frog"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "above" ;
+        schema:targetObject ex:img3_obj_3 ;
+        schema:description "The head protrudes slightly above the water"
+    ] .
+
+# === Object 6: Insect ===
+ex:img3_obj_6
+    rdf:type schema:Thing ;
+    rdfs:label "Small insect" ;
+    schema:category "Insect" ;
+    schema:description "A small dark insect resting on the duckweed surface, visible in the upper-left area of the image near the frog." ;
+    ex:confidence "0.60"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "above-left of" ;
+        schema:targetObject ex:img3_obj_1 ;
+        schema:description "The insect is positioned above and to the left of the frog"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "resting on" ;
+        schema:targetObject ex:img3_obj_4 ;
+        schema:description "The insect sits on the duckweed surface"
+    ] .
+
+# === Object 7: Frog nostrils ===
+ex:img3_obj_7
+    rdf:type schema:Thing ;
+    rdfs:label "Frog nostrils" ;
+    schema:category "Animal body part" ;
+    schema:description "The frog's nostrils are faintly visible between the eyes on the top of the head, positioned just above the waterline to allow breathing." ;
+    ex:confidence "0.55"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "part of" ;
+        schema:targetObject ex:img3_obj_5 ;
+        schema:description "The nostrils are part of the frog's head"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "between" ;
+        schema:targetObject ex:img3_obj_2 ;
+        schema:description "The nostrils are positioned between the two eyes"
+    ] .

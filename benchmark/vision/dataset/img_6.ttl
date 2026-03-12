@@ -1,0 +1,105 @@
+@prefix ex: <http://example.org/image/> .
+@prefix schema: <http://schema.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# === Image Node ===
+ex:img_6 a schema:ImageObject ;
+    schema:description "Two people paddling a canoe on calm, misty water. The scene is enveloped in fog, giving a muted teal-green tone. The still water produces a near-perfect mirror reflection of the canoe and its occupants." ;
+    schema:keywords "canoe", "paddling", "lake", "fog", "mist", "reflection", "water", "outdoor recreation", "teal", "calm" .
+
+# === Object: Canoe ===
+ex:img6_obj_1 a schema:Product ;
+    rdf:type ex:Watercraft ;
+    rdfs:label "Canoe" ;
+    schema:category "Watercraft" ;
+    schema:description "A green open-top canoe carrying two passengers, positioned centrally in the frame" ;
+    ex:confidence "0.97"^^xsd:decimal ;
+    schema:spatialCoverage "center of image, horizontal midline" ;
+    ex:spatialRelation ex:img6_obj_5 ;
+    ex:relationDescription "floating on the lake surface" .
+
+# === Object: Person in stern (rear) ===
+ex:img6_obj_2 a schema:Person ;
+    rdfs:label "Stern paddler" ;
+    schema:category "Person" ;
+    schema:description "Person seated at the rear of the canoe, wearing a teal or dark green hooded jacket. Holding a paddle but not actively stroking." ;
+    ex:confidence "0.95"^^xsd:decimal ;
+    schema:spatialCoverage "right-center of image, seated in rear of canoe" ;
+    ex:spatialRelation ex:img6_obj_1 ;
+    ex:relationDescription "seated inside the canoe at the stern" .
+
+# === Object: Person in bow (front) ===
+ex:img6_obj_3 a schema:Person ;
+    rdfs:label "Bow paddler" ;
+    schema:category "Person" ;
+    schema:description "Person seated at the front of the canoe, wearing a light blue-green top and a hat or cap. Actively raising an orange-bladed paddle." ;
+    ex:confidence "0.95"^^xsd:decimal ;
+    schema:spatialCoverage "left-center of image, seated in front of canoe" ;
+    ex:spatialRelation ex:img6_obj_1 ;
+    ex:relationDescription "seated inside the canoe at the bow" .
+
+# === Object: Paddle with orange blade ===
+ex:img6_obj_4 a schema:Product ;
+    rdf:type ex:PaddlingEquipment ;
+    rdfs:label "Canoe paddle" ;
+    schema:category "Sports Equipment" ;
+    schema:description "A canoe paddle with a bright orange blade, held raised by the bow paddler" ;
+    ex:confidence "0.93"^^xsd:decimal ;
+    schema:spatialCoverage "left-center, above canoe, angled upward" ;
+    ex:spatialRelation ex:img6_obj_3 ;
+    ex:relationDescription "held by the bow paddler" .
+
+# === Object: Lake / Water body ===
+ex:img6_obj_5 a schema:Place ;
+    rdf:type ex:WaterBody ;
+    rdfs:label "Lake" ;
+    schema:category "Natural Water Body" ;
+    schema:description "A calm lake with very still, teal-green water filling the lower two-thirds of the image. The surface is glassy and produces clear reflections." ;
+    ex:confidence "0.98"^^xsd:decimal ;
+    schema:spatialCoverage "lower two-thirds of image" .
+
+# === Object: Fog / Mist ===
+ex:img6_obj_6 a schema:Place ;
+    rdf:type ex:AtmosphericCondition ;
+    rdfs:label "Fog" ;
+    schema:category "Weather Condition" ;
+    schema:description "Dense fog or mist obscuring the background and horizon, giving the scene a flat grey-white sky and limited visibility" ;
+    ex:confidence "0.96"^^xsd:decimal ;
+    schema:spatialCoverage "upper third of image and background" ;
+    ex:spatialRelation ex:img6_obj_5 ;
+    ex:relationDescription "hanging above the lake surface" .
+
+# === Object: Reflection on water ===
+ex:img6_obj_7 a schema:CreativeWork ;
+    rdf:type ex:Reflection ;
+    rdfs:label "Water reflection" ;
+    schema:category "Optical Phenomenon" ;
+    schema:description "A near-perfect mirror reflection of the canoe and both paddlers visible on the still water surface directly below them" ;
+    ex:confidence "0.92"^^xsd:decimal ;
+    schema:spatialCoverage "lower-center of image, beneath the canoe" ;
+    ex:spatialRelation ex:img6_obj_1 ;
+    ex:relationDescription "mirror image of the canoe reflected on the water surface" ;
+    ex:spatialRelation ex:img6_obj_5 ;
+    ex:relationDescription "visible on the lake surface" .
+
+# === Spatial relationships between people ===
+ex:img6_obj_2 ex:spatialRelation ex:img6_obj_3 ;
+    ex:relationDescription "sitting behind the bow paddler in the same canoe" .
+
+ex:img6_obj_3 ex:spatialRelation ex:img6_obj_2 ;
+    ex:relationDescription "sitting in front of the stern paddler in the same canoe" .
+
+# === Canoe on the water ===
+ex:img6_obj_1 ex:spatialRelation ex:img6_obj_5 ;
+    ex:relationDescription "floating on the lake surface" .
+
+# === Image contains all objects ===
+ex:img_6 schema:about ex:img6_obj_1 ,
+    ex:img6_obj_2 ,
+    ex:img6_obj_3 ,
+    ex:img6_obj_4 ,
+    ex:img6_obj_5 ,
+    ex:img6_obj_6 ,
+    ex:img6_obj_7 .

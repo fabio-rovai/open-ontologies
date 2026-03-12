@@ -1,6 +1,5 @@
 use crate::drift::jaro_winkler;
 use crate::graph::GraphStore;
-use std::sync::Arc;
 
 /// A single crosswalk mapping row.
 #[derive(Debug, Clone)]
@@ -119,9 +118,9 @@ impl ClinicalCrosswalks {
         let mut validated = Vec::new();
         let mut unmatched = Vec::new();
 
-        if let Ok(json) = graph.sparql_select(label_query) {
-            if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json) {
-                if let Some(results) = parsed["results"].as_array() {
+        if let Ok(json) = graph.sparql_select(label_query)
+            && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
+                && let Some(results) = parsed["results"].as_array() {
                     for row in results {
                         if let (Some(class_iri), Some(label)) = (row["c"].as_str(), row["l"].as_str()) {
                             let label_clean = label.trim_matches('"').split("^^").next().unwrap_or("").trim_matches('"');
@@ -142,8 +141,6 @@ impl ClinicalCrosswalks {
                         }
                     }
                 }
-            }
-        }
 
         serde_json::json!({
             "validated": validated,

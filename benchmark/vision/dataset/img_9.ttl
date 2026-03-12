@@ -1,0 +1,133 @@
+@prefix ex: <http://example.org/image/> .
+@prefix schema: <http://schema.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# === Image node ===
+ex:img_9
+    rdf:type schema:ImageObject ;
+    schema:name "img_9.jpg" ;
+    schema:description "Extreme close-up macro photograph of a cat's nose and muzzle, showing fine fur texture, pink nose leather, and the cleft of the upper lip against a soft blurred background." ;
+    schema:keywords "cat, nose, muzzle, macro, close-up, fur, whiskers, feline, pet, animal" ;
+    schema:about ex:img9_obj_1 , ex:img9_obj_2 , ex:img9_obj_3 , ex:img9_obj_4 , ex:img9_obj_5 , ex:img9_obj_6 , ex:img9_obj_7 .
+
+# === Object 1: Cat (whole animal, partially visible) ===
+ex:img9_obj_1
+    rdf:type schema:Thing ;
+    rdfs:label "Cat" ;
+    schema:category "Animal" ;
+    schema:description "A domestic cat seen in extreme close-up; only the nose and surrounding muzzle area are visible. The fur is grey tabby with lighter and darker banding." ;
+    ex:confidence "0.97"^^xsd:decimal ;
+    schema:hasPart ex:img9_obj_2 , ex:img9_obj_3 , ex:img9_obj_4 , ex:img9_obj_5 , ex:img9_obj_6 , ex:img9_obj_7 .
+
+# === Object 2: Nose leather ===
+ex:img9_obj_2
+    rdf:type schema:Thing ;
+    rdfs:label "Nose leather" ;
+    schema:category "Animal body part" ;
+    schema:description "The cat's nose leather, a smooth pinkish-brown pad at the center of the muzzle with visible fine texture and pores." ;
+    ex:confidence "0.98"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdf:type ex:SpatialRelation ;
+        ex:subject ex:img9_obj_2 ;
+        ex:relationType "centerOf" ;
+        ex:object ex:img9_obj_1 ;
+        rdfs:comment "The nose leather is at the center of the visible muzzle area."
+    ] ;
+    ex:spatialRelation [
+        rdf:type ex:SpatialRelation ;
+        ex:subject ex:img9_obj_2 ;
+        ex:relationType "above" ;
+        ex:object ex:img9_obj_4 ;
+        rdfs:comment "The nose leather sits directly above the philtrum and upper lip."
+    ] .
+
+# === Object 3: Fur (muzzle area) ===
+ex:img9_obj_3
+    rdf:type schema:Thing ;
+    rdfs:label "Fur" ;
+    schema:category "Animal covering" ;
+    schema:description "Dense, short grey tabby fur covering the muzzle and bridge of the nose. Individual hairs are visible, showing banded grey-brown coloration typical of a tabby pattern." ;
+    ex:confidence "0.96"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdf:type ex:SpatialRelation ;
+        ex:subject ex:img9_obj_3 ;
+        ex:relationType "surrounds" ;
+        ex:object ex:img9_obj_2 ;
+        rdfs:comment "The fur surrounds the nose leather on all sides."
+    ] .
+
+# === Object 4: Philtrum and upper lip ===
+ex:img9_obj_4
+    rdf:type schema:Thing ;
+    rdfs:label "Philtrum" ;
+    schema:category "Animal body part" ;
+    schema:description "The vertical groove (philtrum) running from the base of the nose leather down to the cleft of the upper lip. The lip line forms a distinct inverted-Y shape." ;
+    ex:confidence "0.93"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdf:type ex:SpatialRelation ;
+        ex:subject ex:img9_obj_4 ;
+        ex:relationType "below" ;
+        ex:object ex:img9_obj_2 ;
+        rdfs:comment "The philtrum extends directly below the nose leather."
+    ] .
+
+# === Object 5: Nostrils ===
+ex:img9_obj_5
+    rdf:type schema:Thing ;
+    rdfs:label "Nostrils" ;
+    schema:category "Animal body part" ;
+    schema:description "Two dark nostrils visible at the lower edge of the nose leather, partially shadowed." ;
+    ex:confidence "0.90"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdf:type ex:SpatialRelation ;
+        ex:subject ex:img9_obj_5 ;
+        ex:relationType "partOf" ;
+        ex:object ex:img9_obj_2 ;
+        rdfs:comment "The nostrils are openings at the base of the nose leather."
+    ] ;
+    ex:spatialRelation [
+        rdf:type ex:SpatialRelation ;
+        ex:subject ex:img9_obj_5 ;
+        ex:relationType "above" ;
+        ex:object ex:img9_obj_4 ;
+        rdfs:comment "The nostrils sit above the philtrum."
+    ] .
+
+# === Object 6: Whisker pads ===
+ex:img9_obj_6
+    rdf:type schema:Thing ;
+    rdfs:label "Whisker pads" ;
+    schema:category "Animal body part" ;
+    schema:description "The rounded, fur-covered whisker pads flanking the nose on both sides. They appear puffy and are covered with the same tabby fur." ;
+    ex:confidence "0.88"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdf:type ex:SpatialRelation ;
+        ex:subject ex:img9_obj_6 ;
+        ex:relationType "adjacentTo" ;
+        ex:object ex:img9_obj_2 ;
+        rdfs:comment "The whisker pads sit on either side of the nose leather."
+    ] ;
+    ex:spatialRelation [
+        rdf:type ex:SpatialRelation ;
+        ex:subject ex:img9_obj_6 ;
+        ex:relationType "adjacentTo" ;
+        ex:object ex:img9_obj_4 ;
+        rdfs:comment "The whisker pads flank the philtrum laterally."
+    ] .
+
+# === Object 7: Bridge of nose (forehead fur) ===
+ex:img9_obj_7
+    rdf:type schema:Thing ;
+    rdfs:label "Bridge of nose" ;
+    schema:category "Animal body part" ;
+    schema:description "The upper portion of the image showing the fur-covered bridge of the cat's nose extending upward toward the forehead. The tabby striping is faintly visible." ;
+    ex:confidence "0.85"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdf:type ex:SpatialRelation ;
+        ex:subject ex:img9_obj_7 ;
+        ex:relationType "above" ;
+        ex:object ex:img9_obj_2 ;
+        rdfs:comment "The bridge of the nose extends above the nose leather toward the top of the frame."
+    ] .

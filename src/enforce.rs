@@ -1,6 +1,5 @@
 use crate::graph::GraphStore;
 use crate::state::StateDb;
-use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 /// Design pattern enforcement with built-in and custom rule packs.
@@ -220,12 +219,11 @@ impl Enforcer {
                         "ASK {{ <{}> <http://www.w3.org/2002/07/owl#disjointWith> <{}> }}",
                         children[i], children[j]
                     );
-                    if let Ok(result) = self.graph.sparql_select(&disjoint_query) {
-                        if !result.contains("true") {
+                    if let Ok(result) = self.graph.sparql_select(&disjoint_query)
+                        && !result.contains("true") {
                             all_disjoint = false;
                             break;
                         }
-                    }
                 }
                 if !all_disjoint {
                     break;
@@ -283,9 +281,9 @@ impl Enforcer {
     }
 
     fn query_iris(&self, query: &str, var: &str) -> Vec<String> {
-        if let Ok(json) = self.graph.sparql_select(query) {
-            if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json) {
-                if let Some(results) = parsed["results"].as_array() {
+        if let Ok(json) = self.graph.sparql_select(query)
+            && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
+                && let Some(results) = parsed["results"].as_array() {
                     return results
                         .iter()
                         .filter_map(|r| {
@@ -293,8 +291,6 @@ impl Enforcer {
                         })
                         .collect();
                 }
-            }
-        }
         Vec::new()
     }
 }

@@ -514,11 +514,10 @@ impl OwlParser {
         }
 
         // Blank nodes: check for complex class expressions
-        if node.starts_with("_:") {
-            if let Some(c) = self.try_parse_complex(node) {
+        if node.starts_with("_:")
+            && let Some(c) = self.try_parse_complex(node) {
                 return c;
             }
-        }
 
         // Named class
         let id = self.interner.intern(node);
@@ -594,30 +593,25 @@ impl OwlParser {
             .index
             .object(node, OWL_MIN_QCARD)
             .or_else(|| self.index.object(node, OWL_MIN_CARD))
-        {
-            if let Some(n) = parse_card_value(&val) {
+            && let Some(n) = parse_card_value(&val) {
                 return RawConcept::MinCard(prop, n, Box::new(filler));
             }
-        }
         // maxQualifiedCardinality / maxCardinality → ≤n R.C
         if let Some(val) = self
             .index
             .object(node, OWL_MAX_QCARD)
             .or_else(|| self.index.object(node, OWL_MAX_CARD))
-        {
-            if let Some(n) = parse_card_value(&val) {
+            && let Some(n) = parse_card_value(&val) {
                 return RawConcept::MaxCard(prop, n, Box::new(filler));
             }
-        }
         // exactCardinality → ≥n R.C ⊓ ≤n R.C
-        if let Some(val) = self.index.object(node, OWL_EXACT_CARD) {
-            if let Some(n) = parse_card_value(&val) {
+        if let Some(val) = self.index.object(node, OWL_EXACT_CARD)
+            && let Some(n) = parse_card_value(&val) {
                 return RawConcept::And(vec![
                     RawConcept::MinCard(prop, n, Box::new(filler.clone())),
                     RawConcept::MaxCard(prop, n, Box::new(filler)),
                 ]);
             }
-        }
 
         RawConcept::Top
     }
@@ -625,11 +619,10 @@ impl OwlParser {
 
 /// Parse cardinality value from OWL literal (e.g., "2"^^<xsd:nonNegativeInteger>).
 fn parse_card_value(literal: &str) -> Option<u32> {
-    if literal.starts_with('"') {
-        let rest = &literal[1..];
-        if let Some(end) = rest.find('"') {
-            return rest[..end].parse().ok();
-        }
+    if let Some(rest) = literal.strip_prefix('"')
+        && let Some(end) = rest.find('"')
+    {
+        return rest[..end].parse().ok();
     }
     literal.parse().ok()
 }
@@ -756,31 +749,28 @@ impl TNode {
             return true;
         }
         for label in &self.labels {
-            if let Concept::Atom(a) = label {
-                if self.labels.contains(&Concept::NegAtom(*a)) {
+            if let Concept::Atom(a) = label
+                && self.labels.contains(&Concept::NegAtom(*a)) {
                     return true;
                 }
-            }
         }
         // MinCard/MaxCard direct clash: ≥n1 R.C and ≤n2 R.C with n1 > n2
         for label in &self.labels {
             if let Concept::MinCard(r1, n1, f1) = label {
                 for other in &self.labels {
-                    if let Concept::MaxCard(r2, n2, f2) = other {
-                        if r1 == r2 && n1 > n2 && (f1 == f2 || **f2 == Concept::Top) {
+                    if let Concept::MaxCard(r2, n2, f2) = other
+                        && r1 == r2 && n1 > n2 && (f1 == f2 || **f2 == Concept::Top) {
                             return true;
                         }
-                    }
                 }
             }
             // Exists(R, C) = ≥1 R.C clashes with MaxCard(R, 0, C/Top)
             if let Concept::Exists(r1, f1) = label {
                 for other in &self.labels {
-                    if let Concept::MaxCard(r2, n2, f2) = other {
-                        if r1 == r2 && *n2 == 0 && (f1 == f2 || **f2 == Concept::Top) {
+                    if let Concept::MaxCard(r2, n2, f2) = other
+                        && r1 == r2 && *n2 == 0 && (f1 == f2 || **f2 == Concept::Top) {
                             return true;
                         }
-                    }
                 }
             }
         }
@@ -867,13 +857,12 @@ impl Tableau {
             return false;
         }
         // Trigger concept definitions for atomic labels
-        if let Concept::Atom(a) = &concept {
-            if let Some(defs) = self.tbox.concept_defs.get(a).cloned() {
+        if let Concept::Atom(a) = &concept
+            && let Some(defs) = self.tbox.concept_defs.get(a).cloned() {
                 for d in defs {
                     self.add_label(node_id, d);
                 }
             }
-        }
         true
     }
 
@@ -897,15 +886,12 @@ impl Tableau {
         }
 
         // Inverse: if parent_role has inverse == role, parent is a role-successor
-        if let Some(parent_id) = node.parent {
-            if let Some(parent_role) = node.parent_role {
-                if let Some(&inv_of_parent) = self.tbox.inverse_roles.get(&parent_role) {
-                    if role == inv_of_parent {
+        if let Some(parent_id) = node.parent
+            && let Some(parent_role) = node.parent_role
+                && let Some(&inv_of_parent) = self.tbox.inverse_roles.get(&parent_role)
+                    && role == inv_of_parent {
                         result.insert(parent_id);
                     }
-                }
-            }
-        }
 
         result
     }
@@ -946,11 +932,10 @@ impl Tableau {
             .collect();
         for sup_role in super_roles {
             for label in &parent_labels {
-                if let Concept::ForAll(r, f) = label {
-                    if *r == sup_role {
+                if let Concept::ForAll(r, f) = label
+                    && *r == sup_role {
                         self.add_label(succ, *f.clone());
                     }
-                }
             }
         }
 
@@ -1008,11 +993,10 @@ impl Tableau {
             }
             let node = self.nodes.get_mut(&nid).unwrap();
             for targets in node.edges.values_mut() {
-                if targets.remove(&remove_id) {
-                    if nid != keep_id {
+                if targets.remove(&remove_id)
+                    && nid != keep_id {
                         targets.insert(keep_id);
                     }
-                }
             }
             // Update parent references
             if node.parent == Some(remove_id) {
@@ -1072,7 +1056,7 @@ impl Tableau {
                             let succs = self.successors(nid, role);
                             let has_matching =
                                 succs.iter().any(|&s| {
-                                    self.nodes.get(&s).map_or(false, |n| n.labels.contains(&filler))
+                                    self.nodes.get(&s).is_some_and(|n| n.labels.contains(&filler))
                                 });
                             if !has_matching {
                                 self.create_successor(nid, role, filler);
@@ -1089,7 +1073,7 @@ impl Tableau {
                             let matching: usize = succs
                                 .iter()
                                 .filter(|&&s| {
-                                    self.nodes.get(&s).map_or(false, |n| n.labels.contains(&filler))
+                                    self.nodes.get(&s).is_some_and(|n| n.labels.contains(&filler))
                                 })
                                 .count();
                             if matching < n {
@@ -1170,7 +1154,7 @@ impl Tableau {
                     .filter(|&&s| {
                         self.nodes
                             .get(&s)
-                            .map_or(false, |node| node.labels.contains(&filler))
+                            .is_some_and(|node| node.labels.contains(&filler))
                     })
                     .copied()
                     .collect();
@@ -1466,7 +1450,7 @@ impl DlReasoner {
         let mut pairs: Vec<(u32, u32)> = Vec::new();
         for &sub in &satisfiable {
             for &sup in &satisfiable {
-                if sub != sup && !told.get(&sub).map_or(false, |s| s.contains(&sup)) {
+                if sub != sup && !told.get(&sub).is_some_and(|s| s.contains(&sup)) {
                     pairs.push((sub, sup));
                 }
             }
@@ -1498,11 +1482,10 @@ impl DlReasoner {
         let mut equivalences: Vec<(u32, u32)> = Vec::new();
         for (&a, a_supers) in &hierarchy {
             for &b in a_supers {
-                if a < b {
-                    if hierarchy.get(&b).map_or(false, |bs| bs.contains(&a)) {
+                if a < b
+                    && hierarchy.get(&b).is_some_and(|bs| bs.contains(&a)) {
                         equivalences.push((a, b));
                     }
-                }
             }
         }
 
@@ -1578,11 +1561,10 @@ impl DlReasoner {
             for (&ind, &node_id) in &ind_to_node {
                 if let Some(node) = tableau.nodes.get(&node_id) {
                     for label in &node.labels {
-                        if let Concept::Atom(cls) = label {
-                            if !self.individual_types[&ind].contains(cls) {
+                        if let Concept::Atom(cls) = label
+                            && !self.individual_types[&ind].contains(cls) {
                                 inferred.entry(ind).or_default().insert(*cls);
                             }
-                        }
                     }
                 }
             }

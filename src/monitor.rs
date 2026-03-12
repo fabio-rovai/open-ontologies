@@ -173,10 +173,10 @@ impl Monitor {
         // Expect a SELECT query returning a ?count binding
         match self.graph.sparql_select(query) {
             Ok(json) => {
-                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json) {
-                    if let Some(results) = parsed["results"].as_array() {
-                        if let Some(first) = results.first() {
-                            if let Some(count_str) = first["count"].as_str() {
+                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
+                    && let Some(results) = parsed["results"].as_array()
+                        && let Some(first) = results.first()
+                            && let Some(count_str) = first["count"].as_str() {
                                 // Oxigraph returns literal like "\"1\"^^<http://...>"
                                 let cleaned = count_str
                                     .trim_matches('"')
@@ -186,9 +186,6 @@ impl Monitor {
                                     .trim_matches('"');
                                 return cleaned.parse().unwrap_or(0.0);
                             }
-                        }
-                    }
-                }
                 0.0
             }
             Err(_) => 0.0,

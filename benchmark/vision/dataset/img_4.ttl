@@ -1,0 +1,132 @@
+@prefix ex: <http://example.org/image/> .
+@prefix schema: <http://schema.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# === Image node ===
+ex:img_4
+    rdf:type schema:ImageObject ;
+    rdfs:label "img_4.jpg" ;
+    schema:description "A moody, overcast rural landscape showing a dense row of tall coniferous trees spanning the middle ground, with misty forested hills receding into the background and a dry grassy meadow in the foreground." ;
+    schema:keywords "landscape", "forest", "coniferous trees", "meadow", "overcast", "hills", "mist", "rural", "nature" ;
+    schema:hasPart ex:img4_obj_1 ,
+                   ex:img4_obj_2 ,
+                   ex:img4_obj_3 ,
+                   ex:img4_obj_4 ,
+                   ex:img4_obj_5 ,
+                   ex:img4_obj_6 ,
+                   ex:img4_obj_7 .
+
+# === Object 1: Overcast sky ===
+ex:img4_obj_1
+    rdf:type schema:Thing ;
+    rdfs:label "Overcast sky" ;
+    schema:category "sky" ;
+    schema:description "A flat, grey overcast sky covering the upper third of the image with no visible sun or blue patches." ;
+    ex:confidence "0.97"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "above coniferous tree line" ;
+        schema:spatialCoverage ex:img4_obj_2
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "above distant hills" ;
+        schema:spatialCoverage ex:img4_obj_4
+    ] .
+
+# === Object 2: Dense coniferous tree line ===
+ex:img4_obj_2
+    rdf:type schema:Thing ;
+    rdfs:label "Dense coniferous tree line" ;
+    schema:category "vegetation" ;
+    schema:description "A continuous row of tall, dark coniferous trees (likely spruce or pine) stretching across the full width of the image in the middle ground. Trunks are visible beneath the canopy." ;
+    ex:confidence "0.95"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "below overcast sky" ;
+        schema:spatialCoverage ex:img4_obj_1
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "above grassy meadow" ;
+        schema:spatialCoverage ex:img4_obj_3
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "in front of distant forested hills" ;
+        schema:spatialCoverage ex:img4_obj_4
+    ] .
+
+# === Object 3: Grassy meadow ===
+ex:img4_obj_3
+    rdf:type schema:Thing ;
+    rdfs:label "Grassy meadow" ;
+    schema:category "terrain" ;
+    schema:description "A dry, brownish-green grassy field occupying the lower foreground, sloping gently upward toward the tree line. The grass appears short and dormant, suggesting late autumn or early spring." ;
+    ex:confidence "0.94"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "below coniferous tree line" ;
+        schema:spatialCoverage ex:img4_obj_2
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "in front of coniferous tree line" ;
+        schema:spatialCoverage ex:img4_obj_2
+    ] .
+
+# === Object 4: Distant forested hills ===
+ex:img4_obj_4
+    rdf:type schema:Thing ;
+    rdfs:label "Distant forested hills" ;
+    schema:category "terrain" ;
+    schema:description "Rolling hills covered in dense forest visible behind and above the main tree line, partially obscured by atmospheric haze and mist. Multiple layers of hills recede into the background." ;
+    ex:confidence "0.88"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "behind coniferous tree line" ;
+        schema:spatialCoverage ex:img4_obj_2
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "below overcast sky" ;
+        schema:spatialCoverage ex:img4_obj_1
+    ] .
+
+# === Object 5: Atmospheric haze/mist ===
+ex:img4_obj_5
+    rdf:type schema:Thing ;
+    rdfs:label "Atmospheric haze" ;
+    schema:category "atmospheric condition" ;
+    schema:description "A layer of mist or haze visible between the main tree line and the distant hills, reducing visibility and creating depth layering in the landscape." ;
+    ex:confidence "0.82"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "between tree line and distant hills" ;
+        schema:spatialCoverage ex:img4_obj_2 ,
+                               ex:img4_obj_4
+    ] .
+
+# === Object 6: Visible tree trunks ===
+ex:img4_obj_6
+    rdf:type schema:Thing ;
+    rdfs:label "Visible tree trunks" ;
+    schema:category "vegetation" ;
+    schema:description "Bare, straight trunks of the coniferous trees visible beneath the canopy, indicating mature plantation-style or naturally dense forest with high canopy and little undergrowth." ;
+    ex:confidence "0.80"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "part of coniferous tree line" ;
+        schema:spatialCoverage ex:img4_obj_2
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "above grassy meadow" ;
+        schema:spatialCoverage ex:img4_obj_3
+    ] .
+
+# === Object 7: Gentle hill slope ===
+ex:img4_obj_7
+    rdf:type schema:Thing ;
+    rdfs:label "Gentle hill slope" ;
+    schema:category "terrain" ;
+    schema:description "The foreground meadow rises on a gentle slope from lower-left toward the tree line, indicating the landscape sits on undulating terrain." ;
+    ex:confidence "0.78"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "part of grassy meadow" ;
+        schema:spatialCoverage ex:img4_obj_3
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "leading up to coniferous tree line" ;
+        schema:spatialCoverage ex:img4_obj_2
+    ] .
