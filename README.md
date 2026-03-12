@@ -438,7 +438,7 @@ Open Ontologies wins all 5 axiom types. 10 individual results scored PERFECT (F1
 
 ### Reasoning Performance — HermiT vs Open Ontologies
 
-Real benchmarks, not marketing claims. Java 25, HermiT 1.4.3.456, OWL API 4.5.29.
+Java 25, HermiT 1.4.3.456, OWL API 4.5.29.
 
 **Pizza Ontology (4,179 triples)**
 
