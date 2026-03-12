@@ -1,0 +1,1026 @@
+[
+    [
+        "Brand",
+        "Business Entity"
+    ],
+    [
+        "Brand",
+        "Business Entity Type"
+    ],
+    [
+        "Brand",
+        "Business Function"
+    ],
+    [
+        "Brand",
+        "Day Of Week"
+    ],
+    [
+        "Brand",
+        "Delivery Method"
+    ],
+    [
+        "Brand",
+        "Location"
+    ],
+    [
+        "Brand",
+        "Offering"
+    ],
+    [
+        "Brand",
+        "Opening Hours Specification"
+    ],
+    [
+        "Brand",
+        "Payment Method"
+    ],
+    [
+        "Brand",
+        "Price Specification"
+    ],
+    [
+        "Brand",
+        "Product Or Service"
+    ],
+    [
+        "Brand",
+        "Quantitative Value"
+    ],
+    [
+        "Brand",
+        "Type And Quantity Node"
+    ],
+    [
+        "Brand",
+        "Warranty Promise"
+    ],
+    [
+        "Brand",
+        "Warranty Scope"
+    ],
+    [
+        "Business Entity",
+        "Brand"
+    ],
+    [
+        "Business Entity",
+        "Business Entity Type"
+    ],
+    [
+        "Business Entity",
+        "Business Function"
+    ],
+    [
+        "Business Entity",
+        "Day Of Week"
+    ],
+    [
+        "Business Entity",
+        "Delivery Method"
+    ],
+    [
+        "Business Entity",
+        "Location"
+    ],
+    [
+        "Business Entity",
+        "Offering"
+    ],
+    [
+        "Business Entity",
+        "Opening Hours Specification"
+    ],
+    [
+        "Business Entity",
+        "Payment Method"
+    ],
+    [
+        "Business Entity",
+        "Price Specification"
+    ],
+    [
+        "Business Entity",
+        "Quantitative Value"
+    ],
+    [
+        "Business Entity",
+        "Type And Quantity Node"
+    ],
+    [
+        "Business Entity",
+        "Warranty Promise"
+    ],
+    [
+        "Business Entity",
+        "Warranty Scope"
+    ],
+    [
+        "Business Entity Type",
+        "Brand"
+    ],
+    [
+        "Business Entity Type",
+        "Business Entity"
+    ],
+    [
+        "Business Entity Type",
+        "Business Function"
+    ],
+    [
+        "Business Entity Type",
+        "Day Of Week"
+    ],
+    [
+        "Business Entity Type",
+        "Delivery Method"
+    ],
+    [
+        "Business Entity Type",
+        "Location"
+    ],
+    [
+        "Business Entity Type",
+        "Offering"
+    ],
+    [
+        "Business Entity Type",
+        "Opening Hours Specification"
+    ],
+    [
+        "Business Entity Type",
+        "Payment Method"
+    ],
+    [
+        "Business Entity Type",
+        "Price Specification"
+    ],
+    [
+        "Business Entity Type",
+        "Product Or Service"
+    ],
+    [
+        "Business Entity Type",
+        "Quantitative Value"
+    ],
+    [
+        "Business Entity Type",
+        "Type And Quantity Node"
+    ],
+    [
+        "Business Entity Type",
+        "Warranty Promise"
+    ],
+    [
+        "Business Entity Type",
+        "Warranty Scope"
+    ],
+    [
+        "Business Function",
+        "Brand"
+    ],
+    [
+        "Business Function",
+        "Business Entity"
+    ],
+    [
+        "Business Function",
+        "Business Entity Type"
+    ],
+    [
+        "Business Function",
+        "Day Of Week"
+    ],
+    [
+        "Business Function",
+        "Delivery Method"
+    ],
+    [
+        "Business Function",
+        "Location"
+    ],
+    [
+        "Business Function",
+        "Offering"
+    ],
+    [
+        "Business Function",
+        "Opening Hours Specification"
+    ],
+    [
+        "Business Function",
+        "Payment Method"
+    ],
+    [
+        "Business Function",
+        "Price Specification"
+    ],
+    [
+        "Business Function",
+        "Product Or Service"
+    ],
+    [
+        "Business Function",
+        "Quantitative Value"
+    ],
+    [
+        "Business Function",
+        "Type And Quantity Node"
+    ],
+    [
+        "Business Function",
+        "Warranty Promise"
+    ],
+    [
+        "Business Function",
+        "Warranty Scope"
+    ],
+    [
+        "Day Of Week",
+        "Brand"
+    ],
+    [
+        "Day Of Week",
+        "Business Entity"
+    ],
+    [
+        "Day Of Week",
+        "Business Entity Type"
+    ],
+    [
+        "Day Of Week",
+        "Business Function"
+    ],
+    [
+        "Day Of Week",
+        "Delivery Method"
+    ],
+    [
+        "Day Of Week",
+        "Location"
+    ],
+    [
+        "Day Of Week",
+        "Offering"
+    ],
+    [
+        "Day Of Week",
+        "Opening Hours Specification"
+    ],
+    [
+        "Day Of Week",
+        "Payment Method"
+    ],
+    [
+        "Day Of Week",
+        "Price Specification"
+    ],
+    [
+        "Day Of Week",
+        "Product Or Service"
+    ],
+    [
+        "Day Of Week",
+        "Quantitative Value"
+    ],
+    [
+        "Day Of Week",
+        "Type And Quantity Node"
+    ],
+    [
+        "Day Of Week",
+        "Warranty Promise"
+    ],
+    [
+        "Day Of Week",
+        "Warranty Scope"
+    ],
+    [
+        "Delivery Charge Specification",
+        "Payment Charge Specification"
+    ],
+    [
+        "Delivery Charge Specification",
+        "Unit Price Specification"
+    ],
+    [
+        "Delivery Method",
+        "Brand"
+    ],
+    [
+        "Delivery Method",
+        "Business Entity"
+    ],
+    [
+        "Delivery Method",
+        "Business Entity Type"
+    ],
+    [
+        "Delivery Method",
+        "Business Function"
+    ],
+    [
+        "Delivery Method",
+        "Day Of Week"
+    ],
+    [
+        "Delivery Method",
+        "Location"
+    ],
+    [
+        "Delivery Method",
+        "Offering"
+    ],
+    [
+        "Delivery Method",
+        "Opening Hours Specification"
+    ],
+    [
+        "Delivery Method",
+        "Payment Method"
+    ],
+    [
+        "Delivery Method",
+        "Price Specification"
+    ],
+    [
+        "Delivery Method",
+        "Product Or Service"
+    ],
+    [
+        "Delivery Method",
+        "Quantitative Value"
+    ],
+    [
+        "Delivery Method",
+        "Type And Quantity Node"
+    ],
+    [
+        "Delivery Method",
+        "Warranty Promise"
+    ],
+    [
+        "Delivery Method",
+        "Warranty Scope"
+    ],
+    [
+        "Individual",
+        "Product Or Service Model"
+    ],
+    [
+        "Individual",
+        "Some Items"
+    ],
+    [
+        "Location",
+        "Brand"
+    ],
+    [
+        "Location",
+        "Business Entity"
+    ],
+    [
+        "Location",
+        "Business Entity Type"
+    ],
+    [
+        "Location",
+        "Business Function"
+    ],
+    [
+        "Location",
+        "Day Of Week"
+    ],
+    [
+        "Location",
+        "Delivery Method"
+    ],
+    [
+        "Location",
+        "Offering"
+    ],
+    [
+        "Location",
+        "Opening Hours Specification"
+    ],
+    [
+        "Location",
+        "Payment Method"
+    ],
+    [
+        "Location",
+        "Price Specification"
+    ],
+    [
+        "Location",
+        "Quantitative Value"
+    ],
+    [
+        "Location",
+        "Type And Quantity Node"
+    ],
+    [
+        "Location",
+        "Warranty Promise"
+    ],
+    [
+        "Location",
+        "Warranty Scope"
+    ],
+    [
+        "Offering",
+        "Brand"
+    ],
+    [
+        "Offering",
+        "Business Entity"
+    ],
+    [
+        "Offering",
+        "Business Entity Type"
+    ],
+    [
+        "Offering",
+        "Business Function"
+    ],
+    [
+        "Offering",
+        "Day Of Week"
+    ],
+    [
+        "Offering",
+        "Delivery Method"
+    ],
+    [
+        "Offering",
+        "Location"
+    ],
+    [
+        "Offering",
+        "Opening Hours Specification"
+    ],
+    [
+        "Offering",
+        "Payment Method"
+    ],
+    [
+        "Offering",
+        "Price Specification"
+    ],
+    [
+        "Offering",
+        "Product Or Service"
+    ],
+    [
+        "Offering",
+        "Qualitative Value"
+    ],
+    [
+        "Offering",
+        "Quantitative Value"
+    ],
+    [
+        "Offering",
+        "Type And Quantity Node"
+    ],
+    [
+        "Offering",
+        "Warranty Promise"
+    ],
+    [
+        "Offering",
+        "Warranty Scope"
+    ],
+    [
+        "Opening Hours Specification",
+        "Brand"
+    ],
+    [
+        "Opening Hours Specification",
+        "Business Entity"
+    ],
+    [
+        "Opening Hours Specification",
+        "Business Entity Type"
+    ],
+    [
+        "Opening Hours Specification",
+        "Business Function"
+    ],
+    [
+        "Opening Hours Specification",
+        "Day Of Week"
+    ],
+    [
+        "Opening Hours Specification",
+        "Delivery Method"
+    ],
+    [
+        "Opening Hours Specification",
+        "Location"
+    ],
+    [
+        "Opening Hours Specification",
+        "Offering"
+    ],
+    [
+        "Opening Hours Specification",
+        "Payment Method"
+    ],
+    [
+        "Opening Hours Specification",
+        "Price Specification"
+    ],
+    [
+        "Opening Hours Specification",
+        "Product Or Service"
+    ],
+    [
+        "Opening Hours Specification",
+        "Quantitative Value"
+    ],
+    [
+        "Opening Hours Specification",
+        "Type And Quantity Node"
+    ],
+    [
+        "Opening Hours Specification",
+        "Warranty Promise"
+    ],
+    [
+        "Opening Hours Specification",
+        "Warranty Scope"
+    ],
+    [
+        "Payment Charge Specification",
+        "Delivery Charge Specification"
+    ],
+    [
+        "Payment Charge Specification",
+        "Unit Price Specification"
+    ],
+    [
+        "Payment Method",
+        "Brand"
+    ],
+    [
+        "Payment Method",
+        "Business Entity"
+    ],
+    [
+        "Payment Method",
+        "Business Entity Type"
+    ],
+    [
+        "Payment Method",
+        "Business Function"
+    ],
+    [
+        "Payment Method",
+        "Day Of Week"
+    ],
+    [
+        "Payment Method",
+        "Delivery Method"
+    ],
+    [
+        "Payment Method",
+        "Location"
+    ],
+    [
+        "Payment Method",
+        "Offering"
+    ],
+    [
+        "Payment Method",
+        "Opening Hours Specification"
+    ],
+    [
+        "Payment Method",
+        "Price Specification"
+    ],
+    [
+        "Payment Method",
+        "Quantitative Value"
+    ],
+    [
+        "Payment Method",
+        "Type And Quantity Node"
+    ],
+    [
+        "Payment Method",
+        "Warranty Promise"
+    ],
+    [
+        "Payment Method",
+        "Warranty Scope"
+    ],
+    [
+        "Price Specification",
+        "Brand"
+    ],
+    [
+        "Price Specification",
+        "Business Entity"
+    ],
+    [
+        "Price Specification",
+        "Business Entity Type"
+    ],
+    [
+        "Price Specification",
+        "Business Function"
+    ],
+    [
+        "Price Specification",
+        "Day Of Week"
+    ],
+    [
+        "Price Specification",
+        "Delivery Method"
+    ],
+    [
+        "Price Specification",
+        "Location"
+    ],
+    [
+        "Price Specification",
+        "Offering"
+    ],
+    [
+        "Price Specification",
+        "Opening Hours Specification"
+    ],
+    [
+        "Price Specification",
+        "Payment Method"
+    ],
+    [
+        "Price Specification",
+        "Product Or Service"
+    ],
+    [
+        "Price Specification",
+        "Quantitative Value"
+    ],
+    [
+        "Price Specification",
+        "Type And Quantity Node"
+    ],
+    [
+        "Price Specification",
+        "Warranty Promise"
+    ],
+    [
+        "Price Specification",
+        "Warranty Scope"
+    ],
+    [
+        "Product Or Service",
+        "Brand"
+    ],
+    [
+        "Product Or Service",
+        "Business Entity Type"
+    ],
+    [
+        "Product Or Service",
+        "Business Function"
+    ],
+    [
+        "Product Or Service",
+        "Day Of Week"
+    ],
+    [
+        "Product Or Service",
+        "Delivery Method"
+    ],
+    [
+        "Product Or Service",
+        "Offering"
+    ],
+    [
+        "Product Or Service",
+        "Opening Hours Specification"
+    ],
+    [
+        "Product Or Service",
+        "Price Specification"
+    ],
+    [
+        "Product Or Service",
+        "Quantitative Value"
+    ],
+    [
+        "Product Or Service",
+        "Type And Quantity Node"
+    ],
+    [
+        "Product Or Service",
+        "Warranty Promise"
+    ],
+    [
+        "Product Or Service",
+        "Warranty Scope"
+    ],
+    [
+        "Product Or Service Model",
+        "Brand"
+    ],
+    [
+        "Product Or Service Model",
+        "Business Entity"
+    ],
+    [
+        "Product Or Service Model",
+        "Individual"
+    ],
+    [
+        "Product Or Service Model",
+        "Some Items"
+    ],
+    [
+        "Qualitative Value",
+        "Offering"
+    ],
+    [
+        "Qualitative Value",
+        "Quantitative Value"
+    ],
+    [
+        "Qualitative Value",
+        "Type And Quantity Node"
+    ],
+    [
+        "Quantitative Value",
+        "Brand"
+    ],
+    [
+        "Quantitative Value",
+        "Business Entity"
+    ],
+    [
+        "Quantitative Value",
+        "Business Entity Type"
+    ],
+    [
+        "Quantitative Value",
+        "Business Function"
+    ],
+    [
+        "Quantitative Value",
+        "Day Of Week"
+    ],
+    [
+        "Quantitative Value",
+        "Delivery Method"
+    ],
+    [
+        "Quantitative Value",
+        "Location"
+    ],
+    [
+        "Quantitative Value",
+        "Offering"
+    ],
+    [
+        "Quantitative Value",
+        "Opening Hours Specification"
+    ],
+    [
+        "Quantitative Value",
+        "Payment Method"
+    ],
+    [
+        "Quantitative Value",
+        "Price Specification"
+    ],
+    [
+        "Quantitative Value",
+        "Product Or Service"
+    ],
+    [
+        "Quantitative Value",
+        "Qualitative Value"
+    ],
+    [
+        "Quantitative Value",
+        "Type And Quantity Node"
+    ],
+    [
+        "Quantitative Value",
+        "Warranty Promise"
+    ],
+    [
+        "Quantitative Value",
+        "Warranty Scope"
+    ],
+    [
+        "Quantitative Value Float",
+        "Quantitative Value Integer"
+    ],
+    [
+        "Quantitative Value Integer",
+        "Quantitative Value Float"
+    ],
+    [
+        "Some Items",
+        "Individual"
+    ],
+    [
+        "Some Items",
+        "Product Or Service Model"
+    ],
+    [
+        "Type And Quantity Node",
+        "Brand"
+    ],
+    [
+        "Type And Quantity Node",
+        "Business Entity"
+    ],
+    [
+        "Type And Quantity Node",
+        "Business Entity Type"
+    ],
+    [
+        "Type And Quantity Node",
+        "Business Function"
+    ],
+    [
+        "Type And Quantity Node",
+        "Day Of Week"
+    ],
+    [
+        "Type And Quantity Node",
+        "Delivery Method"
+    ],
+    [
+        "Type And Quantity Node",
+        "Location"
+    ],
+    [
+        "Type And Quantity Node",
+        "Offering"
+    ],
+    [
+        "Type And Quantity Node",
+        "Opening Hours Specification"
+    ],
+    [
+        "Type And Quantity Node",
+        "Payment Method"
+    ],
+    [
+        "Type And Quantity Node",
+        "Price Specification"
+    ],
+    [
+        "Type And Quantity Node",
+        "Product Or Service"
+    ],
+    [
+        "Type And Quantity Node",
+        "Qualitative Value"
+    ],
+    [
+        "Type And Quantity Node",
+        "Quantitative Value"
+    ],
+    [
+        "Type And Quantity Node",
+        "Warranty Promise"
+    ],
+    [
+        "Type And Quantity Node",
+        "Warranty Scope"
+    ],
+    [
+        "Unit Price Specification",
+        "Delivery Charge Specification"
+    ],
+    [
+        "Unit Price Specification",
+        "Payment Charge Specification"
+    ],
+    [
+        "Warranty Promise",
+        "Brand"
+    ],
+    [
+        "Warranty Promise",
+        "Business Entity"
+    ],
+    [
+        "Warranty Promise",
+        "Business Entity Type"
+    ],
+    [
+        "Warranty Promise",
+        "Business Function"
+    ],
+    [
+        "Warranty Promise",
+        "Day Of Week"
+    ],
+    [
+        "Warranty Promise",
+        "Delivery Method"
+    ],
+    [
+        "Warranty Promise",
+        "Location"
+    ],
+    [
+        "Warranty Promise",
+        "Offering"
+    ],
+    [
+        "Warranty Promise",
+        "Opening Hours Specification"
+    ],
+    [
+        "Warranty Promise",
+        "Payment Method"
+    ],
+    [
+        "Warranty Promise",
+        "Price Specification"
+    ],
+    [
+        "Warranty Promise",
+        "Product Or Service"
+    ],
+    [
+        "Warranty Promise",
+        "Quantitative Value"
+    ],
+    [
+        "Warranty Promise",
+        "Type And Quantity Node"
+    ],
+    [
+        "Warranty Promise",
+        "Warranty Scope"
+    ],
+    [
+        "Warranty Scope",
+        "Brand"
+    ],
+    [
+        "Warranty Scope",
+        "Business Entity"
+    ],
+    [
+        "Warranty Scope",
+        "Business Entity Type"
+    ],
+    [
+        "Warranty Scope",
+        "Business Function"
+    ],
+    [
+        "Warranty Scope",
+        "Day Of Week"
+    ],
+    [
+        "Warranty Scope",
+        "Delivery Method"
+    ],
+    [
+        "Warranty Scope",
+        "Location"
+    ],
+    [
+        "Warranty Scope",
+        "Offering"
+    ],
+    [
+        "Warranty Scope",
+        "Opening Hours Specification"
+    ],
+    [
+        "Warranty Scope",
+        "Payment Method"
+    ],
+    [
+        "Warranty Scope",
+        "Price Specification"
+    ],
+    [
+        "Warranty Scope",
+        "Product Or Service"
+    ],
+    [
+        "Warranty Scope",
+        "Quantitative Value"
+    ],
+    [
+        "Warranty Scope",
+        "Type And Quantity Node"
+    ],
+    [
+        "Warranty Scope",
+        "Warranty Promise"
+    ]
+]

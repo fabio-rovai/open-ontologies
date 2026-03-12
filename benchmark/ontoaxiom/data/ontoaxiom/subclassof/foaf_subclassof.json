@@ -1,0 +1,42 @@
+[
+    [
+        "Group",
+        "Agent"
+    ],
+    [
+        "Image",
+        "Document"
+    ],
+    [
+        "Online Account",
+        "Thing"
+    ],
+    [
+        "Online Chat Account",
+        "Online Account"
+    ],
+    [
+        "Online Ecommerce Account",
+        "Online Account"
+    ],
+    [
+        "Online Gaming Account",
+        "Online Account"
+    ],
+    [
+        "Organization",
+        "Agent"
+    ],
+    [
+        "Person",
+        "Agent"
+    ],
+    [
+        "Person",
+        "Spatial Thing"
+    ],
+    [
+        "Personal Profile Document",
+        "Document"
+    ]
+]

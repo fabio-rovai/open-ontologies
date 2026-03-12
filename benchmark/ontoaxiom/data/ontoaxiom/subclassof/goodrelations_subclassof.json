@@ -1,0 +1,78 @@
+[
+    [
+        "Actual Product Or Service Instance",
+        "Product Or Service"
+    ],
+    [
+        "Delivery Charge Specification",
+        "Price Specification"
+    ],
+    [
+        "Delivery Mode Parcel Service",
+        "Delivery Method"
+    ],
+    [
+        "Individual",
+        "Product"
+    ],
+    [
+        "Individual",
+        "Product Or Service"
+    ],
+    [
+        "License",
+        "Business Function"
+    ],
+    [
+        "Offer",
+        "Offering"
+    ],
+    [
+        "Organization",
+        "Business Entity"
+    ],
+    [
+        "Payment Charge Specification",
+        "Price Specification"
+    ],
+    [
+        "Payment Method Credit Card",
+        "Payment Method"
+    ],
+    [
+        "Person",
+        "Business Entity"
+    ],
+    [
+        "Product Or Service Model",
+        "Product"
+    ],
+    [
+        "Product Or Service Model",
+        "Product Or Service"
+    ],
+    [
+        "Product Or Services Some Instances Placeholder",
+        "Product Or Service"
+    ],
+    [
+        "Quantitative Value Float",
+        "Quantitative Value"
+    ],
+    [
+        "Quantitative Value Integer",
+        "Quantitative Value"
+    ],
+    [
+        "Some Items",
+        "Product"
+    ],
+    [
+        "Some Items",
+        "Product Or Service"
+    ],
+    [
+        "Unit Price Specification",
+        "Price Specification"
+    ]
+]

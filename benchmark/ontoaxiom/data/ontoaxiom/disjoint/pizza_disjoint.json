@@ -1,0 +1,3142 @@
+[
+    [
+        "American",
+        "American Hot"
+    ],
+    [
+        "American",
+        "Cajun"
+    ],
+    [
+        "American",
+        "Capricciosa"
+    ],
+    [
+        "American",
+        "Caprina"
+    ],
+    [
+        "American",
+        "Fiorentina"
+    ],
+    [
+        "American",
+        "Four Seasons"
+    ],
+    [
+        "American",
+        "Frutti Di Mare"
+    ],
+    [
+        "American",
+        "Giardiniera"
+    ],
+    [
+        "American",
+        "La Reine"
+    ],
+    [
+        "American",
+        "Margherita"
+    ],
+    [
+        "American",
+        "Mushroom"
+    ],
+    [
+        "American",
+        "Napoletana"
+    ],
+    [
+        "American",
+        "Parmense"
+    ],
+    [
+        "American",
+        "Pollo Ad Astra"
+    ],
+    [
+        "American",
+        "Prince Carlo"
+    ],
+    [
+        "American",
+        "Quattro Formaggi"
+    ],
+    [
+        "American",
+        "Rosa"
+    ],
+    [
+        "American",
+        "Siciliana"
+    ],
+    [
+        "American",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "American",
+        "Soho"
+    ],
+    [
+        "American",
+        "Unclosed Pizza"
+    ],
+    [
+        "American",
+        "Veneziana"
+    ],
+    [
+        "American Hot",
+        "American"
+    ],
+    [
+        "American Hot",
+        "Cajun"
+    ],
+    [
+        "American Hot",
+        "Capricciosa"
+    ],
+    [
+        "American Hot",
+        "Caprina"
+    ],
+    [
+        "American Hot",
+        "Fiorentina"
+    ],
+    [
+        "American Hot",
+        "Four Seasons"
+    ],
+    [
+        "American Hot",
+        "Frutti Di Mare"
+    ],
+    [
+        "American Hot",
+        "Giardiniera"
+    ],
+    [
+        "American Hot",
+        "La Reine"
+    ],
+    [
+        "American Hot",
+        "Margherita"
+    ],
+    [
+        "American Hot",
+        "Mushroom"
+    ],
+    [
+        "American Hot",
+        "Napoletana"
+    ],
+    [
+        "American Hot",
+        "Parmense"
+    ],
+    [
+        "American Hot",
+        "Pollo Ad Astra"
+    ],
+    [
+        "American Hot",
+        "Prince Carlo"
+    ],
+    [
+        "American Hot",
+        "Quattro Formaggi"
+    ],
+    [
+        "American Hot",
+        "Rosa"
+    ],
+    [
+        "American Hot",
+        "Siciliana"
+    ],
+    [
+        "American Hot",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "American Hot",
+        "Soho"
+    ],
+    [
+        "American Hot",
+        "Unclosed Pizza"
+    ],
+    [
+        "American Hot",
+        "Veneziana"
+    ],
+    [
+        "Anchovies Topping",
+        "Mixed Seafood Topping"
+    ],
+    [
+        "Anchovies Topping",
+        "Prawns Topping"
+    ],
+    [
+        "Artichoke Topping",
+        "Asparagus Topping"
+    ],
+    [
+        "Artichoke Topping",
+        "Caper Topping"
+    ],
+    [
+        "Artichoke Topping",
+        "Garlic Topping"
+    ],
+    [
+        "Artichoke Topping",
+        "Leek Topping"
+    ],
+    [
+        "Artichoke Topping",
+        "Mushroom Topping"
+    ],
+    [
+        "Artichoke Topping",
+        "Olive Topping"
+    ],
+    [
+        "Artichoke Topping",
+        "Onion Topping"
+    ],
+    [
+        "Artichoke Topping",
+        "Pepper Topping"
+    ],
+    [
+        "Artichoke Topping",
+        "Petit Pois Topping"
+    ],
+    [
+        "Artichoke Topping",
+        "Rocket Topping"
+    ],
+    [
+        "Artichoke Topping",
+        "Spinach Topping"
+    ],
+    [
+        "Artichoke Topping",
+        "Tomato Topping"
+    ],
+    [
+        "Asparagus Topping",
+        "Artichoke Topping"
+    ],
+    [
+        "Asparagus Topping",
+        "Caper Topping"
+    ],
+    [
+        "Asparagus Topping",
+        "Garlic Topping"
+    ],
+    [
+        "Asparagus Topping",
+        "Leek Topping"
+    ],
+    [
+        "Asparagus Topping",
+        "Mushroom Topping"
+    ],
+    [
+        "Asparagus Topping",
+        "Olive Topping"
+    ],
+    [
+        "Asparagus Topping",
+        "Onion Topping"
+    ],
+    [
+        "Asparagus Topping",
+        "Pepper Topping"
+    ],
+    [
+        "Asparagus Topping",
+        "Petit Pois Topping"
+    ],
+    [
+        "Asparagus Topping",
+        "Rocket Topping"
+    ],
+    [
+        "Asparagus Topping",
+        "Spinach Topping"
+    ],
+    [
+        "Asparagus Topping",
+        "Tomato Topping"
+    ],
+    [
+        "Cajun",
+        "American"
+    ],
+    [
+        "Cajun",
+        "American Hot"
+    ],
+    [
+        "Cajun",
+        "Capricciosa"
+    ],
+    [
+        "Cajun",
+        "Caprina"
+    ],
+    [
+        "Cajun",
+        "Fiorentina"
+    ],
+    [
+        "Cajun",
+        "Four Seasons"
+    ],
+    [
+        "Cajun",
+        "Frutti Di Mare"
+    ],
+    [
+        "Cajun",
+        "Giardiniera"
+    ],
+    [
+        "Cajun",
+        "La Reine"
+    ],
+    [
+        "Cajun",
+        "Margherita"
+    ],
+    [
+        "Cajun",
+        "Mushroom"
+    ],
+    [
+        "Cajun",
+        "Napoletana"
+    ],
+    [
+        "Cajun",
+        "Parmense"
+    ],
+    [
+        "Cajun",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Cajun",
+        "Prince Carlo"
+    ],
+    [
+        "Cajun",
+        "Quattro Formaggi"
+    ],
+    [
+        "Cajun",
+        "Rosa"
+    ],
+    [
+        "Cajun",
+        "Siciliana"
+    ],
+    [
+        "Cajun",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Cajun",
+        "Soho"
+    ],
+    [
+        "Cajun",
+        "Unclosed Pizza"
+    ],
+    [
+        "Cajun",
+        "Veneziana"
+    ],
+    [
+        "Cajun Spice Topping",
+        "Rosemary Topping"
+    ],
+    [
+        "Caper Topping",
+        "Artichoke Topping"
+    ],
+    [
+        "Caper Topping",
+        "Asparagus Topping"
+    ],
+    [
+        "Caper Topping",
+        "Garlic Topping"
+    ],
+    [
+        "Caper Topping",
+        "Leek Topping"
+    ],
+    [
+        "Caper Topping",
+        "Mushroom Topping"
+    ],
+    [
+        "Caper Topping",
+        "Olive Topping"
+    ],
+    [
+        "Caper Topping",
+        "Onion Topping"
+    ],
+    [
+        "Caper Topping",
+        "Pepper Topping"
+    ],
+    [
+        "Caper Topping",
+        "Petit Pois Topping"
+    ],
+    [
+        "Caper Topping",
+        "Rocket Topping"
+    ],
+    [
+        "Caper Topping",
+        "Spinach Topping"
+    ],
+    [
+        "Caper Topping",
+        "Tomato Topping"
+    ],
+    [
+        "Capricciosa",
+        "American"
+    ],
+    [
+        "Capricciosa",
+        "American Hot"
+    ],
+    [
+        "Capricciosa",
+        "Cajun"
+    ],
+    [
+        "Capricciosa",
+        "Caprina"
+    ],
+    [
+        "Capricciosa",
+        "Fiorentina"
+    ],
+    [
+        "Capricciosa",
+        "Four Seasons"
+    ],
+    [
+        "Capricciosa",
+        "Frutti Di Mare"
+    ],
+    [
+        "Capricciosa",
+        "Giardiniera"
+    ],
+    [
+        "Capricciosa",
+        "La Reine"
+    ],
+    [
+        "Capricciosa",
+        "Margherita"
+    ],
+    [
+        "Capricciosa",
+        "Mushroom"
+    ],
+    [
+        "Capricciosa",
+        "Napoletana"
+    ],
+    [
+        "Capricciosa",
+        "Parmense"
+    ],
+    [
+        "Capricciosa",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Capricciosa",
+        "Prince Carlo"
+    ],
+    [
+        "Capricciosa",
+        "Quattro Formaggi"
+    ],
+    [
+        "Capricciosa",
+        "Rosa"
+    ],
+    [
+        "Capricciosa",
+        "Siciliana"
+    ],
+    [
+        "Capricciosa",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Capricciosa",
+        "Soho"
+    ],
+    [
+        "Capricciosa",
+        "Unclosed Pizza"
+    ],
+    [
+        "Capricciosa",
+        "Veneziana"
+    ],
+    [
+        "Caprina",
+        "American"
+    ],
+    [
+        "Caprina",
+        "American Hot"
+    ],
+    [
+        "Caprina",
+        "Cajun"
+    ],
+    [
+        "Caprina",
+        "Capricciosa"
+    ],
+    [
+        "Caprina",
+        "Fiorentina"
+    ],
+    [
+        "Caprina",
+        "Four Seasons"
+    ],
+    [
+        "Caprina",
+        "Frutti Di Mare"
+    ],
+    [
+        "Caprina",
+        "Giardiniera"
+    ],
+    [
+        "Caprina",
+        "La Reine"
+    ],
+    [
+        "Caprina",
+        "Margherita"
+    ],
+    [
+        "Caprina",
+        "Mushroom"
+    ],
+    [
+        "Caprina",
+        "Napoletana"
+    ],
+    [
+        "Caprina",
+        "Parmense"
+    ],
+    [
+        "Caprina",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Caprina",
+        "Prince Carlo"
+    ],
+    [
+        "Caprina",
+        "Quattro Formaggi"
+    ],
+    [
+        "Caprina",
+        "Rosa"
+    ],
+    [
+        "Caprina",
+        "Siciliana"
+    ],
+    [
+        "Caprina",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Caprina",
+        "Soho"
+    ],
+    [
+        "Caprina",
+        "Unclosed Pizza"
+    ],
+    [
+        "Caprina",
+        "Veneziana"
+    ],
+    [
+        "Cheese Topping",
+        "Fish Topping"
+    ],
+    [
+        "Cheese Topping",
+        "Fruit Topping"
+    ],
+    [
+        "Cheese Topping",
+        "Herb Spice Topping"
+    ],
+    [
+        "Cheese Topping",
+        "Meat Topping"
+    ],
+    [
+        "Cheese Topping",
+        "Nut Topping"
+    ],
+    [
+        "Cheese Topping",
+        "Sauce Topping"
+    ],
+    [
+        "Cheese Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Chicken Topping",
+        "Ham Topping"
+    ],
+    [
+        "Chicken Topping",
+        "Hot Spiced Beef Topping"
+    ],
+    [
+        "Chicken Topping",
+        "Peperoni Sausage Topping"
+    ],
+    [
+        "Deep Pan Base",
+        "Thin And Crispy Base"
+    ],
+    [
+        "Domain Concept",
+        "Value Partition"
+    ],
+    [
+        "Fiorentina",
+        "American"
+    ],
+    [
+        "Fiorentina",
+        "American Hot"
+    ],
+    [
+        "Fiorentina",
+        "Cajun"
+    ],
+    [
+        "Fiorentina",
+        "Capricciosa"
+    ],
+    [
+        "Fiorentina",
+        "Caprina"
+    ],
+    [
+        "Fiorentina",
+        "Four Seasons"
+    ],
+    [
+        "Fiorentina",
+        "Frutti Di Mare"
+    ],
+    [
+        "Fiorentina",
+        "Giardiniera"
+    ],
+    [
+        "Fiorentina",
+        "La Reine"
+    ],
+    [
+        "Fiorentina",
+        "Margherita"
+    ],
+    [
+        "Fiorentina",
+        "Mushroom"
+    ],
+    [
+        "Fiorentina",
+        "Napoletana"
+    ],
+    [
+        "Fiorentina",
+        "Parmense"
+    ],
+    [
+        "Fiorentina",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Fiorentina",
+        "Prince Carlo"
+    ],
+    [
+        "Fiorentina",
+        "Quattro Formaggi"
+    ],
+    [
+        "Fiorentina",
+        "Rosa"
+    ],
+    [
+        "Fiorentina",
+        "Siciliana"
+    ],
+    [
+        "Fiorentina",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Fiorentina",
+        "Soho"
+    ],
+    [
+        "Fiorentina",
+        "Unclosed Pizza"
+    ],
+    [
+        "Fiorentina",
+        "Veneziana"
+    ],
+    [
+        "Fish Topping",
+        "Cheese Topping"
+    ],
+    [
+        "Fish Topping",
+        "Fruit Topping"
+    ],
+    [
+        "Fish Topping",
+        "Herb Spice Topping"
+    ],
+    [
+        "Fish Topping",
+        "Meat Topping"
+    ],
+    [
+        "Fish Topping",
+        "Nut Topping"
+    ],
+    [
+        "Fish Topping",
+        "Sauce Topping"
+    ],
+    [
+        "Fish Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Four Cheeses Topping",
+        "Goats Cheese Topping"
+    ],
+    [
+        "Four Cheeses Topping",
+        "Gorgonzola Topping"
+    ],
+    [
+        "Four Cheeses Topping",
+        "Mozzarella Topping"
+    ],
+    [
+        "Four Cheeses Topping",
+        "Parmesan Topping"
+    ],
+    [
+        "Four Seasons",
+        "American"
+    ],
+    [
+        "Four Seasons",
+        "American Hot"
+    ],
+    [
+        "Four Seasons",
+        "Cajun"
+    ],
+    [
+        "Four Seasons",
+        "Capricciosa"
+    ],
+    [
+        "Four Seasons",
+        "Caprina"
+    ],
+    [
+        "Four Seasons",
+        "Fiorentina"
+    ],
+    [
+        "Four Seasons",
+        "Frutti Di Mare"
+    ],
+    [
+        "Four Seasons",
+        "Giardiniera"
+    ],
+    [
+        "Four Seasons",
+        "La Reine"
+    ],
+    [
+        "Four Seasons",
+        "Margherita"
+    ],
+    [
+        "Four Seasons",
+        "Mushroom"
+    ],
+    [
+        "Four Seasons",
+        "Napoletana"
+    ],
+    [
+        "Four Seasons",
+        "Parmense"
+    ],
+    [
+        "Four Seasons",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Four Seasons",
+        "Prince Carlo"
+    ],
+    [
+        "Four Seasons",
+        "Quattro Formaggi"
+    ],
+    [
+        "Four Seasons",
+        "Rosa"
+    ],
+    [
+        "Four Seasons",
+        "Siciliana"
+    ],
+    [
+        "Four Seasons",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Four Seasons",
+        "Soho"
+    ],
+    [
+        "Four Seasons",
+        "Unclosed Pizza"
+    ],
+    [
+        "Four Seasons",
+        "Veneziana"
+    ],
+    [
+        "Fruit Topping",
+        "Cheese Topping"
+    ],
+    [
+        "Fruit Topping",
+        "Fish Topping"
+    ],
+    [
+        "Fruit Topping",
+        "Herb Spice Topping"
+    ],
+    [
+        "Fruit Topping",
+        "Meat Topping"
+    ],
+    [
+        "Fruit Topping",
+        "Nut Topping"
+    ],
+    [
+        "Fruit Topping",
+        "Sauce Topping"
+    ],
+    [
+        "Fruit Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Frutti Di Mare",
+        "American"
+    ],
+    [
+        "Frutti Di Mare",
+        "American Hot"
+    ],
+    [
+        "Frutti Di Mare",
+        "Cajun"
+    ],
+    [
+        "Frutti Di Mare",
+        "Capricciosa"
+    ],
+    [
+        "Frutti Di Mare",
+        "Caprina"
+    ],
+    [
+        "Frutti Di Mare",
+        "Fiorentina"
+    ],
+    [
+        "Frutti Di Mare",
+        "Four Seasons"
+    ],
+    [
+        "Frutti Di Mare",
+        "Giardiniera"
+    ],
+    [
+        "Frutti Di Mare",
+        "La Reine"
+    ],
+    [
+        "Frutti Di Mare",
+        "Margherita"
+    ],
+    [
+        "Frutti Di Mare",
+        "Mushroom"
+    ],
+    [
+        "Frutti Di Mare",
+        "Napoletana"
+    ],
+    [
+        "Frutti Di Mare",
+        "Parmense"
+    ],
+    [
+        "Frutti Di Mare",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Frutti Di Mare",
+        "Prince Carlo"
+    ],
+    [
+        "Frutti Di Mare",
+        "Quattro Formaggi"
+    ],
+    [
+        "Frutti Di Mare",
+        "Rosa"
+    ],
+    [
+        "Frutti Di Mare",
+        "Siciliana"
+    ],
+    [
+        "Frutti Di Mare",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Frutti Di Mare",
+        "Soho"
+    ],
+    [
+        "Frutti Di Mare",
+        "Unclosed Pizza"
+    ],
+    [
+        "Frutti Di Mare",
+        "Veneziana"
+    ],
+    [
+        "Garlic Topping",
+        "Artichoke Topping"
+    ],
+    [
+        "Garlic Topping",
+        "Asparagus Topping"
+    ],
+    [
+        "Garlic Topping",
+        "Caper Topping"
+    ],
+    [
+        "Garlic Topping",
+        "Leek Topping"
+    ],
+    [
+        "Garlic Topping",
+        "Mushroom Topping"
+    ],
+    [
+        "Garlic Topping",
+        "Olive Topping"
+    ],
+    [
+        "Garlic Topping",
+        "Onion Topping"
+    ],
+    [
+        "Garlic Topping",
+        "Pepper Topping"
+    ],
+    [
+        "Garlic Topping",
+        "Petit Pois Topping"
+    ],
+    [
+        "Garlic Topping",
+        "Rocket Topping"
+    ],
+    [
+        "Garlic Topping",
+        "Spinach Topping"
+    ],
+    [
+        "Garlic Topping",
+        "Tomato Topping"
+    ],
+    [
+        "Giardiniera",
+        "American"
+    ],
+    [
+        "Giardiniera",
+        "American Hot"
+    ],
+    [
+        "Giardiniera",
+        "Cajun"
+    ],
+    [
+        "Giardiniera",
+        "Capricciosa"
+    ],
+    [
+        "Giardiniera",
+        "Caprina"
+    ],
+    [
+        "Giardiniera",
+        "Fiorentina"
+    ],
+    [
+        "Giardiniera",
+        "Four Seasons"
+    ],
+    [
+        "Giardiniera",
+        "Frutti Di Mare"
+    ],
+    [
+        "Giardiniera",
+        "La Reine"
+    ],
+    [
+        "Giardiniera",
+        "Margherita"
+    ],
+    [
+        "Giardiniera",
+        "Mushroom"
+    ],
+    [
+        "Giardiniera",
+        "Napoletana"
+    ],
+    [
+        "Giardiniera",
+        "Parmense"
+    ],
+    [
+        "Giardiniera",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Giardiniera",
+        "Prince Carlo"
+    ],
+    [
+        "Giardiniera",
+        "Quattro Formaggi"
+    ],
+    [
+        "Giardiniera",
+        "Rosa"
+    ],
+    [
+        "Giardiniera",
+        "Siciliana"
+    ],
+    [
+        "Giardiniera",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Giardiniera",
+        "Soho"
+    ],
+    [
+        "Giardiniera",
+        "Unclosed Pizza"
+    ],
+    [
+        "Giardiniera",
+        "Veneziana"
+    ],
+    [
+        "Goats Cheese Topping",
+        "Four Cheeses Topping"
+    ],
+    [
+        "Goats Cheese Topping",
+        "Gorgonzola Topping"
+    ],
+    [
+        "Goats Cheese Topping",
+        "Mozzarella Topping"
+    ],
+    [
+        "Goats Cheese Topping",
+        "Parmesan Topping"
+    ],
+    [
+        "Gorgonzola Topping",
+        "Four Cheeses Topping"
+    ],
+    [
+        "Gorgonzola Topping",
+        "Goats Cheese Topping"
+    ],
+    [
+        "Gorgonzola Topping",
+        "Mozzarella Topping"
+    ],
+    [
+        "Gorgonzola Topping",
+        "Parmesan Topping"
+    ],
+    [
+        "Green Pepper Topping",
+        "Jalapeno Pepper Topping"
+    ],
+    [
+        "Green Pepper Topping",
+        "Peperonata Topping"
+    ],
+    [
+        "Green Pepper Topping",
+        "Sweet Pepper Topping"
+    ],
+    [
+        "Ham Topping",
+        "Chicken Topping"
+    ],
+    [
+        "Ham Topping",
+        "Hot Spiced Beef Topping"
+    ],
+    [
+        "Ham Topping",
+        "Peperoni Sausage Topping"
+    ],
+    [
+        "Herb Spice Topping",
+        "Cheese Topping"
+    ],
+    [
+        "Herb Spice Topping",
+        "Fish Topping"
+    ],
+    [
+        "Herb Spice Topping",
+        "Fruit Topping"
+    ],
+    [
+        "Herb Spice Topping",
+        "Meat Topping"
+    ],
+    [
+        "Herb Spice Topping",
+        "Nut Topping"
+    ],
+    [
+        "Herb Spice Topping",
+        "Sauce Topping"
+    ],
+    [
+        "Herb Spice Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Hot",
+        "Medium"
+    ],
+    [
+        "Hot",
+        "Mild"
+    ],
+    [
+        "Hot Spiced Beef Topping",
+        "Chicken Topping"
+    ],
+    [
+        "Hot Spiced Beef Topping",
+        "Ham Topping"
+    ],
+    [
+        "Hot Spiced Beef Topping",
+        "Peperoni Sausage Topping"
+    ],
+    [
+        "Jalapeno Pepper Topping",
+        "Green Pepper Topping"
+    ],
+    [
+        "Jalapeno Pepper Topping",
+        "Peperonata Topping"
+    ],
+    [
+        "Jalapeno Pepper Topping",
+        "Sweet Pepper Topping"
+    ],
+    [
+        "La Reine",
+        "American"
+    ],
+    [
+        "La Reine",
+        "American Hot"
+    ],
+    [
+        "La Reine",
+        "Cajun"
+    ],
+    [
+        "La Reine",
+        "Capricciosa"
+    ],
+    [
+        "La Reine",
+        "Caprina"
+    ],
+    [
+        "La Reine",
+        "Fiorentina"
+    ],
+    [
+        "La Reine",
+        "Four Seasons"
+    ],
+    [
+        "La Reine",
+        "Frutti Di Mare"
+    ],
+    [
+        "La Reine",
+        "Giardiniera"
+    ],
+    [
+        "La Reine",
+        "Margherita"
+    ],
+    [
+        "La Reine",
+        "Mushroom"
+    ],
+    [
+        "La Reine",
+        "Napoletana"
+    ],
+    [
+        "La Reine",
+        "Parmense"
+    ],
+    [
+        "La Reine",
+        "Pollo Ad Astra"
+    ],
+    [
+        "La Reine",
+        "Prince Carlo"
+    ],
+    [
+        "La Reine",
+        "Quattro Formaggi"
+    ],
+    [
+        "La Reine",
+        "Rosa"
+    ],
+    [
+        "La Reine",
+        "Siciliana"
+    ],
+    [
+        "La Reine",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "La Reine",
+        "Soho"
+    ],
+    [
+        "La Reine",
+        "Unclosed Pizza"
+    ],
+    [
+        "La Reine",
+        "Veneziana"
+    ],
+    [
+        "Leek Topping",
+        "Artichoke Topping"
+    ],
+    [
+        "Leek Topping",
+        "Asparagus Topping"
+    ],
+    [
+        "Leek Topping",
+        "Caper Topping"
+    ],
+    [
+        "Leek Topping",
+        "Garlic Topping"
+    ],
+    [
+        "Leek Topping",
+        "Mushroom Topping"
+    ],
+    [
+        "Leek Topping",
+        "Olive Topping"
+    ],
+    [
+        "Leek Topping",
+        "Onion Topping"
+    ],
+    [
+        "Leek Topping",
+        "Pepper Topping"
+    ],
+    [
+        "Leek Topping",
+        "Petit Pois Topping"
+    ],
+    [
+        "Leek Topping",
+        "Rocket Topping"
+    ],
+    [
+        "Leek Topping",
+        "Spinach Topping"
+    ],
+    [
+        "Leek Topping",
+        "Tomato Topping"
+    ],
+    [
+        "Margherita",
+        "American"
+    ],
+    [
+        "Margherita",
+        "American Hot"
+    ],
+    [
+        "Margherita",
+        "Cajun"
+    ],
+    [
+        "Margherita",
+        "Capricciosa"
+    ],
+    [
+        "Margherita",
+        "Caprina"
+    ],
+    [
+        "Margherita",
+        "Fiorentina"
+    ],
+    [
+        "Margherita",
+        "Four Seasons"
+    ],
+    [
+        "Margherita",
+        "Frutti Di Mare"
+    ],
+    [
+        "Margherita",
+        "Giardiniera"
+    ],
+    [
+        "Margherita",
+        "La Reine"
+    ],
+    [
+        "Margherita",
+        "Mushroom"
+    ],
+    [
+        "Margherita",
+        "Napoletana"
+    ],
+    [
+        "Margherita",
+        "Parmense"
+    ],
+    [
+        "Margherita",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Margherita",
+        "Prince Carlo"
+    ],
+    [
+        "Margherita",
+        "Quattro Formaggi"
+    ],
+    [
+        "Margherita",
+        "Rosa"
+    ],
+    [
+        "Margherita",
+        "Siciliana"
+    ],
+    [
+        "Margherita",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Margherita",
+        "Soho"
+    ],
+    [
+        "Margherita",
+        "Unclosed Pizza"
+    ],
+    [
+        "Margherita",
+        "Veneziana"
+    ],
+    [
+        "Meat Topping",
+        "Cheese Topping"
+    ],
+    [
+        "Meat Topping",
+        "Fish Topping"
+    ],
+    [
+        "Meat Topping",
+        "Fruit Topping"
+    ],
+    [
+        "Meat Topping",
+        "Herb Spice Topping"
+    ],
+    [
+        "Meat Topping",
+        "Nut Topping"
+    ],
+    [
+        "Meat Topping",
+        "Sauce Topping"
+    ],
+    [
+        "Meat Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Medium",
+        "Hot"
+    ],
+    [
+        "Medium",
+        "Mild"
+    ],
+    [
+        "Mild",
+        "Hot"
+    ],
+    [
+        "Mild",
+        "Medium"
+    ],
+    [
+        "Mixed Seafood Topping",
+        "Anchovies Topping"
+    ],
+    [
+        "Mixed Seafood Topping",
+        "Prawns Topping"
+    ],
+    [
+        "Mozzarella Topping",
+        "Four Cheeses Topping"
+    ],
+    [
+        "Mozzarella Topping",
+        "Goats Cheese Topping"
+    ],
+    [
+        "Mozzarella Topping",
+        "Gorgonzola Topping"
+    ],
+    [
+        "Mozzarella Topping",
+        "Parmesan Topping"
+    ],
+    [
+        "Mushroom",
+        "American"
+    ],
+    [
+        "Mushroom",
+        "American Hot"
+    ],
+    [
+        "Mushroom",
+        "Cajun"
+    ],
+    [
+        "Mushroom",
+        "Capricciosa"
+    ],
+    [
+        "Mushroom",
+        "Caprina"
+    ],
+    [
+        "Mushroom",
+        "Fiorentina"
+    ],
+    [
+        "Mushroom",
+        "Four Seasons"
+    ],
+    [
+        "Mushroom",
+        "Frutti Di Mare"
+    ],
+    [
+        "Mushroom",
+        "Giardiniera"
+    ],
+    [
+        "Mushroom",
+        "La Reine"
+    ],
+    [
+        "Mushroom",
+        "Margherita"
+    ],
+    [
+        "Mushroom",
+        "Napoletana"
+    ],
+    [
+        "Mushroom",
+        "Parmense"
+    ],
+    [
+        "Mushroom",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Mushroom",
+        "Prince Carlo"
+    ],
+    [
+        "Mushroom",
+        "Quattro Formaggi"
+    ],
+    [
+        "Mushroom",
+        "Rosa"
+    ],
+    [
+        "Mushroom",
+        "Siciliana"
+    ],
+    [
+        "Mushroom",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Mushroom",
+        "Soho"
+    ],
+    [
+        "Mushroom",
+        "Unclosed Pizza"
+    ],
+    [
+        "Mushroom",
+        "Veneziana"
+    ],
+    [
+        "Mushroom Topping",
+        "Artichoke Topping"
+    ],
+    [
+        "Mushroom Topping",
+        "Asparagus Topping"
+    ],
+    [
+        "Mushroom Topping",
+        "Caper Topping"
+    ],
+    [
+        "Mushroom Topping",
+        "Garlic Topping"
+    ],
+    [
+        "Mushroom Topping",
+        "Leek Topping"
+    ],
+    [
+        "Mushroom Topping",
+        "Olive Topping"
+    ],
+    [
+        "Mushroom Topping",
+        "Onion Topping"
+    ],
+    [
+        "Mushroom Topping",
+        "Pepper Topping"
+    ],
+    [
+        "Mushroom Topping",
+        "Petit Pois Topping"
+    ],
+    [
+        "Mushroom Topping",
+        "Rocket Topping"
+    ],
+    [
+        "Mushroom Topping",
+        "Spinach Topping"
+    ],
+    [
+        "Mushroom Topping",
+        "Tomato Topping"
+    ],
+    [
+        "Napoletana",
+        "American"
+    ],
+    [
+        "Napoletana",
+        "American Hot"
+    ],
+    [
+        "Napoletana",
+        "Cajun"
+    ],
+    [
+        "Napoletana",
+        "Capricciosa"
+    ],
+    [
+        "Napoletana",
+        "Caprina"
+    ],
+    [
+        "Napoletana",
+        "Fiorentina"
+    ],
+    [
+        "Napoletana",
+        "Four Seasons"
+    ],
+    [
+        "Napoletana",
+        "Frutti Di Mare"
+    ],
+    [
+        "Napoletana",
+        "Giardiniera"
+    ],
+    [
+        "Napoletana",
+        "La Reine"
+    ],
+    [
+        "Napoletana",
+        "Margherita"
+    ],
+    [
+        "Napoletana",
+        "Mushroom"
+    ],
+    [
+        "Napoletana",
+        "Parmense"
+    ],
+    [
+        "Napoletana",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Napoletana",
+        "Prince Carlo"
+    ],
+    [
+        "Napoletana",
+        "Quattro Formaggi"
+    ],
+    [
+        "Napoletana",
+        "Rosa"
+    ],
+    [
+        "Napoletana",
+        "Siciliana"
+    ],
+    [
+        "Napoletana",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Napoletana",
+        "Soho"
+    ],
+    [
+        "Napoletana",
+        "Unclosed Pizza"
+    ],
+    [
+        "Napoletana",
+        "Veneziana"
+    ],
+    [
+        "Non Vegetarian Pizza",
+        "Vegetarian Pizza"
+    ],
+    [
+        "Nut Topping",
+        "Cheese Topping"
+    ],
+    [
+        "Nut Topping",
+        "Fish Topping"
+    ],
+    [
+        "Nut Topping",
+        "Fruit Topping"
+    ],
+    [
+        "Nut Topping",
+        "Herb Spice Topping"
+    ],
+    [
+        "Nut Topping",
+        "Meat Topping"
+    ],
+    [
+        "Nut Topping",
+        "Sauce Topping"
+    ],
+    [
+        "Nut Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Olive Topping",
+        "Artichoke Topping"
+    ],
+    [
+        "Olive Topping",
+        "Asparagus Topping"
+    ],
+    [
+        "Olive Topping",
+        "Caper Topping"
+    ],
+    [
+        "Olive Topping",
+        "Garlic Topping"
+    ],
+    [
+        "Olive Topping",
+        "Leek Topping"
+    ],
+    [
+        "Olive Topping",
+        "Mushroom Topping"
+    ],
+    [
+        "Olive Topping",
+        "Onion Topping"
+    ],
+    [
+        "Olive Topping",
+        "Pepper Topping"
+    ],
+    [
+        "Olive Topping",
+        "Petit Pois Topping"
+    ],
+    [
+        "Olive Topping",
+        "Rocket Topping"
+    ],
+    [
+        "Olive Topping",
+        "Spinach Topping"
+    ],
+    [
+        "Olive Topping",
+        "Tomato Topping"
+    ],
+    [
+        "Onion Topping",
+        "Artichoke Topping"
+    ],
+    [
+        "Onion Topping",
+        "Asparagus Topping"
+    ],
+    [
+        "Onion Topping",
+        "Caper Topping"
+    ],
+    [
+        "Onion Topping",
+        "Garlic Topping"
+    ],
+    [
+        "Onion Topping",
+        "Leek Topping"
+    ],
+    [
+        "Onion Topping",
+        "Mushroom Topping"
+    ],
+    [
+        "Onion Topping",
+        "Olive Topping"
+    ],
+    [
+        "Onion Topping",
+        "Pepper Topping"
+    ],
+    [
+        "Onion Topping",
+        "Petit Pois Topping"
+    ],
+    [
+        "Onion Topping",
+        "Rocket Topping"
+    ],
+    [
+        "Onion Topping",
+        "Spinach Topping"
+    ],
+    [
+        "Onion Topping",
+        "Tomato Topping"
+    ],
+    [
+        "Parmense",
+        "American"
+    ],
+    [
+        "Parmense",
+        "American Hot"
+    ],
+    [
+        "Parmense",
+        "Cajun"
+    ],
+    [
+        "Parmense",
+        "Capricciosa"
+    ],
+    [
+        "Parmense",
+        "Caprina"
+    ],
+    [
+        "Parmense",
+        "Fiorentina"
+    ],
+    [
+        "Parmense",
+        "Four Seasons"
+    ],
+    [
+        "Parmense",
+        "Frutti Di Mare"
+    ],
+    [
+        "Parmense",
+        "Giardiniera"
+    ],
+    [
+        "Parmense",
+        "La Reine"
+    ],
+    [
+        "Parmense",
+        "Margherita"
+    ],
+    [
+        "Parmense",
+        "Mushroom"
+    ],
+    [
+        "Parmense",
+        "Napoletana"
+    ],
+    [
+        "Parmense",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Parmense",
+        "Prince Carlo"
+    ],
+    [
+        "Parmense",
+        "Quattro Formaggi"
+    ],
+    [
+        "Parmense",
+        "Rosa"
+    ],
+    [
+        "Parmense",
+        "Siciliana"
+    ],
+    [
+        "Parmense",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Parmense",
+        "Soho"
+    ],
+    [
+        "Parmense",
+        "Unclosed Pizza"
+    ],
+    [
+        "Parmense",
+        "Veneziana"
+    ],
+    [
+        "Parmesan Topping",
+        "Four Cheeses Topping"
+    ],
+    [
+        "Parmesan Topping",
+        "Goats Cheese Topping"
+    ],
+    [
+        "Parmesan Topping",
+        "Gorgonzola Topping"
+    ],
+    [
+        "Parmesan Topping",
+        "Mozzarella Topping"
+    ],
+    [
+        "Peperonata Topping",
+        "Green Pepper Topping"
+    ],
+    [
+        "Peperonata Topping",
+        "Jalapeno Pepper Topping"
+    ],
+    [
+        "Peperonata Topping",
+        "Sweet Pepper Topping"
+    ],
+    [
+        "Peperoni Sausage Topping",
+        "Chicken Topping"
+    ],
+    [
+        "Peperoni Sausage Topping",
+        "Ham Topping"
+    ],
+    [
+        "Peperoni Sausage Topping",
+        "Hot Spiced Beef Topping"
+    ],
+    [
+        "Pepper Topping",
+        "Artichoke Topping"
+    ],
+    [
+        "Pepper Topping",
+        "Asparagus Topping"
+    ],
+    [
+        "Pepper Topping",
+        "Caper Topping"
+    ],
+    [
+        "Pepper Topping",
+        "Garlic Topping"
+    ],
+    [
+        "Pepper Topping",
+        "Leek Topping"
+    ],
+    [
+        "Pepper Topping",
+        "Mushroom Topping"
+    ],
+    [
+        "Pepper Topping",
+        "Olive Topping"
+    ],
+    [
+        "Pepper Topping",
+        "Onion Topping"
+    ],
+    [
+        "Pepper Topping",
+        "Petit Pois Topping"
+    ],
+    [
+        "Pepper Topping",
+        "Rocket Topping"
+    ],
+    [
+        "Pepper Topping",
+        "Spinach Topping"
+    ],
+    [
+        "Pepper Topping",
+        "Tomato Topping"
+    ],
+    [
+        "Petit Pois Topping",
+        "Artichoke Topping"
+    ],
+    [
+        "Petit Pois Topping",
+        "Asparagus Topping"
+    ],
+    [
+        "Petit Pois Topping",
+        "Caper Topping"
+    ],
+    [
+        "Petit Pois Topping",
+        "Garlic Topping"
+    ],
+    [
+        "Petit Pois Topping",
+        "Leek Topping"
+    ],
+    [
+        "Petit Pois Topping",
+        "Mushroom Topping"
+    ],
+    [
+        "Petit Pois Topping",
+        "Olive Topping"
+    ],
+    [
+        "Petit Pois Topping",
+        "Onion Topping"
+    ],
+    [
+        "Petit Pois Topping",
+        "Pepper Topping"
+    ],
+    [
+        "Petit Pois Topping",
+        "Rocket Topping"
+    ],
+    [
+        "Petit Pois Topping",
+        "Spinach Topping"
+    ],
+    [
+        "Petit Pois Topping",
+        "Tomato Topping"
+    ],
+    [
+        "Pizza",
+        "Pizza Base"
+    ],
+    [
+        "Pizza",
+        "Pizza Topping"
+    ],
+    [
+        "Pizza Base",
+        "Pizza"
+    ],
+    [
+        "Pizza Base",
+        "Pizza Topping"
+    ],
+    [
+        "Pizza Topping",
+        "Pizza"
+    ],
+    [
+        "Pizza Topping",
+        "Pizza Base"
+    ],
+    [
+        "Pollo Ad Astra",
+        "American"
+    ],
+    [
+        "Pollo Ad Astra",
+        "American Hot"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Cajun"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Capricciosa"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Caprina"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Fiorentina"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Four Seasons"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Frutti Di Mare"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Giardiniera"
+    ],
+    [
+        "Pollo Ad Astra",
+        "La Reine"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Margherita"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Mushroom"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Napoletana"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Parmense"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Prince Carlo"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Quattro Formaggi"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Rosa"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Siciliana"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Soho"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Unclosed Pizza"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Veneziana"
+    ],
+    [
+        "Prawns Topping",
+        "Anchovies Topping"
+    ],
+    [
+        "Prawns Topping",
+        "Mixed Seafood Topping"
+    ],
+    [
+        "Prince Carlo",
+        "American"
+    ],
+    [
+        "Prince Carlo",
+        "American Hot"
+    ],
+    [
+        "Prince Carlo",
+        "Cajun"
+    ],
+    [
+        "Prince Carlo",
+        "Capricciosa"
+    ],
+    [
+        "Prince Carlo",
+        "Caprina"
+    ],
+    [
+        "Prince Carlo",
+        "Fiorentina"
+    ],
+    [
+        "Prince Carlo",
+        "Four Seasons"
+    ],
+    [
+        "Prince Carlo",
+        "Frutti Di Mare"
+    ],
+    [
+        "Prince Carlo",
+        "Giardiniera"
+    ],
+    [
+        "Prince Carlo",
+        "La Reine"
+    ],
+    [
+        "Prince Carlo",
+        "Margherita"
+    ],
+    [
+        "Prince Carlo",
+        "Mushroom"
+    ],
+    [
+        "Prince Carlo",
+        "Napoletana"
+    ],
+    [
+        "Prince Carlo",
+        "Parmense"
+    ],
+    [
+        "Prince Carlo",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Prince Carlo",
+        "Quattro Formaggi"
+    ],
+    [
+        "Prince Carlo",
+        "Rosa"
+    ],
+    [
+        "Prince Carlo",
+        "Siciliana"
+    ],
+    [
+        "Prince Carlo",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Prince Carlo",
+        "Soho"
+    ],
+    [
+        "Prince Carlo",
+        "Unclosed Pizza"
+    ],
+    [
+        "Prince Carlo",
+        "Veneziana"
+    ],
+    [
+        "Quattro Formaggi",
+        "American"
+    ],
+    [
+        "Quattro Formaggi",
+        "American Hot"
+    ],
+    [
+        "Quattro Formaggi",
+        "Cajun"
+    ],
+    [
+        "Quattro Formaggi",
+        "Capricciosa"
+    ],
+    [
+        "Quattro Formaggi",
+        "Caprina"
+    ],
+    [
+        "Quattro Formaggi",
+        "Fiorentina"
+    ],
+    [
+        "Quattro Formaggi",
+        "Four Seasons"
+    ],
+    [
+        "Quattro Formaggi",
+        "Frutti Di Mare"
+    ],
+    [
+        "Quattro Formaggi",
+        "Giardiniera"
+    ],
+    [
+        "Quattro Formaggi",
+        "La Reine"
+    ],
+    [
+        "Quattro Formaggi",
+        "Margherita"
+    ],
+    [
+        "Quattro Formaggi",
+        "Mushroom"
+    ],
+    [
+        "Quattro Formaggi",
+        "Napoletana"
+    ],
+    [
+        "Quattro Formaggi",
+        "Parmense"
+    ],
+    [
+        "Quattro Formaggi",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Quattro Formaggi",
+        "Prince Carlo"
+    ],
+    [
+        "Quattro Formaggi",
+        "Rosa"
+    ],
+    [
+        "Quattro Formaggi",
+        "Siciliana"
+    ],
+    [
+        "Quattro Formaggi",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Quattro Formaggi",
+        "Soho"
+    ],
+    [
+        "Quattro Formaggi",
+        "Unclosed Pizza"
+    ],
+    [
+        "Quattro Formaggi",
+        "Veneziana"
+    ],
+    [
+        "Rocket Topping",
+        "Artichoke Topping"
+    ],
+    [
+        "Rocket Topping",
+        "Asparagus Topping"
+    ],
+    [
+        "Rocket Topping",
+        "Caper Topping"
+    ],
+    [
+        "Rocket Topping",
+        "Garlic Topping"
+    ],
+    [
+        "Rocket Topping",
+        "Leek Topping"
+    ],
+    [
+        "Rocket Topping",
+        "Mushroom Topping"
+    ],
+    [
+        "Rocket Topping",
+        "Olive Topping"
+    ],
+    [
+        "Rocket Topping",
+        "Onion Topping"
+    ],
+    [
+        "Rocket Topping",
+        "Pepper Topping"
+    ],
+    [
+        "Rocket Topping",
+        "Petit Pois Topping"
+    ],
+    [
+        "Rocket Topping",
+        "Spinach Topping"
+    ],
+    [
+        "Rocket Topping",
+        "Tomato Topping"
+    ],
+    [
+        "Rosa",
+        "American"
+    ],
+    [
+        "Rosa",
+        "American Hot"
+    ],
+    [
+        "Rosa",
+        "Cajun"
+    ],
+    [
+        "Rosa",
+        "Capricciosa"
+    ],
+    [
+        "Rosa",
+        "Caprina"
+    ],
+    [
+        "Rosa",
+        "Fiorentina"
+    ],
+    [
+        "Rosa",
+        "Four Seasons"
+    ],
+    [
+        "Rosa",
+        "Frutti Di Mare"
+    ],
+    [
+        "Rosa",
+        "Giardiniera"
+    ],
+    [
+        "Rosa",
+        "La Reine"
+    ],
+    [
+        "Rosa",
+        "Margherita"
+    ],
+    [
+        "Rosa",
+        "Mushroom"
+    ],
+    [
+        "Rosa",
+        "Napoletana"
+    ],
+    [
+        "Rosa",
+        "Parmense"
+    ],
+    [
+        "Rosa",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Rosa",
+        "Prince Carlo"
+    ],
+    [
+        "Rosa",
+        "Quattro Formaggi"
+    ],
+    [
+        "Rosa",
+        "Siciliana"
+    ],
+    [
+        "Rosa",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Rosa",
+        "Soho"
+    ],
+    [
+        "Rosa",
+        "Unclosed Pizza"
+    ],
+    [
+        "Rosa",
+        "Veneziana"
+    ],
+    [
+        "Sauce Topping",
+        "Cheese Topping"
+    ],
+    [
+        "Sauce Topping",
+        "Fish Topping"
+    ],
+    [
+        "Sauce Topping",
+        "Fruit Topping"
+    ],
+    [
+        "Sauce Topping",
+        "Herb Spice Topping"
+    ],
+    [
+        "Sauce Topping",
+        "Meat Topping"
+    ],
+    [
+        "Sauce Topping",
+        "Nut Topping"
+    ],
+    [
+        "Sauce Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Siciliana",
+        "American"
+    ],
+    [
+        "Siciliana",
+        "American Hot"
+    ],
+    [
+        "Siciliana",
+        "Cajun"
+    ],
+    [
+        "Siciliana",
+        "Capricciosa"
+    ],
+    [
+        "Siciliana",
+        "Caprina"
+    ],
+    [
+        "Siciliana",
+        "Fiorentina"
+    ],
+    [
+        "Siciliana",
+        "Four Seasons"
+    ],
+    [
+        "Siciliana",
+        "Frutti Di Mare"
+    ],
+    [
+        "Siciliana",
+        "Giardiniera"
+    ],
+    [
+        "Siciliana",
+        "La Reine"
+    ],
+    [
+        "Siciliana",
+        "Margherita"
+    ],
+    [
+        "Siciliana",
+        "Mushroom"
+    ],
+    [
+        "Siciliana",
+        "Napoletana"
+    ],
+    [
+        "Siciliana",
+        "Parmense"
+    ],
+    [
+        "Siciliana",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Siciliana",
+        "Prince Carlo"
+    ],
+    [
+        "Siciliana",
+        "Quattro Formaggi"
+    ],
+    [
+        "Siciliana",
+        "Rosa"
+    ],
+    [
+        "Siciliana",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Siciliana",
+        "Soho"
+    ],
+    [
+        "Siciliana",
+        "Unclosed Pizza"
+    ],
+    [
+        "Siciliana",
+        "Veneziana"
+    ],
+    [
+        "Sliced Tomato Topping",
+        "Sundried Tomato Topping"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "American"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "American Hot"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Cajun"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Capricciosa"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Caprina"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Fiorentina"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Four Seasons"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Frutti Di Mare"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Giardiniera"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "La Reine"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Margherita"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Mushroom"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Napoletana"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Parmense"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Prince Carlo"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Quattro Formaggi"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Rosa"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Siciliana"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Soho"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Unclosed Pizza"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Veneziana"
+    ],
+    [
+        "Soho",
+        "American"
+    ],
+    [
+        "Soho",
+        "American Hot"
+    ],
+    [
+        "Soho",
+        "Cajun"
+    ],
+    [
+        "Soho",
+        "Capricciosa"
+    ],
+    [
+        "Soho",
+        "Caprina"
+    ],
+    [
+        "Soho",
+        "Fiorentina"
+    ],
+    [
+        "Soho",
+        "Four Seasons"
+    ],
+    [
+        "Soho",
+        "Frutti Di Mare"
+    ],
+    [
+        "Soho",
+        "Giardiniera"
+    ],
+    [
+        "Soho",
+        "La Reine"
+    ],
+    [
+        "Soho",
+        "Margherita"
+    ],
+    [
+        "Soho",
+        "Mushroom"
+    ],
+    [
+        "Soho",
+        "Napoletana"
+    ],
+    [
+        "Soho",
+        "Parmense"
+    ],
+    [
+        "Soho",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Soho",
+        "Prince Carlo"
+    ],
+    [
+        "Soho",
+        "Quattro Formaggi"
+    ],
+    [
+        "Soho",
+        "Rosa"
+    ],
+    [
+        "Soho",
+        "Siciliana"
+    ],
+    [
+        "Soho",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Soho",
+        "Unclosed Pizza"
+    ],
+    [
+        "Soho",
+        "Veneziana"
+    ],
+    [
+        "Spinach Topping",
+        "Artichoke Topping"
+    ],
+    [
+        "Spinach Topping",
+        "Asparagus Topping"
+    ],
+    [
+        "Spinach Topping",
+        "Caper Topping"
+    ],
+    [
+        "Spinach Topping",
+        "Garlic Topping"
+    ],
+    [
+        "Spinach Topping",
+        "Leek Topping"
+    ],
+    [
+        "Spinach Topping",
+        "Mushroom Topping"
+    ],
+    [
+        "Spinach Topping",
+        "Olive Topping"
+    ],
+    [
+        "Spinach Topping",
+        "Onion Topping"
+    ],
+    [
+        "Spinach Topping",
+        "Pepper Topping"
+    ],
+    [
+        "Spinach Topping",
+        "Petit Pois Topping"
+    ],
+    [
+        "Spinach Topping",
+        "Rocket Topping"
+    ],
+    [
+        "Spinach Topping",
+        "Tomato Topping"
+    ],
+    [
+        "Sweet Pepper Topping",
+        "Green Pepper Topping"
+    ],
+    [
+        "Sweet Pepper Topping",
+        "Jalapeno Pepper Topping"
+    ],
+    [
+        "Sweet Pepper Topping",
+        "Peperonata Topping"
+    ],
+    [
+        "Tomato Topping",
+        "Artichoke Topping"
+    ],
+    [
+        "Tomato Topping",
+        "Asparagus Topping"
+    ],
+    [
+        "Tomato Topping",
+        "Caper Topping"
+    ],
+    [
+        "Tomato Topping",
+        "Garlic Topping"
+    ],
+    [
+        "Tomato Topping",
+        "Leek Topping"
+    ],
+    [
+        "Tomato Topping",
+        "Mushroom Topping"
+    ],
+    [
+        "Tomato Topping",
+        "Olive Topping"
+    ],
+    [
+        "Tomato Topping",
+        "Onion Topping"
+    ],
+    [
+        "Tomato Topping",
+        "Pepper Topping"
+    ],
+    [
+        "Tomato Topping",
+        "Petit Pois Topping"
+    ],
+    [
+        "Tomato Topping",
+        "Rocket Topping"
+    ],
+    [
+        "Tomato Topping",
+        "Spinach Topping"
+    ],
+    [
+        "Unclosed Pizza",
+        "American"
+    ],
+    [
+        "Unclosed Pizza",
+        "American Hot"
+    ],
+    [
+        "Unclosed Pizza",
+        "Cajun"
+    ],
+    [
+        "Unclosed Pizza",
+        "Capricciosa"
+    ],
+    [
+        "Unclosed Pizza",
+        "Caprina"
+    ],
+    [
+        "Unclosed Pizza",
+        "Fiorentina"
+    ],
+    [
+        "Unclosed Pizza",
+        "Four Seasons"
+    ],
+    [
+        "Unclosed Pizza",
+        "Frutti Di Mare"
+    ],
+    [
+        "Unclosed Pizza",
+        "Giardiniera"
+    ],
+    [
+        "Unclosed Pizza",
+        "La Reine"
+    ],
+    [
+        "Unclosed Pizza",
+        "Margherita"
+    ],
+    [
+        "Unclosed Pizza",
+        "Mushroom"
+    ],
+    [
+        "Unclosed Pizza",
+        "Napoletana"
+    ],
+    [
+        "Unclosed Pizza",
+        "Parmense"
+    ],
+    [
+        "Unclosed Pizza",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Unclosed Pizza",
+        "Prince Carlo"
+    ],
+    [
+        "Unclosed Pizza",
+        "Quattro Formaggi"
+    ],
+    [
+        "Unclosed Pizza",
+        "Rosa"
+    ],
+    [
+        "Unclosed Pizza",
+        "Siciliana"
+    ],
+    [
+        "Unclosed Pizza",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Unclosed Pizza",
+        "Soho"
+    ],
+    [
+        "Unclosed Pizza",
+        "Veneziana"
+    ],
+    [
+        "Vegetable Topping",
+        "Cheese Topping"
+    ],
+    [
+        "Vegetable Topping",
+        "Fish Topping"
+    ],
+    [
+        "Vegetable Topping",
+        "Fruit Topping"
+    ],
+    [
+        "Vegetable Topping",
+        "Herb Spice Topping"
+    ],
+    [
+        "Vegetable Topping",
+        "Meat Topping"
+    ],
+    [
+        "Vegetable Topping",
+        "Nut Topping"
+    ],
+    [
+        "Vegetable Topping",
+        "Sauce Topping"
+    ],
+    [
+        "Veneziana",
+        "American"
+    ],
+    [
+        "Veneziana",
+        "American Hot"
+    ],
+    [
+        "Veneziana",
+        "Cajun"
+    ],
+    [
+        "Veneziana",
+        "Capricciosa"
+    ],
+    [
+        "Veneziana",
+        "Caprina"
+    ],
+    [
+        "Veneziana",
+        "Fiorentina"
+    ],
+    [
+        "Veneziana",
+        "Four Seasons"
+    ],
+    [
+        "Veneziana",
+        "Frutti Di Mare"
+    ],
+    [
+        "Veneziana",
+        "Giardiniera"
+    ],
+    [
+        "Veneziana",
+        "La Reine"
+    ],
+    [
+        "Veneziana",
+        "Margherita"
+    ],
+    [
+        "Veneziana",
+        "Mushroom"
+    ],
+    [
+        "Veneziana",
+        "Napoletana"
+    ],
+    [
+        "Veneziana",
+        "Parmense"
+    ],
+    [
+        "Veneziana",
+        "Pollo Ad Astra"
+    ],
+    [
+        "Veneziana",
+        "Prince Carlo"
+    ],
+    [
+        "Veneziana",
+        "Quattro Formaggi"
+    ],
+    [
+        "Veneziana",
+        "Rosa"
+    ],
+    [
+        "Veneziana",
+        "Siciliana"
+    ],
+    [
+        "Veneziana",
+        "Sloppy Giuseppe"
+    ],
+    [
+        "Veneziana",
+        "Soho"
+    ],
+    [
+        "Veneziana",
+        "Unclosed Pizza"
+    ]
+]

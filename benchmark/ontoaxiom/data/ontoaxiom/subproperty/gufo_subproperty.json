@@ -1,0 +1,58 @@
+[
+    [
+        "is aspect proper part of",
+        "is proper part of"
+    ],
+    [
+        "is collection member of",
+        "is object proper part of"
+    ],
+    [
+        "is component of",
+        "is object proper part of"
+    ],
+    [
+        "is event proper part of",
+        "is proper part of"
+    ],
+    [
+        "is object proper part of",
+        "is proper part of"
+    ],
+    [
+        "is situation proper part of",
+        "is proper part of"
+    ],
+    [
+        "is sub collection of",
+        "is object proper part of"
+    ],
+    [
+        "is sub quantity of",
+        "is object proper part of"
+    ],
+    [
+        "partitions",
+        "categorizes"
+    ],
+    [
+        "stands in qualified attribution",
+        "stands in"
+    ],
+    [
+        "stands in qualified constitution",
+        "stands in"
+    ],
+    [
+        "stands in qualified instantiation",
+        "stands in"
+    ],
+    [
+        "stands in qualified parthood",
+        "stands in"
+    ],
+    [
+        "stands in qualified relationship",
+        "stands in"
+    ]
+]

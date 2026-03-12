@@ -1,0 +1,166 @@
+[
+    [
+        "Abstract Individual",
+        "Concrete Individual"
+    ],
+    [
+        "Abstract Individual Type",
+        "Concrete Individual Type"
+    ],
+    [
+        "Abstract Individual Type",
+        "Relationship Type"
+    ],
+    [
+        "Anti Rigid Type",
+        "Semi Rigid Type"
+    ],
+    [
+        "Aspect",
+        "Object"
+    ],
+    [
+        "Collection",
+        "Functional Complex"
+    ],
+    [
+        "Collection",
+        "Quantity"
+    ],
+    [
+        "Comparative Relationship Type",
+        "Material Relationship Type"
+    ],
+    [
+        "Concrete Individual Type",
+        "Relationship Type"
+    ],
+    [
+        "Endurant",
+        "Event"
+    ],
+    [
+        "Endurant",
+        "Situation"
+    ],
+    [
+        "Endurant Type",
+        "Event Type"
+    ],
+    [
+        "Endurant Type",
+        "Situation Type"
+    ],
+    [
+        "Event",
+        "Endurant"
+    ],
+    [
+        "Event",
+        "Situation"
+    ],
+    [
+        "Event Type",
+        "Situation Type"
+    ],
+    [
+        "Extrinsic Aspect",
+        "Intrinsic Aspect"
+    ],
+    [
+        "Extrinsic Mode",
+        "Relator"
+    ],
+    [
+        "Fixed Collection",
+        "Variable Collection"
+    ],
+    [
+        "Functional Complex",
+        "Collection"
+    ],
+    [
+        "Functional Complex",
+        "Quantity"
+    ],
+    [
+        "Individual",
+        "Type"
+    ],
+    [
+        "Intrinsic Mode",
+        "Quality"
+    ],
+    [
+        "Kind",
+        "Sub Kind"
+    ],
+    [
+        "Non Rigid Type",
+        "Rigid Type"
+    ],
+    [
+        "Non Sortal",
+        "Sortal"
+    ],
+    [
+        "Phase",
+        "Role"
+    ],
+    [
+        "Phase Mixin",
+        "Role Mixin"
+    ],
+    [
+        "Quality Value Attribution Situation",
+        "Temporary Constitution Situation"
+    ],
+    [
+        "Quality Value Attribution Situation",
+        "Temporary Instantiation Situation"
+    ],
+    [
+        "Quality Value Attribution Situation",
+        "Temporary Parthood Situation"
+    ],
+    [
+        "Quality Value Attribution Situation",
+        "Temporary Relationship Situation"
+    ],
+    [
+        "Quantity",
+        "Collection"
+    ],
+    [
+        "Quantity",
+        "Functional Complex"
+    ],
+    [
+        "Situation",
+        "Endurant"
+    ],
+    [
+        "Situation",
+        "Event"
+    ],
+    [
+        "Temporary Constitution Situation",
+        "Temporary Instantiation Situation"
+    ],
+    [
+        "Temporary Constitution Situation",
+        "Temporary Relationship Situation"
+    ],
+    [
+        "Temporary Instantiation Situation",
+        "Temporary Parthood Situation"
+    ],
+    [
+        "Temporary Instantiation Situation",
+        "Temporary Relationship Situation"
+    ],
+    [
+        "Temporary Parthood Situation",
+        "Temporary Relationship Situation"
+    ]
+]

@@ -1,0 +1,90 @@
+[
+    [
+        "color",
+        "datatype product or service property"
+    ],
+    [
+        "depth",
+        "quantitative product or service property"
+    ],
+    [
+        "has EA n  UC c-13",
+        "product ID"
+    ],
+    [
+        "has GTI n-14",
+        "product ID"
+    ],
+    [
+        "has GTI n-8",
+        "product ID"
+    ],
+    [
+        "has MPN",
+        "product ID"
+    ],
+    [
+        "has currency value",
+        "has max currency value"
+    ],
+    [
+        "has currency value",
+        "has min currency value"
+    ],
+    [
+        "has max value float",
+        "has max value"
+    ],
+    [
+        "has max value integer",
+        "has max value"
+    ],
+    [
+        "has min value float",
+        "has min value"
+    ],
+    [
+        "has min value integer",
+        "has min value"
+    ],
+    [
+        "has stock keeping unit",
+        "product ID"
+    ],
+    [
+        "has value",
+        "has max value"
+    ],
+    [
+        "has value",
+        "has min value"
+    ],
+    [
+        "has value float",
+        "has max value float"
+    ],
+    [
+        "has value float",
+        "has min value float"
+    ],
+    [
+        "has value integer",
+        "has max value integer"
+    ],
+    [
+        "has value integer",
+        "has min value integer"
+    ],
+    [
+        "height",
+        "quantitative product or service property"
+    ],
+    [
+        "weight",
+        "quantitative product or service property"
+    ],
+    [
+        "width",
+        "quantitative product or service property"
+    ]
+]

@@ -1,0 +1,464 @@
+@prefix mr: <http://ontology.tno.nl/movie-rating-ontology/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+####################
+#                  #
+#       USER       #
+#                  #
+####################
+
+
+mr:User a owl:Class ;
+    rdfs:label "User"@en .
+
+mr:providesRating a owl:ObjectProperty ;
+    rdfs:label "User provides Rating."@en;
+    rdfs:domain mr:User ;
+    rdfs:range mr:Rating.
+
+# User ID
+mr:hasUserID a owl:DatatypeProperty ;
+    rdfs:label "User has MovieLens User ID."@en;
+    rdfs:domain mr:User ;
+    rdfs:range xsd:string.
+
+# Zip-Code
+mr:hasZipcode a owl:DatatypeProperty ;
+    rdfs:label "User has Zipcode."@en;
+    rdfs:comment "This is integer only."@en;
+    rdfs:domain mr:User ;
+    rdfs:range xsd:string.
+
+
+# Gender
+mr:hasGender a owl:ObjectProperty ;
+    rdfs:label "User has Gender."@en;
+    rdfs:domain mr:User ;
+    rdfs:range mr:Gender.
+
+mr:Gender a owl:Class ;
+    rdfs:label "Gender."@en.
+
+mr:Male a mr:Gender ;
+    rdfs:label "Male Gender."@en.
+
+mr:Female a mr:Gender ; 
+    rdfs:label "Female Gender."@en.
+
+# Age Range
+mr:hasAgeRange a owl:ObjectProperty ;
+    rdfs:label "User has Age Range"@en ;
+    rdfs:domain mr:User ;
+    rdfs:range mr:AgeRange.
+
+mr:AgeRange a owl:Class ;
+    rdfs:label "Age Range"@en .
+
+mr:AgeRangeUnder18 a mr:AgeRange;
+    rdfs:label "Under 18 years old."@en .
+
+mr:AgeRange18to24 a mr:AgeRange;
+    rdfs:label "Between 18 and 24 years old."@en .
+
+mr:AgeRange25to34 a mr:AgeRange;
+    rdfs:label "Between 25 and 34 years old."@en .
+
+mr:AgeRange35to44 a mr:AgeRange;
+    rdfs:label "Between 35 and 44 years old."@en .
+
+mr:AgeRange45to49 a mr:AgeRange;
+    rdfs:label "Between 45 and 49 years old."@en .
+
+mr:AgeRange50to55 a mr:AgeRange;
+    rdfs:label "Between 50 and 55 years old."@en .
+
+mr:AgeRange56plus a mr:AgeRange;
+    rdfs:label "Older than 56."@en .
+
+# Occupation
+mr:hasOccupation a owl:ObjectProperty ;
+    rdfs:label "User has Occupation."@en;
+    rdfs:domain mr:User ;
+    rdfs:range mr:Occupation.
+
+mr:Occupation a owl:Class ;
+    rdfs:label "Occupation"@en .
+
+mr:OccupationOther a mr:Occupation;
+    rdfs:label "Other or Not Specified"@en .
+
+mr:OccupationAcademicEducator a mr:Occupation;
+    rdfs:label "Academic/Educator"@en .
+
+mr:OccupationArtist a mr:Occupation;
+    rdfs:label "Artist"@en .
+
+mr:OccupationClericalAdmin a mr:Occupation;
+    rdfs:label "Clerical/Admin"@en .
+
+mr:OccupationCollegeGradStudent a mr:Occupation;
+    rdfs:label "College/Grad Student"@en .
+
+mr:OccupationCustomerService a mr:Occupation;
+    rdfs:label "Customer Service"@en .
+
+mr:OccupationDoctorHealthCare a mr:Occupation;
+    rdfs:label "Doctor/Health Care"@en .
+
+mr:OccupationExecutiveManagerial a mr:Occupation;
+    rdfs:label "Executive/Managerial"@en .
+
+mr:OccupationFarmer a mr:Occupation;
+    rdfs:label "Farmer"@en .
+
+mr:OccupationHomemaker a mr:Occupation;
+    rdfs:label "Homemaker"@en .
+
+mr:OccupationK12Student a mr:Occupation;
+    rdfs:label "K-12 Student"@en .
+
+mr:OccupationLawyer a mr:Occupation;
+    rdfs:label "Lawyer"@en .
+
+mr:OccupationProgrammer a mr:Occupation;
+    rdfs:label "Programmer"@en .
+
+mr:OccupationRetired a mr:Occupation;
+    rdfs:label "Retired"@en .
+
+mr:OccupationSalesMarketing a mr:Occupation;
+    rdfs:label "Sales/Marketing"@en .
+
+mr:OccupationScientist a mr:Occupation;
+    rdfs:label "Scientist"@en .
+
+mr:OccupationSelfEmployed a mr:Occupation;
+    rdfs:label "Self-Employed"@en .
+
+mr:OccupationTechnicianEngineer a mr:Occupation;
+    rdfs:label "Technician/Engineer"@en .
+
+mr:OccupationTradesmanCraftsman a mr:Occupation;
+    rdfs:label "Tradesman/Craftsman"@en .
+
+mr:OccupationUnemployed a mr:Occupation;
+    rdfs:label "Unemployed"@en .
+
+mr:OccupationWriter a mr:Occupation;
+    rdfs:label "Writer"@en .
+
+# These properties directly link users to movies!
+
+mr:likesMovie a owl:ObjectProperty;
+    rdfs:label "User likes Movie" ;
+    rdfs:comment "Defined by: if user has Rating of at least three (3, 4 or 5) Stars for this movie." ;
+    rdfs:domain mr:User ;
+    rdfs:range mr:Movie ;
+.
+
+mr:isFavoriteMovie a owl:ObjectProperty;
+    rdfs:label "Movie is #1 favorite Movie of User" ;
+    rdfs:comment "Defined by: Movie(s) with the highest average Rating." ;
+    rdfs:domain mr:Movie ;
+    rdfs:range mr:User ;
+.
+
+
+mr:isPartOfTopFavoriteMovies a owl:ObjectProperty;
+    rdfs:label "Movie is in top 10 of favorite Movies of User" ;
+    rdfs:comment "Defined by: Movie(s) with the highest top 10 average Rating.";
+    rdfs:domain mr:Movie ;
+    rdfs:range mr:User ;
+.
+
+# These properties directly link users to genres!
+
+mr:likesGenre a owl:ObjectProperty;
+    rdfs:label "User likes Genre" ;
+    rdfs:comment "Defined by metric: if User has average rating of all their rated Movies within this Genre higher than 2.5"; 
+    rdfs:domain mr:User ;
+    rdfs:range mr:Genre ;
+.
+
+mr:isFavoriteGenre a owl:ObjectProperty;
+    rdfs:label "Genre is #1 favorite Genre of User" ;
+    rdfs:comment "Defined by: Genre(s) with the highest average Rating.";
+    rdfs:domain mr:Genre ;
+    rdfs:range mr:User ;
+.
+
+mr:isPartofTopFavoriteGenres a owl:ObjectProperty;
+    rdfs:label "Genre is in top 5 favorite Genres of User" ;
+    rdfs:comment "Defined by: Genre(s) with highest average top 5 Rating.";
+    rdfs:domain mr:Genre ;
+    rdfs:range mr:User ;
+.
+
+# These properties directly link users to persons!
+
+mr:likesMoviesWithActor a owl:ObjectProperty;
+    rdfs:label "User likes movies starring this Actor" ;
+    rdfs:comment "Defined by: if average rating of all movies starring this Actor is higher than 2.5";
+    rdfs:domain mr:User  ;
+    rdfs:range mr:Actor ;
+.
+
+mr:likesMoviesFromDirector a owl:ObjectProperty;
+    rdfs:label "User likes movies from this Director" ;
+    rdfs:comment "Defined by: if average rating of all movies starring this Director is higher than 2.5";
+    rdfs:domain mr:User ;
+    rdfs:range mr:Director ;
+.
+
+mr:likesMoviesFromWriter a owl:ObjectProperty;
+    rdfs:label "User likes movies from this Writer" ;
+    rdfs:comment "Defined by: if average rating of all movies starring this Writer is higher than 2.5";
+    rdfs:domain mr:User ;
+    rdfs:range mr:Writer ;
+.
+
+mr:likesMoviesFromProducer a owl:ObjectProperty;
+    rdfs:label "User likes movies from this Producer" ;
+    rdfs:comment "Defined by: if average rating of all movies starring this Producer is higher than 2.5";
+    rdfs:domain mr:User ;
+    rdfs:range mr:Producer ;
+.
+
+
+
+
+####################
+#                  #
+#      RATING      #
+#                  #
+####################
+
+
+mr:Rating a owl:Class ;
+    rdfs:label "Rating"@en .
+
+mr:providedByUser a owl:ObjectProperty ;
+    rdfs:label "User provides Rating."@en;
+    rdfs:domain mr:Rating ;
+    rdfs:range mr:User.    
+
+mr:isAboutMovie a owl:ObjectProperty ;
+    rdfs:label "Rating is about Movie."@en;
+    rdfs:domain mr:Rating ;
+    rdfs:range mr:Movie.
+
+mr:hasTimeStamp a owl:DatatypeProperty ;
+    rdfs:label "Rating has a Timestamp"@en ;
+    rdfs:domain mr:Rating;
+    rdfs:range xsd:string.
+
+mr:hasStars a owl:ObjectProperty ;
+    rdfs:label "Rating has Amount of Stars.";
+    rdfs:domain mr:Rating ;
+    rdfs:range mr:AmountOfStars.
+
+mr:AmountOfStars a owl:Class ;
+    rdfs:label "Amount of Stars".
+
+mr:OneStar a mr:AmountOfStars ;
+    rdfs:label "1 star rating".
+
+mr:TwoStar a mr:AmountOfStars ;
+    rdfs:label "2 star rating".
+
+mr:ThreeStar a mr:AmountOfStars ;
+    rdfs:label "3 star rating".
+
+mr:FourStar a mr:AmountOfStars ;
+    rdfs:label "4 star rating".
+
+mr:FiveStar a mr:AmountOfStars ;
+    rdfs:label "5 star rating".
+
+####################
+#                  #
+#       MOVIE      #
+#                  #
+####################
+
+mr:Movie a owl:Class ;
+    rdfs:label "Movie"@en .
+
+mr:hasRating a owl:ObjectProperty ;
+    rdfs:label "Movie has Rating."@en;
+    rdfs:domain mr:Movie ;
+    rdfs:range mr:Rating.
+
+mr:hasTitle a owl:DatatypeProperty ;
+    rdfs:label "Movie has a Title"@en;
+    rdfs:seeAlso "https://www.wikidata.org/wiki/Property:P1476"@en;
+    rdfs:domain mr:Movie ;
+    rdfs:range xsd:string .
+    
+mr:hasGenre a owl:ObjectProperty;
+    rdfs:label "Movie has one or multiple Genre(s)."@en;
+    rdfs:domain mr:Movie ;
+	rdfs:range mr:Genre .
+
+mr:Genre a owl:Class ;
+    rdfs:label "Genre"@en .
+
+mr:GenreAction a mr:Genre;
+    rdfs:label "Action"@en .
+
+mr:GenreAdventure a mr:Genre;
+    rdfs:label "Adventure"@en .
+
+mr:GenreAnimation a mr:Genre;
+    rdfs:label "Animation"@en .
+
+mr:GenreChildrens a mr:Genre;
+    rdfs:label "Children's"@en .
+
+mr:GenreComedy a mr:Genre;
+    rdfs:label "Comedy"@en .
+
+mr:GenreCrime a mr:Genre;
+    rdfs:label "Crime"@en .
+
+mr:GenreDocumentary a mr:Genre;
+    rdfs:label "Documentary"@en .
+
+mr:GenreDrama a mr:Genre;
+    rdfs:label "Drama"@en .
+
+mr:GenreFantasy a mr:Genre;
+    rdfs:label "Fantasy"@en .
+
+mr:GenreFilmNoir a mr:Genre;
+    rdfs:label "Film-Noir"@en .
+
+mr:GenreHorror a mr:Genre;
+    rdfs:label "Horror"@en .
+
+mr:GenreMusical a mr:Genre;
+    rdfs:label "Musical"@en .
+
+mr:GenreMystery a mr:Genre;
+    rdfs:label "Mystery"@en .
+
+mr:GenreRomance a mr:Genre;
+    rdfs:label "Romance"@en .
+
+mr:GenreSciFi a mr:Genre;
+    rdfs:label "Sci-Fi"@en .
+
+mr:GenreThriller a mr:Genre;
+    rdfs:label "Thriller"@en .
+
+mr:GenreWar a mr:Genre;
+    rdfs:label "War"@en .
+
+mr:GenreWestern a mr:Genre;
+    rdfs:label "Western"@en .
+
+
+mr:hasIMDbID a owl:DatatypeProperty;
+    rdfs:label "Movie has IMDb ID."@en;
+    rdfs:seeAlso "https://www.wikidata.org/wiki/Property:P345"@en;
+    rdfs:domain mr:Movie ;
+	rdfs:range xsd:string .
+
+mr:hasDuration a owl:DatatypeProperty;
+    rdfs:label "Movie has Duration."@en;
+    rdfs:comment "Measured in minutes.";
+    rdfs:seeAlso "https://www.wikidata.org/wiki/Property:P2047"@en;
+    rdfs:domain mr:Movie ;
+	rdfs:range xsd:string .
+
+mr:hasReleaseDate a owl:DatatypeProperty;
+    rdfs:label "Movie has Release Date."@en;
+    rdfs:seeAlso "https://www.wikidata.org/wiki/Property:P577"@en;
+    rdfs:domain mr:Movie ;
+	rdfs:range xsd:string .
+
+
+mr:hasDescription a owl:DatatypeProperty;
+    rdfs:label "Movie has Description."@en;
+    rdfs:seeAlso "https://github.com/itsmehemant7/PyMovieDb"@en;
+    rdfs:domain mr:Movie ;
+	rdfs:range xsd:string .
+
+
+mr:starsActor a owl:ObjectProperty;
+    rdfs:label "Movie has Actor starring in it."@en;
+    rdfs:seeAlso "https://www.wikidata.org/wiki/Property:P161"@en;
+    rdfs:seeAlso "https://www.wikidata.org/wiki/Property:P725"@en;
+    rdfs:domain mr:Movie ;
+	rdfs:range mr:Actor .
+
+mr:producedBy a owl:ObjectProperty;
+    rdfs:label "Movie is produced by Producer."@en;
+    rdfs:seeAlso "https://www.wikidata.org/wiki/Property:P272"@en;
+    rdfs:domain mr:Movie ;
+	rdfs:range mr:Producer .
+
+mr:directedBy a owl:ObjectProperty;
+    rdfs:label "Movie is directed by Director."@en;
+    rdfs:seeAlso "https://www.wikidata.org/wiki/Property:P57"@en;
+    rdfs:domain mr:Movie ;
+	rdfs:range mr:Director .
+
+mr:writtenBy a owl:ObjectProperty;
+    rdfs:label "Movie is written by Writer."@en;
+    rdfs:seeAlso "https://www.wikidata.org/wiki/Property:P58"@en;
+    rdfs:domain mr:Movie ;
+	rdfs:range mr:Writer .
+
+
+
+################################
+#                              #
+#     PERSONS & COMPANIES      #
+#                              #
+################################
+
+mr:Person a owl:Class ;
+    rdfs:label "Person". 
+
+mr:hasName a owl:DatatypeProperty ;
+    rdfs:label "Person has a full name";
+    rdfs:domain mr:Person ;
+    rdfs:range xsd:string .
+
+mr:Producer a owl:Class ;
+    rdfs:label "Producer"; 
+    rdfs:subClassOf mr:Person .
+
+mr:Director a owl:Class ;
+    rdfs:label "Director"; 
+    rdfs:subClassOf mr:Person .
+
+mr:Writer a owl:Class ;
+    rdfs:label "Writer"; 
+    rdfs:subClassOf mr:Person .
+
+mr:Actor a owl:Class ;
+    rdfs:label "Actor"; 
+    rdfs:subClassOf mr:Person .
+
+
+# These properties directly link persons to persons!
+
+mr:workedWith a owl:SymmetricProperty ;
+    rdfs:label "Person worked with Person on a Movie" ;
+    rdfs:comment "Defined by: for all Person-Person duos, if they both have a starsActor, producedBy, directedBy, or writtenBy relation to the same movie." ;
+    rdfs:domain mr:Person ;
+    rdfs:range mr:Person ;
+    .
+
+mr:worksOftenWith 
+    a owl:SymmetricProperty ;
+    rdfs:label "Person works often with another Person on a Movie" ;
+    rdfs:comment "Defined by: if the amount of worksWith relations for this person-person duo is larger than the average amount of worksWith relations between all Person-Person duos";
+    rdfs:domain mr:Person ;
+    rdfs:range mr:Person ;
+    .
