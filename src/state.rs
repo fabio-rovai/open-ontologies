@@ -71,6 +71,17 @@ CREATE TABLE IF NOT EXISTS enforce_rules (
 CREATE INDEX IF NOT EXISTS idx_lineage_session ON lineage_events(session_id);
 CREATE INDEX IF NOT EXISTS idx_lineage_seq ON lineage_events(session_id, seq);
 CREATE INDEX IF NOT EXISTS idx_enforce_pack ON enforce_rules(rule_pack);
+
+CREATE TABLE IF NOT EXISTS align_feedback (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_iri TEXT NOT NULL,
+    target_iri TEXT NOT NULL,
+    predicted_relation TEXT NOT NULL,
+    accepted INTEGER NOT NULL,
+    timestamp TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_align_feedback_iris ON align_feedback(source_iri, target_iri);
 ";
 
 /// Minimal SQLite state store for ontology versioning.
