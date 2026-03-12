@@ -181,3 +181,45 @@ fn test_cli_monitor_clear() {
     let out = oo_isolated(&dir).arg("monitor-clear").output().unwrap();
     assert!(out.status.success());
 }
+
+#[test]
+fn test_cli_align_two_files() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("source.ttl");
+    let target = dir.path().join("target.ttl");
+
+    std::fs::write(&source, r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix ex: <http://example.org/> .
+        ex:Dog a owl:Class ; rdfs:label "Dog" .
+        ex:Cat a owl:Class ; rdfs:label "Cat" .
+    "#).unwrap();
+
+    std::fs::write(&target, r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix other: <http://other.org/> .
+        other:Dog a owl:Class ; rdfs:label "Dog" .
+        other:Feline a owl:Class ; rdfs:label "Cat" .
+    "#).unwrap();
+
+    let out = oo_isolated(&dir)
+        .args(["align", source.to_str().unwrap(), target.to_str().unwrap(), "--min-confidence", "0.5", "--dry-run"])
+        .output().unwrap();
+    assert!(out.status.success(), "stderr: {}", String::from_utf8_lossy(&out.stderr));
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("candidates"));
+    assert!(stdout.contains("confidence"));
+}
+
+#[test]
+fn test_cli_align_feedback() {
+    let dir = tempfile::tempdir().unwrap();
+    let out = oo_isolated(&dir)
+        .args(["align-feedback", "--source", "http://ex.org/Dog", "--target", "http://other.org/Canine", "--accept"])
+        .output().unwrap();
+    assert!(out.status.success(), "stderr: {}", String::from_utf8_lossy(&out.stderr));
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("ok"));
+}
