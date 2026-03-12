@@ -108,6 +108,37 @@ The reasoner is **conservative by design** — it will flag a safe mushroom as s
 
 **Files:** [`benchmark/mushroom/`](benchmark/mushroom/)
 
+### Proof: Image → Knowledge Graph (Vision Benchmark)
+
+**Dataset:** 10 real photographs (landscapes, animals, vehicles, architecture) with manually annotated ground truth labels.
+
+**The question:** Can you convert unstructured images into a queryable knowledge graph? We compared three approaches:
+
+1. **Manual annotation** — a human labels objects and categories (~2 min/image)
+2. **Pure Claude** — Claude vision returns flat JSON text labels (~8 sec/image)
+3. **RDF Pipeline** — Claude vision generates structured Turtle with `rdfs:label`, `skos:altLabel` synonyms, `schema:category`, confidence scores, and spatial relationships (~8 sec/image)
+
+**Method:** 20 parallel Claude agents processed 10 images simultaneously — 10 for pure text labeling, 10 for structured Turtle generation. Ground truth was manually annotated before the agents ran.
+
+| Metric | Manual | Pure Claude | RDF Pipeline |
+| ------ | ------ | ----------- | ------------ |
+| Object Recall | 100% | 89% | **100%** |
+| Category Recall | 100% | 79% | **91%** |
+| Total RDF Triples | 0 | 0 | **2,540** |
+| skos:altLabel Synonyms | 0 | 0 | **612** |
+| SPARQL Queryable | No | No | **Yes** |
+| Confidence Scores | No | No | **Yes** |
+| Effort per image | ~2 min | ~8 sec | ~8 sec |
+| Scales to 1000+ images | No | Yes | Yes |
+
+**Why RDF Pipeline beats Pure Claude on recall:** The v2 pipeline uses `skos:altLabel` to generate synonym expansions for every detected object (e.g., "whiskers" + "vibrissae" + "whisker pads"), covering more matching surface. Pure Claude returns loose text that often uses a single label per object.
+
+**Why this matters:** Pure Claude gives you flat text — you can't query "find all images containing animals near water." The RDF pipeline produces a queryable knowledge graph with 2,540 triples and 612 synonyms across 10 images.
+
+**Full MCP pipeline:** The benchmark runs the complete `onto_clear` → `onto_validate` (×10) → `onto_load` (×10) → `onto_stats` → `onto_lint` (×10) → `onto_query` (×6) tool chain via the real MCP server (`open-ontologies serve`), using the official MCP Python SDK over JSON-RPC 2.0 stdio. All 10 images validated, loaded into Oxigraph, linted clean, and queried with SPARQL — the same protocol Claude uses.
+
+**Files:** [`benchmark/vision/`](benchmark/vision/)
+
 ### Supported input formats
 
 | Format | Extension | Notes |

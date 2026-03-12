@@ -1,0 +1,24 @@
+{
+  "pipeline": "MCP server (open-ontologies serve) via official MCP Python SDK",
+  "protocol": "JSON-RPC 2.0 over stdio",
+  "tools_used": [
+    "onto_clear",
+    "onto_validate",
+    "onto_load",
+    "onto_stats",
+    "onto_lint",
+    "onto_query"
+  ],
+  "tools_available": 35,
+  "images_processed": 10,
+  "images_valid": 10,
+  "total_triples_validated": 2540,
+  "total_lint_issues": 0,
+  "stats": {
+    "classes": 0,
+    "data_properties": 0,
+    "individuals": 177,
+    "object_properties": 0,
+    "triples": 2540
+  }
+}
