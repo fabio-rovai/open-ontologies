@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 
-Open Ontologies is a standalone MCP server and CLI for AI-native ontology engineering. It exposes 35 tools that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store; plus plan changes, detect drift, enforce design patterns, monitor health, and track lineage.
+Open Ontologies is a standalone MCP server and CLI for AI-native ontology engineering. It exposes 37 tools that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — plus plan changes, detect drift, enforce design patterns, monitor health, align ontologies, and track lineage.
 
 Written in Rust, ships as a single binary. No JVM, no Protege, no GUI.
 
@@ -120,7 +120,7 @@ This is not a fixed pipeline. Claude is the orchestrator — it decides what to 
 
 ## Tools
 
-35 tools organized by function:
+37 tools organized by function:
 
 | Category | Tools | Purpose |
 | -------- | ----- | ------- |
@@ -130,6 +130,7 @@ This is not a fixed pipeline. Claude is the orchestrator — it decides what to 
 | **Data** | `map`, `ingest`, `shacl`, `reason`, `extend` | Structured data → RDF pipeline |
 | **Versioning** | `version`, `history`, `rollback` | Named snapshots and rollback |
 | **Lifecycle** | `plan`, `apply`, `lock`, `drift`, `enforce`, `monitor`, `monitor-clear`, `lineage` | Terraform-style change management |
+| **Alignment** | `align`, `align-feedback` | Cross-ontology class matching with self-calibrating confidence |
 | **Clinical** | `crosswalk`, `enrich`, `validate-clinical` | ICD-10 / SNOMED / MeSH crosswalks |
 | **Reasoning** | `reason` (rdfs, owl-rl, owl-rl-ext, owl-dl), `dl_explain`, `dl_check` | Native SHOIQ tableaux reasoner |
 
@@ -232,6 +233,29 @@ flowchart LR
 **Drift** — Compares versions, detects renames via Jaro-Winkler similarity, computes drift velocity. Self-calibrating confidence via SQLite feedback loop.
 
 **Lineage** — Append-only audit trail of all lifecycle operations.
+
+### Schema Alignment
+
+Detect `owl:equivalentClass`, `skos:exactMatch`, `rdfs:subClassOf` candidates between two ontologies using 6 weighted signals:
+
+| Signal | Weight | What it measures |
+| ------ | ------ | ---------------- |
+| Label similarity | 0.25 | Jaro-Winkler on normalized labels (camelCase split, lowercased) |
+| Property overlap | 0.20 | Jaccard on domain property + range signatures |
+| Parent overlap | 0.15 | Jaccard on rdfs:subClassOf parent local names |
+| Instance overlap | 0.15 | Jaccard on shared individuals by local name |
+| Restriction similarity | 0.15 | Jaccard on OWL restriction signatures (property→filler) |
+| Neighborhood similarity | 0.10 | Jaccard on 2-hop property neighborhood |
+
+Candidates above the confidence threshold are auto-applied to the main graph. Use `onto_align_feedback` to accept/reject candidates — feedback is stored in SQLite and used to self-calibrate signal weights over time.
+
+```bash
+# Compare two ontology files (dry run)
+open-ontologies align source.ttl target.ttl --min-confidence 0.7 --dry-run
+
+# Accept a candidate
+open-ontologies align-feedback --source http://ex.org/Dog --target http://other.org/Canine --accept
+```
 
 ### Clinical Crosswalks
 
@@ -369,6 +393,7 @@ flowchart TD
     Enforcer["Enforcer — design pattern rules"]
     Monitor["Monitor — SPARQL watchers"]
     Lineage["LineageLog — audit trail"]
+    Alignment["AlignmentEngine — cross-ontology matching"]
     Clinical["ClinicalCrosswalks — Parquet"]
 
     Claude --> MCP
@@ -378,6 +403,7 @@ flowchart TD
     MCP --> Enforcer
     MCP --> Monitor
     MCP --> Lineage
+    MCP --> Alignment
     MCP --> Clinical
     OntologyService --> GraphStore
     OntologyService --> StateDb
@@ -389,6 +415,8 @@ flowchart TD
     Monitor --> GraphStore
     Monitor --> StateDb
     Lineage --> StateDb
+    Alignment --> GraphStore
+    Alignment --> StateDb
 ```
 
 ## Stack
