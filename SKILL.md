@@ -1,6 +1,6 @@
 ---
 name: open-ontologies
-version: "0.5.0"
+version: "0.5.1"
 description: >
   AI-native ontology engineering using 39+ MCP tools backed by an in-memory Oxigraph triple store.
   Build, validate, query, and govern RDF/OWL ontologies with a generate-validate-iterate loop.
@@ -17,6 +17,34 @@ tags:
   - oxigraph
   - shacl
   - boro
+metadata:
+  openclaw:
+    requires:
+      mcp:
+        - name: open-ontologies
+          description: >
+            Oxigraph-backed MCP server providing all onto_* tools.
+            Install: cargo install open-ontologies OR download binary from
+            https://github.com/fabio-rovai/open-ontologies/releases
+          config:
+            command: open-ontologies
+            args: ["serve"]
+      bins:
+        - open-ontologies
+    network:
+      - description: "onto_pull fetches ontologies from remote URLs or SPARQL endpoints (user-provided URLs only)"
+        direction: outbound
+        optional: true
+      - description: "onto_push sends triples to a user-specified SPARQL endpoint"
+        direction: outbound
+        optional: true
+    notes: >
+      All processing is local by default. The in-memory Oxigraph triple store runs inside the
+      MCP server process -- no database, no JVM, no external services required.
+      Network access is only used by onto_pull and onto_push when the user explicitly provides
+      a remote URL or SPARQL endpoint. onto_monitor alerts are logged locally to stdout;
+      no external notification services are contacted. No credentials or API keys are needed
+      for core functionality.
 ---
 
 # Open Ontologies
@@ -25,7 +53,23 @@ AI-native ontology engineering. Generate OWL/RDF directly, validate with MCP too
 
 ## Prerequisites
 
-The `onto_*` tools must be available via the Open Ontologies MCP server. Install from [github.com/fabio-rovai/open-ontologies](https://github.com/fabio-rovai/open-ontologies) and add to your MCP configuration.
+This skill requires the **Open Ontologies MCP server** to provide the `onto_*` tools.
+
+**Install:** `cargo install open-ontologies` or download from [GitHub releases](https://github.com/fabio-rovai/open-ontologies/releases)
+
+**MCP config** (add to `.mcp.json` or Claude settings):
+```json
+{
+  "mcpServers": {
+    "open-ontologies": {
+      "command": "open-ontologies",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+**No credentials needed.** All processing runs locally in an in-memory Oxigraph triple store. Network access is only used when you explicitly call `onto_pull` (fetch remote ontology) or `onto_push` (send to SPARQL endpoint) with a URL you provide. Monitor alerts (`onto_monitor`) are logged to stdout only.
 
 ## Core Workflow
 
