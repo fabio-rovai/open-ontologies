@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "open-ontologies": {
+      "command": "./target/release/open-ontologies",
+      "args": ["serve"],
+      "env": {}
+    }
+  }
+}
