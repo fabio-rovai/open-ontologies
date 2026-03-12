@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml/badge.svg)](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![MCP Badge](https://lobehub.com/badge/mcp/fabio-rovai-open-ontologies)](https://lobehub.com/mcp/fabio-rovai-open-ontologies)
 
 
 Open Ontologies is a standalone MCP server and CLI for AI-native ontology engineering. It exposes 39 tools that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — plus plan changes, detect drift, enforce design patterns, monitor health, align ontologies, track lineage, and learn from user feedback.
@@ -21,7 +22,10 @@ cargo build --release
 ./target/release/open-ontologies init
 ```
 
-### 2. Connect to Claude Code
+### 2. Connect to your MCP client
+
+<details>
+<summary><strong>Claude Code</strong></summary>
 
 Add to `~/.claude/settings.json`:
 
@@ -37,6 +41,41 @@ Add to `~/.claude/settings.json`:
 ```
 
 Restart Claude Code. The `onto_*` tools are now available.
+</details>
+
+<details>
+<summary><strong>Claude Desktop</strong></summary>
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+
+```json
+{
+  "mcpServers": {
+    "open-ontologies": {
+      "command": "/path/to/open-ontologies/target/release/open-ontologies",
+      "args": ["serve"]
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>Cursor / Windsurf / any MCP-compatible IDE</strong></summary>
+
+Add to your MCP settings (usually `.cursor/mcp.json` or equivalent):
+
+```json
+{
+  "mcpServers": {
+    "open-ontologies": {
+      "command": "/path/to/open-ontologies/target/release/open-ontologies",
+      "args": ["serve"]
+    }
+  }
+}
+```
+</details>
 
 ### 3. Build your first ontology
 
