@@ -245,6 +245,14 @@ pub struct OntoLineageInput {
     pub session_id: Option<String>,
 }
 
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoImportSchemaInput {
+    /// Database connection string (e.g. postgres://user:pass@host/db)
+    pub connection: String,
+    /// Base IRI for generated classes (default: http://example.org/db/)
+    pub base_iri: Option<String>,
+}
+
 // ─── OpenOntologiesServer ───────────────────────────────────────────────────
 
 /// MCP server that exposes all Open Ontologies tools to Claude via stdin/stdout.
@@ -918,6 +926,36 @@ impl OpenOntologiesServer {
             "shacl": shacl_result,
             "reasoning": reason_result,
         }).to_string()
+    }
+
+    #[cfg(feature = "postgres")]
+    #[tool(name = "onto_import_schema", description = "Import a PostgreSQL database schema as an OWL ontology. Introspects tables, columns, primary keys, and foreign keys, then generates OWL classes, datatype/object properties, and cardinality restrictions.")]
+    async fn onto_import_schema(&self, Parameters(input): Parameters<OntoImportSchemaInput>) -> String {
+        use crate::schema::SchemaIntrospector;
+        let base_iri = input.base_iri.as_deref().unwrap_or("http://example.org/db/");
+
+        let tables = match SchemaIntrospector::introspect_postgres(&input.connection).await {
+            Ok(t) => t,
+            Err(e) => return format!(r#"{{"error":"Connection failed: {}"}}"#, e),
+        };
+
+        let turtle = SchemaIntrospector::generate_turtle(&tables, base_iri);
+
+        // Validate + load
+        if let Err(e) = GraphStore::validate_turtle(&turtle) {
+            return format!(r#"{{"error":"Generated Turtle invalid: {}"}}"#, e);
+        }
+
+        match self.graph.load_turtle(&turtle, Some(base_iri)) {
+            Ok(count) => serde_json::json!({
+                "ok": true,
+                "tables": tables.len(),
+                "classes": tables.len(),
+                "triples": count,
+                "base_iri": base_iri,
+            }).to_string(),
+            Err(e) => format!(r#"{{"error":"Failed to load: {}"}}"#, e),
+        }
     }
 }
 
