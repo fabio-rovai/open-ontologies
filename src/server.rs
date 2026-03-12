@@ -275,6 +275,26 @@ pub struct OntoAlignFeedbackInput {
     pub accepted: bool,
 }
 
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoLintFeedbackInput {
+    /// The lint rule ID (e.g. "missing_label", "missing_comment", "missing_domain", "missing_range")
+    pub rule_id: String,
+    /// The entity IRI that triggered the lint issue
+    pub entity: String,
+    /// true = this is a real issue, false = dismiss/ignore
+    pub accepted: bool,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoEnforceFeedbackInput {
+    /// The enforce rule ID (e.g. "orphan_class", "missing_domain", "missing_range", "missing_label", or custom rule ID)
+    pub rule_id: String,
+    /// The entity IRI that triggered the violation
+    pub entity: String,
+    /// true = this is a real violation, false = dismiss/override
+    pub accepted: bool,
+}
+
 // ─── OpenOntologiesServer ───────────────────────────────────────────────────
 
 /// MCP server that exposes all Open Ontologies tools to Claude via stdin/stdout.
@@ -420,7 +440,7 @@ impl OpenOntologiesServer {
                 Err(e) => return format!(r#"{{"error":"{}"}}"#, e),
             }
         };
-        OntologyService::lint(&content).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
+        OntologyService::lint_with_feedback(&content, Some(&self.db)).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
     }
 
     #[tool(name = "onto_clear", description = "Clear all triples from the in-memory ontology store")]
@@ -770,7 +790,7 @@ impl OpenOntologiesServer {
     #[tool(name = "onto_enforce", description = "Enforce design patterns on the loaded ontology. Built-in packs: 'generic' (orphan classes, missing domain/range/label), 'boro' (BORO 4D patterns), 'value_partition' (disjoint/covering checks). Also runs any custom rules stored for the pack.")]
     async fn onto_enforce(&self, Parameters(input): Parameters<OntoEnforceInput>) -> String {
         let enforcer = crate::enforce::Enforcer::new(self.db.clone(), self.graph.clone());
-        match enforcer.enforce(&input.rule_pack) {
+        match enforcer.enforce_with_feedback(&input.rule_pack, Some(&self.db)) {
             Ok(result) => {
                 self.lineage().record(&self.session_id, "E", "enforce", &input.rule_pack);
                 result
@@ -1020,6 +1040,28 @@ impl OpenOntologiesServer {
         match engine.record_feedback(&input.source_iri, &input.target_iri, "user_feedback", input.accepted) {
             Ok(result) => {
                 self.lineage().record(&self.session_id, "AF", "align_feedback", if input.accepted { "accepted" } else { "rejected" });
+                result
+            }
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_lint_feedback", description = "Accept or dismiss a lint issue to improve future lint runs. Dismissed issues are suppressed after 3 dismissals. Stores feedback for self-calibrating severity.")]
+    async fn onto_lint_feedback(&self, Parameters(input): Parameters<OntoLintFeedbackInput>) -> String {
+        match crate::feedback::record_tool_feedback(&self.db, "lint", &input.rule_id, &input.entity, input.accepted) {
+            Ok(result) => {
+                self.lineage().record(&self.session_id, "LF", "lint_feedback", if input.accepted { "accepted" } else { "dismissed" });
+                result
+            }
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_enforce_feedback", description = "Accept or dismiss an enforce violation to improve future enforce runs. Dismissed violations are suppressed after 3 dismissals. Stores feedback for self-calibrating compliance.")]
+    async fn onto_enforce_feedback(&self, Parameters(input): Parameters<OntoEnforceFeedbackInput>) -> String {
+        match crate::feedback::record_tool_feedback(&self.db, "enforce", &input.rule_id, &input.entity, input.accepted) {
+            Ok(result) => {
+                self.lineage().record(&self.session_id, "EF", "enforce_feedback", if input.accepted { "accepted" } else { "dismissed" });
                 result
             }
             Err(e) => format!(r#"{{"error":"{}"}}"#, e),
