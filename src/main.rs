@@ -816,9 +816,28 @@ async fn main() -> anyhow::Result<()> {
             }
         }
 
-        // ─── Schema import (stub until Task 6) ────────────────────
+        // ─── Schema import ─────────────────────────────────────────
+        #[cfg(feature = "postgres")]
+        Commands::ImportSchema { connection, base_iri } => {
+            let (_db, graph) = setup(&cli.data_dir)?;
+            let tables = open_ontologies::schema::SchemaIntrospector::introspect_postgres(&connection).await?;
+            let turtle = open_ontologies::schema::SchemaIntrospector::generate_turtle(&tables, &base_iri);
+
+            // Validate + load
+            GraphStore::validate_turtle(&turtle)?;
+            let count = graph.load_turtle(&turtle, Some(&base_iri))?;
+
+            output_json(&serde_json::json!({
+                "ok": true,
+                "tables": tables.len(),
+                "classes": tables.len(),
+                "triples": count,
+                "base_iri": base_iri,
+            }), cli.pretty);
+        }
+        #[cfg(not(feature = "postgres"))]
         Commands::ImportSchema { .. } => {
-            output_json(&serde_json::json!({"error": "not implemented — requires postgres feature"}), cli.pretty);
+            output_json(&serde_json::json!({"error": "import-schema requires the 'postgres' feature (compile with --features postgres)"}), cli.pretty);
             std::process::exit(1);
         }
     }
