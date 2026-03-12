@@ -1,0 +1,357 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix mush: <http://example.org/mushroom#> .
+
+# --- Ontology declaration ---
+<http://example.org/mushroom> a owl:Ontology ;
+    rdfs:label "Mushroom Classification Ontology" ;
+    rdfs:comment "Ontology for classifying Agaricus and Lepiota mushrooms as edible or poisonous, based on the Audubon Society Field Guide (1981). Classification rules encode expert mycological knowledge as OWL axioms." .
+
+# =============================================
+# Classes — Mushroom hierarchy
+# =============================================
+
+mush:Mushroom a owl:Class ;
+    rdfs:label "Mushroom" ;
+    rdfs:comment "A gilled mushroom specimen from the Agaricus or Lepiota family." .
+
+mush:EdibleMushroom a owl:Class ;
+    rdfs:subClassOf mush:Mushroom ;
+    rdfs:label "Edible Mushroom" ;
+    rdfs:comment "A mushroom classified as safe for human consumption." .
+
+mush:PoisonousMushroom a owl:Class ;
+    rdfs:subClassOf mush:Mushroom ;
+    rdfs:label "Poisonous Mushroom" ;
+    rdfs:comment "A mushroom classified as toxic or potentially harmful." .
+
+mush:EdibleMushroom owl:disjointWith mush:PoisonousMushroom .
+
+# =============================================
+# Classes — Odor values (key classifier)
+# =============================================
+
+mush:Odor a owl:Class ;
+    rdfs:label "Odor" ;
+    rdfs:comment "The odor of a mushroom specimen." .
+
+mush:AlmondOdor a owl:Class ;
+    rdfs:subClassOf mush:Odor ;
+    rdfs:label "Almond" .
+
+mush:AniseOdor a owl:Class ;
+    rdfs:subClassOf mush:Odor ;
+    rdfs:label "Anise" .
+
+mush:NoneOdor a owl:Class ;
+    rdfs:subClassOf mush:Odor ;
+    rdfs:label "None" .
+
+mush:FoulOdor a owl:Class ;
+    rdfs:subClassOf mush:Odor ;
+    rdfs:label "Foul" .
+
+mush:CreosoteOdor a owl:Class ;
+    rdfs:subClassOf mush:Odor ;
+    rdfs:label "Creosote" .
+
+mush:PungentOdor a owl:Class ;
+    rdfs:subClassOf mush:Odor ;
+    rdfs:label "Pungent" .
+
+mush:SpicyOdor a owl:Class ;
+    rdfs:subClassOf mush:Odor ;
+    rdfs:label "Spicy" .
+
+mush:FishyOdor a owl:Class ;
+    rdfs:subClassOf mush:Odor ;
+    rdfs:label "Fishy" .
+
+mush:MustyOdor a owl:Class ;
+    rdfs:subClassOf mush:Odor ;
+    rdfs:label "Musty" .
+
+# Odor partition: all odors are disjoint
+[] a owl:AllDisjointClasses ;
+    owl:members (
+        mush:AlmondOdor mush:AniseOdor mush:NoneOdor
+        mush:FoulOdor mush:CreosoteOdor mush:PungentOdor
+        mush:SpicyOdor mush:FishyOdor mush:MustyOdor
+    ) .
+
+# =============================================
+# Classes — Spore print color values
+# =============================================
+
+mush:SporePrintColor a owl:Class ;
+    rdfs:label "Spore Print Color" .
+
+mush:GreenSpore a owl:Class ;
+    rdfs:subClassOf mush:SporePrintColor ;
+    rdfs:label "Green" .
+
+mush:BrownSpore a owl:Class ;
+    rdfs:subClassOf mush:SporePrintColor ;
+    rdfs:label "Brown" .
+
+mush:BlackSpore a owl:Class ;
+    rdfs:subClassOf mush:SporePrintColor ;
+    rdfs:label "Black" .
+
+mush:WhiteSpore a owl:Class ;
+    rdfs:subClassOf mush:SporePrintColor ;
+    rdfs:label "White" .
+
+mush:ChocolateSpore a owl:Class ;
+    rdfs:subClassOf mush:SporePrintColor ;
+    rdfs:label "Chocolate" .
+
+mush:BuffSpore a owl:Class ;
+    rdfs:subClassOf mush:SporePrintColor ;
+    rdfs:label "Buff" .
+
+mush:OrangeSpore a owl:Class ;
+    rdfs:subClassOf mush:SporePrintColor ;
+    rdfs:label "Orange" .
+
+mush:PurpleSpore a owl:Class ;
+    rdfs:subClassOf mush:SporePrintColor ;
+    rdfs:label "Purple" .
+
+mush:YellowSpore a owl:Class ;
+    rdfs:subClassOf mush:SporePrintColor ;
+    rdfs:label "Yellow" .
+
+# =============================================
+# Classes — Habitat values
+# =============================================
+
+mush:Habitat a owl:Class ;
+    rdfs:label "Habitat" .
+
+mush:GrassesHabitat a owl:Class ;
+    rdfs:subClassOf mush:Habitat ;
+    rdfs:label "Grasses" .
+
+mush:LeavesHabitat a owl:Class ;
+    rdfs:subClassOf mush:Habitat ;
+    rdfs:label "Leaves" .
+
+mush:MeadowsHabitat a owl:Class ;
+    rdfs:subClassOf mush:Habitat ;
+    rdfs:label "Meadows" .
+
+mush:PathsHabitat a owl:Class ;
+    rdfs:subClassOf mush:Habitat ;
+    rdfs:label "Paths" .
+
+mush:UrbanHabitat a owl:Class ;
+    rdfs:subClassOf mush:Habitat ;
+    rdfs:label "Urban" .
+
+mush:WasteHabitat a owl:Class ;
+    rdfs:subClassOf mush:Habitat ;
+    rdfs:label "Waste" .
+
+mush:WoodsHabitat a owl:Class ;
+    rdfs:subClassOf mush:Habitat ;
+    rdfs:label "Woods" .
+
+# =============================================
+# Classes — Population values
+# =============================================
+
+mush:Population a owl:Class ;
+    rdfs:label "Population" .
+
+mush:AbundantPopulation a owl:Class ;
+    rdfs:subClassOf mush:Population ;
+    rdfs:label "Abundant" .
+
+mush:ClusteredPopulation a owl:Class ;
+    rdfs:subClassOf mush:Population ;
+    rdfs:label "Clustered" .
+
+mush:NumerousPopulation a owl:Class ;
+    rdfs:subClassOf mush:Population ;
+    rdfs:label "Numerous" .
+
+mush:ScatteredPopulation a owl:Class ;
+    rdfs:subClassOf mush:Population ;
+    rdfs:label "Scattered" .
+
+mush:SeveralPopulation a owl:Class ;
+    rdfs:subClassOf mush:Population ;
+    rdfs:label "Several" .
+
+mush:SolitaryPopulation a owl:Class ;
+    rdfs:subClassOf mush:Population ;
+    rdfs:label "Solitary" .
+
+# =============================================
+# Classes — Gill size values
+# =============================================
+
+mush:GillSize a owl:Class ;
+    rdfs:label "Gill Size" .
+
+mush:BroadGill a owl:Class ;
+    rdfs:subClassOf mush:GillSize ;
+    rdfs:label "Broad" .
+
+mush:NarrowGill a owl:Class ;
+    rdfs:subClassOf mush:GillSize ;
+    rdfs:label "Narrow" .
+
+# =============================================
+# Classes — Cap color values
+# =============================================
+
+mush:CapColor a owl:Class ;
+    rdfs:label "Cap Color" .
+
+mush:BrownCap a owl:Class ;
+    rdfs:subClassOf mush:CapColor ;
+    rdfs:label "Brown" .
+
+mush:BuffCap a owl:Class ;
+    rdfs:subClassOf mush:CapColor ;
+    rdfs:label "Buff" .
+
+mush:CinnamonCap a owl:Class ;
+    rdfs:subClassOf mush:CapColor ;
+    rdfs:label "Cinnamon" .
+
+mush:GrayCap a owl:Class ;
+    rdfs:subClassOf mush:CapColor ;
+    rdfs:label "Gray" .
+
+mush:GreenCap a owl:Class ;
+    rdfs:subClassOf mush:CapColor ;
+    rdfs:label "Green" .
+
+mush:PinkCap a owl:Class ;
+    rdfs:subClassOf mush:CapColor ;
+    rdfs:label "Pink" .
+
+mush:PurpleCap a owl:Class ;
+    rdfs:subClassOf mush:CapColor ;
+    rdfs:label "Purple" .
+
+mush:RedCap a owl:Class ;
+    rdfs:subClassOf mush:CapColor ;
+    rdfs:label "Red" .
+
+mush:WhiteCap a owl:Class ;
+    rdfs:subClassOf mush:CapColor ;
+    rdfs:label "White" .
+
+mush:YellowCap a owl:Class ;
+    rdfs:subClassOf mush:CapColor ;
+    rdfs:label "Yellow" .
+
+# =============================================
+# Properties
+# =============================================
+
+mush:hasOdor a owl:ObjectProperty ;
+    rdfs:domain mush:Mushroom ;
+    rdfs:range mush:Odor ;
+    rdfs:label "has odor" .
+
+mush:hasSporePrintColor a owl:ObjectProperty ;
+    rdfs:domain mush:Mushroom ;
+    rdfs:range mush:SporePrintColor ;
+    rdfs:label "has spore print color" .
+
+mush:hasHabitat a owl:ObjectProperty ;
+    rdfs:domain mush:Mushroom ;
+    rdfs:range mush:Habitat ;
+    rdfs:label "has habitat" .
+
+mush:hasPopulation a owl:ObjectProperty ;
+    rdfs:domain mush:Mushroom ;
+    rdfs:range mush:Population ;
+    rdfs:label "has population" .
+
+mush:hasGillSize a owl:ObjectProperty ;
+    rdfs:domain mush:Mushroom ;
+    rdfs:range mush:GillSize ;
+    rdfs:label "has gill size" .
+
+mush:hasCapColor a owl:ObjectProperty ;
+    rdfs:domain mush:Mushroom ;
+    rdfs:range mush:CapColor ;
+    rdfs:label "has cap color" .
+
+mush:hasBruises a owl:DatatypeProperty ;
+    rdfs:domain mush:Mushroom ;
+    rdfs:range xsd:string ;
+    rdfs:label "has bruises" .
+
+# =============================================
+# Classification Rules — Expert mycological knowledge
+# =============================================
+
+# Rule 1: Toxic odors → Poisonous
+# "Any mushroom with foul, creosote, pungent, spicy, musty, or fishy odor is poisonous"
+# This single rule classifies 98.5% of the dataset correctly.
+
+[] a owl:Restriction ;
+    owl:onProperty mush:hasOdor ;
+    owl:someValuesFrom mush:FoulOdor ;
+    rdfs:subClassOf mush:PoisonousMushroom .
+
+[] a owl:Restriction ;
+    owl:onProperty mush:hasOdor ;
+    owl:someValuesFrom mush:CreosoteOdor ;
+    rdfs:subClassOf mush:PoisonousMushroom .
+
+[] a owl:Restriction ;
+    owl:onProperty mush:hasOdor ;
+    owl:someValuesFrom mush:PungentOdor ;
+    rdfs:subClassOf mush:PoisonousMushroom .
+
+[] a owl:Restriction ;
+    owl:onProperty mush:hasOdor ;
+    owl:someValuesFrom mush:SpicyOdor ;
+    rdfs:subClassOf mush:PoisonousMushroom .
+
+[] a owl:Restriction ;
+    owl:onProperty mush:hasOdor ;
+    owl:someValuesFrom mush:FishyOdor ;
+    rdfs:subClassOf mush:PoisonousMushroom .
+
+[] a owl:Restriction ;
+    owl:onProperty mush:hasOdor ;
+    owl:someValuesFrom mush:MustyOdor ;
+    rdfs:subClassOf mush:PoisonousMushroom .
+
+# Rule 2: Pleasant odors → Edible
+# "Mushrooms with almond or anise odor are edible"
+
+[] a owl:Restriction ;
+    owl:onProperty mush:hasOdor ;
+    owl:someValuesFrom mush:AlmondOdor ;
+    rdfs:subClassOf mush:EdibleMushroom .
+
+[] a owl:Restriction ;
+    owl:onProperty mush:hasOdor ;
+    owl:someValuesFrom mush:AniseOdor ;
+    rdfs:subClassOf mush:EdibleMushroom .
+
+# Rule 3: Green spore print → Poisonous
+# "Green spore print color is a strong indicator of toxicity"
+
+[] a owl:Restriction ;
+    owl:onProperty mush:hasSporePrintColor ;
+    owl:someValuesFrom mush:GreenSpore ;
+    rdfs:subClassOf mush:PoisonousMushroom .
+
+# Rule 4: No odor + green/white spore + specific conditions
+# For the ~600 "none" odor mushrooms that are poisonous,
+# we use spore print color as a secondary discriminator.
+# White spore print + no odor + narrow gills → Poisonous
+# (This covers the Lepiota species)

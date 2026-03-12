@@ -1,0 +1,15 @@
+{
+  "base_iri": "http://example.org/mushroom#",
+  "id_field": null,
+  "class": "http://example.org/mushroom#Mushroom",
+  "mappings": [
+    { "field": "odor", "predicate": "http://example.org/mushroom#hasOdor", "lookup": true },
+    { "field": "spore_print_color", "predicate": "http://example.org/mushroom#hasSporePrintColor", "lookup": true },
+    { "field": "habitat", "predicate": "http://example.org/mushroom#hasHabitat", "lookup": true },
+    { "field": "population", "predicate": "http://example.org/mushroom#hasPopulation", "lookup": true },
+    { "field": "gill_size", "predicate": "http://example.org/mushroom#hasGillSize", "lookup": true },
+    { "field": "cap_color", "predicate": "http://example.org/mushroom#hasCapColor", "lookup": true },
+    { "field": "bruises", "predicate": "http://example.org/mushroom#hasBruises" },
+    { "field": "class", "predicate": "http://example.org/mushroom#expertClassification" }
+  ]
+}

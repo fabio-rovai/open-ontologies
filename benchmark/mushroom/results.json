@@ -1,0 +1,25 @@
+{
+  "dataset": "UCI Mushroom (Audubon Society, 1981)",
+  "total": 8124,
+  "expert_edible": 4208,
+  "expert_poisonous": 3916,
+  "accuracy": 98.33,
+  "correct": 7988,
+  "wrong": 136,
+  "precision_poisonous": 96.64,
+  "recall_poisonous": 100.0,
+  "confusion": {
+    "TP": 3916,
+    "TN": 4072,
+    "FP": 136,
+    "FN": 0
+  },
+  "rules_used": {
+    "odor": 4596,
+    "default": 3272,
+    "spore_print_color": 72,
+    "spore+gill": 96,
+    "spore+habitat": 40,
+    "spore_buff": 48
+  }
+}

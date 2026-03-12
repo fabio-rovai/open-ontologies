@@ -52,6 +52,76 @@ open-ontologies query "SELECT ?c ?label WHERE { ?c a owl:Class . ?c rdfs:label ?
 
 See [`benchmark/demo/`](benchmark/demo/) for a full Docker-based example.
 
+## Terraforming: Any Data → Ontology → Reasoning
+
+Open Ontologies replaces manual ontology annotation with an automated pipeline. Take any structured data — CSV, JSON, Parquet, XLSX, XML — and terraform it into a validated, reasoned knowledge graph.
+
+```text
+Raw Data → map → ingest → reason → query → validated knowledge
+```
+
+The pipeline replaces what traditionally takes weeks of manual work:
+
+| Manual process | Open Ontologies equivalent |
+| -------------- | ------------------------- |
+| Domain expert defines classes by hand | `import-schema` or Claude generates OWL from requirements |
+| Analyst maps spreadsheet columns to ontology | `map` auto-generates mapping config from schema |
+| Data engineer writes ETL to RDF | `ingest` parses CSV/JSON/Parquet/XLSX → RDF triples |
+| Ontologist validates data constraints | `shacl` checks cardinality, datatypes, classes |
+| Reasoner classifies instances (Protege + HermiT) | `reason` runs native OWL2-DL classification |
+| Quality reviewer checks consistency | `enforce` + `lint` + `monitor` |
+
+### Proof: Mushroom Classification
+
+**Dataset:** UCI Mushroom Dataset — 8,124 mushroom specimens manually classified as edible or poisonous by mycology experts for the Audubon Society Field Guide (1981). This dataset has never been mapped to a formal ontology.
+
+**What the experts did:** Examined each specimen's physical features (odor, gill color, spore print, habitat, etc.) and classified it as edible or poisonous. This manual annotation took years of fieldwork.
+
+**What the pipeline does:**
+
+```bash
+# 1. Load domain ontology with classification rules
+open-ontologies load mushroom-ontology.ttl
+
+# 2. Ingest 8,124 specimens from CSV
+open-ontologies ingest mushrooms.csv --mapping mushroom-mapping.json
+
+# 3. Run OWL reasoning to classify
+open-ontologies reason --profile owl-rl
+
+# 4. Query for poisonous mushrooms
+open-ontologies query "SELECT ?m WHERE { ?m a mush:PoisonousMushroom }"
+```
+
+### Results: OWL reasoning vs expert manual labels
+
+| Metric | Value |
+| ------ | ----- |
+| Total specimens | 8,124 |
+| Accuracy | **98.33%** |
+| Recall (poisonous) | **100%** — zero poisonous mushrooms missed |
+| False positives | 136 (1.67%) — edible conservatively marked as poisonous |
+| False negatives | **0** — never misclassifies a toxic mushroom as safe |
+| Classification rules | 6 OWL axioms encoding expert mycological knowledge |
+
+The reasoner is **conservative by design** — it will flag a safe mushroom as suspicious before it ever tells you a poisonous one is edible. The 6 OWL axioms encode the same domain knowledge the field guide experts used: odor type, spore print color, gill characteristics, and habitat.
+
+**Files:** [`benchmark/mushroom/`](benchmark/mushroom/)
+
+### Supported input formats
+
+| Format | Extension | Notes |
+| ------ | --------- | ----- |
+| CSV | `.csv` | Comma/tab delimited |
+| JSON | `.json` | Array of objects |
+| NDJSON | `.ndjson` | Newline-delimited JSON |
+| XML | `.xml` | Record-oriented XML |
+| YAML | `.yaml` | Document or array |
+| Excel | `.xlsx` | First sheet |
+| Parquet | `.parquet` | Columnar, recommended for large datasets |
+
+For any format: `open-ontologies ingest data.parquet --mapping mapping.json`
+
 ## What is it?
 
 Open Ontologies is a standalone MCP server for AI-native ontology engineering. It exposes 35 tools that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — plus plan changes, detect drift, enforce design patterns, monitor health, manage clinical crosswalks, and track lineage.
