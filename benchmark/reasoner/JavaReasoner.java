@@ -21,7 +21,21 @@ public class JavaReasoner {
         if (reasonerName.equals("hermit")) {
             factory = new org.semanticweb.HermiT.ReasonerFactory();
         } else if (reasonerName.equals("pellet")) {
-            factory = com.clarkparsia.pellet.owlapi.PelletReasonerFactory.getInstance();
+            // Load Pellet via reflection (may not be on classpath)
+            try {
+                Class<?> cls = Class.forName("com.clarkparsia.pellet.owlapi.PelletReasonerFactory");
+                factory = (OWLReasonerFactory) cls.getMethod("getInstance").invoke(null);
+            } catch (ClassNotFoundException e) {
+                // Try Openllet fork
+                try {
+                    Class<?> cls = Class.forName("openllet.owlapi.OpenlletReasonerFactory");
+                    factory = (OWLReasonerFactory) cls.getMethod("getInstance").invoke(null);
+                } catch (ClassNotFoundException e2) {
+                    System.err.println("ERROR: Neither Pellet nor Openllet found on classpath");
+                    System.exit(1);
+                    return;
+                }
+            }
         } else {
             throw new IllegalArgumentException("Unknown reasoner: " + reasonerName);
         }

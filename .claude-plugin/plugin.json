@@ -1,0 +1,11 @@
+{
+  "name": "open-ontologies",
+  "description": "A Terraforming MCP for Knowledge Graphs: validate, classify, and govern AI-generated ontologies.",
+  "version": "0.1.0",
+  "author": {
+    "name": "fabio-rovai"
+  },
+  "homepage": "https://github.com/fabio-rovai/open-ontologies",
+  "repository": "https://github.com/fabio-rovai/open-ontologies",
+  "license": "MIT"
+}

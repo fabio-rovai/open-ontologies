@@ -223,3 +223,72 @@ fn test_cli_align_feedback() {
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(stdout.contains("ok"));
 }
+
+#[test]
+fn test_cli_lint_feedback() {
+    let dir = tempfile::tempdir().unwrap();
+    let out = oo_isolated(&dir)
+        .args(["lint-feedback", "--rule-id", "missing_label", "--entity", "<http://example.org/Dog>", "--dismiss"])
+        .output().unwrap();
+    assert!(out.status.success(), "stderr: {}", String::from_utf8_lossy(&out.stderr));
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("ok"));
+    assert!(stdout.contains("lint"));
+}
+
+#[test]
+fn test_cli_enforce_feedback() {
+    let dir = tempfile::tempdir().unwrap();
+    let out = oo_isolated(&dir)
+        .args(["enforce-feedback", "--rule-id", "orphan_class", "--entity", "<http://example.org/Thing>", "--accept"])
+        .output().unwrap();
+    assert!(out.status.success(), "stderr: {}", String::from_utf8_lossy(&out.stderr));
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("ok"));
+    assert!(stdout.contains("enforce"));
+}
+
+#[test]
+fn test_cli_lint_suppression_end_to_end() {
+    let dir = tempfile::tempdir().unwrap();
+    let ttl_path = dir.path().join("test.ttl");
+    std::fs::write(&ttl_path, r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix ex: <http://example.org/> .
+        ex:Dog a owl:Class .
+    "#).unwrap();
+
+    // Lint should report issues initially
+    let out = oo_isolated(&dir)
+        .args(["lint", ttl_path.to_str().unwrap()])
+        .output().unwrap();
+    assert!(out.status.success());
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    let v: serde_json::Value = serde_json::from_str(&stdout.trim()).unwrap();
+
+    // Find the entity string for missing_label on Dog
+    let issues = v["issues"].as_array().unwrap();
+    let dog_issue = issues.iter().find(|i| {
+        i["type"].as_str().unwrap_or("") == "missing_label" &&
+        i["entity"].as_str().unwrap_or("").contains("example.org/Dog")
+    });
+    assert!(dog_issue.is_some(), "Should have missing_label for Dog");
+    let entity_str = dog_issue.unwrap()["entity"].as_str().unwrap();
+
+    // Dismiss 3 times using exact entity string from lint output
+    for _ in 0..3 {
+        let out = oo_isolated(&dir)
+            .args(["lint-feedback", "--rule-id", "missing_label", "--entity", entity_str, "--dismiss"])
+            .output().unwrap();
+        assert!(out.status.success());
+    }
+
+    // Lint should now show suppressed_count > 0
+    let out = oo_isolated(&dir)
+        .args(["lint", ttl_path.to_str().unwrap()])
+        .output().unwrap();
+    assert!(out.status.success());
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    let v: serde_json::Value = serde_json::from_str(&stdout.trim()).unwrap();
+    assert!(v["suppressed_count"].as_u64().unwrap() > 0, "suppressed_count should be > 0 after 3 dismissals");
+}

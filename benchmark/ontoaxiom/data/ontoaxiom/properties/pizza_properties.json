@@ -1,0 +1,10 @@
+[
+    "has base",
+    "has country of origin",
+    "has ingredient",
+    "has spiciness",
+    "has topping",
+    "is base of",
+    "is ingredient of",
+    "is topping of"
+]

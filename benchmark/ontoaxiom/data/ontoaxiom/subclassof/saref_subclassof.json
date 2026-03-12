@@ -1,0 +1,46 @@
+[
+    [
+        "Actuation",
+        "Procedure Execution"
+    ],
+    [
+        "Actuator",
+        "Device"
+    ],
+    [
+        "Appliance",
+        "Device"
+    ],
+    [
+        "Command Execution",
+        "Procedure Execution"
+    ],
+    [
+        "Device",
+        "Feature Of Interest"
+    ],
+    [
+        "Device",
+        "System"
+    ],
+    [
+        "Device Kind",
+        "Feature Kind"
+    ],
+    [
+        "Meter",
+        "Device"
+    ],
+    [
+        "Observation",
+        "Procedure Execution"
+    ],
+    [
+        "Operation Execution",
+        "Procedure Execution"
+    ],
+    [
+        "Sensor",
+        "Device"
+    ]
+]

@@ -1,0 +1,18 @@
+[
+    [
+        "hasBase",
+        "PizzaBase"
+    ],
+    [
+        "hasIngredient",
+        "Food"
+    ],
+    [
+        "hasSpiciness",
+        "Spiciness"
+    ],
+    [
+        "hasTopping",
+        "PizzaTopping"
+    ]
+]

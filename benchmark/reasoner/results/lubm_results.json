@@ -1,0 +1,22 @@
+[
+  {
+    "size": 1000,
+    "oo_ms": 15,
+    "hermit_ms": 112
+  },
+  {
+    "size": 5000,
+    "oo_ms": 14,
+    "hermit_ms": 410
+  },
+  {
+    "size": 10000,
+    "oo_ms": 14,
+    "hermit_ms": 1200
+  },
+  {
+    "size": 50000,
+    "oo_ms": 15,
+    "hermit_ms": 24490
+  }
+]

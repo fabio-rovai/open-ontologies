@@ -1,0 +1,322 @@
+[
+    [
+        "American",
+        "Named Pizza"
+    ],
+    [
+        "American Hot",
+        "Named Pizza"
+    ],
+    [
+        "Anchovies Topping",
+        "Fish Topping"
+    ],
+    [
+        "Artichoke Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Asparagus Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Cajun",
+        "Named Pizza"
+    ],
+    [
+        "Cajun Spice Topping",
+        "Herb Spice Topping"
+    ],
+    [
+        "Caper Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Capricciosa",
+        "Named Pizza"
+    ],
+    [
+        "Caprina",
+        "Named Pizza"
+    ],
+    [
+        "Cheese Topping",
+        "Pizza Topping"
+    ],
+    [
+        "Chicken Topping",
+        "Meat Topping"
+    ],
+    [
+        "Deep Pan Base",
+        "Pizza Base"
+    ],
+    [
+        "Fiorentina",
+        "Named Pizza"
+    ],
+    [
+        "Fish Topping",
+        "Pizza Topping"
+    ],
+    [
+        "Food",
+        "Domain Concept"
+    ],
+    [
+        "Four Cheeses Topping",
+        "Cheese Topping"
+    ],
+    [
+        "Four Seasons",
+        "Named Pizza"
+    ],
+    [
+        "Fruit Topping",
+        "Pizza Topping"
+    ],
+    [
+        "Frutti Di Mare",
+        "Named Pizza"
+    ],
+    [
+        "Garlic Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Giardiniera",
+        "Named Pizza"
+    ],
+    [
+        "Goats Cheese Topping",
+        "Cheese Topping"
+    ],
+    [
+        "Gorgonzola Topping",
+        "Cheese Topping"
+    ],
+    [
+        "Green Pepper Topping",
+        "Pepper Topping"
+    ],
+    [
+        "Ham Topping",
+        "Meat Topping"
+    ],
+    [
+        "Herb Spice Topping",
+        "Pizza Topping"
+    ],
+    [
+        "Hot",
+        "Spiciness"
+    ],
+    [
+        "Hot Green Pepper Topping",
+        "Green Pepper Topping"
+    ],
+    [
+        "Hot Spiced Beef Topping",
+        "Meat Topping"
+    ],
+    [
+        "Jalapeno Pepper Topping",
+        "Pepper Topping"
+    ],
+    [
+        "La Reine",
+        "Named Pizza"
+    ],
+    [
+        "Leek Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Margherita",
+        "Named Pizza"
+    ],
+    [
+        "Meat Topping",
+        "Pizza Topping"
+    ],
+    [
+        "Medium",
+        "Spiciness"
+    ],
+    [
+        "Mild",
+        "Spiciness"
+    ],
+    [
+        "Mixed Seafood Topping",
+        "Fish Topping"
+    ],
+    [
+        "Mozzarella Topping",
+        "Cheese Topping"
+    ],
+    [
+        "Mushroom",
+        "Named Pizza"
+    ],
+    [
+        "Mushroom Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Named Pizza",
+        "Pizza"
+    ],
+    [
+        "Napoletana",
+        "Named Pizza"
+    ],
+    [
+        "Nut Topping",
+        "Pizza Topping"
+    ],
+    [
+        "Olive Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Onion Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Parma Ham Topping",
+        "Ham Topping"
+    ],
+    [
+        "Parmense",
+        "Named Pizza"
+    ],
+    [
+        "Parmesan Topping",
+        "Cheese Topping"
+    ],
+    [
+        "Peperonata Topping",
+        "Pepper Topping"
+    ],
+    [
+        "Peperoni Sausage Topping",
+        "Meat Topping"
+    ],
+    [
+        "Pepper Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Petit Pois Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Pine Kernels",
+        "Nut Topping"
+    ],
+    [
+        "Pizza",
+        "Food"
+    ],
+    [
+        "Pizza Base",
+        "Food"
+    ],
+    [
+        "Pizza Topping",
+        "Food"
+    ],
+    [
+        "Pollo Ad Astra",
+        "Named Pizza"
+    ],
+    [
+        "Prawns Topping",
+        "Fish Topping"
+    ],
+    [
+        "Prince Carlo",
+        "Named Pizza"
+    ],
+    [
+        "Quattro Formaggi",
+        "Named Pizza"
+    ],
+    [
+        "Red Onion Topping",
+        "Onion Topping"
+    ],
+    [
+        "Rocket Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Rosa",
+        "Named Pizza"
+    ],
+    [
+        "Rosemary Topping",
+        "Herb Spice Topping"
+    ],
+    [
+        "Sauce Topping",
+        "Pizza Topping"
+    ],
+    [
+        "Siciliana",
+        "Named Pizza"
+    ],
+    [
+        "Sliced Tomato Topping",
+        "Tomato Topping"
+    ],
+    [
+        "Sloppy Giuseppe",
+        "Named Pizza"
+    ],
+    [
+        "Soho",
+        "Named Pizza"
+    ],
+    [
+        "Spiciness",
+        "Value Partition"
+    ],
+    [
+        "Spinach Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Sultana Topping",
+        "Fruit Topping"
+    ],
+    [
+        "Sundried Tomato Topping",
+        "Tomato Topping"
+    ],
+    [
+        "Sweet Pepper Topping",
+        "Pepper Topping"
+    ],
+    [
+        "Thin And Crispy Base",
+        "Pizza Base"
+    ],
+    [
+        "Tobasco Pepper Sauce",
+        "Sauce Topping"
+    ],
+    [
+        "Tomato Topping",
+        "Vegetable Topping"
+    ],
+    [
+        "Vegetable Topping",
+        "Pizza Topping"
+    ],
+    [
+        "Veneziana",
+        "Named Pizza"
+    ]
+]

@@ -1,0 +1,1511 @@
+@prefix : <https://saref.etsi.org/core/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#>.
+@prefix saref: <https://saref.etsi.org/core/> .
+@prefix s4syst: <https://saref.etsi.org/saref4syst/> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+@base <https://saref.etsi.org/core/> .
+
+<https://saref.etsi.org/core/> a owl:Ontology ;
+                          owl:versionInfo "v4.1.1" ;
+                          owl:versionIRI <https://saref.etsi.org/core/v4.1.1/> ;
+                          owl:priorVersion <https://saref.etsi.org/core/v3.2.1/> ;
+                          dcterms:issued "2024-10-31"^^xsd:date ;
+                          dcterms:modified "2024-03-06"^^xsd:date ;
+                          dcterms:title "SAREF: the Smart Applications REFerence ontology"@en ;
+                          dcterms:publisher <https://www.etsi.org/> ;
+                          dcterms:license <https://forge.etsi.org/etsi-software-license> ;
+                          dcterms:creator <http://maxime-lefrancois.info/me#> ;
+                          dcterms:creator <http://www.garcia-castro.com/foaf.rdf#me> ;
+                          dcterms:creator <https://w3id.org/people/mpoveda/> ;
+                          dcterms:creator <https://www.linkedin.com/in/bouterca> ;
+                          dcterms:creator <https://www.linkedin.com/in/david-gnabasik-0056a0ba/> ;
+                          dcterms:creator <https://www.linkedin.com/in/lauradaniele> ;
+                          dcterms:source <https://saref.etsi.org/sources/saref-core/> ;
+                          rdfs:seeAlso <https://www.etsi.org/deliver/etsi_ts/103200_103299/103264/04.01.01_60/ts_103264v040101p.pdf> ;
+                          vann:preferredNamespacePrefix "saref" ;
+                          vann:preferredNamespaceUri "https://saref.etsi.org/core/" ;
+                          dcterms:description "The Smart Applications REFerence ontology (SAREF) is intended to enable interoperability between solutions from different providers and among various activity sectors in the Internet of Things (IoT), thus contributing to the development of the global digital market."@en ;
+                          rdfs:comment """Information about changes to version 4.1.1:
+
+NOTE: Rationale and decisions for many of the changes in V4.1.1 are available in issues in project https://labs.etsi.org/rep/saref/saref-core/-/milestones/3#tab-issues
+
+- Deprecated classes and properties have been deleted
+- Introduced saref:DeviceKind
+- Renamed saref:actsUpon to saref:targets
+""" ;
+                          rdfs:comment """Information about changes to version 3.2.1:
+
+NOTE: Rationale and decisions for many of the changes in V3.2.1 are available in issues in project https://saref.etsi.org/sources/saref-core/issues.
+
+- Definition of saref:FeatureOfInterest is clarified, not only properties are measured, but properties and states can be observed and controlled.
+- Definition of saref:FeatureOfInterest: Clarify it is a specific real world entity.
+- Definition of saref:FeatureOfInterest: allValuesFrom axioms are unnecessary and have been deleted.
+- Introduced class saref:FeatureKind
+- Use SKOS to organize generic classes in taxonomies.
+- Introduce hasClassKind for Class is Feature, Device, Property, State, Function, Command.
+- Add local restrictions on consistsOf on feature of interest
+- Defined domain of saref:hasManufacturer to union of feature kind and feature of interest.
+- Defined domain of saref:hasModel to union of feature kind and feature of interest.
+- Most axioms on saref:Device were useless and have been deleted.
+- definition of saref:Device clarifies it is a real world entity.
+- saref:Device is explicitly a subclass of saref:FeatureOfInterest and s4syst:System.
+- saref:actsUpon now holds not only between a command and a state. It generalizes actsUpon, observes, controls. Domain and range are unions of several classes.
+- Introduced property saref:isActedUponBy.
+- Introduced property saref:observes, as sub-property of saref:actsUpon. and generalization of measures.
+- Introduced property saref:controls, as sub-property of saref:actsUpon. and generalization of saref:controlsProperty.
+- Introduced property saref:isControlledBy.
+- saref:measuresProperty is deprecated: will be deleted in the next release of SAREF
+- saref:isMeasuredByDevice is deprecated: will be deleted in the next release of SAREF
+- saref:isControlledByDevice is deprecated: will be deleted in the next release of SAREF
+- saref:controlsProperty is deprecated: will be deleted in the next release of SAREF
+- Definition of saref:Appliance is grounded on tasks and commodities.
+- Definition of Sensor is simplified and grounded on saref:observes. Local restriction on saref:hasFunction is deleted.
+- Definition of Actuator is simplified and grounded on saref:controls. Local restriction on saref:hasFunction is deleted.
+- Definition of Meter is simplified and grounded on saref:observes. Local restriction on saref:hasFunction is deleted.
+- Deprecated saref:HVAC for it is only an example.
+- Deprecated saref:Switch for it is only an example.
+- Deprecated saref:DoorSwitch for it is only an example.
+- Deprecated saref:LightSwitch for it is only an example.
+- Deprecated saref:SmokeSensor for it is only an example.
+- Deprecated saref:TemperatureSensor for it is only an example.
+- The following tasks are deprecated, and may be deleted in the next release of SAREF: saref:Cleaning, saref:Comfort, saref:Drying, saref:EnergyEfficiency, saref:Entertainment, saref:Lighting, saref:MeterReading, saref:Safety, saref:Washing, saref:WellBeing.
+- Definition of saref:Commodity is simplified.
+- saref:Electricity is deprecated: will be defined as an instance of saref:Commodity in the next release of SAREF
+- saref:Gas is deprecated: will be defined as an instance of saref:Commodity in the next release of SAREF
+- saref:Coal is deprecated: will be defined as an instance of saref:Commodity in the next release of SAREF
+- saref:Water is deprecated: will be defined as an instance of saref:Commodity in the next release of SAREF
+- New category of commodities saref:EnergyCommodity
+- New category of commodities saref:NaturalResourceCommodity
+- Introduced saref:consumes, saref:isConsumedBy, saref:produces, saref:isProducedBy, saref:stores, saref:isStoredBy.
+- The definition and scope of usage for saref:Property is clarified. Axiomatization is simplified.
+- applicability of saref:hasProperty is relaxed to also saref:FeatureKind
+- Introduced saref:PropertyOfInterest to solved the ambiguity between generic vs specific properties.
+- Introduced saref:hasPropertyOfInterest and saref:isPropertyOfInterestOf. Cannot use saref:hasProperty due to the combination of cardinality restrictions and sub-property chain axioms makes the ontology exist the OWL 2 DL prodile.
+- Introduced saref:PropertyValue to simplify the association of a measure to a property, without always needing it to be a measurement made by a device.
+- Clarified definition of saref:hasValue.
+- Relaxed domain of saref:isMeasuredIn so it can apply to saref:PropertyValue as well as saref:Measurement. The new range will be enforced in the next release of SAREF.
+- Introduced saref:hasPropertyValue.
+- Introduced saref:isValueOfProperty.
+- The following classes are deprecated and may be defined as instances of saref:Property in the next release of SAREF: saref:Energy, saref:Humidity, saref:Light, saref:Motion, saref:Occupancy, saref:Power, saref:Pressure, saref:Price, saref:Smoke, saref:Temperature
+- saref:EnergyUnit is deprecated. Will be deleted in the next release of SAREF
+- saref:IlluminanceUnit is deprecated. Will be deleted in the next release of SAREF
+- saref:PowerUnit is deprecated. Will be deleted in the next release of SAREF
+- saref:PressureUnit is deprecated. Will be deleted in the next release of SAREF
+- saref:TemperatureUnit is deprecated. Will be deleted in the next release of SAREF
+- Clarified and generalized definition of saref:State. Can now apply to all features of interest, not just devices.
+- Relaxed domain of saref:hasState.
+- Introduced saref:isStateOf.
+- Introduced saref:StateOfInterest, parallel to saref:PropertyOfInterest.
+- Introduced saref:hasStateOfInterest and saref:isStateOfInterestOf, parallel to saref:hasPropertyOfInterest and saref:isPropertyOfInterestOf.
+- The following classes are deprecated and may be defined as instances of saref:State in the next release of SAREF: saref:CloseState, saref:MultiLevelState, saref:OffState, saref:OnOffState, saref:OnState, saref:OpenCloseState, saref:OpenState, saref:StartState, saref:StartStopState, saref:StopState.
+- Simplified definition and axiomatization of saref:Function. Added examples.
+- saref:SensingFunction is deprecated: may be defined as an instance of saref:Function in the next release of SAREF
+- saref:hasSensingRange is deprecated together with saref:SensingFunction. And may be defined as an instance of saref:Property in the next release of SAREF
+- saref:hasSensorType is deprecated together with saref:SensingFunction. Use saref:hasDeviceKind instead.
+- saref:EventFunction is deprecated: may be defined as an instance of saref:Function in the next release of SAREF
+- saref:hasThresholdMeasurement is deprecated together with saref:EventFunction. And may be defined as an instance of saref:Property in the next release of SAREF
+- saref:MeteringFunction is deprecated: may be defined as an instance of saref:Function in the next release of SAREF
+- deprecated saref:hasMeterReading together with saref:Measurement and saref:MeteringFunction
+- deprecated saref:hasMeterReadingType together with saref:MeteringFunction
+- saref:LevelControlFunction, saref:StartStopFunction, saref:OpenCloseFunction, saref:OnOffFunction,  
+- saref:ActuatingFunction are deprecated: may be defined as an instance of saref:Function in the next release of SAREF.
+- Domain of saref:hasFunction is relaxed.
+- Introduced saref:isFunctionOf.
+- Introduced saref:FunctionOfInterest, parallel to saref:PropertyOfInterest.
+- Simplified definition and axiomatization of saref:Command. Added examples.
+- Domain of saref:hasCommand is relaxed to saref:Function or saref:FunctionOfInterest.
+- Introduced mandatory and optional commands.
+- Introduced saref:hasInput and saref:hasOutput.
+- Introduced saref:CommandOfInterest, parallel to saref:PropertyOfInterest.
+- The following classes are deprecated and may be defined as instances of saref:Command in the next release of SAREF: saref:ToggleCommand, saref:GetCommand, saref:NotifyCommand, saref:GetSensingDataCommand, saref:GetCurrentMeterValueCommand, saref:GetMeterDataCommand, saref:GetMeterHistoryCommand, saref:SetAbsoluteLevelCommand, saref:SetRelativeLevelCommand, saref:SetLevelCommand, saref:StepDownCommand, saref:StepUpCommand, saref:PauseCommand, saref:StartCommand, saref:StopCommand, saref:CloseCommand, saref:OpenCommand, saref:OnCommand, saref:OffCommand.
+- Simplified definition of saref:Service. Added examples.
+- Relaxed domain and range of saref:represents.
+- Clarified definition of saref:offers.
+- Clarified definition of saref:isOfferedBy.
+- saref:SwitchOnService is deprecated for it is just an example. It may be deleted in the next release of SAREF
+- Introduced saref:Operation and associated properties from oneM2M base ontology.
+- Introduced saref:ProcedureExecution.
+- Introduce saref:madeBy (resp. saref:madeExecution) as generalization of saref:measurementMadeBy (resp. saref:makesMeasurement).
+- saref:makesMeasurement is deprecated as one of the properties related to saref:Measurement. It may be deleted in the next release of SAREF
+- saref:makesMeasurement is deprecated as one of the properties related to saref:Measurement. It may be deleted in the next release of SAREF
+- Introduced saref:hasResult as part of general will to make SAREF and SOSA/SSN converge.
+- Introduced saref:hasResultTime as part of general will to make SAREF and SOSA/SSN converge.
+- Introduced saref:hasPhenomenonTime as part of general will to make SAREF and SOSA/SSN converge.
+- Tried to clarify definition of saref:hasTimestamp. Still unclear.
+- Deprecated saref:Measurement in favour of saref:Observation, to generalize to observation of states and convergence with SOSA/SSN.
+- Deprecated saref:isMeasurementOf together with saref:Measurement.
+- Deprecated saref:isMeasurementOf together with saref:Measurement.
+- Deprecated saref:isMeasurementOf together with saref:Measurement.
+- Deprecated saref:isMeasurementOf together with saref:Measurement.
+- Class saref:Profile has been re-specified, to take into account findings from SAREF4ENER V1.2.1.
+- Relaxed domain of saref:hasProfile to saref:FeatureKind or saref:Device
+- Deprecated saref:hasTime and use OWL Time instead whenever possible.
+- Deprecated saref:Time and use OWL Time instead whenever possible.
+- Deprecated saref:hasTypicalConsumption. May be defined as an instance of saref:Property in the next release of SAREF.
+""" ;
+                          rdfs:comment """Information about changes to version 3.1.1:
+
+NOTE:	In some cases, references have been added to indicate the issue in the ETSI Forge (https://saref.etsi.org/sources/saref-core/issues) where the change was discussed and implemented.
+
+- Added the saref:FeatureOfInterest class and the properties used to relate it to saref:Measurement (saref:hasMeasurement and saref:isMeasurementOf) and to saref:Property (saref:hasProperty and saref:isPropertyOf).
+- Added the saref:measurementMadeBy property as inverse of saref:makesMeasurement.
+- The saref:relatesToProperty and saref:relatesToMeasurement properties are now inverse of each other.
+- The range of saref:hasValue, which was defined as xsd:float, has been removed to support other datatypes for measurements.
+- The range of datatype properties, which was defined as xsd:string, has been removed in order to support strings with language tags (rdf:langString). This affects saref:hasDescription, saref:hasManufacturer, saref:hasModel and saref:hasName, which now have implicitly a range of rdfs:Literal.
+- The saref:hasName property has been removed and the use of rdfs:label is recommended. 
+- The saref:hasDescription property has been deprecated and the use of rdfs:comment is recommended. 
+- Too restrictive restrictions have been removed and in some cases the ontology documentation has been updated to reflect this: a saref:Command having at most one saref:hasDescription; a saref:Task being accomplished by at least one saref:Device; a saref:Device having a typical consumption of only energy or power; a saref:Commodity being measured in units of measure; restrictions on the values of saref:accomplishes that only covered specific use cases; universal restrictions on the saref:actsUpon property have been changed to existential ones; restrictions on the commands that a saref:Function may have, since there could be others not included in the defined enumerations; restrictive documentation of saref:EventFunction and saref:SmokeSensor.
+- Bugs have been fixed: some devices (saref:DoorSwitch, saref:EnergyMeter, saref:LigthSwitch, saref:SmokeSensor, and saref:TemperatureSensor) were defined as subclass of a device and at the same time as consisting of such device; a saref:LightSwitch controls light and does not measure light, since it is an actuator; incorrect documentation of saref:OnState and saref:OffState.
+- The saref:BuildingRelated, saref:EnergyRelated and saref:FunctionRelated classes have been removed, since the different extensions already classify the device types.
+- The instances of the subclasses of saref:Command have been removed, since they represent examples.
+- The instances of saref:UnitOfMeasure have been moved to examples.
+- The classes related to the SAREF4ENER extension have been removed: saref:Generator, saref:Storage, saref:Load and saref:EnergyMeter.
+- Some instances of saref:Device have been moved to examples: saref:WashingMachine, saref:LightingDevice, saref:MicroRenewable, saref:Multimedia, and saref:Network.
+- Added domain and range axioms wherever the definition of a property unambiguously identifies the domain or the range of the property.
+- The OWL Time ontology is not imported anymore.
+- The documentation of some ontology terms has been updated for clarification.
+- Language tags have been added to all labels and comments.
+""" ;
+                          rdfs:comment """Information about changes to version 2.1.1:
+
+- The classes and properties related to how to represent devices in building spaces (such as the saref:BuildingSpace class,  saref:BuildingObject class and saref:isLocatedIn property) have been removed from SAREF and incorporated  into the SAREF4BLDG extension related to buildings, including the reuse of the W3C? WGS84 geo positioning vocabulary.
+- The saref:DeviceCategory and saref:FunctionCategory classes have been removed. Instead, the hierarchy of device categories has been implemented directly as subclasses of the saref:Device class.
+- The information specific for energy efficiency has been moved to the SAREF4ENER extension. For example, the saref:Profile class has been redefined to accommodate only the properties that are general enough for any type of profile, not only for energy and power. Details on how to specifically model a power profile can be found in the SAREF4ENER extension. 
+- The subclasses of the saref:Energy class  have been removed (i.e., Average Energy, Maximum Energy, Minimum Energy, Total Energy, HVAC Energy, Hot Water Energy and Lighting Energy).
+- The saref:Property class has been split into two classes (saref:Property and saref:Measurement), as it is done in the SAREF4ENVI extension, in order to properly accommodate the distinction between the concept of property (an observable quality of something) and the concept of measurement (a concrete value observed for a property).
+- Too restrictive cardinality restrictions have been revised, sometimes making them optional rather than mandatory (better to make properties mandatory in the extensions that specialize SAREF for a specific purpose, rather than restricting SAREF, whose purpose is more general). For example, definitions of units of measurement using an enumeration (owl:oneOf) were too restrictive because they did not allow using other units than those enumerated. Therefore, the individuals of each class are still there, but the owl:oneOf enumeration has been removed.
+- The saref:UnitOfMeasure subclasses use individuals from the OM ontology for unit of measures, but this is not the only solution. It has been clarified in the comments that the OM ontology is an example, but other ontologies can be used.
+- The global restrictions (rdfs:domain and rdfs:range) in object properties have been completely removed not to hinder interoperability. Object properties are now only restricted locally in the classes. 
+- The subclasses of saref:Task have been transormed in individuals.
+- The saref:hasTask property has been removed from the saref:Profile class to resolve an ambiguity with the saref:Task class.""" .
+
+dcterms:issued a owl:AnnotationProperty .
+dcterms:modified a owl:AnnotationProperty .
+dcterms:source a owl:AnnotationProperty .
+dcterms:creator a owl:AnnotationProperty .
+dcterms:title a owl:AnnotationProperty .
+dcterms:description a owl:AnnotationProperty .
+dcterms:license a owl:AnnotationProperty .
+dcterms:publisher a owl:AnnotationProperty .
+vann:preferredNamespacePrefix a owl:AnnotationProperty .
+vann:preferredNamespaceUri a owl:AnnotationProperty .
+skos:broader a owl:ObjectProperty ;
+    owl:inverseOf skos:narrower .
+skos:narrower a owl:ObjectProperty ;
+    owl:inverseOf skos:broader .
+skos:note a owl:AnnotationProperty .
+skos:example a owl:AnnotationProperty .
+skos:scopeNote a owl:AnnotationProperty .
+skos:historyNote a owl:AnnotationProperty .
+s4syst:System a owl:Class .
+time:TemporalEntity a owl:Class .
+time:TemporalPosition a owl:Class .
+
+# ETSI TS 103264 Clause 5.2: Feature kinds and features of interest
+
+## Class saref:FeatureOfInterest represents any real world entity from which a property or a state may be targeted, such as observed and controlled. An instance of saref:FeatureOfInterest represents one specific real world entity. 
+
+saref:FeatureOfInterest a owl:Class ;
+    rdfs:label "Feature of interest"@en ;
+    rdfs:comment "A feature of interest represents any real world entity from which a property or a state may be targeted, such as observed and controlled. An instance of saref:FeatureOfInterest represents one specific real world entity."@en ;
+    skos:historyNote "V3.2.1: Definition of saref:FeatureOfInterest is clarified, not only properties are measured, but properties and states can be observed and controlled."@en ;
+    skos:historyNote "V3.2.1: Definition of saref:FeatureOfInterest: Clarify it's a specific real world entity."@en ;
+    skos:historyNote "V3.2.1: Definition of saref:FeatureOfInterest: allValuesFrom axioms are unnecessary and have been deleted."@en .
+
+
+## Class saref:FeatureKind allows to describe kinds of features of interest, with common properties having the same value, and common states being the same. An instance of saref:FeatureKind represents an archetype of real world entities, for example to populate product catalogs. 
+
+saref:FeatureKind a owl:Class ;
+    rdfs:label "Feature kinds"@en ;
+    rdfs:comment "Feature kinds allow to describe kinds of features of interest, with common properties having the same value, and common states being the same. An instance of saref:FeatureKind represents an archetype of real world entities, for example to populate product catalogs."@en ;
+    skos:historyNote "V3.2.1: Introduced class saref:FeatureKind"@en .
+
+## Feature kinds can be organized in a taxonomy using OPs skos:narrower and skos:broader.
+
+saref:FeatureKind 
+    skos:historyNote "V3.2.1: Use SKOS to organize generic classes in taxonomies."@en ;
+    rdfs:subClassOf 
+        [   a owl:Restriction ;
+            owl:onProperty skos:broader ;
+            owl:allValuesFrom saref:FeatureKind ] ,
+        [   a owl:Restriction ;
+            owl:onProperty skos:narrower ;
+            owl:allValuesFrom saref:FeatureKind ] .
+
+## A feature of interest can be linked to its kind(s) using OP saref:hasFeatureKind.
+
+saref:hasFeatureKind a owl:ObjectProperty ;
+    skos:historyNote "V3.2.1: Introduce hasClassKind for Class is Feature, Device, Property, State, Function, Command."@en ;
+    rdfs:label "has feature kind"@en ;
+    rdfs:comment "links a feature of interest to its kind, a feature kind"@en ;
+    rdfs:domain saref:FeatureOfInterest ;
+    rdfs:range saref:FeatureKind .
+
+## Feature of interest inherit broader feature kinds.
+
+saref:hasFeatureKind
+    owl:propertyChainAxiom ( saref:hasFeatureKind skos:broader ) .
+
+## A feature kind (resp. a feature of interest) may consist of (OP saref:consistsOf) other feature kinds (resp. features of interest).
+
+saref:consistsOf a owl:ObjectProperty ;
+    skos:historyNote "V3.2.1: Add local restrictions on consistsOf on feature of interest"@en ;
+    rdfs:comment "A relationship indicating a composite entity that consists of other entities (e.g., a temperature/humidity sensor that consists of a temperature sensor and a humidity sensor)"@en ;
+    rdfs:label "consists of"@en .
+
+saref:FeatureKind rdfs:subClassOf [ 
+    a owl:Restriction ; 
+    owl:onProperty saref:consistsOf ; 
+    owl:allValuesFrom saref:FeatureKind ] .
+
+saref:FeatureOfInterest rdfs:subClassOf [ 
+    a owl:Restriction ; 
+    owl:onProperty saref:consistsOf ; 
+    owl:allValuesFrom saref:FeatureOfInterest ] .
+
+
+## The model and the manufacturer of a saref:FeatureKind or a saref:FeatureOfInterest can be explicited using DPs saref:hasModel and saref:hasManufacturer, respectively. 
+
+saref:hasManufacturer a owl:DatatypeProperty ;
+    rdfs:label "has manufacturer"@en ;
+    rdfs:comment "A relationship identifying the manufacturer of an entity (e.g., device). The value is expected to be a string or a string with language tag."@en ;
+    skos:historyNote "V3.2.1: Defined domain of saref:hasManufacturer to union of feature kind and feature of interest."@en ;
+    rdfs:domain [ 
+        a owl:Class ; 
+        owl:unionOf ( saref:FeatureKind saref:FeatureOfInterest ) ] .
+
+saref:hasModel a owl:DatatypeProperty ;
+    rdfs:label "has model"@en ;
+    rdfs:comment "A relationship identifying the model of an entity (e.g., device). The value is expected to be a string or a string with language tag."@en ;
+    skos:historyNote "V3.2.1: Defined domain of saref:hasModel to union of feature kind and feature of interest."@en ;
+    rdfs:domain [
+        a owl:Class ;
+        owl:unionOf ( saref:FeatureKind saref:FeatureOfInterest ) ] .
+
+
+# ETSI TS 103264 Clause 5.3: Devices
+
+## Class saref:Device represents any a tangible object designed to accomplish a particular task by performing one or more functions. An instance of saref:Device represents one specific real world entity.
+
+saref:Device a owl:Class ;
+    rdfs:comment "A tangible object designed to accomplish a particular task. In order to accomplish this task, the device performs one or more functions. An instance of saref:Device represents one specific real world entity."@en ;
+    skos:example "For example, a washing machine is designed to wash (task) and to accomplish this task it performs a start and stop function."@en ;
+    skos:example "Examples of devices are a light switch, a temperature sensor, an energy meter, a water flow meter, and a laundry dryer. A laundry dryer is designed to dry laundry, and to accomplish this task it has a start/stop function."@en ;
+    skos:historyNote "V3.2.1: Most axioms on saref:Device were useless and have been deleted."@en ;
+    skos:historyNote "V3.2.1: definition of saref:Device clarifies it's a real world entity."@en ;
+    rdfs:label "Device"@en .
+
+## Devices are also systems (s4syst:System) and features of interest (saref:FeatureOfInterest).
+
+saref:Device
+    skos:historyNote "V3.2.1: saref:Device is explicitly a subclass of saref:FeatureOfInterest and s4syst:System."@en ;
+    rdfs:subClassOf saref:FeatureOfInterest , s4syst:System .
+
+## Class saref:DeviceKind allows to describe kinds of devices, with common properties having the same value, common states being the same, and targeting the same properties. An instance of saref:DeviceKind represents an archetype of real world entities, for example to populate product catalogs. 
+
+saref:DeviceKind a owl:Class ;
+    rdfs:subClassOf saref:FeatureKind ;
+    rdfs:label "Device kinds"@en ;
+    rdfs:comment "Device kinds allow to describe kinds of devices, with common properties having the same value, common states being the same, and targeting the same properties. An instance of saref:DeviceKind represents an archetype of real world entities, for example to populate product catalogs."@en ;
+    skos:historyNote "V4.1.1: Introduced class saref:DeviceKind"@en .
+
+## Device kinds can be organized in a taxonomy using OPs skos:broader and skos:narrower.
+
+saref:DeviceKind 
+    skos:historyNote "V4.1.1: Use SKOS to organize generic classes in taxonomies."@en ;
+    rdfs:subClassOf 
+        [   a owl:Restriction ;
+            owl:onProperty skos:broader ;
+            owl:allValuesFrom saref:FeatureKind ] ,
+        [   a owl:Restriction ;
+            owl:onProperty skos:narrower ;
+            owl:allValuesFrom saref:FeatureKind ] .
+
+## A device can be linked to its feature kinds using OP saref:hasDeviceKind. Kinds of devices describe models of devices, with common properties having the same value, common states being the same, common functions, and common services. OP saref:hasDeviceKind  is a sub-property of OP saref:hasFeatureKind.
+
+saref:hasDeviceKind a owl:ObjectProperty ;
+    rdfs:subPropertyOf saref:hasFeatureKind ;
+    rdfs:label "has device kind"@en ;
+    rdfs:comment "Links a device to its kind, a feature kind. Kinds of devices describe models of devices, with common properties having the same value, common states being the same, common functions, and common services."@en ;
+    rdfs:domain saref:Device ;
+    rdfs:range saref:DeviceKind .
+
+## A device can target (OP saref:targets) features, properties, or states. 
+
+saref:targets a owl:ObjectProperty ;
+    rdfs:label "targets"@en ;
+    rdfs:comment "Links a device, function, command, or procedure execution, to the feature, property, or state, it acts upon."@en ;
+    skos:historyNote "V3.2.1: saref:actsUpon now holds not only between a command and a state. It generalizes actsUpon, observes, controls. Domain and range are unions of several classes."@en ;
+    skos:historyNote "V4.1.1: saref:actsUpon is renamed saref:targets."@en ;
+    rdfs:domain
+        [   a owl:Class ;
+            owl:unionOf (
+                saref:DeviceKind
+                saref:Device
+                saref:Function
+                saref:FunctionOfInterest
+                saref:Command
+                saref:CommandOfInterest
+                saref:ProcedureExecution ) ] ;
+    rdfs:range
+        [   a owl:Class ;
+            owl:unionOf (
+                saref:FeatureKind
+                saref:FeatureOfInterest
+                saref:Property
+                saref:PropertyOfInterest
+                saref:State
+                saref:StateOfInterest ) ] .
+
+saref:isTargetOf a owl:ObjectProperty ;
+    owl:inverseOf saref:targets ;
+    rdfs:label "is target of"@en ;
+    rdfs:comment "Links a feature, property, or state, to the device, function, command, or procedure execution, that targets it."@en ;
+    skos:historyNote "V3.2.1: Introduced property saref:isActedUponBy."@en ;
+    skos:historyNote "V4.1.1: Renamed property saref:isActedUponBy into saref:isTargetOf."@en ;
+    rdfs:domain 
+        [   a owl:Class ; 
+            owl:unionOf ( 
+                saref:FeatureKind 
+                saref:FeatureOfInterest 
+                saref:Property 
+                saref:PropertyOfInterest 
+                saref:State 
+                saref:StateOfInterest ) ] ;
+    rdfs:range
+        [   a owl:Class ;
+            owl:unionOf (
+                saref:DeviceKind
+                saref:Device
+                saref:Function
+                saref:FunctionOfInterest
+                saref:Command
+                saref:CommandOfInterest
+                saref:ProcedureExecution ) ] .
+
+
+saref:observes a owl:ObjectProperty ;
+    rdfs:subPropertyOf saref:targets ;
+    owl:inverseOf saref:isObservedBy ;
+    rdfs:label "observes"@en ;
+    rdfs:comment "Links a device, function, command, or procedure execution, to the feature, property, or state, it observes."@en ;
+    skos:historyNote "V3.2.1: Introduced property saref:observes, as sub-property of saref:targets. and generalization of measures."@en ;
+    rdfs:domain
+        [   a owl:Class ;
+            owl:unionOf (
+                saref:DeviceKind
+                saref:Sensor
+                saref:Function
+                saref:FunctionOfInterest
+                saref:Command
+                saref:CommandOfInterest
+                saref:Observation ) ] .
+
+saref:isObservedBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf saref:isTargetOf ;
+    owl:inverseOf saref:observes ;
+    rdfs:label "is observed by"@en ;
+    rdfs:comment "Links a feature, property, or state, to the device, function, command, or procedure execution, that observes it."@en .
+
+saref:controls a owl:ObjectProperty ;
+    rdfs:subPropertyOf saref:targets ;
+    owl:inverseOf saref:isControlledBy ;
+    rdfs:label "controls"@en ;
+    rdfs:comment "Links a device, function, command, or procedure execution, to the feature, property, or state, it controls."@en ;
+    skos:historyNote "V3.2.1: Introduced property saref:controls, as sub-property of saref:targets. and generalization of saref:controlsProperty."@en ;
+    rdfs:domain
+        [   a owl:Class ;
+            owl:unionOf (
+                saref:DeviceKind
+                saref:Actuator
+                saref:Function
+                saref:FunctionOfInterest
+                saref:Command
+                saref:CommandOfInterest
+                saref:Actuation ) ] .
+
+saref:isControlledBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf saref:isTargetOf ;
+    owl:inverseOf saref:controls ;
+    rdfs:label "is controlled by"@en ;
+    rdfs:comment "Links a feature, property, or state, to the device, function, command, or procedure execution, that controls it."@en ;
+    skos:historyNote "V3.2.1: Introduced property saref:isControlledBy."@en .
+
+
+## SAREF Core provides some examples of classes of devices including appliances, sensors, actuators, and meters.
+
+saref:Appliance a owl:Class ;
+    rdfs:subClassOf saref:Device ;
+    rdfs:comment "A device designed to accomplish a particular task for occupant use. It consumes, produces, or stores, some commodity."@en ;
+    rdfs:label "Appliance"@en ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty saref:isUsedFor ; owl:minCardinality 1 ] ;
+    skos:historyNote "V3.2.1: Definition of saref:Appliance is grounded on tasks and commodities."@en .
+
+saref:Sensor a owl:Class ;
+    rdfs:subClassOf saref:Device ;
+    rdfs:comment "A device designed to observe and measure one or more properties or states of one or more features of interest."@en ;
+    rdfs:label "Sensor"@en ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty saref:observes ; owl:minCardinality 1 ] ;
+    skos:historyNote "V4.1.1: Definition of Sensor and Meter are updated to better distinguish one from the other."@en ;
+    skos:historyNote "V3.2.1: Definition of Sensor is simplified and grounded on saref:observes. Local restriction on saref:hasFunction is deleted."@en .
+
+saref:Actuator a owl:Class ;
+    rdfs:subClassOf saref:Device ;
+    rdfs:comment "A device designed to control one or more properties or states of one or more features of interest."@en ;
+    rdfs:label "Actuator"@en ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty saref:controls ; owl:minCardinality 1 ] ;
+    skos:historyNote "V3.2.1: Definition of Actuator is simplified and grounded on saref:controls. Local restriction on saref:hasFunction is deleted."@en .
+
+
+saref:Meter a owl:Class ;
+    rdfs:subClassOf saref:Device ;
+    rdfs:comment "A device designed to observe and additionally do some computation and/or display one or more properties of one or more features of interest."@en ;
+    rdfs:label "Meter"@en ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty saref:observes ; owl:minCardinality 1 ] ;
+    skos:historyNote "V4.1.1: Definition of Sensor and Meter are updated to better distinguish one from the other."@en ;
+    skos:historyNote "V3.2.1: Definition of Meter is simplified and grounded on saref:observes. Local restriction on saref:hasFunction is deleted."@en .
+
+
+# ETSI TS 103264 Clause 5.4: Tasks
+
+## Class saref:Task represents goals for which a device is designed, from a user perspective. 
+
+saref:Task a owl:Class ;
+    rdfs:label "Task"@en ;
+    rdfs:comment "The goal for which a device is designed, from a user perspective."@en ;
+    skos:example "For example, a washing machine is designed for the task of washing."@en ;
+    skos:note "Tasks can be accomplished by devices (saref:isAccomplishedBy)."@en .
+
+## Tasks can be organized in a taxonomy using OPs skos:narrower and skos:broader.
+
+saref:Task rdfs:subClassOf 
+        [   a owl:Restriction ;
+            owl:onProperty skos:broader ;
+            owl:allValuesFrom saref:Task ] ,
+        [   a owl:Restriction ;
+            owl:onProperty skos:narrower ;
+            owl:allValuesFrom saref:Task ] .
+
+
+## Device kinds and devices can be linked to the one or more tasks they are designed to accomplish with OP saref:accomplishes. 
+## Property saref:accomplishes can also apply to other classes such as functions, commands, and procedure executions.
+
+saref:accomplishes a owl:ObjectProperty ;
+    owl:inverseOf saref:isAccomplishedBy ;
+    rdfs:label "accomplishes"@en ;
+    rdfs:comment "Links a certain entity (e.g., a device) to the task it accomplishes."@en ;
+    rdfs:range saref:Task .
+
+saref:isAccomplishedBy a owl:ObjectProperty ;
+    owl:inverseOf saref:accomplishes ;
+    rdfs:label "is accomplished by"@en ;
+    rdfs:comment "A relationship identifying an entity (e.g., a device) that can accomplish a task."@en ;
+    rdfs:domain saref:Task .
+
+
+# ETSI TS 103264 Clause 5.5: Commodities
+
+## Class saref:Commodity represents marketable items which may be supplied without qualitative differentiation. Commodities may be consumed, produced, or stored, by some feature of interest or device. 
+
+saref:Commodity a owl:Class ;
+    rdfs:comment "A marketable item which may be supplied without qualitative differentiation."@en ;
+    skos:note "SAREF refers to energy commodities such as electricity, gas, coal and oil."@en ;
+    skos:historyNote "V3.2.1: Definition of saref:Commodity is simplified."@en ;
+    rdfs:label "Commodity"@en .
+
+## Commodities can be organized in a taxonomy using OPs skos:narrower and skos:broader.
+
+saref:Commodity rdfs:subClassOf 
+        [   a owl:Restriction ;
+            owl:onProperty skos:broader ;
+            owl:allValuesFrom saref:Commodity ] ,
+        [   a owl:Restriction ;
+            owl:onProperty skos:narrower ;
+            owl:allValuesFrom saref:Commodity ] .
+
+## isUsedFor
+
+saref:isUsedFor a owl:ObjectProperty ;
+    owl:deprecated true ;
+    skos:scopeNote "V3.2.1: saref:isUsedFor is deprecated for its name is not clear. For example if a device consumes electricity, it doesn't mean this is what it is used for."@en ;
+    rdfs:comment "Links a feature kind, feature of interest, or device, to the commodity it is used for"@en ;
+    rdfs:label "is used for"@en ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( saref:FeatureKind saref:FeatureOfInterest saref:Device ) ] ;
+    rdfs:range saref:Commodity .
+
+saref:consumes a owl:ObjectProperty ; 
+    rdfs:subPropertyOf saref:isUsedFor ;
+    owl:inverseOf saref:isConsumedBy ;
+    rdfs:label "consumes"@en ;
+    rdfs:comment "Links a feature kind, feature of interest, or device, to the commodity it consumes"@en ;
+    skos:historyNote "V3.2.1: Introduced saref:consumes, saref:isConsumedBy, saref:produces, saref:isProducedBy, saref:stores, saref:isStoredBy."@en .
+
+saref:isConsumedBy a owl:ObjectProperty ; 
+    owl:inverseOf saref:consumes ;
+    rdfs:label "is consumed by"@en ;
+    rdfs:comment "Links a commodity to the feature kind, feature of interest, or device, that consumes it"@en .
+
+saref:produces a owl:ObjectProperty ; 
+    rdfs:subPropertyOf saref:isUsedFor ;
+    owl:inverseOf saref:isProducedBy ;
+    rdfs:label "produces"@en ;
+    rdfs:comment "Links a feature kind, feature of interest, or device, to the commodity it produces"@en .
+
+saref:isProducedBy a owl:ObjectProperty ; 
+    owl:inverseOf saref:produces ;
+    rdfs:label "is produced by"@en ;
+    rdfs:comment "Links a commodity to the feature kind, feature of interest, or device, that produces it"@en .
+
+saref:stores a owl:ObjectProperty ; 
+    rdfs:subPropertyOf saref:isUsedFor ;
+    owl:inverseOf saref:isStoredBy ;
+    rdfs:label "stores"@en ;
+    rdfs:comment "Links a feature kind, feature of interest, or device, to the commodity it stores"@en .
+
+saref:isStoredBy a owl:ObjectProperty ; 
+    owl:inverseOf saref:stores ;
+    rdfs:label "is stored by"@en ;
+    rdfs:comment "Links a commodity to the feature kind, feature of interest, or device, that stores it"@en .
+
+
+# ETSI TS 103264 Clause 5.6: Properties, properties of interest, and property values
+
+## In SAREF, properties refer to the identifiable qualities of features of interest that can be target of devices, such as observed or controlled. While properties can apply to different features of interest, properties of interest are specific to a feature of interest. Property values describe the value for a property.
+
+# ETSI TS 103264 Clause 5.6.2: Properties
+
+## An instance of saref:Property can apply to different features of interest. 
+
+saref:Property a owl:Class ;
+    rdfs:label "Property"@en ;
+    rdfs:comment "Identifiable qualities of features of interest that can be target of devices, such as observed or controlled. A property can apply to different features of interest."@en ;
+    skos:historyNote "Until SAREF V3.1.1, there was an ambiguity between whether properties should be specific or generic to features of interest. This ambiguity has been solved in SAREF V3.2.1, and the new modeling will be enforced in the next major revision of SAREF."@en ;
+    skos:note "Concepts from existing code lists, vocabularies, and taxonomies, may be used as instances of saref:Property."@en ;
+    skos:example "Air temperature, pressure, luminance, etc. are all properties."@en ;
+    skos:example """Two examples using the QUDT Quantity Kind vocabulary, and the British Oceanographic Data Centre Parameter Usage Vocabulary.
+
+<https://qudt.org/2.1/vocab/quantitykind/ActiveEnergy> a saref:Property ;
+    rdfs:label "Active Energy"@en ;
+    rdfs:comment "\"Active Energy\" is the electrical energy transformable into some other form of energy."@en .
+
+<http://vocab.nerc.ac.uk/collection/P01/current/CDTSZZ01/> a saref:Property ;
+    skos:prefLabel "Absolute temperature standard deviation of the atmosphere by dry bulb thermometer"@en .
+"""@en ;
+    skos:historyNote "V3.2.1: The definition and scope of usage for saref:Property is clarified. Axiomatization is simplified."@en .
+
+## Properties can be organized in a taxonomy using OPs skos:narrower and skos:broader.
+
+saref:Property rdfs:subClassOf 
+        [   a owl:Restriction ;
+            owl:onProperty skos:broader ;
+            owl:allValuesFrom saref:Property ] ,
+        [   a owl:Restriction ;
+            owl:onProperty skos:narrower ;
+            owl:allValuesFrom saref:Property ] .
+
+## The OP saref:hasProperty may be used to link a feature kind or feature of interest to its properties. Its inverse is saref:isPropertyOf.
+
+saref:hasProperty a owl:ObjectProperty ;
+    owl:inverseOf saref:isPropertyOf ;
+    rdfs:label "has property"@en ;
+    rdfs:comment "Links a feature kind or a feature of interest to one of its properties."@en ;
+    skos:historyNote "V3.2.1: applicability of saref:hasProperty is relaxed to also saref:FeatureKind"@en ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( saref:FeatureKind saref:FeatureOfInterest ) ] ;
+    rdfs:range saref:Property .
+
+saref:isPropertyOf a owl:ObjectProperty ;
+    owl:inverseOf saref:hasProperty ;
+    rdfs:label "is property of"@en ;
+    rdfs:comment "Links a property to the feature kind or feature of interest it is a property of."@en ;
+    rdfs:domain saref:Property ;
+    rdfs:range [ a owl:Class ; owl:unionOf ( saref:FeatureKind saref:FeatureOfInterest ) ] .
+
+## Feature kinds inherit the properties of their broader feature kinds.
+
+saref:hasProperty
+    owl:propertyChainAxiom ( skos:broader saref:hasProperty ) .
+
+## Features of interest inherit the properties of their feature kinds.
+
+saref:hasProperty
+    owl:propertyChainAxiom ( saref:hasFeatureKind saref:hasProperty ) .
+
+
+# ETSI TS 103264 Clause 5.6.3: Properties of interest
+
+## An instance of saref:PropertyOfInterest is specific to a feature of interest. It is inherent to and cannot exist without that feature of interest. 
+
+saref:PropertyOfInterest a owl:Class ;
+    rdfs:label "Property of Interest"@en ;
+    rdfs:comment "Identifiable qualities of features of interest that can be target of devices, such as observed or controlled. An instance of saref:PropertyOfInterest is specific to a feature of interest. It is inherent to and cannot exist without that feature of interest."@en ;
+    skos:note "A property of interest is the property of (OP saref:isPropertyOfInterestOf) exactly one feature of interest."@en ;
+    skos:note "Per convention, the IRI of properties of interest should consist of the IRI of their feature of interest, suffixed with a fragment identifier #{P} where {P} refers to the name of the property."@en ;
+    skos:example """The air temperature of the atmosphere sample at a certain location and altitude, the received signal strength indicator of an wireless IoT connection, the luminance of the ETSI ATHENA amphitheatre.
+
+<etsi_premises/athena#luminance> a saref:PropertyOfInterest ;
+    saref:isPropertyOfInterestOf <etsi_premises/athena> ;
+    saref:hasPropertyKind saref:Luminance ;
+    rdfs:comment "The luminance of amphitheatre ATHENA"@en .
+"""@en ;
+    skos:note """Properties of interest need not always be explicited. It depends on the use case. Typically, properties of interest are useful in applications, where the association between a feature of interest and a property (i.e., the property of interest) needs to be identified and related to other properties of interest."""@en ;
+    skos:historyNote "V3.2.1: Introduced saref:PropertyOfInterest to solved the ambiguity between generic vs specific properties."@en .
+
+## The OP saref:hasPropertyOfInterest may be used to link a feature of interest to its properties of interest. Its inverse is saref:isPropertyOfInterestOf and is functional.
+
+saref:hasPropertyOfInterest a owl:ObjectProperty ;
+    owl:inverseOf saref:isPropertyOfInterestOf ;
+    rdfs:comment "Links a feature of interest to one of its properties of interest."@en ;
+    rdfs:label "has property of interest"@en ;
+    rdfs:domain saref:FeatureOfInterest ;
+    rdfs:range saref:PropertyOfInterest ;
+    skos:historyNote "V3.2.1: Introduced saref:hasPropertyOfInterest and saref:isPropertyOfInterestOf. Cannot use saref:hasProperty due to the combination of cardinality restrictions and sub-property chain axioms makes the ontology exist the OWL 2 DL prodile."@en .
+
+saref:isPropertyOfInterestOf a owl:ObjectProperty , owl:FunctionalProperty ;
+    owl:inverseOf saref:hasPropertyOfInterest ;
+    rdfs:comment "Links a property of interest to the feature of interest it is a property of."@en ;
+    rdfs:label "is property of interest of"@en ;
+    rdfs:domain saref:PropertyOfInterest ;
+    rdfs:range saref:FeatureOfInterest .
+
+## A property of interest is the property of (OP saref:isPropertyOfInterestOf) exactly one feature of interest.
+
+saref:PropertyOfInterest 
+    rdfs:subClassOf 
+        [   a owl:Restriction ;
+            owl:onProperty saref:isPropertyOfInterestOf ;
+            owl:cardinality 1
+        ] .
+
+## A property of interest can be linked to its kind(s) using OP saref:hasPropertyKind.
+
+saref:hasPropertyKind a owl:ObjectProperty ;
+    rdfs:label "has property kind"@en ;
+    rdfs:comment "links a property of interest to its kind, a property."@en ;
+    rdfs:domain saref:PropertyOfInterest ;
+    rdfs:range saref:Property .
+
+## Properties of interest inherit broader properties.
+
+saref:hasPropertyKind
+    owl:propertyChainAxiom ( saref:hasPropertyKind skos:broader ) .
+
+## Features of interest inherit the property kinds of their property of interest.
+
+saref:hasProperty
+    owl:propertyChainAxiom ( saref:hasPropertyOfInterest saref:hasPropertyKind ) .
+
+
+# ETSI TS 103264 Clause 5.6.4: Property values
+
+## Class saref:PropertyValue describes the value for a property. The property value is linked to its value expressed as an RDF literal (DP saref:hasValue), optionally to the unit of measurement (OP saref:isMeasuredIn), and optionally to the properties or properties of interest it is a value of (OP saref:isValueOfProperty). 
+
+saref:PropertyValue a owl:Class ;
+    rdfs:label "Property Value"@en ;
+    rdfs:comment "Describes the value for a property. The property value is linked to its value expressed as an RDF literal (DP saref:hasValue), optionally to the unit of measurement (OP saref:isMeasuredIn), and optionally to the properties or properties of interest it is a value of (OP saref:isValueOfProperty)."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty saref:hasValue ;
+            owl:cardinality 1 ] ,
+        [ a owl:Restriction ;
+            owl:onProperty saref:isMeasuredIn ;
+            owl:maxCardinality 1 ] ;
+    skos:historyNote "V3.2.1: Introduced saref:PropertyValue to simplify the association of a measure to a property, without always needing it to be a measurement made by a device."@en .
+
+saref:hasValue a owl:DatatypeProperty ;
+    rdfs:comment "Value of a property value expressed as an RDF literal. Note that, even if decimal values are expected, values could use other datatypes."@en ;
+    rdfs:label "has value"@en ;
+    skos:historyNote "V3.2.1: Clarified definition of saref:hasValue."@en .
+
+## The range of saref:isMeasuredIn is defined as saref:UnitOfMeasure. 
+
+saref:isMeasuredIn a owl:ObjectProperty ;
+    rdfs:comment "A relationship identifying the unit of measure used for a certain entity."@en ;
+    # rdfs:domain saref:Measurement ; # relaxed
+    rdfs:range saref:UnitOfMeasure ;
+    rdfs:label "is measured in"@en ;
+    skos:historyNote "V3.2.1: Relaxed domain of saref:isMeasuredIn so it can apply to saref:PropertyValue as well as saref:Measurement. The new range will be enforced in the next major revision of SAREF."@en .
+
+saref:UnitOfMeasure a owl:Class ;
+    rdfs:comment "The unit of measure is a standard for measurement of a quantity, such as a Property."@en ;
+    rdfs:label "Unit of measure"@en ;
+    skos:example "For example, consumption power is a property and Watt is a unit of power that represents a definite predetermined power: when we say 10 Watt, we actually mean 10 times the definite predetermined power \"Watt\"."@en ;
+    skos:note "Our definition is based on the definition of unit of measure in the Ontology of units of Measure (OM)."@en ;
+    skos:note "Concepts from existing code lists, vocabularies, and taxonomies, may be used as instances of saref:UnitOfMeasure. For example the QUDT Unit vocabulary"@en .
+
+## The OP saref:hasPropertyValue links a feature kind, a feature of interest, or a property of interest, to a property value.
+
+saref:hasPropertyValue a owl:ObjectProperty ;
+    rdfs:label "has property value"@en ;
+    rdfs:comment "Links a feature kind, a feature of interest, or a property of interest, to a property value."@en ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( saref:FeatureKind saref:FeatureOfInterest saref:PropertyOfInterest ) ] ;
+    rdfs:range saref:PropertyValue ;
+    skos:historyNote "V3.2.1: Introduced saref:hasPropertyValue."@en .
+
+## The property values are inherited in the hierarchy of feature kinds. This enables to incrementally construct prototypical descriptions of features of interest.
+
+saref:hasPropertyValue
+    owl:propertyChainAxiom ( skos:broader saref:hasPropertyValue ) .
+
+## A feature of interest does not inherit the property values of its kinds. There may be multiple reasons why the property value of a feature of interest is different from that of its prototypical descriptions. For example, it may be caused by a defect, a deterioration, or a customization.
+
+## The OP saref:isValueOfProperty links a property value to the properties and properties of interest it is a value of. 
+
+saref:isValueOfProperty a owl:ObjectProperty ;
+    rdfs:label "is value of property"@en ;
+    rdfs:comment "Links a property value to the property or property of interest it is a value of."@en ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( saref:FeatureKind saref:FeatureOfInterest saref:PropertyOfInterest ) ] ;
+    rdfs:range saref:PropertyValue ;
+    skos:historyNote "V3.2.1: Introduced saref:isValueOfProperty."@en .
+
+
+## A property value about a property of interest is also a property value of its property kinds.
+
+saref:isValueOfProperty
+    owl:propertyChainAxiom ( saref:isValueOfProperty saref:hasPropertyKind ) .
+
+## Note that saref:hasPropertyValue and saref:isValueOfProperty are not inverse properties.
+
+
+# ETSI TS 103264 Clause 5.7: States and states of interest
+
+## In SAREF, states refer to the identifiable conditions that features of interest are or may be in, and that can be target of devices, such as observed and controlled.
+
+# ETSI TS 103264 Clause 5.7.2: States
+
+## An instance of saref:State can apply to different features of interest. 
+
+saref:State a owl:Class ;
+    rdfs:label "State"@en ;
+    rdfs:comment "Identifiable conditions that features of interest are or may be in, and that can be target of devices, such as observed and controlled. A state can apply to different features of interest."@en ;
+    skos:example "A switch can be found in the saref:OnOffState, which is further specialized in saref:OnState and saref:OffState."@en ;
+    skos:note "SAREF is not restricted to binary states such as the saref:OnOffState, but allows to define also n-ary states (see, for example, the saref:MultiLevelState class)."@en ;
+    skos:note "Concepts from existing code lists, vocabularies, and taxonomies, may be used as instances of saref:State."@en ;
+    skos:historyNote "V3.2.1: Clarified and generalized definition of saref:State. Can now apply to all features of interest, not just devices."@en .
+
+## States can be organized in a taxonomy using OPs skos:narrower and skos:broader.
+
+saref:State rdfs:subClassOf 
+        [   a owl:Restriction ;
+            owl:onProperty skos:broader ;
+            owl:allValuesFrom saref:State ] ,
+        [   a owl:Restriction ;
+            owl:onProperty skos:narrower ;
+            owl:allValuesFrom saref:State ] .
+
+## The OP saref:hasState may be used to link a feature kind to its states. Its inverse is saref:isStateOf.
+
+saref:hasState a owl:ObjectProperty ;
+    owl:inverseOf saref:isStateOf ;
+    rdfs:label "has state"@en ;
+    rdfs:comment "Links a feature kind or a feature of interest to one of its states."@en ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( saref:FeatureKind saref:FeatureOfInterest saref:StateOfInterest ) ] ;
+    rdfs:range saref:State ;
+    skos:historyNote "V3.2.1: Relaxed domain of saref:hasState."@en .
+
+saref:isStateOf a owl:ObjectProperty ;
+    owl:inverseOf saref:hasState ;
+    rdfs:label "is state of"@en ;
+    rdfs:comment "Links a state to the feature kind or feature of interest it is a state of."@en ;
+    rdfs:domain saref:State ;
+    rdfs:range [ a owl:Class ; owl:unionOf ( saref:FeatureKind saref:FeatureOfInterest ) ] ;
+    skos:historyNote "V3.2.1: Introduced saref:isStateOf."@en .
+
+## Feature kinds inherit the states of their broader feature kinds.
+
+saref:hasState
+    owl:propertyChainAxiom ( skos:broader saref:hasState ) .
+
+## Features of interest inherit the states of their feature kinds.
+
+saref:hasState
+    owl:propertyChainAxiom ( saref:hasFeatureKind saref:hasState ) .
+
+
+# ETSI TS 103264 Clause 5.7.3: States of interest
+
+## An instance of saref:StateOfInterest is specific to a feature of interest. It is inherent to and cannot exist without that feature of interest. 
+
+saref:StateOfInterest a owl:Class ;
+    rdfs:label "State of Interest"@en ;
+    rdfs:comment "Identifiable conditions that features of interest are or may be in, and that can be target of devices, such as observed and controlled. An instance of saref:StateOfInterest is specific to a feature of interest. It is inherent to and cannot exist without that feature of interest."@en ;
+    skos:note "A state of interest is the state of (OP saref:isStateOfInterestOf) exactly one feature of interest."@en ;
+    skos:note "Per convention, the IRI of states of interest should consist of the IRI of their feature of interest, suffixed with a fragment identifier #{S} where {S} refers to the name of the state."@en ;
+    skos:note """States of interest need not always be explicited. It depends on the use case. Typically, states of interest are useful in applications, where the association between a feature of interest and a state (i.e., the state of interest) needs to be identified and related to other states of interest."""@en ;
+    skos:historyNote "V3.2.1: Introduced saref:StateOfInterest, parallel to saref:PropertyOfInterest."@en .
+
+## The OP saref:hasStateOfInterest may be used to link a feature of interest to its states of interest. Its inverse is saref:isStateOfInterestOf and is functional.
+
+saref:hasStateOfInterest a owl:ObjectProperty ;
+    owl:inverseOf saref:isStateOfInterestOf ;
+    rdfs:comment "Links a feature of interest to one of its states of interest."@en ;
+    rdfs:label "has state of interest"@en ;
+    rdfs:domain saref:FeatureOfInterest ;
+    rdfs:range saref:StateOfInterest ;
+    skos:historyNote "V3.2.1: Introduced saref:hasStateOfInterest and saref:isStateOfInterestOf, parallel to saref:hasPropertyOfInterest and saref:isPropertyOfInterestOf."@en .
+
+saref:isStateOfInterestOf a owl:ObjectProperty , owl:FunctionalProperty ;
+    owl:inverseOf saref:hasStateOfInterest ;
+    rdfs:comment "Links a state of interest to the feature of interest it is a state of."@en ;
+    rdfs:label "is state of interest of"@en ;
+    rdfs:domain saref:StateOfInterest ;
+    rdfs:range saref:FeatureOfInterest .
+
+## A state of interest is the state of (OP saref:isStateOfInterestOf) exactly one feature of interest.
+
+saref:StateOfInterest 
+    rdfs:subClassOf 
+        [   a owl:Restriction ;
+            owl:onProperty saref:isStateOfInterestOf ;
+            owl:cardinality 1
+        ] .
+
+## A state of interest can be linked to its kind(s) using OP saref:hasStateKind.
+
+saref:hasStateKind a owl:ObjectProperty ;
+    rdfs:label "has state kind"@en ;
+    rdfs:comment "links a state of interest to its kind, a state"@en ;
+    rdfs:domain saref:StateOfInterest ;
+    rdfs:range saref:State .
+
+## States of interest inherit broader states.
+
+saref:hasStateKind
+    owl:propertyChainAxiom ( saref:hasStateKind skos:broader ) .
+
+## Features of interest inherit the state kinds of their state of interest.
+
+saref:hasState
+    owl:propertyChainAxiom ( saref:hasStateOfInterest saref:hasStateKind ) .
+
+## As the narrowest states of the taxonomy of states can be thought of as the state values, it is possible to assign a stable value to a state.
+
+
+# ETSI TS 103264 Clause 5.8: Functions and functions of interest
+
+## In SAREF, functions are logical groups of commands that devices support to accomplish their tasks. Function can target (OP saref:targets and its sub-properties) features, properties, or states. While functions are independent of any devices, functions of interest are functions actually supported by a device.
+
+# ETSI TS 103264 Clause 5.8.2: Functions
+
+## An instance of saref:Function can apply to different features of interest. 
+
+saref:Function a owl:Class ;
+    rdfs:label "Function"@en ;
+    rdfs:comment "Logical groups of commands that devices support to accomplish their tasks. Function can target (OP saref:targets and its sub-properties) features, properties, or states. An instance of saref:Function can apply to different devices."@en ;
+    skos:example "To accomplish the task of controlling the light, a smart light switch may have a function for turning on and off the light, and another to set the luminosity of the light."@en ;
+    skos:example "To accomplish the task of sensing the temperature, a temperature sensor should have a sensing function."@en ;
+    skos:example "To accomplish the task of washing clothes, a washing machine should have a function for washing."@en ;
+    skos:historyNote "V3.2.1: Simplified definition and axiomatization of saref:Function. Added examples."@en .
+
+
+## Functions can be organized in a taxonomy using OPs skos:narrower and skos:broader.
+
+saref:Function rdfs:subClassOf 
+        [   a owl:Restriction ;
+            owl:onProperty skos:broader ;
+            owl:allValuesFrom saref:Function ] ,
+        [   a owl:Restriction ;
+            owl:onProperty skos:narrower ;
+            owl:allValuesFrom saref:Function ] .
+
+## The OP saref:hasFunction may be used to link a feature kind or device to its functions. Its inverse is saref:isFunctionOf.
+
+saref:hasFunction a owl:ObjectProperty ;
+    owl:inverseOf saref:isFunctionOf ;
+    rdfs:label "has function"@en ;
+    rdfs:comment "Links a feature kind or a device to one of its functions."@en ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( saref:FeatureKind saref:FeatureOfInterest ) ] ;
+    rdfs:range saref:Function ;
+    skos:historyNote "V3.2.1: Domain of saref:hasFunction is relaxed."@en .
+
+saref:isFunctionOf a owl:ObjectProperty ;
+    owl:inverseOf saref:hasFunction ;
+    rdfs:label "is function of"@en ;
+    rdfs:comment "Links a function to the feature kind or device it is a function of."@en ;
+    rdfs:domain saref:Function ;
+    rdfs:range [ a owl:Class ; owl:unionOf ( saref:FeatureKind saref:FeatureOfInterest ) ] ;
+    skos:historyNote "V3.2.1: Introduced saref:isFunctionOf."@en .
+
+## Feature kinds inherit the functions of their broader feature kinds.
+
+saref:hasFunction
+    owl:propertyChainAxiom ( skos:broader saref:hasFunction ) .
+
+## Devices inherit the functions of their device kinds.
+
+saref:hasFunction
+    owl:propertyChainAxiom ( saref:hasDeviceKind saref:hasFunction ) .
+
+
+# ETSI TS 103264 Clause 5.7.3: Functions of interest
+
+## An instance of saref:FunctionOfInterest is supported by exactly one device.
+
+saref:FunctionOfInterest a owl:Class ;
+    rdfs:label "Function of Interest"@en ;
+    rdfs:comment "Logical groups of commands that devices support to accomplish their tasks. Function can target (OP saref:targets and its sub-properties) features, properties, or states. An instance of saref:FunctionOfInterest is supported by exactly one device."@en ;
+    skos:note "A function of interest is the function of (OP saref:isFunctionOfInterestOf) exactly one device."@en ;
+    skos:note """Functions of interest need not always be explicited. It depends on the use case. Typically, functions of interest are useful to specify which command is actually exposed, and which actual property of interest or state of interest it acts upon."""@en ;
+    skos:historyNote "V3.2.1: Introduced saref:FunctionOfInterest, parallel to saref:PropertyOfInterest."@en .
+
+## The OP saref:hasFunctionOfInterest may be used to link a feature of interest to its functions of interest. Its inverse is saref:isFunctionOfInterestOf and is functional.
+
+saref:hasFunctionOfInterest a owl:ObjectProperty ;
+    owl:inverseOf saref:isFunctionOfInterestOf ;
+    rdfs:comment "Links a device to one of its functions of interest."@en ;
+    rdfs:label "has function of interest"@en ;
+    rdfs:domain saref:Device ;
+    rdfs:range saref:FunctionOfInterest .
+
+saref:isFunctionOfInterestOf a owl:ObjectProperty , owl:FunctionalProperty ;
+    owl:inverseOf saref:hasFunctionOfInterest ;
+    rdfs:comment "Links a function of interest to the device it is a function of."@en ;
+    rdfs:label "is function of interest of"@en ;
+    rdfs:domain saref:FunctionOfInterest ;
+    rdfs:range saref:Device .
+
+## A function of interest is the function of (OP saref:isFunctionOfInterestOf) exactly one device.
+
+saref:FunctionOfInterest 
+    rdfs:subClassOf 
+        [   a owl:Restriction ;
+            owl:onProperty saref:isFunctionOfInterestOf ;
+            owl:cardinality 1
+        ] .
+
+## A function of interest can be linked to its kind(s) using OP saref:hasFunctionKind.
+
+saref:hasFunctionKind a owl:ObjectProperty ;
+    rdfs:label "has function kind"@en ;
+    rdfs:comment "links a function of interest to its kind, a function"@en ;
+    rdfs:domain saref:FunctionOfInterest ;
+    rdfs:range saref:Function .
+
+## Functions of interest inherit broader functions.
+
+saref:hasFunctionKind
+    owl:propertyChainAxiom ( saref:hasFunctionKind skos:broader ) .
+
+## Devices inherit the function kinds of their function of interest.
+
+saref:hasFunction
+    owl:propertyChainAxiom ( saref:hasFunctionOfInterest saref:hasFunctionKind ) .
+
+
+# ETSI TS 103264 Clause 5.9: Commands and device commands
+
+## In SAREF, commands represent the lowest-level directives a device supports and exposes to some network. Commands can target (OP saref:targets and its sub-properties) features, properties, or states. While commands are independent of any function, commands of interest are commands actually supported by a function of interest.
+
+# ETSI TS 103264 Clause 5.9.2: Commands
+
+## An instance of saref:Command is independent of any device.
+
+saref:Command a owl:Class ;
+    rdfs:label "Command"@en ;
+    rdfs:comment "The lowest-level directives a function exposes to some network. Commands can target (OP saref:targets and its sub-properties) features, properties, or states. An instance of saref:Command is independent of any device."@en ;
+    skos:example "Observe property, control property, observe state, control state, invoke action, cancel action, turn on or off, change color, subscribe, publish, etc. are all commands."@en ;
+    skos:historyNote "V3.2.1: Simplified definition and axiomatization of saref:Command. Added examples."@en .
+
+## Commands can be organized in a taxonomy using OPs skos:narrower and skos:broader.
+
+saref:Command rdfs:subClassOf 
+        [   a owl:Restriction ;
+            owl:onProperty skos:broader ;
+            owl:allValuesFrom saref:Command ] ,
+        [   a owl:Restriction ;
+            owl:onProperty skos:narrower ;
+            owl:allValuesFrom saref:Command ] .
+
+## The OP saref:hasCommand may be used to link a function or function of interest to its commands. Its inverse is saref:isCommandOf. SAREF Core defines two sub-properties of saref:hasCommand:
+## - saref:hasMandatoryCommand for when the command is mandatory to the function,  
+## - saref:hasOptionalCommand for when the command is optional to the function.
+
+saref:hasCommand a owl:ObjectProperty ;
+    owl:inverseOf saref:isCommandOf ;
+    rdfs:label "has command"@en ;
+    rdfs:comment "Links a function or function of interest and the command it supports."@en ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( saref:Function saref:FunctionOfInterest ) ] ;
+    rdfs:range saref:Command ;
+    skos:historyNote "V3.2.1: Domain of saref:hasCommand is relaxed to saref:Function or saref:FunctionOfInterest."@en .
+
+saref:isCommandOf a owl:ObjectProperty ;
+    owl:inverseOf saref:hasCommand ;
+    rdfs:label "is command of"@en ;
+    rdfs:comment "Links a command and a function or function of interest that supports it."@en ;
+    rdfs:domain saref:Command ;
+    rdfs:range [ a owl:Class ; owl:unionOf ( saref:Function saref:FunctionOfInterest ) ] .
+
+saref:hasMandatoryCommand a owl:ObjectProperty ;
+    owl:subPropertyOf saref:hasCommand ;
+    rdfs:label "has mandatory command"@en ;
+    rdfs:comment "Links a function and one of its mandatory commands"@en ;
+    rdfs:domain saref:Function ;
+    skos:historyNote "V3.2.1: Introduced mandatory and optional commands."@en .
+
+saref:hasOptionalCommand a owl:ObjectProperty ;
+    owl:subPropertyOf saref:hasCommand ;
+    rdfs:label "has optional command"@en ;
+    rdfs:comment "Links a function and one of its optional commands"@en ;
+    rdfs:domain saref:Function .
+
+## Functions inherit the mandatory commands of their broader functions.
+
+saref:hasMandatoryCommand
+    owl:propertyChainAxiom ( skos:broader saref:hasMandatoryCommand ) .
+
+## Features of interest inherit the commands of their feature kinds.
+
+saref:hasCommand
+    owl:propertyChainAxiom ( saref:hasFeatureKind saref:hasMandatoryCommand ) .
+
+## A command may be described in terms of its input parameters using OP saref:hasInput. Typically, input parameters are feature kinds, properties, or states.
+
+saref:hasInput a owl:ObjectProperty ;
+    rdfs:label "has input"@en ;
+    rdfs:comment "Links a command, operation, or procedure execution, to its inputs."@en ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( saref:Command saref:CommandOfInterest saref:Operation saref:ProcedureExecution ) ] ;
+    skos:example "Different complementary commands can be defined for controlling a light. Turn on or off the light based on a desired state, toggle the light status of a specific light, set the luminosity level with a transition time, set the default transition time, start comfort."@en ;
+    skos:historyNote "V3.2.1: Introduced saref:hasInput and saref:hasOutput."@en .
+
+## A command may be described in terms of its outputs using OP saref:hasOutput. Typically, outputs are properties or states.
+
+saref:hasOutput a owl:ObjectProperty ;
+    rdfs:label "has output"@en ;
+    rdfs:comment "Links a command or operation to its outputs."@en ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( saref:Command saref:CommandOfInterest saref:Operation ) ] ;
+    skos:example "Different complementary commands can be defined for observing a smart home. Observe the temperature once will output the indoor temperature property; observe status of the entry door will output an open/close state."@en .
+
+## A command may be described in terms of the properties or states it acts upon, such as observe, or control.
+
+# ETSI TS 103264 Clause 5.9.3: Commands of Interest
+
+## A saref:CommandOfInterest is a directives actually exposed by a device function. 
+
+saref:CommandOfInterest a owl:Class ;
+    rdfs:label "Command Of Interest"@en ;
+    rdfs:comment "The lowest-level directives a device supports and exposes to some network. Commands can target (OP saref:targets and its sub-properties) features, properties, or states. A saref:CommandOfInterest is a directives actually supported by a device and exposed to some network."@en ;
+    skos:note "Like for commands, commands of interest may be described in terms of their input parameters, outputs, and which properties or states they target."@en ;
+    skos:note "Commands of interest need not always be explicited. It depends on the use case. Typically, commands of interest are useful to specify the actual property of interest or state of interest that is expected as input parameter, output, or that will be targeted."@en ;
+    skos:example "The corridor smart light switch supports a command of kind “turn on/off”, which controls the state of the outdoor light."@en ;
+    skos:example "The smart fridge supports a command of kind “observe temperature”, which observes the temperature of the fridge."@en ;
+    skos:historyNote "V3.2.1: Introduced saref:CommandOfInterest, parallel to saref:PropertyOfInterest."@en .
+
+
+
+## The OP saref:hasCommandOfInterest may be used to link a function of interest to its command of interest. Its inverse is saref:isCommandOfInterestOf and is functional.
+
+saref:hasCommandOfInterest a owl:ObjectProperty ;
+    owl:inverseOf saref:isCommandOfInterestOf ;
+    rdfs:comment "Links a function of interest to one of its commands of interest."@en ;
+    rdfs:label "has command of interest"@en ;
+    rdfs:domain saref:FunctionOfInterest ;
+    rdfs:range saref:CommandOfInterest .
+
+saref:isCommandOfInterestOf a owl:ObjectProperty , owl:FunctionalProperty ;
+    owl:inverseOf saref:hasCommandOfInterest ;
+    rdfs:comment "Links a command of interest to the function of interest it is a command of."@en ;
+    rdfs:label "is command of interest of"@en ;
+    rdfs:domain saref:CommandOfInterest ;
+    rdfs:range saref:FeatureOfInterest .
+
+## A command of interest is the command of (OP saref:isCommandOfInterestOf) exactly one function of interest.
+
+saref:CommandOfInterest 
+    rdfs:subClassOf 
+        [   a owl:Restriction ;
+            owl:onProperty saref:isCommandOfInterestOf ;
+            owl:cardinality 1
+        ] .
+
+## A command of interest is the command of (OP saref:isCommandOfInterestOf) exactly one function.
+
+saref:CommandOfInterest 
+    rdfs:subClassOf 
+        [   a owl:Restriction ;
+            owl:onProperty saref:isCommandOfInterestOf ;
+            owl:cardinality 1
+        ] .
+
+## A command of interest can be linked to its kind(s) using OP saref:hasCommandKind.
+
+saref:hasCommandKind a owl:ObjectProperty ;
+    rdfs:label "has command kind"@en ;
+    rdfs:comment "links a command of interest to its kind, a command."@en ;
+    rdfs:domain saref:CommandOfInterest ;
+    rdfs:range saref:Command .
+
+## Commands of interests inherit broader commands.
+
+saref:hasCommandKind
+    owl:propertyChainAxiom ( saref:hasCommandKind skos:broader ) .
+
+## Functions inherit the command kinds of their command of interest.
+
+saref:hasCommand
+    owl:propertyChainAxiom ( saref:hasCommandOfInterest saref:hasCommandKind ) .
+
+
+
+# ETSI TS 103264 Clause 5.10: Services and Operations
+
+## A saref:Service is a digital representation of a function in a network, making it discoverable, registerable and remotely controllable in the network.
+
+saref:Service a owl:Class ;
+    rdfs:label "Service"@en ;
+    rdfs:comment "A saref:Service is a digital representation of a function in a network, making it discoverable, registerable and remotely controllable in the network."@en ;
+    skos:note "Typically, a device connected to a given network offers one service for each of its functions of interest."@en ;
+    skos:example "For example, a light switch can offer the service of remotely switching the lights in a home through mobile phone devices that are connected to the local network (ex:SwitchOnService class). This \"remote switching\" service represents the ex:OnOffFunction."@en ;
+    skos:historyNote "V3.2.1: Simplified definition of saref:Service. Added examples."@en .
+
+    
+## OP saref:represents links a service to some function or function of interest it exposes to the network.
+
+saref:represents a owl:ObjectProperty ;
+    rdfs:label "represents"@en ;
+    rdfs:comment "Links a service to some function or function of interest it exposes to the network. Also links an operation to some command or command of interest it exposes to the network."@en ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( saref:Service saref:Operation ) ] ;
+    rdfs:range [ a owl:Class ; owl:unionOf ( saref:Function saref:FunctionOfInterest saref:Command saref:CommandOfInterest ) ] ;
+    skos:historyNote "V3.2.1: Relaxed domain and range of saref:represents."@en .
+
+saref:Service
+    rdfs:subClassOf [
+        a owl:Restriction ; 
+        owl:onProperty saref:represents ;
+        owl:allValuesFrom [ a owl:Class ; owl:unionOf ( saref:Function saref:FunctionOfInterest ) ]
+        ] .    
+
+## A service represents at least one function of interest.
+
+saref:Service
+    rdfs:subClassOf [
+        a owl:Restriction ; 
+        owl:onProperty saref:represents ;
+        owl:onClass saref:FunctionOfInterest ;
+        owl:minQualifiedCardinality 1
+        ] .
+
+## OP saref:offers links a device to a service it exposes to a network. Its inverse if saref:isOfferedBy.
+
+saref:offers a owl:ObjectProperty ;
+    owl:inverseOf saref:isOfferedBy ;
+    rdfs:label "offers"@en ;
+    rdfs:comment "Links a device to a service it exposes to a network."@en ;
+    rdfs:domain saref:Device ;
+    rdfs:range saref:Service ;
+    skos:historyNote "V3.2.1: Clarified definition of saref:offers."@en .
+
+saref:isOfferedBy a owl:ObjectProperty , owl:FunctionalProperty ;
+    owl:inverseOf saref:offers ;
+    rdfs:label "is offered by"@en ;
+    rdfs:comment "Links a service to the device that exposes it to a network"@en ;
+    rdfs:domain saref:Service ;
+    rdfs:range saref:Device ;
+    skos:historyNote "V3.2.1: Clarified definition of saref:isOfferedBy."@en .
+
+## A service is offered by exactly one device. 
+
+saref:Service
+    rdfs:subClassOf [
+        a owl:Restriction ; 
+        owl:onProperty saref:isOfferedBy ;
+        owl:cardinality 1
+        ] .
+
+
+## A saref:Operation is the means of a service to communicate in a procedure-type manner over the network (i.e. transmit data to/from other devices). It is the –machine interpretable– exposure of a –human understandable– command to a network.
+
+saref:Operation a owl:Class ;
+    rdfs:label "Operation"@en ;
+    rdfs:comment "A saref:Operation is the means of a service to communicate in a procedure-type manner over the network (i.e. transmit data to/from other devices). It is the –machine interpretable– exposure of a –human understandable– command to a network."@en ;
+    skos:note "Typically, a device connected to a given network offers one service for each of its functions of interest, and each service has one operation per command of interest of the function of interest it represents."@en ;
+    skos:note "An operation may be described in terms of its inputs and outputs using OP saref:hasInput and saref:hasOutput. Inputs and outputs of operations typically describe the expected schema or shape of network messages."@en ;
+    skos:example "To turn on a light, send a CoAP PUT request with CBOR content 0xf5 (true)"@en ;
+    skos:example "In the set of operations exposed by a smart light bulb on a given network, one may be dedicated to turn on and off the light and expect a boolean as input. Another one may be dedicated to set the luminosity status and expect a target luminosity level (a byte) and a transition time (encoded on two bytes)."@en ;
+    skos:example "In the set of operations exposed by a smart washing machine on a given network, one may be dedicated to set the water temperature for the washing cycle, and expected as input a enumerated value. Another one may be dedicated to start, pause, or stop the washing cycle."@en ;
+    skos:historyNote "V3.2.1: Introduced saref:Operation and associated properties from oneM2M base ontology."@en .
+
+## OP saref:represents also links an operation to some command or command of interest it exposes to the network. 
+
+saref:Operation
+    rdfs:subClassOf [
+        a owl:Restriction ; 
+        owl:onProperty saref:represents ;
+        owl:allValuesFrom [ a owl:Class ; owl:unionOf ( saref:Command saref:CommandOfInterest ) ]
+        ] .    
+
+## An operation represents at least one command of interest.
+
+saref:Operation
+    rdfs:subClassOf [
+        a owl:Restriction ; 
+        owl:onProperty saref:represents ;
+        owl:onClass saref:CommandOfInterest ;
+        owl:minQualifiedCardinality 1
+        ] .
+
+## OP saref:hasOperation links a service to its operations. Its inverse is saref:isOperationOf.
+
+saref:hasOperation a owl:ObjectProperty ;
+    owl:inverseOf saref:isOperationOf ;
+    rdfs:label "has operation"@en ;
+    rdfs:comment "Links a service to one of its operations."@en ;
+    rdfs:domain saref:Service ;
+    rdfs:range saref:Operation .
+
+saref:isOperationOf a owl:ObjectProperty , owl:FunctionalProperty ;
+    owl:inverseOf saref:hasOperation ;
+    rdfs:label "is operation of"@en ;
+    rdfs:comment "Links an operation to the service it belongs to."@en ;
+    rdfs:domain saref:Operation ;
+    rdfs:range saref:Service .
+
+## An operation belongs to exactly one service. 
+
+saref:Operation
+    rdfs:subClassOf [
+        a owl:Restriction ; 
+        owl:onProperty saref:isOperationOf ;
+        owl:cardinality 1
+        ] .
+
+# ETSI TS 103264 Clause 5.11: Procedure executions
+
+# ETSI TS 103264 Clause 5.11.1:	Procedure executions
+
+## A saref:ProcedureExecution represents the act of carrying out a procedure. 
+
+saref:ProcedureExecution a owl:Class ;
+    rdfs:label "Procedure Execution"@en ;
+    rdfs:comment "Represents the act of carrying out a procedure."@en ;
+    skos:historyNote "V3.2.1: Introduced saref:ProcedureExecution."@en .
+
+## OP saref:madeBy links a procedure execution to the device that made it.
+
+saref:madeBy a owl:ObjectProperty  ;
+    owl:inverseOf saref:madeExecution ;
+    rdfs:label "made by"@en ;
+    rdfs:comment "Links a procedure execution to the entity (e.g., device) that made it."@en ;
+    rdfs:domain saref:ProcedureExecution ;
+    rdfs:range saref:FeatureOfInterest ;
+    skos:historyNote "V3.2.1: Introduce saref:madeBy (resp. saref:madeExecution) as generalization of saref:measurementMadeBy (resp. saref:makesMeasurement)."@en .
+
+saref:madeExecution a owl:ObjectProperty  ;
+    owl:inverseOf saref:madeBy ;
+    rdfs:label "made execution"@en ;
+    rdfs:comment "Links an entity (e.g., device) to the procedure execution it made."@en ;
+    rdfs:domain saref:FeatureOfInterest ;
+    rdfs:range saref:ProcedureExecution .
+
+
+## A procedure execution may be linked to its inputs using OP saref:hasInput .
+## A procedure execution may be linked to its result using OP saref:hasResult. 
+
+saref:hasResult a owl:ObjectProperty ;
+    rdfs:label "has result"@en ;
+    rdfs:comment "Links a procedure execution (e.g., an observation) to its result (e.g., a property value)."@en ;
+    rdfs:domain saref:ProcedureExecution ;
+    skos:historyNote "V3.2.1: Introduced saref:hasResult as part of general will to make SAREF and SOSA/SSN converge."@en .
+
+## DP saref:hasResultTime links a procedure execution to the instant of time when the procedure is completed, expressed as an xsd:dateTime literal.
+
+saref:hasResultTime a owl:DatatypeProperty ;
+    rdfs:label "has result time"@en ;
+    rdfs:comment "Links a procedure execution to the instant of time when the activity was completed, expressed as an xsd:dateTime literal."@en ;
+    rdfs:domain saref:ProcedureExecution ;
+    rdfs:range xsd:dateTime ;
+    skos:historyNote "V3.2.1: Introduced saref:hasResultTime as part of general will to make SAREF and SOSA/SSN converge."@en .
+
+## OP saref:hasPhenomenonTime links a procedure execution to the time that the result applies. It may be an interval or an instant, or some other compound temporal entity expressed using OWL Time.
+
+saref:hasPhenomenonTime a owl:ObjectProperty ;
+    rdfs:label "has phenomenon time"@en ;
+    rdfs:comment "Links a procedure execution to the time that the result applies. It may be an interval or an instant, or some other compound temporal entity expressed using OWL Time."@en ;
+    rdfs:range time:TemporalEntity ;
+    skos:historyNote "V3.2.1: Introduced saref:hasPhenomenonTime as part of general will to make SAREF and SOSA/SSN converge."@en .
+
+## When the execution time and the phenomenon time are the same time instants, then DP saref:hasTimestamp can be used to simply link a procedure execution to the time of these instants, expressed as an xsd:dateTime literal. 
+
+saref:hasTimestamp a owl:DatatypeProperty ;
+    rdfs:label "has timestamp"@en ;
+    rdfs:comment "Links a procedure execution or a profile to an instant."@en ;
+    skos:note "When the execution time and the phenomenon time are the same time instants, then DP saref:hasTimestamp can be used to simply link a procedure execution to the time of these instants, expressed as an xsd:dateTime literal."@en ;
+    skos:note "Applied on a profile, it describes the applicable instant of that profile"@en ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( saref:ProcedureExecution saref:Profile ) ] ;
+    rdfs:range xsd:dateTime ;
+    skos:historyNote "V3.2.1: Tried to clarify definition of saref:hasTimestamp. Still unclear."@en .
+
+# ETSI TS 103264 Clause 5.11.2:	Command executions and operation executions
+
+## A saref:CommandExecution describes the execution of a command. Typically, its inputs and outputs are human understandable and relate to some feature of interest, such as its state (e.g., s4abcd:On), or the value of its temperature (e.g., property value 21.0 °C). 
+
+saref:CommandExecution a owl:Class ;
+    rdfs:subClassOf saref:ProcedureExecution ;
+    rdfs:label "Command Execution"@en ;
+    rdfs:comment "Describes the execution of a command. Typically, its inputs and outputs are human understandable and relate to some feature of interest, such as its state (e.g., s4abcd:On), or the value of its temperature (e.g., property value 21.0 °C)."@en .
+
+## A saref:OperationExecution describes the execution of an operation in a network: the–machine interpretable–  description of a communication between devices over the network. Typically, its input and result are network messages, that conform to the input and output of the executed operation.
+
+saref:OperationExecution a owl:Class ;
+    rdfs:subClassOf saref:ProcedureExecution ;
+    rdfs:label "Operation Execution"@en ;
+    rdfs:comment "Describes the execution of an operation in a network: the–machine interpretable–  description of a communication between devices over the network. Typically, its input and result are network messages, that conform to the input and output of the executed operation."@en .
+
+## OP saref:isExecutionOf links a command execution to the command or command of interest that was executed. It also liks an operation execution to the operation that was executed.
+
+saref:isExecutionOf a owl:ObjectProperty ;
+    rdfs:label "is execution of"@en ;
+    rdfs:comment "Links a command execution to the command or command of interest that was executed. Also liks an operation execution to the operation that was executed"@en ;
+    rdfs:domain saref:ProcedureExecution ;
+    rdfs:range [ a owl:Class ; owl:unionOf ( saref:Command saref:CommandOfInterest saref:Operation ) ] .
+
+saref:CommandExecution
+    rdfs:subClassOf
+        [   a owl:Restriction ;
+            owl:onProperty saref:isExecutionOf ;
+            owl:allValuesFrom [ a owl:Class ; owl:unionOf ( saref:Command saref:CommandOfInterest ) ]
+        ] .
+
+saref:OperationExecution
+    rdfs:subClassOf
+        [   a owl:Restriction ;
+            owl:onProperty saref:isExecutionOf ;
+            owl:allValuesFrom saref:Operation
+        ] .
+
+## If a command execution is an execution of a command, it is also the execution of its broader commands.
+
+saref:isExecutionOf
+    owl:propertyChainAxiom ( saref:isExecutionOf skos:broader ) .
+
+## If a command execution is an execution of a command of interest, it is also the execution of the command kind of that command of interest.
+
+saref:isExecutionOf
+    owl:propertyChainAxiom ( saref:isExecutionOf saref:hasCommandKind ) .
+
+# ETSI TS 103264 Clause 5.11.3:	Observations, Measurements, and Actuations
+
+## A saref:Observation is the act of carrying out a procedure to estimate or calculate a value of a property of a feature of interest, or a state of a feature of interest. It links to a sensor to describe what made the observation, and to the observed feature, property, property of interest, state, or state of interest. Typically, its result is a property value or a state. An observation of a state (OP saref:observes) should have a state as a result (OP saref:hasResult). Respectively, an observation of a property should have a property value as a result.
+
+saref:Observation a owl:Class ;
+    rdfs:subClassOf saref:ProcedureExecution ;
+    rdfs:label "Observation"@en ;
+    rdfs:comment "A saref:Observation is the act of carrying out a procedure to estimate or calculate a value of a property of a feature of interest, or a state of a feature of interest. It links to a sensor to describe what made the observation, and to the observed feature, property, property of interest, state, or state of interest. Typically, its result is a property value or a state. An observation of a state (OP saref:observes) should have a state as a result (OP saref:hasResult). Respectively, an observation of a property should have a property value as a result."@en ;
+    rdfs:subClassOf 
+        [   a owl:Restriction ;
+            owl:onProperty saref:madeBy ;
+            owl:allValuesFrom saref:Sensor
+        ] ,
+        [   a owl:Restriction ;
+            owl:onProperty saref:observes ;
+            owl:minCardinality 1
+        ] .
+
+## It links to a sensor to describe what made the observation
+
+## A saref:Actuation is the act of carrying out a procedure to control the state of the world using an actuator. It links to an actuator to describe what made the actuation, and to the controlled feature, property, property of interest, state, or state of interest. Typically, its input is a property value or a state. An actuation of a state (OP saref:controls) should have a state as input (OP saref:hasInput). Respectively, an actuation of a property should have a property value as input.
+
+saref:Actuation a owl:Class ;
+    rdfs:subClassOf saref:ProcedureExecution ;
+    rdfs:label "Actuation"@en ;
+    rdfs:comment "A saref:Actuation is the act of carrying out a procedure to control the state of the world using an actuator. It links to an actuator to describe what made the actuation, and to the controlled feature, property, property of interest, state, or state of interest. Typically, its input is a property value or a state. An actuation of a state (OP saref:controls) should have a state as input (OP saref:hasInput). Respectively, an actuation of a property should have a property value as input."@en ;
+    rdfs:subClassOf 
+        [   a owl:Restriction ;
+            owl:onProperty saref:madeBy ;
+            owl:allValuesFrom saref:Actuator
+        ] ,
+        [   a owl:Restriction ;
+            owl:onProperty saref:controls ;
+            owl:minCardinality 1
+        ] .
+
+
+# ETSI TS 103264 Clause 5.12: Profiles
+
+## A saref:Profile describes the money earned (negative values) or paied (positive values) for the use (production or consumption) of a commodity by a device in a certain context.
+
+saref:Profile a owl:Class ;
+    rdfs:label "Profile"@en ;
+    rdfs:comment "A saref:Profile describes the money earned (negative values) or paied (positive values) for the use (production or consumption) of a commodity by a device in a certain context."@en ;
+    skos:note "OP saref:hasProfile links a device to its profile. The device should be linked to a certain commodity using OP saref:isUsedFor or its sub-properties, and optionally to some property or state using OP saref:targets or its sub-properties."@en ;
+    skos:note "The applicable context of a profile can be bound temporally using DP saref:hasTimestamp or its subproperties defined by SAREF extensions, or OP saref:hasApplicableTime which links to instant or interval or other compound temporal entity expressed using OWL Time."@en ;
+    skos:note "The applicable context can be restricted to when the property of a feature of interest has some value (OPs saref:whenPropertyValue)"@en ;
+    skos:note "The applicable context can be restricted to when a feature of interest has a certain state (OPs saref:whenState)."@en ;
+    skos:note "OP saref:hasPrice links a profile to the money earned (negative values) or paid (positive values) for the use (production or consumption) of the commodity by the device."@en ;
+    skos:historyNote "V3.2.1: Class saref:Profile has been re-specified, to take into account findings from SAREF4ENER V1.2.1."@en .
+
+## OP saref:hasProfile links a device to its profile. The device should be linked to a certain commodity using OP saref:isUsedFor or its sub-properties, and optionally to some property or state using OP saref:targets or its sub-properties.
+
+saref:hasProfile a owl:ObjectProperty ;
+    owl:inverseOf saref:isProfileOf ;
+    rdfs:label "has profile"@en ;
+    rdfs:comment "Links a device to its profile. Its inverse is saref:isProfileOf. The device should be linked to a certain commodity using OP saref:isUsedFor or its sub-properties, and optionally to some property or state using OP saref:targets or its sub-properties."@en ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( saref:DeviceKind saref:Device ) ] ;
+    rdfs:range saref:Profile ;
+    skos:historyNote "V3.2.1: Relaxed domain of saref:hasProfile to saref:FeatureKind or saref:Device"@en .
+
+saref:isProfileOf a owl:ObjectProperty ;
+    owl:inverseOf saref:hasProfile ;
+    rdfs:label "is profile of"@en ;
+    rdfs:comment "Links a profile to the device it describes. The device should be linked to a certain commodity using OP saref:isUsedFor or its sub-properties, and optionally to some property or state using OP saref:targets or its sub-properties."@en ;
+    rdfs:domain saref:Profile ;
+    rdfs:range [ a owl:Class ; owl:unionOf ( saref:DeviceKind saref:Device ) ] .
+
+## The applicable context of a profile can be bound temporally using DP saref:hasTimestamp or its subproperties defined by SAREF extensions, or OP saref:hasApplicableTime which links to instant or interval or other compound temporal entity expressed using OWL Time.
+
+saref:hasApplicableTime a owl:ObjectProperty ;
+    rdfs:label "has applicable time"@en ;
+    rdfs:comment "Links an entity (e.g., a profile) to an instant or interval or other compound temporal entity expressed using OWL Time, which bounds temporally the applicable context of that entity."@en ;
+    rdfs:range [ a owl:Class ; owl:unionOf ( time:TemporalEntity time:TemporalPosition ) ] .
+
+## The applicable context can be restricted to when the property of a feature of interest has some value (OPs saref:whenPropertyValue)
+
+saref:whenPropertyValue a owl:ObjectProperty ;
+    rdfs:label "when property value"@en ;
+    rdfs:comment "Links a profile to a property value that contributes to restricting its applicable context."@en ;
+    rdfs:domain saref:Profile ;
+    rdfs:range saref:PropertyValue .
+
+## The applicable context can be restricted to when a feature of interest has a certain state (OPs saref:whenState).
+
+saref:whenState a owl:ObjectProperty ;
+    rdfs:label "when state"@en ;
+    rdfs:comment "Links a profile to a state that contributes to restricting its applicable context."@en ;
+    rdfs:domain saref:Profile ;
+    rdfs:range saref:State .
+
+## OP saref:hasPrice links a profile to the money earned (negative values) or paid (positive values) for the use (production or consumption) of the commodity by the device.
+
+saref:profileHasPrice a owl:ObjectProperty ;
+    rdfs:label "has price"@en ;
+    rdfs:comment "Links a profile to the money earned (negative values) or paid (positive values) for the use (production or consumption) of the commodity by the device"@en ;
+    rdfs:domain saref:Profile ;
+    rdfs:range saref:PropertyValue .
+
+
+# New in V3.2.1
+
+saref:hasIdentifier a owl:DatatypeProperty ;
+    rdfs:label "has identifier"@en ;
+    rdfs:comment "Links some entity to its identifier. Extensions of SAREF may define sub-properties such as s4abcd:hasUUID, s4abcd:hasGTIN12, etc."@en ;
+    rdfs:seeAlso <https://labs.etsi.org/rep/saref/saref-portal/-/issues/2> .
+
+
+# New in V4.1.1
+
+saref:hasVersion a owl:DatatypeProperty ;
+  rdfs:label "has version"@en ;
+  rdfs:comment "Links some entity (e.g., a device) to its version."@en ;
+  rdfs:range xsd:string ;
+  rdfs:seeAlso <https://labs.etsi.org/rep/saref/saref-core/-/issues/53> .
+  
+saref:hasRevisionNumber a owl:DatatypeProperty ;
+  rdfs:label "has revision number"@en ;
+  rdfs:comment "Links some entity (e.g., a device) to its revision number."@en ;
+  rdfs:range xsd:string ;
+  rdfs:seeAlso <https://labs.etsi.org/rep/saref/saref-core/-/issues/53> .

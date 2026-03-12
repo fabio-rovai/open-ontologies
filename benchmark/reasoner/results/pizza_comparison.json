@@ -1,0 +1,20 @@
+{
+  "ontology": "Pizza",
+  "source": "Manchester University reference (pizza-reference.owl)",
+  "triples": 4179,
+  "hermit": {
+    "time_ms": 213,
+    "classes": 100,
+    "subsumptions": 312
+  },
+  "open_ontologies_owl_rl": {
+    "time_ms": 43,
+    "inferred_triples": 0
+  },
+  "open_ontologies_owl_dl": {
+    "time_ms": 19,
+    "inferred_subsumptions": 0,
+    "named_classes": 1,
+    "consistent": true
+  }
+}

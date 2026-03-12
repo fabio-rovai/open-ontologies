@@ -1,0 +1,66 @@
+[
+    [
+        "Date Time Description",
+        "General Date Time Description"
+    ],
+    [
+        "Date Time Interval",
+        "Proper Interval"
+    ],
+    [
+        "Day Of Week",
+        "Thing"
+    ],
+    [
+        "Duration",
+        "Temporal Duration"
+    ],
+    [
+        "Duration Description",
+        "General Duration Description"
+    ],
+    [
+        "General Date Time Description",
+        "Temporal Position"
+    ],
+    [
+        "General Duration Description",
+        "Temporal Duration"
+    ],
+    [
+        "Instant",
+        "Temporal Entity"
+    ],
+    [
+        "Interval",
+        "Temporal Entity"
+    ],
+    [
+        "January",
+        "Date Time Description"
+    ],
+    [
+        "Month Of Year",
+        "Date Time Description"
+    ],
+    [
+        "Proper Interval",
+        "Interval"
+    ],
+    [
+        "Temporal Entity",
+        "Thing"
+    ],
+    [
+        "Temporal Unit",
+        "Temporal Duration"
+    ],
+    [
+        "Time Position",
+        "Temporal Position"
+    ],
+    [
+        "Year",
+        "Duration Description"
+    ]
+]
