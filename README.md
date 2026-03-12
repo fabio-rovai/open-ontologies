@@ -3,9 +3,9 @@
 [![CI](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml/badge.svg)](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Terraform for Knowledge Graphs — validate, classify, and govern AI-generated ontologies.
+Terraform for Knowledge Graphs: validate, classify, and govern AI-generated ontologies.
 
-Open Ontologies is a standalone MCP server and CLI for AI-native ontology engineering. It exposes 35 tools that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — plus plan changes, detect drift, enforce design patterns, monitor health, and track lineage.
+Open Ontologies is a standalone MCP server and CLI for AI-native ontology engineering. It exposes 35 tools that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store; plus plan changes, detect drift, enforce design patterns, monitor health, and track lineage.
 
 Written in Rust, ships as a single binary. No JVM, no Protege, no GUI.
 
