@@ -1,0 +1,30 @@
+name: Benchmark
+on:
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python deps
+        run: pip install matplotlib
+      - name: Build Open Ontologies
+        run: cargo build --release
+      - name: Run LUBM performance
+        run: |
+          export OO_BIN=./target/release/open-ontologies
+          cd benchmark/reasoner && bash run_lubm_performance.sh
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmark/reasoner/results/
