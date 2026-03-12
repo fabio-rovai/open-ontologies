@@ -103,3 +103,64 @@ fn test_cli_ingest_csv() {
         .output().unwrap();
     assert!(out.status.success());
 }
+
+// ─── Lifecycle + clinical tests ──────────────────────────────────
+
+#[test]
+fn test_cli_enforce_generic() {
+    let out = oo().args(["enforce", "generic"]).output().unwrap();
+    assert!(out.status.success());
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("compliance") || stdout.contains("violations"));
+}
+
+#[test]
+fn test_cli_plan() {
+    let dir = tempfile::tempdir().unwrap();
+    let ttl_path = dir.path().join("new.ttl");
+    std::fs::write(&ttl_path, r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix ex: <http://example.org/> .
+        ex:Dog a owl:Class .
+    "#).unwrap();
+
+    let out = oo().args(["plan", ttl_path.to_str().unwrap()]).output().unwrap();
+    assert!(out.status.success());
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("risk_score") || stdout.contains("added"));
+}
+
+#[test]
+fn test_cli_drift() {
+    let dir = tempfile::tempdir().unwrap();
+    let v1 = dir.path().join("v1.ttl");
+    let v2 = dir.path().join("v2.ttl");
+    std::fs::write(&v1, r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix ex: <http://example.org/> .
+        ex:Dog a owl:Class .
+    "#).unwrap();
+    std::fs::write(&v2, r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix ex: <http://example.org/> .
+        ex:Dog a owl:Class .
+        ex:Cat a owl:Class .
+    "#).unwrap();
+
+    let out = oo().args(["drift", v1.to_str().unwrap(), v2.to_str().unwrap()]).output().unwrap();
+    assert!(out.status.success());
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("drift_velocity"));
+}
+
+#[test]
+fn test_cli_lineage() {
+    let out = oo().arg("lineage").output().unwrap();
+    assert!(out.status.success());
+}
+
+#[test]
+fn test_cli_monitor_clear() {
+    let out = oo().arg("monitor-clear").output().unwrap();
+    assert!(out.status.success());
+}

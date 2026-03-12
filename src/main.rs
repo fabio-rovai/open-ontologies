@@ -659,9 +659,166 @@ async fn main() -> anyhow::Result<()> {
             }), cli.pretty);
         }
 
-        // ─── Stub remaining subcommands ───────────────────────────
-        _ => {
-            output_json(&serde_json::json!({"error": "not implemented"}), cli.pretty);
+        // ─── Lifecycle ──────────────────────────────────────────────
+        Commands::Plan { file } => {
+            let (db, graph) = setup(&cli.data_dir)?;
+            let turtle = std::fs::read_to_string(&file)?;
+            let planner = open_ontologies::plan::Planner::new(db, graph);
+            let result = planner.plan(&turtle)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            if cli.pretty {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
+                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
+                } else {
+                    println!("{}", result);
+                }
+            } else {
+                println!("{}", result);
+            }
+        }
+        Commands::Apply { mode } => {
+            let (db, graph) = setup(&cli.data_dir)?;
+            let planner = open_ontologies::plan::Planner::new(db, graph);
+            let result = planner.apply(&mode)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            if cli.pretty {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
+                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
+                } else {
+                    println!("{}", result);
+                }
+            } else {
+                println!("{}", result);
+            }
+        }
+        Commands::Lock { iris, reason } => {
+            let (db, graph) = setup(&cli.data_dir)?;
+            let planner = open_ontologies::plan::Planner::new(db, graph);
+            let reason_str = reason.as_deref().unwrap_or("locked");
+            for iri in &iris {
+                planner.lock_iri(iri, reason_str);
+            }
+            output_json(&serde_json::json!({
+                "ok": true,
+                "locked": iris,
+                "reason": reason_str,
+            }), cli.pretty);
+        }
+        Commands::Drift { file_a, file_b } => {
+            let (db, _graph) = setup(&cli.data_dir)?;
+            let v1 = std::fs::read_to_string(&file_a)?;
+            let v2 = std::fs::read_to_string(&file_b)?;
+            let detector = open_ontologies::drift::DriftDetector::new(db);
+            let result = detector.detect(&v1, &v2)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            if cli.pretty {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
+                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
+                } else {
+                    println!("{}", result);
+                }
+            } else {
+                println!("{}", result);
+            }
+        }
+        Commands::Enforce { pack } => {
+            let (db, graph) = setup(&cli.data_dir)?;
+            let enforcer = open_ontologies::enforce::Enforcer::new(db, graph);
+            let result = enforcer.enforce(&pack)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            if cli.pretty {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
+                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
+                } else {
+                    println!("{}", result);
+                }
+            } else {
+                println!("{}", result);
+            }
+        }
+        Commands::Monitor => {
+            let (db, graph) = setup(&cli.data_dir)?;
+            let monitor = open_ontologies::monitor::Monitor::new(db, graph);
+            let result = monitor.run_watchers();
+            let json = serde_json::to_string(&result)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            if cli.pretty {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&json) {
+                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
+                } else {
+                    println!("{}", json);
+                }
+            } else {
+                println!("{}", json);
+            }
+        }
+        Commands::MonitorClear => {
+            let (db, graph) = setup(&cli.data_dir)?;
+            let monitor = open_ontologies::monitor::Monitor::new(db, graph);
+            monitor.clear_blocked();
+            output_json(&serde_json::json!({"ok": true, "message": "Monitor block cleared"}), cli.pretty);
+        }
+        Commands::Lineage { session } => {
+            let (db, _graph) = setup(&cli.data_dir)?;
+            let lineage = open_ontologies::lineage::LineageLog::new(db);
+            let session_id = session.unwrap_or_else(|| "current".to_string());
+            let events = lineage.get_compact(&session_id);
+            output_json(&serde_json::json!({
+                "session_id": session_id,
+                "events": events.trim(),
+            }), cli.pretty);
+        }
+
+        // ─── Clinical ──────────────────────────────────────────────
+        Commands::Crosswalk { code, system } => {
+            match open_ontologies::clinical::ClinicalCrosswalks::load("data/crosswalks.parquet") {
+                Ok(cw) => {
+                    let results = cw.lookup(&code, &system);
+                    output_json(&serde_json::json!({
+                        "code": code,
+                        "system": system,
+                        "mappings": results.iter().map(|r| serde_json::json!({
+                            "target_code": r.target_code,
+                            "target_system": r.target_system,
+                            "relation": r.relation,
+                            "source_label": r.source_label,
+                            "target_label": r.target_label,
+                        })).collect::<Vec<_>>(),
+                    }), cli.pretty);
+                }
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": format!("Crosswalks not loaded: {}", e)}), cli.pretty);
+                    std::process::exit(1);
+                }
+            }
+        }
+        Commands::Enrich { class_iri, code, system } => {
+            let (_db, graph) = setup(&cli.data_dir)?;
+            match open_ontologies::clinical::ClinicalCrosswalks::load("data/crosswalks.parquet") {
+                Ok(cw) => {
+                    let result = cw.enrich(&graph, &class_iri, &code, &system);
+                    println!("{}", result);
+                }
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": format!("Crosswalks not loaded: {}", e)}), cli.pretty);
+                    std::process::exit(1);
+                }
+            }
+        }
+        Commands::ValidateClinical => {
+            let (_db, graph) = setup(&cli.data_dir)?;
+            match open_ontologies::clinical::ClinicalCrosswalks::load("data/crosswalks.parquet") {
+                Ok(cw) => println!("{}", cw.validate_clinical(&graph)),
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": format!("Crosswalks not loaded: {}", e)}), cli.pretty);
+                    std::process::exit(1);
+                }
+            }
+        }
+
+        // ─── Schema import (stub until Task 6) ────────────────────
+        Commands::ImportSchema { .. } => {
+            output_json(&serde_json::json!({"error": "not implemented — requires postgres feature"}), cli.pretty);
             std::process::exit(1);
         }
     }
