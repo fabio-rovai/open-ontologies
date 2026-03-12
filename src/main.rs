@@ -271,7 +271,156 @@ async fn main() -> anyhow::Result<()> {
             service.waiting().await?;
         }
 
-        // ─── Stub all subcommands ─────────────────────────────────
+        // ─── Core ontology ─────────────────────────────────────────
+        Commands::Validate { input } => {
+            let result = if input == "-" {
+                let mut buf = String::new();
+                std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
+                GraphStore::validate_turtle(&buf)
+            } else {
+                GraphStore::validate_file(&input)
+            };
+            match result {
+                Ok(count) => output_json(&serde_json::json!({"ok": true, "triples": count}), cli.pretty),
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                    std::process::exit(1);
+                }
+            }
+        }
+        Commands::Load { path } => {
+            let (_db, graph) = setup(&cli.data_dir)?;
+            match graph.load_file(&path) {
+                Ok(count) => output_json(&serde_json::json!({"ok": true, "triples_loaded": count, "path": path}), cli.pretty),
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                    std::process::exit(1);
+                }
+            }
+        }
+        Commands::Save { path, format } => {
+            let (_db, graph) = setup(&cli.data_dir)?;
+            match graph.save_file(&path, &format) {
+                Ok(_) => output_json(&serde_json::json!({"ok": true, "path": path, "format": format}), cli.pretty),
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                    std::process::exit(1);
+                }
+            }
+        }
+        Commands::Clear => {
+            let (_db, graph) = setup(&cli.data_dir)?;
+            match graph.clear() {
+                Ok(_) => output_json(&serde_json::json!({"ok": true, "message": "Store cleared"}), cli.pretty),
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                    std::process::exit(1);
+                }
+            }
+        }
+        Commands::Stats => {
+            let (_db, graph) = setup(&cli.data_dir)?;
+            let stats_json = graph.get_stats().unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            if cli.pretty {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&stats_json) {
+                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
+                } else {
+                    println!("{}", stats_json);
+                }
+            } else {
+                println!("{}", stats_json);
+            }
+        }
+        Commands::Query { query } => {
+            let (_db, graph) = setup(&cli.data_dir)?;
+            let query_str = if query == "-" {
+                let mut buf = String::new();
+                std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
+                buf
+            } else {
+                query
+            };
+            let result = graph.sparql_select(&query_str).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            if cli.pretty {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
+                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
+                } else {
+                    println!("{}", result);
+                }
+            } else {
+                println!("{}", result);
+            }
+        }
+        Commands::Diff { old_path, new_path } => {
+            use open_ontologies::ontology::OntologyService;
+            let old = std::fs::read_to_string(&old_path)?;
+            let new = std::fs::read_to_string(&new_path)?;
+            let result = OntologyService::diff(&old, &new).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            if cli.pretty {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
+                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
+                } else {
+                    println!("{}", result);
+                }
+            } else {
+                println!("{}", result);
+            }
+        }
+        Commands::Lint { input } => {
+            use open_ontologies::ontology::OntologyService;
+            let content = if input == "-" {
+                let mut buf = String::new();
+                std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
+                buf
+            } else {
+                std::fs::read_to_string(&input)?
+            };
+            let result = OntologyService::lint(&content).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            if cli.pretty {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
+                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
+                } else {
+                    println!("{}", result);
+                }
+            } else {
+                println!("{}", result);
+            }
+        }
+        Commands::Convert { path, to, output } => {
+            let store = GraphStore::new();
+            match store.load_file(&path) {
+                Ok(_) => {
+                    match store.serialize(&to) {
+                        Ok(content) => {
+                            if let Some(out_path) = output {
+                                std::fs::write(&out_path, &content)?;
+                                output_json(&serde_json::json!({"ok": true, "path": out_path, "format": to}), cli.pretty);
+                            } else {
+                                println!("{}", content);
+                            }
+                        }
+                        Err(e) => {
+                            output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                            std::process::exit(1);
+                        }
+                    }
+                }
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                    std::process::exit(1);
+                }
+            }
+        }
+        Commands::Status => {
+            let (_db, graph) = setup(&cli.data_dir)?;
+            output_json(&serde_json::json!({
+                "status": "ok",
+                "version": env!("CARGO_PKG_VERSION"),
+                "triples_loaded": graph.triple_count(),
+            }), cli.pretty);
+        }
+
+        // ─── Stub remaining subcommands ───────────────────────────
         _ => {
             output_json(&serde_json::json!({"error": "not implemented"}), cli.pretty);
             std::process::exit(1);
