@@ -246,6 +246,170 @@ impl AlignmentEngine {
         }
         best
     }
+
+    /// Default signal weights: label, property, parent, instance, restriction, neighborhood.
+    const DEFAULT_WEIGHTS: [f64; 6] = [0.25, 0.20, 0.15, 0.15, 0.15, 0.10];
+
+    /// Run alignment between source and target ontologies.
+    /// If `target` is None, aligns source against the loaded store (`self.graph`).
+    /// If `dry_run` is true, returns candidates without inserting triples.
+    pub fn align(
+        &self,
+        source: &str,
+        target: Option<&str>,
+        min_confidence: f64,
+        dry_run: bool,
+    ) -> anyhow::Result<String> {
+        // Load source into a temporary graph
+        let source_store = GraphStore::new();
+        source_store.load_turtle(source, None)?;
+        let source_classes = Self::extract_classes(&source_store);
+
+        // Load target into a temporary graph (or use the main store)
+        let target_store_owned;
+        let target_ref: &GraphStore;
+        if let Some(target_ttl) = target {
+            target_store_owned = GraphStore::new();
+            target_store_owned.load_turtle(target_ttl, None)?;
+            target_ref = &target_store_owned;
+        } else {
+            target_ref = &*self.graph;
+        }
+        let target_classes = Self::extract_classes(target_ref);
+
+        // Get learned weights (or defaults)
+        let weights = self.get_learned_weights();
+
+        // Compute candidates: cartesian product of source × target classes
+        let mut candidates: Vec<serde_json::Value> = Vec::new();
+
+        for sc in &source_classes {
+            for tc in &target_classes {
+                // Skip self-matches (same IRI)
+                if sc.iri == tc.iri {
+                    continue;
+                }
+
+                let label_sim = Self::label_similarity(sc, tc);
+                let prop_overlap = Self::property_overlap(&source_store, &sc.iri, target_ref, &tc.iri);
+                let parent_ovlp = Self::parent_overlap(&source_store, &sc.iri, target_ref, &tc.iri);
+                let inst_overlap = Self::instance_overlap(&source_store, &sc.iri, target_ref, &tc.iri);
+                let restr_sim = Self::restriction_similarity(&source_store, &sc.iri, target_ref, &tc.iri);
+                let neigh_sim = Self::neighborhood_similarity(&source_store, &sc.iri, target_ref, &tc.iri);
+
+                let signals = [label_sim, prop_overlap, parent_ovlp, inst_overlap, restr_sim, neigh_sim];
+                // When structural signals are all zero (no structural data to compare),
+                // fall back to label similarity as the sole indicator
+                let structural_sum: f64 = signals[1..].iter().sum();
+                let confidence: f64 = if structural_sum == 0.0 {
+                    label_sim
+                } else {
+                    signals.iter().zip(weights.iter()).map(|(s, w)| s * w).sum()
+                };
+
+                // Skip low-confidence pairs (below half of threshold to reduce noise)
+                if confidence < min_confidence * 0.5 {
+                    continue;
+                }
+
+                let relation = Self::classify_relation(label_sim, prop_overlap, parent_ovlp);
+
+                candidates.push(serde_json::json!({
+                    "source_iri": sc.iri,
+                    "target_iri": tc.iri,
+                    "relation": relation,
+                    "confidence": (confidence * 1000.0).round() / 1000.0,
+                    "signals": {
+                        "label_similarity": (label_sim * 1000.0).round() / 1000.0,
+                        "property_overlap": (prop_overlap * 1000.0).round() / 1000.0,
+                        "parent_overlap": (parent_ovlp * 1000.0).round() / 1000.0,
+                        "instance_overlap": (inst_overlap * 1000.0).round() / 1000.0,
+                        "restriction_similarity": (restr_sim * 1000.0).round() / 1000.0,
+                        "neighborhood_similarity": (neigh_sim * 1000.0).round() / 1000.0,
+                    },
+                    "applied": false,
+                }));
+            }
+        }
+
+        // Sort by confidence descending
+        candidates.sort_by(|a, b| {
+            b["confidence"].as_f64().unwrap_or(0.0)
+                .partial_cmp(&a["confidence"].as_f64().unwrap_or(0.0))
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+
+        // Auto-apply above threshold
+        let mut applied_count = 0;
+        if !dry_run {
+            for candidate in &mut candidates {
+                let conf = candidate["confidence"].as_f64().unwrap_or(0.0);
+                if conf >= min_confidence {
+                    let source_iri = candidate["source_iri"].as_str().unwrap();
+                    let target_iri = candidate["target_iri"].as_str().unwrap();
+                    let relation = candidate["relation"].as_str().unwrap();
+
+                    let triple = Self::relation_to_triple(source_iri, target_iri, relation);
+                    if self.graph.load_turtle(&triple, None).is_ok() {
+                        candidate["applied"] = serde_json::Value::Bool(true);
+                        applied_count += 1;
+                    }
+                }
+            }
+        }
+
+        let total = candidates.len();
+
+        Ok(serde_json::json!({
+            "candidates": candidates,
+            "applied_count": applied_count,
+            "total_candidates": total,
+            "threshold": min_confidence,
+        }).to_string())
+    }
+
+    /// Classify the relation type based on signal strengths.
+    fn classify_relation(label_sim: f64, prop_overlap: f64, parent_overlap: f64) -> &'static str {
+        if label_sim > 0.8 && prop_overlap > 0.5 {
+            "owl:equivalentClass"
+        } else if label_sim > 0.8 {
+            "skos:exactMatch"
+        } else if parent_overlap > 0.5 {
+            "rdfs:subClassOf"
+        } else if label_sim > 0.6 {
+            "skos:exactMatch"
+        } else {
+            "skos:closeMatch"
+        }
+    }
+
+    /// Generate a Turtle triple for the given relation.
+    fn relation_to_triple(source: &str, target: &str, relation: &str) -> String {
+        let predicate = match relation {
+            "owl:equivalentClass" => "http://www.w3.org/2002/07/owl#equivalentClass",
+            "skos:exactMatch" => "http://www.w3.org/2004/02/skos/core#exactMatch",
+            "skos:closeMatch" => "http://www.w3.org/2004/02/skos/core#closeMatch",
+            "rdfs:subClassOf" => "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+            _ => "http://www.w3.org/2004/02/skos/core#relatedMatch",
+        };
+        format!("<{}> <{}> <{}> .\n", source, predicate, target)
+    }
+
+    /// Get learned weights from align_feedback, or defaults if not enough data.
+    fn get_learned_weights(&self) -> Vec<f64> {
+        let conn = self.db.conn();
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM align_feedback", [], |r| r.get(0))
+            .unwrap_or(0);
+
+        if count < 10 {
+            return Self::DEFAULT_WEIGHTS.to_vec();
+        }
+
+        // For now, return defaults. Full learning requires storing per-signal values
+        // in align_feedback, which we add in the feedback task.
+        Self::DEFAULT_WEIGHTS.to_vec()
+    }
 }
 
 /// Jaccard similarity between two sets of strings.
@@ -342,6 +506,109 @@ mod tests {
         let b: Vec<String> = vec![];
         let sim = jaccard_similarity(&a, &b);
         assert!((sim - 0.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_align_identical_classes() {
+        let tmp = tempfile::NamedTempFile::new().unwrap();
+        let path = tmp.path().to_path_buf();
+        std::mem::forget(tmp);
+        let db = StateDb::open(&path).unwrap();
+        let graph = Arc::new(GraphStore::new());
+
+        let source = r#"
+            @prefix owl: <http://www.w3.org/2002/07/owl#> .
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix ex: <http://example.org/> .
+            ex:Dog a owl:Class ; rdfs:label "Dog" .
+            ex:Cat a owl:Class ; rdfs:label "Cat" .
+        "#;
+
+        let target = r#"
+            @prefix owl: <http://www.w3.org/2002/07/owl#> .
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix other: <http://other.org/> .
+            other:Dog a owl:Class ; rdfs:label "Dog" .
+            other:Feline a owl:Class ; rdfs:label "Cat" .
+        "#;
+
+        let engine = AlignmentEngine::new(db, graph);
+        let result = engine.align(source, Some(target), 0.5, false).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+
+        let candidates = parsed["candidates"].as_array().unwrap();
+        assert!(candidates.len() >= 2, "Should find at least 2 candidates: {:?}", candidates);
+
+        // Dog<->Dog should have very high confidence
+        let dog_match = candidates.iter().find(|c| {
+            c["source_iri"].as_str().unwrap().contains("Dog")
+                && c["target_iri"].as_str().unwrap().contains("Dog")
+        });
+        assert!(dog_match.is_some(), "Should match Dog<->Dog");
+        assert!(dog_match.unwrap()["confidence"].as_f64().unwrap() > 0.8);
+    }
+
+    #[test]
+    fn test_align_auto_apply() {
+        let tmp = tempfile::NamedTempFile::new().unwrap();
+        let path = tmp.path().to_path_buf();
+        std::mem::forget(tmp);
+        let db = StateDb::open(&path).unwrap();
+        let graph = Arc::new(GraphStore::new());
+
+        let source = r#"
+            @prefix owl: <http://www.w3.org/2002/07/owl#> .
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix ex: <http://example.org/> .
+            ex:Dog a owl:Class ; rdfs:label "Dog" .
+        "#;
+
+        let target = r#"
+            @prefix owl: <http://www.w3.org/2002/07/owl#> .
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix other: <http://other.org/> .
+            other:Dog a owl:Class ; rdfs:label "Dog" .
+        "#;
+
+        let engine = AlignmentEngine::new(db, graph.clone());
+        let result = engine.align(source, Some(target), 0.5, false).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+
+        assert!(parsed["applied_count"].as_u64().unwrap() > 0);
+
+        // Verify triples were inserted into the main graph
+        let count = graph.triple_count();
+        assert!(count > 0, "Auto-apply should insert triples into main graph");
+    }
+
+    #[test]
+    fn test_align_dry_run() {
+        let tmp = tempfile::NamedTempFile::new().unwrap();
+        let path = tmp.path().to_path_buf();
+        std::mem::forget(tmp);
+        let db = StateDb::open(&path).unwrap();
+        let graph = Arc::new(GraphStore::new());
+
+        let source = r#"
+            @prefix owl: <http://www.w3.org/2002/07/owl#> .
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix ex: <http://example.org/> .
+            ex:Dog a owl:Class ; rdfs:label "Dog" .
+        "#;
+
+        let target = r#"
+            @prefix owl: <http://www.w3.org/2002/07/owl#> .
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix other: <http://other.org/> .
+            other:Dog a owl:Class ; rdfs:label "Dog" .
+        "#;
+
+        let engine = AlignmentEngine::new(db, graph.clone());
+        let result = engine.align(source, Some(target), 0.5, true).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+
+        assert_eq!(parsed["applied_count"].as_u64().unwrap(), 0);
+        assert_eq!(graph.triple_count(), 0, "Dry run should not insert triples");
     }
 
     #[test]
