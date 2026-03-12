@@ -72,6 +72,8 @@ Claude dynamically decides the next tool call based on what the previous tool re
 | `onto_crosswalk` | To look up clinical terminology mappings (ICD-10 ↔ SNOMED ↔ MeSH) |
 | `onto_enrich` | To add skos:exactMatch triples linking classes to clinical codes |
 | `onto_validate_clinical` | To check class labels against clinical crosswalk terminology |
+| `onto_align` | To detect alignment candidates (equivalentClass, exactMatch, subClassOf) between two ontologies using 6 weighted signals |
+| `onto_align_feedback` | To accept/reject alignment candidates for self-calibrating confidence weights |
 | `onto_lineage` | To view the session's lineage trail (plan → enforce → apply → monitor → drift) |
 
 ## Ontology Lifecycle
