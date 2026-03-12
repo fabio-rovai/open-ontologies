@@ -1,0 +1,11 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: shop
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./seed.sql:/docker-entrypoint-initdb.d/seed.sql
