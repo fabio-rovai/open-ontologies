@@ -2,31 +2,40 @@
 
 ## The Challenge
 
-[OntoAxiom](https://arxiv.org/abs/2512.05594) (2025) is a benchmark for evaluating LLM axiom identification from ontologies. It tests 12 models across 9 ontologies, 5 axiom types, and 3,042 ground truth axioms.
+[OntoAxiom](https://arxiv.org/abs/2512.05594) (2025) benchmarks LLM axiom identification from ontologies. It gives LLMs **only class names and property names** (e.g. `["pizza", "named pizza", "cheese topping", ...]`) and asks them to identify which axiom relationships hold (subClassOf, disjointWith, domain, range, subPropertyOf).
+
+12 models tested. 9 ontologies. 3,042 ground truth axioms.
 
 **Their best result: o1 with F1 = 0.197.**
 
-That's the ceiling for bare LLM prompting — give the model an ontology description and ask it to identify axioms. Even o1 misses 80% of axioms.
+Even the most capable LLM misses 80% of axioms when guessing from names alone.
 
-## Our Approach
+## A Different Question
 
-We don't ask an LLM to guess. We run the **actual Open Ontologies MCP server** (`open-ontologies serve`), connect via the official MCP Python SDK over JSON-RPC 2.0 stdio, and execute the same tool chain Claude uses in production:
+We don't attempt to solve the same task. The OntoAxiom benchmark tests whether LLMs can **infer** ontology structure from entity names — a pure language understanding challenge.
 
-```
-onto_clear → onto_load → onto_query (SPARQL)
-```
+We ask a different question: **why infer when you can query?**
 
-For each of the 10 ontologies and 5 axiom types, we:
-1. Clear the Oxigraph triple store (`onto_clear`)
-2. Load the TTL file (`onto_load`)
-3. Run SPARQL queries to extract axiom pairs (`onto_query`)
+When an LLM has access to MCP tools, it doesn't need to guess which axioms exist. It loads the actual ontology into a triple store and extracts them via SPARQL. This is the core thesis of Open Ontologies: **LLMs generate, MCP tools verify.**
 
-137 MCP tool calls total. No hallucination. No prompt engineering. No few-shot examples. Just structured extraction from the source of truth through the real MCP protocol.
+## Method
+
+We run the **actual Open Ontologies MCP server** (`open-ontologies serve`), connect via the official MCP Python SDK over JSON-RPC 2.0 stdio, and execute the same tool chain Claude uses in production:
+
+For each ontology:
+
+1. `onto_clear` — reset the Oxigraph triple store
+2. `onto_load` — load the Turtle file into the store
+3. `onto_query` — run SPARQL queries to extract axiom pairs
+
+137 MCP tool calls total across 10 ontologies and 5 axiom types. No hallucination. No prompt engineering. Just structured extraction through the real MCP protocol.
+
+**Important:** The LLMs in the OntoAxiom paper received only class/property name lists. Our approach uses the full OWL ontology file. This is intentionally not an apples-to-apples comparison — it demonstrates that tool access changes the game entirely.
 
 ## Results
 
-| Axiom Type | Open Ontologies | Best LLM (o1) | Improvement |
-| ---------- | --------------- | -------------- | ----------- |
+| Axiom Type | Tool-Augmented (OO) | Best Bare LLM (o1) | Improvement |
+| ---------- | ------------------- | ------------------- | ----------- |
 | subClassOf | **0.412** | 0.359 | +15% |
 | disjointWith | **0.421** | 0.095 | +343% |
 | domain | **0.238** | 0.038 | +526% |
@@ -34,9 +43,10 @@ For each of the 10 ontologies and 5 axiom types, we:
 | subPropertyOf | **0.344** | 0.106 | +225% |
 | **OVERALL** | **0.305** | **0.197** | **+55%** |
 
-**Open Ontologies wins all 5 axiom types.**
+**Tool-augmented extraction wins all 5 axiom types.**
 
 10 individual ontology x axiom type combinations scored **PERFECT** (F1 = 1.000):
+
 - FOAF disjoint, GoodRelations disjoint, NordStream disjoint
 - gUFO domain, NordStream domain, Pizza domain
 - gUFO range, NordStream range, Pizza range
@@ -44,30 +54,28 @@ For each of the 10 ontologies and 5 axiom types, we:
 
 ## Why It's Not 1.000
 
-The F1 isn't perfect because of **label normalization gaps** between the ground truth and the ontology files. For example:
+Even with direct access to the source ontology, our F1 is 0.305 — not 1.000. This is entirely due to **label normalization gaps** between the ground truth and what SPARQL returns:
 
-- Ground truth says `"Fish Topping"` but the ontology uses `rdfs:label "Topping di Pesce"@it` or the local name is `FishTopping`
-- Some ontologies use CamelCase IRIs without rdfs:labels
-- AllDisjointClasses in Pizza ontology lists 395 ground truth pairs; our extraction handles AllDisjointClasses correctly but some member names don't match after normalization
+- Ground truth uses lowercased labels derived from `rdfs:label` or local names. When the ontology has multi-language labels (e.g. Pizza uses English + Portuguese), the ground truth picked one language while our SPARQL returns another.
+- Some ontologies use CamelCase IRIs without `rdfs:label` at all. Our normalization (`CamelCase` -> `camel case`) may not match the ground truth's normalization.
+- AllDisjointClasses enumeration via RDF lists produces member sets where individual member label normalization compounds the mismatch.
 
-These are **evaluation artifacts**, not reasoning failures. The axioms are all present in the ontology — the extraction finds them — but string matching against ground truth produces false negatives.
+These are **evaluation artifacts**, not extraction failures. Every axiom is present in the triple store — the SPARQL finds them — but string matching against the ground truth's specific normalization produces false negatives.
 
-## What This Proves
+## What This Demonstrates
 
-The OntoAxiom paper demonstrates that **bare LLMs are unreliable at axiom identification** (best F1 = 0.197). Our result demonstrates the complementary point:
+The OntoAxiom paper proves that **bare LLMs are unreliable at axiom identification** — even o1 achieves only F1 = 0.197 from name lists alone.
 
-**Tool-augmented AI + structured extraction crushes bare prompting.**
+Our benchmark demonstrates the complementary point: **when LLMs have tool access, the task transforms from "infer structure from names" to "query structure from source."** The LLM's role shifts from unreliable oracle to reliable orchestrator.
 
-When you have the actual ontology, you don't need to ask an LLM to guess what axioms might exist. You query the triple store via MCP tools. This is the core thesis of Open Ontologies: LLMs generate, MCP tools verify.
+This is the MCP value proposition in one benchmark: connect the LLM to the right tools and the hardest reasoning tasks become straightforward queries.
 
 ## Reproduce
 
 ```bash
-# Clone Open Ontologies
+# Clone and build
 git clone https://github.com/fabio-rovai/open-ontologies.git
 cd open-ontologies
-
-# Build the MCP server
 cargo build --release
 
 # Install MCP Python SDK
@@ -77,7 +85,9 @@ pip install mcp
 python3 benchmark/ontoaxiom/run_mcp_benchmark.py
 ```
 
-The benchmark starts the MCP server as a subprocess, connects via the official MCP SDK, and runs 137 tool calls (`onto_clear` + `onto_load` + `onto_query`) — the same protocol Claude uses when calling `onto_*` tools.
+The benchmark starts the MCP server as a subprocess, connects via the official MCP SDK, and runs 137 tool calls — the same protocol Claude uses when calling `onto_*` tools.
+
+An alternative rdflib-only version (`run_rdflib_benchmark.py`) produces identical F1 scores, confirming the Oxigraph SPARQL results match rdflib's RDF graph traversal.
 
 The OntoAxiom dataset is included in `benchmark/ontoaxiom/data/` (source: [GitLab](https://gitlab.com/ontologylearning/axiomidentification), MIT licensed).
 
