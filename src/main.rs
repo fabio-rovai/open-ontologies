@@ -512,6 +512,153 @@ async fn main() -> anyhow::Result<()> {
             println!("{}", result);
         }
 
+        // ─── Data pipeline ──────────────────────────────────────────
+        Commands::Map { data_path, format: _format, save } => {
+            use open_ontologies::ingest::DataIngester;
+            use open_ontologies::mapping::MappingConfig;
+            let (_db, graph) = setup(&cli.data_dir)?;
+
+            let rows = DataIngester::parse_file(&data_path)?;
+            let headers = DataIngester::extract_headers(&rows);
+
+            let classes_query = r#"SELECT DISTINCT ?c WHERE { { ?c a <http://www.w3.org/2002/07/owl#Class> } UNION { ?c a <http://www.w3.org/2000/01/rdf-schema#Class> } }"#;
+            let props_query = r#"SELECT DISTINCT ?p WHERE { { ?p a <http://www.w3.org/2002/07/owl#ObjectProperty> } UNION { ?p a <http://www.w3.org/2002/07/owl#DatatypeProperty> } UNION { ?p a <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> } }"#;
+
+            let classes = graph.sparql_select(classes_query).unwrap_or_default();
+            let props = graph.sparql_select(props_query).unwrap_or_default();
+
+            let mapping = MappingConfig::from_headers(&headers, "http://example.org/data/", "http://example.org/data/Thing");
+            let mapping_json = serde_json::to_string_pretty(&mapping).unwrap_or_default();
+
+            if let Some(save_path) = save {
+                std::fs::write(&save_path, &mapping_json)?;
+                output_json(&serde_json::json!({"ok": true, "saved": save_path}), cli.pretty);
+            } else {
+                let extract_iris = |json: &str, var: &str| -> Vec<String> {
+                    serde_json::from_str::<serde_json::Value>(json)
+                        .ok()
+                        .and_then(|v| v["results"].as_array().cloned())
+                        .unwrap_or_default()
+                        .iter()
+                        .filter_map(|r| r[var].as_str().map(|s| s.trim_matches(|c| c == '<' || c == '>').to_string()))
+                        .collect()
+                };
+                output_json(&serde_json::json!({
+                    "data_fields": headers,
+                    "ontology_classes": extract_iris(&classes, "c"),
+                    "ontology_properties": extract_iris(&props, "p"),
+                    "suggested_mapping": serde_json::from_str::<serde_json::Value>(&mapping_json).unwrap_or_default(),
+                }), cli.pretty);
+            }
+        }
+        Commands::Ingest { path, format: _format, mapping, base_iri } => {
+            use open_ontologies::ingest::DataIngester;
+            use open_ontologies::mapping::MappingConfig;
+            let (_db, graph) = setup(&cli.data_dir)?;
+
+            let base = base_iri.as_deref().unwrap_or("http://example.org/data/");
+            let rows = DataIngester::parse_file(&path)?;
+
+            if rows.is_empty() {
+                output_json(&serde_json::json!({"ok": true, "triples_loaded": 0, "warnings": ["No data rows found"]}), cli.pretty);
+            } else {
+                let mapping_config = if let Some(ref mapping_path) = mapping {
+                    let content = std::fs::read_to_string(mapping_path)?;
+                    serde_json::from_str::<MappingConfig>(&content)?
+                } else {
+                    let headers = DataIngester::extract_headers(&rows);
+                    MappingConfig::from_headers(&headers, base, &format!("{}Thing", base))
+                };
+
+                let ntriples = mapping_config.rows_to_ntriples(&rows);
+                match graph.load_ntriples(&ntriples) {
+                    Ok(count) => output_json(&serde_json::json!({"ok": true, "triples_loaded": count, "rows": rows.len()}), cli.pretty),
+                    Err(e) => {
+                        output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                        std::process::exit(1);
+                    }
+                }
+            }
+        }
+        Commands::Shacl { shapes } => {
+            use open_ontologies::shacl::ShaclValidator;
+            let (_db, graph) = setup(&cli.data_dir)?;
+            let shapes_content = std::fs::read_to_string(&shapes)?;
+            let result = ShaclValidator::validate(&graph, &shapes_content)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            if cli.pretty {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
+                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
+                } else {
+                    println!("{}", result);
+                }
+            } else {
+                println!("{}", result);
+            }
+        }
+        Commands::Reason { profile } => {
+            use open_ontologies::reason::Reasoner;
+            let (_db, graph) = setup(&cli.data_dir)?;
+            let result = Reasoner::run(&graph, &profile, true)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            if cli.pretty {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
+                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
+                } else {
+                    println!("{}", result);
+                }
+            } else {
+                println!("{}", result);
+            }
+        }
+        Commands::Extend { data_path, format: _format, mapping, shapes, profile } => {
+            use open_ontologies::ingest::DataIngester;
+            use open_ontologies::mapping::MappingConfig;
+            use open_ontologies::shacl::ShaclValidator;
+            use open_ontologies::reason::Reasoner;
+            let (_db, graph) = setup(&cli.data_dir)?;
+
+            let base_iri = "http://example.org/data/";
+
+            // 1. Ingest
+            let rows = DataIngester::parse_file(&data_path)?;
+            let mapping_config = if let Some(ref mapping_path) = mapping {
+                let content = std::fs::read_to_string(mapping_path)?;
+                serde_json::from_str::<MappingConfig>(&content)?
+            } else {
+                let headers = DataIngester::extract_headers(&rows);
+                MappingConfig::from_headers(&headers, base_iri, &format!("{}Thing", base_iri))
+            };
+
+            let ntriples = mapping_config.rows_to_ntriples(&rows);
+            let triples_loaded = graph.load_ntriples(&ntriples)?;
+
+            // 2. SHACL (optional)
+            let shacl_result = if let Some(ref shapes_path) = shapes {
+                let shapes_content = std::fs::read_to_string(shapes_path)?;
+                Some(ShaclValidator::validate(&graph, &shapes_content)
+                    .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e)))
+            } else {
+                None
+            };
+
+            // 3. Reason (optional)
+            let reason_result = if let Some(ref prof) = profile {
+                Some(Reasoner::run(&graph, prof, true)
+                    .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e)))
+            } else {
+                None
+            };
+
+            output_json(&serde_json::json!({
+                "ok": true,
+                "triples_loaded": triples_loaded,
+                "rows": rows.len(),
+                "shacl": shacl_result.and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok()),
+                "reason": reason_result.and_then(|r| serde_json::from_str::<serde_json::Value>(&r).ok()),
+            }), cli.pretty);
+        }
+
         // ─── Stub remaining subcommands ───────────────────────────
         _ => {
             output_json(&serde_json::json!({"error": "not implemented"}), cli.pretty);

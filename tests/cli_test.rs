@@ -81,3 +81,25 @@ fn test_cli_version_and_rollback() {
     let out = oo().args(["version", "test-v1"]).output().unwrap();
     assert!(out.status.success());
 }
+
+// ─── Data pipeline tests ─────────────────────────────────────────
+
+#[test]
+fn test_cli_reason_empty_store() {
+    let out = oo().args(["reason", "--profile", "rdfs"]).output().unwrap();
+    assert!(out.status.success());
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("inferred") || stdout.contains("triples"));
+}
+
+#[test]
+fn test_cli_ingest_csv() {
+    let dir = tempfile::tempdir().unwrap();
+    let csv_path = dir.path().join("data.csv");
+    std::fs::write(&csv_path, "name,age\nAlice,30\nBob,25").unwrap();
+
+    let out = oo()
+        .args(["ingest", csv_path.to_str().unwrap()])
+        .output().unwrap();
+    assert!(out.status.success());
+}
