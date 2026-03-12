@@ -1,5 +1,6 @@
 #!/bin/bash
-# Download OWL API, HermiT, and Pellet JARs for benchmark comparisons.
+# Download Java reasoner JARs for benchmark comparisons.
+# Uses OWL API 4.5.29 + HermiT 1.4.3.456 + Pellet 2.4.0 (stable, compatible combo).
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -21,30 +22,50 @@ download() {
 
 echo "=== Setting up Java reasoner JARs ==="
 
-# OWL API 5.1.20
-download "$MAVEN/net/sourceforge/owlapi/owlapi-distribution/5.1.20/owlapi-distribution-5.1.20.jar" \
-    "$LIB_DIR/owlapi-distribution-5.1.20.jar"
+# OWL API 4.5.29 (distribution = all-in-one)
+download "$MAVEN/net/sourceforge/owlapi/owlapi-distribution/4.5.29/owlapi-distribution-4.5.29.jar" \
+    "$LIB_DIR/owlapi-distribution-4.5.29.jar"
 
-# HermiT 1.4.5.456 (OWL API-compatible build on Maven Central)
-download "$MAVEN/net/sourceforge/owlapi/org.semanticweb.hermit/1.4.5.456/org.semanticweb.hermit-1.4.5.456.jar" \
-    "$LIB_DIR/HermiT-1.4.5.456.jar"
+# HermiT 1.4.3.456 (OWL API 4.x compatible)
+download "$MAVEN/net/sourceforge/owlapi/org.semanticweb.hermit/1.4.3.456/org.semanticweb.hermit-1.4.3.456.jar" \
+    "$LIB_DIR/HermiT-1.4.3.456.jar"
 
-# Openllet (actively maintained Pellet fork)
-download "$MAVEN/com/github/galigator/openllet/openllet-owlapi/2.6.5/openllet-owlapi-2.6.5.jar" \
-    "$LIB_DIR/openllet-owlapi-2.6.5.jar"
-download "$MAVEN/com/github/galigator/openllet/openllet-core/2.6.5/openllet-core-2.6.5.jar" \
-    "$LIB_DIR/openllet-core-2.6.5.jar"
+# Pellet 2.4.0-ignazio (OWL API 4.x compatible)
+for mod in owlapi core rules datatypes el common query; do
+    download "$MAVEN/com/clarkparsia/pellet/pellet-${mod}-ignazio/2.4.0-ignazio1.6.0/pellet-${mod}-ignazio-2.4.0-ignazio1.6.0.jar" \
+        "$LIB_DIR/pellet-${mod}-ignazio-2.4.0-ignazio1.6.0.jar"
+done
 
-# SLF4J (required by HermiT/Pellet)
-download "$MAVEN/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar" \
-    "$LIB_DIR/slf4j-api-2.0.9.jar"
-download "$MAVEN/org/slf4j/slf4j-simple/2.0.9/slf4j-simple-2.0.9.jar" \
-    "$LIB_DIR/slf4j-simple-2.0.9.jar"
+# Pellet's aterm dependency
+download "$MAVEN/com/clarkparsia/pellet/aterm-java/1.8.2-p1/aterm-java-1.8.2-p1.jar" \
+    "$LIB_DIR/aterm-java-1.8.2-p1.jar"
 
-# Guava (Pellet dependency)
-download "$MAVEN/com/google/guava/guava/33.0.0-jre/guava-33.0.0-jre.jar" \
-    "$LIB_DIR/guava-33.0.0-jre.jar"
+# SLF4J 1.7 (compatible with OWL API 4.x)
+download "$MAVEN/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar" \
+    "$LIB_DIR/slf4j-api-1.7.36.jar"
+download "$MAVEN/org/slf4j/slf4j-simple/1.7.36/slf4j-simple-1.7.36.jar" \
+    "$LIB_DIR/slf4j-simple-1.7.36.jar"
+
+# Guava 18 (Pellet 2.4's expected version)
+download "$MAVEN/com/google/guava/guava/18.0/guava-18.0.jar" \
+    "$LIB_DIR/guava-18.0.jar"
+
+# Caffeine (OWL API 4.5.29 dependency)
+download "$MAVEN/com/github/ben-manes/caffeine/caffeine/2.9.3/caffeine-2.9.3.jar" \
+    "$LIB_DIR/caffeine-2.9.3.jar"
+
+# javax.inject (needed on Java 17+)
+download "$MAVEN/javax/inject/javax.inject/1/javax.inject-1.jar" \
+    "$LIB_DIR/javax.inject-1.jar"
+
+# JGraphT (Pellet dependency)
+download "$MAVEN/org/jgrapht/jgrapht-core/0.9.0/jgrapht-core-0.9.0.jar" \
+    "$LIB_DIR/jgrapht-core-0.9.0.jar"
+
+# ANTLR runtime (HermiT dependency)
+download "$MAVEN/org/antlr/antlr-runtime/3.5.3/antlr-runtime-3.5.3.jar" \
+    "$LIB_DIR/antlr-runtime-3.5.3.jar"
 
 echo ""
-echo "All JARs in $LIB_DIR"
-ls -la "$LIB_DIR"
+echo "All JARs in $LIB_DIR:"
+ls "$LIB_DIR"
