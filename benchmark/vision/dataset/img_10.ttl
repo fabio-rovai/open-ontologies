@@ -1,135 +1,232 @@
-@prefix ex: <http://example.org/image/> .
-@prefix schema: <http://schema.org/> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:     <http://example.org/image/> .
+@prefix schema: <https://schema.org/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
 
 # === Image node ===
-ex:img_10 a schema:ImageObject ;
-    schema:name "img_10.jpg" ;
-    schema:description "Side view of a weathered blue Volkswagen Type 2 camper van parked on a dark road surface with dense green foliage in the background and scattered yellow leaves on the ground." ;
-    schema:keywords "volkswagen, vw, type 2, camper van, vintage, blue, weathered, rust, parked, road, foliage" .
+ex:img_10
+    rdf:type            schema:ImageObject ;
+    rdfs:label          "Vintage blue van parked on road with trees in background"@en ;
+    schema:name         "img_10.jpg"^^xsd:string ;
+    schema:description  "A weathered turquoise Volkswagen Type 2 camper van with a white roof, parked on a dark road surface. Dense green trees form the background, and a few yellow fallen leaves lie on the ground."@en ;
+    schema:contentUrl   "img_10.jpg"^^xsd:string ;
+    ex:containsObject   ex:img10_obj_1 ,
+                        ex:img10_obj_2 ,
+                        ex:img10_obj_3 ,
+                        ex:img10_obj_4 ,
+                        ex:img10_obj_5 ,
+                        ex:img10_obj_6 ,
+                        ex:img10_obj_7 ,
+                        ex:img10_obj_8 ,
+                        ex:img10_obj_9 ,
+                        ex:img10_obj_10 ,
+                        ex:img10_obj_11 ,
+                        ex:img10_obj_12 ,
+                        ex:img10_obj_13 .
 
-# === Object 1: Volkswagen Type 2 Van ===
-ex:img10_obj_1 a schema:Car ;
-    rdf:type schema:Vehicle ;
-    rdfs:label "Volkswagen Type 2 Camper Van" ;
-    schema:category "vehicle" ;
-    schema:color "blue and white" ;
-    schema:description "A weathered and rusted Volkswagen Type 2 (Transporter) camper van with a blue lower body and white roof, seen from the passenger side. Paint is heavily faded and patchy with visible corrosion." ;
-    schema:additionalProperty [
-        schema:name "condition" ;
-        schema:value "weathered, rusted, faded paint"
-    ] ;
-    ex:confidence "0.97"^^xsd:decimal ;
-    ex:partOf ex:img_10 .
+# === Object 1: Van (specific) ===
+ex:img10_obj_1
+    rdf:type            schema:Thing ;
+    rdfs:label          "van"@en ;
+    skos:altLabel       "camper van"@en ,
+                        "volkswagen"@en ,
+                        "VW bus"@en ,
+                        "minibus"@en ,
+                        "Type 2"@en ;
+    schema:category     "vehicle"^^xsd:string ,
+                        "van"^^xsd:string ,
+                        "vintage vehicle"^^xsd:string ;
+    schema:color        "turquoise"^^xsd:string ;
+    schema:description  "A weathered turquoise Volkswagen Type 2 camper van with visible rust and patina"@en ;
+    ex:condition        "weathered"^^xsd:string ;
+    ex:partOf           ex:img_10 ;
+    ex:hasComponent     ex:img10_obj_4 ,
+                        ex:img10_obj_5 ,
+                        ex:img10_obj_6 ,
+                        ex:img10_obj_7 ;
+    ex:onTopOf          ex:img10_obj_8 ;
+    ex:inFrontOf        ex:img10_obj_3 .
 
-# === Object 2: White roof ===
-ex:img10_obj_2 a schema:Thing ;
-    rdfs:label "White Roof" ;
-    schema:category "vehicle part" ;
-    schema:color "white" ;
-    schema:description "The raised white roof section of the camper van, indicating a high-top or pop-top conversion." ;
-    ex:confidence "0.95"^^xsd:decimal ;
-    ex:partOf ex:img10_obj_1 .
+# === Object 2: Vehicle (general) ===
+ex:img10_obj_2
+    rdf:type            schema:Thing ;
+    rdfs:label          "vehicle"@en ;
+    skos:altLabel       "automobile"@en ,
+                        "motor vehicle"@en ,
+                        "transport"@en ;
+    schema:category     "vehicle"^^xsd:string ,
+                        "transportation"^^xsd:string ;
+    schema:description  "A motor vehicle present in the scene"@en ;
+    ex:partOf           ex:img_10 ;
+    ex:moreSpecific     ex:img10_obj_1 .
 
-# === Object 3: Windows ===
-ex:img10_obj_3 a schema:Thing ;
-    rdfs:label "Side Windows" ;
-    schema:category "vehicle part" ;
-    schema:description "A row of side windows along the upper body of the van, including a narrow rear window with a dark tint or curtain." ;
-    ex:confidence "0.93"^^xsd:decimal ;
-    ex:partOf ex:img10_obj_1 .
+# === Object 3: Trees (specific) ===
+ex:img10_obj_3
+    rdf:type            schema:Thing ;
+    rdfs:label          "trees"@en ;
+    skos:altLabel       "tree"@en ,
+                        "woodland"@en ,
+                        "greenery"@en ;
+    schema:category     "vegetation"^^xsd:string ,
+                        "plant"^^xsd:string ,
+                        "nature"^^xsd:string ;
+    schema:color        "green"^^xsd:string ;
+    schema:description  "Dense green trees forming a thick backdrop behind the van"@en ;
+    ex:partOf           ex:img_10 ;
+    ex:behind           ex:img10_obj_1 ;
+    ex:above            ex:img10_obj_8 .
 
-# === Object 4: Front wheel ===
-ex:img10_obj_4 a schema:Thing ;
-    rdfs:label "Front Wheel" ;
-    schema:category "vehicle part" ;
-    schema:description "The front wheel of the van with a dark steel rim and black tyre, partially visible." ;
-    ex:confidence "0.92"^^xsd:decimal ;
-    ex:partOf ex:img10_obj_1 ;
-    ex:spatialRelation [
-        schema:name "leftOf" ;
-        schema:value ex:img10_obj_5
-    ] .
+# === Object 4: Windows ===
+ex:img10_obj_4
+    rdf:type            schema:Thing ;
+    rdfs:label          "windows"@en ;
+    skos:altLabel       "window"@en ,
+                        "glass panes"@en ,
+                        "glazing"@en ;
+    schema:category     "vehicle part"^^xsd:string ,
+                        "component"^^xsd:string ;
+    schema:description  "Multiple side windows along the van body, including a rear window"@en ;
+    ex:partOf           ex:img_10 ;
+    ex:componentOf      ex:img10_obj_1 .
 
-# === Object 5: Rear wheel ===
-ex:img10_obj_5 a schema:Thing ;
-    rdfs:label "Rear Wheel" ;
-    schema:category "vehicle part" ;
-    schema:description "The rear wheel of the van with a dark steel rim and black tyre." ;
-    ex:confidence "0.92"^^xsd:decimal ;
-    ex:partOf ex:img10_obj_1 ;
-    ex:spatialRelation [
-        schema:name "rightOf" ;
-        schema:value ex:img10_obj_4
-    ] .
+# === Object 5: Tires ===
+ex:img10_obj_5
+    rdf:type            schema:Thing ;
+    rdfs:label          "tires"@en ;
+    skos:altLabel       "tire"@en ,
+                        "wheels"@en ,
+                        "wheel"@en ,
+                        "tyres"@en ;
+    schema:category     "vehicle part"^^xsd:string ,
+                        "component"^^xsd:string ;
+    schema:color        "black"^^xsd:string ;
+    schema:description  "Black rubber tires visible on the side of the van"@en ;
+    ex:partOf           ex:img_10 ;
+    ex:componentOf      ex:img10_obj_1 ;
+    ex:touches          ex:img10_obj_8 ;
+    ex:below            ex:img10_obj_1 .
 
-# === Object 6: Road surface ===
-ex:img10_obj_6 a schema:Thing ;
-    rdfs:label "Road Surface" ;
-    schema:category "ground" ;
-    schema:description "Dark asphalt road surface on which the van is parked. Appears wet or recently rained on." ;
-    ex:confidence "0.94"^^xsd:decimal ;
-    ex:partOf ex:img_10 ;
-    ex:spatialRelation [
-        schema:name "below" ;
-        schema:value ex:img10_obj_1
-    ] .
+# === Object 6: Roof ===
+ex:img10_obj_6
+    rdf:type            schema:Thing ;
+    rdfs:label          "roof"@en ;
+    skos:altLabel       "van roof"@en ,
+                        "pop-top"@en ,
+                        "rooftop"@en ;
+    schema:category     "vehicle part"^^xsd:string ,
+                        "component"^^xsd:string ;
+    schema:color        "white"^^xsd:string ;
+    schema:description  "White raised roof section on top of the van"@en ;
+    ex:partOf           ex:img_10 ;
+    ex:componentOf      ex:img10_obj_1 ;
+    ex:above            ex:img10_obj_1 .
 
-# === Object 7: Foliage / Trees ===
-ex:img10_obj_7 a schema:Thing ;
-    rdfs:label "Dense Green Foliage" ;
-    schema:category "vegetation" ;
-    schema:color "dark green" ;
-    schema:description "Thick, dense green foliage and trees forming a dark backdrop behind the van." ;
-    ex:confidence "0.93"^^xsd:decimal ;
-    ex:partOf ex:img_10 ;
-    ex:spatialRelation [
-        schema:name "behind" ;
-        schema:value ex:img10_obj_1
-    ] .
+# === Object 7: Rust / Patina ===
+ex:img10_obj_7
+    rdf:type            schema:Thing ;
+    rdfs:label          "rust"@en ;
+    skos:altLabel       "patina"@en ,
+                        "corrosion"@en ,
+                        "oxidation"@en ,
+                        "weathering"@en ;
+    schema:category     "surface condition"^^xsd:string ,
+                        "wear"^^xsd:string ;
+    schema:description  "Visible rust and patina on the lower body panels of the van"@en ;
+    ex:partOf           ex:img_10 ;
+    ex:componentOf      ex:img10_obj_1 ;
+    ex:onSurfaceOf      ex:img10_obj_1 .
 
-# === Object 8: Fallen yellow leaves ===
-ex:img10_obj_8 a schema:Thing ;
-    rdfs:label "Fallen Yellow Leaves" ;
-    schema:category "vegetation" ;
-    schema:color "yellow" ;
-    schema:description "Several small yellow leaves scattered on the road surface around the van, suggesting autumn." ;
-    ex:confidence "0.85"^^xsd:decimal ;
-    ex:partOf ex:img_10 ;
-    ex:spatialRelation [
-        schema:name "on" ;
-        schema:value ex:img10_obj_6
-    ] ;
-    ex:spatialRelation [
-        schema:name "near" ;
-        schema:value ex:img10_obj_1
-    ] .
+# === Object 8: Road surface ===
+ex:img10_obj_8
+    rdf:type            schema:Thing ;
+    rdfs:label          "road"@en ;
+    skos:altLabel       "road surface"@en ,
+                        "pavement"@en ,
+                        "tarmac"@en ,
+                        "asphalt"@en ;
+    schema:category     "ground"^^xsd:string ,
+                        "infrastructure"^^xsd:string ,
+                        "surface"^^xsd:string ;
+    schema:color        "dark grey"^^xsd:string ;
+    schema:description  "Dark asphalt road surface on which the van is parked"@en ;
+    ex:partOf           ex:img_10 ;
+    ex:below            ex:img10_obj_1 ;
+    ex:supports         ex:img10_obj_1 .
 
-# === Object 9: Rust and corrosion patches ===
-ex:img10_obj_9 a schema:Thing ;
-    rdfs:label "Rust and Corrosion Patches" ;
-    schema:category "surface defect" ;
-    schema:description "Widespread rust and paint corrosion across the lower body panels of the van, with exposed bare metal and orange-brown oxidation." ;
-    ex:confidence "0.91"^^xsd:decimal ;
-    ex:partOf ex:img10_obj_1 ;
-    schema:spatialCoverage "lower body panels, wheel arches, door panels" .
+# === Object 9: Foliage (general) ===
+ex:img10_obj_9
+    rdf:type            schema:Thing ;
+    rdfs:label          "foliage"@en ;
+    skos:altLabel       "leaves"@en ,
+                        "vegetation"@en ,
+                        "canopy"@en ,
+                        "greenery"@en ;
+    schema:category     "vegetation"^^xsd:string ,
+                        "nature"^^xsd:string ;
+    schema:color        "green"^^xsd:string ;
+    schema:description  "Dense green foliage covering the trees in the background"@en ;
+    ex:partOf           ex:img_10 ;
+    ex:moreSpecific     ex:img10_obj_3 ;
+    ex:behind           ex:img10_obj_1 .
 
-# === Object 10: Rear window (narrow) ===
-ex:img10_obj_10 a schema:Thing ;
-    rdfs:label "Rear Narrow Window" ;
-    schema:category "vehicle part" ;
-    schema:description "A narrow horizontal window at the rear upper section of the van body, darker than the side windows." ;
-    ex:confidence "0.82"^^xsd:decimal ;
-    ex:partOf ex:img10_obj_1 ;
-    ex:spatialRelation [
-        schema:name "rightOf" ;
-        schema:value ex:img10_obj_3
-    ] .
+# === Object 10: Fallen leaves ===
+ex:img10_obj_10
+    rdf:type            schema:Thing ;
+    rdfs:label          "fallen leaves"@en ;
+    skos:altLabel       "leaf"@en ,
+                        "autumn leaves"@en ,
+                        "dead leaves"@en ;
+    schema:category     "vegetation"^^xsd:string ,
+                        "nature"^^xsd:string ,
+                        "debris"^^xsd:string ;
+    schema:color        "yellow"^^xsd:string ;
+    schema:description  "A few yellow fallen leaves scattered on the road surface near the van"@en ;
+    ex:partOf           ex:img_10 ;
+    ex:onTopOf          ex:img10_obj_8 ;
+    ex:near             ex:img10_obj_1 .
 
-# === Spatial relationships at image level ===
-ex:img10_obj_1 schema:spatialCoverage "center of frame, occupying most of the horizontal extent" .
-ex:img10_obj_7 schema:spatialCoverage "upper background, behind and above the van" .
-ex:img10_obj_6 schema:spatialCoverage "lower portion of frame, beneath the van" .
-ex:img10_obj_8 schema:spatialCoverage "lower left and lower right foreground on the road" .
+# === Object 11: Ground (general) ===
+ex:img10_obj_11
+    rdf:type            schema:Thing ;
+    rdfs:label          "ground"@en ;
+    skos:altLabel       "surface"@en ,
+                        "floor"@en ,
+                        "terrain"@en ;
+    schema:category     "ground"^^xsd:string ,
+                        "surface"^^xsd:string ;
+    schema:description  "The ground surface area visible in the scene"@en ;
+    ex:partOf           ex:img_10 ;
+    ex:moreSpecific     ex:img10_obj_8 ;
+    ex:below            ex:img10_obj_1 .
+
+# === Object 12: Sky ===
+ex:img10_obj_12
+    rdf:type            schema:Thing ;
+    rdfs:label          "sky"@en ;
+    skos:altLabel       "overcast sky"@en ,
+                        "atmosphere"@en ;
+    schema:category     "sky"^^xsd:string ,
+                        "nature"^^xsd:string ,
+                        "background"^^xsd:string ;
+    schema:description  "Overcast sky barely visible above the tree line"@en ;
+    ex:partOf           ex:img_10 ;
+    ex:above            ex:img10_obj_3 ;
+    ex:behind           ex:img10_obj_3 .
+
+# === Object 13: Van body paintwork ===
+ex:img10_obj_13
+    rdf:type            schema:Thing ;
+    rdfs:label          "paintwork"@en ;
+    skos:altLabel       "paint"@en ,
+                        "body paint"@en ,
+                        "finish"@en ,
+                        "coating"@en ;
+    schema:category     "surface condition"^^xsd:string ,
+                        "vehicle part"^^xsd:string ;
+    schema:color        "turquoise"^^xsd:string ;
+    schema:description  "Faded turquoise paintwork on the van body showing age and wear"@en ;
+    ex:partOf           ex:img_10 ;
+    ex:componentOf      ex:img10_obj_1 ;
+    ex:onSurfaceOf      ex:img10_obj_1 .

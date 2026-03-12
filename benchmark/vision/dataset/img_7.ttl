@@ -1,157 +1,251 @@
-@prefix ex: <http://example.org/image/> .
+@prefix ex:     <http://example.org/image/> .
 @prefix schema: <http://schema.org/> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
 
-# === Image node ===
+# ── Image node ──────────────────────────────────────────────────────────
 ex:img_7
-    rdf:type schema:ImageObject ;
-    schema:description "Aerial photograph of a coastal landscape showing a deep blue ocean, sandy beach, eroded sandstone cliffs, a golf course with manicured green fairways, residential neighborhoods with houses and roads, and hillside vegetation. The viewpoint is from high altitude looking down at an oblique angle." ;
-    schema:keywords "aerial view, coastline, ocean, beach, cliffs, golf course, residential area, California coast, landscape, bird's-eye view" .
+    rdf:type        schema:ImageObject ;
+    rdfs:label      "Aerial view of coastal landscape with ocean, beach, cliffs and residential areas" ;
+    schema:description "Bird's-eye aerial photograph looking down at a curved coastline where turquoise-to-deep-blue ocean meets a sandy beach, backed by eroded coastal bluffs, residential developments, and scattered vegetation." ;
+    schema:contentLocation "Southern California coast" ;
+    ex:viewpoint    "aerial" ;
+    ex:hasObject    ex:img7_obj_1 , ex:img7_obj_2 , ex:img7_obj_3 ,
+                    ex:img7_obj_4 , ex:img7_obj_5 , ex:img7_obj_6 ,
+                    ex:img7_obj_7 , ex:img7_obj_8 , ex:img7_obj_9 ,
+                    ex:img7_obj_10 , ex:img7_obj_11 , ex:img7_obj_12 ,
+                    ex:img7_obj_13 , ex:img7_obj_14 , ex:img7_obj_15 ,
+                    ex:img7_obj_16 , ex:img7_obj_17 , ex:img7_obj_18 ,
+                    ex:img7_obj_19 , ex:img7_obj_20 .
 
-# === Object: Ocean ===
+# ── obj 1: Ocean ────────────────────────────────────────────────────────
 ex:img7_obj_1
-    rdf:type schema:BodyOfWater ;
-    rdfs:label "Ocean"@en ;
+    rdf:type        schema:BodyOfWater ;
+    rdfs:label      "Ocean"@en ;
+    skos:altLabel   "sea"@en , "open water"@en , "Pacific Ocean"@en ;
     schema:category "water body" ;
-    schema:description "Deep blue ocean occupying the lower-left and bottom portions of the image, with darker tones in deep water transitioning to turquoise near the shore" ;
-    ex:confidence "0.98"^^xsd:decimal ;
-    ex:spatialRelation [
-        rdfs:label "adjacent to beach" ;
-        schema:spatialCoverage ex:img7_obj_2
-    ] ;
-    ex:spatialRelation [
-        rdfs:label "below cliffs" ;
-        schema:spatialCoverage ex:img7_obj_3
-    ] .
+    ex:confidence   "0.98"^^xsd:decimal ;
+    ex:dominantColor "deep blue, turquoise" ;
+    ex:spatialRegion "lower-left and lower-right, occupying roughly half the image" ;
+    ex:adjacentTo   ex:img7_obj_2 , ex:img7_obj_3 ;
+    ex:contains     ex:img7_obj_16 .
 
-# === Object: Sandy Beach ===
+# ── obj 2: Beach ────────────────────────────────────────────────────────
 ex:img7_obj_2
-    rdf:type schema:Beach ;
-    rdfs:label "Sandy Beach"@en ;
+    rdf:type        schema:Beach ;
+    rdfs:label      "Sandy beach"@en ;
+    skos:altLabel   "beach"@en , "sand"@en , "shoreline"@en , "strand"@en ;
     schema:category "landform" ;
-    schema:description "Curved sandy beach forming a crescent shape along the shoreline, with pale sand visible between the ocean and the base of the cliffs" ;
-    ex:confidence "0.96"^^xsd:decimal ;
-    ex:spatialRelation [
-        rdfs:label "between ocean and cliffs" ;
-        schema:spatialCoverage ex:img7_obj_1 ,
-                               ex:img7_obj_3
-    ] .
+    ex:confidence   "0.97"^^xsd:decimal ;
+    ex:dominantColor "light tan, white" ;
+    ex:spatialRegion "curved arc at centre of image where land meets water" ;
+    ex:adjacentTo   ex:img7_obj_1 , ex:img7_obj_4 , ex:img7_obj_3 ;
+    ex:partOf       ex:img7_obj_3 .
 
-# === Object: Sandstone Cliffs ===
+# ── obj 3: Coastline (general) ──────────────────────────────────────────
 ex:img7_obj_3
-    rdf:type schema:Landform ;
-    rdfs:label "Sandstone Cliffs"@en ;
-    schema:category "geological formation" ;
-    schema:description "Eroded tan and brown sandstone bluffs rising steeply from the beach, with visible geological layering and erosion patterns running across the center of the image" ;
-    ex:confidence "0.94"^^xsd:decimal ;
-    ex:spatialRelation [
-        rdfs:label "above beach" ;
-        schema:spatialCoverage ex:img7_obj_2
-    ] ;
-    ex:spatialRelation [
-        rdfs:label "below residential area" ;
-        schema:spatialCoverage ex:img7_obj_5
-    ] .
+    rdf:type        schema:Place ;
+    rdfs:label      "Coastline"@en ;
+    skos:altLabel   "coast"@en , "shoreline"@en , "seashore"@en , "waterfront"@en ;
+    schema:category "geographic feature" ;
+    ex:confidence   "0.97"^^xsd:decimal ;
+    ex:spatialRegion "boundary running from upper-left to lower-right where land meets ocean" ;
+    ex:adjacentTo   ex:img7_obj_1 , ex:img7_obj_2 ;
+    ex:contains     ex:img7_obj_2 , ex:img7_obj_4 .
 
-# === Object: Golf Course ===
+# ── obj 4: Coastal bluffs / cliffs ──────────────────────────────────────
 ex:img7_obj_4
-    rdf:type schema:GolfCourse ;
-    rdfs:label "Golf Course"@en ;
-    schema:category "recreational facility" ;
-    schema:description "Manicured golf course with bright green fairways and landscaped areas visible on the coastal terrace near the cliff edge, at the right-center of the image" ;
-    ex:confidence "0.88"^^xsd:decimal ;
-    ex:spatialRelation [
-        rdfs:label "adjacent to cliffs" ;
-        schema:spatialCoverage ex:img7_obj_3
-    ] ;
-    ex:spatialRelation [
-        rdfs:label "adjacent to residential area" ;
-        schema:spatialCoverage ex:img7_obj_5
-    ] .
+    rdf:type        schema:Landform ;
+    rdfs:label      "Coastal bluffs"@en ;
+    skos:altLabel   "cliffs"@en , "sea cliffs"@en , "eroded bluffs"@en , "escarpment"@en ;
+    schema:category "landform" ;
+    ex:confidence   "0.95"^^xsd:decimal ;
+    ex:dominantColor "brown, tan, grey" ;
+    ex:spatialRegion "steep terrain rising above the beach in upper-centre of image" ;
+    ex:adjacentTo   ex:img7_obj_2 , ex:img7_obj_5 , ex:img7_obj_7 ;
+    ex:above        ex:img7_obj_2 ;
+    ex:partOf       ex:img7_obj_3 .
 
-# === Object: Residential Area ===
+# ── obj 5: Residential area (upper) ────────────────────────────────────
 ex:img7_obj_5
-    rdf:type schema:Residence ;
-    rdfs:label "Residential Neighborhood"@en ;
+    rdf:type        schema:Residence ;
+    rdfs:label      "Residential neighbourhood"@en ;
+    skos:altLabel   "houses"@en , "housing development"@en , "suburb"@en , "neighbourhood"@en ;
     schema:category "built environment" ;
-    schema:description "Suburban residential neighborhoods with houses, streets, and driveways spread across the upper portion of the image, extending inland from the cliff tops" ;
-    ex:confidence "0.93"^^xsd:decimal ;
-    ex:spatialRelation [
-        rdfs:label "above cliffs" ;
-        schema:spatialCoverage ex:img7_obj_3
-    ] ;
-    ex:spatialRelation [
-        rdfs:label "interspersed with vegetation" ;
-        schema:spatialCoverage ex:img7_obj_6
-    ] .
+    ex:confidence   "0.93"^^xsd:decimal ;
+    ex:spatialRegion "upper portion of image, spread across plateau above the bluffs" ;
+    ex:adjacentTo   ex:img7_obj_4 , ex:img7_obj_7 , ex:img7_obj_9 ;
+    ex:above        ex:img7_obj_4 ;
+    ex:contains     ex:img7_obj_6 , ex:img7_obj_10 .
 
-# === Object: Hillside Vegetation ===
+# ── obj 6: Buildings ────────────────────────────────────────────────────
 ex:img7_obj_6
-    rdf:type schema:Landform ;
-    rdfs:label "Hillside Vegetation"@en ;
-    schema:category "natural vegetation" ;
-    schema:description "Patches of green and brown vegetation covering the hillsides and canyon areas between residential developments, including scrubland and scattered trees" ;
-    ex:confidence "0.90"^^xsd:decimal ;
-    ex:spatialRelation [
-        rdfs:label "on cliffs and hillsides" ;
-        schema:spatialCoverage ex:img7_obj_3
-    ] ;
-    ex:spatialRelation [
-        rdfs:label "between residential areas" ;
-        schema:spatialCoverage ex:img7_obj_5
-    ] .
+    rdf:type        schema:House ;
+    rdfs:label      "Buildings"@en ;
+    skos:altLabel   "houses"@en , "structures"@en , "dwellings"@en , "rooftops"@en ;
+    schema:category "built environment" ;
+    ex:confidence   "0.90"^^xsd:decimal ;
+    ex:spatialRegion "scattered across upper third and centre-right of image" ;
+    ex:partOf       ex:img7_obj_5 ;
+    ex:surroundedBy ex:img7_obj_7 .
 
-# === Object: Shallow Water / Surf Zone ===
+# ── obj 7: Vegetation ──────────────────────────────────────────────────
 ex:img7_obj_7
-    rdf:type schema:BodyOfWater ;
-    rdfs:label "Shallow Water Zone"@en ;
-    schema:category "water body" ;
-    schema:description "Turquoise and light-colored shallow water zone near the shoreline where the ocean floor is visible through the water, with possible sediment plumes" ;
-    ex:confidence "0.91"^^xsd:decimal ;
-    ex:spatialRelation [
-        rdfs:label "between deep ocean and beach" ;
-        schema:spatialCoverage ex:img7_obj_1 ,
-                               ex:img7_obj_2
-    ] .
+    rdf:type        schema:Place ;
+    rdfs:label      "Vegetation"@en ;
+    skos:altLabel   "trees"@en , "greenery"@en , "shrubs"@en , "plant cover"@en , "foliage"@en ;
+    schema:category "natural feature" ;
+    ex:confidence   "0.92"^^xsd:decimal ;
+    ex:dominantColor "green, dark green" ;
+    ex:spatialRegion "patches throughout upper half, concentrated around residential areas" ;
+    ex:adjacentTo   ex:img7_obj_5 , ex:img7_obj_4 ;
+    ex:contains     ex:img7_obj_8 .
 
-# === Object: Roads ===
+# ── obj 8: Trees ────────────────────────────────────────────────────────
 ex:img7_obj_8
-    rdf:type schema:Road ;
-    rdfs:label "Roads"@en ;
-    schema:category "infrastructure" ;
-    schema:description "Network of roads and streets winding through the residential areas and along the cliff tops, visible as grey lines in the upper portion of the image" ;
-    ex:confidence "0.85"^^xsd:decimal ;
-    ex:spatialRelation [
-        rdfs:label "within residential area" ;
-        schema:spatialCoverage ex:img7_obj_5
-    ] .
+    rdf:type        schema:Place ;
+    rdfs:label      "Trees"@en ;
+    skos:altLabel   "tree canopy"@en , "woodland"@en , "tree cover"@en ;
+    schema:category "natural feature" ;
+    ex:confidence   "0.88"^^xsd:decimal ;
+    ex:dominantColor "dark green" ;
+    ex:spatialRegion "clusters visible in upper portion among buildings" ;
+    ex:partOf       ex:img7_obj_7 .
 
-# === Object: Small Vessel ===
+# ── obj 9: Roads ────────────────────────────────────────────────────────
 ex:img7_obj_9
-    rdf:type schema:Vehicle ;
-    rdfs:label "Small Vessel"@en ;
-    schema:category "watercraft" ;
-    schema:description "A small white object on the ocean surface, likely a boat, visible in the lower-center area of the image near the shallow water zone" ;
-    ex:confidence "0.62"^^xsd:decimal ;
-    ex:spatialRelation [
-        rdfs:label "on ocean surface" ;
-        schema:spatialCoverage ex:img7_obj_1
-    ] .
+    rdf:type        schema:Place ;
+    rdfs:label      "Roads"@en ;
+    skos:altLabel   "streets"@en , "road network"@en , "paved roads"@en ;
+    schema:category "infrastructure" ;
+    ex:confidence   "0.85"^^xsd:decimal ;
+    ex:dominantColor "grey" ;
+    ex:spatialRegion "winding through the residential area in upper portion" ;
+    ex:partOf       ex:img7_obj_5 ;
+    ex:connectsTo   ex:img7_obj_6 .
 
-# === Object: Canyon / Ravine ===
+# ── obj 10: Developed land / lots ───────────────────────────────────────
 ex:img7_obj_10
-    rdf:type schema:Landform ;
-    rdfs:label "Coastal Canyon"@en ;
-    schema:category "geological formation" ;
-    schema:description "A canyon or ravine cutting through the cliffs from the residential area down toward the beach, visible as a darker indentation in the cliff face" ;
-    ex:confidence "0.82"^^xsd:decimal ;
-    ex:spatialRelation [
-        rdfs:label "cutting through cliffs" ;
-        schema:spatialCoverage ex:img7_obj_3
-    ] ;
-    ex:spatialRelation [
-        rdfs:label "leading to beach" ;
-        schema:spatialCoverage ex:img7_obj_2
-    ] .
+    rdf:type        schema:Place ;
+    rdfs:label      "Developed land"@en ;
+    skos:altLabel   "housing lots"@en , "parcels"@en , "residential plots"@en ;
+    schema:category "land use" ;
+    ex:confidence   "0.85"^^xsd:decimal ;
+    ex:spatialRegion "grid-like pattern visible in upper part of image" ;
+    ex:partOf       ex:img7_obj_5 .
+
+# ── obj 11: Coastal development (lower bluff) ──────────────────────────
+ex:img7_obj_11
+    rdf:type        schema:Place ;
+    rdfs:label      "Coastal development"@en ;
+    skos:altLabel   "beachside properties"@en , "coastal resort"@en , "waterfront community"@en ;
+    schema:category "built environment" ;
+    ex:confidence   "0.88"^^xsd:decimal ;
+    ex:spatialRegion "centre-right, cluster of buildings on lower terraces near the beach" ;
+    ex:adjacentTo   ex:img7_obj_2 , ex:img7_obj_4 ;
+    ex:below        ex:img7_obj_4 .
+
+# ── obj 12: Turquoise shallow water ────────────────────────────────────
+ex:img7_obj_12
+    rdf:type        schema:BodyOfWater ;
+    rdfs:label      "Shallow water"@en ;
+    skos:altLabel   "turquoise water"@en , "nearshore water"@en , "shallows"@en ;
+    schema:category "water body" ;
+    ex:confidence   "0.94"^^xsd:decimal ;
+    ex:dominantColor "turquoise, light blue-green" ;
+    ex:spatialRegion "band of lighter water immediately adjacent to beach" ;
+    ex:adjacentTo   ex:img7_obj_2 ;
+    ex:partOf       ex:img7_obj_1 .
+
+# ── obj 13: Deep ocean water ───────────────────────────────────────────
+ex:img7_obj_13
+    rdf:type        schema:BodyOfWater ;
+    rdfs:label      "Deep water"@en ;
+    skos:altLabel   "deep ocean"@en , "open sea"@en , "offshore water"@en ;
+    schema:category "water body" ;
+    ex:confidence   "0.96"^^xsd:decimal ;
+    ex:dominantColor "dark blue, navy" ;
+    ex:spatialRegion "lower-left corner extending to bottom of image" ;
+    ex:partOf       ex:img7_obj_1 ;
+    ex:adjacentTo   ex:img7_obj_12 .
+
+# ── obj 14: Sediment plume ─────────────────────────────────────────────
+ex:img7_obj_14
+    rdf:type        schema:Place ;
+    rdfs:label      "Sediment plume"@en ;
+    skos:altLabel   "turbid water"@en , "runoff plume"@en , "discoloured water"@en ;
+    schema:category "natural phenomenon" ;
+    ex:confidence   "0.82"^^xsd:decimal ;
+    ex:dominantColor "brownish-green" ;
+    ex:spatialRegion "visible in nearshore water as lighter brown-green patch" ;
+    ex:partOf       ex:img7_obj_12 ;
+    ex:adjacentTo   ex:img7_obj_2 .
+
+# ── obj 15: Golf course / manicured lawns ──────────────────────────────
+ex:img7_obj_15
+    rdf:type        schema:GolfCourse ;
+    rdfs:label      "Golf course"@en ;
+    skos:altLabel   "manicured grounds"@en , "green lawns"@en , "links"@en ;
+    schema:category "recreation" ;
+    ex:confidence   "0.80"^^xsd:decimal ;
+    ex:dominantColor "bright green" ;
+    ex:spatialRegion "centre-right area, distinct green patches near coastal development" ;
+    ex:adjacentTo   ex:img7_obj_11 , ex:img7_obj_4 .
+
+# ── obj 16: Boat / vessel ──────────────────────────────────────────────
+ex:img7_obj_16
+    rdf:type        schema:Vehicle ;
+    rdfs:label      "Boat"@en ;
+    skos:altLabel   "vessel"@en , "watercraft"@en , "ship"@en ;
+    schema:category "vehicle" ;
+    ex:confidence   "0.72"^^xsd:decimal ;
+    ex:spatialRegion "small white speck on the water near the beach" ;
+    ex:partOf       ex:img7_obj_1 ;
+    ex:near         ex:img7_obj_2 .
+
+# ── obj 17: Terrain / hillside ─────────────────────────────────────────
+ex:img7_obj_17
+    rdf:type        schema:Landform ;
+    rdfs:label      "Hillside terrain"@en ;
+    skos:altLabel   "terrain"@en , "hillside"@en , "slopes"@en , "ridgeline"@en ;
+    schema:category "landform" ;
+    ex:confidence   "0.90"^^xsd:decimal ;
+    ex:dominantColor "brown, tan" ;
+    ex:spatialRegion "upper-centre, rising terrain between coast and residential plateau" ;
+    ex:adjacentTo   ex:img7_obj_4 , ex:img7_obj_5 ;
+    ex:contains     ex:img7_obj_18 .
+
+# ── obj 18: Bare / eroded ground ───────────────────────────────────────
+ex:img7_obj_18
+    rdf:type        schema:Place ;
+    rdfs:label      "Bare ground"@en ;
+    skos:altLabel   "eroded soil"@en , "exposed earth"@en , "arid land"@en ;
+    schema:category "natural feature" ;
+    ex:confidence   "0.87"^^xsd:decimal ;
+    ex:dominantColor "tan, light brown" ;
+    ex:spatialRegion "patches on the bluffs and hillside with no vegetation" ;
+    ex:partOf       ex:img7_obj_17 .
+
+# ── obj 19: Cove / bay ────────────────────────────────────────────────
+ex:img7_obj_19
+    rdf:type        schema:BodyOfWater ;
+    rdfs:label      "Cove"@en ;
+    skos:altLabel   "bay"@en , "inlet"@en , "embayment"@en ;
+    schema:category "geographic feature" ;
+    ex:confidence   "0.85"^^xsd:decimal ;
+    ex:spatialRegion "curved indentation of water along the beach arc" ;
+    ex:partOf       ex:img7_obj_1 ;
+    ex:adjacentTo   ex:img7_obj_2 , ex:img7_obj_3 ;
+    ex:contains     ex:img7_obj_12 .
+
+# ── obj 20: Sky / atmosphere ───────────────────────────────────────────
+ex:img7_obj_20
+    rdf:type        schema:Place ;
+    rdfs:label      "Atmosphere"@en ;
+    skos:altLabel   "sky"@en , "haze"@en , "aerial haze"@en ;
+    schema:category "atmosphere" ;
+    ex:confidence   "0.75"^^xsd:decimal ;
+    ex:spatialRegion "slight haze visible at upper edges of image" ;
+    ex:above        ex:img7_obj_5 , ex:img7_obj_17 .

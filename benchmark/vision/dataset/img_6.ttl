@@ -1,105 +1,162 @@
-@prefix ex: <http://example.org/image/> .
+@prefix ex:     <http://example.org/image/> .
 @prefix schema: <http://schema.org/> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
 
 # === Image Node ===
-ex:img_6 a schema:ImageObject ;
-    schema:description "Two people paddling a canoe on calm, misty water. The scene is enveloped in fog, giving a muted teal-green tone. The still water produces a near-perfect mirror reflection of the canoe and its occupants." ;
-    schema:keywords "canoe", "paddling", "lake", "fog", "mist", "reflection", "water", "outdoor recreation", "teal", "calm" .
+ex:img_6
+    a                schema:ImageObject ;
+    rdfs:label       "Two paddlers in a canoe on misty calm water" ;
+    schema:description "Two people sitting in a canoe on very calm, teal-green water in foggy conditions, with their reflections clearly visible on the water surface" ;
+    schema:keywords  "canoe" , "paddling" , "mist" , "fog" , "calm water" , "reflection" ;
+    ex:hasObject     ex:img6_obj_1 , ex:img6_obj_2 , ex:img6_obj_3 ,
+                     ex:img6_obj_4 , ex:img6_obj_5 , ex:img6_obj_6 ,
+                     ex:img6_obj_7 , ex:img6_obj_8 , ex:img6_obj_9 ,
+                     ex:img6_obj_10 , ex:img6_obj_11 , ex:img6_obj_12 .
 
-# === Object: Canoe ===
-ex:img6_obj_1 a schema:Product ;
-    rdf:type ex:Watercraft ;
-    rdfs:label "Canoe" ;
-    schema:category "Watercraft" ;
-    schema:description "A green open-top canoe carrying two passengers, positioned centrally in the frame" ;
-    ex:confidence "0.97"^^xsd:decimal ;
-    schema:spatialCoverage "center of image, horizontal midline" ;
-    ex:spatialRelation ex:img6_obj_5 ;
-    ex:relationDescription "floating on the lake surface" .
+# === Object 1: Canoe ===
+ex:img6_obj_1
+    a                schema:Thing ;
+    rdfs:label       "canoe"@en ;
+    skos:altLabel    "boat"@en , "watercraft"@en , "vessel"@en ;
+    schema:category  "watercraft" ;
+    ex:confidence    "0.98"^^xsd:decimal ;
+    ex:color         "green" ;
+    ex:position      "center" ;
+    ex:contains      ex:img6_obj_2 , ex:img6_obj_3 .
 
-# === Object: Person in stern (rear) ===
-ex:img6_obj_2 a schema:Person ;
-    rdfs:label "Stern paddler" ;
-    schema:category "Person" ;
-    schema:description "Person seated at the rear of the canoe, wearing a teal or dark green hooded jacket. Holding a paddle but not actively stroking." ;
-    ex:confidence "0.95"^^xsd:decimal ;
-    schema:spatialCoverage "right-center of image, seated in rear of canoe" ;
-    ex:spatialRelation ex:img6_obj_1 ;
-    ex:relationDescription "seated inside the canoe at the stern" .
+# === Object 2: Front paddler ===
+ex:img6_obj_2
+    a                schema:Person ;
+    rdfs:label       "front paddler"@en ;
+    skos:altLabel    "bow paddler"@en , "forward canoeist"@en ;
+    schema:category  "person" ;
+    ex:confidence    "0.95"^^xsd:decimal ;
+    ex:position      "center-left" ;
+    ex:action        "paddling" ;
+    ex:holds         ex:img6_obj_5 ;
+    ex:sitsIn        ex:img6_obj_1 ;
+    ex:inFrontOf     ex:img6_obj_3 .
 
-# === Object: Person in bow (front) ===
-ex:img6_obj_3 a schema:Person ;
-    rdfs:label "Bow paddler" ;
-    schema:category "Person" ;
-    schema:description "Person seated at the front of the canoe, wearing a light blue-green top and a hat or cap. Actively raising an orange-bladed paddle." ;
-    ex:confidence "0.95"^^xsd:decimal ;
-    schema:spatialCoverage "left-center of image, seated in front of canoe" ;
-    ex:spatialRelation ex:img6_obj_1 ;
-    ex:relationDescription "seated inside the canoe at the bow" .
+# === Object 3: Rear paddler ===
+ex:img6_obj_3
+    a                schema:Person ;
+    rdfs:label       "rear paddler"@en ;
+    skos:altLabel    "stern paddler"@en , "rear canoeist"@en ;
+    schema:category  "person" ;
+    ex:confidence    "0.95"^^xsd:decimal ;
+    ex:position      "center-right" ;
+    ex:action        "sitting" ;
+    ex:sitsIn        ex:img6_obj_1 ;
+    ex:behind        ex:img6_obj_2 .
 
-# === Object: Paddle with orange blade ===
-ex:img6_obj_4 a schema:Product ;
-    rdf:type ex:PaddlingEquipment ;
-    rdfs:label "Canoe paddle" ;
-    schema:category "Sports Equipment" ;
-    schema:description "A canoe paddle with a bright orange blade, held raised by the bow paddler" ;
-    ex:confidence "0.93"^^xsd:decimal ;
-    schema:spatialCoverage "left-center, above canoe, angled upward" ;
-    ex:spatialRelation ex:img6_obj_3 ;
-    ex:relationDescription "held by the bow paddler" .
+# === Object 4: People (general group) ===
+ex:img6_obj_4
+    a                schema:Thing ;
+    rdfs:label       "people"@en ;
+    skos:altLabel    "paddlers"@en , "canoeists"@en , "persons"@en ;
+    schema:category  "group" ;
+    ex:confidence    "0.97"^^xsd:decimal ;
+    ex:memberCount   "2"^^xsd:integer ;
+    ex:hasMember     ex:img6_obj_2 , ex:img6_obj_3 ;
+    ex:onTopOf       ex:img6_obj_1 .
 
-# === Object: Lake / Water body ===
-ex:img6_obj_5 a schema:Place ;
-    rdf:type ex:WaterBody ;
-    rdfs:label "Lake" ;
-    schema:category "Natural Water Body" ;
-    schema:description "A calm lake with very still, teal-green water filling the lower two-thirds of the image. The surface is glassy and produces clear reflections." ;
-    ex:confidence "0.98"^^xsd:decimal ;
-    schema:spatialCoverage "lower two-thirds of image" .
+# === Object 5: Paddle ===
+ex:img6_obj_5
+    a                schema:Thing ;
+    rdfs:label       "paddle"@en ;
+    skos:altLabel    "oar"@en , "canoe paddle"@en ;
+    schema:category  "equipment" ;
+    ex:confidence    "0.96"^^xsd:decimal ;
+    ex:color         "orange blade with dark shaft" ;
+    ex:position      "center-left" ;
+    ex:heldBy        ex:img6_obj_2 .
 
-# === Object: Fog / Mist ===
-ex:img6_obj_6 a schema:Place ;
-    rdf:type ex:AtmosphericCondition ;
-    rdfs:label "Fog" ;
-    schema:category "Weather Condition" ;
-    schema:description "Dense fog or mist obscuring the background and horizon, giving the scene a flat grey-white sky and limited visibility" ;
-    ex:confidence "0.96"^^xsd:decimal ;
-    schema:spatialCoverage "upper third of image and background" ;
-    ex:spatialRelation ex:img6_obj_5 ;
-    ex:relationDescription "hanging above the lake surface" .
+# === Object 6: Water ===
+ex:img6_obj_6
+    a                schema:Thing ;
+    rdfs:label       "water"@en ;
+    skos:altLabel    "lake"@en , "calm water"@en , "body of water"@en ;
+    schema:category  "natural element" ;
+    ex:confidence    "0.99"^^xsd:decimal ;
+    ex:color         "teal-green" ;
+    ex:state         "calm" ;
+    ex:position      "foreground and below" ;
+    ex:supports      ex:img6_obj_1 ;
+    ex:reflects      ex:img6_obj_1 , ex:img6_obj_2 , ex:img6_obj_3 .
 
-# === Object: Reflection on water ===
-ex:img6_obj_7 a schema:CreativeWork ;
-    rdf:type ex:Reflection ;
-    rdfs:label "Water reflection" ;
-    schema:category "Optical Phenomenon" ;
-    schema:description "A near-perfect mirror reflection of the canoe and both paddlers visible on the still water surface directly below them" ;
-    ex:confidence "0.92"^^xsd:decimal ;
-    schema:spatialCoverage "lower-center of image, beneath the canoe" ;
-    ex:spatialRelation ex:img6_obj_1 ;
-    ex:relationDescription "mirror image of the canoe reflected on the water surface" ;
-    ex:spatialRelation ex:img6_obj_5 ;
-    ex:relationDescription "visible on the lake surface" .
+# === Object 7: Mist / Fog ===
+ex:img6_obj_7
+    a                schema:Thing ;
+    rdfs:label       "mist"@en ;
+    skos:altLabel    "fog"@en , "haze"@en ;
+    schema:category  "weather condition" ;
+    ex:confidence    "0.97"^^xsd:decimal ;
+    ex:position      "background" ;
+    ex:obscures      ex:img6_obj_9 ;
+    ex:surrounds     ex:img6_obj_1 , ex:img6_obj_2 , ex:img6_obj_3 .
 
-# === Spatial relationships between people ===
-ex:img6_obj_2 ex:spatialRelation ex:img6_obj_3 ;
-    ex:relationDescription "sitting behind the bow paddler in the same canoe" .
+# === Object 8: Reflection ===
+ex:img6_obj_8
+    a                schema:Thing ;
+    rdfs:label       "reflection"@en ;
+    skos:altLabel    "water reflection"@en , "mirror image"@en ;
+    schema:category  "visual phenomenon" ;
+    ex:confidence    "0.94"^^xsd:decimal ;
+    ex:position      "below center" ;
+    ex:reflectionOf  ex:img6_obj_1 , ex:img6_obj_2 , ex:img6_obj_3 ;
+    ex:visibleOn     ex:img6_obj_6 .
 
-ex:img6_obj_3 ex:spatialRelation ex:img6_obj_2 ;
-    ex:relationDescription "sitting in front of the stern paddler in the same canoe" .
+# === Object 9: Sky ===
+ex:img6_obj_9
+    a                schema:Thing ;
+    rdfs:label       "sky"@en ;
+    skos:altLabel    "overcast sky"@en , "foggy sky"@en ;
+    schema:category  "natural element" ;
+    ex:confidence    "0.90"^^xsd:decimal ;
+    ex:color         "grey-white" ;
+    ex:state         "overcast" ;
+    ex:position      "top" ;
+    ex:above         ex:img6_obj_6 .
 
-# === Canoe on the water ===
-ex:img6_obj_1 ex:spatialRelation ex:img6_obj_5 ;
-    ex:relationDescription "floating on the lake surface" .
+# === Object 10: Horizon ===
+ex:img6_obj_10
+    a                schema:Thing ;
+    rdfs:label       "horizon"@en ;
+    skos:altLabel    "horizon line"@en , "waterline"@en ;
+    schema:category  "spatial feature" ;
+    ex:confidence    "0.85"^^xsd:decimal ;
+    ex:position      "center background" ;
+    ex:obscuredBy    ex:img6_obj_7 ;
+    ex:separates     ex:img6_obj_6 , ex:img6_obj_9 .
 
-# === Image contains all objects ===
-ex:img_6 schema:about ex:img6_obj_1 ,
-    ex:img6_obj_2 ,
-    ex:img6_obj_3 ,
-    ex:img6_obj_4 ,
-    ex:img6_obj_5 ,
-    ex:img6_obj_6 ,
-    ex:img6_obj_7 .
+# === Object 11: Outdoor clothing ===
+ex:img6_obj_11
+    a                schema:Thing ;
+    rdfs:label       "outdoor clothing"@en ;
+    skos:altLabel    "jackets"@en , "rain gear"@en , "waterproof clothing"@en ;
+    schema:category  "clothing" ;
+    ex:confidence    "0.92"^^xsd:decimal ;
+    ex:color         "teal-green" ;
+    ex:wornBy        ex:img6_obj_2 , ex:img6_obj_3 .
+
+# === Object 12: Hats ===
+ex:img6_obj_12
+    a                schema:Thing ;
+    rdfs:label       "hat"@en ;
+    skos:altLabel    "cap"@en , "headwear"@en ;
+    schema:category  "clothing" ;
+    ex:confidence    "0.88"^^xsd:decimal ;
+    ex:wornBy        ex:img6_obj_2 , ex:img6_obj_3 .
+
+# === Spatial relationships ===
+ex:img6_obj_1  ex:floatsOn     ex:img6_obj_6 .
+ex:img6_obj_1  ex:surroundedBy ex:img6_obj_7 .
+ex:img6_obj_2  ex:leftOf       ex:img6_obj_3 .
+ex:img6_obj_3  ex:rightOf      ex:img6_obj_2 .
+ex:img6_obj_5  ex:above        ex:img6_obj_6 .
+ex:img6_obj_7  ex:above        ex:img6_obj_6 .
+ex:img6_obj_8  ex:below        ex:img6_obj_1 .
+ex:img6_obj_9  ex:behind       ex:img6_obj_7 .

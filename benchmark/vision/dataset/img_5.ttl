@@ -1,106 +1,279 @@
 @prefix ex: <http://example.org/image/> .
 @prefix schema: <http://schema.org/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 # === Image node ===
+
 ex:img_5 a schema:ImageObject ;
-    schema:description "A low-angle close-up photograph of a weathered wooden boardwalk with planks receding into the distance, a clear blue sky above, and blurred buildings including a cylindrical tower structure visible on the horizon." ;
+    schema:name "Low-angle boardwalk photograph with buildings in background" ;
+    schema:description "A close-up, low-angle photograph taken from the surface of a wooden boardwalk. Weathered wood planks recede into the distance under a clear blue sky. Blurred buildings and a cylindrical tower are visible in the background." ;
     schema:keywords "boardwalk, wooden deck, planks, sky, buildings, tower, shallow depth of field, outdoor, waterfront" ;
     schema:contentUrl "img_5.jpg" ;
-    ex:hasObject ex:img5_obj_1 ,
-                 ex:img5_obj_2 ,
-                 ex:img5_obj_3 ,
-                 ex:img5_obj_4 ,
-                 ex:img5_obj_5 ,
-                 ex:img5_obj_6 .
+    ex:hasObject ex:img5_obj_1 , ex:img5_obj_2 , ex:img5_obj_3 , ex:img5_obj_4 ,
+                 ex:img5_obj_5 , ex:img5_obj_6 , ex:img5_obj_7 , ex:img5_obj_8 ,
+                 ex:img5_obj_9 , ex:img5_obj_10 , ex:img5_obj_11 , ex:img5_obj_12 ,
+                 ex:img5_obj_13 , ex:img5_obj_14 , ex:img5_obj_15 , ex:img5_obj_16 ,
+                 ex:img5_obj_17 , ex:img5_obj_18 ;
+    ex:dominantColors "tan, light brown, sky blue" ;
+    ex:photographicTechnique "low-angle close-up with shallow depth of field" ;
+    ex:setting "outdoor, waterfront area" ;
+    ex:timeOfDay "daytime" ;
+    ex:weather "clear" .
 
-# === Object 1: Wooden boardwalk surface ===
+# === Object 1: Boardwalk ===
+
 ex:img5_obj_1 a schema:Thing ;
-    rdf:type ex:PhysicalObject ;
-    rdfs:label "Wooden boardwalk surface" ;
-    schema:category "Structure" ;
-    schema:material "Wood" ;
-    ex:confidence "0.98"^^xsd:decimal ;
+    rdfs:label "boardwalk" ;
+    skos:altLabel "walkway" , "promenade" , "pier" , "wooden walkway" , "waterfront boardwalk" , "deck" ;
+    schema:category "structure" , "walkway" , "outdoor structure" ;
+    schema:description "A long wooden boardwalk stretching into the distance, made of weathered planks, occupying the lower two-thirds of the image." ;
+    ex:confidence "0.97"^^xsd:float ;
+    ex:material "wood" ;
+    ex:condition "weathered" ;
     ex:dominatesFrame true ;
-    schema:description "Weathered wooden planks forming a boardwalk or deck, seen from a very low angle with visible grain, gaps between planks, and surface wear." ;
-    schema:spatialCoverage "foreground, lower two-thirds of frame" .
+    ex:regionBox "0.0,0.35,1.0,1.0" ;
+    ex:hasPart ex:img5_obj_2 , ex:img5_obj_3 , ex:img5_obj_4 , ex:img5_obj_5 .
 
-# === Object 2: Wooden planks (individual) ===
+# === Object 2: Wood planks ===
+
 ex:img5_obj_2 a schema:Thing ;
-    rdf:type ex:PhysicalObject ;
-    rdfs:label "Wooden planks" ;
-    schema:category "Component" ;
-    ex:confidence "0.97"^^xsd:decimal ;
-    schema:description "Individual horizontal wooden planks with visible grain texture, small cracks, and debris in the gaps between them." ;
-    schema:spatialCoverage "foreground, extending toward midground" ;
-    ex:spatialRelation [ a ex:SpatialRelation ;
-        ex:subject ex:img5_obj_2 ;
-        ex:predicate "partOf" ;
-        ex:object ex:img5_obj_1 ] .
+    rdfs:label "wood planks" ;
+    skos:altLabel "wooden planks" , "deck boards" , "timber planks" , "lumber" , "floorboards" , "plank flooring" , "boards" ;
+    schema:category "building material" , "material" , "surface" ;
+    schema:description "Individual wooden planks running in parallel lines forming the boardwalk surface, showing natural grain patterns, cracks, and weathering." ;
+    ex:confidence "0.98"^^xsd:float ;
+    ex:material "wood" ;
+    ex:condition "weathered" , "aged" , "cracked" ;
+    ex:texture "rough" , "grainy" ;
+    ex:color "tan" , "light brown" , "grey-brown" ;
+    ex:isPartOf ex:img5_obj_1 .
 
-# === Object 3: Clear blue sky ===
+# === Object 3: Gaps between planks ===
+
 ex:img5_obj_3 a schema:Thing ;
-    rdf:type ex:NaturalFeature ;
-    rdfs:label "Clear blue sky" ;
-    schema:category "Sky" ;
-    ex:confidence "0.97"^^xsd:decimal ;
-    schema:color "Blue" ;
-    schema:description "A clear blue sky with no visible clouds, occupying the upper portion of the frame." ;
-    schema:spatialCoverage "upper third of frame, background" ;
+    rdfs:label "gaps between planks" ;
+    skos:altLabel "plank gaps" , "board gaps" , "cracks" , "spaces between boards" , "seams" ;
+    schema:category "structural feature" , "detail" ;
+    schema:description "Narrow gaps running between the individual wood planks, visible as dark lines across the boardwalk surface." ;
+    ex:confidence "0.92"^^xsd:float ;
+    ex:isPartOf ex:img5_obj_1 ;
     ex:spatialRelation [ a ex:SpatialRelation ;
-        ex:subject ex:img5_obj_3 ;
-        ex:predicate "above" ;
-        ex:object ex:img5_obj_1 ] .
+        ex:relation "between" ;
+        ex:relatedObject ex:img5_obj_2 ] .
 
-# === Object 4: Cylindrical tower structure ===
+# === Object 4: Wood grain ===
+
 ex:img5_obj_4 a schema:Thing ;
-    rdf:type ex:PhysicalObject ;
-    rdfs:label "Cylindrical tower structure" ;
-    schema:category "Building" ;
-    ex:confidence "0.72"^^xsd:decimal ;
-    schema:description "A blurred cylindrical or tower-like structure visible on the horizon, possibly a water tower, observation tower, or industrial structure." ;
-    schema:spatialCoverage "center-right background, at horizon line" ;
-    ex:spatialRelation [ a ex:SpatialRelation ;
-        ex:subject ex:img5_obj_4 ;
-        ex:predicate "behind" ;
-        ex:object ex:img5_obj_1 ] ,
-    [ a ex:SpatialRelation ;
-        ex:subject ex:img5_obj_4 ;
-        ex:predicate "below" ;
-        ex:object ex:img5_obj_3 ] .
+    rdfs:label "wood grain" ;
+    skos:altLabel "grain pattern" , "wood texture" , "grain lines" , "timber grain" ;
+    schema:category "texture" , "surface detail" , "natural pattern" ;
+    schema:description "Visible natural grain patterns in the wood planks, running lengthwise along each board." ;
+    ex:confidence "0.90"^^xsd:float ;
+    ex:isPartOf ex:img5_obj_2 .
 
-# === Object 5: Background buildings ===
+# === Object 5: Debris on surface ===
+
 ex:img5_obj_5 a schema:Thing ;
-    rdf:type ex:PhysicalObject ;
-    rdfs:label "Background buildings" ;
-    schema:category "Building" ;
-    ex:confidence "0.65"^^xsd:decimal ;
-    schema:description "Low-rise blurred building silhouettes visible along the horizon line, likely part of a waterfront or coastal settlement." ;
-    schema:spatialCoverage "background, along horizon line left to right" ;
+    rdfs:label "debris" ;
+    skos:altLabel "wood chips" , "splinters" , "fragments" , "dirt" , "grit" , "small particles" ;
+    schema:category "debris" , "detail" ;
+    schema:description "Small bits of debris, wood chips, and grit scattered on the surface of the boardwalk planks." ;
+    ex:confidence "0.80"^^xsd:float ;
+    ex:isPartOf ex:img5_obj_1 ;
     ex:spatialRelation [ a ex:SpatialRelation ;
-        ex:subject ex:img5_obj_5 ;
-        ex:predicate "behind" ;
-        ex:object ex:img5_obj_1 ] ,
-    [ a ex:SpatialRelation ;
-        ex:subject ex:img5_obj_5 ;
-        ex:predicate "leftOf" ;
-        ex:object ex:img5_obj_4 ] .
+        ex:relation "on top of" ;
+        ex:relatedObject ex:img5_obj_2 ] .
 
-# === Object 6: Horizon line ===
+# === Object 6: Sky ===
+
 ex:img5_obj_6 a schema:Thing ;
-    rdf:type ex:VisualFeature ;
-    rdfs:label "Horizon line" ;
-    schema:category "Boundary" ;
-    ex:confidence "0.90"^^xsd:decimal ;
-    schema:description "The horizon line where the boardwalk surface meets the sky, running roughly horizontally across the upper third of the image." ;
-    schema:spatialCoverage "horizontal band at upper third of frame" ;
+    rdfs:label "sky" ;
+    skos:altLabel "blue sky" , "clear sky" , "daytime sky" , "open sky" ;
+    schema:category "natural element" , "atmosphere" , "background" ;
+    schema:description "Clear blue sky occupying the upper portion of the image, gradient from light blue near the horizon to deeper blue above." ;
+    ex:confidence "0.99"^^xsd:float ;
+    ex:color "blue" , "light blue" , "sky blue" ;
+    ex:condition "clear" , "cloudless" ;
+    ex:regionBox "0.0,0.0,1.0,0.35" ;
     ex:spatialRelation [ a ex:SpatialRelation ;
-        ex:subject ex:img5_obj_6 ;
-        ex:predicate "separates" ;
-        ex:object ex:img5_obj_1 ] ,
-    [ a ex:SpatialRelation ;
-        ex:subject ex:img5_obj_6 ;
-        ex:predicate "separates" ;
-        ex:object ex:img5_obj_3 ] .
+        ex:relation "above" ;
+        ex:relatedObject ex:img5_obj_1 ] .
+
+# === Object 7: Horizon line ===
+
+ex:img5_obj_7 a schema:Thing ;
+    rdfs:label "horizon" ;
+    skos:altLabel "horizon line" , "skyline" , "sky line" ;
+    schema:category "visual boundary" , "scene element" ;
+    schema:description "The horizon line where the boardwalk surface meets the sky, positioned in the upper third of the image." ;
+    ex:confidence "0.93"^^xsd:float ;
+    ex:regionBox "0.0,0.30,1.0,0.38" ;
+    ex:spatialRelation [ a ex:SpatialRelation ;
+        ex:relation "separates" ;
+        ex:relatedObject ex:img5_obj_6 ] ,
+      [ a ex:SpatialRelation ;
+        ex:relation "separates" ;
+        ex:relatedObject ex:img5_obj_1 ] .
+
+# === Object 8: Buildings ===
+
+ex:img5_obj_8 a schema:Thing ;
+    rdfs:label "buildings" ;
+    skos:altLabel "structures" , "constructions" , "edifices" , "built structures" , "background buildings" ;
+    schema:category "building" , "architecture" , "structure" ;
+    schema:description "Several blurred buildings visible along the horizon in the background, including low-rise structures typical of a waterfront or coastal area." ;
+    ex:confidence "0.82"^^xsd:float ;
+    ex:condition "blurred" , "out of focus" ;
+    ex:regionBox "0.05,0.25,0.95,0.38" ;
+    ex:spatialRelation [ a ex:SpatialRelation ;
+        ex:relation "behind" ;
+        ex:relatedObject ex:img5_obj_1 ] ,
+      [ a ex:SpatialRelation ;
+        ex:relation "below" ;
+        ex:relatedObject ex:img5_obj_6 ] ,
+      [ a ex:SpatialRelation ;
+        ex:relation "along" ;
+        ex:relatedObject ex:img5_obj_7 ] .
+
+# === Object 9: Tower ===
+
+ex:img5_obj_9 a schema:Thing ;
+    rdfs:label "tower" ;
+    skos:altLabel "cylindrical tower" , "round tower" , "water tower" , "observation tower" , "tall structure" , "silo" ;
+    schema:category "building" , "architecture" , "landmark" , "structure" ;
+    schema:description "A cylindrical or round tower rising above the other buildings in the background, slightly right of center, appearing grey or tan." ;
+    ex:confidence "0.78"^^xsd:float ;
+    ex:shape "cylindrical" ;
+    ex:condition "blurred" , "out of focus" ;
+    ex:regionBox "0.45,0.18,0.58,0.35" ;
+    ex:spatialRelation [ a ex:SpatialRelation ;
+        ex:relation "among" ;
+        ex:relatedObject ex:img5_obj_8 ] ,
+      [ a ex:SpatialRelation ;
+        ex:relation "taller than" ;
+        ex:relatedObject ex:img5_obj_8 ] ,
+      [ a ex:SpatialRelation ;
+        ex:relation "in the distance behind" ;
+        ex:relatedObject ex:img5_obj_1 ] .
+
+# === Object 10: Low-rise building (left) ===
+
+ex:img5_obj_10 a schema:Thing ;
+    rdfs:label "low-rise building" ;
+    skos:altLabel "low building" , "small building" , "flat building" , "squat structure" ;
+    schema:category "building" , "architecture" , "structure" ;
+    schema:description "A low-rise building visible on the left side of the background, blurred and partially obscured." ;
+    ex:confidence "0.70"^^xsd:float ;
+    ex:condition "blurred" ;
+    ex:regionBox "0.05,0.28,0.30,0.36" ;
+    ex:isPartOf ex:img5_obj_8 ;
+    ex:spatialRelation [ a ex:SpatialRelation ;
+        ex:relation "left of" ;
+        ex:relatedObject ex:img5_obj_9 ] .
+
+# === Object 11: Low-rise building (right) ===
+
+ex:img5_obj_11 a schema:Thing ;
+    rdfs:label "low-rise building" ;
+    skos:altLabel "low building" , "small building" , "flat building" , "background structure" ;
+    schema:category "building" , "architecture" , "structure" ;
+    schema:description "A low-rise building visible on the right side of the background, blurred." ;
+    ex:confidence "0.68"^^xsd:float ;
+    ex:condition "blurred" ;
+    ex:regionBox "0.65,0.28,0.95,0.36" ;
+    ex:isPartOf ex:img5_obj_8 ;
+    ex:spatialRelation [ a ex:SpatialRelation ;
+        ex:relation "right of" ;
+        ex:relatedObject ex:img5_obj_9 ] .
+
+# === Object 12: Shadows ===
+
+ex:img5_obj_12 a schema:Thing ;
+    rdfs:label "shadows" ;
+    skos:altLabel "shadow" , "cast shadow" , "shade" , "dark areas" ;
+    schema:category "lighting effect" , "visual element" ;
+    schema:description "Subtle shadows cast across the boardwalk surface, indicating sunlight from the upper left." ;
+    ex:confidence "0.75"^^xsd:float ;
+    ex:spatialRelation [ a ex:SpatialRelation ;
+        ex:relation "on" ;
+        ex:relatedObject ex:img5_obj_2 ] .
+
+# === Object 13: Sunlight ===
+
+ex:img5_obj_13 a schema:Thing ;
+    rdfs:label "sunlight" ;
+    skos:altLabel "sunshine" , "natural light" , "daylight" , "sun" ;
+    schema:category "lighting" , "natural element" , "illumination" ;
+    schema:description "Warm natural sunlight illuminating the boardwalk surface and creating highlights on the wood grain." ;
+    ex:confidence "0.90"^^xsd:float ;
+    ex:spatialRelation [ a ex:SpatialRelation ;
+        ex:relation "illuminates" ;
+        ex:relatedObject ex:img5_obj_1 ] .
+
+# === Object 14: Vanishing point ===
+
+ex:img5_obj_14 a schema:Thing ;
+    rdfs:label "vanishing point" ;
+    skos:altLabel "perspective point" , "convergence point" , "focal point" ;
+    schema:category "compositional element" , "perspective" ;
+    schema:description "The vanishing point where the parallel lines of the boardwalk planks converge toward the horizon, creating strong linear perspective." ;
+    ex:confidence "0.88"^^xsd:float ;
+    ex:regionBox "0.45,0.30,0.55,0.35" .
+
+# === Object 15: Nail holes ===
+
+ex:img5_obj_15 a schema:Thing ;
+    rdfs:label "nail holes" ;
+    skos:altLabel "nail marks" , "fastener holes" , "screw holes" , "bolt marks" ;
+    schema:category "structural detail" , "fastener" , "detail" ;
+    schema:description "Small dark spots in the wood planks where nails or fasteners secure the boards to the underlying structure." ;
+    ex:confidence "0.72"^^xsd:float ;
+    ex:isPartOf ex:img5_obj_2 ;
+    ex:spatialRelation [ a ex:SpatialRelation ;
+        ex:relation "embedded in" ;
+        ex:relatedObject ex:img5_obj_2 ] .
+
+# === Object 16: Foreground surface (sharp focus) ===
+
+ex:img5_obj_16 a schema:Thing ;
+    rdfs:label "foreground surface" ;
+    skos:altLabel "close-up surface" , "near planks" , "foreground planks" , "deck surface" ;
+    schema:category "surface" , "foreground element" ;
+    schema:description "The sharply focused portion of the boardwalk in the extreme foreground, showing fine detail of the wood texture, grain, and weathering." ;
+    ex:confidence "0.95"^^xsd:float ;
+    ex:condition "in focus" , "sharp" ;
+    ex:regionBox "0.0,0.60,1.0,1.0" ;
+    ex:isPartOf ex:img5_obj_1 .
+
+# === Object 17: Blurred background ===
+
+ex:img5_obj_17 a schema:Thing ;
+    rdfs:label "blurred background" ;
+    skos:altLabel "background" , "bokeh" , "out-of-focus area" , "distant view" ;
+    schema:category "background" , "scene element" ;
+    schema:description "The blurred background region created by shallow depth of field, containing the buildings, tower, and distant boardwalk." ;
+    ex:confidence "0.94"^^xsd:float ;
+    ex:condition "blurred" , "bokeh" ;
+    ex:regionBox "0.0,0.0,1.0,0.45" ;
+    ex:spatialRelation [ a ex:SpatialRelation ;
+        ex:relation "behind" ;
+        ex:relatedObject ex:img5_obj_16 ] .
+
+# === Object 18: Rooflines ===
+
+ex:img5_obj_18 a schema:Thing ;
+    rdfs:label "rooflines" ;
+    skos:altLabel "roofs" , "rooftops" , "building tops" , "roof edges" ;
+    schema:category "architectural feature" , "building element" ;
+    schema:description "The silhouetted rooflines of the background buildings visible against the sky along the horizon." ;
+    ex:confidence "0.70"^^xsd:float ;
+    ex:isPartOf ex:img5_obj_8 ;
+    ex:spatialRelation [ a ex:SpatialRelation ;
+        ex:relation "at top of" ;
+        ex:relatedObject ex:img5_obj_8 ] ,
+      [ a ex:SpatialRelation ;
+        ex:relation "against" ;
+        ex:relatedObject ex:img5_obj_6 ] .

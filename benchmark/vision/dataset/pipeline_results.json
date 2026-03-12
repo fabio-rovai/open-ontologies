@@ -1,0 +1,10 @@
+{
+  "pipeline": "onto_validate (CLI) \u2192 rdflib load \u2192 SPARQL query",
+  "images_processed": 10,
+  "images_valid": 10,
+  "total_triples": 2540,
+  "synonym_count": 612,
+  "avg_object_recall": 0.68,
+  "sparql_queries_run": 6,
+  "queryable": true
+}

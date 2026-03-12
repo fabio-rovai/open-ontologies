@@ -1,112 +1,456 @@
 @prefix ex: <http://example.org/image/> .
 @prefix schema: <http://schema.org/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-# === Image Node ===
+# =============================================================================
+# Image-level metadata
+# =============================================================================
 
-ex:img_1 a schema:ImageObject ;
-    schema:name "img_1.jpg" ;
-    schema:description "Interior view of an abandoned, rusted truck cab overtaken by surrounding vegetation, showing a worn steering wheel, corroded dashboard and instruments, a dirty cracked windshield, and a large tree visible through the glass." ;
-    schema:keywords "abandoned vehicle", "truck interior", "decay", "nature reclaiming", "rust", "steering wheel", "dashboard", "windshield", "tree", "overgrown" ;
-    schema:contentLocation "outdoor rural setting" ;
-    ex:detectedObjectCount "5"^^xsd:integer .
-
-# === Object 1: Truck (vehicle cab) ===
-
-ex:img1_obj_1 a schema:Car ;
-    rdf:type ex:AbandonedVehicle ;
-    rdfs:label "Truck" ;
-    schema:category "vehicle" ;
-    schema:description "An old, heavily rusted and abandoned truck cab. The body panels and interior surfaces show extensive corrosion and weathering. The vehicle has been stationary long enough for vegetation to grow around and into it." ;
-    schema:material "metal, rubber" ;
-    schema:additionalProperty [
-        schema:name "condition" ;
-        schema:value "severely rusted and abandoned"
-    ] ;
-    ex:confidence "0.95"^^xsd:decimal ;
-    ex:boundingBoxRegion "entire frame" ;
-    ex:spatialRelation ex:img1_obj_5 ;
-    ex:spatialRelationLabel "surrounded by" .
-
-# === Object 2: Steering Wheel ===
-
-ex:img1_obj_2 a ex:VehiclePart ;
-    rdfs:label "Steering wheel" ;
-    schema:category "vehicle" ;
-    schema:description "A thin-rimmed, dark-colored steering wheel typical of a mid-20th-century truck. It is mounted on a steering column angled toward the left side of the cab. The rim appears worn and aged." ;
-    schema:material "metal, rubber" ;
-    schema:isPartOf ex:img1_obj_1 ;
-    ex:confidence "0.98"^^xsd:decimal ;
-    ex:boundingBoxRegion "center-left" ;
-    ex:spatialRelation ex:img1_obj_3 ;
-    ex:spatialRelationLabel "in front of" .
-
-# === Object 3: Dashboard ===
-
-ex:img1_obj_3 a ex:VehiclePart ;
-    rdfs:label "Dashboard" ;
-    schema:category "vehicle" ;
-    schema:description "The corroded metal dashboard of the truck, showing an instrument cluster area on the right side and various rusted controls. The surface is heavily oxidized with patches of flaking paint and rust." ;
-    schema:material "metal" ;
-    schema:isPartOf ex:img1_obj_1 ;
-    schema:additionalProperty [
-        schema:name "condition" ;
-        schema:value "heavily corroded and rusted"
-    ] ;
-    ex:confidence "0.93"^^xsd:decimal ;
-    ex:boundingBoxRegion "center-right" ;
-    ex:spatialRelation ex:img1_obj_4 ;
-    ex:spatialRelationLabel "below" .
-
-# === Object 4: Windshield ===
-
-ex:img1_obj_4 a ex:VehiclePart ;
-    rdfs:label "Windshield" ;
-    schema:category "vehicle" ;
-    schema:description "A dirty, hazy windshield with grime, water stains, and possible cracks. It is partially transparent, allowing the tree and green foliage outside to be visible through it. The glass has a cloudy, weathered appearance." ;
-    schema:material "glass" ;
-    schema:isPartOf ex:img1_obj_1 ;
-    schema:additionalProperty [
-        schema:name "condition" ;
-        schema:value "dirty, hazy, weathered"
-    ] ;
-    ex:confidence "0.92"^^xsd:decimal ;
-    ex:boundingBoxRegion "upper half" ;
-    ex:spatialRelation ex:img1_obj_5 ;
-    ex:spatialRelationLabel "in front of" ;
-    ex:spatialRelation ex:img1_obj_3 ;
-    ex:spatialRelationLabel "above" .
-
-# === Object 5: Tree ===
-
-ex:img1_obj_5 a schema:Thing ;
-    rdf:type ex:Vegetation ;
-    rdfs:label "Tree" ;
-    schema:category "nature" ;
-    schema:description "A large, mature tree with a thick trunk and spreading canopy of green leaves, visible through and above the windshield. Dense green foliage and undergrowth also surround the vehicle on all visible sides." ;
-    schema:additionalProperty [
-        schema:name "foliage" ;
-        schema:value "dense green leaves, full canopy"
-    ] ;
-    ex:confidence "0.90"^^xsd:decimal ;
-    ex:boundingBoxRegion "background, visible through windshield and around vehicle" ;
-    ex:spatialRelation ex:img1_obj_1 ;
-    ex:spatialRelationLabel "behind and around" .
-
-# === Additional Spatial Relationships ===
-
-ex:img1_obj_2 schema:spatialCoverage "center-left of cab interior" .
-ex:img1_obj_3 schema:spatialCoverage "center-right of cab interior" .
-ex:img1_obj_4 schema:spatialCoverage "upper portion of frame, between interior and exterior" .
-ex:img1_obj_5 schema:spatialCoverage "background exterior, visible through and around the cab" .
-ex:img1_obj_1 schema:spatialCoverage "entire frame, foreground to midground" .
-
-# === Scene-Level Annotations ===
-
-ex:img_1 ex:scene "abandoned vehicle interior" ;
-    ex:dominantColors "green, brown, rust, grey" ;
-    ex:mood "melancholic, post-apocalyptic, nature reclaiming" ;
+ex:img_1
+    a schema:ImageObject ;
+    schema:description "Interior view of an old, abandoned, rusted truck cab overgrown with vegetation. The steering wheel, dashboard, and windshield are visible, with lush green bushes and a large tree seen through the glass and open cabin sides." ;
+    schema:keywords "abandoned truck, rusted vehicle, steering wheel, dashboard, windshield, overgrown, vegetation, decay, nature reclaiming, derelict, old truck interior" ;
+    schema:contentLocation "outdoor rural or wooded area" ;
+    ex:dominantColors "green, brown, rust orange, grey" ;
+    ex:mood "melancholic, nature reclaiming" ;
     ex:lightingCondition "natural daylight, overcast or filtered through canopy" ;
-    ex:photographicStyle "close-up interior shot, shallow to moderate depth of field" .
+    ex:photographicStyle "close-up interior shot, shallow to moderate depth of field" ;
+    ex:hasObject ex:img1_obj_1 , ex:img1_obj_2 , ex:img1_obj_3 , ex:img1_obj_4 ,
+                 ex:img1_obj_5 , ex:img1_obj_6 , ex:img1_obj_7 , ex:img1_obj_8 ,
+                 ex:img1_obj_9 , ex:img1_obj_10 , ex:img1_obj_11 , ex:img1_obj_12 ,
+                 ex:img1_obj_13 , ex:img1_obj_14 , ex:img1_obj_15 , ex:img1_obj_16 ,
+                 ex:img1_obj_17 , ex:img1_obj_18 , ex:img1_obj_19 , ex:img1_obj_20 ,
+                 ex:img1_obj_21 , ex:img1_obj_22 , ex:img1_obj_23 .
+
+# =============================================================================
+# Object 1: Steering Wheel
+# =============================================================================
+
+ex:img1_obj_1
+    a schema:Thing ;
+    rdfs:label "steering wheel" ;
+    skos:altLabel "wheel" , "driving wheel" , "steering column wheel" ;
+    schema:category "vehicle part" ;
+    schema:description "A dark, circular steering wheel in the center-left of the frame, mounted on a steering column. Shows signs of age and wear." ;
+    ex:confidence "0.98"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "attached to" ;
+        ex:target ex:img1_obj_2
+    ] , [
+        ex:relation "in front of" ;
+        ex:target ex:img1_obj_5
+    ] , [
+        ex:relation "below" ;
+        ex:target ex:img1_obj_3
+    ] .
+
+# =============================================================================
+# Object 2: Steering Column
+# =============================================================================
+
+ex:img1_obj_2
+    a schema:Thing ;
+    rdfs:label "steering column" ;
+    skos:altLabel "column" , "steering shaft" , "steering post" ;
+    schema:category "vehicle part" ;
+    schema:description "The metal shaft connecting the steering wheel to the dashboard, visible at a slight angle." ;
+    ex:confidence "0.90"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "connects" ;
+        ex:target ex:img1_obj_1
+    ] , [
+        ex:relation "extends into" ;
+        ex:target ex:img1_obj_5
+    ] .
+
+# =============================================================================
+# Object 3: Windshield
+# =============================================================================
+
+ex:img1_obj_3
+    a schema:Thing ;
+    rdfs:label "windshield" ;
+    skos:altLabel "windscreen" , "front window" , "front glass" ;
+    schema:category "vehicle part" ;
+    schema:description "A dirty, hazy windshield occupying the upper portion of the image. Partially translucent with grime, allowing a blurred view of trees and greenery beyond." ;
+    ex:confidence "0.95"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "above" ;
+        ex:target ex:img1_obj_5
+    ] , [
+        ex:relation "behind" ;
+        ex:target ex:img1_obj_8
+    ] .
+
+# =============================================================================
+# Object 4: Glass
+# =============================================================================
+
+ex:img1_obj_4
+    a schema:Thing ;
+    rdfs:label "glass" ;
+    skos:altLabel "window glass" , "pane" , "glazing" ;
+    schema:category "material" ;
+    schema:description "Glass surfaces throughout the cab, including windshield and side areas, all dirty and aged." ;
+    ex:confidence "0.90"^^xsd:float ;
+    ex:broaderObject ex:img1_obj_3 .
+
+# =============================================================================
+# Object 5: Dashboard
+# =============================================================================
+
+ex:img1_obj_5
+    a schema:Thing ;
+    rdfs:label "dashboard" ;
+    skos:altLabel "dash" , "instrument panel" , "dash panel" , "fascia" ;
+    schema:category "vehicle part" ;
+    schema:description "A heavily rusted and corroded dashboard on the right side of the frame, with visible gauge openings and metal deterioration." ;
+    ex:confidence "0.95"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "below" ;
+        ex:target ex:img1_obj_3
+    ] , [
+        ex:relation "right of" ;
+        ex:target ex:img1_obj_1
+    ] , [
+        ex:relation "contains" ;
+        ex:target ex:img1_obj_6
+    ] , [
+        ex:relation "contains" ;
+        ex:target ex:img1_obj_7
+    ] .
+
+# =============================================================================
+# Object 6: Instrument Gauges
+# =============================================================================
+
+ex:img1_obj_6
+    a schema:Thing ;
+    rdfs:label "instrument gauges" ;
+    skos:altLabel "gauges" , "dials" , "instrument cluster" , "gauge cluster" , "speedometer area" ;
+    schema:category "vehicle part" ;
+    schema:description "Circular openings or remnants of instrument gauges on the dashboard, heavily corroded." ;
+    ex:confidence "0.70"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "embedded in" ;
+        ex:target ex:img1_obj_5
+    ] .
+
+# =============================================================================
+# Object 7: Dashboard Controls
+# =============================================================================
+
+ex:img1_obj_7
+    a schema:Thing ;
+    rdfs:label "dashboard controls" ;
+    skos:altLabel "knobs" , "switches" , "controls" , "dashboard knobs" ;
+    schema:category "vehicle part" ;
+    schema:description "Small protruding knobs or control elements visible on the rusted dashboard surface." ;
+    ex:confidence "0.60"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "on" ;
+        ex:target ex:img1_obj_5
+    ] .
+
+# =============================================================================
+# Object 8: Tree
+# =============================================================================
+
+ex:img1_obj_8
+    a schema:Thing ;
+    rdfs:label "tree" ;
+    skos:altLabel "large tree" , "deciduous tree" , "oak tree" ;
+    schema:category "nature" ;
+    schema:description "A large tree with spreading branches and dense green foliage, visible through the windshield in the upper-left background." ;
+    ex:confidence "0.95"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "behind" ;
+        ex:target ex:img1_obj_3
+    ] , [
+        ex:relation "above" ;
+        ex:target ex:img1_obj_10
+    ] .
+
+# =============================================================================
+# Object 9: Plant
+# =============================================================================
+
+ex:img1_obj_9
+    a schema:Thing ;
+    rdfs:label "plant" ;
+    skos:altLabel "plants" , "flora" , "greenery" , "vegetation" ;
+    schema:category "nature" ;
+    schema:description "General plant life visible throughout the scene, both through the windshield and encroaching into the cab." ;
+    ex:confidence "0.98"^^xsd:float .
+
+# =============================================================================
+# Object 10: Bush
+# =============================================================================
+
+ex:img1_obj_10
+    a schema:Thing ;
+    rdfs:label "bush" ;
+    skos:altLabel "bushes" , "shrub" , "shrubs" , "undergrowth" , "shrubbery" ;
+    schema:category "nature" ;
+    schema:description "Dense green bushes and shrubs visible on the left side through the open cab and through the windshield, growing up around the vehicle." ;
+    ex:confidence "0.95"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "left of" ;
+        ex:target ex:img1_obj_14
+    ] , [
+        ex:relation "below" ;
+        ex:target ex:img1_obj_8
+    ] , [
+        ex:relation "surrounds" ;
+        ex:target ex:img1_obj_14
+    ] .
+
+# =============================================================================
+# Object 11: Leaves
+# =============================================================================
+
+ex:img1_obj_11
+    a schema:Thing ;
+    rdfs:label "leaves" ;
+    skos:altLabel "foliage" , "leaf" , "green leaves" ;
+    schema:category "nature" ;
+    schema:description "Green leaves from bushes and the tree, filling much of the background and left side of the frame." ;
+    ex:confidence "0.95"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "part of" ;
+        ex:target ex:img1_obj_8
+    ] , [
+        ex:relation "part of" ;
+        ex:target ex:img1_obj_10
+    ] .
+
+# =============================================================================
+# Object 12: Branches
+# =============================================================================
+
+ex:img1_obj_12
+    a schema:Thing ;
+    rdfs:label "branches" ;
+    skos:altLabel "tree branches" , "boughs" , "limbs" ;
+    schema:category "nature" ;
+    schema:description "Thick spreading branches of the tree visible through the windshield, with a gnarled organic shape." ;
+    ex:confidence "0.85"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "part of" ;
+        ex:target ex:img1_obj_8
+    ] .
+
+# =============================================================================
+# Object 13: Tree Trunk
+# =============================================================================
+
+ex:img1_obj_13
+    a schema:Thing ;
+    rdfs:label "tree trunk" ;
+    skos:altLabel "trunk" , "tree stem" , "bole" ;
+    schema:category "nature" ;
+    schema:description "The thick trunk of the large tree, partially visible through the hazy windshield." ;
+    ex:confidence "0.75"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "part of" ;
+        ex:target ex:img1_obj_8
+    ] , [
+        ex:relation "behind" ;
+        ex:target ex:img1_obj_3
+    ] .
+
+# =============================================================================
+# Object 14: Truck
+# =============================================================================
+
+ex:img1_obj_14
+    a schema:Thing ;
+    rdfs:label "truck" ;
+    skos:altLabel "old truck" , "abandoned truck" , "pickup truck" , "derelict truck" , "rusted truck" ;
+    schema:category "vehicle" ;
+    schema:description "An old, abandoned truck, heavily rusted and corroded. The image is taken from inside the cab looking at the driver's area." ;
+    ex:confidence "0.97"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "contains" ;
+        ex:target ex:img1_obj_1
+    ] , [
+        ex:relation "contains" ;
+        ex:target ex:img1_obj_5
+    ] , [
+        ex:relation "contains" ;
+        ex:target ex:img1_obj_3
+    ] , [
+        ex:relation "contains" ;
+        ex:target ex:img1_obj_18
+    ] , [
+        ex:relation "surrounded by" ;
+        ex:target ex:img1_obj_10
+    ] .
+
+# =============================================================================
+# Object 15: Vehicle (broader)
+# =============================================================================
+
+ex:img1_obj_15
+    a schema:Thing ;
+    rdfs:label "vehicle" ;
+    skos:altLabel "motor vehicle" , "automobile" , "car" , "motorized vehicle" ;
+    schema:category "vehicle" ;
+    schema:description "A motorized vehicle — specifically an old truck — in a state of advanced decay and abandonment." ;
+    ex:confidence "0.98"^^xsd:float ;
+    ex:broaderObject ex:img1_obj_14 .
+
+# =============================================================================
+# Object 16: Rust
+# =============================================================================
+
+ex:img1_obj_16
+    a schema:Thing ;
+    rdfs:label "rust" ;
+    skos:altLabel "corrosion" , "oxidation" , "iron oxide" , "rusted metal" , "patina" ;
+    schema:category "material" ;
+    schema:description "Heavy brown and orange rust covering the dashboard, metal framing, and other exposed metal surfaces throughout the cab." ;
+    ex:confidence "0.95"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "covers" ;
+        ex:target ex:img1_obj_5
+    ] , [
+        ex:relation "covers" ;
+        ex:target ex:img1_obj_17
+    ] .
+
+# =============================================================================
+# Object 17: Metal
+# =============================================================================
+
+ex:img1_obj_17
+    a schema:Thing ;
+    rdfs:label "metal" ;
+    skos:altLabel "metal surface" , "sheet metal" , "steel" , "iron" ;
+    schema:category "material" ;
+    schema:description "Exposed metal surfaces of the truck cab interior, heavily corroded and oxidized." ;
+    ex:confidence "0.92"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "part of" ;
+        ex:target ex:img1_obj_14
+    ] .
+
+# =============================================================================
+# Object 18: Truck Cab
+# =============================================================================
+
+ex:img1_obj_18
+    a schema:Thing ;
+    rdfs:label "truck cab" ;
+    skos:altLabel "cabin" , "cab" , "driver cabin" , "cab interior" , "cockpit" ;
+    schema:category "vehicle part" ;
+    schema:description "The enclosed driver's compartment of the truck, with missing or open side panels allowing vegetation to encroach." ;
+    ex:confidence "0.93"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "part of" ;
+        ex:target ex:img1_obj_14
+    ] , [
+        ex:relation "contains" ;
+        ex:target ex:img1_obj_1
+    ] , [
+        ex:relation "contains" ;
+        ex:target ex:img1_obj_5
+    ] .
+
+# =============================================================================
+# Object 19: Seat
+# =============================================================================
+
+ex:img1_obj_19
+    a schema:Thing ;
+    rdfs:label "seat" ;
+    skos:altLabel "driver seat" , "truck seat" , "bench seat" , "driver's seat" ;
+    schema:category "vehicle part" ;
+    schema:description "A worn, deteriorated seat partially visible in the lower-left of the frame, with cracked or decayed upholstery." ;
+    ex:confidence "0.70"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "below" ;
+        ex:target ex:img1_obj_1
+    ] , [
+        ex:relation "inside" ;
+        ex:target ex:img1_obj_18
+    ] .
+
+# =============================================================================
+# Object 20: Moss
+# =============================================================================
+
+ex:img1_obj_20
+    a schema:Thing ;
+    rdfs:label "moss" ;
+    skos:altLabel "lichen" , "algae" , "green growth" , "biological growth" ;
+    schema:category "nature" ;
+    schema:description "Green biological growth on metal and other surfaces inside the cab, indicating prolonged abandonment and moisture exposure." ;
+    ex:confidence "0.65"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "growing on" ;
+        ex:target ex:img1_obj_5
+    ] , [
+        ex:relation "growing on" ;
+        ex:target ex:img1_obj_17
+    ] .
+
+# =============================================================================
+# Object 21: Dirt
+# =============================================================================
+
+ex:img1_obj_21
+    a schema:Thing ;
+    rdfs:label "dirt" ;
+    skos:altLabel "grime" , "filth" , "dust" , "debris" , "accumulated dirt" ;
+    schema:category "material" ;
+    schema:description "Layers of dirt and grime coating the windshield, dashboard, and other surfaces." ;
+    ex:confidence "0.85"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "covers" ;
+        ex:target ex:img1_obj_3
+    ] , [
+        ex:relation "covers" ;
+        ex:target ex:img1_obj_5
+    ] .
+
+# =============================================================================
+# Object 22: Windshield Frame
+# =============================================================================
+
+ex:img1_obj_22
+    a schema:Thing ;
+    rdfs:label "windshield frame" ;
+    skos:altLabel "A-pillar" , "window frame" , "windscreen frame" , "pillar" ;
+    schema:category "vehicle part" ;
+    schema:description "The metal frame surrounding the windshield, visible on the edges, rusted and corroded." ;
+    ex:confidence "0.80"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "surrounds" ;
+        ex:target ex:img1_obj_3
+    ] , [
+        ex:relation "part of" ;
+        ex:target ex:img1_obj_18
+    ] .
+
+# =============================================================================
+# Object 23: Sky
+# =============================================================================
+
+ex:img1_obj_23
+    a schema:Thing ;
+    rdfs:label "sky" ;
+    skos:altLabel "daylight" , "overcast sky" , "natural light" , "ambient light" ;
+    schema:category "nature" ;
+    schema:description "Diffuse daylight visible through the tree canopy and windshield, suggesting an overcast or softly lit day." ;
+    ex:confidence "0.60"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "above" ;
+        ex:target ex:img1_obj_8
+    ] , [
+        ex:relation "visible through" ;
+        ex:target ex:img1_obj_3
+    ] .

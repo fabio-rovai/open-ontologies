@@ -1,167 +1,220 @@
 @prefix ex: <http://example.org/image/> .
 @prefix schema: <http://schema.org/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-# === Image Node ===
+# === Image node ===
+ex:img_2
+    a schema:ImageObject ;
+    schema:description "A top-down photograph of a creative workspace on a warm-toned wooden desk, featuring an open Apple MacBook Air laptop, an open grid notebook with handwritten notes and wireframe sketches, a black pen, white wired earphones, and a vintage silver camera." ;
+    schema:keywords "desk, laptop, notebook, pen, camera, earphones, workspace, wooden table, flat lay, top view, creative workspace, stationery, MacBook, vintage camera, wireframe, sketches, handwriting" ;
+    ex:viewpoint "top-down" ;
+    ex:containsObject ex:img2_obj_1 , ex:img2_obj_2 , ex:img2_obj_3 , ex:img2_obj_4 , ex:img2_obj_5 , ex:img2_obj_6 , ex:img2_obj_7 , ex:img2_obj_8 , ex:img2_obj_9 , ex:img2_obj_10 , ex:img2_obj_11 , ex:img2_obj_12 .
 
-ex:img_2 a schema:ImageObject ;
-    schema:description "A top-down photograph of a creative workspace on a warm-toned wooden desk, featuring an open laptop, a notebook with handwritten notes and sketches, a pen, earbuds, and a vintage camera." ;
-    schema:keywords "workspace, desk, laptop, notebook, pen, camera, earbuds, wooden table, creative, top-down, flat lay" ;
-    schema:about ex:img2_obj_1 , ex:img2_obj_2 , ex:img2_obj_3 , ex:img2_obj_4 , ex:img2_obj_5 , ex:img2_obj_6 .
+# === Object 1: Wooden desk ===
+ex:img2_obj_1
+    a schema:Thing ;
+    rdfs:label "wooden desk" ;
+    skos:altLabel "desk" , "table" , "wooden table" , "work desk" , "wood surface" , "tabletop" , "work surface" , "desktop" ;
+    schema:category "furniture" ;
+    schema:material "wood" ;
+    schema:color "brown" ;
+    ex:confidence "0.98"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "supports" ;
+        ex:target ex:img2_obj_2 , ex:img2_obj_3 , ex:img2_obj_5 , ex:img2_obj_6
+    ] ;
+    schema:description "A warm brown wooden desk or table surface with visible wood grain planks, serving as the base for all other objects in the scene. Covers the entire image background." .
 
-# === Object: Laptop ===
-
-ex:img2_obj_1 a schema:Product ;
-    rdf:type ex:Laptop ;
-    rdfs:label "Open laptop computer" ;
-    schema:category "Electronics" ;
+# === Object 2: Laptop ===
+ex:img2_obj_2
+    a schema:Thing ;
+    rdfs:label "laptop" ;
+    skos:altLabel "notebook computer" , "laptop computer" , "portable computer" , "MacBook" , "MacBook Air" , "computer" , "PC" , "Apple laptop" ;
+    schema:category "electronics" ;
     schema:brand "Apple" ;
     schema:model "MacBook Air" ;
-    schema:description "A silver Apple MacBook Air with the screen open, displaying a desktop with multiple browser or application windows. The screen shows a macOS interface." ;
-    ex:confidence "0.95"^^xsd:decimal ;
+    schema:color "silver" ;
+    ex:state "open" ;
+    ex:screenContent "macOS desktop with multiple application windows and dock" ;
+    ex:confidence "0.97"^^xsd:float ;
     ex:spatialRelation [
-        rdfs:label "left side of desk" ;
-        ex:relationType "occupies" ;
-        ex:target ex:img2_obj_6
-    ] ;
-    ex:spatialRelation [
-        rdfs:label "left of notebook" ;
-        ex:relationType "leftOf" ;
-        ex:target ex:img2_obj_2
-    ] .
-
-# === Object: Notebook ===
-
-ex:img2_obj_2 a schema:Product ;
-    rdf:type ex:Notebook ;
-    rdfs:label "Open notebook with handwritten notes" ;
-    schema:category "Stationery" ;
-    schema:description "A grid-ruled notebook open to pages containing handwritten notes, small sketches, and wireframe-style drawings. The pages show planning or brainstorming content." ;
-    ex:confidence "0.95"^^xsd:decimal ;
-    ex:spatialRelation [
-        rdfs:label "right of laptop" ;
-        ex:relationType "rightOf" ;
+        ex:relation "on top of" ;
         ex:target ex:img2_obj_1
-    ] ;
-    ex:spatialRelation [
-        rdfs:label "below camera" ;
-        ex:relationType "below" ;
+    ] , [
+        ex:relation "left of" ;
+        ex:target ex:img2_obj_3
+    ] , [
+        ex:relation "below left of" ;
         ex:target ex:img2_obj_5
     ] ;
+    schema:description "An open silver Apple MacBook Air laptop showing a macOS desktop with several application or browser windows visible on screen and the dock at the bottom. Positioned on the left side of the desk." .
+
+# === Object 3: Notebook ===
+ex:img2_obj_3
+    a schema:Thing ;
+    rdfs:label "notebook" ;
+    skos:altLabel "journal" , "notepad" , "writing pad" , "sketchbook" , "planner" , "diary" , "grid notebook" , "squared notebook" , "exercise book" , "jotter" ;
+    schema:category "stationery" ;
+    ex:state "open" ;
+    ex:pageContent "handwritten notes, sketches, wireframes, and diagrams on grid paper" ;
+    ex:confidence "0.97"^^xsd:float ;
     ex:spatialRelation [
-        rdfs:label "pen resting on notebook" ;
-        ex:relationType "supports" ;
+        ex:relation "on top of" ;
+        ex:target ex:img2_obj_1
+    ] , [
+        ex:relation "right of" ;
+        ex:target ex:img2_obj_2
+    ] , [
+        ex:relation "below" ;
+        ex:target ex:img2_obj_5
+    ] , [
+        ex:relation "supports" ;
+        ex:target ex:img2_obj_4
+    ] ;
+    schema:description "An open notebook with grid/squared pages containing handwritten notes on the left page and small wireframe-style sketches and diagrams on the right page. Positioned to the right of the laptop." .
+
+# === Object 4: Pen ===
+ex:img2_obj_4
+    a schema:Thing ;
+    rdfs:label "pen" ;
+    skos:altLabel "ballpoint pen" , "writing pen" , "biro" , "ink pen" , "writing instrument" , "black pen" ;
+    schema:category "stationery" ;
+    schema:color "black" ;
+    ex:confidence "0.95"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "on top of" ;
         ex:target ex:img2_obj_3
-    ] .
-
-# === Object: Pen ===
-
-ex:img2_obj_3 a schema:Product ;
-    rdf:type ex:Pen ;
-    rdfs:label "Black pen" ;
-    schema:category "Stationery" ;
-    schema:description "A black pen resting diagonally across the open pages of the notebook." ;
-    ex:confidence "0.93"^^xsd:decimal ;
-    ex:spatialRelation [
-        rdfs:label "on top of notebook" ;
-        ex:relationType "on" ;
-        ex:target ex:img2_obj_2
-    ] .
-
-# === Object: Earbuds ===
-
-ex:img2_obj_4 a schema:Product ;
-    rdf:type ex:Earbuds ;
-    rdfs:label "White earbuds" ;
-    schema:category "Electronics" ;
-    schema:description "A pair of white wired earbuds with the cable trailing between the laptop and the notebook." ;
-    ex:confidence "0.85"^^xsd:decimal ;
-    ex:spatialRelation [
-        rdfs:label "between laptop and notebook" ;
-        ex:relationType "between" ;
-        ex:leftBound ex:img2_obj_1 ;
-        ex:rightBound ex:img2_obj_2
-    ] ;
-    ex:spatialRelation [
-        rdfs:label "on desk surface" ;
-        ex:relationType "on" ;
-        ex:target ex:img2_obj_6
-    ] .
-
-# === Object: Camera ===
-
-ex:img2_obj_5 a schema:Product ;
-    rdf:type ex:Camera ;
-    rdfs:label "Vintage-style camera" ;
-    schema:category "Electronics" ;
-    schema:description "A compact vintage or retro-style camera with a silver and black body, positioned in the upper-right area of the desk above the notebook." ;
-    ex:confidence "0.90"^^xsd:decimal ;
-    ex:spatialRelation [
-        rdfs:label "above notebook" ;
-        ex:relationType "above" ;
+    ] , [
+        ex:relation "right of" ;
         ex:target ex:img2_obj_2
     ] ;
+    schema:description "A black pen resting diagonally across the open pages of the notebook." .
+
+# === Object 5: Camera ===
+ex:img2_obj_5
+    a schema:Thing ;
+    rdfs:label "camera" ;
+    skos:altLabel "vintage camera" , "retro camera" , "film camera" , "analog camera" , "photo camera" , "rangefinder camera" , "classic camera" , "compact camera" , "old camera" ;
+    schema:category "electronics" ;
+    ex:style "vintage" ;
+    schema:color "silver" , "chrome" ;
+    ex:confidence "0.96"^^xsd:float ;
     ex:spatialRelation [
-        rdfs:label "upper-right of desk" ;
-        ex:relationType "occupies" ;
+        ex:relation "on top of" ;
+        ex:target ex:img2_obj_1
+    ] , [
+        ex:relation "above" ;
+        ex:target ex:img2_obj_3
+    ] , [
+        ex:relation "upper right of" ;
+        ex:target ex:img2_obj_2
+    ] ;
+    schema:description "A vintage silver/chrome rangefinder-style compact camera positioned in the upper-right area of the desk, above the notebook." .
+
+# === Object 6: Earphones ===
+ex:img2_obj_6
+    a schema:Thing ;
+    rdfs:label "earphones" ;
+    skos:altLabel "earbuds" , "headphones" , "in-ear headphones" , "ear buds" , "in-ear earphones" , "wired earphones" , "earpods" , "earpiece" , "ear phones" ;
+    schema:category "electronics" ;
+    schema:color "white" ;
+    ex:confidence "0.93"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "on top of" ;
+        ex:target ex:img2_obj_1
+    ] , [
+        ex:relation "between" ;
+        ex:target ex:img2_obj_2 , ex:img2_obj_5
+    ] , [
+        ex:relation "near" ;
+        ex:target ex:img2_obj_3
+    ] ;
+    schema:description "White wired earphones/earbuds with cable draped across the desk surface between the laptop and the camera, near the top edge of the notebook." .
+
+# === Object 7: Laptop screen ===
+ex:img2_obj_7
+    a schema:Thing ;
+    rdfs:label "laptop screen" ;
+    skos:altLabel "display" , "monitor" , "screen" , "LCD" , "laptop display" , "computer screen" ;
+    schema:category "electronics component" ;
+    ex:confidence "0.96"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "part of" ;
+        ex:target ex:img2_obj_2
+    ] ;
+    schema:description "The laptop screen displaying a macOS desktop environment with multiple open windows, thumbnails, and a dock bar at the bottom." .
+
+# === Object 8: Laptop keyboard ===
+ex:img2_obj_8
+    a schema:Thing ;
+    rdfs:label "keyboard" ;
+    skos:altLabel "laptop keyboard" , "keys" , "chiclet keyboard" , "built-in keyboard" ;
+    schema:category "electronics component" ;
+    ex:confidence "0.88"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "part of" ;
+        ex:target ex:img2_obj_2
+    ] , [
+        ex:relation "below" ;
+        ex:target ex:img2_obj_7
+    ] ;
+    schema:description "The built-in keyboard of the MacBook Air, partially visible from the top-down perspective." .
+
+# === Object 9: Handwritten notes ===
+ex:img2_obj_9
+    a schema:Thing ;
+    rdfs:label "handwritten notes" ;
+    skos:altLabel "notes" , "writing" , "handwriting" , "jottings" , "scribbles" , "text" , "written notes" ;
+    schema:category "content" ;
+    ex:confidence "0.92"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "on" ;
+        ex:target ex:img2_obj_3
+    ] ;
+    schema:description "Handwritten text notes visible on the left page of the open notebook, appearing to be planning or brainstorming content." .
+
+# === Object 10: Sketches and wireframes ===
+ex:img2_obj_10
+    a schema:Thing ;
+    rdfs:label "sketches" ;
+    skos:altLabel "wireframes" , "drawings" , "diagrams" , "doodles" , "illustrations" , "UI sketches" , "design sketches" , "mockups" ;
+    schema:category "content" ;
+    ex:confidence "0.91"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "on" ;
+        ex:target ex:img2_obj_3
+    ] ;
+    schema:description "Small wireframe-style sketches, UI mockup drawings, and diagrams visible on the right page of the open notebook, suggesting user interface or design planning work." .
+
+# === Object 11: Camera lens ===
+ex:img2_obj_11
+    a schema:Thing ;
+    rdfs:label "camera lens" ;
+    skos:altLabel "lens" , "optic" , "glass" , "objective lens" , "camera optic" ;
+    schema:category "electronics component" ;
+    ex:confidence "0.87"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "part of" ;
+        ex:target ex:img2_obj_5
+    ] ;
+    schema:description "The lens element of the vintage camera, visible from the top-down perspective." .
+
+# === Object 12: Earphone cable ===
+ex:img2_obj_12
+    a schema:Thing ;
+    rdfs:label "cable" ;
+    skos:altLabel "wire" , "cord" , "earphone cable" , "headphone wire" , "audio cable" , "earphone cord" , "white cable" ;
+    schema:category "accessory" ;
+    schema:color "white" ;
+    ex:confidence "0.90"^^xsd:float ;
+    ex:spatialRelation [
+        ex:relation "part of" ;
         ex:target ex:img2_obj_6
-    ] .
-
-# === Object: Wooden Desk Surface ===
-
-ex:img2_obj_6 a schema:Product ;
-    rdf:type ex:DeskSurface ;
-    rdfs:label "Wooden desk surface" ;
-    schema:category "Furniture" ;
-    schema:description "A warm brown wooden desk or table surface with visible wood grain, serving as the background for all objects in the scene." ;
-    ex:confidence "0.97"^^xsd:decimal ;
-    schema:spatialCoverage "Entire image background" ;
-    ex:spatialRelation [
-        rdfs:label "supports all objects" ;
-        ex:relationType "supports" ;
-        ex:target ex:img2_obj_1 , ex:img2_obj_2 , ex:img2_obj_3 , ex:img2_obj_4 , ex:img2_obj_5
-    ] .
-
-# === Type Definitions ===
-
-ex:Laptop a rdfs:Class ;
-    rdfs:label "Laptop" ;
-    rdfs:subClassOf schema:Product .
-
-ex:Notebook a rdfs:Class ;
-    rdfs:label "Notebook" ;
-    rdfs:subClassOf schema:Product .
-
-ex:Pen a rdfs:Class ;
-    rdfs:label "Pen" ;
-    rdfs:subClassOf schema:Product .
-
-ex:Earbuds a rdfs:Class ;
-    rdfs:label "Earbuds" ;
-    rdfs:subClassOf schema:Product .
-
-ex:Camera a rdfs:Class ;
-    rdfs:label "Camera" ;
-    rdfs:subClassOf schema:Product .
-
-ex:DeskSurface a rdfs:Class ;
-    rdfs:label "Desk Surface" ;
-    rdfs:subClassOf schema:Product .
-
-# === Property Definitions ===
-
-ex:confidence a rdf:Property ;
-    rdfs:label "detection confidence" ;
-    rdfs:comment "Confidence score for object detection, ranging from 0.0 to 1.0." ;
-    rdfs:range xsd:decimal .
-
-ex:spatialRelation a rdf:Property ;
-    rdfs:label "spatial relation" ;
-    rdfs:comment "Describes a spatial relationship between two objects in the image." .
-
-ex:relationType a rdf:Property ;
-    rdfs:label "relation type" ;
-    rdfs:comment "The type of spatial relation (e.g., leftOf, rightOf, above, below, on, between, supports, occupies)." ;
-    rdfs:range xsd:string .
+    ] , [
+        ex:relation "on top of" ;
+        ex:target ex:img2_obj_1
+    ] ;
+    schema:description "The white cable/wire of the earphones trailing across the desk surface." .

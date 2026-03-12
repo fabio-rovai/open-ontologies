@@ -1,5 +1,6 @@
 @prefix ex: <http://example.org/image/> .
 @prefix schema: <http://schema.org/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -7,28 +8,42 @@
 # === Image node ===
 ex:img_3
     rdf:type schema:ImageObject ;
-    rdfs:label "Frog camouflaged in duckweed-covered water" ;
-    schema:description "A frog partially submerged in still water densely covered with duckweed. The frog is heavily camouflaged by duckweed clinging to its head and body, with only its prominent eyes and the top of its head clearly visible above the water surface." ;
-    schema:keywords "frog, duckweed, camouflage, pond, wildlife, amphibian, green, water surface, macro photography" ;
+    rdfs:label "Frog camouflaged in duckweed-covered pond" ;
+    schema:description "A frog partially submerged in still pond water densely covered with duckweed. The frog is heavily camouflaged by duckweed clinging to its head and body, with only its prominent bulging eyes and the top of its head clearly visible above the green-carpeted water surface. A small dark insect is visible on the duckweed near the frog." ;
+    schema:keywords "frog, duckweed, camouflage, pond, wildlife, amphibian, green, water surface, macro photography, nature, aquatic" ;
     schema:contentUrl "img_3.jpg" ;
+    ex:scene "frog camouflaged in duckweed pond" ;
+    ex:dominantColors "green, dark green, brown, black" ;
+    ex:mood "serene, hidden, natural camouflage" ;
+    ex:lightingCondition "natural daylight, diffused, overcast" ;
+    ex:photographicStyle "close-up wildlife photography, shallow depth of field" ;
     schema:hasPart ex:img3_obj_1 ,
                    ex:img3_obj_2 ,
                    ex:img3_obj_3 ,
                    ex:img3_obj_4 ,
                    ex:img3_obj_5 ,
                    ex:img3_obj_6 ,
-                   ex:img3_obj_7 .
+                   ex:img3_obj_7 ,
+                   ex:img3_obj_8 ,
+                   ex:img3_obj_9 ,
+                   ex:img3_obj_10 ,
+                   ex:img3_obj_11 ,
+                   ex:img3_obj_12 ,
+                   ex:img3_obj_13 .
 
 # === Object 1: Frog ===
 ex:img3_obj_1
     rdf:type schema:Thing ;
     rdfs:label "Frog" ;
-    schema:category "Amphibian" ;
-    schema:description "A frog partially submerged in water, heavily covered with duckweed providing natural camouflage. Only the top of its head and eyes protrude above the water surface." ;
+    skos:altLabel "toad" , "amphibian" , "tree frog" , "bullfrog" ;
+    schema:category "animal" ;
+    schema:description "A frog partially submerged in water, heavily covered with duckweed providing natural camouflage. Only the top of its head and bulging eyes protrude above the water surface. The frog's skin is textured and bumpy, blending seamlessly with the surrounding duckweed." ;
     ex:confidence "0.95"^^xsd:decimal ;
+    ex:boundingBoxRegion "center of frame" ;
     ex:spatialRelation [
-        rdfs:label "centered in frame" ;
-        schema:description "The frog is positioned at the center of the image"
+        rdfs:label "centered in" ;
+        schema:targetObject ex:img3_obj_12 ;
+        schema:description "The frog is positioned at the center of the image frame"
     ] ;
     ex:spatialRelation [
         rdfs:label "submerged in" ;
@@ -39,15 +54,22 @@ ex:img3_obj_1
         rdfs:label "covered by" ;
         schema:targetObject ex:img3_obj_4 ;
         schema:description "The frog is covered with duckweed plants providing camouflage"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "surrounded by" ;
+        schema:targetObject ex:img3_obj_5 ;
+        schema:description "The frog is surrounded by the green vegetation mat"
     ] .
 
 # === Object 2: Frog eyes ===
 ex:img3_obj_2
     rdf:type schema:Thing ;
     rdfs:label "Frog eyes" ;
-    schema:category "Animal body part" ;
-    schema:description "Two large, round, dark eyes with textured eyelids visible above the water surface. The eyes are the most prominent and identifiable feature of the camouflaged frog." ;
+    skos:altLabel "eyes" , "bulging eyes" , "amphibian eyes" , "eyeballs" ;
+    schema:category "animal" ;
+    schema:description "Two large, round, dark bulging eyes with textured bumpy eyelids visible above the water surface. The eyes are the most prominent and identifiable feature of the camouflaged frog, protruding clearly above the duckweed layer." ;
     ex:confidence "0.97"^^xsd:decimal ;
+    ex:boundingBoxRegion "center, slightly upper" ;
     ex:spatialRelation [
         rdfs:label "part of" ;
         schema:targetObject ex:img3_obj_1 ;
@@ -57,30 +79,47 @@ ex:img3_obj_2
         rdfs:label "above" ;
         schema:targetObject ex:img3_obj_3 ;
         schema:description "The eyes protrude above the water surface"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "above" ;
+        schema:targetObject ex:img3_obj_4 ;
+        schema:description "The eyes protrude above the duckweed layer"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "on top of" ;
+        schema:targetObject ex:img3_obj_6 ;
+        schema:description "The eyes sit on the top of the frog's head"
     ] .
 
-# === Object 3: Pond water ===
+# === Object 3: Water ===
 ex:img3_obj_3
     rdf:type schema:Thing ;
-    rdfs:label "Pond water" ;
-    schema:category "Water body" ;
-    schema:description "Still, calm pond water visible beneath the dense layer of duckweed. The water surface is almost entirely obscured by floating vegetation." ;
+    rdfs:label "Water" ;
+    skos:altLabel "pond water" , "still water" , "pond" , "pool" , "standing water" ;
+    schema:category "water" ;
+    schema:description "Still, calm pond water visible beneath the dense layer of duckweed. The water surface is almost entirely obscured by floating vegetation. Small gaps in the duckweed reveal dark water underneath." ;
     ex:confidence "0.90"^^xsd:decimal ;
-    schema:spatialCoverage "Entire image background" ;
+    schema:spatialCoverage "entire image background" ;
     ex:spatialRelation [
         rdfs:label "beneath" ;
         schema:targetObject ex:img3_obj_4 ;
         schema:description "The water lies beneath the floating duckweed layer"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "surrounding" ;
+        schema:targetObject ex:img3_obj_1 ;
+        schema:description "The water surrounds the partially submerged frog"
     ] .
 
-# === Object 4: Duckweed (Lemna) ===
+# === Object 4: Duckweed ===
 ex:img3_obj_4
     rdf:type schema:Thing ;
     rdfs:label "Duckweed" ;
-    schema:category "Aquatic plant" ;
-    schema:description "A dense mat of tiny green duckweed (Lemna) plants covering the entire water surface. The individual fronds are small, round, and bright green, forming a continuous carpet across the pond." ;
+    skos:altLabel "lemna" , "water lentils" , "pond weed" , "green floating plants" , "aquatic plants" ;
+    schema:category "nature" ;
+    schema:description "A dense mat of tiny green duckweed (Lemna) plants covering the entire water surface. The individual fronds are small, round, and bright green, forming a continuous carpet across the pond. They cling to the frog's body providing natural camouflage." ;
     ex:confidence "0.96"^^xsd:decimal ;
-    schema:spatialCoverage "Entire water surface" ;
+    schema:spatialCoverage "entire water surface" ;
     ex:spatialRelation [
         rdfs:label "floating on" ;
         schema:targetObject ex:img3_obj_3 ;
@@ -89,16 +128,43 @@ ex:img3_obj_4
     ex:spatialRelation [
         rdfs:label "covering" ;
         schema:targetObject ex:img3_obj_1 ;
-        schema:description "Duckweed covers the frog, providing camouflage"
+        schema:description "Duckweed covers the frog providing camouflage"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "clinging to" ;
+        schema:targetObject ex:img3_obj_6 ;
+        schema:description "Duckweed fronds cling to the frog's head"
     ] .
 
-# === Object 5: Frog head ===
+# === Object 5: Vegetation mat ===
 ex:img3_obj_5
     rdf:type schema:Thing ;
+    rdfs:label "Vegetation mat" ;
+    skos:altLabel "green carpet" , "plant layer" , "floating mat" , "algae mat" , "surface cover" ;
+    schema:category "nature" ;
+    schema:description "The continuous green carpet formed by duckweed and other small floating plants covering the water surface. It creates a uniform green backdrop that fills the entire frame beyond the frog." ;
+    ex:confidence "0.92"^^xsd:decimal ;
+    schema:spatialCoverage "entire visible water surface" ;
+    ex:spatialRelation [
+        rdfs:label "composed of" ;
+        schema:targetObject ex:img3_obj_4 ;
+        schema:description "The vegetation mat is composed primarily of duckweed"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "surrounding" ;
+        schema:targetObject ex:img3_obj_1 ;
+        schema:description "The vegetation mat surrounds the frog on all sides"
+    ] .
+
+# === Object 6: Frog head ===
+ex:img3_obj_6
+    rdf:type schema:Thing ;
     rdfs:label "Frog head" ;
-    schema:category "Animal body part" ;
-    schema:description "The top of the frog's head, textured and bumpy, partially visible above the water surface and covered with duckweed fronds clinging to its skin." ;
+    skos:altLabel "head" , "frog skull" , "cranium" , "amphibian head" ;
+    schema:category "animal" ;
+    schema:description "The top of the frog's head, textured and bumpy, partially visible above the water surface and covered with duckweed fronds clinging to its rough skin. The head is roughly triangular in shape when viewed from above." ;
     ex:confidence "0.93"^^xsd:decimal ;
+    ex:boundingBoxRegion "center of frame" ;
     ex:spatialRelation [
         rdfs:label "part of" ;
         schema:targetObject ex:img3_obj_1 ;
@@ -108,15 +174,22 @@ ex:img3_obj_5
         rdfs:label "above" ;
         schema:targetObject ex:img3_obj_3 ;
         schema:description "The head protrudes slightly above the water"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "covered by" ;
+        schema:targetObject ex:img3_obj_4 ;
+        schema:description "The head is partially covered by clinging duckweed"
     ] .
 
-# === Object 6: Insect ===
-ex:img3_obj_6
+# === Object 7: Insect ===
+ex:img3_obj_7
     rdf:type schema:Thing ;
-    rdfs:label "Small insect" ;
-    schema:category "Insect" ;
-    schema:description "A small dark insect resting on the duckweed surface, visible in the upper-left area of the image near the frog." ;
+    rdfs:label "Insect" ;
+    skos:altLabel "bug" , "small insect" , "fly" , "water bug" , "beetle" ;
+    schema:category "animal" ;
+    schema:description "A small dark insect resting on the duckweed surface, visible in the upper-left area of the image near the frog. It appears as a dark speck against the green duckweed." ;
     ex:confidence "0.60"^^xsd:decimal ;
+    ex:boundingBoxRegion "upper-left" ;
     ex:spatialRelation [
         rdfs:label "above-left of" ;
         schema:targetObject ex:img3_obj_1 ;
@@ -128,20 +201,120 @@ ex:img3_obj_6
         schema:description "The insect sits on the duckweed surface"
     ] .
 
-# === Object 7: Frog nostrils ===
-ex:img3_obj_7
+# === Object 8: Frog nostrils ===
+ex:img3_obj_8
     rdf:type schema:Thing ;
     rdfs:label "Frog nostrils" ;
-    schema:category "Animal body part" ;
-    schema:description "The frog's nostrils are faintly visible between the eyes on the top of the head, positioned just above the waterline to allow breathing." ;
+    skos:altLabel "nostrils" , "nares" , "nose holes" , "snout" ;
+    schema:category "animal" ;
+    schema:description "The frog's nostrils are faintly visible between the eyes on the top of the head, positioned just above the waterline to allow breathing while remaining submerged." ;
     ex:confidence "0.55"^^xsd:decimal ;
+    ex:boundingBoxRegion "center, between eyes" ;
     ex:spatialRelation [
         rdfs:label "part of" ;
-        schema:targetObject ex:img3_obj_5 ;
+        schema:targetObject ex:img3_obj_6 ;
         schema:description "The nostrils are part of the frog's head"
     ] ;
     ex:spatialRelation [
         rdfs:label "between" ;
         schema:targetObject ex:img3_obj_2 ;
         schema:description "The nostrils are positioned between the two eyes"
+    ] .
+
+# === Object 9: Frog skin ===
+ex:img3_obj_9
+    rdf:type schema:Thing ;
+    rdfs:label "Frog skin" ;
+    skos:altLabel "skin" , "textured skin" , "bumpy skin" , "warty skin" , "amphibian skin" ;
+    schema:category "animal" ;
+    schema:description "The visible portions of the frog's skin are rough, bumpy, and textured with small wart-like protuberances. The skin is mottled green-brown, closely matching the surrounding duckweed and providing effective camouflage." ;
+    ex:confidence "0.88"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "part of" ;
+        schema:targetObject ex:img3_obj_1 ;
+        schema:description "The skin covers the frog's body"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "covered by" ;
+        schema:targetObject ex:img3_obj_4 ;
+        schema:description "The skin is partially covered by clinging duckweed"
+    ] .
+
+# === Object 10: Eyelids ===
+ex:img3_obj_10
+    rdf:type schema:Thing ;
+    rdfs:label "Eyelids" ;
+    skos:altLabel "frog eyelids" , "eye ridges" , "brow ridges" ;
+    schema:category "animal" ;
+    schema:description "Prominent raised eyelid ridges surrounding each eye, textured and bumpy, partially covered with duckweed. They frame the dark round eyes and contribute to the frog's characteristic appearance." ;
+    ex:confidence "0.85"^^xsd:decimal ;
+    ex:boundingBoxRegion "center, around eyes" ;
+    ex:spatialRelation [
+        rdfs:label "surrounding" ;
+        schema:targetObject ex:img3_obj_2 ;
+        schema:description "The eyelids surround and frame the frog's eyes"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "part of" ;
+        schema:targetObject ex:img3_obj_6 ;
+        schema:description "The eyelids are part of the frog's head"
+    ] .
+
+# === Object 11: Pond ===
+ex:img3_obj_11
+    rdf:type schema:Thing ;
+    rdfs:label "Pond" ;
+    skos:altLabel "pool" , "water body" , "wetland" , "marsh" , "swamp" , "bog" ;
+    schema:category "water" ;
+    schema:description "The overall aquatic habitat depicted in the image: a still, stagnant pond or wetland environment with water completely covered by floating vegetation. The calm conditions suggest a sheltered, slow-moving or standing body of water." ;
+    ex:confidence "0.92"^^xsd:decimal ;
+    schema:spatialCoverage "entire scene" ;
+    ex:spatialRelation [
+        rdfs:label "contains" ;
+        schema:targetObject ex:img3_obj_3 ;
+        schema:description "The pond contains the water"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "habitat for" ;
+        schema:targetObject ex:img3_obj_1 ;
+        schema:description "The pond is the natural habitat for the frog"
+    ] .
+
+# === Object 12: Wildlife scene ===
+ex:img3_obj_12
+    rdf:type schema:Thing ;
+    rdfs:label "Wildlife scene" ;
+    skos:altLabel "nature scene" , "outdoor scene" , "natural habitat" , "wildlife photograph" ;
+    schema:category "nature" ;
+    schema:description "The overall scene depicting a wildlife moment in a pond ecosystem. The composition captures a camouflaged frog amid dense duckweed, exemplifying natural camouflage and adaptation in an aquatic environment." ;
+    ex:confidence "0.98"^^xsd:decimal ;
+    schema:spatialCoverage "entire frame" ;
+    ex:spatialRelation [
+        rdfs:label "contains" ;
+        schema:targetObject ex:img3_obj_1 ;
+        schema:description "The scene contains the frog as its primary subject"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "contains" ;
+        schema:targetObject ex:img3_obj_11 ;
+        schema:description "The scene depicts a pond environment"
+    ] .
+
+# === Object 13: Camouflage ===
+ex:img3_obj_13
+    rdf:type schema:Thing ;
+    rdfs:label "Camouflage" ;
+    skos:altLabel "natural camouflage" , "crypsis" , "concealment" , "blending in" , "disguise" ;
+    schema:category "nature" ;
+    schema:description "The natural camouflage effect created by duckweed covering the frog's body, making it nearly indistinguishable from the surrounding pond surface. The frog's mottled green-brown skin further enhances the concealment." ;
+    ex:confidence "0.94"^^xsd:decimal ;
+    ex:spatialRelation [
+        rdfs:label "exhibited by" ;
+        schema:targetObject ex:img3_obj_1 ;
+        schema:description "The camouflage is exhibited by the frog"
+    ] ;
+    ex:spatialRelation [
+        rdfs:label "provided by" ;
+        schema:targetObject ex:img3_obj_4 ;
+        schema:description "The camouflage effect is provided by the duckweed covering"
     ] .
