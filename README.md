@@ -4,7 +4,7 @@
 [![CI](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml/badge.svg)](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![MCP Badge](https://lobehub.com/badge/mcp/fabio-rovai-open-ontologies)](https://lobehub.com/mcp/fabio-rovai-open-ontologies)
-[![Glama](https://glama.ai/mcp/servers/fabio-rovai/open-ontologies/badge)](https://glama.ai/mcp/servers/fabio-rovai/open-ontologies)
+<a href="https://glama.ai/mcp/servers/fabio-rovai/open-ontologies"><img src="https://glama.ai/mcp/servers/fabio-rovai/open-ontologies/badge" width="190" height="100" alt="Glama" /></a>
 [![PitchHut](https://img.shields.io/badge/PitchHut-open--ontologies-orange)](https://www.pitchhut.com/project/open-ontologies-mcp)
 [![ClawHub Skill](https://img.shields.io/badge/ClawHub-open--ontologies-7c3aed)](https://clawhub.ai/fabio-rovai/open-ontologies)
 
