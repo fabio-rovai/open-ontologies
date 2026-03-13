@@ -552,7 +552,7 @@ flowchart TD
         Ontology["validate · load · query\nsave · diff · lint · convert"]
         Data["map · ingest · shacl\nreason · extend"]
         Lifecycle["plan · apply · lock\nenforce · monitor · drift"]
-        Advanced["align · crosswalk\nenrich · lineage"]
+        Advanced["align · crosswalk · enrich\nlineage · embed · search"]
     end
 
     Claude -->|"MCP stdio"| MCP
