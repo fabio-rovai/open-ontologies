@@ -301,7 +301,6 @@ pub struct OntoEnforceFeedbackInput {
     pub accepted: bool,
 }
 
-#[cfg(feature = "embeddings")]
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoEmbedInput {
     /// Structural embedding dimension. Default: 32
@@ -310,7 +309,6 @@ pub struct OntoEmbedInput {
     pub struct_epochs: Option<usize>,
 }
 
-#[cfg(feature = "embeddings")]
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoSearchInput {
     /// Natural language query
@@ -323,7 +321,6 @@ pub struct OntoSearchInput {
     pub alpha: Option<f32>,
 }
 
-#[cfg(feature = "embeddings")]
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoSimilarityInput {
     /// First IRI
@@ -1033,9 +1030,12 @@ impl OpenOntologiesServer {
         }).to_string()
     }
 
-    #[cfg(feature = "postgres")]
     #[tool(name = "onto_import_schema", description = "Import a PostgreSQL database schema as an OWL ontology. Introspects tables, columns, primary keys, and foreign keys, then generates OWL classes, datatype/object properties, and cardinality restrictions.")]
     async fn onto_import_schema(&self, Parameters(input): Parameters<OntoImportSchemaInput>) -> String {
+        #[cfg(not(feature = "postgres"))]
+        { let _ = input; return r#"{"error":"Compiled without postgres feature. Rebuild with --features postgres"}"#.to_string(); }
+        #[cfg(feature = "postgres")]
+        {
         use crate::schema::SchemaIntrospector;
         let base_iri = input.base_iri.as_deref().unwrap_or("http://example.org/db/");
 
@@ -1061,6 +1061,7 @@ impl OpenOntologiesServer {
             }).to_string(),
             Err(e) => format!(r#"{{"error":"Failed to load: {}"}}"#, e),
         }
+        } // cfg(feature = "postgres")
     }
 
     #[tool(name = "onto_align", description = "Detect alignment candidates (owl:equivalentClass, skos:exactMatch, rdfs:subClassOf) between two ontologies using label similarity, property overlap, parent overlap, instance overlap, restriction patterns, and graph neighborhood. Auto-applies high-confidence matches above threshold.")]
@@ -1138,9 +1139,12 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[cfg(feature = "embeddings")]
     #[tool(name = "onto_embed", description = "Generate text + structural Poincaré embeddings for all classes in the loaded ontology. Requires the embedding model (run `open-ontologies init` to download). Embeddings enable semantic search via onto_search and improve alignment accuracy.")]
     async fn onto_embed(&self, Parameters(input): Parameters<OntoEmbedInput>) -> String {
+        #[cfg(not(feature = "embeddings"))]
+        { let _ = input; return r#"{"error":"Compiled without embeddings feature. Rebuild with --features embeddings"}"#.to_string(); }
+        #[cfg(feature = "embeddings")]
+        {
         let embedder = match &self.text_embedder {
             Some(e) => e,
             None => return r#"{"error":"Embedding model not loaded. Run `open-ontologies init` to download."}"#.to_string(),
@@ -1219,11 +1223,15 @@ impl OpenOntologiesServer {
             "struct_dim": struct_dim,
             "errors": errors,
         }).to_string()
+        } // cfg(feature = "embeddings")
     }
 
-    #[cfg(feature = "embeddings")]
     #[tool(name = "onto_search", description = "Semantic search over the loaded ontology using natural language. Returns the most similar classes by text meaning, structural position, or both. Requires onto_embed to have been run first.")]
     async fn onto_search(&self, Parameters(input): Parameters<OntoSearchInput>) -> String {
+        #[cfg(not(feature = "embeddings"))]
+        { let _ = input; return r#"{"error":"Compiled without embeddings feature. Rebuild with --features embeddings"}"#.to_string(); }
+        #[cfg(feature = "embeddings")]
+        {
         let top_k = input.top_k.unwrap_or(10);
         let mode = input.mode.as_deref().unwrap_or("product");
         let alpha = input.alpha.unwrap_or(0.5);
@@ -1239,7 +1247,7 @@ impl OpenOntologiesServer {
         };
 
         let vecstore = self.vecstore.lock().unwrap();
-        if vecstore.len() == 0 {
+        if vecstore.is_empty() {
             return r#"{"error":"No embeddings loaded. Run onto_embed first."}"#.to_string();
         }
 
@@ -1284,11 +1292,15 @@ impl OpenOntologiesServer {
             "mode": mode,
             "count": results.len(),
         }).to_string()
+        } // cfg(feature = "embeddings")
     }
 
-    #[cfg(feature = "embeddings")]
     #[tool(name = "onto_similarity", description = "Compute embedding similarity between two IRIs — returns cosine similarity (text), Poincaré distance (structural), and product score.")]
     async fn onto_similarity(&self, Parameters(input): Parameters<OntoSimilarityInput>) -> String {
+        #[cfg(not(feature = "embeddings"))]
+        { let _ = input; return r#"{"error":"Compiled without embeddings feature. Rebuild with --features embeddings"}"#.to_string(); }
+        #[cfg(feature = "embeddings")]
+        {
         let vecstore = self.vecstore.lock().unwrap();
 
         let text_a = vecstore.get_text_vec(&input.iri_a);
@@ -1321,6 +1333,7 @@ impl OpenOntologiesServer {
             "poincare_distance": (poinc * 1000.0).round() / 1000.0,
             "product_score": (product * 1000.0).round() / 1000.0,
         }).to_string()
+        } // cfg(feature = "embeddings")
     }
 }
 

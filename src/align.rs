@@ -356,6 +356,7 @@ impl AlignmentEngine {
 
                 let relation = Self::classify_relation(label_sim, prop_overlap, parent_ovlp);
 
+                #[allow(unused_mut)]
                 let mut signals_json = serde_json::json!({
                     "label_similarity": (label_sim * 1000.0).round() / 1000.0,
                     "property_overlap": (prop_overlap * 1000.0).round() / 1000.0,

@@ -178,8 +178,7 @@ impl StructuralTrainer {
             for root in &roots {
                 let root_emb = embeddings[root].clone();
                 // Gradient: point toward origin (i.e., the embedding itself, pulling it back)
-                let grad_to_origin: Vec<f32> = root_emb.iter().copied().collect();
-                let new_root = rsgd_step(&root_emb, &grad_to_origin, lr * 0.5);
+                let new_root = rsgd_step(&root_emb, &root_emb, lr * 0.5);
                 embeddings.insert(root.clone(), new_root);
             }
         }
