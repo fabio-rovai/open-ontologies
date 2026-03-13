@@ -35,11 +35,14 @@ calamine = "0.26"
 arrow = { version = "54", default-features = false, features = ["csv", "json"] }
 parquet = { version = "54", default-features = false, features = ["arrow"] }
 sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "postgres"], optional = true }
+tract-onnx = { version = "0.21", optional = true }
+tokenizers = { version = "0.21", optional = true, default-features = false, features = ["onig"] }
+dirs = "6"
 
 [features]
-default = ["postgres"]
+default = ["postgres", "embeddings"]
 postgres = ["sqlx"]
-embeddings = []
+embeddings = ["tract-onnx", "tokenizers"]
 
 [dev-dependencies]
 tempfile = "3"
