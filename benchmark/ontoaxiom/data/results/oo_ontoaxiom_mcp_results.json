@@ -11,12 +11,12 @@
       "extracted": 15
     },
     "foaf": {
-      "precision": 0.75,
-      "recall": 0.6,
-      "f1": 0.6667,
-      "tp": 6,
-      "fp": 2,
-      "fn": 4,
+      "precision": 0.875,
+      "recall": 0.7,
+      "f1": 0.7778,
+      "tp": 7,
+      "fp": 1,
+      "fn": 3,
       "ground_truth": 10,
       "extracted": 8
     },
@@ -31,22 +31,22 @@
       "extracted": 19
     },
     "gufo": {
-      "precision": 0.1455,
-      "recall": 0.1429,
-      "f1": 0.1441,
-      "tp": 8,
-      "fp": 47,
-      "fn": 48,
+      "precision": 1.0,
+      "recall": 0.9821,
+      "f1": 0.991,
+      "tp": 55,
+      "fp": 0,
+      "fn": 1,
       "ground_truth": 56,
       "extracted": 55
     },
     "music": {
-      "precision": 0.7119,
-      "recall": 0.7119,
-      "f1": 0.7119,
-      "tp": 42,
-      "fp": 17,
-      "fn": 17,
+      "precision": 0.7458,
+      "recall": 0.7458,
+      "f1": 0.7458,
+      "tp": 44,
+      "fp": 15,
+      "fn": 15,
       "ground_truth": 59,
       "extracted": 59
     },
@@ -61,12 +61,12 @@
       "extracted": 20
     },
     "pizza": {
-      "precision": 0.05,
-      "recall": 0.05,
-      "f1": 0.05,
-      "tp": 4,
-      "fp": 76,
-      "fn": 76,
+      "precision": 0.9,
+      "recall": 0.9,
+      "f1": 0.9,
+      "tp": 72,
+      "fp": 8,
+      "fn": 8,
       "ground_truth": 80,
       "extracted": 80
     },
@@ -91,22 +91,22 @@
       "extracted": 0
     },
     "_total": {
-      "precision": 0.4307,
-      "recall": 0.3952,
-      "f1": 0.4122,
-      "tp": 115,
-      "fp": 152,
-      "fn": 176
+      "precision": 0.8727,
+      "recall": 0.8007,
+      "f1": 0.8351,
+      "tp": 233,
+      "fp": 34,
+      "fn": 58
     }
   },
   "disjoint": {
     "era": {
-      "precision": 0.75,
-      "recall": 0.75,
-      "f1": 0.75,
-      "tp": 3,
-      "fp": 1,
-      "fn": 1,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
       "ground_truth": 4,
       "extracted": 4
     },
@@ -131,12 +131,12 @@
       "extracted": 129
     },
     "gufo": {
-      "precision": 0.2,
-      "recall": 0.2,
-      "f1": 0.2,
-      "tp": 7,
-      "fp": 28,
-      "fn": 28,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 35,
+      "fp": 0,
+      "fn": 0,
       "ground_truth": 35,
       "extracted": 35
     },
@@ -161,12 +161,12 @@
       "extracted": 4
     },
     "pizza": {
-      "precision": 0.238,
-      "recall": 0.238,
-      "f1": 0.238,
-      "tp": 94,
-      "fp": 301,
-      "fn": 301,
+      "precision": 0.9696,
+      "recall": 0.9696,
+      "f1": 0.9696,
+      "tp": 383,
+      "fp": 12,
+      "fn": 12,
       "ground_truth": 395,
       "extracted": 395
     },
@@ -181,34 +181,34 @@
       "extracted": 1
     },
     "_total": {
-      "precision": 0.4206,
-      "recall": 0.4206,
-      "f1": 0.4206,
-      "tp": 241,
-      "fp": 332,
-      "fn": 332
+      "precision": 0.9756,
+      "recall": 0.9756,
+      "f1": 0.9756,
+      "tp": 559,
+      "fp": 14,
+      "fn": 14
     }
   },
   "domain": {
     "era": {
-      "precision": 0.0191,
-      "recall": 0.0185,
-      "f1": 0.0188,
-      "tp": 5,
-      "fp": 257,
-      "fn": 265,
+      "precision": 0.5802,
+      "recall": 0.563,
+      "f1": 0.5714,
+      "tp": 152,
+      "fp": 110,
+      "fn": 118,
       "ground_truth": 270,
       "extracted": 262
     },
     "foaf": {
-      "precision": 0.6415,
-      "recall": 0.6182,
-      "f1": 0.6296,
-      "tp": 34,
-      "fp": 19,
-      "fn": 21,
-      "ground_truth": 55,
-      "extracted": 53
+      "precision": 0.9231,
+      "recall": 0.8889,
+      "f1": 0.9057,
+      "tp": 48,
+      "fp": 4,
+      "fn": 6,
+      "ground_truth": 54,
+      "extracted": 52
     },
     "goodrelations": {
       "precision": 0.0,
@@ -231,12 +231,12 @@
       "extracted": 44
     },
     "music": {
-      "precision": 0.5243,
-      "recall": 0.5243,
-      "f1": 0.5243,
-      "tp": 54,
-      "fp": 49,
-      "fn": 49,
+      "precision": 0.9029,
+      "recall": 0.9029,
+      "f1": 0.9029,
+      "tp": 93,
+      "fp": 10,
+      "fn": 10,
       "ground_truth": 103,
       "extracted": 103
     },
@@ -261,54 +261,54 @@
       "extracted": 3
     },
     "saref": {
-      "precision": 0.0294,
-      "recall": 0.0294,
-      "f1": 0.0294,
-      "tp": 1,
-      "fp": 33,
-      "fn": 33,
+      "precision": 0.9706,
+      "recall": 0.9706,
+      "f1": 0.9706,
+      "tp": 33,
+      "fp": 1,
+      "fn": 1,
       "ground_truth": 34,
       "extracted": 34
     },
     "time": {
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0.0,
-      "tp": 0,
-      "fp": 54,
-      "fn": 53,
+      "precision": 0.3704,
+      "recall": 0.3774,
+      "f1": 0.3738,
+      "tp": 20,
+      "fp": 34,
+      "fn": 33,
       "ground_truth": 53,
       "extracted": 54
     },
     "_total": {
-      "precision": 0.2399,
-      "recall": 0.2363,
-      "f1": 0.2381,
-      "tp": 142,
-      "fp": 450,
-      "fn": 459
+      "precision": 0.6667,
+      "recall": 0.6567,
+      "f1": 0.6616,
+      "tp": 394,
+      "fp": 197,
+      "fn": 206
     }
   },
   "range": {
     "era": {
-      "precision": 0.029,
-      "recall": 0.0286,
-      "f1": 0.0288,
-      "tp": 13,
-      "fp": 436,
-      "fn": 441,
+      "precision": 0.4722,
+      "recall": 0.467,
+      "f1": 0.4695,
+      "tp": 212,
+      "fp": 237,
+      "fn": 242,
       "ground_truth": 454,
       "extracted": 449
     },
     "foaf": {
-      "precision": 0.6226,
-      "recall": 0.6,
-      "f1": 0.6111,
-      "tp": 33,
-      "fp": 20,
-      "fn": 22,
-      "ground_truth": 55,
-      "extracted": 53
+      "precision": 0.9423,
+      "recall": 0.9074,
+      "f1": 0.9245,
+      "tp": 49,
+      "fp": 3,
+      "fn": 5,
+      "ground_truth": 54,
+      "extracted": 52
     },
     "goodrelations": {
       "precision": 0.0,
@@ -331,12 +331,12 @@
       "extracted": 43
     },
     "music": {
-      "precision": 0.8,
-      "recall": 0.8,
-      "f1": 0.8,
-      "tp": 100,
-      "fp": 25,
-      "fn": 25,
+      "precision": 0.928,
+      "recall": 0.928,
+      "f1": 0.928,
+      "tp": 116,
+      "fp": 9,
+      "fn": 9,
       "ground_truth": 125,
       "extracted": 125
     },
@@ -361,42 +361,42 @@
       "extracted": 4
     },
     "saref": {
-      "precision": 0.0526,
-      "recall": 0.0526,
-      "f1": 0.0526,
-      "tp": 2,
-      "fp": 36,
-      "fn": 36,
+      "precision": 0.9211,
+      "recall": 0.9211,
+      "f1": 0.9211,
+      "tp": 35,
+      "fp": 3,
+      "fn": 3,
       "ground_truth": 38,
       "extracted": 38
     },
     "time": {
-      "precision": 0.0893,
-      "recall": 0.0909,
-      "f1": 0.0901,
-      "tp": 5,
-      "fp": 51,
-      "fn": 50,
+      "precision": 0.5179,
+      "recall": 0.5273,
+      "f1": 0.5225,
+      "tp": 29,
+      "fp": 27,
+      "fn": 26,
       "ground_truth": 55,
       "extracted": 56
     },
     "_total": {
-      "precision": 0.2329,
-      "recall": 0.2313,
-      "f1": 0.2321,
-      "tp": 201,
-      "fp": 662,
-      "fn": 668
+      "precision": 0.5673,
+      "recall": 0.5634,
+      "f1": 0.5653,
+      "tp": 489,
+      "fp": 373,
+      "fn": 379
     }
   },
   "subproperty": {
     "era": {
-      "precision": 0.1875,
-      "recall": 0.12,
-      "f1": 0.1463,
-      "tp": 3,
-      "fp": 13,
-      "fn": 22,
+      "precision": 0.25,
+      "recall": 0.16,
+      "f1": 0.1951,
+      "tp": 4,
+      "fp": 12,
+      "fn": 21,
       "ground_truth": 25,
       "extracted": 16
     },
@@ -421,32 +421,32 @@
       "extracted": 22
     },
     "gufo": {
-      "precision": 0.0714,
-      "recall": 0.0714,
-      "f1": 0.0714,
-      "tp": 1,
-      "fp": 13,
-      "fn": 13,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 14,
+      "fp": 0,
+      "fn": 0,
       "ground_truth": 14,
       "extracted": 14
     },
     "music": {
-      "precision": 0.4938,
-      "recall": 0.4938,
-      "f1": 0.4938,
-      "tp": 40,
-      "fp": 41,
-      "fn": 41,
+      "precision": 0.8395,
+      "recall": 0.8395,
+      "f1": 0.8395,
+      "tp": 68,
+      "fp": 13,
+      "fn": 13,
       "ground_truth": 81,
       "extracted": 81
     },
     "pizza": {
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0.0,
-      "tp": 0,
-      "fp": 4,
-      "fn": 4,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
       "ground_truth": 4,
       "extracted": 4
     },
@@ -471,21 +471,21 @@
       "extracted": 0
     },
     "_total": {
-      "precision": 0.3694,
-      "recall": 0.3222,
-      "f1": 0.3442,
-      "tp": 58,
-      "fp": 99,
-      "fn": 122
+      "precision": 0.6624,
+      "recall": 0.5778,
+      "f1": 0.6172,
+      "tp": 104,
+      "fp": 53,
+      "fn": 76
     }
   },
   "_grand_total": {
-    "precision": 0.3087,
-    "recall": 0.3011,
-    "f1": 0.3049,
-    "tp": 757,
-    "fp": 1695,
-    "fn": 1757
+    "precision": 0.7261,
+    "recall": 0.7082,
+    "f1": 0.717,
+    "tp": 1779,
+    "fp": 671,
+    "fn": 733
   },
   "_meta": {
     "pipeline": "MCP server (open-ontologies serve) via official MCP Python SDK",
@@ -495,7 +495,7 @@
       "onto_load",
       "onto_query"
     ],
-    "tools_available": 39,
+    "tools_available": 37,
     "total_mcp_calls": 137,
     "ontologies": 10
   }

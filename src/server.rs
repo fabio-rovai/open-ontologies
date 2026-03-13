@@ -1,9 +1,15 @@
 use std::sync::Arc;
 
 use rmcp::{
-    ServerHandler, tool, tool_handler, tool_router,
-    handler::server::{tool::ToolRouter, wrapper::Parameters},
-    model::{ServerCapabilities, ServerInfo, Tool},
+    ServerHandler, RoleServer, tool, tool_handler, tool_router,
+    prompt, prompt_handler, prompt_router,
+    handler::server::{tool::ToolRouter, router::prompt::PromptRouter, wrapper::Parameters},
+    model::{
+        ServerCapabilities, ServerInfo, Tool,
+        PromptMessage, PromptMessageRole, GetPromptResult,
+        GetPromptRequestParams, PaginatedRequestParams, ListPromptsResult,
+    },
+    service::RequestContext,
 };
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -301,6 +307,7 @@ pub struct OntoEnforceFeedbackInput {
 #[derive(Clone)]
 pub struct OpenOntologiesServer {
     tool_router: ToolRouter<Self>,
+    prompt_router: PromptRouter<Self>,
     db: StateDb,
     graph: Arc<GraphStore>,
     session_id: String,
@@ -313,6 +320,7 @@ impl OpenOntologiesServer {
         let session_id = lineage.new_session();
         Self {
             tool_router: Self::tool_router(),
+            prompt_router: Self::prompt_router(),
             db,
             graph: Arc::new(GraphStore::new()),
             session_id,
@@ -1069,12 +1077,139 @@ impl OpenOntologiesServer {
     }
 }
 
+// ─── Prompt definitions ─────────────────────────────────────────────────────
+
+#[prompt_router]
+impl OpenOntologiesServer {
+    /// Build an ontology from a domain description. Guides through the full workflow: generate Turtle, validate, load, lint, query, and persist.
+    #[prompt(name = "build_ontology")]
+    fn build_ontology(&self, Parameters(input): Parameters<BuildOntologyInput>) -> Result<GetPromptResult, rmcp::ErrorData> {
+        let msg = format!(
+            "Build an OWL ontology for the following domain:\n\n{}\n\n\
+            Follow the Open Ontologies workflow:\n\
+            1. Generate Turtle/OWL directly\n\
+            2. Call onto_validate on the generated Turtle\n\
+            3. Call onto_load to load into the triple store\n\
+            4. Call onto_stats to verify counts\n\
+            5. Call onto_lint to check for missing labels, comments, domains, ranges\n\
+            6. Call onto_query with SPARQL to verify structure\n\
+            7. Fix any issues and iterate until clean\n\
+            8. Call onto_save to persist the final ontology",
+            input.domain
+        );
+        Ok(GetPromptResult::new(vec![
+            PromptMessage::new_text(PromptMessageRole::User, msg),
+        ]).with_description("Build an ontology from a domain description"))
+    }
+
+    /// Validate and lint an existing ontology file. Loads it, runs validation and lint checks, reports all issues.
+    #[prompt(name = "validate_ontology")]
+    fn validate_ontology(&self, Parameters(input): Parameters<ValidateOntologyInput>) -> Result<GetPromptResult, rmcp::ErrorData> {
+        let msg = format!(
+            "Validate and lint the ontology at: {}\n\n\
+            Steps:\n\
+            1. Call onto_validate to check syntax\n\
+            2. Call onto_load to load into the triple store\n\
+            3. Call onto_stats to show class/property/triple counts\n\
+            4. Call onto_lint to check for missing labels, domains, ranges\n\
+            5. Report all issues found and suggest fixes",
+            input.path
+        );
+        Ok(GetPromptResult::new(vec![
+            PromptMessage::new_text(PromptMessageRole::User, msg),
+        ]).with_description("Validate and lint an ontology file"))
+    }
+
+    /// Compare two versions of an ontology. Shows added/removed classes, properties, and drift analysis.
+    #[prompt(name = "compare_ontologies")]
+    fn compare_ontologies(&self, Parameters(input): Parameters<CompareOntologiesInput>) -> Result<GetPromptResult, rmcp::ErrorData> {
+        let msg = format!(
+            "Compare these two ontology versions:\n\
+            - Old: {}\n\
+            - New: {}\n\n\
+            Steps:\n\
+            1. Call onto_diff to see structural changes\n\
+            2. Call onto_drift to analyze drift velocity and detect renames\n\
+            3. Summarize: what was added, removed, renamed, and the overall risk",
+            input.old_path, input.new_path
+        );
+        Ok(GetPromptResult::new(vec![
+            PromptMessage::new_text(PromptMessageRole::User, msg),
+        ]).with_description("Compare two ontology versions"))
+    }
+
+    /// Ingest external data into a loaded ontology. Maps data fields to ontology classes/properties and validates with SHACL.
+    #[prompt(name = "ingest_data")]
+    fn ingest_data(&self, Parameters(input): Parameters<IngestDataInput>) -> Result<GetPromptResult, rmcp::ErrorData> {
+        let msg = format!(
+            "Ingest data from {} into the currently loaded ontology.\n\n\
+            Steps:\n\
+            1. Call onto_map to inspect the data and suggest a mapping\n\
+            2. Review and adjust the mapping\n\
+            3. Call onto_ingest with the mapping to generate RDF triples\n\
+            4. Call onto_stats to verify triple counts\n\
+            5. Call onto_shacl to validate against SHACL shapes\n\
+            6. Call onto_reason to infer additional triples\n\
+            7. Call onto_query to verify the ingested data",
+            input.data_path
+        );
+        Ok(GetPromptResult::new(vec![
+            PromptMessage::new_text(PromptMessageRole::User, msg),
+        ]).with_description("Ingest external data into a loaded ontology"))
+    }
+
+    /// Explore a loaded ontology with SPARQL. Lists classes, properties, and answers competency questions.
+    #[prompt(name = "explore_ontology")]
+    fn explore_ontology(&self) -> Result<GetPromptResult, rmcp::ErrorData> {
+        Ok(GetPromptResult::new(vec![
+            PromptMessage::new_text(
+                PromptMessageRole::User,
+                "Explore the currently loaded ontology:\n\n\
+                1. Call onto_stats to show overview counts\n\
+                2. Call onto_query to list all classes with labels\n\
+                3. Call onto_query to show the class hierarchy (subClassOf)\n\
+                4. Call onto_query to list all properties with domains and ranges\n\
+                5. Summarize the ontology structure and suggest competency questions it can answer",
+            ),
+        ]).with_description("Explore a loaded ontology with SPARQL"))
+    }
+}
+
+// ─── Prompt input structs ───────────────────────────────────────────────────
+
+#[derive(Deserialize, JsonSchema)]
+pub struct BuildOntologyInput {
+    /// Description of the domain to model (e.g. "A pizza ontology with toppings, bases, and named pizzas")
+    pub domain: String,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct ValidateOntologyInput {
+    /// Path to the ontology file to validate
+    pub path: String,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct CompareOntologiesInput {
+    /// Path to the old/original ontology file
+    pub old_path: String,
+    /// Path to the new/modified ontology file
+    pub new_path: String,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct IngestDataInput {
+    /// Path to the data file (CSV, JSON, NDJSON, XML, YAML, XLSX, Parquet)
+    pub data_path: String,
+}
+
 // ─── ServerHandler ──────────────────────────────────────────────────────────
 
 #[tool_handler]
+#[prompt_handler]
 impl ServerHandler for OpenOntologiesServer {
     fn get_info(&self) -> ServerInfo {
-        ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
-            .with_instructions("Open Ontologies: AI-native ontology engine — RDF/OWL/SPARQL MCP server")
+        ServerInfo::new(ServerCapabilities::builder().enable_tools().enable_prompts().build())
+            .with_instructions("Open Ontologies: AI-native ontology engine — RDF/OWL/SPARQL MCP server with 39 tools and 5 workflow prompts for ontology engineering, validation, comparison, data ingestion, and exploration.")
     }
 }

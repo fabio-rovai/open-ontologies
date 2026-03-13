@@ -3,24 +3,33 @@
 [![CI](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml/badge.svg)](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![MCP Badge](https://lobehub.com/badge/mcp/fabio-rovai-open-ontologies)](https://lobehub.com/mcp/fabio-rovai-open-ontologies)
+[![Glama](https://glama.ai/mcp/servers/badge/open-ontologies)](https://glama.ai/mcp/servers/open-ontologies)
+[![PitchHut](https://img.shields.io/badge/PitchHut-open--ontologies-orange)](https://www.pitchhut.com/project/open-ontologies-mcp)
 [![ClawHub Skill](https://img.shields.io/badge/ClawHub-open--ontologies-7c3aed)](https://clawhub.ai/fabio-rovai/open-ontologies)
 
 
-Open Ontologies is a standalone MCP server and CLI for AI-native ontology engineering. It exposes 39 tools that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — plus plan changes, detect drift, enforce design patterns, monitor health, align ontologies, track lineage, and learn from user feedback.
+Open Ontologies is a standalone MCP server and CLI for AI-native ontology engineering. It exposes 39 tools and 5 workflow prompts that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — plus plan changes, detect drift, enforce design patterns, monitor health, align ontologies, track lineage, and learn from user feedback.
 
 Written in Rust, ships as a single binary. No JVM, no Protege, no GUI.
 
 ## Quick Start
 
-### 1. Build
+### 1. Install
 
-Requires Rust 1.85+ (edition 2024).
+#### From source (Rust 1.85+)
 
 ```bash
 git clone https://github.com/fabio-rovai/open-ontologies.git
 cd open-ontologies
 cargo build --release
 ./target/release/open-ontologies init
+```
+
+#### Docker
+
+```bash
+docker build -t open-ontologies https://github.com/fabio-rovai/open-ontologies.git
+docker run -i open-ontologies serve
 ```
 
 ### 2. Connect to your MCP client
@@ -72,6 +81,21 @@ Add to your MCP settings (usually `.cursor/mcp.json` or equivalent):
     "open-ontologies": {
       "command": "/path/to/open-ontologies/target/release/open-ontologies",
       "args": ["serve"]
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>Docker</strong></summary>
+
+```json
+{
+  "mcpServers": {
+    "open-ontologies": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "open-ontologies", "serve"]
     }
   }
 }
@@ -422,20 +446,28 @@ Category recall is lower because TTL files use fine-grained categories ("animal 
 
 The benchmark runs the full MCP pipeline: `onto_clear` → `onto_validate` (×10) → `onto_load` (×10) → `onto_stats` → `onto_lint` (×10) → `onto_query` (×6) via the real MCP server using the official MCP Python SDK over JSON-RPC 2.0 stdio. Files: [`benchmark/vision/`](benchmark/vision/)
 
-### OntoAxiom Benchmark — Tool-Augmented vs Bare LLMs
+### OntoAxiom Benchmark — Three Approaches to Axiom Identification
 
-[OntoAxiom](https://arxiv.org/abs/2512.05594) tests LLM axiom identification across 9 ontologies and 3,042 ground truth axioms. Best bare LLM (o1): F1 = 0.197. We load the ontology and extract axioms via structured queries — the same `onto_load` + `onto_query` pipeline.
+[OntoAxiom](https://arxiv.org/abs/2512.05594) tests LLM axiom identification across 9 ontologies and 3,042 ground truth axioms. We test three approaches:
 
-| Axiom Type | Open Ontologies | Best LLM (o1) | Improvement |
-| ---------- | --------------- | -------------- | ----------- |
-| subClassOf | **0.412** | 0.359 | +15% |
-| disjointWith | **0.421** | 0.095 | +343% |
-| domain | **0.237** | 0.038 | +524% |
-| range | **0.232** | 0.030 | +673% |
-| subPropertyOf | **0.344** | 0.106 | +225% |
-| **OVERALL** | **0.305** | **0.197** | **+55%** |
+| Approach | Input | F1 | vs o1 |
+| -------- | ----- | -- | ----- |
+| o1 (paper's best) | Name lists only | 0.197 | — |
+| **Bare Claude Opus** | **Name lists only** | **0.431** | **+119%** |
+| **MCP extraction** | **Full OWL files** | **0.717** | **+264%** |
 
-Open Ontologies wins all 5 axiom types. 10 individual results scored PERFECT (F1 = 1.000). Full writeup: [`benchmark/ontoaxiom/ONTOAXIOM_SHOWDOWN.md`](benchmark/ontoaxiom/ONTOAXIOM_SHOWDOWN.md)
+MCP extraction per axiom type:
+
+| Axiom Type | MCP Extraction | o1 (paper) | Improvement |
+| ---------- | -------------- | ---------- | ----------- |
+| subClassOf | **0.835** | 0.359 | +133% |
+| disjointWith | **0.976** | 0.095 | +927% |
+| domain | **0.662** | 0.038 | +1642% |
+| range | **0.565** | 0.030 | +1783% |
+| subPropertyOf | **0.617** | 0.106 | +482% |
+| **OVERALL** | **0.717** | **0.197** | **+264%** |
+
+13 individual results scored PERFECT (F1 = 1.000). Full writeup: [`benchmark/ontoaxiom/ONTOAXIOM_SHOWDOWN.md`](benchmark/ontoaxiom/ONTOAXIOM_SHOWDOWN.md)
 
 ### Reasoning Performance — HermiT vs Open Ontologies
 
@@ -466,40 +498,25 @@ Scripts and results: [`benchmark/reasoner/`](benchmark/reasoner/)
 
 ```mermaid
 flowchart TD
-    Claude["Claude"]
+    Claude["🤖 Claude / LLM"]
     MCP["Open Ontologies MCP Server"]
-    OntologyService["OntologyService"]
-    GraphStore["GraphStore — Oxigraph"]
-    StateDb["StateDb — SQLite"]
-    Planner["Planner — plan / apply / migrate"]
-    DriftDetector["DriftDetector — version comparison"]
-    Enforcer["Enforcer — design pattern rules"]
-    Monitor["Monitor — SPARQL watchers"]
-    Lineage["LineageLog — audit trail"]
-    Alignment["AlignmentEngine — cross-ontology matching"]
-    Clinical["ClinicalCrosswalks — Parquet"]
 
-    Claude --> MCP
-    MCP --> OntologyService
-    MCP --> Planner
-    MCP --> DriftDetector
-    MCP --> Enforcer
-    MCP --> Monitor
-    MCP --> Lineage
-    MCP --> Alignment
-    MCP --> Clinical
-    OntologyService --> GraphStore
-    OntologyService --> StateDb
-    Planner --> GraphStore
-    Planner --> StateDb
-    DriftDetector --> StateDb
-    Enforcer --> GraphStore
-    Enforcer --> StateDb
-    Monitor --> GraphStore
-    Monitor --> StateDb
-    Lineage --> StateDb
-    Alignment --> GraphStore
-    Alignment --> StateDb
+    subgraph Core["Core Engine"]
+        GraphStore["Oxigraph Triple Store"]
+        StateDb["SQLite State"]
+    end
+
+    subgraph Tools["39 Tools + 5 Prompts"]
+        direction LR
+        Ontology["validate · load · query\nsave · diff · lint · convert"]
+        Data["map · ingest · shacl\nreason · extend"]
+        Lifecycle["plan · apply · lock\nenforce · monitor · drift"]
+        Advanced["align · crosswalk\nenrich · lineage"]
+    end
+
+    Claude -->|"MCP stdio"| MCP
+    MCP --> Tools
+    Tools --> Core
 ```
 
 ## Stack
