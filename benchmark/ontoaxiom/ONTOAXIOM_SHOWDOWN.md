@@ -26,26 +26,35 @@ Claude generates Turtle from its predictions, loads it into the triple store via
 
 ## Results
 
-### Bare Claude Opus vs o1 (same task, same input)
+### Bare Claude Opus vs o1 — Full 9-Ontology Benchmark
 
-Tested on 4 ontologies (Pizza, FOAF, gUFO, NordStream) with fixed scoring that handles camelCase normalization and pair order:
+All 9 OntoAxiom ontologies (Pizza, FOAF, gUFO, NordStream, ERA, GoodRelations, Music, SAREF, Time). Same input as the paper: class/property name lists only.
 
-| Axiom Type | Claude Opus (bare) | o1 (paper's best) |
-| ---------- | ------------------ | ------------------ |
-| subClassOf | **0.787** | 0.359 |
-| disjointWith | **0.269** | 0.095 |
-| domain | **0.484** | 0.038 |
-| range | **0.446** | 0.030 |
-| subPropertyOf | **0.498** | 0.106 |
-| **OVERALL** | **0.497** | **0.197** |
+| Axiom Type | Claude Opus (bare) | o1 (paper's best) | Improvement |
+| ---------- | ------------------ | ------------------ | ----------- |
+| subClassOf | **0.675** | 0.359 | +88% |
+| disjointWith | **0.188** | 0.095 | +98% |
+| domain | **0.482** | 0.038 | +1168% |
+| range | **0.443** | 0.030 | +1377% |
+| subPropertyOf | **0.367** | 0.106 | +246% |
+| **OVERALL** | **0.431** | **0.197** | **+119%** |
 
-**Claude Opus beats o1 by +152% on the same task with the same input.** No tools, no ontology files — just better ontology knowledge.
+**Claude Opus beats o1 by +119% on the same task with the same input.** No tools, no ontology files — just better ontology knowledge.
 
-Highlights:
+#### Per-Ontology Highlights
 
-- Pizza subClassOf: F1 = 0.924 (79/80 pairs correct from memory)
-- gUFO subClassOf: F1 = 0.915 (Claude knows UFO/OntoUML natively)
-- Pizza subPropertyOf: F1 = 1.000 (perfect score)
+| Ontology | Best Result | Score |
+| -------- | ----------- | ----- |
+| Pizza | subPropertyOf | F1 = 1.000 (perfect) |
+| FOAF | subClassOf | F1 = 0.947 (9/10 correct) |
+| Pizza | subClassOf | F1 = 0.903 (79/80 from memory) |
+| gUFO | subClassOf | F1 = 0.885 (Claude knows OntoUML) |
+| Time | domain | F1 = 0.739 |
+| gUFO | range | F1 = 0.738 |
+| gUFO | subPropertyOf | F1 = 0.706 |
+| FOAF | domain | F1 = 0.757 |
+| Time | range | F1 = 0.690 |
+| GoodRelations | subClassOf | F1 = 0.651 |
 
 ### MCP Extraction vs Bare LLMs
 
@@ -77,21 +86,23 @@ These are evaluation artifacts, not extraction failures. The axioms are all ther
 | Approach | Input | F1 | Strength |
 | -------- | ----- | -- | -------- |
 | o1 (bare) | Name lists only | 0.197 | — |
-| Claude Opus (bare) | Name lists only | 0.497 | Knows famous ontologies from training |
 | MCP extraction | Full OWL file | 0.305* | Complete, verifiable, auditable |
+| **Claude Opus (bare)** | **Name lists only** | **0.431** | **Knows ontologies from training** |
 | **Claude + MCP (hybrid)** | **Name lists + tools** | **TBD** | **Best of both** |
 
 *Penalized by label normalization; actual extraction is complete.
 
 ## What This Demonstrates
 
-1. **Claude Opus already knows ontology structure** — it gets F1 = 0.787 on subClassOf from name lists alone, crushing o1's 0.359.
+1. **Claude Opus already knows ontology structure** — it gets F1 = 0.675 on subClassOf from name lists alone, crushing o1's 0.359.
 
-2. **Tools add verifiability, not just accuracy** — bare Claude could hallucinate axiom pairs that look plausible. MCP extraction is auditable: every pair traces back to a SPARQL query against the actual ontology.
+2. **Domain knowledge matters enormously** — Claude achieves F1 = 0.947 on FOAF subClassOf and F1 = 0.885 on gUFO subClassOf. It has deep knowledge of well-known ontologies from training.
 
-3. **The combination is what matters** — in practice, Claude generates ontologies and MCP tools validate them. The benchmark measures each piece in isolation, but the real value is the loop: generate → validate → query → fix → iterate.
+3. **Tools add verifiability, not just accuracy** — bare Claude could hallucinate axiom pairs that look plausible. MCP extraction is auditable: every pair traces back to a SPARQL query against the actual ontology.
 
-4. **Normalization is the bottleneck** — all three approaches are limited by string matching against ground truth. A structural comparison (loading predictions into the triple store and comparing via `onto_diff`) would eliminate this artifact entirely.
+4. **The combination is what matters** — in practice, Claude generates ontologies and MCP tools validate them. The benchmark measures each piece in isolation, but the real value is the loop: generate → validate → query → fix → iterate.
+
+5. **Normalization is the bottleneck** — all three approaches are limited by string matching against ground truth. A structural comparison (loading predictions into the triple store and comparing via `onto_diff`) would eliminate this artifact entirely.
 
 ## Important: Not an Apples-to-Apples Comparison
 
