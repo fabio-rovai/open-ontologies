@@ -122,8 +122,8 @@ ex:Fish a owl:Class ;
     let diff = OntologyService::diff(original, modified).unwrap();
     let val: serde_json::Value = serde_json::from_str(&diff).unwrap();
     // Cat removed, Fish added
-    assert!(val["removed_count"].as_u64().unwrap() > 0, "Should detect removals");
-    assert!(val["added_count"].as_u64().unwrap() > 0, "Should detect additions");
+    assert!(val["removed"].as_u64().unwrap() > 0, "Should detect removals");
+    assert!(val["added"].as_u64().unwrap() > 0, "Should detect additions");
 }
 
 #[test]
