@@ -17,3 +17,5 @@ pub mod shacl;
 pub mod state;
 pub mod schema;
 pub mod tableaux;
+#[cfg(feature = "embeddings")]
+pub mod poincare;
