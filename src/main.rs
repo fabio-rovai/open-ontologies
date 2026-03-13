@@ -378,7 +378,7 @@ async fn main() -> anyhow::Result<()> {
                 StreamableHttpService::new(
                     move || {
                         let db = StateDb::open(&db_path_owned)
-                            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+                            .map_err(std::io::Error::other)?;
                         Ok(OpenOntologiesServer::new(db))
                     },
                     Default::default(),
