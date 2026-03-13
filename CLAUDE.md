@@ -42,6 +42,7 @@ Claude dynamically decides the next tool call based on what the previous tool re
 
 | Tool | When to use |
 | ---- | ----------- |
+| `onto_status` | To check if the server is running and healthy |
 | `onto_validate` | After generating or modifying Turtle — always validate first |
 | `onto_load` | After validation passes — loads into triple store for querying |
 | `onto_stats` | After loading — sanity check on class/property/triple counts |
@@ -62,6 +63,7 @@ Claude dynamically decides the next tool call based on what the previous tool re
 | `onto_shacl` | To validate loaded data against SHACL shapes (cardinality, datatypes, classes) |
 | `onto_reason` | To run RDFS or OWL-RL inference, materializing inferred triples |
 | `onto_extend` | To run the full pipeline: ingest → SHACL validate → reason in one call |
+| `onto_import_schema` | To import a PostgreSQL database schema as an OWL ontology (requires postgres feature) |
 | `onto_plan` | Before applying changes — shows added/removed classes, blast radius, risk score |
 | `onto_apply` | After plan + enforce — applies changes in `safe` or `migrate` mode |
 | `onto_lock` | To protect production IRIs from removal |
@@ -72,11 +74,13 @@ Claude dynamically decides the next tool call based on what the previous tool re
 | `onto_crosswalk` | To look up clinical terminology mappings (ICD-10 ↔ SNOMED ↔ MeSH) |
 | `onto_enrich` | To add skos:exactMatch triples linking classes to clinical codes |
 | `onto_validate_clinical` | To check class labels against clinical crosswalk terminology |
-| `onto_align` | To detect alignment candidates (equivalentClass, exactMatch, subClassOf) between two ontologies using 6 weighted signals |
+| `onto_align` | To detect alignment candidates (equivalentClass, exactMatch, subClassOf) between two ontologies using 7 weighted signals (6 structural + embedding similarity when embeddings are loaded) |
 | `onto_align_feedback` | To accept/reject alignment candidates for self-calibrating confidence weights |
 | `onto_lineage` | To view the session's lineage trail (plan → enforce → apply → monitor → drift) |
 | `onto_lint_feedback` | To accept/dismiss a lint issue — teaches lint to suppress repeatedly dismissed warnings |
 | `onto_enforce_feedback` | To accept/dismiss an enforce violation — teaches enforce to suppress repeatedly dismissed violations |
+| `onto_dl_explain` | To explain why a class is unsatisfiable using DL tableaux reasoning — returns clash trace |
+| `onto_dl_check` | To check if one class is subsumed by another using DL tableaux reasoning |
 | `onto_embed` | After loading an ontology — generates text + Poincaré structural embeddings for all classes |
 | `onto_search` | To find classes by natural language description — requires onto_embed first |
 | `onto_similarity` | To compute embedding similarity between two specific IRIs |
