@@ -1,3 +1,4 @@
+<!-- mcp-name: io.github.fabio-rovai/open-ontologies -->
 # A Terraforming MCP for Knowledge Graphs: validate, classify, and govern AI-generated ontologies.
 
 [![CI](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml/badge.svg)](https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml)
