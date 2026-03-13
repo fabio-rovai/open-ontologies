@@ -3,11 +3,11 @@
   "name": "io.github.fabio-rovai/open-ontologies",
   "title": "Open Ontologies",
   "description": "AI-native ontology engineering MCP server — validate, query, diff, lint, version, and govern RDF/OWL ontologies with 39 tools and 5 workflow prompts via Oxigraph triple store",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/fabio-rovai/open-ontologies:0.1.0",
+      "identifier": "ghcr.io/fabio-rovai/open-ontologies:0.1.1",
       "transport": {
         "type": "stdio"
       }
