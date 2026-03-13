@@ -17,6 +17,31 @@ Written in Rust, ships as a single binary. No JVM, no Protege, no GUI.
 
 ### 1. Install
 
+#### Pre-built binaries
+
+Download from [GitHub Releases](https://github.com/fabio-rovai/open-ontologies/releases/latest):
+
+```bash
+# macOS (Apple Silicon)
+curl -LO https://github.com/fabio-rovai/open-ontologies/releases/latest/download/open-ontologies-aarch64-apple-darwin
+chmod +x open-ontologies-aarch64-apple-darwin && mv open-ontologies-aarch64-apple-darwin /usr/local/bin/open-ontologies
+
+# macOS (Intel)
+curl -LO https://github.com/fabio-rovai/open-ontologies/releases/latest/download/open-ontologies-x86_64-apple-darwin
+chmod +x open-ontologies-x86_64-apple-darwin && mv open-ontologies-x86_64-apple-darwin /usr/local/bin/open-ontologies
+
+# Linux (x86_64)
+curl -LO https://github.com/fabio-rovai/open-ontologies/releases/latest/download/open-ontologies-x86_64-unknown-linux-gnu
+chmod +x open-ontologies-x86_64-unknown-linux-gnu && mv open-ontologies-x86_64-unknown-linux-gnu /usr/local/bin/open-ontologies
+```
+
+#### Docker
+
+```bash
+docker pull ghcr.io/fabio-rovai/open-ontologies:latest
+docker run -i ghcr.io/fabio-rovai/open-ontologies serve
+```
+
 #### From source (Rust 1.85+)
 
 ```bash
@@ -24,13 +49,6 @@ git clone https://github.com/fabio-rovai/open-ontologies.git
 cd open-ontologies
 cargo build --release
 ./target/release/open-ontologies init
-```
-
-#### Docker
-
-```bash
-docker build -t open-ontologies https://github.com/fabio-rovai/open-ontologies.git
-docker run -i open-ontologies serve
 ```
 
 ### 2. Connect to your MCP client
@@ -96,7 +114,7 @@ Add to your MCP settings (usually `.cursor/mcp.json` or equivalent):
   "mcpServers": {
     "open-ontologies": {
       "command": "docker",
-      "args": ["run", "-i", "--rm", "open-ontologies", "serve"]
+      "args": ["run", "-i", "--rm", "ghcr.io/fabio-rovai/open-ontologies", "serve"]
     }
   }
 }
