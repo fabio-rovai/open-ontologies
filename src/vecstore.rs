@@ -125,6 +125,10 @@ impl VecStore {
         self.entries.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
     pub fn get_text_vec(&self, iri: &str) -> Option<&[f32]> {
         self.entries.get(iri).map(|e| e.text_vec.as_slice())
     }
