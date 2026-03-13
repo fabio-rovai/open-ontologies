@@ -1,5 +1,8 @@
 FROM rust:1-slim AS builder
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config libssl-dev libpq-dev && rm -rf /var/lib/apt/lists/*
+
 ENV CARGO_INCREMENTAL=0 CARGO_PROFILE_RELEASE_DEBUG=0
 
 WORKDIR /build
