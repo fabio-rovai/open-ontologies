@@ -2,6 +2,17 @@
 
 All notable changes to Open Ontologies are documented here.
 
+## [0.1.10] - 2026-03-13
+
+### Added
+- Quickstart guide (`docs/quickstart.md`)
+- Server round-trip integration test (`tests/server_roundtrip_test.rs`)
+- Complete architecture table in CONTRIBUTING.md (26 modules)
+
+### Fixed
+- Inconsistent CLI output: version/history/rollback/enrich/validate-clinical now respect `--pretty`
+- CONTRIBUTING.md architecture table missing 10 modules (error, config, inputs, lineage, mapping, state, schema, embed, structembed)
+
 ## [0.1.9] - 2026-03-13
 
 ### Added

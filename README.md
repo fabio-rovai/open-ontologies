@@ -184,6 +184,7 @@ flowchart TD
 
 | Topic | Link |
 | ----- | ---- |
+| Quickstart | [docs/quickstart.md](docs/quickstart.md) |
 | Data Pipeline | [docs/data-pipeline.md](docs/data-pipeline.md) |
 | Ontology Lifecycle | [docs/lifecycle.md](docs/lifecycle.md) |
 | Schema Alignment | [docs/alignment.md](docs/alignment.md) |

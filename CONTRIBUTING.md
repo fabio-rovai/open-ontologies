@@ -46,21 +46,30 @@ The codebase is organized into domain modules under `src/`:
 | Module | Purpose |
 |--------|---------|
 | `server.rs` | MCP server + tool/prompt implementations |
+| `inputs.rs` | Tool and prompt input structs (JsonSchema) |
+| `error.rs` | Typed error enum (`OntologyError`) |
 | `graph.rs` | Oxigraph triple store wrapper |
 | `ontology.rs` | Core RDF operations (validate, load, diff, lint) |
+| `state.rs` | SQLite state database (versions, feedback, locks) |
+| `config.rs` | TOML configuration loading |
 | `tableaux.rs` | OWL2-DL SHOIQ tableaux reasoner |
-| `align.rs` | Cross-ontology alignment |
+| `align.rs` | Cross-ontology alignment (7 weighted signals) |
 | `reason.rs` | RDFS/OWL-RL inference |
-| `ingest.rs` | Data format parsing (CSV, JSON, etc.) |
+| `ingest.rs` | Data format parsing (CSV, JSON, XLSX, Parquet, etc.) |
+| `mapping.rs` | Tabular-to-RDF mapping config |
+| `schema.rs` | PostgreSQL schema introspection → OWL |
 | `drift.rs` | Version comparison & rename detection |
 | `enforce.rs` | Design pattern checking |
 | `plan.rs` | Terraform-style planning |
 | `shacl.rs` | SHACL shape validation |
 | `monitor.rs` | Lifecycle monitoring |
+| `lineage.rs` | Append-only audit trail |
 | `clinical.rs` | ICD-10/SNOMED/MeSH crosswalks |
 | `feedback.rs` | Self-calibrating feedback |
 | `poincare.rs` | Hyperbolic geometry (embeddings feature) |
 | `vecstore.rs` | Dual-space vector store (embeddings feature) |
+| `embed.rs` | ONNX text embedder (embeddings feature) |
+| `structembed.rs` | Poincaré structural embedding trainer (embeddings feature) |
 
 ## Pull Requests
 

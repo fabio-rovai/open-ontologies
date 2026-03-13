@@ -1,6 +1,6 @@
 [package]
 name = "open-ontologies"
-version = "0.1.9"
+version = "0.1.10"
 edition = "2024"
 description = "AI-native ontology engine — standalone MCP server"
 license = "MIT"
