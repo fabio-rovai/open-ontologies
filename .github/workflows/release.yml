@@ -35,7 +35,14 @@ jobs:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
+      - name: Rename binaries
+        run: |
+          for dir in open-ontologies-*/; do
+            target="${dir%/}"
+            target="${target#open-ontologies-}"
+            mv "${dir}open-ontologies" "${dir}open-ontologies-${target}"
+          done
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: open-ontologies-*/open-ontologies
+          files: open-ontologies-*/open-ontologies-*
