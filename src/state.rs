@@ -92,6 +92,15 @@ CREATE TABLE IF NOT EXISTS tool_feedback (
     timestamp TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_tool_feedback ON tool_feedback(tool, rule_id, entity);
+
+CREATE TABLE IF NOT EXISTS embeddings (
+    iri TEXT PRIMARY KEY,
+    text_vec BLOB NOT NULL,
+    struct_vec BLOB NOT NULL,
+    text_dim INTEGER NOT NULL,
+    struct_dim INTEGER NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 ";
 
 /// Minimal SQLite state store for ontology versioning.

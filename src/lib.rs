@@ -19,3 +19,5 @@ pub mod schema;
 pub mod tableaux;
 #[cfg(feature = "embeddings")]
 pub mod poincare;
+#[cfg(feature = "embeddings")]
+pub mod vecstore;
