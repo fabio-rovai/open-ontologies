@@ -656,21 +656,21 @@ async fn main() -> anyhow::Result<()> {
             let (db, graph) = setup(&cli.data_dir)?;
             let result = OntologyService::save_version(&db, &graph, &label)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            println!("{}", result);
+            output_result(&result, cli.pretty);
         }
         Commands::History => {
             use open_ontologies::ontology::OntologyService;
             let (db, _graph) = setup(&cli.data_dir)?;
             let result = OntologyService::list_versions(&db)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            println!("{}", result);
+            output_result(&result, cli.pretty);
         }
         Commands::Rollback { label } => {
             use open_ontologies::ontology::OntologyService;
             let (db, graph) = setup(&cli.data_dir)?;
             let result = OntologyService::rollback_version(&db, &graph, &label)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            println!("{}", result);
+            output_result(&result, cli.pretty);
         }
 
         // ─── Data pipeline ──────────────────────────────────────────
@@ -898,7 +898,7 @@ async fn main() -> anyhow::Result<()> {
             match open_ontologies::clinical::ClinicalCrosswalks::load("data/crosswalks.parquet") {
                 Ok(cw) => {
                     let result = cw.enrich(&graph, &class_iri, &code, &system);
-                    println!("{}", result);
+                    output_result(&result, cli.pretty);
                 }
                 Err(e) => {
                     output_json(&serde_json::json!({"error": format!("Crosswalks not loaded: {}", e)}), cli.pretty);
@@ -909,7 +909,7 @@ async fn main() -> anyhow::Result<()> {
         Commands::ValidateClinical => {
             let (_db, graph) = setup(&cli.data_dir)?;
             match open_ontologies::clinical::ClinicalCrosswalks::load("data/crosswalks.parquet") {
-                Ok(cw) => println!("{}", cw.validate_clinical(&graph)),
+                Ok(cw) => output_result(&cw.validate_clinical(&graph), cli.pretty),
                 Err(e) => {
                     output_json(&serde_json::json!({"error": format!("Crosswalks not loaded: {}", e)}), cli.pretty);
                     std::process::exit(1);
