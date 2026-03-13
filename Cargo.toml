@@ -39,6 +39,7 @@ sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio",
 [features]
 default = ["postgres"]
 postgres = ["sqlx"]
+embeddings = []
 
 [dev-dependencies]
 tempfile = "3"
