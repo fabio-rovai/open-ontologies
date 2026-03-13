@@ -1,0 +1,10 @@
+target/
+.git/
+.worktrees/
+benchmark/
+docs/
+tests/
+*.md
+!README.md
+.github/
+skills/

@@ -1,3 +1,5 @@
 /target
 .worktrees/
 data/
+# Ignore generated OWL files in root, but keep benchmark references
+/*.owl
