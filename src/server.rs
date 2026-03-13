@@ -301,6 +301,37 @@ pub struct OntoEnforceFeedbackInput {
     pub accepted: bool,
 }
 
+#[cfg(feature = "embeddings")]
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoEmbedInput {
+    /// Structural embedding dimension. Default: 32
+    pub struct_dim: Option<usize>,
+    /// Structural training epochs. Default: 100
+    pub struct_epochs: Option<usize>,
+}
+
+#[cfg(feature = "embeddings")]
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoSearchInput {
+    /// Natural language query
+    pub query: String,
+    /// Number of results. Default: 10
+    pub top_k: Option<usize>,
+    /// Search mode: "text", "structure", or "product". Default: "product"
+    pub mode: Option<String>,
+    /// Weight for text vs structure in product mode (0.0-1.0). Default: 0.5
+    pub alpha: Option<f32>,
+}
+
+#[cfg(feature = "embeddings")]
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoSimilarityInput {
+    /// First IRI
+    pub iri_a: String,
+    /// Second IRI
+    pub iri_b: String,
+}
+
 // ─── OpenOntologiesServer ───────────────────────────────────────────────────
 
 /// MCP server that exposes all Open Ontologies tools to Claude via stdin/stdout.
@@ -311,6 +342,10 @@ pub struct OpenOntologiesServer {
     db: StateDb,
     graph: Arc<GraphStore>,
     session_id: String,
+    #[cfg(feature = "embeddings")]
+    vecstore: Arc<std::sync::Mutex<crate::vecstore::VecStore>>,
+    #[cfg(feature = "embeddings")]
+    text_embedder: Option<Arc<crate::embed::TextEmbedder>>,
 }
 
 impl OpenOntologiesServer {
@@ -318,12 +353,39 @@ impl OpenOntologiesServer {
     pub fn new(db: StateDb) -> Self {
         let lineage = crate::lineage::LineageLog::new(db.clone());
         let session_id = lineage.new_session();
+
+        #[cfg(feature = "embeddings")]
+        let (vecstore, text_embedder) = {
+            let mut vs = crate::vecstore::VecStore::new(db.clone());
+            let _ = vs.load_from_db();
+
+            let model_dir = dirs::home_dir()
+                .map(|h| h.join(".open-ontologies/models"));
+            let embedder = model_dir.and_then(|dir| {
+                let model_path = dir.join("bge-small-en-v1.5.onnx");
+                let tokenizer_path = dir.join("tokenizer.json");
+                if model_path.exists() && tokenizer_path.exists() {
+                    crate::embed::TextEmbedder::load(&model_path, &tokenizer_path).ok()
+                } else {
+                    None
+                }
+            });
+            (
+                Arc::new(std::sync::Mutex::new(vs)),
+                embedder.map(Arc::new),
+            )
+        };
+
         Self {
             tool_router: Self::tool_router(),
             prompt_router: Self::prompt_router(),
             db,
             graph: Arc::new(GraphStore::new()),
             session_id,
+            #[cfg(feature = "embeddings")]
+            vecstore,
+            #[cfg(feature = "embeddings")]
+            text_embedder,
         }
     }
 
@@ -1074,6 +1136,191 @@ impl OpenOntologiesServer {
             }
             Err(e) => format!(r#"{{"error":"{}"}}"#, e),
         }
+    }
+
+    #[cfg(feature = "embeddings")]
+    #[tool(name = "onto_embed", description = "Generate text + structural Poincaré embeddings for all classes in the loaded ontology. Requires the embedding model (run `open-ontologies init` to download). Embeddings enable semantic search via onto_search and improve alignment accuracy.")]
+    async fn onto_embed(&self, Parameters(input): Parameters<OntoEmbedInput>) -> String {
+        let embedder = match &self.text_embedder {
+            Some(e) => e,
+            None => return r#"{"error":"Embedding model not loaded. Run `open-ontologies init` to download."}"#.to_string(),
+        };
+
+        let struct_dim = input.struct_dim.unwrap_or(32);
+        let struct_epochs = input.struct_epochs.unwrap_or(100);
+
+        let classes_query = r#"
+            SELECT DISTINCT ?class ?label WHERE {
+                ?class a <http://www.w3.org/2002/07/owl#Class> .
+                OPTIONAL { ?class <http://www.w3.org/2000/01/rdf-schema#label> ?label }
+                FILTER(isIRI(?class))
+            }
+        "#;
+
+        let result = match self.graph.sparql_select(classes_query) {
+            Ok(r) => r,
+            Err(e) => return format!(r#"{{"error":"{}"}}"#, e),
+        };
+
+        let parsed: serde_json::Value = match serde_json::from_str(&result) {
+            Ok(v) => v,
+            Err(e) => return format!(r#"{{"error":"{}"}}"#, e),
+        };
+
+        let mut class_labels: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+        if let Some(rows) = parsed["results"].as_array() {
+            for row in rows {
+                if let Some(iri) = row["class"].as_str() {
+                    let iri = iri.trim_matches(|c| c == '<' || c == '>').to_string();
+                    let label = row["label"].as_str()
+                        .map(|s| s.trim_matches('"').to_string())
+                        .unwrap_or_else(|| {
+                            iri.rsplit_once('#').or_else(|| iri.rsplit_once('/'))
+                                .map(|(_, n)| n.to_string())
+                                .unwrap_or_else(|| iri.clone())
+                        });
+                    class_labels.insert(iri, label);
+                }
+            }
+        }
+
+        let trainer = crate::structembed::StructuralTrainer::new(struct_dim, struct_epochs, 0.01);
+        let struct_embeddings = match trainer.train(&self.graph) {
+            Ok(e) => e,
+            Err(e) => return format!(r#"{{"error":"structural training failed: {}"}}"#, e),
+        };
+
+        let mut vecstore = self.vecstore.lock().unwrap();
+        let mut embedded_count = 0;
+        let mut errors: Vec<String> = Vec::new();
+
+        for (iri, label) in &class_labels {
+            match embedder.embed(label) {
+                Ok(text_vec) => {
+                    let struct_vec = struct_embeddings.get(iri)
+                        .cloned()
+                        .unwrap_or_else(|| vec![0.0; struct_dim]);
+                    vecstore.upsert(iri, &text_vec, &struct_vec);
+                    embedded_count += 1;
+                }
+                Err(e) => errors.push(format!("{}: {}", iri, e)),
+            }
+        }
+
+        if let Err(e) = vecstore.persist() {
+            return format!(r#"{{"error":"failed to persist embeddings: {}"}}"#, e);
+        }
+
+        serde_json::json!({
+            "ok": true,
+            "embedded": embedded_count,
+            "total_classes": class_labels.len(),
+            "text_dim": embedder.dim(),
+            "struct_dim": struct_dim,
+            "errors": errors,
+        }).to_string()
+    }
+
+    #[cfg(feature = "embeddings")]
+    #[tool(name = "onto_search", description = "Semantic search over the loaded ontology using natural language. Returns the most similar classes by text meaning, structural position, or both. Requires onto_embed to have been run first.")]
+    async fn onto_search(&self, Parameters(input): Parameters<OntoSearchInput>) -> String {
+        let top_k = input.top_k.unwrap_or(10);
+        let mode = input.mode.as_deref().unwrap_or("product");
+        let alpha = input.alpha.unwrap_or(0.5);
+
+        let embedder = match &self.text_embedder {
+            Some(e) => e,
+            None => return r#"{"error":"Embedding model not loaded."}"#.to_string(),
+        };
+
+        let query_vec = match embedder.embed(&input.query) {
+            Ok(v) => v,
+            Err(e) => return format!(r#"{{"error":"{}"}}"#, e),
+        };
+
+        let vecstore = self.vecstore.lock().unwrap();
+        if vecstore.len() == 0 {
+            return r#"{"error":"No embeddings loaded. Run onto_embed first."}"#.to_string();
+        }
+
+        let results: Vec<serde_json::Value> = match mode {
+            "text" => {
+                vecstore.search_cosine(&query_vec, top_k)
+                    .into_iter()
+                    .map(|(iri, score)| serde_json::json!({"iri": iri, "score": (score * 1000.0).round() / 1000.0}))
+                    .collect()
+            }
+            "structure" => {
+                let text_hits = vecstore.search_cosine(&query_vec, 1);
+                if let Some((anchor_iri, _)) = text_hits.first() {
+                    if let Some(struct_vec) = vecstore.get_struct_vec(anchor_iri) {
+                        vecstore.search_poincare(struct_vec, top_k)
+                            .into_iter()
+                            .map(|(iri, dist)| serde_json::json!({"iri": iri, "poincare_distance": (dist * 1000.0).round() / 1000.0}))
+                            .collect()
+                    } else {
+                        Vec::new()
+                    }
+                } else {
+                    Vec::new()
+                }
+            }
+            _ => {
+                let struct_dim = vecstore.search_cosine(&query_vec, 1)
+                    .first()
+                    .and_then(|(iri, _)| vecstore.get_struct_vec(iri).map(|v| v.len()))
+                    .unwrap_or(32);
+                let struct_query = vec![0.0f32; struct_dim];
+                vecstore.search_product(&query_vec, &struct_query, top_k, alpha)
+                    .into_iter()
+                    .map(|(iri, score)| serde_json::json!({"iri": iri, "score": (score * 1000.0).round() / 1000.0}))
+                    .collect()
+            }
+        };
+
+        serde_json::json!({
+            "results": results,
+            "query": input.query,
+            "mode": mode,
+            "count": results.len(),
+        }).to_string()
+    }
+
+    #[cfg(feature = "embeddings")]
+    #[tool(name = "onto_similarity", description = "Compute embedding similarity between two IRIs — returns cosine similarity (text), Poincaré distance (structural), and product score.")]
+    async fn onto_similarity(&self, Parameters(input): Parameters<OntoSimilarityInput>) -> String {
+        let vecstore = self.vecstore.lock().unwrap();
+
+        let text_a = vecstore.get_text_vec(&input.iri_a);
+        let text_b = vecstore.get_text_vec(&input.iri_b);
+        let struct_a = vecstore.get_struct_vec(&input.iri_a);
+        let struct_b = vecstore.get_struct_vec(&input.iri_b);
+
+        if text_a.is_none() || text_b.is_none() {
+            return format!(r#"{{"error":"IRI not found in embeddings. Run onto_embed first. Missing: {}"}}"#,
+                if text_a.is_none() { &input.iri_a } else { &input.iri_b });
+        }
+
+        let cos = crate::poincare::cosine_similarity(text_a.unwrap(), text_b.unwrap());
+        let poinc = if let (Some(a), Some(b)) = (struct_a, struct_b) {
+            crate::poincare::poincare_distance(a, b)
+        } else {
+            -1.0
+        };
+
+        let product = if poinc >= 0.0 {
+            0.5 * cos + 0.5 / (1.0 + poinc)
+        } else {
+            cos
+        };
+
+        serde_json::json!({
+            "iri_a": input.iri_a,
+            "iri_b": input.iri_b,
+            "cosine_similarity": (cos * 1000.0).round() / 1000.0,
+            "poincare_distance": (poinc * 1000.0).round() / 1000.0,
+            "product_score": (product * 1000.0).round() / 1000.0,
+        }).to_string()
     }
 }
 
