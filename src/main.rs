@@ -333,14 +333,19 @@ async fn main() -> anyhow::Result<()> {
                         &model_path,
                     ).await?;
                     println!("  Model saved: {}", model_path.display());
+                } else {
+                    println!("Embedding model already exists: {}", model_path.display());
+                }
 
+                if !tokenizer_path.exists() {
+                    println!("Downloading tokenizer...");
                     open_ontologies::embed::download_model_file(
                         open_ontologies::embed::BGE_SMALL_TOKENIZER_URL,
                         &tokenizer_path,
                     ).await?;
                     println!("  Tokenizer saved: {}", tokenizer_path.display());
                 } else {
-                    println!("Embedding model already exists: {}", model_path.display());
+                    println!("Tokenizer already exists: {}", tokenizer_path.display());
                 }
             }
 
