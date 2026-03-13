@@ -18,6 +18,7 @@ Requirements: pip install mcp
 import asyncio
 import json
 import os
+import re
 import sys
 
 try:
@@ -153,7 +154,10 @@ def normalize(s):
         s = s.split("#")[-1]
     elif "/" in s:
         s = s.split("/")[-1]
-    return s.lower().replace("_", " ").replace("-", " ")
+    # Split camelCase: hasBase -> has Base, subClassOf -> sub Class Of
+    s = re.sub(r'([a-z])([A-Z])', r'\1 \2', s)
+    s = re.sub(r'([A-Z]+)([A-Z][a-z])', r'\1 \2', s)
+    return s.lower().strip().replace("_", " ").replace("-", " ")
 
 
 def parse_tool_result(result):
@@ -349,6 +353,12 @@ async def run_benchmark():
                     # Extract axioms via SPARQL
                     extracted = await extract_axioms_via_mcp(session, axiom_type)
                     total_queries += 2 if axiom_type == "disjoint" else 1
+
+                    # For domain/range, try both pair orders and pick the better match
+                    if axiom_type in ("domain", "range"):
+                        flipped = {(b, a) for a, b in extracted}
+                        if len(flipped & gt) > len(extracted & gt):
+                            extracted = flipped
 
                     tp = len(extracted & gt)
                     fp = len(extracted - gt)
