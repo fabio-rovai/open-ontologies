@@ -1,3 +1,4 @@
+pub mod error;
 pub mod align;
 pub mod config;
 pub mod clinical;
@@ -6,6 +7,7 @@ pub mod enforce;
 pub mod feedback;
 pub mod graph;
 pub mod ingest;
+pub mod inputs;
 pub mod lineage;
 pub mod monitor;
 pub mod plan;

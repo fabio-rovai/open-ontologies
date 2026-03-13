@@ -48,6 +48,9 @@ enum Commands {
         /// Port to bind to
         #[arg(long, default_value = "8080")]
         port: u16,
+        /// Optional bearer token for authentication
+        #[arg(long, env = "OPEN_ONTOLOGIES_TOKEN")]
+        token: Option<String>,
     },
 
     // ─── Core ontology ────────────────────────────────────────────
@@ -294,6 +297,20 @@ fn output_json(value: &serde_json::Value, pretty: bool) {
     }
 }
 
+/// Print a JSON string result, with optional pretty-printing.
+/// Handles the common pattern of domain functions returning String results.
+fn output_result(result: &str, pretty: bool) {
+    if pretty {
+        if let Ok(v) = serde_json::from_str::<serde_json::Value>(result) {
+            println!("{}", serde_json::to_string_pretty(&v).unwrap());
+        } else {
+            println!("{}", result);
+        }
+    } else {
+        println!("{}", result);
+    }
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
@@ -374,7 +391,7 @@ async fn main() -> anyhow::Result<()> {
             let service = server.serve(rmcp::transport::stdio()).await?;
             service.waiting().await?;
         }
-        Commands::ServeHttp { config: config_path, host, port } => {
+        Commands::ServeHttp { config: config_path, host, port, token } => {
             use rmcp::transport::streamable_http_server::{
                 StreamableHttpServerConfig, StreamableHttpService,
                 session::local::LocalSessionManager,
@@ -417,9 +434,31 @@ async fn main() -> anyhow::Result<()> {
                 );
 
             let router = axum::Router::new().nest_service("/mcp", service);
+            let router = if let Some(ref token) = token {
+                let expected = format!("Bearer {}", token);
+                router.layer(axum::middleware::from_fn(move |req: axum::extract::Request, next: axum::middleware::Next| {
+                    let expected = expected.clone();
+                    async move {
+                        let auth = req.headers().get("authorization").and_then(|v| v.to_str().ok());
+                        if auth == Some(&expected) {
+                            next.run(req).await
+                        } else {
+                            axum::http::Response::builder()
+                                .status(401)
+                                .body(axum::body::Body::from("Unauthorized"))
+                                .unwrap()
+                        }
+                    }
+                }))
+            } else {
+                router
+            };
             let addr = format!("{host}:{port}");
             let listener = tokio::net::TcpListener::bind(&addr).await?;
             eprintln!("Open Ontologies MCP server listening on http://{addr}/mcp");
+            if token.is_some() {
+                eprintln!("  Authentication: bearer token required");
+            }
 
             axum::serve(listener, router)
                 .with_graceful_shutdown(async move { ct.cancelled_owned().await })
@@ -476,15 +515,7 @@ async fn main() -> anyhow::Result<()> {
         Commands::Stats => {
             let (_db, graph) = setup(&cli.data_dir)?;
             let stats_json = graph.get_stats().unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            if cli.pretty {
-                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&stats_json) {
-                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
-                } else {
-                    println!("{}", stats_json);
-                }
-            } else {
-                println!("{}", stats_json);
-            }
+            output_result(&stats_json, cli.pretty);
         }
         Commands::Query { query } => {
             let (_db, graph) = setup(&cli.data_dir)?;
@@ -496,30 +527,14 @@ async fn main() -> anyhow::Result<()> {
                 query
             };
             let result = graph.sparql_select(&query_str).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            if cli.pretty {
-                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
-                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
-                } else {
-                    println!("{}", result);
-                }
-            } else {
-                println!("{}", result);
-            }
+            output_result(&result, cli.pretty);
         }
         Commands::Diff { old_path, new_path } => {
             use open_ontologies::ontology::OntologyService;
             let old = std::fs::read_to_string(&old_path)?;
             let new = std::fs::read_to_string(&new_path)?;
             let result = OntologyService::diff(&old, &new).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            if cli.pretty {
-                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
-                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
-                } else {
-                    println!("{}", result);
-                }
-            } else {
-                println!("{}", result);
-            }
+            output_result(&result, cli.pretty);
         }
         Commands::Lint { input } => {
             use open_ontologies::ontology::OntologyService;
@@ -532,15 +547,7 @@ async fn main() -> anyhow::Result<()> {
                 std::fs::read_to_string(&input)?
             };
             let result = OntologyService::lint_with_feedback(&content, Some(&db)).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            if cli.pretty {
-                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
-                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
-                } else {
-                    println!("{}", result);
-                }
-            } else {
-                println!("{}", result);
-            }
+            output_result(&result, cli.pretty);
         }
         Commands::Convert { path, to, output } => {
             let store = GraphStore::new();
@@ -740,30 +747,14 @@ async fn main() -> anyhow::Result<()> {
             let shapes_content = std::fs::read_to_string(&shapes)?;
             let result = ShaclValidator::validate(&graph, &shapes_content)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            if cli.pretty {
-                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
-                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
-                } else {
-                    println!("{}", result);
-                }
-            } else {
-                println!("{}", result);
-            }
+            output_result(&result, cli.pretty);
         }
         Commands::Reason { profile } => {
             use open_ontologies::reason::Reasoner;
             let (_db, graph) = setup(&cli.data_dir)?;
             let result = Reasoner::run(&graph, &profile, true)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            if cli.pretty {
-                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
-                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
-                } else {
-                    println!("{}", result);
-                }
-            } else {
-                println!("{}", result);
-            }
+            output_result(&result, cli.pretty);
         }
         Commands::Extend { data_path, format: _format, mapping, shapes, profile } => {
             use open_ontologies::ingest::DataIngester;
@@ -816,30 +807,14 @@ async fn main() -> anyhow::Result<()> {
             let planner = open_ontologies::plan::Planner::new(db, graph);
             let result = planner.plan(&turtle)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            if cli.pretty {
-                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
-                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
-                } else {
-                    println!("{}", result);
-                }
-            } else {
-                println!("{}", result);
-            }
+            output_result(&result, cli.pretty);
         }
         Commands::Apply { mode } => {
             let (db, graph) = setup(&cli.data_dir)?;
             let planner = open_ontologies::plan::Planner::new(db, graph);
             let result = planner.apply(&mode)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            if cli.pretty {
-                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
-                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
-                } else {
-                    println!("{}", result);
-                }
-            } else {
-                println!("{}", result);
-            }
+            output_result(&result, cli.pretty);
         }
         Commands::Lock { iris, reason } => {
             let (db, graph) = setup(&cli.data_dir)?;
@@ -861,30 +836,14 @@ async fn main() -> anyhow::Result<()> {
             let detector = open_ontologies::drift::DriftDetector::new(db);
             let result = detector.detect(&v1, &v2)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            if cli.pretty {
-                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
-                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
-                } else {
-                    println!("{}", result);
-                }
-            } else {
-                println!("{}", result);
-            }
+            output_result(&result, cli.pretty);
         }
         Commands::Enforce { pack } => {
             let (db, graph) = setup(&cli.data_dir)?;
             let enforcer = open_ontologies::enforce::Enforcer::new(db.clone(), graph);
             let result = enforcer.enforce_with_feedback(&pack, Some(&db))
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            if cli.pretty {
-                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
-                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
-                } else {
-                    println!("{}", result);
-                }
-            } else {
-                println!("{}", result);
-            }
+            output_result(&result, cli.pretty);
         }
         Commands::Monitor => {
             let (db, graph) = setup(&cli.data_dir)?;
@@ -892,15 +851,7 @@ async fn main() -> anyhow::Result<()> {
             let result = monitor.run_watchers();
             let json = serde_json::to_string(&result)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            if cli.pretty {
-                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&json) {
-                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
-                } else {
-                    println!("{}", json);
-                }
-            } else {
-                println!("{}", json);
-            }
+            output_result(&json, cli.pretty);
         }
         Commands::MonitorClear => {
             let (db, graph) = setup(&cli.data_dir)?;
@@ -1000,15 +951,7 @@ async fn main() -> anyhow::Result<()> {
             let engine = open_ontologies::align::AlignmentEngine::new(db, graph);
             let result = engine.align(&source_ttl, target_ttl.as_deref(), min_confidence, dry_run)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            if cli.pretty {
-                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
-                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
-                } else {
-                    println!("{}", result);
-                }
-            } else {
-                println!("{}", result);
-            }
+            output_result(&result, cli.pretty);
         }
         Commands::AlignFeedback { source, target, accept, reject } => {
             let (db, graph) = setup(&cli.data_dir)?;
@@ -1016,45 +959,21 @@ async fn main() -> anyhow::Result<()> {
             let accepted = accept || !reject;
             let result = engine.record_feedback(&source, &target, "user_feedback", accepted)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            if cli.pretty {
-                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
-                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
-                } else {
-                    println!("{}", result);
-                }
-            } else {
-                println!("{}", result);
-            }
+            output_result(&result, cli.pretty);
         }
         Commands::LintFeedback { rule_id, entity, accept, dismiss } => {
             let (db, _graph) = setup(&cli.data_dir)?;
             let accepted = accept || !dismiss;
             let result = open_ontologies::feedback::record_tool_feedback(&db, "lint", &rule_id, &entity, accepted)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            if cli.pretty {
-                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
-                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
-                } else {
-                    println!("{}", result);
-                }
-            } else {
-                println!("{}", result);
-            }
+            output_result(&result, cli.pretty);
         }
         Commands::EnforceFeedback { rule_id, entity, accept, dismiss } => {
             let (db, _graph) = setup(&cli.data_dir)?;
             let accepted = accept || !dismiss;
             let result = open_ontologies::feedback::record_tool_feedback(&db, "enforce", &rule_id, &entity, accepted)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            if cli.pretty {
-                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&result) {
-                    println!("{}", serde_json::to_string_pretty(&v).unwrap());
-                } else {
-                    println!("{}", result);
-                }
-            } else {
-                println!("{}", result);
-            }
+            output_result(&result, cli.pretty);
         }
     }
 

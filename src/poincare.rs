@@ -88,3 +88,45 @@ pub fn l2_normalize(v: &[f32]) -> Vec<f32> {
     }
     v.iter().map(|x| x / norm).collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn distance_triangle_inequality() {
+        let a = vec![0.1, 0.2];
+        let b = vec![0.3, -0.1];
+        let c = vec![-0.2, 0.4];
+        let d_ab = poincare_distance(&a, &b);
+        let d_bc = poincare_distance(&b, &c);
+        let d_ac = poincare_distance(&a, &c);
+        assert!(d_ac <= d_ab + d_bc + 1e-5, "Triangle inequality violated");
+    }
+
+    #[test]
+    fn mobius_add_identity() {
+        let origin = vec![0.0, 0.0, 0.0];
+        let p = vec![0.3, 0.4, 0.0];
+        let result = mobius_add(&origin, &p);
+        for (a, b) in result.iter().zip(p.iter()) {
+            assert!((a - b).abs() < 1e-5, "Origin should be identity for Mobius addition");
+        }
+    }
+
+    #[test]
+    fn conformal_factor_at_origin() {
+        let origin = vec![0.0, 0.0];
+        let lambda = conformal_factor(&origin);
+        assert!((lambda - 2.0).abs() < 1e-5, "Conformal factor at origin should be 2.0, got {}", lambda);
+    }
+
+    #[test]
+    fn conformal_factor_increases_near_boundary() {
+        let near_center = vec![0.1, 0.0];
+        let near_edge = vec![0.9, 0.0];
+        let lc = conformal_factor(&near_center);
+        let le = conformal_factor(&near_edge);
+        assert!(le > lc, "Conformal factor should increase near boundary");
+    }
+}
