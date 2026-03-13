@@ -77,6 +77,9 @@ Claude dynamically decides the next tool call based on what the previous tool re
 | `onto_lineage` | To view the session's lineage trail (plan → enforce → apply → monitor → drift) |
 | `onto_lint_feedback` | To accept/dismiss a lint issue — teaches lint to suppress repeatedly dismissed warnings |
 | `onto_enforce_feedback` | To accept/dismiss an enforce violation — teaches enforce to suppress repeatedly dismissed violations |
+| `onto_embed` | After loading an ontology — generates text + Poincaré structural embeddings for all classes |
+| `onto_search` | To find classes by natural language description — requires onto_embed first |
+| `onto_similarity` | To compute embedding similarity between two specific IRIs |
 
 ## Ontology Lifecycle
 
@@ -136,6 +139,30 @@ When applying an ontology to external data:
 ### Or use the convenience pipeline
 
 10. Call `onto_extend` to run ingest → SHACL → reason in one call
+
+## Semantic Search & Embedding Workflow
+
+When exploring or aligning ontologies using semantic embeddings:
+
+### Setup
+
+1. Ensure the embedding model is downloaded (`open-ontologies init`)
+2. Call `onto_load` to load the ontology
+3. Call `onto_embed` to generate text + structural embeddings for all classes
+
+### Search
+
+4. Call `onto_search` with a natural language query — returns most similar classes
+5. Use `mode: "text"` for label/definition similarity, `mode: "structure"` for hierarchy position, `mode: "product"` for combined
+
+### Compare
+
+6. Call `onto_similarity` with two IRIs to see cosine + Poincaré distance between them
+
+### Alignment Enhancement
+
+7. When running `onto_align`, embedding similarity is automatically used as signal #7 if embeddings are loaded
+8. This catches semantically equivalent classes that have different labels (e.g., Vehicle ↔ Automobile)
 
 ## Enforcer Rules (Optional)
 
