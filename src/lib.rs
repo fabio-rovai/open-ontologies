@@ -21,3 +21,7 @@ pub mod tableaux;
 pub mod poincare;
 #[cfg(feature = "embeddings")]
 pub mod vecstore;
+#[cfg(feature = "embeddings")]
+pub mod embed;
+#[cfg(feature = "embeddings")]
+pub mod structembed;
