@@ -33,10 +33,21 @@ enum Commands {
         #[arg(long, default_value = "~/.open-ontologies")]
         data_dir: String,
     },
-    /// Start the MCP server
+    /// Start the MCP server (stdio transport)
     Serve {
         #[arg(long, default_value = "~/.open-ontologies/config.toml")]
         config: String,
+    },
+    /// Start the MCP server (Streamable HTTP transport)
+    ServeHttp {
+        #[arg(long, default_value = "~/.open-ontologies/config.toml")]
+        config: String,
+        /// Host to bind to
+        #[arg(long, default_value = "127.0.0.1")]
+        host: String,
+        /// Port to bind to
+        #[arg(long, default_value = "8080")]
+        port: u16,
     },
 
     // ─── Core ontology ────────────────────────────────────────────
@@ -331,6 +342,57 @@ async fn main() -> anyhow::Result<()> {
             let server = OpenOntologiesServer::new(db);
             let service = server.serve(rmcp::transport::stdio()).await?;
             service.waiting().await?;
+        }
+        Commands::ServeHttp { config: config_path, host, port } => {
+            use rmcp::transport::streamable_http_server::{
+                StreamableHttpServerConfig, StreamableHttpService,
+                session::local::LocalSessionManager,
+            };
+            use tokio_util::sync::CancellationToken;
+
+            let config_path = expand_tilde(&config_path);
+            let cfg = match Config::load(std::path::Path::new(&config_path)) {
+                Ok(c) => c,
+                Err(e) => {
+                    let msg = e.to_string();
+                    if msg.contains("failed to read") {
+                        Config::default()
+                    } else {
+                        return Err(e);
+                    }
+                }
+            };
+            let data_dir = expand_tilde(&cfg.general.data_dir);
+            let db_path_owned = std::path::Path::new(&data_dir).join("open-ontologies.db");
+
+            std::fs::create_dir_all(&data_dir)?;
+
+            let ct = CancellationToken::new();
+            let http_config = StreamableHttpServerConfig {
+                stateful_mode: true,
+                cancellation_token: ct.clone(),
+                ..Default::default()
+            };
+
+            let service: StreamableHttpService<_, LocalSessionManager> =
+                StreamableHttpService::new(
+                    move || {
+                        let db = StateDb::open(&db_path_owned)
+                            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+                        Ok(OpenOntologiesServer::new(db))
+                    },
+                    Default::default(),
+                    http_config,
+                );
+
+            let router = axum::Router::new().nest_service("/mcp", service);
+            let addr = format!("{host}:{port}");
+            let listener = tokio::net::TcpListener::bind(&addr).await?;
+            eprintln!("Open Ontologies MCP server listening on http://{addr}/mcp");
+
+            axum::serve(listener, router)
+                .with_graceful_shutdown(async move { ct.cancelled_owned().await })
+                .await?;
         }
 
         // ─── Core ontology ─────────────────────────────────────────
