@@ -15,6 +15,7 @@ pub const BGE_SMALL_TOKENIZER_URL: &str =
     "https://huggingface.co/BAAI/bge-small-en-v1.5/resolve/main/tokenizer.json";
 
 pub struct TextEmbedder {
+    #[allow(clippy::type_complexity)]
     model: SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>,
     tokenizer: Tokenizer,
     dim: usize,
