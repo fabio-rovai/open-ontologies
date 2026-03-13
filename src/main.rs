@@ -318,6 +318,32 @@ async fn main() -> anyhow::Result<()> {
                 println!("Config already exists: {}", config_path.display());
             }
 
+            #[cfg(feature = "embeddings")]
+            {
+                let models_dir = data_path.join("models");
+                std::fs::create_dir_all(&models_dir)?;
+
+                let model_path = models_dir.join("bge-small-en-v1.5.onnx");
+                let tokenizer_path = models_dir.join("tokenizer.json");
+
+                if !model_path.exists() {
+                    println!("Downloading bge-small-en-v1.5 embedding model...");
+                    open_ontologies::embed::download_model_file(
+                        open_ontologies::embed::BGE_SMALL_ONNX_URL,
+                        &model_path,
+                    ).await?;
+                    println!("  Model saved: {}", model_path.display());
+
+                    open_ontologies::embed::download_model_file(
+                        open_ontologies::embed::BGE_SMALL_TOKENIZER_URL,
+                        &tokenizer_path,
+                    ).await?;
+                    println!("  Tokenizer saved: {}", tokenizer_path.display());
+                } else {
+                    println!("Embedding model already exists: {}", model_path.display());
+                }
+            }
+
             println!("\nOpen Ontologies initialized successfully!");
         }
         Commands::Serve { config: config_path } => {
