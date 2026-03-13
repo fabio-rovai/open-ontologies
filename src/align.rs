@@ -8,11 +8,23 @@ use crate::state::StateDb;
 pub struct AlignmentEngine {
     db: StateDb,
     graph: Arc<GraphStore>,
+    #[cfg(feature = "embeddings")]
+    vecstore: Option<Arc<std::sync::Mutex<crate::vecstore::VecStore>>>,
 }
 
 impl AlignmentEngine {
     pub fn new(db: StateDb, graph: Arc<GraphStore>) -> Self {
-        Self { db, graph }
+        Self {
+            db,
+            graph,
+            #[cfg(feature = "embeddings")]
+            vecstore: None,
+        }
+    }
+
+    #[cfg(feature = "embeddings")]
+    pub fn new_with_vecstore(db: StateDb, graph: Arc<GraphStore>, vecstore: Arc<std::sync::Mutex<crate::vecstore::VecStore>>) -> Self {
+        Self { db, graph, vecstore: Some(vecstore) }
     }
 
     /// Extract class IRIs and their labels from a temporary graph via SPARQL.
@@ -248,7 +260,18 @@ impl AlignmentEngine {
     }
 
     /// Default signal weights: label, property, parent, instance, restriction, neighborhood.
+    #[cfg(not(feature = "embeddings"))]
     const DEFAULT_WEIGHTS: [f64; 6] = [0.25, 0.20, 0.15, 0.15, 0.15, 0.10];
+
+    /// Default signal weights with embedding signal: label, property, parent, instance, restriction, neighborhood, embedding.
+    #[cfg(feature = "embeddings")]
+    const DEFAULT_WEIGHTS: [f64; 7] = [0.20, 0.15, 0.12, 0.12, 0.12, 0.09, 0.20];
+
+    #[cfg(feature = "embeddings")]
+    /// Compute embedding similarity score using cosine similarity on text vectors.
+    pub fn embedding_similarity_score(vec_a: &[f32], vec_b: &[f32]) -> f64 {
+        crate::poincare::cosine_similarity(vec_a, vec_b) as f64
+    }
 
     /// Run alignment between source and target ontologies.
     /// If `target` is None, aligns source against the loaded store (`self.graph`).
@@ -297,10 +320,29 @@ impl AlignmentEngine {
                 let restr_sim = Self::restriction_similarity(&source_store, &sc.iri, target_ref, &tc.iri);
                 let neigh_sim = Self::neighborhood_similarity(&source_store, &sc.iri, target_ref, &tc.iri);
 
+                #[cfg(feature = "embeddings")]
+                let embedding_sim = {
+                    if let Some(ref vs) = self.vecstore {
+                        let vs = vs.lock().unwrap();
+                        match (vs.get_text_vec(&sc.iri), vs.get_text_vec(&tc.iri)) {
+                            (Some(a), Some(b)) => Self::embedding_similarity_score(a, b),
+                            _ => 0.0,
+                        }
+                    } else {
+                        0.0
+                    }
+                };
+
+                #[cfg(feature = "embeddings")]
+                let signals = [label_sim, prop_overlap, parent_ovlp, inst_overlap, restr_sim, neigh_sim, embedding_sim];
+
+                #[cfg(not(feature = "embeddings"))]
                 let signals = [label_sim, prop_overlap, parent_ovlp, inst_overlap, restr_sim, neigh_sim];
+
                 // When structural signals are all zero (no structural data to compare),
-                // fall back to label similarity as the sole indicator
-                let structural_sum: f64 = signals[1..].iter().sum();
+                // fall back to label similarity as the sole indicator.
+                // Structural signals are indices 1..6 (excluding label and embedding).
+                let structural_sum: f64 = signals[1..6].iter().sum();
                 let confidence: f64 = if structural_sum == 0.0 {
                     label_sim
                 } else {
@@ -314,19 +356,25 @@ impl AlignmentEngine {
 
                 let relation = Self::classify_relation(label_sim, prop_overlap, parent_ovlp);
 
+                let mut signals_json = serde_json::json!({
+                    "label_similarity": (label_sim * 1000.0).round() / 1000.0,
+                    "property_overlap": (prop_overlap * 1000.0).round() / 1000.0,
+                    "parent_overlap": (parent_ovlp * 1000.0).round() / 1000.0,
+                    "instance_overlap": (inst_overlap * 1000.0).round() / 1000.0,
+                    "restriction_similarity": (restr_sim * 1000.0).round() / 1000.0,
+                    "neighborhood_similarity": (neigh_sim * 1000.0).round() / 1000.0,
+                });
+                #[cfg(feature = "embeddings")]
+                {
+                    signals_json["embedding_similarity"] = serde_json::json!((embedding_sim * 1000.0).round() / 1000.0);
+                }
+
                 candidates.push(serde_json::json!({
                     "source_iri": sc.iri,
                     "target_iri": tc.iri,
                     "relation": relation,
                     "confidence": (confidence * 1000.0).round() / 1000.0,
-                    "signals": {
-                        "label_similarity": (label_sim * 1000.0).round() / 1000.0,
-                        "property_overlap": (prop_overlap * 1000.0).round() / 1000.0,
-                        "parent_overlap": (parent_ovlp * 1000.0).round() / 1000.0,
-                        "instance_overlap": (inst_overlap * 1000.0).round() / 1000.0,
-                        "restriction_similarity": (restr_sim * 1000.0).round() / 1000.0,
-                        "neighborhood_similarity": (neigh_sim * 1000.0).round() / 1000.0,
-                    },
+                    "signals": signals_json,
                     "applied": false,
                 }));
             }
@@ -674,5 +722,21 @@ mod tests {
             .query_row("SELECT COUNT(*) FROM align_feedback", [], |r| r.get(0))
             .unwrap();
         assert_eq!(count, 1);
+    }
+
+    #[cfg(feature = "embeddings")]
+    #[test]
+    fn test_embedding_similarity_signal() {
+        let sim = AlignmentEngine::embedding_similarity_score(
+            &[0.9, 0.1, 0.0],
+            &[0.85, 0.15, 0.0],
+        );
+        assert!(sim > 0.95, "Similar vectors should give high score: {sim}");
+
+        let sim2 = AlignmentEngine::embedding_similarity_score(
+            &[1.0, 0.0, 0.0],
+            &[0.0, 0.0, 1.0],
+        );
+        assert!(sim2 < 0.1, "Orthogonal vectors should give low score: {sim2}");
     }
 }
