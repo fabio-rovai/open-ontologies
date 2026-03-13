@@ -1,4 +1,4 @@
-FROM rust:1.85-slim AS builder
+FROM rust:1-slim AS builder
 
 ENV CARGO_INCREMENTAL=0 CARGO_PROFILE_RELEASE_DEBUG=0
 
