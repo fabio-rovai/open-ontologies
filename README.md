@@ -9,7 +9,7 @@
 [![ClawHub Skill](https://img.shields.io/badge/ClawHub-open--ontologies-7c3aed)](https://clawhub.ai/fabio-rovai/open-ontologies)
 
 
-Open Ontologies is a standalone MCP server and CLI for AI-native ontology engineering. It exposes 39 tools and 5 workflow prompts that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — plus plan changes, detect drift, enforce design patterns, monitor health, align ontologies, track lineage, and learn from user feedback.
+Open Ontologies is a standalone MCP server and CLI for AI-native ontology engineering. It exposes 42 tools and 5 workflow prompts that let Claude validate, query, diff, lint, version, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — plus plan changes, detect drift, enforce design patterns, monitor health, align ontologies, track lineage, and learn from user feedback.
 
 Written in Rust, ships as a single binary. No JVM, no Protege, no GUI.
 
@@ -203,7 +203,7 @@ This is not a fixed pipeline. Claude is the orchestrator — it decides what to 
 
 ## Tools
 
-39 tools organized by function:
+42 tools organized by function:
 
 | Category | Tools | Purpose |
 | -------- | ----- | ------- |
@@ -216,6 +216,7 @@ This is not a fixed pipeline. Claude is the orchestrator — it decides what to 
 | **Alignment** | `align`, `align-feedback` | Cross-ontology class matching with self-calibrating confidence |
 | **Clinical** | `crosswalk`, `enrich`, `validate-clinical` | ICD-10 / SNOMED / MeSH crosswalks |
 | **Feedback** | `lint-feedback`, `enforce-feedback` | Self-calibrating suppression — teach lint/enforce to stop repeating dismissed warnings |
+| **Embeddings** | `embed`, `search`, `similarity` | Dual-space semantic search (text + Poincaré structural) |
 | **Reasoning** | `reason` (rdfs, owl-rl, owl-rl-ext, owl-dl), `dl_explain`, `dl_check` | Native SHOIQ tableaux reasoner |
 
 All tools are available both as MCP tools (prefixed `onto_`) and as CLI subcommands.
@@ -319,6 +320,26 @@ flowchart LR
 **Lineage** — Append-only audit trail of all lifecycle operations.
 
 **Feedback** — Lint and enforce learn from your decisions. Dismiss a warning 3 times and it's suppressed; accept it once and it sticks. Same self-calibrating pattern used by `align` and `drift`.
+
+### Semantic Embeddings (Poincaré Vector Store)
+
+Open Ontologies includes a built-in dual-space vector store for semantic search and alignment:
+
+- **Text embeddings** via ONNX model (bge-small-en-v1.5) — captures label/definition similarity
+- **Structural embeddings** via Poincaré ball — captures hierarchy position (root classes near center, leaves near boundary)
+- **Product search** — combines both spaces for best results
+
+```text
+onto_load → onto_embed → onto_search "domestic animal"
+```
+
+The embedding model (~33MB) is downloaded on `open-ontologies init`. All inference runs locally via tract (pure Rust ONNX runtime) — no API keys or external services needed.
+
+| Tool | Purpose |
+| ---- | ------- |
+| `onto_embed` | Generate embeddings for all classes in the loaded ontology |
+| `onto_search` | Semantic search by natural language query |
+| `onto_similarity` | Compare two IRIs by embedding similarity |
 
 ### Schema Alignment
 
@@ -525,7 +546,7 @@ flowchart TD
         StateDb["SQLite State"]
     end
 
-    subgraph Tools["39 Tools + 5 Prompts"]
+    subgraph Tools["42 Tools + 5 Prompts"]
         direction LR
         Ontology["validate · load · query\nsave · diff · lint · convert"]
         Data["map · ingest · shacl\nreason · extend"]
