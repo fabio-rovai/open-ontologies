@@ -23,8 +23,10 @@ pub struct OntoConvertInput {
 
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoLoadInput {
-    /// Path to RDF file to load into the in-memory store
-    pub path: String,
+    /// Path to RDF file, OR inline Turtle/RDF content
+    pub path: Option<String>,
+    /// Inline Turtle content to load (alternative to path)
+    pub turtle: Option<String>,
 }
 
 #[derive(Deserialize, JsonSchema)]
