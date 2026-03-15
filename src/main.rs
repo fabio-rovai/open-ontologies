@@ -415,6 +415,12 @@ async fn main() -> anyhow::Result<()> {
 
             std::fs::create_dir_all(&data_dir)?;
 
+            // Shared graph store — all MCP sessions (agent + frontend) see the same triples
+            let shared_graph = Arc::new(GraphStore::new());
+
+            // Shared StateDb for lineage REST endpoint
+            let shared_db = StateDb::open(&db_path_owned)?;
+
             let ct = CancellationToken::new();
             let http_config = StreamableHttpServerConfig {
                 stateful_mode: true,
@@ -422,18 +428,97 @@ async fn main() -> anyhow::Result<()> {
                 ..Default::default()
             };
 
+            let shared_graph_for_service = shared_graph.clone();
             let service: StreamableHttpService<_, LocalSessionManager> =
                 StreamableHttpService::new(
                     move || {
                         let db = StateDb::open(&db_path_owned)
                             .map_err(std::io::Error::other)?;
-                        Ok(OpenOntologiesServer::new(db))
+                        Ok(OpenOntologiesServer::new_with_graph(db, shared_graph_for_service.clone()))
                     },
                     Default::default(),
                     http_config,
                 );
 
-            let router = axum::Router::new().nest_service("/mcp", service);
+            // Simple REST API — no MCP sessions, direct access to shared graph
+            let sg_stats  = shared_graph.clone();
+            let sg_query  = shared_graph.clone();
+            let sg_update = shared_graph.clone();
+            let sg_load   = shared_graph.clone();
+            let api = axum::Router::new()
+                .route("/stats", axum::routing::get(move || {
+                    let g = sg_stats.clone();
+                    async move {
+                        axum::Json(serde_json::from_str::<serde_json::Value>(
+                            &g.get_stats().unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
+                        ).unwrap_or_default())
+                    }
+                }))
+                .route("/query", axum::routing::post(move |body: axum::Json<serde_json::Value>| {
+                    let g = sg_query.clone();
+                    async move {
+                        let query = body.0["query"].as_str().unwrap_or("").to_string();
+                        axum::Json(serde_json::from_str::<serde_json::Value>(
+                            &g.sparql_select(&query).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
+                        ).unwrap_or_default())
+                    }
+                }))
+                .route("/update", axum::routing::post(move |body: axum::Json<serde_json::Value>| {
+                    let g = sg_update.clone();
+                    async move {
+                        let query = body.0["query"].as_str().unwrap_or("").to_string();
+                        axum::Json(serde_json::from_str::<serde_json::Value>(
+                            &match g.sparql_update(&query) {
+                                Ok(n)  => format!(r#"{{"ok":true,"affected":{}}}"#, n),
+                                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+                            }
+                        ).unwrap_or_default())
+                    }
+                }))
+                .route("/load", axum::routing::post(move |body: axum::Json<serde_json::Value>| {
+                    let g = sg_load.clone();
+                    async move {
+                        let path = body.0["path"].as_str().unwrap_or("").to_string();
+                        let path = open_ontologies::config::expand_tilde(&path);
+                        axum::Json(serde_json::from_str::<serde_json::Value>(
+                            &match g.load_file(&path) {
+                                Ok(n)  => format!(r#"{{"ok":true,"triples_loaded":{}}}"#, n),
+                                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+                            }
+                        ).unwrap_or_default())
+                    }
+                }))
+                .route("/lineage", axum::routing::get(move || {
+                    let db = shared_db.clone();
+                    async move {
+                        let conn = db.conn();
+                        let mut stmt = conn.prepare(
+                            "SELECT session_id, seq, timestamp, event_type, operation, details \
+                             FROM lineage_events ORDER BY CAST(timestamp AS INTEGER) ASC, seq ASC LIMIT 500"
+                        ).unwrap();
+                        let rows: Vec<serde_json::Value> = stmt.query_map([], |row| {
+                            let session_id: String = row.get(0)?;
+                            let seq: i64 = row.get(1)?;
+                            let timestamp: String = row.get(2)?;
+                            let event_type: String = row.get(3)?;
+                            let operation: String = row.get(4)?;
+                            let details: String = row.get::<_, Option<String>>(5)?.unwrap_or_default();
+                            Ok(serde_json::json!({
+                                "session": session_id,
+                                "seq": seq,
+                                "ts": timestamp,
+                                "type": event_type,
+                                "op": operation,
+                                "details": details
+                            }))
+                        }).unwrap().filter_map(|r| r.ok()).collect();
+                        axum::Json(serde_json::json!({ "events": rows }))
+                    }
+                }));
+
+            let router = axum::Router::new()
+                .nest("/api", api)
+                .nest_service("/mcp", service);
             let router = if let Some(ref token) = token {
                 let expected = format!("Bearer {}", token);
                 router.layer(axum::middleware::from_fn(move |req: axum::extract::Request, next: axum::middleware::Next| {
@@ -453,6 +538,7 @@ async fn main() -> anyhow::Result<()> {
             } else {
                 router
             };
+            let router = router.layer(tower_http::cors::CorsLayer::permissive());
             let addr = format!("{host}:{port}");
             let listener = tokio::net::TcpListener::bind(&addr).await?;
             eprintln!("Open Ontologies MCP server listening on http://{addr}/mcp");

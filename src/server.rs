@@ -11,6 +11,7 @@ use rmcp::{
     },
     service::RequestContext,
 };
+use crate::config::expand_tilde;
 use crate::graph::GraphStore;
 use crate::inputs::*;
 use crate::state::StateDb;
@@ -34,6 +35,12 @@ pub struct OpenOntologiesServer {
 impl OpenOntologiesServer {
     /// Create a new server with all tools wired to domain services.
     pub fn new(db: StateDb) -> Self {
+        Self::new_with_graph(db, Arc::new(GraphStore::new()))
+    }
+
+    /// Create a new server sharing an existing graph store (for HTTP mode where
+    /// all sessions must see the same in-memory triples).
+    pub fn new_with_graph(db: StateDb, graph: Arc<GraphStore>) -> Self {
         let lineage = crate::lineage::LineageLog::new(db.clone());
         let session_id = lineage.new_session();
 
@@ -63,7 +70,7 @@ impl OpenOntologiesServer {
             tool_router: Self::tool_router(),
             prompt_router: Self::prompt_router(),
             db,
-            graph: Arc::new(GraphStore::new()),
+            graph,
             session_id,
             #[cfg(feature = "embeddings")]
             vecstore,
@@ -141,11 +148,21 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_load", description = "Load an RDF file into the in-memory ontology store for querying")]
+    #[tool(name = "onto_load", description = "Load an RDF file or inline Turtle content into the in-memory ontology store for querying")]
     async fn onto_load(&self, Parameters(input): Parameters<OntoLoadInput>) -> String {
-        match self.graph.load_file(&input.path) {
-            Ok(count) => format!(r#"{{"ok":true,"triples_loaded":{},"path":"{}"}}"#, count, input.path),
-            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        if let Some(turtle) = input.turtle {
+            match self.graph.load_turtle(&turtle, None) {
+                Ok(count) => format!(r#"{{"ok":true,"triples_loaded":{},"source":"inline"}}"#, count),
+                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+            }
+        } else if let Some(path) = input.path {
+            let path = expand_tilde(&path);
+            match self.graph.load_file(&path) {
+                Ok(count) => format!(r#"{{"ok":true,"triples_loaded":{},"path":"{}"}}"#, count, path),
+                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+            }
+        } else {
+            r#"{"error":"Either 'path' or 'turtle' must be provided"}"#.to_string()
         }
     }
 
@@ -157,8 +174,9 @@ impl OpenOntologiesServer {
     #[tool(name = "onto_save", description = "Save the current ontology store to a file")]
     async fn onto_save(&self, Parameters(input): Parameters<OntoSaveInput>) -> String {
         let format = input.format.as_deref().unwrap_or("turtle");
-        match self.graph.save_file(&input.path, format) {
-            Ok(_) => format!(r#"{{"ok":true,"path":"{}","format":"{}"}}"#, input.path, format),
+        let path = expand_tilde(&input.path);
+        match self.graph.save_file(&path, format) {
+            Ok(_) => format!(r#"{{"ok":true,"path":"{}","format":"{}"}}"#, path, format),
             Err(e) => format!(r#"{{"error":"{}"}}"#, e),
         }
     }
