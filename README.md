@@ -4,8 +4,9 @@
   <img src="docs/assets/logo.png" alt="Open Ontologies" width="260">
 </p>
 
+<!--
 <h1 align="center">Open Ontologies</h1>
-
+-->
 <p align="center">
   <strong>A Terraforming MCP for Knowledge Graphs</strong><br>
   Validate, classify, and govern AI-generated ontologies. Written in Rust. Ships as a single binary.
