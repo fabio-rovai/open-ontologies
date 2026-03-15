@@ -1,8 +1,8 @@
 <!-- mcp-name: io.github.fabio-rovai/open-ontologies -->
 
-<p align="center">
+<!-- <p align="center">
   <img src="docs/assets/logo.png" alt="Open Ontologies" width="260">
-</p>
+</p> -->
 
 
 <h1 align="center">Open Ontologies</h1>
