@@ -1,0 +1,3 @@
+node_modules/
+# Override parent .gitignore to include built output
+!dist/
