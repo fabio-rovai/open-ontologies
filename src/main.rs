@@ -444,8 +444,9 @@ async fn main() -> anyhow::Result<()> {
             let sg_stats  = shared_graph.clone();
             let sg_query  = shared_graph.clone();
             let sg_update = shared_graph.clone();
-            let sg_load   = shared_graph.clone();
-            let sg_save   = shared_graph.clone();
+            let sg_load         = shared_graph.clone();
+            let sg_save         = shared_graph.clone();
+            let sg_load_turtle  = shared_graph.clone();
             let api = axum::Router::new()
                 .route("/stats", axum::routing::get(move || {
                     let g = sg_stats.clone();
@@ -483,6 +484,19 @@ async fn main() -> anyhow::Result<()> {
                         let path = open_ontologies::config::expand_tilde(&path);
                         axum::Json(serde_json::from_str::<serde_json::Value>(
                             &match g.load_file(&path) {
+                                Ok(n)  => format!(r#"{{"ok":true,"triples_loaded":{}}}"#, n),
+                                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+                            }
+                        ).unwrap_or_default())
+                    }
+                }))
+                .route("/load-turtle", axum::routing::post(move |body: axum::Json<serde_json::Value>| {
+                    let g = sg_load_turtle.clone();
+                    async move {
+                        let turtle = body.0["turtle"].as_str().unwrap_or("").to_string();
+                        let base = body.0["base"].as_str().map(|s| s.to_string());
+                        axum::Json(serde_json::from_str::<serde_json::Value>(
+                            &match g.load_turtle(&turtle, base.as_deref()) {
                                 Ok(n)  => format!(r#"{{"ok":true,"triples_loaded":{}}}"#, n),
                                 Err(e) => format!(r#"{{"error":"{}"}}"#, e),
                             }
