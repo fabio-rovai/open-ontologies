@@ -445,6 +445,7 @@ async fn main() -> anyhow::Result<()> {
             let sg_query  = shared_graph.clone();
             let sg_update = shared_graph.clone();
             let sg_load   = shared_graph.clone();
+            let sg_save   = shared_graph.clone();
             let api = axum::Router::new()
                 .route("/stats", axum::routing::get(move || {
                     let g = sg_stats.clone();
@@ -483,6 +484,20 @@ async fn main() -> anyhow::Result<()> {
                         axum::Json(serde_json::from_str::<serde_json::Value>(
                             &match g.load_file(&path) {
                                 Ok(n)  => format!(r#"{{"ok":true,"triples_loaded":{}}}"#, n),
+                                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+                            }
+                        ).unwrap_or_default())
+                    }
+                }))
+                .route("/save", axum::routing::post(move |body: axum::Json<serde_json::Value>| {
+                    let g = sg_save.clone();
+                    async move {
+                        let path = body.0["path"].as_str().unwrap_or("~/.open-ontologies/studio-live.ttl").to_string();
+                        let format = body.0["format"].as_str().unwrap_or("turtle").to_string();
+                        let path = open_ontologies::config::expand_tilde(&path);
+                        axum::Json(serde_json::from_str::<serde_json::Value>(
+                            &match g.save_file(&path, &format) {
+                                Ok(_)  => format!(r#"{{"ok":true,"path":"{}"}}"#, path),
                                 Err(e) => format!(r#"{{"error":"{}"}}"#, e),
                             }
                         ).unwrap_or_default())
