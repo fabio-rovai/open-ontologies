@@ -291,21 +291,49 @@ Full audit trail of every agent action, stored in SQLite and exposed via `GET /a
 
 ### Studio Architecture
 
-```text
-React UI (Vite + Tailwind)
-  └── Tauri 2 shell
-        ├── Engine sidecar  →  open-ontologies (Rust/Axum/Oxigraph)
-        │     ├── /mcp              MCP Streamable HTTP
-        │     ├── /api/stats        GET  — graph statistics
-        │     ├── /api/query        POST — SPARQL SELECT
-        │     ├── /api/update       POST — SPARQL UPDATE
-        │     ├── /api/load         POST — load TTL file
-        │     ├── /api/save         POST — save store to file
-        │     ├── /api/load-turtle  POST — load inline Turtle
-        │     └── /api/lineage      GET  — lineage events from SQLite
-        └── Agent sidecar   →  Node.js (Claude Agent SDK)
-              ├── stdin:  { type: 'chat', message } / { type: 'reset' }
-              └── stdout: { type: 'text' | 'tool_call' | 'done' | 'error' | 'session' }
+```mermaid
+flowchart TD
+    subgraph UI["React UI (Vite + Tailwind CSS)"]
+        Graph["3D Graph Canvas\n3d-force-graph / Three.js"]
+        Chat["AI Chat Panel\nZustand store"]
+        Inspector["Property Inspector\nInline SPARQL edit"]
+        Lineage["Lineage Panel\nAudit trail"]
+        Save["Named Save\n⌘S → ~/.open-ontologies/"]
+    end
+
+    subgraph Tauri["Tauri 2 Shell (Rust)"]
+        IPC["Tauri IPC\ninvoke / event"]
+        EngineState["EngineState\nAtomicBool + Child"]
+        ChatState["ChatState\nstdin/stdout pipe"]
+        McpState["McpState\nreqwest Client"]
+    end
+
+    subgraph Engine["Engine Sidecar (Rust / Axum)"]
+        MCP["/mcp\nMCP Streamable HTTP\n42 onto_* tools"]
+        REST["/api/query · /api/update\n/api/save · /api/load-turtle\n/api/stats · /api/lineage"]
+        Store["Arc&lt;GraphStore&gt;\nOxigraph triple store"]
+        DB["SQLite\nlineage · versions · feedback"]
+    end
+
+    subgraph Agent["Agent Sidecar (Node.js)"]
+        SDK["Claude Agent SDK\nsonnet-4-6"]
+        Proto["stdin/stdout\nJSON protocol"]
+    end
+
+    Graph -->|"SPARQL SELECT\nREST"| REST
+    Inspector -->|"SPARQL UPDATE\nREST"| REST
+    Lineage -->|"GET /api/lineage\nREST"| REST
+    Save -->|"POST /api/save\nREST"| REST
+    Chat -->|"invoke send_chat_message"| IPC
+    IPC --> ChatState
+    ChatState -->|"stdin { type: chat }"| Proto
+    Proto --> SDK
+    SDK -->|"MCP tools/call"| MCP
+    SDK -->|"stdout { type: text/tool_call/done }"| Proto
+    Proto -->|"Tauri emit agent-message"| Chat
+    MCP --> Store
+    REST --> Store
+    Store --> DB
 ```
 
 | Decision | Reason |
