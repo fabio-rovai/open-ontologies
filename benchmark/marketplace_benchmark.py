@@ -130,28 +130,38 @@ def main():
             # Stats before reasoning
             stats = tool_call("onto_stats")
             classes = stats.get("classes", 0)
-            obj_props = stats.get("object_properties", 0)
-            data_props = stats.get("data_properties", 0)
-            properties = obj_props + data_props
+            properties = stats.get("properties", stats.get("object_properties", 0) + stats.get("data_properties", 0))
             triples_before = stats.get("triples", 0)
 
-            # Reason (RDFS, timed)
+            # Reason RDFS (timed)
             t0 = time.time()
             tool_call("onto_reason", {"profile": "rdfs"})
-            reason_ms = int((time.time() - t0) * 1000)
+            rdfs_reason_ms = int((time.time() - t0) * 1000)
 
-            # Stats after reasoning
-            stats_after = tool_call("onto_stats")
-            triples_after = stats_after.get("triples", triples_before)
-            inferred = triples_after - triples_before
+            # Stats after RDFS
+            stats_rdfs = tool_call("onto_stats")
+            triples_rdfs = stats_rdfs.get("triples", triples_before)
+            inferred_rdfs = triples_rdfs - triples_before
 
-            print(f"classes={classes:<6} props={properties:<6} triples={triples_before}->{triples_after} (+{inferred:<6}) fetch={fetch_ms}ms reason={reason_ms}ms")
+            # Reason OWL-RL on top of RDFS (timed)
+            t0 = time.time()
+            tool_call("onto_reason", {"profile": "owl-rl"})
+            owl_reason_ms = int((time.time() - t0) * 1000)
+
+            # Stats after OWL-RL
+            stats_owl = tool_call("onto_stats")
+            triples_owl = stats_owl.get("triples", triples_rdfs)
+            inferred_owl = triples_owl - triples_before
+
+            print(f"classes={classes:<6} props={properties:<6} triples={triples_before} RDFS={triples_rdfs}(+{inferred_rdfs}) OWL-RL={triples_owl}(+{inferred_owl}) fetch={fetch_ms}ms rdfs={rdfs_reason_ms}ms owl={owl_reason_ms}ms")
 
             results.append({
                 "id": onto_id, "status": "ok",
                 "classes": classes, "properties": properties,
-                "triples_before": triples_before, "triples_after": triples_after,
-                "inferred": inferred, "fetch_ms": fetch_ms, "reason_ms": reason_ms,
+                "triples_before": triples_before,
+                "triples_rdfs": triples_rdfs, "inferred_rdfs": inferred_rdfs,
+                "triples_owl": triples_owl, "inferred_owl": inferred_owl,
+                "fetch_ms": fetch_ms, "rdfs_reason_ms": rdfs_reason_ms, "owl_reason_ms": owl_reason_ms,
             })
 
         # Save results
@@ -163,20 +173,25 @@ def main():
         failed = [r for r in results if r.get("status") != "ok"]
 
         print("\n")
-        print(f"{'ID':<20} {'Classes':>8} {'Props':>8} {'Triples':>10} {'+ Reason':>10} {'Inferred':>10} {'Fetch':>8} {'Reason':>8}")
-        print("-" * 92)
+        print(f"{'ID':<20} {'Classes':>8} {'Props':>8} {'Triples':>10} {'+ RDFS':>10} {'+ OWL-RL':>10} {'Fetch':>8} {'RDFS':>8} {'OWL-RL':>8}")
+        print("-" * 110)
         for r in results:
             mark = " *" if r.get("status") != "ok" else ""
-            print(f"{r['id']:<20} {r['classes']:>8} {r['properties']:>8} {r['triples_before']:>10} {r['triples_after']:>10} {r['inferred']:>10} {str(r['fetch_ms'])+'ms':>8} {str(r['reason_ms'])+'ms':>8}{mark}")
+            rdfs_inf = f"+{r.get('inferred_rdfs', 0)}"
+            owl_inf = f"+{r.get('inferred_owl', 0)}"
+            print(f"{r['id']:<20} {r['classes']:>8} {r['properties']:>8} {r['triples_before']:>10} {rdfs_inf:>10} {owl_inf:>10} {str(r['fetch_ms'])+'ms':>8} {str(r.get('rdfs_reason_ms', 0))+'ms':>8} {str(r.get('owl_reason_ms', 0))+'ms':>8}{mark}")
 
         total_triples = sum(r["triples_before"] for r in ok)
-        total_after = sum(r["triples_after"] for r in ok)
-        total_inferred = sum(r["inferred"] for r in ok)
+        total_rdfs = sum(r.get("inferred_rdfs", 0) for r in ok)
+        total_owl = sum(r.get("inferred_owl", 0) for r in ok)
         total_classes = sum(r["classes"] for r in ok)
         total_props = sum(r["properties"] for r in ok)
-        print("-" * 92)
-        print(f"{'TOTAL':<20} {total_classes:>8} {total_props:>8} {total_triples:>10} {total_after:>10} {total_inferred:>10}")
+        print("-" * 110)
+        print(f"{'TOTAL':<20} {total_classes:>8} {total_props:>8} {total_triples:>10} {'+'+str(total_rdfs):>10} {'+'+str(total_owl):>10}")
+        rdfs_pct = int(total_rdfs / total_triples * 100) if total_triples else 0
+        owl_pct = int(total_owl / total_triples * 100) if total_triples else 0
         print(f"\n{len(ok)}/{len(results)} ontologies loaded successfully")
+        print(f"RDFS adds {rdfs_pct}% more triples, OWL-RL adds {owl_pct}% more triples on average.")
         if failed:
             print(f"Failed: {', '.join(r['id'] for r in failed)}")
 
