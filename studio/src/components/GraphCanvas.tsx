@@ -224,6 +224,10 @@ export function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
         onNodeSelect(null);
       });
 
+    // Spring-based force tuning
+    graph.d3Force('link')?.distance(30).strength(0.7);
+    graph.d3Force('charge')?.strength(-120);
+
     // Warm lighting
     const scene = graph.scene() as THREE.Scene;
     scene.add(new THREE.AmbientLight(0xffffff, 0.6));
