@@ -11,6 +11,7 @@ pub mod inputs;
 pub mod lineage;
 pub mod monitor;
 pub mod plan;
+pub mod webhook;
 pub mod mapping;
 pub mod marketplace;
 pub mod ontology;
