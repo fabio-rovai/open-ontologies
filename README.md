@@ -195,7 +195,7 @@ PATH=/opt/homebrew/bin:~/.cargo/bin:$PATH npm run tauri dev
 | Feature | Description |
 | --- | --- |
 | **3D Graph Canvas** | Spring-based force-directed OWL graph (Three.js / WebGL). Grey edges = subClassOf hierarchy, gold edges = object property domain/range links. Drag to orbit, scroll to zoom, click to inspect, right-click to add, Delete to remove. |
-| **AI Agent Chat** | Natural language ontology engineering via Claude Sonnet 4.6 + Agent SDK. Type instructions — Claude calls the right tools automatically. |
+| **AI Agent Chat** | Natural language ontology engineering via Claude Opus 4.6 + Agent SDK. Type instructions — Claude calls the right tools automatically. |
 | **Property Inspector** | Protégé-style inline triple editor. Click to edit, hover to delete, `+ Add` for new triples. |
 | **Lineage Panel** | Full audit trail from SQLite: plan · apply · enforce · drift · monitor · align, grouped by session. |
 | **Named Save** | ⌘S to save as `~/.open-ontologies/<name>.ttl`. Auto-saves to `studio-live.ttl` after every mutation. |
@@ -365,7 +365,7 @@ flowchart TD
     end
 
     subgraph Agent["Agent Sidecar (Node.js)"]
-        SDK["Claude Sonnet 4.6\nAgent SDK"]
+        SDK["Claude Opus 4.6\nAgent SDK"]
         Proto["stdin/stdout JSON protocol"]
     end
 
@@ -411,7 +411,7 @@ flowchart TD
 | Frontend | React 19, Vite 7, TypeScript 5.8, Tailwind CSS 4 |
 | 3D graph | 3d-force-graph 1.79 (Three.js / WebGL) |
 | UI state | Zustand 5 |
-| AI agent | Claude Sonnet 4.6 via Agent SDK (Node.js sidecar) |
+| AI agent | Claude Opus 4.6 via Agent SDK (Node.js sidecar) |
 
 ---
 
