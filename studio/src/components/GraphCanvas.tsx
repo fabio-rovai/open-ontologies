@@ -31,6 +31,8 @@ interface GraphNode {
 interface GraphLink {
   source: string;
   target: string;
+  type?: 'subclass' | 'property';
+  label?: string;
 }
 
 // --- Helpers ---
@@ -83,6 +85,16 @@ SELECT ?sub ?parent WHERE {
   FILTER(!isBlank(?sub) && !isBlank(?parent))
 }`;
 
+const PROPERTY_EDGES_QUERY = `PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+SELECT ?prop ?propLabel ?domain ?range WHERE {
+  ?prop a owl:ObjectProperty .
+  ?prop rdfs:domain ?domain .
+  ?prop rdfs:range ?range .
+  OPTIONAL { ?prop rdfs:label ?propLabel }
+  FILTER(!isBlank(?domain) && !isBlank(?range))
+}`;
+
 // --- Component ---
 
 export function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
@@ -106,13 +118,15 @@ export function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
     if (!g) return;
 
     try {
-      const [classesText, edgesText] = await Promise.all([
+      const [classesText, edgesText, propEdgesText] = await Promise.all([
         mcp.sparqlQuery(CLASSES_QUERY),
         mcp.sparqlQuery(EDGES_QUERY),
+        mcp.sparqlQuery(PROPERTY_EDGES_QUERY),
       ]);
 
       const classBindings = parseSparqlResults(classesText);
       const edgeBindings = parseSparqlResults(edgesText);
+      const propEdgeBindings = parseSparqlResults(propEdgesText);
 
       const nodeMap = new Map<string, GraphNode>();
 
@@ -146,7 +160,22 @@ export function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
         const eid = `${sid}→${pid}`;
         if (nodeMap.has(sid) && nodeMap.has(pid) && !edgeSet.has(eid)) {
           edgeSet.add(eid);
-          links.push({ source: sid, target: pid });
+          links.push({ source: sid, target: pid, type: 'subclass' });
+        }
+      }
+
+      // Object property edges (domain → range)
+      for (const b of propEdgeBindings) {
+        const domainUri = b.domain?.value;
+        const rangeUri = b.range?.value;
+        if (!domainUri || !rangeUri) continue;
+        const did = shortUri(domainUri);
+        const rid = shortUri(rangeUri);
+        const propLabel = b.propLabel?.value || shortUri(b.prop?.value || '');
+        const eid = `${did}→${rid}:${propLabel}`;
+        if (nodeMap.has(did) && nodeMap.has(rid) && !edgeSet.has(eid)) {
+          edgeSet.add(eid);
+          links.push({ source: did, target: rid, type: 'property', label: propLabel });
         }
       }
 
@@ -172,12 +201,25 @@ export function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
       })
       .nodeOpacity(0.95)
       .nodeResolution(16)
-      .linkColor(() => '#585b70')
+      .linkColor((link: object) => {
+        const l = link as GraphLink;
+        return l.type === 'property' ? '#f9e2af' : '#585b70';
+      })
       .linkOpacity(0.6)
-      .linkWidth(1.5)
+      .linkWidth((link: object) => {
+        const l = link as GraphLink;
+        return l.type === 'property' ? 2 : 1.5;
+      })
       .linkDirectionalArrowLength(6)
       .linkDirectionalArrowRelPos(1)
-      .linkDirectionalArrowColor(() => '#89b4fa')
+      .linkDirectionalArrowColor((link: object) => {
+        const l = link as GraphLink;
+        return l.type === 'property' ? '#f9e2af' : '#89b4fa';
+      })
+      .linkLabel((link: object) => {
+        const l = link as GraphLink;
+        return l.type === 'property' ? (l.label || '') : '';
+      })
       .nodeThreeObject((node: object) => {
         const n = node as GraphNode;
         const group = new THREE.Group();

@@ -1,9 +1,8 @@
 <!-- mcp-name: io.github.fabio-rovai/open-ontologies -->
 
-<!-- <p align="center">
-  <img src="docs/assets/logo.png" alt="Open Ontologies" width="260">
-</p> -->
-
+<p align="center">
+  <img src="docs/assets/logo.png" alt="Open Ontologies" width="300">
+</p>
 
 <h1 align="center">Open Ontologies</h1>
 
@@ -45,7 +44,7 @@ No JVM. No Protégé. No GUI required.
 |---|---|
 | ![Studio overview — 3D graph, property inspector, and AI chat panel](studio/docs/screenshots/studio-overview.png) | ![Close-up of the 3D force-directed Forest ontology graph](studio/docs/screenshots/studio-graph.png) |
 
-*Forest ontology built entirely in natural language. Claude called `onto_clear` → `onto_load` → `onto_reason` → `onto_save` automatically.*
+*Tissue ontology built in natural language. Gold edges show object property relationships (domain → range) connecting clusters; grey edges show subClassOf hierarchy. Spring-based force layout keeps related classes close.*
 
 ---
 
@@ -191,7 +190,7 @@ PATH=/opt/homebrew/bin:~/.cargo/bin:$PATH npm run tauri dev
 
 | Feature | Description |
 | --- | --- |
-| **3D Graph Canvas** | Live force-directed OWL class hierarchy (Three.js / WebGL). Drag to orbit, scroll to zoom, click to inspect, right-click to add, Delete to remove. |
+| **3D Graph Canvas** | Spring-based force-directed OWL graph (Three.js / WebGL). Grey edges = subClassOf hierarchy, gold edges = object property domain/range links. Drag to orbit, scroll to zoom, click to inspect, right-click to add, Delete to remove. |
 | **AI Agent Chat** | Natural language ontology engineering via Claude Sonnet 4.6 + Agent SDK. Type instructions — Claude calls the right tools automatically. |
 | **Property Inspector** | Protégé-style inline triple editor. Click to edit, hover to delete, `+ Add` for new triples. |
 | **Lineage Panel** | Full audit trail from SQLite: plan · apply · enforce · drift · monitor · align, grouped by session. |
