@@ -240,42 +240,42 @@ One sentence input: *"Build a Pizza ontology following the Manchester tutorial s
 
 ### Ontology Marketplace — 29 Standard Ontologies
 
-All 29 marketplace ontologies fetched, loaded, and reasoned over (RDFS) in a single pipeline run:
+All 29 marketplace ontologies fetched, loaded, and reasoned over with both RDFS and OWL-RL profiles. Class/property counts include implicit definitions (via `rdfs:subClassOf`, `rdfs:domain`/`range`, `owl:equivalentClass`, `rdf:Property`).
 
-| Ontology | Classes | Properties | Triples | + Reasoning | Inferred | Fetch | Reason |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| OWL 2 | 26 | 4 | 450 | 473 | +23 | 751ms | 3ms |
-| RDF Schema | 6 | 0 | 87 | 122 | +35 | 421ms | 1ms |
-| RDF Concepts | 7 | 0 | 127 | 158 | +31 | 1,098ms | 1ms |
-| BFO (ISO 21838) | 35 | 0 | 1,221 | 1,407 | +186 | 715ms | 6ms |
-| DOLCE/DUL | 93 | 118 | 1,917 | 2,583 | +666 | 4,813ms | 14ms |
-| Schema.org | 1,009 | 0 | 17,823 | 21,854 | +4,031 | 539ms | 59ms |
-| FOAF | 28 | 60 | 631 | 635 | +4 | 1,263ms | 3ms |
-| SKOS | 5 | 18 | 252 | 307 | +55 | 197ms | 1ms |
-| Dublin Core Elements | 0 | 0 | 107 | 107 | +0 | 357ms | 1ms |
-| Dublin Core Terms | 22 | 0 | 700 | 956 | +256 | 249ms | 4ms |
-| DCAT | 19 | 39 | 1,695 | 1,708 | +13 | 798ms | 5ms |
-| VoID | 8 | 8 | 216 | 216 | +0 | 736ms | 2ms |
-| DOAP | 17 | 0 | 741 | 741 | +0 | 1,016ms | 3ms |
-| PROV-O | 39 | 50 | 1,146 | 1,348 | +202 | 512ms | 7ms |
-| OWL-Time | 23 | 58 | 1,296 | 1,461 | +165 | 270ms | 3ms |
-| W3C Organization | 22 | 33 | 748 | 757 | +9 | 669ms | 2ms |
-| SSN | 0 | 0 | 40 | 40 | +0 | 511ms | 1ms |
-| SOSA | 0 | 0 | 47 | 47 | +0 | 314ms | 1ms |
-| GeoSPARQL | 12 | 54 | 796 | 800 | +4 | 604ms | 5ms |
-| LOCN | 2 | 0 | 206 | 206 | +0 | 1,515ms | 1ms |
-| SHACL | 40 | 0 | 1,128 | 1,396 | +268 | 600ms | 5ms |
-| vCard | 75 | 84 | 882 | 882 | +0 | 695ms | 1ms |
-| ODRL | 71 | 50 | 2,157 | 2,230 | +73 | 449ms | 6ms |
-| Creative Commons | 6 | 0 | 115 | 115 | +0 | 1,058ms | 1ms |
-| SIOC | 14 | 83 | 615 | 615 | +0 | 905ms | 2ms |
-| ADMS | 4 | 13 | 151 | 151 | +0 | 1,121ms | 1ms |
-| GoodRelations | 98 | 102 | 1,834 | 1,849 | +15 | 2,442ms | 4ms |
-| FIBO (metadata) | 0 | 0 | 45 | 45 | +0 | 1,059ms | 1ms |
-| QUDT | 73 | 175 | 2,434 | 4,008 | +1,574 | 1,844ms | 10ms |
-| **Total** | **1,754** | **949** | **39,607** | **47,217** | **+7,610** | — | — |
+| Ontology | Classes | Properties | Triples | + RDFS | + OWL-RL | Fetch | RDFS | OWL-RL |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| OWL 2 | 26 | 4 | 450 | +23 | +23 | 554ms | 3ms | 1ms |
+| RDF Schema | 6 | 0 | 87 | +35 | +35 | 526ms | 2ms | 1ms |
+| RDF Concepts | 7 | 0 | 127 | +31 | +31 | 604ms | 2ms | 1ms |
+| BFO (ISO 21838) | 35 | 0 | 1,221 | +186 | +186 | 1,151ms | 5ms | 4ms |
+| DOLCE/DUL | 93 | 118 | 1,917 | +666 | +692 | 2,360ms | 15ms | 12ms |
+| Schema.org | 1,009 | 0 | 17,823 | +4,031 | **+13,670** | 821ms | 57ms | 124ms |
+| FOAF | 28 | 60 | 631 | +4 | +31 | 1,639ms | 2ms | 2ms |
+| SKOS | 5 | 18 | 252 | +55 | +55 | 234ms | 2ms | 1ms |
+| Dublin Core Elements | 0 | 0 | 107 | +0 | +0 | 461ms | 1ms | 1ms |
+| Dublin Core Terms | 22 | 0 | 700 | +256 | +261 | 241ms | 4ms | 3ms |
+| DCAT | 19 | 39 | 1,695 | +13 | +40 | 865ms | 6ms | 5ms |
+| VoID | 8 | 8 | 216 | +0 | +0 | 1,116ms | 2ms | 1ms |
+| DOAP | 17 | 0 | 741 | +0 | +0 | 662ms | 3ms | 2ms |
+| PROV-O | 39 | 50 | 1,146 | +202 | +203 | 487ms | 4ms | 3ms |
+| OWL-Time | 23 | 58 | 1,296 | +165 | +165 | 290ms | 6ms | 4ms |
+| W3C Organization | 22 | 33 | 748 | +9 | +21 | 544ms | 3ms | 3ms |
+| SSN | 0 | 0 | 40 | +0 | +0 | 989ms | 1ms | 1ms |
+| SOSA | 0 | 0 | 47 | +0 | +0 | 727ms | 1ms | 1ms |
+| GeoSPARQL | 12 | 54 | 796 | +4 | +12 | 746ms | 3ms | 2ms |
+| LOCN | 2 | 0 | 206 | +0 | +0 | 703ms | 1ms | 1ms |
+| SHACL | 40 | 0 | 1,128 | +268 | +268 | 475ms | 6ms | 3ms |
+| vCard | 75 | 84 | 882 | +0 | +46 | 632ms | 3ms | 3ms |
+| ODRL | 71 | 50 | 2,157 | +73 | +76 | 853ms | 6ms | 5ms |
+| Creative Commons | 6 | 0 | 115 | +0 | +49 | 1,121ms | 2ms | 1ms |
+| SIOC | 14 | 83 | 615 | +0 | +2 | 914ms | 2ms | 2ms |
+| ADMS | 4 | 13 | 151 | +0 | +0 | 877ms | 1ms | 1ms |
+| GoodRelations | 98 | 102 | 1,834 | +15 | +42 | 1,975ms | 6ms | 6ms |
+| FIBO (metadata) | 0 | 0 | 45 | +0 | +0 | 1,474ms | 1ms | 1ms |
+| QUDT | 73 | 175 | 2,434 | +1,574 | +1,581 | 2,644ms | 14ms | 9ms |
+| **Total** | **1,754** | **949** | **39,607** | **+7,610** | **+17,489** | — | — | — |
 
-29/29 ontologies loaded, reasoned, and validated. Reasoning adds 19% more triples on average. Largest: Schema.org (17,823 triples, 59ms reasoning).
+29/29 ontologies loaded, reasoned, and validated. RDFS adds 19% more triples. OWL-RL adds **44%** — transitive/symmetric/inverse properties and equivalentClass expansion discover significantly more implicit knowledge. Schema.org jumps from +4,031 (RDFS) to +13,670 (OWL-RL) inferred triples in 124ms.
 
 ### Reasoning Performance — vs HermiT
 

@@ -5,10 +5,13 @@
     "classes": 26,
     "properties": 4,
     "triples_before": 450,
-    "triples_after": 473,
-    "inferred": 23,
-    "fetch_ms": 751,
-    "reason_ms": 3
+    "triples_rdfs": 473,
+    "inferred_rdfs": 23,
+    "triples_owl": 473,
+    "inferred_owl": 23,
+    "fetch_ms": 554,
+    "rdfs_reason_ms": 3,
+    "owl_reason_ms": 1
   },
   {
     "id": "rdfs",
@@ -16,10 +19,13 @@
     "classes": 6,
     "properties": 0,
     "triples_before": 87,
-    "triples_after": 122,
-    "inferred": 35,
-    "fetch_ms": 421,
-    "reason_ms": 1
+    "triples_rdfs": 122,
+    "inferred_rdfs": 35,
+    "triples_owl": 122,
+    "inferred_owl": 35,
+    "fetch_ms": 526,
+    "rdfs_reason_ms": 2,
+    "owl_reason_ms": 1
   },
   {
     "id": "rdf",
@@ -27,10 +33,13 @@
     "classes": 7,
     "properties": 0,
     "triples_before": 127,
-    "triples_after": 158,
-    "inferred": 31,
-    "fetch_ms": 1098,
-    "reason_ms": 1
+    "triples_rdfs": 158,
+    "inferred_rdfs": 31,
+    "triples_owl": 158,
+    "inferred_owl": 31,
+    "fetch_ms": 604,
+    "rdfs_reason_ms": 2,
+    "owl_reason_ms": 1
   },
   {
     "id": "bfo",
@@ -38,10 +47,13 @@
     "classes": 35,
     "properties": 0,
     "triples_before": 1221,
-    "triples_after": 1407,
-    "inferred": 186,
-    "fetch_ms": 715,
-    "reason_ms": 6
+    "triples_rdfs": 1407,
+    "inferred_rdfs": 186,
+    "triples_owl": 1407,
+    "inferred_owl": 186,
+    "fetch_ms": 1151,
+    "rdfs_reason_ms": 5,
+    "owl_reason_ms": 4
   },
   {
     "id": "dolce",
@@ -49,10 +61,13 @@
     "classes": 93,
     "properties": 118,
     "triples_before": 1917,
-    "triples_after": 2583,
-    "inferred": 666,
-    "fetch_ms": 4813,
-    "reason_ms": 14
+    "triples_rdfs": 2583,
+    "inferred_rdfs": 666,
+    "triples_owl": 2609,
+    "inferred_owl": 692,
+    "fetch_ms": 2360,
+    "rdfs_reason_ms": 15,
+    "owl_reason_ms": 12
   },
   {
     "id": "schema-org",
@@ -60,10 +75,13 @@
     "classes": 1009,
     "properties": 0,
     "triples_before": 17823,
-    "triples_after": 21854,
-    "inferred": 4031,
-    "fetch_ms": 539,
-    "reason_ms": 59
+    "triples_rdfs": 21854,
+    "inferred_rdfs": 4031,
+    "triples_owl": 31493,
+    "inferred_owl": 13670,
+    "fetch_ms": 821,
+    "rdfs_reason_ms": 57,
+    "owl_reason_ms": 124
   },
   {
     "id": "foaf",
@@ -71,10 +89,13 @@
     "classes": 28,
     "properties": 60,
     "triples_before": 631,
-    "triples_after": 635,
-    "inferred": 4,
-    "fetch_ms": 1263,
-    "reason_ms": 3
+    "triples_rdfs": 635,
+    "inferred_rdfs": 4,
+    "triples_owl": 662,
+    "inferred_owl": 31,
+    "fetch_ms": 1639,
+    "rdfs_reason_ms": 2,
+    "owl_reason_ms": 2
   },
   {
     "id": "skos",
@@ -82,10 +103,13 @@
     "classes": 5,
     "properties": 18,
     "triples_before": 252,
-    "triples_after": 307,
-    "inferred": 55,
-    "fetch_ms": 197,
-    "reason_ms": 1
+    "triples_rdfs": 307,
+    "inferred_rdfs": 55,
+    "triples_owl": 307,
+    "inferred_owl": 55,
+    "fetch_ms": 234,
+    "rdfs_reason_ms": 2,
+    "owl_reason_ms": 1
   },
   {
     "id": "dc-elements",
@@ -93,10 +117,13 @@
     "classes": 0,
     "properties": 0,
     "triples_before": 107,
-    "triples_after": 107,
-    "inferred": 0,
-    "fetch_ms": 357,
-    "reason_ms": 1
+    "triples_rdfs": 107,
+    "inferred_rdfs": 0,
+    "triples_owl": 107,
+    "inferred_owl": 0,
+    "fetch_ms": 461,
+    "rdfs_reason_ms": 1,
+    "owl_reason_ms": 1
   },
   {
     "id": "dc-terms",
@@ -104,10 +131,13 @@
     "classes": 22,
     "properties": 0,
     "triples_before": 700,
-    "triples_after": 956,
-    "inferred": 256,
-    "fetch_ms": 249,
-    "reason_ms": 4
+    "triples_rdfs": 956,
+    "inferred_rdfs": 256,
+    "triples_owl": 961,
+    "inferred_owl": 261,
+    "fetch_ms": 241,
+    "rdfs_reason_ms": 4,
+    "owl_reason_ms": 3
   },
   {
     "id": "dcat",
@@ -115,10 +145,13 @@
     "classes": 19,
     "properties": 39,
     "triples_before": 1695,
-    "triples_after": 1708,
-    "inferred": 13,
-    "fetch_ms": 798,
-    "reason_ms": 5
+    "triples_rdfs": 1708,
+    "inferred_rdfs": 13,
+    "triples_owl": 1735,
+    "inferred_owl": 40,
+    "fetch_ms": 865,
+    "rdfs_reason_ms": 6,
+    "owl_reason_ms": 5
   },
   {
     "id": "void",
@@ -126,10 +159,13 @@
     "classes": 8,
     "properties": 8,
     "triples_before": 216,
-    "triples_after": 216,
-    "inferred": 0,
-    "fetch_ms": 736,
-    "reason_ms": 2
+    "triples_rdfs": 216,
+    "inferred_rdfs": 0,
+    "triples_owl": 216,
+    "inferred_owl": 0,
+    "fetch_ms": 1116,
+    "rdfs_reason_ms": 2,
+    "owl_reason_ms": 1
   },
   {
     "id": "doap",
@@ -137,10 +173,13 @@
     "classes": 17,
     "properties": 0,
     "triples_before": 741,
-    "triples_after": 741,
-    "inferred": 0,
-    "fetch_ms": 1016,
-    "reason_ms": 3
+    "triples_rdfs": 741,
+    "inferred_rdfs": 0,
+    "triples_owl": 741,
+    "inferred_owl": 0,
+    "fetch_ms": 662,
+    "rdfs_reason_ms": 3,
+    "owl_reason_ms": 2
   },
   {
     "id": "prov-o",
@@ -148,10 +187,13 @@
     "classes": 39,
     "properties": 50,
     "triples_before": 1146,
-    "triples_after": 1348,
-    "inferred": 202,
-    "fetch_ms": 512,
-    "reason_ms": 7
+    "triples_rdfs": 1348,
+    "inferred_rdfs": 202,
+    "triples_owl": 1349,
+    "inferred_owl": 203,
+    "fetch_ms": 487,
+    "rdfs_reason_ms": 4,
+    "owl_reason_ms": 3
   },
   {
     "id": "owl-time",
@@ -159,10 +201,13 @@
     "classes": 23,
     "properties": 58,
     "triples_before": 1296,
-    "triples_after": 1461,
-    "inferred": 165,
-    "fetch_ms": 270,
-    "reason_ms": 3
+    "triples_rdfs": 1461,
+    "inferred_rdfs": 165,
+    "triples_owl": 1461,
+    "inferred_owl": 165,
+    "fetch_ms": 290,
+    "rdfs_reason_ms": 6,
+    "owl_reason_ms": 4
   },
   {
     "id": "org",
@@ -170,10 +215,13 @@
     "classes": 22,
     "properties": 33,
     "triples_before": 748,
-    "triples_after": 757,
-    "inferred": 9,
-    "fetch_ms": 669,
-    "reason_ms": 2
+    "triples_rdfs": 757,
+    "inferred_rdfs": 9,
+    "triples_owl": 769,
+    "inferred_owl": 21,
+    "fetch_ms": 544,
+    "rdfs_reason_ms": 3,
+    "owl_reason_ms": 3
   },
   {
     "id": "ssn",
@@ -181,10 +229,13 @@
     "classes": 0,
     "properties": 0,
     "triples_before": 40,
-    "triples_after": 40,
-    "inferred": 0,
-    "fetch_ms": 511,
-    "reason_ms": 1
+    "triples_rdfs": 40,
+    "inferred_rdfs": 0,
+    "triples_owl": 40,
+    "inferred_owl": 0,
+    "fetch_ms": 989,
+    "rdfs_reason_ms": 1,
+    "owl_reason_ms": 1
   },
   {
     "id": "sosa",
@@ -192,10 +243,13 @@
     "classes": 0,
     "properties": 0,
     "triples_before": 47,
-    "triples_after": 47,
-    "inferred": 0,
-    "fetch_ms": 314,
-    "reason_ms": 1
+    "triples_rdfs": 47,
+    "inferred_rdfs": 0,
+    "triples_owl": 47,
+    "inferred_owl": 0,
+    "fetch_ms": 727,
+    "rdfs_reason_ms": 1,
+    "owl_reason_ms": 1
   },
   {
     "id": "geosparql",
@@ -203,10 +257,13 @@
     "classes": 12,
     "properties": 54,
     "triples_before": 796,
-    "triples_after": 800,
-    "inferred": 4,
-    "fetch_ms": 604,
-    "reason_ms": 5
+    "triples_rdfs": 800,
+    "inferred_rdfs": 4,
+    "triples_owl": 808,
+    "inferred_owl": 12,
+    "fetch_ms": 746,
+    "rdfs_reason_ms": 3,
+    "owl_reason_ms": 2
   },
   {
     "id": "locn",
@@ -214,10 +271,13 @@
     "classes": 2,
     "properties": 0,
     "triples_before": 206,
-    "triples_after": 206,
-    "inferred": 0,
-    "fetch_ms": 1515,
-    "reason_ms": 1
+    "triples_rdfs": 206,
+    "inferred_rdfs": 0,
+    "triples_owl": 206,
+    "inferred_owl": 0,
+    "fetch_ms": 703,
+    "rdfs_reason_ms": 1,
+    "owl_reason_ms": 1
   },
   {
     "id": "shacl",
@@ -225,10 +285,13 @@
     "classes": 40,
     "properties": 0,
     "triples_before": 1128,
-    "triples_after": 1396,
-    "inferred": 268,
-    "fetch_ms": 600,
-    "reason_ms": 5
+    "triples_rdfs": 1396,
+    "inferred_rdfs": 268,
+    "triples_owl": 1396,
+    "inferred_owl": 268,
+    "fetch_ms": 475,
+    "rdfs_reason_ms": 6,
+    "owl_reason_ms": 3
   },
   {
     "id": "vcard",
@@ -236,10 +299,13 @@
     "classes": 75,
     "properties": 84,
     "triples_before": 882,
-    "triples_after": 882,
-    "inferred": 0,
-    "fetch_ms": 695,
-    "reason_ms": 1
+    "triples_rdfs": 882,
+    "inferred_rdfs": 0,
+    "triples_owl": 928,
+    "inferred_owl": 46,
+    "fetch_ms": 632,
+    "rdfs_reason_ms": 3,
+    "owl_reason_ms": 3
   },
   {
     "id": "odrl",
@@ -247,10 +313,13 @@
     "classes": 71,
     "properties": 50,
     "triples_before": 2157,
-    "triples_after": 2230,
-    "inferred": 73,
-    "fetch_ms": 449,
-    "reason_ms": 6
+    "triples_rdfs": 2230,
+    "inferred_rdfs": 73,
+    "triples_owl": 2233,
+    "inferred_owl": 76,
+    "fetch_ms": 853,
+    "rdfs_reason_ms": 6,
+    "owl_reason_ms": 5
   },
   {
     "id": "cc",
@@ -258,10 +327,13 @@
     "classes": 6,
     "properties": 0,
     "triples_before": 115,
-    "triples_after": 115,
-    "inferred": 0,
-    "fetch_ms": 1058,
-    "reason_ms": 1
+    "triples_rdfs": 115,
+    "inferred_rdfs": 0,
+    "triples_owl": 164,
+    "inferred_owl": 49,
+    "fetch_ms": 1121,
+    "rdfs_reason_ms": 2,
+    "owl_reason_ms": 1
   },
   {
     "id": "sioc",
@@ -269,10 +341,13 @@
     "classes": 14,
     "properties": 83,
     "triples_before": 615,
-    "triples_after": 615,
-    "inferred": 0,
-    "fetch_ms": 905,
-    "reason_ms": 2
+    "triples_rdfs": 615,
+    "inferred_rdfs": 0,
+    "triples_owl": 617,
+    "inferred_owl": 2,
+    "fetch_ms": 914,
+    "rdfs_reason_ms": 2,
+    "owl_reason_ms": 2
   },
   {
     "id": "adms",
@@ -280,10 +355,13 @@
     "classes": 4,
     "properties": 13,
     "triples_before": 151,
-    "triples_after": 151,
-    "inferred": 0,
-    "fetch_ms": 1121,
-    "reason_ms": 1
+    "triples_rdfs": 151,
+    "inferred_rdfs": 0,
+    "triples_owl": 151,
+    "inferred_owl": 0,
+    "fetch_ms": 877,
+    "rdfs_reason_ms": 1,
+    "owl_reason_ms": 1
   },
   {
     "id": "goodrelations",
@@ -291,10 +369,13 @@
     "classes": 98,
     "properties": 102,
     "triples_before": 1834,
-    "triples_after": 1849,
-    "inferred": 15,
-    "fetch_ms": 2442,
-    "reason_ms": 4
+    "triples_rdfs": 1849,
+    "inferred_rdfs": 15,
+    "triples_owl": 1876,
+    "inferred_owl": 42,
+    "fetch_ms": 1975,
+    "rdfs_reason_ms": 6,
+    "owl_reason_ms": 6
   },
   {
     "id": "fibo",
@@ -302,10 +383,13 @@
     "classes": 0,
     "properties": 0,
     "triples_before": 45,
-    "triples_after": 45,
-    "inferred": 0,
-    "fetch_ms": 1059,
-    "reason_ms": 1
+    "triples_rdfs": 45,
+    "inferred_rdfs": 0,
+    "triples_owl": 45,
+    "inferred_owl": 0,
+    "fetch_ms": 1474,
+    "rdfs_reason_ms": 1,
+    "owl_reason_ms": 1
   },
   {
     "id": "qudt",
@@ -313,9 +397,12 @@
     "classes": 73,
     "properties": 175,
     "triples_before": 2434,
-    "triples_after": 4008,
-    "inferred": 1574,
-    "fetch_ms": 1844,
-    "reason_ms": 10
+    "triples_rdfs": 4008,
+    "inferred_rdfs": 1574,
+    "triples_owl": 4015,
+    "inferred_owl": 1581,
+    "fetch_ms": 2644,
+    "rdfs_reason_ms": 14,
+    "owl_reason_ms": 9
   }
 ]
