@@ -89,8 +89,8 @@ impl Monitor {
                     self.set_blocked(true);
                 }
                 // Fire webhook for Notify actions
-                if matches!(w.action, WatcherAction::Notify) {
-                    if let Some(ref url) = w.webhook_url {
+                if matches!(w.action, WatcherAction::Notify)
+                    && let Some(ref url) = w.webhook_url {
                         let url = url.clone();
                         let headers = w.webhook_headers.clone();
                         let payload = serde_json::json!({
@@ -105,7 +105,6 @@ impl Monitor {
                         tokio::spawn(async move {
                             let _ = crate::webhook::deliver_webhook(&url, headers.as_deref(), &payload).await;
                         });
-                    }
                 }
                 alerts.push(Alert {
                     watcher: w.id.clone(),
