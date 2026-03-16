@@ -15,24 +15,30 @@ When building or modifying ontologies, follow this workflow. Claude decides whic
 4. Call `onto_load` to load into the Oxigraph triple store
 5. Call `onto_stats` to verify class count, property count, triple count match expectations
 
+### Reason
+
+6. Call `onto_reason` with profile `rdfs` or `owl-rl` to materialize inferred triples (transitive subclass chains, domain/range propagation, equivalentClass expansion)
+7. Call `onto_stats` again to verify inferred triple counts are reasonable
+
 ### Verify
 
-6. Call `onto_lint` to check for missing labels, comments, domains, ranges — fix any issues found
-7. Call `onto_query` with SPARQL to verify structure:
-   - Are all expected classes present?
-   - Do subclass hierarchies match the spec?
-   - Can competency questions be answered?
-8. If a reference ontology exists, call `onto_diff` to compare
+8. Call `onto_lint` to check for missing labels, comments, domains, ranges — fix any issues found
+9. Call `onto_enforce` with rule pack `generic` to check design pattern compliance — fix any violations
+10. Call `onto_query` with SPARQL to verify structure:
+    - Are all expected classes present?
+    - Do subclass hierarchies match the spec?
+    - Can competency questions be answered?
+11. If a reference ontology exists, call `onto_diff` to compare
 
 ### Iterate
 
-9. If any step above reveals problems, fix the Turtle and restart from step 3
-10. This loop continues until validation passes, stats match, lint is clean, and SPARQL queries return expected results
+12. If any step above reveals problems, fix the Turtle and restart from step 3
+13. This loop continues until validation passes, stats match, lint is clean, enforce has no violations, and SPARQL queries return expected results
 
 ### Persist
 
-11. Call `onto_save` to write the final ontology to a .ttl file
-12. Call `onto_version` to save a named snapshot for rollback
+14. Call `onto_save` to write the final ontology to a .ttl file
+15. Call `onto_version` to save a named snapshot for rollback — always version after save
 
 ### Key Principle
 
