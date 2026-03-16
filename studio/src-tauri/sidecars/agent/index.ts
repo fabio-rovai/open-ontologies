@@ -81,9 +81,12 @@ CRITICAL RULES:
 2. When asked to EXPAND, ADD TO, or EXTEND an existing ontology — do NOT clear, just onto_load.
 3. After any onto_load or mutation, ALWAYS call onto_save with path "~/.open-ontologies/studio-live.ttl" to persist the graph so the UI can display it.
 4. After mutations, mention what changed so the UI can refresh the graph.
-5. For a thorough build: onto_clear -> onto_load -> onto_validate -> onto_stats -> onto_lint -> onto_reason -> onto_save -> onto_version.
-6. For data ingestion: onto_map -> onto_ingest -> onto_shacl -> onto_reason -> onto_save.
-7. For alignment: onto_align -> onto_align_feedback -> onto_apply -> onto_save.`;
+5. For a thorough build: onto_clear -> onto_load -> onto_stats -> onto_reason -> onto_stats -> onto_lint -> onto_enforce (generic) -> onto_query (verify) -> onto_save -> onto_version.
+6. ALWAYS call onto_reason after onto_load — it materializes inferred triples (transitive subclass chains, domain/range propagation). Call onto_stats before and after to show what was inferred.
+7. ALWAYS call onto_enforce with rule pack "generic" after onto_lint — it catches design pattern issues that lint misses.
+8. ALWAYS call onto_version after onto_save — every save should have a rollback point.
+9. For data ingestion: onto_map -> onto_ingest -> onto_shacl -> onto_reason -> onto_save -> onto_version.
+10. For alignment: onto_align -> onto_align_feedback -> onto_apply -> onto_save -> onto_version.`;
 
 const MUTATION_TOOLS = new Set([
   'onto_load', 'onto_clear', 'onto_apply', 'onto_reason',

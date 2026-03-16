@@ -165,7 +165,11 @@ and defined classes (VegetarianPizza, MeatyPizza, SpicyPizza).
 Validate it, load it, and show me the stats.
 ```
 
-Claude generates Turtle, then calls `onto_validate` → `onto_load` → `onto_stats` → `onto_lint` → `onto_query` automatically, fixing errors along the way.
+Claude generates Turtle, then runs the full pipeline automatically:
+
+`onto_validate` → `onto_load` → `onto_stats` → `onto_reason` → `onto_stats` → `onto_lint` → `onto_enforce` → `onto_query` → `onto_save` → `onto_version`
+
+Every build includes OWL reasoning (materializes inferred triples), design pattern enforcement, and automatic versioning.
 
 ---
 
