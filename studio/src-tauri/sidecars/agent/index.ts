@@ -148,7 +148,7 @@ async function handleMessage(userMessage: string): Promise<void> {
       prompt: fullPrompt,
       options: {
         systemPrompt: SYSTEM_PROMPT,
-        model: 'claude-sonnet-4-6',
+        model: 'claude-opus-4-6',
         mcpServers: {
           'ontology-engine': {
             type: 'http',
