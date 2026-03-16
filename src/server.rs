@@ -26,6 +26,7 @@ pub struct OpenOntologiesServer {
     db: StateDb,
     graph: Arc<GraphStore>,
     session_id: String,
+    governance_webhook: Option<String>,
     #[cfg(feature = "embeddings")]
     vecstore: Arc<std::sync::Mutex<crate::vecstore::VecStore>>,
     #[cfg(feature = "embeddings")]
@@ -35,13 +36,18 @@ pub struct OpenOntologiesServer {
 impl OpenOntologiesServer {
     /// Create a new server with all tools wired to domain services.
     pub fn new(db: StateDb) -> Self {
-        Self::new_with_graph(db, Arc::new(GraphStore::new()))
+        Self::new_with_options(db, Arc::new(GraphStore::new()), None)
     }
 
     /// Create a new server sharing an existing graph store (for HTTP mode where
     /// all sessions must see the same in-memory triples).
     pub fn new_with_graph(db: StateDb, graph: Arc<GraphStore>) -> Self {
-        let lineage = crate::lineage::LineageLog::new(db.clone());
+        Self::new_with_options(db, graph, None)
+    }
+
+    /// Create a new server with all options including optional governance webhook.
+    pub fn new_with_options(db: StateDb, graph: Arc<GraphStore>, governance_webhook: Option<String>) -> Self {
+        let lineage = crate::lineage::LineageLog::with_governance_webhook(db.clone(), governance_webhook.clone());
         let session_id = lineage.new_session();
 
         #[cfg(feature = "embeddings")]
@@ -72,6 +78,7 @@ impl OpenOntologiesServer {
             db,
             graph,
             session_id,
+            governance_webhook,
             #[cfg(feature = "embeddings")]
             vecstore,
             #[cfg(feature = "embeddings")]
@@ -85,7 +92,7 @@ impl OpenOntologiesServer {
     }
 
     fn lineage(&self) -> crate::lineage::LineageLog {
-        crate::lineage::LineageLog::new(self.db.clone())
+        crate::lineage::LineageLog::with_governance_webhook(self.db.clone(), self.governance_webhook.clone())
     }
 
     fn monitor(&self) -> crate::monitor::Monitor {

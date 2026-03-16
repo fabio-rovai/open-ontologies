@@ -37,6 +37,9 @@ enum Commands {
     Serve {
         #[arg(long, default_value = "~/.open-ontologies/config.toml")]
         config: String,
+        /// Optional governance webhook URL (fires on every lineage event)
+        #[arg(long, env = "GOVERNANCE_WEBHOOK")]
+        governance_webhook: Option<String>,
     },
     /// Start the MCP server (Streamable HTTP transport)
     ServeHttp {
@@ -51,6 +54,9 @@ enum Commands {
         /// Optional bearer token for authentication
         #[arg(long, env = "OPEN_ONTOLOGIES_TOKEN")]
         token: Option<String>,
+        /// Optional governance webhook URL (fires on every lineage event)
+        #[arg(long, env = "GOVERNANCE_WEBHOOK")]
+        governance_webhook: Option<String>,
     },
 
     // ─── Core ontology ────────────────────────────────────────────
@@ -379,7 +385,7 @@ async fn main() -> anyhow::Result<()> {
 
             println!("\nOpen Ontologies initialized successfully!");
         }
-        Commands::Serve { config: config_path } => {
+        Commands::Serve { config: config_path, governance_webhook } => {
             let config_path = expand_tilde(&config_path);
             let cfg = match Config::load(std::path::Path::new(&config_path)) {
                 Ok(c) => c,
@@ -398,11 +404,11 @@ async fn main() -> anyhow::Result<()> {
             std::fs::create_dir_all(&data_dir)?;
             let db = StateDb::open(&db_path)?;
 
-            let server = OpenOntologiesServer::new(db);
+            let server = OpenOntologiesServer::new_with_options(db, Arc::new(GraphStore::new()), governance_webhook);
             let service = server.serve(rmcp::transport::stdio()).await?;
             service.waiting().await?;
         }
-        Commands::ServeHttp { config: config_path, host, port, token } => {
+        Commands::ServeHttp { config: config_path, host, port, token, governance_webhook } => {
             use rmcp::transport::streamable_http_server::{
                 StreamableHttpServerConfig, StreamableHttpService,
                 session::local::LocalSessionManager,
@@ -440,12 +446,13 @@ async fn main() -> anyhow::Result<()> {
             };
 
             let shared_graph_for_service = shared_graph.clone();
+            let gw_for_service = governance_webhook.clone();
             let service: StreamableHttpService<_, LocalSessionManager> =
                 StreamableHttpService::new(
                     move || {
                         let db = StateDb::open(&db_path_owned)
                             .map_err(std::io::Error::other)?;
-                        Ok(OpenOntologiesServer::new_with_graph(db, shared_graph_for_service.clone()))
+                        Ok(OpenOntologiesServer::new_with_options(db, shared_graph_for_service.clone(), gw_for_service.clone()))
                     },
                     Default::default(),
                     http_config,
