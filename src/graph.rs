@@ -176,14 +176,38 @@ impl GraphStore {
         let store = self.store.lock().unwrap();
         let total = store.len()?;
 
-        let class_query =
-            "SELECT (COUNT(DISTINCT ?c) AS ?count) WHERE { ?c a <http://www.w3.org/2002/07/owl#Class> }";
-        let rdfs_class_query =
-            "SELECT (COUNT(DISTINCT ?c) AS ?count) WHERE { ?c a <http://www.w3.org/2000/01/rdf-schema#Class> }";
-        let obj_prop_query =
-            "SELECT (COUNT(DISTINCT ?p) AS ?count) WHERE { ?p a <http://www.w3.org/2002/07/owl#ObjectProperty> }";
-        let data_prop_query =
-            "SELECT (COUNT(DISTINCT ?p) AS ?count) WHERE { ?p a <http://www.w3.org/2002/07/owl#DatatypeProperty> }";
+        // Count classes: explicit type declarations + implicit (subClassOf subjects/objects,
+        // domain/range targets, equivalentClass). Filters out blank nodes and OWL/RDF builtins.
+        let class_query = "SELECT (COUNT(DISTINCT ?c) AS ?count) WHERE {
+            { ?c a <http://www.w3.org/2002/07/owl#Class> }
+            UNION { ?c a <http://www.w3.org/2000/01/rdf-schema#Class> }
+            UNION { ?c <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?p }
+            UNION { ?p <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?c }
+            UNION { ?p <http://www.w3.org/2000/01/rdf-schema#domain> ?c }
+            UNION { ?p <http://www.w3.org/2000/01/rdf-schema#range> ?c }
+            UNION { ?c <http://www.w3.org/2002/07/owl#equivalentClass> ?p }
+            FILTER(isIRI(?c)
+                && ?c != <http://www.w3.org/2002/07/owl#Thing>
+                && ?c != <http://www.w3.org/2002/07/owl#Nothing>
+                && ?c != <http://www.w3.org/2000/01/rdf-schema#Resource>
+                && ?c != <http://www.w3.org/2000/01/rdf-schema#Literal>
+                && ?c != <http://www.w3.org/2000/01/rdf-schema#Class>
+                && ?c != <http://www.w3.org/2002/07/owl#Class>)
+        }";
+        // Count properties: explicit type + implicit (subPropertyOf, domain/range subjects)
+        let prop_query = "SELECT (COUNT(DISTINCT ?p) AS ?count) WHERE {
+            { ?p a <http://www.w3.org/2002/07/owl#ObjectProperty> }
+            UNION { ?p a <http://www.w3.org/2002/07/owl#DatatypeProperty> }
+            UNION { ?p a <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> }
+            UNION { ?p <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> ?q }
+            UNION { ?q <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> ?p }
+            UNION { ?p <http://www.w3.org/2000/01/rdf-schema#domain> ?c }
+            UNION { ?p <http://www.w3.org/2000/01/rdf-schema#range> ?c }
+            FILTER(isIRI(?p)
+                && !STRSTARTS(STR(?p), \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\")
+                && !STRSTARTS(STR(?p), \"http://www.w3.org/2000/01/rdf-schema#\")
+                && !STRSTARTS(STR(?p), \"http://www.w3.org/2002/07/owl#\"))
+        }";
         let individual_query = "SELECT (COUNT(DISTINCT ?i) AS ?count) WHERE { ?i a ?c . FILTER(?c != <http://www.w3.org/2002/07/owl#Class> && ?c != <http://www.w3.org/2000/01/rdf-schema#Class> && ?c != <http://www.w3.org/2002/07/owl#ObjectProperty> && ?c != <http://www.w3.org/2002/07/owl#DatatypeProperty> && ?c != <http://www.w3.org/2002/07/owl#Ontology>) }";
 
         let count_from_query = |q: &str| -> usize {
@@ -193,16 +217,16 @@ impl GraphStore {
             lit.value().parse().unwrap_or(0)
         };
 
-        let classes = count_from_query(class_query) + count_from_query(rdfs_class_query);
-        let obj_props = count_from_query(obj_prop_query);
-        let data_props = count_from_query(data_prop_query);
+        let classes = count_from_query(class_query);
+        let props = count_from_query(prop_query);
         let individuals = count_from_query(individual_query);
 
         Ok(serde_json::json!({
             "triples": total,
             "classes": classes,
-            "object_properties": obj_props,
-            "data_properties": data_props,
+            "object_properties": props,
+            "data_properties": 0,
+            "properties": props,
             "individuals": individuals
         })
         .to_string())
