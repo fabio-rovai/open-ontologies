@@ -2,16 +2,16 @@
   {
     "id": "owl",
     "status": "ok",
-    "classes": 26,
+    "classes": 32,
     "properties": 4,
-    "triples_before": 450,
-    "triples_rdfs": 473,
-    "inferred_rdfs": 23,
-    "triples_owl": 473,
-    "inferred_owl": 23,
-    "fetch_ms": 554,
-    "rdfs_reason_ms": 3,
-    "owl_reason_ms": 1
+    "triples_before": 537,
+    "triples_rdfs": 767,
+    "inferred_rdfs": 230,
+    "triples_owl": 767,
+    "inferred_owl": 230,
+    "fetch_ms": 681,
+    "rdfs_reason_ms": 6,
+    "owl_reason_ms": 3
   },
   {
     "id": "rdfs",
@@ -23,7 +23,7 @@
     "inferred_rdfs": 35,
     "triples_owl": 122,
     "inferred_owl": 35,
-    "fetch_ms": 526,
+    "fetch_ms": 522,
     "rdfs_reason_ms": 2,
     "owl_reason_ms": 1
   },
@@ -37,9 +37,9 @@
     "inferred_rdfs": 31,
     "triples_owl": 158,
     "inferred_owl": 31,
-    "fetch_ms": 604,
+    "fetch_ms": 545,
     "rdfs_reason_ms": 2,
-    "owl_reason_ms": 1
+    "owl_reason_ms": 2
   },
   {
     "id": "bfo",
@@ -51,7 +51,7 @@
     "inferred_rdfs": 186,
     "triples_owl": 1407,
     "inferred_owl": 186,
-    "fetch_ms": 1151,
+    "fetch_ms": 1141,
     "rdfs_reason_ms": 5,
     "owl_reason_ms": 4
   },
@@ -65,8 +65,8 @@
     "inferred_rdfs": 666,
     "triples_owl": 2609,
     "inferred_owl": 692,
-    "fetch_ms": 2360,
-    "rdfs_reason_ms": 15,
+    "fetch_ms": 2208,
+    "rdfs_reason_ms": 13,
     "owl_reason_ms": 12
   },
   {
@@ -79,9 +79,9 @@
     "inferred_rdfs": 4031,
     "triples_owl": 31493,
     "inferred_owl": 13670,
-    "fetch_ms": 821,
+    "fetch_ms": 558,
     "rdfs_reason_ms": 57,
-    "owl_reason_ms": 124
+    "owl_reason_ms": 117
   },
   {
     "id": "foaf",
@@ -93,8 +93,8 @@
     "inferred_rdfs": 4,
     "triples_owl": 662,
     "inferred_owl": 31,
-    "fetch_ms": 1639,
-    "rdfs_reason_ms": 2,
+    "fetch_ms": 940,
+    "rdfs_reason_ms": 3,
     "owl_reason_ms": 2
   },
   {
@@ -107,7 +107,7 @@
     "inferred_rdfs": 55,
     "triples_owl": 307,
     "inferred_owl": 55,
-    "fetch_ms": 234,
+    "fetch_ms": 218,
     "rdfs_reason_ms": 2,
     "owl_reason_ms": 1
   },
@@ -121,8 +121,8 @@
     "inferred_rdfs": 0,
     "triples_owl": 107,
     "inferred_owl": 0,
-    "fetch_ms": 461,
-    "rdfs_reason_ms": 1,
+    "fetch_ms": 371,
+    "rdfs_reason_ms": 2,
     "owl_reason_ms": 1
   },
   {
@@ -135,23 +135,23 @@
     "inferred_rdfs": 256,
     "triples_owl": 961,
     "inferred_owl": 261,
-    "fetch_ms": 241,
+    "fetch_ms": 259,
     "rdfs_reason_ms": 4,
     "owl_reason_ms": 3
   },
   {
     "id": "dcat",
     "status": "ok",
-    "classes": 19,
-    "properties": 39,
-    "triples_before": 1695,
-    "triples_rdfs": 1708,
-    "inferred_rdfs": 13,
-    "triples_owl": 1735,
-    "inferred_owl": 40,
-    "fetch_ms": 865,
-    "rdfs_reason_ms": 6,
-    "owl_reason_ms": 5
+    "classes": 58,
+    "properties": 89,
+    "triples_before": 2841,
+    "triples_rdfs": 3064,
+    "inferred_rdfs": 223,
+    "triples_owl": 3095,
+    "inferred_owl": 254,
+    "fetch_ms": 975,
+    "rdfs_reason_ms": 15,
+    "owl_reason_ms": 11
   },
   {
     "id": "void",
@@ -163,9 +163,9 @@
     "inferred_rdfs": 0,
     "triples_owl": 216,
     "inferred_owl": 0,
-    "fetch_ms": 1116,
+    "fetch_ms": 531,
     "rdfs_reason_ms": 2,
-    "owl_reason_ms": 1
+    "owl_reason_ms": 2
   },
   {
     "id": "doap",
@@ -177,8 +177,8 @@
     "inferred_rdfs": 0,
     "triples_owl": 741,
     "inferred_owl": 0,
-    "fetch_ms": 662,
-    "rdfs_reason_ms": 3,
+    "fetch_ms": 727,
+    "rdfs_reason_ms": 2,
     "owl_reason_ms": 2
   },
   {
@@ -191,9 +191,9 @@
     "inferred_rdfs": 202,
     "triples_owl": 1349,
     "inferred_owl": 203,
-    "fetch_ms": 487,
-    "rdfs_reason_ms": 4,
-    "owl_reason_ms": 3
+    "fetch_ms": 472,
+    "rdfs_reason_ms": 5,
+    "owl_reason_ms": 4
   },
   {
     "id": "owl-time",
@@ -205,8 +205,8 @@
     "inferred_rdfs": 165,
     "triples_owl": 1461,
     "inferred_owl": 165,
-    "fetch_ms": 290,
-    "rdfs_reason_ms": 6,
+    "fetch_ms": 256,
+    "rdfs_reason_ms": 5,
     "owl_reason_ms": 4
   },
   {
@@ -219,37 +219,37 @@
     "inferred_rdfs": 9,
     "triples_owl": 769,
     "inferred_owl": 21,
-    "fetch_ms": 544,
-    "rdfs_reason_ms": 3,
+    "fetch_ms": 639,
+    "rdfs_reason_ms": 4,
     "owl_reason_ms": 3
   },
   {
     "id": "ssn",
     "status": "ok",
-    "classes": 0,
-    "properties": 0,
-    "triples_before": 40,
-    "triples_rdfs": 40,
-    "inferred_rdfs": 0,
-    "triples_owl": 40,
-    "inferred_owl": 0,
-    "fetch_ms": 989,
-    "rdfs_reason_ms": 1,
-    "owl_reason_ms": 1
+    "classes": 35,
+    "properties": 38,
+    "triples_before": 1815,
+    "triples_rdfs": 1899,
+    "inferred_rdfs": 84,
+    "triples_owl": 1899,
+    "inferred_owl": 84,
+    "fetch_ms": 519,
+    "rdfs_reason_ms": 6,
+    "owl_reason_ms": 4
   },
   {
     "id": "sosa",
     "status": "ok",
-    "classes": 0,
-    "properties": 0,
-    "triples_before": 47,
-    "triples_rdfs": 47,
+    "classes": 29,
+    "properties": 23,
+    "triples_before": 396,
+    "triples_rdfs": 396,
     "inferred_rdfs": 0,
-    "triples_owl": 47,
+    "triples_owl": 396,
     "inferred_owl": 0,
-    "fetch_ms": 727,
-    "rdfs_reason_ms": 1,
-    "owl_reason_ms": 1
+    "fetch_ms": 1264,
+    "rdfs_reason_ms": 3,
+    "owl_reason_ms": 2
   },
   {
     "id": "geosparql",
@@ -261,9 +261,9 @@
     "inferred_rdfs": 4,
     "triples_owl": 808,
     "inferred_owl": 12,
-    "fetch_ms": 746,
+    "fetch_ms": 733,
     "rdfs_reason_ms": 3,
-    "owl_reason_ms": 2
+    "owl_reason_ms": 3
   },
   {
     "id": "locn",
@@ -275,8 +275,8 @@
     "inferred_rdfs": 0,
     "triples_owl": 206,
     "inferred_owl": 0,
-    "fetch_ms": 703,
-    "rdfs_reason_ms": 1,
+    "fetch_ms": 1031,
+    "rdfs_reason_ms": 2,
     "owl_reason_ms": 1
   },
   {
@@ -289,8 +289,8 @@
     "inferred_rdfs": 268,
     "triples_owl": 1396,
     "inferred_owl": 268,
-    "fetch_ms": 475,
-    "rdfs_reason_ms": 6,
+    "fetch_ms": 662,
+    "rdfs_reason_ms": 5,
     "owl_reason_ms": 3
   },
   {
@@ -303,7 +303,7 @@
     "inferred_rdfs": 0,
     "triples_owl": 928,
     "inferred_owl": 46,
-    "fetch_ms": 632,
+    "fetch_ms": 854,
     "rdfs_reason_ms": 3,
     "owl_reason_ms": 3
   },
@@ -317,7 +317,7 @@
     "inferred_rdfs": 73,
     "triples_owl": 2233,
     "inferred_owl": 76,
-    "fetch_ms": 853,
+    "fetch_ms": 798,
     "rdfs_reason_ms": 6,
     "owl_reason_ms": 5
   },
@@ -331,8 +331,8 @@
     "inferred_rdfs": 0,
     "triples_owl": 164,
     "inferred_owl": 49,
-    "fetch_ms": 1121,
-    "rdfs_reason_ms": 2,
+    "fetch_ms": 184,
+    "rdfs_reason_ms": 1,
     "owl_reason_ms": 1
   },
   {
@@ -345,8 +345,8 @@
     "inferred_rdfs": 0,
     "triples_owl": 617,
     "inferred_owl": 2,
-    "fetch_ms": 914,
-    "rdfs_reason_ms": 2,
+    "fetch_ms": 863,
+    "rdfs_reason_ms": 3,
     "owl_reason_ms": 2
   },
   {
@@ -359,8 +359,8 @@
     "inferred_rdfs": 0,
     "triples_owl": 151,
     "inferred_owl": 0,
-    "fetch_ms": 877,
-    "rdfs_reason_ms": 1,
+    "fetch_ms": 747,
+    "rdfs_reason_ms": 3,
     "owl_reason_ms": 1
   },
   {
@@ -373,7 +373,7 @@
     "inferred_rdfs": 15,
     "triples_owl": 1876,
     "inferred_owl": 42,
-    "fetch_ms": 1975,
+    "fetch_ms": 2299,
     "rdfs_reason_ms": 6,
     "owl_reason_ms": 6
   },
@@ -387,8 +387,8 @@
     "inferred_rdfs": 0,
     "triples_owl": 45,
     "inferred_owl": 0,
-    "fetch_ms": 1474,
-    "rdfs_reason_ms": 1,
+    "fetch_ms": 1524,
+    "rdfs_reason_ms": 3,
     "owl_reason_ms": 1
   },
   {
@@ -401,7 +401,7 @@
     "inferred_rdfs": 1574,
     "triples_owl": 4015,
     "inferred_owl": 1581,
-    "fetch_ms": 2644,
+    "fetch_ms": 2934,
     "rdfs_reason_ms": 14,
     "owl_reason_ms": 9
   }

@@ -30,7 +30,7 @@
 
 ---
 
-Open Ontologies is a **Rust MCP server** and **desktop Studio** for AI-native ontology engineering. It exposes **43 tools** that let Claude build, validate, query, diff, lint, version, reason over, align, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — with Terraform-style lifecycle management, a marketplace of 29 standard ontologies, clinical crosswalks, semantic embeddings, and a full lineage audit trail.
+Open Ontologies is a **Rust MCP server** and **desktop Studio** for AI-native ontology engineering. It exposes **48 tools** that let Claude build, validate, query, diff, lint, version, reason over, align, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — with Terraform-style lifecycle management, a marketplace of 29 standard ontologies, clinical crosswalks, semantic embeddings, and a full lineage audit trail.
 
 The **Studio** wraps the engine in a visual desktop environment: 3D force-directed graph, AI chat panel, Protégé-style property inspector, and lineage viewer.
 
@@ -240,42 +240,42 @@ One sentence input: *"Build a Pizza ontology following the Manchester tutorial s
 
 ### Ontology Marketplace — 29 Standard Ontologies
 
-All 29 marketplace ontologies fetched, loaded, and reasoned over with both RDFS and OWL-RL profiles. Class/property counts include implicit definitions (via `rdfs:subClassOf`, `rdfs:domain`/`range`, `owl:equivalentClass`, `rdf:Property`).
+All 29 marketplace ontologies fetched, `owl:imports` resolved, loaded, and reasoned over with both RDFS and OWL-RL profiles:
 
 | Ontology | Classes | Properties | Triples | + RDFS | + OWL-RL | Fetch | RDFS | OWL-RL |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| OWL 2 | 26 | 4 | 450 | +23 | +23 | 554ms | 3ms | 1ms |
-| RDF Schema | 6 | 0 | 87 | +35 | +35 | 526ms | 2ms | 1ms |
-| RDF Concepts | 7 | 0 | 127 | +31 | +31 | 604ms | 2ms | 1ms |
-| BFO (ISO 21838) | 35 | 0 | 1,221 | +186 | +186 | 1,151ms | 5ms | 4ms |
-| DOLCE/DUL | 93 | 118 | 1,917 | +666 | +692 | 2,360ms | 15ms | 12ms |
-| Schema.org | 1,009 | 0 | 17,823 | +4,031 | **+13,670** | 821ms | 57ms | 124ms |
-| FOAF | 28 | 60 | 631 | +4 | +31 | 1,639ms | 2ms | 2ms |
-| SKOS | 5 | 18 | 252 | +55 | +55 | 234ms | 2ms | 1ms |
-| Dublin Core Elements | 0 | 0 | 107 | +0 | +0 | 461ms | 1ms | 1ms |
-| Dublin Core Terms | 22 | 0 | 700 | +256 | +261 | 241ms | 4ms | 3ms |
-| DCAT | 19 | 39 | 1,695 | +13 | +40 | 865ms | 6ms | 5ms |
-| VoID | 8 | 8 | 216 | +0 | +0 | 1,116ms | 2ms | 1ms |
-| DOAP | 17 | 0 | 741 | +0 | +0 | 662ms | 3ms | 2ms |
-| PROV-O | 39 | 50 | 1,146 | +202 | +203 | 487ms | 4ms | 3ms |
-| OWL-Time | 23 | 58 | 1,296 | +165 | +165 | 290ms | 6ms | 4ms |
-| W3C Organization | 22 | 33 | 748 | +9 | +21 | 544ms | 3ms | 3ms |
-| SSN | 0 | 0 | 40 | +0 | +0 | 989ms | 1ms | 1ms |
-| SOSA | 0 | 0 | 47 | +0 | +0 | 727ms | 1ms | 1ms |
-| GeoSPARQL | 12 | 54 | 796 | +4 | +12 | 746ms | 3ms | 2ms |
-| LOCN | 2 | 0 | 206 | +0 | +0 | 703ms | 1ms | 1ms |
-| SHACL | 40 | 0 | 1,128 | +268 | +268 | 475ms | 6ms | 3ms |
-| vCard | 75 | 84 | 882 | +0 | +46 | 632ms | 3ms | 3ms |
-| ODRL | 71 | 50 | 2,157 | +73 | +76 | 853ms | 6ms | 5ms |
-| Creative Commons | 6 | 0 | 115 | +0 | +49 | 1,121ms | 2ms | 1ms |
-| SIOC | 14 | 83 | 615 | +0 | +2 | 914ms | 2ms | 2ms |
-| ADMS | 4 | 13 | 151 | +0 | +0 | 877ms | 1ms | 1ms |
-| GoodRelations | 98 | 102 | 1,834 | +15 | +42 | 1,975ms | 6ms | 6ms |
-| FIBO (metadata) | 0 | 0 | 45 | +0 | +0 | 1,474ms | 1ms | 1ms |
-| QUDT | 73 | 175 | 2,434 | +1,574 | +1,581 | 2,644ms | 14ms | 9ms |
-| **Total** | **1,754** | **949** | **39,607** | **+7,610** | **+17,489** | — | — | — |
+| OWL 2 | 32 | 4 | 537 | +230 | +230 | 681ms | 6ms | 3ms |
+| RDF Schema | 6 | 0 | 87 | +35 | +35 | 522ms | 2ms | 1ms |
+| RDF Concepts | 7 | 0 | 127 | +31 | +31 | 545ms | 2ms | 2ms |
+| BFO (ISO 21838) | 35 | 0 | 1,221 | +186 | +186 | 1,141ms | 5ms | 4ms |
+| DOLCE/DUL | 93 | 118 | 1,917 | +666 | +692 | 2,208ms | 13ms | 12ms |
+| Schema.org | 1,009 | 0 | 17,823 | +4,031 | **+13,670** | 558ms | 57ms | 117ms |
+| FOAF | 28 | 60 | 631 | +4 | +31 | 940ms | 3ms | 2ms |
+| SKOS | 5 | 18 | 252 | +55 | +55 | 218ms | 2ms | 1ms |
+| Dublin Core Elements | 0 | 0 | 107 | +0 | +0 | 371ms | 2ms | 1ms |
+| Dublin Core Terms | 22 | 0 | 700 | +256 | +261 | 259ms | 4ms | 3ms |
+| DCAT | 58 | 89 | 2,841 | +223 | +254 | 975ms | 15ms | 11ms |
+| VoID | 8 | 8 | 216 | +0 | +0 | 531ms | 2ms | 2ms |
+| DOAP | 17 | 0 | 741 | +0 | +0 | 727ms | 2ms | 2ms |
+| PROV-O | 39 | 50 | 1,146 | +202 | +203 | 472ms | 5ms | 4ms |
+| OWL-Time | 23 | 58 | 1,296 | +165 | +165 | 256ms | 5ms | 4ms |
+| W3C Organization | 22 | 33 | 748 | +9 | +21 | 639ms | 4ms | 3ms |
+| SSN | 35 | 38 | 1,815 | +84 | +84 | 519ms | 6ms | 4ms |
+| SOSA | 29 | 23 | 396 | +0 | +0 | 1,264ms | 3ms | 2ms |
+| GeoSPARQL | 12 | 54 | 796 | +4 | +12 | 733ms | 3ms | 3ms |
+| LOCN | 2 | 0 | 206 | +0 | +0 | 1,031ms | 2ms | 1ms |
+| SHACL | 40 | 0 | 1,128 | +268 | +268 | 662ms | 5ms | 3ms |
+| vCard | 75 | 84 | 882 | +0 | +46 | 854ms | 3ms | 3ms |
+| ODRL | 71 | 50 | 2,157 | +73 | +76 | 798ms | 6ms | 5ms |
+| Creative Commons | 6 | 0 | 115 | +0 | +49 | 184ms | 1ms | 1ms |
+| SIOC | 14 | 83 | 615 | +0 | +2 | 863ms | 3ms | 2ms |
+| ADMS | 4 | 13 | 151 | +0 | +0 | 747ms | 3ms | 1ms |
+| GoodRelations | 98 | 102 | 1,834 | +15 | +42 | 2,299ms | 6ms | 6ms |
+| FIBO (metadata) | 0 | 0 | 45 | +0 | +0 | 1,524ms | 3ms | 1ms |
+| QUDT | 73 | 175 | 2,434 | +1,574 | +1,581 | 2,934ms | 14ms | 9ms |
+| **Total** | **1,863** | **1,060** | **42,964** | **+8,111** | **+17,994** | — | — | — |
 
-29/29 ontologies loaded, reasoned, and validated. RDFS adds 19% more triples. OWL-RL adds **44%** — transitive/symmetric/inverse properties and equivalentClass expansion discover significantly more implicit knowledge. Schema.org jumps from +4,031 (RDFS) to +13,670 (OWL-RL) inferred triples in 124ms.
+29/29 ontologies loaded, imports resolved, and reasoned. RDFS adds 18% more triples. OWL-RL adds **41%** — transitive/symmetric/inverse properties and equivalentClass expansion discover significantly more implicit knowledge. Schema.org jumps from +4,031 (RDFS) to +13,670 (OWL-RL) inferred triples in 117ms.
 
 ### Reasoning Performance — vs HermiT
 
@@ -294,7 +294,7 @@ Full benchmark writeup: [docs/benchmarks.md](docs/benchmarks.md)
 
 ## Tools
 
-43 tools organized by function — available as MCP tools (prefixed `onto_`) and CLI subcommands:
+48 tools organized by function — available as MCP tools (prefixed `onto_`) and CLI subcommands:
 
 | Category | Tools | Purpose |
 | --- | --- | --- |
@@ -333,7 +333,7 @@ flowchart TD
             REST["REST API\n/api/query · /api/update\n/api/save · /api/load · /api/lineage"]
         end
 
-        subgraph ToolGroups["42 Tools"]
+        subgraph ToolGroups["48 Tools"]
             direction LR
             Core["Core\nvalidate · load · save · clear\nstats · query · diff · lint\nconvert · status"]
             DataPipe["Data Pipeline\nmap · ingest · shacl\nreason · extend · import-schema"]

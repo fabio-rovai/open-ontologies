@@ -127,6 +127,9 @@ def main():
                 })
                 continue
 
+            # Resolve owl:imports if the ontology declares them
+            tool_call("onto_import")
+
             # Stats before reasoning
             stats = tool_call("onto_stats")
             classes = stats.get("classes", 0)
