@@ -4,11 +4,16 @@ use chrono::Utc;
 /// Append-only lineage log. Compressed format for AI consumption.
 pub struct LineageLog {
     db: StateDb,
+    governance_webhook: Option<String>,
 }
 
 impl LineageLog {
     pub fn new(db: StateDb) -> Self {
-        Self { db }
+        Self { db, governance_webhook: None }
+    }
+
+    pub fn with_governance_webhook(db: StateDb, webhook_url: Option<String>) -> Self {
+        Self { db, governance_webhook: webhook_url }
     }
 
     /// Generate a new session ID (short hex).
@@ -34,6 +39,23 @@ impl LineageLog {
              VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
             rusqlite::params![session_id, seq, ts.to_string(), event_type, operation, details],
         );
+
+        // Fire governance webhook if configured
+        if let Some(ref url) = self.governance_webhook {
+            let url = url.clone();
+            let payload = serde_json::json!({
+                "source": "open-ontologies",
+                "session_id": session_id,
+                "seq": seq,
+                "event_type": event_type,
+                "operation": operation,
+                "details": details,
+                "timestamp": Utc::now().to_rfc3339(),
+            });
+            tokio::spawn(async move {
+                let _ = crate::webhook::deliver_webhook(&url, None, &payload).await;
+            });
+        }
     }
 
     /// Get compact lineage for a session.
