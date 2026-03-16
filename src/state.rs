@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS monitor_watchers (
     action TEXT NOT NULL DEFAULT 'notify',
     query TEXT,
     message TEXT,
+    webhook_url TEXT,
+    webhook_headers TEXT,
     enabled INTEGER NOT NULL DEFAULT 1
 );
 
@@ -116,6 +118,11 @@ impl StateDb {
         conn.pragma_update(None, "foreign_keys", "ON")?;
         conn.pragma_update(None, "synchronous", "NORMAL")?;
         conn.execute_batch(SCHEMA)?;
+        // Safe migration: add webhook columns if upgrading from older schema
+        let _ = conn.execute_batch(
+            "ALTER TABLE monitor_watchers ADD COLUMN webhook_url TEXT;
+             ALTER TABLE monitor_watchers ADD COLUMN webhook_headers TEXT;"
+        );
         Ok(Self {
             conn: Arc::new(Mutex::new(conn)),
         })

@@ -2,6 +2,7 @@ use crate::graph::GraphStore;
 use crate::state::StateDb;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use std::time::Duration;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum WatcherAction {
@@ -24,6 +25,10 @@ pub struct Watcher {
     pub action: WatcherAction,
     pub query: Option<String>,
     pub message: Option<String>,
+    #[serde(default)]
+    pub webhook_url: Option<String>,
+    #[serde(default)]
+    pub webhook_headers: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -58,11 +63,12 @@ impl Monitor {
         let action_str = serde_json::to_string(&watcher.action).unwrap_or_default();
         let action_str = action_str.trim_matches('"');
         let _ = conn.execute(
-            "INSERT OR REPLACE INTO monitor_watchers (id, check_type, threshold, severity, action, query, message, enabled)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 1)",
+            "INSERT OR REPLACE INTO monitor_watchers (id, check_type, threshold, severity, action, query, message, webhook_url, webhook_headers, enabled)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 1)",
             rusqlite::params![
                 watcher.id, watcher.check_type, watcher.threshold,
                 watcher.severity, action_str, watcher.query, watcher.message,
+                watcher.webhook_url, watcher.webhook_headers,
             ],
         );
     }
@@ -81,6 +87,25 @@ impl Monitor {
                 if matches!(w.action, WatcherAction::BlockNextApply) {
                     blocked = true;
                     self.set_blocked(true);
+                }
+                // Fire webhook for Notify actions
+                if matches!(w.action, WatcherAction::Notify) {
+                    if let Some(ref url) = w.webhook_url {
+                        let url = url.clone();
+                        let headers = w.webhook_headers.clone();
+                        let payload = serde_json::json!({
+                            "source": "open-ontologies",
+                            "watcher_id": w.id,
+                            "severity": w.severity,
+                            "value": value,
+                            "threshold": w.threshold,
+                            "message": w.message.clone().unwrap_or_default(),
+                            "timestamp": chrono::Utc::now().to_rfc3339(),
+                        });
+                        tokio::spawn(async move {
+                            let _ = deliver_webhook(&url, headers.as_deref(), &payload).await;
+                        });
+                    }
                 }
                 alerts.push(Alert {
                     watcher: w.id.clone(),
@@ -133,7 +158,7 @@ impl Monitor {
     fn load_watchers(&self) -> Vec<Watcher> {
         let conn = self.db.conn();
         let mut stmt = conn
-            .prepare("SELECT id, check_type, threshold, severity, action, query, message FROM monitor_watchers WHERE enabled = 1")
+            .prepare("SELECT id, check_type, threshold, severity, action, query, message, webhook_url, webhook_headers FROM monitor_watchers WHERE enabled = 1")
             .unwrap();
         stmt.query_map([], |row| {
             let action_str: String = row.get(4)?;
@@ -151,6 +176,8 @@ impl Monitor {
                 action,
                 query: row.get(5)?,
                 message: row.get(6)?,
+                webhook_url: row.get(7)?,
+                webhook_headers: row.get(8)?,
             })
         })
         .unwrap()
@@ -191,4 +218,29 @@ impl Monitor {
             Err(_) => 0.0,
         }
     }
+}
+
+/// Fire-and-forget webhook delivery with 10s timeout.
+async fn deliver_webhook(
+    url: &str,
+    headers_json: Option<&str>,
+    payload: &serde_json::Value,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(10))
+        .build()?;
+    let mut req = client.post(url).json(payload);
+    if let Some(hdr_json) = headers_json {
+        if let Ok(map) = serde_json::from_str::<std::collections::HashMap<String, String>>(hdr_json) {
+            for (k, v) in map {
+                req = req.header(&k, &v);
+            }
+        }
+    }
+    let resp = req.send().await?;
+    let status = resp.status();
+    if !status.is_success() {
+        eprintln!("Webhook to {} returned {}", url, status);
+    }
+    Ok(())
 }

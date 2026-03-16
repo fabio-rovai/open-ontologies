@@ -636,7 +636,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_monitor", description = "Run active monitoring watchers. Optionally add new watchers via inline JSON. Returns ok/alert/blocked status with details.")]
+    #[tool(name = "onto_monitor", description = "Run active monitoring watchers. Optionally add new watchers via inline JSON. Watchers with action=notify and a webhook_url will POST alerts to the URL. Returns ok/alert/blocked status with details.")]
     async fn onto_monitor(&self, Parameters(input): Parameters<OntoMonitorInput>) -> String {
         let monitor = self.monitor();
 

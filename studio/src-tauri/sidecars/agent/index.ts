@@ -52,7 +52,7 @@ Lifecycle (Terraform-style):
 - onto_lock: Protect production IRIs from removal
 - onto_drift: Compare versions — rename detection, drift velocity
 - onto_enforce: Check design pattern compliance (generic, boro, value_partition)
-- onto_monitor: Run SPARQL watchers with threshold alerts
+- onto_monitor: Run SPARQL watchers with threshold alerts (supports webhook_url for push notifications)
 - onto_monitor_clear: Clear blocked state after resolving monitor alerts
 - onto_lineage: View the session lineage trail
 
