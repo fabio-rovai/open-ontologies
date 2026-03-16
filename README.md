@@ -304,7 +304,7 @@ Full benchmark writeup: [docs/benchmarks.md](docs/benchmarks.md)
 | **Schema** | `import-schema` | PostgreSQL → OWL conversion |
 | **Data** | `map` `ingest` `shacl` `reason` `extend` | Structured data → RDF pipeline |
 | **Versioning** | `version` `history` `rollback` | Named snapshots and rollback |
-| **Lifecycle** | `plan` `apply` `lock` `drift` `enforce` `monitor` `monitor-clear` `lineage` | Terraform-style change management with webhook alerts |
+| **Lifecycle** | `plan` `apply` `lock` `drift` `enforce` `monitor` `monitor-clear` `lineage` | Terraform-style change management with webhook alerts and [OpenCheir](https://github.com/fabio-rovai/opencheir) governance integration |
 | **Alignment** | `align` `align-feedback` | Cross-ontology class matching with self-calibrating confidence |
 | **Clinical** | `crosswalk` `enrich` `validate-clinical` | ICD-10 / SNOMED / MeSH crosswalks |
 | **Feedback** | `lint-feedback` `enforce-feedback` | Self-calibrating suppression |

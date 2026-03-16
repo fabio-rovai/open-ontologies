@@ -182,6 +182,18 @@ If [OpenCheir](https://github.com/fabio-rovai/opencheir) is also connected as an
 - **onto_validate_after_save** — warns if you save 3+ times without validating
 - **onto_version_before_push** — warns if you push without saving a version snapshot first
 
+To enable automatic governance (no Claude orchestration needed), start with the governance webhook:
+
+```bash
+# Start OpenCheir first (it listens on port 9900 by default)
+opencheir serve &
+
+# Then start Open Ontologies pointing at OpenCheir's enforcer endpoint
+GOVERNANCE_WEBHOOK=http://localhost:9900/api/enforcer/event open-ontologies serve
+```
+
+Every lineage event (plan, apply, save, push, etc.) is automatically POSTed to OpenCheir's enforcer, which evaluates rules and logs verdicts.
+
 These rules are optional — Open Ontologies works perfectly without OpenCheir.
 
 ## Benchmarks
