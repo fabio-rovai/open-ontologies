@@ -12,6 +12,7 @@ pub mod lineage;
 pub mod monitor;
 pub mod plan;
 pub mod mapping;
+pub mod marketplace;
 pub mod ontology;
 pub mod reason;
 pub mod server;

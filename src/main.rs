@@ -103,6 +103,17 @@ enum Commands {
         #[arg(long)]
         graph: Option<String>,
     },
+    /// Browse and install standard ontologies from marketplace
+    Marketplace {
+        /// Action: "list" or "install"
+        action: String,
+        /// Ontology ID (for install)
+        #[arg(long)]
+        id: Option<String>,
+        /// Filter by domain (for list)
+        #[arg(long)]
+        domain: Option<String>,
+    },
     /// Resolve and load owl:imports chain
     ImportOwl {
         #[arg(long, default_value = "10")]
@@ -699,6 +710,62 @@ async fn main() -> anyhow::Result<()> {
         }
 
         // ─── Remote ─────────────────────────────────────────────────
+        Commands::Marketplace { action, id, domain } => {
+            use open_ontologies::marketplace;
+            match action.as_str() {
+                "list" => {
+                    let entries = marketplace::list(domain.as_deref());
+                    let items: Vec<serde_json::Value> = entries.iter().map(|e| {
+                        serde_json::json!({
+                            "id": e.id,
+                            "name": e.name,
+                            "description": e.description,
+                            "domain": e.domain,
+                            "format": marketplace::format_name(e.format),
+                        })
+                    }).collect();
+                    output_json(&serde_json::json!({
+                        "count": items.len(),
+                        "ontologies": items,
+                    }), cli.pretty);
+                }
+                "install" => {
+                    let id = id.as_deref().unwrap_or_else(|| {
+                        eprintln!("Error: --id is required for install");
+                        std::process::exit(1);
+                    });
+                    let entry = match marketplace::find(id) {
+                        Some(e) => e,
+                        None => {
+                            eprintln!("Unknown ontology ID: '{}'. Run 'marketplace list' to see available IDs.", id);
+                            std::process::exit(1);
+                        }
+                    };
+                    let (_db, graph) = setup(&cli.data_dir)?;
+                    let content = GraphStore::fetch_url(entry.url).await?;
+                    match graph.load_content_with_base(&content, entry.format, Some(entry.url)) {
+                        Ok(count) => {
+                            let stats = graph.get_stats().unwrap_or_default();
+                            output_json(&serde_json::json!({
+                                "ok": true,
+                                "installed": entry.id,
+                                "name": entry.name,
+                                "triples_loaded": count,
+                                "stats": serde_json::from_str::<serde_json::Value>(&stats).unwrap_or_default(),
+                            }), cli.pretty);
+                        }
+                        Err(e) => {
+                            output_json(&serde_json::json!({"error": format!("Parse error: {}", e)}), cli.pretty);
+                            std::process::exit(1);
+                        }
+                    }
+                }
+                _ => {
+                    eprintln!("Unknown action: '{}'. Use 'list' or 'install'.", action);
+                    std::process::exit(1);
+                }
+            }
+        }
         Commands::Pull { url, sparql, query } => {
             let (_db, graph) = setup(&cli.data_dir)?;
             let content = if sparql {

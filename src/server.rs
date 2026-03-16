@@ -322,6 +322,72 @@ impl OpenOntologiesServer {
         }).to_string()
     }
 
+    // ── Marketplace ────────────────────────────────────────────────────────
+
+    #[tool(name = "onto_marketplace", description = "Browse and install standard ontologies from a curated catalogue of 29 W3C/ISO/industry standards. Actions: 'list' (browse catalogue, optional domain filter) or 'install' (fetch and load by ID)")]
+    async fn onto_marketplace(&self, Parameters(input): Parameters<OntoMarketplaceInput>) -> String {
+        use crate::marketplace;
+        match input.action.as_str() {
+            "list" => {
+                let entries = marketplace::list(input.domain.as_deref());
+                let items: Vec<serde_json::Value> = entries.iter().map(|e| {
+                    serde_json::json!({
+                        "id": e.id,
+                        "name": e.name,
+                        "description": e.description,
+                        "domain": e.domain,
+                        "url": e.url,
+                        "format": marketplace::format_name(e.format),
+                    })
+                }).collect();
+                serde_json::json!({
+                    "ok": true,
+                    "count": items.len(),
+                    "ontologies": items,
+                }).to_string()
+            }
+            "install" => {
+                let id = match input.id.as_deref() {
+                    Some(id) => id,
+                    None => return r#"{"error":"'id' is required for install action"}"#.to_string(),
+                };
+                let entry = match marketplace::find(id) {
+                    Some(e) => e,
+                    None => {
+                        let available: Vec<&str> = marketplace::CATALOGUE.iter().map(|e| e.id).collect();
+                        return serde_json::json!({
+                            "error": format!("Unknown ontology ID: '{}'. Use action 'list' to see available IDs.", id),
+                            "available": available,
+                        }).to_string();
+                    }
+                };
+                match crate::graph::GraphStore::fetch_url(entry.url).await {
+                    Ok(content) => {
+                        match self.graph.load_content_with_base(&content, entry.format, Some(entry.url)) {
+                            Ok(count) => {
+                                let stats = self.graph.get_stats().unwrap_or_default();
+                                let stats_val: serde_json::Value = serde_json::from_str(&stats).unwrap_or_default();
+                                serde_json::json!({
+                                    "ok": true,
+                                    "installed": entry.id,
+                                    "name": entry.name,
+                                    "triples_loaded": count,
+                                    "source": entry.url,
+                                    "classes": stats_val["classes"],
+                                    "properties": stats_val["properties"],
+                                    "individuals": stats_val["individuals"],
+                                }).to_string()
+                            }
+                            Err(e) => format!(r#"{{"error":"Parse error for {}: {}"}}"#, entry.id, e),
+                        }
+                    }
+                    Err(e) => format!(r#"{{"error":"Fetch error for {}: {}"}}"#, entry.id, e),
+                }
+            }
+            other => format!(r#"{{"error":"Unknown action '{}'. Use 'list' or 'install'."}}"#, other),
+        }
+    }
+
     #[tool(name = "onto_version", description = "Save a named snapshot of the current ontology store")]
     async fn onto_version(&self, Parameters(input): Parameters<OntoVersionInput>) -> String {
         use crate::ontology::OntologyService;
