@@ -40,6 +40,8 @@ fn test_monitor_sparql_watcher_triggers() {
         action: WatcherAction::Notify,
         query: Some("SELECT (COUNT(?c) AS ?count) WHERE { ?c a <http://www.w3.org/2002/07/owl#Class> . FILTER NOT EXISTS { ?c <http://www.w3.org/2000/01/rdf-schema#label> ?l } }".into()),
         message: Some("Classes without labels".into()),
+        webhook_url: None,
+        webhook_headers: None,
     });
 
     let result = monitor.run_watchers();
@@ -70,6 +72,8 @@ fn test_monitor_block_flag() {
         action: WatcherAction::BlockNextApply,
         query: Some("SELECT (COUNT(?c) AS ?count) WHERE { ?c a <http://www.w3.org/2002/07/owl#Class> . FILTER NOT EXISTS { ?c <http://www.w3.org/2000/01/rdf-schema#label> ?l } }".into()),
         message: Some("Classes without labels".into()),
+        webhook_url: None,
+        webhook_headers: None,
     });
 
     let result = monitor.run_watchers();
@@ -99,6 +103,8 @@ fn test_monitor_watcher_below_threshold_passes() {
         action: WatcherAction::Notify,
         query: Some("SELECT (COUNT(?c) AS ?count) WHERE { ?c a <http://www.w3.org/2002/07/owl#Class> }".into()),
         message: Some("Too many classes".into()),
+        webhook_url: None,
+        webhook_headers: None,
     });
 
     let result = monitor.run_watchers();
