@@ -315,6 +315,16 @@ pub struct OntoSimilarityInput {
     pub iri_b: String,
 }
 
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoMarketplaceInput {
+    /// Action: "list" to browse available ontologies, "install" to fetch and load one
+    pub action: String,
+    /// Ontology ID to install (e.g. "prov-o", "schema-org", "foaf"). Required for "install".
+    pub id: Option<String>,
+    /// Filter list by domain (e.g. "foundational", "metadata", "iot", "geospatial")
+    pub domain: Option<String>,
+}
+
 // ─── Prompt input structs ───────────────────────────────────────────────────
 
 #[derive(Deserialize, JsonSchema)]

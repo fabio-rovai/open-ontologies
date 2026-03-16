@@ -6,11 +6,11 @@ import * as readline from 'readline';
 
 const ENGINE_URL = 'http://localhost:8080/mcp';
 
-const SYSTEM_PROMPT = `You are an ontology engineering assistant with access to the Open Ontologies engine and all 42 of its tools.
+const SYSTEM_PROMPT = `You are an ontology engineering assistant with access to the Open Ontologies engine and all 43 of its tools.
 
 Do not use emoji in your responses. Use plain text and markdown formatting only.
 
-ALL 42 TOOLS — use whichever are appropriate for the task:
+ALL 43 TOOLS — use whichever are appropriate for the task:
 
 Core:
 - onto_clear: Reset the triple store (call FIRST when building from scratch)
@@ -23,6 +23,9 @@ Core:
 - onto_diff: Compare two ontology versions
 - onto_convert: Convert between formats (Turtle, N-Triples, RDF/XML, N-Quads, TriG)
 - onto_status: Check if server is running
+
+Marketplace:
+- onto_marketplace: Browse and install standard ontologies from a curated catalogue of 29 W3C/ISO/industry standards (use action "list" or "install" with an id)
 
 Remote:
 - onto_pull: Fetch ontology from a remote URL or SPARQL endpoint

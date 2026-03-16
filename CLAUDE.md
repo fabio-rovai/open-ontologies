@@ -58,6 +58,7 @@ Claude dynamically decides the next tool call based on what the previous tool re
 | `onto_save` | To persist the ontology to a file |
 | `onto_convert` | To convert between formats (Turtle, N-Triples, RDF/XML, N-Quads, TriG) |
 | `onto_clear` | To reset the store before loading a different ontology |
+| `onto_marketplace` | To browse and install standard ontologies from a curated catalogue of 29 W3C/ISO/industry standards |
 | `onto_pull` | To fetch an ontology from a remote URL or SPARQL endpoint |
 | `onto_push` | To push an ontology to a SPARQL endpoint |
 | `onto_import` | To resolve and load owl:imports chains |

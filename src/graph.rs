@@ -45,6 +45,28 @@ impl GraphStore {
         Ok(count)
     }
 
+    /// Load RDF content in a specified format (Turtle, RDF/XML, etc.)
+    pub fn load_content(&self, content: &str, format: RdfFormat) -> anyhow::Result<usize> {
+        self.load_content_with_base(content, format, None)
+    }
+
+    /// Load RDF content with an optional base IRI for resolving relative IRIs.
+    pub fn load_content_with_base(&self, content: &str, format: RdfFormat, base_iri: Option<&str>) -> anyhow::Result<usize> {
+        let store = self.store.lock().unwrap();
+        let reader = Cursor::new(content.as_bytes());
+        let mut parser = RdfParser::from_format(format);
+        if let Some(base) = base_iri {
+            parser = parser.with_base_iri(base)?;
+        }
+        let parser = parser.for_reader(reader);
+        let mut count = 0;
+        for quad in parser {
+            store.insert(&quad?)?;
+            count += 1;
+        }
+        Ok(count)
+    }
+
     pub fn load_file(&self, path: &str) -> anyhow::Result<usize> {
         let content = std::fs::read_to_string(path)?;
         let format = Self::detect_format(path);
