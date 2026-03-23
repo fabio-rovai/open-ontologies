@@ -31,7 +31,7 @@
 
 ---
 
-Open Ontologies is a **Rust MCP server** and **desktop Studio** for AI-native ontology engineering. It exposes **48 tools** that let Claude build, validate, query, diff, lint, version, reason over, align, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — with Terraform-style lifecycle management, a marketplace of 30 standard ontologies, clinical crosswalks, semantic embeddings, and a full lineage audit trail.
+Open Ontologies is a **Rust MCP server** and **desktop Studio** for AI-native ontology engineering. It exposes **48 tools** that let Claude build, validate, query, diff, lint, version, reason over, align, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — with Terraform-style lifecycle management, a marketplace of 32 standard ontologies, clinical crosswalks, semantic embeddings, and a full lineage audit trail.
 
 The **Studio** wraps the engine in a visual desktop environment: 3D force-directed graph, AI chat panel, Protégé-style property inspector, and lineage viewer.
 
@@ -295,42 +295,60 @@ Full benchmark writeup: [docs/benchmarks.md](docs/benchmarks.md)
 
 ## IES Support
 
-[IES (Information Exchange Standard)](https://github.com/IES-Org/ont-ies) is the UK National Digital Twin Programme's core ontology. It uses a 4D extensionalist (BORO) approach for modelling entities, events, states, and relationships. Open Ontologies includes first-class IES support:
+[IES (Information Exchange Standard)](https://github.com/IES-Org) is the UK National Digital Twin Programme's core ontology framework. It uses a 4D extensionalist (BORO) approach for modelling entities, events, states, and relationships. Open Ontologies supports the **full IES stack** — all three layers, SHACL shapes, and 42+ example datasets.
 
-### Quick Start
+### The IES Layers
 
-```bash
-# Install IES from the marketplace
-open-ontologies marketplace install ies
-
-# Or pull directly
-open-ontologies pull https://raw.githubusercontent.com/IES-Org/ont-ies/main/docs/specification/ies-common.ttl
-```
-
-### Full Workflow
+The marketplace includes all three tiers of the IES framework:
 
 ```text
-onto_marketplace install ies    # fetch IES v5 ontology
-onto_stats                      # verify class/property/triple counts
-onto_lint                       # check for missing labels, domains, ranges
-onto_reason --profile owl-rl    # materialise inferred triples
-onto_stats                      # verify inferred counts
-onto_query "..."                # run IES-specific SPARQL queries
+onto_marketplace install ies-top     # ToLO — BORO foundations (~22 classes)
+onto_marketplace install ies-core    # Core — persons, states, events (~131 classes)
+onto_marketplace install ies         # Common — full ontology (513 classes, 206 properties)
+```
+
+### Benchmark
+
+| Metric | IES Common |
+| --- | --- |
+| Classes | 513 |
+| Object properties | 206 |
+| Triples loaded | 4,040 |
+| + RDFS inferred | **+3,094 (+77%)** |
+| Fetch time | 911ms |
+| RDFS reasoning | 63ms |
+| Lint issues | 0 |
+
+IES is the second-largest ontology in the marketplace by class count (after Schema.org). RDFS reasoning produces the richest inference gain of any non-general ontology — 241 State subclasses, 117 ClassOfEntity subclasses, and 102 Event subclasses all generating transitive chains.
+
+### Example Data
+
+Load any of the 42+ IES example datasets directly:
+
+```text
+onto_pull https://raw.githubusercontent.com/IES-Org/ont-ies/main/docs/examples/sample-data/event-participation.ttl
+onto_pull https://raw.githubusercontent.com/IES-Org/ont-ies/main/docs/examples/sample-data/hospital.ttl
+onto_pull https://raw.githubusercontent.com/telicent-oss/ies-examples/main/additional_examples/ship_movement.ttl
+```
+
+### SHACL Validation
+
+```text
+onto_pull https://raw.githubusercontent.com/IES-Org/ont-ies/main/docs/specification/ies-common.shacl
+onto_shacl
 ```
 
 ### IES:Building Alignment
 
-The repo includes an [IES Building Extension](benchmark/generated/ies-building-extension.ttl) that models buildings, dwellings, energy performance, and retrofit interventions using IES 4D patterns. Use `onto_align` to map it to other domain ontologies:
+The repo includes an [IES Building Extension](benchmark/generated/ies-building-extension.ttl) that models buildings, dwellings, energy performance, and retrofit interventions using IES 4D patterns. Use `onto_align` to map it to other domain ontologies — this mirrors NDTP's active work transforming energy performance data into RDF aligned with IES:Building.
 
-```text
-onto_align --source ies-building.ttl --target schema-org.ttl
-```
+### Further Reading
 
-This mirrors NDTP's active work transforming energy performance data into RDF aligned with IES:Building. See the full walkthrough in [docs/ies-alignment.md](docs/ies-alignment.md).
-
-### SPARQL Examples
-
-5 ready-to-use IES queries covering Person subclasses, EventParticipant relationships, 4D temporal patterns, Location hierarchies, and the ClassOfEntity type-instance pattern. See [docs/ies-examples.md](docs/ies-examples.md).
+| Topic | Link |
+| --- | --- |
+| IES Ecosystem Demo | [docs/ies-ecosystem.md](docs/ies-ecosystem.md) |
+| SPARQL Examples | [docs/ies-examples.md](docs/ies-examples.md) |
+| Building Alignment | [docs/ies-alignment.md](docs/ies-alignment.md) |
 
 ---
 
@@ -508,6 +526,7 @@ flowchart TD
 | OWL2-DL Reasoning | [docs/reasoning.md](docs/reasoning.md) |
 | Semantic Embeddings | [docs/embeddings.md](docs/embeddings.md) |
 | Clinical Crosswalks | [docs/clinical.md](docs/clinical.md) |
+| IES Ecosystem | [docs/ies-ecosystem.md](docs/ies-ecosystem.md) |
 | IES SPARQL Examples | [docs/ies-examples.md](docs/ies-examples.md) |
 | IES:Building Alignment | [docs/ies-alignment.md](docs/ies-alignment.md) |
 | Benchmarks | [docs/benchmarks.md](docs/benchmarks.md) |
