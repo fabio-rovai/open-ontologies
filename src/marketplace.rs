@@ -10,7 +10,7 @@ pub struct MarketplaceEntry {
     pub format: RdfFormat,
 }
 
-/// Curated catalogue of 30 standard W3C/ISO/industry ontologies.
+/// Curated catalogue of 32 standard W3C/ISO/industry ontologies.
 pub static CATALOGUE: &[MarketplaceEntry] = &[
     // ── Foundational ──────────────────────────────────────────────
     MarketplaceEntry {
@@ -40,9 +40,25 @@ pub static CATALOGUE: &[MarketplaceEntry] = &[
 
     // ── Upper ontology / Information Exchange ─────────────────────
     MarketplaceEntry {
+        id: "ies-top",
+        name: "IES Top Level Ontology (ToLO)",
+        description: "BORO foundational ontology — extensional 4-dimensionalism and pluralities, the upper layer of the IES framework",
+        domain: "upper-ontology",
+        url: "https://raw.githubusercontent.com/IES-Org/ies-top/main/spec/ies-top.ttl",
+        format: RdfFormat::Turtle,
+    },
+    MarketplaceEntry {
+        id: "ies-core",
+        name: "IES Core Ontology",
+        description: "Core IES patterns — persons, states, events, identifiers, periods. The middle layer of the IES framework",
+        domain: "upper-ontology",
+        url: "https://raw.githubusercontent.com/IES-Org/ies-core/main/spec/ies-core.ttl",
+        format: RdfFormat::Turtle,
+    },
+    MarketplaceEntry {
         id: "ies",
-        name: "IES (Information Exchange Standard)",
-        description: "UK NDTP core ontology for information exchange — 4D extensionalist (BORO) patterns for entities, events, states, and relationships",
+        name: "IES Common (Information Exchange Standard)",
+        description: "UK NDTP core ontology for information exchange — 513 classes, 206 properties, 4D extensionalist (BORO) patterns for entities, events, states, and relationships",
         domain: "upper-ontology",
         url: "https://raw.githubusercontent.com/IES-Org/ont-ies/main/docs/specification/ies-common.ttl",
         format: RdfFormat::Turtle,
