@@ -10,7 +10,7 @@ pub struct MarketplaceEntry {
     pub format: RdfFormat,
 }
 
-/// Curated catalogue of 29 standard W3C/ISO/industry ontologies.
+/// Curated catalogue of 30 standard W3C/ISO/industry ontologies.
 pub static CATALOGUE: &[MarketplaceEntry] = &[
     // ── Foundational ──────────────────────────────────────────────
     MarketplaceEntry {
@@ -38,7 +38,15 @@ pub static CATALOGUE: &[MarketplaceEntry] = &[
         format: RdfFormat::Turtle,
     },
 
-    // ── Upper ontology ────────────────────────────────────────────
+    // ── Upper ontology / Information Exchange ─────────────────────
+    MarketplaceEntry {
+        id: "ies",
+        name: "IES (Information Exchange Standard)",
+        description: "UK NDTP core ontology for information exchange — 4D extensionalist (BORO) patterns for entities, events, states, and relationships",
+        domain: "upper-ontology",
+        url: "https://raw.githubusercontent.com/IES-Org/ont-ies/main/docs/specification/ies-common.ttl",
+        format: RdfFormat::Turtle,
+    },
     MarketplaceEntry {
         id: "bfo",
         name: "BFO (Basic Formal Ontology)",

@@ -23,6 +23,7 @@
   <a href="#quick-start-mcp--cli">Quick Start</a> ·
   <a href="#studio-desktop-app">Studio</a> ·
   <a href="#benchmarks">Benchmarks</a> ·
+  <a href="#ies-support">IES</a> ·
   <a href="#tools">Tools</a> ·
   <a href="#architecture">Architecture</a> ·
   <a href="#documentation">Docs</a>
@@ -30,7 +31,7 @@
 
 ---
 
-Open Ontologies is a **Rust MCP server** and **desktop Studio** for AI-native ontology engineering. It exposes **48 tools** that let Claude build, validate, query, diff, lint, version, reason over, align, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — with Terraform-style lifecycle management, a marketplace of 29 standard ontologies, clinical crosswalks, semantic embeddings, and a full lineage audit trail.
+Open Ontologies is a **Rust MCP server** and **desktop Studio** for AI-native ontology engineering. It exposes **48 tools** that let Claude build, validate, query, diff, lint, version, reason over, align, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — with Terraform-style lifecycle management, a marketplace of 30 standard ontologies, clinical crosswalks, semantic embeddings, and a full lineage audit trail.
 
 The **Studio** wraps the engine in a visual desktop environment: 3D force-directed graph, AI chat panel, Protégé-style property inspector, and lineage viewer.
 
@@ -292,6 +293,47 @@ Full benchmark writeup: [docs/benchmarks.md](docs/benchmarks.md)
 
 ---
 
+## IES Support
+
+[IES (Information Exchange Standard)](https://github.com/IES-Org/ont-ies) is the UK National Digital Twin Programme's core ontology. It uses a 4D extensionalist (BORO) approach for modelling entities, events, states, and relationships. Open Ontologies includes first-class IES support:
+
+### Quick Start
+
+```bash
+# Install IES from the marketplace
+open-ontologies marketplace install ies
+
+# Or pull directly
+open-ontologies pull https://raw.githubusercontent.com/IES-Org/ont-ies/main/docs/specification/ies-common.ttl
+```
+
+### Full Workflow
+
+```text
+onto_marketplace install ies    # fetch IES v5 ontology
+onto_stats                      # verify class/property/triple counts
+onto_lint                       # check for missing labels, domains, ranges
+onto_reason --profile owl-rl    # materialise inferred triples
+onto_stats                      # verify inferred counts
+onto_query "..."                # run IES-specific SPARQL queries
+```
+
+### IES:Building Alignment
+
+The repo includes an [IES Building Extension](benchmark/generated/ies-building-extension.ttl) that models buildings, dwellings, energy performance, and retrofit interventions using IES 4D patterns. Use `onto_align` to map it to other domain ontologies:
+
+```text
+onto_align --source ies-building.ttl --target schema-org.ttl
+```
+
+This mirrors NDTP's active work transforming energy performance data into RDF aligned with IES:Building. See the full walkthrough in [docs/ies-alignment.md](docs/ies-alignment.md).
+
+### SPARQL Examples
+
+5 ready-to-use IES queries covering Person subclasses, EventParticipant relationships, 4D temporal patterns, Location hierarchies, and the ClassOfEntity type-instance pattern. See [docs/ies-examples.md](docs/ies-examples.md).
+
+---
+
 ## Tools
 
 48 tools organized by function — available as MCP tools (prefixed `onto_`) and CLI subcommands:
@@ -299,7 +341,7 @@ Full benchmark writeup: [docs/benchmarks.md](docs/benchmarks.md)
 | Category | Tools | Purpose |
 | --- | --- | --- |
 | **Core** | `validate` `load` `save` `clear` `stats` `query` `diff` `lint` `convert` `status` | RDF/OWL validation, querying, and management |
-| **Marketplace** | `marketplace` | Browse and install 29 standard W3C/ISO/industry ontologies |
+| **Marketplace** | `marketplace` | Browse and install 30 standard W3C/ISO/industry ontologies |
 | **Remote** | `pull` `push` `import-owl` | Fetch/push ontologies, resolve owl:imports |
 | **Schema** | `import-schema` | PostgreSQL → OWL conversion |
 | **Data** | `map` `ingest` `shacl` `reason` `extend` | Structured data → RDF pipeline |
@@ -466,6 +508,8 @@ flowchart TD
 | OWL2-DL Reasoning | [docs/reasoning.md](docs/reasoning.md) |
 | Semantic Embeddings | [docs/embeddings.md](docs/embeddings.md) |
 | Clinical Crosswalks | [docs/clinical.md](docs/clinical.md) |
+| IES SPARQL Examples | [docs/ies-examples.md](docs/ies-examples.md) |
+| IES:Building Alignment | [docs/ies-alignment.md](docs/ies-alignment.md) |
 | Benchmarks | [docs/benchmarks.md](docs/benchmarks.md) |
 | Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) |
