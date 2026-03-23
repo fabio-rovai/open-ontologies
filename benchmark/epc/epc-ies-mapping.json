@@ -1,0 +1,90 @@
+{
+  "class": "http://example.org/ontology/ies-building#Dwelling",
+  "base_uri": "http://data.gov.uk/epc/",
+  "id_field": "postcode",
+  "fields": {
+    "postcode": {
+      "predicate": "http://example.org/ontology/ies-building#hasPostalCode",
+      "datatype": "string"
+    },
+    "paon": {
+      "predicate": "http://www.w3.org/2000/01/rdf-schema#label",
+      "datatype": "string",
+      "transform": "concat:{paon}, {street}, {towncity}"
+    },
+    "propertytype": {
+      "predicate": "http://ies.data.gov.uk/ontology/ies4#similarEntity",
+      "lookup": {
+        "D": "http://example.org/ontology/ies-building#DetachedHouse",
+        "S": "http://example.org/ontology/ies-building#SemiDetachedHouse",
+        "T": "http://example.org/ontology/ies-building#TerracedHouse",
+        "F": "http://example.org/ontology/ies-building#Flat"
+      }
+    },
+    "BUILT_FORM": {
+      "predicate": "http://example.org/ontology/ies-building#builtForm",
+      "datatype": "string"
+    },
+    "CURRENT_ENERGY_RATING": {
+      "predicate": "http://example.org/ontology/ies-building#energyRatingBand",
+      "lookup": {
+        "A": "http://example.org/ontology/ies-building#BandA",
+        "B": "http://example.org/ontology/ies-building#BandB",
+        "C": "http://example.org/ontology/ies-building#BandC",
+        "D": "http://example.org/ontology/ies-building#BandD",
+        "E": "http://example.org/ontology/ies-building#BandE",
+        "F": "http://example.org/ontology/ies-building#BandF",
+        "G": "http://example.org/ontology/ies-building#BandG"
+      }
+    },
+    "CURRENT_ENERGY_EFFICIENCY": {
+      "predicate": "http://example.org/ontology/ies-building#energyScore",
+      "datatype": "integer"
+    },
+    "numberrooms": {
+      "predicate": "http://example.org/ontology/ies-building#numberOfRooms",
+      "datatype": "integer"
+    },
+    "MAINHEAT_DESCRIPTION": {
+      "predicate": "http://example.org/ontology/ies-building#heatingDescription",
+      "datatype": "string"
+    },
+    "MAIN_FUEL": {
+      "predicate": "http://example.org/ontology/ies-building#usesFuel",
+      "lookup": {
+        "mains gas (not community)": "http://example.org/ontology/ies-building#MainsGas",
+        "electricity (not community)": "http://example.org/ontology/ies-building#Electricity",
+        "oil (not community)": "http://example.org/ontology/ies-building#Oil",
+        "LPG": "http://example.org/ontology/ies-building#LPG"
+      }
+    },
+    "WALLS_DESCRIPTION": {
+      "predicate": "http://example.org/ontology/ies-building#wallsDescription",
+      "datatype": "string"
+    },
+    "WALLS_ENERGY_EFF": {
+      "predicate": "http://example.org/ontology/ies-building#wallsEfficiency",
+      "datatype": "string"
+    },
+    "ROOF_DESCRIPTION": {
+      "predicate": "http://example.org/ontology/ies-building#roofDescription",
+      "datatype": "string"
+    },
+    "WINDOWS_DESCRIPTION": {
+      "predicate": "http://example.org/ontology/ies-building#windowsDescription",
+      "datatype": "string"
+    },
+    "FLOOR_DESCRIPTION": {
+      "predicate": "http://example.org/ontology/ies-building#floorDescription",
+      "datatype": "string"
+    },
+    "inspectiondate": {
+      "predicate": "http://example.org/ontology/ies-building#inspectionDate",
+      "datatype": "date"
+    },
+    "CO2_EMISSIONS_CURRENT": {
+      "predicate": "http://example.org/ontology/ies-building#co2Emissions",
+      "datatype": "decimal"
+    }
+  }
+}
