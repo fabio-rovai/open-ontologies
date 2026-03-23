@@ -338,9 +338,21 @@ onto_pull https://raw.githubusercontent.com/IES-Org/ont-ies/main/docs/specificat
 onto_shacl
 ```
 
+### Data Mapping: EPC → IES
+
+The repo includes a sample of real UK Energy Performance Certificates ([benchmark/epc/epc-sample.csv](benchmark/epc/epc-sample.csv)) with a mapping config that transforms tabular EPC data into IES-shaped RDF:
+
+```text
+onto_load benchmark/generated/ies-building-extension.ttl
+onto_ingest benchmark/epc/epc-sample.csv --mapping benchmark/epc/epc-ies-mapping.json
+onto_reason --profile rdfs
+```
+
+This mirrors NDTP's actual pipeline: CSV → IES RDF → validate → reason → query.
+
 ### IES:Building Alignment
 
-The repo includes an [IES Building Extension](benchmark/generated/ies-building-extension.ttl) that models buildings, dwellings, energy performance, and retrofit interventions using IES 4D patterns. Use `onto_align` to map it to other domain ontologies — this mirrors NDTP's active work transforming energy performance data into RDF aligned with IES:Building.
+The repo includes an [IES Building Extension](benchmark/generated/ies-building-extension.ttl) that models buildings, dwellings, energy performance, and retrofit interventions using IES 4D patterns. Use `onto_align` to map it to other domain ontologies.
 
 ### Further Reading
 

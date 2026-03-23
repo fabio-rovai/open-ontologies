@@ -54,7 +54,56 @@ onto_stats
 
 RDFS materialises **+3,094 inferred triples** (77% growth) — transitive subclass chains across 241 State subclasses, 117 ClassOfEntity subclasses, and 102 Event subclasses.
 
-### Step 3: Explore with SPARQL
+### Step 3: Ingest Real EPC Data
+
+The repo includes a sample of 10 real UK Energy Performance Certificates from the Open Data Communities register ([benchmark/epc/epc-sample.csv](../benchmark/epc/epc-sample.csv)) with a pre-built mapping config ([benchmark/epc/epc-ies-mapping.json](../benchmark/epc/epc-ies-mapping.json)).
+
+```text
+# Load IES Building Extension as the target ontology
+onto_validate benchmark/generated/ies-building-extension.ttl
+onto_load benchmark/generated/ies-building-extension.ttl
+
+# Generate or review the mapping (CSV columns → IES predicates)
+onto_map benchmark/epc/epc-sample.csv
+
+# Ingest the CSV data using the mapping
+onto_ingest benchmark/epc/epc-sample.csv --mapping benchmark/epc/epc-ies-mapping.json
+
+# Check what was created
+onto_stats
+
+# Reason to materialise inferred triples
+onto_reason --profile rdfs
+
+# Query: which dwellings have poor energy ratings?
+onto_query "SELECT ?dwelling ?rating WHERE {
+  ?dwelling a <http://example.org/ontology/ies-building#Dwelling> .
+  ?dwelling <http://example.org/ontology/ies-building#energyRatingBand> ?rating .
+  FILTER(?rating IN (
+    <http://example.org/ontology/ies-building#BandE>,
+    <http://example.org/ontology/ies-building#BandF>,
+    <http://example.org/ontology/ies-building#BandG>
+  ))
+}"
+```
+
+The mapping config maps CSV columns to IES Building predicates:
+
+| CSV Column | IES Predicate | Type |
+| --- | --- | --- |
+| `postcode` | `bldg:hasPostalCode` | string |
+| `propertytype` | `ies:similarEntity` → ClassOfBuilding | lookup (D→Detached, S→Semi, T→Terraced, F→Flat) |
+| `CURRENT_ENERGY_RATING` | `bldg:energyRatingBand` | lookup (A-G → BandA-BandG) |
+| `CURRENT_ENERGY_EFFICIENCY` | `bldg:energyScore` | integer |
+| `MAIN_FUEL` | `bldg:usesFuel` → FuelType | lookup (mains gas→MainsGas, etc.) |
+| `MAINHEAT_DESCRIPTION` | `bldg:heatingDescription` | string |
+| `WALLS_DESCRIPTION` | `bldg:wallsDescription` | string |
+| `inspectiondate` | `bldg:inspectionDate` | date |
+| `CO2_EMISSIONS_CURRENT` | `bldg:co2Emissions` | decimal |
+
+This mirrors NDTP's actual pipeline: take tabular EPC data, map it to IES-shaped RDF, validate, reason, and query.
+
+### Step 4: Explore with SPARQL
 
 See [ies-examples.md](ies-examples.md) for 5 ready-to-use queries. Quick taste:
 
@@ -67,7 +116,7 @@ onto_query "SELECT (COUNT(DISTINCT ?c) AS ?count) WHERE {
 # Result: 241
 ```
 
-### Step 4: Load Example Data
+### Step 5: Load Example Data
 
 IES has ~42 example Turtle files across its repos. Pull them directly:
 
@@ -98,7 +147,7 @@ onto_pull https://raw.githubusercontent.com/telicent-oss/ies-examples/main/addit
 onto_pull https://raw.githubusercontent.com/telicent-oss/ies-examples/main/regions_of_the_world/countries.ttl
 ```
 
-### Step 5: SHACL Validation
+### Step 6: SHACL Validation
 
 IES provides SHACL shapes for data validation:
 
@@ -119,7 +168,7 @@ onto_pull https://raw.githubusercontent.com/IES-Org/ies-core/main/spec/validatio
 onto_pull https://raw.githubusercontent.com/IES-Org/ies-core/main/spec/validation_artefacts/DeathStateShape.shacl.ttl
 ```
 
-### Step 6: Alignment
+### Step 7: Alignment
 
 Map IES to other domain ontologies:
 
