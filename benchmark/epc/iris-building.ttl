@@ -1,0 +1,1725 @@
+@prefix building: <http://ies.data.gov.uk/ontology/ies-building1#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ex: <http://example.com/> .
+@prefix ies: <http://ies.data.gov.uk/ontology/ies4#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+building: a owl:Ontology .
+
+building:isCollectiveCharacteristicOf a owl:ObjectProperty ;
+    rdfs:label "is Collective Characteristic Of"^^xsd:string ;
+    rdfs:comment "An rdf:type relationship that asserts that a Characteristic or Measure is associated with a particular `ies:ClassOfElement`; that is for the entire class not each individual member" ;
+    skos:example "Total Floor Area" ;
+    skos:note "Should be in ies-common" ;
+    rdfs:domain ies:Characteristic ;
+    rdfs:range ies:ClassOfElement ;
+    rdfs:subPropertyOf ies:relationship .
+
+building:hasQuantity a owl:ObjectProperty ;
+    rdfs:domain ies:Measure ;
+    rdfs:range qudt:Quantity ;
+    rdfs:label "has Quantity" ;
+    rdfs:comment "A relationship between an `ies:Measure` and a `qudt:Quantity` that acts as a bridge to the `qudt` ontology." ;
+    skos:note "This bridge was intended for IES 4.3.x but was postponed" .
+
+building:AccreditedEnergyAssessor a rdfs:Class ;
+    rdfs:label "Accredited Energy Assessor" ;
+    rdfs:comment "An `ies:ResponsibleActorState` of a professional who has been trained and certified to evaluate the energy performance of  buildings and to produce an authorised result setting out the findings. In the UK, they must be a member of a government-approved accreditation scheme, which ensures that they meet specific competency standards and adhere to a code of conduct. Accreditation schemes also provide quality assurance for the work undertaken by their members, and they ensure that energy assessors maintain their skills and knowledge up to date through continuing professional development." ;
+    rdfs:subClassOf ies:PersonState .
+
+building:AddressableLocation a rdfs:Class ;
+    rdfs:label "Addressable Location" ;
+    ies:powertype building:ClassOfAddressableLocation ;
+    rdfs:comment "An `ies:Location` that may be any kind of building, or it may be an object that might not have a ‘normal' address – such as a bus station or an electricity substation.  " ;
+    rdfs:subClassOf building:AddressableLocationState,
+        ies:Location .
+
+building:AddressableLocationState a rdfs:Class ;
+    rdfs:label "Addressable Location State" ;
+    ies:powertype building:ClassOfAddressableLocationState ;
+    rdfs:comment "A temporal state of a AddressableLocation." ;
+    rdfs:subClassOf ies:LocationState .
+
+building:AllOpenFireplacesInAStructureUnit a rdfs:Class ;  # seems to be too high up the hierarchy, but then all layers would need to be defined
+    rdfs:label "All Open Fireplaces In A Structure" ;
+    rdfs:comment "An `ies:FiniteClassOfElement` that is the class of all the `building:OpenFireplace`s in a `building:StructureUnit`." ;
+    rdfs:subClassOf  building:FiniteClassOfElement, building:ClassOfOpenFireplace .
+
+building:AllOpenFireplaceStatesInAStructureUnitState a rdfs:Class ;
+    rdfs:label "AllOpenFireplaceStates In A Structure Unit State" ;
+    rdfs:comment "An `ies:FiniteClassOfElement` that is the class of all the `building:OpenFireplaceState`s in a `building:StructureUnit`." ;
+    rdfs:subClassOf building:ClassOfOpenFireplaceState, ies:FiniteClassOfElement .
+
+building:AllAssessedWindows a rdfs:Class ;
+    rdfs:label "All Assessed Windows" ;
+    rdfs:comment "An `ies:FiniteClassOfElement` that is the class of all the `building:Windows` assessed (during an ies:Assessment)." ;
+    rdfs:subClassOf building:ClassOfWindow, ies:FiniteClassOfElement .
+
+building:AllAssessedWalls a rdfs:Class ;
+    rdfs:label "All Assessed Walls" ;
+    rdfs:comment "A `building:ClassOfWall` that is the class of all the `building:Walls` assessed (during an ies:Assessment)." ;
+    rdfs:subClassOf building:ClassOfWall . #, ies:FiniteClassOfElement .
+
+building:AllAssessedWallSections a rdfs:Class ;
+    rdfs:label "All Assessed Wall Sections" ;
+    rdfs:comment "A `building:ClassOfWallSection` that is the class of all the `building:WallSections` assessed (during an ies:Assessment)." ;
+    rdfs:subClassOf building:ClassOfWallSection . # , ies:FiniteClassOfElement .
+
+building:AllAssessedFloors a rdfs:Class ;
+    rdfs:label "All Assessed Floors" ;
+    rdfs:comment "An `ies:FiniteClassOfElement` that is the class of all the `building:Floors` assessed (during an ies:Assessment)." ;
+    rdfs:subClassOf building:ClassOfFloor,  ies:FiniteClassOfElement .
+
+building:AllAssessedFloorSections a rdfs:Class ;
+    rdfs:label "All Assessed Floor Sections" ;
+    rdfs:comment "An `ies:FiniteClassOfElement` that is the class of all the `building:FloorSection(s)` assessed (during an ies:Assessment)." ;
+    rdfs:subClassOf building:ClassOfFloorSection, ies:FiniteClassOfElement .
+
+building:AllAssessedRoofs a rdfs:Class ;
+    rdfs:label "All Assessed Roofs" ;
+    rdfs:comment "An `ies:FiniteClassOfElement` that is the class of all the `building:Roofs` assessed (during an ies:Assessment)." ;
+    rdfs:subClassOf building:ClassOfRoof, ies:FiniteClassOfElement .
+
+building:AllAssessedRoofSections a rdfs:Class ;
+    rdfs:label "All Assessed Roof Sections" ;
+    rdfs:comment "An `ies:FiniteClassOfElement` that is the class of all the `building:RoofSection(s)` assessed (during an ies:Assessment)." ;
+    rdfs:subClassOf building:ClassOfRoofSection, ies:FiniteClassOfElement .
+
+building:AllStoreysInAStructure a rdfs:Class ;
+    rdfs:label "All Storeys In A Structure" ;
+    building:eachIsPartOf building:StructureState ;
+    rdfs:comment "A `ies:FiniteClassOfElement` and `ClassOfStorey` that is the class of all the `building:Storey`s in a `building:Structure`." ;
+    rdfs:subClassOf ies:FiniteClassOfElement, building:ClassOfStorey .
+
+building:AllWindowsInAStructureUnit a rdfs:Class ;
+    rdfs:label "All Windows In A Structure Unit" ;
+    building:eachIsPartOf building:StructureState ;
+    rdfs:comment "A `ies:FiniteClassOfElement` and `ClassOfWindowState` that is the class of all the `building:Window`s in a `building:Structure`." ;
+    rdfs:subClassOf 
+        ies:FiniteClassOfElement, building:ClassOfWindowState  .
+
+building:AllWallsOfAStructureUnit a rdfs:Class, ies:FiniteClassOfElement ;
+    rdfs:label "All Walls Of A Structure Unit" ;
+    rdfs:comment "An instance `ies:FiniteClassOfElement` that is the collection of all the walls of `building:StructureUnit`" ;
+    building:eachMemberIsPartOf building:StructureUnitState ;
+    rdfs:subClassOf building:WallState .
+
+building:Building a rdfs:Class ;
+    rdfs:label "Building" ;
+    ies:powertype building:ClassOfBuilding ;
+    rdfs:comment "A `building:Structure` that is created to serve specific functions, typically for human occupation or use, such as residential, commercial, industrial, or public purposes. Buildings are usually constructed in-place and are intended not to be regularly moved.  Like other structures, a building can exist in various states over time and is characterized by aspects like architectural design, construction methods, and materials used." ;
+    rdfs:seeAlso <https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcBuilding> ;
+    rdfs:subClassOf building:BuildingState,
+        building:Structure .
+
+building:BuildingState a rdfs:Class ;
+    rdfs:label "Building State" ;
+    ies:powertype building:ClassOfBuildingState ;
+    rdfs:comment "A temporal state of a Building." ;
+    rdfs:subClassOf building:StructureState .
+
+building:BuiltEntity a rdfs:Class ;
+    rdfs:label "Built Entity" ;
+    rdfs:comment "An `ies:Entity` that is intended to be incorporated into a `building:Structure`.  A BuiltEntity can exist in various states over time." ;
+    skos:exmaple "Floor", "Wall", "Roof" ;
+    rdfs:seeAlso <https://search.bsdd.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcBuiltElement> ;
+    rdfs:subClassOf building:BuiltEntityState,
+        ies:Entity .
+
+building:BuiltEntityState a rdfs:Class ;
+    rdfs:label "Built Entity State" ;
+    rdfs:comment "An`ies:State` that is the temporal state of a `building:BuiltEntity`" ;
+    rdfs:subClassOf ies:State .
+
+building:BuiltForm a rdfs:Class ;
+    rdfs:label "Built Form" ;
+    rdfs:comment "A `building:ClassOfStructureUnit` that is a classifier of `building:StructureUnit` that defines the built form of a Structure.  Instances of this class are `rdfs:subClass(es)Of` `building:StructureUnit`." ;
+    skos:example "Detached", "Semi-Detached", "End of Terrace" ;
+    rdfs:subClassOf building:ClassOfStructureUnitState .
+
+building:CO2Emission a rdfs:Class ;
+    rdfs:label "CO2 Emission" ;
+    rdfs:comment "A `building:ChemicalCompoundRelease` that is the release of carbon dioxide into the atmosphere from various sources, primarily from the burning of fossil fuels like coal, oil, and gas for energy production. " ;
+    rdfs:subClassOf building:ChemicalCompoundRelease .
+
+building:CO2EmissionEstimate a rdfs:Class ;
+    rdfs:label "CO2 Emission Estimate" ;
+    rdfs:comment "An `ies:Assessment` that estimates the release of carbon dioxide (CO2)." ;
+    rdfs:subClassOf building:EnergyPerformanceAssessment .
+
+building:CO2Released a rdfs:Class ;
+    rdfs:label "A release of CO2 event" ;
+    rdfs:comment "A `building:ChemicalCompoundReleased` that is the release of `building:CO2`." ;
+    rdfs:subClassOf building:ChemicalCompoundReleased .
+
+building:StuffPortion a rdfs:Class ;
+    rdfs:label "A Portion Of Stuff" ;
+    rdfs:comment "An `ies:Element` that is part of some stuff (`ies:Stuff`) and has the composition or origin that is characteristic of that stuff" ;
+    building:eachMemberIsPartOf building:Stuff ;
+    rdfs:subClassOf ies:Element .
+
+building:ChemicalCompound a rdfs:Class ;
+    rdfs:label "Chemical Compound" ;
+    rdfs:comment "An `ies:Stuff` that consists of atoms of two or more chemical elements." ;
+    rdfs:subClassOf ies:Stuff .
+
+building:ChemicalCompoundPortion a rdfs:CLass ;
+    rdfs:label "A Portion Of Chemical Compound" ;
+    rdfs:comment "A `building:StuffPortion` that is part of some `building:ChemicalCompound`" ;
+    rdfs:subClassOf building:StuffPortion .
+
+building:ChemicalCompoundRelease a rdfs:Class ;
+    rdfs:label "Chemical Compound Release" ;
+    rdfs:comment "An `ies:Event` that is the release of some `building:ChemicalCompoundPortion`" ;
+    rdfs:subClassOf ies:Event .
+
+building:ChemicalCompoundReleased a rdfs:Class ;
+    rdfs:label "Chemical Compound Released" ;
+    rdfs:comment "An `ies:BoundingState` that marks the end of the `building:ChemicalCompound` released event." ;
+    rdfs:subClassOf ies:BoundingState .
+
+building:ClassOfAddressableLocation a rdfs:Class ;
+    rdfs:label "Class Of Addressable Location" ;
+    rdfs:comment "An `ies:ClassOfLocation` that classifies `building:AddressableLocation`.  Instances of this class are subClasses of `building:AddressableLocation`." ;
+    rdfs:subClassOf ies:ClassOfLocation .
+
+building:ClassOfAddressableLocationState a rdfs:Class ;
+    rdfs:label "Class Of Addressable Location State" ;
+    rdfs:comment """An `ies:ClassOfLocationState` that classifies `building:AddressableLocationState`. Instances of this class are subClasses of `building:AddressableLocationState`.
+""" ;
+    rdfs:subClassOf ies:ClassOfLocationState .
+
+# building:ClassOfAssetState a rdfs:Class ;
+#     rdfs:label "Class Of Asset State" ;
+#     ies:powertype ies:ClassOfAssetState ;
+#     rdfs:comment "An`ies:ClassOfState` that classifies `ies:AssetState`.  Instances of this class are `rdfs:subClass(es)Of` `ies:AssetState`." ;
+#     rdfs:subClassOf ies:ClassOfState .
+
+building:ClassOfBuilding a rdfs:Class ;
+    rdfs:label "Class Of Building" ;
+    rdfs:comment "A `building:ClassOfStructure` that classifies `building:Building`.  Instances of this class are `rdfs:subClass(es)Of` of `building:Building`. " ;
+    rdfs:subClassOf building:ClassOfStructure .
+
+building:ClassOfBuildingState a rdfs:Class ;
+    rdfs:label "Class Of Building State" ;
+    rdfs:comment "A `building:ClassOfStructureState` that classifies `building:BuildingState`.  Instances of this class are `rdfs:subClass(es)Of` of `building:BuildingState`." ;
+    rdfs:subClassOf building:ClassOfStructureState .
+
+building:ClassOfBuiltEntity a rdfs:Class ;
+    rdfs:label "Class Of Built Entity" ;
+    rdfs:comment "A `building:ClassOfEntity` that is a classifier of `building:BuiltEntity`.  Instances of this class are `rdfs:subClass(es)Of` `building:BuiltEntity`." ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+building:ClassOfBuiltEntityState a rdfs:Class ;
+    rdfs:label "Class Of Built Entity State" ;
+    rdfs:comment "A `building:ClassOfEntityState` that is a classifier of `building:BuiltEntityState`. Instances of this class are `rdfs:subClass(es)Of` `building:BuiltEntityState`. " ;
+    rdfs:subClassOf building:ClassOfEntityState .
+
+building:ClassOfEntityState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfState ;
+    skos:note "Missing for ies 4.3.3 " .
+
+# building:ClassOfEnergyPerformanceAssessmentResultState a rdfs:Class ;
+#     rdfs:label "Class Of Energy Performance Assessment Result State" ;
+#     rdfs:comment "A `building:ClassOfIndividualDocumentState` that is a classifier on `building:EnergyPerformanceAssessmentResultState`.  Instances of this class are `rdfs:subClass(es)Of` `building:EnergyPerformanceAssessmentResultState`." ;
+#     rdfs:subClassOf building:ClassOfIndividualDocumentState .
+
+building:ClassOfEnergyPerformanceCertificate a rdfs:Class ;
+    rdfs:label "Class Of Energy Performance Certificate" ;
+    rdfs:comment "An `ies: ClassOfWorkOfDocumentation` that classifies `building:EnergyPerformanceCertificate`.  Instances of this class are `rdfs:subClass(es)Of `building:EnergyPerformanceCertificate`." ;
+    rdfs:subClassOf ies:ClassOfWorkOfDocumentation .
+
+building:ClassOfOpenFireplace a rdfs:Class ;
+    rdfs:label "Class Of Open Fireplace" ;
+    rdfs:comment """A `building:ClassOfTechnicalSystem` that is a classifier of `building:OpenFireplace`.  Instances of this class are `rdfs:subClass(es)Of `building:Fireplace`.
+      """ ;
+    skos:note "This is a short-cut and we eventually need to have ClassOf for all the other layers" ;
+    rdfs:subClassOf building:ClassOfTechnicalSystem .
+
+building:ClassOfOpenFireplaceState a rdfs:Class ;
+    rdfs:label "Class Of Open Fireplace" ;
+    rdfs:comment """A `building:ClassOfTechnicalSystemState` that is a classifier of `building:OpenFireplaceState`.  Instances of this class are `rdfs:subClass(es)Of `building:FireplaceState`.
+      """ ;
+    skos:note "This is a short-cut and we eventually need to have ClassOf for all the other layers" ;
+    rdfs:subClassOf building:ClassOfTechnicalSystemState .
+
+building:ClassOfFloor a rdfs:Class ;
+    rdfs:label "Class Of Floor" ;
+    rdfs:comment """A `building: ClassOfBuiltEntity` that is a classifier of `building:Floor`.  Instances of this class are `rdfs:subClass(es)Of` `building:Floor`.
+      """ ;
+    rdfs:subClassOf building:ClassOfBuiltEntity .
+
+building:ClassOfFloorState a rdfs:Class ;
+    rdfs:label "Class Of Floor State"@en ;
+    rdfs:comment "A `building:ClassOfBuiltEntityState` that is a classifier of `building:FloorState`.  Instances of this class are `rdfs:subClass(es)Of` `building:FloorState`." ;
+    rdfs:subClassOf building:ClassOfBuiltEntityState .
+
+building:ClassOfIndividualDocumentState a rdfs:Class ;
+    rdfs:label "Class Of Individual Document State" ;
+    rdfs:comment "A `building:ClassOfAssetState` that is a classifier of `building:IndividualDocumentState`.  Instances of this class are `rdfs:subClass(es)Of` `building:IndividualDocumentState`. " ;
+    rdfs:subClassOf building:ClassOfAssetState .
+
+building:ClassOfRoof a rdfs:Class ;
+    rdfs:label "Class Of Roof" ;
+    rdfs:comment """A `building:ClassOfBuiltEntity` that is a classifier of `building:Roof`.  Instances of this class are `rdfs:subClass(es)Of` `building:Roof`.
+      """ ;
+    rdfs:subClassOf building:ClassOfBuiltEntity .
+
+building:ClassOfRoofState a rdfs:Class ;
+    rdfs:label "Class Of Roof State" ;
+    rdfs:comment "A `building:ClassOfBuiltEntityState` tha is a classifier of `building:RoofState`.  Instance of this class are `rdfs:subClass(es)Of` `building:RoofState`." ;
+    rdfs:subClassOf building:ClassOfBuiltEntityState .
+
+building:ClassOfSpace a rdfs:Class ;
+    rdfs:label "Class Of Space" ;
+    rdfs:comment "An `ies:ClassOfEntity` that is a classifier of `building:Space`.  Instances of this Class are `rdfs:subClass(es)Of` `building:Space`." ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+building:ClassOfSpaceState a rdfs:Class ;
+    rdfs:label "Class Of Space State" ;
+    rdfs:comment "An `ies:ClassOfState` that is a classifier of `building:SpaceState`. Instances of this class are `rdfs:subClass(es)Of` `building:SpaceState`. " ;
+    rdfs:subClassOf ies:ClassOfState .
+
+building:ClassOfStorey a rdfs:Class ;
+    rdfs:label "Class Of Storey"@en ;
+    rdfs:comment """ A `ies:ClassOfEntity` that is a classifier of `Building:Storey`.  Instances of this class are `rdfs:subClass(es)Of` `building:Storey`.
+      """ ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+building:ClassOfStoreyState a rdfs:Class ;
+    rdfs:label "Class Of Storey State"@en ;
+    rdfs:comment """A `ies:ClassOfState` that is a classifier of `building:StoreyState`.  Instances of this class are `rdfs:subClass(es)Of` `building:StoreyState`. 
+      """ ;
+    rdfs:subClassOf ies:ClassOfState .
+
+building:ClassOfStructure a rdfs:Class ;
+    rdfs:label "Class Of Structure" ;
+    rdfs:comment "An `ies:ClassOfEntity` that is a classifier of `building:Structure`. Instances of this class are `rdfs:subClass(es)Of` `building:Structure`." ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+building:ClassOfStructureState a rdfs:Class ;
+    rdfs:label "Class Of Structure State" ;
+    rdfs:comment "An `ies:ClassOfState` that is a classifier of `building:StructureState`. Instances of this class are `rdfs:subClass(es)Of` `building:StructureState`." ;
+    rdfs:subClassOf ies:ClassOfState .
+
+building:ClassOfStructureUnit a rdfs:Class ;
+    rdfs:label "Class Of Structure Unit" ;
+    rdfs:comment "An `ies:ClassOfEntity` that is a classifier of `building:StructureUntit`. Instances of this class are `rdfs:subClass(es)Of` `building:StructureUnit`." ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+building:ClassOfStructureUnitState a rdfs:Class ;
+    rdfs:label "Class Of Structure Unit State" ;
+    rdfs:comment "An `ies:ClassOfState` that is a classifier of `building:StructureUnitState`. Instances of this class are `rdfs:subClass(es)Of` `building:StructureUnitState`." ;
+    rdfs:subClassOf ies:ClassOfState .
+
+building:ClassOfStuff a rdfs:Class ;
+    rdfs:label "Class Of Stuff" ;
+    rdfs:comment """An `ies:ClassOfElement` that is a classifier of `ies:Stuff`. Instances of this class are `rdfs:subClass(es)Of` `ies:Stuff`.
+      """ ;
+    rdfs:subClassOf ies:ClassOfElement .
+
+building:ClassOfWall a rdfs:Class ;
+    rdfs:label "Class Of Wall" ;
+    rdfs:comment """A `building:ClassOfBuiltEntity` the is a classifier of `building:Wall`.  Instances of this class are `rdfs:subClass(es)Of` `building:Wall`.
+      """ ;
+    rdfs:subClassOf building:ClassOfBuiltEntity .
+
+building:ClassOfWallState a rdfs:Class ;
+    rdfs:label "Class Of Wall State" ;
+    rdfs:comment "A `building:ClassOfBuiltEntityState` the is a classifier of `building:WallState`. Instances of this class are `rdfs:subClass(es)Of` `building:WallState`." ;
+    rdfs:subClassOf building:ClassOfBuiltEntityState .
+
+building:ClassOfWindow a rdfs:Class ;
+    rdfs:label "Class Of Window" ;
+    rdfs:comment "A `building:ClassOfBuiltEntity` the is a classifier of `building:Window`. Instances of this class are `rdfs:subClass(es)Of` `building:Window`." ;
+    rdfs:subClassOf building:ClassOfBuiltEntity .
+
+building:ClassOfWindowState a rdfs:Class ;
+    rdfs:label "Class Of Window State" ;
+    rdfs:comment "A `building:ClassOfBuiltEntityState` the is a classifier of `building:WindowState`. Instances of this class are `rdfs:subClass(es)Of` `building:WindowState`." ;
+    rdfs:subClassOf building:ClassOfBuiltEntityState .
+
+building:ConstructedInPeriod a rdfs:Class ;
+    rdfs:label "Constructed In Period" ;
+    rdfs:comment "An `ies:ArbitraryPeriod` during which a structure can be regarded as completed." ;
+    rdfs:subClassOf ies:ArbitraryPeriod .
+
+building:ConstructedState a rdfs:Class ;
+    rdfs:label "Constructed State" ;
+    rdfs:comment "An `ies:Created` that is a state indicating that the `ies:Entity` was constructed." ;
+    rdfs:subClassOf ies:BoundingState ;
+    skos:editorialNote "Could be a subClassOf ies:Created" .
+
+building:CostEstimate a rdfs:Class ;
+    rdfs:label "Cost Estimate" ;
+    rdfs:comment "An `building:EnergyPerformanceAssessment` that estimates a cost." ;
+    rdfs:subClassOf building:EnergyPerformanceAssessment .
+
+building:AssessPerformanceOfInsulation a rdfs:Class ;
+    rdfs:label "Assess Performance Of Insulation" ;
+    rdfs:comment "A `building:EnergyPerformanceAssessment` that assesses the relative performance of the insulation of a `building:StructureUnit`" ;
+    rdfs:subClassOf building:EnergyPerformanceAssessment .
+
+building:AssessWallInsulation a rdfs:Class ;
+    rdfs:subClassOf building:AssessPerformanceOfInsulation ;
+    rdfs:label "Assess Wall Insulation" ;
+    rdfs:comment "A `building:AssessPerformanceOfInsulation` that assesses the nature of wall insulation of a `building:StructureUnit" .
+building:AssessFloorInsulation a rdfs:Class ;
+    rdfs:subClassOf building:AssessPerformanceOfInsulation ;
+    rdfs:label "Assess Floor Insulation" ;
+    rdfs:comment "A `building:AssessPerformanceOfInsulation` that assesses the nature of floor insulation of a `building:StructureUnit" .
+
+building:AssessRoofInsulationThickness a rdfs:Class ;
+    rdfs:subClassOf building:AssessPerformanceOfInsulation ;
+    rdfs:label "Assess Roof Insulation Thickness" ;
+    rdfs:comment "A `building:AssessPerformanceOfInsulation` that assesses the the thickness of roof insulation of a `building:StructureOrStructureUnit" .
+
+building:DescribeHeatingSystem a rdfs:Class ;
+    rdfs:subClassOf building:EnergyPerformanceAssessment ;
+    rdfs:label "Describe Heating System" ;
+    rdfs:comment "A `building:EnergyPerformanceAssessment` that describes the installed heating system." .
+
+building:DetermineRoofInsulationLocation a rdfs:Class ;
+    rdfs:subClassOf building:AssessPerformanceOfInsulation ;
+    rdfs:label "Determine Roof Insulation Location" ;
+    rdfs:comment "A `building:AssessPerformanceOfInsulation` that assesses the the location of roof insulation of a `building:StructureOrStructureUnit" .
+
+building:AssessWindowInsulation a rdfs:Class ;
+    rdfs:subClassOf building:AssessPerformanceOfInsulation ;
+    rdfs:label "Assess Window Insulation" ;
+    rdfs:comment "A `building:AssessPerformanceOfInsulation` that assesses the glazing of a `building:StructureUnit" .
+
+building:AssessConstructionMethod a rdfs:Class ;
+    rdfs:label "AssessConstructionMethod" ;
+    rdfs:comment "A `building:EnergyPerformanceAssessment` that assesses the method of construction of the `built:Entities` that are part of a `building:StructureUnit`" ;
+    rdfs:subClassOf building:EnergyPerformanceAssessment .
+
+building:AssessWallConstruction a rdfs:Class ;
+    rdfs:label "Assess Wall Construction" ;
+    rdfs:comment "A `building:AssessConstructionMethod` that assesses the method of construction of the `building:Wall` of a `building:StructureUnit`" ;
+    rdfs:subClassOf building:AssessConstructionMethod .
+
+building:AssessFloorConstruction a rdfs:Class ;
+    rdfs:label "Assess Floor Construction" ;
+    rdfs:comment "A `building:AssessConstructionMethod` that assesses the method of construction of the `building:Floor` of a `building:StructureUnit`" ;
+    rdfs:subClassOf building:AssessConstructionMethod .
+
+building:AssessRoofConstruction a rdfs:Class ;
+    rdfs:label "Assess Roof Construction" ;
+    rdfs:comment "A `building:AssessConstructionMethod` that assesses the method of construction of the `building:Roof` of a `building:StructureOrStructureUnit`" ;
+    rdfs:subClassOf building:AssessConstructionMethod .
+
+building:EPCAssessment a rdfs:Class ;
+    rdfs:label "UK Energy Performance Certificate (EPC) Assessment" ;
+    rdfs:comment "An `ies:Assessment` that assesses the various states of a building in the UK at the time of the assessment. " ;
+    rdfs:subClassOf building:EnergyPerformanceAssessment .
+
+building:EnergyPerformanceAssessment a rdfs:Class ;
+    rdfs:label "Energy Performance Assessment" ;
+    rdfs:comment "An `ies:Assessment` that is the assessment of the energy performance of a `building:StructureState` or `building:StructureUnitState`" ;
+    rdfs:subClassOf ies:Assessment .
+
+building:DetermineTotalFloorArea a rdfs:Class ;
+    rdfs:subClassOf building:EnergyPerformanceAssessment ;
+    rdfs:label "Determine Total Floor Area" ;
+    rdfs:comment "A `building:EnergyPerformanceAssessment` which measures or estimates the area of flooring of a `building:StructureUnit`" .
+
+building:AssessHeatingSystem a rdfs:Class ;
+    rdfs:subClassOf building:EnergyPerformanceAssessment ;
+    rdfs:label "AssessHeatingSystems" ;
+    rdfs:comment "A `building:EnergyPerformanceAssessment` which assesses the energy performance of the heating system." .
+
+building:CountNumberOfOpenFireplaces a rdfs:Class ;
+    rdfs:subClassOf building:AssessHeatingSystem ;
+    rdfs:label "Count Number Of Open Fireplaces" ;
+    rdfs:comment "A `building:AssessHeatingSystem` that counts the number of open fireplaces." .
+
+building:DetermineMainPurposeOfUse a rdfs:Class ;
+    rdfs:subClassOf building:EnergyPerformanceAssessment ;
+    rdfs:label "Determine Main Purpose Of Use" ;
+    rdfs:comment "A `building:EnergyPerformanceAssessment` in which the primary purpose of use of the `building:StructureUnit`." .
+
+building:DetermineStructureUnitType a rdfs:Class ;
+    rdfs:subClassOf building:EnergyPerformanceAssessment ;
+    rdfs:label "Determine Structure Unit Type" ;
+    rdfs:comment "A `building:EnergyPerformanceAssessment` to establish the type of the `building:StructureUnit`." .
+
+building:DetermineBuiltForm a rdfs:Class ;
+    rdfs:subClassOf building:EnergyPerformanceAssessment ;
+    rdfs:label "Determine Built Form" ;
+    rdfs:comment "A `building:EnergyPerformanceAssessment` to establish the built form of the `building:StructureUnit`." .
+
+building:DetermineConstructionAgeBand a rdfs:Class ;
+    rdfs:subClassOf building:EnergyPerformanceAssessment ;
+    rdfs:label "Determine Construction Age Band" ;
+    rdfs:comment "A `building:EnergyPerformanceAssessment` to establish the approximate age of the `building:StructureOrStructureUnit`" .
+
+building:DetermineTypeOfVentilation a rdfs:Class ;
+    rdfs:subClassOf building:EnergyPerformanceAssessment ;
+    rdfs:label "Determine Type Of Ventilation" ;
+    rdfs:comment "A `building:EnergyPerformanceAssessment` to establish the type of ventilation of the `building:StructureUnit`." .
+
+building:assessedStateForEnergyPerformance a owl:ObjectProperty ;
+    rdfs:label "assessed state for EPC" ;
+    rdfs:domain building:EnergyPerformanceAssessment ;
+    rdfs:range ies:State ;
+    rdfs:comment "A relation that holds between a `building:EnergyPerformanceAssessment` and a `building:StructureUnitState` that is the target of the assessment." ;
+    rdfs:subPropertyOf ies:assessed .
+
+building:assessedClassCharacteristicForEnergyPerformance a owl:ObjectProperty ;
+    rdfs:label "assessed state for EPC" ;
+    rdfs:domain building:EnergyPerformanceAssessment ;
+    rdfs:range ies:Characteristic ;
+    rdfs:comment "A relation that holds between a `building:EnergyPerformanceAssessment` and a `ies:Characteristic` that is the target of the assessment." ;
+    rdfs:subPropertyOf ies:assessed .
+
+building:EnergyPerformanceAssessmentResult a rdfs:Class ;
+    rdfs:label "Energy Performance Assessment Result" ;
+    rdfs:comment "An `ies:EventParticipant` that is the result of an `building:EnergyPerformanceAssessment`.";
+    rdfs:subClassOf ies:EventParticipant .
+
+# building:EnergyPerformanceAssessmentResultState a rdfs:Class ;
+#     rdfs:label "Energy Performance Assessment Result State" ;
+#     ies:powertype building:ClassOfEnergyPerformanceCertificateState ;
+#     rdfs:comment "A temporal state of a `building:EnergyPerformanceAssessmentResult`." ;
+#     rdfs:subClassOf building:IndividualDocumentState .
+
+building:EnergyPerformanceCertificate a rdfs:Class ;
+    rdfs:label "Energy Performance Certificate" ;
+    rdfs:comment "A `ies:IndividualDocument` that is a certificate issued in the UK to provide evidence of a `building:EPCAssessment`." ;
+    rdfs:subClassOf ies:IndividualDocument .
+
+building:isValidPeriodOf a owl:ObjectProperty ;
+    rdfs:label "is the valid period of (EPC)" ;
+    rdfs:subPropertyOf ies:isStateOf ;
+    rdfs:domain ies:BoundingState ;
+    rdfs:range building:EnergyPerformanceCertificate ;
+    rdfs:comment "An `ies:isStateOf` relationship that asserts the start and end `ies:ParticularPeriod`s during which the certificate can be considered to be valid." ;
+    skos:note "This differs from the treatment in IES 4.3 RC in that it establishes a `ies:State` for the `EPCAssessment`." . 
+
+building:EPCValidity a rdfs:Class ;
+    rdfs:label "Energy Performance Certificate Validity" ;
+    rdfs:comment "An `ies:BoundingState` that asserts that an `building:EnergyPerformanceCertificate` is valid." ;
+    rdfs:subClassOf ies:BoundingState .
+
+building:EnvironmentalImpactRatingValue a rdfs:Class ;
+    rdfs:label "Environmental Impact Rating" ;
+    rdfs:comment "A `building:MeasureOfTheEnvironment` that is the rating of the environmental impact assessed by the UK EPC assessment process." ;
+    rdfs:subClassOf building:MeasureOfTheEnvironment .
+
+building:EnvironmentalImpactRatingCalculation a rdfs:Class ;
+    rdfs:label "Environmental Impact Rating Calculation" ;
+    rdfs:comment "An `ies:Assessment` that is the calculation of the environmental impact based on information provided during a `building:EPCAssessment`." ;
+    rdfs:subClassOf building:EnergyPerformanceAssessment .
+
+building:OpenFireplace a rdfs:Class ;
+    rdfs:label "Fireplace"@en ;
+    rdfs:comment """A `building:TechnicalSystem` that is designed to contain a fire for heating, ambiance, or cooking. Traditionally a fireplace is built into the wall of a room, and typically includes a firebox where the fire burns, a chimney or flue to vent smoke outside, and a hearth that extends into the room to protect the floor from heat.
+      """ ;
+    ies:powertype building:ClassOfOpenFireplace ;
+    rdfs:subClassOf building:HeatProductionSystem .
+
+building:Floor a rdfs:Class ;
+    rdfs:label "Floor"@en ;
+    ies:powertype building:ClassOfFloor ;
+    rdfs:comment """A `building:BuiltEntity` that is a horizontal structural component of a building that provides a surface for occupants to walk on and supports the load of furniture, fixtures, and other elements within a `building:Space`. Floors serve as physical boundaries between vertical levels in a multistory building and may also act as thermal, acoustic, or fire-resistant barriers. 
+    A floor is considered distinct when it:
+	  •	Separates different vertical levels in the building;
+	  •	Is constructed as an independent structural element;
+	  •	Serves a distinct function (e.g., parking deck, mezzanine);
+	  •	Uses a different material or construction method; or
+	  •	Is divided by a significant opening or void that results in independent sections.""" ;
+    rdfs:seeAlso <https://search.bsdd.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcCoveringFLOORING>,
+        <https://search.bsdd.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcSlabFLOOR> ;
+    rdfs:subClassOf building:BuiltEntity,
+        building:FloorState .
+
+building:FloorArea a rdfs:Class ;
+    rdfs:label "Floor Area" ;
+    rdfs:comment "An `ies:Measure` that is the area of the `building:Floor` of a  `building:Structure`." ;
+    rdfs:subClassOf ies:Measure .
+
+building:estimateOfEnergyCost a owl:ObjectProperty ;
+    rdfs:label "Estimated Energy Cost" ;
+    rdfs:comment "An `ies:transferValue` that is the estimated cost associated with energy provision, such as the projected domestic heating cost." ;
+    rdfs:domain building:StructureUnitState ;
+    rdfs:range ies:AmountOfMoney ;
+    rdfs:subPropertyOf ies:transferValue .
+
+building:emitsChemical a owl:ObjectProperty ;
+    rdfs:label "emits the chemical" ;
+    rdfs:comment "A relationship that asserts the end of the emission event of a chemical compound" ;
+    rdfs:domain ies:BoundingState ;
+    rdfs:range building:ChemicalCompoundPortion .
+
+building:FloorConstruction a rdfs:Class ;
+    rdfs:label "Floor By Construction"@en ;
+    rdfs:comment "A `building:ClassOfFloor` that is a classifier of `building:Floor` by the method of construction. Instances of this class are `rdfs:subClass(es)`Of `building:Floor`." ;
+    rdfs:subClassOf building:ClassOfFloor .
+
+building:FloorInsulation a rdfs:Class ;
+    rdfs:label "Floor By Insulation"@en ;
+    rdfs:comment "A `building:ClassOfFloor` that is classifier of `building:Floor` by the type of insultation.  Instances of this class are `rdfs:subClass(es)Of` `building:Floor`." ;
+    rdfs:subClassOf building:ClassOfFloor .
+
+# building:FloorOfAStructureUnit a rdfs:Class ;
+#     rdfs:label "The floor of a structure unit" ;
+#     building:eachIsPartOf building:StructureUnitState ;
+#     rdfs:comment "A `building:ClassOfFloor` whose elements are the parts of the `building:Floor`s which bound all the `building:PhysicallyBoundedSpaces`s of a `building:StructureUnit`." ;
+#     rdfs:subClassOf building:ClassOfFloor .
+
+building:FloorState a rdfs:Class ;
+    rdfs:label "Floor State"@en ;
+    rdfs:comment "The temporal State of a `building:Floor`." ;
+    rdfs:subClassOf building:BuiltEntityState .
+
+building:GlazingType a rdfs:Class ;
+    rdfs:label "Window By Glazing Type" ;
+    rdfs:comment "A `building:ClassOfWindow` that classifies of `building:Window` by glazing type.  instances of this class are `rdfs:subClass(es)Of` `buildiing:Window`." ;
+    rdfs:subClassOf building:ClassOfWindow .
+
+building:IndividualDocumentState a rdfs:Class ;
+    rdfs:label "Individual Document State" ;
+    ies:powertype building:ClassOfIndividualDocumentState ;
+    rdfs:comment "An `ies:AssetState` that is a temporal state of a `ies:IndividualDocument`." ;
+    rdfs:subClassOf ies:AssetState .
+
+building:LevelInStructure a rdfs:Class ;
+    rdfs:label "Level In Structure" ;
+    rdfs:comment "An `ies:GeoIdentity` used to identify the level of a `building:Storey` in a `building:Structure`." ;
+    rdfs:subClassOf ies:GeoIdentity .
+
+building:FunctionalClassOfStructureUnitState a rdfs:Class ;
+    rdfs:label "Main Purpose Of Use" ;
+    rdfs:comment "A `building:ClassOfStructureUnitState` that is a classifier of `building:StructureUnitState` that defines the main purpose for which a `building:StructureUnit` is being used.  Instance of this class are `building:StructureUnitState`s." ;
+    rdfs:subClassOf building:ClassOfStructureUnitState .
+
+building:MeasureOfTheEnvironment a rdfs:Class ;
+    rdfs:label "Measure Of The Environment" ;
+    rdfs:comment "An `ies:Measure` that is the state of the environment or the impact of human activity on the environment." ;
+    rdfs:subClassOf ies:Measure .
+
+building:NormalCalendarYear a rdfs:Class ;
+    rdfs:label "Normal Calendar Year" ;
+    rdfs:comment "An `ies:Duration` that is 365 days long" ;
+    rdfs:subClassOf ies:Duration .
+
+building:PhysicallyBoundedSpace a rdfs:Class ;
+    rdfs:label "Physically Bounded Space" ;
+    rdfs:comment "A `building:Space` that has physical boundaries.  Usually, in the form of Walls, Roof, and Floor." ;
+    rdfs:subClassOf building:Space .
+
+building:InteriorOfAStructureUnit a rdfs:Class ;
+    rdfs:label "Interior Of A Structure Unit" ;
+    rdfs:comment "A `building:PhysicallyBoundedSpace` that is the complete interior space of some `building:StructureUnit`." ;
+    building:eachMemberIsPartOfSomeMemberOf building:StructureUnit ;
+    rdfs:subClassOf building:PhysicallyBoundedSpace .
+
+building:Roof a rdfs:Class ;
+    rdfs:label "Roof"@en ;
+    ies:powertype building:ClassOfRoof ;
+    rdfs:comment "A `building:BuiltEntity` that is the uppermost part of a `building:StructureOrStructureUnit` that provides protection against weather elements such as rain, snow, sunlight, and wind. It serves as a barrier between the interior of the `building:Structure` and the external environment, contributing to the structural integrity, thermal insulation, and aesthetic appearance.  In the case of a `building:StructureUnit`, it may only separate from the `building:StructureUnit` above." ;
+    rdfs:seeAlso <https://search.bsdd.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcCoveringROOFING>,
+        <https://search.bsdd.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcSlabROOF> ;
+    rdfs:subClassOf building:BuiltEntity,
+        building:RoofState .
+
+building:RoofConstruction a rdfs:Class ;
+    rdfs:label "Roof By Construction"@en ;
+    rdfs:comment "A `building:ClassOfRoof` that is a classifier of `building:Roof` by the construction methods used.  Instances of this class are `rdfs:subClass(es)Of` `building:Roof`." ;
+    rdfs:subClassOf building:ClassOfRoof .
+
+building:RoofInsulationLocation a rdfs:Class ;
+    rdfs:label "Roof By Insulation Location" ;
+    rdfs:comment "A `building:ClassOfRoof` that is a classifier of `building:Roof` by the location of the insulation. Instances of this class are `rdfs:subClass(es)Of` `building:Roof`." ;
+    rdfs:subClassOf building:ClassOfRoof .
+
+building:RoofInsulationThickness a rdfs:Class ;
+    rdfs:label "Roof By Insultation Thickness" ;
+    rdfs:comment "A `building:ClassOfRoof` that is a classifier of `building:Roof` by the thickness of the insulation used. Instances of this class are `rdfs:subClass(es)Of` `building:Roof`." ;
+    rdfs:subClassOf building:ClassOfRoof .
+
+building:RoofState a rdfs:Class ;
+    rdfs:label "Roof State"@en ;
+    ies:powertype building:ClassOfRoofState ;
+    rdfs:comment "A `building:BuiltEntityState` that is the temporal state of the `building:BuiltEntity`." ;
+    rdfs:subClassOf building:BuiltEntityState .
+
+building:EnvironmentalImpactRating a rdfs:Class ;
+    rdfs:label "Environmental Impact Rating" ;
+    rdfs:comment "A `building:ClassOfStructureUnitState` that is a classifier `building:StructureUnitState` by the 'building:EnvironmentalImpactValue'" ;
+    rdfs:subClassOf building:ClassOfStructureUnitState .
+
+building:SAPRating a rdfs:Class ;
+    rdfs:label "SAPRating" ;
+    rdfs:comment "A `building:ClassOfStructureUnitState`.  The Standard Assessment Procedure (SAP) rating is a numerical measure used in the United Kingdom to assess and communicate the energy efficiency and environmental performance of residential buildings. It takes into account factors like insulation, heating systems, ventilation, and renewable energy sources to determine a building's energy efficiency. The higher the SAP rating, the more energy-efficient the building is, with the aim of reducing carbon emissions and promoting sustainable construction practices." ;
+    rdfs:subClassOf  building:ClassOfStructureUnitState . # building:MeasureOfTheEnvironment .
+
+building:SAPRatingValue a rdfs:Class ;
+    rdfs:label "SAP Rating Value" ;
+    rdfs:comment "A `building:MeasureOfTheEnvironment` that is the result SAP Rating Calculation" ;
+    rdfs:subClassOf building:MeasureOfTheEnvironment .
+
+building:SAPRatingCalculation a rdfs:Class ;
+    rdfs:label "SAP Rating Calculation" ;
+    rdfs:comment "An `ies:Assessment` that is the calculation of the SAP Rating based on details provide during the `building:EPCAssessment`." ;
+    rdfs:subClassOf building:EnergyPerformanceAssessment .
+
+building:isBoundedBy a owl:ObjectProperty ;
+    rdfs:label "is bounded by" ;
+    rdfs:comment "A relationship that obtains between an instance of `building:PhysicallyBoundedSpace` and `building:BuiltEntitySection` in which they enclose the `building:PhysicallyBoundedSpace`." ;
+    rdfs:domain building:PhysicallyBoundedSpace ;
+    rdfs:range building:BuiltEntitySection .
+
+building:Space a rdfs:Class ;
+    rdfs:label "Space" ;
+    ies:powertype building:ClassOfSpace ;
+    rdfs:comment "An `ies:Entity` that is a volume or area bounded some `building:WallSection`, `building:FloorSection`, or `building:RoofSection`. 'Space' is a common term in architecture." ;
+    rdfs:seeAlso <https://search.bsdd.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcSpace> ;
+    rdfs:subClassOf building:SpaceState, 
+        ies:Entity ,
+        building:StructureUnitOrSpace .
+
+building:SpaceState a rdfs:Class ;
+    rdfs:label "Space State" ;
+    ies:powertype building:ClassOfSpaceState ;
+    rdfs:comment "An `ies:State` that is the temporal state of `building:Space`." ;
+    rdfs:subClassOf ies:State .
+
+building:StructureUnitOrSpace a rdfs:Class ;
+    rdfs:label "Structure Unit Or Space" ;
+    ies:powertype building:ClassOfStructureUnitOrSpace ;
+    rdfs:comment "An `ies:Entity` that is either a `building:Space` or a `building:StructureUnit`." ;
+    rdfs:seeAlso <https://search.bsdd.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcSpace> ;
+    rdfs:subClassOf ies:Entity,
+        building:StructureUnitOrSpaceState .
+
+building:StructureUnitOrSpaceState a rdfs:Class ;
+    rdfs:label "Space State" ;
+    ies:powertype building:ClassOfSpaceState ;
+    rdfs:comment "An `ies:State` that is the temporal state of `building:StructureUnitOrSpace`." ;
+    rdfs:subClassOf ies:State .
+
+building:allWallsMembersOf a rdfs:ObjectProperty ;
+    rdfs:comment "Relates a building:StructureUnitOrSpaceState to a building:ClassOfWall, with the intended semantics that in the given state, every wall associated with the structure is a member of the specified class (e.g., a finite class of insulated walls)." ;
+    rdfs:domain building:StructureUnitOrSpaceState ;
+    rdfs:range building:ClassOfWall .
+
+building:allFloorsMembersOf a rdfs:ObjectProperty ;
+    rdfs:comment "Relates a building:StructureUnitOrSpaceState to a building:ClassOfFloor, with the intended semantics that in the given state, every floor associated with the structure is a member of the specified class (e.g., a finite class of insulated floors)." ;
+    rdfs:domain building:StructureUnitOrSpaceState ;
+    rdfs:range building:ClassOfFloor .
+
+building:allRoofsMembersOf a rdfs:ObjectProperty ;
+    rdfs:comment "Relates a building:StructureUnitOrSpaceState to a building:ClassOfRoof, with the intended semantics that in the given state, every roof associated with the structure is a member of the specified class (e.g., a finite class of insulated roofs)." ;
+    rdfs:domain building:StructureUnitOrSpaceState ;
+    rdfs:range building:ClassOfRoof .
+
+building:allWindowsMembersOf a rdfs:ObjectProperty ;
+    rdfs:comment "Relates a building:StructureUnitOrSpaceState to a building:ClassOfWindow, with the intended semantics that in the given state, every window associated with the structure is a member of the specified class (e.g., a finite class of insulated roofs)." ;
+    rdfs:domain building:StructureUnitOrSpaceState ;
+    rdfs:range building:ClassOfWindow .
+
+building:allFirePlacesMembersOf a rdfs:ObjectProperty ;
+    rdfs:comment "Relates a building:StructureUnitOrSpaceState to a building:ClassOfFireplace, with the intended semantics that in the given state, every fire place associated with the structure is a member of the specified class (e.g., a finite class of closed fireplaces)." ;
+    rdfs:domain building:StructureUnitOrSpaceState ;
+    rdfs:range building:ClassOfFireplace .
+
+building:Storey a rdfs:Class ;
+    rdfs:label "Storey"@en ;
+    building:eachMemberHasPartSomeMemberOf building:Space ;
+    building:eachMemberIsPartOf building:StructureState ;
+    ies:powertype building:ClassOfStorey ;
+    rdfs:comment "An `ies:Entity` that is a (primarily) horizontal aggregation of `building:Space`s, vertically delimited by structural boundaries such as floors and ceilings."@en ;
+    rdfs:seeAlso <https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcBuildingStorey> ;
+    rdfs:subClassOf building:StoreyState,
+        ies:Entity .
+
+building:StoreyState a rdfs:Class ;
+    rdfs:label "Storey State"@en ;
+    ies:powertype building:ClassOfStoreyState ;
+    rdfs:comment "An `ies:State` that is the temporal State of a Storey." ;
+    rdfs:subClassOf ies:State .
+
+building:Structure a rdfs:Class ;
+    rdfs:label "Structure" ;
+    ies:powertype building:ClassOfStructure ;
+    rdfs:comment "An `ies:Entity` that is human-made, has a defined shape and stability and is meant to protect a region of space from atmospheric agents; a structure can exist in different states over time.  The `building:Space` that is enclosed by a structure is often divided into smaller `building:Space`s by various arrangement of `building:BuiltElements`." ;
+    rdfs:subClassOf building:StructureState,
+        ies:Entity .
+
+building:StructureState a rdfs:Class ;
+    rdfs:label "Structure State" ;
+    ies:powertype building:ClassOfStructureState ;
+    rdfs:comment "An `ies:State` that is the temporal state of a `building:Structure`." ;
+    rdfs:subClassOf ies:State .
+
+building:StructureUnitType a rdfs:Class ;
+    rdfs:label "Structure Unit Type" ;
+    rdfs:comment "A `building:ClassOfStructureUnit` that is a classifier of `building:StructureUnitState` that defines the type of the `building:StructureUnit`." ;
+    rdfs:subClassOf building:ClassOfStructureUnitState .
+
+building:StructureUnit a rdfs:Class ;
+    rdfs:label "Structure Unit (Collection of building:Space)" ;
+    building:eachMemberHasPartSomeMemberOf building:Space ;
+    building:eachMemberIsPartOf building:StructureState ;
+    ies:powertype building:ClassOfStructureUnit ;
+    rdfs:comment "An `ies:Asset` that is the mereological sum of `buildling:Space`(s) meaning, a `building:StructureUnit` consists of `building:Space`s and the parts of those `building:Spaces`.  A unit typically may have shared or auxiliary spaces that support the primary function of the unit." ;
+    rdfs:subClassOf building:StructureUnitState,
+        ies:Asset, building:StructureUnitOrSpace .
+
+building:StructureUnitState a rdfs:Class ;
+    rdfs:label "Structure Unit State" ;
+    rdfs:comment "An ies:State` that is the temporal state of `building:StructureUnit`" ;
+   ies:powertype building:ClassOfStructureUnitState ;
+    rdfs:subClassOf ies:State, building:StructureUnitOrSpaceState .
+
+building:UDPRN a rdfs:Class ;
+    rdfs:label "UDPRN" ;
+    rdfs:comment "An `ies:GeoIdentity` that is the UK Royal Mail’s Unique Delivery Point Reference Number (UDPRN)." ;
+    rdfs:subClassOf ies:GeoIdentity .
+
+building:UKDomesticEPC a rdfs:Class ;
+    rdfs:label "UK Domestic EPC" ;
+    rdfs:comment "A `building:UK_EPC` that is for residential properties. If someone is selling or renting out a home, they'll need a Domestic EPC for potential buyers or tenants to view." ;
+    rdfs:subClassOf building:UK_EPC .
+
+building:UKNonDomesticEPC a rdfs:Class ;
+    rdfs:label "UK Non-Domestic EPC" ;
+    rdfs:comment "A `building:UK_EPC` that is for commercial properties, such as offices, shops, or industrial buildings. If a commercial property is being sold, rented, or built, a Non-Domestic EPC is usually required." ;
+    rdfs:subClassOf building:UK_EPC .
+
+building:UK_DOM_EPC_G a rdfs:Class ;
+    ies:representationValue "G" ;
+    rdfs:label "UK Domestic EPC G" ;
+    rdfs:comment "A `building:UKDomesticEPC` that is the result of a `building:EPCAssessment` assessed as grade G, corresponding to a `building:SAPRating` of between 1 and 20.  " ;
+    rdfs:subClassOf  building:UKDomesticEPC .
+
+building:UK_DOM_EPC_F a rdfs:Class ;
+    rdfs:label "UK Domestic EPC F" ;
+    ies:representationValue "F" ;
+    rdfs:comment "A `building:UKDomesticEPC` that is the result of a `building:EPCAssessment` assessed as grade F, corresponding to a `building:SAPRating` of between 21 and 38.  " ;
+    rdfs:subClassOf  building:UKDomesticEPC .
+
+building:UK_DOM_EPC_E a rdfs:Class ;
+    rdfs:label "UK Domestic EPC E" ;
+    ies:representationValue "E" ;
+    rdfs:comment "A `building:UKDomesticEPC` that is the result of a `building:EPCAssessment` assessed as grade E, corresponding to a `building:SAPRating` of between 39 and 54." ;
+    rdfs:subClassOf  building:UKDomesticEPC .
+
+building:UK_DOM_EPC_A a rdfs:Class ;
+    rdfs:label "UK Domestic EPC A" ;
+    ies:representationValue "A" ;
+    rdfs:comment "A `building:UKDomesticEPC` that is the result of a `building:EPCAssessment` assessed as grade A, corresponding to a `building:SAPRating` of between 92 and 100.  " ;
+    rdfs:subClassOf  building:UKDomesticEPC .
+
+building:UK_DOM_EPC_B a rdfs:Class ;
+    rdfs:label "UK Domestic EPC B" ;
+    ies:representationValue "B" ;
+    rdfs:comment "A `building:UKDomesticEPC` that is the result of a `building:EPCAssessment` assessed as grade B, corresponding to a `building:SAPRating` of between 81 and 91.  " ;
+    rdfs:subClassOf  building:UKDomesticEPC .
+
+building:UK_DOM_EPC_C a rdfs:Class ;
+    rdfs:label "UK Domestic EPC C" ;
+    ies:representationValue "C" ;
+    rdfs:comment "A `building:UKDomesticEPC` that is the result of a `building:EPCAssessment` assessed as grade C, corresponding to a `building:SAPRating` of between 69 and 80.  " ;
+    rdfs:subClassOf  building:UKDomesticEPC .
+
+building:UK_DOM_EPC_D a rdfs:Class ;
+    rdfs:label "UK Domestic EPC D" ;
+    ies:representationValue "D" ;
+    rdfs:comment "A `building:UKDomesticEPC` that is the result of a `building:EPCAssessment` assessed as grade D, corresponding to a `building:SAPRating` of between 55 and 68.  " ;
+    rdfs:subClassOf  building:UKDomesticEPC .
+
+building:UK_EPC a rdfs:Class ;
+    rdfs:label "UK Energy Performance Certificate" ;
+    rdfs:comment "A `building:EnergyPerformanceCertificate` that is a document in the UK that provides information about a property's energy use and typical energy costs. It also offers recommendations on how to reduce energy and save money. Properties are rated on a scale from A (most efficient) to G (least efficient), and the certificate is required when selling or renting a property.  Since the same methodologies (SAP and RdSAP) are used, the EPC ratings and values assigned are comparable across all home nations. This means an EPC rating of 'A' in England represents the same level of energy efficiency as an 'A' rating in Scotland, Wales, or Northern Ireland." ;
+    rdfs:subClassOf building:EnergyPerformanceCertificate ;
+    skos:note "The same methodologies (SAP and RdSAP) are used across the UK, the EPC ratings and values assigned are comparable." .
+
+building:UK_EPC_Identifier a rdfs:Class ;
+    rdfs:label "UK EPC Identifier" ;
+    rdfs:comment "A `ies:Identifier` that is used to identify a `building:UK_EPC`" ;
+    rdfs:subClassOf ies:Identifier .
+
+building:UPRN a rdfs:Class ;
+    rdfs:label "UPRN" ;
+    rdfs:comment "An `ies: GeoIdentity` that is a unique numeric identifier for every addressable location in Great Britain. The UPRN is the persistent identifier providing consistency across the AddressBase product range. Each address record has a UPRN, assigned by Local Authorities in England, Wales and Scotland or Ordnance Survey depending on the type of address. This is the primary key of the AddressBase product. Throughout its lifecycle, information on the address of a property can change. This may be due to a change of name, change of use, or the eventual demolition of the property. Independent of any changes being made the UPRN associated to an address is never changed, meaning the unique identifier remains persistent and reliable" ;
+    rdfs:subClassOf ies:GeoIdentity ;
+    skos:note """UPRN can regarded an identifer of a whole-life Entity.  
+    'UPRNs provide every property or object with a unique identifier 
+    throughout its lifecycle, from planning through to demolition.'""" ;
+    skos:seeAlso <https://www.geoplace.co.uk/blog/2020/so-what-are-these-uprns-and-usrns-that-everyone-is-talking-about> .
+
+building:VentilationClass a rdfs:Class ;
+    rdfs:label "StructureUnit by Ventilation" ;
+    rdfs:comment "A `building:ClassOfStructureUnit` that is a classifier of `building:StructureUnit` by the type of ventilation of the `building:StructureUnit`." ;
+    rdfs:subClassOf building:ClassOfStructureUnitState .
+
+building:Wall a rdfs:Class ;
+    rdfs:label "Wall"@en ;
+    ies:powertype building:ClassOfWall ;
+    rdfs:comment "A `building:BuiltEntity` that is a vertical structure that defines and encloses spaces within a building, providing support, shelter, and separation. Walls can be load-bearing, contributing to the structural integrity of the building, or non-load-bearing, primarily serving to divide interior spaces.  While openings (e.g., doors, windows) modify the geometry of a wall, they do not inherently divide it into separate entities unless the sections on either side of the opening are structurally, functionally, or materially distinct." ;
+    skos:example """
+    A Long Facade Wall With Windows:
+	
+    A 20m-long external wall contains 5 windows, is still one wall because:
+	  •	The material, structure, and function are consistent throughout.
+	  •	The windows are just modifications (openings) in the wall’s geometry.
+    """ ;
+    skos:example """
+    A Wall with a Large Sliding Door:
+	
+    An internal partition wall contains a large sliding door opening (e.g., 4m wide), is still one wall unless:
+	  •	The sections on either side of the opening are made of different materials (e.g., drywall on one side, glass on the other).
+	  •	The wall is structurally independent on either side of the opening.
+    """ ;
+    skos:example """
+    """ ;
+    skos:note "Treat walls as divided only when there’s a clear structural, functional, or material reason." ;
+    rdfs:seeAlso <https://search.bsdd.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcWall> ;
+    rdfs:subClassOf building:BuiltEntity,
+        building:WallState .
+
+building:BuiltEntitySection a rdfs:Class ;
+    rdfs:comment "A `building:BuiltEntity that is a section of `building:Wall` contained within a boundary, according to some coordinate reference system. A `building:BuiltEntitySection` is part of the `building:BuiltEntity` and may be distinguished based on geometry, material, or function, but remains part of the overall `building:BuiltEntity`." ;
+    rdfs:label "Built Entity Section" ;
+    building:eachMemberIsPartOfSomeMemberOf building:BuiltEntity ;
+    rdfs:subClassOf building:BuiltEntity, building:BuiltEntitySectionState .
+
+building:BuiltEntitySectionState a rdfs:Class ;
+    rdfs:label "Wall Section State" ;
+    rdfs:comment "A `building:BuiltEntityState` that is the state of the `building:BuiltEntitySection` from time to time." ;
+    rdfs:subClassOf building:BuiltEntityState .
+
+building:WallSection a rdfs:Class ;
+    rdfs:comment "A `building:BuiltEntity that is a section of `building:Wall` contained within a boundary, according to some coordinate reference system. A `building:WallSection` is part of the `building:Wall` and may be distinguished based on geometry, material, or function, but remains part of the overall `building:Wall`." ;
+    rdfs:label "Wall Section" ;
+    ies:powertype building:ClassOfWallSection ;
+    rdfs:subClassOf building:BuiltEntitySection, building:WallSectionState .
+
+building:ClassOfWallSection a rdfs:Class ;
+    rdfs:comment "A `building:ClassOfBuiltEntity` that classifies `building:WallSection`.  Instances of this class are `rdfs:subClassOf` `building:WallSection` " ;
+    rdfs:label "Class Of Wall Section" ;
+    rdfs:subClassOf building:ClassOfBuiltEntity .
+
+building:WallSectionState a rdfs:Class ;
+    rdfs:label "Wall Section State" ;
+    rdfs:comment "A `building:BuiltEntityState` that is the state of the `building:WallSection` from time to time." ;
+    ies:powertype building:ClassOfWallSectionState ;
+    rdfs:subClassOf building:BuiltEntitySectionState .
+
+building:ClassOfWallSectionState a rdfs:Class ;
+    rdfs:comment "A `building:ClassOfBuiltEntity` that classifies `building:WallSectionState`.  Instances of this class are `rdfs:subClassOf` `building:WallSectionState` " ;
+    rdfs:label "Class Of Wall Section State" ;
+    rdfs:subClassOf building:ClassOfBuiltEntity .
+
+building:FloorSection a rdfs:Class ;
+    rdfs:comment "A `building:BuiltEntity that is a section of `building:Floor` contained within a boundary, according to some coordinate reference system. A `building:FloorSection` is part of the `building:Floor` and may be distinguished based on geometry, material, or function, but remains part of the overall `building:Floor`." ;
+    rdfs:label "Floor Section" ;
+    ies:powertype building:ClassOfFloorSection ;
+    rdfs:subClassOf building:BuiltEntitySection, building:FloorSectionState .
+
+building:FloorSectionState a rdfs:Class ;
+    rdfs:label "Floor Section State" ;
+    rdfs:comment "A `building:BuiltEntityState` that is the state of the `building:FloorSection` from time to time." ;
+    rdfs:subClassOf building:BuiltEntityState .
+
+building:RoofSection a rdfs:Class ;
+    rdfs:comment "A `building:BuiltEntity that is a section of `building:Roof` contained within a boundary, according to some coordinate reference system. A `building:RoofSection` is part of the `building:Roof` and may be distinguished based on geometry, material, or function, but remains part of the overall `building:Roof`." ;
+    rdfs:label "Roof Section" ;
+    ies:powertype building:ClassOfRoofSection ;
+    rdfs:subClassOf building:BuiltEntitySection, building:RoofSectionState .
+
+building:ClassOfRoofSection a rdfs:Class ;
+    rdfs:comment "A `building:ClassOfBuiltEntity` that classifies `building:RoofSection`.  Instances of this class are `rdfs:subClassOf` `building:RoofSection` " ;
+    rdfs:label "Class Of Roof Section" ;
+    rdfs:subClassOf building:ClassOfBuiltEntity .
+
+building:RoofSectionState a rdfs:Class ;
+    rdfs:label "Roof Section State" ;
+    rdfs:comment "A `building:BuiltEntityState` that is the state of the `building:RoofSection` from time to time." ;
+    rdfs:subClassOf building:BuiltEntitySectionState .
+
+building:ClassOfRoofSectionState a rdfs:Class ;
+    rdfs:comment "A `building:ClassOfBuiltEntityState` that classifies `building:RoofSectionState`.  Instances of this class are `rdfs:subClassOf` `building:RoofSectionState` " ;
+    rdfs:label "Class Of Roof Section" ;
+    rdfs:subClassOf building:ClassOfBuiltEntityState .
+
+building:WallConstruction a rdfs:Class ;
+    rdfs:label "Wall By Construction"@en ;
+    rdfs:comment "A `building:ClassOfWall` that is a classifier of `building:Wall` by construction method.  Instances of this class are `rdfs:subClass(es)Of` `building:Wall`." ;
+    rdfs:subClassOf building:ClassOfWall .
+
+building:WallInsulation a rdfs:Class ;
+    rdfs:label "Wall By Insulation"@en ;
+    rdfs:comment "A `building:ClassOfWall` that is a classifier of `building:Wall` by insulation.  Instances of this calss are `rdfs:subClass(es)Of` `building:Wall`." ;
+    rdfs:subClassOf building:ClassOfWall .
+
+building:WallState a rdfs:Class ;
+    rdfs:label "Wall State"@en ;
+    ies:powertype building:ClassOfWallState ;
+    rdfs:comment "A `building:BuiltEntityState` that is the temporal State of a `building:Wall`." ;
+    rdfs:subClassOf building:BuiltEntityState .
+
+building:Window a rdfs:Class ;
+    rdfs:label "Window"@en ;
+    ies:powertype building:ClassOfWindow ;
+    rdfs:comment "A `building:BuiltEntity` that allows the passage of light, air, and sound into a space while providing a view to the outside, often framed and made from transparent or translucent materials such as glass, and designed to be opened or closed to control ventilation and maintain environmental comfort." ;
+    rdfs:seeAlso <https://search.bsdd.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcWindow> ;
+    rdfs:subClassOf building:BuiltEntity,
+        building:WindowState .
+
+building:WindowState a rdfs:Class ;
+    rdfs:label "Window State"@en ;
+    ies:powertype building:ClassOfWindowState ;
+    rdfs:comment "A `building:BuiltEntityState` that is the temporal State of a `building:Window`." ;
+    rdfs:subClassOf building:BuiltEntityState .
+
+building:0mm_Insulation a building:RoofInsulationThickness ;
+    rdfs:label "0mm Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationThickness` that meets a specification of 0mm thickness" .
+
+building:100mm_Insulation a building:RoofInsulationThickness ;
+    rdfs:label "100mm Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationThickness` that meets a specification of 100mm" .
+
+building:12mm_Insulation a building:RoofInsulationThickness ;
+    rdfs:label "12mm Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationThickness` that meets a specification of 12mm" .
+
+building:150mm_Insulation a building:RoofInsulationThickness ;
+    rdfs:label "150mm Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationThickness` that meets a specification of 150mm" .
+
+building:200mm_Insulation a building:RoofInsulationThickness ;
+    rdfs:label "200mm Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationThickness` that meets a specification of 200mm" .
+
+building:250mm_Insulation a building:RoofInsulationThickness ;
+    rdfs:label "250mm Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationThickness` that meets a specification of 250mm" .
+
+building:25mm_Insulation a building:RoofInsulationThickness ;
+    rdfs:label "25mm Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationThickness` that meets a specification of 25mm" .
+
+building:270mm_Insulation a building:RoofInsulationThickness ;
+    rdfs:label "270mm Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationThickness` that meets a specification of 270mm" .
+
+building:300mm_Insulation a building:RoofInsulationThickness ;
+    rdfs:label "300mm Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationThickness` that meets a specification of 300mm" .
+
+building:350mm_Insulation a building:RoofInsulationThickness ;
+    rdfs:label "350mm Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationThickness` that meets a specification of 350mm" .
+
+building:400mm_Insulation a building:RoofInsulationThickness ;
+    rdfs:label "400mm Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationThickness` that meets a specification of 400mm" .
+
+building:50mm_Insulation a building:RoofInsulationThickness ;
+    rdfs:label "50mm Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationThickness` that meets a specification of 50mm" .
+
+building:75mm_Insulation a building:RoofInsulationThickness ;
+    rdfs:label "75mm Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationThickness` that meets a specification of 75mm" .
+
+building:AnotherDwellingAbove a building:RoofConstruction ;
+    rdfs:label "Another Dwelling Above" ;
+    rdfs:comment "An instance of `building:RoofConstruction` indicating that the roof is in fact another dwelling on the level above." .
+
+building:AnotherDwellingBelow a building:FloorConstruction ;
+    rdfs:label "Another Dwelling Below" ;
+    rdfs:comment "An instance of `building:FloorConstruction` indicating that the floor is in fact another dwelling on the level below." .
+
+building:Bungalow a building:StructureUnitType ;
+    rdfs:label "Bungalow" ;
+    rdfs:comment "An instance of `building:StructureUnitType` that is a type of low-rise residential building, typically consisting of a single story or a partial second story built into a sloped roof. Bungalows are characterised by their compact layout, often featuring a broad, covered porch, wide eaves, and a low-pitched roof." ;
+    rdfs:subClassOf building:House .
+
+building:CavityWall a building:WallConstruction ;
+    rdfs:label "Cavity Wall" ;
+    rdfs:comment "An instance of `building:WallConstruction` that consists of two parallel walls, or \"leaves,\" separated by a cavity or gap. This gap, or cavity, is usually filled with insulating material and serves to reduce heat transfer through the wall, improve thermal insulation, and prevent moisture penetration." .
+
+building:CeilingInsulated a building:RoofInsulationLocation ;
+    rdfs:label "Ceiling Insulated" ;
+    rdfs:comment "An instance of `building:RoofInsulationLocation` where the `building:Roof` has insulation in the ceiling." .
+
+building:Cob a building:WallConstruction ;
+    rdfs:label "Cob" ;
+    rdfs:comment "An instance of `building:WallConstruction` that is a type of wall construction made from a natural building material composed of subsoil, water, fibrous organic material (typically straw), and sometimes lime. Cob is a traditional building method, particularly common in regions with suitable soil, and is known for its durability, thermal mass, and ability to regulate humidity." .
+
+building:Commercial a building:FunctionalClassOfStructureUnitState ;
+    rdfs:label "Commercial" ;
+    rdfs:comment "An instance of `building:FunctionalClassOfStructureUnitState` that states that the `building:StructureUnit` is used for business or commercial activities." ;
+    rdfs:subClassOf building:StructureUnitState .
+
+building:Detached a building:BuiltForm ;
+    rdfs:label "Detached" ;
+    rdfs:comment "An instance of `building:BuiltForm` that is a standalone residential building that is not attached to any other building or structure. It is typically designed for a single family, offering privacy and exclusive use of the surrounding land, which may include a garden, driveway, or garage. " ;
+    rdfs:subClassOf building:StructureUnitState .
+
+building:DomesticHeatingCostEstimate a building:DomesticEnergyRelatedCosts ;
+    rdfs:label "Domestic Heating Cost Estimate" ;
+    rdfs:comment "A `building:CostEstimate` that is an estimate of the cost of heating a domestic `building:StructureUnit`." ;
+    rdfs:subClassOf building:CostEstimate .
+
+building:DomesticLightingCostEstimate a building:DomesticEnergyRelatedCosts ;
+    rdfs:label "Domestic Lighting Cost Estimate" ;
+    rdfs:comment "A `building:CostEstimate` that is an estimate of the cost of lighting a domestic `building:StructureUnit`." ;
+    rdfs:subClassOf building:CostEstimate .
+
+building:DomesticWaterHeatingCostEstimate a building:DomesticEnergyRelatedCosts ;
+    rdfs:label "Domestic Water Heating Cost Estimate" ;
+    rdfs:comment "A `building:CostEstimate` that is an estimate of the cost of heating the water supply of a domestic `building:StructureUnit`." ;
+    rdfs:subClassOf building:CostEstimate .
+
+building:DoubleGlazing a building:GlazingType ;
+    rdfs:label "Double Glazing" ;
+    rdfs:comment "An instance of `building:GlazingType` that uses two panes of glass separated by a gap, usually filled with air or inert gas, to improve thermal insulation, reduce noise, and enhance energy efficiency.  " .
+
+building:DoubleGlazingAfter2002 a building:GlazingType ;
+    rdfs:label "Double Glazing After2002" ;
+    rdfs:comment "An instance of `building:GlazingType` that was manufactured after 2002.  In 2002 the UK, the government introduced changes to the Building Regulations, specifically Part L, which focused on energy conservation. These changes required that new or replacement windows (including double glazing) meet higher standards for thermal insulation." .
+
+building:DoubleGlazingBefore2002 a building:GlazingType ;
+    rdfs:label "Double Glazing Before2002" ;
+    rdfs:comment "An instance of `building:GlazingType` that was manufactured before 2002. In 2002 the UK, the government introduced changes to the Building Regulations, specifically Part L, which focused on energy conservation. These changes required that new or replacement windows (including double glazing) meet higher standards for thermal insulation." .
+
+building:TerraceHouse a building:BuiltForm ;
+    rdfs:label "Terrace House" ;
+    rdfs:comment "An instance of `building:BuiltForm` that is a `building:StructureUnit` that is part of a continuous row of identical or similar houses, sharing side walls with neighboring properties. These houses are typically built in a uniform architectural style and are common in densely populated urban areas." ;
+    rdfs:subClassOf building:StructureUnitState .
+
+building:EnclosedEndOfTerrace a building:BuiltForm ;
+    rdfs:label "Enclosed End Of Terrace" ;
+    rdfs:comment "An instance of `building:BuiltForm` that is a `building:TerraceHouse` that is at the end of a row, but has two rather than three external walls.  This could be through some addition like a conservatory." ;
+    rdfs:subClassOf building:TerraceHouse .
+
+building:EnclosedMidTerrace a building:BuiltForm ;
+    rdfs:label "Enclosed Mid Terrace" ;
+    rdfs:comment "An instance of `building:BuiltForm` that is a `building:TerraceHouse` that is not at the end of a row, but has one rather than two external walls.  This could be through some addition like a conservatory." ;
+    rdfs:subClassOf building:TerraceHouse .
+
+building:EndOfTerrace a building:BuiltForm ;
+    rdfs:label "End Of Terrace" ;
+    rdfs:comment "An instance of `building:BuiltForm` that is a `building:TerraceHouse` that is at the end of a row with three external walls." ;
+    rdfs:subClassOf building:TerraceHouse .
+
+building:ExternalInsulation a building:WallInsulation ;
+    rdfs:label "External Insulation" ;
+    rdfs:comment "An instance of `building:WallInsulation` that is a layer of insulating material applied to the exterior surface of a building's walls, typically covered with a protective and decorative finish. " .
+
+building:Flat a building:StructureUnitType ;
+    rdfs:label "Flat" ;
+    rdfs:comment "An instance `building:StructureType` that is a class of self-contained residential `building:StructureUnit` within a larger building, typically consisting of multiple rooms such as a living area, kitchen, bathroom, and one or more bedrooms. " ;
+    rdfs:subClassOf building:StructureUnitState .
+
+building:FlatRoof a building:RoofConstruction ;
+    rdfs:label "Flat Roof" ;
+    rdfs:comment "An instance of `building:RoofConstruction` that is a type of roof with a nearly level surface, typically having a slight pitch to allow for water drainage. " .
+
+building:GraniteOrWhinstone a building:WallConstruction ;
+    rdfs:label "Granite Or Whinstone" ;
+    rdfs:comment "An instance of `building:WallConstruction` that is a type of masonry wall constructed using granite blocks or stones. Granite is a hard, durable, and aesthetically appealing igneous rock known for its strength and resistance to weathering. " .
+
+building:House a building:StructureUnitType ;
+    rdfs:label "House" ;
+    rdfs:comment "An instance `building:StructureType` that is a class of self-contained residential `building:StructureUnit` which is a residential building designed primarily for living purposes, typically intended to accommodate a single household or family." ;
+    rdfs:subClassOf building:StructureUnitState .
+
+building:Insulated a building:RoofInsulationLocation ;
+    rdfs:label "Insulated (Roof)" ;
+    rdfs:comment "An instance of `building:RoofInsulationLocation` that simply asserts that the `building:Roof` is insulated." .
+
+building:InsulatedAssumed a building:RoofInsulationLocation ;
+    rdfs:label "Insulated Assumed" .
+
+building:InsulatedAtRafters a building:RoofInsulationLocation ;
+    rdfs:label "Insulated At Rafters" ;
+    rdfs:comment "An instance of `building:RoofInsulationLocation` that asserts that the insulation of the `building:Roof` is in the rafters.  Rafters are structural components of a roof, typically a sloped beam, that extends from the ridge or peak of the roof down to the eaves." .
+
+building:InsulatedFloor a building:FloorInsulation ;
+    rdfs:label "Insulated Floor" ;
+    rdfs:comment "An instance of `building:FloorInsulation` that is the class of `building:Floor` that are insulated." .
+
+building:InsulatedWall a building:WallInsulation ;
+    rdfs:label "Insulated Wall" ;
+    rdfs:comment "An instance of `building:WallInsulation` that is the class of `building:Wall` that are insulated." .
+    # rdfs:subClassOf building:Wall .
+
+building:InsulatedWithThatched a building:RoofInsulationLocation ;
+    rdfs:label "Insulated With Thatched" ;
+    rdfs:comment "An instance of `building:RoofInsulationLocation` that is the class of `building:Roof` with a thatch cover.  A thatched roof is a traditional roofing system made from natural materials such as straw, reed, or heather, layered to create a weatherproof covering." .
+
+building:InternalInsulation a building:WallInsulation ;
+    rdfs:label "Internal Insulation" ;
+    rdfs:comment "An instance of `building:WallInsultation` that is the class of `building:Wall` that has internal insulation.  An internally insulated wall is a type of wall construction where insulation is added to the interior side of the wall, typically between the wall's structural elements and the interior finish (such as drywall or plaster). " .
+
+building:LimitedFloorInsulation a building:FloorInsulation ;
+    rdfs:label "Limited Floor Insulation" ;
+    rdfs:comment "An instance of `building:FloorInsulation` that is the class of `building:Floor` with limited insulation." .
+
+building:LimitedInsulation a building:RoofInsulationLocation ;
+    rdfs:label "Limited Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationLocation` that is the class of `building:Roof` with limited insulation." .
+
+building:LimitedInsulationAssumed a building:RoofInsulationLocation ;
+    rdfs:label "Limited Insulation Assumed" ;
+    rdfs:comment "An instance of `building:FloorInsulation` that is the class of `building:Floor` with an assumed limited amount insulation." .
+
+building:LoftInsulation a building:RoofInsulationLocation ;
+    rdfs:label "Loft Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationLocation` that is the class of `building:Roof` with a loft that is insulated. A loft is a space located directly under the roof of a building, often referred to as an attic or garret." .
+
+building:Maisonette a building:StructureUnitType ;
+    rdfs:label "Maisonette" ;
+    rdfs:comment "An instance of `building:StructureType` that is the class of `StructureUnit`. A maisonette is a self-contained residential `building:StructureUnit` that occupies part of a larger `building:Building` and typically spans two or more floors. Maisonettes often have their own private entrance from the outside, rather than a shared hallway or lobby. It combines elements of both a house and an apartment, often featuring internal stairs and sometimes a small outdoor space like a balcony or garden." ;
+    rdfs:subClassOf building:Flat .
+
+building:MechanicalExtractOnly a building:VentilationClass ;
+    rdfs:label "Mechanical Extract Only" ;
+    rdfs:comment "An instance of `building:VentilationClass` that is a class of `building:StructureUnit` that has mechanical extract only ventilation." ;
+    rdfs:subClassOf building:StructureUnitState .
+
+building:MechanicalSupplyAndExtract a building:VentilationClass ;
+    rdfs:label "Mechanical Supply And Extract" ;
+    rdfs:comment "An instance of `building:VentilationClass` that is a class of `building:StructureUnit` that has both mechanical supply and mechanisms methods ventilation." ;
+    rdfs:subClassOf building:StructureUnitState .
+
+building:MidTerrace a building:BuiltForm ;
+    rdfs:label "Mid Terrace" ;
+    rdfs:comment "An instance of `building:BuiltForm` that is a `building:TerraceHouse` that is not at the end of a row, and has two external walls." ;
+    rdfs:subClassOf building:TerraceHouse .
+
+building:MoreThan300mm_Insulation a building:RoofInsulationThickness ;
+    rdfs:label "More Than300mm_ Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationThickness` that is the class of `building:Roof` with insulation that meets the specification of being thicker than 300mm." .
+
+building:MoreThan400mm_Insulation a building:RoofInsulationThickness ;
+    rdfs:label "More Than 400mm Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationThickness` that is the class of `building:Roof` with insulation that meets the specification of being thicker than 300mm." .
+
+building:NaturalVentilation a building:VentilationClass ;
+    rdfs:label "Natural Ventilation" ;
+    rdfs:comment "An instance of `building:VentilationClass` that is a class of `building:StructureUnit` that has natural ventilation." ;
+    rdfs:subClassOf building:StructureUnitState .
+
+building:NoInsulationAssumedInRoof a building:RoofInsulationLocation ;
+    rdfs:label "No Insulation Assumed In Roof" ;
+    rdfs:comment "An instance of `building:RoofInsulationLocation` that is the class of `building:Roof` of `building:StructureUnits` that are assumed not to have any insulation." .
+
+building:NoInsulationInFloor a building:FloorInsulation ;
+    rdfs:label "No Insulation In Floor" ;
+    rdfs:comment "An instance of `building:FloorInsulation` that is the class of `building:Floor` of `building:StructureUnits` that are not insulated." .
+
+building:NoInsulationInRoof a building:RoofInsulationLocation ;
+    rdfs:label "No Insulation In Roof" ;
+    rdfs:comment "An instance of `building:RoofInsulation` that is the class of `building:Roof` of `building:StructureUnits` that are not insulated." .
+
+building:NoInsulationInWall a building:WallInsulation ;
+    rdfs:label "No Insulation In Wall" ;
+    rdfs:comment "An instance of `building:WallInsulation` that is the class of `building:Wall` of `building:StructureUnits` that are not insulated." .
+
+building:OtherPremisesAbove a building:RoofConstruction ;
+    rdfs:label "Other Premises Above" ;
+    rdfs:comment "An instance of `building:RoofConstruction` that is the class of `building:Roof` consisting of another `building:StructureUnit` above forming the `building:Roof`." .
+
+building:OtherPremisesBelow a building:FloorConstruction ;
+    rdfs:label "Other Premises Below" ;
+    rdfs:comment "An instance of `building:FloorConstruction` that is the class of `building:Floor` consisting of another `building:StructureUnit` below forming the `building:Floor`." .
+
+building:ParkHomeWall a building:WallConstruction ;
+    rdfs:label "Park Home Wall" ;
+    rdfs:comment "An instance of `building:WallConstruction` that is the external wall structure of a park home, which is a type of prefabricated." .
+
+building:PartialInsulation a building:WallInsulation ;
+    rdfs:label "Partial Insulation" ;
+    rdfs:comment "An instance of `building:WallInsulation` that is a class of `building:Wall` that is not insulated in places." .
+
+building:PitchedRoof a building:RoofConstruction ;
+    rdfs:label "Pitched Roof" ;
+    rdfs:comment "An instance of `building:RoofConstruction` that is is a `building:Roof` with sloping surfaces, typically inclined at an angle greater than 10 degrees, which allows for efficient water runoff and can provide additional space under the roof, such as an attic or loft. " .
+
+building:ResidentialDwelling a building:FunctionalClassOfStructureUnitState ;
+    rdfs:label "Residential Dwelling" ;
+    skos:note "An instance of `building:FunctionalClassOfStructureUnitState` that is a class of `building:StructureUnitState` that is used primarily as a place for people to live. " ;
+    rdfs:comment "A structure unit state that is used primarily as a place for people to live" ;
+    rdfs:subClassOf building:StructureUnitState .
+
+building:RoofInsulation rdfs:label "Roof Insulation" ;
+    rdfs:comment "A `building:ClassOfRoof` that is a classifier of `building:Roof` by the construction methods used. Instances of this class are `rdfs:subClass(es)Of` `building:Roof`." ;
+    rdfs:subClassOf building:ClassOfRoof .
+
+building:RoofRooms a building:RoofConstruction ;
+    rdfs:label "Roof Rooms" ;
+    rdfs:comment "An instance of `building:RoofContruction` that includes an `building:PhysicallyBoundedSpace`" .
+
+building:Sandstone a building:WallConstruction ;
+    rdfs:label "Sandstone" ;
+    rdfs:comment "An instance of `building:WallConstruction` that is is a type of masonry wall constructed using sandstone blocks or stones. Sandstone is a sedimentary rock composed mainly of sand-sized mineral particles or rock fragments. " .
+
+building:SecondaryGlazing a building:GlazingType ;
+    rdfs:label "Secondary Glazing" ;
+    rdfs:comment "An instance of `building:GlazingType` that is  an additional window pane or glazing unit installed on the interior side of an existing window. It is typically used to enhance thermal insulation, reduce noise, and improve energy efficiency in `building:StructureUnit` without replacing the original `building:window`s." .
+
+building:SemiDetached a building:BuiltForm ;
+    rdfs:label "Semi Detached" ;
+    rdfs:comment "An instance of `building:BuiltForm` that is a `building:StructureUnit` that shares one common wall with an adjacent `building:StructureUnit`. This configuration means that the two `building:StructureUnit`s are mirror images of each other or designed similarly, each having its own separate entrance and private living space." ;
+    rdfs:subClassOf building:StructureUnitState .
+
+building:SingleGlazing a building:GlazingType ;
+    rdfs:label "Single Glazing" ;
+    rdfs:comment "An instance of `building:GlazingType` that is  a single pane of glass within the `building:Window`. " .
+
+building:Solid a building:FloorConstruction ;
+    rdfs:label "Solid" ;
+    rdfs:comment "An instance of `building:FloorConstruction` that is a type of floor construction made from a continuous, rigid material, typically concrete, laid directly onto the ground or on a solid base." .
+
+building:SolidBrick a building:WallConstruction ;
+    rdfs:label "Solid Brick" ;
+    rdfs:comment "An instance of `building:WallConstruction` that is a type of wall construction where the wall is built entirely from bricks without any internal cavity or gap." .
+
+building:Suspended a building:FloorConstruction ;
+    rdfs:label "Suspended" ;
+    rdfs:comment "An instance of `building:FloorConstruction` that is  a type of floor construction where the floor surface is raised above the ground level, supported by a framework of joists, beams, or other structural elements. Unlike solid floors, which are laid directly on the ground, suspended floors have an air space (void) between the ground and the floor surface." .
+
+building:SystemBuilt a building:WallConstruction ;
+    rdfs:label "System Built" ;
+    rdfs:comment "An instance of `building:WallConstruction` that is a type of wall construction that utilises prefabricated components or modules, which are manufactured off-site and then assembled on-site to create the wall " .
+
+building:ThatchedRoof a building:RoofConstruction ;
+    rdfs:label "Thatched Roof" ;
+    rdfs:comment "An instance of `building:RoofConstruction` that is a type of roof constructed from natural materials such as straw, reed, heather, or palm leaves, which are layered and bound together to create a weather-resistant covering." .
+
+building:ThatchedWithAdditionalInsulation a building:RoofInsulationLocation ;
+    rdfs:label "Thatched With Additional Insulation" ;
+    rdfs:comment "An instance of `building:RoofInsulationLocation` that has insulation materials in the roof in addition to the `building:Thatched` roof." .
+
+building:TimberFrame a building:WallConstruction ;
+    rdfs:label "Timber Frame" ;
+    rdfs:comment "An instance of `building:WallConstruction` that is a type of wall construction that uses a framework of timber (wood) as the primary structural element." .
+
+building:TripleGlazing a building:GlazingType ;
+    rdfs:label "Triple Glazing" ;
+    rdfs:comment "An instance of `building:GlazingType` that is a type of window that incorporates three panes of glass separated by air or gas-filled spaces, providing enhanced thermal insulation, soundproofing, and energy efficiency compared to single or double glazed windows. " .
+
+building:lodgementDate a owl:ObjectProperty ;
+    rdfs:label "Lodgement Date" ;
+    rdfs:comment "An `ies: ParticularPeriod ` that is the date on which the `building:EnergyPerformanceResult` was lodged into the Register." ;
+    rdfs:domain building:EnergyPerformanceAssessmentResult ;
+    rdfs:range ies:ParticularPeriod ;
+    rdfs:subPropertyOf ies:relationship .
+building:eachMemberIsPartOf a owl:ObjectProperty ;
+        rdfs:label "each Member Is Part Of" ;
+        rdfs:comment "The relation that obtains between a class of element C and an element e if and only every member of C is part of e" ;
+        rdfs:domain ies:ClassOfElement ;
+        rdfs:range ies:Element ;
+        rdfs:subPropertyOf ies:relationship .
+    
+building:eachMemberHasPartSomeMemberOf a owl:ObjectProperty ;
+        rdfs:label "each Member Has Part Some Member Of" ;
+        rdfs:comment "The relation that obtains between two classes of elements A and B if and only if each member of A has as part some member of B" ;
+        rdfs:domain ies:ClassOfElement ;
+        rdfs:range ies:ClassOfElement ;
+        rdfs:subPropertyOf ies:relationship .
+
+building:eachMemberIsPartOfSomeMemberOf a owl:ObjectProperty ;
+        rdfs:label "each Member Is Part Of Some Member Of" ;
+        rdfs:comment "The relation that obtains between two classes of elements A and B if and only if each member of A is part of some member of B" ;
+        rdfs:domain ies:ClassOfElement ;
+        rdfs:range ies:ClassOfElement ;
+        rdfs:subPropertyOf ies:relationship .
+
+building:eachMemberIsStateOf a owl:ObjectProperty ;
+        rdfs:label "each Member Is State Of" ;
+        rdfs:comment "The relation that obtains between a class of states C and an element e if and only if every member of C is state of e" ;
+        rdfs:domain ies:ClassOfState ;
+        rdfs:range ies:Element ;
+        rdfs:subPropertyOf ies:relationship .
+
+building:eachMemberIsStateOfSomeMemberOf a owl:ObjectProperty ;
+        rdfs:label "each Member Is State Of Some Member Of" ;
+        rdfs:comment "The relation that obtains between a class of states S and a class of elements E if and only if every member of S is a state of some member of E" ;
+        rdfs:domain ies:ClassOfState ;
+        rdfs:range ies:ClassOfElement ;
+        rdfs:subPropertyOf ies:relationship .
+
+building:eachMemberHasStateSomeMemberOf a owl:ObjectProperty ;
+        rdfs:label "each Member Has State Some Member Of" ;
+        rdfs:comment "The relation that obtains between a class of states S and a class of elements E if and only if every member of S has as state some member of E" ;
+        rdfs:domain ies:ClassOfState ;
+        rdfs:range ies:ClassOfElement ;
+        rdfs:subPropertyOf ies:relationship .
+
+building:assessedEachMemberOf a owl:ObjectProperty ;
+    rdfs:comment "The relation that obtains between an assessment a and a class of elements E if and only a has as target the members of E" ;
+    rdfs:domain ies:Assessment ;
+    rdfs:range ies:ClassOfElement .
+
+# building:assessedAs
+
+building:hasQuantity a owl:ObjectProperty ;
+    rdfs:label "hasQuantity"@en ;
+    rdfs:comment """
+      A relationship linking a Measure to a qudt:Quantity; 
+      QUDT, <http://qudt.org/schema/qudt/>, or Quantities, Units, Dimensions, 
+      and Types, is an ontology for describing 'semantic specifications for 
+      units of measure, quantity kind, dimensions and data types.'
+      """@en ;
+    rdfs:domain ies:Measure ;
+    rdfs:range <http://qudt.org/schema/qudt/Quantity> ;
+    skos:note "Expected in IES 4.4" .
+
+building:hasParentUPRN a owl:ObjectProperty ;
+    rdfs:label "has Parent UPRN" ;
+    rdfs:comment "An `ies:isPartOf` relationship that allows for UPRNs to group into a hierarchy" ;
+    rdfs:domain building:UPRN ;
+    rdfs:range building:UPRN ;
+    rdfs:subProperty ies:isPartOf .
+
+building:isBoundedByPartOf a owl:ObjectProperty ;
+    rdfs:label "is bounded by part Of" ;
+    rdfs:comment "The relation that obtains between a `building:PhysicallyBoundedSpace` A and `building:BuiltEntity` B if and only if A has part of B as a boundary." ;
+    rdfs:domain building:PhysicallyBoundedSpace ;
+    rdfs:range building:Floor,
+        building:Roof,
+        building:Wall .
+
+building:CO2 a building:ChemicalCompound ;
+    rdfs:label "CO2" ;
+    rdfs:comment "An instance `building:ChemicalCompound` otherwise known as carbon dioxide. CO2 is a colourless, odourless gas that is naturally present in Earth's atmosphere. It is composed of one carbon atom and two oxygen atoms. CO2 is produced by the burning of fossil fuels, respiration in living organisms, and the decay of organic matter. It is utilised by plants during photosynthesis and is a significant greenhouse gas, contributing to the greenhouse effect and climate change when present in elevated levels." .
+
+building:pluriverse a ies:Element ;
+    rdfs:label "Pluriverse"@en ;
+    rdfs:comment """
+      A singleton individual at the ontology level, meaning everything 
+      contained in all the possible worlds.
+      """@en ;
+    skos:note "Expected in IES 4.3" .
+
+building:TechnicalSystem a rdfs:Class ;
+    rdfs:label "Technical System" ;
+    rdfs:comment "An `ies:Entity` that is a human-made system (consisting of parts interacting with each other according to some rule or pattern) that is intended to serve a certain function.  A TechnicalSystem can exist in various states over time." ;
+    ies:powertype building:ClassOfTechnicalSystem ;
+    rdfs:subClassOf building:TechnicalSystemState,
+        ies:Entity .
+
+building:TechnicalSystemState a rdfs:Class ;
+    rdfs:label "Technical System State" ;
+    rdfs:comment "An `ies:State` that is a temporal state of `building:TechnicalSystem`." ;
+    rdfs:subClassOf ies:State .
+
+##################### from prior work on heating systems (edited) ##############################
+
+building:AirSourceHeatPump a rdfs:Class ;
+    rdfs:label "Air Source Heat Pump" ;
+    rdfs:comment "A heat pump that operates by absorbing heat from external air" ;
+    rdfs:subClassOf building:HeatPump .
+
+building:BoilerHeatProductionSystem a rdfs:Class ;
+    rdfs:label "Boiler Heat Production System" ;
+    rdfs:comment "A heat production system that operates by boiling an amount of water" ;
+    rdfs:subClassOf building:HeatProductionSystem .
+
+building:CentralHeatingSystem a rdfs:Class ;
+    rdfs:label "Central Heating System" ;
+    rdfs:comment "A heating system that is designed for producing heat and distributing it across a structure unit or a group of structure units in order to heat them up; it has as sub-systems a heat production system and a heat distribution system" ;
+    rdfs:subClassOf building:HeatingSystem .
+
+building:CommunityCentralHeatingSystem a rdfs:Class ;
+    rdfs:label "Community Central Heating System" ;
+    rdfs:comment "A central heating system that is designed for heating a group of structure units" ;
+    rdfs:subClassOf building:CentralHeatingSystem .
+
+building:ElectricHeatProductionSystem a rdfs:Class ;
+    rdfs:label "Electric Heat Production System" ;
+    rdfs:comment "A heat production system that operates by turning electricity into heat" ;
+    rdfs:subClassOf building:HeatProductionSystem .
+
+building:ElectricRadiantHeatingSystem a rdfs:Class ;
+    rdfs:label "Electric Radiant Heating System" ;
+    rdfs:comment "A radiant system that produces heat by means of electric heating coils or wires" ;
+    rdfs:subClassOf building:RadiantHeatingSystem .
+
+building:EnergySource a rdfs:Class ;
+    rdfs:label "Energy Source" ;
+    rdfs:comment "A stuff - ies:Stuff - that can be used for releasing energy for various usages" ;
+    rdfs:subClassOf ies:Stuff .
+
+building:Fuel a rdfs:Class ;
+    rdfs:label "Fuel" ;
+    rdfs:comment "An energy source that can be used for releasing thermal energy by making it undergo certain chemical reactions" ;
+    rdfs:subClassOf building:EnergySource .
+
+building:FurnaceHeatProductionSystem a rdfs:Class ;
+    rdfs:label "Furnace Heat Production System" ;
+    rdfs:comment "A heat production system that operates by boiling an amount of water" ;
+    rdfs:subClassOf building:HeatProductionSystem .
+
+building:GasSpaceHeater a rdfs:Class ;
+    rdfs:label "Gas Space Heater" ;
+    rdfs:comment "A space heater that operates by burning gas" ;
+    rdfs:subClassOf building:SpaceHeater .
+
+building:GroundSourceHeatPump a rdfs:Class ;
+    rdfs:label "Ground Source Heat Pump" ;
+    rdfs:comment "A heat pump that operates by absorbing heat from the ground" ;
+    rdfs:subClassOf building:HeatPump .
+
+building:HeatDistributionSystem a rdfs:Class ;
+    rdfs:label "Heat Distribution System" ;
+    rdfs:comment "A technical system that is designed to be the sub-system of a central heating system that distributes the produced heat across a structure unit or a group of structure units in order to heat them up; it operates by circulating a warm fluid as a medium for delivering heat" ;
+    rdfs:subClassOf building:TechnicalSystem .
+
+building:HeatProductionSystem a rdfs:Class ;
+    rdfs:label "Heat Production System" ;
+    rdfs:comment "A technical system that is designed to be the sub-system of a central heating system that produces the heat to heat up a structure unit or a group of structure units" ;
+    rdfs:subClassOf building:TechnicalSystem .
+
+building:ClassOfTechnicalSystem a rdfs:Class ;
+    rdfs:label "Class Of Technical System" ;
+    rdfs:comment "An `ies:ClassOfEntity` that is the various classes of building:TechnicalSystem`." ;
+    rdfs:subClassOf ies:ClassOfEntity .
+
+building:ClassOfTechnicalSystemState a rdfs:Class ;
+    rdfs:label "Class Of Technical System" ;
+    rdfs:comment "An `ies:ClassOfEntityState` that is the various classes of building:TechnicalSystemState`." ;
+    rdfs:subClassOf building:ClassOfEntityState .
+
+building:HeatPump a rdfs:Class ;
+    rdfs:label "Heat Pump" ;
+    rdfs:comment "A heat production system that operates by absorbing heat from the external environment" ;
+    rdfs:subClassOf building:HeatProductionSystem .
+
+building:HeatingControlSystem a rdfs:Class ;
+    rdfs:label "Heating Control System" ;
+    rdfs:comment "A technical system that is designed to be the sub-system of a heating system that regulates the operations of the whole heating system in order to maintain a desired temperature in the serviced area" ;
+    ies:powertype building:ClassOfHeatingControlSystem ;
+    rdfs:subClassOf building:TechnicalSystem .
+
+building:ClassOfHeatingControlSystem a rdfs:Class ;
+    rdfs:subClassOf building:ClassOfTechnicalSystem ;
+    rdfs:label "Class Of Heating Control System" ;
+    rdfs:comment "A `building:ClassOfTechnicalSystem` that classifies `building:HeatingControlSystems" .
+
+building:UKCtrl_2106 a building:ClassOfHeatingControlSystem ;
+    rdfs:label "UK Heating Control Code 2106" ;
+    rdfs:comment "Control code 2106 for `building:StructureUnits` with programmer, room thermostat and TRVs" ;
+    rdfs:seeAlso <https://files.bregroup.com/SAP/SAP-2012_9-92.pdf> ;
+    skos:note "There are a large number of codes as in the link above page 212 able 4e" ;
+    ies:representationValue "2106" .
+
+building:HeatingSystem a rdfs:Class ;
+    rdfs:label "Heating System" ;
+    rdfs:comment "A technical system that is designed for heating one structure unit, a group of structure units, or a space" ;
+    rdfs:subClassOf building:TechnicalSystem .
+
+building:HydronicHeatDistributionSystem a rdfs:Class ;
+    rdfs:label "Hydronic Heat Distribution System" ;
+    rdfs:comment "A heat distribution system that operates by circulating hot liquid water through a network of pipes" ;
+    rdfs:subClassOf building:HeatDistributionSystem .
+
+building:NonServicedWithHeating a rdfs:Class ;
+    rdfs:label "Non Serviced With Heating" ;
+    rdfs:comment "The characteristic of states of structure units or spaces that consists in having no heating system in place for heating it" ;
+    rdfs:subClassOf building:StructureUnitOrSpaceState .
+
+building:RadiantHeatingSystem a rdfs:Class ;
+    rdfs:label "Radiant Heating System" ;
+    rdfs:comment "A heating system that radiates heat directly into one or more spaces of a structure unit to heat them up, without employing a dedicated heat distribution sub-system for circulating a warm fluid" ;
+    rdfs:subClassOf building:HeatingSystem .
+
+building:RadiatorHydronicHeatDistributionSystem a rdfs:Class ;
+    rdfs:label "Radiator Hydronic Heat Distribution System" ;
+    rdfs:comment "A hydronic heat distribution system that operates by circulating hot liquid water through a network of pipes and radiators" ;
+    rdfs:subClassOf building:HydronicHeatDistributionSystem .
+
+building:RadiatorSteamHeatDistributionSystem a rdfs:Class ;
+    rdfs:label "Radiator Steam Heat Distribution System" ;
+    rdfs:comment "A steam heat distribution system that operates by circulating hot water steam through a network of pipes and radiators" ;
+    rdfs:subClassOf building:SteamHeatDistributionSystem .
+
+building:RenewableEnergySource a rdfs:Class ;
+    rdfs:label "Renewable Energy Source" ;
+    rdfs:comment "An energy source that can be replenished at a higher rate than it is consumed" ;
+    rdfs:subClassOf building:EnergySource .
+
+building:ServicedWithHeating a rdfs:Class ;
+    rdfs:label "Serviced With Heating" ;
+    rdfs:comment "The characteristic of states of structure units or spaces that consists in having some heating system in place for heating it" ;
+    rdfs:subClassOf building:StructureUnitOrSpaceState .
+
+building:SingleUnitCentralHeatingSystem a rdfs:Class ;
+    rdfs:label "Single Unit Central Heating System" ;
+    rdfs:comment "A central heating system that is designed for heating one structure unit" ;
+    rdfs:subClassOf building:CentralHeatingSystem .
+
+building:SpaceHeater a rdfs:Class ;
+    rdfs:label "Space Heater" ;
+    rdfs:comment "A heating system that is designed for heating a space of a structure unit" ;
+    rdfs:subClassOf building:HeatingSystem .
+
+building:SteamHeatDistributionSystem a rdfs:Class ;
+    rdfs:label "Steam Heat Distribution System" ;
+    rdfs:comment "A heat distribution system that operates by circulating hot water steam through a network of pipes" ;
+    rdfs:subClassOf building:HeatDistributionSystem .
+
+building:UnderfloorElectricRadiantSystem a rdfs:Class ;
+    rdfs:label "Underfloor Electric Radiant System" ;
+    rdfs:comment "An electric radiant heating system that is installed beneath a floor and radiates heat through the floor surface" ;
+    rdfs:subClassOf building:ElectricRadiantHeatingSystem .
+
+building:UnderfloorHydronicHeatDistributionSystem a rdfs:Class ;
+    rdfs:label "Underfloor Hydronic Heat Distribution System" ;
+    rdfs:comment "A hydronic heat distribution system that operates by circulating hot liquid water through a network of pipes that are positioned beneath the floor" ;
+    rdfs:subClassOf building:HydronicHeatDistributionSystem .
+
+building:UnderfloorSteamHeatDistributionSystem a rdfs:Class ;
+    rdfs:label "Underfloor Steam Heat Distribution System" ;
+    rdfs:comment "A steam heat distribution system that operates by circulating hot water steam through a network of pipes that are positioned beneath the floor" ;
+    rdfs:subClassOf building:SteamHeatDistributionSystem .
+
+building:WarmAirHeatDistributionSystem a rdfs:Class ;
+    rdfs:label "Warm Air Heat Distribution System" ;
+    rdfs:comment "A heat distribution system that operates by circulating warm air through a network of ducts" ;
+    rdfs:subClassOf building:HeatDistributionSystem .
+
+building:WaterSourceHeatPump a rdfs:Class ;
+    rdfs:label "Water Source Heat Pump" ;
+    rdfs:comment "A heat pump that operates by absorbing heat from an external body of water" ;
+    rdfs:subClassOf building:HeatPump .
+
+building:Anthracite a building:Fuel ;
+    rdfs:label "Anthracite" ;
+    ies:isPartOf building:Coal ;
+    rdfs:comment "The part of building:Coal that has 86 percent or more of fixed carbon" .
+
+building:Biomass a building:Fuel ,
+        building:RenewableEnergySource ;
+    rdfs:label "Biomass" ;
+    rdfs:comment "The fuel that consists of materials coming from animal waste or from the tissues of plants or algae" .
+
+building:Electricity a building:EnergySource ;
+    rdfs:label "Electricity" ;
+    rdfs:comment "The energy source - building:EnergySource - that consists of all the elements that are electrically charged" .
+
+building:LPG a building:Fuel ;
+    rdfs:label "Liquid Petroleum Gas" ;
+    ies:isPartOf building:FuelGas ;
+    rdfs:comment "The part of building:FuelGas that is mostly composed of a mixture of propene, propane, butene, and butane, with common additions of ethane, ethylene, and mercaptan; it is stored in liquid form by means of pressurisation, and it quickly evaporates under normal temperature and pressure" .
+
+building:NaturalFuelGas a building:Fuel ;
+    rdfs:label "Natural Fuel Gas" ;
+    ies:isPartOf building:FuelGas ;
+    rdfs:comment "The part of building:FuelGas that has natural origin and is composed of a mixture of gaseous hydrocarbons - mostly methane" .
+
+building:Oil a building:Fuel ;
+    rdfs:label "Oil" ;
+    rdfs:comment "The fuel that consists of a complex mixture of hydrocarbons that comes from geological formations and occurs in liquid state" .
+
+building:SmokelessCoal a building:Fuel ;
+    rdfs:label "Smokeless Coal" ;
+    ies:isPartOf building:Coal ;
+    rdfs:comment "The part of building:Coal that has the tendency to emit no visible smoke or minimal amounts of smoke during combustion" .
+
+building:WoodChips a building:Fuel,
+        building:RenewableEnergySource ;
+    rdfs:label "Wood Chips" ;
+    ies:isPartOf building:Wood ;
+    rdfs:comment "The part of building:Wood that consists of small bits resulted from the cutting of larger chunks of wood" .
+
+building:WoodLogs a building:Fuel,
+        building:RenewableEnergySource ;
+    rdfs:label "Wood Logs" ;
+    ies:isPartOf building:Wood ;
+    rdfs:comment "The part of building:Wood that consists of mid-sized portable chunks" .
+
+building:WoodPellets a building:Fuel,
+        building:RenewableEnergySource ;
+    rdfs:label "Wood Pellets" ;
+    ies:isPartOf building:Wood ;
+    rdfs:comment "The part of building:Wood that consists of small cylindrical units produced by compressing wood fibres" .
+
+building:isEquipmentOf a owl:ObjectProperty ;
+    rdfs:label "is Equipment Of" ;
+    rdfs:comment "The relation that obtains between an element e and a technical system t if and only if (i) e is not part of t, and (ii) e enhances or completes t's capabilities" ;
+    rdfs:domain ies:Element ;
+    rdfs:range building:TechnicalSystem .
+
+building:isEquipmentOfStructureUnitOrSpace a owl:ObjectProperty ;
+    rdfs:label "is Equipment Of" ;
+    rdfs:comment "The relation that obtains between an element e and a struture unit or space t if and only if (i) e is not part of t, and (ii) e enhances or completes t's capabilities" ;
+    rdfs:domain ies:Element ;
+    rdfs:range building:StructureUnitOrSpace ;
+    rdfs:subPropertyOf building:isEquipmentOf .
+
+building:isHeatedBy a owl:ObjectProperty ;
+    rdfs:label "is Heated By" ;
+    rdfs:comment "The sub-relation of building:isServicedBy that obtains between a state of a structure unit or space and the heating system that is put in place for heating it; a structure unit or space state can be heated even by a heating system that is located far away from it: for example, a flat can be heated by a community heating system whose heat production system is installed in another part of the building; when a heating system heats an entire structure unit, the relation building:isHeatedBy obtains between the entire structure unit state and the heating system, as well as between each individual space and the heating system" ;
+    rdfs:domain building:StructureUnitOrSpaceState ;
+    rdfs:range building:HeatingSystem ;
+    rdfs:subPropertyOf building:isServicedBy .
+
+building:isOperableWithFuel a owl:ObjectProperty ;
+    rdfs:label "is Operable With Fuel" ;
+    rdfs:comment "The sub-relation of building:isOperableWithEnergySource that obtains between a technical system and a fuel on which that technical system can operate" ;
+    rdfs:domain building:TechnicalSystem ;
+    rdfs:range building:Fuel ;
+    rdfs:subPropertyOf building:isOperableWithEnergySource .
+
+building:isOperableWithEnergySource a owl:ObjectProperty ;
+    rdfs:label "is Operable With Energy Source" ;
+    rdfs:comment "The relation that obtains between a technical system and an energy source on which that technical system can operate" ;
+    rdfs:domain building:TechnicalSystem ;
+    rdfs:range building:EnergySource .
+
+building:isServicedBy a owl:ObjectProperty ;
+    rdfs:label "is Serviced By" ;
+    rdfs:comment "The relation that obtains between a state of a structure unit or space s and a technical system t if and only if t is put in place for enhancing the capabilities of s or benefiting the occupiers of s; examples of technical systems that service structure units or space include heating systems, power supply systems, and plumbing systems" ;
+    rdfs:domain building:StructureUnitOrSpaceState ;
+    rdfs:range building:TechnicalSystem .
+
+building:Coal a building:Fuel ;
+    rdfs:label "Coal" ;
+    rdfs:comment "The fuel that consists of a solid carbon-rich material with more than 50 percent by mass - or 70 percent by volume - of carbonaceous matter" .
+
+building:FuelGas a building:Fuel ;
+    rdfs:label "Fuel Gas" ;
+    rdfs:comment "The fuel that under normal temperature and pressure occurs in gas state" .
+
+building:Wood a building:Fuel,
+        building:RenewableEnergySource ;
+    rdfs:label "Wood" ;
+    rdfs:comment "The stuff - ies:Stuff - that consists of all the matter that is part of or originates from the nutrient-conducting tissues of trees, shrubs, or lianas; it is a fuel, since it can be used for releasing thermal energy by making it undergo combustion" .
+
+
+##################### Nature of supply ###############
+building:EnergySupply a rdfs:Class ;
+    rdfs:label "Energy Supply" ;
+    rdfs:comment "An instance of `ies:ClassOfEvent` that is the supply of a section usable energy. " ;
+    rdfs:subClassOf ies:Event .
+
+building:MainsGasSupply a rdfs:Class ;
+    rdfs:label "Mains Gas Supply" ;
+    rdfs:comment "A `building:EnergySupply` which is the direct supply of `building:FuelGas` to a `building:StructureUnitOrSpace`." ;
+    rdfs:subClassOf building:EnergySupply .
+
+############# Geography #####################
+
+building:locationBoundaryPoint a owl:ObjectProperty ;
+    rdfs:label "location boundary point" ;
+    rdfs:comment "A relationship between an `ies:Location` and an `ies:GeoPoint` that holds when the point is on the boundary of the location." ;
+    skos:note "we need a more thourough description of regions and boundaries" ;
+    rdfs:domain ies:Location ;
+    rdfs:range ies:GeoPoint .
+
