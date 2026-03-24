@@ -356,19 +356,19 @@ The repo includes an [IES Building Extension](benchmark/generated/ies-building-e
 
 | Metric | NDTP/IRIS | Open Ontologies |
 | --- | ---: | ---: |
-| Classes | 192 | **429** |
-| Entity classes | 133 | **177** |
-| State classes | 41 | **135** |
-| ClassOf classes | 37 | **138** |
-| Complete 4D triads | 14 | **105** |
+| Classes | 192 | **455** |
+| Entity classes | 133 | **187** |
+| State classes | 41 | **129** |
+| ClassOf classes | 37 | **139** |
+| Complete 4D triads | 14 | **129** |
 | Properties | 26 | **93** |
-| Enumerated individuals | 2 | **122** |
+| Enumerated individuals | 2 | **132** |
 | Domain/range coverage | 31 | **86** |
-| Labels | 311 | **412** |
-| Comments | 316 | **412** |
-| Validated triples | — | **2,695** |
+| Labels | 311 | **524** |
+| Comments | 316 | **524** |
+| Validated triples | — | **3,056** |
 
-Built blind from the 105-column EPC schema, SAP methodology, and BORO 4D extensionalism. Covers spatial hierarchy, thermal envelope (walls/roof/floor/windows with section variants), heating production/distribution/controls, hot water, lighting, ventilation, renewables, EPC assessment activities, identifiers, retrofit events, chemical emissions, and aggregate collection patterns.
+Built blind from the 105-column EPC schema, SAP methodology, and BORO 4D extensionalism — zero reference to the IRIS implementation. Every class is traceable to an EPC column, an EPC data value, or the mechanical 4D completion rule. Covers spatial hierarchy, thermal envelope with construction/insulation type decomposition, heating production/distribution/controls with device-level detail, hot water sources, lighting, ventilation types, renewables, energy supply connections, EPC assessment activities per element, cost estimates per system, current/potential scenarios, and retrofit events.
 
 Use `onto_align` to map it to other domain ontologies:
 
