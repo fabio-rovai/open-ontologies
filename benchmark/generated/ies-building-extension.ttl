@@ -1,467 +1,2987 @@
-# MIT License
-#
-# Copyright (c) 2025
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ies:   <http://ies.data.gov.uk/ontology/ies4#> .
+@prefix bldg:  <http://example.org/ontology/ies-building#> .
 
-# baseURI: http://example.org/ontology/ies-building
+# =============================================================================
+# IES4 Building & Energy Performance Extension Ontology
+# UK Domestic Energy Performance Certificate (EPC) Domain
+#
+# Extends IES4 (Information Exchange Standard) using BORO 4D extensionalism
+# to model UK residential buildings and their energy performance assessments.
+# Covers all 105 EPC data columns.
+# =============================================================================
 
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix dc: <http://purl.org/dc/elements/1.1/> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
-@prefix vann: <http://purl.org/vocab/vann/> .
-@prefix sh: <http://www.w3.org/ns/shacl#> .
-@prefix ies: <http://ies.data.gov.uk/ontology/ies4#> .
-@prefix bldg: <http://example.org/ontology/ies-building#> .
+# =============================================================================
+# SECTION 1: CORE BUILDING CLASSES
+# =============================================================================
 
-<http://example.org/ontology/ies-building> rdf:type owl:Ontology ;
-    rdfs:label "IES Building Extension"^^xsd:string ;
-    rdfs:comment "An extension to the IES4 ontology for describing buildings, dwellings, and energy performance in the residential built environment. Follows the 4D extensionalist (BORO) approach."^^xsd:string ;
-    owl:imports <http://ies.data.gov.uk/ontology/ies4> ;
-    dcterms:title "IES Building Domain Extension"^^xsd:string ;
-    dcterms:description "Domain ontology for residential buildings and energy performance, supporting retrofit agent use cases."^^xsd:string ;
-    dcterms:license <https://opensource.org/licenses/MIT> ;
-    dcterms:created "2025"^^xsd:string ;
-    dcterms:modified "2025"^^xsd:string ;
-    dcterms:publisher "Open Ontologies Project"^^xsd:string ;
-    dcterms:language "en"^^xsd:string ;
-    vann:preferredNamespacePrefix "bldg"^^xsd:string ;
-    vann:preferredNamespaceUri "http://example.org/ontology/ies-building#"^^xsd:string .
-
-########### Class definitions in alphabetical order ###########
+# --- Building (the 4D whole-life entity) ---
 
 bldg:Building a rdfs:Class ;
-    rdfs:label "Building"^^xsd:string ;
-    rdfs:comment "A man-made structure with a roof and walls, standing permanently in one place. A Building is a Location and an Asset."^^xsd:string ;
-    rdfs:subClassOf ies:Facility,
-        ies:Asset .
+    rdfs:subClassOf ies:Asset ;
+    rdfs:label "Building" ;
+    rdfs:comment "A UK residential building assessed for energy performance. The whole-life entity representing the physical dwelling from construction to demolition." .
 
 bldg:BuildingState a rdfs:Class ;
-    rdfs:label "Building State"^^xsd:string ;
-    rdfs:comment "A temporal state of a Building"^^xsd:string ;
-    rdfs:subClassOf ies:State .
-
-bldg:CeilingInsulation a rdfs:Class ;
-    rdfs:label "Ceiling Insulation"^^xsd:string ;
-    rdfs:comment "An InsulationElement that is installed in the ceiling of a building"^^xsd:string ;
-    rdfs:subClassOf bldg:InsulationElement .
-
-bldg:CeilingInsulationState a rdfs:Class ;
-    rdfs:label "Ceiling Insulation State"^^xsd:string ;
-    rdfs:comment "A temporal state of a CeilingInsulation element"^^xsd:string ;
-    rdfs:subClassOf ies:State .
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Building State" ;
+    rdfs:comment "A temporal state of a building, capturing its properties at a particular point or period in time. Each EPC assessment produces a snapshot that is a BuildingState." .
 
 bldg:ClassOfBuilding a rdfs:Class ;
-    rdfs:label "Class Of Building"^^xsd:string ;
-    rdfs:comment "A ClassOfEntity whose instances are all Buildings sharing a common characteristic - e.g. detached house, semi-detached, flat, etc."^^xsd:string ;
-    rdfs:subClassOf ies:ClassOfEntity .
-
-bldg:ClassOfBuildingState a rdfs:Class ;
-    rdfs:label "Class Of Building State"^^xsd:string ;
-    rdfs:comment "A ClassOfState whose instances are temporal states of Buildings sharing a common characteristic"^^xsd:string ;
-    rdfs:subClassOf ies:ClassOfState .
-
-bldg:ClassOfDwelling a rdfs:Class ;
-    rdfs:label "Class Of Dwelling"^^xsd:string ;
-    rdfs:comment "A ClassOfEntity whose instances are all Dwellings sharing a common characteristic"^^xsd:string ;
-    rdfs:subClassOf ies:ClassOfEntity .
-
-bldg:ClassOfDwellingState a rdfs:Class ;
-    rdfs:label "Class Of Dwelling State"^^xsd:string ;
-    rdfs:comment "A ClassOfState whose instances are temporal states of Dwellings sharing a common characteristic"^^xsd:string ;
-    rdfs:subClassOf ies:ClassOfState .
-
-bldg:ClassOfHeatingSystem a rdfs:Class ;
-    rdfs:label "Class Of Heating System"^^xsd:string ;
-    rdfs:comment "A ClassOfEntity whose instances are all HeatingSystems sharing a common type - e.g. gas boiler, heat pump, electric storage"^^xsd:string ;
-    rdfs:subClassOf ies:ClassOfEntity .
-
-bldg:ClassOfHeatingSystemState a rdfs:Class ;
-    rdfs:label "Class Of Heating System State"^^xsd:string ;
-    rdfs:comment "A ClassOfState whose instances are temporal states of HeatingSystems"^^xsd:string ;
-    rdfs:subClassOf ies:ClassOfState .
-
-bldg:ClassOfInsulationElement a rdfs:Class ;
-    rdfs:label "Class Of Insulation Element"^^xsd:string ;
-    rdfs:comment "A ClassOfEntity whose instances are InsulationElements sharing a common type"^^xsd:string ;
-    rdfs:subClassOf ies:ClassOfEntity .
-
-bldg:ClassOfInsulationElementState a rdfs:Class ;
-    rdfs:label "Class Of Insulation Element State"^^xsd:string ;
-    rdfs:comment "A ClassOfState whose instances are temporal states of InsulationElements"^^xsd:string ;
-    rdfs:subClassOf ies:ClassOfState .
-
-bldg:ConstructedState a rdfs:Class ;
-    rdfs:label "Constructed State"^^xsd:string ;
-    rdfs:comment "A BoundingState marking the point at which a Building was constructed"^^xsd:string ;
-    rdfs:subClassOf ies:BoundingState .
-
-bldg:DemolishedState a rdfs:Class ;
-    rdfs:label "Demolished State"^^xsd:string ;
-    rdfs:comment "A BoundingState marking the point at which a Building was demolished"^^xsd:string ;
-    rdfs:subClassOf ies:BoundingState .
-
-bldg:Dwelling a rdfs:Class ;
-    rdfs:label "Dwelling"^^xsd:string ;
-    rdfs:comment "A PartOfFacility that is a self-contained unit of accommodation used for residential purposes. A Dwelling may be a whole Building (e.g. a detached house) or part of one (e.g. a flat)."^^xsd:string ;
-    rdfs:subClassOf ies:PartOfFacility .
-
-bldg:DwellingState a rdfs:Class ;
-    rdfs:label "Dwelling State"^^xsd:string ;
-    rdfs:comment "A temporal state of a Dwelling"^^xsd:string ;
-    rdfs:subClassOf ies:State .
-
-bldg:EnergyPerformanceCertificate a rdfs:Class ;
-    rdfs:label "Energy Performance Certificate"^^xsd:string ;
-    rdfs:comment "A Document that records the energy performance assessment of a Dwelling at a particular point in time. An EPC is issued following an energy performance review."^^xsd:string ;
-    rdfs:subClassOf ies:Document .
-
-bldg:EnergyPerformanceCertificateState a rdfs:Class ;
-    rdfs:label "Energy Performance Certificate State"^^xsd:string ;
-    rdfs:comment "A temporal state of an EnergyPerformanceCertificate"^^xsd:string ;
-    rdfs:subClassOf ies:State .
-
-bldg:EnergyPerformanceReview a rdfs:Class ;
-    rdfs:label "Energy Performance Review"^^xsd:string ;
-    rdfs:comment "An Event in which the energy performance of a Dwelling is assessed. The review produces an EnergyPerformanceCertificate."^^xsd:string ;
-    rdfs:subClassOf ies:Event .
-
-bldg:EnergyRating a rdfs:Class ;
-    rdfs:label "Energy Rating"^^xsd:string ;
-    rdfs:comment "A Characteristic representing a standardised energy efficiency rating. Used to classify the energy performance of a Dwelling."^^xsd:string ;
-    rdfs:subClassOf ies:Characteristic .
-
-bldg:EnergyRatingBand a rdfs:Class ;
-    rdfs:label "Energy Rating Band"^^xsd:string ;
-    rdfs:comment "A ClassOfEntity representing a lettered energy rating band (A through G) as defined by the UK EPC scheme."^^xsd:string ;
-    rdfs:subClassOf ies:ClassOfEntity .
-
-bldg:FloorInsulation a rdfs:Class ;
-    rdfs:label "Floor Insulation"^^xsd:string ;
-    rdfs:comment "An InsulationElement that is installed in the floor of a building"^^xsd:string ;
-    rdfs:subClassOf bldg:InsulationElement .
-
-bldg:FloorInsulationState a rdfs:Class ;
-    rdfs:label "Floor Insulation State"^^xsd:string ;
-    rdfs:comment "A temporal state of a FloorInsulation element"^^xsd:string ;
-    rdfs:subClassOf ies:State .
-
-bldg:FuelType a rdfs:Class ;
-    rdfs:label "Fuel Type"^^xsd:string ;
-    rdfs:comment "A ClassOfEntity representing a type of fuel used by a HeatingSystem - e.g. mains gas, electricity, oil, solid fuel, LPG"^^xsd:string ;
-    rdfs:subClassOf ies:ClassOfEntity .
-
-bldg:HeatingSystem a rdfs:Class ;
-    rdfs:label "Heating System"^^xsd:string ;
-    rdfs:comment "An Asset that provides heating to a Dwelling. A HeatingSystem uses a particular FuelType."^^xsd:string ;
-    rdfs:subClassOf ies:Asset .
-
-bldg:HeatingSystemState a rdfs:Class ;
-    rdfs:label "Heating System State"^^xsd:string ;
-    rdfs:comment "A temporal state of a HeatingSystem"^^xsd:string ;
-    rdfs:subClassOf ies:State .
-
-bldg:InsulationElement a rdfs:Class ;
-    rdfs:label "Insulation Element"^^xsd:string ;
-    rdfs:comment "An Asset that provides thermal insulation to a Building or Dwelling. Subtypes include wall, floor, ceiling, and window insulation."^^xsd:string ;
-    rdfs:subClassOf ies:Asset .
-
-bldg:InsulationElementState a rdfs:Class ;
-    rdfs:label "Insulation Element State"^^xsd:string ;
-    rdfs:comment "A temporal state of an InsulationElement"^^xsd:string ;
-    rdfs:subClassOf ies:State .
-
-bldg:InstalledState a rdfs:Class ;
-    rdfs:label "Installed State"^^xsd:string ;
-    rdfs:comment "A BoundingState marking the point at which an Asset (e.g. HeatingSystem, InsulationElement) was installed in a Dwelling"^^xsd:string ;
-    rdfs:subClassOf ies:BoundingState .
-
-bldg:PostalCode a rdfs:Class ;
-    rdfs:label "Postal Code"^^xsd:string ;
-    rdfs:comment "A GeoIdentity that is a UK postal code used to identify a geographic area"^^xsd:string ;
-    rdfs:subClassOf ies:GeoIdentity .
-
-bldg:RetrofitIntervention a rdfs:Class ;
-    rdfs:label "Retrofit Intervention"^^xsd:string ;
-    rdfs:comment "An Event in which improvements are made to a Dwelling to improve its energy performance - e.g. installing insulation, replacing a heating system"^^xsd:string ;
-    rdfs:subClassOf ies:Event .
-
-bldg:UPRN a rdfs:Class ;
-    rdfs:label "UPRN"^^xsd:string ;
-    rdfs:comment "A GeoIdentity that is a Unique Property Reference Number, as defined by the UK Ordnance Survey, used to uniquely identify an addressable location."^^xsd:string ;
-    rdfs:subClassOf ies:GeoIdentity .
-
-bldg:WallInsulation a rdfs:Class ;
-    rdfs:label "Wall Insulation"^^xsd:string ;
-    rdfs:comment "An InsulationElement that is installed in the walls of a building"^^xsd:string ;
-    rdfs:subClassOf bldg:InsulationElement .
-
-bldg:WallInsulationState a rdfs:Class ;
-    rdfs:label "Wall Insulation State"^^xsd:string ;
-    rdfs:comment "A temporal state of a WallInsulation element"^^xsd:string ;
-    rdfs:subClassOf ies:State .
-
-bldg:WindowInsulation a rdfs:Class ;
-    rdfs:label "Window Insulation"^^xsd:string ;
-    rdfs:comment "An InsulationElement that is installed in or replaces the windows of a building - e.g. double glazing, triple glazing"^^xsd:string ;
-    rdfs:subClassOf bldg:InsulationElement .
-
-bldg:WindowInsulationState a rdfs:Class ;
-    rdfs:label "Window Insulation State"^^xsd:string ;
-    rdfs:comment "A temporal state of a WindowInsulation element"^^xsd:string ;
-    rdfs:subClassOf ies:State .
-
-########### Object and data properties in alphabetical order ###########
-
-bldg:containsDwelling a owl:ObjectProperty ;
-    rdfs:label "contains Dwelling"^^xsd:string ;
-    rdfs:comment "Relates a Building to a Dwelling contained within it"^^xsd:string ;
-    rdfs:domain bldg:Building ;
-    rdfs:range bldg:Dwelling ;
-    rdfs:subPropertyOf ies:isPartOf .
-
-bldg:energyRatingBand a owl:ObjectProperty ;
-    rdfs:label "energy Rating Band"^^xsd:string ;
-    rdfs:comment "Relates an EnergyPerformanceCertificate to the EnergyRatingBand (A-G) assigned"^^xsd:string ;
-    rdfs:domain bldg:EnergyPerformanceCertificate ;
-    rdfs:range bldg:EnergyRatingBand ;
-    rdfs:subPropertyOf ies:relationship .
-
-bldg:energyScore a owl:DatatypeProperty ;
-    rdfs:label "energy Score"^^xsd:string ;
-    rdfs:comment "The numeric energy performance score (typically 1-100) recorded on an EPC"^^xsd:string ;
-    rdfs:domain bldg:EnergyPerformanceCertificate ;
-    rdfs:range xsd:integer ;
-    rdfs:subPropertyOf ies:attribute .
-
-bldg:hasEPC a owl:ObjectProperty ;
-    rdfs:label "has EPC"^^xsd:string ;
-    rdfs:comment "Relates a Dwelling (or DwellingState) to its EnergyPerformanceCertificate"^^xsd:string ;
-    rdfs:domain bldg:Dwelling ;
-    rdfs:range bldg:EnergyPerformanceCertificate ;
-    rdfs:subPropertyOf ies:relationship .
-
-bldg:hasHeatingSystem a owl:ObjectProperty ;
-    rdfs:label "has Heating System"^^xsd:string ;
-    rdfs:comment "Relates a Dwelling to a HeatingSystem installed in it"^^xsd:string ;
-    rdfs:domain bldg:Dwelling ;
-    rdfs:range bldg:HeatingSystem ;
-    rdfs:subPropertyOf ies:isPartOf .
-
-bldg:hasInsulation a owl:ObjectProperty ;
-    rdfs:label "has Insulation"^^xsd:string ;
-    rdfs:comment "Relates a Dwelling to an InsulationElement installed in it"^^xsd:string ;
-    rdfs:domain bldg:Dwelling ;
-    rdfs:range bldg:InsulationElement ;
-    rdfs:subPropertyOf ies:isPartOf .
-
-bldg:hasUPRN a owl:ObjectProperty ;
-    rdfs:label "has UPRN"^^xsd:string ;
-    rdfs:comment "Relates an addressable Location to its Unique Property Reference Number"^^xsd:string ;
-    rdfs:domain ies:Location ;
-    rdfs:range bldg:UPRN ;
-    rdfs:subPropertyOf ies:isIdentifiedBy .
-
-bldg:insulationThickness a owl:DatatypeProperty ;
-    rdfs:label "insulation Thickness"^^xsd:string ;
-    rdfs:comment "The thickness of an InsulationElement in millimetres"^^xsd:string ;
-    rdfs:domain bldg:InsulationElement ;
-    rdfs:range xsd:decimal ;
-    rdfs:subPropertyOf ies:attribute .
-
-bldg:reviewDate a owl:ObjectProperty ;
-    rdfs:label "review Date"^^xsd:string ;
-    rdfs:comment "Relates an EnergyPerformanceReview to the ParticularPeriod when it was conducted"^^xsd:string ;
-    rdfs:domain bldg:EnergyPerformanceReview ;
-    rdfs:range ies:ParticularPeriod ;
-    rdfs:subPropertyOf ies:inPeriod .
-
-bldg:reviewedDwelling a owl:ObjectProperty ;
-    rdfs:label "reviewed Dwelling"^^xsd:string ;
-    rdfs:comment "Relates an EnergyPerformanceReview to the Dwelling that was assessed"^^xsd:string ;
-    rdfs:domain bldg:EnergyPerformanceReview ;
-    rdfs:range bldg:Dwelling ;
-    rdfs:subPropertyOf ies:relationship .
-
-bldg:resultedInEPC a owl:ObjectProperty ;
-    rdfs:label "resulted In EPC"^^xsd:string ;
-    rdfs:comment "Relates an EnergyPerformanceReview to the EnergyPerformanceCertificate produced"^^xsd:string ;
-    rdfs:domain bldg:EnergyPerformanceReview ;
-    rdfs:range bldg:EnergyPerformanceCertificate ;
-    rdfs:subPropertyOf ies:relationship .
-
-bldg:usesFuel a owl:ObjectProperty ;
-    rdfs:label "uses Fuel"^^xsd:string ;
-    rdfs:comment "Relates a HeatingSystem to the FuelType it uses"^^xsd:string ;
-    rdfs:domain bldg:HeatingSystem ;
-    rdfs:range bldg:FuelType ;
-    rdfs:subPropertyOf ies:relationship .
-
-########### Examples of usage / named individuals ###########
-
-# --- Energy Rating Bands (A-G) ---
-
-bldg:BandA a bldg:EnergyRatingBand ;
-    rdfs:label "Band A"^^xsd:string ;
-    rdfs:comment "EPC Band A: 92-100 SAP points"^^xsd:string .
-
-bldg:BandB a bldg:EnergyRatingBand ;
-    rdfs:label "Band B"^^xsd:string ;
-    rdfs:comment "EPC Band B: 81-91 SAP points"^^xsd:string .
-
-bldg:BandC a bldg:EnergyRatingBand ;
-    rdfs:label "Band C"^^xsd:string ;
-    rdfs:comment "EPC Band C: 69-80 SAP points"^^xsd:string .
-
-bldg:BandD a bldg:EnergyRatingBand ;
-    rdfs:label "Band D"^^xsd:string ;
-    rdfs:comment "EPC Band D: 55-68 SAP points"^^xsd:string .
-
-bldg:BandE a bldg:EnergyRatingBand ;
-    rdfs:label "Band E"^^xsd:string ;
-    rdfs:comment "EPC Band E: 39-54 SAP points"^^xsd:string .
-
-bldg:BandF a bldg:EnergyRatingBand ;
-    rdfs:label "Band F"^^xsd:string ;
-    rdfs:comment "EPC Band F: 21-38 SAP points"^^xsd:string .
-
-bldg:BandG a bldg:EnergyRatingBand ;
-    rdfs:label "Band G"^^xsd:string ;
-    rdfs:comment "EPC Band G: 1-20 SAP points"^^xsd:string .
-
-# --- Fuel Type Instances ---
-
-bldg:MainsGas a bldg:FuelType ;
-    rdfs:label "Mains Gas"^^xsd:string .
-
-bldg:Electricity a bldg:FuelType ;
-    rdfs:label "Electricity"^^xsd:string .
-
-bldg:Oil a bldg:FuelType ;
-    rdfs:label "Oil"^^xsd:string .
-
-bldg:SolidFuel a bldg:FuelType ;
-    rdfs:label "Solid Fuel"^^xsd:string .
-
-bldg:LPG a bldg:FuelType ;
-    rdfs:label "LPG"^^xsd:string .
-
-# --- ClassOfBuilding Instances ---
-
-bldg:DetachedHouse a bldg:ClassOfBuilding ;
-    rdfs:label "Detached House"^^xsd:string .
-
-bldg:SemiDetachedHouse a bldg:ClassOfBuilding ;
-    rdfs:label "Semi-Detached House"^^xsd:string .
-
-bldg:TerracedHouse a bldg:ClassOfBuilding ;
-    rdfs:label "Terraced House"^^xsd:string .
-
-bldg:Flat a bldg:ClassOfBuilding ;
-    rdfs:label "Flat"^^xsd:string .
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class of Building" ;
+    rdfs:comment "A classifier for types of building. Instances include Detached, Semi-Detached, Terraced, Flat etc. Following IES BORO methodology, enumerated types are instances of this class, not subclasses of Building." .
+
+# --- ClassOfBuilding instances (PROPERTY_TYPE) ---
+
+bldg:Detached a bldg:ClassOfBuilding ;
+    rdfs:label "Detached" ;
+    rdfs:comment "A detached house — a standalone dwelling not sharing any walls with another building." .
+
+bldg:SemiDetached a bldg:ClassOfBuilding ;
+    rdfs:label "Semi-Detached" ;
+    rdfs:comment "A semi-detached house — a dwelling sharing one party wall with an adjacent dwelling." .
+
+bldg:Terraced a bldg:ClassOfBuilding ;
+    rdfs:label "Terraced" ;
+    rdfs:comment "A terraced house — a dwelling forming part of a continuous row of houses sharing party walls." .
+
+bldg:FlatMaisonette a bldg:ClassOfBuilding ;
+    rdfs:label "Flat/Maisonette" ;
+    rdfs:comment "A flat or maisonette — a self-contained dwelling within a larger building." .
 
 bldg:Bungalow a bldg:ClassOfBuilding ;
-    rdfs:label "Bungalow"^^xsd:string .
+    rdfs:label "Bungalow" ;
+    rdfs:comment "A bungalow — a single-storey dwelling." .
 
-# --- ClassOfHeatingSystem Instances ---
+bldg:ParkHome a bldg:ClassOfBuilding ;
+    rdfs:label "Park Home" ;
+    rdfs:comment "A park home — a prefabricated dwelling sited on a licensed residential park." .
 
-bldg:GasBoiler a bldg:ClassOfHeatingSystem ;
-    rdfs:label "Gas Boiler"^^xsd:string .
+# --- ClassOfBuiltForm (BUILT_FORM — finer classification) ---
 
-bldg:HeatPump a bldg:ClassOfHeatingSystem ;
-    rdfs:label "Heat Pump"^^xsd:string .
+bldg:ClassOfBuiltForm a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class of Built Form" ;
+    rdfs:comment "A finer classifier for the built form of a dwelling, distinguishing mid-terrace from end-terrace, purpose-built flat from converted flat, etc." .
 
-bldg:ElectricStorageHeater a bldg:ClassOfHeatingSystem ;
-    rdfs:label "Electric Storage Heater"^^xsd:string .
+bldg:DetachedForm a bldg:ClassOfBuiltForm ;
+    rdfs:label "Detached" ;
+    rdfs:comment "Built form: a fully detached dwelling." .
 
-# --- Example: A dwelling with EPC review (4D pattern) ---
+bldg:SemiDetachedForm a bldg:ClassOfBuiltForm ;
+    rdfs:label "Semi-Detached" ;
+    rdfs:comment "Built form: a semi-detached dwelling sharing one party wall." .
 
-# The building
-<http://data.gov.uk/testdata#building42> a bldg:Building ;
-    ies:inLocation <http://data.gov.uk/testdata#sw1a1aa> ;
-    rdfs:label "42 Example Street"^^xsd:string .
+bldg:MidTerrace a bldg:ClassOfBuiltForm ;
+    rdfs:label "Mid-Terrace" ;
+    rdfs:comment "Built form: a mid-terrace house with party walls on both sides." .
 
-<http://data.gov.uk/testdata#building42> ies:similarEntity bldg:SemiDetachedHouse .
+bldg:EndTerrace a bldg:ClassOfBuiltForm ;
+    rdfs:label "End-Terrace" ;
+    rdfs:comment "Built form: an end-terrace house with one exposed gable wall." .
 
-# UPRN identifier
-<http://data.gov.uk/testdata#uprn123456789> a bldg:UPRN ;
-    ies:representationValue "123456789"^^xsd:string .
+bldg:EnclosedEndTerrace a bldg:ClassOfBuiltForm ;
+    rdfs:label "Enclosed End-Terrace" ;
+    rdfs:comment "Built form: an end-terrace where the gable end is enclosed by an adjacent non-residential structure." .
 
-<http://data.gov.uk/testdata#building42> bldg:hasUPRN <http://data.gov.uk/testdata#uprn123456789> .
+bldg:EnclosedMidTerrace a bldg:ClassOfBuiltForm ;
+    rdfs:label "Enclosed Mid-Terrace" ;
+    rdfs:comment "Built form: a mid-terrace enclosed by adjacent non-residential structures on both sides." .
 
-# The dwelling within the building
-<http://data.gov.uk/testdata#dwelling42> a bldg:Dwelling ;
-    ies:inLocation <http://data.gov.uk/testdata#building42> ;
-    rdfs:label "42 Example Street, Ground Floor"^^xsd:string .
+bldg:PurposeBuiltFlat a bldg:ClassOfBuiltForm ;
+    rdfs:label "Purpose-Built Flat" ;
+    rdfs:comment "Built form: a flat in a building designed and constructed as flats." .
 
-# Postal code
-<http://data.gov.uk/testdata#sw1a1aa> a bldg:PostalCode ;
-    ies:representationValue "SW1A 1AA"^^xsd:string .
+bldg:ConvertedFlat a bldg:ClassOfBuiltForm ;
+    rdfs:label "Converted Flat" ;
+    rdfs:comment "Built form: a flat converted from a building originally designed for another purpose (e.g. a house)." .
 
-# Heating system with fuel type (4D: state tracks installation period)
-<http://data.gov.uk/testdata#heater42> a bldg:HeatingSystem ;
-    bldg:usesFuel bldg:MainsGas .
+bldg:BungalowForm a bldg:ClassOfBuiltForm ;
+    rdfs:label "Bungalow" ;
+    rdfs:comment "Built form: a single-storey bungalow." .
 
-<http://data.gov.uk/testdata#heater42> ies:similarEntity bldg:GasBoiler .
+bldg:MaisonetteForm a bldg:ClassOfBuiltForm ;
+    rdfs:label "Maisonette" ;
+    rdfs:comment "Built form: a maisonette — a multi-storey flat with its own entrance." .
 
-<http://data.gov.uk/testdata#dwelling42> bldg:hasHeatingSystem <http://data.gov.uk/testdata#heater42> .
+bldg:ParkHomeForm a bldg:ClassOfBuiltForm ;
+    rdfs:label "Park Home" ;
+    rdfs:comment "Built form: a park home on a licensed site." .
 
-# Insulation: wall insulation with thickness measure
-<http://data.gov.uk/testdata#wallIns42> a bldg:WallInsulation ;
-    bldg:insulationThickness "100"^^xsd:decimal .
+# --- Construction Age Band ---
 
-<http://data.gov.uk/testdata#dwelling42> bldg:hasInsulation <http://data.gov.uk/testdata#wallIns42> .
+bldg:ClassOfConstructionAge a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class of Construction Age" ;
+    rdfs:comment "A classifier for construction age bands used in SAP calculations. Each instance represents a date range (e.g. 1930-1949, 1967-1975)." .
 
-# Installation bounding state (4D temporal part)
-<http://data.gov.uk/testdata#wallInsInstalled> a bldg:InstalledState ;
-    ies:isStartOf <http://data.gov.uk/testdata#wallIns42State1> ;
-    ies:inPeriod <http://iso.org/iso8601#20200315T000000> .
+bldg:Before1900 a bldg:ClassOfConstructionAge ;
+    rdfs:label "Before 1900" ;
+    rdfs:comment "Construction age band: built before 1900." .
 
-<http://iso.org/iso8601#20200315T000000> a ies:ParticularPeriod .
+bldg:Age1900to1929 a bldg:ClassOfConstructionAge ;
+    rdfs:label "1900-1929" ;
+    rdfs:comment "Construction age band: built between 1900 and 1929." .
 
-<http://data.gov.uk/testdata#wallIns42State1> a bldg:WallInsulationState ;
-    ies:isStateOf <http://data.gov.uk/testdata#wallIns42> ;
-    ies:inLocation <http://data.gov.uk/testdata#dwelling42> .
+bldg:Age1930to1949 a bldg:ClassOfConstructionAge ;
+    rdfs:label "1930-1949" ;
+    rdfs:comment "Construction age band: built between 1930 and 1949." .
 
-# EPC review event (4D: event with temporal and spatial context)
-<http://data.gov.uk/testdata#epcReview42> a bldg:EnergyPerformanceReview ;
-    bldg:reviewedDwelling <http://data.gov.uk/testdata#dwelling42> ;
-    bldg:resultedInEPC <http://data.gov.uk/testdata#epc42> ;
-    bldg:reviewDate <http://iso.org/iso8601#20230615T000000> .
+bldg:Age1950to1966 a bldg:ClassOfConstructionAge ;
+    rdfs:label "1950-1966" ;
+    rdfs:comment "Construction age band: built between 1950 and 1966." .
 
-<http://iso.org/iso8601#20230615T000000> a ies:ParticularPeriod .
+bldg:Age1967to1975 a bldg:ClassOfConstructionAge ;
+    rdfs:label "1967-1975" ;
+    rdfs:comment "Construction age band: built between 1967 and 1975." .
 
-# The EPC document
-<http://data.gov.uk/testdata#epc42> a bldg:EnergyPerformanceCertificate ;
-    bldg:energyScore "65"^^xsd:integer ;
-    bldg:energyRatingBand bldg:BandD ;
-    rdfs:label "EPC for 42 Example Street"^^xsd:string .
+bldg:Age1976to1982 a bldg:ClassOfConstructionAge ;
+    rdfs:label "1976-1982" ;
+    rdfs:comment "Construction age band: built between 1976 and 1982." .
 
-# Construction bounding state (4D: when the building came into existence)
-<http://data.gov.uk/testdata#building42Constructed> a bldg:ConstructedState ;
-    ies:isStartOf <http://data.gov.uk/testdata#building42State1> ;
-    ies:inPeriod <http://iso.org/iso8601#19650101T000000> .
+bldg:Age1983to1990 a bldg:ClassOfConstructionAge ;
+    rdfs:label "1983-1990" ;
+    rdfs:comment "Construction age band: built between 1983 and 1990." .
 
-<http://iso.org/iso8601#19650101T000000> a ies:ParticularPeriod .
+bldg:Age1991to1995 a bldg:ClassOfConstructionAge ;
+    rdfs:label "1991-1995" ;
+    rdfs:comment "Construction age band: built between 1991 and 1995." .
 
-<http://data.gov.uk/testdata#building42State1> a bldg:BuildingState ;
-    ies:isStateOf <http://data.gov.uk/testdata#building42> .
+bldg:Age1996to2002 a bldg:ClassOfConstructionAge ;
+    rdfs:label "1996-2002" ;
+    rdfs:comment "Construction age band: built between 1996 and 2002." .
+
+bldg:Age2003to2006 a bldg:ClassOfConstructionAge ;
+    rdfs:label "2003-2006" ;
+    rdfs:comment "Construction age band: built between 2003 and 2006." .
+
+bldg:Age2007to2011 a bldg:ClassOfConstructionAge ;
+    rdfs:label "2007-2011" ;
+    rdfs:comment "Construction age band: built between 2007 and 2011." .
+
+bldg:Age2012onwards a bldg:ClassOfConstructionAge ;
+    rdfs:label "2012 onwards" ;
+    rdfs:comment "Construction age band: built from 2012 onwards." .
+
+# =============================================================================
+# SECTION 2: BUILDING ENVELOPE ELEMENTS
+# =============================================================================
+
+# --- Wall ---
+
+bldg:Wall a rdfs:Class ;
+    rdfs:subClassOf ies:Asset ;
+    rdfs:label "Wall" ;
+    rdfs:comment "An external wall element of a building's thermal envelope. Its construction type and insulation determine heat loss." .
+
+bldg:WallState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Wall State" ;
+    rdfs:comment "A temporal state of a wall, capturing its description, energy efficiency rating, and environmental efficiency rating at a point in time." .
+
+bldg:ClassOfWall a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfElement ;
+    rdfs:label "Class of Wall" ;
+    rdfs:comment "A classifier for wall construction types. Instances represent construction and insulation combinations (e.g. cavity wall filled, solid brick uninsulated)." .
+
+bldg:CavityWallFilled a bldg:ClassOfWall ;
+    rdfs:label "Cavity Wall, Filled Cavity" ;
+    rdfs:comment "Wall type: cavity wall construction with cavity insulation fill." .
+
+bldg:CavityWallUnfilled a bldg:ClassOfWall ;
+    rdfs:label "Cavity Wall, Unfilled" ;
+    rdfs:comment "Wall type: cavity wall construction with no cavity insulation." .
+
+bldg:SolidBrickNoInsulation a bldg:ClassOfWall ;
+    rdfs:label "Solid Brick, No Insulation" ;
+    rdfs:comment "Wall type: solid brick wall as built with no additional insulation." .
+
+bldg:SolidBrickInsulated a bldg:ClassOfWall ;
+    rdfs:label "Solid Brick, Insulated" ;
+    rdfs:comment "Wall type: solid brick wall with internal or external insulation applied." .
+
+bldg:TimberFrameInsulated a bldg:ClassOfWall ;
+    rdfs:label "Timber Frame, Insulated" ;
+    rdfs:comment "Wall type: timber frame construction with insulation between studs." .
+
+bldg:SystemBuiltInsulated a bldg:ClassOfWall ;
+    rdfs:label "System Built, Insulated" ;
+    rdfs:comment "Wall type: system-built (non-traditional) construction with insulation." .
+
+bldg:SandstoneInsulated a bldg:ClassOfWall ;
+    rdfs:label "Sandstone, Insulated" ;
+    rdfs:comment "Wall type: sandstone construction with insulation applied." .
+
+bldg:SandstoneNoInsulation a bldg:ClassOfWall ;
+    rdfs:label "Sandstone, No Insulation" ;
+    rdfs:comment "Wall type: sandstone construction with no insulation." .
+
+# --- Roof ---
+
+bldg:Roof a rdfs:Class ;
+    rdfs:subClassOf ies:Asset ;
+    rdfs:label "Roof" ;
+    rdfs:comment "A roof element of a building's thermal envelope. Its form and insulation depth determine heat loss through the top of the dwelling." .
+
+bldg:RoofState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Roof State" ;
+    rdfs:comment "A temporal state of a roof, capturing its description, energy efficiency rating, and environmental efficiency rating at a point in time." .
+
+bldg:ClassOfRoof a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfElement ;
+    rdfs:label "Class of Roof" ;
+    rdfs:comment "A classifier for roof types. Instances represent roof form and insulation combinations." .
+
+bldg:PitchedInsulated a bldg:ClassOfRoof ;
+    rdfs:label "Pitched, Insulated" ;
+    rdfs:comment "Roof type: pitched roof with loft insulation (typically 200-300mm)." .
+
+bldg:PitchedNoInsulation a bldg:ClassOfRoof ;
+    rdfs:label "Pitched, No Insulation" ;
+    rdfs:comment "Roof type: pitched roof with no loft insulation." .
+
+bldg:PitchedLimitedInsulation a bldg:ClassOfRoof ;
+    rdfs:label "Pitched, Limited Insulation" ;
+    rdfs:comment "Roof type: pitched roof with limited (less than 100mm) loft insulation." .
+
+bldg:FlatRoofInsulated a bldg:ClassOfRoof ;
+    rdfs:label "Flat, Insulated" ;
+    rdfs:comment "Roof type: flat roof with insulation layer." .
+
+bldg:FlatRoofNoInsulation a bldg:ClassOfRoof ;
+    rdfs:label "Flat, No Insulation" ;
+    rdfs:comment "Roof type: flat roof with no insulation." .
+
+bldg:ThatchedRoof a bldg:ClassOfRoof ;
+    rdfs:label "Thatched" ;
+    rdfs:comment "Roof type: thatched roof, which provides some inherent insulation." .
+
+bldg:RoomInRoofInsulated a bldg:ClassOfRoof ;
+    rdfs:label "Room-in-Roof, Insulated" ;
+    rdfs:comment "Roof type: habitable room in the roof space with insulation." .
+
+bldg:RoomInRoofNoInsulation a bldg:ClassOfRoof ;
+    rdfs:label "Room-in-Roof, No Insulation" ;
+    rdfs:comment "Roof type: habitable room in the roof space with no insulation." .
+
+# --- Floor ---
+
+bldg:Floor a rdfs:Class ;
+    rdfs:subClassOf ies:Asset ;
+    rdfs:label "Floor" ;
+    rdfs:comment "A ground floor element of a building's thermal envelope. Its construction type and insulation determine heat loss to the ground or external air." .
+
+bldg:FloorState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Floor State" ;
+    rdfs:comment "A temporal state of a floor, capturing its description, energy efficiency rating, and environmental efficiency rating at a point in time." .
+
+bldg:ClassOfFloor a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfElement ;
+    rdfs:label "Class of Floor" ;
+    rdfs:comment "A classifier for floor construction types. Instances represent construction and insulation combinations." .
+
+bldg:SuspendedNoInsulation a bldg:ClassOfFloor ;
+    rdfs:label "Suspended, No Insulation" ;
+    rdfs:comment "Floor type: suspended timber floor with no insulation." .
+
+bldg:SuspendedInsulated a bldg:ClassOfFloor ;
+    rdfs:label "Suspended, Insulated" ;
+    rdfs:comment "Floor type: suspended timber floor with insulation between joists." .
+
+bldg:SolidFloorNoInsulation a bldg:ClassOfFloor ;
+    rdfs:label "Solid, No Insulation" ;
+    rdfs:comment "Floor type: solid concrete floor with no insulation." .
+
+bldg:SolidFloorLimitedInsulation a bldg:ClassOfFloor ;
+    rdfs:label "Solid, Limited Insulation" ;
+    rdfs:comment "Floor type: solid concrete floor with limited insulation." .
+
+bldg:SolidFloorInsulated a bldg:ClassOfFloor ;
+    rdfs:label "Solid, Insulated" ;
+    rdfs:comment "Floor type: solid concrete floor with full insulation." .
+
+bldg:ToExternalAirInsulated a bldg:ClassOfFloor ;
+    rdfs:label "To External Air, Insulated" ;
+    rdfs:comment "Floor type: floor exposed to external air (e.g. over a garage or passageway) with insulation." .
+
+bldg:ToExternalAirNoInsulation a bldg:ClassOfFloor ;
+    rdfs:label "To External Air, No Insulation" ;
+    rdfs:comment "Floor type: floor exposed to external air with no insulation." .
+
+# --- Window ---
+
+bldg:Window a rdfs:Class ;
+    rdfs:subClassOf ies:Asset ;
+    rdfs:label "Window" ;
+    rdfs:comment "The glazing elements of a building's thermal envelope. Windows are a major source of heat loss and solar gain." .
+
+bldg:WindowState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Window State" ;
+    rdfs:comment "A temporal state of the windows, capturing description, glazing type, proportion, area, energy efficiency rating, and environmental efficiency rating." .
+
+bldg:ClassOfWindow a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfElement ;
+    rdfs:label "Class of Window" ;
+    rdfs:comment "A classifier for window/glazing types." .
+
+bldg:SingleGlazed a bldg:ClassOfWindow ;
+    rdfs:label "Single Glazed" ;
+    rdfs:comment "Window type: single-pane glazing with no insulating gap." .
+
+bldg:DoubleGlazed a bldg:ClassOfWindow ;
+    rdfs:label "Double Glazed" ;
+    rdfs:comment "Window type: double-pane glazing with an insulating gas or air gap." .
+
+bldg:TripleGlazed a bldg:ClassOfWindow ;
+    rdfs:label "Triple Glazed" ;
+    rdfs:comment "Window type: triple-pane glazing providing enhanced thermal insulation." .
+
+bldg:SecondaryGlazing a bldg:ClassOfWindow ;
+    rdfs:label "Secondary Glazing" ;
+    rdfs:comment "Window type: secondary glazing added to existing single-glazed windows." .
+
+# --- ClassOfGlazedArea (GLAZED_AREA — relative proportion) ---
+
+bldg:ClassOfGlazedArea a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class of Glazed Area" ;
+    rdfs:comment "A classifier for the relative glazed area of a dwelling compared to the typical amount for its type." .
+
+bldg:NormalGlazedArea a bldg:ClassOfGlazedArea ;
+    rdfs:label "Normal" ;
+    rdfs:comment "Glazed area: typical for the dwelling type." .
+
+bldg:MoreThanTypical a bldg:ClassOfGlazedArea ;
+    rdfs:label "More Than Typical" ;
+    rdfs:comment "Glazed area: more than typical for the dwelling type." .
+
+bldg:MuchMoreThanTypical a bldg:ClassOfGlazedArea ;
+    rdfs:label "Much More Than Typical" ;
+    rdfs:comment "Glazed area: much more than typical for the dwelling type." .
+
+bldg:LessThanTypical a bldg:ClassOfGlazedArea ;
+    rdfs:label "Less Than Typical" ;
+    rdfs:comment "Glazed area: less than typical for the dwelling type." .
+
+# --- Door ---
+
+bldg:Door a rdfs:Class ;
+    rdfs:subClassOf ies:Asset ;
+    rdfs:label "Door" ;
+    rdfs:comment "An external door element of a building's thermal envelope." .
+
+bldg:DoorState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Door State" ;
+    rdfs:comment "A temporal state of a door, capturing its type and condition." .
+
+# =============================================================================
+# SECTION 3: BUILDING SYSTEMS
+# =============================================================================
+
+bldg:BuildingSystem a rdfs:Class ;
+    rdfs:subClassOf ies:Asset ;
+    rdfs:label "Building System" ;
+    rdfs:comment "An installed system within a building that provides heating, hot water, lighting, ventilation, or renewable energy generation." .
+
+# --- Main Heating System ---
+
+bldg:HeatingSystem a rdfs:Class ;
+    rdfs:subClassOf bldg:BuildingSystem ;
+    rdfs:label "Heating System" ;
+    rdfs:comment "The primary space heating system of a dwelling, comprising heat production (boiler, heat pump, electric heaters), distribution (radiators, underfloor, warm air), and controls." .
+
+bldg:HeatingSystemState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Heating System State" ;
+    rdfs:comment "A temporal state of the main heating system, capturing its description, fuel type, energy efficiency, and environmental efficiency ratings." .
+
+bldg:ClassOfHeatingSystem a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfElement ;
+    rdfs:label "Class of Heating System" ;
+    rdfs:comment "A classifier for main heating system types. Instances represent heat-production-plus-distribution combinations." .
+
+bldg:BoilerRadiatorsMainsGas a bldg:ClassOfHeatingSystem ;
+    rdfs:label "Boiler and Radiators, Mains Gas" ;
+    rdfs:comment "Heating type: gas-fired boiler distributing heat via wet radiator system." .
+
+bldg:BoilerRadiatorsOil a bldg:ClassOfHeatingSystem ;
+    rdfs:label "Boiler and Radiators, Oil" ;
+    rdfs:comment "Heating type: oil-fired boiler distributing heat via wet radiator system." .
+
+bldg:BoilerRadiatorsLPG a bldg:ClassOfHeatingSystem ;
+    rdfs:label "Boiler and Radiators, LPG" ;
+    rdfs:comment "Heating type: LPG-fired boiler distributing heat via wet radiator system." .
+
+bldg:ElectricStorageHeaters a bldg:ClassOfHeatingSystem ;
+    rdfs:label "Electric Storage Heaters" ;
+    rdfs:comment "Heating type: electric storage heaters charging overnight on off-peak tariff." .
+
+bldg:AirSourceHeatPump a bldg:ClassOfHeatingSystem ;
+    rdfs:label "Air Source Heat Pump" ;
+    rdfs:comment "Heating type: air source heat pump (ASHP) extracting heat from outdoor air." .
+
+bldg:GroundSourceHeatPump a bldg:ClassOfHeatingSystem ;
+    rdfs:label "Ground Source Heat Pump" ;
+    rdfs:comment "Heating type: ground source heat pump (GSHP) extracting heat from the ground." .
+
+bldg:GasWarmAir a bldg:ClassOfHeatingSystem ;
+    rdfs:label "Gas Warm Air" ;
+    rdfs:comment "Heating type: gas-fired warm air central heating." .
+
+bldg:CommunityScheme a bldg:ClassOfHeatingSystem ;
+    rdfs:label "Community Scheme" ;
+    rdfs:comment "Heating type: community or district heating scheme." .
+
+bldg:MicroCHP a bldg:ClassOfHeatingSystem ;
+    rdfs:label "Micro-CHP" ;
+    rdfs:comment "Heating type: micro combined heat and power unit generating both heat and electricity." .
+
+bldg:RoomHeatersSolidFuel a bldg:ClassOfHeatingSystem ;
+    rdfs:label "Room Heaters, Solid Fuel" ;
+    rdfs:comment "Heating type: solid fuel room heaters (e.g. wood-burning stoves, coal fires)." .
+
+bldg:PortableElectricHeaters a bldg:ClassOfHeatingSystem ;
+    rdfs:label "Portable Electric Heaters" ;
+    rdfs:comment "Heating type: portable electric heaters with no fixed installation." .
+
+bldg:ElectricUnderfloorHeating a bldg:ClassOfHeatingSystem ;
+    rdfs:label "Electric Underfloor Heating" ;
+    rdfs:comment "Heating type: electric underfloor heating elements embedded in the floor." .
+
+# --- Main Fuel ---
+
+bldg:ClassOfFuel a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class of Fuel" ;
+    rdfs:comment "A classifier for the main fuel type used by the heating system." .
+
+bldg:MainsGas a bldg:ClassOfFuel ;
+    rdfs:label "Mains Gas" ;
+    rdfs:comment "Fuel type: piped natural gas from the mains network." .
+
+bldg:Electricity a bldg:ClassOfFuel ;
+    rdfs:label "Electricity" ;
+    rdfs:comment "Fuel type: grid electricity." .
+
+bldg:Oil a bldg:ClassOfFuel ;
+    rdfs:label "Oil" ;
+    rdfs:comment "Fuel type: heating oil (kerosene or gas oil)." .
+
+bldg:LPG a bldg:ClassOfFuel ;
+    rdfs:label "LPG" ;
+    rdfs:comment "Fuel type: liquefied petroleum gas stored on site." .
+
+bldg:SolidFuel a bldg:ClassOfFuel ;
+    rdfs:label "Solid Fuel" ;
+    rdfs:comment "Fuel type: coal, anthracite, or manufactured solid fuel." .
+
+bldg:Biomass a bldg:ClassOfFuel ;
+    rdfs:label "Biomass" ;
+    rdfs:comment "Fuel type: biomass (wood pellets, wood chips, logs)." .
+
+bldg:CommunityHeat a bldg:ClassOfFuel ;
+    rdfs:label "Community Heat" ;
+    rdfs:comment "Fuel type: heat delivered via a district or community heating network." .
+
+bldg:BottledGas a bldg:ClassOfFuel ;
+    rdfs:label "Bottled Gas" ;
+    rdfs:comment "Fuel type: bottled LPG or propane." .
+
+# --- Heating Controls ---
+
+bldg:HeatingControls a rdfs:Class ;
+    rdfs:subClassOf bldg:BuildingSystem ;
+    rdfs:label "Heating Controls" ;
+    rdfs:comment "The heating control system, including programmer, room thermostat, and thermostatic radiator valves (TRVs)." .
+
+bldg:HeatingControlsState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Heating Controls State" ;
+    rdfs:comment "A temporal state of the heating controls, capturing their description, energy efficiency, and environmental efficiency ratings." .
+
+bldg:ClassOfHeatingControls a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfElement ;
+    rdfs:label "Class of Heating Controls" ;
+    rdfs:comment "A classifier for heating control configurations." .
+
+bldg:ProgrammerRoomThermostatTRVs a bldg:ClassOfHeatingControls ;
+    rdfs:label "Programmer, Room Thermostat and TRVs" ;
+    rdfs:comment "Heating controls: full set of programmer, room thermostat, and thermostatic radiator valves." .
+
+bldg:ChargingControlTargetCharge a bldg:ClassOfHeatingControls ;
+    rdfs:label "Charging Control and Target Charge Control" ;
+    rdfs:comment "Heating controls: automatic charge control for storage heaters with target temperature." .
+
+bldg:ProgrammerRoomThermostat a bldg:ClassOfHeatingControls ;
+    rdfs:label "Programmer and Room Thermostat" ;
+    rdfs:comment "Heating controls: programmer and room thermostat without TRVs." .
+
+bldg:ProgrammerOnly a bldg:ClassOfHeatingControls ;
+    rdfs:label "Programmer Only" ;
+    rdfs:comment "Heating controls: time programmer only with no temperature feedback." .
+
+bldg:RoomThermostatOnly a bldg:ClassOfHeatingControls ;
+    rdfs:label "Room Thermostat Only" ;
+    rdfs:comment "Heating controls: room thermostat only with no time control." .
+
+bldg:NoHeatingControls a bldg:ClassOfHeatingControls ;
+    rdfs:label "No Heating Controls" ;
+    rdfs:comment "Heating controls: no thermostatic or time controls present." .
+
+# --- Secondary Heating ---
+
+bldg:SecondaryHeatingSystem a rdfs:Class ;
+    rdfs:subClassOf bldg:BuildingSystem ;
+    rdfs:label "Secondary Heating System" ;
+    rdfs:comment "A secondary or supplementary heating system, typically room heaters used in addition to the main system." .
+
+bldg:SecondaryHeatingSystemState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Secondary Heating System State" ;
+    rdfs:comment "A temporal state of the secondary heating system, capturing its description and efficiency ratings." .
+
+bldg:ClassOfSecondaryHeating a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfElement ;
+    rdfs:label "Class of Secondary Heating" ;
+    rdfs:comment "A classifier for secondary heating system types." .
+
+bldg:RoomHeatersElectric a bldg:ClassOfSecondaryHeating ;
+    rdfs:label "Room Heaters, Electric" ;
+    rdfs:comment "Secondary heating: electric room heaters (fan heaters, convectors, radiant)." .
+
+bldg:RoomHeatersGas a bldg:ClassOfSecondaryHeating ;
+    rdfs:label "Room Heaters, Mains Gas" ;
+    rdfs:comment "Secondary heating: gas-fired room heaters." .
+
+bldg:PortableHeaters a bldg:ClassOfSecondaryHeating ;
+    rdfs:label "Portable Heaters" ;
+    rdfs:comment "Secondary heating: portable heaters of any fuel type." .
+
+bldg:RoomHeatersSolidFuelSecondary a bldg:ClassOfSecondaryHeating ;
+    rdfs:label "Room Heaters, Solid Fuel" ;
+    rdfs:comment "Secondary heating: solid fuel room heaters (stoves, open fires)." .
+
+bldg:NoSecondaryHeating a bldg:ClassOfSecondaryHeating ;
+    rdfs:label "None" ;
+    rdfs:comment "Secondary heating: no secondary heating system present." .
+
+# --- Hot Water System ---
+
+bldg:HotWaterSystem a rdfs:Class ;
+    rdfs:subClassOf bldg:BuildingSystem ;
+    rdfs:label "Hot Water System" ;
+    rdfs:comment "The domestic hot water system, providing hot water for washing and bathing." .
+
+bldg:HotWaterSystemState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Hot Water System State" ;
+    rdfs:comment "A temporal state of the hot water system, capturing its description, energy efficiency, and environmental efficiency ratings." .
+
+bldg:ClassOfHotWaterSystem a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfElement ;
+    rdfs:label "Class of Hot Water System" ;
+    rdfs:comment "A classifier for hot water system types." .
+
+bldg:FromMainSystem a bldg:ClassOfHotWaterSystem ;
+    rdfs:label "From Main System" ;
+    rdfs:comment "Hot water type: heated by the main heating boiler or heat pump." .
+
+bldg:ElectricImmersionOffPeak a bldg:ClassOfHotWaterSystem ;
+    rdfs:label "Electric Immersion, Off-Peak" ;
+    rdfs:comment "Hot water type: electric immersion heater in a hot water cylinder, using off-peak tariff." .
+
+bldg:ElectricImmersionOnPeak a bldg:ClassOfHotWaterSystem ;
+    rdfs:label "Electric Immersion, On-Peak" ;
+    rdfs:comment "Hot water type: electric immersion heater using standard tariff." .
+
+bldg:GasMultipoint a bldg:ClassOfHotWaterSystem ;
+    rdfs:label "Gas Multipoint" ;
+    rdfs:comment "Hot water type: instantaneous gas multipoint water heater." .
+
+bldg:SolarThermalHotWater a bldg:ClassOfHotWaterSystem ;
+    rdfs:label "Solar Thermal" ;
+    rdfs:comment "Hot water type: solar thermal panels providing hot water, typically with backup." .
+
+bldg:CommunityHotWater a bldg:ClassOfHotWaterSystem ;
+    rdfs:label "Community Hot Water" ;
+    rdfs:comment "Hot water type: hot water from a community or district scheme." .
+
+# --- Solar Thermal System ---
+
+bldg:SolarThermalSystem a rdfs:Class ;
+    rdfs:subClassOf bldg:BuildingSystem ;
+    rdfs:label "Solar Thermal System" ;
+    rdfs:comment "A solar thermal collector system providing hot water heating." .
+
+# --- Lighting System ---
+
+bldg:LightingSystem a rdfs:Class ;
+    rdfs:subClassOf bldg:BuildingSystem ;
+    rdfs:label "Lighting System" ;
+    rdfs:comment "The fixed lighting installation within a dwelling." .
+
+bldg:LightingSystemState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Lighting System State" ;
+    rdfs:comment "A temporal state of the lighting system, capturing its description, percentage of low-energy fittings, energy efficiency, and environmental efficiency ratings." .
+
+bldg:ClassOfLightingSystem a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfElement ;
+    rdfs:label "Class of Lighting System" ;
+    rdfs:comment "A classifier for lighting system types based on the proportion of low-energy fittings." .
+
+# --- Ventilation System ---
+
+bldg:VentilationSystem a rdfs:Class ;
+    rdfs:subClassOf bldg:BuildingSystem ;
+    rdfs:label "Ventilation System" ;
+    rdfs:comment "The ventilation system providing fresh air to the dwelling." .
+
+bldg:VentilationSystemState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Ventilation System State" ;
+    rdfs:comment "A temporal state of the ventilation system, capturing its type and configuration." .
+
+bldg:ClassOfVentilationSystem a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfElement ;
+    rdfs:label "Class of Ventilation System" ;
+    rdfs:comment "A classifier for ventilation types." .
+
+bldg:NaturalVentilation a bldg:ClassOfVentilationSystem ;
+    rdfs:label "Natural Ventilation" ;
+    rdfs:comment "Ventilation type: natural ventilation via windows, trickle vents, and passive stack." .
+
+bldg:MechanicalExtract a bldg:ClassOfVentilationSystem ;
+    rdfs:label "Mechanical Extract" ;
+    rdfs:comment "Ventilation type: mechanical extract ventilation (MEV) removing air without heat recovery." .
+
+bldg:MVHR a bldg:ClassOfVentilationSystem ;
+    rdfs:label "MVHR" ;
+    rdfs:comment "Ventilation type: mechanical ventilation with heat recovery (MVHR), recovering heat from exhaust air." .
+
+# --- Corridor heat loss ---
+
+bldg:ClassOfCorridorType a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class of Corridor Type" ;
+    rdfs:comment "A classifier for corridor heat loss conditions in flats — heated corridor, unheated corridor, or no corridor." .
+
+bldg:HeatedCorridor a bldg:ClassOfCorridorType ;
+    rdfs:label "Heated Corridor" ;
+    rdfs:comment "Corridor type: the flat is accessed via a heated communal corridor." .
+
+bldg:UnheatedCorridor a bldg:ClassOfCorridorType ;
+    rdfs:label "Unheated Corridor" ;
+    rdfs:comment "Corridor type: the flat is accessed via an unheated communal corridor." .
+
+bldg:NoCorridor a bldg:ClassOfCorridorType ;
+    rdfs:label "No Corridor" ;
+    rdfs:comment "Corridor type: the dwelling is not accessed via a communal corridor." .
+
+# =============================================================================
+# SECTION 4: RENEWABLE ENERGY SYSTEMS
+# =============================================================================
+
+bldg:RenewableEnergySystem a rdfs:Class ;
+    rdfs:subClassOf bldg:BuildingSystem ;
+    rdfs:label "Renewable Energy System" ;
+    rdfs:comment "A renewable energy generation system installed at the dwelling, offsetting grid electricity consumption." .
+
+bldg:RenewableEnergySystemState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Renewable Energy System State" ;
+    rdfs:comment "A temporal state of a renewable energy system, capturing its capacity and performance." .
+
+bldg:SolarPVSystem a rdfs:Class ;
+    rdfs:subClassOf bldg:RenewableEnergySystem ;
+    rdfs:label "Solar PV System" ;
+    rdfs:comment "A photovoltaic solar panel installation generating electricity from sunlight." .
+
+bldg:WindTurbine a rdfs:Class ;
+    rdfs:subClassOf bldg:RenewableEnergySystem ;
+    rdfs:label "Wind Turbine" ;
+    rdfs:comment "A domestic wind turbine generating electricity from wind." .
+
+# =============================================================================
+# SECTION 5: ADDRESS AND LOCATION
+# =============================================================================
+
+bldg:DwellingAddress a rdfs:Class ;
+    rdfs:subClassOf ies:Location ;
+    rdfs:label "Dwelling Address" ;
+    rdfs:comment "The postal address of a dwelling, comprising PAON, SAON, street, locality, town/city, district, county, and postcode." .
+
+bldg:Postcode a rdfs:Class ;
+    rdfs:subClassOf ies:GeoIdentity ;
+    rdfs:label "Postcode" ;
+    rdfs:comment "A UK postcode identifying the geographic area of a dwelling's address." .
+
+bldg:LocalAuthority a rdfs:Class ;
+    rdfs:subClassOf ies:GovernmentOrganisation ;
+    rdfs:label "Local Authority" ;
+    rdfs:comment "A UK local authority (council) with administrative jurisdiction over the area containing the dwelling." .
+
+bldg:Constituency a rdfs:Class ;
+    rdfs:subClassOf ies:Location ;
+    rdfs:label "Constituency" ;
+    rdfs:comment "A UK parliamentary constituency containing the dwelling." .
+
+bldg:LocalAuthorityArea a rdfs:Class ;
+    rdfs:subClassOf ies:Location ;
+    rdfs:label "Local Authority Area" ;
+    rdfs:comment "The administrative area of a local authority." .
+
+# =============================================================================
+# SECTION 6: IDENTIFIERS
+# =============================================================================
+
+bldg:BuildingReferenceNumber a rdfs:Class ;
+    rdfs:subClassOf ies:Identifier ;
+    rdfs:label "Building Reference Number" ;
+    rdfs:comment "The unique BUILDING_REFERENCE_NUMBER assigned to a dwelling within the EPC register." .
+
+bldg:EPCCertificateNumber a rdfs:Class ;
+    rdfs:subClassOf ies:Identifier ;
+    rdfs:label "EPC Certificate Number" ;
+    rdfs:comment "The unique identifier of an individual Energy Performance Certificate." .
+
+bldg:PAON a rdfs:Class ;
+    rdfs:subClassOf ies:Identifier ;
+    rdfs:label "PAON" ;
+    rdfs:comment "Primary Addressable Object Name — the house number or building name." .
+
+bldg:SAON a rdfs:Class ;
+    rdfs:subClassOf ies:Identifier ;
+    rdfs:label "SAON" ;
+    rdfs:comment "Secondary Addressable Object Name — the flat number or unit identifier within a building." .
+
+# =============================================================================
+# SECTION 7: EPC ASSESSMENT (EVENT)
+# =============================================================================
+
+bldg:EPCAssessment a rdfs:Class ;
+    rdfs:subClassOf ies:Event ;
+    rdfs:label "EPC Assessment" ;
+    rdfs:comment "An Energy Performance Certificate assessment event. An accredited assessor inspects the dwelling and produces a certificate with current and potential ratings." .
+
+bldg:EPCCertificate a rdfs:Class ;
+    rdfs:subClassOf ies:Document ;
+    rdfs:label "EPC Certificate" ;
+    rdfs:comment "An Energy Performance Certificate document produced as a result of an EPC assessment. Contains the energy rating, environmental impact rating, and recommendations." .
+
+bldg:EPCAssessor a rdfs:Class ;
+    rdfs:subClassOf ies:PersonState ;
+    rdfs:label "EPC Assessor" ;
+    rdfs:comment "The role of an accredited energy assessor qualified to carry out EPC inspections under the Energy Performance of Buildings Regulations." .
+
+# --- Transaction Type ---
+
+bldg:ClassOfTransaction a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class of Transaction" ;
+    rdfs:comment "A classifier for the reason an EPC was produced." .
+
+bldg:MarketedSale a bldg:ClassOfTransaction ;
+    rdfs:label "Marketed Sale" ;
+    rdfs:comment "Transaction type: EPC produced for a marketed property sale." .
+
+bldg:NonMarketedSale a bldg:ClassOfTransaction ;
+    rdfs:label "Non-Marketed Sale" ;
+    rdfs:comment "Transaction type: EPC produced for a non-marketed property sale." .
+
+bldg:Rental a bldg:ClassOfTransaction ;
+    rdfs:label "Rental" ;
+    rdfs:comment "Transaction type: EPC produced for a property rental (letting)." .
+
+bldg:GreenDealAssessment a bldg:ClassOfTransaction ;
+    rdfs:label "Assessment for Green Deal" ;
+    rdfs:comment "Transaction type: EPC produced as part of a Green Deal assessment." .
+
+bldg:FiTApplication a bldg:ClassOfTransaction ;
+    rdfs:label "FiT Application" ;
+    rdfs:comment "Transaction type: EPC produced for a Feed-in Tariff application." .
+
+bldg:RHIApplication a bldg:ClassOfTransaction ;
+    rdfs:label "RHI Application" ;
+    rdfs:comment "Transaction type: EPC produced for a Renewable Heat Incentive application." .
+
+bldg:ECOAssessment a bldg:ClassOfTransaction ;
+    rdfs:label "ECO Assessment" ;
+    rdfs:comment "Transaction type: EPC produced for an Energy Company Obligation assessment." .
+
+bldg:NewDwelling a bldg:ClassOfTransaction ;
+    rdfs:label "New Dwelling" ;
+    rdfs:comment "Transaction type: EPC produced for a newly constructed dwelling." .
+
+bldg:FollowingGreenDeal a bldg:ClassOfTransaction ;
+    rdfs:label "Following Green Deal" ;
+    rdfs:comment "Transaction type: EPC produced following completion of Green Deal measures." .
+
+# --- Tenure ---
+
+bldg:ClassOfTenure a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class of Tenure" ;
+    rdfs:comment "A classifier for the tenure type of the dwelling." .
+
+bldg:OwnerOccupied a bldg:ClassOfTenure ;
+    rdfs:label "Owner-Occupied" ;
+    rdfs:comment "Tenure type: the dwelling is occupied by the owner." .
+
+bldg:RentedSocial a bldg:ClassOfTenure ;
+    rdfs:label "Rented (Social)" ;
+    rdfs:comment "Tenure type: the dwelling is rented from a social landlord (council or housing association)." .
+
+bldg:RentedPrivate a bldg:ClassOfTenure ;
+    rdfs:label "Rented (Private)" ;
+    rdfs:comment "Tenure type: the dwelling is rented from a private landlord." .
+
+bldg:Unknown a bldg:ClassOfTenure ;
+    rdfs:label "Unknown" ;
+    rdfs:comment "Tenure type: tenure is not known." .
+
+# --- Bounding States for Assessment ---
+
+bldg:AssessmentStart a rdfs:Class ;
+    rdfs:subClassOf ies:BoundingState ;
+    rdfs:label "Assessment Start" ;
+    rdfs:comment "The bounding state marking the beginning of an EPC assessment inspection." .
+
+bldg:AssessmentEnd a rdfs:Class ;
+    rdfs:subClassOf ies:BoundingState ;
+    rdfs:label "Assessment End" ;
+    rdfs:comment "The bounding state marking the end of an EPC assessment, when the certificate is lodged." .
+
+# =============================================================================
+# SECTION 8: ENERGY PERFORMANCE MEASURES
+# =============================================================================
+
+# --- Energy Efficiency Rating (letter grade A-G) ---
+
+bldg:ClassOfEnergyRating a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class of Energy Rating" ;
+    rdfs:comment "A classifier for EPC energy efficiency letter grades from A (most efficient) to G (least efficient)." .
+
+bldg:RatingA a bldg:ClassOfEnergyRating ;
+    rdfs:label "A" ;
+    rdfs:comment "EPC rating band A: SAP score 92-100. Most energy efficient." .
+
+bldg:RatingB a bldg:ClassOfEnergyRating ;
+    rdfs:label "B" ;
+    rdfs:comment "EPC rating band B: SAP score 81-91." .
+
+bldg:RatingC a bldg:ClassOfEnergyRating ;
+    rdfs:label "C" ;
+    rdfs:comment "EPC rating band C: SAP score 69-80." .
+
+bldg:RatingD a bldg:ClassOfEnergyRating ;
+    rdfs:label "D" ;
+    rdfs:comment "EPC rating band D: SAP score 55-68." .
+
+bldg:RatingE a bldg:ClassOfEnergyRating ;
+    rdfs:label "E" ;
+    rdfs:comment "EPC rating band E: SAP score 39-54." .
+
+bldg:RatingF a bldg:ClassOfEnergyRating ;
+    rdfs:label "F" ;
+    rdfs:comment "EPC rating band F: SAP score 21-38." .
+
+bldg:RatingG a bldg:ClassOfEnergyRating ;
+    rdfs:label "G" ;
+    rdfs:comment "EPC rating band G: SAP score 1-20. Least energy efficient." .
+
+# --- Component Efficiency Rating (Very Good to Very Poor) ---
+
+bldg:ClassOfEfficiencyRating a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class of Efficiency Rating" ;
+    rdfs:comment "A classifier for component-level efficiency ratings on the five-point scale: Very Good, Good, Average, Poor, Very Poor." .
+
+bldg:VeryGood a bldg:ClassOfEfficiencyRating ;
+    rdfs:label "Very Good" ;
+    rdfs:comment "Component efficiency rating: Very Good — best performance band." .
+
+bldg:Good a bldg:ClassOfEfficiencyRating ;
+    rdfs:label "Good" ;
+    rdfs:comment "Component efficiency rating: Good." .
+
+bldg:Average a bldg:ClassOfEfficiencyRating ;
+    rdfs:label "Average" ;
+    rdfs:comment "Component efficiency rating: Average." .
+
+bldg:Poor a bldg:ClassOfEfficiencyRating ;
+    rdfs:label "Poor" ;
+    rdfs:comment "Component efficiency rating: Poor." .
+
+bldg:VeryPoor a bldg:ClassOfEfficiencyRating ;
+    rdfs:label "Very Poor" ;
+    rdfs:comment "Component efficiency rating: Very Poor — worst performance band." .
+
+# --- Numeric Measures ---
+
+bldg:SAPScore a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "SAP Score" ;
+    rdfs:comment "The Standard Assessment Procedure score (1-100) quantifying the energy efficiency of the dwelling. Higher values indicate greater efficiency." .
+
+bldg:EnvironmentalImpactScore a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Environmental Impact Score" ;
+    rdfs:comment "The environmental impact rating (1-100) based on CO2 emissions. Higher values indicate lower environmental impact." .
+
+bldg:CO2Emissions a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "CO2 Emissions" ;
+    rdfs:comment "Annual CO2 emissions from the dwelling in tonnes per year." .
+
+bldg:CO2EmissionsPerFloorArea a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "CO2 Emissions per Floor Area" ;
+    rdfs:comment "Annual CO2 emissions per square metre of floor area in kg/m2/year." .
+
+bldg:EnergyConsumption a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Energy Consumption" ;
+    rdfs:comment "Annual energy consumption of the dwelling in kWh/m2/year." .
+
+bldg:TotalFloorArea a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Total Floor Area" ;
+    rdfs:comment "The total internal floor area of the dwelling in square metres." .
+
+bldg:FloorHeight a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Floor Height" ;
+    rdfs:comment "The average storey height of the dwelling in metres." .
+
+bldg:NumberOfRooms a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Number of Rooms" ;
+    rdfs:comment "The total number of habitable rooms in the dwelling." .
+
+bldg:NumberOfHeatedRooms a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Number of Heated Rooms" ;
+    rdfs:comment "The number of habitable rooms that are heated by the main or secondary heating system." .
+
+bldg:FloorLevel a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Floor Level" ;
+    rdfs:comment "The floor level of the dwelling entrance (for flats). Ground floor = 0." .
+
+bldg:FlatStoreyCount a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Flat Storey Count" ;
+    rdfs:comment "The number of storeys in the block containing the flat." .
+
+bldg:ExtensionCount a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Extension Count" ;
+    rdfs:comment "The number of extensions that have been added to the dwelling." .
+
+bldg:NumberOfOpenFireplaces a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Number of Open Fireplaces" ;
+    rdfs:comment "The count of open fireplaces, which contribute to ventilation heat loss." .
+
+bldg:MultiGlazeProportion a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Multi-Glaze Proportion" ;
+    rdfs:comment "The percentage of windows that have multiple glazing (0-100)." .
+
+bldg:LowEnergyLightingPercentage a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Low Energy Lighting Percentage" ;
+    rdfs:comment "The percentage of fixed lighting outlets fitted with low energy (LED/CFL) lamps (0-100)." .
+
+bldg:PhotovoltaicPeakPower a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Photovoltaic Peak Power" ;
+    rdfs:comment "The peak generating capacity of the solar PV installation in kilowatts (kWp)." .
+
+bldg:WindTurbineCount a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Wind Turbine Count" ;
+    rdfs:comment "The number of wind turbines installed at the dwelling." .
+
+bldg:UnheatedCorridorLength a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Unheated Corridor Length" ;
+    rdfs:comment "The length of the unheated corridor providing access to the flat, in metres." .
+
+# --- Running Cost Measures ---
+
+bldg:HeatingCost a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Heating Cost" ;
+    rdfs:comment "The estimated annual space heating running cost in pounds sterling per year." .
+
+bldg:HotWaterCost a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Hot Water Cost" ;
+    rdfs:comment "The estimated annual hot water running cost in pounds sterling per year." .
+
+bldg:LightingCost a rdfs:Class ;
+    rdfs:subClassOf ies:Measure ;
+    rdfs:label "Lighting Cost" ;
+    rdfs:comment "The estimated annual lighting running cost in pounds sterling per year." .
+
+bldg:EnergyTariff a rdfs:Class ;
+    rdfs:subClassOf ies:Characteristic ;
+    rdfs:label "Energy Tariff" ;
+    rdfs:comment "The energy tariff type used for cost calculations (e.g. standard, off-peak, Economy 7)." .
+
+# =============================================================================
+# SECTION 9: RETROFIT AND IMPROVEMENT EVENTS
+# =============================================================================
+
+bldg:RetrofitEvent a rdfs:Class ;
+    rdfs:subClassOf ies:Event ;
+    rdfs:label "Retrofit Event" ;
+    rdfs:comment "An energy improvement measure applied to a dwelling, such as insulation upgrade, heating system replacement, or renewable installation." .
+
+bldg:InsulationUpgrade a rdfs:Class ;
+    rdfs:subClassOf bldg:RetrofitEvent ;
+    rdfs:label "Insulation Upgrade" ;
+    rdfs:comment "A retrofit event involving the installation or improvement of insulation in walls, roof, or floor." .
+
+bldg:HeatingSystemReplacement a rdfs:Class ;
+    rdfs:subClassOf bldg:RetrofitEvent ;
+    rdfs:label "Heating System Replacement" ;
+    rdfs:comment "A retrofit event involving the replacement of the main heating system." .
+
+bldg:WindowUpgrade a rdfs:Class ;
+    rdfs:subClassOf bldg:RetrofitEvent ;
+    rdfs:label "Window Upgrade" ;
+    rdfs:comment "A retrofit event involving the replacement or upgrade of windows to improve thermal performance." .
+
+bldg:RenewableInstallation a rdfs:Class ;
+    rdfs:subClassOf bldg:RetrofitEvent ;
+    rdfs:label "Renewable Installation" ;
+    rdfs:comment "A retrofit event involving the installation of a renewable energy system (solar PV, wind turbine, solar thermal)." .
+
+bldg:LightingUpgrade a rdfs:Class ;
+    rdfs:subClassOf bldg:RetrofitEvent ;
+    rdfs:label "Lighting Upgrade" ;
+    rdfs:comment "A retrofit event involving the replacement of lighting with low-energy fittings." .
+
+# =============================================================================
+# SECTION 10: OBJECT PROPERTIES
+# =============================================================================
+
+# --- Structural composition (building has envelope elements and systems) ---
+
+bldg:hasWall a rdf:Property ;
+    rdfs:subPropertyOf ies:isPartOf ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:Wall ;
+    rdfs:label "has wall" ;
+    rdfs:comment "Relates a building to its external wall elements." .
+
+bldg:hasRoof a rdf:Property ;
+    rdfs:subPropertyOf ies:isPartOf ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:Roof ;
+    rdfs:label "has roof" ;
+    rdfs:comment "Relates a building to its roof element." .
+
+bldg:hasFloor a rdf:Property ;
+    rdfs:subPropertyOf ies:isPartOf ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:Floor ;
+    rdfs:label "has floor" ;
+    rdfs:comment "Relates a building to its ground floor element." .
+
+bldg:hasWindow a rdf:Property ;
+    rdfs:subPropertyOf ies:isPartOf ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:Window ;
+    rdfs:label "has window" ;
+    rdfs:comment "Relates a building to its window/glazing elements." .
+
+bldg:hasDoor a rdf:Property ;
+    rdfs:subPropertyOf ies:isPartOf ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:Door ;
+    rdfs:label "has door" ;
+    rdfs:comment "Relates a building to its external door elements." .
+
+bldg:hasHeatingSystem a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:HeatingSystem ;
+    rdfs:label "has heating system" ;
+    rdfs:comment "Relates a building to its main heating system." .
+
+bldg:hasSecondaryHeatingSystem a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:SecondaryHeatingSystem ;
+    rdfs:label "has secondary heating system" ;
+    rdfs:comment "Relates a building to its secondary heating system." .
+
+bldg:hasHeatingControls a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:HeatingControls ;
+    rdfs:label "has heating controls" ;
+    rdfs:comment "Relates a building to its heating control system." .
+
+bldg:hasHotWaterSystem a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:HotWaterSystem ;
+    rdfs:label "has hot water system" ;
+    rdfs:comment "Relates a building to its domestic hot water system." .
+
+bldg:hasLightingSystem a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:LightingSystem ;
+    rdfs:label "has lighting system" ;
+    rdfs:comment "Relates a building to its fixed lighting installation." .
+
+bldg:hasVentilationSystem a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:VentilationSystem ;
+    rdfs:label "has ventilation system" ;
+    rdfs:comment "Relates a building to its ventilation system." .
+
+bldg:hasRenewableEnergySystem a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:RenewableEnergySystem ;
+    rdfs:label "has renewable energy system" ;
+    rdfs:comment "Relates a building to an installed renewable energy system." .
+
+bldg:hasSolarThermalSystem a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:SolarThermalSystem ;
+    rdfs:label "has solar thermal system" ;
+    rdfs:comment "Relates a building to its solar thermal hot water system." .
+
+# --- Classification properties ---
+
+bldg:hasBuildingType a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:ClassOfBuilding ;
+    rdfs:label "has building type" ;
+    rdfs:comment "Classifies a building by its property type (Detached, Semi-Detached, Terraced, Flat). Maps to EPC PROPERTY_TYPE." .
+
+bldg:hasBuiltForm a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:ClassOfBuiltForm ;
+    rdfs:label "has built form" ;
+    rdfs:comment "Classifies a building by its detailed built form. Maps to EPC BUILT_FORM." .
+
+bldg:hasConstructionAge a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:ClassOfConstructionAge ;
+    rdfs:label "has construction age" ;
+    rdfs:comment "Classifies a building by its construction age band. Maps to EPC CONSTRUCTION_AGE_BAND." .
+
+bldg:hasWallType a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:WallState ;
+    rdfs:range bldg:ClassOfWall ;
+    rdfs:label "has wall type" ;
+    rdfs:comment "Classifies a wall state by its construction and insulation type. Maps to EPC WALLS_DESCRIPTION." .
+
+bldg:hasRoofType a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:RoofState ;
+    rdfs:range bldg:ClassOfRoof ;
+    rdfs:label "has roof type" ;
+    rdfs:comment "Classifies a roof state by its form and insulation. Maps to EPC ROOF_DESCRIPTION." .
+
+bldg:hasFloorType a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:FloorState ;
+    rdfs:range bldg:ClassOfFloor ;
+    rdfs:label "has floor type" ;
+    rdfs:comment "Classifies a floor state by its construction and insulation. Maps to EPC FLOOR_DESCRIPTION." .
+
+bldg:hasGlazingType a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:WindowState ;
+    rdfs:range bldg:ClassOfWindow ;
+    rdfs:label "has glazing type" ;
+    rdfs:comment "Classifies a window state by its glazing type. Maps to EPC GLAZED_TYPE." .
+
+bldg:hasGlazedArea a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:WindowState ;
+    rdfs:range bldg:ClassOfGlazedArea ;
+    rdfs:label "has glazed area" ;
+    rdfs:comment "Classifies a window state by its relative glazed area. Maps to EPC GLAZED_AREA." .
+
+bldg:hasHeatingSystemType a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:HeatingSystemState ;
+    rdfs:range bldg:ClassOfHeatingSystem ;
+    rdfs:label "has heating system type" ;
+    rdfs:comment "Classifies a heating system state by its type. Maps to EPC MAINHEAT_DESCRIPTION." .
+
+bldg:hasMainFuel a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:HeatingSystemState ;
+    rdfs:range bldg:ClassOfFuel ;
+    rdfs:label "has main fuel" ;
+    rdfs:comment "Identifies the main fuel used by the heating system. Maps to EPC MAIN_FUEL." .
+
+bldg:hasHeatingControlsType a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:HeatingControlsState ;
+    rdfs:range bldg:ClassOfHeatingControls ;
+    rdfs:label "has heating controls type" ;
+    rdfs:comment "Classifies a heating controls state by its configuration. Maps to EPC MAINHEATCONT_DESCRIPTION." .
+
+bldg:hasSecondaryHeatingType a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:SecondaryHeatingSystemState ;
+    rdfs:range bldg:ClassOfSecondaryHeating ;
+    rdfs:label "has secondary heating type" ;
+    rdfs:comment "Classifies a secondary heating system state by its type. Maps to EPC SECONDHEAT_DESCRIPTION." .
+
+bldg:hasHotWaterSystemType a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:HotWaterSystemState ;
+    rdfs:range bldg:ClassOfHotWaterSystem ;
+    rdfs:label "has hot water system type" ;
+    rdfs:comment "Classifies a hot water system state by its type. Maps to EPC HOTWATER_DESCRIPTION." .
+
+bldg:hasVentilationType a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:VentilationSystemState ;
+    rdfs:range bldg:ClassOfVentilationSystem ;
+    rdfs:label "has ventilation type" ;
+    rdfs:comment "Classifies a ventilation system state by its type. Maps to EPC MECHANICAL_VENTILATION." .
+
+bldg:hasCorridorType a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:BuildingState ;
+    rdfs:range bldg:ClassOfCorridorType ;
+    rdfs:label "has corridor type" ;
+    rdfs:comment "Classifies the corridor heat loss condition for flats. Maps to EPC HEAT_LOSS_CORRIDOOR." .
+
+bldg:hasTransactionType a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:EPCAssessment ;
+    rdfs:range bldg:ClassOfTransaction ;
+    rdfs:label "has transaction type" ;
+    rdfs:comment "Identifies the reason for the EPC assessment. Maps to EPC TRANSACTION_TYPE." .
+
+bldg:hasTenure a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:BuildingState ;
+    rdfs:range bldg:ClassOfTenure ;
+    rdfs:label "has tenure" ;
+    rdfs:comment "Identifies the tenure type of the dwelling. Maps to EPC TENURE." .
+
+bldg:hasCurrentEnergyRating a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:BuildingState ;
+    rdfs:range bldg:ClassOfEnergyRating ;
+    rdfs:label "has current energy rating" ;
+    rdfs:comment "The current EPC energy rating band (A-G). Maps to EPC CURRENT_ENERGY_RATING." .
+
+bldg:hasPotentialEnergyRating a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:BuildingState ;
+    rdfs:range bldg:ClassOfEnergyRating ;
+    rdfs:label "has potential energy rating" ;
+    rdfs:comment "The potential EPC energy rating band (A-G) achievable with recommended improvements. Maps to EPC POTENTIAL_ENERGY_RATING." .
+
+# --- Efficiency ratings for components ---
+
+bldg:hasEnergyEfficiency a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain ies:State ;
+    rdfs:range bldg:ClassOfEfficiencyRating ;
+    rdfs:label "has energy efficiency" ;
+    rdfs:comment "The energy efficiency rating (Very Good to Very Poor) of a building component in its current state. Maps to EPC *_ENERGY_EFF columns." .
+
+bldg:hasEnvironmentalEfficiency a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain ies:State ;
+    rdfs:range bldg:ClassOfEfficiencyRating ;
+    rdfs:label "has environmental efficiency" ;
+    rdfs:comment "The environmental efficiency rating (Very Good to Very Poor) of a building component in its current state. Maps to EPC *_ENV_EFF columns." .
+
+# --- State relationships ---
+
+bldg:isBuildingStateOf a rdf:Property ;
+    rdfs:subPropertyOf ies:isStateOf ;
+    rdfs:domain bldg:BuildingState ;
+    rdfs:range bldg:Building ;
+    rdfs:label "is building state of" ;
+    rdfs:comment "Relates a temporal building state to the whole-life building entity." .
+
+bldg:isWallStateOf a rdf:Property ;
+    rdfs:subPropertyOf ies:isStateOf ;
+    rdfs:domain bldg:WallState ;
+    rdfs:range bldg:Wall ;
+    rdfs:label "is wall state of" ;
+    rdfs:comment "Relates a temporal wall state to the whole-life wall entity." .
+
+bldg:isRoofStateOf a rdf:Property ;
+    rdfs:subPropertyOf ies:isStateOf ;
+    rdfs:domain bldg:RoofState ;
+    rdfs:range bldg:Roof ;
+    rdfs:label "is roof state of" ;
+    rdfs:comment "Relates a temporal roof state to the whole-life roof entity." .
+
+bldg:isFloorStateOf a rdf:Property ;
+    rdfs:subPropertyOf ies:isStateOf ;
+    rdfs:domain bldg:FloorState ;
+    rdfs:range bldg:Floor ;
+    rdfs:label "is floor state of" ;
+    rdfs:comment "Relates a temporal floor state to the whole-life floor entity." .
+
+bldg:isWindowStateOf a rdf:Property ;
+    rdfs:subPropertyOf ies:isStateOf ;
+    rdfs:domain bldg:WindowState ;
+    rdfs:range bldg:Window ;
+    rdfs:label "is window state of" ;
+    rdfs:comment "Relates a temporal window state to the whole-life window entity." .
+
+bldg:isDoorStateOf a rdf:Property ;
+    rdfs:subPropertyOf ies:isStateOf ;
+    rdfs:domain bldg:DoorState ;
+    rdfs:range bldg:Door ;
+    rdfs:label "is door state of" ;
+    rdfs:comment "Relates a temporal door state to the whole-life door entity." .
+
+bldg:isHeatingSystemStateOf a rdf:Property ;
+    rdfs:subPropertyOf ies:isStateOf ;
+    rdfs:domain bldg:HeatingSystemState ;
+    rdfs:range bldg:HeatingSystem ;
+    rdfs:label "is heating system state of" ;
+    rdfs:comment "Relates a temporal heating system state to the whole-life heating system entity." .
+
+bldg:isSecondaryHeatingStateOf a rdf:Property ;
+    rdfs:subPropertyOf ies:isStateOf ;
+    rdfs:domain bldg:SecondaryHeatingSystemState ;
+    rdfs:range bldg:SecondaryHeatingSystem ;
+    rdfs:label "is secondary heating state of" ;
+    rdfs:comment "Relates a temporal secondary heating system state to the whole-life entity." .
+
+bldg:isHeatingControlsStateOf a rdf:Property ;
+    rdfs:subPropertyOf ies:isStateOf ;
+    rdfs:domain bldg:HeatingControlsState ;
+    rdfs:range bldg:HeatingControls ;
+    rdfs:label "is heating controls state of" ;
+    rdfs:comment "Relates a temporal heating controls state to the whole-life heating controls entity." .
+
+bldg:isHotWaterSystemStateOf a rdf:Property ;
+    rdfs:subPropertyOf ies:isStateOf ;
+    rdfs:domain bldg:HotWaterSystemState ;
+    rdfs:range bldg:HotWaterSystem ;
+    rdfs:label "is hot water system state of" ;
+    rdfs:comment "Relates a temporal hot water system state to the whole-life hot water system entity." .
+
+bldg:isLightingSystemStateOf a rdf:Property ;
+    rdfs:subPropertyOf ies:isStateOf ;
+    rdfs:domain bldg:LightingSystemState ;
+    rdfs:range bldg:LightingSystem ;
+    rdfs:label "is lighting system state of" ;
+    rdfs:comment "Relates a temporal lighting system state to the whole-life lighting system entity." .
+
+bldg:isVentilationSystemStateOf a rdf:Property ;
+    rdfs:subPropertyOf ies:isStateOf ;
+    rdfs:domain bldg:VentilationSystemState ;
+    rdfs:range bldg:VentilationSystem ;
+    rdfs:label "is ventilation system state of" ;
+    rdfs:comment "Relates a temporal ventilation system state to the whole-life ventilation system entity." .
+
+bldg:isRenewableSystemStateOf a rdf:Property ;
+    rdfs:subPropertyOf ies:isStateOf ;
+    rdfs:domain bldg:RenewableEnergySystemState ;
+    rdfs:range bldg:RenewableEnergySystem ;
+    rdfs:label "is renewable system state of" ;
+    rdfs:comment "Relates a temporal renewable energy system state to the whole-life entity." .
+
+# --- Assessment and certificate relationships ---
+
+bldg:assessedBuilding a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:EPCAssessment ;
+    rdfs:range bldg:Building ;
+    rdfs:label "assessed building" ;
+    rdfs:comment "Relates an EPC assessment event to the building that was assessed." .
+
+bldg:producedCertificate a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:EPCAssessment ;
+    rdfs:range bldg:EPCCertificate ;
+    rdfs:label "produced certificate" ;
+    rdfs:comment "Relates an EPC assessment to the certificate it produced." .
+
+bldg:conductedBy a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:EPCAssessment ;
+    rdfs:range bldg:EPCAssessor ;
+    rdfs:label "conducted by" ;
+    rdfs:comment "Relates an EPC assessment to the accredited assessor who carried it out." .
+
+bldg:resultsInBuildingState a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:EPCAssessment ;
+    rdfs:range bldg:BuildingState ;
+    rdfs:label "results in building state" ;
+    rdfs:comment "Relates an EPC assessment to the building state snapshot it captured." .
+
+# --- Location and address ---
+
+bldg:hasAddress a rdf:Property ;
+    rdfs:subPropertyOf ies:inLocation ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:DwellingAddress ;
+    rdfs:label "has address" ;
+    rdfs:comment "Relates a building to its postal address." .
+
+bldg:inLocalAuthority a rdf:Property ;
+    rdfs:subPropertyOf ies:inLocation ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:LocalAuthorityArea ;
+    rdfs:label "in local authority" ;
+    rdfs:comment "Relates a building to the local authority area it is located in. Maps to EPC LOCAL_AUTHORITY." .
+
+bldg:inConstituency a rdf:Property ;
+    rdfs:subPropertyOf ies:inLocation ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:Constituency ;
+    rdfs:label "in constituency" ;
+    rdfs:comment "Relates a building to the parliamentary constituency it is located in. Maps to EPC CONSTITUENCY." .
+
+bldg:administeredBy a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:LocalAuthorityArea ;
+    rdfs:range bldg:LocalAuthority ;
+    rdfs:label "administered by" ;
+    rdfs:comment "Relates a local authority area to the local authority governing it." .
+
+# --- Identifier relationships ---
+
+bldg:hasBuildingReferenceNumber a rdf:Property ;
+    rdfs:subPropertyOf ies:isIdentifiedBy ;
+    rdfs:domain bldg:Building ;
+    rdfs:range bldg:BuildingReferenceNumber ;
+    rdfs:label "has building reference number" ;
+    rdfs:comment "Relates a building to its unique EPC register reference number. Maps to EPC BUILDING_REFERENCE_NUMBER." .
+
+bldg:hasCertificateNumber a rdf:Property ;
+    rdfs:subPropertyOf ies:isIdentifiedBy ;
+    rdfs:domain bldg:EPCCertificate ;
+    rdfs:range bldg:EPCCertificateNumber ;
+    rdfs:label "has certificate number" ;
+    rdfs:comment "Relates an EPC certificate to its unique certificate number." .
+
+bldg:hasPostcode a rdf:Property ;
+    rdfs:subPropertyOf ies:isIdentifiedBy ;
+    rdfs:domain bldg:DwellingAddress ;
+    rdfs:range bldg:Postcode ;
+    rdfs:label "has postcode" ;
+    rdfs:comment "Relates a dwelling address to its UK postcode. Maps to EPC postcode." .
+
+bldg:hasPAON a rdf:Property ;
+    rdfs:subPropertyOf ies:isIdentifiedBy ;
+    rdfs:domain bldg:DwellingAddress ;
+    rdfs:range bldg:PAON ;
+    rdfs:label "has PAON" ;
+    rdfs:comment "Relates a dwelling address to its Primary Addressable Object Name. Maps to EPC paon." .
+
+bldg:hasSAON a rdf:Property ;
+    rdfs:subPropertyOf ies:isIdentifiedBy ;
+    rdfs:domain bldg:DwellingAddress ;
+    rdfs:range bldg:SAON ;
+    rdfs:label "has SAON" ;
+    rdfs:comment "Relates a dwelling address to its Secondary Addressable Object Name. Maps to EPC saon." .
+
+# --- Measure relationships ---
+
+bldg:hasMeasure a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain ies:State ;
+    rdfs:range ies:Measure ;
+    rdfs:label "has measure" ;
+    rdfs:comment "Relates a state to a measurement taken during that state." .
+
+# --- Retrofit event relationships ---
+
+bldg:retrofitTarget a rdf:Property ;
+    rdfs:subPropertyOf ies:relationship ;
+    rdfs:domain bldg:RetrofitEvent ;
+    rdfs:range bldg:Building ;
+    rdfs:label "retrofit target" ;
+    rdfs:comment "Relates a retrofit event to the building it was applied to." .
+
+bldg:retrofitStartState a rdf:Property ;
+    rdfs:subPropertyOf ies:isStartOf ;
+    rdfs:domain bldg:RetrofitEvent ;
+    rdfs:range bldg:BuildingState ;
+    rdfs:label "retrofit start state" ;
+    rdfs:comment "The building state before the retrofit was applied." .
+
+bldg:retrofitEndState a rdf:Property ;
+    rdfs:subPropertyOf ies:isEndOf ;
+    rdfs:domain bldg:RetrofitEvent ;
+    rdfs:range bldg:BuildingState ;
+    rdfs:label "retrofit end state" ;
+    rdfs:comment "The building state after the retrofit was applied." .
+
+# =============================================================================
+# SECTION 11: DATA PROPERTIES
+# =============================================================================
+
+# --- Address data properties ---
+
+bldg:streetName a rdf:Property ;
+    rdfs:subPropertyOf ies:representationValue ;
+    rdfs:domain bldg:DwellingAddress ;
+    rdfs:range xsd:string ;
+    rdfs:label "street name" ;
+    rdfs:comment "The street name of the dwelling address. Maps to EPC street." .
+
+bldg:locality a rdf:Property ;
+    rdfs:subPropertyOf ies:representationValue ;
+    rdfs:domain bldg:DwellingAddress ;
+    rdfs:range xsd:string ;
+    rdfs:label "locality" ;
+    rdfs:comment "The locality or village name. Maps to EPC locality." .
+
+bldg:townCity a rdf:Property ;
+    rdfs:subPropertyOf ies:representationValue ;
+    rdfs:domain bldg:DwellingAddress ;
+    rdfs:range xsd:string ;
+    rdfs:label "town or city" ;
+    rdfs:comment "The town or city. Maps to EPC towncity." .
+
+bldg:district a rdf:Property ;
+    rdfs:subPropertyOf ies:representationValue ;
+    rdfs:domain bldg:DwellingAddress ;
+    rdfs:range xsd:string ;
+    rdfs:label "district" ;
+    rdfs:comment "The district. Maps to EPC district." .
+
+bldg:county a rdf:Property ;
+    rdfs:subPropertyOf ies:representationValue ;
+    rdfs:domain bldg:DwellingAddress ;
+    rdfs:range xsd:string ;
+    rdfs:label "county" ;
+    rdfs:comment "The county. Maps to EPC county." .
+
+# --- Identifier representation values ---
+
+bldg:postcodeValue a rdf:Property ;
+    rdfs:subPropertyOf ies:representationValue ;
+    rdfs:domain bldg:Postcode ;
+    rdfs:range xsd:string ;
+    rdfs:label "postcode value" ;
+    rdfs:comment "The string value of the postcode (e.g. 'SW1A 1AA')." .
+
+bldg:paonValue a rdf:Property ;
+    rdfs:subPropertyOf ies:representationValue ;
+    rdfs:domain bldg:PAON ;
+    rdfs:range xsd:string ;
+    rdfs:label "PAON value" ;
+    rdfs:comment "The string value of the Primary Addressable Object Name." .
+
+bldg:saonValue a rdf:Property ;
+    rdfs:subPropertyOf ies:representationValue ;
+    rdfs:domain bldg:SAON ;
+    rdfs:range xsd:string ;
+    rdfs:label "SAON value" ;
+    rdfs:comment "The string value of the Secondary Addressable Object Name." .
+
+bldg:buildingReferenceValue a rdf:Property ;
+    rdfs:subPropertyOf ies:representationValue ;
+    rdfs:domain bldg:BuildingReferenceNumber ;
+    rdfs:range xsd:string ;
+    rdfs:label "building reference value" ;
+    rdfs:comment "The string value of the building reference number." .
+
+bldg:certificateNumberValue a rdf:Property ;
+    rdfs:subPropertyOf ies:representationValue ;
+    rdfs:domain bldg:EPCCertificateNumber ;
+    rdfs:range xsd:string ;
+    rdfs:label "certificate number value" ;
+    rdfs:comment "The string value of the EPC certificate number." .
+
+bldg:localAuthorityCode a rdf:Property ;
+    rdfs:subPropertyOf ies:representationValue ;
+    rdfs:domain bldg:LocalAuthorityArea ;
+    rdfs:range xsd:string ;
+    rdfs:label "local authority code" ;
+    rdfs:comment "The ONS code for the local authority. Maps to EPC LOCAL_AUTHORITY." .
+
+bldg:constituencyName a rdf:Property ;
+    rdfs:subPropertyOf ies:representationValue ;
+    rdfs:domain bldg:Constituency ;
+    rdfs:range xsd:string ;
+    rdfs:label "constituency name" ;
+    rdfs:comment "The name of the parliamentary constituency. Maps to EPC CONSTITUENCY." .
+
+# --- Numeric measure values ---
+
+bldg:measureValue a rdf:Property ;
+    rdfs:subPropertyOf ies:representationValue ;
+    rdfs:domain ies:Measure ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "measure value" ;
+    rdfs:comment "The numeric value of a measurement." .
+
+bldg:measureUnit a rdf:Property ;
+    rdfs:subPropertyOf ies:attribute ;
+    rdfs:domain ies:Measure ;
+    rdfs:range xsd:string ;
+    rdfs:label "measure unit" ;
+    rdfs:comment "The unit of measurement (e.g. 'm2', 'kWh/m2/year', 'tonnes/year', 'GBP/year')." .
+
+# --- Description data properties (free-text from EPC) ---
+
+bldg:descriptionText a rdf:Property ;
+    rdfs:subPropertyOf ies:representationValue ;
+    rdfs:domain ies:State ;
+    rdfs:range xsd:string ;
+    rdfs:label "description text" ;
+    rdfs:comment "The free-text description from the EPC (e.g. WALLS_DESCRIPTION, MAINHEAT_DESCRIPTION). Captures the assessor's narrative description of the component." .
+
+# --- Date properties ---
+
+bldg:inspectionDate a rdf:Property ;
+    rdfs:subPropertyOf ies:attribute ;
+    rdfs:domain bldg:EPCAssessment ;
+    rdfs:range xsd:date ;
+    rdfs:label "inspection date" ;
+    rdfs:comment "The date on which the energy assessment inspection was carried out. Maps to EPC inspectiondate." .
+
+bldg:lodgementDate a rdf:Property ;
+    rdfs:subPropertyOf ies:attribute ;
+    rdfs:domain bldg:EPCAssessment ;
+    rdfs:range xsd:date ;
+    rdfs:label "lodgement date" ;
+    rdfs:comment "The date on which the EPC was lodged on the register. Maps to EPC lodgementdate." .
+
+# --- Boolean flags ---
+
+bldg:mainsGasFlag a rdf:Property ;
+    rdfs:subPropertyOf ies:attribute ;
+    rdfs:domain bldg:BuildingState ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "mains gas flag" ;
+    rdfs:comment "Whether the dwelling is connected to the mains gas network. Maps to EPC MAINS_GAS_FLAG." .
+
+bldg:solarWaterHeatingFlag a rdf:Property ;
+    rdfs:subPropertyOf ies:attribute ;
+    rdfs:domain bldg:BuildingState ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "solar water heating flag" ;
+    rdfs:comment "Whether the dwelling has solar water heating. Maps to EPC SOLAR_WATER_HEATING_FLAG." .
+
+bldg:flatTopStorey a rdf:Property ;
+    rdfs:subPropertyOf ies:attribute ;
+    rdfs:domain bldg:BuildingState ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "flat top storey" ;
+    rdfs:comment "Whether the flat is on the top storey of the building. Maps to EPC FLAT_TOP_STOREY." .
+
+# --- Heating controls numeric code ---
+
+bldg:mainHeatingControlsCode a rdf:Property ;
+    rdfs:subPropertyOf ies:attribute ;
+    rdfs:domain bldg:HeatingControlsState ;
+    rdfs:range xsd:integer ;
+    rdfs:label "main heating controls code" ;
+    rdfs:comment "The numeric code identifying the heating controls configuration. Maps to EPC MAIN_HEATING_CONTROLS." .
+
+# --- Energy tariff value ---
+
+bldg:energyTariffDescription a rdf:Property ;
+    rdfs:subPropertyOf ies:representationValue ;
+    rdfs:domain bldg:EnergyTariff ;
+    rdfs:range xsd:string ;
+    rdfs:label "energy tariff description" ;
+    rdfs:comment "The description of the energy tariff used for cost calculations. Maps to EPC ENERGY_TARIFF." .
+
+# =============================================================================
+# END OF ONTOLOGY
+# =============================================================================
+<http://example.org/ontology/ies-building#AssessmentEndState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Assessment End State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Assessment End." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfAssessmentEnd> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Assessment End" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Assessment End types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#AssessmentStartState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Assessment Start State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Assessment Start." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfAssessmentStart> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Assessment Start" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Assessment Start types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#BuildingSystemState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Building System State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Building System." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfBuildingSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Building System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Building System types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#ClassOfDoor> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Door" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Door types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#ExtensionCountState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Extension Count State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Extension Count." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfExtensionCount> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Extension Count" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Extension Count types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#FlatStoreyCountState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Flat Storey Count State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Flat Storey Count." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfFlatStoreyCount> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Flat Storey Count" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Flat Storey Count types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#LowEnergyLightingPercentageState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Low Energy Lighting Percentage State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Low Energy Lighting Percentage." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfLowEnergyLightingPercentage> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Low Energy Lighting Percentage" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Low Energy Lighting Percentage types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#NumberOfHeatedRoomsState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Number Of Heated Rooms State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Number Of Heated Rooms." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfNumberOfHeatedRooms> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Number Of Heated Rooms" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Number Of Heated Rooms types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#NumberOfOpenFireplacesState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Number Of Open Fireplaces State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Number Of Open Fireplaces." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfNumberOfOpenFireplaces> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Number Of Open Fireplaces" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Number Of Open Fireplaces types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#NumberOfRoomsState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Number Of Rooms State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Number Of Rooms." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfNumberOfRooms> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Number Of Rooms" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Number Of Rooms types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#PAONState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "P A O N State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a P A O N." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfPAON> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of P A O N" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of P A O N types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#PhotovoltaicPeakPowerState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Photovoltaic Peak Power State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Photovoltaic Peak Power." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfPhotovoltaicPeakPower> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Photovoltaic Peak Power" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Photovoltaic Peak Power types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#ClassOfRenewableEnergySystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Renewable Energy System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Renewable Energy System types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#SAONState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "S A O N State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a S A O N." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfSAON> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of S A O N" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of S A O N types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#ClassOfSecondaryHeatingSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Secondary Heating System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Secondary Heating System types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#SolarPVSystemState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Solar P V System State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Solar P V System." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfSolarPVSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Solar P V System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Solar P V System types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#SolarThermalSystemState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Solar Thermal System State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Solar Thermal System." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfSolarThermalSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Solar Thermal System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Solar Thermal System types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#UnheatedCorridorLengthState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Unheated Corridor Length State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Unheated Corridor Length." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfUnheatedCorridorLength> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Unheated Corridor Length" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Unheated Corridor Length types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#WindTurbineState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Wind Turbine State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Wind Turbine." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfWindTurbine> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Wind Turbine" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Wind Turbine types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#WindTurbineCountState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Wind Turbine Count State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Wind Turbine Count." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfWindTurbineCount> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Wind Turbine Count" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Wind Turbine Count types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#WallSection> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Wall Section" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A distinct section of a Wall that may differ from other sections." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#Wall> .
+
+<http://example.org/ontology/ies-building#WallSectionState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Wall Section State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Wall section." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfWallSection> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Wall Section" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Wall section types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#WallConstruction> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Wall Construction" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A ClassOfEntity for Wall construction methods." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#WallInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Wall Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Insulation applied to a Wall." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Asset> .
+
+<http://example.org/ontology/ies-building#WallInsulationState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Wall Insulation State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of Wall insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfWallInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Wall Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Wall insulation types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#RoofSection> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Roof Section" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A distinct section of a Roof that may differ from other sections." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#Roof> .
+
+<http://example.org/ontology/ies-building#RoofSectionState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Roof Section State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Roof section." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfRoofSection> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Roof Section" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Roof section types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#RoofConstruction> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Roof Construction" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A ClassOfEntity for Roof construction methods." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#RoofInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Roof Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Insulation applied to a Roof." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Asset> .
+
+<http://example.org/ontology/ies-building#RoofInsulationState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Roof Insulation State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of Roof insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfRoofInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Roof Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Roof insulation types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#FloorSection> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Floor Section" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A distinct section of a Floor that may differ from other sections." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#Floor> .
+
+<http://example.org/ontology/ies-building#FloorSectionState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Floor Section State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Floor section." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfFloorSection> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Floor Section" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Floor section types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#FloorConstruction> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Floor Construction" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A ClassOfEntity for Floor construction methods." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#FloorInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Floor Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Insulation applied to a Floor." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Asset> .
+
+<http://example.org/ontology/ies-building#FloorInsulationState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Floor Insulation State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of Floor insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfFloorInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Floor Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Floor insulation types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#WindowSection> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Window Section" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A distinct section of a Window that may differ from other sections." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#Window> .
+
+<http://example.org/ontology/ies-building#WindowSectionState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Window Section State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Window section." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfWindowSection> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Window Section" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Window section types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#WindowConstruction> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Window Construction" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A ClassOfEntity for Window construction methods." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#WindowInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Window Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Insulation applied to a Window." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Asset> .
+
+<http://example.org/ontology/ies-building#WindowInsulationState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Window Insulation State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of Window insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfWindowInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Window Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Window insulation types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#AssessWalls> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Assess Walls" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "An assessment of wall construction and insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Event> .
+
+<http://example.org/ontology/ies-building#AssessRoof> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Assess Roof" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "An assessment of roof construction and insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Event> .
+
+<http://example.org/ontology/ies-building#AssessFloor> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Assess Floor" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "An assessment of floor construction and insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Event> .
+
+<http://example.org/ontology/ies-building#AssessWindows> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Assess Windows" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "An assessment of window glazing and condition." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Event> .
+
+<http://example.org/ontology/ies-building#AssessHeating> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Assess Heating" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "An assessment of the main heating system." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Event> .
+
+<http://example.org/ontology/ies-building#AssessHotWater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Assess Hot Water" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "An assessment of the hot water system." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Event> .
+
+<http://example.org/ontology/ies-building#AssessLighting> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Assess Lighting" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "An assessment of the lighting system." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Event> .
+
+<http://example.org/ontology/ies-building#AssessVentilation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Assess Ventilation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "An assessment of the ventilation system." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Event> .
+
+<http://example.org/ontology/ies-building#CalculateSAPRating> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Calculate S A P Rating" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "The calculation producing the SAP energy rating." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Event> .
+
+<http://example.org/ontology/ies-building#CalculateEnvironmentalImpact> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Calculate Environmental Impact" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "The calculation producing the environmental impact rating." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Event> .
+
+<http://example.org/ontology/ies-building#AllWallsOfBuilding> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "All Walls Of Building" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "The set of all walls in a particular building." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#AllRoofsOfBuilding> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "All Roofs Of Building" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "The set of all roof elements in a particular building." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#AllFloorsOfBuilding> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "All Floors Of Building" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "The set of all floor elements in a particular building." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#AllWindowsOfBuilding> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "All Windows Of Building" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "The set of all windows in a particular building." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#FiniteClassOfElement> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Finite Class Of Element" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A finite collection of building elements within a single building." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#UPRN> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "UPRN" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Unique Property Reference Number from UK Ordnance Survey." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#GeoIdentity> .
+
+<http://example.org/ontology/ies-building#UDPRN> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "UDPRN" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Unique Delivery Point Reference Number from Royal Mail." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Identifier> .
+# ========== Spatial Hierarchy ==========
+
+<http://example.org/ontology/ies-building#Structure> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Structure" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A physical built structure that may contain one or more dwellings." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Asset> .
+
+<http://example.org/ontology/ies-building#StructureState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Structure State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Structure." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfStructure> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Structure" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Structure types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#StructureUnit> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Structure Unit" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A self-contained unit within a structure, such as a flat or maisonette." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#Structure> .
+
+<http://example.org/ontology/ies-building#StructureUnitState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Structure Unit State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Structure Unit." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfStructureUnit> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Structure Unit" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Structure Unit types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#Storey> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Storey" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A floor level within a structure." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Asset> .
+
+<http://example.org/ontology/ies-building#StoreyState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Storey State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Storey." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfStorey> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Storey" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Storey types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#Space> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Space" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A room or area within a structure unit." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Asset> .
+
+<http://example.org/ontology/ies-building#SpaceState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Space State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Space." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfSpace> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Space" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Space types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#AddressableLocation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Addressable Location" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A location that may be identified by a postal address." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Location> .
+
+<http://example.org/ontology/ies-building#AddressableLocationState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Addressable Location State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Addressable Location." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfAddressableLocation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Addressable Location" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Addressable Location types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+# ========== Common Superclasses ==========
+
+<http://example.org/ontology/ies-building#FabricElement> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Fabric Element" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A component of the building thermal envelope (wall, roof, floor, window, door)." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Asset> .
+
+<http://example.org/ontology/ies-building#FabricElementState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Fabric Element State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Fabric Element." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfFabricElement> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Fabric Element" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Fabric Element types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#TechnicalSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Technical System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A building services system (heating, hot water, lighting, ventilation)." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#Asset> .
+
+<http://example.org/ontology/ies-building#TechnicalSystemState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Technical System State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Technical System." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfTechnicalSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Technical System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Technical System types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#Wall> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#FabricElement> .
+<http://example.org/ontology/ies-building#Roof> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#FabricElement> .
+<http://example.org/ontology/ies-building#Floor> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#FabricElement> .
+<http://example.org/ontology/ies-building#Window> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#FabricElement> .
+<http://example.org/ontology/ies-building#Door> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#FabricElement> .
+<http://example.org/ontology/ies-building#HeatingSystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#TechnicalSystem> .
+<http://example.org/ontology/ies-building#HotWaterSystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#TechnicalSystem> .
+<http://example.org/ontology/ies-building#LightingSystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#TechnicalSystem> .
+<http://example.org/ontology/ies-building#VentilationSystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#TechnicalSystem> .
+<http://example.org/ontology/ies-building#SecondaryHeatingSystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#TechnicalSystem> .
+<http://example.org/ontology/ies-building#HeatingControls> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#TechnicalSystem> .
+<http://example.org/ontology/ies-building#RenewableEnergySystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#TechnicalSystem> .
+
+# ========== Heating Production Subtypes ==========
+
+<http://example.org/ontology/ies-building#HeatProductionSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Heat Production System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "The component of a heating system that generates heat." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatingSystem> .
+
+<http://example.org/ontology/ies-building#HeatProductionSystemState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Heat Production System State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Heat Production System." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfHeatProductionSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Heat Production System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Heat Production System types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#BoilerSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Boiler System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A heating system using a boiler to heat water circulated to radiators or underfloor pipes." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatProductionSystem> .
+
+<http://example.org/ontology/ies-building#BoilerSystemState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Boiler System State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Boiler System." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfBoilerSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Boiler System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Boiler System types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#CondensingBoiler> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Condensing Boiler" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A high-efficiency boiler that recovers heat from exhaust gases." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#BoilerSystem> .
+
+<http://example.org/ontology/ies-building#CondensingBoilerState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Condensing Boiler State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Condensing Boiler." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfCondensingBoiler> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Condensing Boiler" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Condensing Boiler types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#CombiBoiler> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Combi Boiler" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A combination boiler providing both space heating and hot water without a separate tank." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#BoilerSystem> .
+
+<http://example.org/ontology/ies-building#CombiBoilerState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Combi Boiler State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Combi Boiler." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfCombiBoiler> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Combi Boiler" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Combi Boiler types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#BackBoiler> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Back Boiler" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A boiler fitted behind a fireplace or room heater." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#BoilerSystem> .
+
+<http://example.org/ontology/ies-building#BackBoilerState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Back Boiler State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Back Boiler." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfBackBoiler> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Back Boiler" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Back Boiler types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#HeatPump> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Heat Pump" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A system that extracts heat from an external source and delivers it to the dwelling." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatProductionSystem> .
+
+<http://example.org/ontology/ies-building#HeatPumpState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Heat Pump State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Heat Pump." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfHeatPump> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Heat Pump" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Heat Pump types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#AirSourceHeatPump> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Air Source Heat Pump" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A heat pump extracting heat from outside air." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatPump> .
+
+<http://example.org/ontology/ies-building#AirSourceHeatPumpState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Air Source Heat Pump State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Air Source Heat Pump." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfAirSourceHeatPump> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Air Source Heat Pump" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Air Source Heat Pump types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#GroundSourceHeatPump> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Ground Source Heat Pump" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A heat pump extracting heat from the ground via buried pipes." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatPump> .
+
+<http://example.org/ontology/ies-building#GroundSourceHeatPumpState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Ground Source Heat Pump State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Ground Source Heat Pump." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfGroundSourceHeatPump> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Ground Source Heat Pump" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Ground Source Heat Pump types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#WaterSourceHeatPump> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Water Source Heat Pump" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A heat pump extracting heat from a body of water." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatPump> .
+
+<http://example.org/ontology/ies-building#WaterSourceHeatPumpState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Water Source Heat Pump State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Water Source Heat Pump." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfWaterSourceHeatPump> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Water Source Heat Pump" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Water Source Heat Pump types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#ElectricStorageHeater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Electric Storage Heater" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "An electric heater that stores heat during off-peak hours and releases it during the day." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatProductionSystem> .
+
+<http://example.org/ontology/ies-building#ElectricStorageHeaterState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Electric Storage Heater State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Electric Storage Heater." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfElectricStorageHeater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Electric Storage Heater" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Electric Storage Heater types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#ElectricPanelHeater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Electric Panel Heater" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A wall-mounted electric convection heater." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatProductionSystem> .
+
+<http://example.org/ontology/ies-building#ElectricPanelHeaterState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Electric Panel Heater State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Electric Panel Heater." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfElectricPanelHeater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Electric Panel Heater" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Electric Panel Heater types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#ElectricUnderfloorHeating> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Electric Underfloor Heating" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Electric heating elements embedded in or under the floor." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatProductionSystem> .
+
+<http://example.org/ontology/ies-building#ElectricUnderfloorHeatingState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Electric Underfloor Heating State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Electric Underfloor Heating." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfElectricUnderfloorHeating> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Electric Underfloor Heating" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Electric Underfloor Heating types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#WarmAirSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Warm Air System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A system distributing heated air through ducts." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatProductionSystem> .
+
+<http://example.org/ontology/ies-building#WarmAirSystemState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Warm Air System State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Warm Air System." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfWarmAirSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Warm Air System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Warm Air System types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#CommunityHeatingScheme> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Community Heating Scheme" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A district or communal heating system serving multiple dwellings." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatProductionSystem> .
+
+<http://example.org/ontology/ies-building#CommunityHeatingSchemeState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Community Heating Scheme State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Community Heating Scheme." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfCommunityHeatingScheme> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Community Heating Scheme" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Community Heating Scheme types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#MicroCHP> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Micro-CHP" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A micro combined heat and power unit generating both heat and electricity." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatProductionSystem> .
+
+<http://example.org/ontology/ies-building#MicroCHPState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Micro-CHP State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Micro-CHP." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfMicroCHP> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Micro-CHP" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Micro-CHP types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#RoomHeater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Room Heater" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A standalone heater for a single room, using gas, electric, or solid fuel." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatProductionSystem> .
+
+<http://example.org/ontology/ies-building#RoomHeaterState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Room Heater State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Room Heater." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfRoomHeater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Room Heater" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Room Heater types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#PortableHeater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Portable Heater" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A moveable electric heater not permanently installed." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatProductionSystem> .
+
+<http://example.org/ontology/ies-building#PortableHeaterState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Portable Heater State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Portable Heater." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfPortableHeater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Portable Heater" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Portable Heater types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+# ========== Heat Distribution Subtypes ==========
+
+<http://example.org/ontology/ies-building#HeatDistributionSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Heat Distribution System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "The component that delivers heat from the production system to the rooms." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatingSystem> .
+
+<http://example.org/ontology/ies-building#HeatDistributionSystemState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Heat Distribution System State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Heat Distribution System." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfHeatDistributionSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Heat Distribution System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Heat Distribution System types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#RadiatorSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Radiator System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Heat distribution via wall-mounted radiators with circulating hot water." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatDistributionSystem> .
+
+<http://example.org/ontology/ies-building#RadiatorSystemState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Radiator System State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Radiator System." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfRadiatorSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Radiator System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Radiator System types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#UnderfloorWetSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Underfloor Wet System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Heat distribution via hot water pipes embedded in the floor." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatDistributionSystem> .
+
+<http://example.org/ontology/ies-building#UnderfloorWetSystemState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Underfloor Wet System State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Underfloor Wet System." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfUnderfloorWetSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Underfloor Wet System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Underfloor Wet System types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#WarmAirDistribution> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Warm Air Distribution" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Heat distribution via ducted warm air." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatDistributionSystem> .
+
+<http://example.org/ontology/ies-building#WarmAirDistributionState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Warm Air Distribution State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Warm Air Distribution." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfWarmAirDistribution> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Warm Air Distribution" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Warm Air Distribution types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#ConvectorSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Convector System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Heat distribution via convector units." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatDistributionSystem> .
+
+<http://example.org/ontology/ies-building#ConvectorSystemState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Convector System State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Convector System." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfConvectorSystem> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Convector System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Convector System types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#SteamDistribution> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Steam Distribution" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Heat distribution via steam pipes and radiators." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HeatDistributionSystem> .
+
+<http://example.org/ontology/ies-building#SteamDistributionState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Steam Distribution State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Steam Distribution." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfSteamDistribution> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Steam Distribution" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Steam Distribution types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+# ========== Hot Water Subtypes ==========
+
+<http://example.org/ontology/ies-building#ElectricImmersionHeater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Electric Immersion Heater" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "An electric element immersed in a hot water cylinder." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HotWaterSystem> .
+
+<http://example.org/ontology/ies-building#ElectricImmersionHeaterState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Electric Immersion Heater State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Electric Immersion Heater." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfElectricImmersionHeater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Electric Immersion Heater" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Electric Immersion Heater types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#GasMultipoint> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Gas Multipoint" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A gas-fired instantaneous water heater serving multiple outlets." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HotWaterSystem> .
+
+<http://example.org/ontology/ies-building#GasMultipointState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Gas Multipoint State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Gas Multipoint." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfGasMultipoint> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Gas Multipoint" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Gas Multipoint types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#InstantaneousWaterHeater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Instantaneous Water Heater" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A water heater that heats water on demand without storage." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HotWaterSystem> .
+
+<http://example.org/ontology/ies-building#InstantaneousWaterHeaterState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Instantaneous Water Heater State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Instantaneous Water Heater." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfInstantaneousWaterHeater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Instantaneous Water Heater" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Instantaneous Water Heater types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#SolarThermalPanel> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Solar Thermal Panel" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A panel that heats water using solar energy." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HotWaterSystem> .
+
+<http://example.org/ontology/ies-building#SolarThermalPanelState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Solar Thermal Panel State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Solar Thermal Panel." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfSolarThermalPanel> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Solar Thermal Panel" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Solar Thermal Panel types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#CommunityHotWater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Community Hot Water" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Hot water supplied by a communal or district system." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#HotWaterSystem> .
+
+<http://example.org/ontology/ies-building#CommunityHotWaterState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Community Hot Water State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Community Hot Water." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfCommunityHotWater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Community Hot Water" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Community Hot Water types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+# ========== Insulation Subtypes ==========
+
+<http://example.org/ontology/ies-building#CavityWallInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Cavity Wall Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Insulation material injected into or placed within a cavity wall." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#WallInsulation> .
+
+<http://example.org/ontology/ies-building#CavityWallInsulationState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Cavity Wall Insulation State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Cavity Wall Insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfCavityWallInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Cavity Wall Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Cavity Wall Insulation types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#ExternalWallInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "External Wall Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Insulation applied to the outside face of a wall." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#WallInsulation> .
+
+<http://example.org/ontology/ies-building#ExternalWallInsulationState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "External Wall Insulation State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a External Wall Insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfExternalWallInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of External Wall Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of External Wall Insulation types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#InternalWallInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Internal Wall Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Insulation applied to the inside face of a wall." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#WallInsulation> .
+
+<http://example.org/ontology/ies-building#InternalWallInsulationState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Internal Wall Insulation State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Internal Wall Insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfInternalWallInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Internal Wall Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Internal Wall Insulation types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#LoftInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Loft Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Insulation laid between or over ceiling joists in a loft space." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#RoofInsulation> .
+
+<http://example.org/ontology/ies-building#LoftInsulationState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Loft Insulation State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Loft Insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfLoftInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Loft Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Loft Insulation types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#RafterInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Rafter Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Insulation fitted between or over roof rafters." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#RoofInsulation> .
+
+<http://example.org/ontology/ies-building#RafterInsulationState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Rafter Insulation State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Rafter Insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfRafterInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Rafter Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Rafter Insulation types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#FlatRoofInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Flat Roof Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Insulation applied to a flat roof structure." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#RoofInsulation> .
+
+<http://example.org/ontology/ies-building#FlatRoofInsulationState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Flat Roof Insulation State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Flat Roof Insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfFlatRoofInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Flat Roof Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Flat Roof Insulation types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#SuspendedFloorInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Suspended Floor Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Insulation fitted between joists of a suspended floor." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#FloorInsulation> .
+
+<http://example.org/ontology/ies-building#SuspendedFloorInsulationState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Suspended Floor Insulation State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Suspended Floor Insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfSuspendedFloorInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Suspended Floor Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Suspended Floor Insulation types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#SolidFloorInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Solid Floor Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Insulation applied above or below a solid concrete floor." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#FloorInsulation> .
+
+<http://example.org/ontology/ies-building#SolidFloorInsulationState> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Solid Floor Insulation State" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A temporal state of a Solid Floor Insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#State> .
+
+<http://example.org/ontology/ies-building#ClassOfSolidFloorInsulation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Class Of Solid Floor Insulation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A classification of Solid Floor Insulation types." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+# ========== Certificate Subtypes ==========
+
+<http://example.org/ontology/ies-building#UKDomesticEPC> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "UK Domestic EPC" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "An Energy Performance Certificate for a domestic dwelling in the UK." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCCertificate> .
+
+<http://example.org/ontology/ies-building#UKNonDomesticEPC> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "UK Non-Domestic EPC" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "An Energy Performance Certificate for a non-domestic building in the UK." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCCertificate> .
+
+<http://example.org/ontology/ies-building#DisplayEnergyCertificate> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Display Energy Certificate" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A certificate showing the actual energy use of a public building." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCCertificate> .
+
+<http://example.org/ontology/ies-building#RecommendationReport> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Recommendation Report" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A report of recommended improvement measures accompanying an EPC." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCCertificate> .
+
+# ========== Assessment Activities ==========
+
+<http://example.org/ontology/ies-building#InspectWalls> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Inspect Walls" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Assessment activity: determine wall construction type and insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+<http://example.org/ontology/ies-building#InspectRoof> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Inspect Roof" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Assessment activity: determine roof construction and insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+<http://example.org/ontology/ies-building#InspectFloor> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Inspect Floor" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Assessment activity: determine floor construction and insulation." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+<http://example.org/ontology/ies-building#InspectWindows> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Inspect Windows" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Assessment activity: determine glazing type, proportion, and area." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+<http://example.org/ontology/ies-building#InspectHeating> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Inspect Heating" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Assessment activity: determine main heating system, fuel, and controls." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+<http://example.org/ontology/ies-building#InspectHotWater> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Inspect Hot Water" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Assessment activity: determine hot water system type." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+<http://example.org/ontology/ies-building#InspectLighting> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Inspect Lighting" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Assessment activity: determine lighting type and low-energy proportion." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+<http://example.org/ontology/ies-building#InspectVentilation> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Inspect Ventilation" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Assessment activity: determine ventilation type and corridors." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+<http://example.org/ontology/ies-building#MeasureFloorArea> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Measure Floor Area" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Assessment activity: measure or estimate total floor area." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+<http://example.org/ontology/ies-building#CountFireplaces> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Count Fireplaces" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Assessment activity: count open fireplaces." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+<http://example.org/ontology/ies-building#DetermineAge> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Determine Age" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Assessment activity: determine construction age band." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+<http://example.org/ontology/ies-building#DetermineBuiltForm> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Determine Built Form" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Assessment activity: determine the built form (detached, semi, etc.)." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+<http://example.org/ontology/ies-building#CalculateSAPRating> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Calculate SAP Rating" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Calculation producing the SAP energy performance score." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+<http://example.org/ontology/ies-building#CalculateEIRating> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Calculate EI Rating" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Calculation producing the Environmental Impact rating." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+<http://example.org/ontology/ies-building#CalculateCO2Emissions> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Calculate CO2 Emissions" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Calculation estimating annual CO2 emissions." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+<http://example.org/ontology/ies-building#EstimateRunningCosts> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Estimate Running Costs" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Calculation estimating annual heating, hot water, and lighting costs." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#EPCAssessment> .
+
+# ========== Aggregate Collections ==========
+
+<http://example.org/ontology/ies-building#FiniteClassOfElement> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Finite Class Of Element" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "A collection of all elements of a given type within a particular dwelling." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ies.data.gov.uk/ontology/ies4#ClassOfEntity> .
+
+<http://example.org/ontology/ies-building#AllWallsOfBuilding> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "All Walls Of Building" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "The finite class of all Wall elements in a particular building." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#FiniteClassOfElement> .
+
+<http://example.org/ontology/ies-building#AllRoofsOfBuilding> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "All Roofs Of Building" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "The finite class of all Roof elements in a particular building." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#FiniteClassOfElement> .
+
+<http://example.org/ontology/ies-building#AllFloorsOfBuilding> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "All Floors Of Building" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "The finite class of all Floor elements in a particular building." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#FiniteClassOfElement> .
+
+<http://example.org/ontology/ies-building#AllWindowsOfBuilding> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "All Windows Of Building" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "The finite class of all Window elements in a particular building." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#FiniteClassOfElement> .
+
+<http://example.org/ontology/ies-building#AllFireplacesOfBuilding> a <http://www.w3.org/2000/01/rdf-schema#Class> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "All Fireplaces Of Building" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "The finite class of all Fireplace elements in a particular building." ;
+    <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ontology/ies-building#FiniteClassOfElement> .
+
+# ========== Additional Properties ==========
+
+<http://example.org/ontology/ies-building#hasHeatProduction> a <http://www.w3.org/2002/07/owl#ObjectProperty> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "has Heat Production" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Links a heating system to its heat production component." ;
+    <http://www.w3.org/2000/01/rdf-schema#domain> <http://example.org/ontology/ies-building#HeatingSystem> ;
+    <http://www.w3.org/2000/01/rdf-schema#range> <http://example.org/ontology/ies-building#HeatProductionSystem> ;
+    <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://ies.data.gov.uk/ontology/ies4#relationship> .
+
+<http://example.org/ontology/ies-building#hasHeatDistribution> a <http://www.w3.org/2002/07/owl#ObjectProperty> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "has Heat Distribution" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Links a heating system to its heat distribution component." ;
+    <http://www.w3.org/2000/01/rdf-schema#domain> <http://example.org/ontology/ies-building#HeatingSystem> ;
+    <http://www.w3.org/2000/01/rdf-schema#range> <http://example.org/ontology/ies-building#HeatDistributionSystem> ;
+    <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://ies.data.gov.uk/ontology/ies4#relationship> .
+
+<http://example.org/ontology/ies-building#containsUnit> a <http://www.w3.org/2002/07/owl#ObjectProperty> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "contains Unit" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Links a structure to a structure unit it contains." ;
+    <http://www.w3.org/2000/01/rdf-schema#domain> <http://example.org/ontology/ies-building#Structure> ;
+    <http://www.w3.org/2000/01/rdf-schema#range> <http://example.org/ontology/ies-building#StructureUnit> ;
+    <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://ies.data.gov.uk/ontology/ies4#relationship> .
+
+<http://example.org/ontology/ies-building#containsStorey> a <http://www.w3.org/2002/07/owl#ObjectProperty> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "contains Storey" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Links a structure to a storey within it." ;
+    <http://www.w3.org/2000/01/rdf-schema#domain> <http://example.org/ontology/ies-building#Structure> ;
+    <http://www.w3.org/2000/01/rdf-schema#range> <http://example.org/ontology/ies-building#Storey> ;
+    <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://ies.data.gov.uk/ontology/ies4#relationship> .
+
+<http://example.org/ontology/ies-building#containsSpace> a <http://www.w3.org/2002/07/owl#ObjectProperty> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "contains Space" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Links a structure unit to a space within it." ;
+    <http://www.w3.org/2000/01/rdf-schema#domain> <http://example.org/ontology/ies-building#StructureUnit> ;
+    <http://www.w3.org/2000/01/rdf-schema#range> <http://example.org/ontology/ies-building#Space> ;
+    <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://ies.data.gov.uk/ontology/ies4#relationship> .
+
+<http://example.org/ontology/ies-building#hasFabricElement> a <http://www.w3.org/2002/07/owl#ObjectProperty> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "has Fabric Element" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Links a building to a component of its thermal envelope." ;
+    <http://www.w3.org/2000/01/rdf-schema#domain> <http://example.org/ontology/ies-building#Building> ;
+    <http://www.w3.org/2000/01/rdf-schema#range> <http://example.org/ontology/ies-building#FabricElement> ;
+    <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://ies.data.gov.uk/ontology/ies4#relationship> .
+
+<http://example.org/ontology/ies-building#hasTechnicalSystem> a <http://www.w3.org/2002/07/owl#ObjectProperty> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "has Technical System" ;
+    <http://www.w3.org/2000/01/rdf-schema#comment> "Links a building to one of its building services systems." ;
+    <http://www.w3.org/2000/01/rdf-schema#domain> <http://example.org/ontology/ies-building#Building> ;
+    <http://www.w3.org/2000/01/rdf-schema#range> <http://example.org/ontology/ies-building#TechnicalSystem> ;
+    <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://ies.data.gov.uk/ontology/ies4#relationship> .
