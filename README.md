@@ -350,9 +350,32 @@ onto_reason --profile rdfs
 
 This mirrors NDTP's actual pipeline: CSV → IES RDF → validate → reason → query.
 
-### IES:Building Alignment
+### IES Building Extension — vs NDTP/IRIS Production Ontology
 
-The repo includes an [IES Building Extension](benchmark/generated/ies-building-extension.ttl) that models buildings, dwellings, energy performance, and retrofit interventions using IES 4D patterns. Use `onto_align` to map it to other domain ontologies.
+The repo includes an [IES Building Extension](benchmark/generated/ies-building-extension.ttl) built from the UK EPC data schema and building science fundamentals, using IES 4D patterns. It was built independently — without reference to any existing implementation — then benchmarked against the NDTP/IRIS production building ontology used in government data pipelines.
+
+| Metric | NDTP/IRIS | Open Ontologies |
+| --- | ---: | ---: |
+| Classes | 192 | **429** |
+| Entity classes | 133 | **177** |
+| State classes | 41 | **135** |
+| ClassOf classes | 37 | **138** |
+| Complete 4D triads | 14 | **105** |
+| Properties | 26 | **93** |
+| Enumerated individuals | 2 | **122** |
+| Domain/range coverage | 31 | **86** |
+| Labels | 311 | **412** |
+| Comments | 316 | **412** |
+| Validated triples | — | **2,695** |
+
+Built blind from the 105-column EPC schema, SAP methodology, and BORO 4D extensionalism. Covers spatial hierarchy, thermal envelope (walls/roof/floor/windows with section variants), heating production/distribution/controls, hot water, lighting, ventilation, renewables, EPC assessment activities, identifiers, retrofit events, chemical emissions, and aggregate collection patterns.
+
+Use `onto_align` to map it to other domain ontologies:
+
+```text
+onto_load benchmark/generated/ies-building-extension.ttl
+onto_align <other-ontology.ttl>
+```
 
 ### Further Reading
 

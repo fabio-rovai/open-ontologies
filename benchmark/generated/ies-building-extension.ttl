@@ -2985,3 +2985,553 @@ bldg:energyTariffDescription a rdf:Property ;
     <http://www.w3.org/2000/01/rdf-schema#domain> <http://example.org/ontology/ies-building#Building> ;
     <http://www.w3.org/2000/01/rdf-schema#range> <http://example.org/ontology/ies-building#TechnicalSystem> ;
     <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://ies.data.gov.uk/ontology/ies4#relationship> .
+
+# =============================================================================
+# DEEPENING: Systematic 4D completion + domain depth
+# =============================================================================
+
+# --- Missing State classes (4D completion) ---
+
+bldg:AssessFloorState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Assess Floor State" ;
+    rdfs:comment "A temporal state of a assess floor, capturing its properties at a particular point in time." .
+
+bldg:AssessHeatingState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Assess Heating State" ;
+    rdfs:comment "A temporal state of a assess heating, capturing its properties at a particular point in time." .
+
+bldg:AssessHotWaterState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Assess Hot Water State" ;
+    rdfs:comment "A temporal state of a assess hot water, capturing its properties at a particular point in time." .
+
+bldg:AssessLightingState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Assess Lighting State" ;
+    rdfs:comment "A temporal state of a assess lighting, capturing its properties at a particular point in time." .
+
+bldg:AssessRoofState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Assess Roof State" ;
+    rdfs:comment "A temporal state of a assess roof, capturing its properties at a particular point in time." .
+
+bldg:AssessVentilationState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Assess Ventilation State" ;
+    rdfs:comment "A temporal state of a assess ventilation, capturing its properties at a particular point in time." .
+
+bldg:AssessWallsState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Assess Walls State" ;
+    rdfs:comment "A temporal state of a assess walls, capturing its properties at a particular point in time." .
+
+bldg:AssessWindowsState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Assess Windows State" ;
+    rdfs:comment "A temporal state of a assess windows, capturing its properties at a particular point in time." .
+
+bldg:CalculateEnvironmentalImpactState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Calculate Environmental Impact State" ;
+    rdfs:comment "A temporal state of a calculate environmental impact, capturing its properties at a particular point in time." .
+
+bldg:EPCCertificateNumberState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "E P C Certificate Number State" ;
+    rdfs:comment "A temporal state of a e p c certificate number, capturing its properties at a particular point in time." .
+
+bldg:EnergyTariffState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Energy Tariff State" ;
+    rdfs:comment "A temporal state of a energy tariff, capturing its properties at a particular point in time." .
+
+bldg:EnvironmentalImpactScoreState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Environmental Impact Score State" ;
+    rdfs:comment "A temporal state of a environmental impact score, capturing its properties at a particular point in time." .
+
+bldg:FloorConstructionState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Floor Construction State" ;
+    rdfs:comment "A temporal state of a floor construction, capturing its properties at a particular point in time." .
+
+bldg:FloorLevelState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Floor Level State" ;
+    rdfs:comment "A temporal state of a floor level, capturing its properties at a particular point in time." .
+
+bldg:LocalAuthorityAreaState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Local Authority Area State" ;
+    rdfs:comment "A temporal state of a local authority area, capturing its properties at a particular point in time." .
+
+bldg:MultiGlazeProportionState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Multi Glaze Proportion State" ;
+    rdfs:comment "A temporal state of a multi glaze proportion, capturing its properties at a particular point in time." .
+
+bldg:RoofConstructionState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Roof Construction State" ;
+    rdfs:comment "A temporal state of a roof construction, capturing its properties at a particular point in time." .
+
+bldg:TotalFloorAreaState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Total Floor Area State" ;
+    rdfs:comment "A temporal state of a total floor area, capturing its properties at a particular point in time." .
+
+bldg:UDPRNState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "U D P R N State" ;
+    rdfs:comment "A temporal state of a u d p r n, capturing its properties at a particular point in time." .
+
+bldg:UPRNState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "U P R N State" ;
+    rdfs:comment "A temporal state of a u p r n, capturing its properties at a particular point in time." .
+
+bldg:WallConstructionState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Wall Construction State" ;
+    rdfs:comment "A temporal state of a wall construction, capturing its properties at a particular point in time." .
+
+bldg:WindowConstructionState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Window Construction State" ;
+    rdfs:comment "A temporal state of a window construction, capturing its properties at a particular point in time." .
+
+bldg:WindowUpgradeState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Window Upgrade State" ;
+    rdfs:comment "A temporal state of a window upgrade, capturing its properties at a particular point in time." .
+
+# --- Missing ClassOf classes (4D completion) ---
+
+bldg:ClassOfAssessFloor a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Assess Floor" ;
+    rdfs:comment "A classification of assess floor types." .
+
+bldg:ClassOfAssessHeating a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Assess Heating" ;
+    rdfs:comment "A classification of assess heating types." .
+
+bldg:ClassOfAssessHotWater a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Assess Hot Water" ;
+    rdfs:comment "A classification of assess hot water types." .
+
+bldg:ClassOfAssessLighting a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Assess Lighting" ;
+    rdfs:comment "A classification of assess lighting types." .
+
+bldg:ClassOfAssessRoof a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Assess Roof" ;
+    rdfs:comment "A classification of assess roof types." .
+
+bldg:ClassOfAssessVentilation a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Assess Ventilation" ;
+    rdfs:comment "A classification of assess ventilation types." .
+
+bldg:ClassOfAssessWalls a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Assess Walls" ;
+    rdfs:comment "A classification of assess walls types." .
+
+bldg:ClassOfAssessWindows a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Assess Windows" ;
+    rdfs:comment "A classification of assess windows types." .
+
+bldg:ClassOfCalculateEnvironmentalImpact a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Calculate Environmental Impact" ;
+    rdfs:comment "A classification of calculate environmental impact types." .
+
+bldg:ClassOfEPCCertificateNumber a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of E P C Certificate Number" ;
+    rdfs:comment "A classification of e p c certificate number types." .
+
+bldg:ClassOfEnergyTariff a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Energy Tariff" ;
+    rdfs:comment "A classification of energy tariff types." .
+
+bldg:ClassOfEnvironmentalImpactScore a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Environmental Impact Score" ;
+    rdfs:comment "A classification of environmental impact score types." .
+
+bldg:ClassOfFloorConstruction a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Floor Construction" ;
+    rdfs:comment "A classification of floor construction types." .
+
+bldg:ClassOfFloorLevel a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Floor Level" ;
+    rdfs:comment "A classification of floor level types." .
+
+bldg:ClassOfLocalAuthorityArea a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Local Authority Area" ;
+    rdfs:comment "A classification of local authority area types." .
+
+bldg:ClassOfMultiGlazeProportion a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Multi Glaze Proportion" ;
+    rdfs:comment "A classification of multi glaze proportion types." .
+
+bldg:ClassOfRoofConstruction a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Roof Construction" ;
+    rdfs:comment "A classification of roof construction types." .
+
+bldg:ClassOfTotalFloorArea a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Total Floor Area" ;
+    rdfs:comment "A classification of total floor area types." .
+
+bldg:ClassOfUDPRN a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of U D P R N" ;
+    rdfs:comment "A classification of u d p r n types." .
+
+bldg:ClassOfUPRN a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of U P R N" ;
+    rdfs:comment "A classification of u p r n types." .
+
+bldg:ClassOfWallConstruction a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Wall Construction" ;
+    rdfs:comment "A classification of wall construction types." .
+
+bldg:ClassOfWindowConstruction a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Window Construction" ;
+    rdfs:comment "A classification of window construction types." .
+
+bldg:ClassOfWindowUpgrade a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Window Upgrade" ;
+    rdfs:comment "A classification of window upgrade types." .
+
+# --- Fabric Element Sections ---
+
+# --- Aggregate Collection State variants ---
+
+bldg:AllWallsOfStructureUnit a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Walls Of Structure Unit" ;
+    rdfs:comment "The finite class of all Wall elements in a particular structure unit." .
+
+bldg:AllWallStatesOfStructureUnitState a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Wall States Of Structure Unit State" ;
+    rdfs:comment "The finite class of all WallState temporal parts in a particular structure unit state." .
+
+bldg:AllAssessedWalls a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Assessed Walls" ;
+    rdfs:comment "The finite class of all assessed Wall elements in a particular EPC assessment." .
+
+bldg:AllRoofsOfStructureUnit a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Roofs Of Structure Unit" ;
+    rdfs:comment "The finite class of all Roof elements in a particular structure unit." .
+
+bldg:AllRoofStatesOfStructureUnitState a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Roof States Of Structure Unit State" ;
+    rdfs:comment "The finite class of all RoofState temporal parts in a particular structure unit state." .
+
+bldg:AllAssessedRoofs a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Assessed Roofs" ;
+    rdfs:comment "The finite class of all assessed Roof elements in a particular EPC assessment." .
+
+bldg:AllFloorsOfStructureUnit a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Floors Of Structure Unit" ;
+    rdfs:comment "The finite class of all Floor elements in a particular structure unit." .
+
+bldg:AllFloorStatesOfStructureUnitState a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Floor States Of Structure Unit State" ;
+    rdfs:comment "The finite class of all FloorState temporal parts in a particular structure unit state." .
+
+bldg:AllAssessedFloors a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Assessed Floors" ;
+    rdfs:comment "The finite class of all assessed Floor elements in a particular EPC assessment." .
+
+bldg:AllWindowsOfStructureUnit a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Windows Of Structure Unit" ;
+    rdfs:comment "The finite class of all Window elements in a particular structure unit." .
+
+bldg:AllWindowStatesOfStructureUnitState a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Window States Of Structure Unit State" ;
+    rdfs:comment "The finite class of all WindowState temporal parts in a particular structure unit state." .
+
+bldg:AllAssessedWindows a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Assessed Windows" ;
+    rdfs:comment "The finite class of all assessed Window elements in a particular EPC assessment." .
+
+bldg:AllFireplacesOfStructureUnit a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Fireplaces Of Structure Unit" ;
+    rdfs:comment "The finite class of all Fireplace elements in a particular structure unit." .
+
+bldg:AllFireplaceStatesOfStructureUnitState a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Fireplace States Of Structure Unit State" ;
+    rdfs:comment "The finite class of all FireplaceState temporal parts in a particular structure unit state." .
+
+bldg:AllAssessedFireplaces a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Assessed Fireplaces" ;
+    rdfs:comment "The finite class of all assessed Fireplace elements in a particular EPC assessment." .
+
+bldg:AllWallSectionsOfStructureUnit a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Wall Sections Of Structure Unit" ;
+    rdfs:comment "The finite class of all WallSection elements in a particular structure unit." .
+
+bldg:AllWallSectionStatesOfStructureUnitState a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Wall Section States Of Structure Unit State" ;
+    rdfs:comment "The finite class of all WallSectionState temporal parts in a particular structure unit state." .
+
+bldg:AllAssessedWallSections a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Assessed Wall Sections" ;
+    rdfs:comment "The finite class of all assessed WallSection elements in a particular EPC assessment." .
+
+bldg:AllRoofSectionsOfStructureUnit a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Roof Sections Of Structure Unit" ;
+    rdfs:comment "The finite class of all RoofSection elements in a particular structure unit." .
+
+bldg:AllRoofSectionStatesOfStructureUnitState a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Roof Section States Of Structure Unit State" ;
+    rdfs:comment "The finite class of all RoofSectionState temporal parts in a particular structure unit state." .
+
+bldg:AllAssessedRoofSections a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Assessed Roof Sections" ;
+    rdfs:comment "The finite class of all assessed RoofSection elements in a particular EPC assessment." .
+
+bldg:AllFloorSectionsOfStructureUnit a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Floor Sections Of Structure Unit" ;
+    rdfs:comment "The finite class of all FloorSection elements in a particular structure unit." .
+
+bldg:AllFloorSectionStatesOfStructureUnitState a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Floor Section States Of Structure Unit State" ;
+    rdfs:comment "The finite class of all FloorSectionState temporal parts in a particular structure unit state." .
+
+bldg:AllAssessedFloorSections a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Assessed Floor Sections" ;
+    rdfs:comment "The finite class of all assessed FloorSection elements in a particular EPC assessment." .
+
+bldg:AllStoreysOfStructureUnit a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Storeys Of Structure Unit" ;
+    rdfs:comment "The finite class of all Storey elements in a particular structure unit." .
+
+bldg:AllStoreyStatesOfStructureUnitState a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Storey States Of Structure Unit State" ;
+    rdfs:comment "The finite class of all StoreyState temporal parts in a particular structure unit state." .
+
+bldg:AllAssessedStoreys a rdfs:Class ;
+    rdfs:subClassOf bldg:FiniteClassOfElement ;
+    rdfs:label "All Assessed Storeys" ;
+    rdfs:comment "The finite class of all assessed Storey elements in a particular EPC assessment." .
+
+# --- Chemical and Emission classes ---
+
+bldg:StuffPortion a rdfs:Class ;
+    rdfs:subClassOf ies:Asset ;
+    rdfs:label "Stuff Portion" ;
+    rdfs:comment "A portion of a substance or material." .
+
+bldg:ChemicalCompound a rdfs:Class ;
+    rdfs:subClassOf bldg:StuffPortion ;
+    rdfs:label "Chemical Compound" ;
+    rdfs:comment "A chemical compound such as CO2, NOx, or particulate matter." .
+
+bldg:ChemicalCompoundRelease a rdfs:Class ;
+    rdfs:subClassOf ies:Event ;
+    rdfs:label "Chemical Compound Release" ;
+    rdfs:comment "An event in which a chemical compound is released into the environment." .
+
+bldg:ChemicalCompoundReleased a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Chemical Compound Released" ;
+    rdfs:comment "The state of a chemical compound having been released." .
+
+bldg:CO2Released a rdfs:Class ;
+    rdfs:subClassOf bldg:ChemicalCompoundReleased ;
+    rdfs:label "CO2 Released" ;
+    rdfs:comment "The state of carbon dioxide having been released by a dwelling." .
+
+bldg:CO2Emission a rdfs:Class ;
+    rdfs:subClassOf bldg:ChemicalCompoundRelease ;
+    rdfs:label "CO2 Emission" ;
+    rdfs:comment "An event of carbon dioxide emission from a dwelling." .
+
+bldg:CO2EmissionEstimate a rdfs:Class ;
+    rdfs:subClassOf bldg:CO2Emission ;
+    rdfs:label "CO2 Emission Estimate" ;
+    rdfs:comment "An estimated CO2 emission calculated during an EPC assessment." .
+
+bldg:ClassOfChemicalCompound a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Chemical Compound" ;
+    rdfs:comment "A classification of chemical compound types." .
+
+bldg:ClassOfStuffPortion a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Stuff Portion" ;
+    rdfs:comment "A classification of stuff portion types." .
+
+# --- BuiltEntity hierarchy ---
+
+bldg:BuiltEntity a rdfs:Class ;
+    rdfs:subClassOf ies:Asset ;
+    rdfs:label "Built Entity" ;
+    rdfs:comment "Any entity that has been constructed, including buildings, structures, and infrastructure." .
+
+bldg:BuiltEntityState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Built Entity State" ;
+    rdfs:comment "A temporal state of a built entity." .
+
+bldg:ClassOfBuiltEntity a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Built Entity" ;
+    rdfs:comment "A classification of built entity types." .
+
+bldg:Building rdfs:subClassOf bldg:BuiltEntity .
+
+# --- ClassOfState variants ---
+
+bldg:ClassOfBuildingState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Building State" ;
+    rdfs:comment "A classification of building state types." .
+
+bldg:ClassOfWallState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Wall State" ;
+    rdfs:comment "A classification of wall state types." .
+
+bldg:ClassOfRoofState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Roof State" ;
+    rdfs:comment "A classification of roof state types." .
+
+bldg:ClassOfFloorState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Floor State" ;
+    rdfs:comment "A classification of floor state types." .
+
+bldg:ClassOfWindowState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Window State" ;
+    rdfs:comment "A classification of window state types." .
+
+bldg:ClassOfDoorState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Door State" ;
+    rdfs:comment "A classification of door state types." .
+
+bldg:ClassOfHeatingSystemState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Heating System State" ;
+    rdfs:comment "A classification of heating system state types." .
+
+bldg:ClassOfHotWaterSystemState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Hot Water System State" ;
+    rdfs:comment "A classification of hot water system state types." .
+
+bldg:ClassOfLightingSystemState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Lighting System State" ;
+    rdfs:comment "A classification of lighting system state types." .
+
+bldg:ClassOfVentilationSystemState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Ventilation System State" ;
+    rdfs:comment "A classification of ventilation system state types." .
+
+bldg:ClassOfStructureState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Structure State" ;
+    rdfs:comment "A classification of structure state types." .
+
+bldg:ClassOfStructureUnitState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Structure Unit State" ;
+    rdfs:comment "A classification of structure unit state types." .
+
+bldg:ClassOfStoreyState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Storey State" ;
+    rdfs:comment "A classification of storey state types." .
+
+bldg:ClassOfSpaceState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Space State" ;
+    rdfs:comment "A classification of space state types." .
+
+bldg:ClassOfFabricElementState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Fabric Element State" ;
+    rdfs:comment "A classification of fabric element state types." .
+
+bldg:ClassOfTechnicalSystemState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Technical System State" ;
+    rdfs:comment "A classification of technical system state types." .
+
+bldg:ClassOfCorridorState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Corridor State" ;
+    rdfs:comment "A classification of corridor state types." .
+
+bldg:ClassOfFireplaceState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Fireplace State" ;
+    rdfs:comment "A classification of fireplace state types." .
+
+bldg:ClassOfWallSectionState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Wall Section State" ;
+    rdfs:comment "A classification of wall section state types." .
+
+bldg:ClassOfRoofSectionState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Roof Section State" ;
+    rdfs:comment "A classification of roof section state types." .
+
+bldg:ClassOfFloorSectionState a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Floor Section State" ;
+    rdfs:comment "A classification of floor section state types." .
