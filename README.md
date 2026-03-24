@@ -370,6 +370,17 @@ The repo includes an [IES Building Extension](benchmark/generated/ies-building-e
 
 Built blind from the 105-column EPC schema, SAP methodology, and BORO 4D extensionalism — zero reference to the IRIS implementation. Every class is traceable to an EPC column, an EPC data value, or the mechanical 4D completion rule. Covers spatial hierarchy, thermal envelope with construction/insulation type decomposition, heating production/distribution/controls with device-level detail, hot water sources, lighting, ventilation types, renewables, energy supply connections, EPC assessment activities per element, cost estimates per system, current/potential scenarios, and retrofit events.
 
+### EPC Column Coverage Benchmark
+
+Both ontologies tested against 30 key EPC data columns — can each ontology receive and represent the data from that column?
+
+| Metric | NDTP/IRIS | Open Ontologies |
+| --- | ---: | ---: |
+| EPC columns covered | 18/30 (60%) | **28/30 (93%)** |
+| Validated triples | 1,349 | **3,056** |
+
+Queries derived from published DESNZ/ONS EPC statistical reports — not from either ontology's class structure. Full benchmark: [benchmark/epc/](benchmark/epc/)
+
 Use `onto_align` to map it to other domain ontologies:
 
 ```text
