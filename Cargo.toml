@@ -42,7 +42,7 @@ tokenizers = { version = "0.21", optional = true, default-features = false, feat
 dirs = "6"
 
 [features]
-default = ["postgres", "embeddings"]
+default = []
 postgres = ["sqlx"]
 embeddings = ["tract-onnx", "tokenizers"]
 
