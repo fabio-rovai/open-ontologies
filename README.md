@@ -239,9 +239,9 @@ One sentence input: *"Build a Pizza ontology following the Manchester tutorial s
 | False negatives | **0** |
 | Classification rules | 6 OWL axioms |
 
-### Ontology Marketplace — 29 Standard Ontologies
+### Ontology Marketplace — 32 Standard Ontologies
 
-All 29 marketplace ontologies fetched, `owl:imports` resolved, loaded, and reasoned over with both RDFS and OWL-RL profiles:
+All 32 marketplace ontologies fetched, `owl:imports` resolved, loaded, and reasoned over with both RDFS and OWL-RL profiles:
 
 | Ontology | Classes | Properties | Triples | + RDFS | + OWL-RL | Fetch | RDFS | OWL-RL |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -276,7 +276,7 @@ All 29 marketplace ontologies fetched, `owl:imports` resolved, loaded, and reaso
 | QUDT | 73 | 175 | 2,434 | +1,574 | +1,581 | 2,934ms | 14ms | 9ms |
 | **Total** | **1,863** | **1,060** | **42,964** | **+8,111** | **+17,994** | — | — | — |
 
-29/29 ontologies loaded, imports resolved, and reasoned. RDFS adds 18% more triples. OWL-RL adds **41%** — transitive/symmetric/inverse properties and equivalentClass expansion discover significantly more implicit knowledge. Schema.org jumps from +4,031 (RDFS) to +13,670 (OWL-RL) inferred triples in 117ms.
+32/32 ontologies loaded, imports resolved, and reasoned. RDFS adds 18% more triples. OWL-RL adds **41%** — transitive/symmetric/inverse properties and equivalentClass expansion discover significantly more implicit knowledge. Schema.org jumps from +4,031 (RDFS) to +13,670 (OWL-RL) inferred triples in 117ms.
 
 ### Reasoning Performance — vs HermiT
 
@@ -490,8 +490,8 @@ Both ontologies tested against 36 key EPC data columns — can each ontology rec
 
 | Metric | NDTP/IRIS | Open Ontologies |
 | --- | ---: | ---: |
-| EPC columns covered | 18/36 (50%) | **36/36 (100%)** |
-| Validated triples | 1,349 | **3,068** |
+| EPC columns covered | 18/36 (50%) | 36/36 (100%) |
+| Triples | 1,346 | 3,229 |
 
 Queries derived from published DESNZ/ONS EPC statistical reports — not from either ontology's class structure. Full benchmark: [benchmark/epc/](benchmark/epc/)
 
@@ -553,7 +553,7 @@ flowchart TD
             REST["REST API\n/api/query · /api/update\n/api/save · /api/load · /api/lineage"]
         end
 
-        subgraph ToolGroups["48 Tools"]
+        subgraph ToolGroups["43 Tools"]
             direction LR
             Core["Core\nvalidate · load · save · clear\nstats · query · diff · lint\nconvert · status"]
             DataPipe["Data Pipeline\nmap · ingest · shacl\nreason · extend · import-schema"]
@@ -618,7 +618,7 @@ flowchart TD
     end
 
     subgraph Engine["Engine Sidecar (Rust / Axum)"]
-        MCP["/mcp — MCP Streamable HTTP\n42 onto_* tools"]
+        MCP["/mcp — MCP Streamable HTTP\n43 onto_* tools"]
         REST2["/api/query · /api/update\n/api/save · /api/load-turtle\n/api/stats · /api/lineage"]
         Store["Arc&lt;GraphStore&gt;\nOxigraph"]
         DB["SQLite"]
