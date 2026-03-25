@@ -13,6 +13,7 @@ interface SelectedNode {
 
 interface GraphCanvasProps {
   onNodeSelect: (node: SelectedNode | null) => void;
+  dagMode?: boolean;
 }
 
 interface SparqlBinding {
@@ -97,7 +98,7 @@ SELECT ?prop ?propLabel ?domain ?range WHERE {
 
 // --- Component ---
 
-export function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
+export function GraphCanvas({ onNodeSelect, dagMode }: GraphCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const graphRef = useRef<any>(null);
@@ -269,6 +270,12 @@ export function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
     // Spring-based force tuning
     graph.d3Force('link')?.distance(30).strength(0.7);
     graph.d3Force('charge')?.strength(-120);
+
+    // DAG mode: top-down tree layout in 3D
+    if (dagMode) {
+      graph.dagMode('td');
+      graph.dagLevelDistance(40);
+    }
 
     // Warm lighting
     const scene = graph.scene() as THREE.Scene;

@@ -16,6 +16,7 @@
     "@tauri-apps/plugin-shell": "^2.3.5",
     "3d-force-graph": "^1.79.1",
     "cytoscape": "^3.33.1",
+    "cytoscape-dagre": "^2.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-markdown": "^10.1.0",
