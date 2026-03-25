@@ -73,7 +73,7 @@ const ONTO_NS = 'http://example.org/ontology#';
 const CLASSES_QUERY = `PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?c ?label WHERE {
-  ?c a owl:Class .
+  { ?c a owl:Class } UNION { ?c a rdfs:Class }
   OPTIONAL { ?c rdfs:label ?label }
   FILTER(!isBlank(?c))
 }`;
@@ -82,14 +82,15 @@ const EDGES_QUERY = `PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 SELECT ?sub ?parent WHERE {
   ?sub rdfs:subClassOf ?parent .
-  ?sub a owl:Class .
+  { ?sub a owl:Class } UNION { ?sub a rdfs:Class }
   FILTER(!isBlank(?sub) && !isBlank(?parent))
 }`;
 
 const PROPERTY_EDGES_QUERY = `PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 SELECT ?prop ?propLabel ?domain ?range WHERE {
-  ?prop a owl:ObjectProperty .
+  { ?prop a owl:ObjectProperty } UNION { ?prop a rdf:Property }
   ?prop rdfs:domain ?domain .
   ?prop rdfs:range ?range .
   OPTIONAL { ?prop rdfs:label ?propLabel }
