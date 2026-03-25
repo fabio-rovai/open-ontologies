@@ -27,3 +27,10 @@ Each query scores 0 or 1:
 - **0**: Fails (no mapping for required columns, missing classes, wrong results)
 
 Maximum score: 15
+
+## Column Coverage Results
+
+| Metric | NDTP/IRIS | Open Ontologies |
+| --- | ---: | ---: |
+| EPC columns covered | 18/36 (50%) | **36/36 (100%)** |
+| Validated triples | 1,349 | **3,068** |

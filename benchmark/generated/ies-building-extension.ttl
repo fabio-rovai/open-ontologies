@@ -1717,6 +1717,22 @@ bldg:energyTariffDescription a rdf:Property ;
     rdfs:label "energy tariff description" ;
     rdfs:comment "The description of the energy tariff used for cost calculations. Maps to EPC ENERGY_TARIFF." .
 
+# --- Room counts ---
+
+bldg:numberOfRooms a rdf:Property ;
+    rdfs:subPropertyOf ies:attribute ;
+    rdfs:domain bldg:BuildingState ;
+    rdfs:range xsd:integer ;
+    rdfs:label "number of rooms" ;
+    rdfs:comment "The total number of habitable rooms in the dwelling. Maps to EPC numberrooms." .
+
+bldg:numberOfHeatedRooms a rdf:Property ;
+    rdfs:subPropertyOf ies:attribute ;
+    rdfs:domain bldg:BuildingState ;
+    rdfs:range xsd:integer ;
+    rdfs:label "number of heated rooms" ;
+    rdfs:comment "The number of habitable rooms with fixed heating in the dwelling. Maps to EPC NUMBER_HEATED_ROOMS." .
+
 # =============================================================================
 # END OF ONTOLOGY
 # =============================================================================

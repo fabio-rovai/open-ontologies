@@ -31,7 +31,7 @@
 
 ---
 
-Open Ontologies is a **Rust MCP server** and **desktop Studio** for AI-native ontology engineering. It exposes **48 tools** that let Claude build, validate, query, diff, lint, version, reason over, align, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — with Terraform-style lifecycle management, a marketplace of 32 standard ontologies, clinical crosswalks, semantic embeddings, and a full lineage audit trail.
+Open Ontologies is a **Rust MCP server** and **desktop Studio** for AI-native ontology engineering. It exposes **43 tools** that let Claude build, validate, query, diff, lint, version, reason over, align, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — with Terraform-style lifecycle management, a marketplace of 32 standard ontologies, clinical crosswalks, semantic embeddings, and a full lineage audit trail.
 
 The **Studio** wraps the engine in a visual desktop environment: 3D force-directed graph, AI chat panel, Protégé-style property inspector, and lineage viewer.
 
@@ -356,28 +356,28 @@ The repo includes an [IES Building Extension](benchmark/generated/ies-building-e
 
 | Metric | NDTP/IRIS | Open Ontologies |
 | --- | ---: | ---: |
-| Classes | 192 | **455** |
+| Classes | 192 | **461** |
 | Entity classes | 133 | **187** |
 | State classes | 41 | **129** |
 | ClassOf classes | 37 | **139** |
 | Complete 4D triads | 14 | **129** |
-| Properties | 26 | **93** |
-| Enumerated individuals | 2 | **132** |
-| Domain/range coverage | 31 | **86** |
-| Labels | 311 | **524** |
-| Comments | 316 | **524** |
-| Validated triples | — | **3,056** |
+| Properties | 26 | **95** |
+| Enumerated individuals | 2 | **214** |
+| Domain/range coverage | 31 | **88** |
+| Labels | 311 | **526** |
+| Comments | 316 | **526** |
+| Validated triples | — | **3,068** |
 
 Built blind from the 105-column EPC schema, SAP methodology, and BORO 4D extensionalism — zero reference to the IRIS implementation. Every class is traceable to an EPC column, an EPC data value, or the mechanical 4D completion rule. Covers spatial hierarchy, thermal envelope with construction/insulation type decomposition, heating production/distribution/controls with device-level detail, hot water sources, lighting, ventilation types, renewables, energy supply connections, EPC assessment activities per element, cost estimates per system, current/potential scenarios, and retrofit events.
 
 ### EPC Column Coverage Benchmark
 
-Both ontologies tested against 30 key EPC data columns — can each ontology receive and represent the data from that column?
+Both ontologies tested against 36 key EPC data columns — can each ontology receive and represent the data from that column?
 
 | Metric | NDTP/IRIS | Open Ontologies |
 | --- | ---: | ---: |
-| EPC columns covered | 18/30 (60%) | **28/30 (93%)** |
-| Validated triples | 1,349 | **3,056** |
+| EPC columns covered | 18/36 (50%) | **36/36 (100%)** |
+| Validated triples | 1,349 | **3,068** |
 
 Queries derived from published DESNZ/ONS EPC statistical reports — not from either ontology's class structure. Full benchmark: [benchmark/epc/](benchmark/epc/)
 
@@ -400,12 +400,12 @@ onto_align <other-ontology.ttl>
 
 ## Tools
 
-48 tools organized by function — available as MCP tools (prefixed `onto_`) and CLI subcommands:
+43 tools organized by function — available as MCP tools (prefixed `onto_`) and CLI subcommands:
 
 | Category | Tools | Purpose |
 | --- | --- | --- |
 | **Core** | `validate` `load` `save` `clear` `stats` `query` `diff` `lint` `convert` `status` | RDF/OWL validation, querying, and management |
-| **Marketplace** | `marketplace` | Browse and install 30 standard W3C/ISO/industry ontologies |
+| **Marketplace** | `marketplace` | Browse and install 32 standard W3C/ISO/industry ontologies |
 | **Remote** | `pull` `push` `import-owl` | Fetch/push ontologies, resolve owl:imports |
 | **Schema** | `import-schema` | PostgreSQL → OWL conversion |
 | **Data** | `map` `ingest` `shacl` `reason` `extend` | Structured data → RDF pipeline |
