@@ -374,6 +374,116 @@ The repo includes an [IES Building Extension](benchmark/generated/ies-building-e
 
 Built blind from the 105-column EPC schema, SAP methodology, and BORO 4D extensionalism — zero reference to the IRIS implementation. The two ontologies make different trade-offs: IRIS is more tightly curated with higher average hierarchy depth (2.89 vs 2.02), reflecting deliberate grouping by domain experts. Open Ontologies covers more of the EPC data schema and applies the BORO 4D pattern more systematically across the domain.
 
+#### How the hierarchy emerges from building science
+
+The ontology's depth (max 10 levels) is not hand-tuned — it follows the natural classification that building scientists use. The EPC data schema describes heating systems as flat text fields (`"Condensing gas boiler with radiators"`), but the underlying domain has layered structure:
+
+```mermaid
+graph TD
+    HS[Heating System] --> CH[Central Heating]
+    HS --> NC[Non-Central / Room Heating]
+
+    CH --> WET[Wet Central Heating<br/><i>hydronic distribution</i>]
+    CH --> WA[Warm Air Central Heating<br/><i>ducted air</i>]
+    CH --> EC[Electric Central Heating<br/><i>storage / underfloor</i>]
+
+    WET --> BB[Boiler-Based]
+    WET --> HP[Heat Pump]
+    WET --> DH[Community / District]
+
+    BB --> CB[Combustion Boiler]
+    BB --> CHP[Micro-CHP]
+
+    CB --> GAS["Gas boiler"]
+    CB --> OIL["Oil boiler"]
+    CB --> LPG["LPG boiler"]
+    CB --> COND["Condensing boiler"]
+    CB --> COMBI["Combi boiler"]
+    CB --> BACK["Back boiler"]
+
+    HP --> ASHP["Air source"]
+    HP --> GSHP["Ground source"]
+    HP --> WSHP["Water source"]
+
+    EC --> STOR["Storage heaters"]
+    EC --> PNL["Panel heaters"]
+    EC --> UF["Underfloor electric"]
+
+    NC --> FIX[Fixed Room Heater]
+    NC --> PORT[Portable Heater]
+
+    FIX --> GROOM["Gas room heater"]
+    FIX --> EROOM["Electric room heater"]
+    FIX --> SFROOM["Solid fuel room heater"]
+
+    style HS fill:#1a1a2e,color:#fff
+    style CH fill:#16213e,color:#fff
+    style NC fill:#16213e,color:#fff
+    style WET fill:#0f3460,color:#fff
+    style WA fill:#0f3460,color:#fff
+    style EC fill:#0f3460,color:#fff
+    style BB fill:#533483,color:#fff
+    style HP fill:#533483,color:#fff
+    style DH fill:#533483,color:#fff
+    style CB fill:#e94560,color:#fff
+    style CHP fill:#e94560,color:#fff
+```
+
+The same pattern applies to the building fabric — heat transfer physics dictates the grouping:
+
+```mermaid
+graph TD
+    TE[Building Thermal Envelope] --> OP[Opaque Elements<br/><i>conduction-dominated</i>]
+    TE --> TR[Transparent Elements<br/><i>radiation + conduction</i>]
+
+    OP --> WALL[Walls]
+    OP --> ROOF[Roofs]
+    OP --> FLOOR[Floors]
+
+    TR --> WIN[Windows]
+    TR --> DOOR[Doors]
+
+    WALL --> MAS[Masonry Walls<br/><i>thermal mass</i>]
+    WALL --> FRM[Framed Walls<br/><i>stud bridges</i>]
+
+    MAS --> CAV["Cavity wall"]
+    MAS --> SOL["Solid brick"]
+    MAS --> SND["Sandstone"]
+    MAS --> GRN["Granite"]
+    MAS --> COB["Cob"]
+
+    FRM --> TF["Timber frame"]
+    FRM --> SYS["System-built"]
+    FRM --> PH["Park home"]
+
+    ROOF --> PIT[Pitched Roof]
+    ROOF --> FLT[Flat Roof]
+
+    PIT --> COLD["Cold roof<br/><i>insulation at ceiling</i>"]
+    PIT --> WARM["Warm roof<br/><i>insulation at rafter</i>"]
+    PIT --> THATCH["Thatched"]
+
+    WIN --> SGL["Single glazed"]
+    WIN --> DBL["Double glazed"]
+    WIN --> TPL["Triple glazed"]
+    WIN --> SEC["Secondary glazing"]
+
+    style TE fill:#1a1a2e,color:#fff
+    style OP fill:#16213e,color:#fff
+    style TR fill:#16213e,color:#fff
+    style WALL fill:#0f3460,color:#fff
+    style ROOF fill:#0f3460,color:#fff
+    style FLOOR fill:#0f3460,color:#fff
+    style WIN fill:#0f3460,color:#fff
+    style DOOR fill:#0f3460,color:#fff
+    style MAS fill:#533483,color:#fff
+    style FRM fill:#533483,color:#fff
+    style PIT fill:#533483,color:#fff
+    style FLT fill:#533483,color:#fff
+```
+
+Each level in the tree is a real building science distinction — central vs room heating, hydronic vs warm air, combustion vs electric, masonry vs framed, cavity vs solid. An independent building scientist, given the same EPC data values, produces these same intermediate groupings ([verified by clean-room reproduction](docs/ies-ecosystem.md)). RDFS reasoning traverses these chains transitively, which is why a 10-level hierarchy generates 662 inferred triples from 3,229 raw.
+
 ### EPC Column Coverage Benchmark
 
 Both ontologies tested against 36 key EPC data columns — can each ontology receive and represent the data from that column?
