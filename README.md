@@ -354,21 +354,24 @@ This mirrors NDTP's actual pipeline: CSV → IES RDF → validate → reason →
 
 The repo includes an [IES Building Extension](benchmark/generated/ies-building-extension.ttl) built from the UK EPC data schema and building science fundamentals, using IES 4D patterns. It was built independently — without reference to any existing implementation — then benchmarked against the NDTP/IRIS production building ontology used in government data pipelines.
 
-| Metric | NDTP/IRIS | Open Ontologies |
+| Metric | NDTP/IRIS (hand-built) | Open Ontologies (AI-built) |
 | --- | ---: | ---: |
-| Classes | 192 | **461** |
-| Entity classes | 133 | **187** |
-| State classes | 41 | **129** |
-| ClassOf classes | 37 | **139** |
-| Complete 4D triads | 14 | **129** |
-| Properties | 26 | **95** |
+| **Schema** | | |
+| Classes | 244 | **474** |
+| Properties | 34 | **104** |
+| Triples (raw) | 1,346 | **3,041** |
+| Lint issues | 2 | **0** |
+| **Reasoning** | | |
+| RDFS inferred | **621** | 406 |
+| Triples after RDFS | 1,967 | **3,447** |
+| RDFS reasoning | 5ms | 11ms |
+| **EPC Coverage** | | |
+| EPC columns covered | 18/36 (50%) | **36/36 (100%)** |
+| **4D Pattern** | | |
+| Complete triads (Entity+State+ClassOf) | 14 | **129** |
 | Enumerated individuals | 2 | **214** |
-| Domain/range coverage | 31 | **88** |
-| Labels | 311 | **526** |
-| Comments | 316 | **526** |
-| Validated triples | — | **3,068** |
 
-Built blind from the 105-column EPC schema, SAP methodology, and BORO 4D extensionalism — zero reference to the IRIS implementation. Every class is traceable to an EPC column, an EPC data value, or the mechanical 4D completion rule. Covers spatial hierarchy, thermal envelope with construction/insulation type decomposition, heating production/distribution/controls with device-level detail, hot water sources, lighting, ventilation types, renewables, energy supply connections, EPC assessment activities per element, cost estimates per system, current/potential scenarios, and retrofit events.
+Built blind from the 105-column EPC schema, SAP methodology, and BORO 4D extensionalism — zero reference to the IRIS implementation. IRIS wins on RDFS inference depth (621 vs 406 inferred triples) due to deeper subClassOf chains — a deliberate modelling choice by domain experts. We win on schema breadth, EPC data coverage, and 4D pattern completeness.
 
 ### EPC Column Coverage Benchmark
 
