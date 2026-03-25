@@ -29,6 +29,7 @@ impl Enforcer {
             "generic" => self.run_generic_rules(&mut violations, &mut total_rules, &mut passed_rules),
             "boro" => self.run_boro_rules(&mut violations, &mut total_rules, &mut passed_rules),
             "value_partition" => self.run_value_partition_rules(&mut violations, &mut total_rules, &mut passed_rules),
+            "hierarchy" => self.run_hierarchy_rules(&mut violations, &mut total_rules, &mut passed_rules),
             _ => {}
         }
 
@@ -277,6 +278,201 @@ impl Enforcer {
                     "message": format!("Value partition: children of {} are not pairwise disjoint", parent),
                 }));
             }
+        }
+    }
+
+    fn run_hierarchy_rules(&self, violations: &mut Vec<serde_json::Value>, total: &mut u32, passed: &mut u32) {
+        // Rule 1: Flat hierarchy — classes with too many direct children (>5)
+        // These are candidates for intermediate grouping classes.
+        *total += 1;
+        let flat_query = "SELECT ?parent (COUNT(DISTINCT ?child) AS ?count) WHERE { \
+            ?child <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?parent . \
+            ?child a ?type . \
+            FILTER(?type IN (<http://www.w3.org/2002/07/owl#Class>, <http://www.w3.org/2000/01/rdf-schema#Class>)) \
+        } GROUP BY ?parent HAVING (COUNT(DISTINCT ?child) > 5) ORDER BY DESC(?count)";
+
+        let flat_parents = self.query_flat_hierarchy(flat_query);
+        if flat_parents.is_empty() {
+            *passed += 1;
+        } else {
+            for (parent, count, children) in &flat_parents {
+                violations.push(serde_json::json!({
+                    "rule": "flat_hierarchy",
+                    "severity": "info",
+                    "entity": parent,
+                    "message": format!(
+                        "Flat hierarchy: {} has {} direct children. Consider adding intermediate grouping classes to deepen the subClassOf chain and improve RDFS inference. Children: {}",
+                        parent, count, children.join(", ")
+                    ),
+                    "children_count": count,
+                    "children": children,
+                }));
+            }
+        }
+
+        // Rule 2: Shallow max depth — hierarchy should be at least 3 levels deep
+        *total += 1;
+        let depth_query = "SELECT (MAX(?depth) AS ?max_depth) WHERE { \
+            SELECT ?class (COUNT(?ancestor) AS ?depth) WHERE { \
+                ?class <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ ?ancestor . \
+            } GROUP BY ?class \
+        }";
+
+        if let Ok(json) = self.graph.sparql_select(depth_query)
+            && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
+            && let Some(results) = parsed["results"].as_array()
+            && let Some(first) = results.first()
+            && let Some(depth_str) = first["max_depth"].as_str()
+        {
+            let depth: f64 = depth_str
+                .split('"')
+                .nth(1)
+                .unwrap_or(depth_str)
+                .parse()
+                .unwrap_or(0.0);
+            if depth >= 3.0 {
+                *passed += 1;
+            } else {
+                violations.push(serde_json::json!({
+                    "rule": "shallow_hierarchy",
+                    "severity": "warning",
+                    "entity": "graph",
+                    "message": format!(
+                        "Shallow hierarchy: max depth is {:.0}. Ontologies with deeper hierarchies produce richer RDFS inference. Consider adding intermediate grouping classes.",
+                        depth
+                    ),
+                    "max_depth": depth,
+                }));
+            }
+        } else {
+            *passed += 1; // Can't determine depth — don't penalize
+        }
+
+        // Rule 3: Low average depth — average should be above 2.0
+        *total += 1;
+        let avg_query = "SELECT (AVG(?depth) AS ?avg_depth) WHERE { \
+            SELECT ?class (COUNT(?ancestor) AS ?depth) WHERE { \
+                ?class <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ ?ancestor . \
+            } GROUP BY ?class \
+        }";
+
+        if let Ok(json) = self.graph.sparql_select(avg_query)
+            && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
+            && let Some(results) = parsed["results"].as_array()
+            && let Some(first) = results.first()
+            && let Some(avg_str) = first["avg_depth"].as_str()
+        {
+            let avg: f64 = avg_str
+                .split('"')
+                .nth(1)
+                .unwrap_or(avg_str)
+                .parse()
+                .unwrap_or(0.0);
+            if avg >= 2.0 {
+                *passed += 1;
+            } else {
+                violations.push(serde_json::json!({
+                    "rule": "low_avg_depth",
+                    "severity": "info",
+                    "entity": "graph",
+                    "message": format!(
+                        "Low average hierarchy depth: {:.2}. An average above 2.0 indicates well-structured intermediate groupings that produce richer RDFS inference.",
+                        avg
+                    ),
+                    "avg_depth": avg,
+                }));
+            }
+        } else {
+            *passed += 1;
+        }
+
+        // Rule 4: RDFS inference potential — estimate inferred triples vs raw
+        *total += 1;
+        let raw_query = "SELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }";
+        let subclass_query = "SELECT (COUNT(*) AS ?count) WHERE { \
+            ?s <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?o \
+        }";
+
+        let raw_count = self.query_count(raw_query);
+        let subclass_count = self.query_count(subclass_query);
+
+        if raw_count > 0 {
+            let ratio = subclass_count as f64 / raw_count as f64;
+            if ratio >= 0.05 {
+                // At least 5% of triples are subClassOf — good hierarchy density
+                *passed += 1;
+            } else {
+                violations.push(serde_json::json!({
+                    "rule": "low_hierarchy_density",
+                    "severity": "info",
+                    "entity": "graph",
+                    "message": format!(
+                        "Low hierarchy density: only {:.1}% of triples are rdfs:subClassOf ({} of {}). Dense hierarchies drive richer RDFS inference.",
+                        ratio * 100.0, subclass_count, raw_count
+                    ),
+                    "subclass_count": subclass_count,
+                    "total_triples": raw_count,
+                    "density_pct": ratio * 100.0,
+                }));
+            }
+        } else {
+            *passed += 1;
+        }
+    }
+
+    fn query_flat_hierarchy(&self, query: &str) -> Vec<(String, u64, Vec<String>)> {
+        let mut results = Vec::new();
+        if let Ok(json) = self.graph.sparql_select(query)
+            && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
+            && let Some(rows) = parsed["results"].as_array()
+        {
+            for row in rows {
+                let parent = row["parent"]
+                    .as_str()
+                    .unwrap_or("")
+                    .trim_matches(|c| c == '<' || c == '>')
+                    .to_string();
+                let count: u64 = row["count"]
+                    .as_str()
+                    .unwrap_or("0")
+                    .split('"')
+                    .nth(1)
+                    .unwrap_or("0")
+                    .parse()
+                    .unwrap_or(0);
+
+                // Get the children names
+                let children_query = format!(
+                    "SELECT ?child WHERE {{ ?child <http://www.w3.org/2000/01/rdf-schema#subClassOf> <{}> }}",
+                    parent
+                );
+                let children = self.query_iris(&children_query, "child");
+                let short_children: Vec<String> = children
+                    .iter()
+                    .map(|c| c.rsplit_once('#').or(c.rsplit_once('/')).map(|(_, n)| n.to_string()).unwrap_or(c.clone()))
+                    .collect();
+
+                results.push((parent, count, short_children));
+            }
+        }
+        results
+    }
+
+    fn query_count(&self, query: &str) -> u64 {
+        if let Ok(json) = self.graph.sparql_select(query)
+            && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
+            && let Some(results) = parsed["results"].as_array()
+            && let Some(first) = results.first()
+            && let Some(count_str) = first["count"].as_str()
+        {
+            count_str
+                .split('"')
+                .nth(1)
+                .unwrap_or(count_str)
+                .parse()
+                .unwrap_or(0)
+        } else {
+            0
         }
     }
 

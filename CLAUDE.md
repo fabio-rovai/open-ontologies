@@ -75,7 +75,7 @@ Claude dynamically decides the next tool call based on what the previous tool re
 | `onto_apply` | After plan + enforce — applies changes in `safe` or `migrate` mode |
 | `onto_lock` | To protect production IRIs from removal |
 | `onto_drift` | To compare two versions — rename detection, drift velocity, self-calibrating confidence |
-| `onto_enforce` | After loading — design pattern checks: `generic`, `boro`, `value_partition`, or custom rules |
+| `onto_enforce` | After loading — design pattern checks: `generic`, `boro`, `value_partition`, `hierarchy`, or custom rules |
 | `onto_monitor` | After apply — run SPARQL watchers with threshold alerts. Watchers with `webhook_url` POST alerts to external systems (Slack, PagerDuty, etc.) |
 | `onto_monitor_clear` | To clear blocked state after resolving monitor alerts |
 | `onto_crosswalk` | To look up clinical terminology mappings (ICD-10 ↔ SNOMED ↔ MeSH) |
@@ -104,7 +104,7 @@ When evolving an ontology in production, follow this Terraform-style cycle. Clau
 
 ### Enforce
 
-4. Call `onto_enforce` with a rule pack (`generic`, `boro`, `value_partition`) — checks design pattern compliance
+4. Call `onto_enforce` with a rule pack (`generic`, `boro`, `value_partition`, `hierarchy`) — checks design pattern compliance
 5. Fix any violations before applying
 
 ### Apply
