@@ -1,3 +1,5 @@
+#![cfg(feature = "embeddings")]
+
 use open_ontologies::structembed::StructuralTrainer;
 use open_ontologies::graph::GraphStore;
 use std::sync::Arc;

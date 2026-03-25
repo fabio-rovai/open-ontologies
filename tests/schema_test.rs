@@ -1,3 +1,5 @@
+#![cfg(feature = "postgres")]
+
 use open_ontologies::schema::{TableInfo, ColumnInfo, ForeignKey, SchemaIntrospector};
 
 #[test]

@@ -1,3 +1,4 @@
+#![cfg(feature = "embeddings")]
 //! Numerical stability tests for Poincaré ball geometry.
 //! Tests edge cases: zero vectors, near-boundary points, identical points,
 //! very high dimensions, and NaN/infinity propagation.
