@@ -1,3 +1,5 @@
+#![cfg(feature = "embeddings")]
+
 use open_ontologies::poincare::*;
 
 #[test]

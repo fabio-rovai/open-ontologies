@@ -1,3 +1,5 @@
+#![cfg(feature = "embeddings")]
+
 use open_ontologies::vecstore::VecStore;
 use open_ontologies::state::StateDb;
 

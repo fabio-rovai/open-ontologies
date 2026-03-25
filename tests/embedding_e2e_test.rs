@@ -1,3 +1,4 @@
+#![cfg(feature = "embeddings")]
 //! End-to-end test: load ontology → embed → search → align with embeddings.
 //! Only runs if the ONNX model is available.
 

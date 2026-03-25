@@ -29,15 +29,15 @@ fn test_lineage_session_isolation() {
 
     let s1 = log.new_session();
     let s2 = log.new_session();
-    log.record(&s1, "L", "load", "100");
-    log.record(&s2, "L", "load", "200");
+    log.record(&s1, "L", "load", "alpha_unique_val");
+    log.record(&s2, "L", "load", "beta_unique_val");
 
     let e1 = log.get_compact(&s1);
     let e2 = log.get_compact(&s2);
-    assert!(e1.contains("100"));
-    assert!(!e1.contains("200"));
-    assert!(e2.contains("200"));
-    assert!(!e2.contains("100"));
+    assert!(e1.contains("alpha_unique_val"));
+    assert!(!e1.contains("beta_unique_val"));
+    assert!(e2.contains("beta_unique_val"));
+    assert!(!e2.contains("alpha_unique_val"));
 }
 
 #[test]
