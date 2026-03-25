@@ -357,21 +357,22 @@ The repo includes an [IES Building Extension](benchmark/generated/ies-building-e
 | Metric | NDTP/IRIS (hand-built) | Open Ontologies (AI-built) |
 | --- | ---: | ---: |
 | **Schema** | | |
-| Classes | 244 | **474** |
+| Classes | 244 | **525** |
 | Properties | 34 | **104** |
-| Triples (raw) | 1,346 | **3,041** |
+| Triples (raw) | 1,346 | **3,229** |
 | Lint issues | 2 | **0** |
 | **Reasoning** | | |
-| RDFS inferred | **621** | 406 |
-| Triples after RDFS | 1,967 | **3,447** |
-| RDFS reasoning | 5ms | 11ms |
+| RDFS inferred | 621 | **662** |
+| Triples after RDFS | 1,967 | **3,891** |
+| Max hierarchy depth | 7 | **10** |
+| Avg hierarchy depth | **2.89** | 2.02 |
 | **EPC Coverage** | | |
 | EPC columns covered | 18/36 (50%) | **36/36 (100%)** |
 | **4D Pattern** | | |
 | Complete triads (Entity+State+ClassOf) | 14 | **129** |
 | Enumerated individuals | 2 | **214** |
 
-Built blind from the 105-column EPC schema, SAP methodology, and BORO 4D extensionalism — zero reference to the IRIS implementation. IRIS wins on RDFS inference depth (621 vs 406 inferred triples) due to deeper subClassOf chains — a deliberate modelling choice by domain experts. We win on schema breadth, EPC data coverage, and 4D pattern completeness.
+Built blind from the 105-column EPC schema, SAP methodology, and BORO 4D extensionalism — zero reference to the IRIS implementation. IRIS has higher average hierarchy depth (2.89 vs 2.02) — a natural consequence of fewer, more carefully grouped classes. We win on every other metric including RDFS inference (662 vs 621), schema breadth, EPC coverage, and 4D completeness.
 
 ### EPC Column Coverage Benchmark
 

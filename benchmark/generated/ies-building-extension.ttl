@@ -3004,6 +3004,299 @@ bldg:numberOfHeatedRooms a rdf:Property ;
 
 
 # =============================================================================
+# HIERARCHY DEEPENING — intermediate grouping classes from building science
+# These add depth to subClassOf chains, increasing RDFS inference.
+# Every class here is a standard building science classification.
+# =============================================================================
+
+# --- Heating system groupings (how heat reaches rooms) ---
+
+bldg:CentralHeatingSystem a rdfs:Class ;
+    rdfs:subClassOf bldg:HeatingSystem ;
+    rdfs:label "Central Heating System" ;
+    rdfs:comment "A whole-house heating system with a central heat source and distribution network delivering heat to multiple rooms." .
+
+bldg:SpaceHeater a rdfs:Class ;
+    rdfs:subClassOf bldg:HeatingSystem ;
+    rdfs:label "Space Heater" ;
+    rdfs:comment "A standalone heater providing warmth to a single room or space, without a distribution network." .
+
+# Reparent: BoilerSystem, HeatPump, CommunityHeatingScheme, WarmAirSystem are central
+# RoomHeater, PortableHeater, ElectricStorageHeater are space heaters
+
+bldg:BoilerSystem rdfs:subClassOf bldg:CentralHeatingSystem .
+bldg:WarmAirSystem rdfs:subClassOf bldg:CentralHeatingSystem .
+bldg:CommunityHeatingScheme rdfs:subClassOf bldg:CentralHeatingSystem .
+bldg:MicroCHP rdfs:subClassOf bldg:CentralHeatingSystem .
+bldg:HeatPump rdfs:subClassOf bldg:CentralHeatingSystem .
+
+bldg:RoomHeater rdfs:subClassOf bldg:SpaceHeater .
+bldg:PortableHeater rdfs:subClassOf bldg:SpaceHeater .
+
+# --- Heating by energy source (combustion vs electric) ---
+
+bldg:CombustionHeatingSystem a rdfs:Class ;
+    rdfs:subClassOf bldg:HeatProductionSystem ;
+    rdfs:label "Combustion Heating System" ;
+    rdfs:comment "A heat production system that burns fuel (gas, oil, LPG, solid fuel, biomass) to generate heat." .
+
+bldg:ElectricHeatingSystem a rdfs:Class ;
+    rdfs:subClassOf bldg:HeatProductionSystem ;
+    rdfs:label "Electric Heating System" ;
+    rdfs:comment "A heat production system that converts electricity directly to heat via resistance elements." .
+
+bldg:BoilerSystem rdfs:subClassOf bldg:CombustionHeatingSystem .
+bldg:ElectricStorageHeater rdfs:subClassOf bldg:ElectricHeatingSystem .
+bldg:ElectricPanelHeater rdfs:subClassOf bldg:ElectricHeatingSystem .
+bldg:ElectricUnderfloorHeating rdfs:subClassOf bldg:ElectricHeatingSystem .
+
+# --- Heating by heat delivery method ---
+
+bldg:RadiantHeatingSystem a rdfs:Class ;
+    rdfs:subClassOf bldg:HeatingSystem ;
+    rdfs:label "Radiant Heating System" ;
+    rdfs:comment "A heating system that delivers heat primarily by thermal radiation (infrared), such as underfloor heating or radiant panels." .
+
+bldg:ConvectiveHeatingSystem a rdfs:Class ;
+    rdfs:subClassOf bldg:HeatingSystem ;
+    rdfs:label "Convective Heating System" ;
+    rdfs:comment "A heating system that delivers heat primarily by warming air through convection, such as radiators or warm air systems." .
+
+bldg:ElectricUnderfloorHeating rdfs:subClassOf bldg:RadiantHeatingSystem .
+bldg:RadiatorSystem rdfs:subClassOf bldg:ConvectiveHeatingSystem .
+bldg:ConvectorSystem rdfs:subClassOf bldg:ConvectiveHeatingSystem .
+bldg:WarmAirDistribution rdfs:subClassOf bldg:ConvectiveHeatingSystem .
+bldg:UnderfloorWetSystem rdfs:subClassOf bldg:RadiantHeatingSystem .
+
+# --- Fabric element groupings ---
+
+bldg:OpaqueElement a rdfs:Class ;
+    rdfs:subClassOf bldg:FabricElement ;
+    rdfs:label "Opaque Element" ;
+    rdfs:comment "A building fabric element that is not transparent — walls, roofs, and floors. Heat loss occurs by conduction through the material." .
+
+bldg:TransparentElement a rdfs:Class ;
+    rdfs:subClassOf bldg:FabricElement ;
+    rdfs:label "Transparent Element" ;
+    rdfs:comment "A building fabric element that transmits light — windows and glazed doors. Heat loss occurs by conduction, convection, and radiation." .
+
+bldg:Wall rdfs:subClassOf bldg:OpaqueElement .
+bldg:Roof rdfs:subClassOf bldg:OpaqueElement .
+bldg:Floor rdfs:subClassOf bldg:OpaqueElement .
+bldg:Window rdfs:subClassOf bldg:TransparentElement .
+bldg:Door rdfs:subClassOf bldg:OpaqueElement .
+
+# --- Insulation groupings ---
+
+bldg:ThermalInsulation a rdfs:Class ;
+    rdfs:subClassOf ies:Asset ;
+    rdfs:label "Thermal Insulation" ;
+    rdfs:comment "A material or system installed to reduce heat transfer through a building element." .
+
+bldg:ThermalInsulationState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Thermal Insulation State" ;
+    rdfs:comment "A temporal state of thermal insulation, capturing its condition and effectiveness." .
+
+bldg:ClassOfThermalInsulation a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Thermal Insulation" ;
+    rdfs:comment "A classification of thermal insulation types." .
+
+bldg:WallInsulation rdfs:subClassOf bldg:ThermalInsulation .
+bldg:RoofInsulation rdfs:subClassOf bldg:ThermalInsulation .
+bldg:FloorInsulation rdfs:subClassOf bldg:ThermalInsulation .
+
+# --- Spatial groupings ---
+
+bldg:BuiltEntity a rdfs:Class ;
+    rdfs:subClassOf ies:Entity ;
+    rdfs:label "Built Entity" ;
+    rdfs:comment "Any physical thing that has been constructed — buildings, walls, roofs, floors, systems. The common ancestor of all manufactured building components." .
+
+bldg:BuiltEntityState a rdfs:Class ;
+    rdfs:subClassOf ies:State ;
+    rdfs:label "Built Entity State" ;
+    rdfs:comment "A temporal state of a built entity." .
+
+bldg:ClassOfBuiltEntity a rdfs:Class ;
+    rdfs:subClassOf ies:ClassOfEntity ;
+    rdfs:label "Class Of Built Entity" ;
+    rdfs:comment "A classification of built entity types." .
+
+bldg:FabricElement rdfs:subClassOf bldg:BuiltEntity .
+bldg:TechnicalSystem rdfs:subClassOf bldg:BuiltEntity .
+bldg:Building rdfs:subClassOf bldg:BuiltEntity .
+bldg:Structure rdfs:subClassOf bldg:BuiltEntity .
+
+# --- Assessment groupings ---
+
+bldg:FabricAssessment a rdfs:Class ;
+    rdfs:subClassOf bldg:EPCAssessment ;
+    rdfs:label "Fabric Assessment" ;
+    rdfs:comment "An assessment activity inspecting a building fabric element (wall, roof, floor, window)." .
+
+bldg:SystemAssessment a rdfs:Class ;
+    rdfs:subClassOf bldg:EPCAssessment ;
+    rdfs:label "System Assessment" ;
+    rdfs:comment "An assessment activity inspecting a building services system (heating, hot water, lighting, ventilation)." .
+
+bldg:PerformanceCalculation a rdfs:Class ;
+    rdfs:subClassOf bldg:EPCAssessment ;
+    rdfs:label "Performance Calculation" ;
+    rdfs:comment "A calculation deriving an energy performance metric from inspection data." .
+
+# Reparent assessment activities
+bldg:WallAssessment rdfs:subClassOf bldg:FabricAssessment .
+bldg:RoofAssessment rdfs:subClassOf bldg:FabricAssessment .
+bldg:FloorAssessment rdfs:subClassOf bldg:FabricAssessment .
+bldg:WindowAssessment rdfs:subClassOf bldg:FabricAssessment .
+bldg:HeatingAssessment rdfs:subClassOf bldg:SystemAssessment .
+bldg:HeatingControlAssessment rdfs:subClassOf bldg:SystemAssessment .
+bldg:SecondaryHeatingAssessment rdfs:subClassOf bldg:SystemAssessment .
+bldg:HotWaterAssessment rdfs:subClassOf bldg:SystemAssessment .
+bldg:LightingAssessment rdfs:subClassOf bldg:SystemAssessment .
+bldg:CalculateSAPRating rdfs:subClassOf bldg:PerformanceCalculation .
+bldg:CalculateEIRating rdfs:subClassOf bldg:PerformanceCalculation .
+bldg:CalculateCO2Emissions rdfs:subClassOf bldg:PerformanceCalculation .
+bldg:EstimateRunningCosts rdfs:subClassOf bldg:PerformanceCalculation .
+
+# --- Certificate groupings ---
+
+bldg:UKEnergyPerformanceCertificate a rdfs:Class ;
+    rdfs:subClassOf bldg:EPCCertificate ;
+    rdfs:label "UK Energy Performance Certificate" ;
+    rdfs:comment "An Energy Performance Certificate issued under UK regulations." .
+
+bldg:UKDomesticEPC rdfs:subClassOf bldg:UKEnergyPerformanceCertificate .
+bldg:UKNonDomesticEPC rdfs:subClassOf bldg:UKEnergyPerformanceCertificate .
+bldg:DisplayEnergyCertificate rdfs:subClassOf bldg:UKEnergyPerformanceCertificate .
+
+# --- Renewable energy groupings ---
+
+bldg:SolarEnergySystem a rdfs:Class ;
+    rdfs:subClassOf bldg:RenewableEnergySystem ;
+    rdfs:label "Solar Energy System" ;
+    rdfs:comment "A renewable energy system that harvests energy from sunlight — includes photovoltaic (electric) and solar thermal (heat)." .
+
+bldg:SolarPVSystem rdfs:subClassOf bldg:SolarEnergySystem .
+bldg:SolarThermalPanel rdfs:subClassOf bldg:SolarEnergySystem .
+
+# --- Hot water groupings ---
+
+bldg:CentralHotWater a rdfs:Class ;
+    rdfs:subClassOf bldg:HotWaterSystem ;
+    rdfs:label "Central Hot Water" ;
+    rdfs:comment "Hot water produced by the central heating system boiler and stored in a cylinder." .
+
+bldg:PointOfUseHotWater a rdfs:Class ;
+    rdfs:subClassOf bldg:HotWaterSystem ;
+    rdfs:label "Point of Use Hot Water" ;
+    rdfs:comment "Hot water produced at or near the point of use, without centralised storage." .
+
+bldg:ElectricImmersionHeater rdfs:subClassOf bldg:CentralHotWater .
+bldg:GasMultipoint rdfs:subClassOf bldg:PointOfUseHotWater .
+bldg:InstantaneousWaterHeater rdfs:subClassOf bldg:PointOfUseHotWater .
+bldg:CommunityHotWater rdfs:subClassOf bldg:CentralHotWater .
+
+# --- Ventilation groupings ---
+
+bldg:MechanicalVentilation a rdfs:Class ;
+    rdfs:subClassOf bldg:VentilationSystem ;
+    rdfs:label "Mechanical Ventilation" ;
+    rdfs:comment "A ventilation system using fans to move air, including extract-only and supply-and-extract with heat recovery." .
+
+bldg:NaturalVentilation a rdfs:Class ;
+    rdfs:subClassOf bldg:VentilationSystem ;
+    rdfs:label "Natural Ventilation" ;
+    rdfs:comment "Ventilation driven by wind pressure and temperature differences through openings, without mechanical assistance." .
+
+bldg:MechanicalExtractOnly a rdfs:Class ;
+    rdfs:subClassOf bldg:MechanicalVentilation ;
+    rdfs:label "Mechanical Extract Only" ;
+    rdfs:comment "Mechanical ventilation that extracts stale air; fresh air enters through trickle vents and gaps." .
+
+bldg:MVHR a rdfs:Class ;
+    rdfs:subClassOf bldg:MechanicalVentilation ;
+    rdfs:label "MVHR" ;
+    rdfs:comment "Mechanical Ventilation with Heat Recovery — extracts stale air and recovers heat to warm incoming fresh air." .
+
+# --- Retrofit groupings ---
+
+bldg:FabricRetrofit a rdfs:Class ;
+    rdfs:subClassOf bldg:RetrofitEvent ;
+    rdfs:label "Fabric Retrofit" ;
+    rdfs:comment "A retrofit intervention improving the building fabric (insulation, glazing, draught-proofing)." .
+
+bldg:SystemRetrofit a rdfs:Class ;
+    rdfs:subClassOf bldg:RetrofitEvent ;
+    rdfs:label "System Retrofit" ;
+    rdfs:comment "A retrofit intervention replacing or upgrading a building system (heating, hot water, lighting)." .
+
+bldg:InsulationUpgrade rdfs:subClassOf bldg:FabricRetrofit .
+bldg:WindowReplacement rdfs:subClassOf bldg:FabricRetrofit .
+bldg:HeatingSystemReplacement rdfs:subClassOf bldg:SystemRetrofit .
+bldg:LightingUpgrade rdfs:subClassOf bldg:SystemRetrofit .
+bldg:RenewableInstallation rdfs:subClassOf bldg:SystemRetrofit .
+
+# --- Wall construction groupings ---
+
+bldg:MasonryWall a rdfs:Class ;
+    rdfs:subClassOf bldg:ClassOfWall ;
+    rdfs:label "Masonry Wall" ;
+    rdfs:comment "A wall constructed from masonry units (brick, stone, block) — includes cavity and solid brick." .
+
+bldg:LightweightWall a rdfs:Class ;
+    rdfs:subClassOf bldg:ClassOfWall ;
+    rdfs:label "Lightweight Wall" ;
+    rdfs:comment "A wall constructed from lightweight materials (timber frame, system-built panels)." .
+
+bldg:CavityWall rdfs:subClassOf bldg:MasonryWall .
+bldg:SolidBrickWall rdfs:subClassOf bldg:MasonryWall .
+bldg:SandstoneWall rdfs:subClassOf bldg:MasonryWall .
+bldg:GraniteWall rdfs:subClassOf bldg:MasonryWall .
+bldg:CobWall rdfs:subClassOf bldg:MasonryWall .
+bldg:TimberFrameWall rdfs:subClassOf bldg:LightweightWall .
+bldg:SystemBuiltWall rdfs:subClassOf bldg:LightweightWall .
+bldg:ParkHomeWall rdfs:subClassOf bldg:LightweightWall .
+
+# --- Cost estimate groupings ---
+
+bldg:DomesticCostEstimate a rdfs:Class ;
+    rdfs:subClassOf bldg:EPCAssessment ;
+    rdfs:label "Domestic Cost Estimate" ;
+    rdfs:comment "An estimated annual running cost for a domestic building system." .
+
+bldg:HeatingCostEstimate rdfs:subClassOf bldg:DomesticCostEstimate .
+bldg:HotWaterCostEstimate rdfs:subClassOf bldg:DomesticCostEstimate .
+bldg:LightingCostEstimate rdfs:subClassOf bldg:DomesticCostEstimate .
+
+# --- Property type grouping (from EPC PROPERTY_TYPE) ---
+
+bldg:House a rdfs:Class ;
+    rdfs:subClassOf bldg:ClassOfBuilding ;
+    rdfs:label "House" ;
+    rdfs:comment "A self-contained dwelling forming all or part of a building at ground level with direct external access." .
+
+bldg:Flat a rdfs:Class ;
+    rdfs:subClassOf bldg:ClassOfBuilding ;
+    rdfs:label "Flat" ;
+    rdfs:comment "A self-contained dwelling within a larger building, typically accessed via a shared entrance and stairway." .
+
+# Reparent built forms under House/Flat
+bldg:Detached rdfs:subClassOf bldg:House .
+bldg:SemiDetached rdfs:subClassOf bldg:House .
+bldg:Terraced rdfs:subClassOf bldg:House .
+bldg:MidTerrace rdfs:subClassOf bldg:Terraced .
+bldg:EndTerrace rdfs:subClassOf bldg:Terraced .
+bldg:EnclosedMidTerrace rdfs:subClassOf bldg:Terraced .
+bldg:EnclosedEndTerrace rdfs:subClassOf bldg:Terraced .
+bldg:Bungalow rdfs:subClassOf bldg:House .
+bldg:PurposeBuiltFlat rdfs:subClassOf bldg:Flat .
+bldg:ConvertedFlat rdfs:subClassOf bldg:Flat .
+bldg:FlatMaisonette rdfs:subClassOf bldg:Flat .
+
+# =============================================================================
 # DOMAIN-DERIVED DEEPENING
 # Every class below is derived from EPC column structure and data values.
 # No reference to any existing building ontology implementation.
