@@ -350,29 +350,29 @@ onto_reason --profile rdfs
 
 This mirrors NDTP's actual pipeline: CSV → IES RDF → validate → reason → query.
 
-### IES Building Extension — vs NDTP/IRIS Production Ontology
+### IES Building Extension — Comparison with NDTP/IRIS
 
-The repo includes an [IES Building Extension](benchmark/generated/ies-building-extension.ttl) built from the UK EPC data schema and building science fundamentals, using IES 4D patterns. It was built independently — without reference to any existing implementation — then benchmarked against the NDTP/IRIS production building ontology used in government data pipelines.
+The repo includes an [IES Building Extension](benchmark/generated/ies-building-extension.ttl) built from the UK EPC data schema and building science fundamentals, using IES 4D patterns. It was built independently — without reference to any existing implementation — then compared against the NDTP/IRIS production building ontology used in government data pipelines.
 
 | Metric | NDTP/IRIS (hand-built) | Open Ontologies (AI-built) |
 | --- | ---: | ---: |
 | **Schema** | | |
-| Classes | 244 | **525** |
-| Properties | 34 | **104** |
-| Triples (raw) | 1,346 | **3,229** |
-| Lint issues | 2 | **0** |
+| Classes | 244 | 525 |
+| Properties | 34 | 104 |
+| Triples (raw) | 1,346 | 3,229 |
+| Lint issues | 2 | 0 |
 | **Reasoning** | | |
-| RDFS inferred | 621 | **662** |
-| Triples after RDFS | 1,967 | **3,891** |
-| Max hierarchy depth | 7 | **10** |
-| Avg hierarchy depth | **2.89** | 2.02 |
+| RDFS inferred | 621 | 662 |
+| Triples after RDFS | 1,967 | 3,891 |
+| Max hierarchy depth | 7 | 10 |
+| Avg hierarchy depth | 2.89 | 2.02 |
 | **EPC Coverage** | | |
-| EPC columns covered | 18/36 (50%) | **36/36 (100%)** |
+| EPC columns covered | 18/36 (50%) | 36/36 (100%) |
 | **4D Pattern** | | |
-| Complete triads (Entity+State+ClassOf) | 14 | **129** |
-| Enumerated individuals | 2 | **214** |
+| Complete triads (Entity+State+ClassOf) | 14 | 129 |
+| Enumerated individuals | 2 | 214 |
 
-Built blind from the 105-column EPC schema, SAP methodology, and BORO 4D extensionalism — zero reference to the IRIS implementation. IRIS has higher average hierarchy depth (2.89 vs 2.02) — a natural consequence of fewer, more carefully grouped classes. We win on every other metric including RDFS inference (662 vs 621), schema breadth, EPC coverage, and 4D completeness.
+Built blind from the 105-column EPC schema, SAP methodology, and BORO 4D extensionalism — zero reference to the IRIS implementation. The two ontologies make different trade-offs: IRIS is more tightly curated with higher average hierarchy depth (2.89 vs 2.02), reflecting deliberate grouping by domain experts. Open Ontologies covers more of the EPC data schema and applies the BORO 4D pattern more systematically across the domain.
 
 ### EPC Column Coverage Benchmark
 
