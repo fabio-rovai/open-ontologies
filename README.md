@@ -176,7 +176,21 @@ Every build includes OWL reasoning (materializes inferred triples), design patte
 
 ## Studio (Desktop App)
 
-The Studio lives in [`studio/`](studio/) — a Tauri 2 desktop app that provides a visual interface on top of the same engine.
+The Studio is a native desktop application that wraps the same engine in a visual environment — no browser, no server to manage. It runs entirely on your machine: the engine sidecar handles RDF/OWL operations while the UI renders the graph in real time.
+
+Think of it as **Protege meets a 3D game engine, with an AI copilot**. You can build ontologies by typing natural language, see the graph update live, click any node to inspect its triples, and trace every change through the lineage panel.
+
+### How it works
+
+The Studio launches three processes that communicate locally:
+
+1. **Tauri 2 shell** — native window (macOS/Linux/Windows) with a WebKit webview
+2. **Engine sidecar** — the same Rust binary, running as an HTTP MCP server on `localhost:8080`
+3. **Agent sidecar** — Node.js process running Claude via the Agent SDK, connected to the engine over MCP
+
+When you type in the chat panel, your message goes to the Agent sidecar, which sends it to Claude. Claude decides which `onto_*` tools to call, the engine executes them, and the UI refreshes the graph. The entire loop — prompt to visual update — takes seconds.
+
+### Install and run
 
 **Prerequisites:** Rust + Cargo · Node.js 18+
 
@@ -191,17 +205,29 @@ cd studio && npm install
 PATH=/opt/homebrew/bin:~/.cargo/bin:$PATH npm run tauri dev
 ```
 
-### Studio Features
+The first launch compiles the Tauri shell (~2 min). Subsequent launches start in seconds.
+
+### Features
 
 | Feature | Description |
 | --- | --- |
-| **3D Graph Canvas** | Spring-based force-directed OWL graph (Three.js / WebGL). Grey edges = subClassOf hierarchy, gold edges = object property domain/range links. Drag to orbit, scroll to zoom, click to inspect, right-click to add, Delete to remove. |
-| **AI Agent Chat** | Natural language ontology engineering via Claude Opus 4.6 + Agent SDK. Type instructions — Claude calls the right tools automatically. |
-| **Property Inspector** | Protégé-style inline triple editor. Click to edit, hover to delete, `+ Add` for new triples. |
-| **Lineage Panel** | Full audit trail from SQLite: plan · apply · enforce · drift · monitor · align, grouped by session. |
-| **Named Save** | ⌘S to save as `~/.open-ontologies/<name>.ttl`. Auto-saves to `studio-live.ttl` after every mutation. |
+| **3D Graph Canvas** | Spring-based force-directed OWL graph (Three.js / WebGL). Grey edges = subClassOf hierarchy, gold edges = object property domain/range links. Drag to orbit, scroll to zoom, click to inspect, right-click to add, Delete to remove. Clusters of related classes self-organise into visual neighbourhoods. |
+| **AI Agent Chat** | Natural language ontology engineering via Claude Opus 4.6 + Agent SDK. Type *"Build me a Pizza ontology"* and watch it appear in the graph. Claude calls validate, load, reason, lint, enforce, and save automatically — you see each tool call in real time. |
+| **Property Inspector** | Protege-style inline triple editor. Click any node to see its `rdfs:subClassOf`, `rdfs:label`, `rdfs:domain`, `rdfs:range` and all other triples. Edit in place, hover to delete, `+ Add` for new triples. Changes are immediately reflected in the graph. |
+| **Lineage Panel** | Full audit trail from SQLite: every plan, apply, enforce, drift, monitor, and align event, grouped by session with timestamps. See exactly what Claude did and in what order. |
+| **Named Save** | `⌘S` to save as `~/.open-ontologies/<name>.ttl`. Auto-saves to `studio-live.ttl` after every mutation so you never lose work. |
+| **Load from file** | Drag a `.ttl` file onto the window or use the menu to load an existing ontology. The graph renders immediately. |
 
-**Keyboard shortcuts:** `⌘J` chat · `⌘I` inspector · `⌘S` save · `Delete` remove node
+### Keyboard shortcuts
+
+| Shortcut | Action |
+| --- | --- |
+| `⌘J` | Toggle AI chat panel |
+| `⌘I` | Toggle property inspector |
+| `⌘S` | Save ontology |
+| `Delete` | Remove selected node |
+| `Scroll` | Zoom in/out |
+| `Click + drag` | Orbit camera |
 
 ---
 
