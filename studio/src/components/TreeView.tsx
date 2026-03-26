@@ -20,6 +20,7 @@ interface TreeNode {
   children: TreeNode[];
   childCount: number;
   depth: number;
+  parentId?: string;
 }
 
 function parseSparqlResults(text: string): SparqlBinding[] {
@@ -117,27 +118,37 @@ interface FlatNode {
   indent: number;
   isExpanded: boolean;
   hasChildren: boolean;
+  isLastChild: boolean;
+  parentIsLast: boolean[]; // for each ancestor level, whether it was the last child
+  ancestorPath: string[];  // labels from root to this node
 }
 
-function flattenTree(nodes: TreeNode[], expanded: Set<string>, searchTerm: string, indent: number): FlatNode[] {
+function flattenTree(
+  nodes: TreeNode[], expanded: Set<string>, searchTerm: string,
+  indent: number, parentIsLast: boolean[], ancestorPath: string[]
+): FlatNode[] {
   const result: FlatNode[] = [];
-  for (const node of nodes) {
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
     const visible = !searchTerm || matchesSearch(node, searchTerm);
     if (!visible) continue;
     const isExpanded = expanded.has(node.id);
-    result.push({ node, indent, isExpanded, hasChildren: node.children.length > 0 });
+    const isLastChild = i === nodes.length - 1;
+    const path = [...ancestorPath, node.label];
+    result.push({ node, indent, isExpanded, hasChildren: node.children.length > 0, isLastChild, parentIsLast, ancestorPath: path });
     if (isExpanded) {
       const children = searchTerm
         ? node.children.filter(c => matchesSearch(c, searchTerm))
         : node.children;
-      result.push(...flattenTree(children, expanded, searchTerm, indent + 1));
+      result.push(...flattenTree(children, expanded, searchTerm, indent + 1, [...parentIsLast, isLastChild], path));
     }
   }
   return result;
 }
 
-const ROW_HEIGHT = 28;
+const ROW_HEIGHT = 26;
 const OVERSCAN = 20;
+const INDENT_W = 18;
 
 export function TreeView({ onNodeSelect }: TreeViewProps) {
   const { status, refreshStats } = useEngine();
@@ -148,9 +159,14 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
   const [stats, setStats] = useState({ classes: 0, properties: 0, individuals: 0, depth: 0 });
   const [typeCounts, setTypeCounts] = useState<Map<NodeType, number>>(new Map());
   const [hiddenTypes, setHiddenTypes] = useState<Set<NodeType>>(new Set());
+  const [breadcrumb, setBreadcrumb] = useState<string[]>([]);
+  const [connections, setConnections] = useState<{ label: string; targetId: string; targetLabel: string }[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [viewHeight, setViewHeight] = useState(600);
+
+  // Node lookup for connections
+  const nodeMapRef = useRef<Map<string, { label: string; uri: string; nodeType: NodeType }>>(new Map());
 
   const loadTree = useCallback(async () => {
     try {
@@ -166,14 +182,12 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
       const parentToChildren = new Map<string, Set<string>>();
       const hasParent = new Set<string>();
 
-      // Classes
       for (const b of parseSparqlResults(classesText)) {
         const uri = b.c?.value; if (!uri) continue;
         const id = shortUri(uri);
         if (!nodeMap.has(id)) nodeMap.set(id, { label: b.label?.value || id, uri, nodeType: 'Class' });
       }
 
-      // SubClass hierarchy
       for (const b of parseSparqlResults(subclassText)) {
         const subUri = b.sub?.value, parentUri = b.parent?.value;
         if (!subUri || !parentUri) continue;
@@ -184,7 +198,6 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
         hasParent.add(sid);
       }
 
-      // Object properties
       const propParentToChildren = new Map<string, Set<string>>();
       const propHasParent = new Set<string>();
       for (const b of parseSparqlResults(objPropsText)) {
@@ -199,14 +212,12 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
         }
       }
 
-      // Data properties
       for (const b of parseSparqlResults(dataPropsText)) {
         const uri = b.p?.value; if (!uri) continue;
         const id = shortUri(uri);
         if (!nodeMap.has(id)) nodeMap.set(id, { label: b.label?.value || id, uri, nodeType: 'DatatypeProperty' });
       }
 
-      // Individuals
       const indsByClass = new Map<string, string[]>();
       for (const b of parseSparqlResults(individualsText)) {
         const uri = b.ind?.value, typeUri = b.type?.value;
@@ -217,97 +228,67 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
         indsByClass.get(tid)!.push(id);
       }
 
-      // Build tree
+      nodeMapRef.current = nodeMap;
+
       const visited = new Set<string>();
 
-      function buildClassTree(id: string, depth: number): TreeNode {
+      function buildClassTree(id: string, depth: number, pid?: string): TreeNode {
         visited.add(id);
         const data = nodeMap.get(id)!;
         const children: TreeNode[] = [];
         for (const cid of parentToChildren.get(id) ?? new Set()) {
-          if (!visited.has(cid) && nodeMap.has(cid)) children.push(buildClassTree(cid, depth + 1));
+          if (!visited.has(cid) && nodeMap.has(cid)) children.push(buildClassTree(cid, depth + 1, id));
         }
         for (const iid of indsByClass.get(id) ?? []) {
           if (!visited.has(iid) && nodeMap.has(iid)) {
             visited.add(iid);
             const idata = nodeMap.get(iid)!;
-            children.push({ id: iid, label: idata.label, uri: idata.uri, nodeType: 'Individual', children: [], childCount: 0, depth: depth + 1 });
+            children.push({ id: iid, label: idata.label, uri: idata.uri, nodeType: 'Individual', children: [], childCount: 0, depth: depth + 1, parentId: id });
           }
         }
         children.sort((a, b) => a.label.localeCompare(b.label));
-        return { id, label: data.label, uri: data.uri, nodeType: data.nodeType, children, childCount: 0, depth };
+        return { id, label: data.label, uri: data.uri, nodeType: data.nodeType, children, childCount: 0, depth, parentId: pid };
       }
 
-      function buildPropTree(id: string, depth: number): TreeNode {
+      function buildPropTree(id: string, depth: number, pid?: string): TreeNode {
         visited.add(id);
         const data = nodeMap.get(id)!;
         const children: TreeNode[] = [];
         for (const cid of propParentToChildren.get(id) ?? new Set()) {
-          if (!visited.has(cid) && nodeMap.has(cid)) children.push(buildPropTree(cid, depth + 1));
+          if (!visited.has(cid) && nodeMap.has(cid)) children.push(buildPropTree(cid, depth + 1, id));
         }
         children.sort((a, b) => a.label.localeCompare(b.label));
-        return { id, label: data.label, uri: data.uri, nodeType: data.nodeType, children, childCount: 0, depth };
+        return { id, label: data.label, uri: data.uri, nodeType: data.nodeType, children, childCount: 0, depth, parentId: pid };
       }
 
-      // Class roots
       const classRoots: TreeNode[] = [];
       for (const [id, data] of nodeMap) {
-        if (data.nodeType === 'Class' && !hasParent.has(id) && !visited.has(id)) {
-          classRoots.push(buildClassTree(id, 1));
-        }
+        if (data.nodeType === 'Class' && !hasParent.has(id) && !visited.has(id)) classRoots.push(buildClassTree(id, 1));
       }
-      // Orphan classes
       for (const [id, data] of nodeMap) {
-        if (data.nodeType === 'Class' && !visited.has(id)) {
-          visited.add(id);
-          classRoots.push({ id, label: data.label, uri: data.uri, nodeType: 'Class', children: [], childCount: 0, depth: 1 });
-        }
+        if (data.nodeType === 'Class' && !visited.has(id)) { visited.add(id); classRoots.push({ id, label: data.label, uri: data.uri, nodeType: 'Class', children: [], childCount: 0, depth: 1 }); }
       }
       classRoots.sort((a, b) => a.label.localeCompare(b.label));
 
-      // Property roots
       const propRoots: TreeNode[] = [];
       for (const [id, data] of nodeMap) {
-        if ((data.nodeType === 'ObjectProperty' || data.nodeType === 'DatatypeProperty') && !propHasParent.has(id) && !visited.has(id)) {
-          propRoots.push(buildPropTree(id, 1));
-        }
+        if ((data.nodeType === 'ObjectProperty' || data.nodeType === 'DatatypeProperty') && !propHasParent.has(id) && !visited.has(id)) propRoots.push(buildPropTree(id, 1));
       }
       for (const [id, data] of nodeMap) {
-        if ((data.nodeType === 'ObjectProperty' || data.nodeType === 'DatatypeProperty') && !visited.has(id)) {
-          visited.add(id);
-          propRoots.push({ id, label: data.label, uri: data.uri, nodeType: data.nodeType, children: [], childCount: 0, depth: 1 });
-        }
+        if ((data.nodeType === 'ObjectProperty' || data.nodeType === 'DatatypeProperty') && !visited.has(id)) { visited.add(id); propRoots.push({ id, label: data.label, uri: data.uri, nodeType: data.nodeType, children: [], childCount: 0, depth: 1 }); }
       }
       propRoots.sort((a, b) => a.label.localeCompare(b.label));
 
-      // Orphan individuals
       const orphanInds: TreeNode[] = [];
       for (const [id, data] of nodeMap) {
-        if (data.nodeType === 'Individual' && !visited.has(id)) {
-          visited.add(id);
-          orphanInds.push({ id, label: data.label, uri: data.uri, nodeType: 'Individual', children: [], childCount: 0, depth: 1 });
-        }
+        if (data.nodeType === 'Individual' && !visited.has(id)) { visited.add(id); orphanInds.push({ id, label: data.label, uri: data.uri, nodeType: 'Individual', children: [], childCount: 0, depth: 1 }); }
       }
 
-      // Assemble
       const treeRoots: TreeNode[] = [];
-      if (classRoots.length > 0) {
-        const branch: TreeNode = { id: '__classes__', label: `Classes (${classRoots.length})`, uri: '', nodeType: 'Class', children: classRoots, childCount: 0, depth: 0 };
-        countDescendants(branch);
-        treeRoots.push(branch);
-      }
-      if (propRoots.length > 0) {
-        const branch: TreeNode = { id: '__properties__', label: `Properties (${propRoots.length})`, uri: '', nodeType: 'ObjectProperty', children: propRoots, childCount: 0, depth: 0 };
-        countDescendants(branch);
-        treeRoots.push(branch);
-      }
-      if (orphanInds.length > 0) {
-        const branch: TreeNode = { id: '__individuals__', label: `Individuals (${orphanInds.length})`, uri: '', nodeType: 'Individual', children: orphanInds, childCount: 0, depth: 0 };
-        countDescendants(branch);
-        treeRoots.push(branch);
-      }
+      if (classRoots.length > 0) { const b: TreeNode = { id: '__classes__', label: `Classes (${classRoots.length})`, uri: '', nodeType: 'Class', children: classRoots, childCount: 0, depth: 0 }; countDescendants(b); treeRoots.push(b); }
+      if (propRoots.length > 0) { const b: TreeNode = { id: '__properties__', label: `Properties (${propRoots.length})`, uri: '', nodeType: 'ObjectProperty', children: propRoots, childCount: 0, depth: 0 }; countDescendants(b); treeRoots.push(b); }
+      if (orphanInds.length > 0) { const b: TreeNode = { id: '__individuals__', label: `Individuals (${orphanInds.length})`, uri: '', nodeType: 'Individual', children: orphanInds, childCount: 0, depth: 0 }; countDescendants(b); treeRoots.push(b); }
 
-      // Stats
       const tc = new Map<NodeType, number>();
       for (const data of nodeMap.values()) tc.set(data.nodeType, (tc.get(data.nodeType) ?? 0) + 1);
       setTypeCounts(tc);
@@ -316,21 +297,49 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
       function findDepth(n: TreeNode) { if (n.depth > maxDepth) maxDepth = n.depth; n.children.forEach(findDepth); }
       treeRoots.forEach(findDepth);
 
-      setStats({
-        classes: tc.get('Class') ?? 0,
-        properties: (tc.get('ObjectProperty') ?? 0) + (tc.get('DatatypeProperty') ?? 0),
-        individuals: tc.get('Individual') ?? 0,
-        depth: maxDepth,
-      });
-
+      setStats({ classes: tc.get('Class') ?? 0, properties: (tc.get('ObjectProperty') ?? 0) + (tc.get('DatatypeProperty') ?? 0), individuals: tc.get('Individual') ?? 0, depth: maxDepth });
       setRoots(treeRoots);
-      // Auto-expand top-level branches
       setExpanded(new Set(treeRoots.map(r => r.id)));
       refreshStats();
     } catch (e) {
       console.error('Failed to load tree:', e);
     }
   }, [refreshStats]);
+
+  // Load connections for selected node
+  useEffect(() => {
+    if (!selectedId) { setConnections([]); setBreadcrumb([]); return; }
+    const nodeMap = nodeMapRef.current;
+    const nodeData = nodeMap.get(selectedId);
+    if (!nodeData) return;
+
+    // Query connections (properties where this class is domain or range)
+    const uri = nodeData.uri;
+    if (!uri) return;
+
+    mcp.sparqlQuery(`PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
+  {
+    ?prop rdfs:domain <${uri}> . ?prop rdfs:range ?target .
+    OPTIONAL { ?prop rdfs:label ?propLabel } OPTIONAL { ?target rdfs:label ?targetLabel }
+    BIND("out" AS ?dir)
+  } UNION {
+    ?prop rdfs:range <${uri}> . ?prop rdfs:domain ?target .
+    OPTIONAL { ?prop rdfs:label ?propLabel } OPTIONAL { ?target rdfs:label ?targetLabel }
+    BIND("in" AS ?dir)
+  }
+  FILTER(!isBlank(?target))
+} LIMIT 30`).then(text => {
+      const bindings = parseSparqlResults(text);
+      const conns = bindings.map(b => ({
+        label: (b.dir?.value === 'in' ? '← ' : '→ ') + (b.propLabel?.value || shortUri(b.prop?.value || '')),
+        targetId: shortUri(b.target?.value || ''),
+        targetLabel: b.targetLabel?.value || shortUri(b.target?.value || ''),
+      }));
+      setConnections(conns);
+    }).catch(() => setConnections([]));
+  }, [selectedId]);
 
   useEffect(() => { if (status === 'connected') loadTree(); }, [status, loadTree]);
   useEffect(() => {
@@ -339,22 +348,45 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
   }, [loadTree]);
 
   const toggleExpand = useCallback((id: string) => {
-    setExpanded(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
+    setExpanded(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
   }, []);
 
-  const handleSelect = useCallback((node: TreeNode) => {
+  const handleSelect = useCallback((node: TreeNode, path: string[]) => {
     if (node.id.startsWith('__')) return;
     setSelectedId(node.id);
+    setBreadcrumb(path);
     onNodeSelect({ id: node.id, label: node.label, uri: node.uri });
   }, [onNodeSelect]);
 
+  // Navigate to a connected node
+  const navigateTo = useCallback((targetId: string) => {
+    // Expand parents to reveal the node, then select it
+    function findPath(nodes: TreeNode[], target: string, path: string[]): string[] | null {
+      for (const n of nodes) {
+        if (n.id === target) return [...path, n.id];
+        const found = findPath(n.children, target, [...path, n.id]);
+        if (found) return found;
+      }
+      return null;
+    }
+    const nodePath = findPath(roots, targetId, []);
+    if (nodePath) {
+      setExpanded(prev => {
+        const next = new Set(prev);
+        nodePath.forEach(id => next.add(id));
+        return next;
+      });
+      setSelectedId(targetId);
+      const nodeData = nodeMapRef.current.get(targetId);
+      if (nodeData) {
+        onNodeSelect({ id: targetId, label: nodeData.label, uri: nodeData.uri });
+        setBreadcrumb(nodePath.map(id => nodeMapRef.current.get(id)?.label || id));
+      }
+    }
+  }, [roots, onNodeSelect]);
+
   const normalizedSearch = searchTerm.toLowerCase().trim();
 
-  // Auto-expand matching paths during search
   const effectiveExpanded = useMemo(() => {
     if (!normalizedSearch) return expanded;
     const auto = new Set<string>();
@@ -369,7 +401,6 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
     return auto;
   }, [roots, normalizedSearch, expanded]);
 
-  // Filter by hidden types
   const filteredRoots = useMemo(() => {
     if (hiddenTypes.size === 0) return roots;
     function filterNode(n: TreeNode): TreeNode | null {
@@ -381,13 +412,11 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
     return roots.map(filterNode).filter(Boolean) as TreeNode[];
   }, [roots, hiddenTypes]);
 
-  // Flatten for virtual scroll
   const flatNodes = useMemo(
-    () => flattenTree(filteredRoots, effectiveExpanded, normalizedSearch, 0),
+    () => flattenTree(filteredRoots, effectiveExpanded, normalizedSearch, 0, [], []),
     [filteredRoots, effectiveExpanded, normalizedSearch]
   );
 
-  // Virtual scroll
   const totalHeight = flatNodes.length * ROW_HEIGHT;
   const startIdx = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN);
   const endIdx = Math.min(flatNodes.length, Math.ceil((scrollTop + viewHeight) / ROW_HEIGHT) + OVERSCAN);
@@ -414,11 +443,7 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
   const collapseAll = useCallback(() => setExpanded(new Set(roots.map(r => r.id))), [roots]);
 
   const toggleType = useCallback((type: NodeType) => {
-    setHiddenTypes(prev => {
-      const next = new Set(prev);
-      if (next.has(type)) next.delete(type); else next.add(type);
-      return next;
-    });
+    setHiddenTypes(prev => { const next = new Set(prev); if (next.has(type)) next.delete(type); else next.add(type); return next; });
   }, []);
 
   const typeOrder: NodeType[] = ['Class', 'ObjectProperty', 'DatatypeProperty', 'Individual'];
@@ -427,7 +452,6 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
     <div className="absolute inset-0 flex flex-col" style={{ background: '#1e1e2e' }}>
       {/* Header */}
       <div style={{ padding: '8px 12px', borderBottom: '1px solid #313244', background: '#181825', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {/* Stats */}
         <div style={{ display: 'flex', gap: 8, fontSize: 11, color: '#6c7086', flexWrap: 'wrap' }}>
           {[
             { label: 'classes', value: stats.classes, color: TYPE_COLORS.Class },
@@ -441,20 +465,9 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
           ))}
         </div>
 
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Search..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          style={{
-            width: '100%', padding: '5px 10px', borderRadius: 6, border: '1px solid #313244',
-            background: '#1e1e2e', color: '#cdd6f4', fontSize: 12, outline: 'none',
-            fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-          }}
-        />
+        <input type="text" placeholder="Search..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+          style={{ width: '100%', padding: '5px 10px', borderRadius: 6, border: '1px solid #313244', background: '#1e1e2e', color: '#cdd6f4', fontSize: 12, outline: 'none', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }} />
 
-        {/* Type filters + controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
           {typeOrder.filter(t => (typeCounts.get(t) ?? 0) > 0).map(type => (
             <button key={type} onClick={() => toggleType(type)} style={{
@@ -469,62 +482,78 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
             </button>
           ))}
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 3 }}>
-            <button onClick={expandAll} style={{ background: 'none', border: '1px solid #313244', color: '#6c7086', borderRadius: 4, padding: '1px 6px', fontSize: 10, cursor: 'pointer' }}>
-              Expand
-            </button>
-            <button onClick={collapseAll} style={{ background: 'none', border: '1px solid #313244', color: '#6c7086', borderRadius: 4, padding: '1px 6px', fontSize: 10, cursor: 'pointer' }}>
-              Collapse
-            </button>
+            <button onClick={expandAll} style={{ background: 'none', border: '1px solid #313244', color: '#6c7086', borderRadius: 4, padding: '1px 6px', fontSize: 10, cursor: 'pointer' }}>Expand</button>
+            <button onClick={collapseAll} style={{ background: 'none', border: '1px solid #313244', color: '#6c7086', borderRadius: 4, padding: '1px 6px', fontSize: 10, cursor: 'pointer' }}>Collapse</button>
           </div>
         </div>
-
-        {normalizedSearch && (
-          <div style={{ fontSize: 10, color: '#6c7086' }}>{flatNodes.length} matches</div>
-        )}
       </div>
+
+      {/* Breadcrumb */}
+      {breadcrumb.length > 1 && (
+        <div style={{ padding: '4px 12px', borderBottom: '1px solid #313244', background: '#11111b', fontSize: 10, color: '#585b70', flexShrink: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+          {breadcrumb.map((seg, i) => (
+            <span key={i}>
+              {i > 0 && <span style={{ margin: '0 4px', color: '#45475a' }}>/</span>}
+              <span style={{ color: i === breadcrumb.length - 1 ? '#cdd6f4' : '#6c7086' }}>{seg}</span>
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Virtualized tree */}
       <div ref={scrollRef} style={{ flex: 1, overflow: 'auto' }}>
         <div style={{ height: totalHeight, position: 'relative' }}>
           {visibleNodes.map((flat, i) => {
-            const { node, indent, isExpanded, hasChildren } = flat;
+            const { node, indent, isExpanded, hasChildren, isLastChild, parentIsLast } = flat;
             const isSelected = selectedId === node.id;
             const color = TYPE_COLORS[node.nodeType] ?? '#a6adc8';
             const isLeaf = !hasChildren;
             const isBranch = node.id.startsWith('__');
             const top = (startIdx + i) * ROW_HEIGHT;
 
-            // Highlight search match
+            // Search highlight
             let labelEl: React.ReactNode = node.label;
             if (normalizedSearch) {
               const idx = node.label.toLowerCase().indexOf(normalizedSearch);
               if (idx >= 0) {
-                labelEl = <>
-                  {node.label.slice(0, idx)}
-                  <span style={{ background: '#f9e2af33', color: '#f9e2af', borderRadius: 2, padding: '0 1px' }}>
-                    {node.label.slice(idx, idx + normalizedSearch.length)}
-                  </span>
-                  {node.label.slice(idx + normalizedSearch.length)}
-                </>;
+                labelEl = <>{node.label.slice(0, idx)}<span style={{ background: '#f9e2af33', color: '#f9e2af', borderRadius: 2, padding: '0 1px' }}>{node.label.slice(idx, idx + normalizedSearch.length)}</span>{node.label.slice(idx + normalizedSearch.length)}</>;
+              }
+            }
+
+            // Tree connector lines
+            const lines: React.ReactNode[] = [];
+            for (let lvl = 0; lvl < indent; lvl++) {
+              // Vertical continuation line for ancestors that are NOT the last child
+              if (lvl < parentIsLast.length && !parentIsLast[lvl]) {
+                lines.push(
+                  <span key={`v${lvl}`} style={{
+                    position: 'absolute', left: lvl * INDENT_W + 16, top: 0, bottom: 0, width: 1,
+                    background: '#313244',
+                  }} />
+                );
+              }
+            }
+            // Horizontal connector from parent to this node
+            if (indent > 0) {
+              const x = (indent - 1) * INDENT_W + 16;
+              lines.push(
+                <span key="h" style={{ position: 'absolute', left: x, top: 0, height: '50%', width: 1, background: '#313244' }} />,
+                <span key="hbar" style={{ position: 'absolute', left: x, top: '50%', width: INDENT_W - 6, height: 1, background: '#313244' }} />,
+              );
+              if (!isLastChild) {
+                lines.push(<span key="vb" style={{ position: 'absolute', left: x, top: '50%', bottom: 0, width: 1, background: '#313244' }} />);
               }
             }
 
             return (
               <div
                 key={node.id}
-                onClick={() => handleSelect(node)}
+                onClick={() => handleSelect(node, flat.ancestorPath)}
                 onDoubleClick={() => hasChildren && toggleExpand(node.id)}
                 style={{
-                  position: 'absolute',
-                  top,
-                  left: 0,
-                  right: 0,
-                  height: ROW_HEIGHT,
-                  paddingLeft: indent * 18 + 10,
-                  paddingRight: 10,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
+                  position: 'absolute', top, left: 0, right: 0, height: ROW_HEIGHT,
+                  paddingLeft: indent * INDENT_W + 10, paddingRight: 10,
+                  display: 'flex', alignItems: 'center', gap: 6,
                   cursor: 'pointer',
                   background: isSelected ? '#313244' : 'transparent',
                   borderLeft: isSelected ? `2px solid ${color}` : '2px solid transparent',
@@ -537,6 +566,9 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
                 onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = '#181825'; }}
                 onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
               >
+                {/* Tree lines */}
+                {lines}
+
                 {/* Arrow */}
                 <span
                   onClick={e => { e.stopPropagation(); if (hasChildren) toggleExpand(node.id); }}
@@ -546,9 +578,7 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
                     transform: hasChildren ? (isExpanded ? 'rotate(90deg)' : 'rotate(0deg)') : 'none',
                     visibility: hasChildren ? 'visible' : 'hidden',
                   }}
-                >
-                  {'\u25B6'}
-                </span>
+                >{'\u25B6'}</span>
 
                 {/* Type dot */}
                 <span style={{
@@ -558,21 +588,36 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
                 }} />
 
                 {/* Label */}
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                  {labelEl}
-                </span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{labelEl}</span>
 
                 {/* Child count */}
                 {hasChildren && node.childCount > 0 && (
-                  <span style={{ fontSize: 9, color: '#45475a', flexShrink: 0 }}>
-                    {node.childCount}
-                  </span>
+                  <span style={{ fontSize: 9, color: '#45475a', flexShrink: 0 }}>{node.childCount}</span>
                 )}
               </div>
             );
           })}
         </div>
       </div>
+
+      {/* Connections panel (shows when node is selected) */}
+      {selectedId && connections.length > 0 && (
+        <div style={{ maxHeight: 120, overflow: 'auto', borderTop: '1px solid #313244', background: '#181825', padding: '6px 12px', flexShrink: 0 }}>
+          <div style={{ fontSize: 9, color: '#585b70', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>Connections</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            {connections.map((c, i) => (
+              <button key={i} onClick={() => navigateTo(c.targetId)} style={{
+                background: '#1e1e2e', border: '1px solid #313244', borderRadius: 4, padding: '2px 8px',
+                fontSize: 10, color: '#89b4fa', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+              }}>
+                <span style={{ color: '#585b70' }}>{c.label}</span>
+                <span>{c.targetLabel}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <div style={{ padding: '4px 12px', borderTop: '1px solid #313244', background: '#181825', fontSize: 9, color: '#45475a', flexShrink: 0 }}>
