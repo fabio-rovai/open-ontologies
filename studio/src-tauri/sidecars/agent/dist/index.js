@@ -98,10 +98,13 @@ function isBuildRequest(msg) {
     return (lower.includes('build') || lower.includes('create') || lower.includes('make') || lower.includes('generate'))
         && (lower.includes('ontology') || lower.includes('about'));
 }
+function isSketchRequest(msg) {
+    return msg.toLowerCase().includes('sketch');
+}
 function extractDomain(msg) {
     const patterns = [
         /(?:about|for|on|of)\s+(.+)/i,
-        /(?:build|create|make|generate)\s+(?:a\s+|an\s+|the\s+)?(?:\w+\s+)?(?:ontology\s+)?(?:about|for|on|of)\s+(.+)/i,
+        /(?:build|create|make|generate|sketch)\s+(?:a\s+|an\s+|the\s+)?(?:\w+\s+)?(?:ontology\s+)?(?:about|for|on|of)\s+(.+)/i,
     ];
     for (const p of patterns) {
         const m = msg.match(p);
@@ -111,57 +114,208 @@ function extractDomain(msg) {
                 return match.trim().replace(/[.!?]+$/, '');
         }
     }
-    return msg.replace(/^(build|create|make|generate)\s+(an?\s+)?ontology\s*/i, '').trim() || msg;
+    return msg.replace(/^(build|create|make|generate|sketch)\s+(an?\s+)?ontology\s*/i, '').trim() || msg;
 }
 // --- Multi-step build within ONE session ---
 async function handleBuild(domain) {
     const ns = domain.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    // Step 1: Clear + load classes
-    send({ type: 'text', content: `**Building ontology: ${domain}**\n\n---\n**Step 1/4:** Classes hierarchy...` });
-    await runTurn(`Build an ontology about "${domain}". Use namespace @prefix : <http://example.org/${ns}#> .
+    const prefix = `@prefix : <http://example.org/${ns}#> .`;
+    const DEEPEN = (branchDesc) => `Call onto_query to find leaf classes (classes with no subclasses) in ${branchDesc}. ` +
+        `Then call onto_load with Turtle using the SAME namespace adding more subclass levels. ` +
+        `For every leaf, ask yourself: "Can this be subdivided further?" If yes, add 3-8 subclasses. ` +
+        `Enumerate ALL real-world subtypes — do not stop at 2-3 examples. ` +
+        `Every class needs rdfs:label and rdfs:comment. ` +
+        `IMPORTANT: Add at most 80-120 classes in this step, then stop. Call onto_stats after. Do NOT save yet.`;
+    const steps = [
+        {
+            label: 'Step 1: Foundation — root + major branches + 3 levels',
+            prompt: `Build an ontology about "${domain}". Use namespace ${prefix}
 
-Step 1: Call onto_clear. Then call onto_load with Turtle containing:
-- 80-150 owl:Class declarations organised in a subClassOf hierarchy 5-7 levels deep
-- A root class, 5-8 major branches, each with 3-6 sub-branches, each with 2-5 leaves
-- Enumerate ALL real-world subtypes exhaustively
+Call onto_clear. Then call onto_load with Turtle containing:
+- An owl:Ontology declaration
+- A root class for the domain
+- 8-12 major branch classes under the root (think of ALL major aspects/dimensions of "${domain}")
+- For each branch, 4-8 subclasses
+- For each of those, 3-6 further subclasses
 - Every class MUST have rdfs:label and rdfs:comment
+- Be EXHAUSTIVE — list every subtype you can think of
 
-Call onto_stats after loading to verify. Do NOT call onto_save yet — more content coming.`);
-    // Step 2: Properties (SAME session — agent has context)
-    send({ type: 'text', content: `\n---\n**Step 2/4:** Properties...` });
-    await runTurn(`Now add properties to the ontology. Call onto_load with Turtle using the SAME namespace as before containing:
+Call onto_stats after. Do NOT save yet — many more steps coming.`,
+        },
+        {
+            label: 'Step 2: Deepen — first major branch to maximum depth',
+            prompt: DEEPEN('the FIRST major branch (the first child of the root)'),
+        },
+        {
+            label: 'Step 3: Deepen — second major branch to maximum depth',
+            prompt: DEEPEN('the SECOND major branch'),
+        },
+        {
+            label: 'Step 4: Deepen — third major branch to maximum depth',
+            prompt: DEEPEN('the THIRD major branch'),
+        },
+        {
+            label: 'Step 5: Deepen — fourth and fifth major branches',
+            prompt: DEEPEN('the FOURTH and FIFTH major branches'),
+        },
+        {
+            label: 'Step 6: Deepen — all remaining branches',
+            prompt: DEEPEN('ALL remaining major branches that have not been deepened yet'),
+        },
+        {
+            label: 'Step 7: Deepen — second pass on shallow areas',
+            prompt: `Call onto_query to find ALL leaf classes. For any branch that is still less than 6 levels deep, add more subclasses. ` +
+                `Also think: are there any major subtypes or categories I missed entirely? Add them now. ` +
+                `Be ruthlessly exhaustive. Call onto_load with the additional Turtle. Call onto_stats after. Do NOT save yet.`,
+        },
+        {
+            label: 'Step 8: Object properties — structural relationships',
+            prompt: `Now add object properties. Call onto_load with Turtle containing 50-70 owl:ObjectProperty declarations.
 
-- 25-40 owl:ObjectProperty declarations, each with rdfs:domain, rdfs:range, rdfs:label, rdfs:comment
-- Build rdfs:subPropertyOf hierarchies (e.g., hasParticipant > hasAgent > hasDriver)
-- Add owl:inverseOf pairs for bidirectional relationships
-- Mark owl:TransitiveProperty (isPartOf), owl:SymmetricProperty (isRelatedTo), owl:FunctionalProperty where appropriate
-- 15-20 owl:DatatypeProperty declarations with rdfs:domain, rdfs:range (xsd types), rdfs:label, rdfs:comment
+EVERY property MUST have: rdfs:domain, rdfs:range, rdfs:label, rdfs:comment.
 
-Call onto_stats after loading. Do NOT call onto_save yet.`);
-    // Step 3: Axioms + individuals (SAME session)
-    send({ type: 'text', content: `\n---\n**Step 3/4:** Axioms + individuals...` });
-    await runTurn(`Now add axioms and individuals. Call onto_load with Turtle using the SAME namespace containing:
+Cover ALL relationship types:
+- Compositional: hasPart/isPartOf, contains/isContainedIn, hasComponent/isComponentOf
+- Causal: causes, prevents, triggers, treats, inhibits, enables
+- Associative: isAssociatedWith, isRelatedTo, dependsOn, influences
+- Hierarchical: hasSubtype, isExampleOf, instantiates
+- Build rdfs:subPropertyOf hierarchies (3-4 levels deep)
+- Add owl:inverseOf for EVERY directional property
+- Mark owl:TransitiveProperty, owl:SymmetricProperty, owl:FunctionalProperty
 
-- owl:disjointWith between ALL sibling classes that cannot overlap
-- 15-20 owl:NamedIndividual instances — real-world examples with rdf:type and property values
+Call onto_stats after. Do NOT save yet.`,
+        },
+        {
+            label: 'Step 9: Object properties — roles, temporal, spatial',
+            prompt: `Add MORE object properties. Call onto_load with Turtle containing 50-70 MORE owl:ObjectProperty declarations.
 
-Call onto_stats after loading. Do NOT call onto_save yet.`);
-    // Step 4: Reason + save (SAME session)
-    send({ type: 'text', content: `\n---\n**Step 4/4:** Reasoning + save...` });
-    await runTurn(`Final step. Run:
+Focus on what's MISSING — look at the classes and ask "how does X relate to Y?" for every pair of branches:
+- Role/participation: hasRole, participatesIn, performs, undergoes, produces, consumes
+- Temporal: precedes, follows, during, overlaps, startsWith, endsWith
+- Spatial: isLocatedIn, isNear, surrounds, isAdjacentTo, isWithin
+- Ownership: owns, belongsTo, isOwnedBy, manages, controls
+- Agent: hasAgent, hasPatient, hasBeneficiary, hasInstrument
+- More rdfs:subPropertyOf hierarchies and owl:inverseOf pairs
+
+Call onto_stats after. Do NOT save yet.`,
+        },
+        {
+            label: 'Step 10: Datatype properties — all attributes',
+            prompt: `Add datatype properties. Call onto_load with Turtle containing 40-60 owl:DatatypeProperty declarations.
+
+Each with: rdfs:domain, rdfs:range (xsd types), rdfs:label, rdfs:comment.
+
+Go through EVERY major branch and add ALL attributes:
+- Identifiers, names, codes, labels, descriptions, titles
+- Dates (birth, creation, modification, expiry, start, end)
+- Quantities (weight, height, length, count, duration, price, score, rating, percentage)
+- Measurements (temperature, speed, volume, area, concentration)
+- Boolean flags (isActive, isVerified, isPublic, isRequired, isOptional, isDeprecated)
+- Statuses, categories, priorities, levels, grades
+- Text fields (notes, comments, instructions, definitions)
+
+Call onto_stats after. Do NOT save yet.`,
+        },
+        {
+            label: 'Step 11: Axioms — disjoints everywhere',
+            prompt: `Add disjoint axioms. Call onto_load with Turtle containing owl:disjointWith between ALL sibling classes that cannot overlap.
+
+Go through EVERY branch systematically:
+- Root children: all major branches that are mutually exclusive
+- Within each branch: siblings that cannot overlap
+- Target: 60+ disjoint axiom pairs minimum
+
+Call onto_stats after. Do NOT save yet.`,
+        },
+        {
+            label: 'Step 12: Individuals — real-world examples',
+            prompt: `Add named individuals. Call onto_load with Turtle containing 25-40 owl:NamedIndividual instances.
+
+Spread them across ALL major branches — at least 3-4 individuals per branch.
+Each individual needs:
+- rdf:type (the most specific class)
+- rdfs:label and rdfs:comment
+- 3-5 property values (both object and datatype properties)
+
+Call onto_stats after. Do NOT save yet.`,
+        },
+        {
+            label: 'Step 13: Reason + save',
+            prompt: `Final step. Run:
 1. onto_reason with profile "rdfs"
 2. onto_stats — report the final counts
 3. onto_save with path "~/.open-ontologies/studio-live.ttl"
 
-Report the final ontology statistics.`);
-    send({ type: 'text', content: `\n---\n**Build complete.** Refresh the tree view to see the full graph.` });
+Report the final ontology statistics.`,
+        },
+    ];
+    send({ type: 'text', content: `**Building maximum-depth ontology: ${domain}** (${steps.length} steps)\n` });
+    for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
+        send({ type: 'text', content: `\n---\n**${step.label}**` });
+        try {
+            await runTurn(step.prompt);
+        }
+        catch (e) {
+            send({ type: 'text', content: `Step failed: ${e}. Continuing...` });
+        }
+    }
+    send({ type: 'text', content: `\n---\n**Build complete.** The graph should now be visible in the tree view.` });
+}
+// --- Quick sketch: 3-step lightweight build ---
+async function handleSketch(domain) {
+    const ns = domain.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const steps = [
+        {
+            label: 'Step 1/3: Classes + properties',
+            prompt: `Build a quick ontology about "${domain}". Use namespace @prefix : <http://example.org/${ns}#> .
+
+Call onto_clear. Then call onto_load with ONE Turtle block containing:
+- 50-80 owl:Class in a subClassOf hierarchy 4-5 levels deep
+- 15-25 owl:ObjectProperty each with rdfs:domain, rdfs:range, rdfs:label, rdfs:comment
+- 8-12 owl:DatatypeProperty
+- owl:inverseOf pairs for key relationships
+- rdfs:label and rdfs:comment on every class and property
+
+Call onto_stats after. Do NOT save yet.`,
+        },
+        {
+            label: 'Step 2/3: Axioms + individuals',
+            prompt: `Call onto_load with Turtle adding:
+- owl:disjointWith between sibling classes (15+ pairs)
+- 10-15 owl:NamedIndividual with rdf:type and property values
+
+Call onto_stats after. Do NOT save yet.`,
+        },
+        {
+            label: 'Step 3/3: Reason + save',
+            prompt: `Run onto_reason (profile "rdfs"), then onto_stats, then onto_save ("~/.open-ontologies/studio-live.ttl"). Report final statistics.`,
+        },
+    ];
+    send({ type: 'text', content: `**Sketching ontology: ${domain}** (3 steps)\n` });
+    for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
+        send({ type: 'text', content: `\n---\n**${step.label}**` });
+        try {
+            await runTurn(step.prompt);
+        }
+        catch (e) {
+            send({ type: 'text', content: `Step failed: ${e}. Continuing...` });
+        }
+    }
+    send({ type: 'text', content: `\n---\n**Sketch complete.** Use /expand to deepen any branch.` });
 }
 // --- Handle a chat message ---
 async function handleMessage(userMessage) {
     try {
-        if (isBuildRequest(userMessage)) {
+        if (isSketchRequest(userMessage)) {
             const domain = extractDomain(userMessage);
-            // Fresh session for each new build
+            sessionId = undefined;
+            await handleSketch(domain);
+            send({ type: 'done', mutated: true });
+        }
+        else if (isBuildRequest(userMessage)) {
+            const domain = extractDomain(userMessage);
             sessionId = undefined;
             await handleBuild(domain);
             send({ type: 'done', mutated: true });

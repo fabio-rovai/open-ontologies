@@ -33,7 +33,7 @@
 
 Open Ontologies is a **Rust MCP server** and **desktop Studio** for AI-native ontology engineering. It exposes **43 tools** that let Claude build, validate, query, diff, lint, version, reason over, align, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — with Terraform-style lifecycle management, a marketplace of 32 standard ontologies, clinical crosswalks, semantic embeddings, and a full lineage audit trail.
 
-The **Studio** wraps the engine in a visual desktop environment: 3D force-directed graph, AI chat panel, Protégé-style property inspector, and lineage viewer.
+The **Studio** wraps the engine in a visual desktop environment: D3 horizontal tree with cross-links, 3D force-directed graph, AI chat panel, Protégé-style property inspector, and lineage viewer.
 
 No JVM. No Protégé. No GUI required.
 
@@ -211,12 +211,11 @@ The first launch compiles the Tauri shell (~2 min). Subsequent launches start in
 
 | Feature | Description |
 | --- | --- |
-| **3D Graph Canvas** | Spring-based force-directed OWL graph (Three.js / WebGL). Grey edges = subClassOf hierarchy, gold edges = object property domain/range links. Drag to orbit, scroll to zoom, click to inspect, right-click to add, Delete to remove. Clusters of related classes self-organise into visual neighbourhoods. |
+| **D3 Tree + 3D Graph** | Two view modes: a D3.js horizontal tree (default) showing the full class/property hierarchy with collapsible branches, cross-links, and node type filtering — and a 3D force-directed graph (Three.js / WebGL) with spring physics. Both support zoom, pan, click to inspect, and keyboard shortcuts. |
 | **AI Agent Chat** | Natural language ontology engineering via Claude Opus 4.6 + Agent SDK. Type *"Build me a Pizza ontology"* and watch it appear in the graph. Claude calls validate, load, reason, lint, enforce, and save automatically — you see each tool call in real time. |
 | **Property Inspector** | Protege-style inline triple editor. Click any node to see its `rdfs:subClassOf`, `rdfs:label`, `rdfs:domain`, `rdfs:range` and all other triples. Edit in place, hover to delete, `+ Add` for new triples. Changes are immediately reflected in the graph. |
 | **Lineage Panel** | Full audit trail from SQLite: every plan, apply, enforce, drift, monitor, and align event, grouped by session with timestamps. See exactly what Claude did and in what order. |
 | **Named Save** | `⌘S` to save as `~/.open-ontologies/<name>.ttl`. Auto-saves to `studio-live.ttl` after every mutation so you never lose work. |
-| **Load from file** | Drag a `.ttl` file onto the window or use the menu to load an existing ontology. The graph renders immediately. |
 
 ### Keyboard shortcuts
 
@@ -225,9 +224,12 @@ The first launch compiles the Tauri shell (~2 min). Subsequent launches start in
 | `⌘J` | Toggle AI chat panel |
 | `⌘I` | Toggle property inspector |
 | `⌘S` | Save ontology |
-| `Delete` | Remove selected node |
+| `F` | Fit graph to viewport (tree view) |
+| `R` | Reset zoom (tree view) |
+| `Esc` | Deselect node |
+| `Shift+click` | Collapse/expand branch (tree view) |
 | `Scroll` | Zoom in/out |
-| `Click + drag` | Orbit camera |
+| `Click + drag` | Pan (tree) / orbit (3D) |
 
 ---
 
@@ -321,7 +323,7 @@ Full benchmark writeup: [docs/benchmarks.md](docs/benchmarks.md)
 
 ## IES Support
 
-[IES (Information Exchange Standard)](https://github.com/IES-Org) is the UK National Digital Twin Programme's core ontology framework. It uses a 4D extensionalist (BORO) approach for modelling entities, events, states, and relationships. Open Ontologies supports the **full IES stack** — all three layers, SHACL shapes, and 42+ example datasets.
+[IES (Information Exchange Standard)](https://github.com/IES-Org) is the UK National Digital Twin Programme's core ontology framework. It uses a 4D extensionalist (BORO) approach for modelling entities, events, states, and relationships. Open Ontologies supports the **full IES stack** — all three layers, SHACL shapes, and 26+ example datasets.
 
 ### The IES Layers
 
@@ -330,22 +332,24 @@ The marketplace includes all three tiers of the IES framework:
 ```text
 onto_marketplace install ies-top     # ToLO — BORO foundations (~22 classes)
 onto_marketplace install ies-core    # Core — persons, states, events (~131 classes)
-onto_marketplace install ies         # Common — full ontology (513 classes, 206 properties)
+onto_marketplace install ies         # Common — full ontology (511 classes, 206 properties)
 ```
 
 ### Benchmark
 
 | Metric | IES Common |
 | --- | --- |
-| Classes | 513 |
-| Object properties | 206 |
-| Triples loaded | 4,040 |
+| Classes | 511 |
+| Object properties | 162 |
+| Datatype properties | 44 |
+| Total properties | 206 |
+| Triples loaded | 4,041 |
 | + RDFS inferred | **+3,094 (+77%)** |
 | Fetch time | 911ms |
 | RDFS reasoning | 63ms |
 | Lint issues | 0 |
 
-IES is the second-largest ontology in the marketplace by class count (after Schema.org). RDFS reasoning produces the richest inference gain of any non-general ontology — 241 State subclasses, 117 ClassOfEntity subclasses, and 102 Event subclasses all generating transitive chains.
+IES is the second-largest ontology in the marketplace by class count (after Schema.org). RDFS reasoning produces the richest inference gain of any non-general ontology — State, ClassOfEntity, and Event subclasses all generating deep transitive chains.
 
 ### Example Data
 
@@ -539,7 +543,7 @@ onto_enforce --pack hierarchy
 # → reports max depth, avg depth, hierarchy density
 ```
 
-Tested on IES Common (513 classes), the tool found 24 flat spots. A clean-room agent — with no prior context — proposed 38 intermediate grouping classes based solely on the domain meaning of the flagged children:
+Tested on IES Common (511 classes), the tool found 24 flat spots. A clean-room agent — with no prior context — proposed 38 intermediate grouping classes based solely on the domain meaning of the flagged children:
 
 ```mermaid
 graph LR
@@ -582,7 +586,7 @@ graph LR
 
 | Metric | Before | After | Change |
 | --- | ---: | ---: | ---: |
-| Classes | 513 | 551 | +38 |
+| Classes | 511 | 549 | +38 |
 | RDFS inferred | 3,094 | 3,422 | **+328 (+10.6%)** |
 
 The same tool, applied to any ontology, produces the same kind of improvement. The intermediate classes emerge from domain knowledge — not from reference to any other implementation.
@@ -690,7 +694,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph UI["React UI (Vite + Tailwind CSS)"]
-        Graph["3D Graph Canvas\n3d-force-graph / Three.js"]
+        Graph["D3 Tree + 3D Graph\nD3.js / Three.js"]
         Chat["AI Chat Panel\nZustand store"]
         Inspector["Property Inspector\nInline SPARQL edit"]
         Lineage["Lineage Panel\nAudit trail"]
@@ -754,7 +758,7 @@ flowchart TD
 | Embeddings runtime | tract-onnx — pure Rust ONNX (optional) |
 | Desktop shell | Tauri 2 |
 | Frontend | React 19, Vite 7, TypeScript 5.8, Tailwind CSS 4 |
-| 3D graph | 3d-force-graph 1.79 (Three.js / WebGL) |
+| Graph views | D3.js 7 (tree layout) + 3d-force-graph 1.79 (Three.js / WebGL) |
 | UI state | Zustand 5 |
 | AI agent | Claude Opus 4.6 via Agent SDK (Node.js sidecar) |
 
