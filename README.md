@@ -170,6 +170,12 @@ The Studio is a native desktop application that wraps the same engine in a visua
 
 Think of it as **Protege meets an AI copilot**. Type "build ontology about cats" and watch a 1,400-class ontology appear in the tree — classes, properties, individuals, and axioms built automatically across 13 pipeline steps. Click any node to inspect its triples, trace connections via clickable pills, and follow every change through the lineage panel.
 
+### Why virtualized tree (not 3D graph)
+
+Prior to v0.1.12, the Studio used a D3.js horizontal tree and a 3D force-directed graph (Three.js / WebGL). Both worked for small ontologies (~100 classes) but became unusable at IES-level depth: the D3 tree couldn't handle 500+ nodes without layout thrashing, and the 3D graph froze the WebKit webview above 1,000 nodes.
+
+The v2 deep builder changed the equation — a single `/build` command now produces 1,400+ classes. We replaced both views with a virtualized DOM tree: only visible rows exist in the DOM (constant memory regardless of ontology size), with hierarchy connector lines, type-filtered legend, search, breadcrumb navigation, and a connections panel. This handles the full IES Common (511 classes) and deep-built ontologies (1,400+ classes) without lag.
+
 ### How it works
 
 The Studio launches three processes that communicate locally:
