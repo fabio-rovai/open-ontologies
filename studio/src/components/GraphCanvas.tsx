@@ -181,6 +181,23 @@ export function GraphCanvas({ onNodeSelect, dagMode }: GraphCanvasProps) {
         }
       }
 
+      // Connect all root nodes (no parent) to a virtual hub so the graph is one connected component
+      const hasParent = new Set<string>();
+      for (const l of links) {
+        if (l.type === 'subclass') hasParent.add(l.source as string);
+      }
+      const rootIds: string[] = [];
+      for (const id of nodeMap.keys()) {
+        if (!hasParent.has(id)) rootIds.push(id);
+      }
+      if (rootIds.length > 1) {
+        const hub: GraphNode = { id: '__root__', label: 'Ontology', uri: '' };
+        nodeMap.set('__root__', hub);
+        for (const rid of rootIds) {
+          links.push({ source: rid, target: '__root__', type: 'subclass' });
+        }
+      }
+
       g.graphData({ nodes: Array.from(nodeMap.values()), links });
       refreshStats();
     } catch (e) {
@@ -199,7 +216,9 @@ export function GraphCanvas({ onNodeSelect, dagMode }: GraphCanvasProps) {
       .nodeLabel('label')
       .nodeColor((node: object) => {
         const n = node as GraphNode;
-        return n.id === selectedId ? '#f9e2af' : '#89b4fa';
+        if (n.id === selectedId) return '#f9e2af';
+        if (n.id === '__root__') return '#f38ba8';
+        return '#89b4fa';
       })
       .nodeOpacity(0.95)
       .nodeResolution(16)
@@ -227,9 +246,10 @@ export function GraphCanvas({ onNodeSelect, dagMode }: GraphCanvasProps) {
         const group = new THREE.Group();
 
         // Sphere
+        const isRoot = n.id === '__root__';
         const sphere = new THREE.Mesh(
-          new THREE.SphereGeometry(5, 16, 16),
-          new THREE.MeshLambertMaterial({ color: n.id === selectedId ? 0xf9e2af : 0x89b4fa })
+          new THREE.SphereGeometry(isRoot ? 8 : 5, 16, 16),
+          new THREE.MeshLambertMaterial({ color: n.id === selectedId ? 0xf9e2af : isRoot ? 0xf38ba8 : 0x89b4fa })
         );
         group.add(sphere);
 
@@ -252,6 +272,7 @@ export function GraphCanvas({ onNodeSelect, dagMode }: GraphCanvasProps) {
       })
       .onNodeClick((node: object) => {
         const n = node as GraphNode;
+        if (n.id === '__root__') return; // virtual hub not selectable
         setSelectedId(n.id);
         onNodeSelect({ id: n.id, label: n.label, uri: n.uri });
         // Fly camera toward node

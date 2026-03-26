@@ -7,13 +7,13 @@ import { PropertyInspector } from './PropertyInspector';
 import { LineagePanel } from './LineagePanel';
 import * as mcp from '../lib/mcp-client';
 
-type ViewMode = '3d' | 'dag' | 'tree';
+type ViewMode = '3d' | 'tree';
 
 export function Layout() {
   const [showChat, setShowChat] = useState(true);
   const [showInspector, setShowInspector] = useState(false);
   const [showLineage, setShowLineage] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('3d');
+  const [viewMode, setViewMode] = useState<ViewMode>('tree');
   const [selectedNode, setSelectedNode] = useState<{ id: string; label: string; uri: string } | null>(null);
   const [projectName, setProjectName] = useState('studio-live');
   const [savingAs, setSavingAs] = useState(false);
@@ -122,12 +122,12 @@ export function Layout() {
 
         <div className="ml-auto flex gap-2">
           {/* View mode toggle */}
-          {(['3d', 'dag', 'tree'] as ViewMode[]).map(mode => (
+          {(['tree', '3d'] as ViewMode[]).map(mode => (
             <button key={mode} onClick={() => setViewMode(mode)}
                     className="text-xs px-2 py-1 rounded"
                     style={{ background: viewMode === mode ? 'var(--accent)' : 'var(--bg-panel)',
                              color: viewMode === mode ? 'var(--bg-primary)' : 'var(--text-secondary)' }}>
-              {mode === '3d' ? '3D' : mode === 'dag' ? 'DAG' : 'Tree'}
+              {mode === '3d' ? '3D' : 'Tree'}
             </button>
           ))}
           <div className="w-px mx-1" style={{ background: 'var(--border)' }} />
@@ -159,7 +159,7 @@ export function Layout() {
           {viewMode === 'tree' ? (
             <TreeView onNodeSelect={setSelectedNode} />
           ) : (
-            <GraphCanvas onNodeSelect={setSelectedNode} dagMode={viewMode === 'dag'} />
+            <GraphCanvas onNodeSelect={setSelectedNode} />
           )}
         </div>
 
