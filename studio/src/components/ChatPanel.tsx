@@ -3,7 +3,8 @@ import ReactMarkdown from 'react-markdown';
 import { useChat, ChatMessage } from '../hooks/useChat';
 
 const SLASH_COMMANDS = [
-  { cmd: '/build', description: 'Build a new ontology', prompt: 'Build an ontology about ' },
+  { cmd: '/build', description: 'Deep build (IES-level)', prompt: 'Build an ontology about ' },
+  { cmd: '/sketch', description: 'Quick sketch (prototype)', prompt: 'Sketch an ontology about ' },
   { cmd: '/expand', description: 'Expand current ontology', prompt: 'Expand the current ontology with more detail about ' },
   { cmd: '/validate', description: 'Run full validation', prompt: 'Run onto_validate and onto_lint on the current ontology and report all issues' },
   { cmd: '/reason', description: 'Run OWL reasoning', prompt: 'Run onto_reason with profile owl-rl on the current ontology' },

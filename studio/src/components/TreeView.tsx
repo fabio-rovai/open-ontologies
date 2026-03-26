@@ -1,5 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
-import * as d3 from 'd3';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import * as mcp from '../lib/mcp-client';
 import { useEngine } from '../hooks/useEngine';
 
@@ -11,24 +10,16 @@ interface SparqlBinding {
   [key: string]: { type: string; value: string };
 }
 
-type NodeType = 'Class' | 'ObjectProperty' | 'DatatypeProperty' | 'AnnotationProperty' | 'Individual' | 'Restriction' | 'Ontology';
+type NodeType = 'Class' | 'ObjectProperty' | 'DatatypeProperty' | 'Individual';
 
-interface OntologyNode {
+interface TreeNode {
   id: string;
   label: string;
   uri: string;
   nodeType: NodeType;
-  children: OntologyNode[];
-  _childCount?: number;
-  propertyCount?: number;    // how many properties reference this class
-  connectionCount?: number;  // total edges (for sizing)
-}
-
-interface CrossLink {
-  sourceId: string;
-  targetId: string;
-  label: string;
-  linkType: 'domain' | 'range' | 'equivalentClass' | 'disjointWith' | 'restriction';
+  children: TreeNode[];
+  childCount: number;
+  depth: number;
 }
 
 function parseSparqlResults(text: string): SparqlBinding[] {
@@ -61,844 +52,532 @@ function shortUri(uri: string): string {
   return uri;
 }
 
-// Node type colors (Catppuccin Mocha)
-const NODE_TYPE_COLORS: Record<NodeType, string> = {
-  Ontology:            '#f38ba8', // pink
-  Class:               '#89b4fa', // blue
-  ObjectProperty:      '#a6e3a1', // green
-  DatatypeProperty:    '#f9e2af', // yellow
-  AnnotationProperty:  '#cba6f7', // mauve
-  Individual:          '#fab387', // peach
-  Restriction:         '#94e2d5', // teal
+const TYPE_COLORS: Record<NodeType, string> = {
+  Class: '#89b4fa',
+  ObjectProperty: '#a6e3a1',
+  DatatypeProperty: '#f9e2af',
+  Individual: '#fab387',
 };
 
-const NODE_TYPE_SIZES: Record<NodeType, number> = {
-  Ontology: 14,
-  Class: 8,
-  ObjectProperty: 7,
-  DatatypeProperty: 6,
-  AnnotationProperty: 5,
-  Individual: 6,
-  Restriction: 5,
-};
-
-function getColor(type: NodeType): string {
-  return NODE_TYPE_COLORS[type] ?? '#a6adc8';
-}
-
-function getSize(type: NodeType, connectionCount: number): number {
-  const base = NODE_TYPE_SIZES[type] ?? 6;
-  // Scale up for highly connected nodes
-  return base + Math.min(connectionCount * 0.3, 6);
-}
-
-// ── SPARQL Queries ──────────────────────────────────────────────
-
-const CLASSES_QUERY = `PREFIX owl: <http://www.w3.org/2002/07/owl#>
+const QUERIES = {
+  classes: `PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?c ?label WHERE {
   { ?c a owl:Class } UNION { ?c a rdfs:Class }
   OPTIONAL { ?c rdfs:label ?label }
   FILTER(!isBlank(?c))
-}`;
-
-const SUBCLASS_QUERY = `PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+}`,
+  subclass: `PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 SELECT ?sub ?parent WHERE {
   ?sub rdfs:subClassOf ?parent .
   { ?sub a owl:Class } UNION { ?sub a rdfs:Class }
   FILTER(!isBlank(?sub) && !isBlank(?parent))
-}`;
-
-const OBJ_PROPS_QUERY = `PREFIX owl: <http://www.w3.org/2002/07/owl#>
+}`,
+  objProps: `PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-SELECT ?p ?label ?domain ?range ?parent WHERE {
+SELECT ?p ?label ?parent WHERE {
   { ?p a owl:ObjectProperty } UNION { ?p a rdf:Property }
   OPTIONAL { ?p rdfs:label ?label }
-  OPTIONAL { ?p rdfs:domain ?domain . FILTER(!isBlank(?domain)) }
-  OPTIONAL { ?p rdfs:range ?range . FILTER(!isBlank(?range)) }
   OPTIONAL { ?p rdfs:subPropertyOf ?parent . FILTER(!isBlank(?parent)) }
   FILTER(!isBlank(?p))
-}`;
-
-const DATA_PROPS_QUERY = `PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?p ?label ?domain ?parent WHERE {
-  ?p a owl:DatatypeProperty .
-  OPTIONAL { ?p rdfs:label ?label }
-  OPTIONAL { ?p rdfs:domain ?domain . FILTER(!isBlank(?domain)) }
-  OPTIONAL { ?p rdfs:subPropertyOf ?parent . FILTER(!isBlank(?parent)) }
-  FILTER(!isBlank(?p))
-}`;
-
-const ANNOTATION_PROPS_QUERY = `PREFIX owl: <http://www.w3.org/2002/07/owl#>
+}`,
+  dataProps: `PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?p ?label WHERE {
-  ?p a owl:AnnotationProperty .
+  ?p a owl:DatatypeProperty .
   OPTIONAL { ?p rdfs:label ?label }
   FILTER(!isBlank(?p))
-}`;
-
-const INDIVIDUALS_QUERY = `PREFIX owl: <http://www.w3.org/2002/07/owl#>
+}`,
+  individuals: `PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 SELECT ?ind ?label ?type WHERE {
-  ?ind a ?type .
-  ?type a owl:Class .
+  ?ind a ?type . ?type a owl:Class .
   OPTIONAL { ?ind rdfs:label ?label }
   FILTER(!isBlank(?ind) && ?type != owl:Class && ?type != rdfs:Class && ?type != owl:ObjectProperty && ?type != owl:DatatypeProperty && ?type != owl:AnnotationProperty && ?type != owl:NamedIndividual)
-} LIMIT 200`;
+} LIMIT 500`,
+};
 
-const EQUIV_QUERY = `PREFIX owl: <http://www.w3.org/2002/07/owl#>
-SELECT ?a ?b WHERE {
-  ?a owl:equivalentClass ?b .
-  FILTER(!isBlank(?a) && !isBlank(?b) && ?a != ?b)
-}`;
-
-const DISJOINT_QUERY = `PREFIX owl: <http://www.w3.org/2002/07/owl#>
-SELECT ?a ?b WHERE {
-  ?a owl:disjointWith ?b .
-  FILTER(!isBlank(?a) && !isBlank(?b))
-}`;
-
-function countDescendants(node: OntologyNode): number {
-  if (!node.children || node.children.length === 0) return 0;
+function countDescendants(node: TreeNode): number {
   let count = node.children.length;
   for (const c of node.children) count += countDescendants(c);
+  node.childCount = count;
   return count;
 }
 
+function matchesSearch(node: TreeNode, term: string): boolean {
+  if (node.label.toLowerCase().includes(term) || node.id.toLowerCase().includes(term)) return true;
+  return node.children.some(c => matchesSearch(c, term));
+}
+
+// Flatten visible nodes for virtualized rendering
+interface FlatNode {
+  node: TreeNode;
+  indent: number;
+  isExpanded: boolean;
+  hasChildren: boolean;
+}
+
+function flattenTree(nodes: TreeNode[], expanded: Set<string>, searchTerm: string, indent: number): FlatNode[] {
+  const result: FlatNode[] = [];
+  for (const node of nodes) {
+    const visible = !searchTerm || matchesSearch(node, searchTerm);
+    if (!visible) continue;
+    const isExpanded = expanded.has(node.id);
+    result.push({ node, indent, isExpanded, hasChildren: node.children.length > 0 });
+    if (isExpanded) {
+      const children = searchTerm
+        ? node.children.filter(c => matchesSearch(c, searchTerm))
+        : node.children;
+      result.push(...flattenTree(children, expanded, searchTerm, indent + 1));
+    }
+  }
+  return result;
+}
+
+const ROW_HEIGHT = 28;
+const OVERSCAN = 20;
+
 export function TreeView({ onNodeSelect }: TreeViewProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const gRef = useRef<d3.Selection<SVGGElement, unknown, null, undefined> | null>(null);
-  const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
-  const treeDataRef = useRef<OntologyNode | null>(null);
-  const crossLinksRef = useRef<CrossLink[]>([]);
-  const collapsedRef = useRef<Set<string>>(new Set());
-  const hiddenTypesRef = useRef<Set<NodeType>>(new Set());
   const { status, refreshStats } = useEngine();
-  const [stats, setStats] = useState({ classes: 0, properties: 0, individuals: 0, depth: 0, crossLinks: 0 });
-  const [hiddenTypes, setHiddenTypes] = useState<Set<NodeType>>(new Set());
+  const [roots, setRoots] = useState<TreeNode[]>([]);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [stats, setStats] = useState({ classes: 0, properties: 0, individuals: 0, depth: 0 });
   const [typeCounts, setTypeCounts] = useState<Map<NodeType, number>>(new Map());
+  const [hiddenTypes, setHiddenTypes] = useState<Set<NodeType>>(new Set());
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [viewHeight, setViewHeight] = useState(600);
 
-  const filterTree = useCallback((node: OntologyNode): OntologyNode => {
-    const copy = { ...node };
-    if (collapsedRef.current.has(node.id)) {
-      copy._childCount = countDescendants(node);
-      copy.children = [];
-    } else if (node.children) {
-      copy.children = node.children
-        .filter(c => !hiddenTypesRef.current.has(c.nodeType))
-        .map(c => filterTree(c));
-    }
-    return copy;
-  }, []);
-
-  const renderTree = useCallback(() => {
-    const svg = svgRef.current;
-    const g = gRef.current;
-    const treeData = treeDataRef.current;
-    if (!svg || !g || !treeData) return;
-
-    g.selectAll('*').remove();
-
-    const filteredData = filterTree(treeData);
-    const hierarchy = d3.hierarchy(filteredData, d => d.children);
-
-    const leafCount = hierarchy.leaves().length;
-    const rect = containerRef.current?.getBoundingClientRect();
-    const viewW = rect?.width ?? 800;
-    const viewH = rect?.height ?? 600;
-
-    const treeHeight = Math.max(viewH - 80, leafCount * 24);
-    const treeWidth = Math.max(viewW - 300, hierarchy.height * 200);
-
-    const treeLayout = d3.tree<OntologyNode>()
-      .size([treeHeight, treeWidth])
-      .separation((a, b) => (a.parent === b.parent ? 1 : 1.4));
-
-    treeLayout(hierarchy);
-
-    const xOff = 180;
-    const yOff = 40;
-
-    // Build node position map for cross-links
-    const nodePositions = new Map<string, { x: number; y: number }>();
-    hierarchy.descendants().forEach(d => {
-      nodePositions.set(d.data.id, { x: (d.y ?? 0) + xOff, y: (d.x ?? 0) + yOff });
-    });
-
-    // Draw tree links
-    g.selectAll('.tree-link')
-      .data(hierarchy.links())
-      .enter().append('path')
-      .attr('class', 'tree-link')
-      .attr('fill', 'none')
-      .attr('stroke', d => getColor(d.target.data.nodeType))
-      .attr('stroke-opacity', 0.25)
-      .attr('stroke-width', 1.5)
-      .attr('d', d3.linkHorizontal<d3.HierarchyPointLink<OntologyNode>, d3.HierarchyPointNode<OntologyNode>>()
-        .x(d => d.y + xOff)
-        .y(d => d.x + yOff) as unknown as string);
-
-    // Draw cross-links (domain→range, equivalentClass, disjointWith)
-    const visibleCrossLinks = crossLinksRef.current.filter(cl => {
-      const s = nodePositions.get(cl.sourceId);
-      const t = nodePositions.get(cl.targetId);
-      return s && t;
-    });
-
-    const crossLinkColor: Record<string, string> = {
-      domain: '#a6e3a199',
-      range: '#f9e2af99',
-      equivalentClass: '#cba6f799',
-      disjointWith: '#f38ba866',
-      restriction: '#94e2d566',
-    };
-
-    g.selectAll('.cross-link')
-      .data(visibleCrossLinks)
-      .enter().append('path')
-      .attr('class', 'cross-link')
-      .attr('fill', 'none')
-      .attr('stroke', d => crossLinkColor[d.linkType] ?? '#585b7044')
-      .attr('stroke-opacity', 0.2)
-      .attr('stroke-width', 1)
-      .attr('stroke-dasharray', d => d.linkType === 'disjointWith' ? '2,4' : '4,4')
-      .attr('d', d => {
-        const s = nodePositions.get(d.sourceId)!;
-        const t = nodePositions.get(d.targetId)!;
-        const mx = (s.x + t.x) / 2;
-        return `M${s.x},${s.y}C${mx},${s.y},${mx},${t.y},${t.x},${t.y}`;
-      });
-
-    // Draw nodes
-    const nodes = g.selectAll('.tree-node')
-      .data(hierarchy.descendants())
-      .enter().append('g')
-      .attr('class', d => {
-        let cls = 'tree-node';
-        if (collapsedRef.current.has(d.data.id)) cls += ' collapsed';
-        return cls;
-      })
-      .attr('transform', d => `translate(${(d.y ?? 0) + xOff},${(d.x ?? 0) + yOff})`)
-      .style('cursor', 'pointer')
-      .on('click', (event: MouseEvent, d) => {
-        event.stopPropagation();
-        if (event.shiftKey || event.metaKey) {
-          toggleCollapse(d.data.id);
-        } else {
-          if (d.data.id === '__ontology__') return;
-          onNodeSelect({ id: d.data.id, label: d.data.label, uri: d.data.uri });
-        }
-      })
-      .on('dblclick', (event: MouseEvent, d) => {
-        event.stopPropagation();
-        toggleCollapse(d.data.id);
-      })
-      .on('mouseover', function(_event: MouseEvent, d) {
-        d3.select(this).select('circle')
-          .attr('stroke', '#cdd6f4').attr('stroke-width', 3);
-
-        // Highlight path to root
-        const ancestors = new Set<string>();
-        let current: d3.HierarchyNode<OntologyNode> | null = d;
-        while (current) { ancestors.add(current.data.id); current = current.parent; }
-
-        g.selectAll<SVGPathElement, d3.HierarchyPointLink<OntologyNode>>('.tree-link')
-          .attr('stroke-opacity', l =>
-            ancestors.has(l.source.data.id) && ancestors.has(l.target.data.id) ? 0.8 : 0.08
-          )
-          .attr('stroke-width', l =>
-            ancestors.has(l.source.data.id) && ancestors.has(l.target.data.id) ? 2.5 : 1
-          );
-
-        // Highlight connected cross-links
-        g.selectAll<SVGPathElement, CrossLink>('.cross-link')
-          .attr('stroke-opacity', cl =>
-            cl.sourceId === d.data.id || cl.targetId === d.data.id ? 0.6 : 0.05
-          )
-          .attr('stroke-width', cl =>
-            cl.sourceId === d.data.id || cl.targetId === d.data.id ? 2 : 1
-          );
-      })
-      .on('mouseout', function() {
-        d3.select(this).select('circle')
-          .attr('stroke', '#1e1e2e').attr('stroke-width', 2);
-        g.selectAll('.tree-link').attr('stroke-opacity', 0.25).attr('stroke-width', 1.5);
-        g.selectAll('.cross-link').attr('stroke-opacity', 0.2).attr('stroke-width', 1);
-      });
-
-    // Node circles — different shapes per type
-    nodes.append('circle')
-      .attr('r', d => getSize(d.data.nodeType, d.data.connectionCount ?? 0))
-      .attr('fill', d => getColor(d.data.nodeType))
-      .attr('stroke', '#1e1e2e')
-      .attr('stroke-width', 2)
-      .style('filter', 'drop-shadow(0 0 4px rgba(0,0,0,0.4))');
-
-    // Property nodes get a diamond overlay
-    nodes.filter(d => d.data.nodeType === 'ObjectProperty' || d.data.nodeType === 'DatatypeProperty')
-      .append('rect')
-      .attr('x', d => -getSize(d.data.nodeType, 0) * 0.5)
-      .attr('y', d => -getSize(d.data.nodeType, 0) * 0.5)
-      .attr('width', d => getSize(d.data.nodeType, 0))
-      .attr('height', d => getSize(d.data.nodeType, 0))
-      .attr('transform', 'rotate(45)')
-      .attr('fill', 'none')
-      .attr('stroke', d => getColor(d.data.nodeType))
-      .attr('stroke-width', 1)
-      .attr('stroke-opacity', 0.4)
-      .style('pointer-events', 'none');
-
-    // Collapse indicator
-    nodes.filter(d => (d.data.children && d.data.children.length > 0) || (d.data._childCount != null && d.data._childCount > 0))
-      .append('text')
-      .attr('x', 0).attr('y', 1)
-      .attr('text-anchor', 'middle')
-      .attr('dominant-baseline', 'central')
-      .style('font-size', d => `${getSize(d.data.nodeType, 0) * 1.1}px`)
-      .style('fill', '#1e1e2e')
-      .style('font-weight', '700')
-      .style('pointer-events', 'none')
-      .text(d => collapsedRef.current.has(d.data.id) ? '+' : '');
-
-    // Collapsed child count
-    nodes.filter(d => d.data._childCount != null && d.data._childCount > 0)
-      .append('text')
-      .attr('x', d => getSize(d.data.nodeType, 0) + 4)
-      .attr('y', -8)
-      .attr('text-anchor', 'start')
-      .style('font-size', '9px')
-      .style('fill', '#6c7086')
-      .style('pointer-events', 'none')
-      .text(d => `(${d.data._childCount})`);
-
-    // Labels
-    nodes.append('text')
-      .attr('x', d => getSize(d.data.nodeType, d.data.connectionCount ?? 0) + 8)
-      .attr('y', 4)
-      .attr('text-anchor', 'start')
-      .style('font-size', d => d.data.nodeType === 'Ontology' ? '14px' : d.depth <= 2 ? '12px' : '11px')
-      .style('font-weight', d => d.data.children.length > 0 || d.data.nodeType === 'Ontology' ? '600' : '400')
-      .style('fill', d => d.data.nodeType === 'Ontology' ? '#cdd6f4' : '#bac2de')
-      .style('font-family', '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif')
-      .style('pointer-events', 'none')
-      .text(d => {
-        const lbl = d.data.label || d.data.id;
-        return lbl.length > 45 ? lbl.substring(0, 45) + '...' : lbl;
-      });
-
-    // Property count badge on classes
-    nodes.filter(d => d.data.nodeType === 'Class' && d.data.propertyCount != null && d.data.propertyCount > 0)
-      .append('text')
-      .attr('x', d => {
-        const lbl = d.data.label || d.data.id;
-        const truncated = lbl.length > 45 ? lbl.substring(0, 45) + '...' : lbl;
-        return getSize(d.data.nodeType, d.data.connectionCount ?? 0) + 8 + truncated.length * 6.5;
-      })
-      .attr('y', 4)
-      .attr('text-anchor', 'start')
-      .style('font-size', '9px')
-      .style('fill', '#585b70')
-      .style('pointer-events', 'none')
-      .text(d => `[${d.data.propertyCount}p]`);
-
-  }, [filterTree, onNodeSelect]);
-
-  const toggleCollapse = useCallback((id: string) => {
-    if (collapsedRef.current.has(id)) collapsedRef.current.delete(id);
-    else collapsedRef.current.add(id);
-    renderTree();
-  }, [renderTree]);
-
-  const fitGraph = useCallback(() => {
-    const svg = svgRef.current;
-    const g = gRef.current;
-    if (!svg || !g) return;
-    const gNode = g.node();
-    if (!gNode) return;
-    const bbox = gNode.getBBox();
-    if (bbox.width === 0 || bbox.height === 0) return;
-
-    const rect = containerRef.current?.getBoundingClientRect();
-    const w = rect?.width ?? 800;
-    const h = rect?.height ?? 600;
-
-    const pad = 60;
-    const scale = Math.min(w / (bbox.width + pad * 2), h / (bbox.height + pad * 2), 1.5);
-    const transform = d3.zoomIdentity
-      .translate(w / 2, h / 2)
-      .scale(scale)
-      .translate(-(bbox.x + bbox.width / 2), -(bbox.y + bbox.height / 2));
-
-    if (zoomRef.current) {
-      d3.select(svg).transition().duration(500).call(zoomRef.current.transform, transform);
-    }
-  }, []);
-
-  // Load full ontology from SPARQL
   const loadTree = useCallback(async () => {
     try {
-      const [classesText, subclassText, objPropsText, dataPropsText, annotPropsText, individualsText, equivText, disjointText] = await Promise.all([
-        mcp.sparqlQuery(CLASSES_QUERY),
-        mcp.sparqlQuery(SUBCLASS_QUERY),
-        mcp.sparqlQuery(OBJ_PROPS_QUERY),
-        mcp.sparqlQuery(DATA_PROPS_QUERY),
-        mcp.sparqlQuery(ANNOTATION_PROPS_QUERY),
-        mcp.sparqlQuery(INDIVIDUALS_QUERY),
-        mcp.sparqlQuery(EQUIV_QUERY),
-        mcp.sparqlQuery(DISJOINT_QUERY),
+      const [classesText, subclassText, objPropsText, dataPropsText, individualsText] = await Promise.all([
+        mcp.sparqlQuery(QUERIES.classes),
+        mcp.sparqlQuery(QUERIES.subclass),
+        mcp.sparqlQuery(QUERIES.objProps),
+        mcp.sparqlQuery(QUERIES.dataProps),
+        mcp.sparqlQuery(QUERIES.individuals),
       ]);
 
-      const classBindings = parseSparqlResults(classesText);
-      const subclassBindings = parseSparqlResults(subclassText);
-      const objPropBindings = parseSparqlResults(objPropsText);
-      const dataPropBindings = parseSparqlResults(dataPropsText);
-      const annotPropBindings = parseSparqlResults(annotPropsText);
-      const individualBindings = parseSparqlResults(individualsText);
-      const equivBindings = parseSparqlResults(equivText);
-      const disjointBindings = parseSparqlResults(disjointText);
-
-      // ── Build node registry ────────────────────────────────────
-      const allNodes = new Map<string, { label: string; uri: string; nodeType: NodeType; connections: number; propertyCount: number }>();
+      const nodeMap = new Map<string, { label: string; uri: string; nodeType: NodeType }>();
       const parentToChildren = new Map<string, Set<string>>();
       const hasParent = new Set<string>();
-      const crossLinks: CrossLink[] = [];
-
-      // Track property counts per class
-      const classPropertyCount = new Map<string, number>();
 
       // Classes
-      for (const b of classBindings) {
-        const uri = b.c?.value;
-        if (!uri) continue;
+      for (const b of parseSparqlResults(classesText)) {
+        const uri = b.c?.value; if (!uri) continue;
         const id = shortUri(uri);
-        if (!allNodes.has(id)) {
-          allNodes.set(id, { label: b.label?.value || id, uri, nodeType: 'Class', connections: 0, propertyCount: 0 });
-        }
+        if (!nodeMap.has(id)) nodeMap.set(id, { label: b.label?.value || id, uri, nodeType: 'Class' });
       }
 
-      // SubClass edges (tree structure)
-      for (const b of subclassBindings) {
-        const subUri = b.sub?.value;
-        const parentUri = b.parent?.value;
+      // SubClass hierarchy
+      for (const b of parseSparqlResults(subclassText)) {
+        const subUri = b.sub?.value, parentUri = b.parent?.value;
         if (!subUri || !parentUri) continue;
-        const sid = shortUri(subUri);
-        const pid = shortUri(parentUri);
-
-        if (!allNodes.has(pid)) {
-          allNodes.set(pid, { label: pid, uri: parentUri, nodeType: 'Class', connections: 0, propertyCount: 0 });
-        }
-
+        const sid = shortUri(subUri), pid = shortUri(parentUri);
+        if (!nodeMap.has(pid)) nodeMap.set(pid, { label: pid, uri: parentUri, nodeType: 'Class' });
         if (!parentToChildren.has(pid)) parentToChildren.set(pid, new Set());
         parentToChildren.get(pid)!.add(sid);
         hasParent.add(sid);
-
-        const pn = allNodes.get(pid)!; pn.connections++;
-        const sn = allNodes.get(sid)!; sn.connections++;
       }
 
-      // Object properties — add to tree under a "Properties" branch, create cross-links for domain/range
+      // Object properties
       const propParentToChildren = new Map<string, Set<string>>();
       const propHasParent = new Set<string>();
-      for (const b of objPropBindings) {
-        const uri = b.p?.value;
-        if (!uri) continue;
+      for (const b of parseSparqlResults(objPropsText)) {
+        const uri = b.p?.value; if (!uri) continue;
         const id = shortUri(uri);
-        if (!allNodes.has(id)) {
-          allNodes.set(id, { label: b.label?.value || id, uri, nodeType: 'ObjectProperty', connections: 0, propertyCount: 0 });
-        }
-        // Property hierarchy
-        if (b.parent?.value) {
-          const pid = shortUri(b.parent.value);
-          if (!allNodes.has(pid)) {
-            allNodes.set(pid, { label: pid, uri: b.parent.value, nodeType: 'ObjectProperty', connections: 0, propertyCount: 0 });
-          }
-          if (!propParentToChildren.has(pid)) propParentToChildren.set(pid, new Set());
-          propParentToChildren.get(pid)!.add(id);
-          propHasParent.add(id);
-        }
-        // Domain cross-link
-        if (b.domain?.value) {
-          const did = shortUri(b.domain.value);
-          crossLinks.push({ sourceId: id, targetId: did, label: 'domain', linkType: 'domain' });
-          const dn = allNodes.get(did);
-          if (dn) { dn.connections++; dn.propertyCount++; }
-          const pn = allNodes.get(id)!; pn.connections++;
-          classPropertyCount.set(did, (classPropertyCount.get(did) ?? 0) + 1);
-        }
-        // Range cross-link
-        if (b.range?.value) {
-          const rid = shortUri(b.range.value);
-          crossLinks.push({ sourceId: id, targetId: rid, label: 'range', linkType: 'range' });
-          const rn = allNodes.get(rid);
-          if (rn) rn.connections++;
-          const pn = allNodes.get(id)!; pn.connections++;
-        }
-      }
-
-      // Datatype properties
-      for (const b of dataPropBindings) {
-        const uri = b.p?.value;
-        if (!uri) continue;
-        const id = shortUri(uri);
-        if (!allNodes.has(id)) {
-          allNodes.set(id, { label: b.label?.value || id, uri, nodeType: 'DatatypeProperty', connections: 0, propertyCount: 0 });
-        }
+        if (!nodeMap.has(id)) nodeMap.set(id, { label: b.label?.value || id, uri, nodeType: 'ObjectProperty' });
         if (b.parent?.value) {
           const pid = shortUri(b.parent.value);
           if (!propParentToChildren.has(pid)) propParentToChildren.set(pid, new Set());
           propParentToChildren.get(pid)!.add(id);
           propHasParent.add(id);
         }
-        if (b.domain?.value) {
-          const did = shortUri(b.domain.value);
-          crossLinks.push({ sourceId: id, targetId: did, label: 'domain', linkType: 'domain' });
-          classPropertyCount.set(did, (classPropertyCount.get(did) ?? 0) + 1);
-        }
       }
 
-      // Annotation properties
-      for (const b of annotPropBindings) {
-        const uri = b.p?.value;
-        if (!uri) continue;
+      // Data properties
+      for (const b of parseSparqlResults(dataPropsText)) {
+        const uri = b.p?.value; if (!uri) continue;
         const id = shortUri(uri);
-        if (!allNodes.has(id)) {
-          allNodes.set(id, { label: b.label?.value || id, uri, nodeType: 'AnnotationProperty', connections: 0, propertyCount: 0 });
-        }
+        if (!nodeMap.has(id)) nodeMap.set(id, { label: b.label?.value || id, uri, nodeType: 'DatatypeProperty' });
       }
 
       // Individuals
-      const individualsByClass = new Map<string, string[]>();
-      for (const b of individualBindings) {
-        const uri = b.ind?.value;
-        const typeUri = b.type?.value;
+      const indsByClass = new Map<string, string[]>();
+      for (const b of parseSparqlResults(individualsText)) {
+        const uri = b.ind?.value, typeUri = b.type?.value;
         if (!uri || !typeUri) continue;
-        const id = shortUri(uri);
-        const typeId = shortUri(typeUri);
-        if (!allNodes.has(id)) {
-          allNodes.set(id, { label: b.label?.value || id, uri, nodeType: 'Individual', connections: 0, propertyCount: 0 });
-        }
-        if (!individualsByClass.has(typeId)) individualsByClass.set(typeId, []);
-        individualsByClass.get(typeId)!.push(id);
+        const id = shortUri(uri), tid = shortUri(typeUri);
+        if (!nodeMap.has(id)) nodeMap.set(id, { label: b.label?.value || id, uri, nodeType: 'Individual' });
+        if (!indsByClass.has(tid)) indsByClass.set(tid, []);
+        indsByClass.get(tid)!.push(id);
       }
 
-      // Equivalent class cross-links
-      for (const b of equivBindings) {
-        const a = b.a?.value;
-        const bv = b.b?.value;
-        if (!a || !bv) continue;
-        crossLinks.push({ sourceId: shortUri(a), targetId: shortUri(bv), label: 'equivalentClass', linkType: 'equivalentClass' });
-      }
-
-      // Disjoint cross-links
-      for (const b of disjointBindings) {
-        const a = b.a?.value;
-        const bv = b.b?.value;
-        if (!a || !bv) continue;
-        crossLinks.push({ sourceId: shortUri(a), targetId: shortUri(bv), label: 'disjointWith', linkType: 'disjointWith' });
-      }
-
-      // Set property counts on nodes
-      for (const [id, count] of classPropertyCount) {
-        const node = allNodes.get(id);
-        if (node) node.propertyCount = count;
-      }
-
-      // ── Build tree hierarchy ───────────────────────────────────
+      // Build tree
       const visited = new Set<string>();
 
-      function buildClassNode(id: string): OntologyNode {
+      function buildClassTree(id: string, depth: number): TreeNode {
         visited.add(id);
-        const data = allNodes.get(id)!;
-        const childIds = parentToChildren.get(id) ?? new Set();
-        const children: OntologyNode[] = [];
-        for (const cid of childIds) {
-          if (!visited.has(cid) && allNodes.has(cid)) {
-            children.push(buildClassNode(cid));
-          }
+        const data = nodeMap.get(id)!;
+        const children: TreeNode[] = [];
+        for (const cid of parentToChildren.get(id) ?? new Set()) {
+          if (!visited.has(cid) && nodeMap.has(cid)) children.push(buildClassTree(cid, depth + 1));
         }
-        // Add individuals as leaf children
-        const inds = individualsByClass.get(id) ?? [];
-        for (const iid of inds) {
-          if (!visited.has(iid) && allNodes.has(iid)) {
+        for (const iid of indsByClass.get(id) ?? []) {
+          if (!visited.has(iid) && nodeMap.has(iid)) {
             visited.add(iid);
-            const idata = allNodes.get(iid)!;
-            children.push({ id: iid, label: idata.label, uri: idata.uri, nodeType: 'Individual', children: [], connectionCount: idata.connections, propertyCount: 0 });
+            const idata = nodeMap.get(iid)!;
+            children.push({ id: iid, label: idata.label, uri: idata.uri, nodeType: 'Individual', children: [], childCount: 0, depth: depth + 1 });
           }
         }
         children.sort((a, b) => a.label.localeCompare(b.label));
-        return { id, label: data.label, uri: data.uri, nodeType: data.nodeType, children, connectionCount: data.connections, propertyCount: data.propertyCount };
+        return { id, label: data.label, uri: data.uri, nodeType: data.nodeType, children, childCount: 0, depth };
       }
 
-      function buildPropNode(id: string): OntologyNode {
+      function buildPropTree(id: string, depth: number): TreeNode {
         visited.add(id);
-        const data = allNodes.get(id)!;
-        const childIds = propParentToChildren.get(id) ?? new Set();
-        const children: OntologyNode[] = [];
-        for (const cid of childIds) {
-          if (!visited.has(cid) && allNodes.has(cid)) {
-            children.push(buildPropNode(cid));
-          }
+        const data = nodeMap.get(id)!;
+        const children: TreeNode[] = [];
+        for (const cid of propParentToChildren.get(id) ?? new Set()) {
+          if (!visited.has(cid) && nodeMap.has(cid)) children.push(buildPropTree(cid, depth + 1));
         }
         children.sort((a, b) => a.label.localeCompare(b.label));
-        return { id, label: data.label, uri: data.uri, nodeType: data.nodeType, children, connectionCount: data.connections, propertyCount: 0 };
+        return { id, label: data.label, uri: data.uri, nodeType: data.nodeType, children, childCount: 0, depth };
       }
 
       // Class roots
-      const classRoots: string[] = [];
-      for (const [id, data] of allNodes) {
-        if (data.nodeType === 'Class' && !hasParent.has(id)) classRoots.push(id);
-      }
-      classRoots.sort((a, b) => (allNodes.get(a)!.label).localeCompare(allNodes.get(b)!.label));
-      const classBranches = classRoots.map(id => buildClassNode(id));
-
-      // Orphan classes
-      for (const [id, data] of allNodes) {
-        if (data.nodeType === 'Class' && !visited.has(id)) {
-          classBranches.push({ id, label: data.label, uri: data.uri, nodeType: 'Class', children: [], connectionCount: data.connections, propertyCount: data.propertyCount });
-          visited.add(id);
+      const classRoots: TreeNode[] = [];
+      for (const [id, data] of nodeMap) {
+        if (data.nodeType === 'Class' && !hasParent.has(id) && !visited.has(id)) {
+          classRoots.push(buildClassTree(id, 1));
         }
       }
+      // Orphan classes
+      for (const [id, data] of nodeMap) {
+        if (data.nodeType === 'Class' && !visited.has(id)) {
+          visited.add(id);
+          classRoots.push({ id, label: data.label, uri: data.uri, nodeType: 'Class', children: [], childCount: 0, depth: 1 });
+        }
+      }
+      classRoots.sort((a, b) => a.label.localeCompare(b.label));
 
       // Property roots
-      const propRoots: string[] = [];
-      for (const [id, data] of allNodes) {
+      const propRoots: TreeNode[] = [];
+      for (const [id, data] of nodeMap) {
         if ((data.nodeType === 'ObjectProperty' || data.nodeType === 'DatatypeProperty') && !propHasParent.has(id) && !visited.has(id)) {
-          propRoots.push(id);
+          propRoots.push(buildPropTree(id, 1));
         }
       }
-      propRoots.sort((a, b) => (allNodes.get(a)!.label).localeCompare(allNodes.get(b)!.label));
-      const propBranches = propRoots.map(id => buildPropNode(id));
-
-      // Orphan properties
-      for (const [id, data] of allNodes) {
+      for (const [id, data] of nodeMap) {
         if ((data.nodeType === 'ObjectProperty' || data.nodeType === 'DatatypeProperty') && !visited.has(id)) {
-          propBranches.push({ id, label: data.label, uri: data.uri, nodeType: data.nodeType, children: [], connectionCount: data.connections, propertyCount: 0 });
           visited.add(id);
+          propRoots.push({ id, label: data.label, uri: data.uri, nodeType: data.nodeType, children: [], childCount: 0, depth: 1 });
         }
       }
-
-      // Annotation properties
-      const annotBranches: OntologyNode[] = [];
-      for (const [id, data] of allNodes) {
-        if (data.nodeType === 'AnnotationProperty' && !visited.has(id)) {
-          visited.add(id);
-          annotBranches.push({ id, label: data.label, uri: data.uri, nodeType: 'AnnotationProperty', children: [], connectionCount: 0, propertyCount: 0 });
-        }
-      }
-      annotBranches.sort((a, b) => a.label.localeCompare(b.label));
+      propRoots.sort((a, b) => a.label.localeCompare(b.label));
 
       // Orphan individuals
-      const orphanInds: OntologyNode[] = [];
-      for (const [id, data] of allNodes) {
+      const orphanInds: TreeNode[] = [];
+      for (const [id, data] of nodeMap) {
         if (data.nodeType === 'Individual' && !visited.has(id)) {
           visited.add(id);
-          orphanInds.push({ id, label: data.label, uri: data.uri, nodeType: 'Individual', children: [], connectionCount: 0, propertyCount: 0 });
+          orphanInds.push({ id, label: data.label, uri: data.uri, nodeType: 'Individual', children: [], childCount: 0, depth: 1 });
         }
       }
 
-      // ── Assemble root ──────────────────────────────────────────
-      const rootChildren: OntologyNode[] = [];
-
-      if (classBranches.length > 0) {
-        rootChildren.push({
-          id: '__classes__', label: `Classes (${classBranches.length})`, uri: '',
-          nodeType: 'Class', children: classBranches, connectionCount: 0, propertyCount: 0,
-        });
+      // Assemble
+      const treeRoots: TreeNode[] = [];
+      if (classRoots.length > 0) {
+        const branch: TreeNode = { id: '__classes__', label: `Classes (${classRoots.length})`, uri: '', nodeType: 'Class', children: classRoots, childCount: 0, depth: 0 };
+        countDescendants(branch);
+        treeRoots.push(branch);
       }
-      if (propBranches.length > 0) {
-        rootChildren.push({
-          id: '__properties__', label: `Properties (${propBranches.length})`, uri: '',
-          nodeType: 'ObjectProperty', children: propBranches, connectionCount: 0, propertyCount: 0,
-        });
-      }
-      if (annotBranches.length > 0) {
-        rootChildren.push({
-          id: '__annotations__', label: `Annotations (${annotBranches.length})`, uri: '',
-          nodeType: 'AnnotationProperty', children: annotBranches, connectionCount: 0, propertyCount: 0,
-        });
+      if (propRoots.length > 0) {
+        const branch: TreeNode = { id: '__properties__', label: `Properties (${propRoots.length})`, uri: '', nodeType: 'ObjectProperty', children: propRoots, childCount: 0, depth: 0 };
+        countDescendants(branch);
+        treeRoots.push(branch);
       }
       if (orphanInds.length > 0) {
-        rootChildren.push({
-          id: '__individuals__', label: `Individuals (${orphanInds.length})`, uri: '',
-          nodeType: 'Individual', children: orphanInds, connectionCount: 0, propertyCount: 0,
-        });
+        const branch: TreeNode = { id: '__individuals__', label: `Individuals (${orphanInds.length})`, uri: '', nodeType: 'Individual', children: orphanInds, childCount: 0, depth: 0 };
+        countDescendants(branch);
+        treeRoots.push(branch);
       }
 
-      const root: OntologyNode = {
-        id: '__ontology__', label: 'Ontology', uri: '',
-        nodeType: 'Ontology', children: rootChildren, connectionCount: 0, propertyCount: 0,
-      };
-
-      // Compute stats
-      let md = 0;
-      function findMaxDepth(node: OntologyNode, d: number) {
-        if (d > md) md = d;
-        node.children.forEach(c => findMaxDepth(c, d + 1));
-      }
-      findMaxDepth(root, 0);
-      countDescendants(root);
-
-      // Count by type
+      // Stats
       const tc = new Map<NodeType, number>();
-      for (const data of allNodes.values()) {
-        tc.set(data.nodeType, (tc.get(data.nodeType) ?? 0) + 1);
-      }
+      for (const data of nodeMap.values()) tc.set(data.nodeType, (tc.get(data.nodeType) ?? 0) + 1);
       setTypeCounts(tc);
 
-      const totalClasses = tc.get('Class') ?? 0;
-      const totalProps = (tc.get('ObjectProperty') ?? 0) + (tc.get('DatatypeProperty') ?? 0) + (tc.get('AnnotationProperty') ?? 0);
-      const totalInds = tc.get('Individual') ?? 0;
+      let maxDepth = 0;
+      function findDepth(n: TreeNode) { if (n.depth > maxDepth) maxDepth = n.depth; n.children.forEach(findDepth); }
+      treeRoots.forEach(findDepth);
 
-      setStats({ classes: totalClasses, properties: totalProps, individuals: totalInds, depth: md, crossLinks: crossLinks.length });
-      treeDataRef.current = root;
-      crossLinksRef.current = crossLinks;
-      collapsedRef.current = new Set();
-      renderTree();
-      setTimeout(fitGraph, 300);
+      setStats({
+        classes: tc.get('Class') ?? 0,
+        properties: (tc.get('ObjectProperty') ?? 0) + (tc.get('DatatypeProperty') ?? 0),
+        individuals: tc.get('Individual') ?? 0,
+        depth: maxDepth,
+      });
+
+      setRoots(treeRoots);
+      // Auto-expand top-level branches
+      setExpanded(new Set(treeRoots.map(r => r.id)));
       refreshStats();
     } catch (e) {
       console.error('Failed to load tree:', e);
     }
-  }, [renderTree, fitGraph, refreshStats]);
-
-  const toggleTypeFilter = useCallback((type: NodeType) => {
-    const next = new Set(hiddenTypesRef.current);
-    if (next.has(type)) next.delete(type);
-    else next.add(type);
-    hiddenTypesRef.current = next;
-    setHiddenTypes(new Set(next));
-    renderTree();
-  }, [renderTree]);
-
-  // Initialize SVG
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-
-    const svg = d3.select(el)
-      .append('svg')
-      .attr('width', rect.width)
-      .attr('height', rect.height)
-      .style('background', '#1e1e2e')
-      .style('display', 'block');
-
-    const g = svg.append('g');
-
-    const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.02, 8])
-      .on('zoom', (event) => g.attr('transform', event.transform.toString()));
-    svg.call(zoom);
-    svg.on('click', () => onNodeSelect(null));
-
-    svgRef.current = svg.node();
-    gRef.current = g;
-    zoomRef.current = zoom;
-
-    const ro = new ResizeObserver(() => {
-      const r = el.getBoundingClientRect();
-      svg.attr('width', r.width).attr('height', r.height);
-    });
-    ro.observe(el);
-
-    (window as unknown as Record<string, unknown>).__refreshGraph = loadTree;
-
-    return () => {
-      ro.disconnect(); svg.remove();
-      svgRef.current = null; gRef.current = null; zoomRef.current = null;
-      delete (window as unknown as Record<string, unknown>).__refreshGraph;
-    };
-  }, [onNodeSelect, loadTree]);
-
-  // Keyboard
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      if (e.key === 'Escape') onNodeSelect(null);
-      else if (e.key === 'f' || e.key === 'F') fitGraph();
-      else if (e.key === 'r' || e.key === 'R') {
-        if (svgRef.current && zoomRef.current) {
-          d3.select(svgRef.current).transition().duration(500).call(zoomRef.current.transform, d3.zoomIdentity);
-        }
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onNodeSelect, fitGraph]);
+  }, [refreshStats]);
 
   useEffect(() => { if (status === 'connected') loadTree(); }, [status, loadTree]);
+  useEffect(() => {
+    (window as unknown as Record<string, unknown>).__refreshGraph = loadTree;
+    return () => { delete (window as unknown as Record<string, unknown>).__refreshGraph; };
+  }, [loadTree]);
 
-  const typeOrder: NodeType[] = ['Class', 'ObjectProperty', 'DatatypeProperty', 'AnnotationProperty', 'Individual'];
+  const toggleExpand = useCallback((id: string) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const handleSelect = useCallback((node: TreeNode) => {
+    if (node.id.startsWith('__')) return;
+    setSelectedId(node.id);
+    onNodeSelect({ id: node.id, label: node.label, uri: node.uri });
+  }, [onNodeSelect]);
+
+  const normalizedSearch = searchTerm.toLowerCase().trim();
+
+  // Auto-expand matching paths during search
+  const effectiveExpanded = useMemo(() => {
+    if (!normalizedSearch) return expanded;
+    const auto = new Set<string>();
+    function walk(n: TreeNode): boolean {
+      const selfMatch = n.label.toLowerCase().includes(normalizedSearch) || n.id.toLowerCase().includes(normalizedSearch);
+      let childMatch = false;
+      for (const c of n.children) { if (walk(c)) childMatch = true; }
+      if (childMatch) auto.add(n.id);
+      return selfMatch || childMatch;
+    }
+    roots.forEach(walk);
+    return auto;
+  }, [roots, normalizedSearch, expanded]);
+
+  // Filter by hidden types
+  const filteredRoots = useMemo(() => {
+    if (hiddenTypes.size === 0) return roots;
+    function filterNode(n: TreeNode): TreeNode | null {
+      if (hiddenTypes.has(n.nodeType) && !n.id.startsWith('__')) return null;
+      const children = n.children.map(filterNode).filter(Boolean) as TreeNode[];
+      if (children.length === 0 && n.children.length > 0 && hiddenTypes.has(n.nodeType)) return null;
+      return { ...n, children };
+    }
+    return roots.map(filterNode).filter(Boolean) as TreeNode[];
+  }, [roots, hiddenTypes]);
+
+  // Flatten for virtual scroll
+  const flatNodes = useMemo(
+    () => flattenTree(filteredRoots, effectiveExpanded, normalizedSearch, 0),
+    [filteredRoots, effectiveExpanded, normalizedSearch]
+  );
+
+  // Virtual scroll
+  const totalHeight = flatNodes.length * ROW_HEIGHT;
+  const startIdx = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN);
+  const endIdx = Math.min(flatNodes.length, Math.ceil((scrollTop + viewHeight) / ROW_HEIGHT) + OVERSCAN);
+  const visibleNodes = flatNodes.slice(startIdx, endIdx);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => setScrollTop(el.scrollTop);
+    const ro = new ResizeObserver(() => setViewHeight(el.clientHeight));
+    el.addEventListener('scroll', onScroll, { passive: true });
+    ro.observe(el);
+    setViewHeight(el.clientHeight);
+    return () => { el.removeEventListener('scroll', onScroll); ro.disconnect(); };
+  }, []);
+
+  const expandAll = useCallback(() => {
+    const all = new Set<string>();
+    function walk(n: TreeNode) { if (n.children.length > 0) { all.add(n.id); n.children.forEach(walk); } }
+    roots.forEach(walk);
+    setExpanded(all);
+  }, [roots]);
+
+  const collapseAll = useCallback(() => setExpanded(new Set(roots.map(r => r.id))), [roots]);
+
+  const toggleType = useCallback((type: NodeType) => {
+    setHiddenTypes(prev => {
+      const next = new Set(prev);
+      if (next.has(type)) next.delete(type); else next.add(type);
+      return next;
+    });
+  }, []);
+
+  const typeOrder: NodeType[] = ['Class', 'ObjectProperty', 'DatatypeProperty', 'Individual'];
 
   return (
-    <div className="absolute inset-0" style={{ background: '#1e1e2e' }}>
-      <div ref={containerRef} className="w-full h-full" />
-
-      {/* Stats bar */}
-      <div className="absolute top-3 left-3 flex items-center gap-2" style={{ zIndex: 10 }}>
-        {[
-          { label: 'classes', value: stats.classes, color: NODE_TYPE_COLORS.Class },
-          { label: 'properties', value: stats.properties, color: NODE_TYPE_COLORS.ObjectProperty },
-          { label: 'individuals', value: stats.individuals, color: NODE_TYPE_COLORS.Individual },
-          { label: 'cross-links', value: stats.crossLinks, color: '#585b70' },
-          { label: 'depth', value: stats.depth, color: '#cdd6f4' },
-        ].map(s => (
-          <span key={s.label} style={{
-            background: '#181825', border: '1px solid #313244', borderRadius: 6,
-            padding: '3px 10px', fontSize: 10, color: '#6c7086',
-            display: 'flex', alignItems: 'center', gap: 4,
-          }}>
-            <span style={{ color: s.color, fontWeight: 600 }}>{s.value}</span> {s.label}
-          </span>
-        ))}
-      </div>
-
-      {/* Node type legend (clickable filters) */}
-      <div className="absolute top-12 left-3 flex flex-col gap-1" style={{ zIndex: 10 }}>
-        {typeOrder.filter(t => (typeCounts.get(t) ?? 0) > 0).map(type => (
-          <button
-            key={type}
-            onClick={() => toggleTypeFilter(type)}
-            style={{
-              background: '#181825',
-              border: '1px solid #313244',
-              borderRadius: 6,
-              padding: '4px 10px',
-              fontSize: 11,
-              color: hiddenTypes.has(type) ? '#45475a' : '#bac2de',
-              display: 'flex', alignItems: 'center', gap: 8,
-              cursor: 'pointer',
-              textDecoration: hiddenTypes.has(type) ? 'line-through' : 'none',
-              opacity: hiddenTypes.has(type) ? 0.5 : 1,
-              textAlign: 'left',
-              fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif',
-            }}
-          >
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: getColor(type), display: 'inline-block', flexShrink: 0 }} />
-            <span style={{ fontWeight: 600 }}>{type}</span>
-            <span style={{ color: '#585b70', fontSize: 10 }}>({typeCounts.get(type) ?? 0})</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Shortcuts */}
-      <div className="absolute bottom-3 right-3" style={{ zIndex: 10 }}>
-        <span style={{ background: '#181825', border: '1px solid #313244', borderRadius: 6, padding: '4px 10px', fontSize: 10, color: '#45475a' }}>
-          Scroll zoom · Drag pan · Click inspect · Shift+click collapse · <b>F</b> fit · <b>R</b> reset · <b>Esc</b> deselect
-        </span>
-      </div>
-
-      {status !== 'connected' && (
-        <div className="absolute inset-0 flex items-center justify-center" style={{ color: '#585b70', zIndex: 5 }}>
-          {status === 'connecting' ? 'Connecting to engine...' : 'Engine not connected'}
+    <div className="absolute inset-0 flex flex-col" style={{ background: '#1e1e2e' }}>
+      {/* Header */}
+      <div style={{ padding: '8px 12px', borderBottom: '1px solid #313244', background: '#181825', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {/* Stats */}
+        <div style={{ display: 'flex', gap: 8, fontSize: 11, color: '#6c7086', flexWrap: 'wrap' }}>
+          {[
+            { label: 'classes', value: stats.classes, color: TYPE_COLORS.Class },
+            { label: 'properties', value: stats.properties, color: TYPE_COLORS.ObjectProperty },
+            { label: 'individuals', value: stats.individuals, color: TYPE_COLORS.Individual },
+            { label: 'depth', value: stats.depth, color: '#cdd6f4' },
+          ].map(s => (
+            <span key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <span style={{ color: s.color, fontWeight: 600 }}>{s.value}</span> {s.label}
+            </span>
+          ))}
         </div>
-      )}
+
+        {/* Search */}
+        <input
+          type="text"
+          placeholder="Search..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          style={{
+            width: '100%', padding: '5px 10px', borderRadius: 6, border: '1px solid #313244',
+            background: '#1e1e2e', color: '#cdd6f4', fontSize: 12, outline: 'none',
+            fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+          }}
+        />
+
+        {/* Type filters + controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+          {typeOrder.filter(t => (typeCounts.get(t) ?? 0) > 0).map(type => (
+            <button key={type} onClick={() => toggleType(type)} style={{
+              background: 'none', border: '1px solid #313244', borderRadius: 4, padding: '1px 6px',
+              fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3,
+              color: hiddenTypes.has(type) ? '#45475a' : '#bac2de',
+              opacity: hiddenTypes.has(type) ? 0.4 : 1,
+              textDecoration: hiddenTypes.has(type) ? 'line-through' : 'none',
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: TYPE_COLORS[type] }} />
+              {type} ({typeCounts.get(type) ?? 0})
+            </button>
+          ))}
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 3 }}>
+            <button onClick={expandAll} style={{ background: 'none', border: '1px solid #313244', color: '#6c7086', borderRadius: 4, padding: '1px 6px', fontSize: 10, cursor: 'pointer' }}>
+              Expand
+            </button>
+            <button onClick={collapseAll} style={{ background: 'none', border: '1px solid #313244', color: '#6c7086', borderRadius: 4, padding: '1px 6px', fontSize: 10, cursor: 'pointer' }}>
+              Collapse
+            </button>
+          </div>
+        </div>
+
+        {normalizedSearch && (
+          <div style={{ fontSize: 10, color: '#6c7086' }}>{flatNodes.length} matches</div>
+        )}
+      </div>
+
+      {/* Virtualized tree */}
+      <div ref={scrollRef} style={{ flex: 1, overflow: 'auto' }}>
+        <div style={{ height: totalHeight, position: 'relative' }}>
+          {visibleNodes.map((flat, i) => {
+            const { node, indent, isExpanded, hasChildren } = flat;
+            const isSelected = selectedId === node.id;
+            const color = TYPE_COLORS[node.nodeType] ?? '#a6adc8';
+            const isLeaf = !hasChildren;
+            const isBranch = node.id.startsWith('__');
+            const top = (startIdx + i) * ROW_HEIGHT;
+
+            // Highlight search match
+            let labelEl: React.ReactNode = node.label;
+            if (normalizedSearch) {
+              const idx = node.label.toLowerCase().indexOf(normalizedSearch);
+              if (idx >= 0) {
+                labelEl = <>
+                  {node.label.slice(0, idx)}
+                  <span style={{ background: '#f9e2af33', color: '#f9e2af', borderRadius: 2, padding: '0 1px' }}>
+                    {node.label.slice(idx, idx + normalizedSearch.length)}
+                  </span>
+                  {node.label.slice(idx + normalizedSearch.length)}
+                </>;
+              }
+            }
+
+            return (
+              <div
+                key={node.id}
+                onClick={() => handleSelect(node)}
+                onDoubleClick={() => hasChildren && toggleExpand(node.id)}
+                style={{
+                  position: 'absolute',
+                  top,
+                  left: 0,
+                  right: 0,
+                  height: ROW_HEIGHT,
+                  paddingLeft: indent * 18 + 10,
+                  paddingRight: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  cursor: 'pointer',
+                  background: isSelected ? '#313244' : 'transparent',
+                  borderLeft: isSelected ? `2px solid ${color}` : '2px solid transparent',
+                  fontSize: isBranch ? 12 : 11,
+                  fontWeight: isBranch ? 600 : hasChildren ? 500 : 400,
+                  color: isSelected ? '#cdd6f4' : isBranch ? '#cdd6f4' : hasChildren ? '#bac2de' : '#a6adc8',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+                  userSelect: 'none',
+                }}
+                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = '#181825'; }}
+                onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+              >
+                {/* Arrow */}
+                <span
+                  onClick={e => { e.stopPropagation(); if (hasChildren) toggleExpand(node.id); }}
+                  style={{
+                    width: 14, fontSize: 8, color: '#585b70', flexShrink: 0, textAlign: 'center',
+                    transition: 'transform 0.1s',
+                    transform: hasChildren ? (isExpanded ? 'rotate(90deg)' : 'rotate(0deg)') : 'none',
+                    visibility: hasChildren ? 'visible' : 'hidden',
+                  }}
+                >
+                  {'\u25B6'}
+                </span>
+
+                {/* Type dot */}
+                <span style={{
+                  width: isLeaf ? 5 : 7, height: isLeaf ? 5 : 7,
+                  borderRadius: isLeaf ? '50%' : 2,
+                  background: color, flexShrink: 0, opacity: isLeaf ? 0.6 : 1,
+                }} />
+
+                {/* Label */}
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                  {labelEl}
+                </span>
+
+                {/* Child count */}
+                {hasChildren && node.childCount > 0 && (
+                  <span style={{ fontSize: 9, color: '#45475a', flexShrink: 0 }}>
+                    {node.childCount}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ padding: '4px 12px', borderTop: '1px solid #313244', background: '#181825', fontSize: 9, color: '#45475a', flexShrink: 0 }}>
+        Click to inspect · Double-click to expand · Search to filter
+      </div>
     </div>
   );
 }
