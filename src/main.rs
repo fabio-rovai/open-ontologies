@@ -439,9 +439,11 @@ async fn main() -> anyhow::Result<()> {
             let shared_db = StateDb::open(&db_path_owned)?;
 
             let ct = CancellationToken::new();
-            let mut http_config = StreamableHttpServerConfig::default();
-            http_config.stateful_mode = true;
-            http_config.cancellation_token = ct.clone();
+            let http_config = StreamableHttpServerConfig {
+                stateful_mode: true,
+                cancellation_token: ct.clone(),
+                ..Default::default()
+            };
 
             let shared_graph_for_service = shared_graph.clone();
             let gw_for_service = governance_webhook.clone();
