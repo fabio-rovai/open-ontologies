@@ -58,7 +58,7 @@ pub static CATALOGUE: &[MarketplaceEntry] = &[
     MarketplaceEntry {
         id: "ies",
         name: "IES Common (Information Exchange Standard)",
-        description: "UK NDTP core ontology for information exchange — 513 classes, 206 properties, 4D extensionalist (BORO) patterns for entities, events, states, and relationships",
+        description: "UK NDTP core ontology for information exchange — 511 classes, 206 properties, 4D extensionalist (BORO) patterns for entities, events, states, and relationships",
         domain: "upper-ontology",
         url: "https://raw.githubusercontent.com/IES-Org/ont-ies/main/docs/specification/ies-common.ttl",
         format: RdfFormat::Turtle,

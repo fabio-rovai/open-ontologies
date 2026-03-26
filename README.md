@@ -39,16 +39,6 @@ No JVM. No Protégé. No GUI required.
 
 ---
 
-## Screenshots
-
-| Full UI | Tree View |
-|---|---|
-| ![Studio overview — tree view, property inspector, and AI chat panel](studio/docs/screenshots/studio-overview.png) | ![Virtualized tree with hierarchy lines and connection explorer](studio/docs/screenshots/studio-graph.png) |
-
-*Cat ontology built from a single "build ontology about cats" command — 1,433 classes, 218 object properties, 358 individuals across 11 hierarchy levels. The tree view virtualizes rendering (only visible rows are in the DOM), with hierarchy connector lines, breadcrumb navigation, type-filtered legend, and a connections panel showing domain/range relationships as clickable pills.*
-
----
-
 ## Quick Start (MCP / CLI)
 
 ### Install
@@ -343,7 +333,7 @@ Full benchmark writeup: [docs/benchmarks.md](docs/benchmarks.md)
 
 ## IES Support
 
-[IES (Information Exchange Standard)](https://github.com/IES-Org) is the UK National Digital Twin Programme's core ontology framework. It uses a 4D extensionalist (BORO) approach for modelling entities, events, states, and relationships. Open Ontologies supports the **full IES stack** — all three layers, SHACL shapes, and 26+ example datasets.
+[IES (Information Exchange Standard)](https://github.com/IES-Org) is the UK National Digital Twin Programme's core ontology framework. It uses a 4D extensionalist (BORO) approach for modelling entities, events, states, and relationships. Open Ontologies supports the **full IES stack** — all three layers, SHACL shapes, and example datasets from the IES-Org GitHub repositories.
 
 ### The IES Layers
 
@@ -373,7 +363,7 @@ IES is the second-largest ontology in the marketplace by class count (after Sche
 
 ### Example Data
 
-Load any of the 42+ IES example datasets directly:
+Load IES example datasets directly from the official repositories:
 
 ```text
 onto_pull https://raw.githubusercontent.com/IES-Org/ont-ies/main/docs/examples/sample-data/event-participation.ttl
