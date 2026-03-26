@@ -3,8 +3,8 @@ import ReactMarkdown from 'react-markdown';
 import { useChat, ChatMessage } from '../hooks/useChat';
 
 const SLASH_COMMANDS = [
-  { cmd: '/build', description: 'Build a new ontology', prompt: 'Build me an ontology about ' },
-  { cmd: '/expand', description: 'Expand current ontology', prompt: 'Expand the current ontology with ' },
+  { cmd: '/build', description: 'Build a new ontology', prompt: 'Build an ontology about ' },
+  { cmd: '/expand', description: 'Expand current ontology', prompt: 'Expand the current ontology with more detail about ' },
   { cmd: '/validate', description: 'Run full validation', prompt: 'Run onto_validate and onto_lint on the current ontology and report all issues' },
   { cmd: '/reason', description: 'Run OWL reasoning', prompt: 'Run onto_reason with profile owl-rl on the current ontology' },
   { cmd: '/enforce', description: 'Check design patterns', prompt: 'Run onto_enforce with the generic rule pack' },
@@ -14,8 +14,8 @@ const SLASH_COMMANDS = [
 ];
 
 const STARTER_CHIPS = [
-  { label: 'Build an ontology', prompt: 'Build me an ontology about ' },
-  { label: 'Expand current', prompt: 'Expand the current ontology with ' },
+  { label: 'Build an ontology', prompt: 'Build an ontology about ' },
+  { label: 'Expand current', prompt: 'Expand the current ontology with more detail about ' },
   { label: 'Validate', prompt: 'Validate the current ontology and report any issues' },
   { label: 'Run reasoning', prompt: 'Run OWL reasoning on the current ontology' },
   { label: 'Explain structure', prompt: 'Explain the structure of the current ontology' },

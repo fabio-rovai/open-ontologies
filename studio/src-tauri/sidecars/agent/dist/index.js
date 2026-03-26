@@ -1,217 +1,183 @@
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import * as readline from 'readline';
-// --- Configuration ---
 const ENGINE_URL = 'http://localhost:8080/mcp';
-const SYSTEM_PROMPT = `You are an ontology engineering assistant with access to the Open Ontologies engine and all 42 of its tools.
+const SYSTEM_PROMPT = `You are an ontology engineering assistant with MCP tools for the Open Ontologies engine.
 
-Do not use emoji in your responses. Use plain text and markdown formatting only.
+No emoji. Plain text and markdown only.
 
-ALL 42 TOOLS — use whichever are appropriate for the task:
+CRITICAL: When asked to build an ontology, you will receive step-by-step instructions. Follow each step EXACTLY. Call the tools specified — do NOT just describe what you would do.
 
-Core:
-- onto_clear: Reset the triple store (call FIRST when building from scratch)
-- onto_load: Load Turtle RDF into the store (use "turtle" param for inline content)
-- onto_save: Export ontology to file
-- onto_stats: Get triple/class/property counts
-- onto_validate: Check RDF/OWL syntax
-- onto_lint: Quality checks — missing labels, domains, ranges
-- onto_query: Run SPARQL SELECT queries
-- onto_diff: Compare two ontology versions
-- onto_convert: Convert between formats (Turtle, N-Triples, RDF/XML, N-Quads, TriG)
-- onto_status: Check if server is running
-
-Remote:
-- onto_pull: Fetch ontology from a remote URL or SPARQL endpoint
-- onto_push: Push ontology to a remote SPARQL endpoint
-- onto_import: Resolve and load owl:imports chains from URLs
-
-Schema:
-- onto_import_schema: Import a PostgreSQL schema as OWL ontology
-
-Data pipeline:
-- onto_map: Generate a mapping config from data file + loaded ontology
-- onto_ingest: Parse structured data (CSV, JSON, NDJSON, XML, YAML, XLSX, Parquet) into RDF
-- onto_shacl: Validate loaded data against SHACL shapes
-- onto_extend: Run the full pipeline: ingest + SHACL validate + reason in one call
-
-Versioning:
-- onto_version: Save a named snapshot before making changes
-- onto_history: List saved version snapshots
-- onto_rollback: Restore a previous version
-
-Lifecycle (Terraform-style):
-- onto_plan: Preview changes — added/removed classes, blast radius, risk score
-- onto_apply: Apply planned changes (safe or migrate mode)
-- onto_lock: Protect production IRIs from removal
-- onto_drift: Compare versions — rename detection, drift velocity
-- onto_enforce: Check design pattern compliance (generic, boro, value_partition)
-- onto_monitor: Run SPARQL watchers with threshold alerts
-- onto_monitor_clear: Clear blocked state after resolving monitor alerts
-- onto_lineage: View the session lineage trail
-
-Alignment:
-- onto_align: Detect alignment candidates between two ontologies (7 weighted signals)
-- onto_align_feedback: Accept/reject alignment candidates to self-calibrate confidence
-
-Clinical:
-- onto_crosswalk: Look up ICD-10 / SNOMED / MeSH terminology mappings
-- onto_enrich: Add skos:exactMatch triples linking classes to clinical codes
-- onto_validate_clinical: Check class labels against clinical crosswalk terminology
-
-Feedback (self-calibrating):
-- onto_lint_feedback: Accept/dismiss a lint issue to suppress future warnings
-- onto_enforce_feedback: Accept/dismiss an enforce violation
-
-Embeddings + semantic search:
-- onto_embed: Generate text + Poincare structural embeddings for all classes
-- onto_search: Find classes by natural language description (requires onto_embed first)
-- onto_similarity: Compute embedding similarity between two IRIs
-
-OWL2-DL Reasoning:
-- onto_reason: Run RDFS or OWL-RL inference — materializes inferred triples
-- onto_dl_explain: Explain why a class is unsatisfiable (DL tableaux clash trace)
-- onto_dl_check: Check if one class is subsumed by another (DL tableaux)
-
-CRITICAL RULES:
-1. When asked to BUILD, CREATE, or MAKE a new ontology from scratch — call onto_clear FIRST, then onto_load.
-2. When asked to EXPAND, ADD TO, or EXTEND an existing ontology — do NOT clear, just onto_load.
-3. After any onto_load or mutation, ALWAYS call onto_save with path "~/.open-ontologies/studio-live.ttl" to persist the graph so the UI can display it.
-4. After mutations, mention what changed so the UI can refresh the graph.
-5. For a thorough build: onto_clear -> onto_load -> onto_stats -> onto_reason -> onto_stats -> onto_lint -> onto_enforce (generic) -> onto_query (verify) -> onto_save -> onto_version.
-6. ALWAYS call onto_reason after onto_load — it materializes inferred triples (transitive subclass chains, domain/range propagation). Call onto_stats before and after to show what was inferred.
-7. ALWAYS call onto_enforce with rule pack "generic" after onto_lint — it catches design pattern issues that lint misses.
-8. ALWAYS call onto_version after onto_save — every save should have a rollback point.
-9. For data ingestion: onto_map -> onto_ingest -> onto_shacl -> onto_reason -> onto_save -> onto_version.
-10. For alignment: onto_align -> onto_align_feedback -> onto_apply -> onto_save -> onto_version.`;
+After any onto_load, always call onto_stats to verify what was loaded.
+After all loads are done, always call onto_save with path "~/.open-ontologies/studio-live.ttl".`;
 const MUTATION_TOOLS = new Set([
     'onto_load', 'onto_clear', 'onto_apply', 'onto_reason',
     'onto_rollback', 'onto_ingest', 'onto_extend', 'onto_import',
     'onto_pull', 'onto_enrich'
 ]);
-// --- State ---
 let sessionId;
-// --- stdout Protocol ---
 function send(msg) {
     process.stdout.write(JSON.stringify(msg) + '\n');
 }
-// --- Wait for engine to be ready ---
 async function waitForEngine(maxRetries = 15) {
     for (let i = 0; i < maxRetries; i++) {
         try {
             const resp = await fetch(ENGINE_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json, text/event-stream',
-                },
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream' },
                 body: JSON.stringify({
-                    jsonrpc: '2.0',
-                    id: 1,
-                    method: 'initialize',
-                    params: {
-                        protocolVersion: '2025-03-26',
-                        capabilities: {},
-                        clientInfo: { name: 'ontology-agent-probe', version: '1.0.0' },
-                    },
+                    jsonrpc: '2.0', id: 1, method: 'initialize',
+                    params: { protocolVersion: '2025-03-26', capabilities: {}, clientInfo: { name: 'probe', version: '1.0.0' } },
                 }),
             });
             if (resp.ok)
                 return true;
         }
-        catch {
-            // Engine not ready yet
-        }
+        catch { /* retry */ }
         await new Promise(r => setTimeout(r, 1000));
     }
     return false;
 }
-// --- Handle a chat message using the Claude Agent SDK ---
-async function handleMessage(userMessage) {
+// --- Run one agent turn within a persistent session ---
+async function runTurn(prompt) {
     let mutated = false;
-    try {
-        // Build the prompt with system context prepended
-        const fullPrompt = userMessage;
-        const q = query({
-            prompt: fullPrompt,
-            options: {
-                systemPrompt: SYSTEM_PROMPT,
-                model: 'claude-opus-4-6',
-                mcpServers: {
-                    'ontology-engine': {
-                        type: 'http',
-                        url: ENGINE_URL,
-                    },
-                },
-                // Allow all MCP tools without prompting
-                allowedTools: ['mcp__ontology-engine__*'],
-                // No built-in tools needed - only MCP tools from the engine
-                tools: [],
-                // Persist sessions to disk so resume works across turns
-                // Don't persist to disk — prevents auto-resuming stale sessions after engine restart
-                persistSession: false,
-                // Resume in-memory session for multi-turn within same sidecar process
-                ...(sessionId ? { resume: sessionId } : {}),
-                // Accept edits mode to avoid permission prompts
-                permissionMode: 'bypassPermissions',
-                allowDangerouslySkipPermissions: true,
-            },
-        });
-        for await (const message of q) {
-            // Capture session ID for multi-turn AND share with frontend for SPARQL queries
-            if ('session_id' in message && message.session_id && !sessionId) {
+    const q = query({
+        prompt,
+        options: {
+            systemPrompt: SYSTEM_PROMPT,
+            model: 'claude-opus-4-6',
+            mcpServers: { 'ontology-engine': { type: 'http', url: ENGINE_URL } },
+            allowedTools: ['mcp__ontology-engine__*'],
+            tools: [],
+            persistSession: true,
+            ...(sessionId ? { resume: sessionId } : {}),
+            permissionMode: 'bypassPermissions',
+            allowDangerouslySkipPermissions: true,
+            maxTurns: 15,
+        },
+    });
+    for await (const message of q) {
+        if ('session_id' in message && message.session_id) {
+            if (!sessionId) {
                 sessionId = message.session_id;
-                // Tell the frontend which MCP session to use for graph queries
                 send({ type: 'session', sessionId: message.session_id });
             }
-            switch (message.type) {
-                case 'assistant': {
-                    // Extract text content from the assistant message
-                    const content = message.message?.content;
-                    if (Array.isArray(content)) {
-                        for (const block of content) {
-                            if (block.type === 'text' && block.text) {
-                                send({ type: 'text', content: block.text });
-                            }
-                            if (block.type === 'tool_use') {
-                                send({ type: 'tool_call', tool: block.name, input: block.input });
-                                // Tool names are namespaced: "mcp__ontology-engine__onto_load"
-                                // Check if the name ends with any known mutation tool
-                                if ([...MUTATION_TOOLS].some(t => block.name === t || block.name.endsWith(`__${t}`))) {
-                                    mutated = true;
-                                }
+        }
+        switch (message.type) {
+            case 'assistant': {
+                const content = message.message?.content;
+                if (Array.isArray(content)) {
+                    for (const block of content) {
+                        if (block.type === 'text' && block.text) {
+                            send({ type: 'text', content: block.text });
+                        }
+                        if (block.type === 'tool_use') {
+                            send({ type: 'tool_call', tool: block.name, input: block.input });
+                            if ([...MUTATION_TOOLS].some(t => block.name === t || block.name.endsWith(`__${t}`))) {
+                                mutated = true;
                             }
                         }
                     }
-                    break;
                 }
-                case 'result': {
-                    // Final result message
-                    if (message.subtype === 'success') {
-                        // Success - text already sent via assistant messages
-                    }
-                    else {
-                        // Error subtypes: error_during_execution, error_max_turns, etc.
-                        const errors = 'errors' in message ? message.errors : [];
-                        send({ type: 'error', error: (errors && errors.length > 0) ? errors.join('; ') : `Agent error: ${message.subtype}` });
-                    }
-                    break;
-                }
-                case 'system': {
-                    // System messages (compact boundaries, etc.) - ignore
-                    break;
-                }
+                break;
             }
+            case 'result': {
+                if (message.subtype !== 'success') {
+                    const errors = 'errors' in message ? message.errors : [];
+                    send({ type: 'error', error: (errors && errors.length > 0) ? errors.join('; ') : `Agent error: ${message.subtype}` });
+                }
+                break;
+            }
+            case 'system': break;
         }
-        send({ type: 'done', mutated });
+    }
+    return mutated;
+}
+// --- Build request detection ---
+function isBuildRequest(msg) {
+    const lower = msg.toLowerCase();
+    return (lower.includes('build') || lower.includes('create') || lower.includes('make') || lower.includes('generate'))
+        && (lower.includes('ontology') || lower.includes('about'));
+}
+function extractDomain(msg) {
+    const patterns = [
+        /(?:about|for|on|of)\s+(.+)/i,
+        /(?:build|create|make|generate)\s+(?:a\s+|an\s+|the\s+)?(?:\w+\s+)?(?:ontology\s+)?(?:about|for|on|of)\s+(.+)/i,
+    ];
+    for (const p of patterns) {
+        const m = msg.match(p);
+        if (m) {
+            const match = m[2] || m[1];
+            if (match)
+                return match.trim().replace(/[.!?]+$/, '');
+        }
+    }
+    return msg.replace(/^(build|create|make|generate)\s+(an?\s+)?ontology\s*/i, '').trim() || msg;
+}
+// --- Multi-step build within ONE session ---
+async function handleBuild(domain) {
+    const ns = domain.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    // Step 1: Clear + load classes
+    send({ type: 'text', content: `**Building ontology: ${domain}**\n\n---\n**Step 1/4:** Classes hierarchy...` });
+    await runTurn(`Build an ontology about "${domain}". Use namespace @prefix : <http://example.org/${ns}#> .
+
+Step 1: Call onto_clear. Then call onto_load with Turtle containing:
+- 80-150 owl:Class declarations organised in a subClassOf hierarchy 5-7 levels deep
+- A root class, 5-8 major branches, each with 3-6 sub-branches, each with 2-5 leaves
+- Enumerate ALL real-world subtypes exhaustively
+- Every class MUST have rdfs:label and rdfs:comment
+
+Call onto_stats after loading to verify. Do NOT call onto_save yet — more content coming.`);
+    // Step 2: Properties (SAME session — agent has context)
+    send({ type: 'text', content: `\n---\n**Step 2/4:** Properties...` });
+    await runTurn(`Now add properties to the ontology. Call onto_load with Turtle using the SAME namespace as before containing:
+
+- 25-40 owl:ObjectProperty declarations, each with rdfs:domain, rdfs:range, rdfs:label, rdfs:comment
+- Build rdfs:subPropertyOf hierarchies (e.g., hasParticipant > hasAgent > hasDriver)
+- Add owl:inverseOf pairs for bidirectional relationships
+- Mark owl:TransitiveProperty (isPartOf), owl:SymmetricProperty (isRelatedTo), owl:FunctionalProperty where appropriate
+- 15-20 owl:DatatypeProperty declarations with rdfs:domain, rdfs:range (xsd types), rdfs:label, rdfs:comment
+
+Call onto_stats after loading. Do NOT call onto_save yet.`);
+    // Step 3: Axioms + individuals (SAME session)
+    send({ type: 'text', content: `\n---\n**Step 3/4:** Axioms + individuals...` });
+    await runTurn(`Now add axioms and individuals. Call onto_load with Turtle using the SAME namespace containing:
+
+- owl:disjointWith between ALL sibling classes that cannot overlap
+- 15-20 owl:NamedIndividual instances — real-world examples with rdf:type and property values
+
+Call onto_stats after loading. Do NOT call onto_save yet.`);
+    // Step 4: Reason + save (SAME session)
+    send({ type: 'text', content: `\n---\n**Step 4/4:** Reasoning + save...` });
+    await runTurn(`Final step. Run:
+1. onto_reason with profile "rdfs"
+2. onto_stats — report the final counts
+3. onto_save with path "~/.open-ontologies/studio-live.ttl"
+
+Report the final ontology statistics.`);
+    send({ type: 'text', content: `\n---\n**Build complete.** Refresh the tree view to see the full graph.` });
+}
+// --- Handle a chat message ---
+async function handleMessage(userMessage) {
+    try {
+        if (isBuildRequest(userMessage)) {
+            const domain = extractDomain(userMessage);
+            // Fresh session for each new build
+            sessionId = undefined;
+            await handleBuild(domain);
+            send({ type: 'done', mutated: true });
+        }
+        else {
+            const mutated = await runTurn(userMessage);
+            send({ type: 'done', mutated });
+        }
     }
     catch (e) {
         send({ type: 'error', error: String(e) });
-        send({ type: 'done', mutated });
+        send({ type: 'done', mutated: false });
     }
 }
-// --- stdin/stdout Protocol ---
+// --- Main ---
 async function main() {
-    // Wait for the ontology engine to be ready
     const engineReady = await waitForEngine();
     if (!engineReady) {
         send({ type: 'error', error: 'Engine not reachable after 15 retries' });
