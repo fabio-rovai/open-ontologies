@@ -252,25 +252,25 @@ One sentence input: *"Build a Pizza ontology following the Manchester tutorial s
 | Toppings | 49 | 49 | **100%** |
 | Named Pizzas | 24 | 24 | **100%** |
 
-### Deep Builder v2 — IES-Level Generation from Natural Language
+### `/sketch` vs `/build` — Two Build Modes
 
-The Studio's `/build` command runs a 13-step pipeline within a single persistent Claude session: foundation classes → per-branch deepening → object properties (2 batches) → datatype properties → disjoints → individuals → reason → save. Each step focuses on one aspect of the ontology, staying within output token limits while building on the previous step's context.
+The Studio provides two build commands for different use cases. Both take the same input — *"build ontology about cats"* — but produce very different results:
 
-Input: *"build ontology about cats"*
-
-| Metric | v1 (single-pass) | v2 (13-step pipeline) | IES Common (reference) |
+| Metric | `/sketch` (3 steps, ~2 min) | `/build` (13 steps, ~15 min) | IES Common (reference) |
 | --- | ---: | ---: | ---: |
-| Classes | 139 | **1,433** | 511 |
-| Object properties | 0 | **218** | 162 |
-| Datatype properties | 0 | **101** | 44 |
-| Individuals | 0 | **358** | 21 |
-| Triples | 558 | **15,556** | 4,041 |
-| Max hierarchy depth | 3 | **11** | 8 |
+| Classes | 95 | **1,433** | 511 |
+| Object properties | 15 | **218** | 162 |
+| Datatype properties | 5 | **101** | 44 |
+| Individuals | 3 | **358** | 21 |
+| Disjoints | 6 | **60+** | — |
+| Max hierarchy depth | 5 | **11** | 8 |
 | Build time | ~2 min | ~15 min | — (hand-built) |
 
-v1 produced only classes because a single Claude turn exhausted its output tokens on class definitions, leaving nothing for properties or axioms. v2 solves this by decomposing the build into focused steps — each step generates one type of content (classes, then properties, then axioms) within a persistent session where Claude has full context of what was loaded in previous steps.
+**`/sketch`** runs 3 steps: classes + properties in one Turtle block, axioms + individuals, then save. Good for quick domain exploration or demo prototyping. Produces a complete ontology with hierarchy, properties, and individuals — but at a fraction of the depth.
 
-The `/sketch` command provides a lighter 3-step alternative (~80 classes, ~25 properties) for quick prototyping.
+**`/build`** runs a 13-step pipeline within a single persistent Claude session: foundation classes → per-branch deepening (4 passes) → gap filling → object properties (2 batches) → datatype properties → disjoints → individuals → reason → save. Each step focuses on one aspect of the ontology, staying within output token limits while building on the previous step's context. The result exceeds IES Common on every metric.
+
+`/sketch` is comparable to the Pizza benchmark (95 classes, 8 properties). `/build` produces IES-level ontologies — deep enough for production use.
 
 ### Mushroom Classification — OWL Reasoning vs Expert Labels
 
