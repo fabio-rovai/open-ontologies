@@ -33,7 +33,7 @@
 
 Open Ontologies is a **Rust MCP server** and **desktop Studio** for AI-native ontology engineering. It exposes **43 tools** that let Claude build, validate, query, diff, lint, version, reason over, align, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — with Terraform-style lifecycle management, a marketplace of 32 standard ontologies, clinical crosswalks, semantic embeddings, and a full lineage audit trail.
 
-The **Studio** wraps the engine in a visual desktop environment: D3 horizontal tree with cross-links, 3D force-directed graph, AI chat panel, Protégé-style property inspector, and lineage viewer.
+The **Studio** wraps the engine in a visual desktop environment: virtualized ontology tree with hierarchy lines, breadcrumb navigation, and connection explorer; AI chat panel with `/build` (IES-level deep) and `/sketch` (quick prototype) commands; Protégé-style property inspector; and lineage viewer.
 
 No JVM. No Protégé. No GUI required.
 
@@ -41,11 +41,11 @@ No JVM. No Protégé. No GUI required.
 
 ## Screenshots
 
-| Full UI | 3D Graph |
+| Full UI | Tree View |
 |---|---|
-| ![Studio overview — 3D graph, property inspector, and AI chat panel](studio/docs/screenshots/studio-overview.png) | ![Close-up of the 3D force-directed Forest ontology graph](studio/docs/screenshots/studio-graph.png) |
+| ![Studio overview — tree view, property inspector, and AI chat panel](studio/docs/screenshots/studio-overview.png) | ![Virtualized tree with hierarchy lines and connection explorer](studio/docs/screenshots/studio-graph.png) |
 
-*Tissue ontology built in natural language. Gold edges show object property relationships (domain → range) connecting clusters; grey edges show subClassOf hierarchy. Spring-based force layout keeps related classes close.*
+*Cat ontology built from a single "build ontology about cats" command — 1,433 classes, 218 object properties, 358 individuals across 11 hierarchy levels. The tree view virtualizes rendering (only visible rows are in the DOM), with hierarchy connector lines, breadcrumb navigation, type-filtered legend, and a connections panel showing domain/range relationships as clickable pills.*
 
 ---
 
@@ -178,7 +178,7 @@ Every build includes OWL reasoning (materializes inferred triples), design patte
 
 The Studio is a native desktop application that wraps the same engine in a visual environment — no browser, no server to manage. It runs entirely on your machine: the engine sidecar handles RDF/OWL operations while the UI renders the graph in real time.
 
-Think of it as **Protege meets a 3D game engine, with an AI copilot**. You can build ontologies by typing natural language, see the graph update live, click any node to inspect its triples, and trace every change through the lineage panel.
+Think of it as **Protege meets an AI copilot**. Type "build ontology about cats" and watch a 1,400-class ontology appear in the tree — classes, properties, individuals, and axioms built automatically across 13 pipeline steps. Click any node to inspect its triples, trace connections via clickable pills, and follow every change through the lineage panel.
 
 ### How it works
 
@@ -211,8 +211,8 @@ The first launch compiles the Tauri shell (~2 min). Subsequent launches start in
 
 | Feature | Description |
 | --- | --- |
-| **D3 Tree + 3D Graph** | Two view modes: a D3.js horizontal tree (default) showing the full class/property hierarchy with collapsible branches, cross-links, and node type filtering — and a 3D force-directed graph (Three.js / WebGL) with spring physics. Both support zoom, pan, click to inspect, and keyboard shortcuts. |
-| **AI Agent Chat** | Natural language ontology engineering via Claude Opus 4.6 + Agent SDK. Type *"Build me a Pizza ontology"* and watch it appear in the graph. Claude calls validate, load, reason, lint, enforce, and save automatically — you see each tool call in real time. |
+| **Virtualized Tree** | Ontology explorer that handles 1,500+ classes without lag. Hierarchy connector lines, collapsible branches, type-filtered legend (Class/Property/Individual), search with auto-expand, breadcrumb path navigation, and a connections panel showing domain/range relationships as clickable pills. Only visible rows are in the DOM — constant memory regardless of ontology size. |
+| **AI Agent Chat** | Natural language ontology engineering via Claude Opus 4.6 + Agent SDK. Two build modes: `/build` runs a 13-step pipeline producing IES-level ontologies (500-1,500+ classes, 100-200+ properties), `/sketch` runs 3 steps for quick prototyping (~80 classes). Each tool call is shown in real time. |
 | **Property Inspector** | Protege-style inline triple editor. Click any node to see its `rdfs:subClassOf`, `rdfs:label`, `rdfs:domain`, `rdfs:range` and all other triples. Edit in place, hover to delete, `+ Add` for new triples. Changes are immediately reflected in the graph. |
 | **Lineage Panel** | Full audit trail from SQLite: every plan, apply, enforce, drift, monitor, and align event, grouped by session with timestamps. See exactly what Claude did and in what order. |
 | **Named Save** | `⌘S` to save as `~/.open-ontologies/<name>.ttl`. Auto-saves to `studio-live.ttl` after every mutation so you never lose work. |
@@ -229,7 +229,7 @@ The first launch compiles the Tauri shell (~2 min). Subsequent launches start in
 | `Esc` | Deselect node |
 | `Shift+click` | Collapse/expand branch (tree view) |
 | `Scroll` | Zoom in/out |
-| `Click + drag` | Pan (tree) / orbit (3D) |
+| `Click + drag` | Pan |
 
 ---
 
@@ -255,6 +255,26 @@ One sentence input: *"Build a Pizza ontology following the Manchester tutorial s
 | Properties | 8 | 8 | **100%** |
 | Toppings | 49 | 49 | **100%** |
 | Named Pizzas | 24 | 24 | **100%** |
+
+### Deep Builder v2 — IES-Level Generation from Natural Language
+
+The Studio's `/build` command runs a 13-step pipeline within a single persistent Claude session: foundation classes → per-branch deepening → object properties (2 batches) → datatype properties → disjoints → individuals → reason → save. Each step focuses on one aspect of the ontology, staying within output token limits while building on the previous step's context.
+
+Input: *"build ontology about cats"*
+
+| Metric | v1 (single-pass) | v2 (13-step pipeline) | IES Common (reference) |
+| --- | ---: | ---: | ---: |
+| Classes | 139 | **1,433** | 511 |
+| Object properties | 0 | **218** | 162 |
+| Datatype properties | 0 | **101** | 44 |
+| Individuals | 0 | **358** | 21 |
+| Triples | 558 | **15,556** | 4,041 |
+| Max hierarchy depth | 3 | **11** | 8 |
+| Build time | ~2 min | ~15 min | — (hand-built) |
+
+v1 produced only classes because a single Claude turn exhausted its output tokens on class definitions, leaving nothing for properties or axioms. v2 solves this by decomposing the build into focused steps — each step generates one type of content (classes, then properties, then axioms) within a persistent session where Claude has full context of what was loaded in previous steps.
+
+The `/sketch` command provides a lighter 3-step alternative (~80 classes, ~25 properties) for quick prototyping.
 
 ### Mushroom Classification — OWL Reasoning vs Expert Labels
 
@@ -694,7 +714,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph UI["React UI (Vite + Tailwind CSS)"]
-        Graph["D3 Tree + 3D Graph\nD3.js / Three.js"]
+        Graph["Virtualized Tree\nDOM + virtual scroll"]
         Chat["AI Chat Panel\nZustand store"]
         Inspector["Property Inspector\nInline SPARQL edit"]
         Lineage["Lineage Panel\nAudit trail"]
@@ -718,7 +738,7 @@ flowchart TD
         Proto["stdin/stdout JSON protocol"]
     end
 
-    Graph -->|"SPARQL SELECT · REST"| REST2
+    Graph -->|"SPARQL SELECT/UPDATE · REST"| REST2
     Inspector -->|"SPARQL UPDATE · REST"| REST2
     Lineage -->|"GET /api/lineage"| REST2
     Save -->|"POST /api/save"| REST2
@@ -758,7 +778,7 @@ flowchart TD
 | Embeddings runtime | tract-onnx — pure Rust ONNX (optional) |
 | Desktop shell | Tauri 2 |
 | Frontend | React 19, Vite 7, TypeScript 5.8, Tailwind CSS 4 |
-| Graph views | D3.js 7 (tree layout) + 3d-force-graph 1.79 (Three.js / WebGL) |
+| Tree view | Virtualized DOM tree with virtual scroll (no canvas/WebGL dependencies) |
 | UI state | Zustand 5 |
 | AI agent | Claude Opus 4.6 via Agent SDK (Node.js sidecar) |
 
