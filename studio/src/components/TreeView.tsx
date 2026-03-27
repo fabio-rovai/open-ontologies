@@ -121,6 +121,7 @@ interface FlatNode {
   isLastChild: boolean;
   parentIsLast: boolean[]; // for each ancestor level, whether it was the last child
   ancestorPath: string[];  // labels from root to this node
+  isDirectMatch: boolean;  // true if this node's own label/id matches the search term
 }
 
 function flattenTree(
@@ -135,7 +136,8 @@ function flattenTree(
     const isExpanded = expanded.has(node.id);
     const isLastChild = i === nodes.length - 1;
     const path = [...ancestorPath, node.label];
-    result.push({ node, indent, isExpanded, hasChildren: node.children.length > 0, isLastChild, parentIsLast, ancestorPath: path });
+    const isDirectMatch = !searchTerm || node.label.toLowerCase().includes(searchTerm) || node.id.toLowerCase().includes(searchTerm);
+    result.push({ node, indent, isExpanded, hasChildren: node.children.length > 0, isLastChild, parentIsLast, ancestorPath: path, isDirectMatch });
     if (isExpanded) {
       const children = searchTerm
         ? node.children.filter(c => matchesSearch(c, searchTerm))
@@ -161,9 +163,12 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
   const [hiddenTypes, setHiddenTypes] = useState<Set<NodeType>>(new Set());
   const [breadcrumb, setBreadcrumb] = useState<string[]>([]);
   const [connections, setConnections] = useState<{ label: string; targetId: string; targetLabel: string }[]>([]);
+  const [versionStack, setVersionStack] = useState<string[]>([]);
+  const [undoInProgress, setUndoInProgress] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [viewHeight, setViewHeight] = useState(600);
+  const versionCounterRef = useRef(0);
 
   // Node lookup for connections
   const nodeMapRef = useRef<Map<string, { label: string; uri: string; nodeType: NodeType }>>(new Map());
@@ -301,6 +306,15 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
       setRoots(treeRoots);
       setExpanded(new Set(treeRoots.map(r => r.id)));
       refreshStats();
+
+      // Auto-snapshot for undo: save a version after each tree load (triggered by mutations)
+      try {
+        const vName = `studio_auto_v${versionCounterRef.current++}`;
+        await mcp.callTool('onto_version', { name: vName });
+        setVersionStack(prev => [...prev, vName]);
+      } catch (e) {
+        console.warn('Auto-version snapshot failed:', e);
+      }
     } catch (e) {
       console.error('Failed to load tree:', e);
     }
@@ -387,6 +401,18 @@ SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
 
   const normalizedSearch = searchTerm.toLowerCase().trim();
 
+  // Count direct matches (nodes whose own label/id matches, not just ancestor matches)
+  const matchCount = useMemo(() => {
+    if (!normalizedSearch) return 0;
+    let count = 0;
+    function walk(n: TreeNode) {
+      if (n.label.toLowerCase().includes(normalizedSearch) || n.id.toLowerCase().includes(normalizedSearch)) count++;
+      n.children.forEach(walk);
+    }
+    roots.forEach(walk);
+    return count;
+  }, [roots, normalizedSearch]);
+
   const effectiveExpanded = useMemo(() => {
     if (!normalizedSearch) return expanded;
     const auto = new Set<string>();
@@ -442,6 +468,22 @@ SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
 
   const collapseAll = useCallback(() => setExpanded(new Set(roots.map(r => r.id))), [roots]);
 
+  const handleUndo = useCallback(async () => {
+    if (versionStack.length < 2 || undoInProgress) return;
+    setUndoInProgress(true);
+    try {
+      // Roll back to the version before the most recent one
+      const target = versionStack[versionStack.length - 2];
+      await mcp.callTool('onto_rollback', { name: target });
+      setVersionStack(prev => prev.slice(0, -1));
+      await loadTree();
+    } catch (e) {
+      console.error('Undo failed:', e);
+    } finally {
+      setUndoInProgress(false);
+    }
+  }, [versionStack, undoInProgress, loadTree]);
+
   const toggleType = useCallback((type: NodeType) => {
     setHiddenTypes(prev => { const next = new Set(prev); if (next.has(type)) next.delete(type); else next.add(type); return next; });
   }, []);
@@ -465,8 +507,19 @@ SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
           ))}
         </div>
 
-        <input type="text" placeholder="Search..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-          style={{ width: '100%', padding: '5px 10px', borderRadius: 6, border: '1px solid #313244', background: '#1e1e2e', color: '#cdd6f4', fontSize: 12, outline: 'none', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }} />
+        <div style={{ position: 'relative', width: '100%' }}>
+          <input type="text" placeholder="Search nodes..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+            style={{ width: '100%', padding: '5px 10px', paddingRight: normalizedSearch ? 70 : 10, borderRadius: 6, border: '1px solid #313244', background: '#1e1e2e', color: '#cdd6f4', fontSize: 12, outline: 'none', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif', boxSizing: 'border-box' }} />
+          {normalizedSearch && (
+            <div style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ fontSize: 10, color: matchCount > 0 ? '#a6e3a1' : '#f38ba8', whiteSpace: 'nowrap' }}>{matchCount} match{matchCount !== 1 ? 'es' : ''}</span>
+              <button onClick={() => setSearchTerm('')} style={{
+                background: 'none', border: 'none', color: '#6c7086', cursor: 'pointer', fontSize: 14, padding: '0 2px',
+                lineHeight: 1, fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+              }} title="Clear search">&times;</button>
+            </div>
+          )}
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
           {typeOrder.filter(t => (typeCounts.get(t) ?? 0) > 0).map(type => (
@@ -482,6 +535,11 @@ SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
             </button>
           ))}
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 3 }}>
+            <button onClick={handleUndo} disabled={versionStack.length < 2 || undoInProgress} title={versionStack.length < 2 ? 'No versions to undo' : `Undo to ${versionStack[versionStack.length - 2]}`} style={{
+              background: 'none', border: '1px solid #313244', borderRadius: 4, padding: '1px 6px', fontSize: 10, cursor: versionStack.length < 2 || undoInProgress ? 'not-allowed' : 'pointer',
+              color: versionStack.length < 2 || undoInProgress ? '#45475a' : '#f38ba8',
+              opacity: versionStack.length < 2 || undoInProgress ? 0.4 : 1,
+            }}>{undoInProgress ? 'Undoing...' : 'Undo'}</button>
             <button onClick={expandAll} style={{ background: 'none', border: '1px solid #313244', color: '#6c7086', borderRadius: 4, padding: '1px 6px', fontSize: 10, cursor: 'pointer' }}>Expand</button>
             <button onClick={collapseAll} style={{ background: 'none', border: '1px solid #313244', color: '#6c7086', borderRadius: 4, padding: '1px 6px', fontSize: 10, cursor: 'pointer' }}>Collapse</button>
           </div>
@@ -504,12 +562,13 @@ SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
       <div ref={scrollRef} style={{ flex: 1, overflow: 'auto' }}>
         <div style={{ height: totalHeight, position: 'relative' }}>
           {visibleNodes.map((flat, i) => {
-            const { node, indent, isExpanded, hasChildren, isLastChild, parentIsLast } = flat;
+            const { node, indent, isExpanded, hasChildren, isLastChild, parentIsLast, isDirectMatch } = flat;
             const isSelected = selectedId === node.id;
             const color = TYPE_COLORS[node.nodeType] ?? '#a6adc8';
             const isLeaf = !hasChildren;
             const isBranch = node.id.startsWith('__');
             const top = (startIdx + i) * ROW_HEIGHT;
+            const isDimmed = normalizedSearch && !isDirectMatch && !isBranch;
 
             // Search highlight
             let labelEl: React.ReactNode = node.label;
@@ -560,6 +619,7 @@ SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
                   fontSize: isBranch ? 12 : 11,
                   fontWeight: isBranch ? 600 : hasChildren ? 500 : 400,
                   color: isSelected ? '#cdd6f4' : isBranch ? '#cdd6f4' : hasChildren ? '#bac2de' : '#a6adc8',
+                  opacity: isDimmed ? 0.35 : 1,
                   fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
                   userSelect: 'none',
                 }}
@@ -621,7 +681,7 @@ SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
 
       {/* Footer */}
       <div style={{ padding: '4px 12px', borderTop: '1px solid #313244', background: '#181825', fontSize: 9, color: '#45475a', flexShrink: 0 }}>
-        Click to inspect · Double-click to expand · Search to filter
+        Click to inspect · Double-click to expand · Search to filter · Undo to rollback
       </div>
     </div>
   );
