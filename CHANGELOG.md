@@ -2,6 +2,32 @@
 
 All notable changes to Open Ontologies are documented here.
 
+## [0.1.12] - 2026-03-27
+
+### Added
+- Virtualized tree view replacing D3/3D graph (handles 1500+ classes)
+- Hierarchy connector lines, breadcrumb, and connections panel
+- 13-step deep builder (`/build` command) producing IES-level ontologies
+- `/sketch` command for quick prototyping
+- `rdfs:Class` and `rdf:Property` support in Studio (not just `owl:Class`)
+- Shared cargo target directory
+
+### Fixed
+- Static Linux binary via musl target (closes #2)
+
+## [0.1.11] - 2026-03-25
+
+### Added
+- IES marketplace presets (`ies-top`, `ies-core`, `ies`)
+- IES Building Extension (525 classes, clean-room)
+- RDFS inference depth benchmark (662 vs 621)
+- Head-to-head IRIS comparison
+- Hierarchy enforce rule pack
+- EPC benchmark (36/36 vs 18/36)
+
+### Changed
+- Default features off (lean build — drops tract-onnx and sqlx from default)
+
 ## [0.1.10] - 2026-03-13
 
 ### Added
