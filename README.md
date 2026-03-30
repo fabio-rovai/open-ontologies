@@ -164,6 +164,10 @@ Every build includes OWL reasoning (materializes inferred triples), design patte
 
 ---
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/fabio-rovai-open-ontologies).
+
 ## Studio (Desktop App)
 
 The Studio is a native desktop application that wraps the same engine in a visual environment — no browser, no server to manage. It runs entirely on your machine: the engine sidecar handles RDF/OWL operations while the UI renders the graph in real time.
