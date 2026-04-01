@@ -274,13 +274,11 @@ fn run_count_query(graph: &Arc<GraphStore>, query: &str) -> u64 {
     match graph.sparql_select(query) {
         Ok(json_str) => {
             // sparql_select returns {"variables":["c"],"results":[{"c":"\"3\"^^…"}]}
-            if let Ok(v) = serde_json::from_str::<serde_json::Value>(&json_str) {
-                if let Some(row) = v["results"].as_array().and_then(|a| a.first()) {
-                    if let Some(val) = row["c"].as_str() {
-                        // Oxigraph wraps the value like  "\"3\"^^<…integer>"
-                        return parse_sparql_integer(val);
-                    }
-                }
+            if let Ok(v) = serde_json::from_str::<serde_json::Value>(&json_str)
+                && let Some(row) = v["results"].as_array().and_then(|a| a.first())
+                && let Some(val) = row["c"].as_str() {
+                    // Oxigraph wraps the value like  "\"3\"^^<…integer>"
+                    return parse_sparql_integer(val);
             }
             0
         }

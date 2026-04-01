@@ -567,10 +567,10 @@ fn local_name(iri: &str) -> String {
 /// Normalize a label for comparison: lowercase, split camelCase, trim.
 fn normalize_label(label: &str) -> String {
     // Replace underscores and hyphens with spaces, then camelCase split
-    let cleaned = label.replace('_', " ").replace('-', " ");
+    let cleaned = label.replace(['_', '-'], " ");
     let mut result = String::with_capacity(cleaned.len() + 8);
     for (i, ch) in cleaned.chars().enumerate() {
-        if i > 0 && ch.is_uppercase() && !cleaned.as_bytes().get(i.wrapping_sub(1)).map_or(false, |c| c.is_ascii_uppercase()) {
+        if i > 0 && ch.is_uppercase() && !cleaned.as_bytes().get(i.wrapping_sub(1)).is_some_and(|c| c.is_ascii_uppercase()) {
             result.push(' ');
         }
         result.push(ch);
