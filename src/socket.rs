@@ -117,55 +117,109 @@ fn dispatch(graph: &Arc<GraphStore>, req: &Request) -> serde_json::Value {
     }
 }
 
+// ── IRI prefix expansion ────────────────────────────────────────────
+//
+// The bridge sends normalized names like "DoctorWho" or "locationCreated".
+// The graph stores full IRIs like <http://example.org/DoctorWho>.
+// Try common prefixes until we find a match.
+
+/// Prefixes to try for subjects and objects.
+const ENTITY_PREFIXES: &[&str] = &[
+    "",
+    "http://example.org/",
+    "http://dbpedia.org/resource/",
+    "urn:",
+];
+
+/// Prefixes to try for predicates.
+const PREDICATE_PREFIXES: &[&str] = &[
+    "",
+    "http://schema.org/",
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "http://xmlns.com/foaf/0.1/",
+    "http://example.org/",
+];
+
+/// Try grounding a triple with various IRI prefix combinations.
+/// Returns (evidence_count, contradiction_count) for the first combination
+/// that yields evidence, or falls back to the best result found.
+fn ground_with_prefixes(
+    graph: &Arc<GraphStore>,
+    s: &str,
+    p: &str,
+    o: &str,
+) -> (u64, u64) {
+    // If s/p/o already look like full IRIs, try them directly first
+    let s_has_scheme = s.starts_with("http://") || s.starts_with("https://") || s.starts_with("urn:");
+    let p_has_scheme = p.starts_with("http://") || p.starts_with("https://") || p.starts_with("urn:");
+    let o_has_scheme = o.starts_with("http://") || o.starts_with("https://") || o.starts_with("urn:");
+
+    let s_prefixes: &[&str] = if s_has_scheme { &[""] } else { ENTITY_PREFIXES };
+    let p_prefixes: &[&str] = if p_has_scheme { &[""] } else { PREDICATE_PREFIXES };
+    let o_prefixes: &[&str] = if o_has_scheme { &[""] } else { ENTITY_PREFIXES };
+
+    let best_evidence: u64 = 0;
+    let mut best_contra: u64 = 0;
+
+    for sp in s_prefixes {
+        for pp in p_prefixes {
+            for op in o_prefixes {
+                let full_s = format!("{sp}{s}");
+                let full_p = format!("{pp}{p}");
+                let full_o = format!("{op}{o}");
+
+                // Try as IRI object
+                let iri_query = format!(
+                    "SELECT (COUNT(*) AS ?c) WHERE {{ <{full_s}> <{full_p}> <{full_o}> }}"
+                );
+                let iri_count = run_count_query(graph, &iri_query);
+
+                // Also try as literal object (for dates, strings, etc.)
+                let lit_query = format!(
+                    "SELECT (COUNT(*) AS ?c) WHERE {{ <{full_s}> <{full_p}> \"{full_o}\" }}"
+                );
+                let lit_count = run_count_query(graph, &lit_query);
+
+                let evidence = iri_count + lit_count;
+                if evidence > 0 {
+                    // Found a match — check contradictions with same prefix combo
+                    let contra_query = format!(
+                        "SELECT (COUNT(*) AS ?c) WHERE {{ \
+                            <{full_s}> <{full_p}> ?val . \
+                            FILTER(?val != <{full_o}> && ?val != \"{full_o}\") \
+                        }}"
+                    );
+                    let contra = run_count_query(graph, &contra_query);
+                    return (evidence, contra);
+                }
+
+                // Track best contradiction count even without evidence
+                if best_evidence == 0 {
+                    let contra_query = format!(
+                        "SELECT (COUNT(*) AS ?c) WHERE {{ \
+                            <{full_s}> <{full_p}> ?val . \
+                            FILTER(?val != <{full_o}> && ?val != \"{full_o}\") \
+                        }}"
+                    );
+                    let contra = run_count_query(graph, &contra_query);
+                    if contra > best_contra {
+                        best_contra = contra;
+                    }
+                }
+            }
+        }
+    }
+
+    (best_evidence, best_contra)
+}
+
 // ── Ground ───────────────────────────────────────────────────────────
 
 fn handle_ground(graph: &Arc<GraphStore>, triples: &[Triple]) -> serde_json::Value {
     let mut results = Vec::new();
 
     for t in triples {
-        let obj_is_iri = t.o.starts_with("http://")
-            || t.o.starts_with("https://")
-            || t.o.starts_with("urn:");
-
-        // Count evidence: try IRI form (if valid) and literal form
-        let count_query = if obj_is_iri {
-            format!(
-                "SELECT (COUNT(*) AS ?c) WHERE {{ \
-                    {{ <{s}> <{p}> <{o}> }} \
-                    UNION \
-                    {{ <{s}> <{p}> \"{o}\" }} \
-                }}",
-                s = t.s, p = t.p, o = t.o,
-            )
-        } else {
-            format!(
-                "SELECT (COUNT(*) AS ?c) WHERE {{ <{s}> <{p}> \"{o}\" }}",
-                s = t.s, p = t.p, o = t.o,
-            )
-        };
-
-        let evidence_count = run_count_query(graph, &count_query);
-
-        // Check for contradictions: different value for the same s+p
-        let contra_query = if obj_is_iri {
-            format!(
-                "SELECT (COUNT(*) AS ?c) WHERE {{ \
-                    <{s}> <{p}> ?val . \
-                    FILTER(?val != <{o}> && ?val != \"{o}\") \
-                }}",
-                s = t.s, p = t.p, o = t.o,
-            )
-        } else {
-            format!(
-                "SELECT (COUNT(*) AS ?c) WHERE {{ \
-                    <{s}> <{p}> ?val . \
-                    FILTER(?val != \"{o}\") \
-                }}",
-                s = t.s, p = t.p, o = t.o,
-            )
-        };
-
-        let contra_count = run_count_query(graph, &contra_query);
+        let (evidence_count, contra_count) = ground_with_prefixes(graph, &t.s, &t.p, &t.o);
 
         let (status, confidence) = if evidence_count > 0 && contra_count == 0 {
             ("grounded", std::cmp::min(50 + (evidence_count as u32) * 15, 100))
