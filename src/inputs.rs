@@ -352,3 +352,11 @@ pub struct IngestDataInput {
     /// Path to the data file (CSV, JSON, NDJSON, XML, YAML, XLSX, Parquet)
     pub data_path: String,
 }
+
+#[derive(Deserialize, JsonSchema)]
+pub struct AlignOntologiesInput {
+    /// Path to the source ontology file
+    pub source_path: String,
+    /// Path to the target ontology file
+    pub target_path: String,
+}
