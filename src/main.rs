@@ -59,6 +59,16 @@ enum Commands {
         governance_webhook: Option<String>,
     },
 
+    /// Start unix socket server for Tardygrada fact grounding
+    ServeUnix {
+        /// Path to the unix socket
+        #[arg(long, default_value = "/tmp/tardygrada-ontology-complete.sock")]
+        socket: String,
+        /// Ontology files to load on startup
+        #[arg(long = "file", num_args = 1..)]
+        files: Vec<String>,
+    },
+
     // ─── Core ontology ────────────────────────────────────────────
     /// Validate RDF/OWL syntax (file or stdin with -)
     Validate { input: String },
@@ -596,6 +606,22 @@ async fn main() -> anyhow::Result<()> {
             axum::serve(listener, router)
                 .with_graceful_shutdown(async move { ct.cancelled_owned().await })
                 .await?;
+        }
+
+        Commands::ServeUnix { socket, files } => {
+            let graph = Arc::new(GraphStore::new());
+            for f in &files {
+                let path = open_ontologies::config::expand_tilde(f);
+                match graph.load_file(&path) {
+                    Ok(n) => eprintln!("Loaded {path}: {n} triples"),
+                    Err(e) => {
+                        eprintln!("Failed to load {path}: {e}");
+                        std::process::exit(1);
+                    }
+                }
+            }
+            eprintln!("Graph has {} triples total", graph.triple_count());
+            open_ontologies::socket::serve(&socket, graph).await?;
         }
 
         // ─── Core ontology ─────────────────────────────────────────

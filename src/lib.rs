@@ -20,6 +20,7 @@ pub mod server;
 pub mod shacl;
 pub mod state;
 pub mod schema;
+pub mod socket;
 pub mod tableaux;
 #[cfg(feature = "embeddings")]
 pub mod poincare;
