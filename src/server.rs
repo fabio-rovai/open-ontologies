@@ -1195,6 +1195,39 @@ impl OpenOntologiesServer {
         ]).with_description("Ingest external data into a loaded ontology"))
     }
 
+    /// Align two ontologies using hybrid neuro-symbolic matching. Runs structural alignment first, then asks you (the LLM) to adjudicate uncertain pairs.
+    #[prompt(name = "align_ontologies")]
+    fn align_ontologies(&self, Parameters(input): Parameters<AlignOntologiesInput>) -> Result<GetPromptResult, rmcp::ErrorData> {
+        let msg = format!(
+            "Align these two ontologies using hybrid neuro-symbolic matching:\n\
+            - Source: {}\n\
+            - Target: {}\n\n\
+            Follow this pipeline:\n\n\
+            **Step 1: Structural alignment**\n\
+            Call onto_align with source, target, min_confidence=0.7, dry_run=true.\n\
+            This returns candidates with confidence scores and signal breakdowns.\n\n\
+            **Step 2: Auto-accept high-confidence matches**\n\
+            Candidates with confidence >= 0.95 are reliable. List them as accepted.\n\n\
+            **Step 3: LLM adjudication of uncertain pairs**\n\
+            For candidates with confidence 0.7-0.95, YOU decide:\n\
+            - Look at the source and target labels, their parent classes, and the signal breakdown\n\
+            - Use your knowledge of the domain to judge if they refer to the same concept\n\
+            - Accept the pair if they are genuinely equivalent; reject if they are false matches\n\
+            - Example: \"levator auris longus\" (mouse muscle) <-> \"Auricularis\" (human muscle) = ACCEPT (same ear muscle, different species names)\n\
+            - Example: \"tail\" <-> \"Tail_of_Pancreas\" = REJECT (different concepts despite shared word)\n\n\
+            **Step 4: Apply accepted matches**\n\
+            For each accepted pair (both auto-accepted and LLM-adjudicated), call onto_align_feedback with accepted=true.\n\
+            For rejected pairs, call onto_align_feedback with accepted=false.\n\
+            This trains the self-calibrating weights for future alignments.\n\n\
+            **Step 5: Report**\n\
+            Summarize: total candidates, auto-accepted, LLM-accepted, LLM-rejected, and final alignment count.",
+            input.source_path, input.target_path
+        );
+        Ok(GetPromptResult::new(vec![
+            PromptMessage::new_text(PromptMessageRole::User, msg),
+        ]).with_description("Align two ontologies using hybrid neuro-symbolic matching (structural + LLM adjudication)"))
+    }
+
     /// Explore a loaded ontology with SPARQL. Lists classes, properties, and answers competency questions.
     #[prompt(name = "explore_ontology")]
     fn explore_ontology(&self) -> Result<GetPromptResult, rmcp::ErrorData> {
@@ -1219,6 +1252,6 @@ impl OpenOntologiesServer {
 impl ServerHandler for OpenOntologiesServer {
     fn get_info(&self) -> ServerInfo {
         ServerInfo::new(ServerCapabilities::builder().enable_tools().enable_prompts().build())
-            .with_instructions("Open Ontologies: AI-native ontology engine — RDF/OWL/SPARQL MCP server with 39 tools and 5 workflow prompts for ontology engineering, validation, comparison, data ingestion, and exploration.")
+            .with_instructions("Open Ontologies: AI-native ontology engine — RDF/OWL/SPARQL MCP server with 43 tools and 6 workflow prompts for ontology engineering, validation, comparison, alignment, data ingestion, and exploration.")
     }
 }

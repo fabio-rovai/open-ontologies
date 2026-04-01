@@ -1,4 +1,4 @@
-.PHONY: build test lint audit bench bench-pizza bench-ontoaxiom bench-mushroom bench-vision bench-reasoner docker clean
+.PHONY: build test lint audit bench bench-pizza bench-ontoaxiom bench-mushroom bench-vision bench-reasoner bench-oaei docker clean
 
 # ─── Development ─────────────────────────────────────────────────────────────
 
@@ -18,7 +18,7 @@ check: lint test audit
 
 # ─── Benchmarks ──────────────────────────────────────────────────────────────
 
-bench: bench-pizza bench-ontoaxiom bench-mushroom bench-reasoner
+bench: bench-pizza bench-ontoaxiom bench-mushroom bench-reasoner bench-oaei
 	@echo "All benchmarks complete."
 
 bench-pizza:
@@ -40,6 +40,10 @@ bench-vision:
 bench-reasoner:
 	@echo "=== Reasoner Comparison (HermiT vs Open Ontologies) ==="
 	cd benchmark/reasoner && python3 compare_reasoners.py 2>/dev/null || echo "Requires Python 3 + Java for HermiT"
+
+bench-oaei:
+	@echo "=== OAEI Alignment Benchmark ==="
+	cd benchmark/oaei && python3 download_oaei.py && python3 run_oaei_benchmark.py 2>/dev/null || echo "Requires Python 3 + mcp SDK"
 
 # ─── Docker ──────────────────────────────────────────────────────────────────
 
