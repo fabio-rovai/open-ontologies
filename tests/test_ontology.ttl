@@ -1,0 +1,10 @@
+@prefix : <http://example.org/> .
+@prefix schema: <http://schema.org/> .
+
+:DoctorWho a schema:TVSeries ;
+    schema:locationCreated :BBCTelevisionCentre ;
+    schema:dateCreated "1963" ;
+    schema:creator :SydneyNewman .
+
+:BBCTelevisionCentre a schema:Place ;
+    schema:address "London" .
