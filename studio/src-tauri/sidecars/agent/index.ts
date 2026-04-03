@@ -270,9 +270,11 @@ Report the final ontology statistics.`,
   ];
 
   send({ type: 'text', content: `**Building maximum-depth ontology: ${domain}** (${steps.length} steps)\n` });
+  send({ type: 'progress', step: 0, total: steps.length, label: 'Starting build...' });
 
   for (let i = 0; i < steps.length; i++) {
     const step = steps[i];
+    send({ type: 'progress', step: i + 1, total: steps.length, label: step.label });
     send({ type: 'text', content: `\n---\n**${step.label}**` });
     try {
       await runTurn(step.prompt);
@@ -281,6 +283,7 @@ Report the final ontology statistics.`,
     }
   }
 
+  send({ type: 'progress', step: steps.length, total: steps.length, label: 'Build complete' });
   send({ type: 'text', content: `\n---\n**Build complete.** The graph should now be visible in the tree view.` });
 }
 
@@ -318,9 +321,11 @@ Call onto_stats after. Do NOT save yet.`,
   ];
 
   send({ type: 'text', content: `**Sketching ontology: ${domain}** (3 steps)\n` });
+  send({ type: 'progress', step: 0, total: steps.length, label: 'Starting sketch...' });
 
   for (let i = 0; i < steps.length; i++) {
     const step = steps[i];
+    send({ type: 'progress', step: i + 1, total: steps.length, label: step.label });
     send({ type: 'text', content: `\n---\n**${step.label}**` });
     try {
       await runTurn(step.prompt);
@@ -329,22 +334,23 @@ Call onto_stats after. Do NOT save yet.`,
     }
   }
 
+  send({ type: 'progress', step: steps.length, total: steps.length, label: 'Sketch complete' });
   send({ type: 'text', content: `\n---\n**Sketch complete.** Use /expand to deepen any branch.` });
 }
 
 // --- Handle a chat message ---
 
-async function handleMessage(userMessage: string): Promise<void> {
+async function handleMessage(userMessage: string, mode: 'sketch' | 'build' = 'sketch'): Promise<void> {
   try {
-    if (isSketchRequest(userMessage)) {
+    const isBuildLike = isBuildRequest(userMessage) || isSketchRequest(userMessage);
+    if (isBuildLike) {
       const domain = extractDomain(userMessage);
       sessionId = undefined;
-      await handleSketch(domain);
-      send({ type: 'done', mutated: true });
-    } else if (isBuildRequest(userMessage)) {
-      const domain = extractDomain(userMessage);
-      sessionId = undefined;
-      await handleBuild(domain);
+      if (mode === 'sketch') {
+        await handleSketch(domain);
+      } else {
+        await handleBuild(domain);
+      }
       send({ type: 'done', mutated: true });
     } else {
       const mutated = await runTurn(userMessage);
@@ -370,7 +376,7 @@ async function main(): Promise<void> {
     try {
       const msg = JSON.parse(line);
       if (msg.type === 'chat') {
-        await handleMessage(msg.message);
+        await handleMessage(msg.message, msg.mode || 'sketch');
       } else if (msg.type === 'reset') {
         sessionId = undefined;
         send({ type: 'reset_done' });

@@ -20,9 +20,20 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
+export type BuildMode = 'sketch' | 'build';
+
+export interface Progress {
+  step: number;
+  total: number;
+  label: string;
+}
+
 interface ChatStore {
   messages: ChatMessage[];
   isTyping: boolean;
+  mode: BuildMode;
+  progress: Progress | null;
+  setMode: (mode: BuildMode) => void;
   sendMessage: (text: string) => Promise<void>;
   reset: () => Promise<void>;
 }
@@ -37,6 +48,9 @@ export const useChat = create<ChatStore>((set) => ({
     timestamp: new Date(),
   }],
   isTyping: false,
+  mode: 'sketch' as BuildMode,
+  progress: null,
+  setMode: (mode: BuildMode) => set({ mode }),
 
   sendMessage: async (text: string) => {
     const userMsg: ChatMessage = {
@@ -47,7 +61,8 @@ export const useChat = create<ChatStore>((set) => ({
     };
     set(s => ({ messages: [...s.messages, userMsg], isTyping: true }));
     try {
-      await invoke('send_chat_message', { message: text });
+      const { mode } = useChat.getState();
+      await invoke('send_chat_message', { message: text, mode });
     } catch (e) {
       set(s => ({
         messages: [...s.messages, {
@@ -143,9 +158,13 @@ listen<string>('agent-message', (event) => {
       if (isMutation(data.tool || '')) triggerGraphRefresh(300);
     }
 
+    if (data.type === 'progress') {
+      useChat.setState({ progress: { step: data.step, total: data.total, label: data.label } });
+    }
+
     if (data.type === 'done') {
       currentAssistantMsg = null;
-      useChat.setState({ isTyping: false });
+      useChat.setState({ isTyping: false, progress: null });
       if (data.mutated) {
         // Persist to file, then refresh graph
         mcp.saveGraphToFile().then(() => triggerGraphRefresh(300));
