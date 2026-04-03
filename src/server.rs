@@ -55,7 +55,7 @@ impl OpenOntologiesServer {
         db: StateDb,
         graph: Arc<GraphStore>,
         governance_webhook: Option<String>,
-        embed_config: crate::config::EmbeddingsConfig,
+        _embed_config: crate::config::EmbeddingsConfig,
     ) -> Self {
         let lineage = crate::lineage::LineageLog::with_governance_webhook(db.clone(), governance_webhook.clone());
         let session_id = lineage.new_session();
@@ -69,11 +69,11 @@ impl OpenOntologiesServer {
             let default_model_dir = dirs::home_dir()
                 .map(|h| h.join(".open-ontologies/models"));
 
-            let model_path = embed_config.model_path
+            let model_path = _embed_config.model_path
                 .map(|p| std::path::PathBuf::from(crate::config::expand_tilde(&p)))
                 .or_else(|| default_model_dir.as_ref().map(|d| d.join("bge-small-en-v1.5.onnx")));
 
-            let tokenizer_path = embed_config.tokenizer_path
+            let tokenizer_path = _embed_config.tokenizer_path
                 .map(|p| std::path::PathBuf::from(crate::config::expand_tilde(&p)))
                 .or_else(|| default_model_dir.as_ref().map(|d| d.join("tokenizer.json")));
 

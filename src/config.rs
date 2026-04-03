@@ -35,22 +35,13 @@ impl Default for GeneralConfig {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Default, Deserialize, Clone)]
 #[serde(default)]
 pub struct EmbeddingsConfig {
     /// Path to the ONNX model file. Default: ~/.open-ontologies/models/bge-small-en-v1.5.onnx
     pub model_path: Option<String>,
     /// Path to the tokenizer.json file. Default: ~/.open-ontologies/models/tokenizer.json
     pub tokenizer_path: Option<String>,
-}
-
-impl Default for EmbeddingsConfig {
-    fn default() -> Self {
-        Self {
-            model_path: None,
-            tokenizer_path: None,
-        }
-    }
 }
 
 /// Expand a leading `~` in a path to the user's home directory.
