@@ -356,7 +356,7 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Init { data_dir, model_url, tokenizer_url, model_name } => {
+        Commands::Init { data_dir, model_url: _model_url, tokenizer_url: _tokenizer_url, model_name: _model_name } => {
             let data_dir = expand_tilde(&data_dir);
             let data_path = std::path::Path::new(&data_dir);
 
@@ -380,11 +380,11 @@ async fn main() -> anyhow::Result<()> {
                 let models_dir = data_path.join("models");
                 std::fs::create_dir_all(&models_dir)?;
 
-                let onnx_url = model_url.as_deref()
+                let onnx_url = _model_url.as_deref()
                     .unwrap_or(open_ontologies::embed::BGE_SMALL_ONNX_URL);
-                let tok_url = tokenizer_url.as_deref()
+                let tok_url = _tokenizer_url.as_deref()
                     .unwrap_or(open_ontologies::embed::BGE_SMALL_TOKENIZER_URL);
-                let onnx_filename = model_name.as_deref()
+                let onnx_filename = _model_name.as_deref()
                     .unwrap_or("bge-small-en-v1.5.onnx");
 
                 let model_path = models_dir.join(onnx_filename);
