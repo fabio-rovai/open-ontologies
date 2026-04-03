@@ -47,6 +47,16 @@ impl OpenOntologiesServer {
 
     /// Create a new server with all options including optional governance webhook.
     pub fn new_with_options(db: StateDb, graph: Arc<GraphStore>, governance_webhook: Option<String>) -> Self {
+        Self::new_with_full_options(db, graph, governance_webhook, Default::default())
+    }
+
+    /// Create a new server with all options including embedding config.
+    pub fn new_with_full_options(
+        db: StateDb,
+        graph: Arc<GraphStore>,
+        governance_webhook: Option<String>,
+        embed_config: crate::config::EmbeddingsConfig,
+    ) -> Self {
         let lineage = crate::lineage::LineageLog::with_governance_webhook(db.clone(), governance_webhook.clone());
         let session_id = lineage.new_session();
 
@@ -55,13 +65,21 @@ impl OpenOntologiesServer {
             let mut vs = crate::vecstore::VecStore::new(db.clone());
             let _ = vs.load_from_db();
 
-            let model_dir = dirs::home_dir()
+            // Resolve model paths: config overrides > default locations
+            let default_model_dir = dirs::home_dir()
                 .map(|h| h.join(".open-ontologies/models"));
-            let embedder = model_dir.and_then(|dir| {
-                let model_path = dir.join("bge-small-en-v1.5.onnx");
-                let tokenizer_path = dir.join("tokenizer.json");
-                if model_path.exists() && tokenizer_path.exists() {
-                    crate::embed::TextEmbedder::load(&model_path, &tokenizer_path).ok()
+
+            let model_path = embed_config.model_path
+                .map(|p| std::path::PathBuf::from(crate::config::expand_tilde(&p)))
+                .or_else(|| default_model_dir.as_ref().map(|d| d.join("bge-small-en-v1.5.onnx")));
+
+            let tokenizer_path = embed_config.tokenizer_path
+                .map(|p| std::path::PathBuf::from(crate::config::expand_tilde(&p)))
+                .or_else(|| default_model_dir.as_ref().map(|d| d.join("tokenizer.json")));
+
+            let embedder = model_path.zip(tokenizer_path).and_then(|(m, t)| {
+                if m.exists() && t.exists() {
+                    crate::embed::TextEmbedder::load(&m, &t).ok()
                 } else {
                     None
                 }

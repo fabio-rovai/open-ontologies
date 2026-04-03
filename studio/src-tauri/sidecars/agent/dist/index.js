@@ -268,34 +268,59 @@ Report the final ontology statistics.`,
 // --- Quick sketch: 3-step lightweight build ---
 async function handleSketch(domain) {
     const ns = domain.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const prefix = `@prefix : <http://example.org/${ns}#> .`;
     const steps = [
         {
-            label: 'Step 1/3: Classes + properties',
-            prompt: `Build a quick ontology about "${domain}". Use namespace @prefix : <http://example.org/${ns}#> .
+            label: 'Step 1/5: Foundation — root + branches',
+            prompt: `Build an ontology about "${domain}". Use namespace ${prefix}
 
 Call onto_clear. Then call onto_load with ONE Turtle block containing:
-- 50-80 owl:Class in a subClassOf hierarchy 4-5 levels deep
+- An owl:Ontology declaration
+- A root class for the domain
+- 6-10 major branch classes under the root
+- For each branch, 3-5 subclasses (2-3 levels deep)
+- Every class MUST have rdfs:label and rdfs:comment
+
+Call onto_stats after. Do NOT save yet.`,
+        },
+        {
+            label: 'Step 2/5: Deepen + properties',
+            prompt: `Call onto_query to find leaf classes (classes with no subclasses).
+Then call onto_load with Turtle using the SAME namespace ${prefix} adding:
+- 2-4 more subclass levels under leaf classes that can be subdivided further
 - 15-25 owl:ObjectProperty each with rdfs:domain, rdfs:range, rdfs:label, rdfs:comment
-- 8-12 owl:DatatypeProperty
-- owl:inverseOf pairs for key relationships
-- rdfs:label and rdfs:comment on every class and property
+- owl:inverseOf pairs for directional properties
+- 8-12 owl:DatatypeProperty with rdfs:domain, rdfs:range (xsd types), rdfs:label
 
 Call onto_stats after. Do NOT save yet.`,
         },
         {
-            label: 'Step 2/3: Axioms + individuals',
-            prompt: `Call onto_load with Turtle adding:
-- owl:disjointWith between sibling classes (15+ pairs)
-- 10-15 owl:NamedIndividual with rdf:type and property values
+            label: 'Step 3/5: Axioms + individuals',
+            prompt: `Call onto_load with Turtle using namespace ${prefix} adding:
+- owl:disjointWith between sibling classes that cannot overlap (15+ pairs)
+- 12-20 owl:NamedIndividual spread across different branches, each with:
+  - rdf:type (the most specific class)
+  - rdfs:label and rdfs:comment
+  - 2-4 property values (both object and datatype properties)
 
 Call onto_stats after. Do NOT save yet.`,
         },
         {
-            label: 'Step 3/3: Reason + save',
-            prompt: `Run onto_reason (profile "rdfs"), then onto_stats, then onto_save ("~/.open-ontologies/studio-live.ttl"). Report final statistics.`,
+            label: 'Step 4/5: Verify + fix gaps',
+            prompt: `Call onto_stats and onto_query to check: How many individuals exist? What is the max depth? Are there branches with no properties?
+
+If individuals < 10, call onto_load with more individuals.
+If max depth < 5, call onto_load deepening the shallowest branches.
+If any branch has no object properties connecting it, add some.
+
+Call onto_stats after. Do NOT save yet.`,
+        },
+        {
+            label: 'Step 5/5: Reason + save',
+            prompt: `Run onto_reason (profile "rdfs"), then onto_stats, then onto_save ("~/.open-ontologies/studio-live.ttl"). Report final statistics including class count, property count, individual count, max depth, and triple count.`,
         },
     ];
-    send({ type: 'text', content: `**Sketching ontology: ${domain}** (3 steps)\n` });
+    send({ type: 'text', content: `**Sketching ontology: ${domain}** (${steps.length} steps)\n` });
     send({ type: 'progress', step: 0, total: steps.length, label: 'Starting sketch...' });
     for (let i = 0; i < steps.length; i++) {
         const step = steps[i];

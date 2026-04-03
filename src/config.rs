@@ -7,6 +7,7 @@ use std::path::Path;
 #[derive(Default)]
 pub struct Config {
     pub general: GeneralConfig,
+    pub embeddings: EmbeddingsConfig,
 }
 
 
@@ -30,6 +31,24 @@ impl Default for GeneralConfig {
     fn default() -> Self {
         Self {
             data_dir: "~/.open-ontologies".into(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct EmbeddingsConfig {
+    /// Path to the ONNX model file. Default: ~/.open-ontologies/models/bge-small-en-v1.5.onnx
+    pub model_path: Option<String>,
+    /// Path to the tokenizer.json file. Default: ~/.open-ontologies/models/tokenizer.json
+    pub tokenizer_path: Option<String>,
+}
+
+impl Default for EmbeddingsConfig {
+    fn default() -> Self {
+        Self {
+            model_path: None,
+            tokenizer_path: None,
         }
     }
 }
