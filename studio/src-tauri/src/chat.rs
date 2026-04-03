@@ -49,12 +49,12 @@ pub fn spawn_agent_sidecar(app: &tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn send_chat_message(message: String, state: tauri::State<ChatState>) -> Result<(), String> {
+pub fn send_chat_message(message: String, mode: String, state: tauri::State<ChatState>) -> Result<(), String> {
     let mut guard = state.process.lock().map_err(|e| format!("Lock error: {e}"))?;
     let child = guard.as_mut().ok_or("Agent sidecar not running")?;
     let stdin = child.stdin.as_mut().ok_or("No stdin")?;
 
-    let payload = serde_json::json!({ "type": "chat", "message": message });
+    let payload = serde_json::json!({ "type": "chat", "message": message, "mode": mode });
     writeln!(stdin, "{}", payload).map_err(|e| format!("Write failed: {e}"))?;
     stdin.flush().map_err(|e| format!("Flush failed: {e}"))?;
 
