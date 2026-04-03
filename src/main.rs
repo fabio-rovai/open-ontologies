@@ -9,6 +9,10 @@ use open_ontologies::state::StateDb;
 
 const DEFAULT_CONFIG: &str = r#"[general]
 data_dir = "~/.open-ontologies"
+
+# [embeddings]
+# model_path = "~/.open-ontologies/models/bge-small-en-v1.5.onnx"
+# tokenizer_path = "~/.open-ontologies/models/tokenizer.json"
 "#;
 
 #[derive(Parser)]
@@ -32,6 +36,15 @@ enum Commands {
     Init {
         #[arg(long, default_value = "~/.open-ontologies")]
         data_dir: String,
+        /// Custom ONNX model URL (default: BGE-small-en-v1.5 from Hugging Face)
+        #[arg(long)]
+        model_url: Option<String>,
+        /// Custom tokenizer URL (default: BGE-small-en-v1.5 tokenizer from Hugging Face)
+        #[arg(long)]
+        tokenizer_url: Option<String>,
+        /// Filename for the downloaded ONNX model (default: bge-small-en-v1.5.onnx)
+        #[arg(long)]
+        model_name: Option<String>,
     },
     /// Start the MCP server (stdio transport)
     Serve {
@@ -343,7 +356,7 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Init { data_dir } => {
+        Commands::Init { data_dir, model_url, tokenizer_url, model_name } => {
             let data_dir = expand_tilde(&data_dir);
             let data_path = std::path::Path::new(&data_dir);
 
@@ -367,13 +380,20 @@ async fn main() -> anyhow::Result<()> {
                 let models_dir = data_path.join("models");
                 std::fs::create_dir_all(&models_dir)?;
 
-                let model_path = models_dir.join("bge-small-en-v1.5.onnx");
+                let onnx_url = model_url.as_deref()
+                    .unwrap_or(open_ontologies::embed::BGE_SMALL_ONNX_URL);
+                let tok_url = tokenizer_url.as_deref()
+                    .unwrap_or(open_ontologies::embed::BGE_SMALL_TOKENIZER_URL);
+                let onnx_filename = model_name.as_deref()
+                    .unwrap_or("bge-small-en-v1.5.onnx");
+
+                let model_path = models_dir.join(onnx_filename);
                 let tokenizer_path = models_dir.join("tokenizer.json");
 
                 if !model_path.exists() {
-                    println!("Downloading bge-small-en-v1.5 embedding model...");
+                    println!("Downloading embedding model from {}...", onnx_url);
                     open_ontologies::embed::download_model_file(
-                        open_ontologies::embed::BGE_SMALL_ONNX_URL,
+                        onnx_url,
                         &model_path,
                     ).await?;
                     println!("  Model saved: {}", model_path.display());
@@ -382,9 +402,9 @@ async fn main() -> anyhow::Result<()> {
                 }
 
                 if !tokenizer_path.exists() {
-                    println!("Downloading tokenizer...");
+                    println!("Downloading tokenizer from {}...", tok_url);
                     open_ontologies::embed::download_model_file(
-                        open_ontologies::embed::BGE_SMALL_TOKENIZER_URL,
+                        tok_url,
                         &tokenizer_path,
                     ).await?;
                     println!("  Tokenizer saved: {}", tokenizer_path.display());
@@ -414,7 +434,7 @@ async fn main() -> anyhow::Result<()> {
             std::fs::create_dir_all(&data_dir)?;
             let db = StateDb::open(&db_path)?;
 
-            let server = OpenOntologiesServer::new_with_options(db, Arc::new(GraphStore::new()), governance_webhook);
+            let server = OpenOntologiesServer::new_with_full_options(db, Arc::new(GraphStore::new()), governance_webhook, cfg.embeddings);
             let service = server.serve(rmcp::transport::stdio()).await?;
             service.waiting().await?;
         }
@@ -457,12 +477,13 @@ async fn main() -> anyhow::Result<()> {
 
             let shared_graph_for_service = shared_graph.clone();
             let gw_for_service = governance_webhook.clone();
+            let embed_config = cfg.embeddings.clone();
             let service: StreamableHttpService<_, LocalSessionManager> =
                 StreamableHttpService::new(
                     move || {
                         let db = StateDb::open(&db_path_owned)
                             .map_err(std::io::Error::other)?;
-                        Ok(OpenOntologiesServer::new_with_options(db, shared_graph_for_service.clone(), gw_for_service.clone()))
+                        Ok(OpenOntologiesServer::new_with_full_options(db, shared_graph_for_service.clone(), gw_for_service.clone(), embed_config.clone()))
                     },
                     Default::default(),
                     http_config,
