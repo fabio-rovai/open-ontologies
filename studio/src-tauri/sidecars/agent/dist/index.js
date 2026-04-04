@@ -170,9 +170,12 @@ Call onto_stats after. Do NOT save yet — many more steps coming.`,
         },
         {
             label: 'Step 7: Deepen — second pass on shallow areas',
-            prompt: `Call onto_query to find ALL leaf classes. For any branch that is still less than 6 levels deep, add more subclasses. ` +
-                `Also think: are there any major subtypes or categories I missed entirely? Add them now. ` +
-                `Be ruthlessly exhaustive. Call onto_load with the additional Turtle. Call onto_stats after. Do NOT save yet.`,
+            prompt: `Run this SPARQL to measure depth per root branch:
+SELECT ?branch (MAX(?depth) AS ?maxDepth) WHERE { ?class rdfs:subClassOf+ ?branch . ?branch rdfs:subClassOf ?root . ?root a owl:Class . FILTER NOT EXISTS { ?root rdfs:subClassOf ?x . ?x a owl:Class } . { SELECT ?class (COUNT(?mid) AS ?depth) WHERE { ?class rdfs:subClassOf+ ?mid } GROUP BY ?class } } GROUP BY ?branch ORDER BY ?maxDepth LIMIT 20
+
+For any branch with maxDepth < 7, find its leaf classes and add 2-3 more levels of subclasses below them (chain: A subClassOf B subClassOf C).
+Also: are there any major subtypes or categories missing entirely? Add them now as deep chains, not flat siblings.
+Call onto_load with the Turtle. Call onto_stats after. Do NOT save yet.`,
         },
         {
             label: 'Step 8: Object properties — structural relationships',
