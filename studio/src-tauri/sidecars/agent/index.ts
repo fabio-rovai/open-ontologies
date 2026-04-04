@@ -138,26 +138,32 @@ async function handleBuild(domain: string): Promise<void> {
   const prefix = `@prefix : <http://example.org/${ns}#> .`;
 
   const DEEPEN = (branchDesc: string) =>
-    `Call onto_query to find leaf classes (classes with no subclasses) in ${branchDesc}. ` +
-    `Then call onto_load with Turtle using the SAME namespace adding more subclass levels. ` +
-    `For every leaf, ask yourself: "Can this be subdivided further?" If yes, add 3-8 subclasses. ` +
-    `Enumerate ALL real-world subtypes — do not stop at 2-3 examples. ` +
-    `Every class needs rdfs:label and rdfs:comment. ` +
-    `IMPORTANT: Add at most 80-120 classes in this step, then stop. Call onto_stats after. Do NOT save yet.`;
+    `Call onto_query with this SPARQL to find leaf classes in ${branchDesc}:
+SELECT ?leaf ?label WHERE { ?leaf rdfs:subClassOf+ ?branch . ?branch rdfs:subClassOf :${branchDesc.includes('FIRST') ? '' : ''} . FILTER NOT EXISTS { ?child rdfs:subClassOf ?leaf } . OPTIONAL { ?leaf rdfs:label ?label } } LIMIT 30
+
+Then call onto_load with Turtle using the SAME namespace ${prefix} adding DEEPER subclass chains. For each leaf class:
+1. Add 3-5 rdfs:subClassOf children
+2. For each of THOSE children, add 2-4 more subclasses (grandchildren of the leaf)
+3. If possible, add one more level below that
+
+The goal is DEPTH not width. Each new class needs rdfs:label and rdfs:comment.
+IMPORTANT: Add at most 80-120 classes in this step. Call onto_stats after. Do NOT save yet.`;
 
   const steps = [
     {
-      label: 'Step 1: Foundation — root + major branches + 3 levels',
+      label: 'Step 1: Foundation — root + 5 levels deep',
       prompt: `Build an ontology about "${domain}". Use namespace ${prefix}
 
 Call onto_clear. Then call onto_load with Turtle containing:
 - An owl:Ontology declaration
-- A root class for the domain
-- 8-12 major branch classes under the root (think of ALL major aspects/dimensions of "${domain}")
-- For each branch, 4-8 subclasses
-- For each of those, 3-6 further subclasses
-- Every class MUST have rdfs:label and rdfs:comment
-- Be EXHAUSTIVE — list every subtype you can think of
+- A root class :${ns.charAt(0).toUpperCase() + ns.slice(1).replace(/-./g, m => m[1].toUpperCase())}
+- 6-10 major branch classes as rdfs:subClassOf the root (Level 1)
+- For each branch, 3-5 subclasses (Level 2)
+- For each of those, 2-4 further subclasses (Level 3)
+- For at least half of Level 3, add 2-3 more subclasses (Level 4)
+- For at least a quarter of Level 4, add 2 more subclasses (Level 5)
+
+Structure this as a DEEP tree, not a wide one. Every class MUST have rdfs:label and rdfs:comment.
 
 Call onto_stats after. Do NOT save yet — many more steps coming.`,
     },
@@ -296,26 +302,33 @@ async function handleSketch(domain: string): Promise<void> {
 
   const steps = [
     {
-      label: 'Step 1/5: Foundation — root + branches',
+      label: 'Step 1/5: Foundation — root + 4 levels deep',
       prompt: `Build an ontology about "${domain}". Use namespace ${prefix}
 
 Call onto_clear. Then call onto_load with ONE Turtle block containing:
 - An owl:Ontology declaration
 - A root class for the domain
-- 6-10 major branch classes under the root
-- For each branch, 3-5 subclasses (2-3 levels deep)
-- Every class MUST have rdfs:label and rdfs:comment
+- 5-8 major branch classes under the root (Level 1)
+- For each branch, 3-4 subclasses (Level 2)
+- For each of those, 2-3 further subclasses (Level 3)
+- For at least half of Level 3, add 2 more subclasses (Level 4)
+
+Structure as a DEEP tree — prioritize depth over width. Every class MUST have rdfs:label and rdfs:comment.
 
 Call onto_stats after. Do NOT save yet.`,
     },
     {
       label: 'Step 2/5: Deepen + properties',
-      prompt: `Call onto_query to find leaf classes (classes with no subclasses).
-Then call onto_load with Turtle using the SAME namespace ${prefix} adding:
-- 2-4 more subclass levels under leaf classes that can be subdivided further
+      prompt: `Call onto_query to find leaf classes:
+SELECT ?leaf ?label WHERE { ?leaf a owl:Class . FILTER NOT EXISTS { ?child rdfs:subClassOf ?leaf } . OPTIONAL { ?leaf rdfs:label ?label } } LIMIT 30
+
+Then call onto_load with Turtle using namespace ${prefix} adding:
+- For each leaf that can be subdivided: add 2-3 subclasses, and for each of those add 1-2 more subclasses (create chains 2-3 levels deeper, not just one flat level)
 - 15-25 owl:ObjectProperty each with rdfs:domain, rdfs:range, rdfs:label, rdfs:comment
 - owl:inverseOf pairs for directional properties
 - 8-12 owl:DatatypeProperty with rdfs:domain, rdfs:range (xsd types), rdfs:label
+
+The goal is DEPTH — chain subclasses 2-3 levels deep from the current leaves.
 
 Call onto_stats after. Do NOT save yet.`,
     },
@@ -332,11 +345,13 @@ Call onto_stats after. Do NOT save yet.`,
     },
     {
       label: 'Step 4/5: Verify + fix gaps',
-      prompt: `Call onto_stats and onto_query to check: How many individuals exist? What is the max depth? Are there branches with no properties?
+      prompt: `Run this SPARQL to measure max depth:
+SELECT (MAX(?depth) AS ?maxDepth) WHERE { { SELECT ?class (COUNT(?mid) AS ?depth) WHERE { ?class rdfs:subClassOf+ ?mid . ?mid rdfs:subClassOf+ ?root . ?root a owl:Class . FILTER NOT EXISTS { ?root rdfs:subClassOf ?x . ?x a owl:Class } } GROUP BY ?class } }
 
-If individuals < 10, call onto_load with more individuals.
-If max depth < 5, call onto_load deepening the shallowest branches.
-If any branch has no object properties connecting it, add some.
+Also call onto_stats to check individual count.
+
+If max depth < 5: pick the 3 shallowest leaf classes and call onto_load with Turtle adding 2-3 levels of subclasses below each (chain them: A subClassOf B subClassOf C).
+If individuals < 10: call onto_load adding more individuals.
 
 Call onto_stats after. Do NOT save yet.`,
     },
