@@ -42,6 +42,12 @@ pub struct EmbeddingsConfig {
     pub model_path: Option<String>,
     /// Path to the tokenizer.json file. Default: ~/.open-ontologies/models/tokenizer.json
     pub tokenizer_path: Option<String>,
+    /// URL to download the ONNX model from. Default: BGE-small-en-v1.5 from Hugging Face
+    pub model_url: Option<String>,
+    /// URL to download the tokenizer from. Default: BGE-small-en-v1.5 tokenizer from Hugging Face
+    pub tokenizer_url: Option<String>,
+    /// Filename for the downloaded model. Default: bge-small-en-v1.5.onnx
+    pub model_name: Option<String>,
 }
 
 /// Expand a leading `~` in a path to the user's home directory.

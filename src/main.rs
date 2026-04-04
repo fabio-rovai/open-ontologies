@@ -11,8 +11,16 @@ const DEFAULT_CONFIG: &str = r#"[general]
 data_dir = "~/.open-ontologies"
 
 # [embeddings]
+# Paths to a local ONNX model and tokenizer (loaded at runtime)
 # model_path = "~/.open-ontologies/models/bge-small-en-v1.5.onnx"
 # tokenizer_path = "~/.open-ontologies/models/tokenizer.json"
+#
+# URLs used by `open-ontologies init` to download the model.
+# Override these to use a different sentence-transformer model (e.g. for non-English text).
+# The model must be exported to ONNX and use a Hugging Face tokenizer.json.
+# model_url = "https://huggingface.co/BAAI/bge-small-en-v1.5/resolve/main/onnx/model.onnx"
+# tokenizer_url = "https://huggingface.co/BAAI/bge-small-en-v1.5/resolve/main/tokenizer.json"
+# model_name = "bge-small-en-v1.5.onnx"
 "#;
 
 #[derive(Parser)]
@@ -380,11 +388,19 @@ async fn main() -> anyhow::Result<()> {
                 let models_dir = data_path.join("models");
                 std::fs::create_dir_all(&models_dir)?;
 
+                // CLI flags > config.toml > defaults
+                let cfg = open_ontologies::config::Config::load(&config_path)
+                    .map(|c| c.embeddings)
+                    .unwrap_or_default();
+
                 let onnx_url = _model_url.as_deref()
+                    .or(cfg.model_url.as_deref())
                     .unwrap_or(open_ontologies::embed::BGE_SMALL_ONNX_URL);
                 let tok_url = _tokenizer_url.as_deref()
+                    .or(cfg.tokenizer_url.as_deref())
                     .unwrap_or(open_ontologies::embed::BGE_SMALL_TOKENIZER_URL);
                 let onnx_filename = _model_name.as_deref()
+                    .or(cfg.model_name.as_deref())
                     .unwrap_or("bge-small-en-v1.5.onnx");
 
                 let model_path = models_dir.join(onnx_filename);
