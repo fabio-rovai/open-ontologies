@@ -35,7 +35,7 @@ Open Ontologies is a **Rust MCP server** and **desktop Studio** for AI-native on
 
 The **Studio** wraps the engine in a visual desktop environment: virtualized ontology tree with hierarchy lines, breadcrumb navigation, and connection explorer; AI chat panel with `/build` (IES-level deep) and `/sketch` (quick prototype) commands; Protégé-style property inspector; and lineage viewer.
 
-No JVM. No Protégé. No GUI required.
+No JVM. No Protégé.
 
 ---
 
