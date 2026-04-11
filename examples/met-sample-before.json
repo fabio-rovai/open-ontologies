@@ -1,0 +1,117 @@
+[
+  {
+    "@context": {
+      "glam": "http://example.org/glam-digitisation-standard#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@type": "glam:DigitisedObject",
+    "@id": "470309",
+    "dcterms:title": "The Hours of Jeanne d'Evreux, Queen of France",
+    "dcterms:date": "ca. 1324–28",
+    "dcterms:description": "Grisaille, tempera, and ink on vellum",
+    "glam:hasMetadata": {
+      "@type": "glam:MetadataRecord",
+      "glam:persistentIdentifier": "470309",
+      "glam:structuredDate": "ca. 1324–28",
+      "dcterms:identifier": "470309"
+    },
+    "glam:hasRights": {
+      "@type": "glam:RightsDeclaration",
+      "glam:reuseConditions": ""
+    },
+    "_source_note": "The Cloisters Collection, 1954. Artist: Jean Pucelle (French, active Paris, 1319–34). See also related psalter fragments."
+  },
+  {
+    "@context": {
+      "glam": "http://example.org/glam-digitisation-standard#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@type": "glam:DigitisedObject",
+    "@id": "39799",
+    "dcterms:title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), or The Great Wave, from the series Thirty-six Views of Mount Fuji (Fugaku sanjūrokkei)",
+    "dcterms:date": "ca. 1830–32",
+    "dcterms:description": "Woodblock print; ink and color on paper",
+    "glam:hasMetadata": {
+      "@type": "glam:MetadataRecord",
+      "glam:persistentIdentifier": "39799",
+      "glam:structuredDate": "ca. 1830–32",
+      "dcterms:identifier": "39799"
+    },
+    "glam:hasRights": {
+      "@type": "glam:RightsDeclaration",
+      "glam:reuseConditions": ""
+    },
+    "_source_note": "The Howard Mansfield Collection, Purchase, Rogers Fund, 1936. Artist: Katsushika Hokusai (Japanese, Tokyo (Edo) 1760–1849 Tokyo (Edo)). Culture: Japan."
+  },
+  {
+    "@context": {
+      "glam": "http://example.org/glam-digitisation-standard#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@type": "glam:DigitisedObject",
+    "@id": "448602",
+    "dcterms:title": "Textile",
+    "dcterms:date": "10th–11th century",
+    "dcterms:description": "Linen, ink, gold; plain weave, block printed, painted",
+    "glam:hasMetadata": {
+      "@type": "glam:MetadataRecord",
+      "glam:persistentIdentifier": "448602",
+      "glam:structuredDate": "10th–11th century",
+      "dcterms:identifier": "448602"
+    },
+    "glam:hasRights": {
+      "@type": "glam:RightsDeclaration",
+      "glam:reuseConditions": ""
+    },
+    "_source_note": "Gift of George D. Pratt, 1931. Islamic Art. Classification: Textiles-Painted and/or Printed."
+  },
+  {
+    "@context": {
+      "glam": "http://example.org/glam-digitisation-standard#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@type": "glam:DigitisedObject",
+    "@id": "2034",
+    "dcterms:title": "Chest-with-drawer",
+    "dcterms:date": "1690–1710",
+    "dcterms:description": "Oak, pine",
+    "glam:hasMetadata": {
+      "@type": "glam:MetadataRecord",
+      "glam:persistentIdentifier": "2034",
+      "glam:structuredDate": "1690–1710",
+      "dcterms:identifier": "2034"
+    },
+    "glam:hasRights": {
+      "@type": "glam:RightsDeclaration",
+      "glam:reuseConditions": ""
+    },
+    "_source_note": "Gift of Mrs. Russell Sage, 1909. The American Wing. Culture: American."
+  },
+  {
+    "@context": {
+      "glam": "http://example.org/glam-digitisation-standard#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@type": "glam:DigitisedObject",
+    "@id": "267559",
+    "dcterms:title": "Portrait",
+    "dcterms:date": "1898",
+    "dcterms:description": "Platinum print",
+    "glam:hasMetadata": {
+      "@type": "glam:MetadataRecord",
+      "glam:persistentIdentifier": "267559",
+      "glam:structuredDate": "1898",
+      "dcterms:identifier": "267559"
+    },
+    "glam:hasRights": {
+      "@type": "glam:RightsDeclaration",
+      "glam:reuseConditions": ""
+    },
+    "_source_note": "Alfred Stieglitz Collection, 1933. Artist: F. Holland Day. Department: Photographs."
+  }
+]

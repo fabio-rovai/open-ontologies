@@ -1,0 +1,457 @@
+{
+  "method": "bare_llm_subagent",
+  "model": "claude-opus-4-6",
+  "scores": {
+    "pizza_subclassof": {
+      "tp": 79,
+      "fp": 16,
+      "fn": 1,
+      "precision": 0.832,
+      "recall": 0.988,
+      "f1": 0.903,
+      "gt_size": 80,
+      "pred_size": 95
+    },
+    "pizza_disjoint": {
+      "tp": 90,
+      "fp": 5,
+      "fn": 695,
+      "precision": 0.947,
+      "recall": 0.115,
+      "f1": 0.205,
+      "gt_size": 785,
+      "pred_size": 95
+    },
+    "pizza_domain": {
+      "tp": 3,
+      "fp": 5,
+      "fn": 0,
+      "precision": 0.375,
+      "recall": 1.0,
+      "f1": 0.545,
+      "gt_size": 3,
+      "pred_size": 8
+    },
+    "pizza_range": {
+      "tp": 4,
+      "fp": 4,
+      "fn": 0,
+      "precision": 0.5,
+      "recall": 1.0,
+      "f1": 0.667,
+      "gt_size": 4,
+      "pred_size": 8
+    },
+    "pizza_subproperty": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "gt_size": 4,
+      "pred_size": 4
+    },
+    "foaf_subclassof": {
+      "tp": 9,
+      "fp": 0,
+      "fn": 1,
+      "precision": 1.0,
+      "recall": 0.9,
+      "f1": 0.947,
+      "gt_size": 10,
+      "pred_size": 9
+    },
+    "foaf_disjoint": {
+      "tp": 3,
+      "fp": 2,
+      "fn": 5,
+      "precision": 0.6,
+      "recall": 0.375,
+      "f1": 0.462,
+      "gt_size": 8,
+      "pred_size": 5
+    },
+    "foaf_domain": {
+      "tp": 42,
+      "fp": 15,
+      "fn": 12,
+      "precision": 0.737,
+      "recall": 0.778,
+      "f1": 0.757,
+      "gt_size": 54,
+      "pred_size": 57
+    },
+    "foaf_range": {
+      "tp": 20,
+      "fp": 8,
+      "fn": 34,
+      "precision": 0.714,
+      "recall": 0.37,
+      "f1": 0.488,
+      "gt_size": 54,
+      "pred_size": 28
+    },
+    "foaf_subproperty": {
+      "tp": 7,
+      "fp": 1,
+      "fn": 6,
+      "precision": 0.875,
+      "recall": 0.538,
+      "f1": 0.667,
+      "gt_size": 13,
+      "pred_size": 8
+    },
+    "gufo_subclassof": {
+      "tp": 50,
+      "fp": 7,
+      "fn": 6,
+      "precision": 0.877,
+      "recall": 0.893,
+      "f1": 0.885,
+      "gt_size": 56,
+      "pred_size": 57
+    },
+    "gufo_disjoint": {
+      "tp": 14,
+      "fp": 19,
+      "fn": 27,
+      "precision": 0.424,
+      "recall": 0.341,
+      "f1": 0.378,
+      "gt_size": 41,
+      "pred_size": 33
+    },
+    "gufo_domain": {
+      "tp": 25,
+      "fp": 22,
+      "fn": 19,
+      "precision": 0.532,
+      "recall": 0.568,
+      "f1": 0.549,
+      "gt_size": 44,
+      "pred_size": 47
+    },
+    "gufo_range": {
+      "tp": 31,
+      "fp": 10,
+      "fn": 12,
+      "precision": 0.756,
+      "recall": 0.721,
+      "f1": 0.738,
+      "gt_size": 43,
+      "pred_size": 41
+    },
+    "gufo_subproperty": {
+      "tp": 12,
+      "fp": 8,
+      "fn": 2,
+      "precision": 0.6,
+      "recall": 0.857,
+      "f1": 0.706,
+      "gt_size": 14,
+      "pred_size": 20
+    },
+    "nordstream_subclassof": {
+      "tp": 9,
+      "fp": 17,
+      "fn": 11,
+      "precision": 0.346,
+      "recall": 0.45,
+      "f1": 0.391,
+      "gt_size": 20,
+      "pred_size": 26
+    },
+    "nordstream_disjoint": {
+      "tp": 2,
+      "fp": 25,
+      "fn": 2,
+      "precision": 0.074,
+      "recall": 0.5,
+      "f1": 0.129,
+      "gt_size": 4,
+      "pred_size": 27
+    },
+    "nordstream_domain": {
+      "tp": 1,
+      "fp": 30,
+      "fn": 0,
+      "precision": 0.032,
+      "recall": 1.0,
+      "f1": 0.062,
+      "gt_size": 1,
+      "pred_size": 31
+    },
+    "nordstream_range": {
+      "tp": 0,
+      "fp": 21,
+      "fn": 1,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0,
+      "gt_size": 1,
+      "pred_size": 21
+    },
+    "nordstream_subproperty": {
+      "tp": 0,
+      "fp": 7,
+      "fn": 0,
+      "precision": 0.0,
+      "recall": 0,
+      "f1": 0,
+      "gt_size": 0,
+      "pred_size": 7
+    },
+    "era_subclassof": {
+      "tp": 17,
+      "fp": 27,
+      "fn": 3,
+      "precision": 0.386,
+      "recall": 0.85,
+      "f1": 0.531,
+      "gt_size": 20,
+      "pred_size": 44
+    },
+    "era_disjoint": {
+      "tp": 0,
+      "fp": 13,
+      "fn": 4,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0,
+      "gt_size": 4,
+      "pred_size": 13
+    },
+    "era_domain": {
+      "tp": 75,
+      "fp": 104,
+      "fn": 195,
+      "precision": 0.419,
+      "recall": 0.278,
+      "f1": 0.334,
+      "gt_size": 270,
+      "pred_size": 179
+    },
+    "era_range": {
+      "tp": 29,
+      "fp": 18,
+      "fn": 425,
+      "precision": 0.617,
+      "recall": 0.064,
+      "f1": 0.116,
+      "gt_size": 454,
+      "pred_size": 47
+    },
+    "era_subproperty": {
+      "tp": 0,
+      "fp": 25,
+      "fn": 25,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0,
+      "gt_size": 25,
+      "pred_size": 25
+    },
+    "goodrelations_subclassof": {
+      "tp": 14,
+      "fp": 10,
+      "fn": 5,
+      "precision": 0.583,
+      "recall": 0.737,
+      "f1": 0.651,
+      "gt_size": 19,
+      "pred_size": 24
+    },
+    "goodrelations_disjoint": {
+      "tp": 87,
+      "fp": 35,
+      "fn": 169,
+      "precision": 0.713,
+      "recall": 0.34,
+      "f1": 0.46,
+      "gt_size": 256,
+      "pred_size": 122
+    },
+    "goodrelations_domain": {
+      "tp": 28,
+      "fp": 68,
+      "fn": 10,
+      "precision": 0.292,
+      "recall": 0.737,
+      "f1": 0.418,
+      "gt_size": 38,
+      "pred_size": 96
+    },
+    "goodrelations_range": {
+      "tp": 28,
+      "fp": 21,
+      "fn": 66,
+      "precision": 0.571,
+      "recall": 0.298,
+      "f1": 0.392,
+      "gt_size": 94,
+      "pred_size": 49
+    },
+    "goodrelations_subproperty": {
+      "tp": 4,
+      "fp": 5,
+      "fn": 18,
+      "precision": 0.444,
+      "recall": 0.182,
+      "f1": 0.258,
+      "gt_size": 22,
+      "pred_size": 9
+    },
+    "music_subclassof": {
+      "tp": 25,
+      "fp": 21,
+      "fn": 34,
+      "precision": 0.543,
+      "recall": 0.424,
+      "f1": 0.476,
+      "gt_size": 59,
+      "pred_size": 46
+    },
+    "music_disjoint": {
+      "tp": 1,
+      "fp": 32,
+      "fn": 1,
+      "precision": 0.03,
+      "recall": 0.5,
+      "f1": 0.057,
+      "gt_size": 2,
+      "pred_size": 33
+    },
+    "music_domain": {
+      "tp": 62,
+      "fp": 90,
+      "fn": 41,
+      "precision": 0.408,
+      "recall": 0.602,
+      "f1": 0.486,
+      "gt_size": 103,
+      "pred_size": 152
+    },
+    "music_range": {
+      "tp": 40,
+      "fp": 49,
+      "fn": 85,
+      "precision": 0.449,
+      "recall": 0.32,
+      "f1": 0.374,
+      "gt_size": 125,
+      "pred_size": 89
+    },
+    "music_subproperty": {
+      "tp": 9,
+      "fp": 12,
+      "fn": 72,
+      "precision": 0.429,
+      "recall": 0.111,
+      "f1": 0.176,
+      "gt_size": 81,
+      "pred_size": 21
+    },
+    "saref_subclassof": {
+      "tp": 9,
+      "fp": 7,
+      "fn": 2,
+      "precision": 0.562,
+      "recall": 0.818,
+      "f1": 0.667,
+      "gt_size": 11,
+      "pred_size": 16
+    },
+    "saref_disjoint": {
+      "tp": 0,
+      "fp": 13,
+      "fn": 0,
+      "precision": 0.0,
+      "recall": 0,
+      "f1": 0,
+      "gt_size": 0,
+      "pred_size": 13
+    },
+    "saref_domain": {
+      "tp": 23,
+      "fp": 45,
+      "fn": 11,
+      "precision": 0.338,
+      "recall": 0.676,
+      "f1": 0.451,
+      "gt_size": 34,
+      "pred_size": 68
+    },
+    "saref_range": {
+      "tp": 25,
+      "fp": 32,
+      "fn": 13,
+      "precision": 0.439,
+      "recall": 0.658,
+      "f1": 0.526,
+      "gt_size": 38,
+      "pred_size": 57
+    },
+    "saref_subproperty": {
+      "tp": 0,
+      "fp": 9,
+      "fn": 8,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0,
+      "gt_size": 8,
+      "pred_size": 9
+    },
+    "time_subclassof": {
+      "tp": 10,
+      "fp": 6,
+      "fn": 6,
+      "precision": 0.625,
+      "recall": 0.625,
+      "f1": 0.625,
+      "gt_size": 16,
+      "pred_size": 16
+    },
+    "time_disjoint": {
+      "tp": 0,
+      "fp": 4,
+      "fn": 1,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0,
+      "gt_size": 1,
+      "pred_size": 4
+    },
+    "time_domain": {
+      "tp": 41,
+      "fp": 17,
+      "fn": 12,
+      "precision": 0.707,
+      "recall": 0.774,
+      "f1": 0.739,
+      "gt_size": 53,
+      "pred_size": 58
+    },
+    "time_range": {
+      "tp": 30,
+      "fp": 2,
+      "fn": 25,
+      "precision": 0.938,
+      "recall": 0.545,
+      "f1": 0.69,
+      "gt_size": 55,
+      "pred_size": 32
+    },
+    "time_subproperty": {
+      "tp": 5,
+      "fp": 2,
+      "fn": 8,
+      "precision": 0.714,
+      "recall": 0.385,
+      "f1": 0.5,
+      "gt_size": 13,
+      "pred_size": 7
+    }
+  },
+  "overall_f1": 0.43124444444444443
+}

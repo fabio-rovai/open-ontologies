@@ -211,7 +211,7 @@ export function GraphCanvas({ onNodeSelect, dagMode }: GraphCanvasProps) {
     const el = containerRef.current;
     if (!el) return;
 
-    const graph = ForceGraph3D()(el)
+    const graph = new (ForceGraph3D as any)()(el)
       .backgroundColor('#1e1e2e')
       .nodeLabel('label')
       .nodeColor((node: object) => {

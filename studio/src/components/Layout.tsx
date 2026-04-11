@@ -12,7 +12,7 @@ export function Layout() {
   const [showChat, setShowChat] = useState(true);
   const [showInspector, setShowInspector] = useState(false);
   const [showLineage, setShowLineage] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('tree');
+  const [_viewMode, _setViewMode] = useState<ViewMode>('tree');
   const [selectedNode, setSelectedNode] = useState<{ id: string; label: string; uri: string } | null>(null);
   const [projectName, setProjectName] = useState('studio-live');
   const [savingAs, setSavingAs] = useState(false);

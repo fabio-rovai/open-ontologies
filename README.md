@@ -151,7 +151,7 @@ Add to `.cursor/mcp.json` or equivalent:
 
 ```text
 Build me a Pizza ontology following the Manchester University tutorial.
-Include all 49 toppings, 22 named pizzas, spiciness value partition,
+Include all 49 toppings, 24 named pizzas, spiciness value partition,
 and defined classes (VegetarianPizza, MeatyPizza, SpicyPizza).
 Validate it, load it, and show me the stats.
 ```
@@ -625,13 +625,13 @@ The same tool, applied to any ontology, produces the same kind of improvement. T
 | --- | --- | --- |
 | **Core** | `validate` `load` `save` `clear` `stats` `query` `diff` `lint` `convert` `status` | RDF/OWL validation, querying, and management |
 | **Marketplace** | `marketplace` | Browse and install 32 standard W3C/ISO/industry ontologies |
-| **Remote** | `pull` `push` `import-owl` | Fetch/push ontologies, resolve owl:imports |
+| **Remote** | `pull` `push` `import` | Fetch/push ontologies, resolve owl:imports |
 | **Schema** | `import-schema` | PostgreSQL → OWL conversion |
 | **Data** | `map` `ingest` `shacl` `reason` `extend` | Structured data → RDF pipeline |
 | **Versioning** | `version` `history` `rollback` | Named snapshots and rollback |
 | **Lifecycle** | `plan` `apply` `lock` `drift` `enforce` `monitor` `monitor-clear` `lineage` | Terraform-style change management with webhook alerts and [OpenCheir](https://github.com/fabio-rovai/opencheir) governance integration |
 | **Alignment** | `align` `align-feedback` | Cross-ontology class matching with self-calibrating confidence |
-| **Clinical** | `crosswalk` `enrich` `validate-clinical` | ICD-10 / SNOMED / MeSH crosswalks |
+| **Clinical** | `crosswalk` `enrich` `validate-clinical` | ICD-10 / SNOMED / MeSH crosswalks (93-row sample ships in `data/crosswalks.parquet`; run `python scripts/build_crosswalks.py` to rebuild or extend) |
 | **Feedback** | `lint-feedback` `enforce-feedback` | Self-calibrating suppression |
 | **Embeddings** | `embed` `search` `similarity` | Dual-space semantic search (text + Poincaré structural) |
 | **Reasoning** | `reason` `dl_explain` `dl_check` | Native OWL2-DL SHOIQ tableaux reasoner |
