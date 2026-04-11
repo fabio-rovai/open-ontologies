@@ -61,6 +61,12 @@ enum Commands {
         /// Optional governance webhook URL (fires on every lineage event)
         #[arg(long, env = "GOVERNANCE_WEBHOOK")]
         governance_webhook: Option<String>,
+        /// Enable continuous background monitoring (runs watchers on an interval)
+        #[arg(long)]
+        watch: bool,
+        /// Interval in seconds between monitor sweeps (default: 30)
+        #[arg(long, default_value = "30")]
+        watch_interval: u64,
     },
     /// Start the MCP server (Streamable HTTP transport)
     ServeHttp {
@@ -78,6 +84,12 @@ enum Commands {
         /// Optional governance webhook URL (fires on every lineage event)
         #[arg(long, env = "GOVERNANCE_WEBHOOK")]
         governance_webhook: Option<String>,
+        /// Enable continuous background monitoring (runs watchers on an interval)
+        #[arg(long)]
+        watch: bool,
+        /// Interval in seconds between monitor sweeps (default: 30)
+        #[arg(long, default_value = "30")]
+        watch_interval: u64,
     },
 
     /// Start unix socket server for Tardygrada fact grounding
@@ -88,6 +100,17 @@ enum Commands {
         /// Ontology files to load on startup
         #[arg(long = "file", num_args = 1..)]
         files: Vec<String>,
+    },
+
+    // ─── Batch ────────────────────────────────────────────────────
+    /// Run a batch of commands from a file or stdin (one per line, or JSON array)
+    Batch {
+        /// Path to batch file (use - for stdin)
+        #[arg(default_value = "-")]
+        input: String,
+        /// Stop on first error
+        #[arg(long)]
+        bail: bool,
     },
 
     // ─── Core ontology ────────────────────────────────────────────
@@ -431,7 +454,7 @@ async fn main() -> anyhow::Result<()> {
 
             println!("\nOpen Ontologies initialized successfully!");
         }
-        Commands::Serve { config: config_path, governance_webhook } => {
+        Commands::Serve { config: config_path, governance_webhook, watch, watch_interval } => {
             let config_path = expand_tilde(&config_path);
             let cfg = match Config::load(std::path::Path::new(&config_path)) {
                 Ok(c) => c,
@@ -450,11 +473,24 @@ async fn main() -> anyhow::Result<()> {
             std::fs::create_dir_all(&data_dir)?;
             let db = StateDb::open(&db_path)?;
 
-            let server = OpenOntologiesServer::new_with_full_options(db, Arc::new(GraphStore::new()), governance_webhook, cfg.embeddings);
+            let graph = Arc::new(GraphStore::new());
+
+            let _watch_handle = if watch {
+                let watch_db = StateDb::open(&db_path)?;
+                Some(open_ontologies::monitor::start_background_loop(
+                    watch_db,
+                    graph.clone(),
+                    std::time::Duration::from_secs(watch_interval),
+                ))
+            } else {
+                None
+            };
+
+            let server = OpenOntologiesServer::new_with_full_options(db, graph, governance_webhook, cfg.embeddings);
             let service = server.serve(rmcp::transport::stdio()).await?;
             service.waiting().await?;
         }
-        Commands::ServeHttp { config: config_path, host, port, token, governance_webhook } => {
+        Commands::ServeHttp { config: config_path, host, port, token, governance_webhook, watch, watch_interval } => {
             use rmcp::transport::streamable_http_server::{
                 StreamableHttpServerConfig, StreamableHttpService,
                 session::local::LocalSessionManager,
@@ -483,6 +519,17 @@ async fn main() -> anyhow::Result<()> {
 
             // Shared StateDb for lineage REST endpoint
             let shared_db = StateDb::open(&db_path_owned)?;
+
+            let _watch_handle = if watch {
+                let watch_db = StateDb::open(&db_path_owned)?;
+                Some(open_ontologies::monitor::start_background_loop(
+                    watch_db,
+                    shared_graph.clone(),
+                    std::time::Duration::from_secs(watch_interval),
+                ))
+            } else {
+                None
+            };
 
             let ct = CancellationToken::new();
             let http_config = StreamableHttpServerConfig {
@@ -659,6 +706,21 @@ async fn main() -> anyhow::Result<()> {
             }
             eprintln!("Graph has {} triples total", graph.triple_count());
             open_ontologies::socket::serve(&socket, graph).await?;
+        }
+
+        // ─── Batch ──────────────────────────────────────────────────
+        Commands::Batch { input, bail } => {
+            let (db, graph) = setup(&cli.data_dir)?;
+            let batch_input = if input == "-" {
+                let mut buf = String::new();
+                std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
+                buf
+            } else {
+                std::fs::read_to_string(&input)?
+            };
+            let runner = open_ontologies::batch::BatchRunner::new(db, graph, cli.pretty);
+            let exit_code = runner.run(&batch_input, bail).await;
+            std::process::exit(exit_code);
         }
 
         // ─── Core ontology ─────────────────────────────────────────

@@ -40,6 +40,7 @@ sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio",
 tract-onnx = { version = "0.21", optional = true }
 tokenizers = { version = "0.21", optional = true, default-features = false, features = ["onig"] }
 dirs = "6"
+shell-words = "1"
 
 [features]
 default = []

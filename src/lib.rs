@@ -1,3 +1,4 @@
+pub mod batch;
 pub mod error;
 pub mod align;
 pub mod config;
