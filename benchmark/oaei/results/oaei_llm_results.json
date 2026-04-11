@@ -1,0 +1,15 @@
+{
+  "precision": 0.7691,
+  "recall": 0.7381,
+  "f1": 0.7533,
+  "tp": 1119,
+  "fp": 336,
+  "fn": 397,
+  "reference_size": 1516,
+  "predicted_size": 1455,
+  "align_time_s": 65.26,
+  "llm_time_s": 0.28,
+  "llm_calls": 3084,
+  "auto_accepted": 1455,
+  "llm_accepted": 0
+}

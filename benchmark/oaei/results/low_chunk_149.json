@@ -1,0 +1,6542 @@
+[
+  {
+    "source_iri": "http://mouse.owl#MA_0000932",
+    "target_iri": "http://human.owl#NCI_C33191",
+    "source_label": "transverse nucleus",
+    "target_label": "Obturator_Externus_Muscle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000932",
+    "target_iri": "http://human.owl#NCI_C13147",
+    "source_label": "transverse nucleus",
+    "target_label": "Taste_Bud_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002671",
+    "target_iri": "http://human.owl#NCI_C20051",
+    "source_label": "splenic cord",
+    "target_label": "Surgically-Created_Resection_Cavity",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001558",
+    "target_iri": "http://human.owl#NCI_C13144",
+    "source_label": "small intestine serosa",
+    "target_label": "Squamous_Alveolar_Lining_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001558",
+    "target_iri": "http://human.owl#NCI_C49779",
+    "source_label": "small intestine serosa",
+    "target_label": "Splenic_Trabecular_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002146",
+    "target_iri": "http://human.owl#NCI_C53123",
+    "source_label": "ilio-lumbar vein",
+    "target_label": "Right_Subcostal_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002304",
+    "target_iri": "http://human.owl#NCI_C33861",
+    "source_label": "plantar foot interosseus muscle",
+    "target_label": "Ventroanterior_Nucleus_of_the_Thalamus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002083",
+    "target_iri": "http://human.owl#NCI_C12759",
+    "source_label": "anterior auricular vein",
+    "target_label": "Olfactory_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001693",
+    "target_iri": "http://human.owl#NCI_C33710",
+    "source_label": "urinary bladder urothelium",
+    "target_label": "Supratentorial_Cistern",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001693",
+    "target_iri": "http://human.owl#NCI_C48943",
+    "source_label": "urinary bladder urothelium",
+    "target_label": "Respiratory_Bronchiole_Epithelium",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001693",
+    "target_iri": "http://human.owl#NCI_C33732",
+    "source_label": "urinary bladder urothelium",
+    "target_label": "Tail_of_the_Epididymis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001693",
+    "target_iri": "http://human.owl#NCI_C41409",
+    "source_label": "urinary bladder urothelium",
+    "target_label": "Neuroepithelial_Tissue",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000163",
+    "target_iri": "http://human.owl#NCI_C33874",
+    "source_label": "vibrissa",
+    "target_label": "Villus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000688",
+    "target_iri": "http://human.owl#NCI_C33157",
+    "source_label": "limb bone",
+    "target_label": "Nasal_Bone",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000078",
+    "target_iri": "http://human.owl#NCI_C32491",
+    "source_label": "endocardial cushion",
+    "target_label": "Ectocervical_Os",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002113",
+    "target_iri": "http://human.owl#NCI_C12753",
+    "source_label": "dural vein",
+    "target_label": "Mitral_Valve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002113",
+    "target_iri": "http://human.owl#NCI_C52734",
+    "source_label": "dural vein",
+    "target_label": "External_Sural_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002013",
+    "target_iri": "http://human.owl#NCI_C33701",
+    "source_label": "pancreatico-duodenal artery",
+    "target_label": "Superior_Thoracic_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002013",
+    "target_iri": "http://human.owl#NCI_C33409",
+    "source_label": "pancreatico-duodenal artery",
+    "target_label": "Prostatic_Glandular_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002013",
+    "target_iri": "http://human.owl#NCI_C32866",
+    "source_label": "pancreatico-duodenal artery",
+    "target_label": "Interpenduncular_Cistern",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002013",
+    "target_iri": "http://human.owl#NCI_C32843",
+    "source_label": "pancreatico-duodenal artery",
+    "target_label": "Internal_Geniculate_Body",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000943",
+    "target_iri": "http://human.owl#NCI_C33739",
+    "source_label": "temporal cortex association area",
+    "target_label": "Tear",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000858",
+    "target_iri": "http://human.owl#NCI_C32528",
+    "source_label": "infundibulum",
+    "target_label": "Epineurium",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000962",
+    "target_iri": "http://human.owl#NCI_C32960",
+    "source_label": "lateral ventricle choroid plexus epithelium",
+    "target_label": "Left_Hepatic_Duct",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001803",
+    "target_iri": "http://human.owl#NCI_C33166",
+    "source_label": "respiratory system arteriole",
+    "target_label": "Neural_Retina",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002237",
+    "target_iri": "http://human.owl#NCI_C12665",
+    "source_label": "internal thoracic vein",
+    "target_label": "Abducens_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002237",
+    "target_iri": "http://human.owl#NCI_C12806",
+    "source_label": "internal thoracic vein",
+    "target_label": "Trigeminal_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002237",
+    "target_iri": "http://human.owl#NCI_C13465",
+    "source_label": "internal thoracic vein",
+    "target_label": "Bronchial_Secretion",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002237",
+    "target_iri": "http://human.owl#NCI_C32551",
+    "source_label": "internal thoracic vein",
+    "target_label": "External_Carotid_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002237",
+    "target_iri": "http://human.owl#NCI_C52721",
+    "source_label": "internal thoracic vein",
+    "target_label": "Inferior_Hypogastric_Nerve_Plexus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002224",
+    "target_iri": "http://human.owl#NCI_C33655",
+    "source_label": "subscapular vein",
+    "target_label": "Sulcus_Centralis_Insulae",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002105",
+    "target_iri": "http://human.owl#NCI_C32758",
+    "source_label": "dorsal metatarsal vein",
+    "target_label": "Hypophyseal_Portal_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002105",
+    "target_iri": "http://human.owl#NCI_C33590",
+    "source_label": "dorsal metatarsal vein",
+    "target_label": "Spinal_Dorsal_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001453",
+    "target_iri": "http://human.owl#NCI_C12676",
+    "source_label": "vertebra dorsal arch",
+    "target_label": "Basilar_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001453",
+    "target_iri": "http://human.owl#NCI_C33351",
+    "source_label": "vertebra dorsal arch",
+    "target_label": "Posterior_Cerebral_Artery_Branch",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002369",
+    "target_iri": "http://human.owl#NCI_C53000",
+    "source_label": "scalenus dorsalis",
+    "target_label": "Subcostal_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002369",
+    "target_iri": "http://human.owl#NCI_C33555",
+    "source_label": "scalenus dorsalis",
+    "target_label": "Sinoatrial_Node",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002369",
+    "target_iri": "http://human.owl#NCI_C12640",
+    "source_label": "scalenus dorsalis",
+    "target_label": "Posterior_Horn_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002476",
+    "target_iri": "http://human.owl#NCI_C12831",
+    "source_label": "palate",
+    "target_label": "Posterior_Cerebral_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002476",
+    "target_iri": "http://human.owl#NCI_C12938",
+    "source_label": "palate",
+    "target_label": "Peripheral_Blood_Lymphocyte",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002476",
+    "target_iri": "http://human.owl#NCI_C12729",
+    "source_label": "palate",
+    "target_label": "Cardiac_Valve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002476",
+    "target_iri": "http://human.owl#NCI_C12469",
+    "source_label": "palate",
+    "target_label": "Pleural_Tissue",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001449",
+    "target_iri": "http://human.owl#NCI_C32138",
+    "source_label": "thoracic vertebra 12",
+    "target_label": "Arch_of_the_Vertebra",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001449",
+    "target_iri": "http://human.owl#NCI_C12808",
+    "source_label": "thoracic vertebra 12",
+    "target_label": "Trochlear_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000268",
+    "target_iri": "http://human.owl#NCI_C32724",
+    "source_label": "eyelid",
+    "target_label": "Helix",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000268",
+    "target_iri": "http://human.owl#NCI_C12398",
+    "source_label": "eyelid",
+    "target_label": "Pineal_Gland",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000268",
+    "target_iri": "http://human.owl#NCI_C32552",
+    "source_label": "eyelid",
+    "target_label": "External_Carotid_Artery_Branch",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000268",
+    "target_iri": "http://human.owl#NCI_C32505",
+    "source_label": "eyelid",
+    "target_label": "Enamel",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001027",
+    "target_iri": "http://human.owl#NCI_C33378",
+    "source_label": "superior salivatory nucleus",
+    "target_label": "Posterior_Semicircular_Canal",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001359",
+    "target_iri": "http://human.owl#NCI_C12623",
+    "source_label": "femur",
+    "target_label": "Neuron",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001359",
+    "target_iri": "http://human.owl#NCI_C12469",
+    "source_label": "femur",
+    "target_label": "Pleural_Tissue",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000818",
+    "target_iri": "http://human.owl#NCI_C32211",
+    "source_label": "brain ventricle",
+    "target_label": "Bladder_Transitional_Cell_Epithelium",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000818",
+    "target_iri": "http://human.owl#NCI_C32845",
+    "source_label": "brain ventricle",
+    "target_label": "Internal_Iliac_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000818",
+    "target_iri": "http://human.owl#NCI_C32862",
+    "source_label": "brain ventricle",
+    "target_label": "Internal_Pubic_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000818",
+    "target_iri": "http://human.owl#NCI_C53059",
+    "source_label": "brain ventricle",
+    "target_label": "Pancreatic_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000818",
+    "target_iri": "http://human.owl#NCI_C53062",
+    "source_label": "brain ventricle",
+    "target_label": "Phrenic_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001373",
+    "target_iri": "http://human.owl#NCI_C32148",
+    "source_label": "metatarsal bone digit 5",
+    "target_label": "Arytenoid_Cartilage",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000560",
+    "target_iri": "http://human.owl#NCI_C12795",
+    "source_label": "thorax connective tissue",
+    "target_label": "Sympathetic_Nervous_System",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000560",
+    "target_iri": "http://human.owl#NCI_C12382",
+    "source_label": "thorax connective tissue",
+    "target_label": "Colon",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000560",
+    "target_iri": "http://human.owl#NCI_C12379",
+    "source_label": "thorax connective tissue",
+    "target_label": "Large_Intestine",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002029",
+    "target_iri": "http://human.owl#NCI_C13091",
+    "source_label": "superior external pudendal artery",
+    "target_label": "Surface_of_the_Prostate",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002079",
+    "target_iri": "http://human.owl#NCI_C12298",
+    "source_label": "inferior vesical artery",
+    "target_label": "Retroperitoneum",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001950",
+    "target_iri": "http://human.owl#NCI_C32039",
+    "source_label": "facial artery",
+    "target_label": "Abdominal_Aorta_Branch",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000396",
+    "target_iri": "http://human.owl#NCI_C32436",
+    "source_label": "male reproductive system",
+    "target_label": "Deep_Femoral_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000396",
+    "target_iri": "http://human.owl#NCI_C33966",
+    "source_label": "male reproductive system",
+    "target_label": "Central_Nervous_System_Part",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002059",
+    "target_iri": "http://human.owl#NCI_C33314",
+    "source_label": "external sural artery",
+    "target_label": "Peroneal_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002059",
+    "target_iri": "http://human.owl#NCI_C52994",
+    "source_label": "external sural artery",
+    "target_label": "Perineal_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002215",
+    "target_iri": "http://human.owl#NCI_C33224",
+    "source_label": "saphenous vein",
+    "target_label": "Organ_of_the_Special_Sense",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000964",
+    "target_iri": "http://human.owl#NCI_C12627",
+    "source_label": "lateral ventricle ependyma",
+    "target_label": "Myelinated_Nerve_Fiber",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000911",
+    "target_iri": "http://human.owl#NCI_C33379",
+    "source_label": "lateral entorhinal cortex",
+    "target_label": "Posterior_Supratentorial_Cistern",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001829",
+    "target_iri": "http://human.owl#NCI_C13057",
+    "source_label": "respiratory system skeletal muscle",
+    "target_label": "Reticular_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000449",
+    "target_iri": "http://human.owl#NCI_C12759",
+    "source_label": "peritoneal cavity lining",
+    "target_label": "Olfactory_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000449",
+    "target_iri": "http://human.owl#NCI_C33285",
+    "source_label": "peritoneal cavity lining",
+    "target_label": "Pectoralis_Minor",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002277",
+    "target_iri": "http://human.owl#NCI_C32341",
+    "source_label": "coccygeus",
+    "target_label": "Collateral_Gyrus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001059",
+    "target_iri": "http://human.owl#NCI_C12753",
+    "source_label": "midbrain arachnoid mater",
+    "target_label": "Mitral_Valve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000346",
+    "target_iri": "http://human.owl#NCI_C33706",
+    "source_label": "salivary gland",
+    "target_label": "Supramarginal_Gyrus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000346",
+    "target_iri": "http://human.owl#NCI_C33653",
+    "source_label": "salivary gland",
+    "target_label": "Subtalar_Joint",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002176",
+    "target_iri": "http://human.owl#NCI_C12722",
+    "source_label": "median cubital vein",
+    "target_label": "Male_Reproductive_System",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000845",
+    "target_iri": "http://human.owl#NCI_C33232",
+    "source_label": "ventromedial hypothalamic nucleus",
+    "target_label": "Outer_Enamel_Epithelium",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000253",
+    "target_iri": "http://human.owl#NCI_C32888",
+    "source_label": "middle ear",
+    "target_label": "Jaw_Joint",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000589",
+    "target_iri": "http://human.owl#NCI_C32643",
+    "source_label": "neck organ",
+    "target_label": "Fundic_Gland",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001344",
+    "target_iri": "http://human.owl#NCI_C33462",
+    "source_label": "central carpal bone",
+    "target_label": "Renal_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001344",
+    "target_iri": "http://human.owl#NCI_C12292",
+    "source_label": "central carpal bone",
+    "target_label": "External_Ear",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001344",
+    "target_iri": "http://human.owl#NCI_C12395",
+    "source_label": "central carpal bone",
+    "target_label": "Cochlea",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001344",
+    "target_iri": "http://human.owl#NCI_C33455",
+    "source_label": "central carpal bone",
+    "target_label": "Renal_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001344",
+    "target_iri": "http://human.owl#NCI_C12223",
+    "source_label": "central carpal bone",
+    "target_label": "External_Lip",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001344",
+    "target_iri": "http://human.owl#NCI_C32288",
+    "source_label": "central carpal bone",
+    "target_label": "Cerebral_Fissure",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001344",
+    "target_iri": "http://human.owl#NCI_C12695",
+    "source_label": "central carpal bone",
+    "target_label": "Clavicle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001344",
+    "target_iri": "http://human.owl#NCI_C12311",
+    "source_label": "central carpal bone",
+    "target_label": "Cervix",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001344",
+    "target_iri": "http://human.owl#NCI_C12973",
+    "source_label": "central carpal bone",
+    "target_label": "Cervicomedullary_Junction",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001344",
+    "target_iri": "http://human.owl#NCI_C33859",
+    "source_label": "central carpal bone",
+    "target_label": "Ventral_Horn_of_the_Spinal_Cord",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001344",
+    "target_iri": "http://human.owl#NCI_C32858",
+    "source_label": "central carpal bone",
+    "target_label": "Internal_Occipital_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002283",
+    "target_iri": "http://human.owl#NCI_C32296",
+    "source_label": "cricoarytenoid",
+    "target_label": "Cervical_Gland",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002283",
+    "target_iri": "http://human.owl#NCI_C32295",
+    "source_label": "cricoarytenoid",
+    "target_label": "Cervical_Curve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002283",
+    "target_iri": "http://human.owl#NCI_C32417",
+    "source_label": "cricoarytenoid",
+    "target_label": "Cuneiform_Cartilage",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001267",
+    "target_iri": "http://human.owl#NCI_C12603",
+    "source_label": "upper eyelid",
+    "target_label": "Head_of_the_Spermatozoon",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000218",
+    "target_iri": "http://human.owl#NCI_C13093",
+    "source_label": "peripheral nervous system",
+    "target_label": "Posterior_Lobe_of_the_Prostate",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000218",
+    "target_iri": "http://human.owl#NCI_C12779",
+    "source_label": "peripheral nervous system",
+    "target_label": "Respiratory_System",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000074",
+    "target_iri": "http://human.owl#NCI_C32737",
+    "source_label": "heart left atrium",
+    "target_label": "Hepatogastric_Ligament",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000593",
+    "target_iri": "http://human.owl#NCI_C53051",
+    "source_label": "arm connective tissue",
+    "target_label": "Masseteric_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000593",
+    "target_iri": "http://human.owl#NCI_C53055",
+    "source_label": "arm connective tissue",
+    "target_label": "Mesenteric_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000593",
+    "target_iri": "http://human.owl#NCI_C33865",
+    "source_label": "arm connective tissue",
+    "target_label": "Vermian_Cistern",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000732",
+    "target_iri": "http://human.owl#NCI_C12954",
+    "source_label": "peyer's patch follicle",
+    "target_label": "Peripheral_Blood_Mononuclear_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000313",
+    "target_iri": "http://human.owl#NCI_C12381",
+    "source_label": "sacral vertebra",
+    "target_label": "Cecum",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000313",
+    "target_iri": "http://human.owl#NCI_C13278",
+    "source_label": "sacral vertebra",
+    "target_label": "Sputum",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000313",
+    "target_iri": "http://human.owl#NCI_C12784",
+    "source_label": "sacral vertebra",
+    "target_label": "Sclera",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001419",
+    "target_iri": "http://human.owl#NCI_C33526",
+    "source_label": "true rib",
+    "target_label": "Segmental_Bronchus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001419",
+    "target_iri": "http://human.owl#NCI_C40185",
+    "source_label": "true rib",
+    "target_label": "Fore-Brain",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001419",
+    "target_iri": "http://human.owl#NCI_C52561",
+    "source_label": "true rib",
+    "target_label": "Urethralis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001419",
+    "target_iri": "http://human.owl#NCI_C33790",
+    "source_label": "true rib",
+    "target_label": "Toe_Nail",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001419",
+    "target_iri": "http://human.owl#NCI_C12671",
+    "source_label": "true rib",
+    "target_label": "Upper_Extremity",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001419",
+    "target_iri": "http://human.owl#NCI_C49303",
+    "source_label": "true rib",
+    "target_label": "Trachea_Basal_Lamina",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001419",
+    "target_iri": "http://human.owl#NCI_C33801",
+    "source_label": "true rib",
+    "target_label": "Tragus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002394",
+    "target_iri": "http://human.owl#NCI_C33755",
+    "source_label": "tibialis caudalis",
+    "target_label": "Terminal_Bronchiole_Epithelium",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002021",
+    "target_iri": "http://human.owl#NCI_C12619",
+    "source_label": "popliteal artery",
+    "target_label": "Perineuronal_Satellite_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002021",
+    "target_iri": "http://human.owl#NCI_C12399",
+    "source_label": "popliteal artery",
+    "target_label": "Pituitary_Gland",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002021",
+    "target_iri": "http://human.owl#NCI_C12656",
+    "source_label": "popliteal artery",
+    "target_label": "Pericyte",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000325",
+    "target_iri": "http://human.owl#NCI_C12378",
+    "source_label": "renal/urinary system",
+    "target_label": "Gastrointestinal_System",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000325",
+    "target_iri": "http://human.owl#NCI_C13232",
+    "source_label": "renal/urinary system",
+    "target_label": "Extracellular_Matrix",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002393",
+    "target_iri": "http://human.owl#NCI_C52971",
+    "source_label": "thyrohyoid",
+    "target_label": "Omohyoid",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002080",
+    "target_iri": "http://human.owl#NCI_C32080",
+    "source_label": "superior vesical artery",
+    "target_label": "Anterior_Carpal_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002080",
+    "target_iri": "http://human.owl#NCI_C12798",
+    "source_label": "superior vesical artery",
+    "target_label": "Thoracic_Vertebra",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002080",
+    "target_iri": "http://human.owl#NCI_C33292",
+    "source_label": "superior vesical artery",
+    "target_label": "Perforating_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002446",
+    "target_iri": "http://human.owl#NCI_C32164",
+    "source_label": "gustatory system",
+    "target_label": "Auditory_Ossicle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002446",
+    "target_iri": "http://human.owl#NCI_C32700",
+    "source_label": "gustatory system",
+    "target_label": "Greater_Tuberosity",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002065",
+    "target_iri": "http://human.owl#NCI_C33292",
+    "source_label": "thoracodorsal artery",
+    "target_label": "Perforating_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002626",
+    "target_iri": "http://human.owl#NCI_C32097",
+    "source_label": "outer medulla inner stripe",
+    "target_label": "Anterior_Mediastinal_Lymph_Node",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002211",
+    "target_iri": "http://human.owl#NCI_C12721",
+    "source_label": "left renal vein",
+    "target_label": "Geniculate_Ganglion",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000625",
+    "target_iri": "http://human.owl#NCI_C33215",
+    "source_label": "hand digit nerve",
+    "target_label": "Ophthalmic_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001082",
+    "target_iri": "http://human.owl#NCI_C32805",
+    "source_label": "inferior vagus X ganglion",
+    "target_label": "Inner_Hair_Cell_of_the_Organ_of_the_Corti",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001814",
+    "target_iri": "http://human.owl#NCI_C32782",
+    "source_label": "respiratory system connective tissue",
+    "target_label": "Inferior_Mesenteric_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001890",
+    "target_iri": "http://human.owl#NCI_C12921",
+    "source_label": "adrenal gland zona fasciculata",
+    "target_label": "Large_Granular_Lymphocyte",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000819",
+    "target_iri": "http://human.owl#NCI_C32847",
+    "source_label": "brain ventricular zone",
+    "target_label": "Internal_Iliac_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000819",
+    "target_iri": "http://human.owl#NCI_C12819",
+    "source_label": "brain ventricular zone",
+    "target_label": "Vertebral_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000244",
+    "target_iri": "http://human.owl#NCI_C12315",
+    "source_label": "ductus reuniens",
+    "target_label": "Fundus_Uteri",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001452",
+    "target_iri": "http://human.owl#NCI_C32835",
+    "source_label": "vertebra cranial articular process",
+    "target_label": "Internal_Calcanean_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001062",
+    "target_iri": "http://human.owl#NCI_C32106",
+    "source_label": "pretectal region",
+    "target_label": "Anterior_Supratentorial_Cistern",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001062",
+    "target_iri": "http://human.owl#NCI_C12642",
+    "source_label": "pretectal region",
+    "target_label": "Retinal_Ganglion_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000015",
+    "target_iri": "http://human.owl#NCI_C52590",
+    "source_label": "muscle",
+    "target_label": "Mesial_Surface",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000015",
+    "target_iri": "http://human.owl#NCI_C33099",
+    "source_label": "muscle",
+    "target_label": "Menses",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000015",
+    "target_iri": "http://human.owl#NCI_C12830",
+    "source_label": "muscle",
+    "target_label": "Middle_Cerebral_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001548",
+    "target_iri": "http://human.owl#NCI_C38467",
+    "source_label": "large intestine smooth muscle circular layer",
+    "target_label": "Interfollicular_Area_of_the_Lymph_Node",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000992",
+    "target_iri": "http://human.owl#NCI_C13317",
+    "source_label": "flocculus",
+    "target_label": "Hair_Follicle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001754",
+    "target_iri": "http://human.owl#NCI_C12705",
+    "source_label": "larynx connective tissue",
+    "target_label": "Endocrine_System",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001754",
+    "target_iri": "http://human.owl#NCI_C12759",
+    "source_label": "larynx connective tissue",
+    "target_label": "Olfactory_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000223",
+    "target_iri": "http://human.owl#NCI_C32141",
+    "source_label": "parasympathetic nervous system",
+    "target_label": "Arm",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000223",
+    "target_iri": "http://human.owl#NCI_C33771",
+    "source_label": "parasympathetic nervous system",
+    "target_label": "Thymic_Epithelial_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002688",
+    "target_iri": "http://human.owl#NCI_C20051",
+    "source_label": "large intestine mucosa",
+    "target_label": "Surgically-Created_Resection_Cavity",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001875",
+    "target_iri": "http://human.owl#NCI_C32929",
+    "source_label": "left ventricle muscular part",
+    "target_label": "Large_Intestinal_Serosal_Surface",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000339",
+    "target_iri": "http://human.owl#NCI_C32058",
+    "source_label": "ileum",
+    "target_label": "Alveus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000339",
+    "target_iri": "http://human.owl#NCI_C33544",
+    "source_label": "ileum",
+    "target_label": "Sheath_of_Schwann",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000339",
+    "target_iri": "http://human.owl#NCI_C49248",
+    "source_label": "ileum",
+    "target_label": "Choroid_Plexus_Epithelium_of_the_Lateral_Ventricle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000339",
+    "target_iri": "http://human.owl#NCI_C12390",
+    "source_label": "ileum",
+    "target_label": "Rectum",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000339",
+    "target_iri": "http://human.owl#NCI_C52559",
+    "source_label": "ileum",
+    "target_label": "Labium",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000339",
+    "target_iri": "http://human.owl#NCI_C33874",
+    "source_label": "ileum",
+    "target_label": "Villus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000339",
+    "target_iri": "http://human.owl#NCI_C12907",
+    "source_label": "ileum",
+    "target_label": "Integumentary_System",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000339",
+    "target_iri": "http://human.owl#NCI_C12469",
+    "source_label": "ileum",
+    "target_label": "Pleural_Tissue",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000339",
+    "target_iri": "http://human.owl#NCI_C53075",
+    "source_label": "ileum",
+    "target_label": "Soleus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000673",
+    "target_iri": "http://human.owl#NCI_C49245",
+    "source_label": "leg nerve",
+    "target_label": "Laryngeal_Connective_Tissue",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002194",
+    "target_iri": "http://human.owl#NCI_C52978",
+    "source_label": "phrenic vein",
+    "target_label": "Pectineus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002194",
+    "target_iri": "http://human.owl#NCI_C33362",
+    "source_label": "phrenic vein",
+    "target_label": "Posterior_Inferior_Cerebellar_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002194",
+    "target_iri": "http://human.owl#NCI_C12356",
+    "source_label": "phrenic vein",
+    "target_label": "Ventricle_Brain",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002194",
+    "target_iri": "http://human.owl#NCI_C12812",
+    "source_label": "phrenic vein",
+    "target_label": "Vagus_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002194",
+    "target_iri": "http://human.owl#NCI_C12759",
+    "source_label": "phrenic vein",
+    "target_label": "Olfactory_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002194",
+    "target_iri": "http://human.owl#NCI_C49268",
+    "source_label": "phrenic vein",
+    "target_label": "Pancreatic_Acinus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002194",
+    "target_iri": "http://human.owl#NCI_C33323",
+    "source_label": "phrenic vein",
+    "target_label": "Pinealocyte",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002555",
+    "target_iri": "http://human.owl#NCI_C25203",
+    "source_label": "scaphoid",
+    "target_label": "Shoulder",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002555",
+    "target_iri": "http://human.owl#NCI_C33555",
+    "source_label": "scaphoid",
+    "target_label": "Sinoatrial_Node",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002555",
+    "target_iri": "http://human.owl#NCI_C32467",
+    "source_label": "scaphoid",
+    "target_label": "Discontinuous_Capillary",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002555",
+    "target_iri": "http://human.owl#NCI_C49303",
+    "source_label": "scaphoid",
+    "target_label": "Trachea_Basal_Lamina",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002555",
+    "target_iri": "http://human.owl#NCI_C12784",
+    "source_label": "scaphoid",
+    "target_label": "Sclera",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002555",
+    "target_iri": "http://human.owl#NCI_C13025",
+    "source_label": "scaphoid",
+    "target_label": "Stomach_Part",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002411",
+    "target_iri": "http://human.owl#NCI_C13052",
+    "source_label": "exocrine system",
+    "target_label": "Nervous_Tissue",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002411",
+    "target_iri": "http://human.owl#NCI_C12402",
+    "source_label": "exocrine system",
+    "target_label": "Female_Reproductive_System",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002411",
+    "target_iri": "http://human.owl#NCI_C12908",
+    "source_label": "exocrine system",
+    "target_label": "Other_Unique_Body_System",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000594",
+    "target_iri": "http://human.owl#NCI_C32160",
+    "source_label": "arm muscle",
+    "target_label": "Atrioventricular_Bundle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000594",
+    "target_iri": "http://human.owl#NCI_C33705",
+    "source_label": "arm muscle",
+    "target_label": "Suprachorioid_Lamina",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000594",
+    "target_iri": "http://human.owl#NCI_C13146",
+    "source_label": "arm muscle",
+    "target_label": "Type_I_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002649",
+    "target_iri": "http://human.owl#NCI_C33843",
+    "source_label": "urethra muscle",
+    "target_label": "Utero-Vesical_Pouch",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002116",
+    "target_iri": "http://human.owl#NCI_C12730",
+    "source_label": "anterior facial vein",
+    "target_label": "Cardiac_Ventricle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002116",
+    "target_iri": "http://human.owl#NCI_C33746",
+    "source_label": "anterior facial vein",
+    "target_label": "Temporo-maxillary_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002116",
+    "target_iri": "http://human.owl#NCI_C32533",
+    "source_label": "anterior facial vein",
+    "target_label": "Epitympanic_Recess",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002046",
+    "target_iri": "http://human.owl#NCI_C32978",
+    "source_label": "left subclavian artery",
+    "target_label": "Lentiform_Nucleus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002046",
+    "target_iri": "http://human.owl#NCI_C33338",
+    "source_label": "left subclavian artery",
+    "target_label": "Popliteal_Artery_Branch",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000880",
+    "target_iri": "http://human.owl#NCI_C33796",
+    "source_label": "third ventricle choroid plexus epithelium",
+    "target_label": "Totipotent_Neuroepithelial_Stem_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000087",
+    "target_iri": "http://human.owl#NCI_C32491",
+    "source_label": "aortic valve",
+    "target_label": "Ectocervical_Os",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000087",
+    "target_iri": "http://human.owl#NCI_C12806",
+    "source_label": "aortic valve",
+    "target_label": "Trigeminal_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000087",
+    "target_iri": "http://human.owl#NCI_C49265",
+    "source_label": "aortic valve",
+    "target_label": "Ovarian_Capsule",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002045",
+    "target_iri": "http://human.owl#NCI_C33659",
+    "source_label": "subclavian artery",
+    "target_label": "Superficial_Cervical_Lymph_Node",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002045",
+    "target_iri": "http://human.owl#NCI_C41266",
+    "source_label": "subclavian artery",
+    "target_label": "Subsegmental_Bronchus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002045",
+    "target_iri": "http://human.owl#NCI_C41268",
+    "source_label": "subclavian artery",
+    "target_label": "Subsegmental_Bronchus_of_Right_Lung",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001813",
+    "target_iri": "http://human.owl#NCI_C53014",
+    "source_label": "respiratory system venule",
+    "target_label": "Serratus_Ventralis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000963",
+    "target_iri": "http://human.owl#NCI_C13146",
+    "source_label": "lateral ventricle choroid plexus stroma",
+    "target_label": "Type_I_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000915",
+    "target_iri": "http://human.owl#NCI_C12775",
+    "source_label": "secondary visual cortex",
+    "target_label": "Pulmonary_Valve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000915",
+    "target_iri": "http://human.owl#NCI_C33710",
+    "source_label": "secondary visual cortex",
+    "target_label": "Supratentorial_Cistern",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000590",
+    "target_iri": "http://human.owl#NCI_C33165",
+    "source_label": "neck skin",
+    "target_label": "Nervi_Vascularis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002661",
+    "target_iri": "http://human.owl#NCI_C38622",
+    "source_label": "extrahepatic bile duct epithelium",
+    "target_label": "Epithelium_Part",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001989",
+    "target_iri": "http://human.owl#NCI_C32760",
+    "source_label": "lateral thoracic artery",
+    "target_label": "Ileo-colic_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001989",
+    "target_iri": "http://human.owl#NCI_C52938",
+    "source_label": "lateral thoracic artery",
+    "target_label": "Inferior_Rectal_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001989",
+    "target_iri": "http://human.owl#NCI_C33581",
+    "source_label": "lateral thoracic artery",
+    "target_label": "Spermatic_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001989",
+    "target_iri": "http://human.owl#NCI_C33107",
+    "source_label": "lateral thoracic artery",
+    "target_label": "Metatarsal_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001989",
+    "target_iri": "http://human.owl#NCI_C12798",
+    "source_label": "lateral thoracic artery",
+    "target_label": "Thoracic_Vertebra",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000743",
+    "target_iri": "http://human.owl#NCI_C32128",
+    "source_label": "lymph node primary follicle",
+    "target_label": "Apex_of_the_Pericardium",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001111",
+    "target_iri": "http://human.owl#NCI_C32583",
+    "source_label": "vestibulocochlear VIII nerve vestibular component",
+    "target_label": "False_Vocal_Cord",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002500",
+    "target_iri": "http://human.owl#NCI_C32826",
+    "source_label": "right pulmonary artery",
+    "target_label": "Interlobular_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002500",
+    "target_iri": "http://human.owl#NCI_C13035",
+    "source_label": "right pulmonary artery",
+    "target_label": "Urinary_System_Part",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002500",
+    "target_iri": "http://human.owl#NCI_C12876",
+    "source_label": "right pulmonary artery",
+    "target_label": "Posterior_Spinal_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001427",
+    "target_iri": "http://human.owl#NCI_C32408",
+    "source_label": "cervical vertebra 7",
+    "target_label": "Crural_Cistern",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001427",
+    "target_iri": "http://human.owl#NCI_C49779",
+    "source_label": "cervical vertebra 7",
+    "target_label": "Splenic_Trabecular_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002264",
+    "target_iri": "http://human.owl#NCI_C32864",
+    "source_label": "inferior vesical vein",
+    "target_label": "Interosseous_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002264",
+    "target_iri": "http://human.owl#NCI_C52693",
+    "source_label": "inferior vesical vein",
+    "target_label": "Left_Renal_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002264",
+    "target_iri": "http://human.owl#NCI_C32799",
+    "source_label": "inferior vesical vein",
+    "target_label": "Infundibular_Cusp",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002264",
+    "target_iri": "http://human.owl#NCI_C33865",
+    "source_label": "inferior vesical vein",
+    "target_label": "Vermian_Cistern",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002225",
+    "target_iri": "http://human.owl#NCI_C33881",
+    "source_label": "superficial cervical vein",
+    "target_label": "Visceral_Pleura",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002701",
+    "target_iri": "http://human.owl#NCI_C33810",
+    "source_label": "anterior lingual gland",
+    "target_label": "Triangular_Ligament",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002701",
+    "target_iri": "http://human.owl#NCI_C32070",
+    "source_label": "anterior lingual gland",
+    "target_label": "Anal_Sinus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002701",
+    "target_iri": "http://human.owl#NCI_C32076",
+    "source_label": "anterior lingual gland",
+    "target_label": "Angular_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002701",
+    "target_iri": "http://human.owl#NCI_C32858",
+    "source_label": "anterior lingual gland",
+    "target_label": "Internal_Occipital_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000784",
+    "target_iri": "http://human.owl#NCI_C12676",
+    "source_label": "vibrissa root sheath",
+    "target_label": "Basilar_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000784",
+    "target_iri": "http://human.owl#NCI_C32711",
+    "source_label": "vibrissa root sheath",
+    "target_label": "Hair_Root",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000072",
+    "target_iri": "http://human.owl#NCI_C12674",
+    "source_label": "heart",
+    "target_label": "Axilla",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000072",
+    "target_iri": "http://human.owl#NCI_C52561",
+    "source_label": "heart",
+    "target_label": "Urethralis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000072",
+    "target_iri": "http://human.owl#NCI_C13102",
+    "source_label": "heart",
+    "target_label": "Prostatic_Duct",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000072",
+    "target_iri": "http://human.owl#NCI_C12765",
+    "source_label": "heart",
+    "target_label": "Parathyroid_Gland",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000072",
+    "target_iri": "http://human.owl#NCI_C32293",
+    "source_label": "heart",
+    "target_label": "Cerumen",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000018",
+    "target_iri": "http://human.owl#NCI_C12909",
+    "source_label": "skeletal system",
+    "target_label": "Hematopoietic_System",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000922",
+    "target_iri": "http://human.owl#NCI_C12865",
+    "source_label": "medial entorhinal cortex",
+    "target_label": "Endothelial_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000922",
+    "target_iri": "http://human.owl#NCI_C52992",
+    "source_label": "medial entorhinal cortex",
+    "target_label": "Pancreatico-Duodenal_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000922",
+    "target_iri": "http://human.owl#NCI_C32515",
+    "source_label": "medial entorhinal cortex",
+    "target_label": "Endometrial_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002438",
+    "target_iri": "http://human.owl#NCI_C33277",
+    "source_label": "striated muscle tissue",
+    "target_label": "Parotid_Duct",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002438",
+    "target_iri": "http://human.owl#NCI_C12515",
+    "source_label": "striated muscle tissue",
+    "target_label": "Superior_Sagittal_Sinus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002438",
+    "target_iri": "http://human.owl#NCI_C49211",
+    "source_label": "striated muscle tissue",
+    "target_label": "Bronchus_Elastic_Tissue",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000866",
+    "target_iri": "http://human.owl#NCI_C33069",
+    "source_label": "paraventricular thalamic nucleus",
+    "target_label": "Medial_Vestibular_Nucleus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002556",
+    "target_iri": "http://human.owl#NCI_C53177",
+    "source_label": "lunate",
+    "target_label": "Splenius",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002556",
+    "target_iri": "http://human.owl#NCI_C32105",
+    "source_label": "lunate",
+    "target_label": "Anterior_Quadrigeminal_Body",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002556",
+    "target_iri": "http://human.owl#NCI_C12990",
+    "source_label": "lunate",
+    "target_label": "Lobule",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002556",
+    "target_iri": "http://human.owl#NCI_C32810",
+    "source_label": "lunate",
+    "target_label": "Inner_Rod_of_the_Corti",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002556",
+    "target_iri": "http://human.owl#NCI_C32977",
+    "source_label": "lunate",
+    "target_label": "Lenticular_Nucleus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002556",
+    "target_iri": "http://human.owl#NCI_C13283",
+    "source_label": "lunate",
+    "target_label": "Urine",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002269",
+    "target_iri": "http://human.owl#NCI_C13465",
+    "source_label": "biceps brachii",
+    "target_label": "Bronchial_Secretion",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002758",
+    "target_iri": "http://human.owl#NCI_C12819",
+    "source_label": "levator auris longus",
+    "target_label": "Vertebral_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002666",
+    "target_iri": "http://human.owl#NCI_C13043",
+    "source_label": "hilar part of left hepatic duct",
+    "target_label": "Ear_Part",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002666",
+    "target_iri": "http://human.owl#NCI_C34012",
+    "source_label": "hilar part of left hepatic duct",
+    "target_label": "Radial_Artery_of_the_Upper_Extremity",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001484",
+    "target_iri": "http://human.owl#NCI_C12549",
+    "source_label": "hyoid bone",
+    "target_label": "Myeloid_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001935",
+    "target_iri": "http://human.owl#NCI_C12826",
+    "source_label": "middle cerebral artery",
+    "target_label": "Posterior_Tibial_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001935",
+    "target_iri": "http://human.owl#NCI_C13083",
+    "source_label": "middle cerebral artery",
+    "target_label": "Medial_Forebrain_Bundle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001935",
+    "target_iri": "http://human.owl#NCI_C49332",
+    "source_label": "middle cerebral artery",
+    "target_label": "Cerebral_Dura_Mater",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001869",
+    "target_iri": "http://human.owl#NCI_C32937",
+    "source_label": "left atrium auricular region",
+    "target_label": "Lateral_Domain_of_the_Epithelium",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001869",
+    "target_iri": "http://human.owl#NCI_C33482",
+    "source_label": "left atrium auricular region",
+    "target_label": "Right_Lumbar_Region",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001529",
+    "target_iri": "http://human.owl#NCI_C32097",
+    "source_label": "anal canal rostral part",
+    "target_label": "Anterior_Mediastinal_Lymph_Node",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000043",
+    "target_iri": "http://human.owl#NCI_C12229",
+    "source_label": "ankle",
+    "target_label": "Palate",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000043",
+    "target_iri": "http://human.owl#NCI_C12299",
+    "source_label": "ankle",
+    "target_label": "Nipple",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000043",
+    "target_iri": "http://human.owl#NCI_C12818",
+    "source_label": "ankle",
+    "target_label": "Venule",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001360",
+    "target_iri": "http://human.owl#NCI_C12232",
+    "source_label": "fibula",
+    "target_label": "Uvula",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001360",
+    "target_iri": "http://human.owl#NCI_C12408",
+    "source_label": "fibula",
+    "target_label": "Vulva",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001360",
+    "target_iri": "http://human.owl#NCI_C12800",
+    "source_label": "fibula",
+    "target_label": "Tibia",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000260",
+    "target_iri": "http://human.owl#NCI_C33314",
+    "source_label": "external acoustic meatus",
+    "target_label": "Peroneal_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000260",
+    "target_iri": "http://human.owl#NCI_C52994",
+    "source_label": "external acoustic meatus",
+    "target_label": "Perineal_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000260",
+    "target_iri": "http://human.owl#NCI_C32593",
+    "source_label": "external acoustic meatus",
+    "target_label": "Fenestra_Ovalis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000260",
+    "target_iri": "http://human.owl#NCI_C32910",
+    "source_label": "external acoustic meatus",
+    "target_label": "Lactiferous_Duct",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000260",
+    "target_iri": "http://human.owl#NCI_C33857",
+    "source_label": "external acoustic meatus",
+    "target_label": "Velum_Interpositum_Cistern",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000260",
+    "target_iri": "http://human.owl#NCI_C33637",
+    "source_label": "external acoustic meatus",
+    "target_label": "Striated_Muscle_Tissue_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000260",
+    "target_iri": "http://human.owl#NCI_C32088",
+    "source_label": "external acoustic meatus",
+    "target_label": "Anterior_Cruciate_Ligament",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000812",
+    "target_iri": "http://human.owl#NCI_C41032",
+    "source_label": "brain marginal zone",
+    "target_label": "Bone_Marrow-Homing_Plasma_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002024",
+    "target_iri": "http://human.owl#NCI_C33399",
+    "source_label": "principal artery to forelimb",
+    "target_label": "Pre-Thymocyte",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002024",
+    "target_iri": "http://human.owl#NCI_C12759",
+    "source_label": "principal artery to forelimb",
+    "target_label": "Olfactory_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002024",
+    "target_iri": "http://human.owl#NCI_C33364",
+    "source_label": "principal artery to forelimb",
+    "target_label": "Posterior_Infratentorial_Cistern",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002024",
+    "target_iri": "http://human.owl#NCI_C33595",
+    "source_label": "principal artery to forelimb",
+    "target_label": "Splenial_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000902",
+    "target_iri": "http://human.owl#NCI_C32342",
+    "source_label": "cortical layer VI",
+    "target_label": "Collateral_Sulcus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000902",
+    "target_iri": "http://human.owl#NCI_C32361",
+    "source_label": "cortical layer VI",
+    "target_label": "Common_Ulnar_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000902",
+    "target_iri": "http://human.owl#NCI_C32957",
+    "source_label": "cortical layer VI",
+    "target_label": "Left_Common_Iliac_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001121",
+    "target_iri": "http://human.owl#NCI_C33534",
+    "source_label": "spinal cord dorsal nucleus",
+    "target_label": "Septal_Cusp",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001121",
+    "target_iri": "http://human.owl#NCI_C32149",
+    "source_label": "spinal cord dorsal nucleus",
+    "target_label": "Arytenoid_Muscle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001121",
+    "target_iri": "http://human.owl#NCI_C13065",
+    "source_label": "spinal cord dorsal nucleus",
+    "target_label": "Sphincter_of_Oddi",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001121",
+    "target_iri": "http://human.owl#NCI_C32332",
+    "source_label": "spinal cord dorsal nucleus",
+    "target_label": "Coccygeal_Muscle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002580",
+    "target_iri": "http://human.owl#NCI_C32140",
+    "source_label": "part of afferent arteriole forming juxtaglomerular complex",
+    "target_label": "Argentaffin_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002256",
+    "target_iri": "http://human.owl#NCI_C49322",
+    "source_label": "vein of vesicular gland",
+    "target_label": "Left_Adrenal_Gland",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002145",
+    "target_iri": "http://human.owl#NCI_C32783",
+    "source_label": "internal iliac vein",
+    "target_label": "Inferior_Oblique_Muscle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002145",
+    "target_iri": "http://human.owl#NCI_C32781",
+    "source_label": "internal iliac vein",
+    "target_label": "Inferior_Mesenteric_Artery_Branch",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002145",
+    "target_iri": "http://human.owl#NCI_C52721",
+    "source_label": "internal iliac vein",
+    "target_label": "Inferior_Hypogastric_Nerve_Plexus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001963",
+    "target_iri": "http://human.owl#NCI_C41165",
+    "source_label": "hepatic artery",
+    "target_label": "Hematopoietic_and_Lymphatic_System",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000374",
+    "target_iri": "http://human.owl#NCI_C52561",
+    "source_label": "kidney pelvis",
+    "target_label": "Urethralis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000374",
+    "target_iri": "http://human.owl#NCI_C32593",
+    "source_label": "kidney pelvis",
+    "target_label": "Fenestra_Ovalis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000374",
+    "target_iri": "http://human.owl#NCI_C33446",
+    "source_label": "kidney pelvis",
+    "target_label": "Radix_Dentis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002212",
+    "target_iri": "http://human.owl#NCI_C34008",
+    "source_label": "right renal vein",
+    "target_label": "Round_Ligament_of_the_Liver",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000193",
+    "target_iri": "http://human.owl#NCI_C12569",
+    "source_label": "olfactory cortex",
+    "target_label": "Osteocyte",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000193",
+    "target_iri": "http://human.owl#NCI_C32493",
+    "source_label": "olfactory cortex",
+    "target_label": "Ejaculatory_Duct",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000126",
+    "target_iri": "http://human.owl#NCI_C32960",
+    "source_label": "ventral pancreatic duct",
+    "target_label": "Left_Hepatic_Duct",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000126",
+    "target_iri": "http://human.owl#NCI_C32466",
+    "source_label": "ventral pancreatic duct",
+    "target_label": "Direct_Pyramidal_Tract",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000126",
+    "target_iri": "http://human.owl#NCI_C49268",
+    "source_label": "ventral pancreatic duct",
+    "target_label": "Pancreatic_Acinus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002518",
+    "target_iri": "http://human.owl#NCI_C32511",
+    "source_label": "exocrine pancreas secretion",
+    "target_label": "Endocrine_Testis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000835",
+    "target_iri": "http://human.owl#NCI_C33741",
+    "source_label": "lateral preoptic area",
+    "target_label": "Temporal_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000835",
+    "target_iri": "http://human.owl#NCI_C52848",
+    "source_label": "lateral preoptic area",
+    "target_label": "Alveolar_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001996",
+    "target_iri": "http://human.owl#NCI_C32565",
+    "source_label": "medial femoral circumflex artery",
+    "target_label": "External_Malleolar_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001996",
+    "target_iri": "http://human.owl#NCI_C32099",
+    "source_label": "medial femoral circumflex artery",
+    "target_label": "Anterior_Meningeal_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002503",
+    "target_iri": "http://human.owl#NCI_C13083",
+    "source_label": "cerebrospinal fluid",
+    "target_label": "Medial_Forebrain_Bundle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002271",
+    "target_iri": "http://human.owl#NCI_C53076",
+    "source_label": "brachialis",
+    "target_label": "Tibialis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002271",
+    "target_iri": "http://human.owl#NCI_C13173",
+    "source_label": "brachialis",
+    "target_label": "Merkel_s_Corpuscle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002094",
+    "target_iri": "http://human.owl#NCI_C32821",
+    "source_label": "inferior cerebellar vein",
+    "target_label": "Intercostal_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002094",
+    "target_iri": "http://human.owl#NCI_C52708",
+    "source_label": "inferior cerebellar vein",
+    "target_label": "Intrinsic_Tongue_Muscle_Vertical_Component",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000275",
+    "target_iri": "http://human.owl#NCI_C52959",
+    "source_label": "lens",
+    "target_label": "Longus_Colli",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000275",
+    "target_iri": "http://human.owl#NCI_C53164",
+    "source_label": "lens",
+    "target_label": "Levator_Labii_Superioris",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000275",
+    "target_iri": "http://human.owl#NCI_C32957",
+    "source_label": "lens",
+    "target_label": "Left_Common_Iliac_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002343",
+    "target_iri": "http://human.owl#NCI_C12848",
+    "source_label": "masseter",
+    "target_label": "Squamous_Epithelium",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002343",
+    "target_iri": "http://human.owl#NCI_C45805",
+    "source_label": "masseter",
+    "target_label": "Matrix",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001632",
+    "target_iri": "http://human.owl#NCI_C32131",
+    "source_label": "gall bladder epithelium",
+    "target_label": "Apical_Domain_of_the_Epithelium",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001632",
+    "target_iri": "http://human.owl#NCI_C12642",
+    "source_label": "gall bladder epithelium",
+    "target_label": "Retinal_Ganglion_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001826",
+    "target_iri": "http://human.owl#NCI_C13156",
+    "source_label": "respiratory system lymphatic vessel smooth muscle",
+    "target_label": "Receptor_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000864",
+    "target_iri": "http://human.owl#NCI_C32832",
+    "source_label": "midline thalamic group",
+    "target_label": "Internal_Abdominal_Ring",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001157",
+    "target_iri": "http://human.owl#NCI_C52709",
+    "source_label": "cervicothoracic ganglion",
+    "target_label": "Enteric_Ganglion",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001966",
+    "target_iri": "http://human.owl#NCI_C32387",
+    "source_label": "common plantar digital arteries",
+    "target_label": "Cortical_Column",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000195",
+    "target_iri": "http://human.owl#NCI_C33455",
+    "source_label": "hindbrain",
+    "target_label": "Renal_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000195",
+    "target_iri": "http://human.owl#NCI_C52838",
+    "source_label": "hindbrain",
+    "target_label": "Hand_Digit_5",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000195",
+    "target_iri": "http://human.owl#NCI_C52836",
+    "source_label": "hindbrain",
+    "target_label": "Hand_Digit_3",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000195",
+    "target_iri": "http://human.owl#NCI_C52834",
+    "source_label": "hindbrain",
+    "target_label": "Hand_Digit_1",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000195",
+    "target_iri": "http://human.owl#NCI_C52835",
+    "source_label": "hindbrain",
+    "target_label": "Hand_Digit_2",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000195",
+    "target_iri": "http://human.owl#NCI_C52837",
+    "source_label": "hindbrain",
+    "target_label": "Hand_Digit_4",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001892",
+    "target_iri": "http://human.owl#NCI_C12921",
+    "source_label": "adrenal gland zona reticularis",
+    "target_label": "Large_Granular_Lymphocyte",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002539",
+    "target_iri": "http://human.owl#NCI_C33585",
+    "source_label": "sweat",
+    "target_label": "Sphenoparietal_Sinus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002539",
+    "target_iri": "http://human.owl#NCI_C12971",
+    "source_label": "sweat",
+    "target_label": "Breast",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001068",
+    "target_iri": "http://human.owl#NCI_C33641",
+    "source_label": "superior colliculus",
+    "target_label": "Subcapsular_Epithelium_of_the_Lens",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000492",
+    "target_iri": "http://human.owl#NCI_C33193",
+    "source_label": "outflow tract smooth muscle",
+    "target_label": "Obturator_Muscle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000492",
+    "target_iri": "http://human.owl#NCI_C33235",
+    "source_label": "outflow tract smooth muscle",
+    "target_label": "Outer_Limiting_Membrane",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000492",
+    "target_iri": "http://human.owl#NCI_C33205",
+    "source_label": "outflow tract smooth muscle",
+    "target_label": "Olfactory_Mucosa",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000266",
+    "target_iri": "http://human.owl#NCI_C12725",
+    "source_label": "cornea",
+    "target_label": "Gonad",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000266",
+    "target_iri": "http://human.owl#NCI_C26463",
+    "source_label": "cornea",
+    "target_label": "Fovea_Centralis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000266",
+    "target_iri": "http://human.owl#NCI_C12669",
+    "source_label": "cornea",
+    "target_label": "Aorta",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000266",
+    "target_iri": "http://human.owl#NCI_C12438",
+    "source_label": "cornea",
+    "target_label": "Central_Nervous_System",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000266",
+    "target_iri": "http://human.owl#NCI_C13283",
+    "source_label": "cornea",
+    "target_label": "Urine",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000266",
+    "target_iri": "http://human.owl#NCI_C12256",
+    "source_label": "cornea",
+    "target_label": "Cardia",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000198",
+    "target_iri": "http://human.owl#NCI_C13143",
+    "source_label": "cerebellum",
+    "target_label": "Clara_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000198",
+    "target_iri": "http://human.owl#NCI_C12629",
+    "source_label": "cerebellum",
+    "target_label": "Hair_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000198",
+    "target_iri": "http://human.owl#NCI_C13077",
+    "source_label": "cerebellum",
+    "target_label": "Acinar_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000198",
+    "target_iri": "http://human.owl#NCI_C12580",
+    "source_label": "cerebellum",
+    "target_label": "Chief_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000198",
+    "target_iri": "http://human.owl#NCI_C33614",
+    "source_label": "cerebellum",
+    "target_label": "Stereocilium",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000198",
+    "target_iri": "http://human.owl#NCI_C32387",
+    "source_label": "cerebellum",
+    "target_label": "Cortical_Column",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000615",
+    "target_iri": "http://human.owl#NCI_C12662",
+    "source_label": "forelimb muscle",
+    "target_label": "Stem_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001357",
+    "target_iri": "http://human.owl#NCI_C52799",
+    "source_label": "radius",
+    "target_label": "Talus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001357",
+    "target_iri": "http://human.owl#NCI_C12439",
+    "source_label": "radius",
+    "target_label": "Brain",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001357",
+    "target_iri": "http://human.owl#NCI_C33461",
+    "source_label": "radius",
+    "target_label": "Renal_Tissue",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001357",
+    "target_iri": "http://human.owl#NCI_C33556",
+    "source_label": "radius",
+    "target_label": "Sinus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001357",
+    "target_iri": "http://human.owl#NCI_C12782",
+    "source_label": "radius",
+    "target_label": "Rib",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002192",
+    "target_iri": "http://human.owl#NCI_C12279",
+    "source_label": "superior pancreatico-duodenal vein",
+    "target_label": "Supraglottis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000698",
+    "target_iri": "http://human.owl#NCI_C12572",
+    "source_label": "tail intervertebral disc",
+    "target_label": "Theca_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000698",
+    "target_iri": "http://human.owl#NCI_C33882",
+    "source_label": "tail intervertebral disc",
+    "target_label": "Visceral_Striated_Muscle_Tissue",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002319",
+    "target_iri": "http://human.owl#NCI_C12308",
+    "source_label": "iliocostalis",
+    "target_label": "Clitoris",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002319",
+    "target_iri": "http://human.owl#NCI_C12737",
+    "source_label": "iliocostalis",
+    "target_label": "Iris",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000421",
+    "target_iri": "http://human.owl#NCI_C12806",
+    "source_label": "interalveolar septum",
+    "target_label": "Trigeminal_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000980",
+    "target_iri": "http://human.owl#NCI_C32046",
+    "source_label": "telencephalon arachnoid matter",
+    "target_label": "Acromial_Thoracic_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000980",
+    "target_iri": "http://human.owl#NCI_C12394",
+    "source_label": "telencephalon arachnoid matter",
+    "target_label": "Ear",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000860",
+    "target_iri": "http://human.owl#NCI_C12768",
+    "source_label": "pars posterior",
+    "target_label": "Peripheral_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000860",
+    "target_iri": "http://human.owl#NCI_C32041",
+    "source_label": "pars posterior",
+    "target_label": "Accessory_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000222",
+    "target_iri": "http://human.owl#NCI_C32450",
+    "source_label": "enteric nervous system",
+    "target_label": "Dense_Connective_Tissue",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000222",
+    "target_iri": "http://human.owl#NCI_C12555",
+    "source_label": "enteric nervous system",
+    "target_label": "Connective_and_Soft_Tissue_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000222",
+    "target_iri": "http://human.owl#NCI_C33007",
+    "source_label": "enteric nervous system",
+    "target_label": "Loose_Connective_Tissue",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001314",
+    "target_iri": "http://human.owl#NCI_C33463",
+    "source_label": "retina nerve fiber layer",
+    "target_label": "Renshaw_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001314",
+    "target_iri": "http://human.owl#NCI_C32780",
+    "source_label": "retina nerve fiber layer",
+    "target_label": "Inferior_Mesenteric_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000077",
+    "target_iri": "http://human.owl#NCI_C32040",
+    "source_label": "atrium endocardium",
+    "target_label": "Abdominal_Muscle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000077",
+    "target_iri": "http://human.owl#NCI_C32149",
+    "source_label": "atrium endocardium",
+    "target_label": "Arytenoid_Muscle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000077",
+    "target_iri": "http://human.owl#NCI_C32145",
+    "source_label": "atrium endocardium",
+    "target_label": "Articular_Muscle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001531",
+    "target_iri": "http://human.owl#NCI_C53038",
+    "source_label": "external anal sphincter",
+    "target_label": "Spinalis_Thoracis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001531",
+    "target_iri": "http://human.owl#NCI_C32580",
+    "source_label": "external anal sphincter",
+    "target_label": "Facies_Posterior_Lentis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001531",
+    "target_iri": "http://human.owl#NCI_C12722",
+    "source_label": "external anal sphincter",
+    "target_label": "Male_Reproductive_System",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002292",
+    "target_iri": "http://human.owl#NCI_C53050",
+    "source_label": "extensor carpi ulnaris",
+    "target_label": "Spermatic_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002292",
+    "target_iri": "http://human.owl#NCI_C12238",
+    "source_label": "extensor carpi ulnaris",
+    "target_label": "Anterior_Surface_of_the_Epiglottis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002292",
+    "target_iri": "http://human.owl#NCI_C49212",
+    "source_label": "extensor carpi ulnaris",
+    "target_label": "Bronchus_Lamina_Propria",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000311",
+    "target_iri": "http://human.owl#NCI_C32465",
+    "source_label": "cervical vertebra",
+    "target_label": "Direct_Cerebellar_Tract",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000311",
+    "target_iri": "http://human.owl#NCI_C49779",
+    "source_label": "cervical vertebra",
+    "target_label": "Splenic_Trabecular_Vein",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000579",
+    "target_iri": "http://human.owl#NCI_C25268",
+    "source_label": "cranial/facial muscle",
+    "target_label": "Infraclavicular_Region",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002327",
+    "target_iri": "http://human.owl#NCI_C32779",
+    "source_label": "intrinsic tongue muscle",
+    "target_label": "Inferior_Maxillary_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000152",
+    "target_iri": "http://human.owl#NCI_C13325",
+    "source_label": "dermis",
+    "target_label": "Serum",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000152",
+    "target_iri": "http://human.owl#NCI_C12934",
+    "source_label": "dermis",
+    "target_label": "Dorsal_Motor_Nucleus",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000152",
+    "target_iri": "http://human.owl#NCI_C12602",
+    "source_label": "dermis",
+    "target_label": "Spermatozoon",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000152",
+    "target_iri": "http://human.owl#NCI_C12409",
+    "source_label": "dermis",
+    "target_label": "Penis",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000328",
+    "target_iri": "http://human.owl#NCI_C12382",
+    "source_label": "intestine",
+    "target_label": "Colon",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000328",
+    "target_iri": "http://human.owl#NCI_C12379",
+    "source_label": "intestine",
+    "target_label": "Large_Intestine",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002219",
+    "target_iri": "http://human.owl#NCI_C32947",
+    "source_label": "left spermatic vein",
+    "target_label": "Lateral_Supratentorial_Cistern",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000939",
+    "target_iri": "http://human.owl#NCI_C33869",
+    "source_label": "septohippocampal nucleus",
+    "target_label": "Vertebral_Canal",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001476",
+    "target_iri": "http://human.owl#NCI_C12480",
+    "source_label": "temporal bone",
+    "target_label": "Terminal_Ductal_Lobular_Unit",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000433",
+    "target_iri": "http://human.owl#NCI_C12229",
+    "source_label": "pleura",
+    "target_label": "Palate",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000433",
+    "target_iri": "http://human.owl#NCI_C12717",
+    "source_label": "pleura",
+    "target_label": "Femur",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000433",
+    "target_iri": "http://human.owl#NCI_C45634",
+    "source_label": "pleura",
+    "target_label": "Perivascular_Epithelioid_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000433",
+    "target_iri": "http://human.owl#NCI_C12938",
+    "source_label": "pleura",
+    "target_label": "Peripheral_Blood_Lymphocyte",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000433",
+    "target_iri": "http://human.owl#NCI_C12602",
+    "source_label": "pleura",
+    "target_label": "Spermatozoon",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000433",
+    "target_iri": "http://human.owl#NCI_C12392",
+    "source_label": "pleura",
+    "target_label": "Liver",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000433",
+    "target_iri": "http://human.owl#NCI_C12387",
+    "source_label": "pleura",
+    "target_label": "Ileum",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000118",
+    "target_iri": "http://human.owl#NCI_C52713",
+    "source_label": "adrenal gland cortex",
+    "target_label": "Cingulate_Cortex",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000954",
+    "target_iri": "http://human.owl#NCI_C12860",
+    "source_label": "hippocampus granule cell layer",
+    "target_label": "Hamate_Bone",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000954",
+    "target_iri": "http://human.owl#NCI_C12831",
+    "source_label": "hippocampus granule cell layer",
+    "target_label": "Posterior_Cerebral_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002563",
+    "target_iri": "http://human.owl#NCI_C12398",
+    "source_label": "endocrine gland",
+    "target_label": "Pineal_Gland",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002563",
+    "target_iri": "http://human.owl#NCI_C32261",
+    "source_label": "endocrine gland",
+    "target_label": "Cardia_Gland",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002563",
+    "target_iri": "http://human.owl#NCI_C32843",
+    "source_label": "endocrine gland",
+    "target_label": "Internal_Geniculate_Body",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001331",
+    "target_iri": "http://human.owl#NCI_C33632",
+    "source_label": "sternum",
+    "target_label": "Striae_Medullares",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001331",
+    "target_iri": "http://human.owl#NCI_C33620",
+    "source_label": "sternum",
+    "target_label": "Stratified_Columnar_Epithelium",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000414",
+    "target_iri": "http://human.owl#NCI_C12404",
+    "source_label": "larynx",
+    "target_label": "Ovary",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000414",
+    "target_iri": "http://human.owl#NCI_C33015",
+    "source_label": "larynx",
+    "target_label": "Lumbar_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000414",
+    "target_iri": "http://human.owl#NCI_C13319",
+    "source_label": "larynx",
+    "target_label": "Gland",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002008",
+    "target_iri": "http://human.owl#NCI_C32834",
+    "source_label": "obturator artery",
+    "target_label": "Internal_Auditory_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000153",
+    "target_iri": "http://human.owl#NCI_C12604",
+    "source_label": "epidermis",
+    "target_label": "Spermatid",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000638",
+    "target_iri": "http://human.owl#NCI_C52754",
+    "source_label": "wrist skin",
+    "target_label": "Arm_Skin",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000638",
+    "target_iri": "http://human.owl#NCI_C49481",
+    "source_label": "wrist skin",
+    "target_label": "Ear_Skin",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002081",
+    "target_iri": "http://human.owl#NCI_C33172",
+    "source_label": "adrenal vein",
+    "target_label": "Node_of_Ranvier",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002000",
+    "target_iri": "http://human.owl#NCI_C33102",
+    "source_label": "median artery palmar branch",
+    "target_label": "Mesencephalic_Perforating_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001283",
+    "target_iri": "http://human.owl#NCI_C32655",
+    "source_label": "hyaloid vascular plexus",
+    "target_label": "Gastric_Glandular_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000227",
+    "target_iri": "http://human.owl#NCI_C12812",
+    "source_label": "sympathetic nerve trunk",
+    "target_label": "Vagus_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000869",
+    "target_iri": "http://human.owl#NCI_C33409",
+    "source_label": "lateral geniculate nucleus",
+    "target_label": "Prostatic_Glandular_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000633",
+    "target_iri": "http://human.owl#NCI_C48762",
+    "source_label": "shoulder muscle",
+    "target_label": "Bone_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000633",
+    "target_iri": "http://human.owl#NCI_C12371",
+    "source_label": "shoulder muscle",
+    "target_label": "Myocardium",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000633",
+    "target_iri": "http://human.owl#NCI_C32753",
+    "source_label": "shoulder muscle",
+    "target_label": "Hyoid_Muscle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000186",
+    "target_iri": "http://human.owl#NCI_C12353",
+    "source_label": "neocortex layer",
+    "target_label": "Temporal_Lobe",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000186",
+    "target_iri": "http://human.owl#NCI_C41442",
+    "source_label": "neocortex layer",
+    "target_label": "Perineurial_Cell",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000486",
+    "target_iri": "http://human.owl#NCI_C43614",
+    "source_label": "white fibrocartilage",
+    "target_label": "Hepatobiliary_Tissue",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000748",
+    "target_iri": "http://human.owl#NCI_C12556",
+    "source_label": "afferent lymphatic vessel",
+    "target_label": "Adipocyte",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002484",
+    "target_iri": "http://human.owl#NCI_C12705",
+    "source_label": "eye anterior segment",
+    "target_label": "Endocrine_System",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000027",
+    "target_iri": "http://human.owl#NCI_C49579",
+    "source_label": "lower back",
+    "target_label": "Liver_Lobe",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002499",
+    "target_iri": "http://human.owl#NCI_C12398",
+    "source_label": "portal triad",
+    "target_label": "Pineal_Gland",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002499",
+    "target_iri": "http://human.owl#NCI_C13043",
+    "source_label": "portal triad",
+    "target_label": "Ear_Part",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002499",
+    "target_iri": "http://human.owl#NCI_C12822",
+    "source_label": "portal triad",
+    "target_label": "Vocal_Cord",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002233",
+    "target_iri": "http://human.owl#NCI_C52751",
+    "source_label": "tail vein",
+    "target_label": "Ankle_Skin",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002233",
+    "target_iri": "http://human.owl#NCI_C33821",
+    "source_label": "tail vein",
+    "target_label": "Tunica_Media",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002682",
+    "target_iri": "http://human.owl#NCI_C13078",
+    "source_label": "esophagus muscle",
+    "target_label": "Ependyma",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002063",
+    "target_iri": "http://human.owl#NCI_C33736",
+    "source_label": "testicular artery",
+    "target_label": "Tarsal_Plate",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002063",
+    "target_iri": "http://human.owl#NCI_C52686",
+    "source_label": "testicular artery",
+    "target_label": "Superior_Vesical_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002063",
+    "target_iri": "http://human.owl#NCI_C32836",
+    "source_label": "testicular artery",
+    "target_label": "Internal_Carotid_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002063",
+    "target_iri": "http://human.owl#NCI_C52951",
+    "source_label": "testicular artery",
+    "target_label": "Lateral_Thoracic_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002063",
+    "target_iri": "http://human.owl#NCI_C12826",
+    "source_label": "testicular artery",
+    "target_label": "Posterior_Tibial_Artery",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002063",
+    "target_iri": "http://human.owl#NCI_C33735",
+    "source_label": "testicular artery",
+    "target_label": "Tarsal_Joint",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001160",
+    "target_iri": "http://human.owl#NCI_C33038",
+    "source_label": "sympathetic nerve plexus",
+    "target_label": "Lymphatic_Vessel",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002151",
+    "target_iri": "http://human.owl#NCI_C32093",
+    "source_label": "right internal spermatic vein",
+    "target_label": "Anterior_Infratentorial_Cistern",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0002151",
+    "target_iri": "http://human.owl#NCI_C32106",
+    "source_label": "right internal spermatic vein",
+    "target_label": "Anterior_Supratentorial_Cistern",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0000413",
+    "target_iri": "http://human.owl#NCI_C12665",
+    "source_label": "vas deferens",
+    "target_label": "Abducens_Nerve",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001518",
+    "target_iri": "http://human.owl#NCI_C33710",
+    "source_label": "joint articular surface",
+    "target_label": "Supratentorial_Cistern",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001518",
+    "target_iri": "http://human.owl#NCI_C32818",
+    "source_label": "joint articular surface",
+    "target_label": "Interatrial_Septum",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001518",
+    "target_iri": "http://human.owl#NCI_C32629",
+    "source_label": "joint articular surface",
+    "target_label": "Fossa_of_the_Antihelix",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001518",
+    "target_iri": "http://human.owl#NCI_C32790",
+    "source_label": "joint articular surface",
+    "target_label": "Inferior_Rectus_Muscle",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  },
+  {
+    "source_iri": "http://mouse.owl#MA_0001709",
+    "target_iri": "http://human.owl#NCI_C12556",
+    "source_label": "ovary mature follicle",
+    "target_label": "Adipocyte",
+    "confidence": 0.7,
+    "signals": {
+      "instance_overlap": 0.0,
+      "label_similarity": 0.7,
+      "neighborhood_similarity": 0.0,
+      "parent_overlap": 0.0,
+      "property_overlap": 0.0,
+      "restriction_similarity": 0.0
+    }
+  }
+]

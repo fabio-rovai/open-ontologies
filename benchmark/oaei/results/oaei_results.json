@@ -1,0 +1,81 @@
+{
+  "_meta": {
+    "benchmark": "OAEI 2023",
+    "system": "Open Ontologies (onto_align)",
+    "tools_used": [
+      "onto_clear",
+      "onto_load",
+      "onto_embed",
+      "onto_align"
+    ],
+    "date": "2026-03-31"
+  },
+  "anatomy": {
+    "precision": 0.1021,
+    "recall": 0.8456,
+    "f1": 0.1822,
+    "tp": 1282,
+    "fp": 11275,
+    "fn": 234,
+    "reference_size": 1516,
+    "predicted_size": 12557,
+    "time_s": 1594.1
+  },
+  "conference": {
+    "pairs": [],
+    "micro_avg": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0
+    }
+  },
+  "published": {
+    "anatomy": {
+      "LogMap": {
+        "precision": 0.921,
+        "recall": 0.903,
+        "f1": 0.912
+      },
+      "AML": {
+        "precision": 0.95,
+        "recall": 0.922,
+        "f1": 0.936
+      },
+      "BERTMap": {
+        "precision": 0.932,
+        "recall": 0.916,
+        "f1": 0.924
+      },
+      "OLaLa": {
+        "precision": 0.87,
+        "recall": 0.91,
+        "f1": 0.89
+      }
+    },
+    "conference": {
+      "LogMap": {
+        "precision": 0.72,
+        "recall": 0.62,
+        "f1": 0.67
+      },
+      "AML": {
+        "precision": 0.74,
+        "recall": 0.63,
+        "f1": 0.68
+      },
+      "BERTMap": {
+        "precision": 0.7,
+        "recall": 0.72,
+        "f1": 0.71
+      },
+      "OLaLa": {
+        "precision": 0.69,
+        "recall": 0.75,
+        "f1": 0.72
+      }
+    }
+  }
+}

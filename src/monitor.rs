@@ -1,7 +1,9 @@
 use crate::graph::GraphStore;
+use crate::ontology::OntologyService;
 use crate::state::StateDb;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use std::time::Duration;
 
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -78,6 +80,7 @@ impl Monitor {
         let mut alerts = Vec::new();
         let mut passed = Vec::new();
         let mut blocked = false;
+        let mut rolled_back = false;
 
         for w in &watchers {
             let value = self.evaluate_watcher(w);
@@ -87,6 +90,22 @@ impl Monitor {
                 if matches!(w.action, WatcherAction::BlockNextApply) {
                     blocked = true;
                     self.set_blocked(true);
+                }
+                // Auto-rollback: revert to the most recent saved version
+                if matches!(w.action, WatcherAction::AutoRollback) && !rolled_back {
+                    if let Some(label) = self.latest_version_label() {
+                        match OntologyService::rollback_version(&self.db, &self.graph, &label) {
+                            Ok(_) => {
+                                eprintln!("[watch] auto-rollback to '{}' triggered by watcher '{}'", label, w.id);
+                                rolled_back = true;
+                            }
+                            Err(e) => {
+                                eprintln!("[watch] auto-rollback failed for watcher '{}': {}", w.id, e);
+                            }
+                        }
+                    } else {
+                        eprintln!("[watch] auto-rollback requested by watcher '{}' but no saved versions exist", w.id);
+                    }
                 }
                 // Fire webhook for Notify actions
                 if matches!(w.action, WatcherAction::Notify)
@@ -119,7 +138,9 @@ impl Monitor {
             }
         }
 
-        let status = if blocked {
+        let status = if rolled_back {
+            "auto_rolled_back".to_string()
+        } else if blocked {
             "blocked".to_string()
         } else if !alerts.is_empty() {
             "alert".to_string()
@@ -217,4 +238,61 @@ impl Monitor {
             Err(_) => 0.0,
         }
     }
+
+    /// Get the label of the most recently saved ontology version.
+    fn latest_version_label(&self) -> Option<String> {
+        let conn = self.db.conn();
+        conn.query_row(
+            "SELECT label FROM ontology_versions ORDER BY id DESC LIMIT 1",
+            [],
+            |row| row.get(0),
+        )
+        .ok()
+    }
+}
+
+/// Spawn a background task that runs all enabled watchers every `interval` seconds.
+/// Actions (auto_rollback, block_next_apply, notify) fire automatically on threshold breach.
+/// Returns a `JoinHandle` that can be aborted to stop the loop.
+pub fn start_background_loop(
+    db: StateDb,
+    graph: Arc<GraphStore>,
+    interval: Duration,
+) -> tokio::task::JoinHandle<()> {
+    tokio::spawn(async move {
+        let mut tick = tokio::time::interval(interval);
+        // The first tick fires immediately — skip it so we don't run before any ontology is loaded.
+        tick.tick().await;
+
+        eprintln!("[watch] background monitor started (interval: {}s)", interval.as_secs());
+
+        loop {
+            tick.tick().await;
+
+            let monitor = Monitor::new(db.clone(), graph.clone());
+            let watchers = monitor.load_watchers();
+            if watchers.is_empty() {
+                continue;
+            }
+
+            let result = monitor.run_watchers();
+            match result.status.as_str() {
+                "ok" => {} // silent on healthy sweeps
+                status => {
+                    eprintln!(
+                        "[watch] sweep: status={}, alerts={}, passed={}",
+                        status,
+                        result.alerts.len(),
+                        result.passed.len(),
+                    );
+                    for alert in &result.alerts {
+                        eprintln!(
+                            "[watch]   {} ({}): value={} > threshold={} → {}",
+                            alert.watcher, alert.severity, alert.value, alert.threshold, alert.action,
+                        );
+                    }
+                }
+            }
+        }
+    })
 }
