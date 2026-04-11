@@ -113,7 +113,7 @@ impl MappingConfig {
 fn sanitize_iri(s: &str) -> String {
     s.chars()
         .map(|c| match c {
-            ' ' | '<' | '>' | '{' | '}' | '|' | '\\' | '^' | '`' => '_',
+            ' ' | '<' | '>' | '{' | '}' | '|' | '\\' | '^' | '`' | '?' => '_',
             _ => c,
         })
         .collect()
@@ -152,6 +152,7 @@ mod tests {
         assert_eq!(sanitize_iri("hello world"), "hello_world");
         assert_eq!(sanitize_iri("a<b>c"), "a_b_c");
         assert_eq!(sanitize_iri("no_change"), "no_change");
+        assert_eq!(sanitize_iri("PEAK_OF_PERFECTION_?"), "PEAK_OF_PERFECTION__");
     }
 
     #[test]
