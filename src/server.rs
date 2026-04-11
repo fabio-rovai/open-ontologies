@@ -349,7 +349,7 @@ impl OpenOntologiesServer {
 
     // ── Marketplace ────────────────────────────────────────────────────────
 
-    #[tool(name = "onto_marketplace", description = "Browse and install standard ontologies from a curated catalogue of 29 W3C/ISO/industry standards. Actions: 'list' (browse catalogue, optional domain filter) or 'install' (fetch and load by ID)")]
+    #[tool(name = "onto_marketplace", description = "Browse and install standard ontologies from a curated catalogue of 32 W3C/ISO/industry standards. Actions: 'list' (browse catalogue, optional domain filter) or 'install' (fetch and load by ID)")]
     async fn onto_marketplace(&self, Parameters(input): Parameters<OntoMarketplaceInput>) -> String {
         use crate::marketplace;
         match input.action.as_str() {
@@ -684,7 +684,7 @@ impl OpenOntologiesServer {
         r#"{"ok":true,"message":"Monitor block cleared"}"#.to_string()
     }
 
-    #[tool(name = "onto_crosswalk", description = "Look up clinical crosswalk mappings for a code and system (ICD10, SNOMED, MeSH). Requires data/crosswalks.parquet.")]
+    #[tool(name = "onto_crosswalk", description = "Look up clinical crosswalk mappings for a code and system (ICD10, SNOMED, MeSH). Uses data/crosswalks.parquet (93-row sample included; run scripts/build_crosswalks.py to extend).")]
     async fn onto_crosswalk(&self, Parameters(input): Parameters<OntoCrosswalkInput>) -> String {
         match crate::clinical::ClinicalCrosswalks::load("data/crosswalks.parquet") {
             Ok(cw) => {

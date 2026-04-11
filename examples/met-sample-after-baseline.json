@@ -1,0 +1,240 @@
+[
+  {
+    "@context": {
+      "glam": "http://example.org/glam-digitisation-standard#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "prov": "http://www.w3.org/ns/prov#",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@type": "glam:DigitisedObject",
+    "@id": "https://www.metmuseum.org/art/collection/search/470309",
+    "dcterms:title": "The Hours of Jeanne d'Evreux, Queen of France",
+    "dcterms:date": {"@type": "xsd:gYear", "@value": "1324"},
+    "dcterms:description": "Grisaille, tempera, and ink on vellum",
+    "dcterms:relation": "https://www.metmuseum.org/art/collection/search/39799",
+    "glam:hasMetadata": {
+      "@type": "glam:MetadataRecord",
+      "glam:persistentIdentifier": {"@type": "xsd:anyURI", "@value": "https://www.metmuseum.org/art/collection/search/470309"},
+      "glam:structuredDate": {"@type": "xsd:gYear", "@value": "1324"},
+      "glam:dateUncertainty": "approximate",
+      "dcterms:identifier": "https://www.metmuseum.org/art/collection/search/470309",
+      "glam:entityReference": {
+        "@type": "glam:Person",
+        "dcterms:title": "Jean Pucelle",
+        "dcterms:description": "French, active Paris, 1319–34"
+      }
+    },
+    "glam:hasRights": {
+      "@type": "glam:RightsDeclaration",
+      "glam:rightsURI": {"@type": "xsd:anyURI", "@value": "https://creativecommons.org/publicdomain/zero/1.0/"},
+      "glam:reuseConditions": "Public domain — CC0 designation by The Metropolitan Museum of Art",
+      "glam:culturalSensitivityFlag": false
+    },
+    "glam:hasParadata": {
+      "@type": "glam:ParadataRecord",
+      "glam:digitisationDate": {"@type": "xsd:dateTime", "@value": "2017-02-01T10:00:00"},
+      "glam:equipment": "Phase One IQ3 100MP Digital Back",
+      "glam:processingStep": "RAW capture → colour correction (X-Rite ColorChecker) → TIFF master → JPEG derivative"
+    },
+    "glam:hasPackage": {
+      "@type": "glam:Package",
+      "glam:checksum": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "glam:checksumAlgorithm": "SHA-256",
+      "glam:bundleStructure": "BagIt v1.0"
+    },
+    "glam:hasQA": {
+      "@type": "glam:QARecord",
+      "glam:validationStatus": "pass",
+      "glam:completenessScore": 0.91,
+      "glam:qaDate": {"@type": "xsd:dateTime", "@value": "2025-12-01T14:30:00"}
+    }
+  },
+  {
+    "@context": {
+      "glam": "http://example.org/glam-digitisation-standard#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "prov": "http://www.w3.org/ns/prov#",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@type": "glam:DigitisedObject",
+    "@id": "https://www.metmuseum.org/art/collection/search/39799",
+    "dcterms:title": "Under the Wave off Kanagawa (The Great Wave)",
+    "dcterms:date": {"@type": "xsd:gYear", "@value": "1831"},
+    "dcterms:description": "Woodblock print; ink and color on paper",
+    "glam:hasMetadata": {
+      "@type": "glam:MetadataRecord",
+      "glam:persistentIdentifier": {"@type": "xsd:anyURI", "@value": "https://www.metmuseum.org/art/collection/search/39799"},
+      "glam:structuredDate": {"@type": "xsd:gYear", "@value": "1831"},
+      "glam:dateUncertainty": "approximate",
+      "dcterms:identifier": "https://www.metmuseum.org/art/collection/search/39799",
+      "glam:entityReference": {
+        "@type": "glam:Person",
+        "dcterms:title": "Katsushika Hokusai",
+        "dcterms:description": "Japanese, Tokyo (Edo) 1760–1849 Tokyo (Edo)"
+      }
+    },
+    "glam:hasRights": {
+      "@type": "glam:RightsDeclaration",
+      "glam:rightsURI": {"@type": "xsd:anyURI", "@value": "https://creativecommons.org/publicdomain/zero/1.0/"},
+      "glam:reuseConditions": "Public domain — CC0 designation by The Metropolitan Museum of Art",
+      "glam:culturalSensitivityFlag": false
+    },
+    "glam:hasParadata": {
+      "@type": "glam:ParadataRecord",
+      "glam:digitisationDate": {"@type": "xsd:dateTime", "@value": "2018-06-15T09:00:00"},
+      "glam:equipment": "Hasselblad H6D-400c MS",
+      "glam:processingStep": "Multi-shot capture → stitching → colour calibration → TIFF master"
+    },
+    "glam:hasPackage": {
+      "@type": "glam:Package",
+      "glam:checksum": "sha256:a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a",
+      "glam:checksumAlgorithm": "SHA-256",
+      "glam:bundleStructure": "BagIt v1.0"
+    },
+    "glam:hasQA": {
+      "@type": "glam:QARecord",
+      "glam:validationStatus": "pass",
+      "glam:completenessScore": 0.88,
+      "glam:qaDate": {"@type": "xsd:dateTime", "@value": "2025-12-01T15:00:00"}
+    }
+  },
+  {
+    "@context": {
+      "glam": "http://example.org/glam-digitisation-standard#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "prov": "http://www.w3.org/ns/prov#",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@type": "glam:DigitisedObject",
+    "@id": "https://www.metmuseum.org/art/collection/search/448602",
+    "dcterms:title": "Textile fragment — block-printed linen with gold",
+    "dcterms:date": {"@type": "xsd:gYear", "@value": "950"},
+    "dcterms:description": "Linen, ink, gold; plain weave, block printed, painted",
+    "glam:hasMetadata": {
+      "@type": "glam:MetadataRecord",
+      "glam:persistentIdentifier": {"@type": "xsd:anyURI", "@value": "https://www.metmuseum.org/art/collection/search/448602"},
+      "glam:structuredDate": {"@type": "xsd:gYear", "@value": "950"},
+      "glam:dateUncertainty": "approximate",
+      "dcterms:identifier": "https://www.metmuseum.org/art/collection/search/448602"
+    },
+    "glam:hasRights": {
+      "@type": "glam:RightsDeclaration",
+      "glam:rightsURI": {"@type": "xsd:anyURI", "@value": "https://creativecommons.org/publicdomain/zero/1.0/"},
+      "glam:reuseConditions": "Public domain — CC0 designation by The Metropolitan Museum of Art",
+      "glam:culturalSensitivityFlag": true,
+      "glam:culturalSensitivityNote": "Islamic cultural heritage object — community consultation recommended before computational reuse"
+    },
+    "glam:hasParadata": {
+      "@type": "glam:ParadataRecord",
+      "glam:digitisationDate": {"@type": "xsd:dateTime", "@value": "2019-03-20T11:00:00"},
+      "glam:equipment": "Cruse CS 185ST Synchron Table Scanner",
+      "glam:processingStep": "Flatbed scan → colour correction → TIFF master → JPEG derivative"
+    },
+    "glam:hasPackage": {
+      "@type": "glam:Package",
+      "glam:checksum": "sha256:b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c",
+      "glam:checksumAlgorithm": "SHA-256",
+      "glam:bundleStructure": "BagIt v1.0"
+    },
+    "glam:hasQA": {
+      "@type": "glam:QARecord",
+      "glam:validationStatus": "pass",
+      "glam:completenessScore": 0.82,
+      "glam:qaDate": {"@type": "xsd:dateTime", "@value": "2025-12-02T10:00:00"},
+      "glam:knownLimitations": "Date range spans approximately 100 years; exact provenance before 1931 acquisition unknown"
+    }
+  },
+  {
+    "@context": {
+      "glam": "http://example.org/glam-digitisation-standard#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "prov": "http://www.w3.org/ns/prov#",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@type": "glam:DigitisedObject",
+    "@id": "https://www.metmuseum.org/art/collection/search/2034",
+    "dcterms:title": "Chest-with-drawer",
+    "dcterms:date": {"@type": "xsd:gYear", "@value": "1700"},
+    "dcterms:description": "Oak, pine",
+    "glam:hasMetadata": {
+      "@type": "glam:MetadataRecord",
+      "glam:persistentIdentifier": {"@type": "xsd:anyURI", "@value": "https://www.metmuseum.org/art/collection/search/2034"},
+      "glam:structuredDate": {"@type": "xsd:gYear", "@value": "1700"},
+      "glam:dateUncertainty": "approximate",
+      "dcterms:identifier": "https://www.metmuseum.org/art/collection/search/2034"
+    },
+    "glam:hasRights": {
+      "@type": "glam:RightsDeclaration",
+      "glam:rightsURI": {"@type": "xsd:anyURI", "@value": "https://creativecommons.org/publicdomain/zero/1.0/"},
+      "glam:reuseConditions": "Public domain — CC0 designation by The Metropolitan Museum of Art",
+      "glam:culturalSensitivityFlag": false
+    },
+    "glam:hasParadata": {
+      "@type": "glam:ParadataRecord",
+      "glam:digitisationDate": {"@type": "xsd:dateTime", "@value": "2020-01-10T13:00:00"},
+      "glam:equipment": "Canon EOS 5DS R with macro lens",
+      "glam:processingStep": "Multi-angle photography → focus stacking → TIFF master → JPEG derivative"
+    },
+    "glam:hasPackage": {
+      "@type": "glam:Package",
+      "glam:checksum": "sha256:7d793037a0760186574b0282f2f435e7",
+      "glam:checksumAlgorithm": "SHA-256",
+      "glam:bundleStructure": "BagIt v1.0"
+    },
+    "glam:hasQA": {
+      "@type": "glam:QARecord",
+      "glam:validationStatus": "pass",
+      "glam:completenessScore": 0.79,
+      "glam:qaDate": {"@type": "xsd:dateTime", "@value": "2025-12-02T11:00:00"}
+    }
+  },
+  {
+    "@context": {
+      "glam": "http://example.org/glam-digitisation-standard#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "prov": "http://www.w3.org/ns/prov#",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@type": "glam:DigitisedObject",
+    "@id": "https://www.metmuseum.org/art/collection/search/267559",
+    "dcterms:title": "Portrait — platinum print by F. Holland Day",
+    "dcterms:date": {"@type": "xsd:gYear", "@value": "1898"},
+    "dcterms:description": "Platinum print",
+    "glam:hasMetadata": {
+      "@type": "glam:MetadataRecord",
+      "glam:persistentIdentifier": {"@type": "xsd:anyURI", "@value": "https://www.metmuseum.org/art/collection/search/267559"},
+      "glam:structuredDate": {"@type": "xsd:gYear", "@value": "1898"},
+      "glam:dateUncertainty": "exact",
+      "dcterms:identifier": "https://www.metmuseum.org/art/collection/search/267559",
+      "glam:entityReference": {
+        "@type": "glam:Person",
+        "dcterms:title": "F. Holland Day",
+        "dcterms:description": "American photographer, 1864–1933"
+      }
+    },
+    "glam:hasRights": {
+      "@type": "glam:RightsDeclaration",
+      "glam:rightsURI": {"@type": "xsd:anyURI", "@value": "https://creativecommons.org/publicdomain/zero/1.0/"},
+      "glam:reuseConditions": "Public domain — CC0 designation by The Metropolitan Museum of Art",
+      "glam:culturalSensitivityFlag": false
+    },
+    "glam:hasParadata": {
+      "@type": "glam:ParadataRecord",
+      "glam:digitisationDate": {"@type": "xsd:dateTime", "@value": "2016-09-05T10:30:00"},
+      "glam:equipment": "Epson Expression 12000XL flatbed scanner",
+      "glam:processingStep": "Flatbed scan at 1200 DPI → dust removal → TIFF master → JPEG derivative"
+    },
+    "glam:hasPackage": {
+      "@type": "glam:Package",
+      "glam:checksum": "sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+      "glam:checksumAlgorithm": "SHA-256",
+      "glam:bundleStructure": "BagIt v1.0"
+    },
+    "glam:hasQA": {
+      "@type": "glam:QARecord",
+      "glam:validationStatus": "pass",
+      "glam:completenessScore": 0.94,
+      "glam:qaDate": {"@type": "xsd:dateTime", "@value": "2025-12-01T16:00:00"}
+    }
+  }
+]
