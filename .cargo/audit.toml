@@ -1,0 +1,6 @@
+[advisories]
+ignore = [
+    # rand unsoundness with custom logger — transitive dep from tokenizers, rmcp, tract-onnx
+    # We don't use rand::rng() directly or custom loggers. Waiting on upstream fixes.
+    "RUSTSEC-2026-0097",
+]
