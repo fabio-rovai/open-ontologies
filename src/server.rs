@@ -903,7 +903,7 @@ impl OpenOntologiesServer {
     #[tool(name = "onto_align_feedback", description = "Accept or reject an alignment candidate to improve future confidence scoring. Stores feedback in align_feedback table for self-calibrating weights.")]
     async fn onto_align_feedback(&self, Parameters(input): Parameters<OntoAlignFeedbackInput>) -> String {
         let engine = crate::align::AlignmentEngine::new(self.db.clone(), self.graph.clone());
-        match engine.record_feedback(&input.source_iri, &input.target_iri, "user_feedback", input.accepted) {
+        match engine.record_feedback(&input.source_iri, &input.target_iri, "user_feedback", input.accepted, input.signals.as_ref()) {
             Ok(result) => {
                 self.lineage().record(&self.session_id, "AF", "align_feedback", if input.accepted { "accepted" } else { "rejected" });
                 result

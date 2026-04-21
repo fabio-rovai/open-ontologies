@@ -518,20 +518,119 @@ impl AlignmentEngine {
         format!("<{}> <{}> <{}> .\n", source, predicate, target)
     }
 
+    /// Signal names in weight-vector order.
+    #[cfg(not(feature = "embeddings"))]
+    const SIGNAL_NAMES: [&'static str; 6] = [
+        "label_similarity", "property_overlap", "parent_overlap",
+        "instance_overlap", "restriction_similarity", "neighborhood_similarity",
+    ];
+
+    #[cfg(feature = "embeddings")]
+    const SIGNAL_NAMES: [&'static str; 7] = [
+        "label_similarity", "property_overlap", "parent_overlap",
+        "instance_overlap", "restriction_similarity", "neighborhood_similarity",
+        "embedding_similarity",
+    ];
+
     /// Get learned weights from align_feedback, or defaults if not enough data.
     fn get_learned_weights(&self) -> Vec<f64> {
         let conn = self.db.conn();
+
+        // Count only feedback rows that have signal values stored
         let count: i64 = conn
-            .query_row("SELECT COUNT(*) FROM align_feedback", [], |r| r.get(0))
+            .query_row(
+                "SELECT COUNT(*) FROM align_feedback WHERE signals_json IS NOT NULL",
+                [],
+                |r| r.get(0),
+            )
             .unwrap_or(0);
 
         if count < 10 {
             return Self::DEFAULT_WEIGHTS.to_vec();
         }
 
-        // For now, return defaults. Full learning requires storing per-signal values
-        // in align_feedback, which we add in the feedback task.
-        Self::DEFAULT_WEIGHTS.to_vec()
+        // Compute per-signal acceptance rates via likelihood ratio.
+        // For each signal, compute mean value in accepted vs rejected sets.
+        // Signals where accepted-mean >> rejected-mean are more discriminative.
+        let n_signals = Self::DEFAULT_WEIGHTS.len();
+        let mut acc_sum = vec![0.0_f64; n_signals];
+        let mut acc_count = 0_u32;
+        let mut rej_sum = vec![0.0_f64; n_signals];
+        let mut rej_count = 0_u32;
+
+        let mut stmt = match conn.prepare(
+            "SELECT accepted, signals_json FROM align_feedback WHERE signals_json IS NOT NULL"
+        ) {
+            Ok(s) => s,
+            Err(_) => return Self::DEFAULT_WEIGHTS.to_vec(),
+        };
+
+        let rows = match stmt.query_map([], |row| {
+            let accepted: i32 = row.get(0)?;
+            let json_str: String = row.get(1)?;
+            Ok((accepted, json_str))
+        }) {
+            Ok(r) => r,
+            Err(_) => return Self::DEFAULT_WEIGHTS.to_vec(),
+        };
+
+        for row in rows.flatten() {
+            let (accepted, json_str) = row;
+            let signals: std::collections::HashMap<String, f64> = match serde_json::from_str(&json_str) {
+                Ok(s) => s,
+                Err(_) => continue,
+            };
+
+            let vals: Vec<f64> = Self::SIGNAL_NAMES
+                .iter()
+                .map(|name| signals.get(*name).copied().unwrap_or(0.0))
+                .collect();
+
+            if accepted != 0 {
+                for (i, v) in vals.iter().enumerate() {
+                    acc_sum[i] += v;
+                }
+                acc_count += 1;
+            } else {
+                for (i, v) in vals.iter().enumerate() {
+                    rej_sum[i] += v;
+                }
+                rej_count += 1;
+            }
+        }
+
+        // Need both accepted and rejected samples to learn
+        if acc_count < 3 || rej_count < 3 {
+            return Self::DEFAULT_WEIGHTS.to_vec();
+        }
+
+        // Compute discriminative power: ratio of accepted mean to rejected mean.
+        // Clamp to avoid division by zero and extreme outliers.
+        let mut raw_weights = vec![0.0_f64; n_signals];
+        for i in 0..n_signals {
+            let acc_mean = acc_sum[i] / acc_count as f64;
+            let rej_mean = rej_sum[i] / rej_count as f64;
+            // Likelihood ratio with Laplace smoothing
+            let ratio = (acc_mean + 0.01) / (rej_mean + 0.01);
+            raw_weights[i] = ratio.max(0.1).min(10.0);
+        }
+
+        // Blend with defaults (70% learned, 30% prior) for stability
+        for i in 0..n_signals {
+            raw_weights[i] = 0.7 * raw_weights[i] + 0.3 * Self::DEFAULT_WEIGHTS[i];
+        }
+
+        // Normalise to sum to 1.0
+        let total: f64 = raw_weights.iter().sum();
+        if total > 0.0 {
+            for w in &mut raw_weights {
+                *w /= total;
+            }
+        } else {
+            return Self::DEFAULT_WEIGHTS.to_vec();
+        }
+
+        raw_weights
     }
 
     /// Record user feedback on an alignment candidate.
@@ -541,13 +640,23 @@ impl AlignmentEngine {
         target_iri: &str,
         predicted_relation: &str,
         accepted: bool,
+        signals: Option<&std::collections::HashMap<String, f64>>,
     ) -> anyhow::Result<String> {
         let conn = self.db.conn();
+        let signals_json = signals.map(|s| serde_json::to_string(s).unwrap_or_default());
         conn.execute(
-            "INSERT INTO align_feedback (source_iri, target_iri, predicted_relation, accepted)
-             VALUES (?1, ?2, ?3, ?4)",
-            rusqlite::params![source_iri, target_iri, predicted_relation, accepted as i32],
+            "INSERT INTO align_feedback (source_iri, target_iri, predicted_relation, accepted, signals_json)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            rusqlite::params![source_iri, target_iri, predicted_relation, accepted as i32, signals_json],
         )?;
+
+        let feedback_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM align_feedback WHERE signals_json IS NOT NULL",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap_or(0);
 
         Ok(serde_json::json!({
             "ok": true,
@@ -555,6 +664,8 @@ impl AlignmentEngine {
             "target_iri": target_iri,
             "predicted_relation": predicted_relation,
             "accepted": accepted,
+            "feedback_count": feedback_count,
+            "weights_learning": if feedback_count >= 10 { "active" } else { "collecting" },
         }).to_string())
     }
 }
@@ -791,6 +902,7 @@ mod tests {
             "http://other.org/Canine",
             "owl:equivalentClass",
             true,
+            None,
         ).unwrap();
 
         let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();

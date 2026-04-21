@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS align_feedback (
     target_iri TEXT NOT NULL,
     predicted_relation TEXT NOT NULL,
     accepted INTEGER NOT NULL,
+    signals_json TEXT,
     timestamp TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -122,6 +123,10 @@ impl StateDb {
         let _ = conn.execute_batch(
             "ALTER TABLE monitor_watchers ADD COLUMN webhook_url TEXT;
              ALTER TABLE monitor_watchers ADD COLUMN webhook_headers TEXT;"
+        );
+        // Safe migration: add signals_json column for feedback-based weight learning
+        let _ = conn.execute_batch(
+            "ALTER TABLE align_feedback ADD COLUMN signals_json TEXT;"
         );
         Ok(Self {
             conn: Arc::new(Mutex::new(conn)),

@@ -265,6 +265,8 @@ pub struct OntoAlignFeedbackInput {
     pub target_iri: String,
     /// Whether the alignment candidate was correct
     pub accepted: bool,
+    /// Signal values from the alignment candidate (copied from the "signals" field in align output)
+    pub signals: Option<std::collections::HashMap<String, f64>>,
 }
 
 #[derive(Deserialize, JsonSchema)]

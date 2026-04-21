@@ -1271,7 +1271,7 @@ async fn main() -> anyhow::Result<()> {
             let (db, graph) = setup(&cli.data_dir)?;
             let engine = open_ontologies::align::AlignmentEngine::new(db, graph);
             let accepted = accept || !reject;
-            let result = engine.record_feedback(&source, &target, "user_feedback", accepted)
+            let result = engine.record_feedback(&source, &target, "user_feedback", accepted, None)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result(&result, cli.pretty);
         }
