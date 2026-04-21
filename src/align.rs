@@ -359,10 +359,10 @@ impl AlignmentEngine {
 
                 let label_sim = Self::label_similarity(sc, tc);
 
-                // Pre-filter: skip pairs where label similarity is too low to be a
-                // real match. We proved (full 9M run) that this threshold does not
-                // affect recall — it only eliminates false positives.
-                if label_sim < 0.7 {
+                // Pre-filter: skip pairs where label similarity is too low.
+                // Raised from 0.7 to 0.75 to reduce false positives on anatomy-style
+                // ontologies where many terms share token overlap (e.g., "bone" variants).
+                if label_sim < 0.75 {
                     continue;
                 }
 
@@ -391,12 +391,14 @@ impl AlignmentEngine {
                 #[cfg(not(feature = "embeddings"))]
                 let signals = [label_sim, prop_overlap, parent_ovlp, inst_overlap, restr_sim, neigh_sim];
 
-                // When structural signals are all zero (no structural data to compare),
-                // fall back to label similarity as the sole indicator.
-                // Structural signals are indices 1..6 (excluding label and embedding).
+                // Compute confidence. When structural signals are all zero
+                // (common in lightweight OWL files), use label similarity with a
+                // penalty rather than the weighted sum (which would be ~0.25 * label_sim
+                // and too low to pass any threshold).
                 let structural_sum: f64 = signals[1..6].iter().sum();
                 let confidence: f64 = if structural_sum == 0.0 {
-                    label_sim
+                    // No structural evidence: use label_sim but apply 15% penalty
+                    label_sim * 0.85
                 } else {
                     signals.iter().zip(weights.iter()).map(|(s, w)| s * w).sum()
                 };
@@ -439,6 +441,26 @@ impl AlignmentEngine {
                 .partial_cmp(&a["confidence"].as_f64().unwrap_or(0.0))
                 .unwrap_or(std::cmp::Ordering::Equal)
         });
+
+        // Stable matching: for each source class, keep only the top-scoring target.
+        // For each target class, keep only the top-scoring source.
+        // This enforces a 1-to-1 matching constraint that dramatically reduces
+        // false positives on benchmarks like OAEI Anatomy.
+        {
+            let mut used_sources: std::collections::HashSet<String> = std::collections::HashSet::new();
+            let mut used_targets: std::collections::HashSet<String> = std::collections::HashSet::new();
+            candidates.retain(|c| {
+                let src = c["source_iri"].as_str().unwrap_or("").to_string();
+                let tgt = c["target_iri"].as_str().unwrap_or("").to_string();
+                if used_sources.contains(&src) || used_targets.contains(&tgt) {
+                    false
+                } else {
+                    used_sources.insert(src);
+                    used_targets.insert(tgt);
+                    true
+                }
+            });
+        }
 
         // Auto-apply above threshold
         let mut applied_count = 0;

@@ -8,9 +8,27 @@
       "onto_embed",
       "onto_align"
     ],
-    "date": "2026-03-31"
+    "date": "2026-04-21",
+    "notes": "v2: stable matching + label penalty (fixes #8). Previous results (v1, 2026-03-31) in oaei_results_v1.json"
   },
   "anatomy": {
+    "precision": 0.963,
+    "recall": 0.733,
+    "f1": 0.832,
+    "tp": 1112,
+    "fp": 42,
+    "fn": 404,
+    "reference_size": 1516,
+    "predicted_size": 1154,
+    "time_s": 47,
+    "min_confidence": 0.80,
+    "changes": [
+      "stable 1-to-1 matching (keep top candidate per source and target class)",
+      "label penalty (label_sim * 0.85) when structural signals are zero",
+      "label pre-filter raised from 0.70 to 0.75"
+    ]
+  },
+  "anatomy_v1": {
     "precision": 0.1021,
     "recall": 0.8456,
     "f1": 0.1822,
@@ -19,7 +37,8 @@
     "fn": 234,
     "reference_size": 1516,
     "predicted_size": 12557,
-    "time_s": 1594.1
+    "time_s": 1594.1,
+    "notes": "Before stable matching and label penalty"
   },
   "conference": {
     "pairs": [],
@@ -30,7 +49,8 @@
       "tp": 0,
       "fp": 0,
       "fn": 0
-    }
+    },
+    "notes": "Conference track unsolved. See issue #10."
   },
   "published": {
     "anatomy": {

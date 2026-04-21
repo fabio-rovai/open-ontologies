@@ -335,6 +335,20 @@ All 32 marketplace ontologies fetched, `owl:imports` resolved, loaded, and reaso
 
 Full benchmark writeup: [docs/benchmarks.md](docs/benchmarks.md)
 
+### OAEI Ontology Alignment — Anatomy Track
+
+[OAEI](https://oaei.ontologymatching.org/) is the standard benchmark for ontology alignment systems. The Anatomy track aligns 2,737 mouse anatomy classes to 3,304 human anatomy classes against 1,516 reference mappings.
+
+| System | Precision | Recall | F1 |
+| --- | --- | --- | --- |
+| AML | 0.950 | 0.922 | **0.936** |
+| BERTMap | 0.940 | 0.910 | **0.924** |
+| LogMap | 0.930 | 0.890 | **0.912** |
+| OLaLa | 0.900 | 0.880 | **0.890** |
+| **Open Ontologies** | **0.963** | **0.733** | **0.832** |
+
+Open Ontologies uses 7 weighted signals (label similarity, property/parent/instance/restriction/neighbourhood overlap, embedding similarity), stable 1-to-1 matching, and a label penalty when no structural evidence is available. No external background knowledge (UMLS, BioPortal) is used. See issues [#8](https://github.com/fabio-rovai/open-ontologies/issues/8), [#9](https://github.com/fabio-rovai/open-ontologies/issues/9), [#10](https://github.com/fabio-rovai/open-ontologies/issues/10) for planned improvements.
+
 ---
 
 ## IES Support
