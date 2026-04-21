@@ -610,14 +610,13 @@ impl AlignmentEngine {
         for i in 0..n_signals {
             let acc_mean = acc_sum[i] / acc_count as f64;
             let rej_mean = rej_sum[i] / rej_count as f64;
-            // Likelihood ratio with Laplace smoothing
             let ratio = (acc_mean + 0.01) / (rej_mean + 0.01);
-            raw_weights[i] = ratio.max(0.1).min(10.0);
+            raw_weights[i] = ratio.clamp(0.1, 10.0);
         }
 
         // Blend with defaults (70% learned, 30% prior) for stability
-        for i in 0..n_signals {
-            raw_weights[i] = 0.7 * raw_weights[i] + 0.3 * Self::DEFAULT_WEIGHTS[i];
+        for (w, default) in raw_weights.iter_mut().zip(Self::DEFAULT_WEIGHTS.iter()) {
+            *w = 0.7 * *w + 0.3 * default;
         }
 
         // Normalise to sum to 1.0
