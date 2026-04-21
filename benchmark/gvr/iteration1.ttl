@@ -1,0 +1,76 @@
+@prefix : <http://www.co-ode.org/ontologies/pizza/pizza.owl#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+<http://www.co-ode.org/ontologies/pizza> a owl:Ontology ;
+    rdfs:label "Pizza Ontology" .
+
+# Top-level classes
+:Pizza a owl:Class ; rdfs:label "Pizza" .
+:PizzaTopping a owl:Class ; rdfs:label "Pizza Topping" .
+:PizzaBase a owl:Class ; rdfs:label "Pizza Base" .
+
+# Base types
+:ThinAndCrispyBase a owl:Class ; rdfs:subClassOf :PizzaBase ; rdfs:label "Thin And Crispy Base" .
+:DeepPanBase a owl:Class ; rdfs:subClassOf :PizzaBase ; rdfs:label "Deep Pan Base" .
+
+# Topping categories
+:MeatTopping a owl:Class ; rdfs:subClassOf :PizzaTopping ; rdfs:label "Meat Topping" .
+:VegetableTopping a owl:Class ; rdfs:subClassOf :PizzaTopping ; rdfs:label "Vegetable Topping" .
+:CheeseTopping a owl:Class ; rdfs:subClassOf :PizzaTopping ; rdfs:label "Cheese Topping" .
+:SeafoodTopping a owl:Class ; rdfs:subClassOf :PizzaTopping ; rdfs:label "Seafood Topping" .
+:SauceTopping a owl:Class ; rdfs:subClassOf :PizzaTopping ; rdfs:label "Sauce Topping" .
+:HerbSpiceTopping a owl:Class ; rdfs:subClassOf :PizzaTopping ; rdfs:label "Herb Spice Topping" .
+:FruitTopping a owl:Class ; rdfs:subClassOf :PizzaTopping ; rdfs:label "Fruit Topping" .
+:NutTopping a owl:Class ; rdfs:subClassOf :PizzaTopping ; rdfs:label "Nut Topping" .
+
+# Properties
+:hasTopping a owl:ObjectProperty ; rdfs:domain :Pizza ; rdfs:range :PizzaTopping ; rdfs:label "has topping" .
+:hasBase a owl:ObjectProperty ; rdfs:domain :Pizza ; rdfs:range :PizzaBase ; rdfs:label "has base" .
+
+# Meat toppings
+:HamTopping a owl:Class ; rdfs:subClassOf :MeatTopping ; rdfs:label "Ham" .
+:PepperoniTopping a owl:Class ; rdfs:subClassOf :MeatTopping ; rdfs:label "Pepperoni" .
+:SalamiTopping a owl:Class ; rdfs:subClassOf :MeatTopping ; rdfs:label "Salami" .
+:ChickenTopping a owl:Class ; rdfs:subClassOf :MeatTopping ; rdfs:label "Chicken" .
+
+# Cheese toppings
+:MozzarellaTopping a owl:Class ; rdfs:subClassOf :CheeseTopping ; rdfs:label "Mozzarella" .
+:ParmesanTopping a owl:Class ; rdfs:subClassOf :CheeseTopping ; rdfs:label "Parmesan" .
+:GorgonzolaTopping a owl:Class ; rdfs:subClassOf :CheeseTopping ; rdfs:label "Gorgonzola" .
+:FourCheesesTopping a owl:Class ; rdfs:subClassOf :CheeseTopping ; rdfs:label "Four Cheeses" .
+
+# Vegetable toppings
+:TomatoTopping a owl:Class ; rdfs:subClassOf :VegetableTopping ; rdfs:label "Tomato" .
+:MushroomTopping a owl:Class ; rdfs:subClassOf :VegetableTopping ; rdfs:label "Mushroom" .
+:PepperTopping a owl:Class ; rdfs:subClassOf :VegetableTopping ; rdfs:label "Pepper" .
+:OnionTopping a owl:Class ; rdfs:subClassOf :VegetableTopping ; rdfs:label "Onion" .
+:OliveTopping a owl:Class ; rdfs:subClassOf :VegetableTopping ; rdfs:label "Olive" .
+:CaperTopping a owl:Class ; rdfs:subClassOf :VegetableTopping ; rdfs:label "Caper" .
+:ArtichokeTopping a owl:Class ; rdfs:subClassOf :VegetableTopping ; rdfs:label "Artichoke" .
+:SpinachTopping a owl:Class ; rdfs:subClassOf :VegetableTopping ; rdfs:label "Spinach" .
+:AsparagusTopping a owl:Class ; rdfs:subClassOf :VegetableTopping ; rdfs:label "Asparagus" .
+:LeekTopping a owl:Class ; rdfs:subClassOf :VegetableTopping ; rdfs:label "Leek" .
+:PetitPoisTopping a owl:Class ; rdfs:subClassOf :VegetableTopping ; rdfs:label "Petit Pois" .
+:RocketTopping a owl:Class ; rdfs:subClassOf :VegetableTopping ; rdfs:label "Rocket" .
+:GarlicTopping a owl:Class ; rdfs:subClassOf :VegetableTopping ; rdfs:label "Garlic" .
+
+# Seafood toppings
+:AnchovyTopping a owl:Class ; rdfs:subClassOf :SeafoodTopping ; rdfs:label "Anchovy" .
+:PrawnTopping a owl:Class ; rdfs:subClassOf :SeafoodTopping ; rdfs:label "Prawn" .
+:MixedSeafoodTopping a owl:Class ; rdfs:subClassOf :SeafoodTopping ; rdfs:label "Mixed Seafood" .
+
+# Sauce toppings
+:TomatoSauceTopping a owl:Class ; rdfs:subClassOf :SauceTopping ; rdfs:label "Tomato Sauce" .
+
+# Named Pizzas
+:Margherita a owl:Class ; rdfs:subClassOf :Pizza ; rdfs:label "Margherita" .
+:Americana a owl:Class ; rdfs:subClassOf :Pizza ; rdfs:label "Americana" .
+:AmericanHot a owl:Class ; rdfs:subClassOf :Pizza ; rdfs:label "American Hot" .
+:Napoletana a owl:Class ; rdfs:subClassOf :Pizza ; rdfs:label "Napoletana" .
+:Fiorentina a owl:Class ; rdfs:subClassOf :Pizza ; rdfs:label "Fiorentina" .
+:Capricciosa a owl:Class ; rdfs:subClassOf :Pizza ; rdfs:label "Capricciosa" .
+:Mushroom a owl:Class ; rdfs:subClassOf :Pizza ; rdfs:label "Mushroom" .
+:FourSeasons a owl:Class ; rdfs:subClassOf :Pizza ; rdfs:label "Four Seasons" .
+:Cajun a owl:Class ; rdfs:subClassOf :Pizza ; rdfs:label "Cajun" .
