@@ -1,0 +1,177 @@
+{
+  "pairs": [
+    {
+      "pair": "cmt-conference",
+      "tp": 3,
+      "fp": 2,
+      "fn": 12,
+      "ref_size": 15,
+      "pred_size": 5,
+      "p": 0.6,
+      "r": 0.2,
+      "f1": 0.3
+    },
+    {
+      "pair": "cmt-edas",
+      "tp": 3,
+      "fp": 0,
+      "fn": 10,
+      "ref_size": 13,
+      "pred_size": 3,
+      "p": 1.0,
+      "r": 0.231,
+      "f1": 0.375
+    },
+    {
+      "pair": "cmt-ekaw",
+      "tp": 2,
+      "fp": 0,
+      "fn": 9,
+      "ref_size": 11,
+      "pred_size": 2,
+      "p": 1.0,
+      "r": 0.182,
+      "f1": 0.308
+    },
+    {
+      "pair": "cmt-iasted",
+      "tp": 3,
+      "fp": 2,
+      "fn": 1,
+      "ref_size": 4,
+      "pred_size": 5,
+      "p": 0.6,
+      "r": 0.75,
+      "f1": 0.667
+    },
+    {
+      "pair": "cmt-sigkdd",
+      "tp": 4,
+      "fp": 1,
+      "fn": 8,
+      "ref_size": 12,
+      "pred_size": 5,
+      "p": 0.8,
+      "r": 0.333,
+      "f1": 0.471
+    },
+    {
+      "pair": "conference-edas",
+      "tp": 6,
+      "fp": 2,
+      "fn": 11,
+      "ref_size": 17,
+      "pred_size": 8,
+      "p": 0.75,
+      "r": 0.353,
+      "f1": 0.48
+    },
+    {
+      "pair": "conference-ekaw",
+      "tp": 9,
+      "fp": 5,
+      "fn": 16,
+      "ref_size": 25,
+      "pred_size": 14,
+      "p": 0.643,
+      "r": 0.36,
+      "f1": 0.462
+    },
+    {
+      "pair": "conference-iasted",
+      "tp": 4,
+      "fp": 2,
+      "fn": 10,
+      "ref_size": 14,
+      "pred_size": 6,
+      "p": 0.667,
+      "r": 0.286,
+      "f1": 0.4
+    },
+    {
+      "pair": "conference-sigkdd",
+      "tp": 5,
+      "fp": 4,
+      "fn": 10,
+      "ref_size": 15,
+      "pred_size": 9,
+      "p": 0.556,
+      "r": 0.333,
+      "f1": 0.417
+    },
+    {
+      "pair": "edas-ekaw",
+      "tp": 8,
+      "fp": 4,
+      "fn": 15,
+      "ref_size": 23,
+      "pred_size": 12,
+      "p": 0.667,
+      "r": 0.348,
+      "f1": 0.457
+    },
+    {
+      "pair": "edas-iasted",
+      "tp": 6,
+      "fp": 2,
+      "fn": 13,
+      "ref_size": 19,
+      "pred_size": 8,
+      "p": 0.75,
+      "r": 0.316,
+      "f1": 0.444
+    },
+    {
+      "pair": "edas-sigkdd",
+      "tp": 2,
+      "fp": 2,
+      "fn": 13,
+      "ref_size": 15,
+      "pred_size": 4,
+      "p": 0.5,
+      "r": 0.133,
+      "f1": 0.211
+    },
+    {
+      "pair": "ekaw-iasted",
+      "tp": 5,
+      "fp": 2,
+      "fn": 5,
+      "ref_size": 10,
+      "pred_size": 7,
+      "p": 0.714,
+      "r": 0.5,
+      "f1": 0.588
+    },
+    {
+      "pair": "ekaw-sigkdd",
+      "tp": 4,
+      "fp": 0,
+      "fn": 7,
+      "ref_size": 11,
+      "pred_size": 4,
+      "p": 1.0,
+      "r": 0.364,
+      "f1": 0.533
+    },
+    {
+      "pair": "iasted-sigkdd",
+      "tp": 6,
+      "fp": 3,
+      "fn": 9,
+      "ref_size": 15,
+      "pred_size": 9,
+      "p": 0.667,
+      "r": 0.4,
+      "f1": 0.5
+    }
+  ],
+  "micro_avg": {
+    "tp": 70,
+    "fp": 31,
+    "fn": 149,
+    "precision": 0.6931,
+    "recall": 0.3196,
+    "f1": 0.4375
+  }
+}

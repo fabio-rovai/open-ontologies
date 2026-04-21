@@ -1,0 +1,8 @@
+{
+  "subClassOf": {"precision": 1.0, "recall": 1.0, "f1": 1.0, "tp": 19, "fp": 0, "fn": 0},
+  "disjointWith": {"precision": 0.992, "recall": 0.992, "f1": 0.992, "tp": 253, "fp": 2, "fn": 2},
+  "domain": {"precision": 1.0, "recall": 1.0, "f1": 1.0, "tp": 38, "fp": 0, "fn": 0},
+  "range": {"precision": 1.0, "recall": 1.0, "f1": 1.0, "tp": 95, "fp": 0, "fn": 0},
+  "subPropertyOf": {"precision": 1.0, "recall": 1.0, "f1": 1.0, "tp": 22, "fp": 0, "fn": 0},
+  "overall_f1": 0.998
+}

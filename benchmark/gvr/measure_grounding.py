@@ -63,10 +63,35 @@ def get_stats(ontology_path, reason_profile=None):
             continue
     return stats, lint_issues
 
-def measure_grounding(gen_path, ref_path, reason_profile=None):
+STRUCTURAL_PREDICATES = {
+    '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
+    '<http://www.w3.org/2000/01/rdf-schema#subClassOf>',
+    '<http://www.w3.org/2000/01/rdf-schema#subPropertyOf>',
+    '<http://www.w3.org/2000/01/rdf-schema#domain>',
+    '<http://www.w3.org/2000/01/rdf-schema#range>',
+    '<http://www.w3.org/2002/07/owl#equivalentClass>',
+    '<http://www.w3.org/2002/07/owl#equivalentProperty>',
+    '<http://www.w3.org/2002/07/owl#disjointWith>',
+    '<http://www.w3.org/2002/07/owl#inverseOf>',
+    '<http://www.w3.org/2002/07/owl#onProperty>',
+    '<http://www.w3.org/2002/07/owl#someValuesFrom>',
+    '<http://www.w3.org/2002/07/owl#allValuesFrom>',
+    '<http://www.w3.org/2002/07/owl#imports>',
+}
+
+def filter_structural(triples):
+    """Keep only structural triples (subClassOf, type, domain, range, etc.).
+    Removes annotation triples (labels, comments) that cause noise."""
+    return {(s, p, o) for s, p, o in triples if p in STRUCTURAL_PREDICATES}
+
+def measure_grounding(gen_path, ref_path, reason_profile=None, structural_only=False):
     """Measure grounding degree."""
     ref_triples = get_triples(ref_path, reason_profile)
     gen_triples = get_triples(gen_path)
+
+    if structural_only:
+        ref_triples = filter_structural(ref_triples)
+        gen_triples = filter_structural(gen_triples)
 
     grounded = gen_triples & ref_triples
     ungrounded = gen_triples - ref_triples
@@ -82,7 +107,8 @@ def measure_grounding(gen_path, ref_path, reason_profile=None):
         'grounded': grounded_count,
         'ungrounded': len(ungrounded),
         'grounding_degree': round(degree, 4),
-        'coverage': round(coverage, 4)
+        'coverage': round(coverage, 4),
+        'mode': 'structural' if structural_only else 'all'
     }
 
 if __name__ == '__main__':
@@ -95,13 +121,18 @@ if __name__ == '__main__':
     print(f'Reasoning: {profile or "none"}')
     print()
 
-    # Stats
     gen_stats, gen_lint = get_stats(gen)
     print(f'Generated stats: {json.dumps(gen_stats)}')
     print(f'Lint issues: {gen_lint}')
 
-    # Grounding
-    g = measure_grounding(gen, ref, profile)
-    print(f'\nGrounding results:')
-    for k, v in g.items():
+    # All triples
+    g_all = measure_grounding(gen, ref, profile, structural_only=False)
+    print(f'\nAll triples:')
+    for k, v in g_all.items():
+        print(f'  {k}: {v}')
+
+    # Structural only
+    g_struct = measure_grounding(gen, ref, profile, structural_only=True)
+    print(f'\nStructural only:')
+    for k, v in g_struct.items():
         print(f'  {k}: {v}')

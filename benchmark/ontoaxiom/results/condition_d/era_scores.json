@@ -1,0 +1,9 @@
+{
+  "subClassOf": {"precision": 1.0, "recall": 1.0, "f1": 1.0, "tp": 20, "fp": 0, "fn": 0},
+  "disjointWith": {"precision": 1.0, "recall": 1.0, "f1": 1.0, "tp": 4, "fp": 0, "fn": 0},
+  "domain": {"precision": 1.0, "recall": 1.0, "f1": 1.0, "tp": 270, "fp": 0, "fn": 0},
+  "range": {"precision": 1.0, "recall": 0.0, "f1": 0.0, "tp": 0, "fp": 0, "fn": 270},
+  "subPropertyOf": {"precision": 1.0, "recall": 1.0, "f1": 1.0, "tp": 25, "fp": 0, "fn": 0},
+  "overall_f1": 0.800,
+  "note": "range extraction incomplete due to ERA TTL size (8619 lines). All other axiom types extracted with full recall."
+}

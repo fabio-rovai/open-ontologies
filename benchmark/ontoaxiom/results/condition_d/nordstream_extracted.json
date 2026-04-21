@@ -1,0 +1,37 @@
+{
+  "subClassOf": [
+    ["Area", "Geographic Places"],
+    ["City", "Geographic Places"],
+    ["Comment", "Communication"],
+    ["Country", "Geographic Places"],
+    ["Energy Ministry", "Ministry"],
+    ["Island", "Geographic Places"],
+    ["Ministry", "foaf:Agent"],
+    ["Operator", "Role"],
+    ["President", "Role"],
+    ["Request", "Communication"],
+    ["Sea", "Geographic Places"],
+    ["Statement", "Communication"],
+    ["Twitter", "Communication"],
+    ["Warning", "Communication"],
+    ["Website", "Communication"],
+    ["Geographic Places", "sem:Place"],
+    ["Government", "foaf:Agent"],
+    ["sem:Actor", "foaf:Agent"],
+    ["sem:Authority", "foaf:Agent"],
+    ["foaf:Person", "foaf:Agent"]
+  ],
+  "disjointWith": [
+    ["Agent", "Place"],
+    ["City", "Sea"],
+    ["Country", "Sea"],
+    ["Island", "Sea"]
+  ],
+  "domain": [
+    ["has gas pressure", "Pipeline"]
+  ],
+  "range": [
+    ["foaf:name", "rdfs:Literal"]
+  ],
+  "subPropertyOf": []
+}
