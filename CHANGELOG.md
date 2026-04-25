@@ -13,6 +13,9 @@ All notable changes to Open Ontologies are documented here.
 - **`SchemaIntrospector::sql_to_xsd` extended** to handle DuckDB-native types (HUGEINT, U{TINY,SMALL,}INT, DOUBLE, parameterised DECIMAL/VARCHAR, DATETIME, UUID, TIME).
 - New tests: `tests/sqlsource_test.rs` (driver detection, no features required) and `tests/duckdb_test.rs` (introspection + query → row extraction, gated by the `duckdb` feature).
 
+### Fixed
+- **`onto_drift` ignores blank nodes**. Pizza-style ontologies (and any OWL with restriction classes) use anonymous blank-node restriction classes that get freshly reminted on every parse. Two snapshots of the same file would show ~40 added + ~40 removed bnodes plus a Cartesian product of confidence-scored "renames" between them, drowning real entity changes in noise. The vocabulary extractor now filters `_:`-prefixed IRIs from both class- and property-gather loops.
+
 ### Documentation
 - `docs/data-pipeline.md` rewritten to cover both file-based and SQL-based ingest paths, the supported connection-string forms, federation examples (Parquet on S3 + Postgres scanner + remote CSV in one query), and a build matrix for the new feature flags.
 - `SKILL.md`, `skills/ontology-engineering/SKILL.md`, `skills/ontology-engineer.md`, and `CLAUDE.md` Tool Reference tables expanded to cover the SQL backbone tools and previously-missing tools (`onto_status`, `onto_marketplace`, `onto_unload`, `onto_recompile`, `onto_cache_status`, `onto_cache_list`, `onto_cache_remove`, `onto_repo_list`, `onto_repo_load`, `onto_embed`, `onto_search`, `onto_similarity`, `onto_dl_explain`, `onto_dl_check`, `onto_import_schema`, `onto_sql_ingest`).

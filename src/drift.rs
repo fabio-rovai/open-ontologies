@@ -170,10 +170,15 @@ impl DriftDetector {
     fn extract_vocabulary(&self, store: &GraphStore) -> HashMap<String, VocabEntry> {
         let mut vocab = HashMap::new();
 
+        // Drop blank nodes — they're anonymous restriction classes etc.
+        // and get fresh IDs on every reparse, so they generate spurious
+        // add/remove/rename noise between two snapshots of the same file.
+        let is_named = |iri: &str| !iri.starts_with("_:");
+
         // Classes
         let class_query = "SELECT DISTINCT ?c WHERE { ?c a <http://www.w3.org/2002/07/owl#Class> }";
         if let Ok(json) = store.sparql_select(class_query) {
-            for iri in parse_iris(&json, "c") {
+            for iri in parse_iris(&json, "c").into_iter().filter(|i| is_named(i)) {
                 vocab.entry(iri.clone()).or_insert_with(|| VocabEntry {
                     iri,
                     kind: "class".to_string(),
@@ -190,7 +195,7 @@ impl DriftDetector {
             { ?p a <http://www.w3.org/2002/07/owl#DatatypeProperty> } \
         }";
         if let Ok(json) = store.sparql_select(prop_query) {
-            for iri in parse_iris(&json, "p") {
+            for iri in parse_iris(&json, "p").into_iter().filter(|i| is_named(i)) {
                 vocab.entry(iri.clone()).or_insert_with(|| VocabEntry {
                     iri,
                     kind: "property".to_string(),
