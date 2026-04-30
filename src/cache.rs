@@ -18,7 +18,8 @@ use rusqlite::params;
 
 use crate::state::StateDb;
 
-const HASH_PREFIX_BYTES: usize = 64 * 1024;
+// Number of head-bytes hashed for the cache fingerprint — overridable via
+// `[cache] hash_prefix_bytes` in config.toml. See `crate::runtime`.
 
 /// Information about a source ontology file used as the cache validity key.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -41,11 +42,13 @@ impl SourceFingerprint {
             .map(|d| d.as_secs() as i64)
             .unwrap_or(0);
 
-        // Read up to 64 KiB for hashing — enough to differentiate files
-        // with identical mtime/size (rare but possible with `cp -p`).
+        // Read up to N bytes (configurable via `[cache] hash_prefix_bytes`)
+        // for hashing — enough to differentiate files with identical
+        // mtime/size (rare but possible with `cp -p`).
         let mut file = fs::File::open(path)
             .with_context(|| format!("open({})", path.display()))?;
-        let mut buf = vec![0u8; HASH_PREFIX_BYTES.min(size as usize)];
+        let prefix_len = crate::runtime::cache_hash_prefix_bytes();
+        let mut buf = vec![0u8; prefix_len.min(size as usize)];
         let n = file.read(&mut buf)?;
         buf.truncate(n);
         let sha_prefix = sha256_hex(&buf);

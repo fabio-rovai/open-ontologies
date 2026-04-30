@@ -292,7 +292,7 @@ impl OpenOntologiesServer {
             return r#"{"error":"no ontology_dirs configured; set [general] ontology_dirs in config.toml or OPEN_ONTOLOGIES_ONTOLOGY_DIRS"}"#.to_string();
         }
         let recursive = input.recursive.unwrap_or(false);
-        let limit = input.limit.unwrap_or(1000);
+        let limit = input.limit.unwrap_or_else(crate::runtime::repo_default_list_limit);
         let offset = input.offset.unwrap_or(0);
 
         let entries = if let Some(dir) = input.dir.as_deref() {
@@ -600,9 +600,39 @@ impl OpenOntologiesServer {
     #[tool(name = "onto_import", description = "Resolve and load all owl:imports from the currently loaded ontology")]
     async fn onto_import(&self, Parameters(input): Parameters<OntoImportInput>) -> String {
         use crate::graph::GraphStore;
-        let max_depth = input.max_depth.unwrap_or(3);
+        let max_depth = input
+            .max_depth
+            .unwrap_or_else(crate::runtime::imports_max_depth);
+        let timeout_secs = crate::runtime::imports_request_timeout_secs();
+        let follow_remote = crate::runtime::imports_follow_remote();
         let mut imported = Vec::new();
         let mut to_import: Vec<String> = Vec::new();
+
+        // Build a per-call HTTP client honouring the configured timeout.
+        // Falls back to the bare `fetch_url` helper if construction fails.
+        let timed_client = if timeout_secs > 0 {
+            reqwest::Client::builder()
+                .timeout(std::time::Duration::from_secs(timeout_secs))
+                .build()
+                .ok()
+        } else {
+            None
+        };
+
+        let fetch = |url: String| {
+            let client = timed_client.clone();
+            async move {
+                if let Some(c) = client {
+                    let resp = c.get(&url).send().await?;
+                    if !resp.status().is_success() {
+                        anyhow::bail!("HTTP {}: {}", resp.status(), url);
+                    }
+                    Ok::<String, anyhow::Error>(resp.text().await?)
+                } else {
+                    GraphStore::fetch_url(&url).await
+                }
+            }
+        };
 
         let query = "SELECT ?import WHERE { ?onto <http://www.w3.org/2002/07/owl#imports> ?import }";
         if let Ok(result) = self.graph.sparql_select(query)
@@ -621,7 +651,15 @@ impl OpenOntologiesServer {
             let batch = std::mem::take(&mut to_import);
             for url in batch {
                 if imported.contains(&url) { continue; }
-                match GraphStore::fetch_url(&url).await {
+                // Honour the `[imports] follow_remote` policy: in
+                // air-gapped or sandboxed deployments, refuse to fetch
+                // http(s):// imports rather than attempting them.
+                let is_remote = url.starts_with("http://") || url.starts_with("https://");
+                if is_remote && !follow_remote {
+                    imported.push(format!("SKIPPED:{}: remote imports disabled by [imports] follow_remote=false", url));
+                    continue;
+                }
+                match fetch(url.clone()).await {
                     Ok(content) => {
                         match self.graph.load_turtle(&content, None) {
                             Ok(_count) => {

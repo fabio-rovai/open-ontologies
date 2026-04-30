@@ -22,15 +22,20 @@ data_dir = "~/.open-ontologies"
 # Compile-cache: parsed ontologies are written to N-Triples files for fast reload.
 # enabled = true
 # dir = "~/.open-ontologies/cache"
-# # Idle TTL in seconds before the active ontology is unloaded from memory.
+# # Idle timeout in seconds before the active ontology is unloaded from memory.
 # # Set to 0 to disable eviction. The on-disk cache file is always preserved
 # # across evictions; the next query reloads it transparently.
+# # `idle_ttl_secs` is the canonical name; `unload_timeout_secs` is an alias.
 # idle_ttl_secs = 0
+# # unload_timeout_secs = 0
 # # How often the background evictor runs (seconds).
 # evictor_interval_secs = 30
 # # When true, every read tool checks the source file's mtime/sha and
 # # recompiles if it changed.
 # auto_refresh = false
+# # Bytes from the head of each ontology file that are sha256-hashed for the
+# # cache fingerprint tie-breaker. Increase for very large dumps.
+# hash_prefix_bytes = 65536
 
 # [tools]
 # Restrict which MCP tools are exposed by this server.
@@ -70,6 +75,62 @@ data_dir = "~/.open-ontologies"
 # model = "text-embedding-3-small"  # any model your gateway serves
 # dimensions = 1536                 # optional — only sent when set
 # request_timeout_secs = 30
+
+# [webhook]
+# HTTP timeout (seconds) for governance / monitor webhook deliveries.
+# Override at runtime with OPEN_ONTOLOGIES_WEBHOOK_REQUEST_TIMEOUT_SECS.
+# request_timeout_secs = 10
+
+# [http]
+# Streamable HTTP transport (`open-ontologies serve-http`). CLI flags
+# (--host/--port/--token) and env vars (OPEN_ONTOLOGIES_HTTP_HOST,
+# OPEN_ONTOLOGIES_HTTP_PORT, OPEN_ONTOLOGIES_TOKEN) take precedence.
+# host = "127.0.0.1"
+# port = 8080
+# token = ""             # empty disables auth
+# stateful_mode = true   # rmcp StreamableHttpServer per-session state
+# request_timeout_secs = 0   # 0 = rmcp default
+# keep_alive_secs = 0        # 0 = rmcp default
+
+# [monitor]
+# Continuous watcher loop. CLI `--watch` / `--watch-interval` override.
+# enabled = false
+# interval_secs = 30
+
+# [reasoner]
+# Safety limits for the OWL-DL tableaux reasoner and RDFS / OWL-RL fixpoint.
+# tableaux_max_depth = 100
+# tableaux_max_nodes = 10000
+# max_iterations = 64
+
+# [feedback]
+# Lint / enforce self-calibration thresholds (number of dismissals before
+# downgrading then suppressing a (tool, rule_id, entity) triple).
+# suppress_threshold = 3
+# downgrade_threshold = 2
+
+# [imports]
+# `owl:imports` resolution policy used by `onto_import`.
+# max_depth = 3
+# request_timeout_secs = 30
+# follow_remote = true   # set false in air-gapped / sandboxed deployments
+
+# [repo]
+# Defaults for the `onto_repo_list` tool.
+# default_list_limit = 1000
+
+# [socket]
+# Defaults for the `serve-unix` subcommand. CLI `--socket` / `--file`
+# override these.
+# enabled = false
+# path = "/tmp/tardygrada-ontology-complete.sock"
+# preload_files = []
+
+# [logging]
+# Tracing subscriber configuration. RUST_LOG, when set, takes precedence.
+# level = "info"
+# format = "compact"     # "compact" | "pretty" | "json"
+# # file = "/var/log/open-ontologies.log"
 "#;
 
 #[derive(Parser)]
@@ -110,12 +171,15 @@ enum Commands {
         /// Optional governance webhook URL (fires on every lineage event)
         #[arg(long, env = "GOVERNANCE_WEBHOOK")]
         governance_webhook: Option<String>,
-        /// Enable continuous background monitoring (runs watchers on an interval)
+        /// Enable continuous background monitoring (runs watchers on an interval).
+        /// When omitted, falls back to `[monitor] enabled` from the config (default false).
         #[arg(long)]
         watch: bool,
-        /// Interval in seconds between monitor sweeps (default: 30)
-        #[arg(long, default_value = "30")]
-        watch_interval: u64,
+        /// Interval in seconds between monitor sweeps. When omitted, falls back to
+        /// `OPEN_ONTOLOGIES_MONITOR_INTERVAL_SECS` env var, then `[monitor] interval_secs`
+        /// from the config (default 30).
+        #[arg(long)]
+        watch_interval: Option<u64>,
         /// Comma-separated list of tools (or `@group`) to allow. Mutually exclusive with --tools-deny.
         #[arg(long)]
         tools_allow: Option<String>,
@@ -133,24 +197,29 @@ enum Commands {
     ServeHttp {
         #[arg(long, default_value = "~/.open-ontologies/config.toml")]
         config: String,
-        /// Host to bind to
-        #[arg(long, default_value = "127.0.0.1")]
-        host: String,
-        /// Port to bind to
-        #[arg(long, default_value = "8080")]
-        port: u16,
-        /// Optional bearer token for authentication
+        /// Host to bind to. CLI > `OPEN_ONTOLOGIES_HTTP_HOST` env > `[http] host`
+        /// in config > `127.0.0.1`.
+        #[arg(long)]
+        host: Option<String>,
+        /// Port to bind to. CLI > `OPEN_ONTOLOGIES_HTTP_PORT` env > `[http] port` >
+        /// `8080`.
+        #[arg(long)]
+        port: Option<u16>,
+        /// Optional bearer token for authentication. CLI > `OPEN_ONTOLOGIES_TOKEN`
+        /// env > `[http] token` in config.
         #[arg(long, env = "OPEN_ONTOLOGIES_TOKEN")]
         token: Option<String>,
         /// Optional governance webhook URL (fires on every lineage event)
         #[arg(long, env = "GOVERNANCE_WEBHOOK")]
         governance_webhook: Option<String>,
-        /// Enable continuous background monitoring (runs watchers on an interval)
+        /// Enable continuous background monitoring (runs watchers on an interval).
+        /// When omitted, falls back to `[monitor] enabled` from the config (default false).
         #[arg(long)]
         watch: bool,
-        /// Interval in seconds between monitor sweeps (default: 30)
-        #[arg(long, default_value = "30")]
-        watch_interval: u64,
+        /// Interval in seconds between monitor sweeps. When omitted, falls back to
+        /// `[monitor] interval_secs` from the config (default 30).
+        #[arg(long)]
+        watch_interval: Option<u64>,
         /// Comma-separated list of tools (or `@group`) to allow.
         #[arg(long)]
         tools_allow: Option<String>,
@@ -167,10 +236,14 @@ enum Commands {
 
     /// Start unix socket server for Tardygrada fact grounding
     ServeUnix {
-        /// Path to the unix socket
-        #[arg(long, default_value = "/tmp/tardygrada-ontology-complete.sock")]
-        socket: String,
-        /// Ontology files to load on startup
+        #[arg(long, default_value = "~/.open-ontologies/config.toml")]
+        config: String,
+        /// Path to the unix socket. CLI > `[socket] path` in config >
+        /// `/tmp/tardygrada-ontology-complete.sock`.
+        #[arg(long)]
+        socket: Option<String>,
+        /// Ontology files to load on startup. When omitted, falls back to
+        /// `[socket] preload_files` from the config.
         #[arg(long = "file", num_args = 1..)]
         files: Vec<String>,
     },
@@ -471,6 +544,70 @@ fn build_cache_config(
     cc
 }
 
+/// Initialise the tracing subscriber from `[logging]` config. `RUST_LOG`
+/// (when set) takes precedence over `level`. Idempotent: re-invocations are
+/// harmless because `try_init` returns `Err` after the first install.
+fn init_tracing(cfg: &open_ontologies::config::LoggingConfig) {
+    use tracing_subscriber::{fmt, EnvFilter};
+
+    let level = open_ontologies::config::resolve_logging_level(cfg);
+    let env_filter = EnvFilter::try_new(&level)
+        .unwrap_or_else(|_| EnvFilter::new("info"));
+
+    // Output target: file when configured, else stderr (tracing default).
+    let writer_file = cfg
+        .file
+        .as_deref()
+        .and_then(|p| {
+            let path = open_ontologies::config::expand_tilde(p);
+            if let Some(parent) = std::path::Path::new(&path).parent() {
+                let _ = std::fs::create_dir_all(parent);
+            }
+            std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(&path)
+                .ok()
+        });
+
+    let format = cfg.format.trim().to_lowercase();
+    // Build and install. Use `try_init` so calling this from multiple
+    // subcommand handlers (or repeated test setups) is safe.
+    let result = match (format.as_str(), writer_file) {
+        ("json", Some(f)) => fmt()
+            .with_env_filter(env_filter)
+            .json()
+            .with_writer(std::sync::Mutex::new(f))
+            .try_init(),
+        ("json", None) => fmt()
+            .with_env_filter(env_filter)
+            .json()
+            .with_writer(std::io::stderr)
+            .try_init(),
+        ("pretty", Some(f)) => fmt()
+            .with_env_filter(env_filter)
+            .pretty()
+            .with_writer(std::sync::Mutex::new(f))
+            .try_init(),
+        ("pretty", None) => fmt()
+            .with_env_filter(env_filter)
+            .pretty()
+            .with_writer(std::io::stderr)
+            .try_init(),
+        (_, Some(f)) => fmt()
+            .with_env_filter(env_filter)
+            .compact()
+            .with_writer(std::sync::Mutex::new(f))
+            .try_init(),
+        (_, None) => fmt()
+            .with_env_filter(env_filter)
+            .compact()
+            .with_writer(std::io::stderr)
+            .try_init(),
+    };
+    let _ = result;
+}
+
 /// Compose the effective tool filter from `[tools]` in config + CLI flags.
 /// CLI `--tools-allow` / `--tools-deny` override `[tools]` when present.
 fn build_tool_filter(
@@ -617,6 +754,12 @@ async fn main() -> anyhow::Result<()> {
                     }
                 }
             };
+            // Initialise tracing (RUST_LOG > [logging] level > default).
+            init_tracing(&cfg.logging);
+            // Initialise runtime knobs (tableaux limits, fixpoint cap, hash
+            // prefix, feedback thresholds, repo / imports / webhook).
+            open_ontologies::runtime::init_from_config(&cfg);
+
             let data_dir = expand_tilde(&cfg.general.data_dir);
             let db_path = std::path::Path::new(&data_dir).join("open-ontologies.db");
 
@@ -625,12 +768,19 @@ async fn main() -> anyhow::Result<()> {
 
             let graph = Arc::new(GraphStore::new());
 
-            let _watch_handle = if watch {
+            // Monitor: CLI `--watch` forces enabled; otherwise fall back to
+            // `[monitor] enabled`. CLI `--watch-interval` > env > `[monitor]
+            // interval_secs` > default 30.
+            let monitor_enabled = watch || cfg.monitor.enabled;
+            let monitor_interval = watch_interval
+                .unwrap_or_else(|| open_ontologies::config::resolve_monitor_interval_secs(&cfg.monitor));
+
+            let _watch_handle = if monitor_enabled {
                 let watch_db = StateDb::open(&db_path)?;
                 Some(open_ontologies::monitor::start_background_loop(
                     watch_db,
                     graph.clone(),
-                    std::time::Duration::from_secs(watch_interval),
+                    std::time::Duration::from_secs(monitor_interval),
                 ))
             } else {
                 None
@@ -676,6 +826,20 @@ async fn main() -> anyhow::Result<()> {
                     }
                 }
             };
+            init_tracing(&cfg.logging);
+            open_ontologies::runtime::init_from_config(&cfg);
+
+            // Resolve effective host / port / token / stateful_mode honouring
+            // CLI > env > config > default precedence.
+            let host = host.unwrap_or_else(|| open_ontologies::config::resolve_http_host(&cfg.http));
+            let port = port.unwrap_or_else(|| open_ontologies::config::resolve_http_port(&cfg.http));
+            // Clap reads `OPEN_ONTOLOGIES_TOKEN` into `token` automatically
+            // (because of `env = "OPEN_ONTOLOGIES_TOKEN"`), so a non-`None`
+            // value already encompasses CLI + env. Fall back to config when
+            // neither is set.
+            let token = token
+                .or_else(|| open_ontologies::config::resolve_http_token(&cfg.http));
+
             let data_dir = expand_tilde(&cfg.general.data_dir);
             let db_path_owned = std::path::Path::new(&data_dir).join("open-ontologies.db");
 
@@ -687,12 +851,16 @@ async fn main() -> anyhow::Result<()> {
             // Shared StateDb for lineage REST endpoint
             let shared_db = StateDb::open(&db_path_owned)?;
 
-            let _watch_handle = if watch {
+            let monitor_enabled = watch || cfg.monitor.enabled;
+            let monitor_interval = watch_interval
+                .unwrap_or_else(|| open_ontologies::config::resolve_monitor_interval_secs(&cfg.monitor));
+
+            let _watch_handle = if monitor_enabled {
                 let watch_db = StateDb::open(&db_path_owned)?;
                 Some(open_ontologies::monitor::start_background_loop(
                     watch_db,
                     shared_graph.clone(),
-                    std::time::Duration::from_secs(watch_interval),
+                    std::time::Duration::from_secs(monitor_interval),
                 ))
             } else {
                 None
@@ -700,7 +868,7 @@ async fn main() -> anyhow::Result<()> {
 
             let ct = CancellationToken::new();
             let http_config = StreamableHttpServerConfig {
-                stateful_mode: true,
+                stateful_mode: cfg.http.stateful_mode,
                 cancellation_token: ct.clone(),
                 ..Default::default()
             };
@@ -890,9 +1058,36 @@ async fn main() -> anyhow::Result<()> {
                 .await?;
         }
 
-        Commands::ServeUnix { socket, files } => {
+        Commands::ServeUnix { config: config_path, socket, files } => {
+            let config_path = expand_tilde(&config_path);
+            let cfg = match Config::load(std::path::Path::new(&config_path)) {
+                Ok(c) => c,
+                Err(e) => {
+                    let msg = e.to_string();
+                    if msg.contains("failed to read") {
+                        Config::default()
+                    } else {
+                        return Err(e);
+                    }
+                }
+            };
+            init_tracing(&cfg.logging);
+            open_ontologies::runtime::init_from_config(&cfg);
+
+            // CLI > [socket] path > legacy default
+            let socket_path = socket
+                .or_else(|| cfg.socket.path.clone())
+                .unwrap_or_else(|| "/tmp/tardygrada-ontology-complete.sock".to_string());
+
+            // CLI `--file` (when supplied) overrides `[socket] preload_files`.
+            let preload: Vec<String> = if !files.is_empty() {
+                files
+            } else {
+                cfg.socket.preload_files.clone()
+            };
+
             let graph = Arc::new(GraphStore::new());
-            for f in &files {
+            for f in &preload {
                 let path = open_ontologies::config::expand_tilde(f);
                 match graph.load_file(&path) {
                     Ok(n) => eprintln!("Loaded {path}: {n} triples"),
@@ -903,7 +1098,7 @@ async fn main() -> anyhow::Result<()> {
                 }
             }
             eprintln!("Graph has {} triples total", graph.triple_count());
-            open_ontologies::socket::serve(&socket, graph).await?;
+            open_ontologies::socket::serve(&socket_path, graph).await?;
         }
 
         // ─── Batch ──────────────────────────────────────────────────
