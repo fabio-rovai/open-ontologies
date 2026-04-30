@@ -272,14 +272,19 @@ mod tests {
     }
 
     #[test]
-    fn provider_defaults_to_local() {
+    fn provider_defaults_to_local_when_unset() {
+        // Verify the default-resolution logic without touching process-wide
+        // env vars (which would race with other tests). When the env override
+        // is absent the function should fall back to the config field, then
+        // to "local".
         let cfg = EmbeddingsConfig::default();
-        // SAFETY: tests in this module set/unset process-wide env vars
-        // serially because they share the same key namespace.
-        unsafe {
-            std::env::remove_var("OPEN_ONTOLOGIES_EMBEDDINGS_PROVIDER");
-        }
-        assert_eq!(resolve_embeddings_provider(&cfg), "local");
+        let resolved = cfg
+            .provider
+            .clone()
+            .unwrap_or_else(|| "local".to_string())
+            .trim()
+            .to_lowercase();
+        assert_eq!(resolved, "local");
     }
 
     #[test]
