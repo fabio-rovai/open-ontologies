@@ -638,6 +638,7 @@ The same tool, applied to any ontology, produces the same kind of improvement. T
 | Category | Tools | Purpose |
 | --- | --- | --- |
 | **Core** | `validate` `load` `save` `clear` `stats` `query` `diff` `lint` `convert` `status` | RDF/OWL validation, querying, and management |
+| **Repository** | `repo_list` `repo_load` | Browse and load ontologies from configured `[general] ontology_dirs` directories |
 | **Marketplace** | `marketplace` | Browse and install 32 standard W3C/ISO/industry ontologies |
 | **Remote** | `pull` `push` `import` | Fetch/push ontologies, resolve owl:imports |
 | **Schema** | `import-schema` | PostgreSQL → OWL conversion |

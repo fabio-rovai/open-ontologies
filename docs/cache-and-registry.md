@@ -104,6 +104,39 @@ via `tools/call`.
 | `onto_cache_status` | Active slot, all cache rows, and effective config. |
 | `onto_cache_list` | Lighter alternative to `onto_cache_status` — returns just the array of cached ontologies with metadata and `is_active`/`in_memory` flags. |
 | `onto_cache_remove` | Remove a cached ontology by name. If it is the active slot, the in-memory store is unloaded first. By default the on-disk N-Triples file is also deleted; pass `delete_file=false` to keep it. |
+| `onto_repo_list` | List RDF/OWL files in the configured `[general] ontology_dirs` directories. Returns `path`, `name`, `size`, `mtime`, `is_cached`, `is_active` for each entry. Optional `dir` (must be inside a configured repo), `recursive`, `glob`, `limit`, `offset`. |
+| `onto_repo_load` | Load an ontology from a configured repo by bare name (file stem), relative path, or absolute path inside a repo. Reuses the same compile-cache / TTL-eviction path as `onto_load`. |
+
+## Ontology repository directories
+
+In addition to single-file `onto_load`, the server can be pointed at one or
+more host directories that act as on-disk repositories of ontologies. This
+is the recommended pattern for containerized deployments: mount a host
+folder of `.ttl` files and the server enumerates them on demand.
+
+```toml
+[general]
+data_dir = "~/.open-ontologies"
+# Either name works; `data_dirs` is accepted as an alias.
+ontology_dirs = ["./ttl_data", "/srv/ontologies"]
+```
+
+The `OPEN_ONTOLOGIES_ONTOLOGY_DIRS` environment variable overrides the
+config (`:` separated on Unix, `;` on Windows; either accepted on both):
+
+```sh
+OPEN_ONTOLOGIES_ONTOLOGY_DIRS=/srv/ontologies:/data/extra open-ontologies serve
+```
+
+Use the new MCP tools to interact with the repo:
+
+- `onto_repo_list` returns the full catalogue with `is_cached` / `is_active`
+  flags so a client can show which entries are already compiled.
+- `onto_repo_load` resolves a bare stem (e.g. `pizza`), a relative path
+  (e.g. `domain/pizza.ttl`), or an absolute path that must lie inside one
+  of the configured repos. Paths outside the configured directories are
+  rejected (path-traversal guard).
+
 
 ### Managing multiple cached ontologies
 

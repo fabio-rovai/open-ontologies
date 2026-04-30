@@ -10,6 +10,14 @@ use open_ontologies::state::StateDb;
 const DEFAULT_CONFIG: &str = r#"[general]
 data_dir = "~/.open-ontologies"
 
+# Optional on-disk ontology repository directories. When set, the
+# `onto_repo_list` and `onto_repo_load` MCP tools enumerate and load
+# RDF/OWL files (.ttl, .nt, .rdf, .owl, .nq, .trig, .jsonld) from these
+# directories. Container-friendly: mount a host folder of TTL files.
+# Override at runtime with the `OPEN_ONTOLOGIES_ONTOLOGY_DIRS` env var
+# (':' separated on Unix, ';' on Windows; either accepted on both).
+# ontology_dirs = ["./ttl_data"]
+
 # [cache]
 # Compile-cache: parsed ontologies are written to N-Triples files for fast reload.
 # enabled = true
@@ -583,13 +591,20 @@ async fn main() -> anyhow::Result<()> {
 
             let cache_config = build_cache_config(&cfg, idle_ttl_secs, auto_refresh);
             let tool_filter = build_tool_filter(&cfg, tools_allow.as_deref(), tools_deny.as_deref())?;
-            let server = OpenOntologiesServer::new_with_registry_options(
+            let ontology_dirs = open_ontologies::config::resolve_ontology_dirs(&cfg.general.ontology_dirs);
+            for d in &ontology_dirs {
+                if !d.exists() {
+                    eprintln!("warning: ontology_dirs entry does not exist: {}", d.display());
+                }
+            }
+            let server = OpenOntologiesServer::new_with_repo_options(
                 db,
                 graph,
                 governance_webhook,
                 cfg.embeddings,
                 cache_config,
                 tool_filter,
+                ontology_dirs,
             );
             let _evictor = open_ontologies::registry::spawn_evictor(server.registry());
             let service = server.serve(rmcp::transport::stdio()).await?;
@@ -648,6 +663,12 @@ async fn main() -> anyhow::Result<()> {
             let embed_config = cfg.embeddings.clone();
             let cache_config = build_cache_config(&cfg, idle_ttl_secs, auto_refresh);
             let tool_filter = build_tool_filter(&cfg, tools_allow.as_deref(), tools_deny.as_deref())?;
+            let ontology_dirs = open_ontologies::config::resolve_ontology_dirs(&cfg.general.ontology_dirs);
+            for d in &ontology_dirs {
+                if !d.exists() {
+                    eprintln!("warning: ontology_dirs entry does not exist: {}", d.display());
+                }
+            }
             // Spawn a single evictor backed by a registry over the shared graph.
             // Each per-session server constructs its own registry (active slot
             // is per-session anyway), but the shared one drives memory cleanup.
@@ -662,18 +683,20 @@ async fn main() -> anyhow::Result<()> {
             }
             let cache_for_service = cache_config.clone();
             let filter_for_service = tool_filter.clone();
+            let dirs_for_service = ontology_dirs.clone();
             let service: StreamableHttpService<_, LocalSessionManager> =
                 StreamableHttpService::new(
                     move || {
                         let db = StateDb::open(&db_path_owned)
                             .map_err(std::io::Error::other)?;
-                        Ok(OpenOntologiesServer::new_with_registry_options(
+                        Ok(OpenOntologiesServer::new_with_repo_options(
                             db,
                             shared_graph_for_service.clone(),
                             gw_for_service.clone(),
                             embed_config.clone(),
                             cache_for_service.clone(),
                             filter_for_service.clone(),
+                            dirs_for_service.clone(),
                         ))
                     },
                     Default::default(),
