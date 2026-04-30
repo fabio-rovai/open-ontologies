@@ -45,7 +45,7 @@ ex:B4 a owl:Class ; rdfs:label "B4" .
 ex:B5 a owl:Class ; rdfs:label "B5" .
 "#;
 
-struct H {
+struct TestHarness {
     _tmp: tempfile::TempDir,
     pub path_a: PathBuf,
     pub path_b: PathBuf,
@@ -53,7 +53,7 @@ struct H {
     pub graph: Arc<GraphStore>,
 }
 
-fn setup() -> H {
+fn setup() -> TestHarness {
     let tmp = tempfile::tempdir().unwrap();
     let path_a = tmp.path().join("a.ttl");
     let path_b = tmp.path().join("b.ttl");
@@ -69,11 +69,11 @@ fn setup() -> H {
         auto_refresh: false,
     };
     let registry = Arc::new(OntologyRegistry::new(graph.clone(), db, cfg).unwrap());
-    H { _tmp: tmp, path_a, path_b, registry, graph }
+    TestHarness { _tmp: tmp, path_a, path_b, registry, graph }
 }
 
 /// Load A then B so B is active, A is cached but not active.
-fn populate_two(h: &H) {
+fn populate_two(h: &TestHarness) {
     h.registry
         .load_file(h.path_a.to_str().unwrap(), LoadOptions::default())
         .unwrap();

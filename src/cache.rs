@@ -55,7 +55,14 @@ impl SourceFingerprint {
 }
 
 /// A small, dependency-free SHA-256 implementation (FIPS 180-4).
-/// We avoid pulling in a new crate just for the cache key.
+///
+/// Why not use the `sha2` crate? The cache only uses this hash as a
+/// **non-security** content-fingerprint (combined with mtime+size) to detect
+/// when a parsed source file is stale. Mis-hashing causes a re-parse, never
+/// a security failure. We therefore prefer a self-contained ~80-line
+/// implementation over adding a new dependency tree just for the cache key.
+/// If this hash is ever reused for an authenticity-sensitive purpose,
+/// switch the call sites to `sha2` first.
 fn sha256_hex(input: &[u8]) -> String {
     let digest = sha256(input);
     let mut s = String::with_capacity(64);

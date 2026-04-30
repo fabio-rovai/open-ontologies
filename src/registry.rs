@@ -357,13 +357,13 @@ impl OntologyRegistry {
             ));
         }
         // Parse into an isolated graph so we don't disturb the active slot.
-        let scratch = GraphStore::new();
-        let count = scratch
+        let isolated_graph = GraphStore::new();
+        let count = isolated_graph
             .load_file(&entry.source_path)
             .with_context(|| format!("parse source {}", entry.source_path))?;
         let fp = SourceFingerprint::from_path(path)?;
         let cache_path = self.cache.cache_path_for(name, &fp.sha_prefix);
-        let nt = scratch.serialize("ntriples")?;
+        let nt = isolated_graph.serialize("ntriples")?;
         CacheManager::atomic_write(&cache_path, &nt)?;
         // If the sha-prefix changed, the new cache_path differs from the old
         // one. Remove the old file to avoid leaking stale .nt files.
