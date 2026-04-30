@@ -10,6 +10,28 @@ use open_ontologies::state::StateDb;
 const DEFAULT_CONFIG: &str = r#"[general]
 data_dir = "~/.open-ontologies"
 
+# [cache]
+# Compile-cache: parsed ontologies are written to N-Triples files for fast reload.
+# enabled = true
+# dir = "~/.open-ontologies/cache"
+# # Idle TTL in seconds before the active ontology is unloaded from memory.
+# # Set to 0 to disable eviction. The on-disk cache file is always preserved
+# # across evictions; the next query reloads it transparently.
+# idle_ttl_secs = 0
+# # How often the background evictor runs (seconds).
+# evictor_interval_secs = 30
+# # When true, every read tool checks the source file's mtime/sha and
+# # recompiles if it changed.
+# auto_refresh = false
+
+# [tools]
+# Restrict which MCP tools are exposed by this server.
+# mode = "all" | "allow" | "deny"
+# list = ["onto_status", "onto_query", "onto_load"]
+# # Groups: read_only, mutating, governance, remote, embeddings.
+# groups = ["read_only"]
+# mode = "all"
+
 # [embeddings]
 # Paths to a local ONNX model and tokenizer (loaded at runtime)
 # model_path = "~/.open-ontologies/models/bge-small-en-v1.5.onnx"
@@ -67,6 +89,18 @@ enum Commands {
         /// Interval in seconds between monitor sweeps (default: 30)
         #[arg(long, default_value = "30")]
         watch_interval: u64,
+        /// Comma-separated list of tools (or `@group`) to allow. Mutually exclusive with --tools-deny.
+        #[arg(long)]
+        tools_allow: Option<String>,
+        /// Comma-separated list of tools (or `@group`) to deny.
+        #[arg(long)]
+        tools_deny: Option<String>,
+        /// Idle TTL in seconds before the active ontology is unloaded from memory. 0 disables eviction.
+        #[arg(long)]
+        idle_ttl_secs: Option<u64>,
+        /// When set, every read tool checks the source file for changes and recompiles.
+        #[arg(long)]
+        auto_refresh: bool,
     },
     /// Start the MCP server (Streamable HTTP transport)
     ServeHttp {
@@ -90,6 +124,18 @@ enum Commands {
         /// Interval in seconds between monitor sweeps (default: 30)
         #[arg(long, default_value = "30")]
         watch_interval: u64,
+        /// Comma-separated list of tools (or `@group`) to allow.
+        #[arg(long)]
+        tools_allow: Option<String>,
+        /// Comma-separated list of tools (or `@group`) to deny.
+        #[arg(long)]
+        tools_deny: Option<String>,
+        /// Idle TTL in seconds before the active ontology is unloaded from memory.
+        #[arg(long)]
+        idle_ttl_secs: Option<u64>,
+        /// When set, every read tool checks the source file for changes and recompiles.
+        #[arg(long)]
+        auto_refresh: bool,
     },
 
     /// Start unix socket server for Tardygrada fact grounding
@@ -382,6 +428,55 @@ fn output_result(result: &str, pretty: bool) {
     }
 }
 
+/// Compose the effective cache configuration from `[cache]` in config + CLI overrides.
+fn build_cache_config(
+    cfg: &Config,
+    idle_ttl_secs: Option<u64>,
+    auto_refresh: bool,
+) -> open_ontologies::config::CacheConfig {
+    let mut cc = cfg.cache.clone();
+    if let Some(ttl) = idle_ttl_secs {
+        cc.idle_ttl_secs = ttl;
+    }
+    if auto_refresh {
+        cc.auto_refresh = true;
+    }
+    cc
+}
+
+/// Compose the effective tool filter from `[tools]` in config + CLI flags.
+/// CLI `--tools-allow` / `--tools-deny` override `[tools]` when present.
+fn build_tool_filter(
+    cfg: &Config,
+    cli_allow: Option<&str>,
+    cli_deny: Option<&str>,
+) -> anyhow::Result<open_ontologies::toolfilter::ToolFilter> {
+    use open_ontologies::toolfilter::{Mode, ToolFilter, parse_csv};
+
+    if cli_allow.is_some() && cli_deny.is_some() {
+        anyhow::bail!("--tools-allow and --tools-deny are mutually exclusive");
+    }
+    if let Some(spec) = cli_allow {
+        let (list, groups) = parse_csv(spec);
+        return Ok(ToolFilter { mode: Mode::Allow, list, groups });
+    }
+    if let Some(spec) = cli_deny {
+        let (list, groups) = parse_csv(spec);
+        return Ok(ToolFilter { mode: Mode::Deny, list, groups });
+    }
+    // Fall back to config file.
+    let mode = if cfg.tools.mode.is_empty() {
+        Mode::All
+    } else {
+        Mode::parse(&cfg.tools.mode).map_err(|e| anyhow::anyhow!(e))?
+    };
+    Ok(ToolFilter {
+        mode,
+        list: cfg.tools.list.clone(),
+        groups: cfg.tools.groups.clone(),
+    })
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
@@ -454,7 +549,7 @@ async fn main() -> anyhow::Result<()> {
 
             println!("\nOpen Ontologies initialized successfully!");
         }
-        Commands::Serve { config: config_path, governance_webhook, watch, watch_interval } => {
+        Commands::Serve { config: config_path, governance_webhook, watch, watch_interval, tools_allow, tools_deny, idle_ttl_secs, auto_refresh } => {
             let config_path = expand_tilde(&config_path);
             let cfg = match Config::load(std::path::Path::new(&config_path)) {
                 Ok(c) => c,
@@ -486,11 +581,21 @@ async fn main() -> anyhow::Result<()> {
                 None
             };
 
-            let server = OpenOntologiesServer::new_with_full_options(db, graph, governance_webhook, cfg.embeddings);
+            let cache_config = build_cache_config(&cfg, idle_ttl_secs, auto_refresh);
+            let tool_filter = build_tool_filter(&cfg, tools_allow.as_deref(), tools_deny.as_deref())?;
+            let server = OpenOntologiesServer::new_with_registry_options(
+                db,
+                graph,
+                governance_webhook,
+                cfg.embeddings,
+                cache_config,
+                tool_filter,
+            );
+            let _evictor = open_ontologies::registry::spawn_evictor(server.registry());
             let service = server.serve(rmcp::transport::stdio()).await?;
             service.waiting().await?;
         }
-        Commands::ServeHttp { config: config_path, host, port, token, governance_webhook, watch, watch_interval } => {
+        Commands::ServeHttp { config: config_path, host, port, token, governance_webhook, watch, watch_interval, tools_allow, tools_deny, idle_ttl_secs, auto_refresh } => {
             use rmcp::transport::streamable_http_server::{
                 StreamableHttpServerConfig, StreamableHttpService,
                 session::local::LocalSessionManager,
@@ -541,12 +646,35 @@ async fn main() -> anyhow::Result<()> {
             let shared_graph_for_service = shared_graph.clone();
             let gw_for_service = governance_webhook.clone();
             let embed_config = cfg.embeddings.clone();
+            let cache_config = build_cache_config(&cfg, idle_ttl_secs, auto_refresh);
+            let tool_filter = build_tool_filter(&cfg, tools_allow.as_deref(), tools_deny.as_deref())?;
+            // Spawn a single evictor backed by a registry over the shared graph.
+            // Each per-session server constructs its own registry (active slot
+            // is per-session anyway), but the shared one drives memory cleanup.
+            {
+                let evictor_db = StateDb::open(&db_path_owned)?;
+                let shared_registry = Arc::new(open_ontologies::registry::OntologyRegistry::new(
+                    shared_graph.clone(),
+                    evictor_db,
+                    cache_config.clone(),
+                )?);
+                let _evictor = open_ontologies::registry::spawn_evictor(shared_registry);
+            }
+            let cache_for_service = cache_config.clone();
+            let filter_for_service = tool_filter.clone();
             let service: StreamableHttpService<_, LocalSessionManager> =
                 StreamableHttpService::new(
                     move || {
                         let db = StateDb::open(&db_path_owned)
                             .map_err(std::io::Error::other)?;
-                        Ok(OpenOntologiesServer::new_with_full_options(db, shared_graph_for_service.clone(), gw_for_service.clone(), embed_config.clone()))
+                        Ok(OpenOntologiesServer::new_with_registry_options(
+                            db,
+                            shared_graph_for_service.clone(),
+                            gw_for_service.clone(),
+                            embed_config.clone(),
+                            cache_for_service.clone(),
+                            filter_for_service.clone(),
+                        ))
                     },
                     Default::default(),
                     http_config,

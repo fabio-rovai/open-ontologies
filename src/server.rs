@@ -27,6 +27,8 @@ pub struct OpenOntologiesServer {
     graph: Arc<GraphStore>,
     session_id: String,
     governance_webhook: Option<String>,
+    /// Registry tracking the active ontology + compile cache + TTL eviction.
+    registry: Arc<crate::registry::OntologyRegistry>,
     #[cfg(feature = "embeddings")]
     vecstore: Arc<std::sync::Mutex<crate::vecstore::VecStore>>,
     #[cfg(feature = "embeddings")]
@@ -57,8 +59,54 @@ impl OpenOntologiesServer {
         governance_webhook: Option<String>,
         _embed_config: crate::config::EmbeddingsConfig,
     ) -> Self {
+        Self::new_with_registry_options(
+            db,
+            graph,
+            governance_webhook,
+            _embed_config,
+            crate::config::CacheConfig::default(),
+            crate::toolfilter::ToolFilter::default(),
+        )
+    }
+
+    /// Full constructor, including cache configuration and tool filter.
+    pub fn new_with_registry_options(
+        db: StateDb,
+        graph: Arc<GraphStore>,
+        governance_webhook: Option<String>,
+        _embed_config: crate::config::EmbeddingsConfig,
+        cache_config: crate::config::CacheConfig,
+        tool_filter: crate::toolfilter::ToolFilter,
+    ) -> Self {
         let lineage = crate::lineage::LineageLog::with_governance_webhook(db.clone(), governance_webhook.clone());
         let session_id = lineage.new_session();
+
+        // Build the registry. If construction fails (e.g. cache dir cannot be
+        // created) fall back to a disabled registry so the server still starts.
+        let registry = match crate::registry::OntologyRegistry::new(
+            graph.clone(),
+            db.clone(),
+            cache_config.clone(),
+        ) {
+            Ok(r) => Arc::new(r),
+            Err(e) => {
+                tracing::warn!("ontology registry init failed: {}; cache disabled", e);
+                let mut disabled = cache_config.clone();
+                disabled.enabled = false;
+                disabled.dir = std::env::temp_dir().to_string_lossy().to_string();
+                Arc::new(
+                    crate::registry::OntologyRegistry::new(graph.clone(), db.clone(), disabled)
+                        .expect("temp_dir registry"),
+                )
+            }
+        };
+
+        // Apply tool filter by removing routes from the router.
+        let mut tool_router = Self::tool_router();
+        let removed = tool_filter.apply(&mut tool_router);
+        if !removed.is_empty() {
+            tracing::info!("tool filter removed {} tools: {:?}", removed.len(), removed);
+        }
 
         #[cfg(feature = "embeddings")]
         let (vecstore, text_embedder) = {
@@ -91,12 +139,13 @@ impl OpenOntologiesServer {
         };
 
         Self {
-            tool_router: Self::tool_router(),
+            tool_router,
             prompt_router: Self::prompt_router(),
             db,
             graph,
             session_id,
             governance_webhook,
+            registry,
             #[cfg(feature = "embeddings")]
             vecstore,
             #[cfg(feature = "embeddings")]
@@ -107,6 +156,11 @@ impl OpenOntologiesServer {
     /// Return the list of all registered tool definitions.
     pub fn list_tool_definitions(&self) -> Vec<Tool> {
         self.tool_router.list_all()
+    }
+
+    /// Access the ontology registry (for tests and the HTTP server eviction loop).
+    pub fn registry(&self) -> Arc<crate::registry::OntologyRegistry> {
+        self.registry.clone()
     }
 
     fn lineage(&self) -> crate::lineage::LineageLog {
@@ -173,31 +227,50 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_load", description = "Load an RDF file or inline Turtle content into the in-memory ontology store for querying")]
+    #[tool(name = "onto_load", description = "Load an RDF file or inline Turtle content into the in-memory ontology store. When given a file path, the parsed graph is also written to a fast N-Triples compile cache (in `[cache] dir`) so subsequent loads from the same source skip parsing. Optional `name`, `auto_refresh`, and `force_recompile` flags control caching/refresh behavior.")]
     async fn onto_load(&self, Parameters(input): Parameters<OntoLoadInput>) -> String {
         if let Some(turtle) = input.turtle {
+            // Inline turtle bypasses the registry/cache (no source file).
             match self.graph.load_turtle(&turtle, None) {
                 Ok(count) => format!(r#"{{"ok":true,"triples_loaded":{},"source":"inline"}}"#, count),
                 Err(e) => format!(r#"{{"error":"{}"}}"#, e),
             }
         } else if let Some(path) = input.path {
             let path = expand_tilde(&path);
-            match self.graph.load_file(&path) {
-                Ok(count) => format!(r#"{{"ok":true,"triples_loaded":{},"path":"{}"}}"#, count, path),
-                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+            let opts = crate::registry::LoadOptions {
+                name: input.name,
+                auto_refresh: input.auto_refresh.unwrap_or(false),
+                force_recompile: input.force_recompile.unwrap_or(false),
+            };
+            match self.registry.load_file(&path, opts) {
+                Ok(res) => serde_json::json!({
+                    "ok": true,
+                    "triples_loaded": res.triple_count,
+                    "path": res.source_path,
+                    "name": res.name,
+                    "origin": res.origin,
+                    "cache_path": res.cache_path,
+                }).to_string(),
+                Err(e) => format!(r#"{{"error":"{}"}}"#, e.to_string().replace('"', "'")),
             }
         } else {
             r#"{"error":"Either 'path' or 'turtle' must be provided"}"#.to_string()
         }
     }
 
-    #[tool(name = "onto_query", description = "Run a SPARQL query against the loaded ontology store")]
+    #[tool(name = "onto_query", description = "Run a SPARQL query against the loaded ontology store. If the active ontology has been evicted from memory (idle TTL), it is transparently reloaded from the compile cache before the query runs.")]
     async fn onto_query(&self, Parameters(input): Parameters<OntoQueryInput>) -> String {
+        if let Err(e) = self.registry.ensure_loaded() {
+            return format!(r#"{{"error":"ensure_loaded: {}"}}"#, e.to_string().replace('"', "'"));
+        }
         self.graph.sparql_select(&input.query).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
     }
 
     #[tool(name = "onto_save", description = "Save the current ontology store to a file")]
     async fn onto_save(&self, Parameters(input): Parameters<OntoSaveInput>) -> String {
+        if let Err(e) = self.registry.ensure_loaded() {
+            return format!(r#"{{"error":"ensure_loaded: {}"}}"#, e.to_string().replace('"', "'"));
+        }
         let format = input.format.as_deref().unwrap_or("turtle");
         let path = expand_tilde(&input.path);
         match self.graph.save_file(&path, format) {
@@ -208,6 +281,9 @@ impl OpenOntologiesServer {
 
     #[tool(name = "onto_stats", description = "Get statistics about the loaded ontology (triple count, classes, properties, individuals)")]
     fn onto_stats(&self) -> String {
+        if let Err(e) = self.registry.ensure_loaded() {
+            return format!(r#"{{"error":"ensure_loaded: {}"}}"#, e.to_string().replace('"', "'"));
+        }
         self.graph.get_stats().unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
     }
 
@@ -239,12 +315,43 @@ impl OpenOntologiesServer {
         OntologyService::lint_with_feedback(&content, Some(&self.db)).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
     }
 
-    #[tool(name = "onto_clear", description = "Clear all triples from the in-memory ontology store")]
+    #[tool(name = "onto_clear", description = "Clear all triples from the in-memory ontology store and unload the active registry slot (cache file is preserved)")]
     fn onto_clear(&self) -> String {
+        // Drop the active registry entry; this also clears the graph.
+        let _ = self.registry.unload(false);
         match self.graph.clear() {
             Ok(_) => r#"{"ok":true,"message":"Store cleared"}"#.to_string(),
             Err(e) => format!(r#"{{"error":"{}"}}"#, e),
         }
+    }
+
+    #[tool(name = "onto_unload", description = "Unload the active ontology from memory. The on-disk compile cache is preserved by default; pass delete_cache=true to also remove it.")]
+    fn onto_unload(&self, Parameters(input): Parameters<OntoUnloadInput>) -> String {
+        let del = input.delete_cache.unwrap_or(false);
+        match self.registry.unload(del) {
+            Ok(Some(name)) => serde_json::json!({"ok": true, "unloaded": name, "deleted_cache": del}).to_string(),
+            Ok(None) => r#"{"ok":true,"unloaded":null,"message":"no active ontology"}"#.to_string(),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_recompile", description = "Force-recompile the active ontology from its source file, ignoring the on-disk cache. Useful after manual edits when auto_refresh was not enabled.")]
+    fn onto_recompile(&self, Parameters(_input): Parameters<OntoRecompileInput>) -> String {
+        match self.registry.recompile() {
+            Ok(res) => serde_json::json!({
+                "ok": true,
+                "name": res.name,
+                "triples_loaded": res.triple_count,
+                "origin": res.origin,
+                "cache_path": res.cache_path,
+            }).to_string(),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e.to_string().replace('"', "'")),
+        }
+    }
+
+    #[tool(name = "onto_cache_status", description = "Inspect the compile cache: active ontology, all cached entries, and the cache configuration (TTL, auto_refresh, dir).")]
+    fn onto_cache_status(&self, Parameters(_input): Parameters<OntoCacheStatusInput>) -> String {
+        self.registry.status().to_string()
     }
 
     #[tool(name = "onto_pull", description = "Fetch an ontology from a remote URL or SPARQL endpoint and load it into the store")]

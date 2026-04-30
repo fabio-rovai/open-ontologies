@@ -27,7 +27,30 @@ pub struct OntoLoadInput {
     pub path: Option<String>,
     /// Inline Turtle content to load (alternative to path)
     pub turtle: Option<String>,
+    /// Optional name for this ontology in the registry. Defaults to the file
+    /// stem of `path`. When omitted for inline turtle, defaults to "default".
+    pub name: Option<String>,
+    /// When true, every subsequent read tool checks the source file's mtime
+    /// and recompiles if it changed. Has no effect for inline turtle.
+    pub auto_refresh: Option<bool>,
+    /// When true, ignore the on-disk compile cache and re-parse from source.
+    pub force_recompile: Option<bool>,
 }
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoUnloadInput {
+    /// When true, also delete the on-disk compile cache file.
+    pub delete_cache: Option<bool>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoRecompileInput {
+    /// Reserved for future multi-ontology support.
+    pub name: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoCacheStatusInput {}
 
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoQueryInput {

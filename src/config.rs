@@ -8,6 +8,8 @@ use std::path::Path;
 pub struct Config {
     pub general: GeneralConfig,
     pub embeddings: EmbeddingsConfig,
+    pub cache: CacheConfig,
+    pub tools: ToolsConfig,
 }
 
 
@@ -48,6 +50,50 @@ pub struct EmbeddingsConfig {
     pub tokenizer_url: Option<String>,
     /// Filename for the downloaded model. Default: bge-small-en-v1.5.onnx
     pub model_name: Option<String>,
+}
+
+/// Configuration for the on-disk N-Triples compile cache and TTL eviction.
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct CacheConfig {
+    /// Master switch for the compile cache. When false, every load re-parses
+    /// from source and no metadata is recorded.
+    pub enabled: bool,
+    /// Directory where N-Triples cache files are stored.
+    pub dir: String,
+    /// If > 0, the active ontology will be unloaded from memory after this
+    /// many seconds without access. The cache file is preserved and reloaded
+    /// automatically on the next query.
+    pub idle_ttl_secs: u64,
+    /// How often the background evictor checks idle entries (seconds).
+    pub evictor_interval_secs: u64,
+    /// When true, every read tool checks the source file's mtime/sha and
+    /// recompiles if it changed. Off by default for predictability.
+    pub auto_refresh: bool,
+}
+
+impl Default for CacheConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            dir: "~/.open-ontologies/cache".into(),
+            idle_ttl_secs: 0,
+            evictor_interval_secs: 30,
+            auto_refresh: false,
+        }
+    }
+}
+
+/// Configuration for limiting which MCP tools are exposed.
+#[derive(Debug, Deserialize, Clone, Default)]
+#[serde(default)]
+pub struct ToolsConfig {
+    /// "all" (default), "allow", or "deny".
+    pub mode: String,
+    /// Explicit tool names included by the filter.
+    pub list: Vec<String>,
+    /// Group names (e.g. "read_only") expanded into tool names.
+    pub groups: Vec<String>,
 }
 
 /// Expand a leading `~` in a path to the user's home directory.

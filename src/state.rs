@@ -104,6 +104,20 @@ CREATE TABLE IF NOT EXISTS embeddings (
     struct_dim INTEGER NOT NULL,
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- Compile cache for loaded ontology files. One row per ontology `name`.
+-- See src/cache.rs for the validity policy.
+CREATE TABLE IF NOT EXISTS ontology_cache (
+    name TEXT PRIMARY KEY,
+    source_path TEXT NOT NULL,
+    source_mtime INTEGER NOT NULL,
+    source_size INTEGER NOT NULL,
+    source_sha TEXT NOT NULL,
+    cache_path TEXT NOT NULL,
+    triple_count INTEGER NOT NULL,
+    compiled_at TEXT NOT NULL DEFAULT (datetime('now')),
+    last_access_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 ";
 
 /// Minimal SQLite state store for ontology versioning.
