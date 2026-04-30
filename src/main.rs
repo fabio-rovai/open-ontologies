@@ -41,7 +41,12 @@ data_dir = "~/.open-ontologies"
 # mode = "all"
 
 # [embeddings]
-# Paths to a local ONNX model and tokenizer (loaded at runtime)
+# Provider selects how text embeddings are computed. Override at runtime
+# with OPEN_ONTOLOGIES_EMBEDDINGS_PROVIDER.
+# provider = "local"   # or "openai" for any OpenAI-compatible API
+#
+# ── Local provider (provider = "local", default) ────────────────────────
+# Paths to a local ONNX model and tokenizer (loaded at runtime).
 # model_path = "~/.open-ontologies/models/bge-small-en-v1.5.onnx"
 # tokenizer_path = "~/.open-ontologies/models/tokenizer.json"
 #
@@ -51,6 +56,20 @@ data_dir = "~/.open-ontologies"
 # model_url = "https://huggingface.co/BAAI/bge-small-en-v1.5/resolve/main/onnx/model.onnx"
 # tokenizer_url = "https://huggingface.co/BAAI/bge-small-en-v1.5/resolve/main/tokenizer.json"
 # model_name = "bge-small-en-v1.5.onnx"
+#
+# ── OpenAI-compatible provider (provider = "openai") ────────────────────
+# Works with the official OpenAI API, Azure OpenAI, Ollama, vLLM, LocalAI,
+# LM Studio, Together, Mistral, and any other gateway that speaks the
+# `POST {api_base}/embeddings` protocol. Each field can be overridden via
+# environment variables:
+#   OPEN_ONTOLOGIES_EMBEDDINGS_API_BASE
+#   OPEN_ONTOLOGIES_EMBEDDINGS_API_KEY  (or OPENAI_API_KEY)
+#   OPEN_ONTOLOGIES_EMBEDDINGS_MODEL
+# api_base = "https://api.openai.com/v1"
+# api_key = "sk-..."                # optional — env vars take precedence
+# model = "text-embedding-3-small"  # any model your gateway serves
+# dimensions = 1536                 # optional — only sent when set
+# request_timeout_secs = 30
 "#;
 
 #[derive(Parser)]
@@ -512,46 +531,74 @@ async fn main() -> anyhow::Result<()> {
             #[cfg(feature = "embeddings")]
             {
                 let models_dir = data_path.join("models");
-                std::fs::create_dir_all(&models_dir)?;
 
                 // CLI flags > config.toml > defaults
                 let cfg = open_ontologies::config::Config::load(&config_path)
                     .map(|c| c.embeddings)
                     .unwrap_or_default();
 
-                let onnx_url = _model_url.as_deref()
-                    .or(cfg.model_url.as_deref())
-                    .unwrap_or(open_ontologies::embed::BGE_SMALL_ONNX_URL);
-                let tok_url = _tokenizer_url.as_deref()
-                    .or(cfg.tokenizer_url.as_deref())
-                    .unwrap_or(open_ontologies::embed::BGE_SMALL_TOKENIZER_URL);
-                let onnx_filename = _model_name.as_deref()
-                    .or(cfg.model_name.as_deref())
-                    .unwrap_or("bge-small-en-v1.5.onnx");
-
-                let model_path = models_dir.join(onnx_filename);
-                let tokenizer_path = models_dir.join("tokenizer.json");
-
-                if !model_path.exists() {
-                    println!("Downloading embedding model from {}...", onnx_url);
-                    open_ontologies::embed::download_model_file(
-                        onnx_url,
-                        &model_path,
-                    ).await?;
-                    println!("  Model saved: {}", model_path.display());
+                let provider = open_ontologies::config::resolve_embeddings_provider(&cfg);
+                if provider == "openai"
+                    || provider == "openai-compatible"
+                    || provider == "remote"
+                    || provider == "http"
+                {
+                    println!(
+                        "Embeddings provider: {} — skipping local ONNX model download.",
+                        provider
+                    );
+                    println!(
+                        "  Model: {}",
+                        open_ontologies::config::resolve_embeddings_model(&cfg)
+                    );
+                    println!(
+                        "  API base: {}",
+                        open_ontologies::config::resolve_embeddings_api_base(&cfg)
+                    );
+                    if open_ontologies::config::resolve_embeddings_api_key(&cfg).is_none() {
+                        println!(
+                            "  Note: no API key configured (set OPENAI_API_KEY, \
+                             OPEN_ONTOLOGIES_EMBEDDINGS_API_KEY, or [embeddings].api_key \
+                             in config.toml if your gateway requires auth)."
+                        );
+                    }
                 } else {
-                    println!("Embedding model already exists: {}", model_path.display());
-                }
+                    std::fs::create_dir_all(&models_dir)?;
 
-                if !tokenizer_path.exists() {
-                    println!("Downloading tokenizer from {}...", tok_url);
-                    open_ontologies::embed::download_model_file(
-                        tok_url,
-                        &tokenizer_path,
-                    ).await?;
-                    println!("  Tokenizer saved: {}", tokenizer_path.display());
-                } else {
-                    println!("Tokenizer already exists: {}", tokenizer_path.display());
+                    let onnx_url = _model_url.as_deref()
+                        .or(cfg.model_url.as_deref())
+                        .unwrap_or(open_ontologies::embed::BGE_SMALL_ONNX_URL);
+                    let tok_url = _tokenizer_url.as_deref()
+                        .or(cfg.tokenizer_url.as_deref())
+                        .unwrap_or(open_ontologies::embed::BGE_SMALL_TOKENIZER_URL);
+                    let onnx_filename = _model_name.as_deref()
+                        .or(cfg.model_name.as_deref())
+                        .unwrap_or("bge-small-en-v1.5.onnx");
+
+                    let model_path = models_dir.join(onnx_filename);
+                    let tokenizer_path = models_dir.join("tokenizer.json");
+
+                    if !model_path.exists() {
+                        println!("Downloading embedding model from {}...", onnx_url);
+                        open_ontologies::embed::download_model_file(
+                            onnx_url,
+                            &model_path,
+                        ).await?;
+                        println!("  Model saved: {}", model_path.display());
+                    } else {
+                        println!("Embedding model already exists: {}", model_path.display());
+                    }
+
+                    if !tokenizer_path.exists() {
+                        println!("Downloading tokenizer from {}...", tok_url);
+                        open_ontologies::embed::download_model_file(
+                            tok_url,
+                            &tokenizer_path,
+                        ).await?;
+                        println!("  Tokenizer saved: {}", tokenizer_path.display());
+                    } else {
+                        println!("Tokenizer already exists: {}", tokenizer_path.display());
+                    }
                 }
             }
 

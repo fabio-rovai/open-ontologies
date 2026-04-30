@@ -36,7 +36,7 @@ pub struct OpenOntologiesServer {
     #[cfg(feature = "embeddings")]
     vecstore: Arc<std::sync::Mutex<crate::vecstore::VecStore>>,
     #[cfg(feature = "embeddings")]
-    text_embedder: Option<Arc<crate::embed::TextEmbedder>>,
+    text_embedder: Option<Arc<crate::embed::TextEmbedderProvider>>,
 }
 
 impl OpenOntologiesServer {
@@ -142,29 +142,26 @@ impl OpenOntologiesServer {
             let mut vs = crate::vecstore::VecStore::new(db.clone());
             let _ = vs.load_from_db();
 
-            // Resolve model paths: config overrides > default locations
-            let default_model_dir = dirs::home_dir()
-                .map(|h| h.join(".open-ontologies/models"));
-
-            let model_path = _embed_config.model_path
-                .map(|p| std::path::PathBuf::from(crate::config::expand_tilde(&p)))
-                .or_else(|| default_model_dir.as_ref().map(|d| d.join("bge-small-en-v1.5.onnx")));
-
-            let tokenizer_path = _embed_config.tokenizer_path
-                .map(|p| std::path::PathBuf::from(crate::config::expand_tilde(&p)))
-                .or_else(|| default_model_dir.as_ref().map(|d| d.join("tokenizer.json")));
-
-            let embedder = model_path.zip(tokenizer_path).and_then(|(m, t)| {
-                if m.exists() && t.exists() {
-                    crate::embed::TextEmbedder::load(&m, &t).ok()
-                } else {
+            let embedder = match crate::embed::TextEmbedderProvider::from_config(&_embed_config) {
+                Ok(Some(e)) => {
+                    tracing::info!(
+                        "embeddings enabled (provider = {})",
+                        e.provider_name()
+                    );
+                    Some(Arc::new(e))
+                }
+                Ok(None) => {
+                    tracing::info!(
+                        "embeddings configured but no provider available (model files missing or provider disabled)"
+                    );
                     None
                 }
-            });
-            (
-                Arc::new(std::sync::Mutex::new(vs)),
-                embedder.map(Arc::new),
-            )
+                Err(e) => {
+                    tracing::warn!("failed to initialise embedding provider: {}", e);
+                    None
+                }
+            };
+            (Arc::new(std::sync::Mutex::new(vs)), embedder)
         };
 
         Self {
@@ -1301,16 +1298,18 @@ impl OpenOntologiesServer {
             Err(e) => return format!(r#"{{"error":"structural training failed: {}"}}"#, e),
         };
 
-        let mut vecstore = self.vecstore.lock().unwrap();
         let mut embedded_count = 0;
         let mut errors: Vec<String> = Vec::new();
 
         for (iri, label) in &class_labels {
-            match embedder.embed(label) {
+            // Compute the text embedding (may await an HTTP call) BEFORE
+            // locking the non-Send VecStore mutex.
+            match embedder.embed(label).await {
                 Ok(text_vec) => {
                     let struct_vec = struct_embeddings.get(iri)
                         .cloned()
                         .unwrap_or_else(|| vec![0.0; struct_dim]);
+                    let mut vecstore = self.vecstore.lock().unwrap();
                     vecstore.upsert(iri, &text_vec, &struct_vec);
                     embedded_count += 1;
                 }
@@ -1318,8 +1317,11 @@ impl OpenOntologiesServer {
             }
         }
 
-        if let Err(e) = vecstore.persist() {
-            return format!(r#"{{"error":"failed to persist embeddings: {}"}}"#, e);
+        {
+            let vecstore = self.vecstore.lock().unwrap();
+            if let Err(e) = vecstore.persist() {
+                return format!(r#"{{"error":"failed to persist embeddings: {}"}}"#, e);
+            }
         }
 
         serde_json::json!({
@@ -1348,7 +1350,7 @@ impl OpenOntologiesServer {
             None => return r#"{"error":"Embedding model not loaded."}"#.to_string(),
         };
 
-        let query_vec = match embedder.embed(&input.query) {
+        let query_vec = match embedder.embed(&input.query).await {
             Ok(v) => v,
             Err(e) => return format!(r#"{{"error":"{}"}}"#, e),
         };
