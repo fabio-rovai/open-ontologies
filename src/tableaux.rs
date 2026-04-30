@@ -72,8 +72,8 @@ const OWL_MIN_QCARD: &str = "<http://www.w3.org/2002/07/owl#minQualifiedCardinal
 const OWL_MAX_QCARD: &str = "<http://www.w3.org/2002/07/owl#maxQualifiedCardinality>";
 const OWL_ON_CLASS: &str = "<http://www.w3.org/2002/07/owl#onClass>";
 
-const MAX_DEPTH: usize = 100;
-const MAX_NODES: usize = 10_000;
+// Tableaux safety limits live in `crate::runtime` (initialised from
+// `[reasoner] tableaux_max_depth` / `tableaux_max_nodes` in config.toml).
 
 // ── Concept (Negation Normal Form) ──────────────────────────────────────
 
@@ -1013,7 +1013,9 @@ impl Tableau {
 
     /// Main expansion with backtracking for disjunctions and MaxCard merging.
     fn expand(&mut self, depth: usize) -> bool {
-        if depth > MAX_DEPTH || self.nodes.len() > MAX_NODES {
+        let max_depth = crate::runtime::tableaux_max_depth();
+        let max_nodes = crate::runtime::tableaux_max_nodes();
+        if depth > max_depth || self.nodes.len() > max_nodes {
             return false;
         }
 

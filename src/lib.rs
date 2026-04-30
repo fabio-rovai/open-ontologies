@@ -20,6 +20,7 @@ pub mod ontology;
 pub mod reason;
 pub mod registry;
 pub mod repo;
+pub mod runtime;
 pub mod server;
 pub mod shacl;
 pub mod state;

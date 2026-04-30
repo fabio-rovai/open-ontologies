@@ -425,7 +425,7 @@ impl Reasoner {
                 triple_set.insert(t);
             }
 
-            if triple_set.len() == before || iterations >= 50 {
+            if triple_set.len() == before || iterations >= crate::runtime::reasoner_max_iterations() {
                 break;
             }
         }
