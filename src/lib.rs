@@ -1,4 +1,5 @@
 pub mod batch;
+pub mod cache;
 pub mod error;
 pub mod align;
 pub mod config;
@@ -17,12 +18,14 @@ pub mod mapping;
 pub mod marketplace;
 pub mod ontology;
 pub mod reason;
+pub mod registry;
 pub mod server;
 pub mod shacl;
 pub mod state;
 pub mod schema;
 pub mod socket;
 pub mod tableaux;
+pub mod toolfilter;
 #[cfg(feature = "embeddings")]
 pub mod poincare;
 #[cfg(feature = "embeddings")]
