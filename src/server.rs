@@ -325,9 +325,25 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_unload", description = "Unload the active ontology from memory. The on-disk compile cache is preserved by default; pass delete_cache=true to also remove it.")]
+    #[tool(name = "onto_unload", description = "Unload an ontology from memory. With no `name`, operates on the active ontology. With `name`, targets that cached entry — clears in-memory store if it is currently active. The on-disk compile cache is preserved unless `delete_cache=true`.")]
     fn onto_unload(&self, Parameters(input): Parameters<OntoUnloadInput>) -> String {
         let del = input.delete_cache.unwrap_or(false);
+        if let Some(name) = input.name.as_deref() {
+            return match self.registry.unload_named(name, del) {
+                Ok(true) => serde_json::json!({
+                    "ok": true,
+                    "unloaded": name,
+                    "deleted_cache": del,
+                }).to_string(),
+                Ok(false) => serde_json::json!({
+                    "ok": true,
+                    "unloaded": null,
+                    "name": name,
+                    "message": "entry exists in cache but was not in memory; pass delete_cache=true to remove it",
+                }).to_string(),
+                Err(e) => format!(r#"{{"error":"{}"}}"#, e.to_string().replace('"', "'")),
+            };
+        }
         match self.registry.unload(del) {
             Ok(Some(name)) => serde_json::json!({"ok": true, "unloaded": name, "deleted_cache": del}).to_string(),
             Ok(None) => r#"{"ok":true,"unloaded":null,"message":"no active ontology"}"#.to_string(),
@@ -335,9 +351,13 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_recompile", description = "Force-recompile the active ontology from its source file, ignoring the on-disk cache. Useful after manual edits when auto_refresh was not enabled.")]
-    fn onto_recompile(&self, Parameters(_input): Parameters<OntoRecompileInput>) -> String {
-        match self.registry.recompile() {
+    #[tool(name = "onto_recompile", description = "Force-recompile an ontology from its source file, ignoring the on-disk cache. With no `name`, recompiles the active ontology (and reloads it into memory). With `name`, recompiles that cached entry; if it is not the active slot, the in-memory store is left untouched.")]
+    fn onto_recompile(&self, Parameters(input): Parameters<OntoRecompileInput>) -> String {
+        let res = match input.name.as_deref() {
+            Some(name) => self.registry.recompile_named(name),
+            None => self.registry.recompile(),
+        };
+        match res {
             Ok(res) => serde_json::json!({
                 "ok": true,
                 "name": res.name,
@@ -352,6 +372,37 @@ impl OpenOntologiesServer {
     #[tool(name = "onto_cache_status", description = "Inspect the compile cache: active ontology, all cached entries, and the cache configuration (TTL, auto_refresh, dir).")]
     fn onto_cache_status(&self, Parameters(_input): Parameters<OntoCacheStatusInput>) -> String {
         self.registry.status().to_string()
+    }
+
+    #[tool(name = "onto_cache_list", description = "List all cached ontologies with metadata (name, source_path, triple_count, source_mtime, source_size, cache_path, compiled_at, last_access_at) and runtime flags (is_active, in_memory). Lighter than onto_cache_status when you only need the list.")]
+    fn onto_cache_list(&self, Parameters(_input): Parameters<OntoCacheListInput>) -> String {
+        match self.registry.list_cached() {
+            Ok(entries) => serde_json::json!({
+                "ok": true,
+                "count": entries.len(),
+                "entries": entries,
+            }).to_string(),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e.to_string().replace('"', "'")),
+        }
+    }
+
+    #[tool(name = "onto_cache_remove", description = "Remove a cached ontology by name. If it is the active slot, the in-memory store is unloaded first. By default the on-disk N-Triples cache file is also deleted; pass delete_file=false to keep it on disk.")]
+    fn onto_cache_remove(&self, Parameters(input): Parameters<OntoCacheRemoveInput>) -> String {
+        let delete_file = input.delete_file.unwrap_or(true);
+        match self.registry.unload_named(&input.name, delete_file) {
+            Ok(true) => serde_json::json!({
+                "ok": true,
+                "removed": input.name,
+                "deleted_file": delete_file,
+            }).to_string(),
+            Ok(false) => serde_json::json!({
+                "ok": true,
+                "removed": null,
+                "name": input.name,
+                "message": "entry was found but delete_file=false and it was not active, so nothing changed",
+            }).to_string(),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e.to_string().replace('"', "'")),
+        }
     }
 
     #[tool(name = "onto_pull", description = "Fetch an ontology from a remote URL or SPARQL endpoint and load it into the store")]

@@ -284,6 +284,34 @@ impl OntologyRegistry {
         Ok(Some(entry.name))
     }
 
+    /// Unload a specific named ontology.
+    /// - If `name` matches the active slot, behaves like `unload(delete_cache)`.
+    /// - If `name` is in the cache but not active, only the on-disk cache is
+    ///   touched (since it was never in memory). With `delete_cache=true` the
+    ///   cache file and DB row are removed; otherwise this is a no-op.
+    /// Returns `Ok(true)` if anything was actually changed.
+    pub fn unload_named(&self, name: &str, delete_cache: bool) -> Result<bool> {
+        let active_name = self.active.lock().unwrap().as_ref().map(|e| e.name.clone());
+        if active_name.as_deref() == Some(name) {
+            return Ok(self.unload(delete_cache)?.is_some());
+        }
+        // Not active. The graph isn't holding it, so there's nothing to clear
+        // in memory. Touch the cache only if requested.
+        if delete_cache {
+            if self.cache.get(name)?.is_none() {
+                return Err(anyhow!("no cached ontology named '{}'", name));
+            }
+            self.cache.remove(name)?;
+            return Ok(true);
+        }
+        // Verify the entry exists at least, so callers get a clear error
+        // when they pass a typo.
+        if self.cache.get(name)?.is_none() {
+            return Err(anyhow!("no cached ontology named '{}'", name));
+        }
+        Ok(false)
+    }
+
     /// Force recompile the active ontology from source (used by `onto_recompile`).
     pub fn recompile(&self) -> Result<LoadResult> {
         let (path, name, auto_refresh) = {
@@ -301,6 +329,89 @@ impl OntologyRegistry {
                 force_recompile: true,
             },
         )
+    }
+
+    /// Recompile a specific named ontology from its recorded source path.
+    ///
+    /// - If `name` is the active slot, this re-parses and replaces both the
+    ///   in-memory store and the on-disk cache (same effect as `recompile()`).
+    /// - If `name` is a non-active cache entry, the source is parsed into a
+    ///   *temporary* `GraphStore`, the new N-Triples cache file is written
+    ///   atomically, the metadata row is updated, and the active slot is
+    ///   left completely untouched. This makes it safe to refresh background
+    ///   ontologies without disturbing whatever is currently being queried.
+    pub fn recompile_named(&self, name: &str) -> Result<LoadResult> {
+        let active_name = self.active.lock().unwrap().as_ref().map(|e| e.name.clone());
+        if active_name.as_deref() == Some(name) {
+            return self.recompile();
+        }
+        let entry = self
+            .cache
+            .get(name)?
+            .ok_or_else(|| anyhow!("no cached ontology named '{}'", name))?;
+        let path = Path::new(&entry.source_path);
+        if !path.exists() {
+            return Err(anyhow!(
+                "source file '{}' for cached ontology '{}' is missing",
+                entry.source_path, name
+            ));
+        }
+        // Parse into an isolated graph so we don't disturb the active slot.
+        let scratch = GraphStore::new();
+        let count = scratch
+            .load_file(&entry.source_path)
+            .with_context(|| format!("parse source {}", entry.source_path))?;
+        let fp = SourceFingerprint::from_path(path)?;
+        let cache_path = self.cache.cache_path_for(name, &fp.sha_prefix);
+        let nt = scratch.serialize("ntriples")?;
+        CacheManager::atomic_write(&cache_path, &nt)?;
+        // If the sha-prefix changed, the new cache_path differs from the old
+        // one. Remove the old file to avoid leaking stale .nt files.
+        if entry.cache_path != cache_path.to_string_lossy() {
+            let _ = std::fs::remove_file(&entry.cache_path);
+        }
+        self.cache.upsert(name, &entry.source_path, &fp, &cache_path, count)?;
+        Ok(LoadResult {
+            name: name.to_string(),
+            source_path: entry.source_path,
+            triple_count: count,
+            origin: "source",
+            cache_path: cache_path.to_string_lossy().into_owned(),
+        })
+    }
+
+    /// Return all cached ontologies, with extra runtime flags
+    /// (`is_active`, `in_memory`) so callers can present a single rich list.
+    pub fn list_cached(&self) -> Result<Vec<serde_json::Value>> {
+        let active_guard = self.active.lock().unwrap();
+        let active_name = active_guard.as_ref().map(|e| e.name.clone());
+        let evicted = active_guard
+            .as_ref()
+            .map(|e| *e.evicted.lock().unwrap())
+            .unwrap_or(false);
+        drop(active_guard);
+
+        let entries = self.cache.list()?;
+        let out = entries
+            .into_iter()
+            .map(|e| {
+                let is_active = active_name.as_deref() == Some(e.name.as_str());
+                let in_memory = is_active && !evicted;
+                serde_json::json!({
+                    "name": e.name,
+                    "source_path": e.source_path,
+                    "cache_path": e.cache_path,
+                    "triple_count": e.triple_count,
+                    "source_mtime": e.source_mtime,
+                    "source_size": e.source_size,
+                    "compiled_at": e.compiled_at,
+                    "last_access_at": e.last_access_at,
+                    "is_active": is_active,
+                    "in_memory": in_memory,
+                })
+            })
+            .collect();
+        Ok(out)
     }
 
     /// Status snapshot for `onto_cache_status`.

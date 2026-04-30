@@ -99,6 +99,22 @@ via `tools/call`.
 
 | Tool | Description |
 | ---- | ----------- |
-| `onto_unload` | Drop the active ontology from memory (cache file kept by default). |
-| `onto_recompile` | Re-parse the active ontology's source file, ignoring the cache. |
-| `onto_cache_status` | Inspect the registry: active entry, all cache rows, and config. |
+| `onto_unload` | Unload from memory. With `name`: targets that named entry (clears in-memory store if it is the active slot). Without `name`: operates on the active ontology. `delete_cache=true` also removes the on-disk file. |
+| `onto_recompile` | Re-parse the source. With `name`: rebuilds that cached entry — if it is not the active slot, the in-memory store is left untouched (safe background refresh). Without `name`: recompiles the active ontology and reloads it. |
+| `onto_cache_status` | Active slot, all cache rows, and effective config. |
+| `onto_cache_list` | Lighter alternative to `onto_cache_status` — returns just the array of cached ontologies with metadata and `is_active`/`in_memory` flags. |
+| `onto_cache_remove` | Remove a cached ontology by name. If it is the active slot, the in-memory store is unloaded first. By default the on-disk N-Triples file is also deleted; pass `delete_file=false` to keep it. |
+
+### Managing multiple cached ontologies
+
+Although the registry holds a single *active* slot at a time, the on-disk
+compile cache is keyed by `name` and supports many entries. The combination
+of `onto_load`, `onto_cache_list`, `onto_cache_remove`, and per-name
+`onto_recompile`/`onto_unload` lets operators:
+
+- maintain a set of pre-compiled N-Triples caches for many ontologies,
+- swap which one is currently active by calling `onto_load` with the
+  matching path (cache will be reused since the source is unchanged),
+- refresh background ontologies' caches *without* disturbing the active
+  in-memory ontology by calling `onto_recompile { name: "other" }`,
+- clean up obsolete entries with `onto_cache_remove`.

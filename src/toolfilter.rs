@@ -140,6 +140,7 @@ pub fn expand_group(name: &str) -> &'static [&'static str] {
             "onto_history",
             "onto_lineage",
             "onto_cache_status",
+            "onto_cache_list",
             "onto_dl_check",
             "onto_dl_explain",
             "onto_search",
@@ -163,6 +164,7 @@ pub fn expand_group(name: &str) -> &'static [&'static str] {
             "onto_extend",
             "onto_unload",
             "onto_recompile",
+            "onto_cache_remove",
         ],
         // Tools that change governance / lifecycle state.
         "governance" => &[
