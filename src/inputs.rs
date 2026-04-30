@@ -58,6 +58,42 @@ pub struct OntoRecompileInput {
 }
 
 #[derive(Deserialize, JsonSchema)]
+pub struct OntoRepoListInput {
+    /// Optional subdirectory to scan instead of every configured ontology
+    /// repo. Must resolve under one of the configured `ontology_dirs`
+    /// entries; arbitrary host paths are rejected (path-traversal guard).
+    pub dir: Option<String>,
+    /// Walk subdirectories recursively. Defaults to false (top-level only).
+    pub recursive: Option<bool>,
+    /// Optional filename glob filter (e.g. `*.ttl`, `foo*`). Matches the
+    /// filename only, not the full path.
+    pub glob: Option<String>,
+    /// Maximum number of entries to return. Default 1000.
+    pub limit: Option<usize>,
+    /// Skip the first `offset` entries (for pagination). Default 0.
+    pub offset: Option<usize>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoRepoLoadInput {
+    /// Identifier of the ontology to load. Accepts:
+    ///   - a bare name (e.g. `pizza`) matching a file stem under any
+    ///     configured `ontology_dirs`,
+    ///   - a relative path (e.g. `subdir/pizza.ttl`) resolved against the
+    ///     configured directories,
+    ///   - an absolute path inside one of the configured directories.
+    /// Paths outside the configured `ontology_dirs` are rejected.
+    pub name: String,
+    /// Optional registry name override (defaults to the file stem).
+    pub registry_name: Option<String>,
+    /// When true, every subsequent read tool checks the source file's mtime
+    /// and recompiles if it changed.
+    pub auto_refresh: Option<bool>,
+    /// When true, ignore the on-disk compile cache and re-parse from source.
+    pub force_recompile: Option<bool>,
+}
+
+#[derive(Deserialize, JsonSchema)]
 pub struct OntoCacheStatusInput {}
 
 #[derive(Deserialize, JsonSchema)]
