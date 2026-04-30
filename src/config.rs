@@ -368,8 +368,10 @@ pub struct ImportsConfig {
     /// `onto_import` tool's `max_depth` parameter (when supplied) overrides
     /// this. Default 3.
     pub max_depth: usize,
-    /// HTTP timeout in seconds for fetching each remote import.
-    /// Override with `OPEN_ONTOLOGIES_IMPORTS_REQUEST_TIMEOUT_SECS`.
+    /// HTTP timeout in seconds for fetching each remote import. Set to `0`
+    /// to disable the explicit per-call timeout and use reqwest's default
+    /// (which itself has no timeout). Override with
+    /// `OPEN_ONTOLOGIES_IMPORTS_REQUEST_TIMEOUT_SECS`.
     pub request_timeout_secs: u64,
     /// When false, remote (`http(s)://`) imports are refused — useful in
     /// air-gapped or sandboxed deployments. Default `true`.
