@@ -19,6 +19,7 @@ pub mod marketplace;
 pub mod ontology;
 pub mod reason;
 pub mod registry;
+pub mod repo;
 pub mod server;
 pub mod shacl;
 pub mod state;

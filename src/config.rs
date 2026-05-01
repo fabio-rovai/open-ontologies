@@ -27,14 +27,60 @@ impl Config {
 #[serde(default)]
 pub struct GeneralConfig {
     pub data_dir: String,
+    /// Directories that act as on-disk ontology repositories. The
+    /// `onto_repo_list` and `onto_repo_load` MCP tools enumerate and load
+    /// RDF files (.ttl, .nt, .rdf, .owl, .nq, .trig, .jsonld) from these
+    /// directories. Useful for containerized deployments where a host
+    /// directory of TTL files is mounted into the server.
+    ///
+    /// Accepts either a TOML array under the canonical name `ontology_dirs`
+    /// or, for compatibility with the original design proposal, the alias
+    /// `data_dirs`. Each entry has `~` expanded to the user's home.
+    #[serde(alias = "data_dirs")]
+    pub ontology_dirs: Vec<String>,
 }
 
 impl Default for GeneralConfig {
     fn default() -> Self {
         Self {
             data_dir: "~/.open-ontologies".into(),
+            ontology_dirs: Vec::new(),
         }
     }
+}
+
+/// Resolve the configured ontology repository directories.
+///
+/// Behavior:
+///  - If the env var `OPEN_ONTOLOGIES_ONTOLOGY_DIRS` is set and non-empty,
+///    its value (split on `:` on Unix, `;` on Windows, accepting either on
+///    both for convenience) overrides the config entries.
+///  - Each entry has `~` expanded.
+///  - Empty strings are dropped.
+///  - Duplicates (after canonicalization fallback to the expanded string)
+///    are removed while preserving order.
+pub fn resolve_ontology_dirs(cfg: &[String]) -> Vec<std::path::PathBuf> {
+    let from_env = std::env::var("OPEN_ONTOLOGIES_ONTOLOGY_DIRS").ok();
+    let raw: Vec<String> = match from_env {
+        Some(v) if !v.trim().is_empty() => v
+            .split(|c| c == ':' || c == ';')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect(),
+        _ => cfg.iter().map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect(),
+    };
+    let mut seen = std::collections::HashSet::new();
+    let mut out = Vec::with_capacity(raw.len());
+    for entry in raw {
+        let expanded = expand_tilde(&entry);
+        let key = std::fs::canonicalize(&expanded)
+            .map(|p| p.to_string_lossy().into_owned())
+            .unwrap_or_else(|_| expanded.clone());
+        if seen.insert(key) {
+            out.push(std::path::PathBuf::from(expanded));
+        }
+    }
+    out
 }
 
 #[derive(Debug, Default, Deserialize, Clone)]

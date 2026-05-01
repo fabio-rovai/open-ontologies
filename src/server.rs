@@ -29,6 +29,10 @@ pub struct OpenOntologiesServer {
     governance_webhook: Option<String>,
     /// Registry tracking the active ontology + compile cache + TTL eviction.
     registry: Arc<crate::registry::OntologyRegistry>,
+    /// Configured ontology repository directories, expanded and deduplicated.
+    /// Empty when none are configured. Used by `onto_repo_list` /
+    /// `onto_repo_load`.
+    ontology_dirs: Arc<Vec<std::path::PathBuf>>,
     #[cfg(feature = "embeddings")]
     vecstore: Arc<std::sync::Mutex<crate::vecstore::VecStore>>,
     #[cfg(feature = "embeddings")]
@@ -77,6 +81,31 @@ impl OpenOntologiesServer {
         _embed_config: crate::config::EmbeddingsConfig,
         cache_config: crate::config::CacheConfig,
         tool_filter: crate::toolfilter::ToolFilter,
+    ) -> Self {
+        Self::new_with_repo_options(
+            db,
+            graph,
+            governance_webhook,
+            _embed_config,
+            cache_config,
+            tool_filter,
+            Vec::new(),
+        )
+    }
+
+    /// Full constructor with on-disk ontology repo directories.
+    ///
+    /// `ontology_dirs` lists host directories that the `onto_repo_list` and
+    /// `onto_repo_load` tools enumerate. They are stored verbatim (already
+    /// resolved by the caller through `crate::config::resolve_ontology_dirs`).
+    pub fn new_with_repo_options(
+        db: StateDb,
+        graph: Arc<GraphStore>,
+        governance_webhook: Option<String>,
+        _embed_config: crate::config::EmbeddingsConfig,
+        cache_config: crate::config::CacheConfig,
+        tool_filter: crate::toolfilter::ToolFilter,
+        ontology_dirs: Vec<std::path::PathBuf>,
     ) -> Self {
         let lineage = crate::lineage::LineageLog::with_governance_webhook(db.clone(), governance_webhook.clone());
         let session_id = lineage.new_session();
@@ -146,6 +175,7 @@ impl OpenOntologiesServer {
             session_id,
             governance_webhook,
             registry,
+            ontology_dirs: Arc::new(ontology_dirs),
             #[cfg(feature = "embeddings")]
             vecstore,
             #[cfg(feature = "embeddings")]
@@ -255,6 +285,130 @@ impl OpenOntologiesServer {
             }
         } else {
             r#"{"error":"Either 'path' or 'turtle' must be provided"}"#.to_string()
+        }
+    }
+
+    #[tool(name = "onto_repo_list", description = "List RDF/OWL files in the configured ontology repository directories ([general] ontology_dirs). Returns metadata for each candidate file (path, name, size, mtime, is_cached, is_active). Use this in containerized/server deployments to discover ontologies without knowing their paths in advance. Optional `dir` (must be under a configured repo dir), `recursive`, `glob`, `limit`, `offset` filters.")]
+    fn onto_repo_list(&self, Parameters(input): Parameters<OntoRepoListInput>) -> String {
+        let repos = self.ontology_dirs.as_ref();
+        if repos.is_empty() {
+            return r#"{"error":"no ontology_dirs configured; set [general] ontology_dirs in config.toml or OPEN_ONTOLOGIES_ONTOLOGY_DIRS"}"#.to_string();
+        }
+        let recursive = input.recursive.unwrap_or(false);
+        let limit = input.limit.unwrap_or(1000);
+        let offset = input.offset.unwrap_or(0);
+
+        let entries = if let Some(dir) = input.dir.as_deref() {
+            match crate::repo::resolve_within_repos(dir, repos) {
+                Ok((start, repo_root)) => crate::repo::list_one(&repo_root, &start, recursive),
+                Err(e) => {
+                    return format!(
+                        r#"{{"error":"{}"}}"#,
+                        e.to_string().replace('"', "'")
+                    );
+                }
+            }
+        } else {
+            crate::repo::list_all(repos, recursive)
+        };
+
+        let filtered: Vec<&crate::repo::RepoEntry> = entries
+            .iter()
+            .filter(|e| {
+                if let Some(g) = input.glob.as_deref() {
+                    let name = e
+                        .path
+                        .file_name()
+                        .and_then(|s| s.to_str())
+                        .unwrap_or("");
+                    crate::repo::glob_match(g, name)
+                } else {
+                    true
+                }
+            })
+            .collect();
+        let total = filtered.len();
+
+        // Snapshot cached names + currently active name for is_cached / is_active.
+        let cached_names: std::collections::HashSet<String> = self
+            .registry
+            .cache()
+            .list()
+            .unwrap_or_default()
+            .into_iter()
+            .map(|e| e.name)
+            .collect();
+        let active_name = self
+            .registry
+            .status()
+            .get("active")
+            .and_then(|a| a.get("name"))
+            .and_then(|n| n.as_str())
+            .map(|s| s.to_string());
+
+        let items: Vec<serde_json::Value> = filtered
+            .into_iter()
+            .skip(offset)
+            .take(limit)
+            .map(|e| {
+                serde_json::json!({
+                    "path": e.path.to_string_lossy(),
+                    "relative": e.relative.to_string_lossy(),
+                    "repo_dir": e.repo_dir.to_string_lossy(),
+                    "name": e.name,
+                    "size": e.size,
+                    "mtime": e.mtime_secs,
+                    "is_cached": cached_names.contains(&e.name),
+                    "is_active": active_name.as_deref() == Some(e.name.as_str()),
+                })
+            })
+            .collect();
+
+        let repo_dirs: Vec<String> = repos
+            .iter()
+            .map(|p| p.to_string_lossy().into_owned())
+            .collect();
+
+        serde_json::json!({
+            "ok": true,
+            "ontology_dirs": repo_dirs,
+            "total": total,
+            "offset": offset,
+            "limit": limit,
+            "count": items.len(),
+            "items": items,
+        })
+        .to_string()
+    }
+
+    #[tool(name = "onto_repo_load", description = "Load an ontology from one of the configured repository directories ([general] ontology_dirs) into the active store. The `name` argument can be a bare file stem, a relative path, or an absolute path inside a configured repo. Reuses the same compile-cache / TTL-eviction path as `onto_load`.")]
+    async fn onto_repo_load(&self, Parameters(input): Parameters<OntoRepoLoadInput>) -> String {
+        let repos = self.ontology_dirs.as_ref();
+        let path = match crate::repo::resolve_load_target(&input.name, repos) {
+            Ok(p) => p,
+            Err(e) => {
+                return format!(
+                    r#"{{"error":"{}"}}"#,
+                    e.to_string().replace('"', "'")
+                );
+            }
+        };
+        let opts = crate::registry::LoadOptions {
+            name: input.registry_name,
+            auto_refresh: input.auto_refresh.unwrap_or(false),
+            force_recompile: input.force_recompile.unwrap_or(false),
+        };
+        match self.registry.load_file(&path.to_string_lossy(), opts) {
+            Ok(res) => serde_json::json!({
+                "ok": true,
+                "triples_loaded": res.triple_count,
+                "path": res.source_path,
+                "name": res.name,
+                "origin": res.origin,
+                "cache_path": res.cache_path,
+            })
+            .to_string(),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e.to_string().replace('"', "'")),
         }
     }
 
