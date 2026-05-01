@@ -2,10 +2,11 @@
 name: open-ontologies
 version: "0.5.1"
 description: >
-  AI-native ontology engineering using 39+ MCP tools backed by an in-memory Oxigraph triple store.
+  AI-native ontology engineering using 50+ MCP tools backed by an in-memory Oxigraph triple store.
   Build, validate, query, and govern RDF/OWL ontologies with a generate-validate-iterate loop.
   Use when building ontologies, knowledge graphs, RDF data, SPARQL queries, BORO/4D modeling,
-  SHACL validation, clinical terminology mapping, or Terraform-style ontology lifecycle management.
+  SHACL validation, clinical terminology mapping, ingesting from CSV/JSON/Parquet/XLSX or
+  SQL backbones (PostgreSQL, DuckDB), or Terraform-style ontology lifecycle management.
 tags:
   - ontology
   - rdf
@@ -184,6 +185,15 @@ For aligning two ontologies:
 | `onto_cache_remove` | Remove a cached ontology by `name` (pass `delete_file=false` to keep the on-disk N-Triples) |
 | `onto_repo_list` | List RDF/OWL files in configured `[general] ontology_dirs` directories |
 | `onto_repo_load` | Load an ontology from a configured repo by bare name, relative path, or absolute path |
+| `onto_status` | Server health / loaded triple count |
+| `onto_marketplace` | Browse / install standard ontologies from the curated catalogue |
+| `onto_dl_check` | Check `subClass ⊑ superClass` via DL tableaux |
+| `onto_dl_explain` | Explain why a class is unsatisfiable (DL clash trace) |
+| `onto_embed` | Generate text + Poincaré structural embeddings for all classes |
+| `onto_search` | Natural-language query → most-similar classes |
+| `onto_similarity` | Cosine + Poincaré distance between two IRIs |
+| `onto_import_schema` | Introspect PostgreSQL or DuckDB schema → generate OWL classes/properties/cardinality |
+| `onto_sql_ingest` | Run SQL `SELECT` against PostgreSQL or DuckDB → RDF (DuckDB enables federation over CSV/Parquet/JSON/HTTPFS/postgres-scanner via its extensions) |
 
 ## Usage Examples
 
