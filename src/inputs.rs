@@ -318,9 +318,31 @@ pub struct OntoLineageInput {
 
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoImportSchemaInput {
-    /// Database connection string (e.g. postgres://user:pass@host/db)
+    /// Database connection string. Supported:
+    ///   - `postgres://user:pass@host/db` (requires `postgres` feature)
+    ///   - `duckdb:///path/to/file.duckdb` or bare `/path/to/file.duckdb` (requires `duckdb` feature)
+    ///   - `:memory:` for an in-memory DuckDB database (requires `duckdb` feature)
     pub connection: String,
     /// Base IRI for generated classes (default: http://example.org/db/)
+    pub base_iri: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoSqlIngestInput {
+    /// Database connection string. Same forms as `onto_import_schema`:
+    /// `postgres://…`, `duckdb:///path/to.duckdb`, `:memory:`, or a bare
+    /// `*.duckdb` file path.
+    pub connection: String,
+    /// SQL SELECT statement to run. Returned rows are converted to RDF using
+    /// the supplied mapping (or an auto-generated one).
+    pub sql: String,
+    /// Mapping config as JSON string or path to a mapping JSON file.
+    /// Same shape as `onto_ingest`. Optional — if omitted, an auto-mapping
+    /// is generated from the column names.
+    pub mapping: Option<String>,
+    /// If true, treat `mapping` as inline JSON (default: false = file path).
+    pub inline_mapping: Option<bool>,
+    /// Base IRI for generated instances (default: http://example.org/data/)
     pub base_iri: Option<String>,
 }
 

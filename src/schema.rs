@@ -22,14 +22,30 @@ pub struct SchemaIntrospector;
 
 impl SchemaIntrospector {
     /// Convert SQL type name to XSD datatype.
+    ///
+    /// Recognises common Postgres and DuckDB type names. Parameterised types
+    /// like `DECIMAL(18,2)` or `VARCHAR(255)` are normalised by stripping the
+    /// `(...)` suffix before matching.
     pub fn sql_to_xsd(sql_type: &str) -> &'static str {
-        match sql_type.to_lowercase().as_str() {
-            "integer" | "int" | "bigint" | "smallint" | "int4" | "int8" | "int2" | "serial" | "bigserial" => "xsd:integer",
-            "numeric" | "decimal" | "real" | "double precision" | "float4" | "float8" => "xsd:decimal",
+        let lower = sql_type.to_lowercase();
+        // Strip parameters: "decimal(18,2)" → "decimal", "varchar(255)" → "varchar".
+        let base = match lower.find('(') {
+            Some(idx) => lower[..idx].trim().to_string(),
+            None => lower.trim().to_string(),
+        };
+        match base.as_str() {
+            "integer" | "int" | "bigint" | "smallint" | "tinyint" | "hugeint"
+            | "int4" | "int8" | "int2" | "int1" | "serial" | "bigserial"
+            | "smallserial" | "ubigint" | "uinteger" | "usmallint" | "utinyint" => "xsd:integer",
+            "numeric" | "decimal" | "real" | "double precision" | "double"
+            | "float" | "float4" | "float8" => "xsd:decimal",
             "boolean" | "bool" => "xsd:boolean",
             "date" => "xsd:date",
-            "timestamp" | "timestamptz" | "timestamp without time zone" | "timestamp with time zone" => "xsd:dateTime",
+            "timestamp" | "timestamptz" | "timestamp without time zone"
+            | "timestamp with time zone" | "datetime" => "xsd:dateTime",
+            "time" | "time without time zone" | "time with time zone" => "xsd:time",
             "bytea" | "blob" => "xsd:hexBinary",
+            "uuid" => "xsd:string",
             _ => "xsd:string",
         }
     }
@@ -161,6 +177,123 @@ impl SchemaIntrospector {
         }
 
         pool.close().await;
+        Ok(tables)
+    }
+
+    /// Connect to a DuckDB database (file or in-memory), introspect schema,
+    /// return TableInfo vec. Reads from the SQL-standard
+    /// `information_schema.tables` / `information_schema.columns` and the
+    /// DuckDB-specific `duckdb_constraints()` table function for primary and
+    /// foreign keys.
+    #[cfg(feature = "duckdb")]
+    pub fn introspect_duckdb(target: &str) -> anyhow::Result<Vec<TableInfo>> {
+        use duckdb::Connection;
+
+        let conn = if target == ":memory:" {
+            Connection::open_in_memory()?
+        } else {
+            Connection::open(target)?
+        };
+
+        // Tables in the default schema (`main`). User tables only — exclude
+        // system schemas.
+        let mut stmt = conn.prepare(
+            "SELECT table_name FROM information_schema.tables \
+             WHERE table_schema = 'main' AND table_type = 'BASE TABLE' \
+             ORDER BY table_name",
+        )?;
+        let table_names: Vec<String> = stmt
+            .query_map([], |row| row.get::<_, String>(0))?
+            .collect::<Result<Vec<_>, _>>()?;
+        drop(stmt);
+
+        let mut tables = Vec::new();
+        for table_name in &table_names {
+            // Columns
+            let mut col_stmt = conn.prepare(
+                "SELECT column_name, data_type, is_nullable FROM information_schema.columns \
+                 WHERE table_schema = 'main' AND table_name = ? ORDER BY ordinal_position",
+            )?;
+            let col_rows: Vec<(String, String, String)> = col_stmt
+                .query_map([table_name], |row| {
+                    Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?, row.get::<_, String>(2)?))
+                })?
+                .collect::<Result<Vec<_>, _>>()?;
+            drop(col_stmt);
+
+            // Primary keys via duckdb_constraints(). The constraint_column_names
+            // column is a list of column names. Convert it to a comma-separated
+            // string in SQL because the duckdb-rs crate does not implement
+            // `FromSql` for `Vec<String>`.
+            let mut pk_stmt = conn.prepare(
+                "SELECT array_to_string(constraint_column_names, ',') AS cols \
+                 FROM duckdb_constraints() \
+                 WHERE schema_name = 'main' AND table_name = ? AND constraint_type = 'PRIMARY KEY'",
+            )?;
+            let pk_strings: Vec<String> = pk_stmt
+                .query_map([table_name], |row| row.get::<_, String>(0))?
+                .collect::<Result<Vec<_>, _>>()?;
+            drop(pk_stmt);
+            let pk_cols: Vec<String> = pk_strings
+                .into_iter()
+                .flat_map(|s| s.split(',').map(|p| p.trim().to_string()).collect::<Vec<_>>())
+                .filter(|s| !s.is_empty())
+                .collect();
+
+            // Foreign keys via duckdb_constraints(). Same trick: project list
+            // columns to comma-separated strings.
+            let mut fk_stmt = conn.prepare(
+                "SELECT array_to_string(constraint_column_names, ',') AS child_cols, \
+                        referenced_table, \
+                        array_to_string(referenced_column_names, ',') AS parent_cols \
+                 FROM duckdb_constraints() \
+                 WHERE schema_name = 'main' AND table_name = ? AND constraint_type = 'FOREIGN KEY'",
+            )?;
+            let fk_rows: Vec<(String, String, String)> = fk_stmt
+                .query_map([table_name], |row| {
+                    Ok((
+                        row.get::<_, String>(0)?,
+                        row.get::<_, String>(1)?,
+                        row.get::<_, String>(2)?,
+                    ))
+                })?
+                .collect::<Result<Vec<_>, _>>()?;
+            drop(fk_stmt);
+
+            let mut foreign_keys = Vec::new();
+            for (child_cols, parent_table, parent_cols) in fk_rows {
+                let children: Vec<&str> =
+                    child_cols.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+                let parents: Vec<&str> =
+                    parent_cols.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+                for (i, child) in children.iter().enumerate() {
+                    if let Some(parent) = parents.get(i) {
+                        foreign_keys.push(ForeignKey {
+                            column: (*child).to_string(),
+                            parent_table: parent_table.clone(),
+                            parent_column: (*parent).to_string(),
+                        });
+                    }
+                }
+            }
+
+            let columns: Vec<ColumnInfo> = col_rows
+                .into_iter()
+                .map(|(name, data_type, nullable)| ColumnInfo {
+                    is_primary_key: pk_cols.contains(&name),
+                    name,
+                    data_type,
+                    is_nullable: nullable.eq_ignore_ascii_case("YES"),
+                })
+                .collect();
+
+            tables.push(TableInfo {
+                name: table_name.clone(),
+                columns,
+                foreign_keys,
+            });
+        }
+
         Ok(tables)
     }
 }

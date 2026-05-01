@@ -159,6 +159,7 @@ pub fn expand_group(name: &str) -> &'static [&'static str] {
             "onto_version",
             "onto_rollback",
             "onto_ingest",
+            "onto_sql_ingest",
             "onto_map",
             "onto_shacl",
             "onto_reason",
@@ -194,6 +195,11 @@ pub fn expand_group(name: &str) -> &'static [&'static str] {
             "onto_embed",
             "onto_search",
             "onto_similarity",
+        ],
+        // SQL data backbone tools (PostgreSQL / DuckDB).
+        "sql" => &[
+            "onto_import_schema",
+            "onto_sql_ingest",
         ],
         _ => &[],
     }
