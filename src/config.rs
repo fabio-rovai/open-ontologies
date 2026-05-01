@@ -657,4 +657,55 @@ mod tests {
         assert_eq!(cfg.logging.format, "compact");
         assert_eq!(cfg.cache.hash_prefix_bytes, 64 * 1024);
     }
+
+    #[test]
+    fn resolvers_pass_through_config_when_env_unset() {
+        // Regression: `resolve_*` functions must return the config-supplied
+        // value when no env override is set. This exercises the precedence
+        // path documented in PR #4 (env > config > default) without mutating
+        // process-wide env vars (which would race with parallel tests).
+        // We rely on these env vars being unset in CI; if a future test
+        // sets them, this assertion will surface that interference.
+        for var in [
+            "OPEN_ONTOLOGIES_WEBHOOK_REQUEST_TIMEOUT_SECS",
+            "OPEN_ONTOLOGIES_IMPORTS_REQUEST_TIMEOUT_SECS",
+            "OPEN_ONTOLOGIES_MONITOR_INTERVAL_SECS",
+        ] {
+            if std::env::var(var).is_ok() {
+                eprintln!("skipping resolver passthrough test: {var} is set");
+                return;
+            }
+        }
+
+        let webhook = WebhookConfig { request_timeout_secs: 7 };
+        assert_eq!(resolve_webhook_timeout_secs(&webhook), 7);
+
+        let imports = ImportsConfig {
+            max_depth: 5,
+            request_timeout_secs: 42,
+            follow_remote: true,
+        };
+        assert_eq!(resolve_imports_timeout_secs(&imports), 42);
+
+        let monitor = MonitorConfig { enabled: true, interval_secs: 11 };
+        assert_eq!(resolve_monitor_interval_secs(&monitor), 11);
+    }
+
+    #[test]
+    fn resolve_imports_timeout_preserves_zero_sentinel() {
+        // The `0` sentinel for `[imports] request_timeout_secs` is documented
+        // (commit cdd5384) as "disable the explicit per-call timeout and use
+        // reqwest's default". The resolver must propagate the 0 verbatim so
+        // downstream callers can decide whether to skip `.timeout()`.
+        if std::env::var("OPEN_ONTOLOGIES_IMPORTS_REQUEST_TIMEOUT_SECS").is_ok() {
+            eprintln!("skipping zero-sentinel test: env override is set");
+            return;
+        }
+        let imports = ImportsConfig {
+            max_depth: 3,
+            request_timeout_secs: 0,
+            follow_remote: true,
+        };
+        assert_eq!(resolve_imports_timeout_secs(&imports), 0);
+    }
 }
