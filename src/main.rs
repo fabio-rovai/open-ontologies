@@ -487,11 +487,32 @@ enum Commands {
     ValidateClinical,
 
     // ─── Schema import ────────────────────────────────────────────
-    /// Import database schema as OWL ontology
+    /// Import database schema as OWL ontology (Postgres or DuckDB)
     ImportSchema {
-        /// Connection string (e.g. postgres://user:pass@host/db)
+        /// Connection string. Supported:
+        ///   postgres://user:pass@host/db (requires --features postgres)
+        ///   duckdb:///path/to/file.duckdb or *.duckdb file path (requires --features duckdb)
+        ///   :memory: for an in-memory DuckDB database
         connection: String,
         #[arg(long, default_value = "http://example.org/db/")]
+        base_iri: String,
+    },
+    /// Run a SQL query against a relational backbone (Postgres or DuckDB)
+    /// and ingest the result rows into the triple store as RDF.
+    SqlIngest {
+        /// Connection string (see import-schema for forms)
+        connection: String,
+        /// SQL SELECT to execute. Use `-` to read from stdin.
+        sql: String,
+        /// Path to mapping JSON, or inline JSON when --inline-mapping is set.
+        /// If omitted, an auto-mapping is generated from the column names.
+        #[arg(long)]
+        mapping: Option<String>,
+        /// Treat the value of --mapping as inline JSON instead of a file path.
+        #[arg(long)]
+        inline_mapping: bool,
+        /// Base IRI for generated instances
+        #[arg(long, default_value = "http://example.org/data/")]
         base_iri: String,
     },
 }
@@ -1625,10 +1646,46 @@ async fn main() -> anyhow::Result<()> {
         }
 
         // ─── Schema import ─────────────────────────────────────────
-        #[cfg(feature = "postgres")]
+        #[allow(unreachable_code, unused_variables)]
         Commands::ImportSchema { connection, base_iri } => {
             let (_db, graph) = setup(&cli.data_dir)?;
-            let tables = open_ontologies::schema::SchemaIntrospector::introspect_postgres(&connection).await?;
+            let driver = match open_ontologies::sqlsource::detect_driver(&connection) {
+                Ok(d) => d,
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                    std::process::exit(1);
+                }
+            };
+
+            let tables: Vec<open_ontologies::schema::TableInfo> = match driver {
+                open_ontologies::sqlsource::SqlDriver::Postgres => {
+                    #[cfg(feature = "postgres")]
+                    {
+                        open_ontologies::schema::SchemaIntrospector::introspect_postgres(&connection).await?
+                    }
+                    #[cfg(not(feature = "postgres"))]
+                    {
+                        output_json(&serde_json::json!({"error": "import-schema for postgres requires the 'postgres' feature (compile with --features postgres)"}), cli.pretty);
+                        std::process::exit(1);
+                    }
+                }
+                open_ontologies::sqlsource::SqlDriver::DuckDb => {
+                    #[cfg(feature = "duckdb")]
+                    {
+                        let target = open_ontologies::sqlsource::duckdb_target(&connection);
+                        tokio::task::spawn_blocking(move || {
+                            open_ontologies::schema::SchemaIntrospector::introspect_duckdb(&target)
+                        })
+                        .await??
+                    }
+                    #[cfg(not(feature = "duckdb"))]
+                    {
+                        output_json(&serde_json::json!({"error": "import-schema for duckdb requires the 'duckdb' feature (compile with --features duckdb)"}), cli.pretty);
+                        std::process::exit(1);
+                    }
+                }
+            };
+
             let turtle = open_ontologies::schema::SchemaIntrospector::generate_turtle(&tables, &base_iri);
 
             // Validate + load
@@ -1637,16 +1694,72 @@ async fn main() -> anyhow::Result<()> {
 
             output_json(&serde_json::json!({
                 "ok": true,
+                "driver": driver.as_str(),
                 "tables": tables.len(),
                 "classes": tables.len(),
                 "triples": count,
                 "base_iri": base_iri,
             }), cli.pretty);
         }
-        #[cfg(not(feature = "postgres"))]
-        Commands::ImportSchema { .. } => {
-            output_json(&serde_json::json!({"error": "import-schema requires the 'postgres' feature (compile with --features postgres)"}), cli.pretty);
-            std::process::exit(1);
+        Commands::SqlIngest { connection, sql, mapping, inline_mapping, base_iri } => {
+            use open_ontologies::ingest::DataIngester;
+            use open_ontologies::mapping::MappingConfig;
+
+            let (_db, graph) = setup(&cli.data_dir)?;
+
+            // Allow stdin via `-`.
+            let sql = if sql == "-" {
+                use std::io::Read;
+                let mut buf = String::new();
+                std::io::stdin().read_to_string(&mut buf)?;
+                buf
+            } else {
+                sql
+            };
+
+            let driver = match open_ontologies::sqlsource::detect_driver(&connection) {
+                Ok(d) => d,
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                    std::process::exit(1);
+                }
+            };
+
+            let rows = open_ontologies::sqlsource::query_rows(&connection, &sql).await?;
+
+            if rows.is_empty() {
+                output_json(&serde_json::json!({
+                    "ok": true,
+                    "driver": driver.as_str(),
+                    "triples_loaded": 0,
+                    "rows_processed": 0,
+                    "warnings": ["Query returned no rows"],
+                }), cli.pretty);
+                return Ok(());
+            }
+
+            let mapping_cfg = if let Some(ref m) = mapping {
+                if inline_mapping {
+                    serde_json::from_str::<MappingConfig>(m)?
+                } else {
+                    let content = std::fs::read_to_string(m)?;
+                    serde_json::from_str::<MappingConfig>(&content)?
+                }
+            } else {
+                let headers = DataIngester::extract_headers(&rows);
+                MappingConfig::from_headers(&headers, &base_iri, &format!("{}Thing", base_iri))
+            };
+
+            let ntriples = mapping_cfg.rows_to_ntriples(&rows);
+            let count = graph.load_ntriples(&ntriples)?;
+
+            output_json(&serde_json::json!({
+                "ok": true,
+                "driver": driver.as_str(),
+                "triples_loaded": count,
+                "rows_processed": rows.len(),
+                "mapping_fields": mapping_cfg.mappings.len(),
+            }), cli.pretty);
         }
         Commands::Align { source, target, min_confidence, dry_run } => {
             let (db, graph) = setup(&cli.data_dir)?;

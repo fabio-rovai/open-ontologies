@@ -26,6 +26,7 @@ pub mod shacl;
 pub mod state;
 pub mod schema;
 pub mod socket;
+pub mod sqlsource;
 pub mod tableaux;
 pub mod toolfilter;
 #[cfg(feature = "embeddings")]

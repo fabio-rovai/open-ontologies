@@ -66,11 +66,12 @@ Claude dynamically decides the next tool call based on what the previous tool re
 | `onto_history` | To list saved version snapshots |
 | `onto_rollback` | To restore a previous version if something goes wrong |
 | `onto_ingest` | To parse structured data (CSV, JSON, NDJSON, XML, YAML, XLSX, Parquet) into RDF and load into the store |
+| `onto_sql_ingest` | To run a SQL `SELECT` against PostgreSQL or DuckDB and ingest the result rows into RDF (uses the same mapping format as `onto_ingest`). DuckDB acts as a federation backbone via its `httpfs`/`parquet`/`csv`/`postgres_scanner`/`iceberg` extensions. Connection strings: `postgres://…`, `duckdb:///path.duckdb`, `:memory:`, or `*.duckdb` file path. |
 | `onto_map` | To generate a mapping config from data schema + loaded ontology for review |
 | `onto_shacl` | To validate loaded data against SHACL shapes (cardinality, datatypes, classes) |
 | `onto_reason` | To run RDFS or OWL-RL inference, materializing inferred triples |
 | `onto_extend` | To run the full pipeline: ingest → SHACL validate → reason in one call |
-| `onto_import_schema` | To import a PostgreSQL database schema as an OWL ontology (requires postgres feature) |
+| `onto_import_schema` | To import a PostgreSQL or DuckDB database schema as an OWL ontology (requires `postgres` and/or `duckdb` features). Auto-dispatches on connection-string scheme. |
 | `onto_plan` | Before applying changes — shows added/removed classes, blast radius, risk score |
 | `onto_apply` | After plan + enforce — applies changes in `safe` or `migrate` mode |
 | `onto_lock` | To protect production IRIs from removal |
