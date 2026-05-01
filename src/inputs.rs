@@ -27,6 +27,49 @@ pub struct OntoLoadInput {
     pub path: Option<String>,
     /// Inline Turtle content to load (alternative to path)
     pub turtle: Option<String>,
+    /// Optional name for this ontology in the registry. Defaults to the file
+    /// stem of `path`. When omitted for inline turtle, defaults to "default".
+    pub name: Option<String>,
+    /// When true, every subsequent read tool checks the source file's mtime
+    /// and recompiles if it changed. Has no effect for inline turtle.
+    pub auto_refresh: Option<bool>,
+    /// When true, ignore the on-disk compile cache and re-parse from source.
+    pub force_recompile: Option<bool>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoUnloadInput {
+    /// When true, also delete the on-disk compile cache file.
+    pub delete_cache: Option<bool>,
+    /// Optional ontology name. When omitted, operates on the currently active
+    /// ontology. When provided, targets that named cache entry — if it is the
+    /// active slot the in-memory store is cleared; otherwise only the on-disk
+    /// cache is touched (and only when `delete_cache` is true).
+    pub name: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoRecompileInput {
+    /// Optional ontology name. When omitted, recompiles the active ontology.
+    /// When provided, recompiles that cached entry from its recorded source
+    /// path; if the entry is not active, the active in-memory store is left
+    /// untouched.
+    pub name: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoCacheStatusInput {}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoCacheListInput {}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoCacheRemoveInput {
+    /// Name of the cached ontology to remove.
+    pub name: String,
+    /// When true (default), also delete the on-disk N-Triples cache file.
+    /// When false, only the metadata row is removed.
+    pub delete_file: Option<bool>,
 }
 
 #[derive(Deserialize, JsonSchema)]
