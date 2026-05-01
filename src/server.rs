@@ -1172,18 +1172,56 @@ impl OpenOntologiesServer {
         }).to_string()
     }
 
-    #[tool(name = "onto_import_schema", description = "Import a PostgreSQL database schema as an OWL ontology. Introspects tables, columns, primary keys, and foreign keys, then generates OWL classes, datatype/object properties, and cardinality restrictions.")]
+    #[tool(name = "onto_import_schema", description = "Import a relational database schema as an OWL ontology. Supports PostgreSQL (postgres://…) and DuckDB (duckdb:///path.duckdb, :memory:, or *.duckdb file path). Introspects tables, columns, primary keys, and foreign keys, then generates OWL classes, datatype/object properties, and cardinality restrictions.")]
+    #[allow(unreachable_code, unused_variables, unused_assignments)]
     async fn onto_import_schema(&self, Parameters(input): Parameters<OntoImportSchemaInput>) -> String {
-        #[cfg(not(feature = "postgres"))]
-        { let _ = input; return r#"{"error":"Compiled without postgres feature. Rebuild with --features postgres"}"#.to_string(); }
-        #[cfg(feature = "postgres")]
-        {
         use crate::schema::SchemaIntrospector;
+        use crate::sqlsource;
+
         let base_iri = input.base_iri.as_deref().unwrap_or("http://example.org/db/");
 
-        let tables = match SchemaIntrospector::introspect_postgres(&input.connection).await {
-            Ok(t) => t,
-            Err(e) => return format!(r#"{{"error":"Connection failed: {}"}}"#, e),
+        // Dispatch by connection-string scheme. Both backbones land in the
+        // same OWL generator so the downstream pipeline (validate + load)
+        // is identical.
+        let driver = match sqlsource::detect_driver(&input.connection) {
+            Ok(d) => d,
+            Err(e) => return format!(r#"{{"error":"{}"}}"#, e),
+        };
+
+        let tables: Vec<crate::schema::TableInfo> = match driver {
+            crate::sqlsource::SqlDriver::Postgres => {
+                #[cfg(feature = "postgres")]
+                {
+                    match SchemaIntrospector::introspect_postgres(&input.connection).await {
+                        Ok(t) => t,
+                        Err(e) => return format!(r#"{{"error":"Postgres connection failed: {}"}}"#, e),
+                    }
+                }
+                #[cfg(not(feature = "postgres"))]
+                {
+                    return r#"{"error":"Compiled without postgres feature. Rebuild with --features postgres"}"#.to_string();
+                }
+            }
+            crate::sqlsource::SqlDriver::DuckDb => {
+                #[cfg(feature = "duckdb")]
+                {
+                    let target = sqlsource::duckdb_target(&input.connection);
+                    // DuckDB introspection is sync; offload to blocking pool.
+                    match tokio::task::spawn_blocking(move || {
+                        SchemaIntrospector::introspect_duckdb(&target)
+                    })
+                    .await
+                    {
+                        Ok(Ok(t)) => t,
+                        Ok(Err(e)) => return format!(r#"{{"error":"DuckDB introspection failed: {}"}}"#, e),
+                        Err(e) => return format!(r#"{{"error":"DuckDB worker panicked: {}"}}"#, e),
+                    }
+                }
+                #[cfg(not(feature = "duckdb"))]
+                {
+                    return r#"{"error":"Compiled without duckdb feature. Rebuild with --features duckdb"}"#.to_string();
+                }
+            }
         };
 
         let turtle = SchemaIntrospector::generate_turtle(&tables, base_iri);
@@ -1196,6 +1234,7 @@ impl OpenOntologiesServer {
         match self.graph.load_turtle(&turtle, Some(base_iri)) {
             Ok(count) => serde_json::json!({
                 "ok": true,
+                "driver": driver.as_str(),
                 "tables": tables.len(),
                 "classes": tables.len(),
                 "triples": count,
@@ -1203,7 +1242,71 @@ impl OpenOntologiesServer {
             }).to_string(),
             Err(e) => format!(r#"{{"error":"Failed to load: {}"}}"#, e),
         }
-        } // cfg(feature = "postgres")
+    }
+
+    #[tool(name = "onto_sql_ingest", description = "Run a SQL query against a relational backbone (PostgreSQL or DuckDB) and ingest the resulting rows into the triple store as RDF. DuckDB is recommended as a federation layer: with its httpfs/parquet/csv/postgres_scanner extensions one query can union remote files, object stores, and other databases. The mapping config has the same shape as onto_ingest.")]
+    async fn onto_sql_ingest(&self, Parameters(input): Parameters<OntoSqlIngestInput>) -> String {
+        use crate::ingest::DataIngester;
+        use crate::mapping::MappingConfig;
+        use crate::sqlsource;
+
+        let base_iri = input.base_iri.as_deref().unwrap_or("http://example.org/data/");
+
+        // Validate connection scheme up front so we fail fast with a clear error.
+        let driver = match sqlsource::detect_driver(&input.connection) {
+            Ok(d) => d,
+            Err(e) => return format!(r#"{{"error":"{}"}}"#, e),
+        };
+
+        let rows = match sqlsource::query_rows(&input.connection, &input.sql).await {
+            Ok(r) => r,
+            Err(e) => return format!(r#"{{"error":"SQL query failed: {}"}}"#, e),
+        };
+
+        if rows.is_empty() {
+            return serde_json::json!({
+                "ok": true,
+                "driver": driver.as_str(),
+                "triples_loaded": 0,
+                "rows_processed": 0,
+                "warnings": ["Query returned no rows"],
+            })
+            .to_string();
+        }
+
+        // Resolve mapping (inline JSON / file path / auto from columns).
+        let mapping = if let Some(ref mapping_str) = input.mapping {
+            if input.inline_mapping.unwrap_or(false) {
+                match serde_json::from_str::<MappingConfig>(mapping_str) {
+                    Ok(m) => m,
+                    Err(e) => return format!(r#"{{"error":"Invalid mapping JSON: {}"}}"#, e),
+                }
+            } else {
+                match std::fs::read_to_string(mapping_str) {
+                    Ok(content) => match serde_json::from_str::<MappingConfig>(&content) {
+                        Ok(m) => m,
+                        Err(e) => return format!(r#"{{"error":"Invalid mapping file: {}"}}"#, e),
+                    },
+                    Err(e) => return format!(r#"{{"error":"Cannot read mapping file: {}"}}"#, e),
+                }
+            }
+        } else {
+            let headers = DataIngester::extract_headers(&rows);
+            MappingConfig::from_headers(&headers, base_iri, &format!("{}Thing", base_iri))
+        };
+
+        let ntriples = mapping.rows_to_ntriples(&rows);
+        match self.graph.load_ntriples(&ntriples) {
+            Ok(count) => serde_json::json!({
+                "ok": true,
+                "driver": driver.as_str(),
+                "triples_loaded": count,
+                "rows_processed": rows.len(),
+                "mapping_fields": mapping.mappings.len(),
+            })
+            .to_string(),
+            Err(e) => format!(r#"{{"error":"Failed to load triples: {}"}}"#, e),
+        }
     }
 
     #[tool(name = "onto_align", description = "Detect alignment candidates (owl:equivalentClass, skos:exactMatch, rdfs:subClassOf) between two ontologies using label similarity, property overlap, parent overlap, instance overlap, restriction patterns, and graph neighborhood. Auto-applies high-confidence matches above threshold.")]
