@@ -88,9 +88,16 @@ Claude dynamically decides the next tool call based on what the previous tool re
 | `onto_enforce_feedback` | To accept/dismiss an enforce violation — teaches enforce to suppress repeatedly dismissed violations |
 | `onto_dl_explain` | To explain why a class is unsatisfiable using DL tableaux reasoning — returns clash trace |
 | `onto_dl_check` | To check if one class is subsumed by another using DL tableaux reasoning |
-| `onto_embed` | After loading an ontology — generates text + Poincaré structural embeddings for all classes |
+| `onto_embed` | After loading an ontology — generates text + Poincaré structural embeddings for all classes. Honours `[embeddings] provider = "local" \| "openai"` in `config.toml`; OpenAI-compatible gateways (Azure, Ollama, vLLM, LocalAI, …) are supported via `OPEN_ONTOLOGIES_EMBEDDINGS_*` env vars |
 | `onto_search` | To find classes by natural language description — requires onto_embed first |
 | `onto_similarity` | To compute embedding similarity between two specific IRIs |
+| `onto_unload` | To unload the active ontology from memory. Optional `name` targets a specific cached entry; `delete_cache=true` also removes the on-disk N-Triples cache file |
+| `onto_recompile` | To re-parse the source file and rebuild the cache. Optional `name` rebuilds a non-active cached entry without disturbing the in-memory store (safe background refresh) |
+| `onto_cache_status` | To inspect the compile cache: active slot, all cached entries, and effective `[cache]` config (TTL, auto_refresh, dir) |
+| `onto_cache_list` | To list cached ontologies with metadata (`is_active`, `in_memory`, mtime, size) — lighter than `onto_cache_status` |
+| `onto_cache_remove` | To remove a cached ontology by `name`. Pass `delete_file=false` to keep the on-disk N-Triples |
+| `onto_repo_list` | To enumerate RDF/OWL files in directories configured under `[general] ontology_dirs`. Use in containerized deployments to discover ontologies without hardcoding paths |
+| `onto_repo_load` | To load an ontology from a configured `ontology_dirs` repo by bare name, relative path, or absolute path. Reuses the same compile-cache / TTL-eviction path as `onto_load` |
 
 ## Ontology Lifecycle
 
