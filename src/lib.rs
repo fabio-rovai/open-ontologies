@@ -34,4 +34,6 @@ pub mod vecstore;
 #[cfg(feature = "embeddings")]
 pub mod embed;
 #[cfg(feature = "embeddings")]
+pub mod embed_remote;
+#[cfg(feature = "embeddings")]
 pub mod structembed;

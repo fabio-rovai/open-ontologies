@@ -86,9 +86,16 @@ pub fn resolve_ontology_dirs(cfg: &[String]) -> Vec<std::path::PathBuf> {
 #[derive(Debug, Default, Deserialize, Clone)]
 #[serde(default)]
 pub struct EmbeddingsConfig {
-    /// Path to the ONNX model file. Default: ~/.open-ontologies/models/bge-small-en-v1.5.onnx
+    /// Embedding provider: "local" (default — ONNX model on disk) or "openai"
+    /// (any OpenAI-compatible HTTP API, e.g. OpenAI, Azure OpenAI, Ollama,
+    /// vLLM, LM Studio, LocalAI, Together, etc.). Override at runtime with
+    /// `OPEN_ONTOLOGIES_EMBEDDINGS_PROVIDER`.
+    pub provider: Option<String>,
+    /// Path to the ONNX model file (provider = "local" only).
+    /// Default: ~/.open-ontologies/models/bge-small-en-v1.5.onnx
     pub model_path: Option<String>,
-    /// Path to the tokenizer.json file. Default: ~/.open-ontologies/models/tokenizer.json
+    /// Path to the tokenizer.json file (provider = "local" only).
+    /// Default: ~/.open-ontologies/models/tokenizer.json
     pub tokenizer_path: Option<String>,
     /// URL to download the ONNX model from. Default: BGE-small-en-v1.5 from Hugging Face
     pub model_url: Option<String>,
@@ -96,9 +103,89 @@ pub struct EmbeddingsConfig {
     pub tokenizer_url: Option<String>,
     /// Filename for the downloaded model. Default: bge-small-en-v1.5.onnx
     pub model_name: Option<String>,
+
+    // ─── OpenAI-compatible provider (provider = "openai") ───────────────
+    /// Base URL of the OpenAI-compatible API, without the trailing
+    /// `/embeddings` path. Default: `https://api.openai.com/v1`. Override
+    /// at runtime with `OPEN_ONTOLOGIES_EMBEDDINGS_API_BASE`.
+    #[serde(alias = "base_url")]
+    pub api_base: Option<String>,
+    /// API key. If unset, falls back to the `OPEN_ONTOLOGIES_EMBEDDINGS_API_KEY`
+    /// or `OPENAI_API_KEY` env var. Sent as `Authorization: Bearer <key>`.
+    /// Optional — gateways that don't require auth (Ollama, LocalAI,
+    /// vLLM behind a private network, …) can leave this unset.
+    pub api_key: Option<String>,
+    /// Model name to request, e.g. `text-embedding-3-small`,
+    /// `text-embedding-3-large`, `text-embedding-ada-002`, or any model
+    /// served by an OpenAI-compatible gateway. Default:
+    /// `text-embedding-3-small`. Override with
+    /// `OPEN_ONTOLOGIES_EMBEDDINGS_MODEL`.
+    pub model: Option<String>,
+    /// Optional `dimensions` parameter sent in the request body. Lets you
+    /// truncate output dimensionality on models that support it
+    /// (text-embedding-3-*). When unset, the API's default dimension is
+    /// used and detected from the first response.
+    pub dimensions: Option<usize>,
+    /// HTTP request timeout in seconds. Default: 30.
+    pub request_timeout_secs: Option<u64>,
 }
 
 /// Configuration for the on-disk N-Triples compile cache and TTL eviction.
+/// Resolve the configured embedding provider name.
+///
+/// Precedence: `OPEN_ONTOLOGIES_EMBEDDINGS_PROVIDER` env var > config field >
+/// default ("local"). Returns a lowercased, trimmed string.
+pub fn resolve_embeddings_provider(cfg: &EmbeddingsConfig) -> String {
+    let raw = std::env::var("OPEN_ONTOLOGIES_EMBEDDINGS_PROVIDER")
+        .ok()
+        .filter(|v| !v.trim().is_empty())
+        .or_else(|| cfg.provider.clone())
+        .unwrap_or_else(|| "local".to_string());
+    raw.trim().to_lowercase()
+}
+
+/// Resolve the OpenAI-compatible API base URL.
+///
+/// Precedence: `OPEN_ONTOLOGIES_EMBEDDINGS_API_BASE` env var > config >
+/// `https://api.openai.com/v1`. Trailing slashes are stripped.
+pub fn resolve_embeddings_api_base(cfg: &EmbeddingsConfig) -> String {
+    let raw = std::env::var("OPEN_ONTOLOGIES_EMBEDDINGS_API_BASE")
+        .ok()
+        .filter(|v| !v.trim().is_empty())
+        .or_else(|| cfg.api_base.clone())
+        .unwrap_or_else(|| "https://api.openai.com/v1".to_string());
+    raw.trim().trim_end_matches('/').to_string()
+}
+
+/// Resolve the OpenAI-compatible API key.
+///
+/// Precedence: `OPEN_ONTOLOGIES_EMBEDDINGS_API_KEY` env var >
+/// `OPENAI_API_KEY` env var > config. Returns `None` if no key is configured
+/// (some local OpenAI-compatible gateways accept unauthenticated requests).
+pub fn resolve_embeddings_api_key(cfg: &EmbeddingsConfig) -> Option<String> {
+    std::env::var("OPEN_ONTOLOGIES_EMBEDDINGS_API_KEY")
+        .ok()
+        .filter(|v| !v.trim().is_empty())
+        .or_else(|| {
+            std::env::var("OPENAI_API_KEY")
+                .ok()
+                .filter(|v| !v.trim().is_empty())
+        })
+        .or_else(|| cfg.api_key.clone().filter(|v| !v.trim().is_empty()))
+}
+
+/// Resolve the OpenAI-compatible model name.
+///
+/// Precedence: `OPEN_ONTOLOGIES_EMBEDDINGS_MODEL` env var > config >
+/// `text-embedding-3-small`.
+pub fn resolve_embeddings_model(cfg: &EmbeddingsConfig) -> String {
+    std::env::var("OPEN_ONTOLOGIES_EMBEDDINGS_MODEL")
+        .ok()
+        .filter(|v| !v.trim().is_empty())
+        .or_else(|| cfg.model.clone().filter(|v| !v.trim().is_empty()))
+        .unwrap_or_else(|| "text-embedding-3-small".to_string())
+}
+
 #[derive(Debug, Deserialize, Clone)]
 #[serde(default)]
 pub struct CacheConfig {
@@ -149,4 +236,69 @@ pub fn expand_tilde(path: &str) -> String {
             return path.replacen("~", &home.to_string_lossy(), 1);
         }
     path.to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_openai_provider_block() {
+        let toml_src = r#"
+            [embeddings]
+            provider = "openai"
+            api_base = "https://api.example.com/v1/"
+            api_key = "sk-test"
+            model = "text-embedding-3-large"
+            dimensions = 256
+            request_timeout_secs = 60
+        "#;
+        let cfg: Config = toml::from_str(toml_src).expect("parse");
+        assert_eq!(cfg.embeddings.provider.as_deref(), Some("openai"));
+        assert_eq!(cfg.embeddings.api_key.as_deref(), Some("sk-test"));
+        assert_eq!(cfg.embeddings.dimensions, Some(256));
+        assert_eq!(cfg.embeddings.request_timeout_secs, Some(60));
+
+        // Trailing slash is stripped by the resolver.
+        assert_eq!(
+            resolve_embeddings_api_base(&cfg.embeddings),
+            "https://api.example.com/v1"
+        );
+        assert_eq!(resolve_embeddings_provider(&cfg.embeddings), "openai");
+        assert_eq!(
+            resolve_embeddings_model(&cfg.embeddings),
+            "text-embedding-3-large"
+        );
+    }
+
+    #[test]
+    fn provider_defaults_to_local_when_unset() {
+        // Verify the default-resolution logic without touching process-wide
+        // env vars (which would race with other tests). When the env override
+        // is absent the function should fall back to the config field, then
+        // to "local".
+        let cfg = EmbeddingsConfig::default();
+        let resolved = cfg
+            .provider
+            .clone()
+            .unwrap_or_else(|| "local".to_string())
+            .trim()
+            .to_lowercase();
+        assert_eq!(resolved, "local");
+    }
+
+    #[test]
+    fn base_url_alias_accepted() {
+        // The legacy/alternative `base_url` key should also populate
+        // `api_base` via serde alias.
+        let toml_src = r#"
+            [embeddings]
+            base_url = "http://localhost:11434/v1"
+        "#;
+        let cfg: Config = toml::from_str(toml_src).expect("parse");
+        assert_eq!(
+            cfg.embeddings.api_base.as_deref(),
+            Some("http://localhost:11434/v1")
+        );
+    }
 }

@@ -115,6 +115,101 @@ impl TextEmbedder {
     }
 }
 
+/// Unified text embedder that dispatches to either the local ONNX model or
+/// an OpenAI-compatible HTTP API, selected by configuration.
+pub enum TextEmbedderProvider {
+    Local(TextEmbedder),
+    OpenAI(crate::embed_remote::OpenAIEmbedder),
+}
+
+impl TextEmbedderProvider {
+    /// Build a provider from runtime configuration. Returns `Ok(None)` when
+    /// the configured provider cannot be initialised (e.g. local model files
+    /// missing) so the server can start without embedding tools wired up.
+    pub fn from_config(cfg: &crate::config::EmbeddingsConfig) -> anyhow::Result<Option<Self>> {
+        let provider = crate::config::resolve_embeddings_provider(cfg);
+        match provider.as_str() {
+            "openai" | "openai-compatible" | "remote" | "http" => {
+                let api_base = crate::config::resolve_embeddings_api_base(cfg);
+                let api_key = crate::config::resolve_embeddings_api_key(cfg);
+                let model = crate::config::resolve_embeddings_model(cfg);
+                let timeout = std::time::Duration::from_secs(
+                    cfg.request_timeout_secs.unwrap_or(30).max(1),
+                );
+                let embedder = crate::embed_remote::OpenAIEmbedder::new(
+                    &api_base,
+                    api_key,
+                    model,
+                    cfg.dimensions,
+                    timeout,
+                )?;
+                Ok(Some(Self::OpenAI(embedder)))
+            }
+            "local" | "" | "onnx" => {
+                let default_model_dir =
+                    dirs::home_dir().map(|h| h.join(".open-ontologies/models"));
+
+                let model_path = cfg
+                    .model_path
+                    .clone()
+                    .map(|p| std::path::PathBuf::from(crate::config::expand_tilde(&p)))
+                    .or_else(|| {
+                        default_model_dir
+                            .as_ref()
+                            .map(|d| d.join("bge-small-en-v1.5.onnx"))
+                    });
+
+                let tokenizer_path = cfg
+                    .tokenizer_path
+                    .clone()
+                    .map(|p| std::path::PathBuf::from(crate::config::expand_tilde(&p)))
+                    .or_else(|| {
+                        default_model_dir
+                            .as_ref()
+                            .map(|d| d.join("tokenizer.json"))
+                    });
+
+                match (model_path, tokenizer_path) {
+                    (Some(m), Some(t)) if m.exists() && t.exists() => {
+                        let local = TextEmbedder::load(&m, &t)?;
+                        Ok(Some(Self::Local(local)))
+                    }
+                    _ => Ok(None),
+                }
+            }
+            other => anyhow::bail!(
+                "unknown embeddings provider '{}': expected 'local' or 'openai'",
+                other
+            ),
+        }
+    }
+
+    /// Embed a single text string. Async because the OpenAI variant performs
+    /// an HTTP request; the local variant just runs CPU-bound work.
+    pub async fn embed(&self, text: &str) -> anyhow::Result<Vec<f32>> {
+        match self {
+            Self::Local(e) => e.embed(text),
+            Self::OpenAI(e) => e.embed(text).await,
+        }
+    }
+
+    /// Output dimension of the embedding vectors.
+    pub fn dim(&self) -> usize {
+        match self {
+            Self::Local(e) => e.dim(),
+            Self::OpenAI(e) => e.dim(),
+        }
+    }
+
+    /// Short provider identifier ("local" or "openai") for diagnostics.
+    pub fn provider_name(&self) -> &'static str {
+        match self {
+            Self::Local(_) => "local",
+            Self::OpenAI(_) => "openai",
+        }
+    }
+}
+
 /// Download a file from URL to a local path.
 pub async fn download_model_file(url: &str, dest: &Path) -> Result<()> {
     let client = reqwest::Client::new();
