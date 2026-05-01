@@ -67,6 +67,7 @@ fn setup() -> TestHarness {
         idle_ttl_secs: 0,
         evictor_interval_secs: 30,
         auto_refresh: false,
+        hash_prefix_bytes: 64 * 1024,
     };
     let registry = Arc::new(OntologyRegistry::new(graph.clone(), db, cfg).unwrap());
     TestHarness { _tmp: tmp, path_a, path_b, registry, graph }
@@ -133,6 +134,7 @@ fn list_cached_marks_in_memory_false_after_eviction() {
         idle_ttl_secs: 1,
         evictor_interval_secs: 30,
         auto_refresh: false,
+        hash_prefix_bytes: 64 * 1024,
     };
     let reg = OntologyRegistry::new(graph, db, cfg).unwrap();
     reg.load_file(path.to_str().unwrap(), LoadOptions::default()).unwrap();

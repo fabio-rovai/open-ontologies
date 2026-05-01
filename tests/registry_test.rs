@@ -75,6 +75,7 @@ fn setup(idle_ttl_secs: u64) -> Harness {
         idle_ttl_secs,
         evictor_interval_secs: 1,
         auto_refresh: false,
+        hash_prefix_bytes: 64 * 1024,
     };
     let registry = Arc::new(OntologyRegistry::new(graph.clone(), db, cfg).unwrap());
     Harness {
@@ -194,6 +195,7 @@ fn cache_disabled_skips_ondisk_cache() {
         idle_ttl_secs: 0,
         evictor_interval_secs: 30,
         auto_refresh: false,
+        hash_prefix_bytes: 64 * 1024,
     };
     let registry = OntologyRegistry::new(graph, db, cfg).unwrap();
     let r = registry

@@ -11,8 +11,8 @@ pub enum FeedbackAction {
     Suppress,
 }
 
-const SUPPRESS_THRESHOLD: i64 = 3;
-const DOWNGRADE_THRESHOLD: i64 = 2;
+// Severity-adjustment thresholds live in `crate::runtime` (initialised from
+// `[feedback]` in config.toml).
 
 /// Check feedback history for a (tool, rule_id, entity) tuple.
 pub fn get_feedback_adjustment(db: &StateDb, tool: &str, rule_id: &str, entity: &str) -> FeedbackAction {
@@ -35,10 +35,12 @@ pub fn get_feedback_adjustment(db: &StateDb, tool: &str, rule_id: &str, entity: 
     if accept_count > 0 {
         return FeedbackAction::Keep;
     }
-    if dismiss_count >= SUPPRESS_THRESHOLD {
+    let suppress = crate::runtime::feedback_suppress_threshold();
+    let downgrade = crate::runtime::feedback_downgrade_threshold();
+    if dismiss_count >= suppress {
         return FeedbackAction::Suppress;
     }
-    if dismiss_count >= DOWNGRADE_THRESHOLD {
+    if dismiss_count >= downgrade {
         return FeedbackAction::Downgrade;
     }
     FeedbackAction::Keep

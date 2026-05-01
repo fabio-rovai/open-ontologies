@@ -26,6 +26,7 @@ fn build_server(filter: ToolFilter) -> (tempfile::TempDir, OpenOntologiesServer)
         idle_ttl_secs: 0,
         evictor_interval_secs: 30,
         auto_refresh: false,
+        hash_prefix_bytes: 64 * 1024,
     };
     let server = OpenOntologiesServer::new_with_registry_options(
         db,

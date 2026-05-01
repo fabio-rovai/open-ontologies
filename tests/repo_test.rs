@@ -151,6 +151,7 @@ fn registry_loads_path_resolved_from_repo() {
         idle_ttl_secs: 0,
         evictor_interval_secs: 30,
         auto_refresh: false,
+        hash_prefix_bytes: 64 * 1024,
     };
     let registry = Arc::new(OntologyRegistry::new(graph.clone(), db, cfg).unwrap());
 
