@@ -75,6 +75,6 @@ model    = "nomic-embed-text"
 
 ### Notes
 
-- API responses are L2-normalised in-process so cosine scores remain comparable with the local ONNX path.
+- API responses are L2-normalized in-process so cosine scores remain comparable with the local ONNX path.
 - The local and remote paths share the same downstream `onto_embed` / `onto_search` / `onto_similarity` tools — switching providers requires no code changes.
 - See `[embeddings]` block in the default config emitted by `open-ontologies init` (`src/main.rs::DEFAULT_CONFIG`) for the full set of fields with comments.
