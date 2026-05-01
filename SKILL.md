@@ -177,6 +177,13 @@ For aligning two ontologies:
 | `onto_lineage` | View session lineage trail (plan, enforce, apply, monitor, drift) |
 | `onto_lint_feedback` | Accept/dismiss lint issues to teach suppression |
 | `onto_enforce_feedback` | Accept/dismiss enforce violations to teach suppression |
+| `onto_unload` | Unload from memory. With `name` targets a specific cached entry; `delete_cache=true` also removes the on-disk file |
+| `onto_recompile` | Re-parse the source. With `name` rebuilds a non-active cached entry without disturbing the active in-memory store |
+| `onto_cache_status` | Inspect compile cache: active slot, all entries, effective `[cache]` config |
+| `onto_cache_list` | List cached ontologies with metadata (`is_active`, `in_memory`, mtime, size) |
+| `onto_cache_remove` | Remove a cached ontology by `name` (pass `delete_file=false` to keep the on-disk N-Triples) |
+| `onto_repo_list` | List RDF/OWL files in configured `[general] ontology_dirs` directories |
+| `onto_repo_load` | Load an ontology from a configured repo by bare name, relative path, or absolute path |
 
 ## Usage Examples
 

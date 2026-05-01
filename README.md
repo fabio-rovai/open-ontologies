@@ -639,6 +639,7 @@ The same tool, applied to any ontology, produces the same kind of improvement. T
 | --- | --- | --- |
 | **Core** | `validate` `load` `save` `clear` `stats` `query` `diff` `lint` `convert` `status` | RDF/OWL validation, querying, and management |
 | **Repository** | `repo_list` `repo_load` | Browse and load ontologies from configured `[general] ontology_dirs` directories |
+| **Cache** | `cache_status` `cache_list` `cache_remove` `unload` `recompile` | On-disk N-Triples compile cache, idle-TTL eviction, per-name management ([details](docs/cache-and-registry.md)) |
 | **Marketplace** | `marketplace` | Browse and install 32 standard W3C/ISO/industry ontologies |
 | **Remote** | `pull` `push` `import` | Fetch/push ontologies, resolve owl:imports |
 | **Schema** | `import-schema` | PostgreSQL → OWL conversion |
