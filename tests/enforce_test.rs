@@ -181,7 +181,7 @@ fn test_enforce_compliance_score() {
     let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
 
     let score = parsed["compliance"].as_f64().unwrap();
-    assert!(score >= 0.0 && score <= 1.0);
+    assert!((0.0..=1.0).contains(&score));
 }
 
 #[test]
@@ -210,7 +210,7 @@ fn test_enforce_with_feedback_suppression() {
     let result = enforcer.enforce_with_feedback("generic", Some(&db)).unwrap();
     let v: serde_json::Value = serde_json::from_str(&result).unwrap();
     let violations = v["violations"].as_array().unwrap();
-    assert!(violations.len() > 0);
+    assert!(!violations.is_empty());
     assert_eq!(v["suppressed_count"].as_u64().unwrap(), 0);
 
     // Find the entity string for the missing_label violation on Dog

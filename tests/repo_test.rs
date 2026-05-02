@@ -75,7 +75,7 @@ fn glob_filters_filename_only() {
 #[test]
 fn resolve_load_target_by_bare_stem() {
     let (_tmp, repo, expected) = setup_repo();
-    let path = repo::resolve_load_target("animals", &[repo.clone()]).unwrap();
+    let path = repo::resolve_load_target("animals", std::slice::from_ref(&repo)).unwrap();
     assert_eq!(
         std::fs::canonicalize(&path).unwrap(),
         std::fs::canonicalize(&expected).unwrap()
@@ -85,7 +85,7 @@ fn resolve_load_target_by_bare_stem() {
 #[test]
 fn resolve_load_target_by_relative_path() {
     let (_tmp, repo, _) = setup_repo();
-    let path = repo::resolve_load_target("sub/nested.ttl", &[repo.clone()]).unwrap();
+    let path = repo::resolve_load_target("sub/nested.ttl", std::slice::from_ref(&repo)).unwrap();
     assert!(path.ends_with("sub/nested.ttl") || path.ends_with("sub\\nested.ttl"));
 }
 
@@ -95,7 +95,7 @@ fn resolve_load_target_rejects_outside_path() {
     let outside = tempfile::tempdir().unwrap();
     let outside_file = outside.path().join("evil.ttl");
     std::fs::write(&outside_file, SAMPLE_TTL).unwrap();
-    let err = repo::resolve_load_target(outside_file.to_str().unwrap(), &[repo.clone()])
+    let err = repo::resolve_load_target(outside_file.to_str().unwrap(), std::slice::from_ref(&repo))
         .unwrap_err()
         .to_string();
     assert!(err.contains("outside") || err.contains("no file"), "got: {}", err);
@@ -119,7 +119,7 @@ fn resolve_load_target_ambiguous_returns_error() {
 #[test]
 fn resolve_within_repos_rejects_traversal() {
     let (_tmp, repo, _) = setup_repo();
-    let err = repo::resolve_within_repos("/etc", &[repo.clone()])
+    let err = repo::resolve_within_repos("/etc", std::slice::from_ref(&repo))
         .unwrap_err()
         .to_string();
     assert!(err.contains("not under"), "got: {}", err);
@@ -128,7 +128,7 @@ fn resolve_within_repos_rejects_traversal() {
 #[test]
 fn resolve_within_repos_accepts_subdir() {
     let (_tmp, repo, _) = setup_repo();
-    let (resolved, repo_root) = repo::resolve_within_repos("sub", &[repo.clone()]).unwrap();
+    let (resolved, repo_root) = repo::resolve_within_repos("sub", std::slice::from_ref(&repo)).unwrap();
     assert!(resolved.ends_with("sub"));
     assert_eq!(
         std::fs::canonicalize(&repo_root).unwrap(),
@@ -155,7 +155,7 @@ fn registry_loads_path_resolved_from_repo() {
     };
     let registry = Arc::new(OntologyRegistry::new(graph.clone(), db, cfg).unwrap());
 
-    let path = repo::resolve_load_target("vehicles", &[repo.clone()]).unwrap();
+    let path = repo::resolve_load_target("vehicles", std::slice::from_ref(&repo)).unwrap();
     let res = registry
         .load_file(&path.to_string_lossy(), LoadOptions::default())
         .unwrap();

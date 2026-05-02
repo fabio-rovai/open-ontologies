@@ -82,6 +82,7 @@ pub struct OntoRepoLoadInput {
     ///   - a relative path (e.g. `subdir/pizza.ttl`) resolved against the
     ///     configured directories,
     ///   - an absolute path inside one of the configured directories.
+    ///
     /// Paths outside the configured `ontology_dirs` are rejected.
     pub name: String,
     /// Optional registry name override (defaults to the file stem).

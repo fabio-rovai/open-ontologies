@@ -126,7 +126,7 @@ async fn check_consistency_clean() {
     )
     .await;
 
-    assert_eq!(resp["consistent"].as_bool().unwrap(), true);
+    assert!(resp["consistent"].as_bool().unwrap());
     assert_eq!(resp["contradiction_count"].as_u64().unwrap(), 0);
 
     std::fs::remove_file(&sock).ok();

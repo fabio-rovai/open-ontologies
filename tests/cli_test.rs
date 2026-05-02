@@ -264,7 +264,7 @@ fn test_cli_lint_suppression_end_to_end() {
         .output().unwrap();
     assert!(out.status.success());
     let stdout = String::from_utf8_lossy(&out.stdout);
-    let v: serde_json::Value = serde_json::from_str(&stdout.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(stdout.trim()).unwrap();
 
     // Find the entity string for missing_label on Dog
     let issues = v["issues"].as_array().unwrap();
@@ -289,6 +289,6 @@ fn test_cli_lint_suppression_end_to_end() {
         .output().unwrap();
     assert!(out.status.success());
     let stdout = String::from_utf8_lossy(&out.stdout);
-    let v: serde_json::Value = serde_json::from_str(&stdout.trim()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(stdout.trim()).unwrap();
     assert!(v["suppressed_count"].as_u64().unwrap() > 0, "suppressed_count should be > 0 after 3 dismissals");
 }

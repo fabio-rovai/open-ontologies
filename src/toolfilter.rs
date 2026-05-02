@@ -17,18 +17,13 @@ use std::collections::HashSet;
 
 use rmcp::handler::server::tool::ToolRouter;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum Mode {
+    #[default]
     All,
     Allow,
     Deny,
-}
-
-impl Default for Mode {
-    fn default() -> Self {
-        Mode::All
-    }
 }
 
 impl Mode {

@@ -905,7 +905,7 @@ mod tests {
         ).unwrap();
 
         let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
-        assert_eq!(parsed["ok"].as_bool().unwrap(), true);
+        assert!(parsed["ok"].as_bool().unwrap());
 
         // Verify it was stored
         let conn = db.conn();

@@ -25,7 +25,7 @@ pub fn has_rdf_extension(path: &Path) -> bool {
         .and_then(|e| e.to_str())
         .map(|e| {
             let lower = e.to_ascii_lowercase();
-            RDF_EXTENSIONS.iter().any(|x| *x == lower.as_str())
+            RDF_EXTENSIONS.contains(&lower.as_str())
         })
         .unwrap_or(false)
 }

@@ -72,7 +72,7 @@ pub fn resolve_ontology_dirs(cfg: &[String]) -> Vec<std::path::PathBuf> {
     let from_env = std::env::var("OPEN_ONTOLOGIES_ONTOLOGY_DIRS").ok();
     let raw: Vec<String> = match from_env {
         Some(v) if !v.trim().is_empty() => v
-            .split(|c| c == ':' || c == ';')
+            .split([':', ';'])
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty())
             .collect(),

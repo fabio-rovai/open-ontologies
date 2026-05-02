@@ -289,6 +289,7 @@ impl OntologyRegistry {
     /// - If `name` is in the cache but not active, only the on-disk cache is
     ///   touched (since it was never in memory). With `delete_cache=true` the
     ///   cache file and DB row are removed; otherwise this is a no-op.
+    ///
     /// Returns `Ok(true)` if anything was actually changed.
     pub fn unload_named(&self, name: &str, delete_cache: bool) -> Result<bool> {
         let active_name = self.active.lock().unwrap().as_ref().map(|e| e.name.clone());

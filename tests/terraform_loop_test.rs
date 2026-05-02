@@ -56,7 +56,7 @@ fn test_full_terraform_loop() {
     // --- Apply ---
     let apply_result = planner.apply("safe").unwrap();
     let apply_parsed: serde_json::Value = serde_json::from_str(&apply_result).unwrap();
-    assert_eq!(apply_parsed["ok"].as_bool().unwrap(), true);
+    assert!(apply_parsed["ok"].as_bool().unwrap());
     lineage.record(&session, "A", "apply", "safe");
 
     // --- Monitor ---

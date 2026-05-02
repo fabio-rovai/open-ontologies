@@ -143,7 +143,7 @@ fn test_apply_safe_mode() {
     let result = planner.apply("safe").unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
 
-    assert_eq!(parsed["ok"].as_bool().unwrap(), true);
+    assert!(parsed["ok"].as_bool().unwrap());
     // Cat should now be in the store
     let stats = graph.get_stats().unwrap();
     assert!(stats.contains("\"classes\":2") || stats.contains("\"classes\": 2"));
@@ -214,5 +214,5 @@ fn test_lock_prevents_plan() {
 
     let plan = planner.plan(new_turtle).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&plan).unwrap();
-    assert!(parsed["locked_violations"].as_array().unwrap().len() > 0);
+    assert!(!parsed["locked_violations"].as_array().unwrap().is_empty());
 }
