@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>NAPH Compliance Dashboard — 2026-05-01 13:25 UTC</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 1100px; margin: 0 auto; padding: 1.5em; color: #1a1a2a; line-height: 1.5;
+         background: #f6f7fa; }
+  header { background: #1a2a3a; color: white; padding: 1.5em 2em; margin: -1.5em -1.5em 1.5em -1.5em; }
+  header h1 { margin: 0 0 0.4em 0; font-size: 1.6em; }
+  header p { margin: 0; opacity: 0.85; font-size: 0.9em; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1em; }
+  .card { background: white; border-radius: 0.5em; padding: 1.2em; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .card h2 { margin: 0 0 0.6em 0; font-size: 1em; color: #444; text-transform: uppercase; letter-spacing: 0.04em; }
+  .stat-large { font-size: 2.4em; font-weight: 600; color: #1a2a3a; line-height: 1; }
+  .stat-label { color: #666; font-size: 0.85em; margin-top: 0.3em; }
+  .tier-box { display: flex; gap: 0.8em; }
+  .tier-cell { flex: 1; text-align: center; padding: 0.8em 0.4em; border-radius: 0.4em;
+               background: #fafafa; }
+  .tier-num { font-size: 1.6em; font-weight: 600; }
+  .tier-pct { color: #666; font-size: 0.8em; }
+  .tier-baseline .tier-num { color: #94a3b8; }
+  .tier-enhanced .tier-num { color: #4a90c2; }
+  .tier-aspirational .tier-num { color: #d97757; }
+  .bar-row { display: flex; align-items: center; gap: 0.6em; margin-bottom: 0.3em; }
+  .bar-label { flex: 0 0 130px; font-size: 0.8em; color: #555; text-align: right; }
+  .bar-track { flex: 1; background: #f0f1f4; border-radius: 0.2em; overflow: hidden; }
+  .bar-fill { background: #4a90c2; color: white; padding: 0.25em 0.4em; font-size: 0.75em;
+              white-space: nowrap; min-width: 1.5em; text-align: right; }
+  .empty { color: #aaa; font-style: italic; font-size: 0.85em; }
+  footer { margin-top: 2em; padding-top: 1em; border-top: 1px solid #ddd;
+            font-size: 0.85em; color: #888; text-align: center; }
+  footer a { color: #4a90c2; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>NAPH Compliance Dashboard</h1>
+  <p>Generated <strong>2026-05-01 13:25 UTC</strong> · Data fetched from <code>http://localhost:7878</code> · NAPH spec v1.0</p>
+</header>
+
+<div class="grid">
+
+  <div class="card">
+    <h2>Total Records</h2>
+    <div class="stat-large">20</div>
+    <div class="stat-label">NAPH-compliant aerial photographs</div>
+  </div>
+
+  <div class="card">
+    <h2>Tier Distribution</h2>
+    <div class="tier-box">
+      <div class="tier-cell tier-baseline">
+        <div class="tier-num">13</div>
+        <div class="stat-label">Baseline</div>
+        <div class="tier-pct">65%</div>
+      </div>
+      <div class="tier-cell tier-enhanced">
+        <div class="tier-num">4</div>
+        <div class="stat-label">Enhanced</div>
+        <div class="tier-pct">20%</div>
+      </div>
+      <div class="tier-cell tier-aspirational">
+        <div class="tier-num">3</div>
+        <div class="stat-label">Aspirational</div>
+        <div class="tier-pct">15%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Year Distribution</h2>
+    <p class='empty'>No data.</p>
+  </div>
+
+  <div class="card">
+    <h2>Collection Code</h2>
+    <div class='bar-row'><span class='bar-label'>RAF</span><div class='bar-track'><div class='bar-fill' style='width:100%'>5</div></div></div>
+<div class='bar-row'><span class='bar-label'>USAAF</span><div class='bar-track'><div class='bar-fill' style='width:20%'>1</div></div></div>
+<div class='bar-row'><span class='bar-label'>USN</span><div class='bar-track'><div class='bar-fill' style='width:20%'>1</div></div></div>
+<div class='bar-row'><span class='bar-label'>USAF</span><div class='bar-track'><div class='bar-fill' style='width:20%'>1</div></div></div>
+<div class='bar-row'><span class='bar-label'>DOS</span><div class='bar-track'><div class='bar-fill' style='width:20%'>1</div></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Rights Distribution</h2>
+    <div class='bar-row'><span class='bar-label'>No Copyright — Other Known Legal Restrictions</span><div class='bar-track'><div class='bar-fill' style='width:100%'>8</div></div></div>
+<div class='bar-row'><span class='bar-label'>No Copyright — United States</span><div class='bar-track'><div class='bar-fill' style='width:75%'>6</div></div></div>
+<div class='bar-row'><span class='bar-label'>Crown Copyright</span><div class='bar-track'><div class='bar-fill' style='width:75%'>6</div></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Aircraft (Enhanced+)</h2>
+    <div class='bar-row'><span class='bar-label'>F-13A</span><div class='bar-track'><div class='bar-fill' style='width:100%'>2</div></div></div>
+<div class='bar-row'><span class='bar-label'>Mosquito PR.IX</span><div class='bar-track'><div class='bar-fill' style='width:100%'>2</div></div></div>
+<div class='bar-row'><span class='bar-label'>Lincoln B.II</span><div class='bar-track'><div class='bar-fill' style='width:100%'>2</div></div></div>
+<div class='bar-row'><span class='bar-label'>Boeing RB-29A Superfortress</span><div class='bar-track'><div class='bar-fill' style='width:50%'>1</div></div></div>
+<div class='bar-row'><span class='bar-label'>Avro Lincoln B.II</span><div class='bar-track'><div class='bar-fill' style='width:50%'>1</div></div></div>
+<div class='bar-row'><span class='bar-label'>Supermarine Spitfire PR.IX</span><div class='bar-track'><div class='bar-fill' style='width:50%'>1</div></div></div>
+<div class='bar-row'><span class='bar-label'>Supermarine Spitfire PR.XIX</span><div class='bar-track'><div class='bar-fill' style='width:50%'>1</div></div></div>
+<div class='bar-row'><span class='bar-label'>de Havilland Mosquito PR.IX</span><div class='bar-track'><div class='bar-fill' style='width:50%'>1</div></div></div>
+<div class='bar-row'><span class='bar-label'>Spitfire PR.IX</span><div class='bar-track'><div class='bar-fill' style='width:50%'>1</div></div></div>
+<div class='bar-row'><span class='bar-label'>Boeing F-13A Superfortress</span><div class='bar-track'><div class='bar-fill' style='width:50%'>1</div></div></div>
+<div class='bar-row'><span class='bar-label'>Spitfire PR.XIX</span><div class='bar-track'><div class='bar-fill' style='width:50%'>1</div></div></div>
+<div class='bar-row'><span class='bar-label'>Anson C.19</span><div class='bar-track'><div class='bar-fill' style='width:50%'>1</div></div></div>
+<div class='bar-row'><span class='bar-label'>Avro Anson C.19</span><div class='bar-track'><div class='bar-fill' style='width:50%'>1</div></div></div>
+<div class='bar-row'><span class='bar-label'>RB-29A</span><div class='bar-track'><div class='bar-fill' style='width:50%'>1</div></div></div>
+  </div>
+
+</div>
+
+<footer>
+  Generated by <code>pipeline/compliance-dashboard.py</code> ·
+  Source: <a href="http://localhost:7878">http://localhost:7878</a> ·
+  <a href="https://w3id.org/naph/ontology">NAPH ontology</a>
+</footer>
+
+</body>
+</html>

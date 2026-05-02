@@ -1,0 +1,107 @@
+# NAPH SPARQL Library — Spatial fallback queries (no GeoSPARQL required)
+#
+# These queries replicate the most common GeoSPARQL spatial operations using
+# only standard SPARQL string and arithmetic functions. They work in any
+# SPARQL 1.1 engine including Oxigraph (which lacks geof:* functions).
+#
+# Trade-offs vs proper GeoSPARQL:
+# - Bounding-box approximation, not true polygon intersection
+# - No CRS transformations (assumes WGS84 throughout)
+# - No distance functions (use point-in-bbox as a proxy)
+# - Performance is comparable for collections <1M records
+
+# =============================================================================
+# Q-FALLBACK-1 — Photographs covering a bounding box
+# =============================================================================
+# Use case: equivalent of geof:sfIntersects when GeoSPARQL is unavailable.
+# Strategy: parse polygon coordinates from WKT string and compare against
+# bounding box numerically.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?label ?wkt
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:coversArea/naph:asWKT ?wkt .
+
+    # Extract bounding box from polygon WKT string
+    # Polygon format: POLYGON((lon1 lat1, lon2 lat2, ...))
+    BIND (REPLACE(STR(?wkt), "POLYGON\\(\\(([^)]+)\\)\\).*", "$1") AS ?coords)
+
+    # Get first lon, first lat as anchor — assumes axis-aligned bbox-shaped polygon
+    BIND (xsd:decimal(STRBEFORE(?coords, " ")) AS ?lon1)
+    BIND (xsd:decimal(STRBEFORE(SUBSTR(?coords, STRLEN(STRBEFORE(?coords, " ")) + 2), ",")) AS ?lat1)
+
+    # Filter — replace these with your target bbox
+    FILTER (?lon1 >= -3.5 && ?lon1 <= -3.0)
+    FILTER (?lat1 >= 55.5 && ?lat1 <= 56.5)
+}
+
+# =============================================================================
+# Q-FALLBACK-2 — Use a separate point-anchor per record (recommended pattern)
+# =============================================================================
+# When ingesting, store the centroid lat/lon as separate properties for fast
+# bounding-box queries. The polygon WKT is for GeoSPARQL-aware downstream;
+# the lat/lon properties are for Oxigraph-compatible filtering.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?photo
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:centroidLat ?lat ;
+           naph:centroidLon ?lon .
+    FILTER (?lat >= 55.94 && ?lat <= 55.97)
+    FILTER (?lon >= -3.21 && ?lon <= -3.16)
+}
+
+# Note: naph:centroidLat / naph:centroidLon are convenience properties added by
+# the ingest pipeline for engines without GeoSPARQL. They duplicate information
+# that's also in the geo:wktLiteral but make filtering trivial.
+
+# =============================================================================
+# Q-FALLBACK-3 — Distance to a point (haversine in SPARQL)
+# =============================================================================
+# Approximate distance using flat-earth geometry. Acceptable for distances
+# up to ~200km; for greater accuracy use a proper haversine implementation
+# in your application code.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?photo ?dist_km
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:centroidLat ?lat ;
+           naph:centroidLon ?lon .
+
+    # Target point: Edinburgh Castle (55.949, -3.200)
+    BIND (?lat - 55.949 AS ?dlat)
+    BIND ((?lon - -3.200) * 0.564 AS ?dlon)  # cos(56°) ≈ 0.564
+    BIND (111.111 * SQRT(?dlat * ?dlat + ?dlon * ?dlon) AS ?dist_km)
+    FILTER (?dist_km < 50)
+}
+ORDER BY ?dist_km
+
+# =============================================================================
+# Q-FALLBACK-4 — Polygon intersection (full WKT parsing)
+# =============================================================================
+# For accurate polygon intersection in Oxigraph, parse all polygon corners
+# and run a point-in-polygon test in application code. SPARQL alone cannot
+# robustly do this — recommend Python/JS post-processing.
+
+# Strategy:
+# 1. SPARQL query: SELECT all photos with their WKT
+# 2. Application code: parse WKT, run intersection test, filter
+# 3. (Optional) Cache intersection results in a separate triple as
+#    naph:intersectsRegionX boolean property for repeat queries
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?photo ?wkt
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:coversArea/naph:asWKT ?wkt .
+}
+# Application code performs the actual intersection.

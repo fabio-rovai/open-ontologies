@@ -1,0 +1,139 @@
+# NAPH SPARQL Library — Aggregation queries
+#
+# Collection-level statistics, summaries, and dashboard queries.
+
+# =============================================================================
+# Q-AGG-1 [B] — Collection summary statistics
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT
+    (COUNT(DISTINCT ?photo) AS ?totalRecords)
+    (COUNT(DISTINCT ?sortie) AS ?totalSorties)
+    (COUNT(DISTINCT ?collectionCode) AS ?distinctCollections)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:partOfSortie ?sortie .
+    ?sortie naph:collectionCode ?collectionCode .
+}
+
+# =============================================================================
+# Q-AGG-2 [B] — Records by collection code
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?collectionCode (COUNT(?photo) AS ?count)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:partOfSortie ?sortie .
+    ?sortie naph:collectionCode ?collectionCode .
+}
+GROUP BY ?collectionCode
+ORDER BY DESC(?count)
+
+# =============================================================================
+# Q-AGG-3 [B] — Tier compliance distribution (the dashboard view)
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?tierLabel (COUNT(?photo) AS ?count)
+WHERE {
+    ?photo naph:compliesWithTier ?tier .
+    ?tier rdfs:label ?tierLabel .
+}
+GROUP BY ?tierLabel
+ORDER BY ?tierLabel
+
+# =============================================================================
+# Q-AGG-4 [E] — Records by aircraft type
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?aircraft (COUNT(?photo) AS ?count)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:partOfSortie ?sortie .
+    ?sortie naph:aircraft ?aircraft .
+}
+GROUP BY ?aircraft
+ORDER BY DESC(?count)
+
+# =============================================================================
+# Q-AGG-5 [E] — Records by squadron
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?squadron (COUNT(?photo) AS ?count)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:partOfSortie ?sortie .
+    ?sortie naph:squadron ?squadron .
+}
+GROUP BY ?squadron
+ORDER BY DESC(?count)
+
+# =============================================================================
+# Q-AGG-6 [B] — Records by capture orientation
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?orientation (COUNT(?photo) AS ?count)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:captureOrientation ?orientation .
+}
+GROUP BY ?orientation
+
+# =============================================================================
+# Q-AGG-7 [E] — Records by film stock
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?filmStock (COUNT(?photo) AS ?count)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:filmStock ?filmStock .
+}
+GROUP BY ?filmStock
+
+# =============================================================================
+# Q-AGG-8 [B] — Average altitude by aircraft type
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?aircraft (AVG(?altitude) AS ?avgAltitude) (COUNT(?photo) AS ?count)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:partOfSortie ?sortie ;
+           naph:hasCaptureEvent ?capture .
+    ?sortie naph:aircraft ?aircraft .
+    ?capture naph:flightAltitude ?altitude .
+}
+GROUP BY ?aircraft
+ORDER BY DESC(?avgAltitude)
+
+# =============================================================================
+# Q-AGG-9 [B] — Decade × collection code matrix
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?decade ?collectionCode (COUNT(?photo) AS ?count)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:capturedOn ?date ;
+           naph:partOfSortie ?sortie .
+    ?sortie naph:collectionCode ?collectionCode .
+    BIND (CONCAT(SUBSTR(STR(?date), 1, 3), "0s") AS ?decade)
+}
+GROUP BY ?decade ?collectionCode
+ORDER BY ?decade ?collectionCode

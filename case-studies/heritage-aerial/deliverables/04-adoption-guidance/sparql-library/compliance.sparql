@@ -1,0 +1,131 @@
+# NAPH SPARQL Library — Compliance and validation queries
+#
+# Tier compliance and self-assessment queries.
+
+# =============================================================================
+# Q-COMP-1 [B] — Tier distribution (dashboard query)
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?tierLabel (COUNT(?photo) AS ?count)
+WHERE {
+    ?photo naph:compliesWithTier ?tier .
+    ?tier rdfs:label ?tierLabel .
+}
+GROUP BY ?tierLabel
+
+# =============================================================================
+# Q-COMP-2 [B] — Records claiming tier without meeting requirements
+# =============================================================================
+# Use case: data-quality audit — records with inconsistent tier claims.
+# Note: SHACL is the canonical validator; this is a quick SPARQL check.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?photo ?tier
+WHERE {
+    ?photo naph:compliesWithTier naph:TierEnhanced .
+    FILTER NOT EXISTS { ?photo naph:hasDigitalSurrogate ?surrogate }
+}
+
+# =============================================================================
+# Q-COMP-3 [B] — Records missing required fields for Baseline
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?photo (GROUP_CONCAT(?missing; SEPARATOR=", ") AS ?missingFields)
+WHERE {
+    ?photo a naph:AerialPhotograph .
+
+    # Each missing field is a separate FILTER NOT EXISTS
+    {
+        FILTER NOT EXISTS { ?photo naph:hasIdentifier ?id }
+        BIND ("hasIdentifier" AS ?missing)
+    } UNION {
+        FILTER NOT EXISTS { ?photo naph:capturedOn ?date }
+        BIND ("capturedOn" AS ?missing)
+    } UNION {
+        FILTER NOT EXISTS { ?photo naph:coversArea ?footprint }
+        BIND ("coversArea" AS ?missing)
+    } UNION {
+        FILTER NOT EXISTS { ?photo naph:hasRightsStatement ?rights }
+        BIND ("hasRightsStatement" AS ?missing)
+    } UNION {
+        FILTER NOT EXISTS { ?photo naph:partOfSortie ?sortie }
+        BIND ("partOfSortie" AS ?missing)
+    }
+}
+GROUP BY ?photo
+
+# =============================================================================
+# Q-COMP-4 [E] — Records claiming Enhanced but missing capture context
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?photo
+WHERE {
+    ?photo naph:compliesWithTier naph:TierEnhanced .
+    FILTER NOT EXISTS { ?photo naph:hasCaptureEvent ?capture }
+}
+
+# =============================================================================
+# Q-COMP-5 [A] — Aspirational records missing subject classification
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?photo
+WHERE {
+    ?photo naph:compliesWithTier naph:TierAspirational .
+    FILTER NOT EXISTS { ?photo naph:depicts ?subject }
+}
+
+# =============================================================================
+# Q-COMP-6 [A] — Records with broken cross-collection links
+# =============================================================================
+# Use case: identify cross-references that may have moved or been deprecated.
+# Requires runtime URL resolution (not pure SPARQL — use the validation toolkit).
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?photo ?linkedRecord
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:linkedRecord ?linkedRecord .
+}
+# Companion link-health checker required to validate each ?linkedRecord URI
+
+# =============================================================================
+# Q-COMP-7 [B] — Date precision distribution
+# =============================================================================
+# Use case: how many records have full-date vs partial-date precision?
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?precision (COUNT(?photo) AS ?count)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:capturedOn ?date .
+    BIND (DATATYPE(?date) AS ?precision)
+}
+GROUP BY ?precision
+
+# =============================================================================
+# Q-COMP-8 [E] — Surrogate quality distribution
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?fileFormat ?resolution (COUNT(?surrogate) AS ?count)
+WHERE {
+    ?photo naph:hasDigitalSurrogate ?surrogate .
+    ?surrogate naph:fileFormat ?fileFormat ;
+               naph:scanResolution ?resolution .
+}
+GROUP BY ?fileFormat ?resolution
+ORDER BY DESC(?count)

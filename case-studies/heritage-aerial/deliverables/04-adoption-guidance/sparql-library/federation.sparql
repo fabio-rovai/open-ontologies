@@ -1,0 +1,140 @@
+# NAPH SPARQL Library — Federation queries
+#
+# Federated queries that join NAPH-compliant collections with external
+# authorities (Wikidata, GeoNames, Canmore, Pastscape).
+#
+# All federation queries require the SPARQL engine to support SPARQL 1.1
+# Federation (`SERVICE`) AND outbound network access.
+
+# =============================================================================
+# Q-FED-1 [A] — NAPH photographs with Wikidata place enrichment
+# =============================================================================
+# Use case: enrich NAPH place records with multilingual labels and additional
+# context from Wikidata.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+
+SELECT ?photo ?placeLabel ?wikidataLabel ?wikidataDescription
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:depicts ?place .
+    ?place rdfs:label ?placeLabel ;
+           skos:exactMatch ?wikidataIRI .
+
+    SERVICE <https://query.wikidata.org/sparql> {
+        ?wikidataIRI rdfs:label ?wikidataLabel ;
+                     <http://schema.org/description> ?wikidataDescription .
+        FILTER (LANG(?wikidataLabel) = "en")
+        FILTER (LANG(?wikidataDescription) = "en")
+    }
+}
+
+# =============================================================================
+# Q-FED-2 [A] — NAPH places enriched with GeoNames hierarchy
+# =============================================================================
+# Use case: get the full administrative hierarchy for places mentioned in NAPH.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX gn: <http://www.geonames.org/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?placeLabel ?country ?adminRegion
+WHERE {
+    ?place a naph:Place ;
+           rdfs:label ?placeLabel ;
+           naph:placeAuthorityURI ?gnURI .
+
+    SERVICE <http://factforge.net/repositories/ff-news> {
+        ?gnURI gn:countryCode ?country ;
+               gn:parentADM1 ?adminRegion .
+    }
+}
+
+# =============================================================================
+# Q-FED-3 [A] — Cross-reference with Canmore monument records
+# =============================================================================
+# Use case: link NAPH aerial coverage to Canmore monument records (Scotland).
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?photo ?canmoreLink ?monumentName
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:linkedRecord ?canmoreLink .
+    FILTER (CONTAINS(STR(?canmoreLink), "canmore.org.uk"))
+
+    # Where Canmore exposes a SPARQL endpoint, query it (currently they don't —
+    # this is illustrative)
+    OPTIONAL {
+        SERVICE <https://canmore.org.uk/sparql> {
+            ?canmoreLink rdfs:label ?monumentName .
+        }
+    }
+}
+
+# =============================================================================
+# Q-FED-4 [A] — NAPH historic events with Wikidata event details
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+
+SELECT ?event ?eventLabel ?startDate ?endDate ?location
+WHERE {
+    ?event a naph:HistoricEvent ;
+           rdfs:label ?eventLabel ;
+           skos:exactMatch ?wikidataIRI .
+
+    SERVICE <https://query.wikidata.org/sparql> {
+        OPTIONAL { ?wikidataIRI wdt:P580 ?startDate }  # start time
+        OPTIONAL { ?wikidataIRI wdt:P582 ?endDate }    # end time
+        OPTIONAL { ?wikidataIRI wdt:P276 ?locationIRI }  # location
+        OPTIONAL { ?locationIRI rdfs:label ?location . FILTER (LANG(?location) = "en") }
+    }
+}
+
+# =============================================================================
+# Q-FED-5 [A] — Multi-collection federation
+# =============================================================================
+# Use case: federate query across NAPH-compliant collections at multiple
+# institutions to produce a sector-wide view.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?institution ?count
+WHERE {
+    {
+        SELECT ("NCAP" AS ?institution) (COUNT(?photo) AS ?count)
+        WHERE {
+            SERVICE <https://sparql.ncap.org/> {
+                ?photo a naph:AerialPhotograph .
+            }
+        }
+    } UNION {
+        SELECT ("IWM" AS ?institution) (COUNT(?photo) AS ?count)
+        WHERE {
+            SERVICE <https://sparql.iwm.org.uk/> {
+                ?photo a naph:AerialPhotograph .
+            }
+        }
+    } UNION {
+        SELECT ("RAF Museum" AS ?institution) (COUNT(?photo) AS ?count)
+        WHERE {
+            SERVICE <https://sparql.rafmuseum.org/> {
+                ?photo a naph:AerialPhotograph .
+            }
+        }
+    }
+}
+ORDER BY DESC(?count)
+
+# Note: actual NAPH-compliant SPARQL endpoints don't exist yet — the URIs in
+# Q-FED-5 are illustrative. As institutions adopt NAPH and expose endpoints,
+# this query becomes operational.

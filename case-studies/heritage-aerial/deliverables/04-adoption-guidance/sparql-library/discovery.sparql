@@ -1,0 +1,145 @@
+# NAPH SPARQL Library — Discovery queries
+#
+# Find records by metadata criteria. All queries assume the standard prefixes
+# from sparql-library/README.md.
+
+# =============================================================================
+# Q-DISC-1 [B] — All photographs in the collection (sanity check)
+# =============================================================================
+# Use case: confirm the collection has been loaded; baseline sanity check.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?label
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label .
+}
+ORDER BY ?label
+LIMIT 100
+
+# =============================================================================
+# Q-DISC-2 [B] — Photographs from a specific sortie
+# =============================================================================
+# Use case: locate all frames captured during a single mission.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?label ?frameNumber
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:partOfSortie ?sortie ;
+           naph:frameNumber ?frameNumber .
+    ?sortie naph:sortieReference "RAF/106G/UK/1655" .
+}
+ORDER BY ?frameNumber
+
+# =============================================================================
+# Q-DISC-3 [B] — Photographs by collection code
+# =============================================================================
+# Use case: filter by institutional collection prefix (RAF, NARA, DOS, etc.)
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?label ?sortieRef
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:partOfSortie ?sortie .
+    ?sortie naph:collectionCode "RAF" ;
+            naph:sortieReference ?sortieRef .
+}
+ORDER BY ?sortieRef
+
+# =============================================================================
+# Q-DISC-4 [E] — Photographs captured by a specific aircraft type
+# =============================================================================
+# Use case: research filtering by capture platform.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?label ?aircraft
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:partOfSortie ?sortie .
+    ?sortie naph:aircraft ?aircraft .
+    FILTER (CONTAINS(?aircraft, "Mosquito"))
+}
+
+# =============================================================================
+# Q-DISC-5 [E] — Photographs captured at altitude range
+# =============================================================================
+# Use case: filter by altitude (e.g. for resolution / GSD studies).
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?label ?altitude
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:hasCaptureEvent ?capture .
+    ?capture naph:flightAltitude ?altitude .
+    FILTER (?altitude >= 5000 && ?altitude <= 10000)
+}
+ORDER BY DESC(?altitude)
+
+# =============================================================================
+# Q-DISC-6 [A] — Photographs depicting a specific place
+# =============================================================================
+# Use case: find all aerial coverage of a named location (Aspirational tier).
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?label ?date
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:capturedOn ?date ;
+           naph:depicts ?place .
+    ?place skos:exactMatch <https://www.wikidata.org/wiki/Q212065> .  # Edinburgh Castle
+}
+ORDER BY ?date
+
+# =============================================================================
+# Q-DISC-7 [A] — Photographs related to a specific historic event
+# =============================================================================
+# Use case: find aerial imagery documenting a particular event.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?label ?date ?wikidata
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:capturedOn ?date ;
+           naph:relatedToEvent ?event .
+    ?event skos:exactMatch ?wikidata .
+    FILTER (CONTAINS(STR(?wikidata), "wikidata.org"))
+}
+ORDER BY ?date
+
+# =============================================================================
+# Q-DISC-8 [E] — Photographs captured by a specific squadron
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?label
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:partOfSortie ?sortie .
+    ?sortie naph:squadron "540 Squadron" .
+}

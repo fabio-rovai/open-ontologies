@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>NAPH Validation Report — 2026-05-01 14:27 UTC</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          max-width: 980px; margin: 2em auto; padding: 0 1em; color: #1a1a1a; line-height: 1.5; }
+  h1 { border-bottom: 2px solid #333; padding-bottom: 0.3em; }
+  h2 { margin-top: 2em; border-bottom: 1px solid #ccc; padding-bottom: 0.2em; }
+  h3 { margin-top: 1.5em; color: #444; }
+  .meta { color: #666; font-size: 0.9em; margin: 0.2em 0; }
+  .status { display: inline-block; padding: 0.2em 0.8em; border-radius: 0.3em;
+             font-weight: 600; }
+  .pass { background: #d4f4dd; color: #1a5f2a; }
+  .fail { background: #fcd7d7; color: #7a1f1f; }
+  table { border-collapse: collapse; width: 100%; margin-top: 0.5em; }
+  th, td { text-align: left; padding: 0.4em 0.6em; border-bottom: 1px solid #ddd;
+            font-size: 0.9em; }
+  th { background: #f4f4f6; font-weight: 600; }
+  td { word-break: break-word; }
+  .cq { margin-bottom: 1.5em; padding: 1em; background: #fafafa; border-left: 3px solid #4a90c2; }
+  footer { margin-top: 3em; color: #888; font-size: 0.85em; border-top: 1px solid #eee; padding-top: 1em; }
+</style>
+</head>
+<body>
+
+<h1>NAPH Validation Report</h1>
+<p class="meta">Generated <strong>2026-05-01 14:27 UTC</strong> · National Aerial Photography Heritage Ontology · v0.1</p>
+
+<h2>Summary</h2>
+<ul>
+  <li>Ontology: <code>ontology/naph-core.ttl</code></li>
+  <li>Shapes: <code>ontology/naph-shapes.ttl</code></li>
+  <li>Sample data: <code>data/sample-photographs.ttl</code> (10 records)</li>
+  <li>SHACL conformance: <span class="status pass">CONFORMS ✓</span> (violations: <strong>0</strong>)</li>
+</ul>
+
+<h2>SHACL Validation</h2>
+<p class="meta">Each photograph validated against tier-specific shapes (Baseline / Enhanced / Aspirational), DigitalSurrogate quality requirements, and Place authority shape.</p>
+<p class="status pass">All records conform to declared tier compliance.</p>
+
+<h2>Competency Question Verification</h2>
+<p class="meta">Each question is a research workflow that the standard enables. Results below are run live against the sample dataset.</p>
+
+<section class="cq"><h3>CQ1: WWII temporal range — photos captured 1939-09 to 1945-09</h3><p class="meta">5 results</p><table><thead><tr><th>photo</th><th>label</th><th>date</th></tr></thead><tbody><tr><td>&lt;https://w3id.org/naph/example/photo-008&gt;</td><td>"Peenemünde rocket research facility frame 0413"</td><td>"1943-06-23"^^&lt;http://www.w3.org/2001/XMLSchema#date&gt;</td></tr><tr><td>&lt;https://w3id.org/naph/example/photo-004&gt;</td><td>"Hamburg post-firestorm frame 1287"</td><td>"1943-07-30"^^&lt;http://www.w3.org/2001/XMLSchema#date&gt;</td></tr><tr><td>&lt;https://w3id.org/naph/example/photo-001&gt;</td><td>"Berlin reconnaissance frame 4023"</td><td>"1944-03-28"^^&lt;http://www.w3.org/2001/XMLSchema#date&gt;</td></tr><tr><td>&lt;https://w3id.org/naph/example/photo-003&gt;</td><td>"Saipan coastline frame 0218"</td><td>"1944-08-12"^^&lt;http://www.w3.org/2001/XMLSchema#date&gt;</td></tr><tr><td>&lt;https://w3id.org/naph/example/photo-010&gt;</td><td>"Hiroshima post-detonation assessment frame 0034"</td><td>"1945-08-11"^^&lt;http://www.w3.org/2001/XMLSchema#date&gt;</td></tr></tbody></table></section><section class="cq"><h3>CQ3: Open rights — photos available for open-access publication</h3><p class="meta">7 results</p><table><thead><tr><th>photo</th><th>label</th><th>rightsLabel</th></tr></thead><tbody><tr><td>&lt;https://w3id.org/naph/example/photo-010&gt;</td><td>"Hiroshima post-detonation assessment frame 0034"</td><td>"No Copyright — United States"</td></tr><tr><td>&lt;https://w3id.org/naph/example/photo-009&gt;</td><td>"Edinburgh Castle and Royal Mile frame 2287"</td><td>"No Copyright — Other Known Legal Restrictions"</td></tr><tr><td>&lt;https://w3id.org/naph/example/photo-008&gt;</td><td>"Peenemünde rocket research facility frame 0413"</td><td>"No Copyright — Other Known Legal Restrictions"</td></tr><tr><td>&lt;https://w3id.org/naph/example/photo-006&gt;</td><td>"Pyongyang industrial district frame 0892"</td><td>"No Copyright — United States"</td></tr><tr><td>&lt;https://w3id.org/naph/example/photo-004&gt;</td><td>"Hamburg post-firestorm frame 1287"</td><td>"No Copyright — Other Known Legal Restrictions"</td></tr><tr><td>&lt;https://w3id.org/naph/example/photo-003&gt;</td><td>"Saipan coastline frame 0218"</td><td>"No Copyright — United States"</td></tr><tr><td>&lt;https://w3id.org/naph/example/photo-001&gt;</td><td>"Berlin reconnaissance frame 4023"</td><td>"No Copyright — Other Known Legal Restrictions"</td></tr></tbody></table></section><section class="cq"><h3>CQ4: Wikidata event linkage — photos linked to historic events</h3><p class="meta">2 results</p><table><thead><tr><th>photo</th><th>label</th><th>wikidata</th></tr></thead><tbody><tr><td>&lt;https://w3id.org/naph/example/photo-010&gt;</td><td>"Hiroshima post-detonation assessment frame 0034"</td><td>&lt;https://www.wikidata.org/wiki/Q703203&gt;</td></tr><tr><td>&lt;https://w3id.org/naph/example/photo-008&gt;</td><td>"Peenemünde rocket research facility frame 0413"</td><td>&lt;https://www.wikidata.org/wiki/Q174640&gt;</td></tr></tbody></table></section><section class="cq"><h3>CQ5: NARA partnership audit — provenance via US National Archives</h3><p class="meta">2 results</p><table><thead><tr><th>photo</th><th>label</th><th>chainLabel</th></tr></thead><tbody><tr><td>&lt;https://w3id.org/naph/example/photo-010&gt;</td><td>"Hiroshima post-detonation assessment frame 0034"</td><td>"USAAF 1945 → US Strategic Bombing Survey → NARA → NCAP digitisation partnership 2016"</td></tr><tr><td>&lt;https://w3id.org/naph/example/photo-006&gt;</td><td>"Pyongyang industrial district frame 0892"</td><td>"USAF 1951 → NARA accession → NCAP digitisation partnership 2016"</td></tr></tbody></table></section><section class="cq"><h3>CQ6: Tier compliance distribution</h3><p class="meta">3 results</p><table><thead><tr><th>tierLabel</th><th>count</th></tr></thead><tbody><tr><td>"Enhanced"</td><td>"4"^^&lt;http://www.w3.org/2001/XMLSchema#integer&gt;</td></tr><tr><td>"Baseline"</td><td>"3"^^&lt;http://www.w3.org/2001/XMLSchema#integer&gt;</td></tr><tr><td>"Aspirational"</td><td>"3"^^&lt;http://www.w3.org/2001/XMLSchema#integer&gt;</td></tr></tbody></table></section><section class="cq"><h3>CQ8: Capture-context filter — Spitfire above 6000m</h3><p class="meta">2 results</p><table><thead><tr><th>photo</th><th>label</th><th>altitude</th></tr></thead><tbody><tr><td>&lt;https://w3id.org/naph/example/photo-009&gt;</td><td>"Edinburgh Castle and Royal Mile frame 2287"</td><td>"6096"^^&lt;http://www.w3.org/2001/XMLSchema#decimal&gt;</td></tr><tr><td>&lt;https://w3id.org/naph/example/photo-004&gt;</td><td>"Hamburg post-firestorm frame 1287"</td><td>"9144"^^&lt;http://www.w3.org/2001/XMLSchema#decimal&gt;</td></tr></tbody></table></section><section class="cq"><h3>CQ7: High-research-value subset — post-1944 + Place + open rights</h3><p class="meta">2 results</p><table><thead><tr><th>photo</th><th>label</th></tr></thead><tbody><tr><td>&lt;https://w3id.org/naph/example/photo-010&gt;</td><td>"Hiroshima post-detonation assessment frame 0034"</td></tr><tr><td>&lt;https://w3id.org/naph/example/photo-009&gt;</td><td>"Edinburgh Castle and Royal Mile frame 2287"</td></tr></tbody></table></section>
+
+<footer>
+  <p><strong>NAPH</strong> — National Aerial Photography Heritage Ontology · case study under the Towards a National Collection / N-RICH Prototype framework.</p>
+  <p>Built with <a href="https://github.com/fabio-rovai/open-ontologies">Open Ontologies</a>. Data illustrative; modeled on publicly known NCAP collection structure.</p>
+  <p>© Kampakis and Co Ltd, trading as The Tesseract Academy. Ontology released under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+</footer>
+
+</body>
+</html>

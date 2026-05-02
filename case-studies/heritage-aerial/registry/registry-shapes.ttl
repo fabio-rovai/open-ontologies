@@ -1,0 +1,164 @@
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix naph:    <https://w3id.org/naph/ontology#> .
+@prefix dcat:    <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix reg:     <https://w3id.org/naph/registry#> .
+
+# =============================================================================
+# Registry Submission Shapes
+#
+# Validates compliance declaration submissions against the registry's
+# requirements before a PR can be merged.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Institution shape — a custodial institution must have minimal contact info
+# -----------------------------------------------------------------------------
+
+reg:InstitutionShape a sh:NodeShape ;
+    sh:targetClass naph:CustodialInstitution ;
+    sh:name "Registry institution requirements" ;
+
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Institution must have a label (full institutional name)."
+    ] ;
+
+    sh:property [
+        sh:path foaf:homepage ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:message "Institution must have a homepage URL."
+    ] ;
+
+    sh:property [
+        sh:path reg:compliancePointOfContact ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[^@]+@[^@]+\\.[^@]+$" ;
+        sh:message "Institution must declare a compliance point of contact (email)."
+    ] ;
+
+    sh:property [
+        sh:path reg:countryCode ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[A-Z]{2}$" ;
+        sh:message "Country code must be ISO 3166-1 alpha-2 (2 uppercase letters)."
+    ] .
+
+# -----------------------------------------------------------------------------
+# Collection submission shape
+# -----------------------------------------------------------------------------
+
+reg:CollectionSubmissionShape a sh:NodeShape ;
+    sh:targetClass naph:Collection ;
+    sh:name "Registry collection submission requirements" ;
+
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:message "Collection must have a label."
+    ] ;
+
+    sh:property [
+        sh:path dcterms:description ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 50 ;
+        sh:maxLength 2000 ;
+        sh:message "Collection must have a description (50-2000 chars)."
+    ] ;
+
+    sh:property [
+        sh:path naph:custodian ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:message "Collection must declare a custodian institution."
+    ] ;
+
+    sh:property [
+        sh:path reg:naphSpecVersion ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ("1.0") ;
+        sh:message "naphSpecVersion must match a known NAPH version."
+    ] ;
+
+    sh:property [
+        sh:path reg:declaredAt ;
+        sh:minCount 1 ;
+        sh:datatype xsd:date ;
+        sh:message "Declaration must include a declaredAt date."
+    ] ;
+
+    sh:property [
+        sh:path reg:totalRecords ;
+        sh:minCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+        sh:message "Collection must declare totalRecords."
+    ] ;
+
+    sh:property [
+        sh:path reg:tierBaselineCount ;
+        sh:minCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+        sh:message "Collection must declare tierBaselineCount."
+    ] ;
+
+    sh:property [
+        sh:path reg:tierEnhancedCount ;
+        sh:minCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+        sh:message "Collection must declare tierEnhancedCount."
+    ] ;
+
+    sh:property [
+        sh:path reg:tierAspirationalCount ;
+        sh:minCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+        sh:message "Collection must declare tierAspirationalCount."
+    ] ;
+
+    sh:property [
+        sh:path reg:bulkDownloadURL ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:message "Collection must declare a bulk download URL."
+    ] ;
+
+    sh:property [
+        sh:path reg:validationReportURL ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:message "Collection must declare a validation report URL."
+    ] ;
+
+    sh:property [
+        sh:path reg:validationReportDate ;
+        sh:minCount 1 ;
+        sh:datatype xsd:date ;
+        sh:message "Collection must declare validationReportDate."
+    ] ;
+
+    sh:property [
+        sh:path reg:dominantSubProfile ;
+        sh:minCount 1 ;
+        sh:in (
+            reg:Reconnaissance
+            reg:Satellite
+            reg:UAV
+            reg:Photogrammetric
+            reg:AerialArchaeology
+            reg:Mixed
+        ) ;
+        sh:message "Collection must declare a dominantSubProfile."
+    ] .

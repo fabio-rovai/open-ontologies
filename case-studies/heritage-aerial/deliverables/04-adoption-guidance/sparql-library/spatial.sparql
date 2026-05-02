@@ -1,0 +1,161 @@
+# NAPH SPARQL Library — Spatial queries
+#
+# Geographic filtering and intersection queries. Most require GeoSPARQL
+# function support (Apache Jena Fuseki, GraphDB, Stardog). Oxigraph DOES NOT
+# support these GeoSPARQL functions.
+
+# =============================================================================
+# Q-SPAT-1 [B + GeoSPARQL] — Photographs covering a polygon
+# =============================================================================
+# Use case: find all aerial coverage of a defined area (e.g. central Edinburgh).
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?label ?date
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:capturedOn ?date ;
+           naph:coversArea/naph:asWKT ?wkt .
+    FILTER (geof:sfIntersects(?wkt,
+        "POLYGON((-3.21 55.94, -3.16 55.94, -3.16 55.97, -3.21 55.97, -3.21 55.94))"^^geo:wktLiteral
+    ))
+}
+ORDER BY ?date
+
+# =============================================================================
+# Q-SPAT-2 [B + GeoSPARQL] — Photographs near a point (within distance)
+# =============================================================================
+# Use case: find aerial coverage within X km of a specific point.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+
+SELECT ?photo ?distance
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:coversArea/naph:asWKT ?wkt .
+    BIND (geof:distance(
+        geof:centroid(?wkt),
+        "POINT(-3.188 55.953)"^^geo:wktLiteral,
+        <http://www.opengis.net/def/uom/OGC/1.0/metre>
+    ) AS ?distance)
+    FILTER (?distance <= 5000)  # 5 km
+}
+ORDER BY ?distance
+
+# =============================================================================
+# Q-SPAT-3 [B + GeoSPARQL] — Photographs within a country boundary
+# =============================================================================
+# Use case: filter to a specific country (assumes country boundary loaded
+# as a separate WKT).
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+
+SELECT ?photo
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:coversArea/naph:asWKT ?wkt .
+    ?country a ex:Country ;
+             rdfs:label "Scotland" ;
+             ex:boundary ?countryWKT .
+    FILTER (geof:sfWithin(?wkt, ?countryWKT))
+}
+
+# =============================================================================
+# Q-SPAT-4 [E] — Photographs covering a polygon (Oxigraph-compatible fallback)
+# =============================================================================
+# Use case: same as Q-SPAT-1 but using bounding-box numeric comparison
+# instead of GeoSPARQL function. Works in any SPARQL engine.
+# Trade-off: only finds records where stored polygon coordinates fall
+# within the bounding box, not true polygon intersection.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?label ?date ?wkt
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:capturedOn ?date ;
+           naph:coversArea ?footprint .
+    ?footprint naph:asWKT ?wkt .
+    # Note: stricter than full GeoSPARQL — requires substring match against
+    # known coordinates. Useful only for sanity checks, not analytical queries.
+    FILTER (CONTAINS(STR(?wkt), "55.94") || CONTAINS(STR(?wkt), "55.95"))
+}
+
+# =============================================================================
+# Q-SPAT-5 [B + GeoSPARQL] — Stereo overlap detection
+# =============================================================================
+# Use case: find adjacent frames with overlapping footprints (potential
+# stereo pairs).
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+
+SELECT ?photo1 ?photo2 ?overlapArea
+WHERE {
+    ?photo1 a naph:AerialPhotograph ;
+            naph:partOfSortie ?sortie ;
+            naph:coversArea/naph:asWKT ?wkt1 ;
+            naph:frameNumber ?fn1 .
+    ?photo2 a naph:AerialPhotograph ;
+            naph:partOfSortie ?sortie ;
+            naph:coversArea/naph:asWKT ?wkt2 ;
+            naph:frameNumber ?fn2 .
+    FILTER (?fn2 = ?fn1 + 1)  # adjacent frames
+    BIND (geof:area(geof:intersection(?wkt1, ?wkt2)) AS ?overlapArea)
+    FILTER (?overlapArea > 0)
+}
+
+# =============================================================================
+# Q-SPAT-6 [B + GeoSPARQL] — All aerial coverage of a location across decades
+# =============================================================================
+# Use case: change-detection over time at a fixed location.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?date ?label
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:capturedOn ?date ;
+           naph:coversArea/naph:asWKT ?wkt .
+    FILTER (geof:sfIntersects(?wkt,
+        "POINT(-3.188 55.953)"^^geo:wktLiteral
+    ))
+}
+ORDER BY ?date
+
+# =============================================================================
+# Q-SPAT-7 [A + GeoSPARQL] — Density of aerial coverage per area
+# =============================================================================
+# Use case: identify areas with dense vs sparse aerial heritage coverage.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+
+SELECT ?country (COUNT(?photo) AS ?coverageCount)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:coversArea/naph:asWKT ?wkt .
+    ?country a ex:Country ;
+             rdfs:label ?countryLabel ;
+             ex:boundary ?countryWKT .
+    FILTER (geof:sfIntersects(?wkt, ?countryWKT))
+    BIND (?countryLabel AS ?country)
+}
+GROUP BY ?country
+ORDER BY DESC(?coverageCount)

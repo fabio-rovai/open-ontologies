@@ -1,0 +1,1756 @@
+{
+  "@context": "http://iiif.io/api/presentation/3/context.json",
+  "type": "Collection",
+  "id": "https://w3id.org/naph/example/collection/manifest",
+  "label": {
+    "en": [
+      "NAPH sample collection"
+    ]
+  },
+  "items": [
+    {
+      "@context": "http://iiif.io/api/presentation/3/context.json",
+      "id": "https://w3id.org/naph/photo/RAF-106G-UK-1655-4023/manifest",
+      "type": "Manifest",
+      "label": {
+        "en": [
+          "Berlin reconnaissance frame 4023"
+        ]
+      },
+      "metadata": [
+        {
+          "label": {
+            "en": [
+              "Identifier"
+            ]
+          },
+          "value": {
+            "en": [
+              "https://w3id.org/naph/photo/RAF-106G-UK-1655-4023"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Date captured"
+            ]
+          },
+          "value": {
+            "en": [
+              "1944-03-28"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Sortie"
+            ]
+          },
+          "value": {
+            "en": [
+              "RAF/106G/UK/1655"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Tier compliance"
+            ]
+          },
+          "value": {
+            "en": [
+              "TierBaseline"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Geographic footprint (WKT)"
+            ]
+          },
+          "value": {
+            "en": [
+              "POLYGON((13.35 52.50, 13.45 52.50, 13.45 52.55, 13.35 52.55, 13.35 52.50))"
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "en": [
+          "Aerial photograph captured 1944-03-28. NAPH tier compliance: TierBaseline."
+        ]
+      },
+      "rights": "http://rightsstatements.org/vocab/NoC-OKLR/1.0/",
+      "requiredStatement": {
+        "label": {
+          "en": [
+            "Attribution"
+          ]
+        },
+        "value": {
+          "en": [
+            "No Copyright — Other Known Legal Restrictions — National Collection of Aerial Photography"
+          ]
+        }
+      },
+      "items": [
+        {
+          "id": "https://w3id.org/naph/photo/RAF-106G-UK-1655-4023/canvas/1",
+          "type": "Canvas",
+          "label": {
+            "en": [
+              "Berlin reconnaissance frame 4023"
+            ]
+          },
+          "height": 4096,
+          "width": 4096,
+          "items": [
+            {
+              "id": "https://w3id.org/naph/photo/RAF-106G-UK-1655-4023/canvas/1/page",
+              "type": "AnnotationPage",
+              "items": [
+                {
+                  "id": "https://w3id.org/naph/photo/RAF-106G-UK-1655-4023/anno/1",
+                  "type": "Annotation",
+                  "motivation": "painting",
+                  "target": "https://w3id.org/naph/photo/RAF-106G-UK-1655-4023/canvas/1",
+                  "body": {
+                    "id": "https://w3id.org/naph/photo/RAF-106G-UK-1655-4023/full/full/0/default.jpg",
+                    "type": "Image",
+                    "format": "image/jpeg",
+                    "service": [
+                      {
+                        "id": "https://w3id.org/naph/photo/RAF-106G-UK-1655-4023",
+                        "type": "ImageService3",
+                        "profile": "level2"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "seeAlso": [
+        {
+          "id": "https://w3id.org/naph/example/photo-001",
+          "type": "Dataset",
+          "format": "text/turtle",
+          "profile": "https://w3id.org/naph/ontology",
+          "label": {
+            "en": [
+              "NAPH RDF representation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "@context": "http://iiif.io/api/presentation/3/context.json",
+      "id": "https://w3id.org/naph/photo/CPE-SCOT-UK-216-5142/manifest",
+      "type": "Manifest",
+      "label": {
+        "en": [
+          "Edinburgh city centre frame 5142"
+        ]
+      },
+      "metadata": [
+        {
+          "label": {
+            "en": [
+              "Identifier"
+            ]
+          },
+          "value": {
+            "en": [
+              "https://w3id.org/naph/photo/CPE-SCOT-UK-216-5142"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Date captured"
+            ]
+          },
+          "value": {
+            "en": [
+              "1947-06-15"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Sortie"
+            ]
+          },
+          "value": {
+            "en": [
+              "CPE/SCOT/UK/216"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Tier compliance"
+            ]
+          },
+          "value": {
+            "en": [
+              "TierBaseline"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Geographic footprint (WKT)"
+            ]
+          },
+          "value": {
+            "en": [
+              "POLYGON((-3.21 55.94, -3.16 55.94, -3.16 55.97, -3.21 55.97, -3.21 55.94))"
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "en": [
+          "Aerial photograph captured 1947-06-15. NAPH tier compliance: TierBaseline."
+        ]
+      },
+      "rights": "https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/",
+      "requiredStatement": {
+        "label": {
+          "en": [
+            "Attribution"
+          ]
+        },
+        "value": {
+          "en": [
+            "Crown Copyright — National Collection of Aerial Photography"
+          ]
+        }
+      },
+      "items": [
+        {
+          "id": "https://w3id.org/naph/photo/CPE-SCOT-UK-216-5142/canvas/1",
+          "type": "Canvas",
+          "label": {
+            "en": [
+              "Edinburgh city centre frame 5142"
+            ]
+          },
+          "height": 4096,
+          "width": 4096,
+          "items": [
+            {
+              "id": "https://w3id.org/naph/photo/CPE-SCOT-UK-216-5142/canvas/1/page",
+              "type": "AnnotationPage",
+              "items": [
+                {
+                  "id": "https://w3id.org/naph/photo/CPE-SCOT-UK-216-5142/anno/1",
+                  "type": "Annotation",
+                  "motivation": "painting",
+                  "target": "https://w3id.org/naph/photo/CPE-SCOT-UK-216-5142/canvas/1",
+                  "body": {
+                    "id": "https://w3id.org/naph/photo/CPE-SCOT-UK-216-5142/full/full/0/default.jpg",
+                    "type": "Image",
+                    "format": "image/jpeg",
+                    "service": [
+                      {
+                        "id": "https://w3id.org/naph/photo/CPE-SCOT-UK-216-5142",
+                        "type": "ImageService3",
+                        "profile": "level2"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "seeAlso": [
+        {
+          "id": "https://w3id.org/naph/example/photo-002",
+          "type": "Dataset",
+          "format": "text/turtle",
+          "profile": "https://w3id.org/naph/ontology",
+          "label": {
+            "en": [
+              "NAPH RDF representation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "@context": "http://iiif.io/api/presentation/3/context.json",
+      "id": "https://w3id.org/naph/photo/USN-VD-1-PAC-1944-08-0218/manifest",
+      "type": "Manifest",
+      "label": {
+        "en": [
+          "Saipan coastline frame 0218"
+        ]
+      },
+      "metadata": [
+        {
+          "label": {
+            "en": [
+              "Identifier"
+            ]
+          },
+          "value": {
+            "en": [
+              "https://w3id.org/naph/photo/USN-VD-1-PAC-1944-08-0218"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Date captured"
+            ]
+          },
+          "value": {
+            "en": [
+              "1944-08-12"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Sortie"
+            ]
+          },
+          "value": {
+            "en": [
+              "USN/VD-1/PAC/1944-08"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Tier compliance"
+            ]
+          },
+          "value": {
+            "en": [
+              "TierBaseline"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Geographic footprint (WKT)"
+            ]
+          },
+          "value": {
+            "en": [
+              "POLYGON((145.70 15.10, 145.78 15.10, 145.78 15.18, 145.70 15.18, 145.70 15.10))"
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "en": [
+          "Aerial photograph captured 1944-08-12. NAPH tier compliance: TierBaseline."
+        ]
+      },
+      "rights": "http://rightsstatements.org/vocab/NoC-US/1.0/",
+      "requiredStatement": {
+        "label": {
+          "en": [
+            "Attribution"
+          ]
+        },
+        "value": {
+          "en": [
+            "No Copyright — United States — National Collection of Aerial Photography"
+          ]
+        }
+      },
+      "items": [
+        {
+          "id": "https://w3id.org/naph/photo/USN-VD-1-PAC-1944-08-0218/canvas/1",
+          "type": "Canvas",
+          "label": {
+            "en": [
+              "Saipan coastline frame 0218"
+            ]
+          },
+          "height": 4096,
+          "width": 4096,
+          "items": [
+            {
+              "id": "https://w3id.org/naph/photo/USN-VD-1-PAC-1944-08-0218/canvas/1/page",
+              "type": "AnnotationPage",
+              "items": [
+                {
+                  "id": "https://w3id.org/naph/photo/USN-VD-1-PAC-1944-08-0218/anno/1",
+                  "type": "Annotation",
+                  "motivation": "painting",
+                  "target": "https://w3id.org/naph/photo/USN-VD-1-PAC-1944-08-0218/canvas/1",
+                  "body": {
+                    "id": "https://w3id.org/naph/photo/USN-VD-1-PAC-1944-08-0218/full/full/0/default.jpg",
+                    "type": "Image",
+                    "format": "image/jpeg",
+                    "service": [
+                      {
+                        "id": "https://w3id.org/naph/photo/USN-VD-1-PAC-1944-08-0218",
+                        "type": "ImageService3",
+                        "profile": "level2"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "seeAlso": [
+        {
+          "id": "https://w3id.org/naph/example/photo-003",
+          "type": "Dataset",
+          "format": "text/turtle",
+          "profile": "https://w3id.org/naph/ontology",
+          "label": {
+            "en": [
+              "NAPH RDF representation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "@context": "http://iiif.io/api/presentation/3/context.json",
+      "id": "https://w3id.org/naph/photo/RAF-541-HAM-1943-07-26-1287/manifest",
+      "type": "Manifest",
+      "label": {
+        "en": [
+          "Hamburg post-firestorm frame 1287"
+        ]
+      },
+      "metadata": [
+        {
+          "label": {
+            "en": [
+              "Identifier"
+            ]
+          },
+          "value": {
+            "en": [
+              "https://w3id.org/naph/photo/RAF-541-HAM-1943-07-26-1287"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Date captured"
+            ]
+          },
+          "value": {
+            "en": [
+              "1943-07-30"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Sortie"
+            ]
+          },
+          "value": {
+            "en": [
+              "RAF/541/HAM/1943-07-26"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Squadron"
+            ]
+          },
+          "value": {
+            "en": [
+              "541 Squadron"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Aircraft"
+            ]
+          },
+          "value": {
+            "en": [
+              "Supermarine Spitfire PR.IX"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Camera"
+            ]
+          },
+          "value": {
+            "en": [
+              "F.52 split-pair vertical camera, 36-inch lens"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Flight altitude"
+            ]
+          },
+          "value": {
+            "en": [
+              "9144 m"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Tier compliance"
+            ]
+          },
+          "value": {
+            "en": [
+              "TierEnhanced"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Geographic footprint (WKT)"
+            ]
+          },
+          "value": {
+            "en": [
+              "POLYGON((9.95 53.53, 10.05 53.53, 10.05 53.58, 9.95 53.58, 9.95 53.53))"
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "en": [
+          "Aerial photograph captured 1943-07-30. NAPH tier compliance: TierEnhanced."
+        ]
+      },
+      "rights": "http://rightsstatements.org/vocab/NoC-OKLR/1.0/",
+      "requiredStatement": {
+        "label": {
+          "en": [
+            "Attribution"
+          ]
+        },
+        "value": {
+          "en": [
+            "No Copyright — Other Known Legal Restrictions — National Collection of Aerial Photography"
+          ]
+        }
+      },
+      "items": [
+        {
+          "id": "https://w3id.org/naph/photo/RAF-541-HAM-1943-07-26-1287/canvas/1",
+          "type": "Canvas",
+          "label": {
+            "en": [
+              "Hamburg post-firestorm frame 1287"
+            ]
+          },
+          "height": 4096,
+          "width": 4096,
+          "items": [
+            {
+              "id": "https://w3id.org/naph/photo/RAF-541-HAM-1943-07-26-1287/canvas/1/page",
+              "type": "AnnotationPage",
+              "items": [
+                {
+                  "id": "https://w3id.org/naph/photo/RAF-541-HAM-1943-07-26-1287/anno/1",
+                  "type": "Annotation",
+                  "motivation": "painting",
+                  "target": "https://w3id.org/naph/photo/RAF-541-HAM-1943-07-26-1287/canvas/1",
+                  "body": {
+                    "id": "https://w3id.org/naph/photo/RAF-541-HAM-1943-07-26-1287/full/full/0/default.jpg",
+                    "type": "Image",
+                    "format": "image/jpeg",
+                    "service": [
+                      {
+                        "id": "https://w3id.org/naph/photo/RAF-541-HAM-1943-07-26-1287",
+                        "type": "ImageService3",
+                        "profile": "level2"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "seeAlso": [
+        {
+          "id": "https://w3id.org/naph/example/photo-004",
+          "type": "Dataset",
+          "format": "text/turtle",
+          "profile": "https://w3id.org/naph/ontology",
+          "label": {
+            "en": [
+              "NAPH RDF representation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "@context": "http://iiif.io/api/presentation/3/context.json",
+      "id": "https://w3id.org/naph/photo/RAF-58-ABDN-1948-09-3344/manifest",
+      "type": "Manifest",
+      "label": {
+        "en": [
+          "Aberdeen harbour and coastline frame 3344"
+        ]
+      },
+      "metadata": [
+        {
+          "label": {
+            "en": [
+              "Identifier"
+            ]
+          },
+          "value": {
+            "en": [
+              "https://w3id.org/naph/photo/RAF-58-ABDN-1948-09-3344"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Date captured"
+            ]
+          },
+          "value": {
+            "en": [
+              "1948-09-22"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Sortie"
+            ]
+          },
+          "value": {
+            "en": [
+              "RAF/58/ABDN/1948-09"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Squadron"
+            ]
+          },
+          "value": {
+            "en": [
+              "58 Squadron"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Aircraft"
+            ]
+          },
+          "value": {
+            "en": [
+              "Avro Lincoln B.II"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Camera"
+            ]
+          },
+          "value": {
+            "en": [
+              "F.49 vertical survey camera"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Flight altitude"
+            ]
+          },
+          "value": {
+            "en": [
+              "3048 m"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Tier compliance"
+            ]
+          },
+          "value": {
+            "en": [
+              "TierEnhanced"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Geographic footprint (WKT)"
+            ]
+          },
+          "value": {
+            "en": [
+              "POLYGON((-2.10 57.13, -2.04 57.13, -2.04 57.17, -2.10 57.17, -2.10 57.13))"
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "en": [
+          "Aerial photograph captured 1948-09-22. NAPH tier compliance: TierEnhanced."
+        ]
+      },
+      "rights": "https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/",
+      "requiredStatement": {
+        "label": {
+          "en": [
+            "Attribution"
+          ]
+        },
+        "value": {
+          "en": [
+            "Crown Copyright — National Collection of Aerial Photography"
+          ]
+        }
+      },
+      "items": [
+        {
+          "id": "https://w3id.org/naph/photo/RAF-58-ABDN-1948-09-3344/canvas/1",
+          "type": "Canvas",
+          "label": {
+            "en": [
+              "Aberdeen harbour and coastline frame 3344"
+            ]
+          },
+          "height": 4096,
+          "width": 4096,
+          "items": [
+            {
+              "id": "https://w3id.org/naph/photo/RAF-58-ABDN-1948-09-3344/canvas/1/page",
+              "type": "AnnotationPage",
+              "items": [
+                {
+                  "id": "https://w3id.org/naph/photo/RAF-58-ABDN-1948-09-3344/anno/1",
+                  "type": "Annotation",
+                  "motivation": "painting",
+                  "target": "https://w3id.org/naph/photo/RAF-58-ABDN-1948-09-3344/canvas/1",
+                  "body": {
+                    "id": "https://w3id.org/naph/photo/RAF-58-ABDN-1948-09-3344/full/full/0/default.jpg",
+                    "type": "Image",
+                    "format": "image/jpeg",
+                    "service": [
+                      {
+                        "id": "https://w3id.org/naph/photo/RAF-58-ABDN-1948-09-3344",
+                        "type": "ImageService3",
+                        "profile": "level2"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "seeAlso": [
+        {
+          "id": "https://w3id.org/naph/example/photo-005",
+          "type": "Dataset",
+          "format": "text/turtle",
+          "profile": "https://w3id.org/naph/ontology",
+          "label": {
+            "en": [
+              "NAPH RDF representation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "@context": "http://iiif.io/api/presentation/3/context.json",
+      "id": "https://w3id.org/naph/photo/USAF-91SRS-KOR-1951-04-0892/manifest",
+      "type": "Manifest",
+      "label": {
+        "en": [
+          "Pyongyang industrial district frame 0892"
+        ]
+      },
+      "metadata": [
+        {
+          "label": {
+            "en": [
+              "Identifier"
+            ]
+          },
+          "value": {
+            "en": [
+              "https://w3id.org/naph/photo/USAF-91SRS-KOR-1951-04-0892"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Date captured"
+            ]
+          },
+          "value": {
+            "en": [
+              "1951-04-18"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Sortie"
+            ]
+          },
+          "value": {
+            "en": [
+              "USAF/91SRS/KOR/1951-04"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Squadron"
+            ]
+          },
+          "value": {
+            "en": [
+              "91st Strategic Reconnaissance Squadron"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Aircraft"
+            ]
+          },
+          "value": {
+            "en": [
+              "Boeing RB-29A Superfortress"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Camera"
+            ]
+          },
+          "value": {
+            "en": [
+              "K-17B trimetrogon"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Flight altitude"
+            ]
+          },
+          "value": {
+            "en": [
+              "9144 m"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Tier compliance"
+            ]
+          },
+          "value": {
+            "en": [
+              "TierEnhanced"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Geographic footprint (WKT)"
+            ]
+          },
+          "value": {
+            "en": [
+              "POLYGON((125.72 39.01, 125.78 39.01, 125.78 39.05, 125.72 39.05, 125.72 39.01))"
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "en": [
+          "Aerial photograph captured 1951-04-18. NAPH tier compliance: TierEnhanced."
+        ]
+      },
+      "rights": "http://rightsstatements.org/vocab/NoC-US/1.0/",
+      "requiredStatement": {
+        "label": {
+          "en": [
+            "Attribution"
+          ]
+        },
+        "value": {
+          "en": [
+            "No Copyright — United States — National Collection of Aerial Photography"
+          ]
+        }
+      },
+      "items": [
+        {
+          "id": "https://w3id.org/naph/photo/USAF-91SRS-KOR-1951-04-0892/canvas/1",
+          "type": "Canvas",
+          "label": {
+            "en": [
+              "Pyongyang industrial district frame 0892"
+            ]
+          },
+          "height": 4096,
+          "width": 4096,
+          "items": [
+            {
+              "id": "https://w3id.org/naph/photo/USAF-91SRS-KOR-1951-04-0892/canvas/1/page",
+              "type": "AnnotationPage",
+              "items": [
+                {
+                  "id": "https://w3id.org/naph/photo/USAF-91SRS-KOR-1951-04-0892/anno/1",
+                  "type": "Annotation",
+                  "motivation": "painting",
+                  "target": "https://w3id.org/naph/photo/USAF-91SRS-KOR-1951-04-0892/canvas/1",
+                  "body": {
+                    "id": "https://w3id.org/naph/photo/USAF-91SRS-KOR-1951-04-0892/full/full/0/default.jpg",
+                    "type": "Image",
+                    "format": "image/jpeg",
+                    "service": [
+                      {
+                        "id": "https://w3id.org/naph/photo/USAF-91SRS-KOR-1951-04-0892",
+                        "type": "ImageService3",
+                        "profile": "level2"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "seeAlso": [
+        {
+          "id": "https://w3id.org/naph/example/photo-006",
+          "type": "Dataset",
+          "format": "text/turtle",
+          "profile": "https://w3id.org/naph/ontology",
+          "label": {
+            "en": [
+              "NAPH RDF representation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "@context": "http://iiif.io/api/presentation/3/context.json",
+      "id": "https://w3id.org/naph/photo/DOS-KEN-1954-11-7710/manifest",
+      "type": "Manifest",
+      "label": {
+        "en": [
+          "Mount Kenya foothills frame 7710"
+        ]
+      },
+      "metadata": [
+        {
+          "label": {
+            "en": [
+              "Identifier"
+            ]
+          },
+          "value": {
+            "en": [
+              "https://w3id.org/naph/photo/DOS-KEN-1954-11-7710"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Date captured"
+            ]
+          },
+          "value": {
+            "en": [
+              "1954-11-08"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Sortie"
+            ]
+          },
+          "value": {
+            "en": [
+              "DOS/KEN/1954-11"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Aircraft"
+            ]
+          },
+          "value": {
+            "en": [
+              "Avro Anson C.19"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Camera"
+            ]
+          },
+          "value": {
+            "en": [
+              "Williamson F.49 Mk.II"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Flight altitude"
+            ]
+          },
+          "value": {
+            "en": [
+              "4572 m"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Tier compliance"
+            ]
+          },
+          "value": {
+            "en": [
+              "TierEnhanced"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Geographic footprint (WKT)"
+            ]
+          },
+          "value": {
+            "en": [
+              "POLYGON((37.20 -0.20, 37.30 -0.20, 37.30 -0.10, 37.20 -0.10, 37.20 -0.20))"
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "en": [
+          "Aerial photograph captured 1954-11-08. NAPH tier compliance: TierEnhanced."
+        ]
+      },
+      "rights": "https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/",
+      "requiredStatement": {
+        "label": {
+          "en": [
+            "Attribution"
+          ]
+        },
+        "value": {
+          "en": [
+            "Crown Copyright — National Collection of Aerial Photography"
+          ]
+        }
+      },
+      "items": [
+        {
+          "id": "https://w3id.org/naph/photo/DOS-KEN-1954-11-7710/canvas/1",
+          "type": "Canvas",
+          "label": {
+            "en": [
+              "Mount Kenya foothills frame 7710"
+            ]
+          },
+          "height": 4096,
+          "width": 4096,
+          "items": [
+            {
+              "id": "https://w3id.org/naph/photo/DOS-KEN-1954-11-7710/canvas/1/page",
+              "type": "AnnotationPage",
+              "items": [
+                {
+                  "id": "https://w3id.org/naph/photo/DOS-KEN-1954-11-7710/anno/1",
+                  "type": "Annotation",
+                  "motivation": "painting",
+                  "target": "https://w3id.org/naph/photo/DOS-KEN-1954-11-7710/canvas/1",
+                  "body": {
+                    "id": "https://w3id.org/naph/photo/DOS-KEN-1954-11-7710/full/full/0/default.jpg",
+                    "type": "Image",
+                    "format": "image/jpeg",
+                    "service": [
+                      {
+                        "id": "https://w3id.org/naph/photo/DOS-KEN-1954-11-7710",
+                        "type": "ImageService3",
+                        "profile": "level2"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "seeAlso": [
+        {
+          "id": "https://w3id.org/naph/example/photo-007",
+          "type": "Dataset",
+          "format": "text/turtle",
+          "profile": "https://w3id.org/naph/ontology",
+          "label": {
+            "en": [
+              "NAPH RDF representation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "@context": "http://iiif.io/api/presentation/3/context.json",
+      "id": "https://w3id.org/naph/photo/RAF-540-PEEN-1943-06-0413/manifest",
+      "type": "Manifest",
+      "label": {
+        "en": [
+          "Peenemünde rocket research facility frame 0413"
+        ]
+      },
+      "metadata": [
+        {
+          "label": {
+            "en": [
+              "Identifier"
+            ]
+          },
+          "value": {
+            "en": [
+              "https://w3id.org/naph/photo/RAF-540-PEEN-1943-06-0413"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Date captured"
+            ]
+          },
+          "value": {
+            "en": [
+              "1943-06-23"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Sortie"
+            ]
+          },
+          "value": {
+            "en": [
+              "RAF/540/PEEN/1943-06"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Squadron"
+            ]
+          },
+          "value": {
+            "en": [
+              "540 Squadron"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Aircraft"
+            ]
+          },
+          "value": {
+            "en": [
+              "de Havilland Mosquito PR.IX"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Camera"
+            ]
+          },
+          "value": {
+            "en": [
+              "F.52 vertical, 36-inch lens"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Flight altitude"
+            ]
+          },
+          "value": {
+            "en": [
+              "9144 m"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Tier compliance"
+            ]
+          },
+          "value": {
+            "en": [
+              "TierAspirational"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Geographic footprint (WKT)"
+            ]
+          },
+          "value": {
+            "en": [
+              "POLYGON((13.76 54.13, 13.80 54.13, 13.80 54.16, 13.76 54.16, 13.76 54.13))"
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "en": [
+          "Aerial photograph captured 1943-06-23. NAPH tier compliance: TierAspirational."
+        ]
+      },
+      "rights": "http://rightsstatements.org/vocab/NoC-OKLR/1.0/",
+      "requiredStatement": {
+        "label": {
+          "en": [
+            "Attribution"
+          ]
+        },
+        "value": {
+          "en": [
+            "No Copyright — Other Known Legal Restrictions — National Collection of Aerial Photography"
+          ]
+        }
+      },
+      "items": [
+        {
+          "id": "https://w3id.org/naph/photo/RAF-540-PEEN-1943-06-0413/canvas/1",
+          "type": "Canvas",
+          "label": {
+            "en": [
+              "Peenemünde rocket research facility frame 0413"
+            ]
+          },
+          "height": 4096,
+          "width": 4096,
+          "items": [
+            {
+              "id": "https://w3id.org/naph/photo/RAF-540-PEEN-1943-06-0413/canvas/1/page",
+              "type": "AnnotationPage",
+              "items": [
+                {
+                  "id": "https://w3id.org/naph/photo/RAF-540-PEEN-1943-06-0413/anno/1",
+                  "type": "Annotation",
+                  "motivation": "painting",
+                  "target": "https://w3id.org/naph/photo/RAF-540-PEEN-1943-06-0413/canvas/1",
+                  "body": {
+                    "id": "https://w3id.org/naph/photo/RAF-540-PEEN-1943-06-0413/full/full/0/default.jpg",
+                    "type": "Image",
+                    "format": "image/jpeg",
+                    "service": [
+                      {
+                        "id": "https://w3id.org/naph/photo/RAF-540-PEEN-1943-06-0413",
+                        "type": "ImageService3",
+                        "profile": "level2"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "seeAlso": [
+        {
+          "id": "https://w3id.org/naph/example/photo-008",
+          "type": "Dataset",
+          "format": "text/turtle",
+          "profile": "https://w3id.org/naph/ontology",
+          "label": {
+            "en": [
+              "NAPH RDF representation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "@context": "http://iiif.io/api/presentation/3/context.json",
+      "id": "https://w3id.org/naph/photo/RAF-541-EDI-1946-08-2287/manifest",
+      "type": "Manifest",
+      "label": {
+        "en": [
+          "Edinburgh Castle and Royal Mile frame 2287"
+        ]
+      },
+      "metadata": [
+        {
+          "label": {
+            "en": [
+              "Identifier"
+            ]
+          },
+          "value": {
+            "en": [
+              "https://w3id.org/naph/photo/RAF-541-EDI-1946-08-2287"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Date captured"
+            ]
+          },
+          "value": {
+            "en": [
+              "1946-08-04"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Sortie"
+            ]
+          },
+          "value": {
+            "en": [
+              "RAF/541/EDI/1946-08"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Squadron"
+            ]
+          },
+          "value": {
+            "en": [
+              "541 Squadron"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Aircraft"
+            ]
+          },
+          "value": {
+            "en": [
+              "Supermarine Spitfire PR.XIX"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Camera"
+            ]
+          },
+          "value": {
+            "en": [
+              "F.52 split-pair vertical"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Flight altitude"
+            ]
+          },
+          "value": {
+            "en": [
+              "6096 m"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Tier compliance"
+            ]
+          },
+          "value": {
+            "en": [
+              "TierAspirational"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Geographic footprint (WKT)"
+            ]
+          },
+          "value": {
+            "en": [
+              "POLYGON((-3.205 55.946, -3.185 55.946, -3.185 55.952, -3.205 55.952, -3.205 55.946))"
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "en": [
+          "Aerial photograph captured 1946-08-04. NAPH tier compliance: TierAspirational."
+        ]
+      },
+      "rights": "http://rightsstatements.org/vocab/NoC-OKLR/1.0/",
+      "requiredStatement": {
+        "label": {
+          "en": [
+            "Attribution"
+          ]
+        },
+        "value": {
+          "en": [
+            "No Copyright — Other Known Legal Restrictions — National Collection of Aerial Photography"
+          ]
+        }
+      },
+      "items": [
+        {
+          "id": "https://w3id.org/naph/photo/RAF-541-EDI-1946-08-2287/canvas/1",
+          "type": "Canvas",
+          "label": {
+            "en": [
+              "Edinburgh Castle and Royal Mile frame 2287"
+            ]
+          },
+          "height": 4096,
+          "width": 4096,
+          "items": [
+            {
+              "id": "https://w3id.org/naph/photo/RAF-541-EDI-1946-08-2287/canvas/1/page",
+              "type": "AnnotationPage",
+              "items": [
+                {
+                  "id": "https://w3id.org/naph/photo/RAF-541-EDI-1946-08-2287/anno/1",
+                  "type": "Annotation",
+                  "motivation": "painting",
+                  "target": "https://w3id.org/naph/photo/RAF-541-EDI-1946-08-2287/canvas/1",
+                  "body": {
+                    "id": "https://w3id.org/naph/photo/RAF-541-EDI-1946-08-2287/full/full/0/default.jpg",
+                    "type": "Image",
+                    "format": "image/jpeg",
+                    "service": [
+                      {
+                        "id": "https://w3id.org/naph/photo/RAF-541-EDI-1946-08-2287",
+                        "type": "ImageService3",
+                        "profile": "level2"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "seeAlso": [
+        {
+          "id": "https://w3id.org/naph/example/photo-009",
+          "type": "Dataset",
+          "format": "text/turtle",
+          "profile": "https://w3id.org/naph/ontology",
+          "label": {
+            "en": [
+              "NAPH RDF representation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "@context": "http://iiif.io/api/presentation/3/context.json",
+      "id": "https://w3id.org/naph/photo/USAAF-3PRS-HIR-1945-08-0034/manifest",
+      "type": "Manifest",
+      "label": {
+        "en": [
+          "Hiroshima post-detonation assessment frame 0034"
+        ]
+      },
+      "metadata": [
+        {
+          "label": {
+            "en": [
+              "Identifier"
+            ]
+          },
+          "value": {
+            "en": [
+              "https://w3id.org/naph/photo/USAAF-3PRS-HIR-1945-08-0034"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Date captured"
+            ]
+          },
+          "value": {
+            "en": [
+              "1945-08-11"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Sortie"
+            ]
+          },
+          "value": {
+            "en": [
+              "USAAF/3PRS/HIR/1945-08"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Squadron"
+            ]
+          },
+          "value": {
+            "en": [
+              "3rd Photo Reconnaissance Squadron"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Aircraft"
+            ]
+          },
+          "value": {
+            "en": [
+              "Boeing F-13A Superfortress"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Camera"
+            ]
+          },
+          "value": {
+            "en": [
+              "K-17 trimetrogon"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Flight altitude"
+            ]
+          },
+          "value": {
+            "en": [
+              "9144 m"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Tier compliance"
+            ]
+          },
+          "value": {
+            "en": [
+              "TierAspirational"
+            ]
+          }
+        },
+        {
+          "label": {
+            "en": [
+              "Geographic footprint (WKT)"
+            ]
+          },
+          "value": {
+            "en": [
+              "POLYGON((132.44 34.38, 132.50 34.38, 132.50 34.42, 132.44 34.42, 132.44 34.38))"
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "en": [
+          "Aerial photograph captured 1945-08-11. NAPH tier compliance: TierAspirational."
+        ]
+      },
+      "rights": "http://rightsstatements.org/vocab/NoC-US/1.0/",
+      "requiredStatement": {
+        "label": {
+          "en": [
+            "Attribution"
+          ]
+        },
+        "value": {
+          "en": [
+            "No Copyright — United States — National Collection of Aerial Photography"
+          ]
+        }
+      },
+      "items": [
+        {
+          "id": "https://w3id.org/naph/photo/USAAF-3PRS-HIR-1945-08-0034/canvas/1",
+          "type": "Canvas",
+          "label": {
+            "en": [
+              "Hiroshima post-detonation assessment frame 0034"
+            ]
+          },
+          "height": 4096,
+          "width": 4096,
+          "items": [
+            {
+              "id": "https://w3id.org/naph/photo/USAAF-3PRS-HIR-1945-08-0034/canvas/1/page",
+              "type": "AnnotationPage",
+              "items": [
+                {
+                  "id": "https://w3id.org/naph/photo/USAAF-3PRS-HIR-1945-08-0034/anno/1",
+                  "type": "Annotation",
+                  "motivation": "painting",
+                  "target": "https://w3id.org/naph/photo/USAAF-3PRS-HIR-1945-08-0034/canvas/1",
+                  "body": {
+                    "id": "https://w3id.org/naph/photo/USAAF-3PRS-HIR-1945-08-0034/full/full/0/default.jpg",
+                    "type": "Image",
+                    "format": "image/jpeg",
+                    "service": [
+                      {
+                        "id": "https://w3id.org/naph/photo/USAAF-3PRS-HIR-1945-08-0034",
+                        "type": "ImageService3",
+                        "profile": "level2"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "seeAlso": [
+        {
+          "id": "https://w3id.org/naph/example/photo-010",
+          "type": "Dataset",
+          "format": "text/turtle",
+          "profile": "https://w3id.org/naph/ontology",
+          "label": {
+            "en": [
+              "NAPH RDF representation"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

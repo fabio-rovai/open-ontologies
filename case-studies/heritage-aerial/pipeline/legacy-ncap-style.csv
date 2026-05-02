@@ -1,0 +1,11 @@
+sortie_ref,frame_no,date_text,squadron,aircraft,location,lat,lon,altitude_ft,camera,rights_text,scan_date,scan_dpi,scan_format
+RAF/106G/UK/1655,4023,28 March 1944,No 540 Sqn,Mosquito PR.IX,"Berlin, Germany",52.52,13.40,30000,F.52 36-inch,Crown Copyright Expired,12/04/2018,1200,TIFF
+CPE/SCOT/UK/216,5142,15-Jun-1947,No 58 Sqn,Lincoln B.II,"Edinburgh city centre",55.953,-3.188,10000,F.49,Crown Copyright,2019-08-12,800,TIFF
+USN/VD-1/PAC/1944-08,218,August 12 1944,VD-1,F-13A,"Saipan",15.14,145.74,28000,K-17,Public Domain (US),08/06/2018,1600,TIFF
+RAF/541/HAM/1943-07-26,1287,30/07/1943,541 Squadron,Spitfire PR.IX,"Hamburg, Germany",53.55,10.0,30000,F.52 36-inch,Crown Copyright Expired,12/04/2018,1200,TIFF
+RAF/58/ABDN/1948-09,3344,22 September 1948,58 Squadron,Lincoln B.II,"Aberdeen Harbour",57.15,-2.07,10000,F.49 Mk.II,Crown Copyright,03/08/2020,800,TIFF
+USAF/91SRS/KOR/1951-04,892,18 April 1951,91st SRS,RB-29A,"Pyongyang",39.03,125.75,30000,K-17B trimetrogon,Public Domain (US),14/11/2019,1200,TIFF
+DOS/KEN/1954-11,7710,8/11/1954,—,Anson C.19,"Mount Kenya foothills",-0.15,37.25,15000,F.49 Mk.II,Crown Copyright,09/03/2021,800,TIFF
+RAF/540/PEEN/1943-06,413,23-Jun-43,540 Squadron,Mosquito PR.IX,"Peenemünde, Germany",54.145,13.78,30000,F.52 36-inch,Crown Copyright Expired,15/09/2017,1200,TIFF
+RAF/541/EDI/1946-08,2287,4 August 1946,541 Squadron,Spitfire PR.XIX,"Edinburgh Castle",55.949,-3.195,20000,F.52,Crown Copyright Expired,22/05/2019,1200,TIFF
+USAAF/3PRS/HIR/1945-08,34,11 August 1945,3rd PRS,F-13A,"Hiroshima, Japan",34.40,132.47,30000,K-17 trimetrogon,Public Domain (US),06/08/2018,1600,TIFF

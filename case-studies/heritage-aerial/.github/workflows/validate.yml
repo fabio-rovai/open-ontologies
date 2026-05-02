@@ -1,0 +1,137 @@
+name: NAPH Validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly Monday 06:00 UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate ontology, shapes, and sample data
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Open Ontologies
+        run: |
+          curl -L https://github.com/fabio-rovai/open-ontologies/releases/latest/download/open-ontologies-x86_64-unknown-linux-gnu \
+            -o open-ontologies
+          chmod +x open-ontologies
+          sudo mv open-ontologies /usr/local/bin/
+          open-ontologies --help | head -5
+
+      - name: Validate ontology syntax
+        run: open-ontologies validate ontology/naph-core.ttl
+
+      - name: Validate shapes syntax
+        run: open-ontologies validate ontology/naph-shapes.ttl
+
+      - name: Validate sample data syntax
+        run: open-ontologies validate data/sample-photographs.ttl
+
+      - name: Lint ontology
+        run: |
+          set -e
+          result=$(open-ontologies lint ontology/naph-core.ttl --pretty)
+          echo "$result"
+          issue_count=$(echo "$result" | grep -o '"issue_count":[0-9]*' | head -1 | grep -o '[0-9]*')
+          if [ "$issue_count" != "0" ]; then
+            echo "::error::Lint found $issue_count issues"
+            exit 1
+          fi
+
+      - name: SHACL conformance + tier distribution
+        run: |
+          cat > /tmp/validation.batch.txt <<EOF
+          clear
+          load ontology/naph-core.ttl
+          load data/sample-photographs.ttl
+          shacl ontology/naph-shapes.ttl
+          EOF
+          result=$(open-ontologies batch --pretty /tmp/validation.batch.txt)
+          echo "$result"
+          if echo "$result" | grep -q '"conforms":false'; then
+            echo "::error::SHACL validation failed"
+            exit 1
+          fi
+
+      - name: Run self-assessment
+        run: python3 pipeline/self-assessment.py data/sample-photographs.ttl
+
+      - name: Run competency-question regression
+        run: |
+          set -e
+          result=$(open-ontologies batch docs/competency-queries.batch.txt)
+          # Verify each query returned at least one row
+          # (full assertions are in docs/competency-questions.md)
+          echo "$result" | python3 -c "
+          import json, sys
+          data = sys.stdin.read()
+          objs = []
+          depth = 0
+          start = 0
+          for i, c in enumerate(data):
+              if c == '{':
+                  if depth == 0: start = i
+                  depth += 1
+              elif c == '}':
+                  depth -= 1
+                  if depth == 0:
+                      try: objs.append(json.loads(data[start:i+1]))
+                      except: pass
+          expected = {3: 5, 4: 7, 5: 2, 6: 2, 7: 3, 8: 2, 9: 2}
+          for o in objs:
+              seq = o.get('seq', '?')
+              cmd = o.get('command', '?')
+              res = o.get('result', {})
+              if 'results' in res:
+                  n = len(res['results'])
+                  exp = expected.get(seq)
+                  marker = 'pass' if exp == n else f'FAIL expected {exp}'
+                  print(f'seq {seq} ({cmd}): {n} results [{marker}]')
+                  if exp is not None and exp != n:
+                      sys.exit(1)
+          "
+
+      - name: Test CSV ingest pipeline
+        run: |
+          python3 pipeline/ingest.py pipeline/legacy-ncap-style.csv > /tmp/generated.ttl
+          open-ontologies validate /tmp/generated.ttl
+
+      - name: Test IIIF bridge
+        run: |
+          python3 pipeline/iiif-bridge.py --all > /tmp/iiif.json
+          python3 -c "
+          import json
+          with open('/tmp/iiif.json') as f:
+              m = json.load(f)
+          assert m['type'] == 'Collection', f'Expected Collection, got {m[\"type\"]}'
+          assert len(m['items']) == 10, f'Expected 10 manifests, got {len(m[\"items\"])}'
+          print('IIIF bridge produced valid Collection with 10 manifests')
+          "
+
+      - name: Generate validation report
+        if: github.event_name == 'push' || github.event_name == 'schedule'
+        run: |
+          mkdir -p reports
+          python3 pipeline/generate-report.py > reports/validation-$(date -u +%Y-%m-%d).html
+
+      - name: Upload validation report
+        if: github.event_name == 'push' || github.event_name == 'schedule'
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-report
+          path: reports/validation-*.html
+          retention-days: 90

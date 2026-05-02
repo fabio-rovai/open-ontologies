@@ -1,0 +1,313 @@
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix geo:     <http://www.opengis.net/ont/geosparql#> .
+@prefix dcat:    <http://www.w3.org/ns/dcat#> .
+@prefix dctype:  <http://purl.org/dc/dcmitype/> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix naph:    <https://w3id.org/naph/ontology#> .
+
+# =============================================================================
+# NAPH — National Aerial Photography Heritage Ontology
+# A computation-ready ontology for aerial photography heritage collections
+#
+# Case study under the Towards a National Collection / N-RICH Prototype framework
+# Demonstrates a 3-tier (baseline / enhanced / aspirational) ontology
+# applied to the National Collection of Aerial Photography (NCAP)
+#
+# FAIR + CARE principles embedded structurally
+# =============================================================================
+
+<https://w3id.org/naph/ontology> a owl:Ontology ;
+    dcterms:title "National Aerial Photography Heritage Ontology (NAPH)" ;
+    dcterms:description "A computation-ready ontology for aerial photography heritage collections, demonstrating tiered digitisation standards under the N-RICH Prototype framework." ;
+    dcterms:creator "Kampakis and Co Ltd, trading as The Tesseract Academy" ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    owl:versionInfo "0.1.0" .
+
+# =============================================================================
+# SECTION 1: CORE CLASSES — the artefacts of aerial photography heritage
+# =============================================================================
+
+naph:AerialPhotograph a owl:Class ;
+    rdfs:subClassOf dcat:Resource ;
+    rdfs:label "Aerial Photograph" ;
+    rdfs:comment "A single photographic frame captured from an aerial platform (aircraft, balloon, satellite). The whole-life entity from physical exposure to digital surrogate, with associated provenance and rights. Each instance SHOULD declare dcterms:type dctype:StillImage to align with DCMI Type vocabulary." .
+
+naph:Sortie a owl:Class ;
+    rdfs:label "Sortie" ;
+    rdfs:comment "A discrete aerial photographic mission. A sortie produces a sequence of related frames from a single flight, with shared metadata (date, aircraft, squadron, mission objective)." .
+
+naph:CollectionCode a owl:DatatypeProperty ;
+    rdfs:domain naph:Sortie ;
+    rdfs:range xsd:string ;
+    rdfs:label "collection code" ;
+    rdfs:comment "The institutional collection prefix that namespaces a sortie reference (e.g. 'RAF', 'NARA', 'DOS', 'JARIC'). Aligned with NCAP's three-component identifier model: Collection / Sortie / Frame." .
+
+naph:Frame a owl:Class ;
+    rdfs:label "Frame" ;
+    rdfs:comment "An identifier construct combining sortie reference and frame number, uniquely locating a photograph within its capture sequence." .
+
+naph:Collection a owl:Class ;
+    rdfs:subClassOf dcat:Catalog ;
+    rdfs:label "Heritage Collection" ;
+    rdfs:comment "A curated grouping of aerial photographs held by a custodial institution (e.g. NCAP, IWM, RAF Museum)." .
+
+naph:CustodialInstitution a owl:Class ;
+    rdfs:subClassOf foaf:Organization ;
+    rdfs:label "Custodial Institution" ;
+    rdfs:comment "An organisation responsible for the long-term preservation and access management of a Collection." .
+
+# =============================================================================
+# SECTION 2: SPATIAL & TEMPORAL CONTEXT
+# =============================================================================
+
+naph:GeographicFootprint a owl:Class ;
+    rdfs:subClassOf geo:Geometry ;
+    rdfs:label "Geographic Footprint" ;
+    rdfs:comment "The ground area covered by an aerial photograph, expressed as a polygon or bounding box in WGS84." .
+
+naph:CaptureEvent a owl:Class ;
+    rdfs:subClassOf prov:Activity ;
+    rdfs:label "Capture Event" ;
+    rdfs:comment "The act of photographic exposure — a temporal point with spatial position, altitude, camera configuration." .
+
+# =============================================================================
+# SECTION 3: RIGHTS, PROVENANCE & DIGITISATION
+# =============================================================================
+
+naph:RightsStatement a owl:Class ;
+    rdfs:label "Rights Statement" ;
+    rdfs:comment "A machine-readable assertion of legal status — copyright, licensing, restrictions on use. Aligns with rightsstatements.org and Creative Commons." .
+
+naph:ProvenanceChain a owl:Class ;
+    rdfs:subClassOf prov:Bundle ;
+    rdfs:label "Provenance Chain" ;
+    rdfs:comment "An ordered sequence of custody events from capture to current holding institution. Critical for declassified materials with complex transfer histories." .
+
+naph:DigitisationEvent a owl:Class ;
+    rdfs:subClassOf prov:Activity ;
+    rdfs:label "Digitisation Event" ;
+    rdfs:comment "The transformation from physical artefact (negative, print, microfilm) to digital surrogate. Records scanner, resolution, colour profile, operator, date." .
+
+naph:DigitalSurrogate a owl:Class ;
+    rdfs:subClassOf prov:Entity ;
+    rdfs:label "Digital Surrogate" ;
+    rdfs:comment "A digital representation of an aerial photograph, produced by a DigitisationEvent. Multiple surrogates may exist per photograph (preservation master, access copy, thumbnail)." .
+
+# =============================================================================
+# SECTION 4: SUBJECT & CLASSIFICATION (Aspirational tier)
+# =============================================================================
+
+naph:Subject a owl:Class ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:label "Subject" ;
+    rdfs:comment "What is depicted in or relevant to a photograph — a place, structure, event, terrain feature, or thematic concept." .
+
+naph:Place a owl:Class ;
+    rdfs:subClassOf naph:Subject ;
+    rdfs:label "Place" ;
+    rdfs:comment "A named geographic place depicted in or referenced by a photograph. Should align with authorities like GeoNames or Wikidata where possible." .
+
+naph:HistoricEvent a owl:Class ;
+    rdfs:subClassOf naph:Subject ;
+    rdfs:label "Historic Event" ;
+    rdfs:comment "An event documented or contextualised by aerial photography (e.g. WWII bombing raid, urban planning survey, environmental disaster)." .
+
+# =============================================================================
+# SECTION 5: PROPERTIES — IDENTIFIERS (Tier 1: Baseline)
+# =============================================================================
+
+naph:hasIdentifier a owl:DatatypeProperty ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range xsd:string ;
+    rdfs:label "has identifier" ;
+    rdfs:comment "A persistent, globally unique identifier for the photograph. MUST resolve. SHOULD be a URI." .
+
+naph:sortieReference a owl:DatatypeProperty ;
+    rdfs:domain naph:Sortie ;
+    rdfs:range xsd:string ;
+    rdfs:label "sortie reference" ;
+    rdfs:comment "The institutional sortie identifier (e.g. 'RAF/106G/UK/1655')." .
+
+naph:frameNumber a owl:DatatypeProperty ;
+    rdfs:domain naph:Frame ;
+    rdfs:range xsd:integer ;
+    rdfs:label "frame number" ;
+    rdfs:comment "The sequential frame number within a sortie." .
+
+naph:partOfSortie a owl:ObjectProperty ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range naph:Sortie ;
+    rdfs:label "part of sortie" .
+
+naph:belongsToCollection a owl:ObjectProperty ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range naph:Collection ;
+    rdfs:label "belongs to collection" .
+
+naph:custodian a owl:ObjectProperty ;
+    rdfs:domain naph:Collection ;
+    rdfs:range naph:CustodialInstitution ;
+    rdfs:label "custodian" .
+
+# =============================================================================
+# SECTION 6: PROPERTIES — TEMPORAL & SPATIAL (Tier 1: Baseline)
+# =============================================================================
+
+naph:capturedOn a owl:DatatypeProperty ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range xsd:date ;
+    rdfs:label "captured on" ;
+    rdfs:comment "ISO 8601 date of photographic exposure. MUST be machine-parseable — no free-text dates." .
+
+naph:coversArea a owl:ObjectProperty ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range naph:GeographicFootprint ;
+    rdfs:label "covers area" .
+
+naph:asWKT a owl:DatatypeProperty ;
+    rdfs:domain naph:GeographicFootprint ;
+    rdfs:range geo:wktLiteral ;
+    rdfs:label "as WKT" ;
+    rdfs:comment "Well-Known Text representation of the geographic footprint in WGS84." .
+
+# =============================================================================
+# SECTION 7: PROPERTIES — RIGHTS (Tier 1: Baseline)
+# =============================================================================
+
+naph:hasRightsStatement a owl:ObjectProperty ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range naph:RightsStatement ;
+    rdfs:label "has rights statement" ;
+    rdfs:comment "MUST link to a machine-readable rights statement. Use rightsstatements.org URIs where applicable." .
+
+naph:rightsURI a owl:DatatypeProperty ;
+    rdfs:domain naph:RightsStatement ;
+    rdfs:range xsd:anyURI ;
+    rdfs:label "rights URI" .
+
+naph:rightsLabel a owl:DatatypeProperty ;
+    rdfs:domain naph:RightsStatement ;
+    rdfs:range xsd:string ;
+    rdfs:label "rights label" .
+
+# =============================================================================
+# SECTION 8: PROPERTIES — DIGITISATION & PROVENANCE (Tier 2: Enhanced)
+# =============================================================================
+
+naph:hasDigitalSurrogate a owl:ObjectProperty ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range naph:DigitalSurrogate ;
+    rdfs:label "has digital surrogate" .
+
+naph:digitisedBy a owl:ObjectProperty ;
+    rdfs:domain naph:DigitalSurrogate ;
+    rdfs:range prov:Agent ;
+    rdfs:label "digitised by" .
+
+naph:digitisedOn a owl:DatatypeProperty ;
+    rdfs:domain naph:DigitalSurrogate ;
+    rdfs:range xsd:date ;
+    rdfs:label "digitised on" .
+
+naph:scanResolution a owl:DatatypeProperty ;
+    rdfs:domain naph:DigitalSurrogate ;
+    rdfs:range xsd:integer ;
+    rdfs:label "scan resolution (DPI)" .
+
+naph:fileFormat a owl:DatatypeProperty ;
+    rdfs:domain naph:DigitalSurrogate ;
+    rdfs:range xsd:string ;
+    rdfs:label "file format" ;
+    rdfs:comment "MIME type of the digital surrogate (e.g. image/tiff, image/jp2)." .
+
+naph:hasProvenanceChain a owl:ObjectProperty ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range naph:ProvenanceChain ;
+    rdfs:label "has provenance chain" .
+
+# =============================================================================
+# SECTION 9: PROPERTIES — CAPTURE CONTEXT (Tier 2: Enhanced)
+# =============================================================================
+
+naph:hasCaptureEvent a owl:ObjectProperty ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range naph:CaptureEvent ;
+    rdfs:label "has capture event" .
+
+naph:flightAltitude a owl:DatatypeProperty ;
+    rdfs:domain naph:CaptureEvent ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "flight altitude (metres)" .
+
+naph:cameraType a owl:DatatypeProperty ;
+    rdfs:domain naph:CaptureEvent ;
+    rdfs:range xsd:string ;
+    rdfs:label "camera type" .
+
+naph:squadron a owl:DatatypeProperty ;
+    rdfs:domain naph:Sortie ;
+    rdfs:range xsd:string ;
+    rdfs:label "squadron" .
+
+naph:aircraft a owl:DatatypeProperty ;
+    rdfs:domain naph:Sortie ;
+    rdfs:range xsd:string ;
+    rdfs:label "aircraft type" .
+
+# =============================================================================
+# SECTION 10: PROPERTIES — SEMANTIC ENRICHMENT (Tier 3: Aspirational)
+# =============================================================================
+
+naph:depicts a owl:ObjectProperty ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range naph:Subject ;
+    rdfs:label "depicts" ;
+    rdfs:comment "Links photograph to subject(s) — places, structures, events, themes." .
+
+naph:relatedToEvent a owl:ObjectProperty ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range naph:HistoricEvent ;
+    rdfs:label "related to event" .
+
+naph:linkedRecord a owl:ObjectProperty ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range owl:Thing ;
+    rdfs:label "linked record" ;
+    rdfs:comment "Cross-collection link to related records (other photographs, maps, monument records, archive items)." .
+
+naph:placeAuthorityURI a owl:DatatypeProperty ;
+    rdfs:domain naph:Place ;
+    rdfs:range xsd:anyURI ;
+    rdfs:label "place authority URI" ;
+    rdfs:comment "External authority reference (GeoNames, Wikidata, Pleiades, OS Open Names)." .
+
+# =============================================================================
+# SECTION 11: TIER MARKERS — for compliance assessment
+# =============================================================================
+
+naph:Tier a owl:Class ;
+    rdfs:label "Compliance Tier" ;
+    rdfs:comment "A level of compliance with the digitisation standard." .
+
+naph:TierBaseline a naph:Tier ;
+    rdfs:label "Baseline" ;
+    rdfs:comment "Minimum viable computation-readiness: stable identifier, ISO date, geographic footprint, machine-readable rights, structured packaging." .
+
+naph:TierEnhanced a naph:Tier ;
+    rdfs:label "Enhanced" ;
+    rdfs:comment "Adds: digitisation provenance, capture context (altitude, camera, sortie metadata), full provenance chain, multiple surrogate formats." .
+
+naph:TierAspirational a naph:Tier ;
+    rdfs:label "Aspirational" ;
+    rdfs:comment "Adds: semantic subject classification, place authority links, cross-collection linked records, event linkage, computational vision-extracted features." .
+
+naph:compliesWithTier a owl:ObjectProperty ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range naph:Tier ;
+    rdfs:label "complies with tier" .

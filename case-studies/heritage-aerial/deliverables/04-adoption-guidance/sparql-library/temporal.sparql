@@ -1,0 +1,137 @@
+# NAPH SPARQL Library — Temporal queries
+#
+# Date-range filtering and temporal aggregation queries.
+
+# =============================================================================
+# Q-TEMP-1 [B] — Photographs from a date range
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?photo ?label ?date
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:capturedOn ?date .
+    FILTER (?date >= "1939-09-01"^^xsd:date && ?date <= "1945-09-02"^^xsd:date)
+}
+ORDER BY ?date
+
+# =============================================================================
+# Q-TEMP-2 [B] — Earliest and latest record in collection
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT (MIN(?date) AS ?earliest) (MAX(?date) AS ?latest)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:capturedOn ?date .
+}
+
+# =============================================================================
+# Q-TEMP-3 [B] — Photographs from a specific decade
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?label ?date
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:capturedOn ?date .
+    FILTER (?date >= "1940-01-01"^^xsd:date && ?date < "1950-01-01"^^xsd:date)
+}
+ORDER BY ?date
+
+# =============================================================================
+# Q-TEMP-4 [B] — Records grouped by year
+# =============================================================================
+# Note: aggregation by year requires SUBSTR or YEAR() depending on engine.
+# This is the SUBSTR variant which works in Oxigraph and other compliant engines.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT (SUBSTR(STR(?date), 1, 4) AS ?year) (COUNT(?photo) AS ?count)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:capturedOn ?date .
+}
+GROUP BY (SUBSTR(STR(?date), 1, 4))
+ORDER BY ?year
+
+# =============================================================================
+# Q-TEMP-5 [B] — Records grouped by month within a year
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT (SUBSTR(STR(?date), 6, 2) AS ?month) (COUNT(?photo) AS ?count)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:capturedOn ?date .
+    FILTER (?date >= "1944-01-01"^^xsd:date && ?date <= "1944-12-31"^^xsd:date)
+}
+GROUP BY (SUBSTR(STR(?date), 6, 2))
+ORDER BY ?month
+
+# =============================================================================
+# Q-TEMP-6 [E] — Photographs captured during a specific operation period
+# =============================================================================
+# Use case: filter to records captured during a defined operational period.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?photo ?label ?date ?missionType
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:capturedOn ?date ;
+           naph:partOfSortie ?sortie .
+    ?sortie naph:missionType ?missionType .
+    FILTER (?date >= "1944-06-01"^^xsd:date && ?date <= "1944-08-31"^^xsd:date)
+    FILTER (?missionType = "damage assessment")
+}
+ORDER BY ?date
+
+# =============================================================================
+# Q-TEMP-7 [A] — Temporal coverage of a specific location
+# =============================================================================
+# Use case: how often has this location been photographed?
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT (SUBSTR(STR(?date), 1, 4) AS ?year) (COUNT(?photo) AS ?count)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:capturedOn ?date ;
+           naph:depicts ?place .
+    ?place skos:exactMatch <https://www.wikidata.org/wiki/Q212065> .  # Edinburgh Castle
+}
+GROUP BY (SUBSTR(STR(?date), 1, 4))
+ORDER BY ?year
+
+# =============================================================================
+# Q-TEMP-8 [B] — Photographs without complete dates (partial / missing)
+# =============================================================================
+# Use case: data-quality audit — find records that need date research.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?photo ?date ?precision
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:capturedOn ?date .
+    BIND (DATATYPE(?date) AS ?precision)
+    FILTER (?precision IN (xsd:gYearMonth, xsd:gYear))
+}

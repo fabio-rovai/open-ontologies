@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NAPH — Aerial Photography Heritage Demo</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; color: #1a1a2a; }
+  header { padding: 1.2em 1.5em; background: #1a2a3a; color: white; }
+  header h1 { margin: 0 0 0.3em 0; font-size: 1.4em; font-weight: 600; }
+  header p { margin: 0; opacity: 0.8; font-size: 0.9em; }
+  main { display: flex; height: calc(100vh - 90px); }
+  #map { flex: 1; }
+  aside { width: 380px; padding: 1em 1.2em; overflow-y: auto; background: #f6f7fa; border-left: 1px solid #d0d4dc; }
+  aside h2 { margin: 0 0 0.5em 0; font-size: 1em; color: #444; }
+  .legend { margin-bottom: 1.2em; font-size: 0.85em; }
+  .legend-row { display: flex; align-items: center; gap: 0.5em; margin-bottom: 0.3em; }
+  .swatch { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+  .swatch.baseline { background: #94a3b8; }
+  .swatch.enhanced { background: #4a90c2; }
+  .swatch.aspirational { background: #d97757; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em; margin-bottom: 1em; font-size: 0.85em; }
+  .stat-card { background: white; padding: 0.6em 0.8em; border-radius: 0.4em; border: 1px solid #e0e3eb; }
+  .stat-num { font-size: 1.4em; font-weight: 600; color: #1a2a3a; }
+  .stat-label { color: #666; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.05em; }
+  #detail { background: white; padding: 1em; border-radius: 0.4em; border: 1px solid #e0e3eb; min-height: 200px; }
+  #detail h3 { margin: 0 0 0.4em 0; font-size: 1em; }
+  #detail .placeholder { color: #999; font-style: italic; font-size: 0.9em; }
+  #detail dl { margin: 0; font-size: 0.85em; }
+  #detail dt { font-weight: 600; color: #555; margin-top: 0.6em; }
+  #detail dd { margin: 0.1em 0 0 0; color: #1a2a3a; word-break: break-word; }
+  .tier-badge { display: inline-block; padding: 0.15em 0.6em; border-radius: 0.25em; font-size: 0.75em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: white; }
+  .tier-badge.baseline { background: #94a3b8; }
+  .tier-badge.enhanced { background: #4a90c2; }
+  .tier-badge.aspirational { background: #d97757; }
+  footer { padding: 0.6em 1.5em; background: #1a2a3a; color: #aab; font-size: 0.8em; text-align: center; }
+  footer a { color: #9bf; }
+  .leaflet-popup-content { font-size: 0.85em; }
+  .leaflet-popup-content strong { color: #1a2a3a; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>NAPH — Aerial Photography Heritage Demo</h1>
+  <p>10 illustrative records from a NAPH-compliant collection · Hover any marker · Click for full metadata</p>
+</header>
+
+<main>
+  <div id="map"></div>
+  <aside>
+    <h2>Tier Legend</h2>
+    <div class="legend">
+      <div class="legend-row"><span class="swatch baseline"></span> Baseline — minimum computation-ready</div>
+      <div class="legend-row"><span class="swatch enhanced"></span> Enhanced — research workflows</div>
+      <div class="legend-row"><span class="swatch aspirational"></span> Aspirational — semantic discovery</div>
+    </div>
+
+    <h2>Collection Snapshot</h2>
+    <div class="stats" id="stats">
+      <div class="stat-card"><div class="stat-num" id="total">—</div><div class="stat-label">Photographs</div></div>
+      <div class="stat-card"><div class="stat-num" id="years">—</div><div class="stat-label">Year span</div></div>
+      <div class="stat-card"><div class="stat-num" id="tiers">—</div><div class="stat-label">Tiers</div></div>
+      <div class="stat-card"><div class="stat-num" id="open">—</div><div class="stat-label">Open rights</div></div>
+    </div>
+
+    <h2>Selected Record</h2>
+    <div id="detail">
+      <p class="placeholder">Click any marker on the map to view its NAPH metadata.</p>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  Built with <a href="https://github.com/fabio-rovai/open-ontologies">Open Ontologies</a> · NAPH ontology released under
+  <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> · Records illustrative.
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+<script>
+const TIER_STYLES = {
+  baseline:     { color: '#94a3b8', label: 'Baseline' },
+  enhanced:     { color: '#4a90c2', label: 'Enhanced' },
+  aspirational: { color: '#d97757', label: 'Aspirational' },
+};
+
+function tierKey(tierStr) {
+  if (!tierStr) return 'baseline';
+  const s = tierStr.toLowerCase();
+  if (s.includes('aspirational')) return 'aspirational';
+  if (s.includes('enhanced')) return 'enhanced';
+  return 'baseline';
+}
+
+// Parse WKT POLYGON to lat/lon array
+function parseWKT(wkt) {
+  const match = /POLYGON\s*\(\(([^)]+)\)\)/.exec(wkt);
+  if (!match) return null;
+  return match[1].split(',').map(s => {
+    const [lon, lat] = s.trim().split(/\s+/).map(Number);
+    return [lat, lon];
+  });
+}
+
+function metaPair(record, label) {
+  const pair = (record.metadata || []).find(m => m.label.en[0] === label);
+  return pair ? pair.value.en[0] : '';
+}
+
+async function load() {
+  const resp = await fetch('../reports/iiif-collection-manifest.json');
+  const collection = await resp.json();
+  const items = collection.items;
+
+  const map = L.map('map').setView([35, 0], 2);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap',
+    maxZoom: 18,
+  }).addTo(map);
+
+  const markers = L.featureGroup().addTo(map);
+  const tierCounts = { baseline: 0, enhanced: 0, aspirational: 0 };
+  const years = new Set();
+  let openCount = 0;
+
+  items.forEach(item => {
+    const wkt = metaPair(item, 'Geographic footprint (WKT)');
+    const tier = metaPair(item, 'Tier compliance');
+    const date = metaPair(item, 'Date captured');
+    const sortie = metaPair(item, 'Sortie');
+    const tierK = tierKey(tier);
+    const style = TIER_STYLES[tierK];
+
+    tierCounts[tierK] += 1;
+    if (date) years.add(date.slice(0, 4));
+    if (item.rights && (item.rights.includes('NoC') || item.rights.includes('publicdomain'))) {
+      openCount += 1;
+    }
+
+    const polygon = parseWKT(wkt);
+    if (!polygon) return;
+
+    L.polygon(polygon, { color: style.color, weight: 1.5, fillOpacity: 0.25 }).addTo(markers);
+
+    const lats = polygon.map(p => p[0]);
+    const lons = polygon.map(p => p[1]);
+    const center = [(Math.min(...lats) + Math.max(...lats)) / 2, (Math.min(...lons) + Math.max(...lons)) / 2];
+
+    const marker = L.circleMarker(center, {
+      radius: 8, color: 'white', weight: 2, fillColor: style.color, fillOpacity: 0.95,
+    }).addTo(markers);
+
+    marker.bindPopup(`<strong>${item.label.en[0]}</strong><br>${date} · ${sortie}<br><span class="tier-badge ${tierK}" style="background:${style.color}">${style.label}</span>`, { closeButton: false });
+    marker.on('mouseover', () => marker.openPopup());
+    marker.on('mouseout', () => marker.closePopup());
+    marker.on('click', () => showDetail(item));
+  });
+
+  if (markers.getLayers().length) map.fitBounds(markers.getBounds().pad(0.1));
+
+  // Stats
+  document.getElementById('total').textContent = items.length;
+  const yearArr = [...years].sort();
+  document.getElementById('years').textContent = yearArr.length ? `${yearArr[0]}–${yearArr[yearArr.length-1]}` : '—';
+  document.getElementById('tiers').textContent = `${tierCounts.baseline}/${tierCounts.enhanced}/${tierCounts.aspirational}`;
+  document.getElementById('open').textContent = openCount;
+}
+
+function showDetail(item) {
+  const tierStr = (item.metadata || []).find(m => m.label.en[0] === 'Tier compliance')?.value.en[0] || '';
+  const tierK = tierKey(tierStr);
+  const html = [
+    `<h3>${item.label.en[0]}</h3>`,
+    `<span class="tier-badge ${tierK}">${TIER_STYLES[tierK].label}</span>`,
+    '<dl>',
+    ...(item.metadata || []).map(m => `<dt>${m.label.en[0]}</dt><dd>${m.value.en[0]}</dd>`),
+    '</dl>',
+    item.rights ? `<dt style="margin-top:0.6em;font-weight:600;color:#555;font-size:0.85em">Rights URI</dt><dd style="font-size:0.8em"><a href="${item.rights}" target="_blank" rel="noreferrer">${item.rights}</a></dd>` : '',
+    item.requiredStatement ? `<dt style="margin-top:0.6em;font-weight:600;color:#555;font-size:0.85em">Attribution</dt><dd style="font-size:0.85em">${item.requiredStatement.value.en[0]}</dd>` : '',
+  ].join('');
+  document.getElementById('detail').innerHTML = html;
+}
+
+load().catch(err => {
+  document.getElementById('detail').innerHTML = `<p class="placeholder">Could not load IIIF manifest: ${err.message}<br><br>Make sure you're serving this from a local HTTP server (not file://) and that <code>../reports/iiif-collection-manifest.json</code> exists.</p>`;
+});
+</script>
+
+</body>
+</html>

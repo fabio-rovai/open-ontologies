@@ -1,0 +1,90 @@
+@prefix naph:    <https://w3id.org/naph/ontology#> .
+@prefix dcat:    <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix reg:     <https://w3id.org/naph/registry#> .
+
+# =============================================================================
+# Compliance Declaration Template
+#
+# Copy this file, replace the bracketed values, and submit as a PR to
+# the registry repository. The maintainers will review and merge.
+#
+# Validate locally before submission:
+#   open-ontologies validate my-declaration.ttl
+#   open-ontologies shacl registry-shapes.ttl --data my-declaration.ttl
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Custodial institution
+# -----------------------------------------------------------------------------
+<https://[your-institutional-uri]/> a naph:CustodialInstitution, foaf:Organization ;
+    rdfs:label "[Full Institutional Name]" ;
+    foaf:homepage <https://[your-website]/> ;
+    reg:compliancePointOfContact "[name@institution.example]" ;
+    reg:countryCode "GB" .  # ISO 3166-1 alpha-2
+
+# -----------------------------------------------------------------------------
+# Collection declaration
+# -----------------------------------------------------------------------------
+<https://[your-institutional-uri]/collection/[collection-slug]> a naph:Collection, dcat:Catalog ;
+    rdfs:label "[Collection Name]" ;
+    dcterms:description "[Brief description of the collection — what it contains, time range, scale]" ;
+    naph:custodian <https://[your-institutional-uri]/> ;
+    reg:naphSpecVersion "1.0" ;
+    reg:declaredAt "[YYYY-MM-DD]"^^xsd:date ;
+
+    # Tier distribution counts
+    reg:tierBaselineCount [N] ;          # Records meeting Baseline tier
+    reg:tierEnhancedCount [N] ;          # Records meeting Enhanced tier
+    reg:tierAspirationalCount [N] ;      # Records meeting Aspirational tier
+    reg:totalRecords [N] ;               # Total NAPH-compliant records
+
+    # Public access mechanisms
+    reg:sparqlEndpoint <https://[your-sparql-endpoint]/> ;
+    reg:bulkDownloadURL <https://[your-bulk-download-url]/> ;
+    reg:webCatalogue <https://[your-collection-page]/> ;
+
+    # Latest validation report
+    reg:validationReportURL <https://[your-validation-report-url]/> ;
+    reg:validationReportDate "[YYYY-MM-DD]"^^xsd:date ;
+
+    # Aerial Photography Profile features
+    reg:hasIIIFManifests true ;       # true if manifests are produced
+    reg:hasIIIFImageAPI false ;       # true if Image API server runs
+    reg:supportsGeoSPARQL true ;      # true if SPARQL endpoint supports GeoSPARQL
+    reg:supportsFederation true ;     # true if endpoint supports federated queries
+
+    # Aerial-specific metadata
+    reg:dominantSubProfile reg:Reconnaissance ;  # main sub-profile (see categories below)
+    reg:dateRange [
+        a dcat:PeriodOfTime ;
+        dcat:startDate "[YYYY-MM-DD]"^^xsd:date ;
+        dcat:endDate "[YYYY-MM-DD]"^^xsd:date
+    ] ;
+
+    # Additional context
+    rdfs:comment "[Any special notes — e.g. partnerships, restrictions, planned upgrades]" .
+
+# -----------------------------------------------------------------------------
+# Provenance of this declaration
+# -----------------------------------------------------------------------------
+<#thisDeclaration> a prov:Activity ;
+    rdfs:label "Compliance declaration submitted [YYYY-MM-DD]" ;
+    prov:atTime "[YYYY-MM-DDTHH:MM:SSZ]"^^xsd:dateTime ;
+    prov:wasAssociatedWith <https://[your-institutional-uri]/> ;
+    prov:generated <https://[your-institutional-uri]/collection/[collection-slug]> .
+
+# =============================================================================
+# Sub-profile categories (use exactly one as `reg:dominantSubProfile`)
+# =============================================================================
+# reg:Reconnaissance      — Wartime military reconnaissance
+# reg:Satellite           — Declassified satellite imagery (CORONA, KH-9, etc.)
+# reg:UAV                 — Drone / born-digital aerial
+# reg:Photogrammetric     — Mapping survey photography
+# reg:AerialArchaeology   — Aerial archaeology survey
+# reg:Mixed               — Multiple sub-profiles in significant proportions

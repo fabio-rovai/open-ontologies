@@ -1,0 +1,196 @@
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix naph:    <https://w3id.org/naph/ontology#> .
+
+# =============================================================================
+# NAPH SHACL Shapes — Tiered Compliance Validation
+#
+# Three nested shape sets enforce the digitisation standard at each tier.
+# Each shape uses sh:targetSubjectsOf — it only validates records that have
+# explicitly claimed compliance at that tier (via naph:compliesWithTier).
+#
+# Baseline shape: applies to every AerialPhotograph (sh:targetClass)
+# Enhanced shape: applies only to photos claiming TierEnhanced or higher
+# Aspirational shape: applies only to photos claiming TierAspirational
+#
+# Pattern: a record claiming Enhanced must also pass Baseline (nested compliance).
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# TIER 1: BASELINE — minimum computation-readiness
+# Targets: every AerialPhotograph
+# -----------------------------------------------------------------------------
+
+naph:BaselineShape a sh:NodeShape ;
+    sh:targetClass naph:AerialPhotograph ;
+    sh:name "Baseline tier compliance" ;
+    sh:description "MUST have: stable identifier, ISO date, geographic footprint, rights statement, sortie reference." ;
+
+    sh:property [
+        sh:path naph:hasIdentifier ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Photograph must have exactly one stable identifier."
+    ] ;
+
+    sh:property [
+        sh:path naph:capturedOn ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        sh:message "Capture date must be a single ISO 8601 date — no free-text."
+    ] ;
+
+    sh:property [
+        sh:path naph:coversArea ;
+        sh:minCount 1 ;
+        sh:message "Photograph must reference a GeographicFootprint."
+    ] ;
+
+    sh:property [
+        sh:path naph:hasRightsStatement ;
+        sh:minCount 1 ;
+        sh:message "Photograph must have a machine-readable rights statement."
+    ] ;
+
+    sh:property [
+        sh:path naph:partOfSortie ;
+        sh:minCount 1 ;
+        sh:message "Photograph must be linked to a Sortie."
+    ] ;
+
+    sh:property [
+        sh:path naph:belongsToCollection ;
+        sh:minCount 1 ;
+        sh:message "Photograph must be linked to a Collection."
+    ] .
+
+# -----------------------------------------------------------------------------
+# TIER 2: ENHANCED — supports research workflows
+# Targets: only photos that claim Enhanced compliance
+# -----------------------------------------------------------------------------
+
+naph:EnhancedShape a sh:NodeShape ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:prefixes naph: ;
+        sh:select """
+            PREFIX naph: <https://w3id.org/naph/ontology#>
+            SELECT ?this WHERE {
+                ?this naph:compliesWithTier naph:TierEnhanced .
+            }
+        """
+    ] ;
+    sh:name "Enhanced tier compliance" ;
+    sh:description "Photos claiming Enhanced compliance: must have digitisation provenance, capture context, full provenance chain." ;
+
+    sh:property [
+        sh:path naph:hasDigitalSurrogate ;
+        sh:minCount 1 ;
+        sh:message "Enhanced tier requires at least one DigitalSurrogate."
+    ] ;
+
+    sh:property [
+        sh:path naph:hasCaptureEvent ;
+        sh:minCount 1 ;
+        sh:message "Enhanced tier requires CaptureEvent metadata."
+    ] ;
+
+    sh:property [
+        sh:path naph:hasProvenanceChain ;
+        sh:minCount 1 ;
+        sh:message "Enhanced tier requires a documented provenance chain."
+    ] .
+
+# -----------------------------------------------------------------------------
+# TIER 3: ASPIRATIONAL — supports semantic discovery
+# Targets: only photos that claim Aspirational compliance
+# -----------------------------------------------------------------------------
+
+naph:AspirationalShape a sh:NodeShape ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:prefixes naph: ;
+        sh:select """
+            PREFIX naph: <https://w3id.org/naph/ontology#>
+            SELECT ?this WHERE {
+                ?this naph:compliesWithTier naph:TierAspirational .
+            }
+        """
+    ] ;
+    sh:name "Aspirational tier compliance" ;
+    sh:description "Photos claiming Aspirational compliance: must have subject classification + cross-collection linking + capture context + provenance + surrogate metadata." ;
+
+    sh:property [
+        sh:path naph:depicts ;
+        sh:minCount 1 ;
+        sh:message "Aspirational tier requires subject classification."
+    ] ;
+
+    sh:property [
+        sh:path naph:linkedRecord ;
+        sh:minCount 1 ;
+        sh:message "Aspirational tier requires at least one cross-collection linked record."
+    ] ;
+
+    sh:property [
+        sh:path naph:hasDigitalSurrogate ;
+        sh:minCount 1 ;
+        sh:message "Aspirational tier requires Enhanced-level digitisation provenance."
+    ] ;
+
+    sh:property [
+        sh:path naph:hasCaptureEvent ;
+        sh:minCount 1 ;
+        sh:message "Aspirational tier requires Enhanced-level capture context."
+    ] ;
+
+    sh:property [
+        sh:path naph:hasProvenanceChain ;
+        sh:minCount 1 ;
+        sh:message "Aspirational tier requires Enhanced-level provenance chain."
+    ] .
+
+# -----------------------------------------------------------------------------
+# DigitalSurrogate quality requirements (applies to all tiers that have surrogates)
+# -----------------------------------------------------------------------------
+
+naph:DigitalSurrogateShape a sh:NodeShape ;
+    sh:targetClass naph:DigitalSurrogate ;
+
+    sh:property [
+        sh:path naph:digitisedOn ;
+        sh:minCount 1 ;
+        sh:datatype xsd:date
+    ] ;
+
+    sh:property [
+        sh:path naph:scanResolution ;
+        sh:minCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 300 ;
+        sh:message "Scan resolution must be at least 300 DPI for archival quality."
+    ] ;
+
+    sh:property [
+        sh:path naph:fileFormat ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string
+    ] .
+
+# -----------------------------------------------------------------------------
+# Place authority requirements (Aspirational-tier subjects)
+# -----------------------------------------------------------------------------
+
+naph:PlaceShape a sh:NodeShape ;
+    sh:targetClass naph:Place ;
+
+    sh:property [
+        sh:path naph:placeAuthorityURI ;
+        sh:minCount 1 ;
+        sh:datatype xsd:anyURI ;
+        sh:message "Place must have an external authority URI (GeoNames, Wikidata, etc.)."
+    ] .

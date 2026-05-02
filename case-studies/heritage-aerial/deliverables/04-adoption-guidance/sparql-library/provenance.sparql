@@ -1,0 +1,166 @@
+# NAPH SPARQL Library — Provenance queries
+#
+# Provenance audits and lineage tracing. Most queries require Enhanced or
+# Aspirational tier.
+
+# =============================================================================
+# Q-PROV-1 [E] — Provenance chain summary per record
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?chainLabel
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?photoLabel ;
+           naph:hasProvenanceChain ?chain .
+    ?chain rdfs:label ?chainLabel .
+}
+
+# =============================================================================
+# Q-PROV-2 [E] — Photographs from a specific provenance pathway
+# =============================================================================
+# Use case: audit which records came via a specific transfer agreement.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?label ?chainLabel
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:hasProvenanceChain ?chain .
+    ?chain rdfs:label ?chainLabel .
+    FILTER (CONTAINS(?chainLabel, "NARA"))
+}
+
+# =============================================================================
+# Q-PROV-3 [E] — Records by digitisation date
+# =============================================================================
+# Use case: when was each record digitised? Identifies older digitisations
+# that may need re-validation.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?label ?surrogate ?digitisedOn ?resolution
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:hasDigitalSurrogate ?surrogate .
+    ?surrogate naph:digitisedOn ?digitisedOn ;
+               naph:scanResolution ?resolution .
+}
+ORDER BY ?digitisedOn
+
+# =============================================================================
+# Q-PROV-4 [E] — Records digitised by a specific operator/event
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+
+SELECT ?photo ?digitisedOn ?digitisedBy
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:hasDigitalSurrogate ?surrogate .
+    ?surrogate naph:digitisedBy ?digitisedBy ;
+               naph:digitisedOn ?digitisedOn .
+}
+ORDER BY ?digitisedBy ?digitisedOn
+
+# =============================================================================
+# Q-PROV-5 [E] — Records with declassification events
+# =============================================================================
+# Use case: audit which records were classified at some point.
+# Requires reconnaissance sub-profile (`naph:DeclassificationEvent` defined).
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?declassifyDate ?order
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:hasProvenanceChain ?chain .
+    ?chain prov:hadMember ?event .
+    ?event a naph:DeclassificationEvent ;
+           prov:atTime ?declassifyDate ;
+           naph:declassificationOrder ?order .
+}
+ORDER BY ?declassifyDate
+
+# =============================================================================
+# Q-PROV-6 [A] — AI-derived field provenance audit
+# =============================================================================
+# Use case: identify all records whose subject classification came from
+# an automated tool (vs. human curator).
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?placeDerivedBy ?confidence
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:placeDerivedBy ?tool ;
+           naph:placeConfidence ?confidence .
+    ?tool a prov:SoftwareAgent ;
+          rdfs:label ?placeDerivedBy .
+}
+ORDER BY DESC(?confidence)
+
+# =============================================================================
+# Q-PROV-7 [A] — AI-derived fields without human validation
+# =============================================================================
+# Use case: data-quality audit — find unvalidated AI claims.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+
+SELECT ?photo ?confidence
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:placeDerivedBy ?tool ;
+           naph:placeConfidence ?confidence .
+    FILTER NOT EXISTS {
+        ?validation a prov:Activity ;
+                    naph:validationOutcome ?outcome ;
+                    prov:used ?photo .
+    }
+}
+ORDER BY ?confidence
+
+# =============================================================================
+# Q-PROV-8 [E] — Records missing provenance chain
+# =============================================================================
+# Use case: data-quality audit — Enhanced-claimed records that lack provenance.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?photo
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:compliesWithTier naph:TierEnhanced .
+    FILTER NOT EXISTS { ?photo naph:hasProvenanceChain ?chain }
+}
+
+# =============================================================================
+# Q-PROV-9 [E] — Sortie-level provenance summary
+# =============================================================================
+# Use case: see provenance grouped by mission to identify patterns.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?sortieRef ?chainLabel (COUNT(?photo) AS ?recordCount)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:partOfSortie ?sortie ;
+           naph:hasProvenanceChain ?chain .
+    ?sortie naph:sortieReference ?sortieRef .
+    ?chain rdfs:label ?chainLabel .
+}
+GROUP BY ?sortieRef ?chainLabel

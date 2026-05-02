@@ -1,0 +1,120 @@
+@prefix naph:    <https://w3id.org/naph/ontology#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+# =============================================================================
+# Rights Statement Templates
+#
+# Reusable templates for the most common rights cases in aerial photography
+# heritage. Copy the relevant template into your collection's Turtle and
+# adjust the IRI to your namespace.
+#
+# Each template uses the canonical /vocab/ form of rightsstatements.org URIs
+# and the canonical Crown Copyright URI for UK government works.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# UK Crown Copyright — currently active
+# Use for: post-1957 unpublished UK government works still under copyright
+# Use for: published UK government works not yet at expiry
+# -----------------------------------------------------------------------------
+yourns:rights-CrownCopyright a naph:RightsStatement ;
+    naph:rightsURI <https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/> ;
+    naph:rightsLabel "Crown Copyright" ;
+    naph:rightsHolder yourns:HMG ;
+    naph:rightsReviewedOn "2024-01-15"^^xsd:date ;
+    dcterms:license <https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/> ;
+    rdfs:comment "Crown Copyright UK government work. OGL v3.0 covers most reuse cases." .
+
+# -----------------------------------------------------------------------------
+# UK Crown Copyright — expired
+# Use for: pre-1957 unpublished works after 125 years post-creation
+# Use for: published Crown works after 50 years post-publication
+# -----------------------------------------------------------------------------
+yourns:rights-CrownCopyrightExpired a naph:RightsStatement ;
+    naph:rightsURI <http://rightsstatements.org/vocab/NoC-OKLR/1.0/> ;
+    naph:rightsLabel "No Copyright — Other Known Legal Restrictions" ;
+    naph:rightsReviewedOn "2024-01-15"^^xsd:date ;
+    naph:rightsReviewBasis "Crown Copyright expired per CDPA 1988 s.163(3) — 125 years post-creation rule for unpublished works" ;
+    rdfs:comment "Out-of-copyright UK Crown work. Some legal restrictions may apply (e.g. data protection if material identifies individuals)." .
+
+# -----------------------------------------------------------------------------
+# US Public Domain (Federal Government work)
+# Use for: USAAF, USAF, USN, NARA-held material
+# -----------------------------------------------------------------------------
+yourns:rights-NARAPublicDomain a naph:RightsStatement ;
+    naph:rightsURI <http://rightsstatements.org/vocab/NoC-US/1.0/> ;
+    naph:rightsLabel "No Copyright — United States" ;
+    naph:rightsReviewBasis "Federal employee work doctrine — public domain in US per 17 U.S.C. § 105" ;
+    rdfs:comment "US federal government work. Public domain in US; status outside US not asserted." .
+
+# -----------------------------------------------------------------------------
+# Open Government Licence v3.0
+# Use for: explicitly licensed UK government works
+# -----------------------------------------------------------------------------
+yourns:rights-OGLv3 a naph:RightsStatement ;
+    naph:rightsURI <https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/> ;
+    naph:rightsLabel "Open Government Licence v3.0" ;
+    naph:rightsHolder yourns:HMG ;
+    rdfs:comment "Licensed under OGL v3.0. Free reuse with attribution." .
+
+# -----------------------------------------------------------------------------
+# Creative Commons Attribution 4.0
+# Use for: institution-released material under CC BY
+# Use for: research-project UAV imagery
+# -----------------------------------------------------------------------------
+yourns:rights-CCBY40 a naph:RightsStatement ;
+    naph:rightsURI <https://creativecommons.org/licenses/by/4.0/> ;
+    naph:rightsLabel "Creative Commons Attribution 4.0 International" ;
+    naph:rightsHolder yourns:institution ;
+    rdfs:comment "Creative Commons BY 4.0. Reuse permitted with attribution." .
+
+# -----------------------------------------------------------------------------
+# Creative Commons Attribution-NonCommercial 4.0
+# -----------------------------------------------------------------------------
+yourns:rights-CCBYNC40 a naph:RightsStatement ;
+    naph:rightsURI <https://creativecommons.org/licenses/by-nc/4.0/> ;
+    naph:rightsLabel "Creative Commons Attribution-NonCommercial 4.0" ;
+    naph:rightsHolder yourns:institution ;
+    rdfs:comment "Creative Commons BY-NC 4.0. Non-commercial reuse permitted with attribution." .
+
+# -----------------------------------------------------------------------------
+# CC0 / Public Domain Dedication
+# -----------------------------------------------------------------------------
+yourns:rights-CC0 a naph:RightsStatement ;
+    naph:rightsURI <https://creativecommons.org/publicdomain/zero/1.0/> ;
+    naph:rightsLabel "CC0 Public Domain Dedication" ;
+    rdfs:comment "Released under CC0 — no rights reserved. Fully open reuse." .
+
+# -----------------------------------------------------------------------------
+# In Copyright (no public reuse permission)
+# Use for: known-copyright material without licensing agreement
+# -----------------------------------------------------------------------------
+yourns:rights-InCopyright a naph:RightsStatement ;
+    naph:rightsURI <http://rightsstatements.org/vocab/InC/1.0/> ;
+    naph:rightsLabel "In Copyright" ;
+    naph:rightsHolder yourns:rightsholder ;
+    naph:rightsReviewedOn "2024-01-15"^^xsd:date ;
+    rdfs:comment "Copyright held by [holder]. Public reuse requires permission. Contact [institution] for licensing enquiries." .
+
+# -----------------------------------------------------------------------------
+# Copyright Not Evaluated (orphan work, diligent search incomplete)
+# Use for: material where copyright cannot be determined
+# -----------------------------------------------------------------------------
+yourns:rights-CNE a naph:RightsStatement ;
+    naph:rightsURI <http://rightsstatements.org/vocab/CNE/1.0/> ;
+    naph:rightsLabel "Copyright Not Evaluated" ;
+    naph:rightsReviewedOn "2024-01-15"^^xsd:date ;
+    rdfs:comment "Copyright status not yet determined. Reuse at user's risk; institution does not assert rights status." .
+
+# -----------------------------------------------------------------------------
+# Captured / seized enemy material
+# Use for: WW2 Luftwaffe, Soviet, etc. material captured in occupation
+# -----------------------------------------------------------------------------
+yourns:rights-SeizedMaterial a naph:RightsStatement ;
+    naph:rightsURI <http://rightsstatements.org/vocab/InC-OW-EU/1.0/> ;
+    naph:rightsLabel "In Copyright — Orphan Works (EU)" ;
+    naph:rightsReviewedOn "2024-01-15"^^xsd:date ;
+    naph:rightsReviewBasis "Material seized 1945; original creator's successors not identifiable. Treated as orphan work pending Orphan Works Licensing Scheme application." ;
+    rdfs:comment "Seized enemy material. Rights regime complex; treat as orphan work pending formal licensing." .

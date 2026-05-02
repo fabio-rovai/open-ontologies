@@ -1,0 +1,82 @@
+name: NAPH Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Open Ontologies
+        run: |
+          curl -L https://github.com/fabio-rovai/open-ontologies/releases/latest/download/open-ontologies-x86_64-unknown-linux-gnu \
+            -o open-ontologies
+          chmod +x open-ontologies
+          sudo mv open-ontologies /usr/local/bin/
+
+      - name: Validate before release
+        run: |
+          open-ontologies validate ontology/naph-core.ttl
+          open-ontologies validate ontology/naph-shapes.ttl
+          open-ontologies validate data/sample-photographs.ttl
+          python3 pipeline/self-assessment.py data/sample-photographs.ttl
+
+      - name: Generate release artefacts
+        run: |
+          mkdir -p release/
+          # Bundle ontology + shapes + sample
+          cp ontology/naph-core.ttl release/
+          cp ontology/naph-shapes.ttl release/
+          cp data/sample-photographs.ttl release/
+          # Generate validation report
+          python3 pipeline/generate-report.py > release/validation-report.html
+          # Generate IIIF collection
+          python3 pipeline/iiif-bridge.py --all > release/iiif-collection-manifest.json
+          # Bundle deliverables
+          tar -czf release/naph-deliverables.tar.gz deliverables/
+          tar -czf release/naph-pipeline.tar.gz pipeline/
+          # Sample BagIt-style bundle (illustrative)
+          mkdir -p release/sample-bag
+          cp data/sample-photographs.ttl release/sample-bag/
+          cp ontology/*.ttl release/sample-bag/
+          # Compute checksums
+          (cd release && sha256sum *.ttl *.html *.json *.tar.gz > SHA256SUMS)
+
+      - name: Extract changelog entry
+        id: changelog
+        run: |
+          # Extract this version's section from CHANGELOG.md
+          version=${GITHUB_REF#refs/tags/v}
+          awk "/^## \[$version\]/,/^## \[/{if (/^## \[/ && !/^## \[$version\]/) exit; print}" CHANGELOG.md > /tmp/release-notes.md
+          cat /tmp/release-notes.md
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: NAPH ${{ github.ref_name }}
+          body_path: /tmp/release-notes.md
+          files: |
+            release/naph-core.ttl
+            release/naph-shapes.ttl
+            release/sample-photographs.ttl
+            release/validation-report.html
+            release/iiif-collection-manifest.json
+            release/naph-deliverables.tar.gz
+            release/naph-pipeline.tar.gz
+            release/SHA256SUMS
+
+      - name: Notify w3id.org redirect (manual step reminder)
+        run: |
+          echo "::notice::Remember to update w3id.org redirect to point to release ${{ github.ref_name }}"

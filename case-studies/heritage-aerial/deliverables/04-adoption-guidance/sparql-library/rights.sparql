@@ -1,0 +1,155 @@
+# NAPH SPARQL Library — Rights queries
+#
+# Rights-aware filtering for publication, reuse, and licensing audit.
+
+# =============================================================================
+# Q-RIGHTS-1 [B] — Open-rights records (publication-eligible)
+# =============================================================================
+# Use case: find records suitable for inclusion in open-access publication.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?label ?rightsLabel
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:hasRightsStatement ?rights .
+    ?rights naph:rightsLabel ?rightsLabel ;
+            naph:rightsURI ?rightsURI .
+    FILTER (
+        CONTAINS(STR(?rightsURI), "NoC") ||
+        CONTAINS(STR(?rightsURI), "publicdomain") ||
+        CONTAINS(STR(?rightsURI), "creativecommons")
+    )
+}
+
+# =============================================================================
+# Q-RIGHTS-2 [B] — Records by rights category
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?rightsLabel (COUNT(?photo) AS ?count)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:hasRightsStatement ?rights .
+    ?rights naph:rightsLabel ?rightsLabel .
+}
+GROUP BY ?rightsLabel
+ORDER BY DESC(?count)
+
+# =============================================================================
+# Q-RIGHTS-3 [E] — Records with stale rights review
+# =============================================================================
+# Use case: find rights statements that need re-review (last reviewed > 2 years).
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?photo ?reviewDate
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:hasRightsStatement ?rights .
+    ?rights naph:rightsReviewedOn ?reviewDate .
+    FILTER (?reviewDate < "2024-04-01"^^xsd:date)
+}
+ORDER BY ?reviewDate
+
+# =============================================================================
+# Q-RIGHTS-4 [B] — Records with copyright-not-evaluated status
+# =============================================================================
+# Use case: identify orphan-work-style records needing rights clearance.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?photo ?label
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           rdfs:label ?label ;
+           naph:hasRightsStatement ?rights .
+    ?rights naph:rightsURI ?rightsURI .
+    FILTER (CONTAINS(STR(?rightsURI), "/CNE/"))
+}
+
+# =============================================================================
+# Q-RIGHTS-5 [E] — Crown Copyright records by expiry status
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?photo ?capturedOn ?rightsLabel
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:capturedOn ?capturedOn ;
+           naph:hasRightsStatement ?rights .
+    ?rights naph:rightsLabel ?rightsLabel .
+    FILTER (CONTAINS(?rightsLabel, "Crown Copyright"))
+}
+ORDER BY ?capturedOn
+
+# =============================================================================
+# Q-RIGHTS-6 [E] — Records with ethics statements
+# =============================================================================
+# Use case: find sensitive material flagged for special access protocols.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?ethicsLabel ?ethicsCategory
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:ethicsStatement ?ethics .
+    ?ethics rdfs:label ?ethicsLabel ;
+            naph:ethicsCategory ?ethicsCategory .
+}
+ORDER BY ?ethicsCategory
+
+# =============================================================================
+# Q-RIGHTS-7 [A] — Records with cultural rights labels
+# =============================================================================
+# Use case: identify records with TK / BC labels.
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+
+SELECT ?photo ?tkLabel
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:culturalRights ?cr .
+    ?cr naph:tkLabelURI ?tkLabel .
+}
+
+# =============================================================================
+# Q-RIGHTS-8 [B] — Records by rights holder
+# =============================================================================
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?rightsHolder (COUNT(?photo) AS ?count)
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:hasRightsStatement ?rights .
+    ?rights naph:rightsHolder ?rightsHolder .
+}
+GROUP BY ?rightsHolder
+ORDER BY DESC(?count)
+
+# =============================================================================
+# Q-RIGHTS-9 [E] — Cross-reference: rights vs. provenance origin
+# =============================================================================
+# Use case: audit consistency — do NARA-sourced records have NARA-public-domain
+# rights?
+
+PREFIX naph: <https://w3id.org/naph/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?photo ?chainLabel ?rightsLabel
+WHERE {
+    ?photo a naph:AerialPhotograph ;
+           naph:hasProvenanceChain ?chain ;
+           naph:hasRightsStatement ?rights .
+    ?chain rdfs:label ?chainLabel .
+    ?rights naph:rightsLabel ?rightsLabel .
+    FILTER (CONTAINS(?chainLabel, "NARA") && !CONTAINS(?rightsLabel, "United States"))
+}
