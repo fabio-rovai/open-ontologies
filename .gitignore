@@ -1,5 +1,7 @@
 /target
 .worktrees/
 data/
+!case-studies/heritage-aerial/data/
+!case-studies/heritage-aerial/data/**
 # Ignore generated OWL files in root, but keep benchmark references
 /*.owl

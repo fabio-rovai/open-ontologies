@@ -1,0 +1,448 @@
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix dctype:  <http://purl.org/dc/dcmitype/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix geo:     <http://www.opengis.net/ont/geosparql#> .
+@prefix naph:    <https://w3id.org/naph/ontology#> .
+@prefix ex:      <https://w3id.org/naph/example/> .
+
+# =============================================================================
+# Sample dataset — 10 illustrative aerial photograph records
+# Modeled on NCAP collection structure (publicly known characteristics)
+# Distributed across the three compliance tiers to demonstrate the gap.
+#
+# Records 1-3: BASELINE only (mirrors current public Air Photo Finder state)
+# Records 4-7: ENHANCED (achievable with current digitisation workflow + structure)
+# Records 8-10: ASPIRATIONAL (full semantic enrichment + cross-collection linking)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Custodial institution & collection
+# -----------------------------------------------------------------------------
+
+ex:NCAP a naph:CustodialInstitution ;
+    rdfs:label "National Collection of Aerial Photography" ;
+    skos:altLabel "NCAP" .
+
+ex:NCAPCollection a naph:Collection ;
+    rdfs:label "NCAP Holdings" ;
+    naph:custodian ex:NCAP .
+
+# -----------------------------------------------------------------------------
+# Rights statements (reusable)
+# -----------------------------------------------------------------------------
+
+ex:CrownCopyrightExpired a naph:RightsStatement ;
+    naph:rightsURI <http://rightsstatements.org/vocab/NoC-OKLR/1.0/> ;
+    naph:rightsLabel "No Copyright — Other Known Legal Restrictions" .
+
+ex:CrownCopyright a naph:RightsStatement ;
+    naph:rightsURI <https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/> ;
+    naph:rightsLabel "Crown Copyright" .
+
+ex:NARAPublicDomain a naph:RightsStatement ;
+    naph:rightsURI <http://rightsstatements.org/vocab/NoC-US/1.0/> ;
+    naph:rightsLabel "No Copyright — United States" .
+
+# =============================================================================
+# RECORD 1 — BASELINE ONLY
+# WWII RAF reconnaissance, Berlin, 1944
+# =============================================================================
+
+ex:sortie-RAF-106G-UK-1655 a naph:Sortie ;
+    rdfs:label "Sortie RAF/106G/UK/1655" ;
+    naph:sortieReference "RAF/106G/UK/1655" .
+
+ex:photo-001 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "Berlin reconnaissance frame 4023" ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/RAF-106G-UK-1655-4023" ;
+    naph:partOfSortie ex:sortie-RAF-106G-UK-1655 ;
+    naph:belongsToCollection ex:NCAPCollection ;
+    naph:capturedOn "1944-03-28"^^xsd:date ;
+    naph:coversArea ex:footprint-001 ;
+    naph:hasRightsStatement ex:CrownCopyrightExpired ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-001 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((13.35 52.50, 13.45 52.50, 13.45 52.55, 13.35 52.55, 13.35 52.50))"^^geo:wktLiteral .
+
+# =============================================================================
+# RECORD 2 — BASELINE ONLY
+# Post-war Scottish urban survey, Edinburgh, 1947
+# =============================================================================
+
+ex:sortie-RAF-CPE-SCOT-UK-216 a naph:Sortie ;
+    rdfs:label "Sortie CPE/SCOT/UK/216" ;
+    naph:sortieReference "CPE/SCOT/UK/216" .
+
+ex:photo-002 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "Edinburgh city centre frame 5142" ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/CPE-SCOT-UK-216-5142" ;
+    naph:partOfSortie ex:sortie-RAF-CPE-SCOT-UK-216 ;
+    naph:belongsToCollection ex:NCAPCollection ;
+    naph:capturedOn "1947-06-15"^^xsd:date ;
+    naph:coversArea ex:footprint-002 ;
+    naph:hasRightsStatement ex:CrownCopyright ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-002 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-3.21 55.94, -3.16 55.94, -3.16 55.97, -3.21 55.97, -3.21 55.94))"^^geo:wktLiteral .
+
+# =============================================================================
+# RECORD 3 — BASELINE ONLY
+# US Navy reconnaissance, Pacific theatre, 1944
+# =============================================================================
+
+ex:sortie-USN-VD-1-PACIFIC-44 a naph:Sortie ;
+    rdfs:label "Sortie VD-1 Pacific 1944" ;
+    naph:sortieReference "USN/VD-1/PAC/1944-08" .
+
+ex:photo-003 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "Saipan coastline frame 0218" ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/USN-VD-1-PAC-1944-08-0218" ;
+    naph:partOfSortie ex:sortie-USN-VD-1-PACIFIC-44 ;
+    naph:belongsToCollection ex:NCAPCollection ;
+    naph:capturedOn "1944-08-12"^^xsd:date ;
+    naph:coversArea ex:footprint-003 ;
+    naph:hasRightsStatement ex:NARAPublicDomain ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-003 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((145.70 15.10, 145.78 15.10, 145.78 15.18, 145.70 15.18, 145.70 15.10))"^^geo:wktLiteral .
+
+# =============================================================================
+# RECORD 4 — ENHANCED
+# WWII RAF reconnaissance, Hamburg, 1943 (full digitisation provenance)
+# =============================================================================
+
+ex:sortie-RAF-541-HAMBURG-43 a naph:Sortie ;
+    rdfs:label "Sortie RAF/541/Hamburg/1943" ;
+    naph:sortieReference "RAF/541/HAM/1943-07-26" ;
+    naph:squadron "541 Squadron" ;
+    naph:aircraft "Supermarine Spitfire PR.IX" .
+
+ex:photo-004 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "Hamburg post-firestorm frame 1287" ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/RAF-541-HAM-1943-07-26-1287" ;
+    naph:partOfSortie ex:sortie-RAF-541-HAMBURG-43 ;
+    naph:belongsToCollection ex:NCAPCollection ;
+    naph:capturedOn "1943-07-30"^^xsd:date ;
+    naph:coversArea ex:footprint-004 ;
+    naph:hasRightsStatement ex:CrownCopyrightExpired ;
+    naph:hasCaptureEvent ex:capture-004 ;
+    naph:hasDigitalSurrogate ex:surrogate-004-master, ex:surrogate-004-access ;
+    naph:hasProvenanceChain ex:provenance-004 ;
+    naph:compliesWithTier naph:TierEnhanced .
+
+ex:footprint-004 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((9.95 53.53, 10.05 53.53, 10.05 53.58, 9.95 53.58, 9.95 53.53))"^^geo:wktLiteral .
+
+ex:capture-004 a naph:CaptureEvent ;
+    naph:flightAltitude 9144.0 ;
+    naph:cameraType "F.52 split-pair vertical camera, 36-inch lens" .
+
+ex:surrogate-004-master a naph:DigitalSurrogate ;
+    rdfs:label "Preservation master" ;
+    naph:digitisedOn "2018-04-12"^^xsd:date ;
+    naph:scanResolution 1200 ;
+    naph:fileFormat "image/tiff" ;
+    naph:digitisedBy ex:NCAP .
+
+ex:surrogate-004-access a naph:DigitalSurrogate ;
+    rdfs:label "Access copy" ;
+    naph:digitisedOn "2018-04-12"^^xsd:date ;
+    naph:scanResolution 600 ;
+    naph:fileFormat "image/jp2" ;
+    naph:digitisedBy ex:NCAP .
+
+ex:provenance-004 a naph:ProvenanceChain ;
+    rdfs:label "RAF 1943 → Air Ministry → MoD → NCAP transfer 2008" .
+
+# =============================================================================
+# RECORD 5 — ENHANCED
+# RAF coastal survey, Aberdeen, 1948
+# =============================================================================
+
+ex:sortie-RAF-58-ABDN-48 a naph:Sortie ;
+    rdfs:label "Sortie RAF/58/Aberdeen/1948" ;
+    naph:sortieReference "RAF/58/ABDN/1948-09" ;
+    naph:squadron "58 Squadron" ;
+    naph:aircraft "Avro Lincoln B.II" .
+
+ex:photo-005 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "Aberdeen harbour and coastline frame 3344" ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/RAF-58-ABDN-1948-09-3344" ;
+    naph:partOfSortie ex:sortie-RAF-58-ABDN-48 ;
+    naph:belongsToCollection ex:NCAPCollection ;
+    naph:capturedOn "1948-09-22"^^xsd:date ;
+    naph:coversArea ex:footprint-005 ;
+    naph:hasRightsStatement ex:CrownCopyright ;
+    naph:hasCaptureEvent ex:capture-005 ;
+    naph:hasDigitalSurrogate ex:surrogate-005 ;
+    naph:hasProvenanceChain ex:provenance-005 ;
+    naph:compliesWithTier naph:TierEnhanced .
+
+ex:footprint-005 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-2.10 57.13, -2.04 57.13, -2.04 57.17, -2.10 57.17, -2.10 57.13))"^^geo:wktLiteral .
+
+ex:capture-005 a naph:CaptureEvent ;
+    naph:flightAltitude 3048.0 ;
+    naph:cameraType "F.49 vertical survey camera" .
+
+ex:surrogate-005 a naph:DigitalSurrogate ;
+    naph:digitisedOn "2020-08-03"^^xsd:date ;
+    naph:scanResolution 800 ;
+    naph:fileFormat "image/tiff" ;
+    naph:digitisedBy ex:NCAP .
+
+ex:provenance-005 a naph:ProvenanceChain ;
+    rdfs:label "RAF 1948 → Air Ministry → MoD → NCAP transfer 2010" .
+
+# =============================================================================
+# RECORD 6 — ENHANCED
+# US Air Force reconnaissance, Korean War, 1951
+# =============================================================================
+
+ex:sortie-USAF-91SRS-KOR-51 a naph:Sortie ;
+    rdfs:label "USAF 91st SRS Korea 1951" ;
+    naph:sortieReference "USAF/91SRS/KOR/1951-04" ;
+    naph:squadron "91st Strategic Reconnaissance Squadron" ;
+    naph:aircraft "Boeing RB-29A Superfortress" .
+
+ex:photo-006 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "Pyongyang industrial district frame 0892" ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/USAF-91SRS-KOR-1951-04-0892" ;
+    naph:partOfSortie ex:sortie-USAF-91SRS-KOR-51 ;
+    naph:belongsToCollection ex:NCAPCollection ;
+    naph:capturedOn "1951-04-18"^^xsd:date ;
+    naph:coversArea ex:footprint-006 ;
+    naph:hasRightsStatement ex:NARAPublicDomain ;
+    naph:hasCaptureEvent ex:capture-006 ;
+    naph:hasDigitalSurrogate ex:surrogate-006 ;
+    naph:hasProvenanceChain ex:provenance-006 ;
+    naph:compliesWithTier naph:TierEnhanced .
+
+ex:footprint-006 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((125.72 39.01, 125.78 39.01, 125.78 39.05, 125.72 39.05, 125.72 39.01))"^^geo:wktLiteral .
+
+ex:capture-006 a naph:CaptureEvent ;
+    naph:flightAltitude 9144.0 ;
+    naph:cameraType "K-17B trimetrogon" .
+
+ex:surrogate-006 a naph:DigitalSurrogate ;
+    naph:digitisedOn "2019-11-14"^^xsd:date ;
+    naph:scanResolution 1200 ;
+    naph:fileFormat "image/tiff" ;
+    naph:digitisedBy ex:NCAP .
+
+ex:provenance-006 a naph:ProvenanceChain ;
+    rdfs:label "USAF 1951 → NARA accession → NCAP digitisation partnership 2016" .
+
+# =============================================================================
+# RECORD 7 — ENHANCED
+# Directorate of Overseas Surveys, Kenya, 1954
+# =============================================================================
+
+ex:sortie-DOS-KEN-54 a naph:Sortie ;
+    rdfs:label "DOS Kenya survey 1954" ;
+    naph:sortieReference "DOS/KEN/1954-11" ;
+    naph:aircraft "Avro Anson C.19" .
+
+ex:photo-007 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "Mount Kenya foothills frame 7710" ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/DOS-KEN-1954-11-7710" ;
+    naph:partOfSortie ex:sortie-DOS-KEN-54 ;
+    naph:belongsToCollection ex:NCAPCollection ;
+    naph:capturedOn "1954-11-08"^^xsd:date ;
+    naph:coversArea ex:footprint-007 ;
+    naph:hasRightsStatement ex:CrownCopyright ;
+    naph:hasCaptureEvent ex:capture-007 ;
+    naph:hasDigitalSurrogate ex:surrogate-007 ;
+    naph:hasProvenanceChain ex:provenance-007 ;
+    naph:compliesWithTier naph:TierEnhanced .
+
+ex:footprint-007 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((37.20 -0.20, 37.30 -0.20, 37.30 -0.10, 37.20 -0.10, 37.20 -0.20))"^^geo:wktLiteral .
+
+ex:capture-007 a naph:CaptureEvent ;
+    naph:flightAltitude 4572.0 ;
+    naph:cameraType "Williamson F.49 Mk.II" .
+
+ex:surrogate-007 a naph:DigitalSurrogate ;
+    naph:digitisedOn "2021-03-09"^^xsd:date ;
+    naph:scanResolution 800 ;
+    naph:fileFormat "image/tiff" ;
+    naph:digitisedBy ex:NCAP .
+
+ex:provenance-007 a naph:ProvenanceChain ;
+    rdfs:label "DOS 1954 → ODA archive → NCAP transfer 2014" .
+
+# =============================================================================
+# RECORD 8 — ASPIRATIONAL
+# WWII RAF reconnaissance, Peenemünde V-2 site, 1943
+# =============================================================================
+
+ex:sortie-RAF-540-PEEN-43 a naph:Sortie ;
+    rdfs:label "Sortie RAF/540/Peenemünde/1943" ;
+    naph:sortieReference "RAF/540/PEEN/1943-06" ;
+    naph:squadron "540 Squadron" ;
+    naph:aircraft "de Havilland Mosquito PR.IX" .
+
+ex:photo-008 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "Peenemünde rocket research facility frame 0413" ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/RAF-540-PEEN-1943-06-0413" ;
+    naph:partOfSortie ex:sortie-RAF-540-PEEN-43 ;
+    naph:belongsToCollection ex:NCAPCollection ;
+    naph:capturedOn "1943-06-23"^^xsd:date ;
+    naph:coversArea ex:footprint-008 ;
+    naph:hasRightsStatement ex:CrownCopyrightExpired ;
+    naph:hasCaptureEvent ex:capture-008 ;
+    naph:hasDigitalSurrogate ex:surrogate-008 ;
+    naph:hasProvenanceChain ex:provenance-008 ;
+    naph:depicts ex:place-Peenemunde, ex:event-V2Programme ;
+    naph:relatedToEvent ex:event-V2Programme ;
+    naph:linkedRecord <https://www.iwm.org.uk/collections/item/object/205089> ;
+    naph:compliesWithTier naph:TierAspirational .
+
+ex:footprint-008 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((13.76 54.13, 13.80 54.13, 13.80 54.16, 13.76 54.16, 13.76 54.13))"^^geo:wktLiteral .
+
+ex:capture-008 a naph:CaptureEvent ;
+    naph:flightAltitude 9144.0 ;
+    naph:cameraType "F.52 vertical, 36-inch lens" .
+
+ex:surrogate-008 a naph:DigitalSurrogate ;
+    naph:digitisedOn "2017-09-15"^^xsd:date ;
+    naph:scanResolution 1200 ;
+    naph:fileFormat "image/tiff" ;
+    naph:digitisedBy ex:NCAP .
+
+ex:provenance-008 a naph:ProvenanceChain ;
+    rdfs:label "RAF 1943 → Air Ministry → declassified 1972 → MoD → NCAP transfer 2008" .
+
+ex:place-Peenemunde a naph:Place ;
+    rdfs:label "Peenemünde Army Research Center" ;
+    naph:placeAuthorityURI "https://www.geonames.org/2856533/peenemuende.html"^^xsd:anyURI ;
+    skos:exactMatch <https://www.wikidata.org/wiki/Q897509> .
+
+ex:event-V2Programme a naph:HistoricEvent ;
+    rdfs:label "V-2 rocket" ;
+    skos:exactMatch <https://www.wikidata.org/wiki/Q174640> .
+
+# =============================================================================
+# RECORD 9 — ASPIRATIONAL
+# Edinburgh Castle, RAF post-war urban survey, 1946
+# =============================================================================
+
+ex:sortie-RAF-541-EDI-46 a naph:Sortie ;
+    rdfs:label "Sortie RAF/541/Edinburgh/1946" ;
+    naph:sortieReference "RAF/541/EDI/1946-08" ;
+    naph:squadron "541 Squadron" ;
+    naph:aircraft "Supermarine Spitfire PR.XIX" .
+
+ex:photo-009 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "Edinburgh Castle and Royal Mile frame 2287" ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/RAF-541-EDI-1946-08-2287" ;
+    naph:partOfSortie ex:sortie-RAF-541-EDI-46 ;
+    naph:belongsToCollection ex:NCAPCollection ;
+    naph:capturedOn "1946-08-04"^^xsd:date ;
+    naph:coversArea ex:footprint-009 ;
+    naph:hasRightsStatement ex:CrownCopyrightExpired ;
+    naph:hasCaptureEvent ex:capture-009 ;
+    naph:hasDigitalSurrogate ex:surrogate-009 ;
+    naph:hasProvenanceChain ex:provenance-009 ;
+    naph:depicts ex:place-EdinburghCastle, ex:place-EdinburghOldTown ;
+    naph:linkedRecord <https://canmore.org.uk/site/52086>, <https://www.historicenvironment.scot/visit-a-place/places/edinburgh-castle/> ;
+    naph:compliesWithTier naph:TierAspirational .
+
+ex:footprint-009 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-3.205 55.946, -3.185 55.946, -3.185 55.952, -3.205 55.952, -3.205 55.946))"^^geo:wktLiteral .
+
+ex:capture-009 a naph:CaptureEvent ;
+    naph:flightAltitude 6096.0 ;
+    naph:cameraType "F.52 split-pair vertical" .
+
+ex:surrogate-009 a naph:DigitalSurrogate ;
+    naph:digitisedOn "2019-05-22"^^xsd:date ;
+    naph:scanResolution 1200 ;
+    naph:fileFormat "image/tiff" ;
+    naph:digitisedBy ex:NCAP .
+
+ex:provenance-009 a naph:ProvenanceChain ;
+    rdfs:label "RAF 1946 → Air Ministry → MoD → NCAP transfer 2008" .
+
+ex:place-EdinburghCastle a naph:Place ;
+    rdfs:label "Edinburgh Castle" ;
+    naph:placeAuthorityURI "https://www.geonames.org/2650225/edinburgh-castle.html"^^xsd:anyURI ;
+    skos:exactMatch <https://www.wikidata.org/wiki/Q212065> ;
+    naph:linkedRecord <https://canmore.org.uk/site/52086> .
+
+ex:place-EdinburghOldTown a naph:Place ;
+    rdfs:label "Old Town, Edinburgh" ;
+    naph:placeAuthorityURI "https://www.geonames.org/2650225/edinburgh.html"^^xsd:anyURI ;
+    skos:exactMatch <https://www.wikidata.org/wiki/Q591133> .
+
+# =============================================================================
+# RECORD 10 — ASPIRATIONAL
+# Hiroshima post-bombing assessment, USAAF, 1945
+# =============================================================================
+
+ex:sortie-USAAF-3PRS-HIR-45 a naph:Sortie ;
+    rdfs:label "USAAF 3rd PRS Hiroshima 1945" ;
+    naph:sortieReference "USAAF/3PRS/HIR/1945-08" ;
+    naph:squadron "3rd Photo Reconnaissance Squadron" ;
+    naph:aircraft "Boeing F-13A Superfortress" .
+
+ex:photo-010 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "Hiroshima post-detonation assessment frame 0034" ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/USAAF-3PRS-HIR-1945-08-0034" ;
+    naph:partOfSortie ex:sortie-USAAF-3PRS-HIR-45 ;
+    naph:belongsToCollection ex:NCAPCollection ;
+    naph:capturedOn "1945-08-11"^^xsd:date ;
+    naph:coversArea ex:footprint-010 ;
+    naph:hasRightsStatement ex:NARAPublicDomain ;
+    naph:hasCaptureEvent ex:capture-010 ;
+    naph:hasDigitalSurrogate ex:surrogate-010 ;
+    naph:hasProvenanceChain ex:provenance-010 ;
+    naph:depicts ex:place-Hiroshima, ex:event-AtomicBombing ;
+    naph:relatedToEvent ex:event-AtomicBombing ;
+    naph:linkedRecord <https://catalog.archives.gov/id/542192>, <https://www.iwm.org.uk/collections/item/object/205000123> ;
+    naph:compliesWithTier naph:TierAspirational .
+
+ex:footprint-010 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((132.44 34.38, 132.50 34.38, 132.50 34.42, 132.44 34.42, 132.44 34.38))"^^geo:wktLiteral .
+
+ex:capture-010 a naph:CaptureEvent ;
+    naph:flightAltitude 9144.0 ;
+    naph:cameraType "K-17 trimetrogon" .
+
+ex:surrogate-010 a naph:DigitalSurrogate ;
+    naph:digitisedOn "2018-08-06"^^xsd:date ;
+    naph:scanResolution 1600 ;
+    naph:fileFormat "image/tiff" ;
+    naph:digitisedBy ex:NCAP .
+
+ex:provenance-010 a naph:ProvenanceChain ;
+    rdfs:label "USAAF 1945 → US Strategic Bombing Survey → NARA → NCAP digitisation partnership 2016" .
+
+ex:place-Hiroshima a naph:Place ;
+    rdfs:label "Hiroshima" ;
+    naph:placeAuthorityURI "https://www.geonames.org/1862415/hiroshima.html"^^xsd:anyURI ;
+    skos:exactMatch <https://www.wikidata.org/wiki/Q34664> .
+
+ex:event-AtomicBombing a naph:HistoricEvent ;
+    rdfs:label "Atomic bombing of Hiroshima" ;
+    skos:exactMatch <https://www.wikidata.org/wiki/Q703203> .
