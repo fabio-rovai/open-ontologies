@@ -1,0 +1,41 @@
+[
+  {
+    "@context": {
+      "clinical": "http://example.org/clinical-records-standard#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@type": "clinical:DiagnosisRecord",
+    "@id": "I10",
+    "dcterms:title": "Essential hypertension",
+    "dcterms:date": "2025-09-14",
+    "dcterms:description": "Primary hypertension, no secondary cause identified",
+    "clinical:hasCoding": {
+      "@type": "clinical:Code",
+      "clinical:codeValue": "I10",
+      "clinical:codeSystem": "ICD-10"
+    },
+    "clinical:linkedMedication": "warfarin 5mg daily",
+    "_source_note": "Illustrative — modelled on common primary-care diagnosis patterns; not a real patient record."
+  },
+  {
+    "@context": {
+      "clinical": "http://example.org/clinical-records-standard#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@type": "clinical:DiagnosisRecord",
+    "@id": "E11.9",
+    "dcterms:title": "Type 2 diabetes mellitus, without complications",
+    "dcterms:date": "2025-09-14",
+    "dcterms:description": "T2DM, glycaemic control on oral therapy",
+    "clinical:hasCoding": {
+      "@type": "clinical:Code",
+      "clinical:codeValue": "E11.9",
+      "clinical:codeSystem": "ICD-10"
+    },
+    "clinical:linkedMedication": "metformin 500mg twice daily",
+    "clinical:relatedDiagnosis": "I10",
+    "_source_note": "Illustrative — common comorbidity pattern; not a real patient record."
+  }
+]

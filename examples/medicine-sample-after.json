@@ -1,0 +1,96 @@
+[
+  {
+    "@context": {
+      "clinical": "http://example.org/clinical-records-standard#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "skos": "http://www.w3.org/2004/02/skos/core#",
+      "prov": "http://www.w3.org/ns/prov#",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@type": "clinical:DiagnosisRecord",
+    "@id": "https://example.org/records/diag/0001",
+    "dcterms:title": "Essential hypertension",
+    "dcterms:date": {"@type": "xsd:date", "@value": "2025-09-14"},
+    "dcterms:description": "Primary hypertension, no secondary cause identified",
+    "dcterms:relation": "https://example.org/records/diag/0002",
+    "clinical:hasCoding": {
+      "@type": "clinical:Code",
+      "clinical:primaryCode": "I10",
+      "clinical:primarySystem": "ICD-10",
+      "skos:exactMatch": [
+        {"@id": "http://snomed.info/id/38341003", "rdfs:label": "Essential hypertension (SNOMED CT)"},
+        {"@id": "http://id.nlm.nih.gov/mesh/D006973", "rdfs:label": "Hypertension (MeSH)"}
+      ]
+    },
+    "clinical:hasMedication": {
+      "@type": "clinical:Medication",
+      "dcterms:title": "Warfarin",
+      "clinical:dose": "5 mg",
+      "clinical:frequency": "once daily",
+      "skos:exactMatch": [
+        {"@id": "http://purl.bioontology.org/ontology/RXNORM/11289", "rdfs:label": "Warfarin (RxNorm)"},
+        {"@id": "http://fdasis.nlm.nih.gov/srs/unii/5Q7ZVV76EI", "rdfs:label": "Warfarin substance (UNII)"},
+        {"@id": "http://id.nlm.nih.gov/mesh/D014859", "rdfs:label": "Warfarin (MeSH)"}
+      ]
+    },
+    "clinical:hasProvenance": {
+      "@type": "prov:Entity",
+      "prov:wasDerivedFrom": "ICD-10 single-system diagnosis record",
+      "prov:wasGeneratedBy": "open-ontologies onto_enrich + onto_crosswalk",
+      "prov:generatedAtTime": {"@type": "xsd:dateTime", "@value": "2026-05-07T10:00:00"}
+    },
+    "clinical:hasQA": {
+      "@type": "clinical:QARecord",
+      "clinical:validationStatus": "pass",
+      "clinical:codingCompleteness": 1.0,
+      "clinical:terminologySources": ["ICD-10", "SNOMED CT", "MeSH", "RxNorm", "UNII"]
+    }
+  },
+  {
+    "@context": {
+      "clinical": "http://example.org/clinical-records-standard#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "skos": "http://www.w3.org/2004/02/skos/core#",
+      "prov": "http://www.w3.org/ns/prov#",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@type": "clinical:DiagnosisRecord",
+    "@id": "https://example.org/records/diag/0002",
+    "dcterms:title": "Type 2 diabetes mellitus, without complications",
+    "dcterms:date": {"@type": "xsd:date", "@value": "2025-09-14"},
+    "dcterms:description": "T2DM, glycaemic control on oral therapy",
+    "dcterms:relation": "https://example.org/records/diag/0001",
+    "clinical:hasCoding": {
+      "@type": "clinical:Code",
+      "clinical:primaryCode": "E11.9",
+      "clinical:primarySystem": "ICD-10",
+      "skos:exactMatch": [
+        {"@id": "http://snomed.info/id/44054006", "rdfs:label": "Diabetes mellitus type 2 (SNOMED CT)"},
+        {"@id": "http://id.nlm.nih.gov/mesh/D003924", "rdfs:label": "Diabetes Mellitus, Type 2 (MeSH)"}
+      ]
+    },
+    "clinical:hasMedication": {
+      "@type": "clinical:Medication",
+      "dcterms:title": "Metformin hydrochloride",
+      "clinical:dose": "500 mg",
+      "clinical:frequency": "twice daily",
+      "skos:exactMatch": [
+        {"@id": "http://purl.bioontology.org/ontology/RXNORM/6809", "rdfs:label": "Metformin (RxNorm)"},
+        {"@id": "http://fdasis.nlm.nih.gov/srs/unii/9100L32L2N", "rdfs:label": "Metformin substance (UNII)"},
+        {"@id": "http://id.nlm.nih.gov/mesh/D008687", "rdfs:label": "Metformin (MeSH)"}
+      ]
+    },
+    "clinical:hasProvenance": {
+      "@type": "prov:Entity",
+      "prov:wasDerivedFrom": "ICD-10 single-system diagnosis record",
+      "prov:wasGeneratedBy": "open-ontologies onto_enrich + onto_crosswalk",
+      "prov:generatedAtTime": {"@type": "xsd:dateTime", "@value": "2026-05-07T10:00:00"}
+    },
+    "clinical:hasQA": {
+      "@type": "clinical:QARecord",
+      "clinical:validationStatus": "pass",
+      "clinical:codingCompleteness": 1.0,
+      "clinical:terminologySources": ["ICD-10", "SNOMED CT", "MeSH", "RxNorm", "UNII"]
+    }
+  }
+]
