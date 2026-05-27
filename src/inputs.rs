@@ -208,6 +208,18 @@ pub struct OntoShaclInput {
 }
 
 #[derive(Deserialize, JsonSchema)]
+pub struct OntoShaclCheckInput {
+    /// Path to SHACL shapes file OR inline SHACL Turtle content to dry-run-validate
+    /// against the currently loaded ontology. Checks that the shapes parse and that
+    /// every IRI they reference (`sh:targetClass`, `sh:path`, `sh:class`) actually
+    /// exists in the ontology, plus a lightweight XSD-prefix check on `sh:datatype`.
+    /// Does NOT apply or run the shapes — that's `onto_shacl`.
+    pub shapes: String,
+    /// If true, treat shapes as inline Turtle content (default false = file path).
+    pub inline: Option<bool>,
+}
+
+#[derive(Deserialize, JsonSchema)]
 pub struct OntoReasonInput {
     /// Reasoning profile: rdfs (default), owl-rl
     pub profile: Option<String>,
