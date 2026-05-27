@@ -76,6 +76,20 @@ impl DriftDetector {
         Ok(result.to_string())
     }
 
+    /// Detect drift and convert to a KGCL change report (high-level semantic format).
+    /// `rename_threshold` controls when a likely_rename becomes an obsoletion-with-replacement
+    /// (default 0.7 is a reasonable starting point).
+    pub fn detect_kgcl(
+        &self,
+        v1_turtle: &str,
+        v2_turtle: &str,
+        rename_threshold: f64,
+    ) -> anyhow::Result<crate::kgcl::KgclReport> {
+        let json_str = self.detect(v1_turtle, v2_turtle)?;
+        let json: serde_json::Value = serde_json::from_str(&json_str)?;
+        Ok(crate::kgcl::drift_to_kgcl(&json, rename_threshold))
+    }
+
     /// Record feedback for a rename prediction.
     #[allow(clippy::too_many_arguments)]
     pub fn record_feedback(

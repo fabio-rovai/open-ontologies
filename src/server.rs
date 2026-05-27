@@ -984,15 +984,35 @@ impl OpenOntologiesServer {
         }).to_string()
     }
 
-    #[tool(name = "onto_drift", description = "Detect drift between two ontology versions. Returns added/removed terms, likely renames with confidence scores, and drift velocity.")]
+    #[tool(name = "onto_drift", description = "Detect drift between two ontology versions. Returns added/removed terms, likely renames with confidence scores, and drift velocity. `format` selects output: 'json' (default), 'kgcl' (KGCL CNL text), or 'kgcl_json' (KGCL structured JSON-LD).")]
     async fn onto_drift(&self, Parameters(input): Parameters<OntoDriftInput>) -> String {
         let detector = crate::drift::DriftDetector::new(self.db.clone());
-        match detector.detect(&input.version_a, &input.version_b) {
-            Ok(result) => {
-                self.lineage().record(&self.session_id, "D", "drift", "detected");
-                result
-            }
-            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        let format = input.format.as_deref().unwrap_or("json");
+        let threshold = input.rename_threshold.unwrap_or(0.7);
+        match format {
+            "kgcl" => match detector.detect_kgcl(&input.version_a, &input.version_b, threshold) {
+                Ok(report) => {
+                    self.lineage()
+                        .record(&self.session_id, "D", "drift", "detected:kgcl");
+                    report.to_cnl()
+                }
+                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+            },
+            "kgcl_json" => match detector.detect_kgcl(&input.version_a, &input.version_b, threshold) {
+                Ok(report) => {
+                    self.lineage()
+                        .record(&self.session_id, "D", "drift", "detected:kgcl_json");
+                    report.to_json().to_string()
+                }
+                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+            },
+            _ => match detector.detect(&input.version_a, &input.version_b) {
+                Ok(result) => {
+                    self.lineage().record(&self.session_id, "D", "drift", "detected");
+                    result
+                }
+                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+            },
         }
     }
 

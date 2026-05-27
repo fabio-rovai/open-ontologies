@@ -6,6 +6,7 @@ pub mod config;
 pub mod clinical;
 pub mod drift;
 pub mod enforce;
+pub mod kgcl;
 pub mod feedback;
 pub mod graph;
 pub mod ingest;

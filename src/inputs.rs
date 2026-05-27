@@ -279,6 +279,16 @@ pub struct OntoDriftInput {
     pub version_a: String,
     /// Second version as inline Turtle
     pub version_b: String,
+    /// Output format. One of: "json" (default, existing schema with added/removed/likely_renames),
+    /// "kgcl" (KGCL Controlled Natural Language, one change per line),
+    /// "kgcl_json" (KGCL changes as structured JSON-LD).
+    #[serde(default)]
+    pub format: Option<String>,
+    /// Confidence threshold above which a likely_rename is emitted as a KGCL
+    /// obsoletion-with-replacement instead of a plain add+remove pair. Default 0.7.
+    /// Only consulted when `format` is "kgcl" or "kgcl_json".
+    #[serde(default)]
+    pub rename_threshold: Option<f64>,
 }
 
 #[derive(Deserialize, JsonSchema)]
