@@ -363,8 +363,18 @@ pub struct OntoAlignInput {
     pub source: String,
     /// Target ontology: inline Turtle content or file path. If omitted, aligns against loaded store
     pub target: Option<String>,
-    /// Minimum confidence threshold for auto-apply (default 0.85)
+    /// Minimum confidence threshold for auto-apply (default 0.85). Back-compat alias for
+    /// `high_threshold` — if both are set, `high_threshold` wins.
     pub min_confidence: Option<f64>,
+    /// Confidence threshold above which a candidate is auto-applied (default 0.85, or
+    /// `min_confidence` if provided for back-compat). Candidates above this land in
+    /// `auto_applied`.
+    pub high_threshold: Option<f64>,
+    /// Confidence threshold below which a candidate is dropped entirely (default 0.4).
+    /// Candidates in [low_threshold, high_threshold] are surfaced in `borderline` with
+    /// enriched context (parents, siblings, labels) so the calling LLM can judge them
+    /// and record verdicts via `onto_align_feedback`.
+    pub low_threshold: Option<f64>,
     /// If true, return candidates only without inserting triples (default false)
     pub dry_run: Option<bool>,
 }

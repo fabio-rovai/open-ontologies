@@ -1358,12 +1358,20 @@ impl OpenOntologiesServer {
             None => None,
         };
 
-        let min_conf = input.min_confidence.unwrap_or(0.85);
+        let high = input.high_threshold.or(input.min_confidence).unwrap_or(0.85);
+        // Default low_threshold = 0.4 surfaces a borderline bucket for LLM-orchestrated review.
+        // Callers wanting the old strict behaviour pass low_threshold == high_threshold.
+        let low = input.low_threshold.unwrap_or(0.4).min(high);
         let dry_run = input.dry_run.unwrap_or(false);
 
-        match engine.align(&source, target.as_deref(), min_conf, dry_run) {
+        match engine.align_with_thresholds(&source, target.as_deref(), high, low, dry_run) {
             Ok(result) => {
-                self.lineage().record(&self.session_id, "AL", "align", &format!("threshold={}", min_conf));
+                self.lineage().record(
+                    &self.session_id,
+                    "AL",
+                    "align",
+                    &format!("high={},low={}", high, low),
+                );
                 result
             }
             Err(e) => format!(r#"{{"error":"{}"}}"#, e),

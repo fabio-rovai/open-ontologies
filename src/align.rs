@@ -317,6 +317,30 @@ impl AlignmentEngine {
         min_confidence: f64,
         dry_run: bool,
     ) -> anyhow::Result<String> {
+        // Back-compat wrapper: degenerate borderline range (low == high) reproduces old behaviour.
+        self.align_with_thresholds(source, target, min_confidence, min_confidence, dry_run)
+    }
+
+    /// Two-threshold alignment with borderline-candidate surfacing for LLM-orchestrated review.
+    ///
+    /// - candidates with confidence ≥ `high_threshold` land in `auto_applied`
+    ///   (and are persisted as triples unless `dry_run`)
+    /// - candidates with confidence in `[low_threshold, high_threshold)` land in `borderline`
+    ///   with enriched context (labels, parents) so the calling LLM can judge them and record
+    ///   verdicts via `onto_align_feedback`
+    /// - candidates below `low_threshold` are dropped
+    ///
+    /// If `low_threshold >= high_threshold`, no borderline bucket is produced (back-compat mode).
+    pub fn align_with_thresholds(
+        &self,
+        source: &str,
+        target: Option<&str>,
+        high_threshold: f64,
+        low_threshold: f64,
+        dry_run: bool,
+    ) -> anyhow::Result<String> {
+        // Clamp: degenerate range means "everything above high_threshold; nothing borderline".
+        let low_threshold = low_threshold.min(high_threshold);
         // Load source into a temporary graph (detect format from content)
         let source_store = GraphStore::new();
         if std::path::Path::new(source).exists() {
@@ -403,12 +427,13 @@ impl AlignmentEngine {
                     signals.iter().zip(weights.iter()).map(|(s, w)| s * w).sum()
                 };
 
-                // Skip low-confidence pairs
-                if confidence < min_confidence {
+                // Drop pairs below the low threshold entirely.
+                if confidence < low_threshold {
                     continue;
                 }
 
                 let relation = Self::classify_relation(label_sim, prop_overlap, parent_ovlp);
+                let requires_review = confidence < high_threshold;
 
                 #[allow(unused_mut)]
                 let mut signals_json = serde_json::json!({
@@ -431,6 +456,7 @@ impl AlignmentEngine {
                     "confidence": (confidence * 1000.0).round() / 1000.0,
                     "signals": signals_json,
                     "applied": false,
+                    "requires_review": requires_review,
                 }));
             }
         }
@@ -462,12 +488,12 @@ impl AlignmentEngine {
             });
         }
 
-        // Auto-apply above threshold
+        // Auto-apply above high_threshold.
         let mut applied_count = 0;
         if !dry_run {
             for candidate in &mut candidates {
                 let conf = candidate["confidence"].as_f64().unwrap_or(0.0);
-                if conf >= min_confidence {
+                if conf >= high_threshold {
                     let source_iri = candidate["source_iri"].as_str().unwrap();
                     let target_iri = candidate["target_iri"].as_str().unwrap();
                     let relation = candidate["relation"].as_str().unwrap();
@@ -481,13 +507,77 @@ impl AlignmentEngine {
             }
         }
 
+        // Enrich borderline candidates with context for LLM-orchestrated review.
+        // Cheap: at most one extract_parents call per borderline candidate per side.
+        let source_class_map: std::collections::HashMap<&str, &ClassInfo> =
+            source_classes.iter().map(|c| (c.iri.as_str(), c)).collect();
+        let target_class_map: std::collections::HashMap<&str, &ClassInfo> =
+            target_classes.iter().map(|c| (c.iri.as_str(), c)).collect();
+        for candidate in &mut candidates {
+            if !candidate["requires_review"].as_bool().unwrap_or(false) {
+                continue;
+            }
+            let s_iri = candidate["source_iri"].as_str().unwrap_or("").to_string();
+            let t_iri = candidate["target_iri"].as_str().unwrap_or("").to_string();
+            let s_labels: Vec<String> = source_class_map
+                .get(s_iri.as_str())
+                .map(|c| c.labels.clone())
+                .unwrap_or_default();
+            let t_labels: Vec<String> = target_class_map
+                .get(t_iri.as_str())
+                .map(|c| c.labels.clone())
+                .unwrap_or_default();
+            let s_parents = Self::extract_parents(&source_store, &s_iri);
+            let t_parents = Self::extract_parents(target_ref, &t_iri);
+            candidate["context"] = serde_json::json!({
+                "source_labels":  s_labels,
+                "target_labels":  t_labels,
+                "source_parents": s_parents,
+                "target_parents": t_parents,
+            });
+        }
+
+        // Partition into auto-applied vs borderline buckets (back-compat: `candidates`
+        // keeps the unified sorted list; new `auto_applied` / `borderline` are views).
+        let auto_applied: Vec<serde_json::Value> = candidates
+            .iter()
+            .filter(|c| !c["requires_review"].as_bool().unwrap_or(false))
+            .cloned()
+            .collect();
+        let borderline: Vec<serde_json::Value> = candidates
+            .iter()
+            .filter(|c| c["requires_review"].as_bool().unwrap_or(false))
+            .cloned()
+            .collect();
+
         let total = candidates.len();
+        let borderline_count = borderline.len();
+
+        let summary_for_review = if borderline_count > 0 {
+            format!(
+                "Found {} auto-applied matches and {} borderline pair(s) needing review. \
+                 For each borderline pair, inspect the `context` field (labels, parents) \
+                 and call `onto_align_feedback` with accepted=true|false to record your \
+                 verdict — the self-calibrating weight model will learn from it.",
+                auto_applied.len(),
+                borderline_count
+            )
+        } else {
+            String::new()
+        };
 
         Ok(serde_json::json!({
             "candidates": candidates,
+            "auto_applied": auto_applied,
+            "borderline": borderline,
             "applied_count": applied_count,
             "total_candidates": total,
-            "threshold": min_confidence,
+            "borderline_count": borderline_count,
+            "high_threshold": high_threshold,
+            "low_threshold": low_threshold,
+            // Back-compat alias — older callers read "threshold".
+            "threshold": high_threshold,
+            "summary_for_review": summary_for_review,
         }).to_string())
     }
 
