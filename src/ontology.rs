@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::io::Cursor;
 
 use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::sparql::QueryResults;
+use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 
 use crate::graph::GraphStore;
@@ -109,7 +109,11 @@ impl OntologyService {
                 FILTER NOT EXISTS { ?class <http://www.w3.org/2000/01/rdf-schema#label> ?label }
             }
         "#;
-        if let Ok(QueryResults::Solutions(solutions)) = store.query(query) {
+        if let Ok(QueryResults::Solutions(solutions)) = SparqlEvaluator::new()
+            .parse_query(query)
+            .map_err(anyhow::Error::from)
+            .and_then(|p| p.on_store(store).execute().map_err(anyhow::Error::from))
+        {
             for row in solutions.flatten() {
                 if let Some(term) = row.get("class") {
                     issues.push(serde_json::json!({
@@ -131,7 +135,11 @@ impl OntologyService {
                 FILTER NOT EXISTS { ?class <http://www.w3.org/2000/01/rdf-schema#comment> ?comment }
             }
         "#;
-        if let Ok(QueryResults::Solutions(solutions)) = store.query(query) {
+        if let Ok(QueryResults::Solutions(solutions)) = SparqlEvaluator::new()
+            .parse_query(query)
+            .map_err(anyhow::Error::from)
+            .and_then(|p| p.on_store(store).execute().map_err(anyhow::Error::from))
+        {
             for row in solutions.flatten() {
                 if let Some(term) = row.get("class") {
                     issues.push(serde_json::json!({
@@ -153,7 +161,11 @@ impl OntologyService {
                 FILTER NOT EXISTS { ?prop <http://www.w3.org/2000/01/rdf-schema#domain> ?d }
             }
         "#;
-        if let Ok(QueryResults::Solutions(solutions)) = store.query(query) {
+        if let Ok(QueryResults::Solutions(solutions)) = SparqlEvaluator::new()
+            .parse_query(query)
+            .map_err(anyhow::Error::from)
+            .and_then(|p| p.on_store(store).execute().map_err(anyhow::Error::from))
+        {
             for row in solutions.flatten() {
                 if let Some(term) = row.get("prop") {
                     issues.push(serde_json::json!({

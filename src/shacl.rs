@@ -1,6 +1,6 @@
 use crate::graph::GraphStore;
 use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::sparql::QueryResults;
+use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 use std::collections::HashMap;
 use std::io::Cursor;
@@ -371,7 +371,11 @@ fn query_solutions(
     store: &Store,
     query: &str,
 ) -> anyhow::Result<Vec<HashMap<String, String>>> {
-    match store.query(query)? {
+    match SparqlEvaluator::new()
+        .parse_query(query)?
+        .on_store(store)
+        .execute()?
+    {
         QueryResults::Solutions(solutions) => {
             let vars: Vec<String> = solutions
                 .variables()

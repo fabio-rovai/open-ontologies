@@ -3,7 +3,7 @@ use std::sync::Mutex;
 
 use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
 use oxigraph::model::*;
-use oxigraph::sparql::QueryResults;
+use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 
 /// In-memory RDF graph store backed by Oxigraph.
@@ -113,7 +113,11 @@ impl GraphStore {
 
     pub fn sparql_select(&self, query: &str) -> anyhow::Result<String> {
         let store = self.store.lock().unwrap();
-        match store.query(query)? {
+        match SparqlEvaluator::new()
+            .parse_query(query)?
+            .on_store(&store)
+            .execute()?
+        {
             QueryResults::Solutions(solutions) => {
                 let vars: Vec<String> = solutions
                     .variables()
@@ -211,7 +215,11 @@ impl GraphStore {
         let individual_query = "SELECT (COUNT(DISTINCT ?i) AS ?count) WHERE { ?i a ?c . FILTER(?c != <http://www.w3.org/2002/07/owl#Class> && ?c != <http://www.w3.org/2000/01/rdf-schema#Class> && ?c != <http://www.w3.org/2002/07/owl#ObjectProperty> && ?c != <http://www.w3.org/2002/07/owl#DatatypeProperty> && ?c != <http://www.w3.org/2002/07/owl#Ontology>) }";
 
         let count_from_query = |q: &str| -> usize {
-            let Ok(QueryResults::Solutions(solutions)) = store.query(q) else { return 0 };
+            let Ok(prepared) = SparqlEvaluator::new().parse_query(q) else { return 0 };
+            let Ok(QueryResults::Solutions(solutions)) = prepared
+                .on_store(&store)
+                .execute()
+            else { return 0 };
             let Some(Ok(row)) = solutions.into_iter().next() else { return 0 };
             let Some(Term::Literal(lit)) = row.get("count") else { return 0 };
             lit.value().parse().unwrap_or(0)
