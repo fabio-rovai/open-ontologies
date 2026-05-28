@@ -31,7 +31,7 @@
 
 ---
 
-Open Ontologies is a **Rust MCP server** and **desktop Studio** for AI-native ontology engineering. It exposes **43 tools** that let Claude build, validate, query, diff, lint, version, reason over, align, and persist RDF/OWL ontologies using an in-memory Oxigraph triple store — with Terraform-style lifecycle management, a marketplace of 32 standard ontologies, clinical crosswalks, semantic embeddings, and a full lineage audit trail.
+Open Ontologies is a **Rust MCP server** and **desktop Studio** for AI-native ontology engineering. It exposes **70+ tools** that let Claude build, validate, query, diff, lint, version, reason over, align, plan, certify, and govern RDF/OWL ontologies using an in-memory Oxigraph triple store — with a full three-layer Dynamics → Causal → Planner architecture, a marketplace of 32 standard ontologies, clinical crosswalks, semantic embeddings, and a full lineage audit trail.
 
 The **Studio** wraps the engine in a visual desktop environment: virtualized ontology tree with hierarchy lines, breadcrumb navigation, and connection explorer; AI chat panel with `/build` (IES-level deep) and `/sketch` (quick prototype) commands; Protégé-style property inspector; and lineage viewer.
 
@@ -39,16 +39,43 @@ No JVM. No Protégé.
 
 ---
 
-## What's New in v0.2
+## What's New in v0.4–v0.6 (three-layer architecture + 13 new primitives)
 
-Four PRs landed in the May 2026 release, all built on the **MCP-native** convention: the server provides validation and scaffolding primitives, the connected LLM (Claude over MCP) does the intelligence. No internal LLM clients, no API keys, no provider abstractions — the protocol already provides the model.
+The May 2026 megapush lands the full **Dynamics → Causal → Planner** stack plus 13 new primitives driven by the May 2026 KR/UAI/ICAPS/ISWC/K-CAP/SEMANTiCS/AAAI survey. Every piece holds the **MCP-native** convention: the server provides validation and scaffolding, the connected LLM (Claude over MCP) does the intelligence. No internal LLM clients, no API keys, no provider abstractions.
 
-- **KGCL drift output (#19)** — `onto_drift` can now emit results in the [Knowledge Graph Change Language](https://github.com/INCATools/kgcl) (CNL or structured JSON-LD) alongside the existing JSON. Instant OBO/BioPortal interop; "Terraform plan" output becomes machine-replayable.
-- **Borderline-candidate review for `onto_align` (#20)** — two-threshold bucketing (`auto_applied` / `borderline` / dropped) replaces the single `min_confidence` cliff. Borderline pairs carry rich `context` (labels, parents) so Claude can judge them in-conversation and record verdicts via the existing `onto_align_feedback` loop. MCP-native form of the LogMap-LLM "LLM-as-oracle" pattern (top-2 OAEI 2025 Bio-ML).
-- **`onto_shacl_check` (#21)** — structural dry-run for proposed SHACL shapes against the loaded ontology. Catches missing `sh:targetClass`, `sh:path`, `sh:class`, and unrecognised `sh:datatype` references before applying. The validation primitive Claude needs to iterate on LLM-authored SHACL.
-- **Oxigraph 0.5.8 migration (#22)** — `Store::query` ported to the non-deprecated `SparqlEvaluator` builder API. Unlocks **RDFC 1.0 canonicalisation** (W3C Recommendation, 21 May 2024) built-in, plus RDF 1.2 / SPARQL 1.2 / JSON-LD 1.1 / GeoSPARQL features available on demand.
+### Three-layer architecture (v0.4 → v0.5 → v0.6)
 
-Zero new external dependencies across all four PRs. Full test suite (~290 tests) green; `cargo clippy --lib --tests -- -D warnings` clean.
+| Layer | Issue | What it ships | Anchor research |
+|---|---|---|---|
+| **Dynamics** | [#43](https://github.com/fabio-rovai/open-ontologies/issues/43) | `ActionSchema` (BC+) + 4 MCP tools: `onto_action_register` / `_applicable` / `_apply` / `_list`. Full BC+ semantics — concurrent atomic ticks, static causal laws (invariants), default-value laws, ramification via OWL-RL closure, non-deterministic outcomes with reproducible seed. | Babb & Lee arXiv 2506.18044 |
+| **Causal** | [#44](https://github.com/fabio-rovai/open-ontologies/issues/44) | `onto_certify_action` with optional PyWhy/DoWhy backdoor identification (opt-in via `causal-pywhy` feature). Structural-proxy default + do-calculus opt-in + graceful fallback. | CIVeX arXiv:2605.09168; DoWhy v0.13 |
+| **Planner** | [#45](https://github.com/fabio-rovai/open-ontologies/issues/45) | `onto_plan_compile_pddl` + `onto_plan_classical` (Fast Downward subprocess) + `onto_plan_validate` (sandbox-simulate). Per LLM-Modulo, solver stays client-side; server compiles + validates. | Kambhampati arXiv 2402.01817 |
+
+### 13 new primitives from May 2026 conferences
+
+- **`onto_owl_shacl_coevolve_check`** (#33, K-CAP 2025) — SHACL validation against the OWL-RL closure, not the raw ABox.
+- **`onto_segment_retrieve`** (#34, GrOWL-RAG SEMANTiCS 2025) — TBox-slice retrieval for ontology-grounded RAG.
+- **`onto_extract_scaffold`** + **`onto_extract_validate`** (#28, OntoGPT SPIRES) — schema-guided structured extraction, MCP-native.
+- **`onto_cq_run`** (#29) + **`onto_verify_cq`** (#39, Lippolis ISWC 2025) — competency-question runner with VSPO pitfall hints + LLM-judgement loop.
+- **`onto_classify_el`** (#30) — OWL-EL classification (transitive subsumption table, trivial pairs excluded).
+- **`onto_eval_alignment`** (#31) — OAEI-style P/R/F1 over reference + computed alignments.
+- **`onto_shape_combinatorics`** (#36, K-CAP 2025 Kastor) — property-combination lattice for shape induction.
+- **`borderline_partition`** + **`borderline_record_verdict`** (#37, NORA NeurIPS 2025) — generalised borderline-pair review loop.
+- **`onto_align_fuzzy`** (#38, FLORA ISWC 2025 Best Paper) — embedding-free fuzzy-logic adjudication; demotes HNSW to a candidate generator per the strategic alignment pivot.
+- **`onto_policy_register`** + **`onto_policy_list`** + **`onto_policy_check`** (#40, ARGOS ISWC 2025 WOP) — authorisation gate that composes with CIVeX (CIVeX = causal risk; ARGOS = authorisation).
+- **`eval_rag`** (#41, mmRAG ISWC 2025) — Hit@k / MRR / exact-match-at-1 scoring for retriever pipelines.
+
+Also: **`graph_projection_lossy_check`** (#35, IJCAI 2025) lands as the auditor that pairs with `onto_segment_retrieve`.
+
+### Validating end-to-end
+
+```bash
+cargo run --example three_layer_pipeline
+```
+
+Walks Dynamics register → PDDL compile → Fast-Downward-shaped sas_plan parse → orchestrator-side IRI bind → sandbox validate → CIVeX certify → apply with OWL-RL ramification → final state inspection. Every layer through its public API, no external dependencies (Python, DoWhy, Fast Downward) required.
+
+Zero new external Rust dependencies; everything optional gates behind Cargo features. Full test suite (160+ tests) green on default build; `cargo clippy --lib --tests --examples -- -D warnings` clean across both default and `causal-pywhy` configurations.
 
 ---
 
@@ -646,7 +673,7 @@ The same tool, applied to any ontology, produces the same kind of improvement. T
 
 ## Tools
 
-43 tools organized by function — available as MCP tools (prefixed `onto_`) and CLI subcommands:
+70+ tools organized by function — available as MCP tools (prefixed `onto_`) and CLI subcommands:
 
 | Category | Tools | Purpose |
 | --- | --- | --- |
@@ -655,15 +682,26 @@ The same tool, applied to any ontology, produces the same kind of improvement. T
 | **Cache** | `cache_status` `cache_list` `cache_remove` `unload` `recompile` | On-disk N-Triples compile cache, idle-TTL eviction, per-name management ([details](docs/cache-and-registry.md)) |
 | **Marketplace** | `marketplace` | Browse and install 32 standard W3C/ISO/industry ontologies |
 | **Remote** | `pull` `push` `import` | Fetch/push ontologies, resolve owl:imports |
-| **Schema** | `import-schema` | PostgreSQL → OWL conversion |
-| **Data** | `map` `ingest` `shacl` `reason` `extend` | Structured data → RDF pipeline |
+| **Schema** | `import-schema` `sql-ingest` | Postgres + DuckDB → OWL + SQL → RDF ingest |
+| **Data** | `map` `ingest` `shacl` `shacl_check` `reason` `extend` | Structured data → RDF pipeline |
 | **Versioning** | `version` `history` `rollback` | Named snapshots and rollback |
 | **Lifecycle** | `plan` `apply` `lock` `drift` `enforce` `monitor` `monitor-clear` `lineage` | Terraform-style change management with webhook alerts and [OpenCheir](https://github.com/fabio-rovai/opencheir) governance integration |
-| **Alignment** | `align` `align-feedback` | Cross-ontology class matching with self-calibrating confidence |
-| **Clinical** | `crosswalk` `enrich` `validate-clinical` | ICD-10 / SNOMED / MeSH crosswalks (93-row sample ships in `data/crosswalks.parquet`; run `python scripts/build_crosswalks.py` to rebuild or extend) |
-| **Feedback** | `lint-feedback` `enforce-feedback` | Self-calibrating suppression |
+| **Alignment** | `align` `align_feedback` `align_fuzzy` | Cross-ontology class matching with self-calibrating weights + FLORA fuzzy adjudication |
+| **HNSW** | `hnsw_build` | Persisted HNSW indices (cosine + Poincaré) over class embeddings |
+| **Clinical** | `crosswalk` `enrich` `validate_clinical` | ICD-10 / SNOMED / MeSH crosswalks (93-row sample ships in `data/crosswalks.parquet`; run `python scripts/build_crosswalks.py` to rebuild or extend) |
+| **Feedback** | `lint_feedback` `enforce_feedback` | Self-calibrating suppression |
 | **Embeddings** | `embed` `search` `similarity` | Dual-space semantic search (text + Poincaré structural) |
-| **Reasoning** | `reason` `dl_explain` `dl_check` | Native OWL2-DL SHOIQ tableaux reasoner |
+| **Reasoning** | `reason` `dl_explain` `dl_check` `classify_el` | Native OWL2-DL SHOIQ tableaux + OWL-EL classification |
+| **Dynamics (#43)** | `action_register` `action_applicable` `action_apply` `action_list` `action_apply_concurrent` `invariant_register` `invariant_list` `invariant_remove` `invariant_check` `default_register` `default_apply` | BC+ action schemas + concurrent atomic ticks + static causal laws + default values |
+| **Causal (#44)** | `certify_action` | CIVeX-style four-verdict causal certificate (EXECUTE / REJECT / EXPERIMENT / ABSTAIN); optional `causal-pywhy` feature enables DoWhy backdoor identification |
+| **Planner (#45)** | `plan_compile_pddl` `plan_classical` `plan_validate` | Per LLM-Modulo: compile + validate live on the server; solver (Fast Downward) is a client-side subprocess |
+| **Governance (#40)** | `policy_register` `policy_list` `policy_check` | ARGOS-style authorisation rules; composes with `certify_action` |
+| **RAG** | `segment_retrieve` `graph_projection_lossy_check` | TBox-slice retrieval + projection-loss auditor |
+| **Extraction (#28)** | `extract_scaffold` `extract_validate` | Schema-guided structured-extraction prompt + validator (MCP-native SPIRES) |
+| **CQs** | `cq_run` `verify_cq` `cq_verdicts_list` | Competency-question runner with VSPO pitfall hints + LLM-judgement loop |
+| **Shape induction** | `shape_combinatorics` | Property-combination lattice for SHACL-shape induction |
+| **Borderline loop** | `borderline_partition` `borderline_record_verdict` | Generalised two-threshold borderline pattern for any candidate set |
+| **Evaluation** | `eval_alignment` `eval_rag` | OAEI P/R/F1 + mmRAG Hit@k / MRR scoring |
 
 ---
 
