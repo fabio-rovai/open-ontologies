@@ -599,6 +599,44 @@ fn default_alpha_pub() -> f64 {
     0.05
 }
 
+/// Input for `onto_eval_alignment` (#31, OAEI-style P/R/F1).
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoEvalAlignmentInput {
+    /// Reference alignment as JSON array of `{source, target, relation}`.
+    pub reference_json: String,
+    /// Computed alignment in the same shape.
+    pub computed_json: String,
+}
+
+/// Input for `onto_shape_combinatorics` (#36).
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoShapeCombinatoricsInput {
+    pub class_iri: String,
+    #[serde(default)]
+    pub max_size: Option<usize>,
+}
+
+/// Input for `borderline_partition` (#37).
+#[derive(Deserialize, JsonSchema)]
+pub struct BorderlinePartitionInput {
+    /// JSON array `[{id, score, context?}, ...]`.
+    pub candidates_json: String,
+    pub low_threshold: f64,
+    pub high_threshold: f64,
+}
+
+/// Input for `borderline_record_verdict` (#37).
+#[derive(Deserialize, JsonSchema)]
+pub struct BorderlineRecordVerdictInput {
+    pub candidate_id: String,
+    #[serde(default)]
+    pub namespace: Option<String>,
+    /// Either "accept" or "reject".
+    pub verdict: String,
+    #[serde(default)]
+    pub rationale: Option<String>,
+}
+
 /// Input for `onto_extract_scaffold` (#28, OntoGPT SPIRES MCP-native).
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoExtractScaffoldInput {

@@ -929,6 +929,68 @@ impl OpenOntologiesServer {
             .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
     }
 
+    #[tool(name = "onto_classify_el", description = "Classify the loaded ontology in the OWL-EL fragment (#30). Materialises OWL-RL-ext entailments in a sandbox copy of the graph and emits every distinct subsumption `?sub rdfs:subClassOf ?super` (transitive closure, deduplicated, owl:Thing-trivial pairs removed). For deep SHOIQ subsumption, use `onto_dl_check` / `onto_dl_explain`.")]
+    async fn onto_classify_el(&self) -> String {
+        match crate::classify_el::classify(&self.graph) {
+            Ok(r) => serde_json::to_string(&r)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_eval_alignment", description = "OAEI-style P/R/F1 scoring (#31). Both inputs are JSON arrays of {source, target, relation}; entries match on exact triple equality. Returns precision, recall, F1, TP/FP/FN counts.")]
+    async fn onto_eval_alignment(&self, Parameters(input): Parameters<OntoEvalAlignmentInput>) -> String {
+        let reference: Vec<crate::eval_alignment::AlignmentEntry> =
+            match serde_json::from_str(&input.reference_json) {
+                Ok(r) => r,
+                Err(e) => return format!(r#"{{"error":"invalid reference_json: {}"}}"#, e),
+            };
+        let computed: Vec<crate::eval_alignment::AlignmentEntry> =
+            match serde_json::from_str(&input.computed_json) {
+                Ok(c) => c,
+                Err(e) => return format!(r#"{{"error":"invalid computed_json: {}"}}"#, e),
+            };
+        let report = crate::eval_alignment::evaluate(&reference, &computed);
+        serde_json::to_string(&report)
+            .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e))
+    }
+
+    #[tool(name = "onto_shape_combinatorics", description = "Enumerate the property-combination lattice for a class (#36, K-CAP 2025 Kastor). Returns subsets of the class's rdfs:domain properties up to `max_size` (default 3). Used by shape-induction algorithms to enumerate candidate SHACL shapes from data.")]
+    async fn onto_shape_combinatorics(&self, Parameters(input): Parameters<OntoShapeCombinatoricsInput>) -> String {
+        let max = input.max_size.unwrap_or(3);
+        match crate::shape_combinatorics::enumerate(&self.graph, &input.class_iri, max) {
+            Ok(r) => serde_json::to_string(&r)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "borderline_partition", description = "Generalised borderline-pair partitioning (#37, NORA NeurIPS 2025). Takes a list of {id, score, context} candidates plus low+high thresholds; partitions into auto_accept (>= high), borderline ([low, high)), auto_reject (< low) and emits a review summary the orchestrator's LLM can act on. Pairs with `borderline_record_verdict`.")]
+    async fn borderline_partition(&self, Parameters(input): Parameters<BorderlinePartitionInput>) -> String {
+        let candidates: Vec<crate::borderline_loop::Candidate> =
+            match serde_json::from_str(&input.candidates_json) {
+                Ok(c) => c,
+                Err(e) => return format!(r#"{{"error":"invalid candidates_json: {}"}}"#, e),
+            };
+        let report = crate::borderline_loop::partition(candidates, input.low_threshold, input.high_threshold);
+        serde_json::to_string(&report)
+            .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e))
+    }
+
+    #[tool(name = "borderline_record_verdict", description = "Persist an orchestrator's verdict on a borderline candidate (#37). verdict must be \"accept\" or \"reject\". Namespaces let independent borderline loops coexist.")]
+    async fn borderline_record_verdict(&self, Parameters(input): Parameters<BorderlineRecordVerdictInput>) -> String {
+        let v = crate::borderline_loop::BorderlineVerdict {
+            candidate_id: input.candidate_id.clone(),
+            namespace: input.namespace.unwrap_or_else(|| "default".to_string()),
+            verdict: input.verdict,
+            rationale: input.rationale,
+        };
+        match crate::borderline_loop::record_verdict(&self.db, &v) {
+            Ok(()) => format!(r#"{{"ok":true,"candidate_id":"{}"}}"#, input.candidate_id),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
     #[tool(name = "onto_extract_scaffold", description = "Build a schema-guided structured-extraction scaffold for a class (#28, OntoGPT SPIRES MCP-native). Returns the class metadata (label, comment), the property schema derived from rdfs:domain triples that target the class, and a ready-to-use prompt template the orchestrator can hand to its LLM. The server doesn't run the LLM; it scaffolds the prompt and validates the LLM's output via `onto_extract_validate`.")]
     async fn onto_extract_scaffold(&self, Parameters(input): Parameters<OntoExtractScaffoldInput>) -> String {
         match crate::extract_scaffold::build_scaffold(&self.graph, &input.class_iri) {

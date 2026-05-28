@@ -4,10 +4,14 @@ pub mod error;
 pub mod align;
 pub mod config;
 pub mod clinical;
+pub mod borderline_loop;
 pub mod civex;
+pub mod classify_el;
 pub mod coevolve;
 pub mod cq;
+pub mod eval_alignment;
 pub mod extract_scaffold;
+pub mod shape_combinatorics;
 #[cfg(feature = "causal-pywhy")]
 pub mod civex_pywhy;
 pub mod drift;
