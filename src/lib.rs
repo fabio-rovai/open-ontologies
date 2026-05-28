@@ -37,6 +37,7 @@ pub mod server;
 pub mod shacl;
 pub mod state;
 pub mod schema;
+pub mod segment_retrieve;
 pub mod socket;
 pub mod sqlsource;
 pub mod tableaux;

@@ -599,6 +599,20 @@ fn default_alpha_pub() -> f64 {
     0.05
 }
 
+/// Input for `onto_segment_retrieve` (#34, SEMANTiCS 2025 GrOWL-RAG) —
+/// retrieve a TBox-slice neighbourhood for grounding LLM reasoning.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoSegmentRetrieveInput {
+    /// Seed IRIs whose neighbourhoods to extract.
+    pub seed_iris: Vec<String>,
+    /// BFS hop budget. Default 2.
+    #[serde(default)]
+    pub hops: Option<u32>,
+    /// When `true`, also include `?inst a <seed>` triples. Default `false`.
+    #[serde(default)]
+    pub include_abox: Option<bool>,
+}
+
 /// Input for `onto_owl_shacl_coevolve_check` (#33, K-CAP 2025) — validate
 /// SHACL shapes against the OWL closure of the loaded graph, not just the
 /// raw ABox.

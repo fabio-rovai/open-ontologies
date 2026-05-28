@@ -929,6 +929,17 @@ impl OpenOntologiesServer {
             .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
     }
 
+    #[tool(name = "onto_segment_retrieve", description = "Retrieve a TBox-slice neighbourhood of seed IRIs for grounding LLM reasoning (#34, SEMANTiCS 2025 GrOWL-RAG). Walks `rdfs:subClassOf` / `subPropertyOf` / `domain` / `range` + `owl:equivalentClass` / `equivalentProperty` / `disjointWith` / `inverseOf` to `hops` depth (default 2). Returns the slice as Turtle plus IRI/triple counts and any frontier IRIs hit at the hop budget. Pairs with `graph_projection_lossy_check`: this retrieves, that audits. Pass `include_abox=true` to also pull instance triples for each seed.")]
+    async fn onto_segment_retrieve(&self, Parameters(input): Parameters<OntoSegmentRetrieveInput>) -> String {
+        let hops = input.hops.unwrap_or(2);
+        let include_abox = input.include_abox.unwrap_or(false);
+        match crate::segment_retrieve::retrieve_segment(&self.graph, &input.seed_iris, hops, include_abox) {
+            Ok(result) => serde_json::to_string(&result)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
     #[tool(name = "onto_owl_shacl_coevolve_check", description = "Combined OWL+SHACL validation (#33, K-CAP 2025). Materialises OWL-RL entailments into a sandbox copy of the loaded graph, then runs SHACL validation against the closure. Returns both the pre-reasoning and post-reasoning conformance verdicts plus the count of triples the reasoner added. Catches SHACL constraints that pass against the raw ABox but fail after inference (e.g. instances that inherit a parent class via rdfs:subClassOf and then violate a parent-class shape). Original graph is NOT mutated.")]
     async fn onto_owl_shacl_coevolve_check(&self, Parameters(input): Parameters<OntoOwlShaclCoevolveInput>) -> String {
         let profile = input.profile.unwrap_or_else(|| "owl-rl".to_string());
