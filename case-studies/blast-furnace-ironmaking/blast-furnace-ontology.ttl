@@ -1,0 +1,75 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix bf: <http://example.org/blastfurnace/> .
+
+# ─── Blast Furnace Ontology (TBox) ───────────────────────────────────────────
+# Modelled after Huang et al. 2024, "Ontology guided multi-level KG
+# construction... blast furnace ironmaking process" (Adv. Eng. Informatics).
+# Four-zone furnace model: stack → belly → bosh → hearth. Three sensor
+# families: thermal, pressure, gas-composition. Fault taxonomy follows the
+# paper's multi-level structure.
+
+# ── Equipment classes (Level 1: physical structure)
+
+bf:Furnace a owl:Class ; rdfs:label "Blast furnace" .
+
+bf:Zone a owl:Class ; rdfs:label "Furnace zone" .
+bf:StackZone a owl:Class ; rdfs:subClassOf bf:Zone ; rdfs:label "Stack (upper)" .
+bf:BellyZone a owl:Class ; rdfs:subClassOf bf:Zone ; rdfs:label "Belly (middle)" .
+bf:BoshZone a owl:Class ; rdfs:subClassOf bf:Zone ; rdfs:label "Bosh (lower)" .
+bf:HearthZone a owl:Class ; rdfs:subClassOf bf:Zone ; rdfs:label "Hearth (base)" .
+
+bf:Sensor a owl:Class ; rdfs:label "Sensor" .
+bf:ThermalSensor a owl:Class ; rdfs:subClassOf bf:Sensor .
+bf:PressureSensor a owl:Class ; rdfs:subClassOf bf:Sensor .
+bf:GasSensor a owl:Class ; rdfs:subClassOf bf:Sensor .
+
+bf:Tuyere a owl:Class ; rdfs:label "Tuyere (hot blast injector)" .
+bf:Taphole a owl:Class ; rdfs:label "Taphole" .
+
+# ── Process state classes (Level 2: operational state)
+
+bf:ProcessState a owl:Class ; rdfs:label "Process state" .
+bf:NormalOperation a owl:Class ; rdfs:subClassOf bf:ProcessState .
+bf:Slipping a owl:Class ; rdfs:subClassOf bf:ProcessState ;
+    rdfs:comment "Burden descent stalls then drops abruptly; thermal disturbance." .
+bf:Hanging a owl:Class ; rdfs:subClassOf bf:ProcessState ;
+    rdfs:comment "Burden refuses to descend; gas channels redirect." .
+bf:ChannelingFault a owl:Class ; rdfs:subClassOf bf:ProcessState ;
+    rdfs:comment "Gas flow forms preferential channels, leaving cold spots." .
+bf:HearthBuildup a owl:Class ; rdfs:subClassOf bf:ProcessState ;
+    rdfs:comment "Accretion in hearth restricts liquid drainage." .
+bf:TuyereBurnout a owl:Class ; rdfs:subClassOf bf:ProcessState ;
+    rdfs:comment "Tuyere failure; safety-critical." .
+
+# ── Fault severity (Level 3: criticality)
+
+bf:Severity a owl:Class .
+bf:LowSeverity a bf:Severity ; rdfs:label "Low (monitor)" .
+bf:MediumSeverity a bf:Severity ; rdfs:label "Medium (operator review)" .
+bf:HighSeverity a bf:Severity ; rdfs:label "High (immediate action)" .
+bf:CriticalSeverity a bf:Severity ; rdfs:label "Critical (emergency shutdown)" .
+
+# ── Properties
+
+bf:hasZone a owl:ObjectProperty ; rdfs:domain bf:Furnace ; rdfs:range bf:Zone .
+bf:locatedIn a owl:ObjectProperty ; rdfs:domain bf:Sensor ; rdfs:range bf:Zone .
+bf:currentState a owl:ObjectProperty ; rdfs:domain bf:Furnace ; rdfs:range bf:ProcessState .
+bf:hasSeverity a owl:ObjectProperty ; rdfs:domain bf:ProcessState ; rdfs:range bf:Severity .
+
+bf:temperatureC a owl:DatatypeProperty ; rdfs:domain bf:ThermalSensor ; rdfs:range xsd:decimal .
+bf:pressureKPa a owl:DatatypeProperty ; rdfs:domain bf:PressureSensor ; rdfs:range xsd:decimal .
+bf:coGasFraction a owl:DatatypeProperty ; rdfs:domain bf:GasSensor ; rdfs:range xsd:decimal .
+bf:co2GasFraction a owl:DatatypeProperty ; rdfs:domain bf:GasSensor ; rdfs:range xsd:decimal .
+bf:burdenDescentRateMmH a owl:DatatypeProperty ; rdfs:domain bf:Furnace ; rdfs:range xsd:decimal .
+bf:lastTapTime a owl:DatatypeProperty ; rdfs:domain bf:Furnace ; rdfs:range xsd:dateTime .
+bf:operatingHours a owl:DatatypeProperty ; rdfs:domain bf:Tuyere ; rdfs:range xsd:integer .
+
+# ── Severity mapping per fault class (declarative, queryable)
+
+bf:Slipping bf:hasSeverity bf:MediumSeverity .
+bf:Hanging bf:hasSeverity bf:HighSeverity .
+bf:ChannelingFault bf:hasSeverity bf:MediumSeverity .
+bf:HearthBuildup bf:hasSeverity bf:HighSeverity .
+bf:TuyereBurnout bf:hasSeverity bf:CriticalSeverity .

@@ -1,0 +1,82 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix bf: <http://example.org/blastfurnace/> .
+
+# ─── Instance data: 8 furnace state snapshots ───────────────────────────────
+# Each snapshot represents a 30-minute window. Six are labelled with the
+# ground-truth process state; two (snap_07, snap_08) are unlabelled — the
+# detection task is to classify them correctly.
+
+bf:furnace_alpha a bf:Furnace ;
+    bf:hasZone bf:zone_stack, bf:zone_belly, bf:zone_bosh, bf:zone_hearth .
+
+bf:zone_stack a bf:StackZone .
+bf:zone_belly a bf:BellyZone .
+bf:zone_bosh a bf:BoshZone .
+bf:zone_hearth a bf:HearthZone .
+
+bf:tuyere_01 a bf:Tuyere ; bf:operatingHours 12000 .
+bf:tuyere_02 a bf:Tuyere ; bf:operatingHours 14500 .
+bf:tuyere_03 a bf:Tuyere ; bf:operatingHours 28000 .
+
+# ── snap_01: Normal operation
+bf:snap_01 a bf:NormalOperation ;
+    bf:burdenDescentRateMmH 360.0 .
+bf:sensor_t01 a bf:ThermalSensor ; bf:locatedIn bf:zone_hearth ;
+    bf:temperatureC 1480.0 .
+bf:sensor_p01 a bf:PressureSensor ; bf:locatedIn bf:zone_stack ;
+    bf:pressureKPa 240.0 .
+bf:sensor_g01 a bf:GasSensor ; bf:locatedIn bf:zone_stack ;
+    bf:coGasFraction 0.21 ; bf:co2GasFraction 0.18 .
+
+# ── snap_02: Slipping (burden descent rate spike + thermal disturbance)
+bf:snap_02 a bf:Slipping ;
+    bf:burdenDescentRateMmH 850.0 .
+bf:sensor_t02 a bf:ThermalSensor ; bf:locatedIn bf:zone_hearth ;
+    bf:temperatureC 1390.0 .
+bf:sensor_p02 a bf:PressureSensor ; bf:locatedIn bf:zone_stack ;
+    bf:pressureKPa 215.0 .
+
+# ── snap_03: Hanging (burden descent ≈ 0, gas backup)
+bf:snap_03 a bf:Hanging ;
+    bf:burdenDescentRateMmH 25.0 .
+bf:sensor_p03 a bf:PressureSensor ; bf:locatedIn bf:zone_stack ;
+    bf:pressureKPa 295.0 .
+bf:sensor_g03 a bf:GasSensor ; bf:locatedIn bf:zone_stack ;
+    bf:coGasFraction 0.28 ; bf:co2GasFraction 0.10 .
+
+# ── snap_04: Channeling (asymmetric gas + thermal pattern)
+bf:snap_04 a bf:ChannelingFault ;
+    bf:burdenDescentRateMmH 340.0 .
+bf:sensor_g04 a bf:GasSensor ; bf:locatedIn bf:zone_stack ;
+    bf:coGasFraction 0.32 ; bf:co2GasFraction 0.08 .
+bf:sensor_t04 a bf:ThermalSensor ; bf:locatedIn bf:zone_belly ;
+    bf:temperatureC 1620.0 .
+
+# ── snap_05: Hearth buildup (decreasing tap interval, dropping hearth temp)
+bf:snap_05 a bf:HearthBuildup ;
+    bf:burdenDescentRateMmH 355.0 .
+bf:sensor_t05 a bf:ThermalSensor ; bf:locatedIn bf:zone_hearth ;
+    bf:temperatureC 1380.0 .
+bf:sensor_p05 a bf:PressureSensor ; bf:locatedIn bf:zone_hearth ;
+    bf:pressureKPa 280.0 .
+
+# ── snap_06: Tuyere burnout (CRITICAL)
+bf:snap_06 a bf:TuyereBurnout ;
+    bf:burdenDescentRateMmH 320.0 .
+bf:sensor_t06 a bf:ThermalSensor ; bf:locatedIn bf:zone_hearth ;
+    bf:temperatureC 1610.0 .
+
+# ── snap_07: UNLABELLED test instance (target: Slipping)
+bf:snap_07 bf:burdenDescentRateMmH 920.0 .
+bf:sensor_t07 a bf:ThermalSensor ; bf:locatedIn bf:zone_hearth ;
+    bf:temperatureC 1370.0 .
+bf:sensor_p07 a bf:PressureSensor ; bf:locatedIn bf:zone_stack ;
+    bf:pressureKPa 210.0 .
+
+# ── snap_08: UNLABELLED test instance (target: Hanging)
+bf:snap_08 bf:burdenDescentRateMmH 18.0 .
+bf:sensor_p08 a bf:PressureSensor ; bf:locatedIn bf:zone_stack ;
+    bf:pressureKPa 305.0 .
+bf:sensor_g08 a bf:GasSensor ; bf:locatedIn bf:zone_stack ;
+    bf:coGasFraction 0.30 ; bf:co2GasFraction 0.09 .

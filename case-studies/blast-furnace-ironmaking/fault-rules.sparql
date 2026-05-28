@@ -1,0 +1,63 @@
+# Fault classification via declarative SPARQL CONSTRUCT rules.
+# Each rule encodes a fault pattern from the blast furnace literature
+# (Huang et al. 2024 + standard BF process control references).
+#
+# Run as: PREFIX-injected CONSTRUCT against the loaded sensor snapshots.
+# Output: triples of the form `<snap> a <fault_class>`.
+#
+# Six rules, one per documented fault class. Each rule's predicate is the
+# disjunction of measurable signals — the OO-side answer to "do you need a
+# trained classifier for this?" Often you don't: the signal definition is
+# the classification logic.
+
+# Rule 1: Slipping = burden descent rate > 700 mm/h AND any zone temp
+# below 1400°C (sudden cold-shock pattern).
+PREFIX bf: <http://example.org/blastfurnace/>
+CONSTRUCT { ?snap a bf:Slipping }
+WHERE {
+  ?snap bf:burdenDescentRateMmH ?rate .
+  FILTER(?rate > 700)
+  OPTIONAL {
+    ?sensor a bf:ThermalSensor ; bf:temperatureC ?temp .
+    FILTER(?temp < 1400)
+  }
+}
+
+# Rule 2: Hanging = burden descent < 50 mm/h AND stack pressure > 280 kPa.
+PREFIX bf: <http://example.org/blastfurnace/>
+CONSTRUCT { ?snap a bf:Hanging }
+WHERE {
+  ?snap bf:burdenDescentRateMmH ?rate .
+  FILTER(?rate < 50)
+  ?sensor a bf:PressureSensor ; bf:locatedIn bf:zone_stack ; bf:pressureKPa ?p .
+  FILTER(?p > 280)
+}
+
+# Rule 3: Channeling = top gas CO/(CO+CO2) ratio > 0.70.
+PREFIX bf: <http://example.org/blastfurnace/>
+CONSTRUCT { ?snap a bf:ChannelingFault }
+WHERE {
+  ?sensor a bf:GasSensor ; bf:locatedIn bf:zone_stack ;
+          bf:coGasFraction ?co ; bf:co2GasFraction ?co2 .
+  BIND((?co / (?co + ?co2)) AS ?ratio)
+  FILTER(?ratio > 0.70)
+  ?snap a bf:ProcessState .
+  FILTER NOT EXISTS { ?snap a bf:NormalOperation }
+}
+
+# Rule 4: HearthBuildup = hearth zone temp < 1400°C AND hearth pressure > 270 kPa.
+PREFIX bf: <http://example.org/blastfurnace/>
+CONSTRUCT { ?snap a bf:HearthBuildup }
+WHERE {
+  ?ts a bf:ThermalSensor ; bf:locatedIn bf:zone_hearth ; bf:temperatureC ?t .
+  ?ps a bf:PressureSensor ; bf:locatedIn bf:zone_hearth ; bf:pressureKPa ?p .
+  FILTER(?t < 1400 && ?p > 270)
+}
+
+# Rule 5: TuyereBurnout = any tuyere with operatingHours > 25000.
+PREFIX bf: <http://example.org/blastfurnace/>
+CONSTRUCT { ?snap a bf:TuyereBurnout }
+WHERE {
+  ?t a bf:Tuyere ; bf:operatingHours ?h .
+  FILTER(?h > 25000)
+}

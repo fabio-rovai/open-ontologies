@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix bf: <http://example.org/blastfurnace/> .
+
+# ─── Safety-critical SHACL invariants ────────────────────────────────────────
+# Constraints the furnace MUST satisfy at all times. Violation triggers an
+# operator alert; persistent violation triggers a Causal-layer certificate
+# check before any reactive action is allowed.
+
+# I-1: Every furnace must declare a current burden descent rate.
+bf:Inv_BurdenRateRequired a sh:NodeShape ;
+    sh:targetClass bf:Furnace ;
+    sh:property [
+        sh:path bf:burdenDescentRateMmH ;
+        sh:minCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:message "Furnace must report burden descent rate every cycle."
+    ] .
+
+# I-2: Hearth temperature must never drop below 1300°C (freeze risk).
+bf:Inv_HearthTempFloor a sh:NodeShape ;
+    sh:targetClass bf:ThermalSensor ;
+    sh:property [
+        sh:path bf:temperatureC ;
+        sh:minInclusive 1300 ;
+        sh:message "Hearth temperature below 1300°C is freeze-risk."
+    ] .
+
+# I-3: Stack pressure must not exceed 320 kPa (explosion risk).
+bf:Inv_StackPressureCeiling a sh:NodeShape ;
+    sh:targetClass bf:PressureSensor ;
+    sh:property [
+        sh:path bf:pressureKPa ;
+        sh:maxInclusive 320 ;
+        sh:message "Stack pressure above 320 kPa is explosion-risk."
+    ] .
+
+# I-4: Tuyere operating hours must not exceed 30000 (burnout-risk threshold).
+bf:Inv_TuyereLifetime a sh:NodeShape ;
+    sh:targetClass bf:Tuyere ;
+    sh:property [
+        sh:path bf:operatingHours ;
+        sh:maxInclusive 30000 ;
+        sh:message "Tuyere operating hours beyond 30000 is burnout-risk; schedule replacement."
+    ] .
