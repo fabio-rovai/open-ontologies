@@ -153,6 +153,7 @@ fn civex_certifies_against_dynamics_action_and_records_schema_name() {
         allow_experiment: false,
         alpha: 0.05,
         action_schema_name: Some("add_subclass_edge".to_string()),
+        identification_mode: open_ontologies::civex::IdentificationMode::Structural,
     };
     let result = certify_action(&db, &graph, &frame).expect("certify");
 
@@ -228,6 +229,7 @@ fn full_three_layer_pipeline_register_certify_apply() {
         allow_experiment: false,
         alpha: 0.05,
         action_schema_name: Some(schema.name.clone()),
+        identification_mode: open_ontologies::civex::IdentificationMode::Structural,
     };
     let cert = certify_action(&db, &graph, &frame).expect("certify");
     assert_eq!(cert.certificate.verdict, Verdict::Execute);

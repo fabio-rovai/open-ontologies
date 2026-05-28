@@ -582,6 +582,13 @@ pub struct OntoCertifyActionInput {
     /// about which action was certified.
     #[serde(default)]
     pub action_schema_name: Option<String>,
+    /// Identification mode (#48, v0.5). One of `"structural"` (default,
+    /// the v0.4 behaviour) or `"do_calculus_backdoor"`. The latter only
+    /// takes effect when the server was built with the `causal-pywhy`
+    /// Cargo feature; otherwise the verifier silently falls back to
+    /// structural identification and records the reason in assumptions.
+    #[serde(default)]
+    pub identification_mode: Option<String>,
 }
 
 fn default_utility_metric() -> String {

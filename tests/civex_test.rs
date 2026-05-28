@@ -42,6 +42,7 @@ fn base_frame() -> ActionFrame {
         allow_experiment: false,
         alpha: 0.05,
         action_schema_name: None,
+        identification_mode: open_ontologies::civex::IdentificationMode::Structural,
     }
 }
 
@@ -156,6 +157,59 @@ fn reversible_with_experiment_authorisation_returns_experiment() {
     let result = certify_action(&db, &graph, &frame).expect("certify");
     assert_eq!(result.certificate.verdict, Verdict::Experiment);
     assert!(result.certificate.rationale.contains("EXPERIMENT"));
+}
+
+#[test]
+fn structural_mode_records_structural_only_assumption() {
+    // v0.5: when identification_mode = Structural (default), the certificate
+    // carries exactly the v0.4 assumption.
+    let (db, graph) = setup();
+    graph.load_turtle(r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix ex:  <http://ex.org/> .
+        ex:Cat a owl:Class .
+    "#, None).unwrap();
+
+    let frame = base_frame();
+    let result = certify_action(&db, &graph, &frame).expect("certify");
+    let has_structural = result.certificate.assumptions.iter()
+        .any(|a| a == "structural_only");
+    assert!(has_structural, "structural mode should record structural_only assumption; got: {:?}",
+        result.certificate.assumptions);
+    // And NOT a do-calculus assumption.
+    assert!(!result.certificate.assumptions.iter().any(|a| a.starts_with("do_calculus")),
+        "structural mode should NOT record any do_calculus assumption; got: {:?}",
+        result.certificate.assumptions);
+}
+
+#[test]
+fn do_calculus_mode_falls_back_to_structural_when_feature_disabled() {
+    // v0.5: when identification_mode = DoCalculusBackdoor but the
+    // `causal-pywhy` Cargo feature is OFF (the default build configuration),
+    // the verifier silently falls back to structural and records the reason.
+    let (db, graph) = setup();
+    graph.load_turtle(r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix ex:  <http://ex.org/> .
+        ex:Cat a owl:Class .
+    "#, None).unwrap();
+
+    let mut frame = base_frame();
+    frame.identification_mode = open_ontologies::civex::IdentificationMode::DoCalculusBackdoor;
+
+    let result = certify_action(&db, &graph, &frame).expect("certify");
+    // The certificate should still issue a verdict (no panics from fallback).
+    let assumptions = &result.certificate.assumptions;
+
+    // Under the default build, the assumption must be the feature_disabled marker.
+    // Under `causal-pywhy` build, Python or DoWhy may or may not exist; either
+    // way the fallback should NOT crash.
+    let has_do_calculus_marker = assumptions.iter().any(|a| a.starts_with("do_calculus"));
+    assert!(has_do_calculus_marker,
+        "DoCalculusBackdoor mode should record SOME do_calculus_* assumption; got: {:?}",
+        assumptions);
+    // The proof string should be non-empty regardless of branch taken.
+    assert!(!result.certificate.identification_proof.is_empty());
 }
 
 #[test]

@@ -104,6 +104,34 @@ pub struct ActionFrame {
     /// trail explicit about which Dynamics action was gated.
     #[serde(default)]
     pub action_schema_name: Option<String>,
+    /// Identification mode (#48, v0.5). Defaults to [`IdentificationMode::Structural`]
+    /// for back-compat with v0.4 behaviour. When set to
+    /// [`IdentificationMode::DoCalculusBackdoor`] *and* the `causal-pywhy`
+    /// Cargo feature is enabled *and* the PyWhy subprocess succeeds, the
+    /// certificate's `identification_proof` and `assumptions` carry the
+    /// real backdoor-adjustment result. On any failure path
+    /// (python_unavailable / pywhy_unavailable / dowhy_runtime_failed) the
+    /// verifier silently falls back to the structural proxy and adds a
+    /// `do_calculus_unavailable:<reason>` marker to assumptions so the
+    /// audit trail is honest about what happened.
+    #[serde(default)]
+    pub identification_mode: IdentificationMode,
+}
+
+/// Which identifiability proof CIVeX should attempt. Set on
+/// [`ActionFrame::identification_mode`].
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum IdentificationMode {
+    /// v0.4 default: structural-dependency closure + bounded blast radius.
+    /// Always works; assumption recorded as `"structural_only"`.
+    #[default]
+    Structural,
+    /// v0.5 mode: invoke `civex_pywhy::run_pywhy_backdoor` on a DAG built
+    /// from the structural slice, ask DoWhy for a backdoor adjustment set.
+    /// Falls back to `Structural` on any failure (Python missing, DoWhy
+    /// missing, runtime error), with the reason recorded in assumptions.
+    DoCalculusBackdoor,
 }
 
 fn default_alpha() -> f64 {
@@ -239,7 +267,9 @@ pub fn certify_action(
 
     // ── Step 6: triage ──────────────────────────────────────────────────────
     let mut rationale_parts: Vec<String> = Vec::new();
-    let mut assumptions: Vec<String> = vec!["structural_only".to_string()];
+    // The identification assumption is appended by `derive_identification_proof`
+    // below; start the list with only the reversibility / schema-name flags.
+    let mut assumptions: Vec<String> = Vec::new();
     if frame.reversible {
         assumptions.push("reversible".to_string());
     } else {
@@ -287,11 +317,11 @@ pub fn certify_action(
         Verdict::Abstain
     };
 
-    let identification_proof = format!(
-        "structural-dependency closure of {} target IRI(s) has bounded blast radius of {} triples",
-        frame.target_iris.len(),
-        cost_triples
-    );
+    // Identification proof: structural by default; do-calculus when requested
+    // and the `causal-pywhy` feature is enabled and PyWhy succeeds.
+    let (identification_proof, identification_assumption) =
+        derive_identification_proof(graph, frame, cost_triples);
+    assumptions.push(identification_assumption);
 
     let certificate = Certificate {
         verdict,
@@ -391,6 +421,157 @@ fn z_from_alpha(alpha: f64) -> f64 {
     } else {
         0.842 // α ≈ 0.2
     }
+}
+
+/// Compute the certificate's `identification_proof` string and the assumption
+/// label that accompanies it. Branches on [`ActionFrame::identification_mode`]:
+///
+/// - [`IdentificationMode::Structural`] (default, always available): returns
+///   the v0.4 sentence + `"structural_only"`.
+/// - [`IdentificationMode::DoCalculusBackdoor`]: attempts a PyWhy subprocess
+///   when the `causal-pywhy` feature is on. On success, returns DoWhy's
+///   adjustment estimand + `"do_calculus_backdoor"`. On any failure, falls
+///   back to the structural sentence + `"do_calculus_unavailable:<kind>"`.
+///   When the feature is off, falls back to the structural sentence +
+///   `"do_calculus_unavailable:feature_disabled"`.
+fn derive_identification_proof(
+    graph: &Arc<GraphStore>,
+    frame: &ActionFrame,
+    cost_triples: u64,
+) -> (String, String) {
+    let structural_sentence = format!(
+        "structural-dependency closure of {} target IRI(s) has bounded blast radius of {} triples",
+        frame.target_iris.len(),
+        cost_triples
+    );
+    match frame.identification_mode {
+        IdentificationMode::Structural => (structural_sentence, "structural_only".to_string()),
+        IdentificationMode::DoCalculusBackdoor => {
+            attempt_do_calculus_backdoor(graph, frame, &structural_sentence)
+        }
+    }
+}
+
+#[cfg(feature = "causal-pywhy")]
+fn attempt_do_calculus_backdoor(
+    graph: &Arc<GraphStore>,
+    frame: &ActionFrame,
+    structural_sentence: &str,
+) -> (String, String) {
+    let (nodes, edges, treatment, outcome) = build_causal_dag(graph, &frame.target_iris);
+    let input = crate::civex_pywhy::PyWhyInput {
+        nodes: &nodes,
+        edges: &edges,
+        treatment: &treatment,
+        outcome: &outcome,
+    };
+    match crate::civex_pywhy::run_pywhy_backdoor(&input, None) {
+        Ok(est) if est.identifiable => {
+            let proof = format!(
+                "do_calculus_backdoor: P({}|do({})) identified via adjustment set {:?}; estimand: {}",
+                outcome, treatment, est.adjustment_set, est.estimand_expression
+            );
+            (proof, "do_calculus_backdoor".to_string())
+        }
+        Ok(_) => (
+            structural_sentence.to_string(),
+            "do_calculus_unavailable:unidentifiable".to_string(),
+        ),
+        Err(e) => {
+            let reason = e
+                .to_string()
+                .split(':')
+                .next()
+                .unwrap_or("runtime_failed")
+                .to_string();
+            (
+                structural_sentence.to_string(),
+                format!("do_calculus_unavailable:{}", reason),
+            )
+        }
+    }
+}
+
+#[cfg(not(feature = "causal-pywhy"))]
+fn attempt_do_calculus_backdoor(
+    _graph: &Arc<GraphStore>,
+    _frame: &ActionFrame,
+    structural_sentence: &str,
+) -> (String, String) {
+    (
+        structural_sentence.to_string(),
+        "do_calculus_unavailable:feature_disabled".to_string(),
+    )
+}
+
+/// Build a causal DAG suitable for PyWhy from the loaded graph + a set of
+/// target IRIs (#48, v0.5). Nodes are the target IRIs plus their one-hop
+/// structural neighbours (the same slice CIVeX hashes into `slice_hash`).
+/// Edges are derived from `rdfs:subClassOf` / `rdfs:subPropertyOf` /
+/// `rdfs:domain` / `rdfs:range` triples observed in the graph that connect
+/// two nodes in the slice. A synthetic `__utility__` sink node is added
+/// downstream of every other node, modelling "every structural variable
+/// in the slice could influence the utility metric."
+///
+/// Returns `(nodes, edges, treatment, outcome)` ready for
+/// [`crate::civex_pywhy::PyWhyInput`].
+#[allow(dead_code)] // referenced under `causal-pywhy` feature only
+fn build_causal_dag(
+    graph: &Arc<GraphStore>,
+    target_iris: &[String],
+) -> (Vec<String>, Vec<(String, String)>, String, String) {
+    use std::collections::BTreeSet;
+
+    let mut nodes: BTreeSet<String> = BTreeSet::new();
+    for iri in target_iris {
+        nodes.insert(iri.clone());
+    }
+    let deps = collect_dependency_iris(graph, target_iris);
+    for d in deps {
+        nodes.insert(d);
+    }
+
+    // Pull subclass / subproperty / domain / range edges among the slice.
+    let nodes_vec: Vec<String> = nodes.iter().cloned().collect();
+    let edge_predicates = [
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+        "http://www.w3.org/2000/01/rdf-schema#subPropertyOf",
+        "http://www.w3.org/2000/01/rdf-schema#domain",
+        "http://www.w3.org/2000/01/rdf-schema#range",
+    ];
+    let mut edges: Vec<(String, String)> = Vec::new();
+    for pred in edge_predicates {
+        let q = format!("SELECT ?s ?o WHERE {{ ?s <{}> ?o }} LIMIT 500", pred);
+        if let Ok(json_str) = graph.sparql_select(&q)
+            && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json_str)
+            && let Some(rows) = parsed["results"].as_array()
+        {
+            for row in rows {
+                if let (Some(s), Some(o)) = (row["s"].as_str(), row["o"].as_str()) {
+                    let s = s.trim_matches(|c| c == '<' || c == '>').to_string();
+                    let o = o.trim_matches(|c| c == '<' || c == '>').to_string();
+                    if nodes.contains(&s) && nodes.contains(&o) {
+                        // Edges in DoWhy point "cause → effect"; subClassOf
+                        // says s is-a o, so structurally o influences s.
+                        edges.push((o, s));
+                    }
+                }
+            }
+        }
+    }
+
+    // Synthetic utility outcome — every structural node could influence it.
+    let utility_node = "__utility__".to_string();
+    for n in &nodes_vec {
+        edges.push((n.clone(), utility_node.clone()));
+    }
+    nodes.insert(utility_node.clone());
+
+    let treatment = target_iris
+        .first()
+        .cloned()
+        .unwrap_or_else(|| "__none__".to_string());
+    (nodes.into_iter().collect(), edges, treatment, utility_node)
 }
 
 /// Collect IRIs structurally dependent on the action's target IRIs. The scaffold

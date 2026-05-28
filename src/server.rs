@@ -953,6 +953,10 @@ impl OpenOntologiesServer {
             allow_experiment: input.allow_experiment,
             alpha: input.alpha,
             action_schema_name: input.action_schema_name,
+            identification_mode: match input.identification_mode.as_deref() {
+                Some("do_calculus_backdoor") => crate::civex::IdentificationMode::DoCalculusBackdoor,
+                _ => crate::civex::IdentificationMode::Structural,
+            },
         };
         match crate::civex::certify_action(&self.db, &self.graph, &frame) {
             Ok(result) => serde_json::to_string(&result)

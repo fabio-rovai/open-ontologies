@@ -254,6 +254,7 @@ fn main() -> anyhow::Result<()> {
             allow_experiment: false,
             alpha: 0.05,
             action_schema_name: Some(schema.name.clone()),
+            identification_mode: open_ontologies::civex::IdentificationMode::Structural,
         };
         let cert = certify_action(&db, &graph, &frame)?;
         println!(
