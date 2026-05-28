@@ -13,6 +13,7 @@ pub mod cq;
 pub mod eval_alignment;
 pub mod eval_rag;
 pub mod extract_scaffold;
+pub mod oaei_adapter;
 pub mod policy;
 pub mod shape_combinatorics;
 #[cfg(feature = "causal-pywhy")]

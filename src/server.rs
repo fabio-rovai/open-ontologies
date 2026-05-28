@@ -929,6 +929,27 @@ impl OpenOntologiesServer {
             .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
     }
 
+    #[tool(name = "onto_oaei_parse", description = "Parse an OAEI Alignment Format RDF/XML document into structured rows. Returns source_onto, target_onto, and a list of {source, target, relation} entries usable by `onto_eval_alignment` for benchmark scoring against the OAEI Conference / Anatomy / Bio-ML tracks.")]
+    async fn onto_oaei_parse(&self, Parameters(input): Parameters<OntoOaeiParseInput>) -> String {
+        match crate::oaei_adapter::parse_oaei_alignment(&input.xml) {
+            Ok(p) => serde_json::to_string(&p)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_oaei_format", description = "Emit an OAEI Alignment Format RDF/XML document from a JSON array of AlignmentEntry rows. Useful for submitting alignment results back to OAEI evaluation harnesses.")]
+    async fn onto_oaei_format(&self, Parameters(input): Parameters<OntoOaeiFormatInput>) -> String {
+        let entries: Vec<crate::eval_alignment::AlignmentEntry> =
+            match serde_json::from_str(&input.entries_json) {
+                Ok(e) => e,
+                Err(e) => return format!(r#"{{"error":"invalid entries_json: {}"}}"#, e),
+            };
+        let xml = crate::oaei_adapter::format_oaei_alignment(&entries);
+        serde_json::to_string(&xml)
+            .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e))
+    }
+
     #[tool(name = "onto_align_fuzzy", description = "FLORA-style fuzzy-logic alignment adjudication (#38, ISWC 2025 Best Paper). Caller supplies per-pair signals (`label_jaccard`, `parent_overlap`, `sibling_overlap`, `datatype_overlap` all in [0,1]) plus low/high thresholds; server combines via the chosen t-norm (`min` / `product` / `lukasiewicz`) and emits verdict `\"accept\"` / `\"borderline\"` / `\"reject\"` plus a rule trace. Embedding-free, interpretable, complements the HNSW candidate-generator pipeline.")]
     async fn onto_align_fuzzy(&self, Parameters(input): Parameters<OntoAlignFuzzyInput>) -> String {
         let signals: crate::align_fuzzy::FuzzySignals = match serde_json::from_str(&input.signals_json) {

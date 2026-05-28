@@ -612,6 +612,21 @@ pub struct OntoAlignFuzzyInput {
     pub high_threshold: f64,
 }
 
+/// Input for `onto_oaei_parse` — parse an OAEI Alignment Format XML
+/// document into structured AlignmentEntry rows.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoOaeiParseInput {
+    /// OAEI RDF/XML alignment document as a string.
+    pub xml: String,
+}
+
+/// Input for `onto_oaei_format` — emit OAEI XML from an alignment list.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoOaeiFormatInput {
+    /// JSON array `[{source, target, relation}]` of AlignmentEntry rows.
+    pub entries_json: String,
+}
+
 /// Input for `onto_policy_register` (#40, ARGOS ISWC 2025 WOP).
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoPolicyRegisterInput {
