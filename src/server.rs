@@ -994,7 +994,7 @@ impl OpenOntologiesServer {
         body.to_string()
     }
 
-    #[tool(name = "onto_action_apply", description = "Apply a registered action's effects with the given parameter bindings. Returns the KGCL patch (CNL form), the IES4-style event IRI for the audit trail, and triples added/removed. Re-checks preconditions by default; set `check_preconditions=false` only after a successful `onto_certify_action` certificate. Pair with `onto_certify_action` for gated changes.")]
+    #[tool(name = "onto_action_apply", description = "Apply a registered action's effects with the given parameter bindings. Returns the KGCL patch (CNL form), the IES4-style event IRI for the audit trail, and triples added/removed. Re-checks preconditions by default; set `check_preconditions=false` only after a successful `onto_certify_action` certificate. Optional ramification (#47): pass `ramify=\"rdfs\"|\"owl-rl\"|\"owl-rl-ext\"|\"owl-dl\"` to materialise downstream entailments after the literal effects land; the result includes `derived_triples_added` so callers can see what the reasoner produced. Pair with `onto_certify_action` for gated changes.")]
     async fn onto_action_apply(&self, Parameters(input): Parameters<OntoActionApplyInput>) -> String {
         let schema = match crate::dynamics::lookup(&self.db, &input.action_name) {
             Ok(Some(s)) => s,
@@ -1005,7 +1005,13 @@ impl OpenOntologiesServer {
         if input.check_preconditions && !schema.applicable(&self.graph, &bindings) {
             return r#"{"error":"preconditions not satisfied"}"#.to_string();
         }
-        match schema.apply(&self.graph, &self.db, &bindings) {
+        let outcome = match input.ramify.as_deref() {
+            Some(profile) if !profile.is_empty() => {
+                schema.apply_with_ramification(&self.graph, &self.db, &bindings, profile)
+            }
+            _ => schema.apply(&self.graph, &self.db, &bindings),
+        };
+        match outcome {
             Ok(result) => serde_json::to_string(&result)
                 .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
             Err(e) => format!(r#"{{"error":"{}"}}"#, e),

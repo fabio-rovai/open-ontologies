@@ -640,6 +640,12 @@ pub struct OntoActionApplyInput {
     /// action via `onto_certify_action`.
     #[serde(default = "default_true")]
     pub check_preconditions: bool,
+    /// Ramification (#47): if `Some(profile)`, run the reasoner after `apply`
+    /// to materialise downstream entailments. Accepted profiles: `"rdfs"`,
+    /// `"owl-rl"`, `"owl-rl-ext"`, `"owl-dl"`. `None` (default) skips
+    /// ramification — the literal effects land and that's it.
+    #[serde(default)]
+    pub ramify: Option<String>,
 }
 
 fn default_true() -> bool {

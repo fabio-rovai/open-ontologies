@@ -100,6 +100,15 @@ pub struct ApplyResult {
     pub event_iri: String,
     pub triples_added: usize,
     pub triples_removed: usize,
+    /// Triples materialised by a follow-up reasoner pass (ramification, #47).
+    /// `0` when ramification is disabled or the reasoner produced no new
+    /// entailments. The reasoner profile actually used is in
+    /// `ramification_profile`.
+    #[serde(default)]
+    pub derived_triples_added: usize,
+    /// Reasoner profile run for ramification, or `None` if disabled.
+    #[serde(default)]
+    pub ramification_profile: Option<String>,
 }
 
 impl ActionSchema {
@@ -232,7 +241,35 @@ impl ActionSchema {
             event_iri,
             triples_added: to_add.len(),
             triples_removed: to_remove.len(),
+            derived_triples_added: 0,
+            ramification_profile: None,
         })
+    }
+
+    /// Apply the action's effects, then run the reasoner to materialise any
+    /// downstream entailments (ramification, #47). The resulting `ApplyResult`
+    /// carries `derived_triples_added` as the count of new triples the
+    /// reasoner produced beyond the literal effects.
+    ///
+    /// `profile` is forwarded to [`crate::reason::Reasoner::run`]; passing
+    /// `"rdfs"` is the cheapest meaningful choice, `"owl-rl"` is the standard,
+    /// `"owl-rl-ext"` adds restriction-pattern entailment, and `"owl-dl"`
+    /// delegates to the tableaux reasoner.
+    pub fn apply_with_ramification(
+        &self,
+        graph: &Arc<GraphStore>,
+        db: &StateDb,
+        bindings: &[(String, String)],
+        profile: &str,
+    ) -> anyhow::Result<ApplyResult> {
+        let mut result = self.apply(graph, db, bindings)?;
+        let pre_count = graph.triple_count();
+        // Materialise entailments in-place.
+        let _ = crate::reason::Reasoner::run(graph, profile, true)?;
+        let post_count = graph.triple_count();
+        result.derived_triples_added = post_count.saturating_sub(pre_count);
+        result.ramification_profile = Some(profile.to_string());
+        Ok(result)
     }
 }
 
@@ -414,6 +451,101 @@ mod tests {
             &[("old".to_string(), "http://ex.org/Missing".to_string())],
         );
         assert!(!applicable);
+    }
+
+    #[test]
+    fn apply_with_ramification_materialises_subclass_entailment() {
+        // Acceptance criterion from #47: adding a subClassOf edge between
+        // two classes where the child already has an instance must, under
+        // OWL-RL ramification, also assert the instance as a member of the
+        // parent class.
+        let db = test_db();
+        let graph = Arc::new(GraphStore::new());
+        graph
+            .load_turtle(
+                r#"
+                @prefix owl: <http://www.w3.org/2002/07/owl#> .
+                @prefix ex:  <http://ex.org/> .
+                ex:Animal a owl:Class .
+                ex:Cat a owl:Class .
+                ex:tigger a ex:Cat .
+            "#,
+                None,
+            )
+            .unwrap();
+
+        let schema = ActionSchema {
+            name: "add_subclass_edge".to_string(),
+            parameters: vec![
+                Parameter { name: "child".to_string(), type_iri: None },
+                Parameter { name: "parent".to_string(), type_iri: None },
+            ],
+            preconditions: vec![],
+            effects: vec![EffectSpec::AddTriple {
+                subject: "{child}".to_string(),
+                predicate: "http://www.w3.org/2000/01/rdf-schema#subClassOf".to_string(),
+                object: "{parent}".to_string(),
+            }],
+            reversible: true,
+            description: None,
+        };
+        let bindings = vec![
+            ("child".to_string(), "http://ex.org/Cat".to_string()),
+            ("parent".to_string(), "http://ex.org/Animal".to_string()),
+        ];
+
+        let result = schema
+            .apply_with_ramification(&graph, &db, &bindings, "owl-rl")
+            .expect("apply+ramify");
+
+        assert_eq!(result.triples_added, 1, "literal effect: one subClassOf edge");
+        assert_eq!(result.ramification_profile.as_deref(), Some("owl-rl"));
+        // The reasoner must have derived at least one new triple (tigger a Animal).
+        assert!(
+            result.derived_triples_added >= 1,
+            "OWL-RL should derive at least `tigger a Animal`; derived={}",
+            result.derived_triples_added
+        );
+
+        // Verify the entailment landed in the graph.
+        let q = "ASK { <http://ex.org/tigger> a <http://ex.org/Animal> }";
+        let r = graph.sparql_select(q).unwrap();
+        assert!(
+            r.contains("\"result\":true"),
+            "expected tigger a Animal to be entailed under OWL-RL; got: {}",
+            r
+        );
+    }
+
+    #[test]
+    fn apply_without_ramification_leaves_derived_count_zero() {
+        let db = test_db();
+        let graph = Arc::new(GraphStore::new());
+        graph
+            .load_turtle(
+                r#"
+                @prefix owl: <http://www.w3.org/2002/07/owl#> .
+                @prefix ex:  <http://ex.org/> .
+                ex:Cat a owl:Class .
+            "#,
+                None,
+            )
+            .unwrap();
+
+        let schema = sample_schema();
+        let result = schema
+            .apply(
+                &graph,
+                &db,
+                &[
+                    ("old".to_string(), "http://ex.org/Cat".to_string()),
+                    ("new".to_string(), "http://ex.org/Feline".to_string()),
+                ],
+            )
+            .expect("apply");
+
+        assert_eq!(result.derived_triples_added, 0);
+        assert!(result.ramification_profile.is_none());
     }
 
     #[test]
