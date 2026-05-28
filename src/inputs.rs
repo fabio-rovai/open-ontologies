@@ -577,6 +577,11 @@ pub struct OntoCertifyActionInput {
     /// One-sided confidence level α for the LCB. Default 0.05.
     #[serde(default = "default_alpha_pub")]
     pub alpha: f64,
+    /// Optional name of a registered Dynamics action schema (#43) — echoed
+    /// into the certificate's assumptions so the audit trail is explicit
+    /// about which action was certified.
+    #[serde(default)]
+    pub action_schema_name: Option<String>,
 }
 
 fn default_utility_metric() -> String {
@@ -596,6 +601,66 @@ pub struct GraphProjectionLossyCheckInput {
     pub source_iris: Vec<String>,
     /// The projected Turtle slice that's being passed to a downstream consumer.
     pub projected_ttl: String,
+}
+
+// ─── Dynamics layer (#43) — action schemas, applicability, apply ────────────
+
+/// Input for `onto_action_register` — persist an action schema by name.
+/// Schema is supplied as inline JSON matching `dynamics::ActionSchema`.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoActionRegisterInput {
+    /// Inline JSON for the action schema. Must deserialize into the structure:
+    /// `{ "name": "...", "parameters": [...], "preconditions": [...],
+    ///    "effects": [{"kind": "add_triple"|"remove_triple"|"add_class", ...}],
+    ///    "reversible": true|false, "description": "..." }`.
+    pub schema_json: String,
+}
+
+/// Input for `onto_action_applicable` — evaluate a registered action's
+/// preconditions against the loaded graph under the given parameter bindings.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoActionApplicableInput {
+    /// Name of a previously registered action schema.
+    pub action_name: String,
+    /// Bindings: `{ "param_name": "iri-or-literal" }`. Substituted into
+    /// precondition SPARQL via `{param_name}` placeholders.
+    pub bindings: std::collections::BTreeMap<String, String>,
+}
+
+/// Input for `onto_action_apply` — execute a registered action's effects,
+/// returning the KGCL patch and an IES4-style event IRI.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoActionApplyInput {
+    /// Name of a previously registered action schema.
+    pub action_name: String,
+    /// Parameter bindings (same shape as in `onto_action_applicable`).
+    pub bindings: std::collections::BTreeMap<String, String>,
+    /// If `true` (default), re-check preconditions before applying and abort
+    /// if they don't hold. Set `false` only if you have already certified the
+    /// action via `onto_certify_action`.
+    #[serde(default = "default_true")]
+    pub check_preconditions: bool,
+}
+
+fn default_true() -> bool {
+    true
+}
+
+/// Input for `onto_plan_compile_pddl` (#45 — Planner v0.6 stub) — emit a PDDL
+/// domain from registered action schemas plus a problem instance from the
+/// current graph + goal triples.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoPlanCompilePddlInput {
+    /// Domain name to embed in `(define (domain ...))`. Default `"ontology"`.
+    #[serde(default)]
+    pub domain_name: Option<String>,
+    /// Subset of registered action schema names to include. Omit / empty for
+    /// "include every registered schema".
+    #[serde(default)]
+    pub action_names: Vec<String>,
+    /// Goal triples in Turtle that must hold in the post-state.
+    #[serde(default)]
+    pub goal_ttl: Option<String>,
 }
 
 #[cfg(test)]

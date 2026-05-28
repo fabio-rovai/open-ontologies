@@ -98,6 +98,12 @@ pub struct ActionFrame {
     /// Matches the paper's `LCB_{α=0.05}`.
     #[serde(default = "default_alpha")]
     pub alpha: f64,
+    /// Optional: name of a registered `dynamics::ActionSchema` this frame
+    /// refers to (#43). When set, `certify_action` echoes the schema name
+    /// into the certificate's assumptions and rationale, making the audit
+    /// trail explicit about which Dynamics action was gated.
+    #[serde(default)]
+    pub action_schema_name: Option<String>,
 }
 
 fn default_alpha() -> f64 {
@@ -238,6 +244,9 @@ pub fn certify_action(
         assumptions.push("reversible".to_string());
     } else {
         assumptions.push("irreversible".to_string());
+    }
+    if let Some(name) = &frame.action_schema_name {
+        assumptions.push(format!("dynamics_action_schema:{}", name));
     }
 
     let verdict = if !locked_violations.is_empty() {

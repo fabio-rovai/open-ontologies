@@ -6,6 +6,7 @@ pub mod config;
 pub mod clinical;
 pub mod civex;
 pub mod drift;
+pub mod dynamics;
 pub mod projection_check;
 // (re-exports keep the alphabetical ordering of the surrounding modules manageable)
 pub mod enforce;
@@ -17,6 +18,7 @@ pub mod inputs;
 pub mod lineage;
 pub mod monitor;
 pub mod plan;
+pub mod plan_pddl;
 pub mod webhook;
 pub mod mapping;
 pub mod marketplace;

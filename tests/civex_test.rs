@@ -41,6 +41,7 @@ fn base_frame() -> ActionFrame {
         reversible: true,
         allow_experiment: false,
         alpha: 0.05,
+        action_schema_name: None,
     }
 }
 
@@ -155,6 +156,28 @@ fn reversible_with_experiment_authorisation_returns_experiment() {
     let result = certify_action(&db, &graph, &frame).expect("certify");
     assert_eq!(result.certificate.verdict, Verdict::Experiment);
     assert!(result.certificate.rationale.contains("EXPERIMENT"));
+}
+
+#[test]
+fn action_schema_name_is_recorded_in_certificate_assumptions() {
+    // CIVeX × Dynamics integration: passing a Dynamics action schema name
+    // through ActionFrame must show up in the certificate's audit trail.
+    let (db, graph) = setup();
+    graph.load_turtle(r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix ex:  <http://ex.org/> .
+        ex:Cat a owl:Class .
+    "#, None).unwrap();
+
+    let mut frame = base_frame();
+    frame.action_schema_name = Some("rename_class".to_string());
+
+    let result = certify_action(&db, &graph, &frame).expect("certify");
+    let has_schema_marker = result.certificate.assumptions.iter()
+        .any(|a| a == "dynamics_action_schema:rename_class");
+    assert!(has_schema_marker,
+        "schema name must be threaded into assumptions; got {:?}",
+        result.certificate.assumptions);
 }
 
 #[test]
