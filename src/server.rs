@@ -1027,6 +1027,24 @@ impl OpenOntologiesServer {
         }
     }
 
+    #[tool(name = "onto_plan_validate", description = "Validate a candidate plan (sequence of registered-action steps) against the loaded graph WITHOUT mutating the real store. Per LLM-Modulo (Kambhampati arXiv 2402.01817), the server validates plans the client-side solver produced — it does not solve. For each step, the validator re-evaluates the schema's preconditions against the cumulative sandbox state and applies effects to a forked copy; the first failing step short-circuits with a diagnostic. Optional `goal_facts` are checked post-plan and reported in `unsatisfied_goals` (without invalidating the plan itself). Pair with `onto_plan_compile_pddl` (server compiles → external solver searches → server validates).")]
+    async fn onto_plan_validate(&self, Parameters(input): Parameters<OntoPlanValidateInput>) -> String {
+        let steps: Vec<crate::plan_validate::PlanStep> = input.steps.into_iter()
+            .map(|s| crate::plan_validate::PlanStep {
+                action_name: s.action_name,
+                bindings: s.bindings,
+            })
+            .collect();
+        let goal_facts: Vec<(String, String, String)> = input.goal_facts.into_iter()
+            .filter_map(|t| if t.len() == 3 { Some((t[0].clone(), t[1].clone(), t[2].clone())) } else { None })
+            .collect();
+        match crate::plan_validate::validate_plan(&self.db, &self.graph, &steps, &goal_facts) {
+            Ok(result) => serde_json::to_string(&result)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
     #[tool(name = "onto_plan_compile_pddl", description = "Compile a PDDL domain from registered Dynamics action schemas (#43) plus a problem instance from the loaded graph and a goal Turtle slice (#45 Planner stub). Returns {domain, problem, translation_notes}. The actual planner (Fast Downward) is wrapped client-side per the LLM-Modulo convention — this primitive only emits the PDDL. Lossy in the v0.4 stub: only ASK-shape SPARQL preconditions translate cleanly; SELECT-shaped preconditions are preserved as notes.")]
     async fn onto_plan_compile_pddl(&self, Parameters(input): Parameters<OntoPlanCompilePddlInput>) -> String {
         // Gather schemas — either explicitly requested or every registered one.

@@ -652,6 +652,29 @@ fn default_true() -> bool {
     true
 }
 
+/// Input for `onto_plan_validate` (#45 — LLM-Modulo validator) — check that
+/// a candidate plan (typically produced by a client-side solver) actually
+/// executes step-by-step against the loaded graph in a sandbox, without
+/// mutating the real store.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoPlanValidateInput {
+    /// Candidate plan: an ordered list of `{action_name, bindings}` steps.
+    /// `bindings` is a `{param_name: iri-or-literal}` map.
+    pub steps: Vec<PlanStepInput>,
+    /// Optional goal triples. Each is `[s, p, o]` in N-Triple-position form
+    /// (e.g. `["<http://ex.org/Cat>", "<http://www.w3.org/2000/01/rdf-schema#subClassOf>", "<http://ex.org/Animal>"]`).
+    /// Reported in `unsatisfied_goals` if any goal does not hold post-plan.
+    #[serde(default)]
+    pub goal_facts: Vec<Vec<String>>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct PlanStepInput {
+    pub action_name: String,
+    #[serde(default)]
+    pub bindings: std::collections::BTreeMap<String, String>,
+}
+
 /// Input for `onto_plan_compile_pddl` (#45 — Planner v0.6 stub) — emit a PDDL
 /// domain from registered action schemas plus a problem instance from the
 /// current graph + goal triples.
