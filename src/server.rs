@@ -1025,6 +1025,88 @@ impl OpenOntologiesServer {
         }
     }
 
+    // ── Full BC+ semantics (#43 follow-on) ──────────────────────────────
+
+    #[tool(name = "onto_action_apply_concurrent", description = "Fire a tick of concurrent BC+ actions atomically. All steps are pre-computed against the pre-tick state, conflict-checked (add-vs-remove of the same triple across distinct steps), then committed as a single batch. If any conflict OR any registered invariant fails post-commit, the entire tick is rolled back and NO step is applied. Non-deterministic schemas in a concurrent tick are rejected — pre-sample with `apply_with_seed` first.")]
+    async fn onto_action_apply_concurrent(&self, Parameters(input): Parameters<OntoActionApplyConcurrentInput>) -> String {
+        let steps: Vec<crate::dynamics_bcplus::ConcurrentStep> = input.steps.into_iter()
+            .map(|s| crate::dynamics_bcplus::ConcurrentStep {
+                action_name: s.action_name,
+                bindings: s.bindings,
+            })
+            .collect();
+        match crate::dynamics_bcplus::apply_concurrent(&self.db, &self.graph, &steps) {
+            Ok(result) => serde_json::to_string(&result)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_invariant_register", description = "Persist a BC+ static causal law (SPARQL ASK invariant). The query MUST return `true` for the law to hold; concurrent ticks that violate any registered invariant are rolled back. Body can be a full ASK query or just the body inside `{ ... }`.")]
+    async fn onto_invariant_register(&self, Parameters(input): Parameters<OntoInvariantRegisterInput>) -> String {
+        let law = crate::dynamics_bcplus::StaticCausalLaw {
+            name: input.name.clone(),
+            ask_query: input.ask_query,
+            description: input.description,
+        };
+        match crate::dynamics_bcplus::register_invariant(&self.db, &law) {
+            Ok(()) => format!(r#"{{"ok":true,"registered":"{}"}}"#, input.name),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_invariant_list", description = "List all registered BC+ static causal laws (invariants).")]
+    async fn onto_invariant_list(&self) -> String {
+        match crate::dynamics_bcplus::list_invariants(&self.db) {
+            Ok(laws) => serde_json::to_string(&laws)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_invariant_remove", description = "Remove a registered BC+ invariant by name.")]
+    async fn onto_invariant_remove(&self, Parameters(input): Parameters<OntoInvariantRemoveInput>) -> String {
+        match crate::dynamics_bcplus::remove_invariant(&self.db, &input.name) {
+            Ok(removed) => format!(r#"{{"removed":{}}}"#, removed),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_invariant_check", description = "Evaluate every registered BC+ invariant against the current graph and return the names + descriptions of any that fail. Empty list means every invariant holds.")]
+    async fn onto_invariant_check(&self) -> String {
+        match crate::dynamics_bcplus::check_invariants(&self.db, &self.graph) {
+            Ok(violations) => serde_json::to_string(&violations)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_default_register", description = "Register a BC+ default-value law. When the `condition_ask` SPARQL ASK returns `true`, the listed `defaults` triples are asserted (added if not already present) on the next call to `onto_default_apply`. Idempotent.")]
+    async fn onto_default_register(&self, Parameters(input): Parameters<OntoDefaultRegisterInput>) -> String {
+        let defaults: Vec<(String, String, String)> = input.defaults.into_iter()
+            .filter_map(|t| if t.len() == 3 { Some((t[0].clone(), t[1].clone(), t[2].clone())) } else { None })
+            .collect();
+        let law = crate::dynamics_bcplus::DefaultLaw {
+            name: input.name.clone(),
+            condition_ask: input.condition_ask,
+            defaults,
+            description: input.description,
+        };
+        match crate::dynamics_bcplus::register_default(&self.db, &law) {
+            Ok(()) => format!(r#"{{"ok":true,"registered":"{}"}}"#, input.name),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_default_apply", description = "Apply every registered BC+ default-value law whose condition currently holds. Adds only triples that don't already exist. Returns the names of laws that fired and the triples added.")]
+    async fn onto_default_apply(&self) -> String {
+        match crate::dynamics_bcplus::apply_defaults(&self.db, &self.graph) {
+            Ok(result) => serde_json::to_string(&result)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
     #[tool(name = "onto_action_list", description = "List the names of all action schemas registered in this server's Dynamics store. Useful for the Planner / Claude to know what's available before composing a plan.")]
     async fn onto_action_list(&self) -> String {
         match crate::dynamics::list_names(&self.db) {

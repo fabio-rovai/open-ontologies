@@ -9,6 +9,7 @@ pub mod civex;
 pub mod civex_pywhy;
 pub mod drift;
 pub mod dynamics;
+pub mod dynamics_bcplus;
 pub mod projection_check;
 // (re-exports keep the alphabetical ordering of the surrounding modules manageable)
 pub mod enforce;

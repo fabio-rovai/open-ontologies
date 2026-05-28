@@ -610,6 +610,54 @@ pub struct GraphProjectionLossyCheckInput {
     pub projected_ttl: String,
 }
 
+// ─── Full BC+ semantics (#43 follow-on) ─────────────────────────────────────
+
+/// Input for `onto_action_apply_concurrent` — fire a tick of concurrent
+/// action instances. The whole tick is atomic: if any pair of steps
+/// conflicts (one adds a triple another removes) OR any registered invariant
+/// fails post-tick, nothing is applied.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoActionApplyConcurrentInput {
+    pub steps: Vec<ConcurrentStepInput>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct ConcurrentStepInput {
+    pub action_name: String,
+    #[serde(default)]
+    pub bindings: std::collections::BTreeMap<String, String>,
+}
+
+/// Input for `onto_invariant_register` — persist a SPARQL ASK invariant
+/// (BC+ static causal law) that the graph must always satisfy.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoInvariantRegisterInput {
+    pub name: String,
+    /// SPARQL ASK query (or just the body inside `{ ... }`). Must return
+    /// `true` for the law to hold.
+    pub ask_query: String,
+    #[serde(default)]
+    pub description: Option<String>,
+}
+
+/// Input for `onto_invariant_remove`.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoInvariantRemoveInput {
+    pub name: String,
+}
+
+/// Input for `onto_default_register` — persist a BC+ default-value law.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoDefaultRegisterInput {
+    pub name: String,
+    /// SPARQL ASK that activates the default when it returns `true`.
+    pub condition_ask: String,
+    /// Triples to assert when the condition fires. Each entry is `[s, p, o]`.
+    pub defaults: Vec<Vec<String>>,
+    #[serde(default)]
+    pub description: Option<String>,
+}
+
 // ─── Dynamics layer (#43) — action schemas, applicability, apply ────────────
 
 /// Input for `onto_action_register` — persist an action schema by name.
