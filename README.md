@@ -58,7 +58,7 @@ The May 2026 megapush lands the full **Dynamics → Causal → Planner** stack p
 - **`onto_extract_scaffold`** + **`onto_extract_validate`** (#28, OntoGPT SPIRES) — schema-guided structured extraction, MCP-native.
 - **`onto_cq_run`** (#29) + **`onto_verify_cq`** (#39, Lippolis ISWC 2025) — competency-question runner with VSPO pitfall hints + LLM-judgement loop.
 - **`onto_classify_el`** (#30) — OWL-EL classification (transitive subsumption table, trivial pairs excluded).
-- **`onto_eval_alignment`** (#31) — OAEI-style P/R/F1 over reference + computed alignments.
+- **`onto_eval_alignment`** (#31) — P/R/F1 scoring between a reference and a computed alignment set.
 - **`onto_shape_combinatorics`** (#36, K-CAP 2025 Kastor) — property-combination lattice for shape induction.
 - **`borderline_partition`** + **`borderline_record_verdict`** (#37, NORA NeurIPS 2025) — generalised borderline-pair review loop.
 - **`onto_align_fuzzy`** (#38, FLORA ISWC 2025 Best Paper) — embedding-free fuzzy-logic adjudication; demotes HNSW to a candidate generator per the strategic alignment pivot.
@@ -701,7 +701,7 @@ The same tool, applied to any ontology, produces the same kind of improvement. T
 | **CQs** | `cq_run` `verify_cq` `cq_verdicts_list` | Competency-question runner with VSPO pitfall hints + LLM-judgement loop |
 | **Shape induction** | `shape_combinatorics` | Property-combination lattice for SHACL-shape induction |
 | **Borderline loop** | `borderline_partition` `borderline_record_verdict` | Generalised two-threshold borderline pattern for any candidate set |
-| **Evaluation** | `eval_alignment` `eval_rag` | OAEI P/R/F1 + mmRAG Hit@k / MRR scoring |
+| **Evaluation** | `eval_alignment` `eval_rag` | Alignment P/R/F1 + RAG Hit@k / MRR scoring |
 
 ---
 

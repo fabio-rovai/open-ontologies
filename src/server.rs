@@ -929,24 +929,17 @@ impl OpenOntologiesServer {
             .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
     }
 
-    #[tool(name = "onto_oaei_parse", description = "Parse an OAEI Alignment Format RDF/XML document into structured rows. Returns source_onto, target_onto, and a list of {source, target, relation} entries usable by `onto_eval_alignment` for benchmark scoring against the OAEI Conference / Anatomy / Bio-ML tracks.")]
-    async fn onto_oaei_parse(&self, Parameters(input): Parameters<OntoOaeiParseInput>) -> String {
-        match crate::oaei_adapter::parse_oaei_alignment(&input.xml) {
-            Ok(p) => serde_json::to_string(&p)
-                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
-            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
-        }
-    }
 
-    #[tool(name = "onto_oaei_format", description = "Emit an OAEI Alignment Format RDF/XML document from a JSON array of AlignmentEntry rows. Useful for submitting alignment results back to OAEI evaluation harnesses.")]
-    async fn onto_oaei_format(&self, Parameters(input): Parameters<OntoOaeiFormatInput>) -> String {
-        let entries: Vec<crate::eval_alignment::AlignmentEntry> =
-            match serde_json::from_str(&input.entries_json) {
-                Ok(e) => e,
-                Err(e) => return format!(r#"{{"error":"invalid entries_json: {}"}}"#, e),
-            };
-        let xml = crate::oaei_adapter::format_oaei_alignment(&entries);
-        serde_json::to_string(&xml)
+    #[tool(name = "onto_align_flora", description = "End-to-end FLORA alignment (#38). Takes the currently-loaded graph as source and a Turtle string for target, enumerates plausible class-pairs (pre-filtered by shared label tokens), extracts the four FLORA signals per pair (label Jaccard, parent overlap, sibling overlap, datatype overlap) from the structural neighbourhood, runs the 10-rule Mamdani inference engine, and returns only the accept-verdict pairs. Companion to `onto_align_fuzzy` (per-pair adjudication when you already have signals).")]
+    async fn onto_align_flora(&self, Parameters(input): Parameters<OntoAlignFloraInput>) -> String {
+        let target = std::sync::Arc::new(crate::graph::GraphStore::new());
+        if let Err(e) = target.load_turtle(&input.target_ttl, None) {
+            return format!(r#"{{"error":"target_ttl failed to parse: {}"}}"#, e);
+        }
+        let low = input.low_threshold.unwrap_or(0.4);
+        let high = input.high_threshold.unwrap_or(0.65);
+        let report = crate::flora_pipeline::align_with_flora(&self.graph, &target, low, high);
+        serde_json::to_string(&report)
             .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e))
     }
 

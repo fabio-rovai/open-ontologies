@@ -1,5 +1,4 @@
-//! FLORA-style fuzzy-logic alignment adjudication (#38, ISWC 2025 Best
-//! Paper).
+//! FLORA-style fuzzy-logic alignment adjudication (#38).
 //!
 //! Per the ISWC 2025 paper "FLORA: Fuzzy Logic Over Relational Alignments,"
 //! this implements:
@@ -17,9 +16,8 @@
 //!
 //! The architectural pivot recorded in project memory: HNSW is demoted to
 //! a *candidate generator*; FLORA is the final-decision layer for the
-//! pairs HNSW surfaces. The ISWC 2025 result: embedding-free fuzzy
-//! adjudication matches or beats embedding-based pipelines on OAEI Bio-ML
-//! while remaining interpretable.
+//! pairs HNSW surfaces. Embedding-free and interpretable — every accept
+//! decision is traceable back to the specific rules that fired.
 
 use serde::{Deserialize, Serialize};
 

@@ -599,6 +599,22 @@ fn default_alpha_pub() -> f64 {
     0.05
 }
 
+/// Input for `onto_align_flora` (#38) — end-to-end FLORA alignment over
+/// every plausible class-pair across the loaded source and a caller-
+/// supplied target ontology (as Turtle).
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoAlignFloraInput {
+    /// Target ontology as Turtle. The source side is the currently-loaded
+    /// graph.
+    pub target_ttl: String,
+    /// Lower threshold for FLORA verdict bucketing (default 0.4).
+    #[serde(default)]
+    pub low_threshold: Option<f64>,
+    /// Upper threshold (default 0.65).
+    #[serde(default)]
+    pub high_threshold: Option<f64>,
+}
+
 /// Input for `onto_align_fuzzy` (#38, FLORA ISWC 2025 Best Paper).
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoAlignFuzzyInput {
@@ -610,21 +626,6 @@ pub struct OntoAlignFuzzyInput {
     pub tnorm: Option<String>,
     pub low_threshold: f64,
     pub high_threshold: f64,
-}
-
-/// Input for `onto_oaei_parse` — parse an OAEI Alignment Format XML
-/// document into structured AlignmentEntry rows.
-#[derive(Deserialize, JsonSchema)]
-pub struct OntoOaeiParseInput {
-    /// OAEI RDF/XML alignment document as a string.
-    pub xml: String,
-}
-
-/// Input for `onto_oaei_format` — emit OAEI XML from an alignment list.
-#[derive(Deserialize, JsonSchema)]
-pub struct OntoOaeiFormatInput {
-    /// JSON array `[{source, target, relation}]` of AlignmentEntry rows.
-    pub entries_json: String,
 }
 
 /// Input for `onto_policy_register` (#40, ARGOS ISWC 2025 WOP).
