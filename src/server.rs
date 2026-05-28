@@ -929,6 +929,65 @@ impl OpenOntologiesServer {
             .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
     }
 
+    #[tool(name = "onto_align_fuzzy", description = "FLORA-style fuzzy-logic alignment adjudication (#38, ISWC 2025 Best Paper). Caller supplies per-pair signals (`label_jaccard`, `parent_overlap`, `sibling_overlap`, `datatype_overlap` all in [0,1]) plus low/high thresholds; server combines via the chosen t-norm (`min` / `product` / `lukasiewicz`) and emits verdict `\"accept\"` / `\"borderline\"` / `\"reject\"` plus a rule trace. Embedding-free, interpretable, complements the HNSW candidate-generator pipeline.")]
+    async fn onto_align_fuzzy(&self, Parameters(input): Parameters<OntoAlignFuzzyInput>) -> String {
+        let signals: crate::align_fuzzy::FuzzySignals = match serde_json::from_str(&input.signals_json) {
+            Ok(s) => s,
+            Err(e) => return format!(r#"{{"error":"invalid signals_json: {}"}}"#, e),
+        };
+        let tnorm = match input.tnorm.as_deref() {
+            Some("product") => crate::align_fuzzy::TNorm::Product,
+            Some("lukasiewicz") => crate::align_fuzzy::TNorm::Lukasiewicz,
+            _ => crate::align_fuzzy::TNorm::Min,
+        };
+        let decision = crate::align_fuzzy::adjudicate(&signals, tnorm, input.low_threshold, input.high_threshold);
+        serde_json::to_string(&decision)
+            .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e))
+    }
+
+    #[tool(name = "onto_policy_register", description = "Register an ARGOS-style policy rule (#40, ISWC 2025 WOP). `effect` is `\"allow\"` or `\"deny\"`; `condition` is a SPARQL ASK that can use the `{target}` placeholder. Pairs with `onto_policy_check` and `onto_certify_action` — CIVeX gates causal risk, ARGOS gates authorisation.")]
+    async fn onto_policy_register(&self, Parameters(input): Parameters<OntoPolicyRegisterInput>) -> String {
+        let rule = crate::policy::PolicyRule {
+            name: input.name.clone(),
+            effect: input.effect,
+            condition: input.condition,
+            description: input.description,
+        };
+        match crate::policy::register_rule(&self.db, &rule) {
+            Ok(()) => format!(r#"{{"ok":true,"registered":"{}"}}"#, input.name),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_policy_list", description = "List all registered ARGOS policy rules.")]
+    async fn onto_policy_list(&self) -> String {
+        match crate::policy::list_rules(&self.db) {
+            Ok(r) => serde_json::to_string(&r)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_policy_check", description = "Evaluate a proposed action's target IRIs against every registered policy rule. Verdict is `\"deny\"` if any `deny` rule fires for any target, else `\"allow\"`. Returns per-rule fire status for audit.")]
+    async fn onto_policy_check(&self, Parameters(input): Parameters<OntoPolicyCheckInput>) -> String {
+        match crate::policy::check_action(&self.db, &self.graph, &input.target_iris) {
+            Ok(r) => serde_json::to_string(&r)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "eval_rag", description = "mmRAG benchmark scoring (#41, ISWC 2025). Input is a JSON array of {question_id, gold_iri, retrieved: [iri, ...]}. Returns Hit@{3,5,10}, MRR, exact-match-at-1, and per-question rank (0 = gold not retrieved).")]
+    async fn eval_rag(&self, Parameters(input): Parameters<OntoEvalRagInput>) -> String {
+        let qas: Vec<crate::eval_rag::RagQa> = match serde_json::from_str(&input.qa_json) {
+            Ok(q) => q,
+            Err(e) => return format!(r#"{{"error":"invalid qa_json: {}"}}"#, e),
+        };
+        let report = crate::eval_rag::evaluate(&qas);
+        serde_json::to_string(&report)
+            .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e))
+    }
+
     #[tool(name = "onto_classify_el", description = "Classify the loaded ontology in the OWL-EL fragment (#30). Materialises OWL-RL-ext entailments in a sandbox copy of the graph and emits every distinct subsumption `?sub rdfs:subClassOf ?super` (transitive closure, deduplicated, owl:Thing-trivial pairs removed). For deep SHOIQ subsumption, use `onto_dl_check` / `onto_dl_explain`.")]
     async fn onto_classify_el(&self) -> String {
         match crate::classify_el::classify(&self.graph) {

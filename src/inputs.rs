@@ -599,6 +599,44 @@ fn default_alpha_pub() -> f64 {
     0.05
 }
 
+/// Input for `onto_align_fuzzy` (#38, FLORA ISWC 2025 Best Paper).
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoAlignFuzzyInput {
+    /// Caller-supplied signals JSON: `{label_jaccard, parent_overlap,
+    /// sibling_overlap, datatype_overlap}` all in `[0, 1]`.
+    pub signals_json: String,
+    /// One of `"min"`, `"product"`, `"lukasiewicz"`. Default `"min"`.
+    #[serde(default)]
+    pub tnorm: Option<String>,
+    pub low_threshold: f64,
+    pub high_threshold: f64,
+}
+
+/// Input for `onto_policy_register` (#40, ARGOS ISWC 2025 WOP).
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoPolicyRegisterInput {
+    pub name: String,
+    /// `"allow"` or `"deny"`.
+    pub effect: String,
+    /// SPARQL ASK (may include `{target}` placeholder).
+    pub condition: String,
+    #[serde(default)]
+    pub description: Option<String>,
+}
+
+/// Input for `onto_policy_check` (#40).
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoPolicyCheckInput {
+    pub target_iris: Vec<String>,
+}
+
+/// Input for `eval_rag` (#41, mmRAG ISWC 2025).
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoEvalRagInput {
+    /// JSON array `[{question_id, gold_iri, retrieved: [iri, iri, ...]}, ...]`.
+    pub qa_json: String,
+}
+
 /// Input for `onto_eval_alignment` (#31, OAEI-style P/R/F1).
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoEvalAlignmentInput {
