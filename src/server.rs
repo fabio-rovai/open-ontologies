@@ -1152,6 +1152,25 @@ impl OpenOntologiesServer {
         }
     }
 
+    #[tool(name = "onto_coevolve_dependency_graph", description = "Build the shape→OWL-dependency map for a SHACL document. For each NodeShape, returns the set of target classes, path properties, and class-constraint targets. Powers `onto_owl_shacl_coevolve_incremental`.")]
+    async fn onto_coevolve_dependency_graph(&self, Parameters(input): Parameters<OntoCoevolveDepGraphInput>) -> String {
+        match crate::coevolve::build_dependency_graph(&input.shapes_ttl) {
+            Ok(d) => serde_json::to_string(&d)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_owl_shacl_coevolve_incremental", description = "Incremental coevolve check (#33 follow-on, K-CAP 2025). Given a list of IRIs that changed since the last validation, identify which SHACL shapes are affected (via the shape→OWL dependency graph) and skip SHACL validation entirely when no shape's dependencies overlap. Returns the affected-shapes report plus validation output (or 'no_affected_shapes' sentinel when nothing fires).")]
+    async fn onto_owl_shacl_coevolve_incremental(&self, Parameters(input): Parameters<OntoCoevolveIncrementalInput>) -> String {
+        let profile = input.profile.unwrap_or_else(|| "owl-rl".to_string());
+        match crate::coevolve::incremental_check(&self.graph, &input.shapes_ttl, &input.changed_iris, &profile) {
+            Ok(r) => serde_json::to_string(&r)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
     #[tool(name = "onto_owl_shacl_coevolve_check", description = "Combined OWL+SHACL validation (#33, K-CAP 2025). Materialises OWL-RL entailments into a sandbox copy of the loaded graph, then runs SHACL validation against the closure. Returns both the pre-reasoning and post-reasoning conformance verdicts plus the count of triples the reasoner added. Catches SHACL constraints that pass against the raw ABox but fail after inference (e.g. instances that inherit a parent class via rdfs:subClassOf and then violate a parent-class shape). Original graph is NOT mutated.")]
     async fn onto_owl_shacl_coevolve_check(&self, Parameters(input): Parameters<OntoOwlShaclCoevolveInput>) -> String {
         let profile = input.profile.unwrap_or_else(|| "owl-rl".to_string());

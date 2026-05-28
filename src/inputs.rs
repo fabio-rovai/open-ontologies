@@ -750,6 +750,23 @@ pub struct OntoCqVerdictsListInput {
     pub cq_id: String,
 }
 
+/// Input for `onto_owl_shacl_coevolve_incremental` (#33 follow-on).
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoCoevolveIncrementalInput {
+    pub shapes_ttl: String,
+    /// IRIs that changed since the last validation (classes, properties).
+    /// Shapes whose dependencies don't intersect this set are skipped.
+    pub changed_iris: Vec<String>,
+    #[serde(default)]
+    pub profile: Option<String>,
+}
+
+/// Input for `onto_coevolve_dependency_graph` (#33 follow-on).
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoCoevolveDepGraphInput {
+    pub shapes_ttl: String,
+}
+
 /// Input for `onto_segment_retrieve` (#34, SEMANTiCS 2025 GrOWL-RAG) —
 /// retrieve a TBox-slice neighbourhood for grounding LLM reasoning.
 #[derive(Deserialize, JsonSchema)]

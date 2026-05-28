@@ -21,7 +21,8 @@
 use crate::graph::GraphStore;
 use crate::reason::Reasoner;
 use crate::shacl::ShaclValidator;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 /// Report from a co-evolve check.
@@ -74,6 +75,172 @@ pub fn coevolve_check(
         post_reasoning: post,
         triples_inferred: inferred,
         profile: profile.to_string(),
+    })
+}
+
+// ─── Incremental dependency-graph validation (#33 follow-on) ───────────────
+//
+// Per the K-CAP 2025 paper: when an OWL ontology evolves, re-running every
+// SHACL shape against the full closure is wasteful. The shape-OWL dependency
+// graph maps each shape to the OWL classes/properties it references, so
+// when a delta touches a subset of those references, only the affected
+// shapes need revalidation.
+
+/// One shape's parsed references — the classes and properties it depends on.
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+pub struct ShapeDependencies {
+    pub shape_iri: String,
+    pub target_classes: BTreeSet<String>,
+    pub path_properties: BTreeSet<String>,
+    /// Classes referenced in `sh:class` constraints (object property ranges).
+    pub class_constraints: BTreeSet<String>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct DependencyGraph {
+    pub shapes: Vec<ShapeDependencies>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct AffectedShapesReport {
+    pub changed_iri_count: usize,
+    pub total_shapes: usize,
+    pub affected_shapes: Vec<String>,
+    pub skipped_shapes: Vec<String>,
+}
+
+/// Build the shape→dependencies map by SPARQL-querying the shapes Turtle.
+/// `shapes_ttl` is loaded into a temporary graph so we don't touch the
+/// caller's ontology.
+pub fn build_dependency_graph(shapes_ttl: &str) -> anyhow::Result<DependencyGraph> {
+    let scratch = Arc::new(GraphStore::new());
+    if !shapes_ttl.trim().is_empty() {
+        scratch.load_turtle(shapes_ttl, None)?;
+    }
+
+    // Find every NodeShape declaration + its referenced classes/paths.
+    let q = r#"
+        SELECT ?shape ?target ?path ?cls WHERE {
+            ?shape a <http://www.w3.org/ns/shacl#NodeShape> .
+            OPTIONAL { ?shape <http://www.w3.org/ns/shacl#targetClass> ?target }
+            OPTIONAL {
+                ?shape <http://www.w3.org/ns/shacl#property> ?prop .
+                OPTIONAL { ?prop <http://www.w3.org/ns/shacl#path> ?path }
+                OPTIONAL { ?prop <http://www.w3.org/ns/shacl#class> ?cls }
+            }
+        }
+    "#;
+    let js = scratch.sparql_select(q)?;
+    let v: serde_json::Value = serde_json::from_str(&js).unwrap_or(serde_json::Value::Null);
+    let rows = v["results"].as_array().cloned().unwrap_or_default();
+
+    let mut map: BTreeMap<String, ShapeDependencies> = BTreeMap::new();
+    for row in rows {
+        let Some(shape) = row["shape"].as_str() else {
+            continue;
+        };
+        let shape = shape.trim_matches(|c| c == '<' || c == '>').to_string();
+        let entry = map.entry(shape.clone()).or_insert_with(|| ShapeDependencies {
+            shape_iri: shape.clone(),
+            target_classes: BTreeSet::new(),
+            path_properties: BTreeSet::new(),
+            class_constraints: BTreeSet::new(),
+        });
+        if let Some(t) = row["target"].as_str() {
+            entry
+                .target_classes
+                .insert(t.trim_matches(|c| c == '<' || c == '>').to_string());
+        }
+        if let Some(p) = row["path"].as_str() {
+            entry
+                .path_properties
+                .insert(p.trim_matches(|c| c == '<' || c == '>').to_string());
+        }
+        if let Some(c) = row["cls"].as_str() {
+            entry
+                .class_constraints
+                .insert(c.trim_matches(|c| c == '<' || c == '>').to_string());
+        }
+    }
+    Ok(DependencyGraph {
+        shapes: map.into_values().collect(),
+    })
+}
+
+/// Given a dependency graph + a set of changed IRIs, return the names of
+/// shapes whose validity could plausibly have been affected.
+pub fn affected_shapes(graph: &DependencyGraph, changed_iris: &[String]) -> AffectedShapesReport {
+    let changed: BTreeSet<&str> = changed_iris.iter().map(|s| s.as_str()).collect();
+    let mut affected: Vec<String> = Vec::new();
+    let mut skipped: Vec<String> = Vec::new();
+    for sd in &graph.shapes {
+        let touched = sd.target_classes.iter().any(|c| changed.contains(c.as_str()))
+            || sd.path_properties.iter().any(|p| changed.contains(p.as_str()))
+            || sd.class_constraints.iter().any(|c| changed.contains(c.as_str()));
+        if touched {
+            affected.push(sd.shape_iri.clone());
+        } else {
+            skipped.push(sd.shape_iri.clone());
+        }
+    }
+    AffectedShapesReport {
+        changed_iri_count: changed_iris.len(),
+        total_shapes: graph.shapes.len(),
+        affected_shapes: affected,
+        skipped_shapes: skipped,
+    }
+}
+
+/// Incremental coevolve check: revalidate only shapes whose dependencies
+/// intersect `changed_iris`. Returns the validation result and the
+/// affected/skipped list.
+#[derive(Clone, Debug, Serialize)]
+pub struct IncrementalReport {
+    pub affected: AffectedShapesReport,
+    pub validation_for_affected: String,
+}
+
+pub fn incremental_check(
+    graph: &Arc<GraphStore>,
+    shapes_ttl: &str,
+    changed_iris: &[String],
+    profile: &str,
+) -> anyhow::Result<IncrementalReport> {
+    let dep = build_dependency_graph(shapes_ttl)?;
+    let aff = affected_shapes(&dep, changed_iris);
+
+    // Materialise OWL closure into a sandbox.
+    let sandbox = Arc::new(GraphStore::new());
+    let triples = graph.all_triples()?;
+    if !triples.is_empty() {
+        let mut nt = String::with_capacity(triples.len() * 64);
+        for (s, p, o) in &triples {
+            nt.push_str(s);
+            nt.push(' ');
+            nt.push_str(p);
+            nt.push(' ');
+            nt.push_str(o);
+            nt.push_str(" .\n");
+        }
+        sandbox.load_turtle(&nt, None)?;
+    }
+    let _ = Reasoner::run(&sandbox, profile, true)?;
+
+    // If no shapes are affected, skip validation entirely.
+    let validation = if aff.affected_shapes.is_empty() {
+        r#"{"conforms":true,"reason":"no_affected_shapes"}"#.to_string()
+    } else {
+        // Subset the shapes Turtle to just the affected ones. For the
+        // scaffold we re-run the full SHACL validation (Oxigraph's SHACL
+        // engine doesn't expose per-shape evaluation directly), but the
+        // call is skipped entirely when affected_shapes is empty — which
+        // is the actual speedup the K-CAP paper measures.
+        ShaclValidator::validate(&sandbox, shapes_ttl)?
+    };
+
+    Ok(IncrementalReport {
+        affected: aff,
+        validation_for_affected: validation,
     })
 }
 
@@ -137,6 +304,86 @@ mod tests {
         let _ = coevolve_check(&graph, shapes, "owl-rl").unwrap();
         let post = graph.triple_count();
         assert_eq!(pre, post, "original graph mutated by co-evolve check");
+    }
+
+    fn shapes_ttl() -> &'static str {
+        r#"
+            @prefix sh: <http://www.w3.org/ns/shacl#> .
+            @prefix ex: <http://ex.org/> .
+            ex:AnimalShape a sh:NodeShape ;
+                sh:targetClass ex:Animal ;
+                sh:property [ sh:path ex:hasName ; sh:minCount 1 ] .
+            ex:VehicleShape a sh:NodeShape ;
+                sh:targetClass ex:Vehicle ;
+                sh:property [ sh:path ex:hasModel ; sh:minCount 1 ] .
+        "#
+    }
+
+    #[test]
+    fn build_dependency_graph_collects_target_class_and_path() {
+        let dep = build_dependency_graph(shapes_ttl()).unwrap();
+        assert_eq!(dep.shapes.len(), 2);
+        // AnimalShape must have ex:Animal in target_classes + ex:hasName in path.
+        let animal = dep
+            .shapes
+            .iter()
+            .find(|s| s.shape_iri == "http://ex.org/AnimalShape")
+            .expect("AnimalShape parsed");
+        assert!(animal.target_classes.contains("http://ex.org/Animal"));
+        assert!(animal.path_properties.contains("http://ex.org/hasName"));
+    }
+
+    #[test]
+    fn affected_shapes_filters_by_changed_iris() {
+        let dep = build_dependency_graph(shapes_ttl()).unwrap();
+        // Change only ex:Animal — VehicleShape must be skipped.
+        let r = affected_shapes(&dep, &["http://ex.org/Animal".to_string()]);
+        assert_eq!(r.affected_shapes.len(), 1);
+        assert!(r.affected_shapes[0].contains("AnimalShape"));
+        assert_eq!(r.skipped_shapes.len(), 1);
+        assert!(r.skipped_shapes[0].contains("VehicleShape"));
+    }
+
+    #[test]
+    fn affected_shapes_triggers_on_path_property_too() {
+        let dep = build_dependency_graph(shapes_ttl()).unwrap();
+        // Change a property referenced in sh:path → its parent shape is affected.
+        let r = affected_shapes(&dep, &["http://ex.org/hasModel".to_string()]);
+        assert_eq!(r.affected_shapes.len(), 1);
+        assert!(r.affected_shapes[0].contains("VehicleShape"));
+    }
+
+    #[test]
+    fn affected_shapes_returns_empty_when_no_overlap() {
+        let dep = build_dependency_graph(shapes_ttl()).unwrap();
+        let r = affected_shapes(&dep, &["http://ex.org/Unrelated".to_string()]);
+        assert!(r.affected_shapes.is_empty());
+        assert_eq!(r.skipped_shapes.len(), 2);
+    }
+
+    #[test]
+    fn incremental_check_skips_validation_when_nothing_affected() {
+        let graph = Arc::new(GraphStore::new());
+        graph
+            .load_turtle(
+                r#"
+                @prefix owl: <http://www.w3.org/2002/07/owl#> .
+                @prefix ex: <http://ex.org/> .
+                ex:Animal a owl:Class .
+                ex:Vehicle a owl:Class .
+            "#,
+                None,
+            )
+            .unwrap();
+        let r = incremental_check(
+            &graph,
+            shapes_ttl(),
+            &["http://ex.org/Unrelated".to_string()],
+            "owl-rl",
+        )
+        .unwrap();
+        assert_eq!(r.affected.affected_shapes.len(), 0);
+        assert!(r.validation_for_affected.contains("no_affected_shapes"));
     }
 
     #[test]
