@@ -646,6 +646,12 @@ pub struct OntoActionApplyInput {
     /// ramification — the literal effects land and that's it.
     #[serde(default)]
     pub ramify: Option<String>,
+    /// Non-deterministic outcomes (#49): when the registered schema has a
+    /// non-empty `outcomes` list, this seed makes the sample reproducible.
+    /// `None` (default) uses `SystemTime::now()` for non-reproducible
+    /// sampling. Ignored for deterministic schemas (empty `outcomes`).
+    #[serde(default)]
+    pub seed: Option<u64>,
 }
 
 fn default_true() -> bool {

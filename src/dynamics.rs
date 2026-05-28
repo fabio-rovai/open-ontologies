@@ -67,6 +67,25 @@ pub enum EffectSpec {
     AddClass { iri: String },
 }
 
+/// One non-deterministic outcome of an action (#49). Each outcome carries
+/// a categorical probability and its own effect list. When an
+/// [`ActionSchema`] has a non-empty [`ActionSchema::outcomes`], `apply`
+/// samples one outcome and executes its effects (the deterministic
+/// `effects` field is ignored). When `outcomes` is empty, the schema
+/// behaves as before — pure deterministic single-effect BC+ subset.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Outcome {
+    /// Categorical probability in `[0, 1]`. The sum across all outcomes
+    /// must equal 1.0 ± 1e-6 or `apply` returns an error.
+    pub probability: f64,
+    /// Effects to execute when this outcome is sampled.
+    pub effects: Vec<EffectSpec>,
+    /// Optional human-readable label (e.g. `"success"`, `"degraded"`,
+    /// `"failure"`). Echoed into the `ApplyResult.kgcl_patch_cnl`.
+    #[serde(default)]
+    pub label: Option<String>,
+}
+
 /// A reusable action schema. Reified via [`register`]; instantiated with
 /// bindings via [`ActionSchema::apply`].
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -87,6 +106,12 @@ pub struct ActionSchema {
     /// Optional human-readable description.
     #[serde(default)]
     pub description: Option<String>,
+    /// Non-deterministic outcomes (#49). When non-empty, `apply` samples one
+    /// outcome and executes its effects; the deterministic `effects` field
+    /// is ignored. When empty (default), the schema is deterministic and
+    /// behaves as in v0.4 base.
+    #[serde(default)]
+    pub outcomes: Vec<Outcome>,
 }
 
 /// The outcome of applying an action.
@@ -109,6 +134,13 @@ pub struct ApplyResult {
     /// Reasoner profile run for ramification, or `None` if disabled.
     #[serde(default)]
     pub ramification_profile: Option<String>,
+    /// Index of the sampled outcome when the schema is non-deterministic
+    /// (#49). `None` for deterministic schemas (the default case).
+    #[serde(default)]
+    pub sampled_outcome: Option<usize>,
+    /// Label of the sampled outcome, if any (e.g. `"success"`).
+    #[serde(default)]
+    pub sampled_outcome_label: Option<String>,
 }
 
 impl ActionSchema {
@@ -156,17 +188,77 @@ impl ActionSchema {
     /// Apply the action's effects. Adds + removes triples, records an IES4-
     /// style event into the lineage log, and returns the KGCL patch CNL
     /// description.
+    ///
+    /// **Non-deterministic actions (#49):** when [`Self::outcomes`] is
+    /// non-empty, an outcome is sampled and its effects are applied. The
+    /// sampling seed is derived from `SystemTime::now()`. For reproducible
+    /// sampling, use [`Self::apply_with_seed`] instead.
     pub fn apply(
         &self,
         graph: &Arc<GraphStore>,
         db: &StateDb,
         bindings: &[(String, String)],
     ) -> anyhow::Result<ApplyResult> {
+        let seed = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos() as u64)
+            .unwrap_or(0);
+        self.apply_inner(graph, db, bindings, seed)
+    }
+
+    /// Reproducible variant of [`Self::apply`]: callers supply the sampling
+    /// `seed` so non-deterministic outcomes are deterministic given the same
+    /// schema + bindings + seed.
+    pub fn apply_with_seed(
+        &self,
+        graph: &Arc<GraphStore>,
+        db: &StateDb,
+        bindings: &[(String, String)],
+        seed: u64,
+    ) -> anyhow::Result<ApplyResult> {
+        self.apply_inner(graph, db, bindings, seed)
+    }
+
+    fn apply_inner(
+        &self,
+        graph: &Arc<GraphStore>,
+        db: &StateDb,
+        bindings: &[(String, String)],
+        seed: u64,
+    ) -> anyhow::Result<ApplyResult> {
+        // Decide which effect list to use.
+        let (effects_to_apply, sampled_outcome, sampled_label): (&[EffectSpec], Option<usize>, Option<String>) =
+            if self.outcomes.is_empty() {
+                (self.effects.as_slice(), None, None)
+            } else {
+                // Validate probabilities sum to ~1.0.
+                let total: f64 = self.outcomes.iter().map(|o| o.probability).sum();
+                if (total - 1.0).abs() > 1e-6 {
+                    anyhow::bail!(
+                        "non-deterministic schema `{}` has outcome probabilities summing to {} (must equal 1.0 \u{00b1} 1e-6)",
+                        self.name,
+                        total
+                    );
+                }
+                if self.outcomes.iter().any(|o| o.probability < 0.0) {
+                    anyhow::bail!(
+                        "non-deterministic schema `{}` has a negative outcome probability",
+                        self.name
+                    );
+                }
+                let idx = sample_categorical(seed, &self.outcomes);
+                let outcome = &self.outcomes[idx];
+                (outcome.effects.as_slice(), Some(idx), outcome.label.clone())
+            };
+
         let mut to_add: Vec<(String, String, String)> = Vec::new();
         let mut to_remove: Vec<(String, String, String)> = Vec::new();
         let mut kgcl_cnl: Vec<String> = Vec::new();
+        if let Some(ref label) = sampled_label {
+            kgcl_cnl.push(format!("sampled outcome <{}>", label));
+        }
 
-        for effect in &self.effects {
+        for effect in effects_to_apply {
             match effect {
                 EffectSpec::AddTriple {
                     subject,
@@ -243,6 +335,8 @@ impl ActionSchema {
             triples_removed: to_remove.len(),
             derived_triples_added: 0,
             ramification_profile: None,
+            sampled_outcome,
+            sampled_outcome_label: sampled_label,
         })
     }
 
@@ -271,6 +365,42 @@ impl ActionSchema {
         result.ramification_profile = Some(profile.to_string());
         Ok(result)
     }
+}
+
+// ─── Outcome sampling helpers (#49) ─────────────────────────────────────────
+
+/// Tiny inline xorshift64 PRNG. Deterministic given the seed; sufficient for
+/// categorical sampling over a handful of outcomes. Avoids adding `rand` /
+/// `fastrand` as deps just for this.
+fn xorshift64(state: &mut u64) -> u64 {
+    let mut x = *state;
+    if x == 0 {
+        x = 0x9E3779B97F4A7C15; // arbitrary non-zero
+    }
+    x ^= x << 13;
+    x ^= x >> 7;
+    x ^= x << 17;
+    *state = x;
+    x
+}
+
+/// Sample one outcome index from a categorical distribution given the
+/// `outcomes` (each carries `probability`) and a `seed`. Probabilities are
+/// assumed to be validated (sum == 1.0, non-negative) by the caller.
+fn sample_categorical(seed: u64, outcomes: &[Outcome]) -> usize {
+    let mut state = seed;
+    let r_u64 = xorshift64(&mut state);
+    // Map to a uniform [0, 1) by taking the high 53 bits (mantissa width of f64).
+    let r = (r_u64 >> 11) as f64 / (1u64 << 53) as f64;
+    let mut cumulative = 0.0;
+    for (i, o) in outcomes.iter().enumerate() {
+        cumulative += o.probability;
+        if r < cumulative {
+            return i;
+        }
+    }
+    // Floating-point slop on the boundary; default to the last outcome.
+    outcomes.len() - 1
 }
 
 // ─── SQLite-backed schema persistence ───────────────────────────────────────
@@ -367,6 +497,7 @@ mod tests {
             ],
             reversible: false,
             description: Some("Replace class {old} with {new}".to_string()),
+            outcomes: vec![],
         }
     }
 
@@ -453,6 +584,121 @@ mod tests {
         assert!(!applicable);
     }
 
+    fn nondet_two_outcome_schema() -> ActionSchema {
+        // 70/30 split between two distinct AddClass outcomes; reproducible
+        // under any deterministic seed.
+        ActionSchema {
+            name: "noisy_add".to_string(),
+            parameters: vec![],
+            preconditions: vec![],
+            effects: vec![], // ignored when outcomes is non-empty
+            reversible: false,
+            description: None,
+            outcomes: vec![
+                Outcome {
+                    probability: 0.7,
+                    effects: vec![EffectSpec::AddClass {
+                        iri: "http://ex.org/Success".to_string(),
+                    }],
+                    label: Some("success".to_string()),
+                },
+                Outcome {
+                    probability: 0.3,
+                    effects: vec![EffectSpec::AddClass {
+                        iri: "http://ex.org/Failure".to_string(),
+                    }],
+                    label: Some("failure".to_string()),
+                },
+            ],
+        }
+    }
+
+    #[test]
+    fn nondeterministic_apply_with_seed_is_reproducible() {
+        // Same schema + same seed must produce the same sampled outcome and
+        // the same triple-pattern.
+        let db = test_db();
+        let g1 = Arc::new(GraphStore::new());
+        let g2 = Arc::new(GraphStore::new());
+        let schema = nondet_two_outcome_schema();
+
+        let r1 = schema.apply_with_seed(&g1, &db, &[], 42).expect("apply 1");
+        let r2 = schema.apply_with_seed(&g2, &db, &[], 42).expect("apply 2");
+
+        assert_eq!(r1.sampled_outcome, r2.sampled_outcome,
+            "same seed must sample the same outcome");
+        assert_eq!(r1.sampled_outcome_label, r2.sampled_outcome_label);
+    }
+
+    #[test]
+    fn nondeterministic_apply_distribution_matches_probabilities() {
+        // Over 1000 seeded calls the 70/30 split should be within reasonable
+        // bounds. This is a smoke test of the categorical sampler, not a
+        // rigorous statistical test.
+        let db = test_db();
+        let schema = nondet_two_outcome_schema();
+        let mut counts = [0usize; 2];
+        for seed in 0u64..1000 {
+            let g = Arc::new(GraphStore::new());
+            let r = schema
+                .apply_with_seed(&g, &db, &[], seed.wrapping_mul(0x9E37_79B9_7F4A_7C15))
+                .expect("apply");
+            let idx = r.sampled_outcome.expect("nondet schema must record outcome");
+            counts[idx] += 1;
+        }
+        let p0 = counts[0] as f64 / 1000.0;
+        // 70% outcome should land between 60% and 80% with very high probability.
+        assert!(
+            (0.60..=0.80).contains(&p0),
+            "expected ~70% outcome 0, got {:.3} (counts: {:?})",
+            p0,
+            counts
+        );
+    }
+
+    #[test]
+    fn nondeterministic_apply_rejects_invalid_probability_sum() {
+        let db = test_db();
+        let g = Arc::new(GraphStore::new());
+        let mut schema = nondet_two_outcome_schema();
+        // Break the invariant: sum to 0.9, not 1.0.
+        schema.outcomes[0].probability = 0.6;
+        schema.outcomes[1].probability = 0.3;
+        let err = schema.apply_with_seed(&g, &db, &[], 0).expect_err("should reject");
+        let s = format!("{}", err);
+        assert!(s.contains("summing to"), "expected probability sum error, got: {}", s);
+    }
+
+    #[test]
+    fn deterministic_schema_still_works_when_outcomes_is_empty() {
+        // Back-compat: a schema with empty outcomes uses the existing
+        // effects field and reports sampled_outcome=None.
+        let db = test_db();
+        let g = Arc::new(GraphStore::new());
+        g.load_turtle(
+            r#"@prefix owl: <http://www.w3.org/2002/07/owl#> .
+               @prefix ex: <http://ex.org/> .
+               ex:Cat a owl:Class ."#,
+            None,
+        ).unwrap();
+
+        let schema = sample_schema();
+        let r = schema
+            .apply(
+                &g,
+                &db,
+                &[
+                    ("old".to_string(), "http://ex.org/Cat".to_string()),
+                    ("new".to_string(), "http://ex.org/Feline".to_string()),
+                ],
+            )
+            .expect("apply");
+        assert!(r.sampled_outcome.is_none());
+        assert!(r.sampled_outcome_label.is_none());
+        assert_eq!(r.triples_added, 1);
+        assert_eq!(r.triples_removed, 1);
+    }
+
     #[test]
     fn apply_with_ramification_materialises_subclass_entailment() {
         // Acceptance criterion from #47: adding a subClassOf edge between
@@ -488,6 +734,7 @@ mod tests {
             }],
             reversible: true,
             description: None,
+            outcomes: vec![],
         };
         let bindings = vec![
             ("child".to_string(), "http://ex.org/Cat".to_string()),

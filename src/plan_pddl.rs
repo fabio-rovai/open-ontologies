@@ -273,6 +273,7 @@ mod tests {
             ],
             reversible: false,
             description: None,
+            outcomes: vec![],
         }
     }
 

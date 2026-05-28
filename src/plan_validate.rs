@@ -226,6 +226,7 @@ mod tests {
             }],
             reversible: true,
             description: None,
+            outcomes: vec![],
         }
     }
 
@@ -237,6 +238,7 @@ mod tests {
             effects: vec![EffectSpec::AddClass { iri: "{iri}".to_string() }],
             reversible: true,
             description: None,
+            outcomes: vec![],
         }
     }
 

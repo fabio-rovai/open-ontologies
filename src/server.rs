@@ -1005,9 +1005,12 @@ impl OpenOntologiesServer {
         if input.check_preconditions && !schema.applicable(&self.graph, &bindings) {
             return r#"{"error":"preconditions not satisfied"}"#.to_string();
         }
-        let outcome = match input.ramify.as_deref() {
-            Some(profile) if !profile.is_empty() => {
+        let outcome = match (input.ramify.as_deref(), input.seed) {
+            (Some(profile), _) if !profile.is_empty() => {
                 schema.apply_with_ramification(&self.graph, &self.db, &bindings, profile)
+            }
+            (_, Some(seed)) => {
+                schema.apply_with_seed(&self.graph, &self.db, &bindings, seed)
             }
             _ => schema.apply(&self.graph, &self.db, &bindings),
         };

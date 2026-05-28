@@ -48,6 +48,7 @@ fn add_subclass_schema() -> ActionSchema {
         ],
         reversible: true,
         description: Some("Add a subClassOf edge between two existing classes".to_string()),
+        outcomes: vec![],
     }
 }
 
