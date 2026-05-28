@@ -1,0 +1,115 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ks: <http://example.org/ks-stand/> .
+
+# ─── Synthetic KS-style standard: KS-X-9999 (Pressure Vessel Inspection) ─────
+# Modelled on the structural patterns Park et al. (arXiv:2512.08398) identify
+# as failure cases for vanilla KG-RAG: nested conditional clauses, numerical
+# thresholds, exception sub-clauses, and toxic interactions where two
+# independently-correct clauses contradict each other under certain inputs.
+
+ks:Standard a owl:Class ;
+    rdfs:label "KS standard" .
+
+ks:Clause a owl:Class ;
+    rdfs:label "Clause" .
+
+ks:Vessel a owl:Class ;
+    rdfs:label "Pressure vessel" .
+
+ks:Inspection a owl:Class ;
+    rdfs:label "Inspection record" .
+
+ks:VesselClassA a owl:Class ;
+    rdfs:subClassOf ks:Vessel ;
+    rdfs:label "Vessel Class A (>= 10 m³)" .
+
+ks:VesselClassB a owl:Class ;
+    rdfs:subClassOf ks:Vessel ;
+    rdfs:label "Vessel Class B (1-10 m³)" .
+
+ks:VesselClassC a owl:Class ;
+    rdfs:subClassOf ks:Vessel ;
+    rdfs:label "Vessel Class C (< 1 m³)" .
+
+# Properties
+
+ks:vesselClass a owl:ObjectProperty ;
+    rdfs:domain ks:Vessel ;
+    rdfs:range ks:Vessel .
+
+ks:designPressureMPa a owl:DatatypeProperty ;
+    rdfs:domain ks:Vessel ;
+    rdfs:range xsd:decimal .
+
+ks:operatingTemperatureC a owl:DatatypeProperty ;
+    rdfs:domain ks:Vessel ;
+    rdfs:range xsd:decimal .
+
+ks:lastInspection a owl:ObjectProperty ;
+    rdfs:domain ks:Vessel ;
+    rdfs:range ks:Inspection .
+
+ks:inspectionDate a owl:DatatypeProperty ;
+    rdfs:domain ks:Inspection ;
+    rdfs:range xsd:date .
+
+ks:inspectionInterval a owl:DatatypeProperty ;
+    rdfs:domain ks:Vessel ;
+    rdfs:range xsd:integer .
+
+ks:certificationStatus a owl:DatatypeProperty ;
+    rdfs:domain ks:Vessel ;
+    rdfs:range xsd:string .
+
+# ─── Instance data: 6 vessels exhibiting the toxic-clause pattern ────────────
+# Clause 5.3.1: Class A vessels require inspection every 12 months.
+# Clause 5.3.2: Vessels operating above 200°C require inspection every 6 months.
+# Clause 5.4.1 (exception): Vessels above 200°C MAY use 12-month interval IF
+#   design pressure is below 3 MPa.
+# Toxic interaction: a Class A vessel at 250°C and 2.5 MPa satisfies clause
+# 5.4.1 exception (interval = 12) BUT clause 5.3.2 (interval = 6) reads as
+# independently violated unless the exception is detected.
+
+ks:vessel_01 a ks:VesselClassA ;
+    rdfs:label "V-001 (compliant Class A)" ;
+    ks:designPressureMPa 4.0 ;
+    ks:operatingTemperatureC 150.0 ;
+    ks:inspectionInterval 12 ;
+    ks:certificationStatus "valid" .
+
+ks:vessel_02 a ks:VesselClassA ;
+    rdfs:label "V-002 (toxic: hot Class A under exception 5.4.1)" ;
+    ks:designPressureMPa 2.5 ;
+    ks:operatingTemperatureC 250.0 ;
+    ks:inspectionInterval 12 ;
+    ks:certificationStatus "valid" .
+
+ks:vessel_03 a ks:VesselClassA ;
+    rdfs:label "V-003 (non-compliant: hot AND high-pressure)" ;
+    ks:designPressureMPa 5.0 ;
+    ks:operatingTemperatureC 230.0 ;
+    ks:inspectionInterval 12 ;
+    ks:certificationStatus "valid" .
+
+ks:vessel_04 a ks:VesselClassB ;
+    rdfs:label "V-004 (compliant Class B)" ;
+    ks:designPressureMPa 3.5 ;
+    ks:operatingTemperatureC 80.0 ;
+    ks:inspectionInterval 24 ;
+    ks:certificationStatus "valid" .
+
+ks:vessel_05 a ks:VesselClassC ;
+    rdfs:label "V-005 (compliant Class C)" ;
+    ks:designPressureMPa 1.2 ;
+    ks:operatingTemperatureC 60.0 ;
+    ks:inspectionInterval 36 ;
+    ks:certificationStatus "valid" .
+
+ks:vessel_06 a ks:VesselClassA ;
+    rdfs:label "V-006 (missing pressure data)" ;
+    ks:operatingTemperatureC 180.0 ;
+    ks:inspectionInterval 12 ;
+    ks:certificationStatus "valid" .

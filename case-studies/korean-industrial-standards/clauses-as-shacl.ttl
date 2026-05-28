@@ -1,0 +1,64 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ks: <http://example.org/ks-stand/> .
+
+# ─── SHACL shapes encoding KS clauses 5.3.1, 5.3.2, 5.4.1 ────────────────────
+# Each clause becomes a NodeShape with sh:targetClass + property constraints.
+# Authored by hand here for the demonstration; in practice onto_shape_induce
+# proposes candidate shapes from instance data.
+
+# Clause 5.3.1: Class A vessels MUST have inspection interval ≤ 12 months.
+ks:Clause_5_3_1_ClassA_Inspection a sh:NodeShape ;
+    sh:targetClass ks:VesselClassA ;
+    sh:property [
+        sh:path ks:inspectionInterval ;
+        sh:maxInclusive 12 ;
+        sh:minCount 1 ;
+        sh:message "Clause 5.3.1: Class A vessels must be inspected at least every 12 months."
+    ] .
+
+# Clause 5.3.2: Vessels operating above 200°C MUST have interval ≤ 6 months.
+ks:Clause_5_3_2_HotVessel_Inspection a sh:NodeShape ;
+    sh:targetClass ks:Vessel ;
+    sh:property [
+        sh:path ks:operatingTemperatureC ;
+        sh:minCount 1 ;
+        sh:message "Clause 5.3.2: operating temperature must be declared."
+    ] .
+
+# Clause 5.4.1 exception: Vessels at temp > 200°C with pressure < 3 MPa MAY
+# use 12-month interval. Encoded as a NodeShape that DOES NOT fail when the
+# exception's conditions hold. We express this via sh:or as a UNION of:
+#   (a) operating ≤ 200°C — clause 5.3.2 not triggered, no constraint.
+#   (b) operating > 200°C AND pressure < 3 MPa — exception applies, no constraint.
+#   (c) operating > 200°C AND pressure ≥ 3 MPa AND interval ≤ 6 — strict path.
+ks:Clause_5_3_2_with_5_4_1_Exception a sh:NodeShape ;
+    sh:targetClass ks:Vessel ;
+    sh:or (
+        [
+            sh:property [
+                sh:path ks:operatingTemperatureC ;
+                sh:maxInclusive 200
+            ]
+        ]
+        [
+            sh:property [ sh:path ks:operatingTemperatureC ; sh:minExclusive 200 ] ;
+            sh:property [ sh:path ks:designPressureMPa ; sh:maxExclusive 3.0 ]
+        ]
+        [
+            sh:property [ sh:path ks:operatingTemperatureC ; sh:minExclusive 200 ] ;
+            sh:property [ sh:path ks:designPressureMPa ; sh:minInclusive 3.0 ] ;
+            sh:property [ sh:path ks:inspectionInterval ; sh:maxInclusive 6 ]
+        ]
+    ) ;
+    sh:message "Clause 5.3.2 + 5.4.1: hot AND high-pressure vessels require ≤ 6-month inspection; the 5.4.1 exception (hot AND low-pressure) permits 12 months." .
+
+# Static causal law (BC+): every vessel must have a design pressure
+# declared — the "no measurement, no certification" rule.
+ks:Invariant_PressureRequired a sh:NodeShape ;
+    sh:targetClass ks:Vessel ;
+    sh:property [
+        sh:path ks:designPressureMPa ;
+        sh:minCount 1 ;
+        sh:message "Invariant: every vessel must declare its design pressure."
+    ] .

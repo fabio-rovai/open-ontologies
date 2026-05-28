@@ -70,18 +70,105 @@ Honest list. Build before pitching.
 
 5. **Korean industrial credibility gap.** Hanyang has a Korean university + Korean software vendor co-author line, a Korean dataset, and a paper. OO has @ziozzang's PR-11 contribution from Hyundai and that's the entire Korean industrial footprint. Closing that gap means building this case study into a co-authored paper with a Korean partner, not winning on architecture alone.
 
-## What concrete next step the comparison suggests
+## Empirical run — actually doing it
 
-Build a small, runnable demonstration in this case-study directory:
+This directory ships a runnable demo: a synthetic KS-X-9999 pressure-vessel standard (`synthetic-ks-standard.ttl`), the clauses encoded as SHACL (`clauses-as-shacl.ttl`), and a script (`run-demo.sh`).
 
-- Pick one publicly available Korean industrial standard (or a synthetic stand-in to avoid licensing).
-- Express its clauses as KGCL `create` operations against an `onto_action_register`'d schema.
-- Author SHACL shapes for two or three "toxic clause" patterns.
-- Use `onto_shape_induce` to suggest additional shapes from the encoded data.
-- Use `onto_owl_shacl_coevolve_incremental` to demonstrate that revising one clause re-validates only the shapes touched.
-- Use `onto_align_flora` to align the standard's terms against a published IEC equivalent.
+The synthetic standard contains **six vessels** designed to exercise the failure modes the Hanyang paper documents:
 
-That demonstration is the realistic ISWC-style submission angle — In-Use track, not Best Paper track. The Hanyang paper as the prior art reference.
+| ID | Class | Temp | Pressure | Interval | Expected verdict |
+|---|---|---|---|---|---|
+| V-001 | A | 150°C | 4.0 MPa | 12mo | Compliant |
+| V-002 | A | 250°C | **2.5 MPa** | 12mo | Compliant (exception 5.4.1 applies: hot but low-pressure) |
+| V-003 | A | 230°C | **5.0 MPa** | 12mo | **Violates 5.3.2 + 5.4.1 (hot + high-pressure must inspect ≤6mo)** |
+| V-004 | B | 80°C | 3.5 MPa | 24mo | Compliant |
+| V-005 | C | 60°C | 1.2 MPa | 36mo | Compliant |
+| V-006 | A | 180°C | **missing** | 12mo | **Violates pressure-required invariant** |
+
+### What actually happened when we ran it
+
+**Without OWL-RL ramification, SHACL silently passes everything.** V-006 is typed as `ks:VesselClassA`, not `ks:Vessel`, so the targetClass-based pressure-required shape never fires. This is *exactly* the failure the K-CAP 2025 SHACL co-evolution work flags.
+
+```bash
+$ open-ontologies batch <<EOF
+load synthetic-ks-standard.ttl
+shacl simple-shapes.ttl
+EOF
+# conforms: true, violation_count: 0  ← WRONG
+```
+
+**With OWL-RL materialisation first (`onto_reason`), V-006 is correctly flagged:**
+
+```bash
+$ open-ontologies batch <<EOF
+load synthetic-ks-standard.ttl
+reason
+shacl simple-shapes.ttl
+EOF
+# conforms: false, violation_count: 1
+# {focus_node: "vessel_06", path: "designPressureMPa", constraint: "minCount", ...}
+```
+
+**The toxic-clause interaction (5.3.2 + 5.4.1) was easier to express as SPARQL than as SHACL:** Oxigraph's SHACL engine doesn't (yet) handle `sh:sparql` constraints or deeply-nested `sh:or` with multiple `sh:property` children. The SPARQL formulation works first time:
+
+```sparql
+SELECT ?vessel ?temp ?pressure ?interval WHERE {
+  ?vessel ks:operatingTemperatureC ?temp ;
+          ks:designPressureMPa ?pressure ;
+          ks:inspectionInterval ?interval .
+  FILTER(?temp > 200 && ?pressure >= 3.0 && ?interval > 6)
+}
+# → 1 result: vessel_03 (temp=230, pressure=5.0, interval=12)
+```
+
+V-003 is correctly identified as the only toxic-clause violator. V-002, which satisfies the exception, is not flagged.
+
+### What this run proves
+
+1. **The Hanyang failure mode is real and reproducible.** Without reasoning, SHACL misses inherited-type violations. With OO's `reason` + `shacl` chain, it doesn't.
+2. **OO does not currently express conditional toxic-clause patterns through SHACL alone.** SPARQL is the actual expression layer; SHACL handles the simpler constraints. The case-study README must reflect that, not promise more.
+3. **Both V-003 (toxic interaction) and V-006 (missing data) are caught by the OO pipeline,** but through different primitives: SPARQL for V-003, OWL-RL + SHACL for V-006. The Hanyang pipeline catches both via its propositional decomposer, expressed inside the bespoke LLM extraction layer.
+
+## What if Hanyang tried to bridge the gap?
+
+The honest question. If Park et al. saw this comparison and decided to add OO's advantages to their stack, what would they need to build, and could their architecture absorb it?
+
+| OO advantage | What Hanyang would need to add | Can their stack absorb it? |
+|---|---|---|
+| **MCP-native conversation** | Wrap their pipeline behind an MCP server; expose extraction + validation as tools | **Yes, mechanically.** The architectural friction is that their LLM-extraction logic is currently the "intelligence" of the system; pulling it out and trusting Claude over MCP to do that work is a strategy change, not just a refactor. |
+| **OWL-RL ramification before SHACL** | Bolt a reasoner (HermiT, ELK, openllet) ahead of their KG-RAG step | **Yes, easily.** This is a 200-line change. It also removes one of OO's clearest wins. |
+| **Incremental SHACL co-evolution** | Build the shape-→-OWL dependency graph + change-detection routing | **Hard.** Their pipeline today doesn't even have an OWL closure step. The infrastructure has to ship reasoner + shape parser + delta tracking. ~2-3 weeks. |
+| **FLORA fuzzy alignment** | Adopt the FLORA paper (ISWC 2025 Best, open-source) | **Yes — same as us.** FLORA is public; anyone can port it. The only real lead OO has here is timing + the MCP exposure pattern. |
+| **BC+ Dynamics + Causal what-if** | Build an action-schema language + reasoner-over-actions + identifiability check | **Very hard.** This is genuinely the three-layer architecture OO is built around. Bolting it onto a KG-RAG extraction pipeline as an afterthought would be awkward; cleaner to write from scratch in their stack. ~2-3 months. |
+
+### Recompute after the bridge attempt
+
+If Hanyang absorbs the *easy* changes (reasoner before SHACL, port FLORA), what's left?
+
+| Dimension | OO advantage before | After bridge |
+|---|---|---|
+| OWL-RL ramification | Real win | **Neutralised** (200-line addition for them) |
+| FLORA alignment | Real win | **Neutralised** (port the same paper) |
+| MCP-native conversation | Real win | **Strategic question** — adoption depends on whether Korean enterprise wants MCP, not on architecture |
+| Incremental SHACL co-evolution | Real win | **Stays a win for 2-3 weeks of their team's time** |
+| BC+ Dynamics + Causal | Real win | **Stays a win for 2-3 months** — and probably never gets built because the use case isn't yet a buyer demand |
+| Document-aware ingestion | **OO weakness** | **Stays an OO weakness.** They have it; we don't. |
+| Korean-language tuning | **OO weakness** | **Stays an OO weakness.** Domain-specific, doesn't transfer cheaply. |
+| Standards-RAG eval framework | **OO weakness** | **Stays an OO weakness** until OO ships one. |
+| Toxic-clause detector packaged | **OO weakness** | **Closes** if we ship a `kt:ToxicClause` SHACL pattern library — ~1 week of work. |
+| Korean industrial credibility | **OO weakness** | **Stays an OO weakness** structurally — academic + vendor credentialing takes years. |
+
+**Bottom line after recompute:** OO retains a *structural* advantage on the Dynamics + Causal layers (because they're large architectural commitments) and a *timing* advantage on incremental SHACL co-evolution (small enough that Hanyang would close it, but slowly). Every other axis either neutralises or stays an OO weakness.
+
+The asymmetry that matters: **OO can close the toxic-clause-detector packaged gap in ~1 week. The Korean industrial credibility gap doesn't close on a code-shipping timeline at all.** That second one is the binding constraint on adoption, not the architecture.
+
+### What this implies for the project
+
+- Pour code into the Dynamics + Causal layers (the structural moats) rather than the SHACL co-evolution layer (Hanyang would close that within a sprint if it mattered to them).
+- Ship the document-aware ingestion gap first if any actual buyer surfaces. Without it, Hanyang's full pipeline is one deployment artefact and OO is a library that needs glue.
+- The Korean industrial credibility gap is closed by a co-authored paper or a deployed pilot, not by more modules.
+
+The earlier framing — "what OO would change if they were Hanyang" — was self-flattering. The recompute clarifies that the actual contest is fought on adoption, deployment, and credibility, not on Mamdani inference rules.
 
 ## Sources
 
