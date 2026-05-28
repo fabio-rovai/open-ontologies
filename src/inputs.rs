@@ -652,6 +652,26 @@ fn default_true() -> bool {
     true
 }
 
+/// Input for `onto_plan_classical` (#50, Planner #45 follow-up) — invoke
+/// Fast Downward as a subprocess on a precompiled PDDL domain + problem and
+/// return the parsed sas_plan.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoPlanClassicalInput {
+    /// PDDL domain text (as produced by `onto_plan_compile_pddl`).
+    pub domain: String,
+    /// PDDL problem text (as produced by `onto_plan_compile_pddl`).
+    pub problem: String,
+    /// Optional path to the Fast Downward binary (or wrapper script).
+    /// Resolution order: this field > `FAST_DOWNWARD_BIN` env var >
+    /// `fast-downward.py` on PATH.
+    #[serde(default)]
+    pub fast_downward_bin: Option<String>,
+    /// Fast Downward search-engine string (e.g. `"lama-first"`,
+    /// `"astar(lmcut())"`). Default `"lama-first"`.
+    #[serde(default)]
+    pub search: Option<String>,
+}
+
 /// Input for `onto_plan_validate` (#45 — LLM-Modulo validator) — check that
 /// a candidate plan (typically produced by a client-side solver) actually
 /// executes step-by-step against the loaded graph in a sandbox, without

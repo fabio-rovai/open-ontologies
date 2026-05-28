@@ -18,6 +18,7 @@ pub mod inputs;
 pub mod lineage;
 pub mod monitor;
 pub mod plan;
+pub mod plan_classical;
 pub mod plan_pddl;
 pub mod plan_validate;
 pub mod webhook;
