@@ -669,6 +669,24 @@ pub struct OntoShapeCombinatoricsInput {
     pub max_size: Option<usize>,
 }
 
+/// Input for `onto_shape_induce` — Kastor data-driven SHACL induction.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoShapeInduceInput {
+    pub class_iri: String,
+    /// Maximum subset size to enumerate (default 3, capped at 2^max for sanity).
+    #[serde(default)]
+    pub max_size: Option<usize>,
+    /// Return the top-k candidates by support × confidence (default 10).
+    #[serde(default)]
+    pub top_k: Option<usize>,
+    /// Filter: require this minimum support fraction (default 0.1).
+    #[serde(default)]
+    pub min_support: Option<f64>,
+    /// Filter: require this minimum confidence fraction (default 0.5).
+    #[serde(default)]
+    pub min_confidence: Option<f64>,
+}
+
 /// Input for `borderline_partition` (#37).
 #[derive(Deserialize, JsonSchema)]
 pub struct BorderlinePartitionInput {

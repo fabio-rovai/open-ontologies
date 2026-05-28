@@ -1035,6 +1035,19 @@ impl OpenOntologiesServer {
             .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e))
     }
 
+    #[tool(name = "onto_shape_induce", description = "Kastor-style data-driven SHACL shape induction (#36, K-CAP 2025). For each property subset up to `max_size`, compute support (fraction of class instances having all properties) and confidence (fraction of any-instances-with-properties that are class members). Returns the top-k candidates ranked by `support × confidence`, each carrying a ready-to-use SHACL NodeShape Turtle block. Filter via `min_support` (default 0.1) and `min_confidence` (default 0.5).")]
+    async fn onto_shape_induce(&self, Parameters(input): Parameters<OntoShapeInduceInput>) -> String {
+        let max = input.max_size.unwrap_or(3);
+        let top_k = input.top_k.unwrap_or(10);
+        let min_support = input.min_support.unwrap_or(0.1);
+        let min_confidence = input.min_confidence.unwrap_or(0.5);
+        match crate::shape_combinatorics::induce_shapes(&self.graph, &input.class_iri, max, top_k, min_support, min_confidence) {
+            Ok(r) => serde_json::to_string(&r)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
     #[tool(name = "onto_shape_combinatorics", description = "Enumerate the property-combination lattice for a class (#36, K-CAP 2025 Kastor). Returns subsets of the class's rdfs:domain properties up to `max_size` (default 3). Used by shape-induction algorithms to enumerate candidate SHACL shapes from data.")]
     async fn onto_shape_combinatorics(&self, Parameters(input): Parameters<OntoShapeCombinatoricsInput>) -> String {
         let max = input.max_size.unwrap_or(3);
