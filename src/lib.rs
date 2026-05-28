@@ -5,6 +5,8 @@ pub mod align;
 pub mod config;
 pub mod clinical;
 pub mod civex;
+#[cfg(feature = "causal-pywhy")]
+pub mod civex_pywhy;
 pub mod drift;
 pub mod dynamics;
 pub mod projection_check;

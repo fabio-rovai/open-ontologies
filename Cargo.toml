@@ -52,6 +52,13 @@ postgres = ["sqlx"]
 duckdb = ["dep:duckdb"]
 sql = ["postgres", "duckdb"]
 embeddings = ["tract-onnx", "tokenizers", "instant-distance", "bincode"]
+# Causal layer (#48): subprocess wrapper around PyWhy/DoWhy for backdoor
+# identification + adjustment estimation. Caller must have `python3` on PATH
+# and `pip install dowhy networkx pandas numpy`. The wrapper degrades to a
+# clean `pywhy_unavailable` error when imports fail; CIVeX falls back to the
+# structural proxy. Zero additional Rust dependencies — the entire feature
+# is shipped as embedded Python + subprocess plumbing.
+causal-pywhy = []
 
 [dev-dependencies]
 tempfile = "3"
