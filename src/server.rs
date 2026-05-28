@@ -998,6 +998,17 @@ impl OpenOntologiesServer {
         }
     }
 
+    #[tool(name = "eval_rag_mmrag", description = "Parse a full mmRAG dataset JSON and score it in one call. Convenience wrapper around `onto_mmrag_parse` + `eval_rag`. Returns the same `RagEvalReport` as `eval_rag` including faithfulness, answer-jaccard, and rouge1 when records carry generated_answer / gold_answer / retrieved_text.")]
+    async fn eval_rag_mmrag(&self, Parameters(input): Parameters<OntoEvalRagMmragInput>) -> String {
+        let qas = match crate::eval_rag::parse_mmrag_dataset(&input.dataset_json) {
+            Ok(q) => q,
+            Err(e) => return format!(r#"{{"error":"{}"}}"#, e),
+        };
+        let report = crate::eval_rag::evaluate(&qas);
+        serde_json::to_string(&report)
+            .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e))
+    }
+
     #[tool(name = "eval_rag", description = "mmRAG benchmark scoring (#41, ISWC 2025). Input is a JSON array of {question_id, gold_iri, retrieved: [iri, ...]}. Returns Hit@{3,5,10}, MRR, exact-match-at-1, and per-question rank (0 = gold not retrieved).")]
     async fn eval_rag(&self, Parameters(input): Parameters<OntoEvalRagInput>) -> String {
         let qas: Vec<crate::eval_rag::RagQa> = match serde_json::from_str(&input.qa_json) {

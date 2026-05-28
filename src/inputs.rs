@@ -648,8 +648,17 @@ pub struct OntoPolicyCheckInput {
 /// Input for `eval_rag` (#41, mmRAG ISWC 2025).
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoEvalRagInput {
-    /// JSON array `[{question_id, gold_iri, retrieved: [iri, iri, ...]}, ...]`.
+    /// JSON array `[{question_id, gold_iri, retrieved, generated_answer?,
+    /// gold_answer?, retrieved_text?}, ...]`.
     pub qa_json: String,
+}
+
+/// Input for `eval_rag_mmrag` — parse a full mmRAG dataset JSON and score
+/// it in one call.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoEvalRagMmragInput {
+    /// JSON array of mmRAG records (see `MmRagRecord` in `src/eval_rag.rs`).
+    pub dataset_json: String,
 }
 
 /// Input for `onto_eval_alignment` (#31, OAEI-style P/R/F1).
