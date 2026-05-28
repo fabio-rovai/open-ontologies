@@ -1836,16 +1836,76 @@ impl OpenOntologiesServer {
         };
 
         let ntriples = mapping.rows_to_ntriples(&rows);
-        match self.graph.load_ntriples(&ntriples) {
-            Ok(count) => serde_json::json!({
-                "ok": true,
-                "driver": driver.as_str(),
-                "triples_loaded": count,
-                "rows_processed": rows.len(),
-                "mapping_fields": mapping.mappings.len(),
-            })
-            .to_string(),
-            Err(e) => format!(r#"{{"error":"Failed to load triples: {}"}}"#, e),
+        let load_result = self.graph.load_ntriples(&ntriples);
+        let count = match load_result {
+            Ok(c) => c,
+            Err(e) => return format!(r#"{{"error":"Failed to load triples: {}"}}"#, e),
+        };
+
+        // CDC: record new watermark if caller asked us to track one.
+        let cdc_summary = match (&input.sync_key, &input.watermark_column) {
+            (Some(key), Some(col)) => {
+                match crate::sql_sync::extract_max_watermark(&rows, col) {
+                    Some(wm) => match crate::sql_sync::set_watermark(
+                        &self.db, key, &wm, Some(col), rows.len() as u64,
+                    ) {
+                        Ok(()) => Some(serde_json::json!({
+                            "sync_key": key,
+                            "new_watermark": wm,
+                            "watermark_column": col,
+                        })),
+                        Err(e) => Some(serde_json::json!({
+                            "sync_key": key,
+                            "watermark_persist_error": e.to_string(),
+                        })),
+                    },
+                    None => Some(serde_json::json!({
+                        "sync_key": key,
+                        "watermark_column": col,
+                        "warning": "watermark column not present in any row; no watermark recorded",
+                    })),
+                }
+            }
+            _ => None,
+        };
+
+        let mut body = serde_json::json!({
+            "ok": true,
+            "driver": driver.as_str(),
+            "triples_loaded": count,
+            "rows_processed": rows.len(),
+            "mapping_fields": mapping.mappings.len(),
+        });
+        if let Some(cdc) = cdc_summary {
+            body["cdc"] = cdc;
+        }
+        body.to_string()
+    }
+
+    #[tool(name = "onto_sql_sync_state", description = "Read the recorded CDC watermark for a sync_key. Returns {sync_key, last_watermark, watermark_column, last_synced_at, rows_synced, total_rows_lifetime} or null when no sync has been recorded yet. Pair with `onto_sql_ingest` — caller passes the watermark in their own WHERE clause; server tracks state.")]
+    async fn onto_sql_sync_state(&self, Parameters(input): Parameters<OntoSqlSyncStateInput>) -> String {
+        match crate::sql_sync::get_state(&self.db, &input.sync_key) {
+            Ok(Some(state)) => serde_json::to_string(&state)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Ok(None) => "null".to_string(),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_sql_sync_reset", description = "Clear the recorded CDC watermark for a sync_key. Returns {removed: true} if a state row was deleted, {removed: false} if no state existed. Use when resyncing from scratch.")]
+    async fn onto_sql_sync_reset(&self, Parameters(input): Parameters<OntoSqlSyncResetInput>) -> String {
+        match crate::sql_sync::reset_watermark(&self.db, &input.sync_key) {
+            Ok(removed) => format!(r#"{{"removed":{}}}"#, removed),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_sql_sync_states_list", description = "List every recorded CDC sync state across all sync_keys. Diagnostic helper.")]
+    async fn onto_sql_sync_states_list(&self) -> String {
+        match crate::sql_sync::list_states(&self.db) {
+            Ok(states) => serde_json::to_string(&states)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
         }
     }
 

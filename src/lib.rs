@@ -48,6 +48,7 @@ pub mod state;
 pub mod schema;
 pub mod segment_retrieve;
 pub mod socket;
+pub mod sql_sync;
 pub mod sqlsource;
 pub mod tableaux;
 pub mod toolfilter;

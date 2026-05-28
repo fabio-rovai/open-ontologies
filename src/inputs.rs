@@ -367,6 +367,30 @@ pub struct OntoSqlIngestInput {
     pub inline_mapping: Option<bool>,
     /// Base IRI for generated instances (default: http://example.org/data/)
     pub base_iri: Option<String>,
+    /// CDC sync key — when set together with `watermark_column`, the server
+    /// records max(watermark_column) from this result set under this key,
+    /// so the next call can fetch via `onto_sql_sync_state` and filter only
+    /// new rows. Caller is responsible for writing the WHERE clause; the
+    /// server only stores state.
+    #[serde(default)]
+    pub sync_key: Option<String>,
+    /// CDC watermark column name — column to track the max value of for the
+    /// next sync. Typical values: `updated_at`, `modified_at`, `id` for
+    /// monotonic IDs (string-sorted, so zero-pad integers).
+    #[serde(default)]
+    pub watermark_column: Option<String>,
+}
+
+/// Input for `onto_sql_sync_state`.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoSqlSyncStateInput {
+    pub sync_key: String,
+}
+
+/// Input for `onto_sql_sync_reset`.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoSqlSyncResetInput {
+    pub sync_key: String,
 }
 
 #[derive(Deserialize, JsonSchema)]
