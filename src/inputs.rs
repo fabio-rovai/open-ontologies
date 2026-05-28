@@ -599,6 +599,18 @@ fn default_alpha_pub() -> f64 {
     0.05
 }
 
+/// Input for `onto_owl_shacl_coevolve_check` (#33, K-CAP 2025) — validate
+/// SHACL shapes against the OWL closure of the loaded graph, not just the
+/// raw ABox.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoOwlShaclCoevolveInput {
+    /// SHACL shapes as Turtle.
+    pub shapes_ttl: String,
+    /// Reasoner profile. Default `"owl-rl"`.
+    #[serde(default)]
+    pub profile: Option<String>,
+}
+
 /// Input for `graph_projection_lossy_check` (#35) — audits whether a projected
 /// Turtle slice has dropped predicates/objects vs the full source neighbourhood
 /// of the seed IRIs.

@@ -5,6 +5,7 @@ pub mod align;
 pub mod config;
 pub mod clinical;
 pub mod civex;
+pub mod coevolve;
 #[cfg(feature = "causal-pywhy")]
 pub mod civex_pywhy;
 pub mod drift;

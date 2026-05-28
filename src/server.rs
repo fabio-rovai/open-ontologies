@@ -929,6 +929,16 @@ impl OpenOntologiesServer {
             .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
     }
 
+    #[tool(name = "onto_owl_shacl_coevolve_check", description = "Combined OWL+SHACL validation (#33, K-CAP 2025). Materialises OWL-RL entailments into a sandbox copy of the loaded graph, then runs SHACL validation against the closure. Returns both the pre-reasoning and post-reasoning conformance verdicts plus the count of triples the reasoner added. Catches SHACL constraints that pass against the raw ABox but fail after inference (e.g. instances that inherit a parent class via rdfs:subClassOf and then violate a parent-class shape). Original graph is NOT mutated.")]
+    async fn onto_owl_shacl_coevolve_check(&self, Parameters(input): Parameters<OntoOwlShaclCoevolveInput>) -> String {
+        let profile = input.profile.unwrap_or_else(|| "owl-rl".to_string());
+        match crate::coevolve::coevolve_check(&self.graph, &input.shapes_ttl, &profile) {
+            Ok(report) => serde_json::to_string(&report)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
     #[tool(name = "graph_projection_lossy_check", description = "Audit a projected Turtle slice against the loaded ontology's full neighbourhood of the seed IRIs. Reports dropped predicates, dropped object IRIs, per-seed coverage ratio, and aggregate coverage. Pair with onto_segment_retrieve when the slice is being passed to a downstream LLM — knowing what was left behind lets the caller decide whether the slice is sufficient. Per IJCAI 2025 'How to Mitigate Information Loss in KGs for GraphRAG'.")]
     async fn graph_projection_lossy_check(&self, Parameters(input): Parameters<GraphProjectionLossyCheckInput>) -> String {
         match crate::projection_check::check_projection_loss(&self.graph, &input.source_iris, &input.projected_ttl) {
