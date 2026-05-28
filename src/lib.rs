@@ -6,6 +6,8 @@ pub mod config;
 pub mod clinical;
 pub mod civex;
 pub mod coevolve;
+pub mod cq;
+pub mod extract_scaffold;
 #[cfg(feature = "causal-pywhy")]
 pub mod civex_pywhy;
 pub mod drift;

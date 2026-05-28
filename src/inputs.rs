@@ -599,6 +599,48 @@ fn default_alpha_pub() -> f64 {
     0.05
 }
 
+/// Input for `onto_extract_scaffold` (#28, OntoGPT SPIRES MCP-native).
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoExtractScaffoldInput {
+    /// Class IRI to build the extraction prompt for.
+    pub class_iri: String,
+}
+
+/// Input for `onto_extract_validate` (#28 companion).
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoExtractValidateInput {
+    /// The scaffold previously emitted by `onto_extract_scaffold` (JSON).
+    pub scaffold_json: String,
+    /// The LLM's extraction (must be a JSON array of objects).
+    pub extraction_json: String,
+}
+
+/// Input for `onto_cq_run` (#29, competency-question runner).
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoCqRunInput {
+    /// Inline JSON array of competency questions
+    /// `[{id, question, sparql, expected_min_rows?}, ...]`.
+    pub cqs_json: String,
+}
+
+/// Input for `onto_verify_cq` (#39, LLM-assisted CQ verification).
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoVerifyCqInput {
+    pub cq_id: String,
+    /// One of `"correct"`, `"incorrect"`, `"partial"`.
+    pub verdict: String,
+    #[serde(default)]
+    pub rationale: Option<String>,
+    #[serde(default)]
+    pub judge: Option<String>,
+}
+
+/// Input for `onto_cq_verdicts_list`.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoCqVerdictsListInput {
+    pub cq_id: String,
+}
+
 /// Input for `onto_segment_retrieve` (#34, SEMANTiCS 2025 GrOWL-RAG) —
 /// retrieve a TBox-slice neighbourhood for grounding LLM reasoning.
 #[derive(Deserialize, JsonSchema)]

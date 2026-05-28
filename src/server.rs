@@ -929,6 +929,63 @@ impl OpenOntologiesServer {
             .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
     }
 
+    #[tool(name = "onto_extract_scaffold", description = "Build a schema-guided structured-extraction scaffold for a class (#28, OntoGPT SPIRES MCP-native). Returns the class metadata (label, comment), the property schema derived from rdfs:domain triples that target the class, and a ready-to-use prompt template the orchestrator can hand to its LLM. The server doesn't run the LLM; it scaffolds the prompt and validates the LLM's output via `onto_extract_validate`.")]
+    async fn onto_extract_scaffold(&self, Parameters(input): Parameters<OntoExtractScaffoldInput>) -> String {
+        match crate::extract_scaffold::build_scaffold(&self.graph, &input.class_iri) {
+            Ok(s) => serde_json::to_string(&s)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_extract_validate", description = "Validate an LLM-supplied extraction (JSON array of objects) against a scaffold previously emitted by `onto_extract_scaffold`. Returns per-instance valid/invalid counts and field-level issue reports.")]
+    async fn onto_extract_validate(&self, Parameters(input): Parameters<OntoExtractValidateInput>) -> String {
+        let scaffold: crate::extract_scaffold::ExtractionScaffold =
+            match serde_json::from_str(&input.scaffold_json) {
+                Ok(s) => s,
+                Err(e) => return format!(r#"{{"error":"invalid scaffold_json: {}"}}"#, e),
+            };
+        match crate::extract_scaffold::validate_extraction(&scaffold, &input.extraction_json) {
+            Ok(r) => serde_json::to_string(&r)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_cq_run", description = "Run a batch of competency questions (CQs) against the loaded ontology (#29). Each CQ has an id, a natural-language question, a SPARQL query, and an optional expected_min_rows. Returns per-CQ pass/fail plus VSPO-pitfall hints (P10: empty result, P11: no rdfs:label, P12: > 10k rows). Pairs with `onto_verify_cq` for the LLM-judgement loop.")]
+    async fn onto_cq_run(&self, Parameters(input): Parameters<OntoCqRunInput>) -> String {
+        let cqs: Vec<crate::cq::CompetencyQuestion> = match serde_json::from_str(&input.cqs_json) {
+            Ok(c) => c,
+            Err(e) => return format!(r#"{{"error":"invalid cqs_json: {}"}}"#, e),
+        };
+        let report = crate::cq::run_cq_suite(&self.graph, &cqs);
+        serde_json::to_string(&report)
+            .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e))
+    }
+
+    #[tool(name = "onto_verify_cq", description = "Persist an LLM-supplied (or human-supplied) verdict on a CQ result (#39, ISWC 2025 Lippolis). verdict must be one of \"correct\", \"incorrect\", \"partial\". Server stores verdicts; the LLM does the judging. Pairs with `onto_cq_run`.")]
+    async fn onto_verify_cq(&self, Parameters(input): Parameters<OntoVerifyCqInput>) -> String {
+        let v = crate::cq::CqVerdict {
+            cq_id: input.cq_id.clone(),
+            verdict: input.verdict,
+            rationale: input.rationale,
+            judge: input.judge,
+        };
+        match crate::cq::verify_cq(&self.db, &v) {
+            Ok(()) => format!(r#"{{"ok":true,"cq_id":"{}"}}"#, input.cq_id),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
+    #[tool(name = "onto_cq_verdicts_list", description = "List all stored verdicts for a CQ id, most-recent first.")]
+    async fn onto_cq_verdicts_list(&self, Parameters(input): Parameters<OntoCqVerdictsListInput>) -> String {
+        match crate::cq::list_cq_verdicts(&self.db, &input.cq_id) {
+            Ok(v) => serde_json::to_string(&v)
+                .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
+            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+        }
+    }
+
     #[tool(name = "onto_segment_retrieve", description = "Retrieve a TBox-slice neighbourhood of seed IRIs for grounding LLM reasoning (#34, SEMANTiCS 2025 GrOWL-RAG). Walks `rdfs:subClassOf` / `subPropertyOf` / `domain` / `range` + `owl:equivalentClass` / `equivalentProperty` / `disjointWith` / `inverseOf` to `hops` depth (default 2). Returns the slice as Turtle plus IRI/triple counts and any frontier IRIs hit at the hop budget. Pairs with `graph_projection_lossy_check`: this retrieves, that audits. Pass `include_abox=true` to also pull instance triples for each seed.")]
     async fn onto_segment_retrieve(&self, Parameters(input): Parameters<OntoSegmentRetrieveInput>) -> String {
         let hops = input.hops.unwrap_or(2);
