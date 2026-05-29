@@ -39,33 +39,33 @@ No JVM. No Protégé.
 
 ---
 
-## What's New in v0.4–v0.6 (three-layer architecture + 13 new primitives)
+## What's New (three-layer architecture + 13 new primitives)
 
-The May 2026 megapush lands the full **Dynamics → Causal → Planner** stack plus 13 new primitives driven by the May 2026 KR/UAI/ICAPS/ISWC/K-CAP/SEMANTiCS/AAAI survey. Every piece holds the **MCP-native** convention: the server provides validation and scaffolding, the connected LLM (Claude over MCP) does the intelligence. No internal LLM clients, no API keys, no provider abstractions.
+The full **Dynamics → Causal → Planner** stack plus 13 new primitives. Every piece holds the **MCP-native** convention: the server provides validation and scaffolding, the connected LLM (Claude over MCP) does the intelligence. No internal LLM clients, no API keys, no provider abstractions.
 
-### Three-layer architecture (v0.4 → v0.5 → v0.6)
+### Three-layer architecture
 
-| Layer | Issue | What it ships | Anchor research |
-|---|---|---|---|
-| **Dynamics** | [#43](https://github.com/fabio-rovai/open-ontologies/issues/43) | `ActionSchema` (BC+) + 4 MCP tools: `onto_action_register` / `_applicable` / `_apply` / `_list`. Full BC+ semantics — concurrent atomic ticks, static causal laws (invariants), default-value laws, ramification via OWL-RL closure, non-deterministic outcomes with reproducible seed. | Babb & Lee arXiv 2506.18044 |
-| **Causal** | [#44](https://github.com/fabio-rovai/open-ontologies/issues/44) | `onto_certify_action` with optional PyWhy/DoWhy backdoor identification (opt-in via `causal-pywhy` feature). Structural-proxy default + do-calculus opt-in + graceful fallback. | CIVeX arXiv:2605.09168; DoWhy v0.13 |
-| **Planner** | [#45](https://github.com/fabio-rovai/open-ontologies/issues/45) | `onto_plan_compile_pddl` + `onto_plan_classical` (Fast Downward subprocess) + `onto_plan_validate` (sandbox-simulate). Per LLM-Modulo, solver stays client-side; server compiles + validates. | Kambhampati arXiv 2402.01817 |
+| Layer | What it ships |
+|---|---|
+| **Dynamics** | `ActionSchema` + 4 MCP tools: `onto_action_register` / `_applicable` / `_apply` / `_list`. Concurrent atomic ticks, static causal laws (invariants), default-value laws, ramification via OWL-RL closure, non-deterministic outcomes with reproducible seed. |
+| **Causal** | `onto_certify_action` with optional PyWhy backdoor identification (opt-in via `causal-pywhy` feature). Structural-proxy default + do-calculus opt-in + graceful fallback. |
+| **Planner** | `onto_plan_compile_pddl` + `onto_plan_classical` (Fast Downward subprocess) + `onto_plan_validate` (sandbox-simulate). Solver stays client-side; server compiles + validates. |
 
-### 13 new primitives from May 2026 conferences
+### 13 new primitives
 
-- **`onto_owl_shacl_coevolve_check`** (#33, K-CAP 2025) — SHACL validation against the OWL-RL closure, not the raw ABox.
-- **`onto_segment_retrieve`** (#34, GrOWL-RAG SEMANTiCS 2025) — TBox-slice retrieval for ontology-grounded RAG.
-- **`onto_extract_scaffold`** + **`onto_extract_validate`** (#28, OntoGPT SPIRES) — schema-guided structured extraction, MCP-native.
-- **`onto_cq_run`** (#29) + **`onto_verify_cq`** (#39, Lippolis ISWC 2025) — competency-question runner with VSPO pitfall hints + LLM-judgement loop.
-- **`onto_classify_el`** (#30) — OWL-EL classification (transitive subsumption table, trivial pairs excluded).
-- **`onto_eval_alignment`** (#31) — P/R/F1 scoring between a reference and a computed alignment set.
-- **`onto_shape_combinatorics`** (#36, K-CAP 2025 Kastor) — property-combination lattice for shape induction.
-- **`borderline_partition`** + **`borderline_record_verdict`** (#37, NORA NeurIPS 2025) — generalised borderline-pair review loop.
-- **`onto_align_fuzzy`** (#38, FLORA ISWC 2025 Best Paper) — embedding-free fuzzy-logic adjudication; demotes HNSW to a candidate generator per the strategic alignment pivot.
-- **`onto_policy_register`** + **`onto_policy_list`** + **`onto_policy_check`** (#40, ARGOS ISWC 2025 WOP) — authorisation gate that composes with CIVeX (CIVeX = causal risk; ARGOS = authorisation).
-- **`eval_rag`** (#41, mmRAG ISWC 2025) — Hit@k / MRR / exact-match-at-1 scoring for retriever pipelines.
-
-Also: **`graph_projection_lossy_check`** (#35, IJCAI 2025) lands as the auditor that pairs with `onto_segment_retrieve`.
+- **`onto_owl_shacl_coevolve_check`** + **`onto_owl_shacl_coevolve_incremental`** — SHACL validation against the OWL-RL closure, with dependency-graph routing so only shapes touching changed IRIs revalidate.
+- **`onto_segment_retrieve`** — TBox-slice retrieval for ontology-grounded RAG.
+- **`onto_extract_scaffold`** + **`onto_extract_validate`** — schema-guided structured extraction with typed datatype validation + conformance scoring.
+- **`onto_cq_run`** + **`onto_verify_cq`** + **`onto_cq_verdicts_list`** — competency-question runner with pitfall hints + LLM-judgement loop.
+- **`onto_classify_el`** — OWL-EL classification (transitive subsumption table, trivial pairs excluded).
+- **`onto_eval_alignment`** — P/R/F1 over reference + computed alignment sets.
+- **`onto_shape_combinatorics`** + **`onto_shape_induce`** — property-combination lattice + data-driven SHACL shape induction with support × confidence ranking.
+- **`borderline_partition`** + **`borderline_record_verdict`** — generalised two-threshold review loop for any candidate set.
+- **`onto_align_fuzzy`** — embedding-free fuzzy-logic adjudication with 10-rule Mamdani inference; HNSW is demoted to a candidate generator.
+- **`onto_align_flora`** — end-to-end alignment pipeline pairing the signal extractor to the fuzzy adjudicator.
+- **`onto_policy_register`** + **`onto_policy_list`** + **`onto_policy_check`** — authorisation gate that composes with `onto_certify_action` (Causal = risk; policy = authorisation).
+- **`eval_rag`** + **`eval_rag_mmrag`** — Hit@k / MRR / faithfulness / token-Jaccard / ROUGE-1 scoring for retriever pipelines, with a dataset adapter.
+- **`graph_projection_lossy_check`** — the auditor that pairs with `onto_segment_retrieve`.
 
 ### Validating end-to-end
 
@@ -686,22 +686,31 @@ The same tool, applied to any ontology, produces the same kind of improvement. T
 | **Data** | `map` `ingest` `shacl` `shacl_check` `reason` `extend` | Structured data → RDF pipeline |
 | **Versioning** | `version` `history` `rollback` | Named snapshots and rollback |
 | **Lifecycle** | `plan` `apply` `lock` `drift` `enforce` `monitor` `monitor-clear` `lineage` | Terraform-style change management with webhook alerts and [OpenCheir](https://github.com/fabio-rovai/opencheir) governance integration |
-| **Alignment** | `align` `align_feedback` `align_fuzzy` | Cross-ontology class matching with self-calibrating weights + FLORA fuzzy adjudication |
+| **Alignment** | `align` `align_feedback` `align_fuzzy` `align_flora` | Cross-ontology class matching with self-calibrating weights + fuzzy-logic adjudication and end-to-end signal-driven pipeline |
 | **HNSW** | `hnsw_build` | Persisted HNSW indices (cosine + Poincaré) over class embeddings |
 | **Clinical** | `crosswalk` `enrich` `validate_clinical` | ICD-10 / SNOMED / MeSH crosswalks (93-row sample ships in `data/crosswalks.parquet`; run `python scripts/build_crosswalks.py` to rebuild or extend) |
 | **Feedback** | `lint_feedback` `enforce_feedback` | Self-calibrating suppression |
 | **Embeddings** | `embed` `search` `similarity` | Dual-space semantic search (text + Poincaré structural) |
 | **Reasoning** | `reason` `dl_explain` `dl_check` `classify_el` | Native OWL2-DL SHOIQ tableaux + OWL-EL classification |
-| **Dynamics (#43)** | `action_register` `action_applicable` `action_apply` `action_list` `action_apply_concurrent` `invariant_register` `invariant_list` `invariant_remove` `invariant_check` `default_register` `default_apply` | BC+ action schemas + concurrent atomic ticks + static causal laws + default values |
-| **Causal (#44)** | `certify_action` | CIVeX-style four-verdict causal certificate (EXECUTE / REJECT / EXPERIMENT / ABSTAIN); optional `causal-pywhy` feature enables DoWhy backdoor identification |
-| **Planner (#45)** | `plan_compile_pddl` `plan_classical` `plan_validate` | Per LLM-Modulo: compile + validate live on the server; solver (Fast Downward) is a client-side subprocess |
-| **Governance (#40)** | `policy_register` `policy_list` `policy_check` | ARGOS-style authorisation rules; composes with `certify_action` |
+| **Dynamics** | `action_register` `action_applicable` `action_apply` `action_list` `action_apply_concurrent` `invariant_register` `invariant_list` `invariant_remove` `invariant_check` `default_register` `default_apply` | Action schemas + concurrent atomic ticks + static causal laws + default values |
+| **Causal** | `certify_action` | Four-verdict causal certificate (EXECUTE / REJECT / EXPERIMENT / ABSTAIN); optional `causal-pywhy` feature enables backdoor identification |
+| **Planner** | `plan_compile_pddl` `plan_classical` `plan_validate` | Compile + validate on the server; solver (Fast Downward) is a client-side subprocess |
+| **Governance** | `policy_register` `policy_list` `policy_check` | Authorisation rules; composes with `certify_action` |
 | **RAG** | `segment_retrieve` `graph_projection_lossy_check` | TBox-slice retrieval + projection-loss auditor |
+<<<<<<< HEAD
 | **Extraction (#28)** | `extract_scaffold` `extract_validate` | Schema-guided structured-extraction prompt + validator (MCP-native SPIRES) |
 | **CQs** | `cq_run` `verify_cq` `cq_verdicts_list` | Competency-question runner with VSPO pitfall hints + LLM-judgement loop |
 | **Shape induction** | `shape_combinatorics` | Property-combination lattice for SHACL-shape induction |
 | **Borderline loop** | `borderline_partition` `borderline_record_verdict` | Generalised two-threshold borderline pattern for any candidate set |
 | **Evaluation** | `eval_alignment` `eval_rag` | Alignment P/R/F1 + RAG Hit@k / MRR scoring |
+=======
+| **Extraction** | `extract_scaffold` `extract_validate` | Schema-guided structured-extraction prompt + validator |
+| **CQs** | `cq_run` `verify_cq` `cq_verdicts_list` | Competency-question runner with pitfall hints + judgement loop |
+| **Shape induction** | `shape_combinatorics` `shape_induce` | Property-combination lattice + data-driven SHACL induction |
+| **Borderline loop** | `borderline_partition` `borderline_record_verdict` | Generalised two-threshold review pattern for any candidate set |
+| **SQL sync** | `sql_sync_state` `sql_sync_reset` `sql_sync_states_list` | CDC watermark tracking for incremental SQL ingest |
+| **Evaluation** | `eval_alignment` `eval_rag` `eval_rag_mmrag` | Alignment P/R/F1 + RAG Hit@k / MRR / faithfulness + dataset adapter |
+>>>>>>> 6dfac63 (docs(readme): strip paper-attribution framing; describe what the tools do, not where they came from)
 
 ---
 
