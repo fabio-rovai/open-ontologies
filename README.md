@@ -699,20 +699,12 @@ The same tool, applied to any ontology, produces the same kind of improvement. T
 | **Planner** | `plan_compile_pddl` `plan_classical` `plan_validate` | Compile + validate on the server; solver (Fast Downward) is a client-side subprocess |
 | **Governance** | `policy_register` `policy_list` `policy_check` | Authorisation rules; composes with `certify_action` |
 | **RAG** | `segment_retrieve` `graph_projection_lossy_check` | TBox-slice retrieval + projection-loss auditor |
-<<<<<<< HEAD
-| **Extraction (#28)** | `extract_scaffold` `extract_validate` | Schema-guided structured-extraction prompt + validator (MCP-native SPIRES) |
-| **CQs** | `cq_run` `verify_cq` `cq_verdicts_list` | Competency-question runner with VSPO pitfall hints + LLM-judgement loop |
-| **Shape induction** | `shape_combinatorics` | Property-combination lattice for SHACL-shape induction |
-| **Borderline loop** | `borderline_partition` `borderline_record_verdict` | Generalised two-threshold borderline pattern for any candidate set |
-| **Evaluation** | `eval_alignment` `eval_rag` | Alignment P/R/F1 + RAG Hit@k / MRR scoring |
-=======
 | **Extraction** | `extract_scaffold` `extract_validate` | Schema-guided structured-extraction prompt + validator |
 | **CQs** | `cq_run` `verify_cq` `cq_verdicts_list` | Competency-question runner with pitfall hints + judgement loop |
 | **Shape induction** | `shape_combinatorics` `shape_induce` | Property-combination lattice + data-driven SHACL induction |
 | **Borderline loop** | `borderline_partition` `borderline_record_verdict` | Generalised two-threshold review pattern for any candidate set |
 | **SQL sync** | `sql_sync_state` `sql_sync_reset` `sql_sync_states_list` | CDC watermark tracking for incremental SQL ingest |
 | **Evaluation** | `eval_alignment` `eval_rag` `eval_rag_mmrag` | Alignment P/R/F1 + RAG Hit@k / MRR / faithfulness + dataset adapter |
->>>>>>> 6dfac63 (docs(readme): strip paper-attribution framing; describe what the tools do, not where they came from)
 
 ---
 
@@ -736,7 +728,7 @@ flowchart TD
             REST["REST API\n/api/query · /api/update\n/api/save · /api/load · /api/lineage"]
         end
 
-        subgraph ToolGroups["43 Tools"]
+        subgraph ToolGroups["70+ Tools"]
             direction LR
             Core["Core\nvalidate · load · save · clear\nstats · query · diff · lint\nconvert · status"]
             DataPipe["Data Pipeline\nmap · ingest · shacl\nreason · extend · import-schema"]
