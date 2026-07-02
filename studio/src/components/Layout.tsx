@@ -1,18 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { useEngine } from '../hooks/useEngine';
 import { TreeView } from './TreeView';
+import { GraphCanvas } from './GraphCanvas';
 import { ChatPanel } from './ChatPanel';
 import { PropertyInspector } from './PropertyInspector';
 import { LineagePanel } from './LineagePanel';
 import * as mcp from '../lib/mcp-client';
 
-type ViewMode = 'tree';
+type ViewMode = 'tree' | 'graph';
 
 export function Layout() {
   const [showChat, setShowChat] = useState(true);
   const [showInspector, setShowInspector] = useState(false);
   const [showLineage, setShowLineage] = useState(false);
-  const [_viewMode, _setViewMode] = useState<ViewMode>('tree');
+  const [viewMode, setViewMode] = useState<ViewMode>('tree');
   const [selectedNode, setSelectedNode] = useState<{ id: string; label: string; uri: string } | null>(null);
   const [projectName, setProjectName] = useState('studio-live');
   const [savingAs, setSavingAs] = useState(false);
@@ -121,6 +122,20 @@ export function Layout() {
 
         <div className="ml-auto flex gap-2">
           {/* View mode toggle */}
+          <div className="flex rounded overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
+            <button onClick={() => setViewMode('tree')}
+                    className="text-xs px-2 py-1"
+                    style={{ background: viewMode === 'tree' ? 'var(--accent)' : 'var(--bg-panel)',
+                             color: viewMode === 'tree' ? 'var(--bg-primary)' : 'var(--text-secondary)' }}>
+              Tree
+            </button>
+            <button onClick={() => setViewMode('graph')}
+                    className="text-xs px-2 py-1"
+                    style={{ background: viewMode === 'graph' ? 'var(--accent)' : 'var(--bg-panel)',
+                             color: viewMode === 'graph' ? 'var(--bg-primary)' : 'var(--text-secondary)' }}>
+              Graph
+            </button>
+          </div>
           <div className="w-px mx-1" style={{ background: 'var(--border)' }} />
           <button onClick={() => setShowChat(!showChat)}
                   className="text-xs px-2 py-1 rounded"
@@ -145,9 +160,11 @@ export function Layout() {
 
       {/* Main area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Graph canvas */}
+        {/* Main canvas */}
         <div className="flex-1 relative">
-          <TreeView onNodeSelect={setSelectedNode} />
+          {viewMode === 'tree'
+            ? <TreeView onNodeSelect={setSelectedNode} />
+            : <GraphCanvas onNodeSelect={setSelectedNode} />}
         </div>
 
         {/* Inspector panel */}

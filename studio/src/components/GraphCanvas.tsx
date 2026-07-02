@@ -17,7 +17,7 @@ interface GraphCanvasProps {
 }
 
 interface SparqlBinding {
-  [key: string]: { type: string; value: string };
+  [key: string]: { type: string; value: string; lang?: string };
 }
 
 interface GraphNode {
@@ -41,16 +41,31 @@ interface GraphLink {
 function parseSparqlResults(text: string): SparqlBinding[] {
   try {
     const parsed = JSON.parse(text);
-    const rows: Record<string, string>[] = parsed?.results ?? [];
+    const rows: Record<string, unknown>[] = parsed?.results ?? [];
     return rows.map(row => {
       const binding: SparqlBinding = {};
       for (const [key, val] of Object.entries(row)) {
-        const s = String(val);
-        if (s.startsWith('<') && s.endsWith('>')) {
-          binding[key] = { type: 'uri', value: s.slice(1, -1) };
+        // Standard SPARQL JSON: { type, value, xml:lang?, datatype? }
+        if (val && typeof val === 'object' && 'value' in val) {
+          const v = val as Record<string, string>;
+          binding[key] = {
+            type: v.type ?? 'literal',
+            value: v.value ?? '',
+            lang: v['xml:lang'] || undefined,
+          };
         } else {
-          const unquoted = s.replace(/^"(.*)"(@\w+)?(\^\^.*)?$/, '$1').replace(/\\"/g, '"');
-          binding[key] = { type: 'literal', value: unquoted };
+          // Engine-native notation: "<uri>" | "\"lit\"@lang"
+          const s = String(val);
+          if (s.startsWith('<') && s.endsWith('>')) {
+            binding[key] = { type: 'uri', value: s.slice(1, -1) };
+          } else {
+            const m = s.match(/^"((?:[^"\\]|\\.)*)"(?:@([\w-]+))?(?:\^\^.*)?$/);
+            binding[key] = {
+              type: 'literal',
+              value: m ? m[1].replace(/\\"/g, '"') : s,
+              lang: m?.[2] || undefined,
+            };
+          }
         }
       }
       return binding;
@@ -60,12 +75,38 @@ function parseSparqlResults(text: string): SparqlBinding[] {
   }
 }
 
+/** Pick the best label for a class given language preference.
+ *  Falls back to English, then to any language, then to the URI local name. */
+function pickLabel(
+  labels: Array<{ value: string; lang?: string }>,
+  preferred: string,
+  fallbackUri: string,
+): string {
+  if (labels.length === 0) return shortUri(fallbackUri);
+  const find = (tag: string) => labels.find(l => (l.lang ?? '') === tag);
+  return (
+    find(preferred)?.value ??
+    find('en')?.value ??
+    labels.find(l => !l.lang)?.value ??
+    labels[0].value ??
+    shortUri(fallbackUri)
+  );
+}
+
 function shortUri(uri: string): string {
   const hash = uri.lastIndexOf('#');
   if (hash >= 0) return uri.slice(hash + 1);
   const slash = uri.lastIndexOf('/');
   if (slash >= 0) return uri.slice(slash + 1);
   return uri;
+}
+
+function paintLabel(ctx: CanvasRenderingContext2D, label: string) {
+  ctx.clearRect(0, 0, 256, 64);
+  ctx.font = 'bold 24px sans-serif';
+  ctx.fillStyle = '#cdd6f4';
+  ctx.textAlign = 'center';
+  ctx.fillText(label.slice(0, 22), 128, 40);
 }
 
 const ONTO_NS = 'http://example.org/ontology#';
@@ -99,6 +140,9 @@ SELECT ?prop ?propLabel ?domain ?range WHERE {
 
 // --- Component ---
 
+// Raw label data keyed by class URI — fetched once, re-picked on lang change
+type LabelMap = Map<string, Array<{ value: string; lang?: string }>>;
+
 export function GraphCanvas({ onNodeSelect, dagMode }: GraphCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -108,6 +152,13 @@ export function GraphCanvas({ onNodeSelect, dagMode }: GraphCanvasProps) {
   const [addDialog, setAddDialog] = useState<{ x: number; y: number } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [langFilter, setLangFilter] = useState<string>('en');
+  const [availableLangs, setAvailableLangs] = useState<string[]>([]);
+  const labelMapRef = useRef<LabelMap>(new Map());
+  const nodesRef = useRef<GraphNode[]>([]);
+  // Maps node id → live CanvasTexture so we can repaint sprites without
+  // recreating Three.js objects (which would break force-simulation state).
+  const textureMapRef = useRef<Map<string, THREE.CanvasTexture>>(new Map());
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -130,14 +181,43 @@ export function GraphCanvas({ onNodeSelect, dagMode }: GraphCanvasProps) {
       const edgeBindings = parseSparqlResults(edgesText);
       const propEdgeBindings = parseSparqlResults(propEdgesText);
 
-      const nodeMap = new Map<string, GraphNode>();
+      // Build label map: uri → [{value, lang}]
+      const labelMap: LabelMap = new Map();
+      for (const b of classBindings) {
+        const uri = b.c?.value;
+        if (!uri) continue;
+        if (!labelMap.has(uri)) labelMap.set(uri, []);
+        if (b.label?.value) {
+          labelMap.get(uri)!.push({ value: b.label.value, lang: b.label.lang });
+        }
+      }
+      labelMapRef.current = labelMap;
 
+      // Collect available languages across all labels
+      const langSet = new Set<string>();
+      for (const labels of labelMap.values()) {
+        for (const l of labels) { if (l.lang) langSet.add(l.lang); }
+      }
+      const langs = Array.from(langSet).sort();
+      setAvailableLangs(langs);
+
+      const nodeMap = new Map<string, GraphNode>();
+      const currentLang = langFilter;
+
+      for (const [uri] of labelMap) {
+        const id = shortUri(uri);
+        if (!nodeMap.has(id)) {
+          const label = pickLabel(labelMap.get(uri) ?? [], currentLang, uri);
+          nodeMap.set(id, { id, label, uri });
+        }
+      }
+      // Also add classes that had no labels at all
       for (const b of classBindings) {
         const uri = b.c?.value;
         if (!uri) continue;
         const id = shortUri(uri);
         if (!nodeMap.has(id)) {
-          nodeMap.set(id, { id, label: b.label?.value || id, uri });
+          nodeMap.set(id, { id, label: shortUri(uri), uri });
         }
       }
 
@@ -198,7 +278,9 @@ export function GraphCanvas({ onNodeSelect, dagMode }: GraphCanvasProps) {
         }
       }
 
-      g.graphData({ nodes: Array.from(nodeMap.values()), links });
+      const nodes = Array.from(nodeMap.values());
+      nodesRef.current = nodes;
+      g.graphData({ nodes, links });
       refreshStats();
     } catch (e) {
       console.error('Failed to load graph:', e);
@@ -253,16 +335,14 @@ export function GraphCanvas({ onNodeSelect, dagMode }: GraphCanvasProps) {
         );
         group.add(sphere);
 
-        // Label sprite
+        // Label sprite — texture stored in ref so language switch can repaint it
         const canvas = document.createElement('canvas');
         canvas.width = 256;
         canvas.height = 64;
         const ctx = canvas.getContext('2d')!;
-        ctx.font = 'bold 24px sans-serif';
-        ctx.fillStyle = '#cdd6f4';
-        ctx.textAlign = 'center';
-        ctx.fillText(n.label.slice(0, 20), 128, 40);
+        paintLabel(ctx, n.label);
         const tex = new THREE.CanvasTexture(canvas);
+        textureMapRef.current.set(n.id, tex);
         const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthWrite: false }));
         sprite.scale.set(40, 12, 1);
         sprite.position.set(0, 12, 0);
@@ -336,6 +416,42 @@ export function GraphCanvas({ onNodeSelect, dagMode }: GraphCanvasProps) {
     if (status === 'connected') loadGraph();
   }, [status, loadGraph]);
 
+  // Relabel nodes when language filter changes.
+  // Strategy: mutate n.label in-place (preserves object identity → links stay valid),
+  // repaint canvas textures directly (Three.js caches node objects, never re-calls
+  // nodeThreeObject for existing IDs, so this is the only reliable update path),
+  // then re-pass links with string IDs so the library re-resolves link endpoints
+  // against the current node objects (after simulation, source/target are object refs).
+  useEffect(() => {
+    const g = graphRef.current;
+    if (!g || labelMapRef.current.size === 0) return;
+    const data = g.graphData() as { nodes: GraphNode[]; links: GraphLink[] };
+
+    for (const n of data.nodes) {
+      if (n.id === '__root__') continue;
+      n.label = pickLabel(labelMapRef.current.get(n.uri) ?? [], langFilter, n.uri);
+      const tex = textureMapRef.current.get(n.id);
+      if (tex) {
+        const canvas = tex.image as HTMLCanvasElement;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          paintLabel(ctx, n.label);
+          tex.needsUpdate = true;
+        }
+      }
+    }
+
+    const linksReset = data.links.map(l => ({
+      ...l,
+      source: (typeof l.source === 'object' && l.source !== null)
+        ? (l.source as GraphNode).id : l.source,
+      target: (typeof l.target === 'object' && l.target !== null)
+        ? (l.target as GraphNode).id : l.target,
+    }));
+
+    g.graphData({ nodes: data.nodes, links: linksReset });
+  }, [langFilter]);
+
   // Delete key handler
   useEffect(() => {
     async function handleKeyDown(e: KeyboardEvent) {
@@ -390,6 +506,27 @@ export function GraphCanvas({ onNodeSelect, dagMode }: GraphCanvasProps) {
   return (
     <div className="absolute inset-0" onContextMenu={handleContextMenu}>
       <div ref={containerRef} className="w-full h-full" />
+
+      {/* Language filter — top-left overlay, only when multilingual data is present */}
+      {availableLangs.length > 0 && (
+        <div className="absolute top-3 left-3 flex items-center gap-1.5"
+             style={{ pointerEvents: 'auto' }}>
+          <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>Label:</span>
+          {availableLangs.map(lang => (
+            <button
+              key={lang}
+              onClick={() => setLangFilter(lang)}
+              className="px-1.5 py-0.5 rounded text-xs font-mono"
+              style={{
+                background: langFilter === lang ? 'var(--accent)' : 'var(--bg-panel)',
+                color: langFilter === lang ? 'var(--bg-primary)' : 'var(--text-secondary)',
+                border: '1px solid var(--border)',
+                opacity: 0.92,
+              }}
+            >{lang}</button>
+          ))}
+        </div>
+      )}
 
       {addDialog && (
         <AddClassDialog
