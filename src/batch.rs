@@ -60,6 +60,39 @@ impl BatchRunner {
         exit_code
     }
 
+    /// Run all commands and collect results into a Vec instead of printing.
+    /// Returns (results, exit_code).
+    pub async fn run_collect(&self, input: &str, bail: bool) -> (Vec<Value>, i32) {
+        let commands = match parse_input(input) {
+            Ok(cmds) => cmds,
+            Err(e) => {
+                let err = json!({"seq": 0, "command": "parse", "error": e});
+                return (vec![err], 1);
+            }
+        };
+
+        let mut results = Vec::new();
+        let mut exit_code = 0;
+        for (seq, cmd) in commands.iter().enumerate() {
+            let result = self.execute(cmd).await;
+            let has_error = result.get("error").is_some();
+            let line = json!({
+                "seq": seq,
+                "command": cmd.name,
+                "result": result,
+            });
+            results.push(line);
+
+            if has_error {
+                exit_code = 1;
+                if bail {
+                    break;
+                }
+            }
+        }
+        (results, exit_code)
+    }
+
     fn print_json(&self, value: &Value) {
         if self.pretty {
             println!("{}", serde_json::to_string_pretty(value).unwrap());
@@ -94,6 +127,7 @@ impl BatchRunner {
             "lock" => self.exec_lock(&cmd.args),
             "monitor" => self.exec_monitor(),
             "monitor-clear" => self.exec_monitor_clear(),
+            "marketplace" => self.exec_marketplace(&cmd.args).await,
             _ => json!({"error": format!("unknown batch command: '{}'", cmd.name)}),
         }
     }
@@ -424,6 +458,59 @@ impl BatchRunner {
         let monitor = crate::monitor::Monitor::new(self.db.clone(), self.graph.clone());
         monitor.clear_blocked();
         json!({"ok": true, "message": "Monitor block cleared"})
+    }
+
+    async fn exec_marketplace(&self, args: &[String]) -> Value {
+        use crate::marketplace;
+        let action = match args.first() {
+            Some(a) => a.as_str(),
+            None => return json!({"error": "marketplace requires 'list' or 'install'"}),
+        };
+        match action {
+            "list" => {
+                let domain = Self::flag_value(args, "--domain");
+                let entries = marketplace::list(domain.as_deref());
+                let items: Vec<serde_json::Value> = entries
+                    .iter()
+                    .map(|e| json!({
+                        "id": e.id,
+                        "name": e.name,
+                        "description": e.description,
+                        "domain": e.domain,
+                        "format": marketplace::format_name(e.format),
+                    }))
+                    .collect();
+                json!({"count": items.len(), "ontologies": items})
+            }
+            "install" => {
+                let id = match Self::flag_value(args, "--id") {
+                    Some(id) => id,
+                    None => return json!({"error": "marketplace install requires --id"}),
+                };
+                let entry = match marketplace::find(&id) {
+                    Some(e) => e,
+                    None => return json!({"error": format!("Unknown ontology ID: '{}'. Run 'marketplace list' to see available IDs.", id)}),
+                };
+                let content = match crate::graph::GraphStore::fetch_url(entry.url).await {
+                    Ok(c) => c,
+                    Err(e) => return json!({"error": e.to_string()}),
+                };
+                match self.graph.load_content_with_base(&content, entry.format, Some(entry.url)) {
+                    Ok(count) => {
+                        let stats = self.graph.get_stats().unwrap_or_default();
+                        json!({
+                            "ok": true,
+                            "installed": entry.id,
+                            "name": entry.name,
+                            "triples_loaded": count,
+                            "stats": serde_json::from_str::<serde_json::Value>(&stats).unwrap_or_default(),
+                        })
+                    }
+                    Err(e) => json!({"error": format!("Parse error: {}", e)}),
+                }
+            }
+            _ => json!({"error": format!("Unknown marketplace action: '{}'. Use 'list' or 'install'.", action)}),
+        }
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────

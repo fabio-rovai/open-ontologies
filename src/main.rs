@@ -153,13 +153,21 @@ struct Cli {
     #[command(subcommand)]
     command: Commands,
 
-    /// Pretty-print JSON output
+    /// Output results as JSON (default: human-readable text)
+    #[arg(long, global = true)]
+    json: bool,
+
+    /// Pretty-print JSON output (implies --json)
     #[arg(long, global = true)]
     pretty: bool,
 
     /// Data directory (default: ~/.open-ontologies)
     #[arg(long, global = true, default_value = "~/.open-ontologies")]
     data_dir: String,
+
+    /// Force local execution — ignore a running daemon even if one is detected
+    #[arg(long, global = true)]
+    no_connect: bool,
 }
 
 #[derive(Subcommand)]
@@ -282,6 +290,13 @@ enum Commands {
         /// Stop on first error
         #[arg(long)]
         bail: bool,
+    },
+
+    // ─── Daemon ───────────────────────────────────────────────────
+    /// Manage background daemon (persistent in-memory store via serve-http)
+    Daemon {
+        #[command(subcommand)]
+        action: DaemonAction,
     },
 
     // ─── Core ontology ────────────────────────────────────────────
@@ -536,6 +551,96 @@ enum Commands {
     },
 }
 
+impl Commands {
+    /// Serialize a proxy-able command into its batch string representation.
+    /// Returns None for commands that must always run locally (server modes,
+    /// daemon management, static file operations, etc.).
+    fn to_batch_string(&self) -> Option<String> {
+        match self {
+            Commands::Load { path } => Some(format!("load {}", shell_quote(path))),
+            Commands::Save { path, format } => Some(format!("save {} --format {}", shell_quote(path), format)),
+            Commands::Clear => Some("clear".into()),
+            Commands::Stats => Some("stats".into()),
+            Commands::Query { query } => Some(format!("query {}", shell_quote(query))),
+            Commands::Lint { input } => Some(format!("lint {}", shell_quote(input))),
+            Commands::Reason { profile } => Some(format!("reason --profile {}", profile)),
+            Commands::Shacl { shapes } => Some(format!("shacl {}", shell_quote(shapes))),
+            Commands::Status => Some("status".into()),
+            Commands::Pull { url, sparql, query } => {
+                let mut s = format!("pull {}", shell_quote(url));
+                if *sparql { s.push_str(" --sparql"); }
+                if let Some(q) = query { s.push_str(&format!(" --query {}", shell_quote(q))); }
+                Some(s)
+            }
+            Commands::Push { endpoint, graph } => {
+                let mut s = format!("push {}", shell_quote(endpoint));
+                if let Some(g) = graph { s.push_str(&format!(" --graph {}", shell_quote(g))); }
+                Some(s)
+            }
+            Commands::Version { label } => Some(format!("version {}", shell_quote(label))),
+            Commands::History => Some("history".into()),
+            Commands::Rollback { label } => Some(format!("rollback {}", shell_quote(label))),
+            Commands::Ingest { path, mapping, base_iri, .. } => {
+                let mut s = format!("ingest {}", shell_quote(path));
+                if let Some(m) = mapping { s.push_str(&format!(" --mapping {}", shell_quote(m))); }
+                if let Some(b) = base_iri { s.push_str(&format!(" --base-iri {}", shell_quote(b))); }
+                Some(s)
+            }
+            Commands::Plan { file } => Some(format!("plan {}", shell_quote(file))),
+            Commands::Apply { mode } => Some(format!("apply {}", mode)),
+            Commands::Enforce { pack } => Some(format!("enforce {}", pack)),
+            Commands::Monitor => Some("monitor".into()),
+            Commands::MonitorClear => Some("monitor-clear".into()),
+            Commands::Drift { file_a, file_b } => Some(format!("drift {} {}", shell_quote(file_a), shell_quote(file_b))),
+            Commands::Lock { iris, reason } => {
+                let mut s = iris.iter().map(|i| shell_quote(i)).collect::<Vec<_>>().join(" ");
+                s = format!("lock {}", s);
+                if let Some(r) = reason { s.push_str(&format!(" --reason {}", shell_quote(r))); }
+                Some(s)
+            }
+            Commands::Marketplace { action, id, domain } => {
+                let mut s = format!("marketplace {}", action);
+                if let Some(i) = id { s.push_str(&format!(" --id {}", shell_quote(i))); }
+                if let Some(d) = domain { s.push_str(&format!(" --domain {}", shell_quote(d))); }
+                Some(s)
+            }
+            // Never proxied: server modes, daemon, init, validate, diff, convert,
+            // import-owl, map, extend, align, feedback, lineage, clinical, schema ops.
+            _ => None,
+        }
+    }
+}
+
+/// Wrap a string in single quotes for batch command serialization.
+/// If the string contains a single quote, fall back to double-quoting.
+fn shell_quote(s: &str) -> String {
+    if !s.contains('\'') {
+        format!("'{}'", s)
+    } else {
+        format!("\"{}\"", s.replace('"', "\\\""))
+    }
+}
+
+#[derive(Subcommand)]
+enum DaemonAction {
+    /// Start the daemon (serve-http in background, persistent in-memory store)
+    Start {
+        /// Host to bind to (default: 127.0.0.1)
+        #[arg(long, default_value = "127.0.0.1")]
+        host: String,
+        /// Port to bind to (default: 8080)
+        #[arg(long, default_value = "8080")]
+        port: u16,
+        /// Optional bearer token for authentication
+        #[arg(long, env = "OPEN_ONTOLOGIES_TOKEN")]
+        token: Option<String>,
+    },
+    /// Stop the running daemon
+    Stop,
+    /// Show daemon status (pid, url, alive/dead)
+    Status,
+}
+
 fn setup(data_dir: &str) -> anyhow::Result<(StateDb, Arc<GraphStore>)> {
     let data_dir = expand_tilde(data_dir);
     let data_path = std::path::Path::new(&data_dir);
@@ -546,25 +651,40 @@ fn setup(data_dir: &str) -> anyhow::Result<(StateDb, Arc<GraphStore>)> {
     Ok((db, graph))
 }
 
+/// Set to true when --json or --pretty is passed; checked by output_json/output_result.
+static JSON_MODE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+
 fn output_json(value: &serde_json::Value, pretty: bool) {
-    if pretty {
-        println!("{}", serde_json::to_string_pretty(value).unwrap());
+    if JSON_MODE.get().copied().unwrap_or(false) || pretty {
+        if pretty {
+            println!("{}", serde_json::to_string_pretty(value).unwrap());
+        } else {
+            println!("{}", value);
+        }
     } else {
-        println!("{}", value);
+        println!("{}", open_ontologies::output::render_human(value));
     }
 }
 
 /// Print a JSON string result, with optional pretty-printing.
 /// Handles the common pattern of domain functions returning String results.
 fn output_result(result: &str, pretty: bool) {
-    if pretty {
-        if let Ok(v) = serde_json::from_str::<serde_json::Value>(result) {
-            println!("{}", serde_json::to_string_pretty(&v).unwrap());
+    if JSON_MODE.get().copied().unwrap_or(false) || pretty {
+        if pretty {
+            if let Ok(v) = serde_json::from_str::<serde_json::Value>(result) {
+                println!("{}", serde_json::to_string_pretty(&v).unwrap());
+            } else {
+                println!("{}", result);
+            }
         } else {
             println!("{}", result);
         }
     } else {
-        println!("{}", result);
+        if let Ok(v) = serde_json::from_str::<serde_json::Value>(result) {
+            println!("{}", open_ontologies::output::render_human(&v));
+        } else {
+            println!("{}", result);
+        }
     }
 }
 
@@ -699,6 +819,24 @@ fn main() -> anyhow::Result<()> {
 #[tokio::main]
 async fn async_main() -> anyhow::Result<()> {
     let cli = Cli::parse();
+
+    // Activate JSON mode when --json or --pretty is passed.
+    JSON_MODE.set(cli.json || cli.pretty).ok();
+
+    // If a daemon is running and this command is proxy-able, route to it.
+    if !cli.no_connect {
+        if let Some(batch_str) = cli.command.to_batch_string() {
+            if let Some(info) = open_ontologies::daemon::read_daemon_info(&cli.data_dir) {
+                if open_ontologies::daemon::is_daemon_alive(info.pid) {
+                    let code = open_ontologies::connect::proxy_batch(&info, &batch_str, false, cli.json, cli.pretty).await?;
+                    std::process::exit(code);
+                } else {
+                    // Stale daemon.json — clean up silently and fall through to local.
+                    open_ontologies::daemon::remove_daemon_info(&cli.data_dir);
+                }
+            }
+        }
+    }
 
     match cli.command {
         Commands::Init {
@@ -992,6 +1130,7 @@ async fn async_main() -> anyhow::Result<()> {
             let cache_for_service = cache_config.clone();
             let filter_for_service = tool_filter.clone();
             let dirs_for_service = ontology_dirs.clone();
+            let db_path_for_batch = db_path_owned.clone();
             let service: StreamableHttpService<_, LocalSessionManager> = StreamableHttpService::new(
                 move || {
                     let db = StateDb::open(&db_path_owned).map_err(std::io::Error::other)?;
@@ -1016,6 +1155,8 @@ async fn async_main() -> anyhow::Result<()> {
             let sg_load = shared_graph.clone();
             let sg_save = shared_graph.clone();
             let sg_load_turtle = shared_graph.clone();
+            let sg_batch = shared_graph.clone();
+            let db_batch_path = db_path_for_batch;
             let api = axum::Router::new()
                 .route("/stats", axum::routing::get(move || {
                     let g = sg_stats.clone();
@@ -1084,6 +1225,28 @@ async fn async_main() -> anyhow::Result<()> {
                                 Err(e) => format!(r#"{{"error":"{}"}}"#, e),
                             }
                         ).unwrap_or_default())
+                    }
+                }))
+                .route("/batch", axum::routing::post(move |req: axum::extract::Request| {
+                    let g = sg_batch.clone();
+                    let db_path = db_batch_path.clone();
+                    async move {
+                        let bail = req.uri().query()
+                            .map(|q| q.contains("bail=true"))
+                            .unwrap_or(false);
+                        let body = axum::body::to_bytes(req.into_body(), usize::MAX).await
+                            .unwrap_or_default();
+                        let input = String::from_utf8_lossy(&body).to_string();
+                        let db = match StateDb::open(&db_path) {
+                            Ok(d) => d,
+                            Err(e) => return (
+                                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                                axum::Json(serde_json::json!({"error": e.to_string()})),
+                            ),
+                        };
+                        let runner = open_ontologies::batch::BatchRunner::new(db, g, false);
+                        let (results, _) = runner.run_collect(&input, bail).await;
+                        (axum::http::StatusCode::OK, axum::Json(serde_json::json!(results)))
                     }
                 }))
                 .route("/lineage", axum::routing::get(move || {
@@ -1211,7 +1374,6 @@ async fn async_main() -> anyhow::Result<()> {
 
         // ─── Batch ──────────────────────────────────────────────────
         Commands::Batch { input, bail } => {
-            let (db, graph) = setup(&cli.data_dir)?;
             let batch_input = if input == "-" {
                 let mut buf = String::new();
                 std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
@@ -1219,9 +1381,72 @@ async fn async_main() -> anyhow::Result<()> {
             } else {
                 std::fs::read_to_string(&input)?
             };
+            // Route to daemon if running.
+            if !cli.no_connect {
+                if let Some(info) = open_ontologies::daemon::read_daemon_info(&cli.data_dir) {
+                    if open_ontologies::daemon::is_daemon_alive(info.pid) {
+                        let code = open_ontologies::connect::proxy_batch(&info, &batch_input, bail, cli.json, cli.pretty).await?;
+                        std::process::exit(code);
+                    } else {
+                        open_ontologies::daemon::remove_daemon_info(&cli.data_dir);
+                    }
+                }
+            }
+            let (db, graph) = setup(&cli.data_dir)?;
             let runner = open_ontologies::batch::BatchRunner::new(db, graph, cli.pretty);
             let exit_code = runner.run(&batch_input, bail).await;
             std::process::exit(exit_code);
+        }
+
+        // ─── Daemon ─────────────────────────────────────────────────
+        Commands::Daemon { action } => {
+            match action {
+                DaemonAction::Start { host, port, token } => {
+                    // Check if already running.
+                    if let Some(info) = open_ontologies::daemon::read_daemon_info(&cli.data_dir) {
+                        if open_ontologies::daemon::is_daemon_alive(info.pid) {
+                            output_json(&serde_json::json!({
+                                "error": format!("daemon already running (pid {})", info.pid),
+                                "url": info.url,
+                            }), cli.pretty);
+                            std::process::exit(1);
+                        }
+                    }
+                    match open_ontologies::daemon::start_daemon(&cli.data_dir, &host, port, token) {
+                        Ok(info) => output_json(&serde_json::json!({
+                            "ok": true,
+                            "pid": info.pid,
+                            "url": info.url,
+                        }), cli.pretty),
+                        Err(e) => {
+                            output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                            std::process::exit(1);
+                        }
+                    }
+                }
+                DaemonAction::Stop => {
+                    match open_ontologies::daemon::stop_daemon(&cli.data_dir) {
+                        Ok(()) => output_json(&serde_json::json!({"ok": true, "message": "daemon stopped"}), cli.pretty),
+                        Err(e) => {
+                            output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                            std::process::exit(1);
+                        }
+                    }
+                }
+                DaemonAction::Status => {
+                    match open_ontologies::daemon::read_daemon_info(&cli.data_dir) {
+                        None => output_json(&serde_json::json!({"alive": false, "message": "no daemon.json found"}), cli.pretty),
+                        Some(info) => {
+                            let alive = open_ontologies::daemon::is_daemon_alive(info.pid);
+                            output_json(&serde_json::json!({
+                                "alive": alive,
+                                "pid": info.pid,
+                                "url": info.url,
+                            }), cli.pretty);
+                        }
+                    }
+                }
+            }
         }
 
         // ─── Core ontology ─────────────────────────────────────────

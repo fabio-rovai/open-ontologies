@@ -1,6 +1,9 @@
 pub mod align;
 pub mod align_fuzzy;
 pub mod batch;
+pub mod connect;
+pub mod daemon;
+pub mod output;
 pub mod borderline_loop;
 pub mod cache;
 pub mod civex;
