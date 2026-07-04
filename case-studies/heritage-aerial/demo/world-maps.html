@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NAPH — Three national aerial collections, one standard</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; color: #1a1a2a; }
+  #map { position: absolute; inset: 0; }
+  .titlecard {
+    position: absolute; z-index: 1000; top: 18px; left: 18px; max-width: 520px;
+    background: rgba(49,59,69,0.94); color: #fff; padding: 16px 20px; border-radius: 10px;
+    box-shadow: 0 6px 22px rgba(0,0,0,0.28);
+  }
+  .titlecard h1 { margin: 0 0 6px 0; font-size: 1.25em; font-weight: 650; }
+  .titlecard p { margin: 0; font-size: 0.86em; line-height: 1.4; opacity: 0.92; }
+  .live { display:inline-block; background:#3a9e99; color:#fff; font-size:0.62em; font-weight:700;
+          padding:0.18em 0.6em; border-radius:0.35em; letter-spacing:0.05em; vertical-align:middle; margin-left:0.4em; }
+  .legend {
+    position: absolute; z-index: 1000; bottom: 22px; left: 18px;
+    background: #fff; padding: 12px 16px; border-radius: 9px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    font-size: 0.85em;
+  }
+  .legend .row { display:flex; align-items:center; gap:8px; margin: 4px 0; }
+  .legend .sw { width: 15px; height: 15px; border-radius: 3px; display:inline-block; border: 1px solid rgba(0,0,0,0.25); }
+  .legend b { font-weight: 650; }
+  .legend .n { color:#666; font-size: 0.92em; }
+  .attribution-note { position:absolute; z-index:1000; bottom: 4px; right: 8px; font-size: 0.7em; color:#555; background: rgba(255,255,255,0.7); padding: 2px 6px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="titlecard">
+  <h1 id="tc-title">Three national aerial collections, one standard <span class="live">REAL DATA</span></h1>
+  <p id="tc-sub">NCAP (UK), NAPL (Canada) and WHAIFinder (USA) harvested live from public
+  endpoints and lifted to the same NAPH Baseline. 0 SHACL violations. The ontology,
+  shapes and crosswalk are identical across all three; only the harvester differs.</p>
+</div>
+<div class="legend" id="legend"></div>
+<div class="attribution-note">Basemap © OpenStreetMap, © CARTO · Footprints: NCAP · NRCan NAPL (OGL) · WHAIFinder (USDA, public domain)</div>
+
+<script>
+const SETS = {
+  uk:     { file: "../reports/real-footprints.geojson",       color: "#2f9e99", label: "NCAP — United Kingdom",  note: "292 frames · polygon footprints (reprojected EPSG:3857→WGS84)" },
+  canada: { file: "../reports/real-napl-footprints.geojson",  color: "#c0392b", label: "NAPL — Canada",           note: "40 dated mosaics · native-WGS84 footprints · 100% OGL rights" },
+  usa:    { file: "../reports/real-whai-footprints.geojson",  color: "#e08a1e", label: "WHAIFinder — United States", note: "225 frames · footprints reconstructed from centerpoint + scale" },
+};
+
+const map = L.map("map", { zoomControl: true, attributionControl: false }).setView([30, -40], 3);
+L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+  maxZoom: 19, subdomains: "abcd"
+}).addTo(map);
+
+function centroid(feat) {
+  const g = feat.geometry; let ring;
+  if (g.type === "Polygon") ring = g.coordinates[0];
+  else if (g.type === "Point") return [g.coordinates[1], g.coordinates[0]];
+  else ring = g.coordinates[0][0];
+  let x=0,y=0; ring.forEach(p=>{x+=p[0];y+=p[1];});
+  return [y/ring.length, x/ring.length];
+}
+
+const layers = {};
+let pending = Object.keys(SETS).length;
+const hash = (location.hash || "#all").replace("#","");
+
+Object.entries(SETS).forEach(([key, s]) => {
+  fetch(s.file).then(r=>r.json()).then(gj => {
+    const grp = L.featureGroup();
+    L.geoJSON(gj, {
+      style: { color: s.color, weight: 1.2, fillColor: s.color, fillOpacity: 0.28 },
+      pointToLayer: (f, ll) => L.circleMarker(ll, { radius: 4, color: s.color, fillColor: s.color, fillOpacity: 0.7, weight: 1 })
+    }).addTo(grp);
+    // always-visible centroid dots so small footprints read at world scale
+    gj.features.forEach(f => {
+      if (f.geometry.type !== "Point")
+        L.circleMarker(centroid(f), { radius: 3.5, color: s.color, fillColor: s.color, fillOpacity: 0.85, weight: 0.8 }).addTo(grp);
+    });
+    grp.addTo(map);
+    layers[key] = grp;
+    s.count = gj.features.length;
+  }).catch(e => console.error(key, e)).finally(() => {
+    if (--pending === 0) finalize();
+  });
+});
+
+function finalize() {
+  // legend
+  const leg = document.getElementById("legend");
+  leg.innerHTML = "<b>Collection</b>";
+  Object.entries(SETS).forEach(([k, s]) => {
+    leg.innerHTML += `<div class="row"><span class="sw" style="background:${s.color}"></span>`
+      + `<span><b>${s.label}</b><br><span class="n">${s.note}</span></span></div>`;
+  });
+
+  // view + optional single-country focus
+  if (hash === "canada" && layers.canada) {
+    map.fitBounds(layers.canada.getBounds().pad(0.15));
+    setTitle("Canada — NAPL open data, lifted to NAPH Baseline",
+      "8 National Air Photo Library temporal-series regions (1932–2004) harvested from the open Government of Canada CKAN API. Native-WGS84 footprints, 100% machine-readable OGL rights, 0 SHACL violations.");
+  } else if (hash === "usa" && layers.usa) {
+    map.fitBounds(layers.usa.getBounds().pad(0.15));
+    setTitle("United States — WHAIFinder frames, footprints reconstructed",
+      "225 real Wisconsin Historic Aerial Imagery frames (1937–1967, public-domain USDA) from the open ArcGIS FeatureServer. Each footprint reconstructed closed-form from centerpoint + map scale. 0 SHACL violations.");
+  } else {
+    const all = L.featureGroup(Object.values(layers));
+    try { map.fitBounds(all.getBounds().pad(0.05)); } catch(e){}
+  }
+  document.body.setAttribute("data-ready", "1");
+}
+function setTitle(t, s){ document.getElementById("tc-title").innerHTML = t + ' <span class="live">REAL DATA</span>';
+  document.getElementById("tc-sub").textContent = s; }
+</script>
+</body>
+</html>

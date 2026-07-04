@@ -1,0 +1,3492 @@
+[
+ {
+  "aggregate_identifier": "",
+  "association_type": [],
+  "audience": [],
+  "author": null,
+  "author_email": null,
+  "collection": "fgp",
+  "contact_information": "{\"en\": {\"delivery_point\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}, \"fr\": {\"point_de_livraison\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}}",
+  "contributor": {},
+  "creator": "",
+  "creator_user_id": "b88b9549-3a4b-43a9-9375-5f3fc20fe782",
+  "data_series_issue_identification": {},
+  "data_series_name": {},
+  "date_published": "2022-10-31 00:00:00",
+  "display_flags": [
+   "fgp_viewer"
+  ],
+  "distributor": "{\"en\": {\"organization_name\": \"Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector\", \"phone\": \"1-800-661-2638\", \"address\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}, \"fr\": {\"nom_organization\": \"Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\\u00e9gique et de l\\u2019innovation\", \"telephone\": \"1-800-661-2638\", \"adresse\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}}",
+  "file_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+  "frequency": "not_planned",
+  "geographic_region": [],
+  "hierarchy_level": "dataset; jeuDonn\u00e9es",
+  "id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+  "imso_approval": "true",
+  "isopen": false,
+  "jurisdiction": "federal",
+  "keywords": {
+   "fr": [
+    "Mosa\u00efque",
+    "Photographie a\u00e9rienne",
+    "Acc\u00e8s \u00e0 l'information",
+    "T\u00e9l\u00e9d\u00e9tection"
+   ],
+   "en": [
+    "Mosaic",
+    "Aerial photography",
+    "Access to information",
+    "Remote sensing"
+   ]
+  },
+  "license_id": "ca-ogl-lgo",
+  "license_title": "Open Government Licence - Canada",
+  "license_url": "https://open.canada.ca/en/open-government-licence-canada",
+  "maintainer": null,
+  "maintainer_contact_form": {},
+  "maintainer_email": "napl-pna@nrcan-rncan.gc.ca",
+  "metadata_contact": {
+   "fr": "Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\u00e9gique et de l\u2019innovation,geoinfo@nrcan-rncan.gc.ca",
+   "en": "Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector,1-800-661-2638,geoinfo@nrcan-rncan.gc.ca"
+  },
+  "metadata_created": "2023-01-11T02:12:30.078863",
+  "metadata_modified": "2024-02-20T22:33:38.668249",
+  "name": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+  "notes": "Note: To visualize the data in the viewer, zoom into the area of interest.  \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) files for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistered. For this dataset, the spatial resolutions vary from 10 cm to 50 cm.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived products managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html",
+  "notes_translated": {
+   "fr": "Note : Pour visualiser les donn\u00e9es dans l\u2019outil de visualisation, zoomez sur la r\u00e9gion d'int\u00e9r\u00eat.  \n  \n  La Phototh\u00e8que nationale de l'air (PNA) de Ressources naturelles Canada repr\u00e9sente une archive de plus de 6 millions de photographies a\u00e9riennes couvrant l'ensemble du Canada, dont certaines remontent aux ann\u00e9es 1920.  \n  \n  Cette collection comprend des s\u00e9ries temporelles de mosa\u00efques d'orthophotos a\u00e9riennes pour une s\u00e9lection de grandes villes ou de zones cibl\u00e9es qui permettent aux utilisateurs d'observer les divers changements survenus au fil du temps dans ces r\u00e9gions.  \n  \n  Ces mosa\u00efques sont diffus\u00e9es par l'entremise de la plateforme du cube de donn\u00e9es mise en \u0153uvre par RNCan \u00e0 l'aide de technologies de gestion de m\u00e9gadonn\u00e9es g\u00e9ospatiales. Ces technologies permettent la visualisation rapide et efficace de donn\u00e9es g\u00e9ospatiales \u00e0 haute r\u00e9solution et la g\u00e9n\u00e9ration de produits d\u00e9riv\u00e9s de fa\u00e7on dynamique. Les donn\u00e9es sont disponibles en fichiers de format Cloud Optimized GeoTIFF (COG) pour un acc\u00e8s direct et sous forme de services Web Map Services (WMS) ou Web Coverage Services (WCS) avec une dimension temporelle pour une utilisation dans des applications Web ou SIG.  \n  \n  Les mosa\u00efques de la PNA sont r\u00e9alis\u00e9es \u00e0 partir de la meilleure r\u00e9solution spatiale disponible pour chaque p\u00e9riode de temps, ce qui signifie que les orthophotos composant une s\u00e9rie temporelle PNA ne sont pas n\u00e9cessairement align\u00e9es. Pour ce jeu de donn\u00e9es, les r\u00e9solutions spatiales varient de 10 cm \u00e0 50 cm.  \n  \n  La PNA conserve et g\u00e8re les photographies a\u00e9riennes f\u00e9d\u00e9rales pour le Canada, et maintient des archives historiques compl\u00e8tes et un centre de r\u00e9f\u00e9rence public. L'application en ligne du Syst\u00e8me de gestion des donn\u00e9es d'observation de la Terre (SGDOT) permet aux clients de rechercher et d'extraire des m\u00e9tadonn\u00e9es pour plus de 3 millions de photos a\u00e9riennes provenant de cette collection.  \n  \n  L'application en ligne SGDOT permet aux utilisateurs publics et gouvernementaux de rechercher et de commander des images brutes d'observation de la Terre du gouvernement du Canada et des produits archiv\u00e9s g\u00e9r\u00e9s par RNCan tels que des photos a\u00e9riennes et des images satellites. Pour acc\u00e9der aux photos a\u00e9riennes, vous pouvez visiter le site Web du SGDOT : https://eodms-sgdot.nrcan-rncan.gc.ca/index-fr.html.",
+   "en": "Note: To visualize the data in the viewer, zoom into the area of interest.  \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) files for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistered. For this dataset, the spatial resolutions vary from 10 cm to 50 cm.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived products managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html"
+  },
+  "num_resources": 21,
+  "num_tags": 0,
+  "org_section": {},
+  "org_title_at_publication": {
+   "fr": "Ressources naturelles Canada",
+   "en": "Natural Resources Canada"
+  },
+  "organization": {
+   "id": "9391E0A2-9717-4755-B548-4499C21F917B",
+   "name": "nrcan-rncan",
+   "title": "Natural Resources Canada | Ressources naturelles Canada",
+   "type": "organization",
+   "description": "",
+   "image_url": "",
+   "created": "2016-09-23T17:25:46.737130",
+   "is_organization": true,
+   "approval_status": "approved",
+   "state": "active"
+  },
+  "owner_org": "9391E0A2-9717-4755-B548-4499C21F917B",
+  "parent_id": "114417c3-41a4-4cf7-8acd-2eb9d16c97f3",
+  "place_of_publication": [],
+  "position_name": {
+   "en": ""
+  },
+  "private": false,
+  "program_page_url": {},
+  "ready_to_publish": "true",
+  "responsible_role": "RI_414",
+  "restrictions": "unrestricted",
+  "spatial": "{\"type\": \"Polygon\", \"coordinates\": [[[-133.4477, 69.2233], [-132.516, 69.2233], [-132.516, 69.6786], [-133.4477, 69.6786], [-133.4477, 69.2233]]]}",
+  "spatial_representation_type": [
+   "grid"
+  ],
+  "state": "active",
+  "status": "completed",
+  "subject": [
+   "form_descriptors"
+  ],
+  "time_period_coverage_end": "2004-01-01 00:00:00",
+  "time_period_coverage_start": "1947-01-01 00:00:00",
+  "title": "Temporal Series of the National Air Photo Library (NAPL) - Tuktoyaktuk, Northwest Territories (1947-2004)",
+  "title_translated": {
+   "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Tuktoyaktuk, Territoires du Nord-Ouest (1947-2004)",
+   "en": "Temporal Series of the National Air Photo Library (NAPL) - Tuktoyaktuk, Northwest Territories (1947-2004)"
+  },
+  "topic_category": [
+   "imagery_base_maps_earth_cover"
+  ],
+  "type": "dataset",
+  "url": null,
+  "version": null,
+  "resources": [
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815601",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "a4b73c38-436a-4ff4-a30f-4b62335a3103",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.685207",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1947 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (50 cm)",
+    "name_translated": {
+     "fr": "1947 - Mosa\u00efque d'orthophoto de Tuktoyaktuk, Territoires du Nord-Ouest (50 cm)",
+     "en": "1947 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (50 cm)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 0,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-tuktoyaktuk/napl-tuktoyaktuk-1947-07-15-40k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815610",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "4bbbf205-2e2b-422e-939f-6506b259e158",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.685421",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "2004 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (50 cm)",
+    "name_translated": {
+     "fr": "2004 - Mosa\u00efque d'orthophoto de Tuktoyaktuk, Territoires du Nord-Ouest (50 cm)",
+     "en": "2004 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (50 cm)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 1,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-tuktoyaktuk/napl-tuktoyaktuk-2004-08-11-30k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815614",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "591e9c02-db8c-48c2-af14-2487f0a2020d",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.685637",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Tuktoyaktuk, Northwest Territories (1947-2004)",
+    "name_translated": {
+     "fr": "Visualisateur de s\u00e9ries temporelles de la PNA - Tuktoyaktuk, Territoires du Nord-Ouest (1947-2004)",
+     "en": "Web Viewer of NAPL Temporal Series - Tuktoyaktuk, Northwest Territories (1947-2004)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 2,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/en/viewer/napl/tuktoyaktuk/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815616",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "7184ccab-fc50-4678-8198-e848b06add37",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.685838",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Tuktoyaktuk, Northwest Territories (1947-2004)",
+    "name_translated": {
+     "fr": "Visualisateur de s\u00e9ries temporelles de la PNA - Tuktoyaktuk, Territoires du Nord-Ouest (1947-2004)",
+     "en": "Web Viewer of NAPL Temporal Series - Tuktoyaktuk, Northwest Territories (1947-2004)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 3,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/fr/viewer/napl/tuktoyaktuk/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815618",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "218d37bd-d175-4f8b-87a5-8c10db5574ab",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.686016",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Tuktoyaktuk, Northwest Territories (1947-2004)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Tuktoyaktuk, Territoires du Nord-Ouest (1947-2004)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Tuktoyaktuk, Northwest Territories (1947-2004)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 4,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-tuktoyaktuk.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=tuktoyaktuk&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815620",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "1fe9b610-c218-4e7a-bc66-25360f4a343d",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.686190",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Tuktoyaktuk, Northwest Territories (1947-2004)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Tuktoyaktuk, Territoires du Nord-Ouest (1947-2004)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Tuktoyaktuk, Northwest Territories (1947-2004)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 5,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-tuktoyaktuk.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=tuktoyaktuk&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815622",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WCS",
+    "hash": "",
+    "id": "6237412e-a382-4f16-b8ca-0f57c10b6e64",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.686362",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions",
+    "name_translated": {
+     "fr": "Service Web de couverture (WCS) pour les S\u00e9ries temporelles de la phototh\u00e9que nationale de l'air (PNA) pour des r\u00e9gions cibl\u00e9es",
+     "en": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 6,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/ows/aerial?service=wcs&request=GetCapabilities",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815624",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "JSON",
+    "hash": "",
+    "id": "77a86b95-236b-4b81-a64f-9397fe6f426f",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.686533",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)",
+    "name_translated": {
+     "fr": "Interface de programmation (API) pour SpatioTemporal Asset Catalog (STAC)",
+     "en": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 7,
+    "resource_type": "api",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/api/collections/napl-tuktoyaktuk",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815626",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "5a49b27a-bb09-43ef-8a73-91cb8bea9c66",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.686721",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1950 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (50 cm)",
+    "name_translated": {
+     "fr": "1950 - Mosa\u00efque d'orthophoto de Tuktoyaktuk, Territoires du Nord-Ouest (50 cm)",
+     "en": "1950 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (50 cm)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 8,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-tuktoyaktuk/napl-tuktoyaktuk-1950-08-23-40k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815628",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "61e57f61-d4f7-4827-baff-3eb8b1730a3a",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.686894",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1966 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (15 cm)",
+    "name_translated": {
+     "fr": "1966 - Mosa\u00efque d'orthophoto de Tuktoyaktuk, Territoires du Nord-Ouest (15 cm)",
+     "en": "1966 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (15 cm)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 9,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-tuktoyaktuk/napl-tuktoyaktuk-1966-09-03-12k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815630",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "56d79652-a746-48e1-b309-820f9fa95562",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.687061",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1968 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)",
+    "name_translated": {
+     "fr": "1968 - Mosa\u00efque d'orthophoto de Tuktoyaktuk, Territoires du Nord-Ouest  (10 cm)",
+     "en": "1968 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 10,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-tuktoyaktuk/napl-tuktoyaktuk-1968-09-01-2k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815632",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "8225d8cd-48c1-4940-8e01-394f06677878",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.687229",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1972 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (15 cm)",
+    "name_translated": {
+     "fr": "1972 - Mosa\u00efque d'orthophoto de Tuktoyaktuk, Territoires du Nord-Ouest (15 cm)",
+     "en": "1972 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (15 cm)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 11,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-tuktoyaktuk/napl-tuktoyaktuk-1972-07-26-12k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815634",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "2adeaceb-ddd6-4f4f-8b3f-c9f744281582",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.687397",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1974 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)",
+    "name_translated": {
+     "fr": "1974 - Mosa\u00efque d'orthophoto de Tuktoyaktuk, Territoires du Nord-Ouest (10 cm)",
+     "en": "1974 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 12,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-tuktoyaktuk/napl-tuktoyaktuk-1974-07-30-7k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815636",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "58ce59dc-3e86-4f98-8816-0ec6eca9c0c2",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.687565",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1978 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)",
+    "name_translated": {
+     "fr": "1978 - Mosa\u00efque d'orthophoto de Tuktoyaktuk, Territoires du Nord-Ouest (10 cm)",
+     "en": "1978 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 13,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-tuktoyaktuk/napl-tuktoyaktuk-1978-07-25-8k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815638",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "df0d9ded-756e-4315-af7a-697084c855ce",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.687751",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1980 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)",
+    "name_translated": {
+     "fr": "1980 - Mosa\u00efque d'orthophoto de Tuktoyaktuk, Territoires du Nord-Ouest (10 cm)",
+     "en": "1980 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 14,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-tuktoyaktuk/napl-tuktoyaktuk-1980-08-24-5k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815640",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "012e5c01-d943-48b0-93d1-5a4ab78b5d30",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.687930",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1985 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (15 cm)",
+    "name_translated": {
+     "fr": "1985 - Mosa\u00efque d'orthophoto de Tuktoyaktuk, Territoires du Nord-Ouest (15 cm)",
+     "en": "1985 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (15 cm)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 15,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-tuktoyaktuk/napl-tuktoyaktuk-1985-08-29-10k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815642",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "d46cc196-3e47-4647-9d86-1d4d6d4e8f9c",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.688145",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1987 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)",
+    "name_translated": {
+     "fr": "1987 - Mosa\u00efque d'orthophoto de Tuktoyaktuk, Territoires du Nord-Ouest (10 cm)",
+     "en": "1987 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 16,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-tuktoyaktuk/napl-tuktoyaktuk-1987-07-12-5k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815644",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "77862067-bb04-4d97-bd8b-6b3c0575bb2b",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.688318",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1993 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (20 cm)",
+    "name_translated": {
+     "fr": "1993 - Mosa\u00efque d'orthophoto de Tuktoyaktuk, Territoires du Nord-Ouest (20 cm)",
+     "en": "1993 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (20 cm)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 17,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-tuktoyaktuk/napl-tuktoyaktuk-1993-07-22-15k-alternate.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815646",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "9197c818-ef0d-4f10-ac87-65c2dfe03eba",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.688488",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1993 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)",
+    "name_translated": {
+     "fr": "1993 - Mosa\u00efque d'orthophoto de Tuktoyaktuk, Territoires du Nord-Ouest (10 cm)",
+     "en": "1993 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 18,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-tuktoyaktuk/napl-tuktoyaktuk-1993-07-22-5k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815648",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "932b9445-b686-4f67-9636-148f8a2c8aca",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.688680",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1996 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (20 cm)",
+    "name_translated": {
+     "fr": "1996 - Mosa\u00efque d'orthophoto de Tuktoyaktuk, Territoires du Nord-Ouest (20 cm)",
+     "en": "1996 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (20 cm)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 19,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-tuktoyaktuk/napl-tuktoyaktuk-1996-07-24-15k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:38.815650",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "d9ce3dac-2c3a-461e-9a66-34aa3314c83e",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:38.688855",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1983 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)",
+    "name_translated": {
+     "fr": "1983 - Mosa\u00efque d'orthophoto de Tuktoyaktuk, Territoires du Nord-Ouest (10 cm)",
+     "en": "1983 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)"
+    },
+    "package_id": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "position": 20,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-tuktoyaktuk/napl-tuktoyaktuk-1983-07-04-5k-mosaic.tif",
+    "url_type": null
+   }
+  ],
+  "tags": [],
+  "groups": [],
+  "relationships_as_subject": [],
+  "relationships_as_object": []
+ },
+ {
+  "aggregate_identifier": "",
+  "association_type": [],
+  "audience": [],
+  "author": null,
+  "author_email": null,
+  "collection": "fgp",
+  "contact_information": "{\"en\": {\"delivery_point\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}, \"fr\": {\"point_de_livraison\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}}",
+  "contributor": {},
+  "creator": "",
+  "creator_user_id": "b88b9549-3a4b-43a9-9375-5f3fc20fe782",
+  "data_series_issue_identification": {},
+  "data_series_name": {},
+  "date_published": "2021-03-31 00:00:00",
+  "display_flags": [
+   "fgp_viewer"
+  ],
+  "distributor": "{\"en\": {\"organization_name\": \"Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector\", \"phone\": \"1-800-661-2638\", \"address\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}, \"fr\": {\"nom_organization\": \"Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\\u00e9gique et de l\\u2019innovation\", \"telephone\": \"1-800-661-2638\", \"adresse\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}}",
+  "file_id": "230f1f6d-353e-4d02-800b-368f4c48dc86",
+  "frequency": "not_planned",
+  "geographic_region": [],
+  "hierarchy_level": "dataset; jeuDonn\u00e9es",
+  "id": "230f1f6d-353e-4d02-800b-368f4c48dc86",
+  "imso_approval": "true",
+  "isopen": false,
+  "jurisdiction": "federal",
+  "keywords": {
+   "fr": [
+    "Mosa\u00efque",
+    "Photographie a\u00e9rienne",
+    "Acc\u00e8s \u00e0 l'information",
+    "T\u00e9l\u00e9d\u00e9tection"
+   ],
+   "en": [
+    "Mosaic",
+    "Aerial photography",
+    "Access to information",
+    "Remote sensing"
+   ]
+  },
+  "license_id": "ca-ogl-lgo",
+  "license_title": "Open Government Licence - Canada",
+  "license_url": "https://open.canada.ca/en/open-government-licence-canada",
+  "maintainer": null,
+  "maintainer_contact_form": {},
+  "maintainer_email": "napl-pna@nrcan-rncan.gc.ca",
+  "metadata_contact": {
+   "fr": "Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\u00e9gique et de l\u2019innovation,geoinfo@nrcan-rncan.gc.ca",
+   "en": "Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector,1-800-661-2638,geoinfo@nrcan-rncan.gc.ca"
+  },
+  "metadata_created": "2022-04-14T13:11:34.524527",
+  "metadata_modified": "2024-02-20T22:33:37.504673",
+  "name": "230f1f6d-353e-4d02-800b-368f4c48dc86",
+  "notes": "Note: To visualize the data in the viewer, zoom into the area of interest.   \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistrated. For this dataset, the spatial resolutions are: 75 cm for the year 1960 and 50 cm for the year 1974.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived product managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html",
+  "notes_translated": {
+   "fr": "Note : Pour visualiser les donn\u00e9es dans l\u2019outil de visualisation, zoomez sur la r\u00e9gion d'int\u00e9r\u00eat.  \n  \n  La Phototh\u00e8que nationale de l'air (PNA) de Ressources naturelles Canada repr\u00e9sente une archive de plus de 6 millions de photographies a\u00e9riennes couvrant l'ensemble du Canada, dont certaines remontent aux ann\u00e9es 1920.  \n  \n  Cette collection comprend des s\u00e9ries temporelles de mosa\u00efques d'orthophotos a\u00e9riennes pour une s\u00e9lection de grandes villes ou de zones cibl\u00e9es qui permettent d'observer les divers changements survenus au fil du temps dans ces r\u00e9gions.  \n  \n  Ces mosa\u00efques sont diffus\u00e9es par l'entremise de la plateforme du cube de donn\u00e9es mise en \u0153uvre par RNCan \u00e0 l'aide de technologies de gestion de m\u00e9gadonn\u00e9es g\u00e9ospatiales. Ces technologies permettent la visualisation rapide et efficace de donn\u00e9es g\u00e9ospatiales \u00e0 haute r\u00e9solution et la g\u00e9n\u00e9ration de produits d\u00e9riv\u00e9s de fa\u00e7on dynamique. Les donn\u00e9es sont disponibles en format Cloud Optimized GeoTIFF (COG) pour un acc\u00e8s direct et sous forme de services Web Map Services (WMS) ou Web Coverage Services (WCS) avec une dimension temporelle pour une utilisation dans des applications Web ou SIG.  \n  \n  Les mosa\u00efques de la PNA sont r\u00e9alis\u00e9es \u00e0 partir de la meilleure r\u00e9solution spatiale disponible pour chaque p\u00e9riode de temps, ce qui signifie que les orthophotos composant une s\u00e9rie temporelle PNA ne sont pas n\u00e9cessairement align\u00e9es. Pour ce jeu de donn\u00e9es, les r\u00e9solutions spatiales sont : 75 cm pour l'ann\u00e9e 1960 et 50 cm pour l'ann\u00e9e 1974.  \n  \n  La PNA conserve et g\u00e8re les photographies a\u00e9riennes f\u00e9d\u00e9rales pour le Canada, et maintient des archives historiques compl\u00e8tes et un centre de r\u00e9f\u00e9rence public. L'application en ligne du Syst\u00e8me de gestion des donn\u00e9es d'observation de la Terre (SGDOT) permet aux clients de rechercher et d'extraire des m\u00e9tadonn\u00e9es pour plus de 3 millions de photos a\u00e9riennes provenant de cette collection.  \n  \n  L'application en ligne SGDOT permet aux utilisateurs publics et gouvernementaux de rechercher et de commander des images brutes d'observation de la Terre du gouvernement du Canada et des produits archiv\u00e9s g\u00e9r\u00e9s par RNCan tels que des photos a\u00e9riennes et des images satellites. Pour acc\u00e9der aux photos a\u00e9riennes, vous pouvez visiter le site Web du SGDOT : https://eodms-sgdot.nrcan-rncan.gc.ca/index-fr.html.",
+   "en": "Note: To visualize the data in the viewer, zoom into the area of interest.   \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistrated. For this dataset, the spatial resolutions are: 75 cm for the year 1960 and 50 cm for the year 1974.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived product managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html"
+  },
+  "num_resources": 8,
+  "num_tags": 0,
+  "org_section": {},
+  "org_title_at_publication": {
+   "fr": "Ressources naturelles Canada",
+   "en": "Natural Resources Canada"
+  },
+  "organization": {
+   "id": "9391E0A2-9717-4755-B548-4499C21F917B",
+   "name": "nrcan-rncan",
+   "title": "Natural Resources Canada | Ressources naturelles Canada",
+   "type": "organization",
+   "description": "",
+   "image_url": "",
+   "created": "2016-09-23T17:25:46.737130",
+   "is_organization": true,
+   "approval_status": "approved",
+   "state": "active"
+  },
+  "owner_org": "9391E0A2-9717-4755-B548-4499C21F917B",
+  "parent_id": "114417c3-41a4-4cf7-8acd-2eb9d16c97f3",
+  "place_of_publication": [],
+  "position_name": {
+   "en": ""
+  },
+  "private": false,
+  "program_page_url": {},
+  "ready_to_publish": "true",
+  "responsible_role": "RI_414",
+  "restrictions": "unrestricted",
+  "spatial": "{\"type\": \"Polygon\", \"coordinates\": [[[-79.42688988, 43.78121938], [-79.13941106, 43.78121938], [-79.13941106, 43.95686772], [-79.42688988, 43.95686772], [-79.42688988, 43.78121938]]]}",
+  "spatial_representation_type": [
+   "grid"
+  ],
+  "state": "active",
+  "status": "completed",
+  "subject": [
+   "form_descriptors"
+  ],
+  "time_period_coverage_end": "1974-01-01 00:00:00",
+  "time_period_coverage_start": "1960-01-01 00:00:00",
+  "title": "Temporal Series of the National Air Photo Library (NAPL) - Markham, Ontario (1960-1974)",
+  "title_translated": {
+   "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Markham, Ontario (1960-1974)",
+   "en": "Temporal Series of the National Air Photo Library (NAPL) - Markham, Ontario (1960-1974)"
+  },
+  "topic_category": [
+   "imagery_base_maps_earth_cover"
+  ],
+  "type": "dataset",
+  "url": null,
+  "version": null,
+  "resources": [
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:37.633849",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "8018fd55-2814-4956-8e25-e2b3e6d1a1b2",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:37.531805",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1960 - Orthophoto Mosaic of Markham, Ontario (75 cm)",
+    "name_translated": {
+     "fr": "1960 - Mosa\u00efque d'orthophoto de Markham, Ontario (75 cm)",
+     "en": "1960 - Orthophoto Mosaic of Markham, Ontario (75 cm)"
+    },
+    "package_id": "230f1f6d-353e-4d02-800b-368f4c48dc86",
+    "position": 0,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-markham/napl-markham-1960-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:37.633857",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "0b852116-b498-4b3b-8988-f78f2406d628",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:37.532037",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1974 - Orthophoto Mosaic of Markham, Ontario (50 cm)",
+    "name_translated": {
+     "fr": "1974 - Mosa\u00efque d'orthophoto de Markham, Ontario (50 cm)",
+     "en": "1974 - Orthophoto Mosaic of Markham, Ontario (50 cm)"
+    },
+    "package_id": "230f1f6d-353e-4d02-800b-368f4c48dc86",
+    "position": 1,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-markham/napl-markham-1974-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:37.633860",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "0c286ff3-9f4f-4d6c-a5e7-2c949e52892f",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:37.532220",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Markham, Ontario (1960-1974)",
+    "name_translated": {
+     "fr": "Visualisateur de s\u00e9ries temporelles de la PNA - Markham, Ontario (1960-1974)",
+     "en": "Web Viewer of NAPL Temporal Series - Markham, Ontario (1960-1974)"
+    },
+    "package_id": "230f1f6d-353e-4d02-800b-368f4c48dc86",
+    "position": 2,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/en/viewer/napl/markham/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:37.633863",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "e8a39ef9-2412-4411-a276-7a5c53af7815",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:37.532398",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Markham, Ontario (1960-1974)",
+    "name_translated": {
+     "fr": "Visualisateur de s\u00e9ries temporelles de la PNA - Markham, Ontario (1960-1974)",
+     "en": "Web Viewer of NAPL Temporal Series - Markham, Ontario (1960-1974)"
+    },
+    "package_id": "230f1f6d-353e-4d02-800b-368f4c48dc86",
+    "position": 3,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/fr/viewer/napl/markham/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:37.633865",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "d1738882-b0c7-4afe-8f68-116e864ac047",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:37.532570",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Markham, Ontario (1960-1974)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Markham, Ontario (1960-1974)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Markham, Ontario (1960-1974)"
+    },
+    "package_id": "230f1f6d-353e-4d02-800b-368f4c48dc86",
+    "position": 4,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-markham.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=markham&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:37.633868",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "f1bdde46-2692-431b-a1b9-5befd05a3699",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:37.532786",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Markham, Ontario (1960-1974)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Markham, Ontario (1960-1974)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Markham, Ontario (1960-1974)"
+    },
+    "package_id": "230f1f6d-353e-4d02-800b-368f4c48dc86",
+    "position": 5,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-markham.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=markham&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:37.633870",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WCS",
+    "hash": "",
+    "id": "48e33837-d088-4d6a-ab03-69e39248bd23",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:37.532961",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions",
+    "name_translated": {
+     "fr": "Service Web de couverture (WCS) pour les S\u00e9ries temporelles de la phototh\u00e9que nationale de l'air (PNA) pour des r\u00e9gions cibl\u00e9es",
+     "en": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions"
+    },
+    "package_id": "230f1f6d-353e-4d02-800b-368f4c48dc86",
+    "position": 6,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/ows/aerial?service=wcs&request=GetCapabilities",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:37.633873",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "JSON",
+    "hash": "",
+    "id": "ff91a49b-e0b8-439b-9047-0d35e96dbe66",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:37.533134",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)",
+    "name_translated": {
+     "fr": "Interface de programmation (API) pour SpatioTemporal Asset Catalog (STAC)",
+     "en": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)"
+    },
+    "package_id": "230f1f6d-353e-4d02-800b-368f4c48dc86",
+    "position": 7,
+    "resource_type": "api",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/api/collections/napl-markham/items",
+    "url_type": null
+   }
+  ],
+  "tags": [],
+  "groups": [],
+  "relationships_as_subject": [],
+  "relationships_as_object": []
+ },
+ {
+  "aggregate_identifier": "",
+  "association_type": [],
+  "audience": [],
+  "author": null,
+  "author_email": null,
+  "collection": "fgp",
+  "contact_information": "{\"en\": {\"delivery_point\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}, \"fr\": {\"point_de_livraison\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}}",
+  "contributor": {},
+  "creator": "",
+  "creator_user_id": "b88b9549-3a4b-43a9-9375-5f3fc20fe782",
+  "data_series_issue_identification": {},
+  "data_series_name": {},
+  "date_published": "2021-03-31 00:00:00",
+  "display_flags": [
+   "fgp_viewer"
+  ],
+  "distributor": "{\"en\": {\"organization_name\": \"Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector\", \"phone\": \"1-800-661-2638\", \"address\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}, \"fr\": {\"nom_organization\": \"Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\\u00e9gique et de l\\u2019innovation\", \"telephone\": \"1-800-661-2638\", \"adresse\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}}",
+  "file_id": "4e8e3c6a-c961-4def-bdc7-f24823462818",
+  "frequency": "not_planned",
+  "geographic_region": [],
+  "hierarchy_level": "dataset; jeuDonn\u00e9es",
+  "id": "4e8e3c6a-c961-4def-bdc7-f24823462818",
+  "imso_approval": "true",
+  "isopen": false,
+  "jurisdiction": "federal",
+  "keywords": {
+   "fr": [
+    "Mosa\u00efque",
+    "T\u00e9l\u00e9d\u00e9tection",
+    "Photographie a\u00e9rienne",
+    "Acc\u00e8s \u00e0 l'information"
+   ],
+   "en": [
+    "Mosaic",
+    "Remote sensing",
+    "Aerial photography",
+    "Access to information"
+   ]
+  },
+  "license_id": "ca-ogl-lgo",
+  "license_title": "Open Government Licence - Canada",
+  "license_url": "https://open.canada.ca/en/open-government-licence-canada",
+  "maintainer": null,
+  "maintainer_contact_form": {},
+  "maintainer_email": "napl-pna@nrcan-rncan.gc.ca",
+  "metadata_contact": {
+   "fr": "Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\u00e9gique et de l\u2019innovation,geoinfo@nrcan-rncan.gc.ca",
+   "en": "Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector,1-800-661-2638,geoinfo@nrcan-rncan.gc.ca"
+  },
+  "metadata_created": "2022-04-14T13:11:26.439330",
+  "metadata_modified": "2024-02-20T22:33:35.331977",
+  "name": "4e8e3c6a-c961-4def-bdc7-f24823462818",
+  "notes": "Note: To visualize the data in the viewer, zoom into the area of interest.   \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) files for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistered. For this dataset, the spatial resolutions are: 100 cm for the year 1947 and 50 cm for the year 1977.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived products managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html",
+  "notes_translated": {
+   "fr": "Note : Pour visualiser les donn\u00e9es dans l\u2019outil de visualisation, zoomez sur la r\u00e9gion d'int\u00e9r\u00eat.   \n  \n  La Phototh\u00e8que nationale de l'air (PNA) de Ressources naturelles Canada repr\u00e9sente une archive plus de 6 millions de photographies a\u00e9riennes couvrant l'ensemble du Canada, dont certaines remontent aux ann\u00e9es 1920.  \n  \n  Cette collection comprend des s\u00e9ries temporelles de mosa\u00efques d'orthophotos a\u00e9riennes pour une s\u00e9lection de grandes villes ou de zones cibl\u00e9es qui permettent d'observer les divers changements survenus au fil du temps dans ces r\u00e9gions.  \n  \n  Ces mosa\u00efques sont diffus\u00e9es par l'entremise de la plateforme du cube de donn\u00e9es mise en \u0153uvre par RNCan \u00e0 l'aide de technologies de gestion de m\u00e9gadonn\u00e9es g\u00e9ospatiales. Ces technologies permettent la visualisation rapide et efficace de donn\u00e9es g\u00e9ospatiales \u00e0 haute r\u00e9solution et la g\u00e9n\u00e9ration de produits d\u00e9riv\u00e9s de fa\u00e7on dynamique. Les donn\u00e9es sont disponibles en fichiers de format Cloud Optimized GeoTIFF (COG) pour un acc\u00e8s direct et sous forme de services Web Map Services (WMS) ou Web Coverage Services (WCS) avec une dimension temporelle pour une utilisation dans des applications Web ou SIG.  \n  \n  Les mosa\u00efques de la PNA sont r\u00e9alis\u00e9es \u00e0 partir de la meilleure r\u00e9solution spatiale disponible pour chaque p\u00e9riode de temps, ce qui signifie que les orthophotos composant une s\u00e9rie temporelle PNA ne sont pas n\u00e9cessairement align\u00e9es. Pour ce jeu de donn\u00e9es, les r\u00e9solutions spatiales sont : 100 cm pour l'ann\u00e9e 1947 et 50 cm pour l'ann\u00e9e 1977.  \n  \n  La PNA conserve et g\u00e8re les photographies a\u00e9riennes f\u00e9d\u00e9rales pour le Canada, et maintient des archives historiques compl\u00e8tes et un centre de r\u00e9f\u00e9rence public. L'application en ligne du Syst\u00e8me de gestion des donn\u00e9es d'observation de la Terre (SGDOT) permet aux clients de rechercher et d'extraire des m\u00e9tadonn\u00e9es pour plus de 3 millions de photos a\u00e9riennes provenant de cette collection.  \n  \n  L'application en ligne SGDOT permet aux utilisateurs publics et gouvernementaux de rechercher et de commander des images brutes d'observation de la Terre du gouvernement du Canada et des produits archiv\u00e9s g\u00e9r\u00e9s par RNCan tels que des photos a\u00e9riennes et des images satellites. Pour acc\u00e9der aux photos a\u00e9riennes, vous pouvez visiter le site Web du SGDOT : https://eodms-sgdot.nrcan-rncan.gc.ca/index-fr.html.",
+   "en": "Note: To visualize the data in the viewer, zoom into the area of interest.   \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) files for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistered. For this dataset, the spatial resolutions are: 100 cm for the year 1947 and 50 cm for the year 1977.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived products managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html"
+  },
+  "num_resources": 8,
+  "num_tags": 0,
+  "org_section": {},
+  "org_title_at_publication": {
+   "fr": "Ressources naturelles Canada",
+   "en": "Natural Resources Canada"
+  },
+  "organization": {
+   "id": "9391E0A2-9717-4755-B548-4499C21F917B",
+   "name": "nrcan-rncan",
+   "title": "Natural Resources Canada | Ressources naturelles Canada",
+   "type": "organization",
+   "description": "",
+   "image_url": "",
+   "created": "2016-09-23T17:25:46.737130",
+   "is_organization": true,
+   "approval_status": "approved",
+   "state": "active"
+  },
+  "owner_org": "9391E0A2-9717-4755-B548-4499C21F917B",
+  "parent_id": "114417c3-41a4-4cf7-8acd-2eb9d16c97f3",
+  "place_of_publication": [],
+  "position_name": {
+   "en": ""
+  },
+  "private": false,
+  "program_page_url": {},
+  "ready_to_publish": "true",
+  "responsible_role": "RI_414",
+  "restrictions": "unrestricted",
+  "spatial": "{\"type\": \"Polygon\", \"coordinates\": [[[-63.7422255, 44.55538483], [-63.38665453, 44.55538483], [-63.38665453, 44.73059709], [-63.7422255, 44.73059709], [-63.7422255, 44.55538483]]]}",
+  "spatial_representation_type": [
+   "grid"
+  ],
+  "state": "active",
+  "status": "completed",
+  "subject": [
+   "form_descriptors"
+  ],
+  "time_period_coverage_end": "1977-01-01 00:00:00",
+  "time_period_coverage_start": "1947-01-01 00:00:00",
+  "title": "Temporal Series of the National Air Photo Library (NAPL) - Halifax, Nova Scotia (1947-1977)",
+  "title_translated": {
+   "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Halifax, Nouvelle-\u00c9cosse (1947-1977)",
+   "en": "Temporal Series of the National Air Photo Library (NAPL) - Halifax, Nova Scotia (1947-1977)"
+  },
+  "topic_category": [
+   "imagery_base_maps_earth_cover"
+  ],
+  "type": "dataset",
+  "url": null,
+  "version": null,
+  "resources": [
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:35.436285",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "6c705001-df34-4a2f-aa72-9c7c8c4bc0bb",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:35.374569",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1947 - Orthophoto Mosaic of Halifax, Nova Scotia (100 cm)",
+    "name_translated": {
+     "fr": "1947 - Mosa\u00efque d'orthophoto de Halifax, Nouvelle-\u00c9cosse (100 cm)",
+     "en": "1947 - Orthophoto Mosaic of Halifax, Nova Scotia (100 cm)"
+    },
+    "package_id": "4e8e3c6a-c961-4def-bdc7-f24823462818",
+    "position": 0,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-halifax/napl-halifax-1947-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:35.436296",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "c5a89508-155d-47bc-bdff-7ff9dfa31c67",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:35.375019",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1977 - Orthophoto Mosaic of Halifax, Nova Scotia (50 cm)",
+    "name_translated": {
+     "fr": "1977 - Mosa\u00efque d'orthophoto de Halifax, Nouvelle-\u00c9cosse (50 cm)",
+     "en": "1977 - Orthophoto Mosaic of Halifax, Nova Scotia (50 cm)"
+    },
+    "package_id": "4e8e3c6a-c961-4def-bdc7-f24823462818",
+    "position": 1,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-halifax/napl-halifax-1977-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:35.436300",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "3a535834-d734-422b-85c9-98e6d60635c7",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:35.375364",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Halifax, Nova Scotia (1947-1977)",
+    "name_translated": {
+     "fr": "Visualisateur de s\u00e9ries temporelles de la PNA - Halifax, Nouvelle-\u00c9cosse (1947-1977)",
+     "en": "Web Viewer of NAPL Temporal Series - Halifax, Nova Scotia (1947-1977)"
+    },
+    "package_id": "4e8e3c6a-c961-4def-bdc7-f24823462818",
+    "position": 2,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/en/viewer/napl/halifax/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:35.436304",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "b82d7036-a061-4d90-99ea-7b767c1e73c3",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:35.375713",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Halifax, Nova Scotia (1947-1977)",
+    "name_translated": {
+     "fr": "Visualisateur de s\u00e9ries temporelles de la PNA - Halifax, Nouvelle-\u00c9cosse (1947-1977)",
+     "en": "Web Viewer of NAPL Temporal Series - Halifax, Nova Scotia (1947-1977)"
+    },
+    "package_id": "4e8e3c6a-c961-4def-bdc7-f24823462818",
+    "position": 3,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/fr/viewer/napl/halifax/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:35.436308",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "dd5baf13-e207-4c4e-8923-6e521befeea8",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:35.376050",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Halifax, Nova Scotia (1947-1977)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Halifax, Nouvelle-\u00c9cosse (1947-1977)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Halifax, Nova Scotia (1947-1977)"
+    },
+    "package_id": "4e8e3c6a-c961-4def-bdc7-f24823462818",
+    "position": 4,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-halifax.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=halifax&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:35.436312",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "c1c2ddc4-d8fb-4c4d-b6e1-19bbb8400cea",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:35.376393",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Halifax, Nova Scotia (1947-1977)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Halifax, Nouvelle-\u00c9cosse (1947-1977)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Halifax, Nova Scotia (1947-1977)"
+    },
+    "package_id": "4e8e3c6a-c961-4def-bdc7-f24823462818",
+    "position": 5,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-halifax.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=halifax&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:35.436315",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WCS",
+    "hash": "",
+    "id": "ae00a121-bfd0-45f5-8cee-dd2700b7ee34",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:35.376750",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions",
+    "name_translated": {
+     "fr": "Service Web de couverture (WCS) pour les S\u00e9ries temporelles de la phototh\u00e9que nationale de l'air (PNA) pour des r\u00e9gions cibl\u00e9es",
+     "en": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions"
+    },
+    "package_id": "4e8e3c6a-c961-4def-bdc7-f24823462818",
+    "position": 6,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/ows/aerial?service=wcs&request=GetCapabilities",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:35.436319",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "JSON",
+    "hash": "",
+    "id": "fa89fa88-bcb9-42dc-a662-53d20c607a46",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:35.377099",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)",
+    "name_translated": {
+     "fr": "Interface de programmation (API) pour SpatioTemporal Asset Catalog (STAC)",
+     "en": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)"
+    },
+    "package_id": "4e8e3c6a-c961-4def-bdc7-f24823462818",
+    "position": 7,
+    "resource_type": "api",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/api/collections/napl-halifax/items",
+    "url_type": null
+   }
+  ],
+  "tags": [],
+  "groups": [],
+  "relationships_as_subject": [],
+  "relationships_as_object": []
+ },
+ {
+  "aggregate_identifier": "",
+  "association_type": [],
+  "audience": [],
+  "author": null,
+  "author_email": null,
+  "collection": "fgp",
+  "contact_information": "{\"en\": {\"delivery_point\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}, \"fr\": {\"point_de_livraison\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}}",
+  "contributor": {},
+  "creator": "",
+  "creator_user_id": "b88b9549-3a4b-43a9-9375-5f3fc20fe782",
+  "data_series_issue_identification": {},
+  "data_series_name": {},
+  "date_published": "2021-03-31 00:00:00",
+  "display_flags": [
+   "fgp_viewer"
+  ],
+  "distributor": "{\"en\": {\"organization_name\": \"Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector\", \"phone\": \"1-800-661-2638\", \"address\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}, \"fr\": {\"nom_organization\": \"Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\\u00e9gique et de l\\u2019innovation\", \"telephone\": \"1-800-661-2638\", \"adresse\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}}",
+  "file_id": "03ccfb5c-a06e-43e3-80fd-09d4f8f69703",
+  "frequency": "not_planned",
+  "geographic_region": [],
+  "hierarchy_level": "dataset; jeuDonn\u00e9es",
+  "id": "03ccfb5c-a06e-43e3-80fd-09d4f8f69703",
+  "imso_approval": "true",
+  "isopen": false,
+  "jurisdiction": "federal",
+  "keywords": {
+   "fr": [
+    "Mosa\u00efque",
+    "Photographie a\u00e9rienne",
+    "Acc\u00e8s \u00e0 l'information",
+    "T\u00e9l\u00e9d\u00e9tection"
+   ],
+   "en": [
+    "Mosaic",
+    "Aerial photography",
+    "Access to information",
+    "Remote sensing"
+   ]
+  },
+  "license_id": "ca-ogl-lgo",
+  "license_title": "Open Government Licence - Canada",
+  "license_url": "https://open.canada.ca/en/open-government-licence-canada",
+  "maintainer": null,
+  "maintainer_contact_form": {},
+  "maintainer_email": "napl-pna@nrcan-rncan.gc.ca",
+  "metadata_contact": {
+   "fr": "Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\u00e9gique et de l\u2019innovation,geoinfo@nrcan-rncan.gc.ca",
+   "en": "Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector,1-800-661-2638,geoinfo@nrcan-rncan.gc.ca"
+  },
+  "metadata_created": "2022-04-14T13:11:22.526058",
+  "metadata_modified": "2024-02-20T22:33:34.259509",
+  "name": "03ccfb5c-a06e-43e3-80fd-09d4f8f69703",
+  "notes": "Note: To visualize the data in the viewer, zoom into the area of interest.   \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistrated. For this dataset, the spatial resolutions are: 100 cm for the year 1947 and 50 cm for the year 1967.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived products managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html",
+  "notes_translated": {
+   "fr": "Note: Pour visualiser les donn\u00e9es dans l\u2019outil de visualisation, zoomez sur la r\u00e9gion d'int\u00e9r\u00eat.  \n  \n  La Phototh\u00e8que nationale de l'air (PNA) de Ressources naturelles Canada repr\u00e9sente une archive de plus de 6 millions de photographies a\u00e9riennes couvrant l'ensemble du Canada, dont certaines remontent aux ann\u00e9es 1920.  \n  \n  Cette collection comprend des s\u00e9ries temporelles de mosa\u00efques d'orthophotos a\u00e9riennes pour une s\u00e9lection de grandes villes ou de zones cibl\u00e9es qui permettent d'observer les divers changements survenus au fil du temps dans ces r\u00e9gions.  \n  \n  Ces mosa\u00efques sont diffus\u00e9es par l'entremise de la plateforme du cube de donn\u00e9es mise en \u0153uvre par RNCan \u00e0 l'aide de technologies de gestion de m\u00e9gadonn\u00e9es g\u00e9ospatiales. Ces technologies permettent la visualisation rapide et efficace de donn\u00e9es g\u00e9ospatiales \u00e0 haute r\u00e9solution et la g\u00e9n\u00e9ration de produits d\u00e9riv\u00e9s de fa\u00e7on dynamique. Les donn\u00e9es sont disponibles en format Cloud Optimized GeoTIFF (COG) pour un acc\u00e8s direct et sous forme de services Web Map Services (WMS) ou Web Coverage Services (WCS) avec une dimension temporelle pour une utilisation dans des applications Web ou SIG.  \n  \n  Les mosa\u00efques de la PNA sont r\u00e9alis\u00e9es \u00e0 partir de la meilleure r\u00e9solution spatiale disponible pour chaque p\u00e9riode de temps, ce qui signifie que les orthophotos composant une s\u00e9rie temporelle PNA ne sont pas n\u00e9cessairement align\u00e9es. Pour ce jeu de donn\u00e9es, les r\u00e9solutions spatiales sont : 100 cm pour l'ann\u00e9e 1947 et 50 cm pour l'ann\u00e9e 1967.  \n  \n  La PNA conserve et g\u00e8re les photographies a\u00e9riennes f\u00e9d\u00e9rales pour le Canada, et maintient des archives historiques compl\u00e8tes et un centre de r\u00e9f\u00e9rence public. L'application en ligne du Syst\u00e8me de gestion des donn\u00e9es d'observation de la Terre (SGDOT) permet aux clients de rechercher et d'extraire des m\u00e9tadonn\u00e9es pour plus de 3 millions de photos a\u00e9riennes provenant de cette collection.  \n  \n  L'application en ligne SGDOT permet aux utilisateurs publics et gouvernementaux de rechercher et de commander des images brutes d'observation de la Terre du gouvernement du Canada et des produits archiv\u00e9s g\u00e9r\u00e9s par RNCan tels que des photos a\u00e9riennes et des images satellites. Pour acc\u00e9der aux photos a\u00e9riennes, vous pouvez visiter le site Web du SGDOT : https://eodms-sgdot.nrcan-rncan.gc.ca/index-fr.html.",
+   "en": "Note: To visualize the data in the viewer, zoom into the area of interest.   \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistrated. For this dataset, the spatial resolutions are: 100 cm for the year 1947 and 50 cm for the year 1967.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived products managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html"
+  },
+  "num_resources": 8,
+  "num_tags": 0,
+  "org_section": {},
+  "org_title_at_publication": {
+   "fr": "Ressources naturelles Canada",
+   "en": "Natural Resources Canada"
+  },
+  "organization": {
+   "id": "9391E0A2-9717-4755-B548-4499C21F917B",
+   "name": "nrcan-rncan",
+   "title": "Natural Resources Canada | Ressources naturelles Canada",
+   "type": "organization",
+   "description": "",
+   "image_url": "",
+   "created": "2016-09-23T17:25:46.737130",
+   "is_organization": true,
+   "approval_status": "approved",
+   "state": "active"
+  },
+  "owner_org": "9391E0A2-9717-4755-B548-4499C21F917B",
+  "parent_id": "114417c3-41a4-4cf7-8acd-2eb9d16c97f3",
+  "place_of_publication": [],
+  "position_name": {
+   "en": ""
+  },
+  "private": false,
+  "program_page_url": {},
+  "ready_to_publish": "true",
+  "responsible_role": "RI_414",
+  "restrictions": "unrestricted",
+  "spatial": "{\"type\": \"Polygon\", \"coordinates\": [[[-104.75571511, 50.42392886], [-104.56356008, 50.42392886], [-104.56356008, 50.49598271], [-104.75571511, 50.49598271], [-104.75571511, 50.42392886]]]}",
+  "spatial_representation_type": [
+   "grid"
+  ],
+  "state": "active",
+  "status": "completed",
+  "subject": [
+   "form_descriptors"
+  ],
+  "time_period_coverage_end": "1967-01-01 00:00:00",
+  "time_period_coverage_start": "1947-01-01 00:00:00",
+  "title": "Temporal Series of the National Air Photo Library (NAPL) - Regina, Saskatchewan (1947-1967)",
+  "title_translated": {
+   "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Regina, Saskatchewan (1947-1967)",
+   "en": "Temporal Series of the National Air Photo Library (NAPL) - Regina, Saskatchewan (1947-1967)"
+  },
+  "topic_category": [
+   "imagery_base_maps_earth_cover"
+  ],
+  "type": "dataset",
+  "url": null,
+  "version": null,
+  "resources": [
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:34.343699",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "769699d7-83c8-4ca1-abff-22a52b2ec4f1",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:34.275776",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1947 - Orthophoto Mosaic of Regina, Saskatchewan (100 cm)",
+    "name_translated": {
+     "fr": "1947 - Mosa\u00efque d'orthophoto de Regina, Saskatchewan (100 cm)",
+     "en": "1947 - Orthophoto Mosaic of Regina, Saskatchewan (100 cm)"
+    },
+    "package_id": "03ccfb5c-a06e-43e3-80fd-09d4f8f69703",
+    "position": 0,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-regina/napl-regina-1947-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:34.343710",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "ab8f6e62-8302-40ef-a352-9000ccfe613a",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:34.276168",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1967 - Orthophoto Mosaic of Regina, Saskatchewan (50 cm)",
+    "name_translated": {
+     "fr": "1967 - Mosa\u00efque d'orthophoto de Regina, Saskatchewan (50 cm)",
+     "en": "1967 - Orthophoto Mosaic of Regina, Saskatchewan (50 cm)"
+    },
+    "package_id": "03ccfb5c-a06e-43e3-80fd-09d4f8f69703",
+    "position": 1,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-regina/napl-regina-1967-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:34.343715",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "82a47015-de44-4677-8882-ac0760d97682",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:34.276500",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Regina, Saskatchewan (1947-1967)",
+    "name_translated": {
+     "fr": "Visualisateur de s\u00e9ries temporelles de la PNA - Regina, Saskatchewan (1947-1967)",
+     "en": "Web Viewer of NAPL Temporal Series - Regina, Saskatchewan (1947-1967)"
+    },
+    "package_id": "03ccfb5c-a06e-43e3-80fd-09d4f8f69703",
+    "position": 2,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/en/viewer/napl/regina/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:34.343719",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "a7dd3749-5882-4708-8e81-9fc5a18f4aa0",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:34.276860",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Regina, Saskatchewan (1947-1967)",
+    "name_translated": {
+     "fr": "Visualisateur de s\u00e9ries temporelles de la PNA - Regina, Saskatchewan (1947-1967)",
+     "en": "Web Viewer of NAPL Temporal Series - Regina, Saskatchewan (1947-1967)"
+    },
+    "package_id": "03ccfb5c-a06e-43e3-80fd-09d4f8f69703",
+    "position": 3,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/fr/viewer/napl/regina/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:34.343723",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "f12ef07f-8c21-4b56-8283-b3782371af6d",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:34.277186",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Regina, Saskatchewan (1947-1967)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Regina, Saskatchewan (1947-1967)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Regina, Saskatchewan (1947-1967)"
+    },
+    "package_id": "03ccfb5c-a06e-43e3-80fd-09d4f8f69703",
+    "position": 4,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-regina.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=regina&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:34.343727",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "1e4c1327-b098-40f5-8792-12abe7ed2e5f",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:34.277520",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Regina, Saskatchewan (1947-1967)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Regina, Saskatchewan (1947-1967)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Regina, Saskatchewan (1947-1967)"
+    },
+    "package_id": "03ccfb5c-a06e-43e3-80fd-09d4f8f69703",
+    "position": 5,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-regina.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=regina&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:34.343731",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WCS",
+    "hash": "",
+    "id": "f61590fb-9fd1-4a26-b7d7-fbd6bb36f5c5",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:34.277864",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions",
+    "name_translated": {
+     "fr": "Service Web de couverture (WCS) pour les S\u00e9ries temporelles de la phototh\u00e9que nationale de l'air (PNA) pour des r\u00e9gions cibl\u00e9es",
+     "en": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions"
+    },
+    "package_id": "03ccfb5c-a06e-43e3-80fd-09d4f8f69703",
+    "position": 6,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/ows/aerial?service=wcs&request=GetCapabilities",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:34.343735",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "JSON",
+    "hash": "",
+    "id": "054c965d-0ee3-4927-8c69-b338f96381e4",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:34.278199",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)",
+    "name_translated": {
+     "fr": "Interface de programmation (API) pour SpatioTemporal Asset Catalog (STAC)",
+     "en": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)"
+    },
+    "package_id": "03ccfb5c-a06e-43e3-80fd-09d4f8f69703",
+    "position": 7,
+    "resource_type": "api",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/api/collections/napl-regina/items",
+    "url_type": null
+   }
+  ],
+  "tags": [],
+  "groups": [],
+  "relationships_as_subject": [],
+  "relationships_as_object": []
+ },
+ {
+  "aggregate_identifier": "",
+  "association_type": [],
+  "audience": [],
+  "author": null,
+  "author_email": null,
+  "collection": "fgp",
+  "contact_information": "{\"en\": {\"delivery_point\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}, \"fr\": {\"point_de_livraison\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}}",
+  "contributor": {},
+  "creator": "",
+  "creator_user_id": "b88b9549-3a4b-43a9-9375-5f3fc20fe782",
+  "data_series_issue_identification": {},
+  "data_series_name": {},
+  "date_published": "2022-10-31 00:00:00",
+  "display_flags": [
+   "fgp_viewer"
+  ],
+  "distributor": "{\"en\": {\"organization_name\": \"Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector\", \"phone\": \"1-800-661-2638\", \"address\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}, \"fr\": {\"nom_organization\": \"Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\\u00e9gique et de l\\u2019innovation\", \"telephone\": \"1-800-661-2638\", \"adresse\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}}",
+  "file_id": "ed9b204b-590c-4b17-9703-f6e167acd6c6",
+  "frequency": "not_planned",
+  "geographic_region": [],
+  "hierarchy_level": "dataset; jeuDonn\u00e9es",
+  "id": "ed9b204b-590c-4b17-9703-f6e167acd6c6",
+  "imso_approval": "true",
+  "isopen": false,
+  "jurisdiction": "federal",
+  "keywords": {
+   "fr": [
+    "Mosa\u00efque",
+    "Photographie a\u00e9rienne",
+    "Acc\u00e8s \u00e0 l'information",
+    "T\u00e9l\u00e9d\u00e9tection"
+   ],
+   "en": [
+    "Mosaic",
+    "Aerial photography",
+    "Access to information",
+    "Remote sensing"
+   ]
+  },
+  "license_id": "ca-ogl-lgo",
+  "license_title": "Open Government Licence - Canada",
+  "license_url": "https://open.canada.ca/en/open-government-licence-canada",
+  "maintainer": null,
+  "maintainer_contact_form": {},
+  "maintainer_email": "napl-pna@nrcan-rncan.gc.ca",
+  "metadata_contact": {
+   "fr": "Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\u00e9gique et de l\u2019innovation,geoinfo@nrcan-rncan.gc.ca",
+   "en": "Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector,1-800-661-2638,geoinfo@nrcan-rncan.gc.ca"
+  },
+  "metadata_created": "2023-01-11T02:11:45.072147",
+  "metadata_modified": "2024-02-20T22:33:31.881390",
+  "name": "ed9b204b-590c-4b17-9703-f6e167acd6c6",
+  "notes": "Note: To visualize the data in the viewer, zoom into the area of interest.   \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) files for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistered. For this dataset, the spatial resolutions vary from 150 cm to 200 cm.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived products managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html",
+  "notes_translated": {
+   "fr": "Note : Pour visualiser les donn\u00e9es dans l\u2019outil de visualisation, zoomez sur la r\u00e9gion d'int\u00e9r\u00eat.   \n  \n  La Phototh\u00e8que nationale de l'air (PNA) de Ressources naturelles Canada repr\u00e9sente une archive de plus de 6 millions de photographies a\u00e9riennes couvrant l'ensemble du Canada, dont certaines remontent aux ann\u00e9es 1920.  \n  \n  Cette collection comprend des s\u00e9ries temporelles de mosa\u00efques d'orthophotos a\u00e9riennes pour une s\u00e9lection de grandes villes ou de zones cibl\u00e9es qui permettent aux utilisateurs d'observer les divers changements survenus au fil du temps dans ces r\u00e9gions.  \n  \n  Ces mosa\u00efques sont diffus\u00e9es par l'entremise de la plateforme du cube de donn\u00e9es mise en \u0153uvre par RNCan \u00e0 l'aide de technologies de gestion de m\u00e9gadonn\u00e9es g\u00e9ospatiales. Ces technologies permettent la visualisation rapide et efficace de donn\u00e9es g\u00e9ospatiales \u00e0 haute r\u00e9solution et la g\u00e9n\u00e9ration de produits d\u00e9riv\u00e9s de fa\u00e7on dynamique. Les donn\u00e9es sont disponibles en fichiers de format Cloud Optimized GeoTIFF (COG) pour un acc\u00e8s direct et sous forme de services Web Map Services (WMS) ou Web Coverage Services (WCS) avec une dimension temporelle pour une utilisation dans des applications Web ou SIG.  \n  \n  Les mosa\u00efques de la PNA sont r\u00e9alis\u00e9es \u00e0 partir de la meilleure r\u00e9solution spatiale disponible pour chaque p\u00e9riode de temps, ce qui signifie que les orthophotos composant une s\u00e9rie temporelle PNA ne sont pas n\u00e9cessairement align\u00e9es. Pour ce jeu de donn\u00e9es, les r\u00e9solutions spatiales varient de 150 cm \u00e0 200 cm.  \n  \n  La PNA conserve et g\u00e8re les photographies a\u00e9riennes f\u00e9d\u00e9rales pour le Canada, et maintient des archives historiques compl\u00e8tes et un centre de r\u00e9f\u00e9rence public. L'application en ligne du Syst\u00e8me de gestion des donn\u00e9es d'observation de la Terre (SGDOT) permet aux clients de rechercher et d'extraire des m\u00e9tadonn\u00e9es pour plus de 3 millions de photos a\u00e9riennes provenant de cette collection.  \n  \n  L'application en ligne SGDOT permet aux utilisateurs publics et gouvernementaux de rechercher et de commander des images brutes d'observation de la Terre du gouvernement du Canada et des produits archiv\u00e9s g\u00e9r\u00e9s par RNCan tels que des photos a\u00e9riennes et des images satellites. Pour acc\u00e9der aux photos a\u00e9riennes, vous pouvez visiter le site Web du SGDOT : https://eodms-sgdot.nrcan-rncan.gc.ca/index-fr.html.",
+   "en": "Note: To visualize the data in the viewer, zoom into the area of interest.   \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) files for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistered. For this dataset, the spatial resolutions vary from 150 cm to 200 cm.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived products managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html"
+  },
+  "num_resources": 11,
+  "num_tags": 0,
+  "org_section": {},
+  "org_title_at_publication": {
+   "fr": "Ressources naturelles Canada",
+   "en": "Natural Resources Canada"
+  },
+  "organization": {
+   "id": "9391E0A2-9717-4755-B548-4499C21F917B",
+   "name": "nrcan-rncan",
+   "title": "Natural Resources Canada | Ressources naturelles Canada",
+   "type": "organization",
+   "description": "",
+   "image_url": "",
+   "created": "2016-09-23T17:25:46.737130",
+   "is_organization": true,
+   "approval_status": "approved",
+   "state": "active"
+  },
+  "owner_org": "9391E0A2-9717-4755-B548-4499C21F917B",
+  "parent_id": "114417c3-41a4-4cf7-8acd-2eb9d16c97f3",
+  "place_of_publication": [],
+  "position_name": {
+   "en": ""
+  },
+  "private": false,
+  "program_page_url": {},
+  "ready_to_publish": "true",
+  "responsible_role": "RI_414",
+  "restrictions": "unrestricted",
+  "spatial": "{\"type\": \"Polygon\", \"coordinates\": [[[-88.0524, 51.6228], [-84.5772, 51.6228], [-84.5772, 53.8333], [-88.0524, 53.8333], [-88.0524, 51.6228]]]}",
+  "spatial_representation_type": [
+   "grid"
+  ],
+  "state": "active",
+  "status": "completed",
+  "subject": [
+   "form_descriptors"
+  ],
+  "time_period_coverage_end": "1976-01-01 00:00:00",
+  "time_period_coverage_start": "1954-01-01 00:00:00",
+  "title": "Temporal Series of the National Air Photo Library (NAPL) - Ring of Fire, Ontario (1954-1976)",
+  "title_translated": {
+   "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Cercle de feu, Ontario (1954-1976)",
+   "en": "Temporal Series of the National Air Photo Library (NAPL) - Ring of Fire, Ontario (1954-1976)"
+  },
+  "topic_category": [
+   "imagery_base_maps_earth_cover"
+  ],
+  "type": "dataset",
+  "url": null,
+  "version": null,
+  "resources": [
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:31.954755",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "5cf5e628-1e25-42b7-bdf1-f888ff80783b",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:31.914571",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1954 - Orthophoto Mosaic of the Ring of Fire, Ontario (200 cm)",
+    "name_translated": {
+     "fr": "1954 - Mosa\u00efque d'orthophoto du Cercle de feu, Ontario (200 cm)",
+     "en": "1954 - Orthophoto Mosaic of the Ring of Fire, Ontario (200 cm)"
+    },
+    "package_id": "ed9b204b-590c-4b17-9703-f6e167acd6c6",
+    "position": 0,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-ring-of-fire/napl-ring-of-fire-1954-08-07-60k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:31.954768",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "b3505014-4775-4684-8951-92a60c2fc092",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:31.914825",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1976 - Orthophoto Mosaic of the Ring of Fire, Ontario (200 cm)",
+    "name_translated": {
+     "fr": "1976 - Mosa\u00efque d'orthophoto du Cercle de feu, Ontario (200 cm)",
+     "en": "1976 - Orthophoto Mosaic of the Ring of Fire, Ontario (200 cm)"
+    },
+    "package_id": "ed9b204b-590c-4b17-9703-f6e167acd6c6",
+    "position": 1,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-ring-of-fire/napl-ring-of-fire-1976-07-16-60k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:31.954773",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "b99eea9c-4ef8-415a-bd2f-47bc491e27c5",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:31.915007",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Ring of Fire, Ontario (1954-1976)",
+    "name_translated": {
+     "fr": "Visualisateur de s\u00e9ries temporelles de la PNA - Cercle de feu, Ontario (1954-1976)",
+     "en": "Web Viewer of NAPL Temporal Series - Ring of Fire, Ontario (1954-1976)"
+    },
+    "package_id": "ed9b204b-590c-4b17-9703-f6e167acd6c6",
+    "position": 2,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/en/viewer/napl/ontario-ring-of-fire/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:31.954777",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "a3818655-426d-4e4c-823a-fee045a83154",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:31.915185",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Ring of Fire, Ontario (1954-1976)",
+    "name_translated": {
+     "fr": "Visualisateur de s\u00e9ries temporelles de la PNA - Cercle de feu, Ontario (1954-1976)",
+     "en": "Web Viewer of NAPL Temporal Series - Ring of Fire, Ontario (1954-1976)"
+    },
+    "package_id": "ed9b204b-590c-4b17-9703-f6e167acd6c6",
+    "position": 3,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/fr/viewer/napl/ontario-ring-of-fire/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:31.954781",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "373cd3c2-40b1-42b6-9b9b-6b13487225c7",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:31.915360",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Ring of Fire, Ontario (1954-1976)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Cercle de feu, Ontario (1954-1976)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Ring of Fire, Ontario (1954-1976)"
+    },
+    "package_id": "ed9b204b-590c-4b17-9703-f6e167acd6c6",
+    "position": 4,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-ontario-ring-of-fire.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=ontario-ring-of-fire&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:31.954784",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "796782e5-65b4-4b42-ade9-24f51589f733",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:31.915532",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Ring of Fire, Ontario (1954-1976)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Cercle de feu, Ontario (1954-1976)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Ring of Fire, Ontario (1954-1976)"
+    },
+    "package_id": "ed9b204b-590c-4b17-9703-f6e167acd6c6",
+    "position": 5,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-ontario-ring-of-fire.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=ontario-ring-of-fire&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:31.954788",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WCS",
+    "hash": "",
+    "id": "49575c4b-b846-463d-8fa8-698995ce6c51",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:31.915723",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions",
+    "name_translated": {
+     "fr": "Service Web de couverture (WCS) pour les S\u00e9ries temporelles de la phototh\u00e9que nationale de l'air (PNA) pour des r\u00e9gions cibl\u00e9es",
+     "en": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions"
+    },
+    "package_id": "ed9b204b-590c-4b17-9703-f6e167acd6c6",
+    "position": 6,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/ows/aerial?service=WCS&request=GetCapabilities",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:31.954791",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "JSON",
+    "hash": "",
+    "id": "88fbbb34-1075-4d2c-92ba-b7c882466db4",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:31.915897",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)",
+    "name_translated": {
+     "fr": "Interface de programmation (API) pour SpatioTemporal Asset Catalog (STAC)",
+     "en": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)"
+    },
+    "package_id": "ed9b204b-590c-4b17-9703-f6e167acd6c6",
+    "position": 7,
+    "resource_type": "api",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/api/collections/napl-ring-of-fire",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:31.954795",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "a345eb83-ada4-470a-9825-a592192ad64d",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:31.916070",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1973 - Orthophoto Mosaic of the Ring of Fire, Ontario (200 cm)",
+    "name_translated": {
+     "fr": "1973 - Mosa\u00efque d'orthophoto du Cercle de feu, Ontario (200 cm)",
+     "en": "1973 - Orthophoto Mosaic of the Ring of Fire, Ontario (200 cm)"
+    },
+    "package_id": "ed9b204b-590c-4b17-9703-f6e167acd6c6",
+    "position": 8,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-ring-of-fire/napl-ring-of-fire-1973-06-28-60k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:31.954799",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "71c78d7a-a159-4f20-91b8-2983f265c84c",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:31.916348",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1974 - Orthophoto Mosaic of the Ring of Fire, Ontario (200 cm)",
+    "name_translated": {
+     "fr": "1974 - Mosa\u00efque d'orthophoto du Cercle de feu, Ontario (200 cm)",
+     "en": "1974 - Orthophoto Mosaic of the Ring of Fire, Ontario (200 cm)"
+    },
+    "package_id": "ed9b204b-590c-4b17-9703-f6e167acd6c6",
+    "position": 9,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-ring-of-fire/napl-ring-of-fire-1974-08-19-60k-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:31.954802",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "e8c72c11-163a-4c72-bc15-61a3ee9b6356",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:31.916686",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1975 - Orthophoto Mosaic of the Ring of Fire, Ontario (150 cm)",
+    "name_translated": {
+     "fr": "1975 - Mosa\u00efque d'orthophoto du Cercle de feu, Ontario (150 cm)",
+     "en": "1975 - Orthophoto Mosaic of the Ring of Fire, Ontario (150 cm)"
+    },
+    "package_id": "ed9b204b-590c-4b17-9703-f6e167acd6c6",
+    "position": 10,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-ring-of-fire/napl-ring-of-fire-1975-06-20-50k-mosaic.tif",
+    "url_type": null
+   }
+  ],
+  "tags": [],
+  "groups": [],
+  "relationships_as_subject": [],
+  "relationships_as_object": []
+ },
+ {
+  "aggregate_identifier": "",
+  "association_type": [],
+  "audience": [],
+  "author": null,
+  "author_email": null,
+  "collection": "fgp",
+  "contact_information": "{\"en\": {\"delivery_point\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}, \"fr\": {\"point_de_livraison\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}}",
+  "contributor": {},
+  "creator": "",
+  "creator_user_id": "b88b9549-3a4b-43a9-9375-5f3fc20fe782",
+  "data_series_issue_identification": {},
+  "data_series_name": {},
+  "date_published": "2021-03-31 00:00:00",
+  "display_flags": [
+   "fgp_viewer"
+  ],
+  "distributor": "{\"en\": {\"organization_name\": \"Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector\", \"phone\": \"1-800-661-2638\", \"address\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}, \"fr\": {\"nom_organization\": \"Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\\u00e9gique et de l\\u2019innovation\", \"telephone\": \"1-800-661-2638\", \"adresse\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}}",
+  "file_id": "d8627209-bda2-436f-b22b-0eb19fdc6660",
+  "frequency": "not_planned",
+  "geographic_region": [],
+  "hierarchy_level": "dataset; jeuDonn\u00e9es",
+  "id": "d8627209-bda2-436f-b22b-0eb19fdc6660",
+  "imso_approval": "true",
+  "isopen": false,
+  "jurisdiction": "federal",
+  "keywords": {
+   "fr": [
+    "Mosa\u00efque",
+    "Photographie a\u00e9rienne",
+    "T\u00e9l\u00e9d\u00e9tection",
+    "Acc\u00e8s \u00e0 l'information"
+   ],
+   "en": [
+    "Mosaic",
+    "Aerial photography",
+    "Remote sensing",
+    "Access to information"
+   ]
+  },
+  "license_id": "ca-ogl-lgo",
+  "license_title": "Open Government Licence - Canada",
+  "license_url": "https://open.canada.ca/en/open-government-licence-canada",
+  "maintainer": null,
+  "maintainer_contact_form": {},
+  "maintainer_email": "napl-pna@nrcan-rncan.gc.ca",
+  "metadata_contact": {
+   "fr": "Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\u00e9gique et de l\u2019innovation,geoinfo@nrcan-rncan.gc.ca",
+   "en": "Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector,1-800-661-2638,geoinfo@nrcan-rncan.gc.ca"
+  },
+  "metadata_created": "2022-04-14T13:11:14.011755",
+  "metadata_modified": "2024-02-20T22:33:30.696699",
+  "name": "d8627209-bda2-436f-b22b-0eb19fdc6660",
+  "notes": "Note: To visualize the data in the viewer, zoom into the area of interest.   \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistrated. For this dataset, the spatial resolutions are: 100 cm for the year 1932 and 50 cm for the year 1950.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived products managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html",
+  "notes_translated": {
+   "fr": "Note : Pour visualiser les donn\u00e9es dans l\u2019outil de visualisation, zoomez sur la r\u00e9gion d'int\u00e9r\u00eat.   \n  \n  La Phototh\u00e8que nationale de l'air (PNA) de Ressources naturelles Canada repr\u00e9sente une archive de plus de 6 millions de photographies a\u00e9riennes couvrant l'ensemble du Canada, dont certaines remontent aux ann\u00e9es 1920.  \n  \n  Cette collection comprend des s\u00e9ries temporelles de mosa\u00efques d'orthophotos a\u00e9riennes pour une s\u00e9lection de grandes villes ou de zones cibl\u00e9es qui permettent d'observer les divers changements survenus au fil du temps dans ces r\u00e9gions.  \n  \n  Ces mosa\u00efques sont diffus\u00e9es par l'entremise de la plateforme du cube de donn\u00e9es mise en \u0153uvre par RNCan \u00e0 l'aide de technologies de gestion de m\u00e9gadonn\u00e9es g\u00e9ospatiales. Ces technologies permettent la visualisation rapide et efficace de donn\u00e9es g\u00e9ospatiales \u00e0 haute r\u00e9solution et la g\u00e9n\u00e9ration de produits d\u00e9riv\u00e9s de fa\u00e7on dynamique. Les donn\u00e9es sont disponibles en format Cloud Optimized GeoTIFF (COG) pour un acc\u00e8s direct et sous forme de services Web Map Services (WMS) ou Web Coverage Services (WCS) avec une dimension temporelle pour une utilisation dans des applications Web ou SIG.  \n  \n  Les mosa\u00efques de la PNA sont r\u00e9alis\u00e9es \u00e0 partir de la meilleure r\u00e9solution spatiale disponible pour chaque p\u00e9riode de temps, ce qui signifie que les orthophotos composant une s\u00e9rie temporelle PNA ne sont pas n\u00e9cessairement align\u00e9es. Pour ce jeu de donn\u00e9es, les r\u00e9solutions spatiales sont : 100 cm pour l'ann\u00e9e 1932 et 50 cm pour l'ann\u00e9e 1950.  \n  \n  La PNA conserve et g\u00e8re les photographies a\u00e9riennes f\u00e9d\u00e9rales pour le Canada, et maintient des archives historiques compl\u00e8tes et un centre de r\u00e9f\u00e9rence public. L'application en ligne du Syst\u00e8me de gestion des donn\u00e9es d'observation de la Terre (SGDOT) permet aux clients de rechercher et d'extraire des m\u00e9tadonn\u00e9es pour plus de 3 millions de photos a\u00e9riennes provenant de cette collection.  \n  \n  L'application en ligne SGDOT permet aux utilisateurs publics et gouvernementaux de rechercher et de commander des images brutes d'observation de la Terre du gouvernement du Canada et des produits archiv\u00e9s g\u00e9r\u00e9s par RNCan tels que des photos a\u00e9riennes et des images satellites. Pour acc\u00e9der aux photos a\u00e9riennes, vous pouvez visiter le site Web du SGDOT : https://eodms-sgdot.nrcan-rncan.gc.ca/index-fr.html",
+   "en": "Note: To visualize the data in the viewer, zoom into the area of interest.   \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistrated. For this dataset, the spatial resolutions are: 100 cm for the year 1932 and 50 cm for the year 1950.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived products managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html"
+  },
+  "num_resources": 8,
+  "num_tags": 0,
+  "org_section": {},
+  "org_title_at_publication": {
+   "fr": "Ressources naturelles Canada",
+   "en": "Natural Resources Canada"
+  },
+  "organization": {
+   "id": "9391E0A2-9717-4755-B548-4499C21F917B",
+   "name": "nrcan-rncan",
+   "title": "Natural Resources Canada | Ressources naturelles Canada",
+   "type": "organization",
+   "description": "",
+   "image_url": "",
+   "created": "2016-09-23T17:25:46.737130",
+   "is_organization": true,
+   "approval_status": "approved",
+   "state": "active"
+  },
+  "owner_org": "9391E0A2-9717-4755-B548-4499C21F917B",
+  "parent_id": "114417c3-41a4-4cf7-8acd-2eb9d16c97f3",
+  "place_of_publication": [],
+  "position_name": {
+   "en": ""
+  },
+  "private": false,
+  "program_page_url": {},
+  "ready_to_publish": "true",
+  "responsible_role": "RI_414",
+  "restrictions": "unrestricted",
+  "spatial": "{\"type\": \"Polygon\", \"coordinates\": [[[-123.43974084, 48.39264465], [-123.27593578, 48.39264465], [-123.27593578, 48.47926805], [-123.43974084, 48.47926805], [-123.43974084, 48.39264465]]]}",
+  "spatial_representation_type": [
+   "grid"
+  ],
+  "state": "active",
+  "status": "completed",
+  "subject": [
+   "form_descriptors"
+  ],
+  "time_period_coverage_end": "1950-01-01 00:00:00",
+  "time_period_coverage_start": "1932-01-01 00:00:00",
+  "title": "Temporal Series of the National Air Photo Library (NAPL) - Victoria, British Columbia (1932-1950)",
+  "title_translated": {
+   "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Victoria, Colombie-Britannique (1932-1950)",
+   "en": "Temporal Series of the National Air Photo Library (NAPL) - Victoria, British Columbia (1932-1950)"
+  },
+  "topic_category": [
+   "imagery_base_maps_earth_cover"
+  ],
+  "type": "dataset",
+  "url": null,
+  "version": null,
+  "resources": [
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:30.805172",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "fdebb7ce-793d-4026-8bdf-4754aed43419",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:30.715499",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1932 - Orthophoto Mosaic of Victoria, British Columbia (100 cm)",
+    "name_translated": {
+     "fr": "1932 - Mosa\u00efque d'orthophoto de Victoria, Colombie-Britannique (100 cm)",
+     "en": "1932 - Orthophoto Mosaic of Victoria, British Columbia (100 cm)"
+    },
+    "package_id": "d8627209-bda2-436f-b22b-0eb19fdc6660",
+    "position": 0,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-victoria/napl-victoria-1932-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:30.805182",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "3a67e1f9-84ea-43d5-8442-43cf411eab3c",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:30.715939",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1950 - Orthophoto Mosaic of Victoria, British Columbia (50 cm)",
+    "name_translated": {
+     "fr": "1950 - Mosa\u00efque d'orthophoto de Victoria, Colombie-Britannique (50 cm)",
+     "en": "1950 - Orthophoto Mosaic of Victoria, British Columbia (50 cm)"
+    },
+    "package_id": "d8627209-bda2-436f-b22b-0eb19fdc6660",
+    "position": 1,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-victoria/napl-victoria-1950-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:30.805186",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "8ad47630-88d4-4402-8793-46ef6798e004",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:30.716314",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Victoria, British Columbia (1932-1950)",
+    "name_translated": {
+     "fr": "Visualisateur de s\u00e9ries temporelles de la PNA - Victoria, Colombie-Britannique (1932-1950)",
+     "en": "Web Viewer of NAPL Temporal Series - Victoria, British Columbia (1932-1950)"
+    },
+    "package_id": "d8627209-bda2-436f-b22b-0eb19fdc6660",
+    "position": 2,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/en/viewer/napl/victoria/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:30.805188",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "803bb2ba-bfa3-466d-9f9d-32c43380dd2b",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:30.716689",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Victoria, British Columbia (1932-1950)",
+    "name_translated": {
+     "fr": "Visualisateur de s\u00e9ries temporelles de la PNA - Victoria, Colombie-Britannique (1932-1950)",
+     "en": "Web Viewer of NAPL Temporal Series - Victoria, British Columbia (1932-1950)"
+    },
+    "package_id": "d8627209-bda2-436f-b22b-0eb19fdc6660",
+    "position": 3,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/fr/viewer/napl/victoria/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:30.805191",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "7669f545-52a0-4a65-a05a-adb64bd55190",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:30.717061",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Victoria, British Columbia (1932-1950)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Victoria, Colombie-Britannique (1932-1950)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Victoria, British Columbia (1932-1950)"
+    },
+    "package_id": "d8627209-bda2-436f-b22b-0eb19fdc6660",
+    "position": 4,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-victoria.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=victoria&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:30.805194",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "b0698f28-52cb-4e73-b695-a4c63286d1fc",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:30.717413",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Victoria, British Columbia (1932-1950)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Victoria, Colombie-Britannique (1932-1950)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Victoria, British Columbia (1932-1950)"
+    },
+    "package_id": "d8627209-bda2-436f-b22b-0eb19fdc6660",
+    "position": 5,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-victoria.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=victoria&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:30.805196",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WCS",
+    "hash": "",
+    "id": "21c653da-39ea-4668-9425-bd0eef41e799",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:30.717778",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions",
+    "name_translated": {
+     "fr": "Service Web de couverture (WCS) pour les S\u00e9ries temporelles de la phototh\u00e9que nationale de l'air (PNA) pour des r\u00e9gions cibl\u00e9es",
+     "en": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions"
+    },
+    "package_id": "d8627209-bda2-436f-b22b-0eb19fdc6660",
+    "position": 6,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/ows/aerial?service=wcs&request=GetCapabilities",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:30.805199",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "JSON",
+    "hash": "",
+    "id": "347d5a11-de0a-4a6f-9f74-5e83a8e7eb7d",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:30.718130",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)",
+    "name_translated": {
+     "fr": "Interface de programmation (API) pour SpatioTemporal Asset Catalog (STAC)",
+     "en": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)"
+    },
+    "package_id": "d8627209-bda2-436f-b22b-0eb19fdc6660",
+    "position": 7,
+    "resource_type": "api",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/api/collections/napl-victoria/items",
+    "url_type": null
+   }
+  ],
+  "tags": [],
+  "groups": [],
+  "relationships_as_subject": [],
+  "relationships_as_object": []
+ },
+ {
+  "aggregate_identifier": "",
+  "association_type": [],
+  "audience": [],
+  "author": null,
+  "author_email": null,
+  "collection": "fgp",
+  "contact_information": "{\"en\": {\"delivery_point\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}, \"fr\": {\"point_de_livraison\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}}",
+  "contributor": {},
+  "creator": "",
+  "creator_user_id": "b88b9549-3a4b-43a9-9375-5f3fc20fe782",
+  "data_series_issue_identification": {},
+  "data_series_name": {},
+  "date_published": "2022-01-31 00:00:00",
+  "display_flags": [
+   "fgp_viewer"
+  ],
+  "distributor": "{\"en\": {\"organization_name\": \"Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector\", \"phone\": \"1-800-661-2638\", \"address\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}, \"fr\": {\"nom_organization\": \"Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\\u00e9gique et de l\\u2019innovation\", \"telephone\": \"1-800-661-2638\", \"adresse\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}}",
+  "file_id": "f129611d-7ca1-418b-8390-ebac5adf958e",
+  "frequency": "not_planned",
+  "geographic_region": [],
+  "hierarchy_level": "dataset; jeuDonn\u00e9es",
+  "id": "f129611d-7ca1-418b-8390-ebac5adf958e",
+  "imso_approval": "true",
+  "isopen": false,
+  "jurisdiction": "federal",
+  "keywords": {
+   "fr": [
+    "Mosa\u00efque",
+    "Acc\u00e8s public",
+    "T\u00e9l\u00e9d\u00e9tection",
+    "Acc\u00e8s \u00e0 l'information",
+    "Photographie a\u00e9rienne"
+   ],
+   "en": [
+    "Mosaic",
+    "Public access",
+    "Remote sensing",
+    "Access to information",
+    "Aerial photography"
+   ]
+  },
+  "license_id": "ca-ogl-lgo",
+  "license_title": "Open Government Licence - Canada",
+  "license_url": "https://open.canada.ca/en/open-government-licence-canada",
+  "maintainer": null,
+  "maintainer_contact_form": {},
+  "maintainer_email": "napl-pna@nrcan-rncan.gc.ca",
+  "metadata_contact": {
+   "fr": "Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\u00e9gique et de l\u2019innovation,geoinfo@nrcan-rncan.gc.ca",
+   "en": "Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector,1-800-661-2638,geoinfo@nrcan-rncan.gc.ca"
+  },
+  "metadata_created": "2022-04-14T13:11:30.368282",
+  "metadata_modified": "2024-02-20T22:33:36.379708",
+  "name": "f129611d-7ca1-418b-8390-ebac5adf958e",
+  "notes": "Note: To visualize the data in the viewer, zoom into the area of interest.   \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistrated. For this dataset, the spatial resolutions are: 25 cm for the year 1950, 75 cm for the year 1960, 50 cm for the year 1964, 75 cm for the year 1973, 75 cm for the year 1994 and 50 cm for the year 2001.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived products managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html",
+  "notes_translated": {
+   "fr": "Note : Pour visualiser les donn\u00e9es dans l\u2019outil de visualisation, zoomez sur la r\u00e9gion d'int\u00e9r\u00eat.  \n  \n  La Phototh\u00e8que nationale de l'air (PNA) de Ressources naturelles Canada repr\u00e9sente une archive de plus de 6 millions de photographies a\u00e9riennes couvrant l'ensemble du Canada, dont certaines remontent aux ann\u00e9es 1920.  \n  \n  Cette collection comprend des s\u00e9ries temporelles de mosa\u00efques d'orthophotos a\u00e9riennes pour une s\u00e9lection de grandes villes ou de zones cibl\u00e9es qui permettent d'observer les divers changements survenus au fil du temps dans ces r\u00e9gions.  \n  \n  Ces mosa\u00efques sont diffus\u00e9es par l'entremise de la plateforme du cube de donn\u00e9es mise en \u0153uvre par RNCan \u00e0 l'aide de technologies de gestion de m\u00e9gadonn\u00e9es g\u00e9ospatiales. Ces technologies permettent la visualisation rapide et efficace de donn\u00e9es g\u00e9ospatiales \u00e0 haute r\u00e9solution et la g\u00e9n\u00e9ration de produits d\u00e9riv\u00e9s de fa\u00e7on dynamique. Les donn\u00e9es sont disponibles en format Cloud Optimized GeoTIFF (COG) pour un acc\u00e8s direct et sous forme de services Web Map Services (WMS) ou Web Coverage Services (WCS) avec une dimension temporelle pour une utilisation dans des applications Web ou SIG.  \n  \n  Les mosa\u00efques de la PNA sont r\u00e9alis\u00e9es \u00e0 partir de la meilleure r\u00e9solution spatiale disponible pour chaque p\u00e9riode de temps, ce qui signifie que les orthophotos composant une s\u00e9rie temporelle PNA ne sont pas n\u00e9cessairement align\u00e9es. Pour ce jeu de donn\u00e9es, les r\u00e9solutions spatiales sont : 25 cm pour l'ann\u00e9e 1950, 75 cm pour l'ann\u00e9e 1960, 50 cm pour l'ann\u00e9e 1964, 75 cm pour l'ann\u00e9e 1973, 75 cm pour l'ann\u00e9e 1994 et 50 cm pour l'ann\u00e9e 2001.  \n  \n  La PNA conserve et g\u00e8re les photographies a\u00e9riennes f\u00e9d\u00e9rales pour le Canada, et maintient des archives historiques compl\u00e8tes et un centre de r\u00e9f\u00e9rence public. L'application en ligne du Syst\u00e8me de gestion des donn\u00e9es d'observation de la Terre (SGDOT) permet aux clients de rechercher et d'extraire des m\u00e9tadonn\u00e9es pour plus de 3 millions de photos a\u00e9riennes provenant de cette collection.  \n  \n  L'application en ligne SGDOT permet aux utilisateurs publics et gouvernementaux de rechercher et de commander des images brutes d'observation de la Terre du gouvernement du Canada et des produits archiv\u00e9s g\u00e9r\u00e9s par RNCan tels que des photos a\u00e9riennes et des images satellites. Pour acc\u00e9der aux photos a\u00e9riennes, vous pouvez visiter le site Web du SGDOT : https://eodms-sgdot.nrcan-rncan.gc.ca/index-fr.html.",
+   "en": "Note: To visualize the data in the viewer, zoom into the area of interest.   \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistrated. For this dataset, the spatial resolutions are: 25 cm for the year 1950, 75 cm for the year 1960, 50 cm for the year 1964, 75 cm for the year 1973, 75 cm for the year 1994 and 50 cm for the year 2001.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived products managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html"
+  },
+  "num_resources": 12,
+  "num_tags": 0,
+  "org_section": {},
+  "org_title_at_publication": {
+   "fr": "Ressources naturelles Canada",
+   "en": "Natural Resources Canada"
+  },
+  "organization": {
+   "id": "9391E0A2-9717-4755-B548-4499C21F917B",
+   "name": "nrcan-rncan",
+   "title": "Natural Resources Canada | Ressources naturelles Canada",
+   "type": "organization",
+   "description": "",
+   "image_url": "",
+   "created": "2016-09-23T17:25:46.737130",
+   "is_organization": true,
+   "approval_status": "approved",
+   "state": "active"
+  },
+  "owner_org": "9391E0A2-9717-4755-B548-4499C21F917B",
+  "parent_id": "114417c3-41a4-4cf7-8acd-2eb9d16c97f3",
+  "place_of_publication": [],
+  "position_name": {
+   "en": ""
+  },
+  "private": false,
+  "program_page_url": {},
+  "ready_to_publish": "true",
+  "responsible_role": "RI_414",
+  "restrictions": "unrestricted",
+  "spatial": "{\"type\": \"Polygon\", \"coordinates\": [[[-76.40786773, 45.19823008], [-74.42505492, 45.19823008], [-74.42505492, 45.76838351], [-76.40786773, 45.76838351], [-76.40786773, 45.19823008]]]}",
+  "spatial_representation_type": [
+   "grid"
+  ],
+  "state": "active",
+  "status": "completed",
+  "subject": [
+   "form_descriptors"
+  ],
+  "time_period_coverage_end": "2001-01-01 00:00:00",
+  "time_period_coverage_start": "1950-01-01 00:00:00",
+  "title": "Temporal Series of the National Air Photo Library (NAPL) - Ottawa River, Ontario/Quebec (1950-2001)",
+  "title_translated": {
+   "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Rivi\u00e8re des Outaouais, Ontario/Qu\u00e9bec (1950-2001)",
+   "en": "Temporal Series of the National Air Photo Library (NAPL) - Ottawa River, Ontario/Quebec (1950-2001)"
+  },
+  "topic_category": [
+   "imagery_base_maps_earth_cover"
+  ],
+  "type": "dataset",
+  "url": null,
+  "version": null,
+  "resources": [
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:36.481786",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "612c2a82-1e69-47ae-95d4-2ebf22c8051f",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:36.398228",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1950 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (25 cm)",
+    "name_translated": {
+     "fr": "1950 - Mosa\u00efque d'orthophoto de la Rivi\u00e8re des Outaouais, Ontario/Qu\u00e9bec (25 cm)",
+     "en": "1950 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (25 cm)"
+    },
+    "package_id": "f129611d-7ca1-418b-8390-ebac5adf958e",
+    "position": 0,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-ottawa/napl-ottawa-1950-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:36.481798",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "07e61c37-174e-463b-ba4c-9e28c0d10273",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:36.398526",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1960 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (75 cm)",
+    "name_translated": {
+     "fr": "1960 - Mosa\u00efque d'orthophoto de la Rivi\u00e8re des Outaouais, Ontario/Qu\u00e9bec (75 cm)",
+     "en": "1960 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (75 cm)"
+    },
+    "package_id": "f129611d-7ca1-418b-8390-ebac5adf958e",
+    "position": 1,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-ottawa/napl-ottawa-1960-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:36.481802",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "15c429ab-179e-4021-9e59-2f2255a9fafb",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:36.398824",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1964 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (50 cm)",
+    "name_translated": {
+     "fr": "1964 - Mosa\u00efque d'orthophoto de la Rivi\u00e8re des Outaouais, Ontario/Qu\u00e9bec (50 cm)",
+     "en": "1964 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (50 cm)"
+    },
+    "package_id": "f129611d-7ca1-418b-8390-ebac5adf958e",
+    "position": 2,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-ottawa/napl-ottawa-1964-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:36.481806",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "0f7b314c-adcb-4a82-8d52-6f2675952f80",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:36.399066",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1973 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (75 cm)",
+    "name_translated": {
+     "fr": "1973 - Mosa\u00efque d'orthophoto de la Rivi\u00e8re des Outaouais, Ontario/Qu\u00e9bec (75 cm)",
+     "en": "1973 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (75 cm)"
+    },
+    "package_id": "f129611d-7ca1-418b-8390-ebac5adf958e",
+    "position": 3,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-ottawa/napl-ottawa-1973-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:36.481810",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "34bdf8d5-cfc4-4902-a599-ce66c5714998",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:36.399248",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1994 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (75 cm)",
+    "name_translated": {
+     "fr": "1994 - Mosa\u00efque d'orthophoto de la Rivi\u00e8re des Outaouais, Ontario/Qu\u00e9bec (75 cm)",
+     "en": "1994 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (75 cm)"
+    },
+    "package_id": "f129611d-7ca1-418b-8390-ebac5adf958e",
+    "position": 4,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-ottawa/napl-ottawa-1994-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:36.481813",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "0942cabe-8d44-4ac4-a238-46d43aaf9e47",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:36.399546",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "2001 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (50 cm)",
+    "name_translated": {
+     "fr": "2001 - Mosa\u00efque d'orthophoto de la Rivi\u00e8re des Outaouais, Ontario/Qu\u00e9bec (50 cm)",
+     "en": "2001 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (50 cm)"
+    },
+    "package_id": "f129611d-7ca1-418b-8390-ebac5adf958e",
+    "position": 5,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-ottawa/napl-ottawa-2001-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:36.481816",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "b3915e4c-71bb-4e5b-81a7-d588f842440d",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:36.399815",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Ottawa River, Ontario/Quebec (1950-2001)",
+    "name_translated": {
+     "fr": "Visualisateur de s\u00e9ries temporelles de la PNA - Rivi\u00e8re des Outaouais, Ontario/Qu\u00e9bec (1950-2001)",
+     "en": "Web Viewer of NAPL Temporal Series - Ottawa River, Ontario/Quebec (1950-2001)"
+    },
+    "package_id": "f129611d-7ca1-418b-8390-ebac5adf958e",
+    "position": 6,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/en/viewer/napl/ottawa/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:36.481819",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "8e0c9b06-8575-499f-b536-01c1078a3b0c",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:36.400048",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Ottawa River, Ontario/Quebec (1950-2001)",
+    "name_translated": {
+     "fr": "Visualisateur de s\u00e9ries temporelles de la PNA - Rivi\u00e8re des Outaouais, Ontario/Qu\u00e9bec (1950-2001)",
+     "en": "Web Viewer of NAPL Temporal Series - Ottawa River, Ontario/Quebec (1950-2001)"
+    },
+    "package_id": "f129611d-7ca1-418b-8390-ebac5adf958e",
+    "position": 7,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/fr/viewer/napl/ottawa/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:36.481823",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "dcb5ae2d-c3c3-4b4a-82ed-77ca4b3d3666",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:36.400382",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Ottawa River, Ontario/Quebec (1950-2001)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Rivi\u00e8re des Outaouais, Ontario/Qu\u00e9bec (1950-2001)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Ottawa River, Ontario/Quebec (1950-2001)"
+    },
+    "package_id": "f129611d-7ca1-418b-8390-ebac5adf958e",
+    "position": 8,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-ottawa.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=ottawa&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:36.481826",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "a3651c54-320a-4321-aa98-db03968c83fb",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:36.400698",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Ottawa River, Ontario/Quebec (1950-2001)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - Rivi\u00e8re des Outaouais, Ontario/Qu\u00e9bec (1950-2001)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Ottawa River, Ontario/Quebec (1950-2001)"
+    },
+    "package_id": "f129611d-7ca1-418b-8390-ebac5adf958e",
+    "position": 9,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-ottawa.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=ottawa&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:36.481829",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WCS",
+    "hash": "",
+    "id": "bd5f5c47-76e6-4520-8afc-4e616abe659e",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:36.400899",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions",
+    "name_translated": {
+     "fr": "Service Web de couverture (WCS) pour les S\u00e9ries temporelles de la phototh\u00e9que nationale de l'air (PNA) pour des r\u00e9gions cibl\u00e9es",
+     "en": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions"
+    },
+    "package_id": "f129611d-7ca1-418b-8390-ebac5adf958e",
+    "position": 10,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/ows/aerial?service=wcs&request=GetCapabilities",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:36.481832",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "JSON",
+    "hash": "",
+    "id": "6ffc1c4d-1cf2-4bc5-8528-abcf3762993d",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:36.401168",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)",
+    "name_translated": {
+     "fr": "Interface de programmation (API) pour SpatioTemporal Asset Catalog (STAC)",
+     "en": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)"
+    },
+    "package_id": "f129611d-7ca1-418b-8390-ebac5adf958e",
+    "position": 11,
+    "resource_type": "api",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/api/collections/napl-ottawa/items",
+    "url_type": null
+   }
+  ],
+  "tags": [],
+  "groups": [],
+  "relationships_as_subject": [],
+  "relationships_as_object": []
+ },
+ {
+  "aggregate_identifier": "",
+  "association_type": [],
+  "audience": [],
+  "author": null,
+  "author_email": null,
+  "collection": "fgp",
+  "contact_information": "{\"en\": {\"delivery_point\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}, \"fr\": {\"point_de_livraison\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"napl-pna@nrcan-rncan.gc.ca\"}}",
+  "contributor": {},
+  "creator": "",
+  "creator_user_id": "b88b9549-3a4b-43a9-9375-5f3fc20fe782",
+  "data_series_issue_identification": {},
+  "data_series_name": {},
+  "date_published": "2021-03-31 00:00:00",
+  "display_flags": [
+   "fgp_viewer"
+  ],
+  "distributor": "{\"en\": {\"organization_name\": \"Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector\", \"phone\": \"1-800-661-2638\", \"address\": \"\", \"city\": \"\", \"administrative_area\": \"\", \"postal_code\": \"\", \"country\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}, \"fr\": {\"nom_organization\": \"Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\\u00e9gique et de l\\u2019innovation\", \"telephone\": \"1-800-661-2638\", \"adresse\": \"\", \"zone_administrative\": \"\", \"pays\": \"\", \"electronic_mail_address\": \"geoinfo@nrcan-rncan.gc.ca\"}}",
+  "file_id": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+  "frequency": "not_planned",
+  "geographic_region": [],
+  "hierarchy_level": "dataset; jeuDonn\u00e9es",
+  "id": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+  "imso_approval": "true",
+  "isopen": false,
+  "jurisdiction": "federal",
+  "keywords": {
+   "fr": [
+    "Mosa\u00efque",
+    "Acc\u00e8s \u00e0 l'information",
+    "T\u00e9l\u00e9d\u00e9tection",
+    "Photographie a\u00e9rienne"
+   ],
+   "en": [
+    "Mosaic",
+    "Access to information",
+    "Remote sensing",
+    "Aerial photography"
+   ]
+  },
+  "license_id": "ca-ogl-lgo",
+  "license_title": "Open Government Licence - Canada",
+  "license_url": "https://open.canada.ca/en/open-government-licence-canada",
+  "maintainer": null,
+  "maintainer_contact_form": {},
+  "maintainer_email": "napl-pna@nrcan-rncan.gc.ca",
+  "metadata_contact": {
+   "fr": "Gouvernement du Canada;Ressources naturelles Canada;Secteur de la politique strat\u00e9gique et de l\u2019innovation,geoinfo@nrcan-rncan.gc.ca",
+   "en": "Government of Canada;Natural Resources Canada;Strategic Policy and Innovation Sector,1-800-661-2638,geoinfo@nrcan-rncan.gc.ca"
+  },
+  "metadata_created": "2022-04-14T13:11:18.288158",
+  "metadata_modified": "2024-02-20T22:33:33.061827",
+  "name": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+  "notes": "Note: To visualize the data in the viewer, zoom into the area of interest.  \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) files for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistered. For this dataset, the spatial resolutions are: 25 cm for the year 1950, 50 cm for the year 1959, 50 cm for the year 1967, 50 cm for the year 1972, 50 cm for the year 1978 and 70 cm for the year 1982.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived products managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html",
+  "notes_translated": {
+   "fr": "Note : Pour visualiser les donn\u00e9es dans l\u2019outil de visualisation, zoomez sur la r\u00e9gion d'int\u00e9r\u00eat.   \n  \n  La Phototh\u00e8que nationale de l'air (PNA) de Ressources naturelles Canada repr\u00e9sente une archive de plus de 6 millions de photographies a\u00e9riennes couvrant l'ensemble du Canada, dont certaines remontent aux ann\u00e9es 1920.  \n  \n  Cette collection comprend des s\u00e9ries temporelles de mosa\u00efques d'orthophotos a\u00e9riennes pour une s\u00e9lection de grandes villes ou de zones cibl\u00e9es qui permettent d'observer les divers changements survenus au fil du temps dans ces r\u00e9gions.  \n  \n  Ces mosa\u00efques sont diffus\u00e9es par l'entremise de la plateforme du cube de donn\u00e9es mise en \u0153uvre par RNCan \u00e0 l'aide de technologies de gestion de m\u00e9gadonn\u00e9es g\u00e9ospatiales. Ces technologies permettent la visualisation rapide et efficace de donn\u00e9es g\u00e9ospatiales \u00e0 haute r\u00e9solution et la g\u00e9n\u00e9ration de produits d\u00e9riv\u00e9s de fa\u00e7on dynamique. Les donn\u00e9es sont disponibles en fichiers de format Cloud Optimized GeoTIFF (COG) pour un acc\u00e8s direct et sous forme de services Web Map Services (WMS) ou Web Coverage Services (WCS) avec une dimension temporelle pour une utilisation dans des applications Web ou SIG.  \n  \n  Les mosa\u00efques de la PNA sont r\u00e9alis\u00e9es \u00e0 partir de la meilleure r\u00e9solution spatiale disponible pour chaque p\u00e9riode de temps, ce qui signifie que les orthophotos composant une s\u00e9rie temporelle PNA ne sont pas n\u00e9cessairement align\u00e9es. Pour ce jeu de donn\u00e9es, les r\u00e9solutions spatiales sont : 25 cm pour l'ann\u00e9e 1950, 50 cm pour l'ann\u00e9e 1959, 50 cm pour l'ann\u00e9e 1967, 50 cm pour l'ann\u00e9e 1972, 50 cm pour l'ann\u00e9e 1978 et 70 cm pour l'ann\u00e9e 1982.  \n  \n  La PNA conserve et g\u00e8re les photographies a\u00e9riennes f\u00e9d\u00e9rales pour le Canada, et maintient des archives historiques compl\u00e8tes et un centre de r\u00e9f\u00e9rence public. L'application en ligne du Syst\u00e8me de gestion des donn\u00e9es d'observation de la Terre (SGDOT) permet aux clients de rechercher et d'extraire des m\u00e9tadonn\u00e9es pour plus de 3 millions de photos a\u00e9riennes provenant de cette collection.  \n  \n  L'application en ligne SGDOT permet aux utilisateurs publics et gouvernementaux de rechercher et de commander des images brutes d'observation de la Terre du gouvernement du Canada et des produits archiv\u00e9s g\u00e9r\u00e9s par RNCan tels que des photos a\u00e9riennes et des images satellites. Pour acc\u00e9der aux photos a\u00e9riennes, vous pouvez visiter le site Web du SGDOT : https://eodms-sgdot.nrcan-rncan.gc.ca/index-fr.html.",
+   "en": "Note: To visualize the data in the viewer, zoom into the area of interest.  \n  \n  The National Air Photo Library (NAPL) of Natural Resources Canada archives over 6 million aerial photographs covering all of Canada, some of which date back to the 1920s.  \n  \n  This collection includes Time Series of aerial orthophoto mosaics over a selection of major cities or targeted areas that allow the observation of various changes that occur over time in those selected regions.  \n  \n  These mosaics are disseminated through the Data Cube Platform implemented by NRCan using geospatial big data management technologies. These technologies enable the rapid and efficient visualization of high-resolution geospatial data and allow for the rapid generation of dynamically derived products. The data is available as Cloud Optimized GeoTIFF (COG) files for direct access and as Web Map Services (WMS) or Web Coverage Services (WCS) with a temporal dimension for consumption in Web or GIS applications.    \n  \n  The NAPL mosaics are made from the best spatial resolution available for each time period, which means that the orthophotos composing a NAPL Time Series are not necessarily coregistered. For this dataset, the spatial resolutions are: 25 cm for the year 1950, 50 cm for the year 1959, 50 cm for the year 1967, 50 cm for the year 1972, 50 cm for the year 1978 and 70 cm for the year 1982.  \n  \n  The NAPL indexes and stores federal aerial photography for Canada, and maintains a comprehensive historical archive and public reference centre. The Earth Observation Data Management System (EODMS) online application allows clients to search and retrieve metadata for over 3 million out of 6 million air photos.  \n  \n  The EODMS online application enables public and government users to search and order raw Government of Canada Earth Observation images and archived products managed by NRCan such as aerial photos and satellite imagery. To access air photos, you can visit the EODMS web site: https://eodms-sgdot.nrcan-rncan.gc.ca/index-en.html"
+  },
+  "num_resources": 12,
+  "num_tags": 0,
+  "org_section": {},
+  "org_title_at_publication": {
+   "fr": "Ressources naturelles Canada",
+   "en": "Natural Resources Canada"
+  },
+  "organization": {
+   "id": "9391E0A2-9717-4755-B548-4499C21F917B",
+   "name": "nrcan-rncan",
+   "title": "Natural Resources Canada | Ressources naturelles Canada",
+   "type": "organization",
+   "description": "",
+   "image_url": "",
+   "created": "2016-09-23T17:25:46.737130",
+   "is_organization": true,
+   "approval_status": "approved",
+   "state": "active"
+  },
+  "owner_org": "9391E0A2-9717-4755-B548-4499C21F917B",
+  "parent_id": "114417c3-41a4-4cf7-8acd-2eb9d16c97f3",
+  "place_of_publication": [],
+  "position_name": {
+   "en": ""
+  },
+  "private": false,
+  "program_page_url": {},
+  "ready_to_publish": "true",
+  "responsible_role": "RI_414",
+  "restrictions": "unrestricted",
+  "spatial": "{\"type\": \"Polygon\", \"coordinates\": [[[-123.55786197, 49.00745009], [-122.28672418, 49.00745009], [-122.28672418, 49.43974122], [-123.55786197, 49.43974122], [-123.55786197, 49.00745009]]]}",
+  "spatial_representation_type": [
+   "grid"
+  ],
+  "state": "active",
+  "status": "completed",
+  "subject": [
+   "form_descriptors"
+  ],
+  "time_period_coverage_end": "1982-01-01 00:00:00",
+  "time_period_coverage_start": "1950-01-01 00:00:00",
+  "title": "Temporal Series of the National Air Photo Library (NAPL) - Salish region, British Columbia (1950-1982)",
+  "title_translated": {
+   "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - R\u00e9gion des Salish, Colombie-Britannique (1950-1982)",
+   "en": "Temporal Series of the National Air Photo Library (NAPL) - Salish region, British Columbia (1950-1982)"
+  },
+  "topic_category": [
+   "imagery_base_maps_earth_cover"
+  ],
+  "type": "dataset",
+  "url": null,
+  "version": null,
+  "resources": [
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:33.131914",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "2c1a2754-31ba-44e9-8a4a-af6fa845c579",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:33.099989",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1950 - Orthophoto Mosaic of Salish region, British Columbia (25 cm)",
+    "name_translated": {
+     "fr": "1950 - Mosa\u00efque d'orthophoto de la r\u00e9gion des Salish, Colombie-Britannique (25 cm)",
+     "en": "1950 - Orthophoto Mosaic of Salish region, British Columbia (25 cm)"
+    },
+    "package_id": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+    "position": 0,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-salish/napl-salish-1950-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:33.131922",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "18ce8c79-ee6e-46ae-ad43-b39afa58457d",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:33.100231",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1959 - Orthophoto Mosaic of Salish region, British Columbia (50 cm)",
+    "name_translated": {
+     "fr": "1959 - Mosa\u00efque d'orthophoto de la r\u00e9gion des Salish, Colombie-Britannique (50 cm)",
+     "en": "1959 - Orthophoto Mosaic of Salish region, British Columbia (50 cm)"
+    },
+    "package_id": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+    "position": 1,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-salish/napl-salish-1959-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:33.131925",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "adfbe406-40ff-46ca-aae9-511e993c1991",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:33.100433",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Salish region, British Columbia (1950-1982)",
+    "name_translated": {
+     "fr": "Visualisateur de s\u00e9ries temporelles de la PNA - R\u00e9gion des Salish, Colombie-Britannique (1950-1982)",
+     "en": "Web Viewer of NAPL Temporal Series - Salish region, British Columbia (1950-1982)"
+    },
+    "package_id": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+    "position": 2,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/en/viewer/napl/salish/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:33.131927",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "HTML",
+    "hash": "",
+    "id": "29b2d428-1679-48ad-b0d3-7752e0ac36e0",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:33.100637",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Viewer of NAPL Temporal Series - Salish region, British Columbia (1950-1982)",
+    "name_translated": {
+     "fr": "Vsualisateur de s\u00e9ries temporelles de la PNA - R\u00e9gion des Salish, Colombie-Britannique (1950-1982)",
+     "en": "Web Viewer of NAPL Temporal Series - Salish region, British Columbia (1950-1982)"
+    },
+    "package_id": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+    "position": 3,
+    "resource_type": "application",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/fr/viewer/napl/salish/index.html",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:33.131929",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "886fc9a0-3648-4515-ab8d-786309476369",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:33.100823",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1967 - Orthophoto Mosaic of Salish region, British Columbia (50 cm)",
+    "name_translated": {
+     "fr": "1967 - Mosa\u00efque d'orthophoto de la r\u00e9gion des Salish, Colombie-Britannique (50 cm)",
+     "en": "1967 - Orthophoto Mosaic of Salish region, British Columbia (50 cm)"
+    },
+    "package_id": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+    "position": 4,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-salish/napl-salish-1967-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:33.131931",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "20ea6b60-8c1f-4be1-b4cb-fa70592fcfc1",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:33.101076",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1972 - Orthophoto Mosaic of Salish region, British Columbia (50 cm)",
+    "name_translated": {
+     "fr": "1972 - Mosa\u00efque d'orthophoto de la r\u00e9gion des Salish, Colombie-Britannique (50 cm)",
+     "en": "1972 - Orthophoto Mosaic of Salish region, British Columbia (50 cm)"
+    },
+    "package_id": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+    "position": 5,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-salish/napl-salish-1972-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:33.131933",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "aac3f9dc-06a3-4d42-a419-c169076c6c2c",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:33.101280",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1978 - Orthophoto Mosaic of Salish region, British Columbia (50 cm)",
+    "name_translated": {
+     "fr": "1978 - Mosa\u00efque d'orthophoto de la r\u00e9gion des Salish, Colombie-Britannique (50 cm)",
+     "en": "1978 - Orthophoto Mosaic of Salish region, British Columbia (50 cm)"
+    },
+    "package_id": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+    "position": 6,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-salish/napl-salish-1978-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:33.131934",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "GeoTIF",
+    "hash": "",
+    "id": "28342114-fa16-4b0a-9adb-42e83bcb8de7",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:33.101457",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "1982 - Orthophoto Mosaic of Salish region, British Columbia (70 cm)",
+    "name_translated": {
+     "fr": "1982 - Mosa\u00efque d'orthophoto de la r\u00e9gion des Salish, Colombie-Britannique (70 cm)",
+     "en": "1982 - Orthophoto Mosaic of Salish region, British Columbia (70 cm)"
+    },
+    "package_id": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+    "position": 7,
+    "resource_type": "dataset",
+    "state": "active",
+    "url": "https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-salish/napl-salish-1982-mosaic.tif",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:33.131936",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "JSON",
+    "hash": "",
+    "id": "a7377705-1989-4dac-a711-b20fdd911ea0",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:33.101649",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)",
+    "name_translated": {
+     "fr": "Interface de programmation (API) pour SpatioTemporal Asset Catalog (STAC)",
+     "en": "SpatioTemporal Asset Catalog (STAC) Application Programming Interface (API)"
+    },
+    "package_id": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+    "position": 8,
+    "resource_type": "api",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/api/collections/napl-salish/items",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:33.131938",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "e3d665a7-d2ea-4c30-a45d-6bf90093dd1a",
+    "language": [
+     "en"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:33.101826",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Salish Region, British Columbia (1950-1982)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - R\u00e9gion des Salish, Colombie-Britannique (1950-1982)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Salish Region, British Columbia (1950-1982)"
+    },
+    "package_id": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+    "position": 9,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-salish.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=salish&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:33.131940",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WMS",
+    "hash": "",
+    "id": "889d21ab-5a78-456e-9523-a0da93b3314d",
+    "language": [
+     "fr"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:33.101998",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Temporal Series of the National Air Photo Library (NAPL) - Salish Region, British Columbia (1950-1982)",
+    "name_translated": {
+     "fr": "S\u00e9rie temporelle de la phototh\u00e8que nationale de l'air (PNA) - R\u00e9gion des Salish, Colombie-Britannique (1950-1982)",
+     "en": "Temporal Series of the National Air Photo Library (NAPL) - Salish Region, British Columbia (1950-1982)"
+    },
+    "package_id": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+    "position": 10,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/web/napl-salish.xml?request=GetCapabilities&service=WMS&version=1.3.0&layers=salish&legend_format=image%2Fpng&feature_info_type=application%2Fjson",
+    "url_type": null
+   },
+   {
+    "cache_last_updated": null,
+    "cache_url": null,
+    "created": "2024-02-20T22:33:33.131942",
+    "data_quality": [],
+    "datastore_active": false,
+    "description": null,
+    "format": "WCS",
+    "hash": "",
+    "id": "f0220012-9541-42b3-ab73-7e04cb31e0b9",
+    "language": [
+     "zxx"
+    ],
+    "last_modified": null,
+    "metadata_modified": "2024-02-20T22:33:33.102179",
+    "mimetype": null,
+    "mimetype_inner": null,
+    "name": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions",
+    "name_translated": {
+     "fr": "Service Web de couverture (WCS) pour les S\u00e9ries temporelles de la phototh\u00e9que nationale de l'air (PNA) pour des r\u00e9gions cibl\u00e9es",
+     "en": "Web Coverage Service (WCS) for Temporal Series of the National Air Photo Library (NAPL) over selected regions"
+    },
+    "package_id": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+    "position": 11,
+    "resource_type": "web_service",
+    "state": "active",
+    "url": "https://datacube.services.geo.ca/ows/aerial?service=wcs&request=GetCapabilities",
+    "url_type": null
+   }
+  ],
+  "tags": [],
+  "groups": [],
+  "relationships_as_subject": [],
+  "relationships_as_object": []
+ }
+]

@@ -1,0 +1,348 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -133.4477,
+       69.2233
+      ],
+      [
+       -132.516,
+       69.2233
+      ],
+      [
+       -132.516,
+       69.6786
+      ],
+      [
+       -133.4477,
+       69.6786
+      ],
+      [
+       -133.4477,
+       69.2233
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "region": "Tuktoyaktuk, Northwest Territories",
+    "years": [
+     "1947",
+     "1950",
+     "1966",
+     "1968",
+     "1972",
+     "1974",
+     "1978",
+     "1980",
+     "1983",
+     "1985",
+     "1987",
+     "1993",
+     "1996",
+     "2004"
+    ],
+    "dataset": "14686ac5-7f1e-400f-bb9e-4a84ed1abae7",
+    "rights": "OGL-Canada",
+    "license_id": "ca-ogl-lgo"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -79.42688988,
+       43.78121938
+      ],
+      [
+       -79.13941106,
+       43.78121938
+      ],
+      [
+       -79.13941106,
+       43.95686772
+      ],
+      [
+       -79.42688988,
+       43.95686772
+      ],
+      [
+       -79.42688988,
+       43.78121938
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "region": "Markham, Ontario",
+    "years": [
+     "1960",
+     "1974"
+    ],
+    "dataset": "230f1f6d-353e-4d02-800b-368f4c48dc86",
+    "rights": "OGL-Canada",
+    "license_id": "ca-ogl-lgo"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -63.7422255,
+       44.55538483
+      ],
+      [
+       -63.38665453,
+       44.55538483
+      ],
+      [
+       -63.38665453,
+       44.73059709
+      ],
+      [
+       -63.7422255,
+       44.73059709
+      ],
+      [
+       -63.7422255,
+       44.55538483
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "region": "Halifax, Nova Scotia",
+    "years": [
+     "1947",
+     "1977"
+    ],
+    "dataset": "4e8e3c6a-c961-4def-bdc7-f24823462818",
+    "rights": "OGL-Canada",
+    "license_id": "ca-ogl-lgo"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -104.75571511,
+       50.42392886
+      ],
+      [
+       -104.56356008,
+       50.42392886
+      ],
+      [
+       -104.56356008,
+       50.49598271
+      ],
+      [
+       -104.75571511,
+       50.49598271
+      ],
+      [
+       -104.75571511,
+       50.42392886
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "region": "Regina, Saskatchewan",
+    "years": [
+     "1947",
+     "1967"
+    ],
+    "dataset": "03ccfb5c-a06e-43e3-80fd-09d4f8f69703",
+    "rights": "OGL-Canada",
+    "license_id": "ca-ogl-lgo"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.0524,
+       51.6228
+      ],
+      [
+       -84.5772,
+       51.6228
+      ],
+      [
+       -84.5772,
+       53.8333
+      ],
+      [
+       -88.0524,
+       53.8333
+      ],
+      [
+       -88.0524,
+       51.6228
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "region": "Ring of Fire, Ontario",
+    "years": [
+     "1954",
+     "1973",
+     "1974",
+     "1975",
+     "1976"
+    ],
+    "dataset": "ed9b204b-590c-4b17-9703-f6e167acd6c6",
+    "rights": "OGL-Canada",
+    "license_id": "ca-ogl-lgo"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -123.43974084,
+       48.39264465
+      ],
+      [
+       -123.27593578,
+       48.39264465
+      ],
+      [
+       -123.27593578,
+       48.47926805
+      ],
+      [
+       -123.43974084,
+       48.47926805
+      ],
+      [
+       -123.43974084,
+       48.39264465
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "region": "Victoria, British Columbia",
+    "years": [
+     "1932",
+     "1950"
+    ],
+    "dataset": "d8627209-bda2-436f-b22b-0eb19fdc6660",
+    "rights": "OGL-Canada",
+    "license_id": "ca-ogl-lgo"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -76.40786773,
+       45.19823008
+      ],
+      [
+       -74.42505492,
+       45.19823008
+      ],
+      [
+       -74.42505492,
+       45.76838351
+      ],
+      [
+       -76.40786773,
+       45.76838351
+      ],
+      [
+       -76.40786773,
+       45.19823008
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "region": "Ottawa River, Ontario/Quebec",
+    "years": [
+     "1950",
+     "1960",
+     "1964",
+     "1973",
+     "1994",
+     "2001"
+    ],
+    "dataset": "f129611d-7ca1-418b-8390-ebac5adf958e",
+    "rights": "OGL-Canada",
+    "license_id": "ca-ogl-lgo"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -123.55786197,
+       49.00745009
+      ],
+      [
+       -122.28672418,
+       49.00745009
+      ],
+      [
+       -122.28672418,
+       49.43974122
+      ],
+      [
+       -123.55786197,
+       49.43974122
+      ],
+      [
+       -123.55786197,
+       49.00745009
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "region": "Salish region, British Columbia",
+    "years": [
+     "1950",
+     "1959",
+     "1967",
+     "1972",
+     "1978",
+     "1982"
+    ],
+    "dataset": "f498bb69-3982-4b62-94db-4c0e0065bc17",
+    "rights": "OGL-Canada",
+    "license_id": "ca-ogl-lgo"
+   }
+  }
+ ]
+}
