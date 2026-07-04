@@ -1,0 +1,846 @@
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix dctype:  <http://purl.org/dc/dcmitype/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix geo:     <http://www.opengis.net/ont/geosparql#> .
+@prefix naph:    <https://w3id.org/naph/ontology#> .
+@prefix ex:      <https://w3id.org/naph/example/napl-live/> .
+
+# =============================================================================
+# REAL NAPL records harvested from the Government of Canada open-data portal
+# (open.canada.ca CKAN API). Metadata only. Footprints are native WGS84 (no
+# reprojection). 40 dated orthophoto-mosaic slices across 8
+# NAPL Temporal Series regions, lifted to NAPH Baseline.
+# Rights: Open Government Licence - Canada (machine-readable, ca-ogl-lgo).
+# =============================================================================
+
+ex:NAPL a naph:CustodialInstitution ;
+    rdfs:label "National Air Photo Library (Natural Resources Canada)" ;
+    rdfs:seeAlso <https://natural-resources.canada.ca/maps-tools-publications/satellite-elevation-air-photos/air-photos-library> .
+
+ex:NAPLCollection a naph:Collection ;
+    rdfs:label "NAPL Temporal Series (open data)" ;
+    naph:custodian ex:NAPL .
+
+ex:rights-ogl a naph:RightsStatement ;
+    naph:rightsURI <https://open.canada.ca/en/open-government-licence-canada> ;
+    naph:rightsLabel "Open Government Licence - Canada" .
+
+# NAPL Temporal Series — Tuktoyaktuk, Northwest Territories  (dataset 14686ac5-7f1e-400f-bb9e-4a84ed1abae7)
+
+ex:sortie-Tuktoyaktuk-Northwest-Territories a naph:Sortie ;
+    naph:sortieReference "NAPL-TS/Tuktoyaktuk-Northwest-Territories" ;
+    rdfs:label "NAPL Temporal Series over Tuktoyaktuk, Northwest Territories" ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> .
+
+ex:photo-Tuktoyaktuk-Northwest-Territories-1947-0 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1947 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (50 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Tuktoyaktuk-Northwest-Territories-1947-0" ;
+    dcterms:identifier "NAPL-OpenData:14686ac5-7f1e-400f-bb9e-4a84ed1abae7" ;
+    naph:capturedOn "1947"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Tuktoyaktuk-Northwest-Territories ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Tuktoyaktuk-Northwest-Territories-1947-0 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Tuktoyaktuk-Northwest-Territories-1947-0 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-133.447700 69.223300, -132.516000 69.223300, -132.516000 69.678600, -133.447700 69.678600, -133.447700 69.223300))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Tuktoyaktuk-Northwest-Territories-2004-1 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "2004 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (50 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Tuktoyaktuk-Northwest-Territories-2004-1" ;
+    dcterms:identifier "NAPL-OpenData:14686ac5-7f1e-400f-bb9e-4a84ed1abae7" ;
+    naph:capturedOn "2004"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Tuktoyaktuk-Northwest-Territories ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Tuktoyaktuk-Northwest-Territories-2004-1 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Tuktoyaktuk-Northwest-Territories-2004-1 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-133.447700 69.223300, -132.516000 69.223300, -132.516000 69.678600, -133.447700 69.678600, -133.447700 69.223300))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Tuktoyaktuk-Northwest-Territories-1950-2 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1950 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (50 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Tuktoyaktuk-Northwest-Territories-1950-2" ;
+    dcterms:identifier "NAPL-OpenData:14686ac5-7f1e-400f-bb9e-4a84ed1abae7" ;
+    naph:capturedOn "1950"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Tuktoyaktuk-Northwest-Territories ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Tuktoyaktuk-Northwest-Territories-1950-2 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Tuktoyaktuk-Northwest-Territories-1950-2 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-133.447700 69.223300, -132.516000 69.223300, -132.516000 69.678600, -133.447700 69.678600, -133.447700 69.223300))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Tuktoyaktuk-Northwest-Territories-1966-3 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1966 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (15 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Tuktoyaktuk-Northwest-Territories-1966-3" ;
+    dcterms:identifier "NAPL-OpenData:14686ac5-7f1e-400f-bb9e-4a84ed1abae7" ;
+    naph:capturedOn "1966"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Tuktoyaktuk-Northwest-Territories ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Tuktoyaktuk-Northwest-Territories-1966-3 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Tuktoyaktuk-Northwest-Territories-1966-3 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-133.447700 69.223300, -132.516000 69.223300, -132.516000 69.678600, -133.447700 69.678600, -133.447700 69.223300))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Tuktoyaktuk-Northwest-Territories-1968-4 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1968 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Tuktoyaktuk-Northwest-Territories-1968-4" ;
+    dcterms:identifier "NAPL-OpenData:14686ac5-7f1e-400f-bb9e-4a84ed1abae7" ;
+    naph:capturedOn "1968"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Tuktoyaktuk-Northwest-Territories ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Tuktoyaktuk-Northwest-Territories-1968-4 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Tuktoyaktuk-Northwest-Territories-1968-4 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-133.447700 69.223300, -132.516000 69.223300, -132.516000 69.678600, -133.447700 69.678600, -133.447700 69.223300))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Tuktoyaktuk-Northwest-Territories-1972-5 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1972 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (15 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Tuktoyaktuk-Northwest-Territories-1972-5" ;
+    dcterms:identifier "NAPL-OpenData:14686ac5-7f1e-400f-bb9e-4a84ed1abae7" ;
+    naph:capturedOn "1972"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Tuktoyaktuk-Northwest-Territories ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Tuktoyaktuk-Northwest-Territories-1972-5 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Tuktoyaktuk-Northwest-Territories-1972-5 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-133.447700 69.223300, -132.516000 69.223300, -132.516000 69.678600, -133.447700 69.678600, -133.447700 69.223300))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Tuktoyaktuk-Northwest-Territories-1974-6 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1974 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Tuktoyaktuk-Northwest-Territories-1974-6" ;
+    dcterms:identifier "NAPL-OpenData:14686ac5-7f1e-400f-bb9e-4a84ed1abae7" ;
+    naph:capturedOn "1974"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Tuktoyaktuk-Northwest-Territories ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Tuktoyaktuk-Northwest-Territories-1974-6 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Tuktoyaktuk-Northwest-Territories-1974-6 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-133.447700 69.223300, -132.516000 69.223300, -132.516000 69.678600, -133.447700 69.678600, -133.447700 69.223300))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Tuktoyaktuk-Northwest-Territories-1978-7 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1978 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Tuktoyaktuk-Northwest-Territories-1978-7" ;
+    dcterms:identifier "NAPL-OpenData:14686ac5-7f1e-400f-bb9e-4a84ed1abae7" ;
+    naph:capturedOn "1978"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Tuktoyaktuk-Northwest-Territories ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Tuktoyaktuk-Northwest-Territories-1978-7 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Tuktoyaktuk-Northwest-Territories-1978-7 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-133.447700 69.223300, -132.516000 69.223300, -132.516000 69.678600, -133.447700 69.678600, -133.447700 69.223300))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Tuktoyaktuk-Northwest-Territories-1980-8 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1980 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Tuktoyaktuk-Northwest-Territories-1980-8" ;
+    dcterms:identifier "NAPL-OpenData:14686ac5-7f1e-400f-bb9e-4a84ed1abae7" ;
+    naph:capturedOn "1980"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Tuktoyaktuk-Northwest-Territories ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Tuktoyaktuk-Northwest-Territories-1980-8 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Tuktoyaktuk-Northwest-Territories-1980-8 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-133.447700 69.223300, -132.516000 69.223300, -132.516000 69.678600, -133.447700 69.678600, -133.447700 69.223300))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Tuktoyaktuk-Northwest-Territories-1985-9 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1985 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (15 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Tuktoyaktuk-Northwest-Territories-1985-9" ;
+    dcterms:identifier "NAPL-OpenData:14686ac5-7f1e-400f-bb9e-4a84ed1abae7" ;
+    naph:capturedOn "1985"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Tuktoyaktuk-Northwest-Territories ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Tuktoyaktuk-Northwest-Territories-1985-9 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Tuktoyaktuk-Northwest-Territories-1985-9 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-133.447700 69.223300, -132.516000 69.223300, -132.516000 69.678600, -133.447700 69.678600, -133.447700 69.223300))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Tuktoyaktuk-Northwest-Territories-1987-10 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1987 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Tuktoyaktuk-Northwest-Territories-1987-10" ;
+    dcterms:identifier "NAPL-OpenData:14686ac5-7f1e-400f-bb9e-4a84ed1abae7" ;
+    naph:capturedOn "1987"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Tuktoyaktuk-Northwest-Territories ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Tuktoyaktuk-Northwest-Territories-1987-10 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Tuktoyaktuk-Northwest-Territories-1987-10 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-133.447700 69.223300, -132.516000 69.223300, -132.516000 69.678600, -133.447700 69.678600, -133.447700 69.223300))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Tuktoyaktuk-Northwest-Territories-1993-11 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1993 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (20 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Tuktoyaktuk-Northwest-Territories-1993-11" ;
+    dcterms:identifier "NAPL-OpenData:14686ac5-7f1e-400f-bb9e-4a84ed1abae7" ;
+    naph:capturedOn "1993"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Tuktoyaktuk-Northwest-Territories ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Tuktoyaktuk-Northwest-Territories-1993-11 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Tuktoyaktuk-Northwest-Territories-1993-11 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-133.447700 69.223300, -132.516000 69.223300, -132.516000 69.678600, -133.447700 69.678600, -133.447700 69.223300))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Tuktoyaktuk-Northwest-Territories-1993-12 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1993 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Tuktoyaktuk-Northwest-Territories-1993-12" ;
+    dcterms:identifier "NAPL-OpenData:14686ac5-7f1e-400f-bb9e-4a84ed1abae7" ;
+    naph:capturedOn "1993"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Tuktoyaktuk-Northwest-Territories ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Tuktoyaktuk-Northwest-Territories-1993-12 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Tuktoyaktuk-Northwest-Territories-1993-12 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-133.447700 69.223300, -132.516000 69.223300, -132.516000 69.678600, -133.447700 69.678600, -133.447700 69.223300))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Tuktoyaktuk-Northwest-Territories-1996-13 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1996 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (20 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Tuktoyaktuk-Northwest-Territories-1996-13" ;
+    dcterms:identifier "NAPL-OpenData:14686ac5-7f1e-400f-bb9e-4a84ed1abae7" ;
+    naph:capturedOn "1996"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Tuktoyaktuk-Northwest-Territories ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Tuktoyaktuk-Northwest-Territories-1996-13 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Tuktoyaktuk-Northwest-Territories-1996-13 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-133.447700 69.223300, -132.516000 69.223300, -132.516000 69.678600, -133.447700 69.678600, -133.447700 69.223300))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Tuktoyaktuk-Northwest-Territories-1983-14 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1983 - Orthophoto Mosaic of Tuktoyaktuk, Northwest Territories (10 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Tuktoyaktuk-Northwest-Territories-1983-14" ;
+    dcterms:identifier "NAPL-OpenData:14686ac5-7f1e-400f-bb9e-4a84ed1abae7" ;
+    naph:capturedOn "1983"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Tuktoyaktuk-Northwest-Territories ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Tuktoyaktuk-Northwest-Territories-1983-14 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/14686ac5-7f1e-400f-bb9e-4a84ed1abae7> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Tuktoyaktuk-Northwest-Territories-1983-14 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-133.447700 69.223300, -132.516000 69.223300, -132.516000 69.678600, -133.447700 69.678600, -133.447700 69.223300))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+# NAPL Temporal Series — Markham, Ontario  (dataset 230f1f6d-353e-4d02-800b-368f4c48dc86)
+
+ex:sortie-Markham-Ontario a naph:Sortie ;
+    naph:sortieReference "NAPL-TS/Markham-Ontario" ;
+    rdfs:label "NAPL Temporal Series over Markham, Ontario" ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/230f1f6d-353e-4d02-800b-368f4c48dc86> .
+
+ex:photo-Markham-Ontario-1960-0 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1960 - Orthophoto Mosaic of Markham, Ontario (75 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Markham-Ontario-1960-0" ;
+    dcterms:identifier "NAPL-OpenData:230f1f6d-353e-4d02-800b-368f4c48dc86" ;
+    naph:capturedOn "1960"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Markham-Ontario ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Markham-Ontario-1960-0 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/230f1f6d-353e-4d02-800b-368f4c48dc86> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Markham-Ontario-1960-0 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-79.426890 43.781219, -79.139411 43.781219, -79.139411 43.956868, -79.426890 43.956868, -79.426890 43.781219))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Markham-Ontario-1974-1 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1974 - Orthophoto Mosaic of Markham, Ontario (50 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Markham-Ontario-1974-1" ;
+    dcterms:identifier "NAPL-OpenData:230f1f6d-353e-4d02-800b-368f4c48dc86" ;
+    naph:capturedOn "1974"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Markham-Ontario ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Markham-Ontario-1974-1 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/230f1f6d-353e-4d02-800b-368f4c48dc86> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Markham-Ontario-1974-1 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-79.426890 43.781219, -79.139411 43.781219, -79.139411 43.956868, -79.426890 43.956868, -79.426890 43.781219))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+# NAPL Temporal Series — Halifax, Nova Scotia  (dataset 4e8e3c6a-c961-4def-bdc7-f24823462818)
+
+ex:sortie-Halifax-Nova-Scotia a naph:Sortie ;
+    naph:sortieReference "NAPL-TS/Halifax-Nova-Scotia" ;
+    rdfs:label "NAPL Temporal Series over Halifax, Nova Scotia" ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/4e8e3c6a-c961-4def-bdc7-f24823462818> .
+
+ex:photo-Halifax-Nova-Scotia-1947-0 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1947 - Orthophoto Mosaic of Halifax, Nova Scotia (100 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Halifax-Nova-Scotia-1947-0" ;
+    dcterms:identifier "NAPL-OpenData:4e8e3c6a-c961-4def-bdc7-f24823462818" ;
+    naph:capturedOn "1947"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Halifax-Nova-Scotia ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Halifax-Nova-Scotia-1947-0 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/4e8e3c6a-c961-4def-bdc7-f24823462818> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Halifax-Nova-Scotia-1947-0 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-63.742226 44.555385, -63.386655 44.555385, -63.386655 44.730597, -63.742226 44.730597, -63.742226 44.555385))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Halifax-Nova-Scotia-1977-1 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1977 - Orthophoto Mosaic of Halifax, Nova Scotia (50 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Halifax-Nova-Scotia-1977-1" ;
+    dcterms:identifier "NAPL-OpenData:4e8e3c6a-c961-4def-bdc7-f24823462818" ;
+    naph:capturedOn "1977"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Halifax-Nova-Scotia ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Halifax-Nova-Scotia-1977-1 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/4e8e3c6a-c961-4def-bdc7-f24823462818> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Halifax-Nova-Scotia-1977-1 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-63.742226 44.555385, -63.386655 44.555385, -63.386655 44.730597, -63.742226 44.730597, -63.742226 44.555385))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+# NAPL Temporal Series — Regina, Saskatchewan  (dataset 03ccfb5c-a06e-43e3-80fd-09d4f8f69703)
+
+ex:sortie-Regina-Saskatchewan a naph:Sortie ;
+    naph:sortieReference "NAPL-TS/Regina-Saskatchewan" ;
+    rdfs:label "NAPL Temporal Series over Regina, Saskatchewan" ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/03ccfb5c-a06e-43e3-80fd-09d4f8f69703> .
+
+ex:photo-Regina-Saskatchewan-1947-0 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1947 - Orthophoto Mosaic of Regina, Saskatchewan (100 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Regina-Saskatchewan-1947-0" ;
+    dcterms:identifier "NAPL-OpenData:03ccfb5c-a06e-43e3-80fd-09d4f8f69703" ;
+    naph:capturedOn "1947"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Regina-Saskatchewan ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Regina-Saskatchewan-1947-0 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/03ccfb5c-a06e-43e3-80fd-09d4f8f69703> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Regina-Saskatchewan-1947-0 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-104.755715 50.423929, -104.563560 50.423929, -104.563560 50.495983, -104.755715 50.495983, -104.755715 50.423929))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Regina-Saskatchewan-1967-1 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1967 - Orthophoto Mosaic of Regina, Saskatchewan (50 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Regina-Saskatchewan-1967-1" ;
+    dcterms:identifier "NAPL-OpenData:03ccfb5c-a06e-43e3-80fd-09d4f8f69703" ;
+    naph:capturedOn "1967"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Regina-Saskatchewan ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Regina-Saskatchewan-1967-1 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/03ccfb5c-a06e-43e3-80fd-09d4f8f69703> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Regina-Saskatchewan-1967-1 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-104.755715 50.423929, -104.563560 50.423929, -104.563560 50.495983, -104.755715 50.495983, -104.755715 50.423929))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+# NAPL Temporal Series — Ring of Fire, Ontario  (dataset ed9b204b-590c-4b17-9703-f6e167acd6c6)
+
+ex:sortie-Ring-of-Fire-Ontario a naph:Sortie ;
+    naph:sortieReference "NAPL-TS/Ring-of-Fire-Ontario" ;
+    rdfs:label "NAPL Temporal Series over Ring of Fire, Ontario" ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/ed9b204b-590c-4b17-9703-f6e167acd6c6> .
+
+ex:photo-Ring-of-Fire-Ontario-1954-0 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1954 - Orthophoto Mosaic of the Ring of Fire, Ontario (200 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Ring-of-Fire-Ontario-1954-0" ;
+    dcterms:identifier "NAPL-OpenData:ed9b204b-590c-4b17-9703-f6e167acd6c6" ;
+    naph:capturedOn "1954"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Ring-of-Fire-Ontario ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Ring-of-Fire-Ontario-1954-0 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/ed9b204b-590c-4b17-9703-f6e167acd6c6> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Ring-of-Fire-Ontario-1954-0 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-88.052400 51.622800, -84.577200 51.622800, -84.577200 53.833300, -88.052400 53.833300, -88.052400 51.622800))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Ring-of-Fire-Ontario-1976-1 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1976 - Orthophoto Mosaic of the Ring of Fire, Ontario (200 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Ring-of-Fire-Ontario-1976-1" ;
+    dcterms:identifier "NAPL-OpenData:ed9b204b-590c-4b17-9703-f6e167acd6c6" ;
+    naph:capturedOn "1976"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Ring-of-Fire-Ontario ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Ring-of-Fire-Ontario-1976-1 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/ed9b204b-590c-4b17-9703-f6e167acd6c6> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Ring-of-Fire-Ontario-1976-1 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-88.052400 51.622800, -84.577200 51.622800, -84.577200 53.833300, -88.052400 53.833300, -88.052400 51.622800))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Ring-of-Fire-Ontario-1973-2 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1973 - Orthophoto Mosaic of the Ring of Fire, Ontario (200 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Ring-of-Fire-Ontario-1973-2" ;
+    dcterms:identifier "NAPL-OpenData:ed9b204b-590c-4b17-9703-f6e167acd6c6" ;
+    naph:capturedOn "1973"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Ring-of-Fire-Ontario ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Ring-of-Fire-Ontario-1973-2 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/ed9b204b-590c-4b17-9703-f6e167acd6c6> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Ring-of-Fire-Ontario-1973-2 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-88.052400 51.622800, -84.577200 51.622800, -84.577200 53.833300, -88.052400 53.833300, -88.052400 51.622800))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Ring-of-Fire-Ontario-1974-3 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1974 - Orthophoto Mosaic of the Ring of Fire, Ontario (200 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Ring-of-Fire-Ontario-1974-3" ;
+    dcterms:identifier "NAPL-OpenData:ed9b204b-590c-4b17-9703-f6e167acd6c6" ;
+    naph:capturedOn "1974"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Ring-of-Fire-Ontario ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Ring-of-Fire-Ontario-1974-3 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/ed9b204b-590c-4b17-9703-f6e167acd6c6> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Ring-of-Fire-Ontario-1974-3 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-88.052400 51.622800, -84.577200 51.622800, -84.577200 53.833300, -88.052400 53.833300, -88.052400 51.622800))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Ring-of-Fire-Ontario-1975-4 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1975 - Orthophoto Mosaic of the Ring of Fire, Ontario (150 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Ring-of-Fire-Ontario-1975-4" ;
+    dcterms:identifier "NAPL-OpenData:ed9b204b-590c-4b17-9703-f6e167acd6c6" ;
+    naph:capturedOn "1975"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Ring-of-Fire-Ontario ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Ring-of-Fire-Ontario-1975-4 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/ed9b204b-590c-4b17-9703-f6e167acd6c6> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Ring-of-Fire-Ontario-1975-4 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-88.052400 51.622800, -84.577200 51.622800, -84.577200 53.833300, -88.052400 53.833300, -88.052400 51.622800))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+# NAPL Temporal Series — Victoria, British Columbia  (dataset d8627209-bda2-436f-b22b-0eb19fdc6660)
+
+ex:sortie-Victoria-British-Columbia a naph:Sortie ;
+    naph:sortieReference "NAPL-TS/Victoria-British-Columbia" ;
+    rdfs:label "NAPL Temporal Series over Victoria, British Columbia" ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/d8627209-bda2-436f-b22b-0eb19fdc6660> .
+
+ex:photo-Victoria-British-Columbia-1932-0 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1932 - Orthophoto Mosaic of Victoria, British Columbia (100 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Victoria-British-Columbia-1932-0" ;
+    dcterms:identifier "NAPL-OpenData:d8627209-bda2-436f-b22b-0eb19fdc6660" ;
+    naph:capturedOn "1932"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Victoria-British-Columbia ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Victoria-British-Columbia-1932-0 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/d8627209-bda2-436f-b22b-0eb19fdc6660> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Victoria-British-Columbia-1932-0 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-123.439741 48.392645, -123.275936 48.392645, -123.275936 48.479268, -123.439741 48.479268, -123.439741 48.392645))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Victoria-British-Columbia-1950-1 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1950 - Orthophoto Mosaic of Victoria, British Columbia (50 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Victoria-British-Columbia-1950-1" ;
+    dcterms:identifier "NAPL-OpenData:d8627209-bda2-436f-b22b-0eb19fdc6660" ;
+    naph:capturedOn "1950"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Victoria-British-Columbia ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Victoria-British-Columbia-1950-1 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/d8627209-bda2-436f-b22b-0eb19fdc6660> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Victoria-British-Columbia-1950-1 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-123.439741 48.392645, -123.275936 48.392645, -123.275936 48.479268, -123.439741 48.479268, -123.439741 48.392645))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+# NAPL Temporal Series — Ottawa River, Ontario/Quebec  (dataset f129611d-7ca1-418b-8390-ebac5adf958e)
+
+ex:sortie-Ottawa-River-Ontario-Quebec a naph:Sortie ;
+    naph:sortieReference "NAPL-TS/Ottawa-River-Ontario-Quebec" ;
+    rdfs:label "NAPL Temporal Series over Ottawa River, Ontario/Quebec" ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/f129611d-7ca1-418b-8390-ebac5adf958e> .
+
+ex:photo-Ottawa-River-Ontario-Quebec-1950-0 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1950 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (25 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Ottawa-River-Ontario-Quebec-1950-0" ;
+    dcterms:identifier "NAPL-OpenData:f129611d-7ca1-418b-8390-ebac5adf958e" ;
+    naph:capturedOn "1950"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Ottawa-River-Ontario-Quebec ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Ottawa-River-Ontario-Quebec-1950-0 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/f129611d-7ca1-418b-8390-ebac5adf958e> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Ottawa-River-Ontario-Quebec-1950-0 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-76.407868 45.198230, -74.425055 45.198230, -74.425055 45.768384, -76.407868 45.768384, -76.407868 45.198230))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Ottawa-River-Ontario-Quebec-1960-1 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1960 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (75 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Ottawa-River-Ontario-Quebec-1960-1" ;
+    dcterms:identifier "NAPL-OpenData:f129611d-7ca1-418b-8390-ebac5adf958e" ;
+    naph:capturedOn "1960"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Ottawa-River-Ontario-Quebec ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Ottawa-River-Ontario-Quebec-1960-1 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/f129611d-7ca1-418b-8390-ebac5adf958e> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Ottawa-River-Ontario-Quebec-1960-1 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-76.407868 45.198230, -74.425055 45.198230, -74.425055 45.768384, -76.407868 45.768384, -76.407868 45.198230))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Ottawa-River-Ontario-Quebec-1964-2 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1964 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (50 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Ottawa-River-Ontario-Quebec-1964-2" ;
+    dcterms:identifier "NAPL-OpenData:f129611d-7ca1-418b-8390-ebac5adf958e" ;
+    naph:capturedOn "1964"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Ottawa-River-Ontario-Quebec ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Ottawa-River-Ontario-Quebec-1964-2 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/f129611d-7ca1-418b-8390-ebac5adf958e> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Ottawa-River-Ontario-Quebec-1964-2 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-76.407868 45.198230, -74.425055 45.198230, -74.425055 45.768384, -76.407868 45.768384, -76.407868 45.198230))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Ottawa-River-Ontario-Quebec-1973-3 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1973 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (75 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Ottawa-River-Ontario-Quebec-1973-3" ;
+    dcterms:identifier "NAPL-OpenData:f129611d-7ca1-418b-8390-ebac5adf958e" ;
+    naph:capturedOn "1973"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Ottawa-River-Ontario-Quebec ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Ottawa-River-Ontario-Quebec-1973-3 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/f129611d-7ca1-418b-8390-ebac5adf958e> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Ottawa-River-Ontario-Quebec-1973-3 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-76.407868 45.198230, -74.425055 45.198230, -74.425055 45.768384, -76.407868 45.768384, -76.407868 45.198230))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Ottawa-River-Ontario-Quebec-1994-4 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1994 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (75 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Ottawa-River-Ontario-Quebec-1994-4" ;
+    dcterms:identifier "NAPL-OpenData:f129611d-7ca1-418b-8390-ebac5adf958e" ;
+    naph:capturedOn "1994"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Ottawa-River-Ontario-Quebec ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Ottawa-River-Ontario-Quebec-1994-4 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/f129611d-7ca1-418b-8390-ebac5adf958e> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Ottawa-River-Ontario-Quebec-1994-4 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-76.407868 45.198230, -74.425055 45.198230, -74.425055 45.768384, -76.407868 45.768384, -76.407868 45.198230))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Ottawa-River-Ontario-Quebec-2001-5 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "2001 - Orthophoto Mosaic of Ottawa River, Ontario/Quebec (50 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Ottawa-River-Ontario-Quebec-2001-5" ;
+    dcterms:identifier "NAPL-OpenData:f129611d-7ca1-418b-8390-ebac5adf958e" ;
+    naph:capturedOn "2001"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Ottawa-River-Ontario-Quebec ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Ottawa-River-Ontario-Quebec-2001-5 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/f129611d-7ca1-418b-8390-ebac5adf958e> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Ottawa-River-Ontario-Quebec-2001-5 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-76.407868 45.198230, -74.425055 45.198230, -74.425055 45.768384, -76.407868 45.768384, -76.407868 45.198230))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+# NAPL Temporal Series — Salish region, British Columbia  (dataset f498bb69-3982-4b62-94db-4c0e0065bc17)
+
+ex:sortie-Salish-region-British-Columbia a naph:Sortie ;
+    naph:sortieReference "NAPL-TS/Salish-region-British-Columbia" ;
+    rdfs:label "NAPL Temporal Series over Salish region, British Columbia" ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/f498bb69-3982-4b62-94db-4c0e0065bc17> .
+
+ex:photo-Salish-region-British-Columbia-1950-0 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1950 - Orthophoto Mosaic of Salish region, British Columbia (25 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Salish-region-British-Columbia-1950-0" ;
+    dcterms:identifier "NAPL-OpenData:f498bb69-3982-4b62-94db-4c0e0065bc17" ;
+    naph:capturedOn "1950"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Salish-region-British-Columbia ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Salish-region-British-Columbia-1950-0 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/f498bb69-3982-4b62-94db-4c0e0065bc17> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Salish-region-British-Columbia-1950-0 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-123.557862 49.007450, -122.286724 49.007450, -122.286724 49.439741, -123.557862 49.439741, -123.557862 49.007450))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Salish-region-British-Columbia-1959-1 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1959 - Orthophoto Mosaic of Salish region, British Columbia (50 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Salish-region-British-Columbia-1959-1" ;
+    dcterms:identifier "NAPL-OpenData:f498bb69-3982-4b62-94db-4c0e0065bc17" ;
+    naph:capturedOn "1959"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Salish-region-British-Columbia ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Salish-region-British-Columbia-1959-1 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/f498bb69-3982-4b62-94db-4c0e0065bc17> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Salish-region-British-Columbia-1959-1 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-123.557862 49.007450, -122.286724 49.007450, -122.286724 49.439741, -123.557862 49.439741, -123.557862 49.007450))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Salish-region-British-Columbia-1967-2 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1967 - Orthophoto Mosaic of Salish region, British Columbia (50 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Salish-region-British-Columbia-1967-2" ;
+    dcterms:identifier "NAPL-OpenData:f498bb69-3982-4b62-94db-4c0e0065bc17" ;
+    naph:capturedOn "1967"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Salish-region-British-Columbia ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Salish-region-British-Columbia-1967-2 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/f498bb69-3982-4b62-94db-4c0e0065bc17> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Salish-region-British-Columbia-1967-2 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-123.557862 49.007450, -122.286724 49.007450, -122.286724 49.439741, -123.557862 49.439741, -123.557862 49.007450))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Salish-region-British-Columbia-1972-3 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1972 - Orthophoto Mosaic of Salish region, British Columbia (50 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Salish-region-British-Columbia-1972-3" ;
+    dcterms:identifier "NAPL-OpenData:f498bb69-3982-4b62-94db-4c0e0065bc17" ;
+    naph:capturedOn "1972"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Salish-region-British-Columbia ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Salish-region-British-Columbia-1972-3 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/f498bb69-3982-4b62-94db-4c0e0065bc17> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Salish-region-British-Columbia-1972-3 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-123.557862 49.007450, -122.286724 49.007450, -122.286724 49.439741, -123.557862 49.439741, -123.557862 49.007450))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Salish-region-British-Columbia-1978-4 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1978 - Orthophoto Mosaic of Salish region, British Columbia (50 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Salish-region-British-Columbia-1978-4" ;
+    dcterms:identifier "NAPL-OpenData:f498bb69-3982-4b62-94db-4c0e0065bc17" ;
+    naph:capturedOn "1978"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Salish-region-British-Columbia ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Salish-region-British-Columbia-1978-4 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/f498bb69-3982-4b62-94db-4c0e0065bc17> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Salish-region-British-Columbia-1978-4 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-123.557862 49.007450, -122.286724 49.007450, -122.286724 49.439741, -123.557862 49.439741, -123.557862 49.007450))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+
+ex:photo-Salish-region-British-Columbia-1982-5 a naph:AerialPhotograph ;
+    dcterms:type dctype:StillImage ;
+    rdfs:label "1982 - Orthophoto Mosaic of Salish region, British Columbia (70 cm)" ;
+    rdfs:comment "Orthophoto mosaic assembled from NAPL frames; collection-level Baseline surrogate, not an original single frame." ;
+    naph:hasIdentifier "https://w3id.org/naph/photo/napl-Salish-region-British-Columbia-1982-5" ;
+    dcterms:identifier "NAPL-OpenData:f498bb69-3982-4b62-94db-4c0e0065bc17" ;
+    naph:capturedOn "1982"^^xsd:gYear ;
+    naph:partOfSortie ex:sortie-Salish-region-British-Columbia ;
+    naph:belongsToCollection ex:NAPLCollection ;
+    naph:coversArea ex:footprint-Salish-region-British-Columbia-1982-5 ;
+    naph:hasRightsStatement ex:rights-ogl ;
+    prov:hadPrimarySource <https://open.canada.ca/data/en/dataset/f498bb69-3982-4b62-94db-4c0e0065bc17> ;
+    naph:imagePerspective "vertical" ;
+    naph:compliesWithTier naph:TierBaseline .
+
+ex:footprint-Salish-region-British-Columbia-1982-5 a naph:GeographicFootprint ;
+    naph:asWKT "POLYGON((-123.557862 49.007450, -122.286724 49.007450, -122.286724 49.439741, -123.557862 49.439741, -123.557862 49.007450))"^^geo:wktLiteral ;
+    rdfs:comment "Native WGS84 footprint from CKAN spatial field (no reprojection)." .
+

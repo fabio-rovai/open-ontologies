@@ -1,0 +1,5177 @@
+[
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.9182230303592,
+    45.9163870870126
+   ]
+  },
+  "properties": {
+   "uuid": "0000b412-773f-4461-99d7-80204883dc7c",
+   "acquisition_date": -1014919200000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Vilas County, WI (2-54, 11/3/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2",
+   "frame_number": "54",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Geological Survey"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.2398889554229,
+    43.4961505299596
+   ]
+  },
+  "properties": {
+   "uuid": "00020b3a-5824-4829-ac1c-972300e70dbc",
+   "acquisition_date": -1021834800000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Washington County, WI (9-828, 8/15/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "9",
+   "frame_number": "828",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.432723528168,
+    45.7777468853941
+   ]
+  },
+  "properties": {
+   "uuid": "00040e49-db77-467a-bd95-225d9e3606b0",
+   "acquisition_date": -961354800000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Price County, WI (7-19, 7/16/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "7",
+   "frame_number": "19",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.015624756974,
+    46.675837513384
+   ]
+  },
+  "properties": {
+   "uuid": "00061a0b-0ca5-4796-be2f-250bfb84649e",
+   "acquisition_date": -991162800000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Douglas County, WI (4-69, 8/5/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "4",
+   "frame_number": "69",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.1726299581365,
+    45.6487946518818
+   ]
+  },
+  "properties": {
+   "uuid": "00061ffe-ad83-447e-913a-fa96ddbf1b3b",
+   "acquisition_date": -963255600000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Sawyer County, WI (7-54, 6/24/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "7",
+   "frame_number": "54",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.8154889526719,
+    43.1359699426272
+   ]
+  },
+  "properties": {
+   "uuid": "00066860-3842-45c7-9b0a-df31e7314f05",
+   "acquisition_date": -1023476400000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Jefferson County, WI (10-887, 7/27/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "10",
+   "frame_number": "887",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.574394105712,
+    44.8079809384036
+   ]
+  },
+  "properties": {
+   "uuid": "00068163-ded1-4291-a6c6-c9aeaa51c993",
+   "acquisition_date": -986756400000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Shawano County, WI (4-73, 9/25/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "4",
+   "frame_number": "73",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.6914336859496,
+    44.9780681986525
+   ]
+  },
+  "properties": {
+   "uuid": "000f2567-e3c4-4054-ade5-6a1ea3e4c266",
+   "acquisition_date": -986756400000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Menominee County, WI (6-29, 9/25/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "6",
+   "frame_number": "29",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.1377916497276,
+    45.6563381236606
+   ]
+  },
+  "properties": {
+   "uuid": "000fe24f-c45c-485e-bd73-b32ee9b1ca48",
+   "acquisition_date": -986756400000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Oneida County, WI (2-54, 9/25/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2",
+   "frame_number": "54",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.5510171599409,
+    43.6304612854319
+   ]
+  },
+  "properties": {
+   "uuid": "00103ebd-4d64-4e5f-ba48-77e1161ea04d",
+   "acquisition_date": -967230000000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Vernon County, WI (11-63, 5/9/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "11",
+   "frame_number": "63",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.0096611524725,
+    42.7092136354227
+   ]
+  },
+  "properties": {
+   "uuid": "00110476-e331-4f30-8d0e-6b96e5b294c7",
+   "acquisition_date": -1023562800000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Rock County, WI (6-463, 7/26/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "6",
+   "frame_number": "463",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.4471612796937,
+    43.9988601948919
+   ]
+  },
+  "properties": {
+   "uuid": "0014a8c6-92ee-41f4-aea7-1e7854cfbf20",
+   "acquisition_date": -1000234800000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Waushara County, WI (12-1004, 4/22/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "12",
+   "frame_number": "1004",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.5286024784184,
+    44.7658126576614
+   ]
+  },
+  "properties": {
+   "uuid": "00150bdb-81ae-4223-8f6c-23171f7db47f",
+   "acquisition_date": -966970800000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Eau Claire County, WI (6-23, 5/12/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "6",
+   "frame_number": "23",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.3287252805099,
+    45.178348433701
+   ]
+  },
+  "properties": {
+   "uuid": "00158764-b739-45e5-a762-038493187e46",
+   "acquisition_date": -990126000000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Chippewa County, WI (2-129, 8/17/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2",
+   "frame_number": "129",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.8892870177682,
+    43.9369999296148
+   ]
+  },
+  "properties": {
+   "uuid": "0016fd47-bcd9-4a1b-b1fe-eed88e7c1dc0",
+   "acquisition_date": -1014919200000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Green Lake County, WI (1-9, 11/3/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1",
+   "frame_number": "9",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.7129532525045,
+    45.6359818809447
+   ]
+  },
+  "properties": {
+   "uuid": "001c0c8b-bb76-47bb-b901-5b058bc5d943",
+   "acquisition_date": -989780400000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Polk County, WI (6-3, 8/21/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "6",
+   "frame_number": "3",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.2452995974707,
+    42.6382912443288
+   ]
+  },
+  "properties": {
+   "uuid": "001c6cbc-2452-4ea2-967d-f18e7c7b1ffc",
+   "acquisition_date": -1024081200000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Rock County, WI (3-214, 7/20/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3",
+   "frame_number": "214",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.6151107009223,
+    44.8885182496586
+   ]
+  },
+  "properties": {
+   "uuid": "001f1ab5-30d2-4a14-ad87-df2e5aedfcf5",
+   "acquisition_date": -991422000000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Chippewa County, WI (1-36, 8/2/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1",
+   "frame_number": "36",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.7647730504042,
+    45.8444743036532
+   ]
+  },
+  "properties": {
+   "uuid": "00200bca-83da-4b36-b142-654cd64b927b",
+   "acquisition_date": -962650800000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Sawyer County, WI (7-80, 7/1/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "7",
+   "frame_number": "80",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.4340889849234,
+    45.0875745990662
+   ]
+  },
+  "properties": {
+   "uuid": "00207d99-0107-49a8-9abf-1da96563b2db",
+   "acquisition_date": -966970800000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Taylor County, WI (5-97, 5/12/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5",
+   "frame_number": "97",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.8614349844143,
+    44.8826292962416
+   ]
+  },
+  "properties": {
+   "uuid": "0020d347-7987-4cd4-9085-53d971a4b582",
+   "acquisition_date": -983818800000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Shawano County, WI (12-36, 10/29/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "12",
+   "frame_number": "36",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.1100598247157,
+    45.2556911195737
+   ]
+  },
+  "properties": {
+   "uuid": "0020e481-d24b-4a60-8f51-4450c4a69605",
+   "acquisition_date": -996260400000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Door County, WI (2-73, 6/7/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2",
+   "frame_number": "73",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.0523385989456,
+    46.6052597491876
+   ]
+  },
+  "properties": {
+   "uuid": "00236672-3f07-4b93-90b9-dcc64933a49b",
+   "acquisition_date": -991162800000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Douglas County, WI (3-102, 8/5/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3",
+   "frame_number": "102",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.3416017191684,
+    43.1687749364496
+   ]
+  },
+  "properties": {
+   "uuid": "0026af26-5402-42df-a880-1eabb2f6e465",
+   "acquisition_date": -1022785200000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Waukesha County, WI (20-1828, 8/4/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "20",
+   "frame_number": "1828",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.0677018912944,
+    45.4512024632543
+   ]
+  },
+  "properties": {
+   "uuid": "0028a2fe-a513-422a-8b19-b685c1c29d42",
+   "acquisition_date": -985806000000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Price County, WI (1-65, 10/6/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1",
+   "frame_number": "65",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.1747308010349,
+    44.8649922923924
+   ]
+  },
+  "properties": {
+   "uuid": "002ab993-a46f-484e-a03e-c6077ca67182",
+   "acquisition_date": -989175600000,
+   "acquisition_year": 1938,
+   "photo_common_name": "St. Croix County, WI (1-30, 8/28/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1",
+   "frame_number": "30",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.2342394987452,
+    45.2179420570543
+   ]
+  },
+  "properties": {
+   "uuid": "003236b5-46b2-4897-9ef5-beef109980bf",
+   "acquisition_date": -989175600000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Taylor County, WI (2-53, 8/28/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2",
+   "frame_number": "53",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.2088957445762,
+    45.2806641023729
+   ]
+  },
+  "properties": {
+   "uuid": "0034a773-dd6a-4c28-bd29-8366b947e654",
+   "acquisition_date": -990558000000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Chippewa County, WI (5-35, 8/12/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5",
+   "frame_number": "35",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.2241162109055,
+    44.2812017688064
+   ]
+  },
+  "properties": {
+   "uuid": "00375c62-cf93-4686-b1ff-3ae943ca23a7",
+   "acquisition_date": -990039600000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Waupaca County, WI (7-72, 8/18/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "7",
+   "frame_number": "72",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.3920266696084,
+    43.0648969953591
+   ]
+  },
+  "properties": {
+   "uuid": "0039824c-ac9a-4073-9bd7-8845108f4784",
+   "acquisition_date": -1015268400000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Iowa County, WI (18-1497, 10/30/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "18",
+   "frame_number": "1497",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.8585920702495,
+    43.0322850459529
+   ]
+  },
+  "properties": {
+   "uuid": "003eade4-9962-4c43-9746-909611e79c76",
+   "acquisition_date": -1023476400000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Jefferson County, WI (10-861, 7/27/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "10",
+   "frame_number": "861",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.3310019326626,
+    44.4654123843216
+   ]
+  },
+  "properties": {
+   "uuid": "003eb749-55b6-4c2c-960d-862fbecce03d",
+   "acquisition_date": -993063600000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Outagamie County, WI (2-33, 7/14/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2",
+   "frame_number": "33",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.0031222852636,
+    45.7194913531438
+   ]
+  },
+  "properties": {
+   "uuid": "003fb766-fc03-4b80-90da-c0439f24b40e",
+   "acquisition_date": -966711600000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Forest County, WI (18-23, 5/15/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "18",
+   "frame_number": "23",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.4578375531344,
+    43.1539676088968
+   ]
+  },
+  "properties": {
+   "uuid": "0042b485-fd5f-4286-9241-24416fa23c2c",
+   "acquisition_date": -1020193200000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Waukesha County, WI (29-2576, 9/3/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "29",
+   "frame_number": "2576",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.5001222015385,
+    45.4477008955301
+   ]
+  },
+  "properties": {
+   "uuid": "004747c4-c885-40a1-9825-f8c4750e4370",
+   "acquisition_date": -963342000000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Rusk County, WI (5-57, 6/23/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5",
+   "frame_number": "57",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.9635289363626,
+    43.8360145326768
+   ]
+  },
+  "properties": {
+   "uuid": "00479081-742a-4441-953a-eb3868413ad9",
+   "acquisition_date": -1021834800000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Sheboygan County, WI (14-1289, 8/15/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "14",
+   "frame_number": "1289",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.8847792848504,
+    44.9003717426511
+   ]
+  },
+  "properties": {
+   "uuid": "00489bb2-c47a-45d7-8624-64ef43ee9c3d",
+   "acquisition_date": -992804400000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Oconto County, WI (1-46, 7/17/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1",
+   "frame_number": "46",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.1897181711111,
+    44.3025747854162
+   ]
+  },
+  "properties": {
+   "uuid": "00492e15-5d5c-4735-8973-0057e7e2f394",
+   "acquisition_date": -990039600000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Waupaca County, WI (7-60, 8/18/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "7",
+   "frame_number": "60",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.6897014240179,
+    43.1349768044573
+   ]
+  },
+  "properties": {
+   "uuid": "004a773e-10ea-4b08-bd3f-5b376781949c",
+   "acquisition_date": -1023476400000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Jefferson County, WI (13-1135, 7/27/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "13",
+   "frame_number": "1135",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.5683125750038,
+    44.8039566973311
+   ]
+  },
+  "properties": {
+   "uuid": "004fa9ee-0628-4852-beb4-df459334a31f",
+   "acquisition_date": -987015600000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Marathon County, WI (6-41, 9/22/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "6",
+   "frame_number": "41",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.8274171260104,
+    43.9256656022797
+   ]
+  },
+  "properties": {
+   "uuid": "0050914e-ee85-44cf-993c-c32a672b03c5",
+   "acquisition_date": -968698800000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Monroe County, WI (3-65, 4/22/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3",
+   "frame_number": "65",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.4744868408834,
+    43.7835930134047
+   ]
+  },
+  "properties": {
+   "uuid": "00534e45-e5f1-4e40-9f76-0bdfd0adf215",
+   "acquisition_date": -968007600000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Monroe County, WI (8-8, 4/30/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "8",
+   "frame_number": "8",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.4175346628498,
+    44.8131486054582
+   ]
+  },
+  "properties": {
+   "uuid": "00542801-8d98-4da3-88b0-bd4d6c59ba3a",
+   "acquisition_date": -963255600000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Pierce County, WI (6-7, 6/24/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "6",
+   "frame_number": "7",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.0266957688861,
+    44.3284603097583
+   ]
+  },
+  "properties": {
+   "uuid": "00556f3f-ede3-49a2-9a3a-e69d2c855ad0",
+   "acquisition_date": -990039600000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Waupaca County, WI (5-74, 8/18/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5",
+   "frame_number": "74",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.9120005900633,
+    43.7538786048995
+   ]
+  },
+  "properties": {
+   "uuid": "00563b6b-6ab4-4ec3-8f83-934952107581",
+   "acquisition_date": -988570800000,
+   "acquisition_year": 1938,
+   "photo_common_name": "La Crosse County, WI (1-4, 9/4/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1",
+   "frame_number": "4",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.5713846909572,
+    42.9212083102864
+   ]
+  },
+  "properties": {
+   "uuid": "005a59aa-b09b-4ef6-bd7e-63f6c011c6a8",
+   "acquisition_date": -1025290800000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Dane County, WI (9-738, 7/6/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "9",
+   "frame_number": "738",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.1273961382675,
+    44.6469638863779
+   ]
+  },
+  "properties": {
+   "uuid": "005c49f4-59b9-411e-992a-5a3498ba7c40",
+   "acquisition_date": -994359600000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Brown County, WI (7-36, 6/29/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "7",
+   "frame_number": "36",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.1621655474525,
+    44.8534339418859
+   ]
+  },
+  "properties": {
+   "uuid": "005d3cde-c469-40ea-a764-bbd217c0ba8f",
+   "acquisition_date": -991249200000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Eau Claire County, WI (4-21, 8/4/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "4",
+   "frame_number": "21",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.6652246162872,
+    43.3120035903571
+   ]
+  },
+  "properties": {
+   "uuid": "005f10d9-bdf7-497a-a1e7-40960ad183a2",
+   "acquisition_date": -1021316400000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Richland County, WI (1-17, 8/21/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1",
+   "frame_number": "17",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.590317453754,
+    46.1227023019451
+   ]
+  },
+  "properties": {
+   "uuid": "0061178d-7f98-45ef-9ae3-23b354a02e0c",
+   "acquisition_date": -1014400800000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Vilas County, WI (6-12, 11/9/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "6",
+   "frame_number": "12",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Geological Survey"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.6284887305041,
+    45.4333399995981
+   ]
+  },
+  "properties": {
+   "uuid": "0061742e-0cec-4f18-880b-ea763739c2c9",
+   "acquisition_date": -986929200000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Lincoln County, WI (8-66, 9/23/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "8",
+   "frame_number": "66",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.717532815827,
+    45.3449068336105
+   ]
+  },
+  "properties": {
+   "uuid": "006289fc-28ad-4191-8902-8d8ed9e8308e",
+   "acquisition_date": -964638000000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Taylor County, WI (8-37, 6/8/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "8",
+   "frame_number": "37",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.9125325098044,
+    45.5155581680576
+   ]
+  },
+  "properties": {
+   "uuid": "0062be76-caf6-41c0-8d52-ba65f52069de",
+   "acquisition_date": -987015600000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Marinette County, WI (5-11, 9/22/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5",
+   "frame_number": "11",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.8267651860459,
+    45.5890146041549
+   ]
+  },
+  "properties": {
+   "uuid": "0063bb72-437d-4ee3-90f9-bea15ea6c6ad",
+   "acquisition_date": -990471600000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Marinette County, WI (30-96, 8/13/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "30",
+   "frame_number": "96",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Geological Survey"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.5272424617333,
+    45.0173541947814
+   ]
+  },
+  "properties": {
+   "uuid": "00643f20-5de2-4b74-bdc0-d412e5f4905f",
+   "acquisition_date": -964638000000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Chippewa County, WI (13-105, 6/8/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "13",
+   "frame_number": "105",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.6359699101718,
+    46.682585133187
+   ]
+  },
+  "properties": {
+   "uuid": "00649fa9-d9fd-4c82-9510-6ea1fbf0a901",
+   "acquisition_date": -990039600000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Douglas County, WI (7-71, 8/18/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "7",
+   "frame_number": "71",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.577606339871,
+    44.4543200584748
+   ]
+  },
+  "properties": {
+   "uuid": "00660c49-06a7-4c08-acc4-b137e7010bfc",
+   "acquisition_date": -991249200000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Outagamie County, WI (6-19, 8/4/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "6",
+   "frame_number": "19",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.1165392026662,
+    44.3947608121317
+   ]
+  },
+  "properties": {
+   "uuid": "006ab9d7-f654-44ae-955f-e265a4f68bf3",
+   "acquisition_date": -921870000000,
+   "acquisition_year": 1940,
+   "photo_common_name": "Wabasha County, MN (2-A, 10/15/1940)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2",
+   "frame_number": "A",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.3829342462883,
+    45.7590551348407
+   ]
+  },
+  "properties": {
+   "uuid": "006c20b1-3f3a-4c79-b321-3cd6a62f636d",
+   "acquisition_date": -989089200000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Sawyer County, WI (4-23, 8/29/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "4",
+   "frame_number": "23",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.3484789807071,
+    42.613483134956
+   ]
+  },
+  "properties": {
+   "uuid": "006c5ce2-3b84-4716-8c99-9f6401c02ddb",
+   "acquisition_date": -1015354800000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Lafayette County, WI (17-1352, 10/29/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "17",
+   "frame_number": "1352",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.4458348073686,
+    44.2271714131351
+   ]
+  },
+  "properties": {
+   "uuid": "006c9398-9f52-4cd3-b368-5838191bfbf9",
+   "acquisition_date": -1001098800000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Winnebago County, WI (5-417, 4/12/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5",
+   "frame_number": "417",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.8463711027275,
+    45.407508809965
+   ]
+  },
+  "properties": {
+   "uuid": "006d5f28-0670-4d2b-ba95-5b49c559baa9",
+   "acquisition_date": -966970800000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Forest County, WI (16-50, 5/12/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "16",
+   "frame_number": "50",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.7362368479613,
+    45.753428090225
+   ]
+  },
+  "properties": {
+   "uuid": "006e6508-c46e-42ec-aef4-d4a9bc26a730",
+   "acquisition_date": -990039600000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Burnett County, WI (5-86, 8/18/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5",
+   "frame_number": "86",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.7500858347034,
+    45.3446609248555
+   ]
+  },
+  "properties": {
+   "uuid": "00736ecc-fd0c-4be3-8f8e-437073fe6259",
+   "acquisition_date": -962996400000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Barron County, WI (4-3, 6/27/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "4",
+   "frame_number": "3",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.0410678714533,
+    42.9804217545335
+   ]
+  },
+  "properties": {
+   "uuid": "0074b7d8-c660-4a72-b922-1a0b38ea121a",
+   "acquisition_date": -922388400000,
+   "acquisition_year": 1940,
+   "photo_common_name": "Grant County, WI (1-A, 10/9/1940)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1",
+   "frame_number": "A",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.1655761005728,
+    43.9257710781523
+   ]
+  },
+  "properties": {
+   "uuid": "007503bf-772a-4c52-95ad-5522bfd5fc51",
+   "acquisition_date": -992718000000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Fond du Lac County, WI (3-31, 7/18/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3",
+   "frame_number": "31",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.2208944288606,
+    45.9896766752175
+   ]
+  },
+  "properties": {
+   "uuid": "0077d8da-c178-4205-a17d-d8e3ffbbd640",
+   "acquisition_date": -989780400000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Iron County, WI (6-43, 8/21/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "6",
+   "frame_number": "43",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.1630108253954,
+    44.8617553428136
+   ]
+  },
+  "properties": {
+   "uuid": "0078219c-6b8f-4e90-9daa-2f2ad3ccdddf",
+   "acquisition_date": -986929200000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Oconto County, WI (6-58, 9/23/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "6",
+   "frame_number": "58",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.1481693471643,
+    42.8707170083367
+   ]
+  },
+  "properties": {
+   "uuid": "00783dbd-e1be-4ea8-ba86-dccd3e86dce2",
+   "acquisition_date": -1022698800000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Waukesha County, WI (24-2189, 8/5/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "24",
+   "frame_number": "2189",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.0315154721592,
+    43.1397075937899
+   ]
+  },
+  "properties": {
+   "uuid": "007861d8-38c9-483b-a62c-cd8f2f39f5dc",
+   "acquisition_date": -1015527600000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Iowa County, WI (13-981, 10/27/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "13",
+   "frame_number": "981",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.3202689794669,
+    45.0489039221592
+   ]
+  },
+  "properties": {
+   "uuid": "007bf1ce-391f-40b3-988e-55931a6259a3",
+   "acquisition_date": -986929200000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Oconto County, WI (8-37, 9/23/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "8",
+   "frame_number": "37",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.879168872948,
+    46.2173551060574
+   ]
+  },
+  "properties": {
+   "uuid": "007ce92a-e4d3-4a9f-b538-6562c27a1028",
+   "acquisition_date": -963601200000,
+   "acquisition_year": 1939,
+   "photo_common_name": "Ashland County, WI (3-24, 6/20/1939)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3",
+   "frame_number": "24",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.1639958314377,
+    44.5114466199241
+   ]
+  },
+  "properties": {
+   "uuid": "007ea0e7-5126-4cbd-8853-649d569cabfe",
+   "acquisition_date": -983991600000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Jackson County, WI (1-44, 10/27/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1",
+   "frame_number": "44",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.0642096027222,
+    45.3954051961386
+   ]
+  },
+  "properties": {
+   "uuid": "00819380-cc9e-488f-82e0-6fe83947a016",
+   "acquisition_date": -985806000000,
+   "acquisition_year": 1938,
+   "photo_common_name": "Price County, WI (1-60, 10/6/1938)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1",
+   "frame_number": "60",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.0798341308656,
+    43.8792459380631
+   ]
+  },
+  "properties": {
+   "uuid": "00819770-c334-4e27-adff-ff3e64a07ff5",
+   "acquisition_date": -1021834800000,
+   "acquisition_year": 1937,
+   "photo_common_name": "Sheboygan County, WI (13-1144, 8/15/1937)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "13",
+   "frame_number": "1144",
+   "map_scale_denom": 20000,
+   "collection_identifier": "WHAIFinder",
+   "source_organization": "United States Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.6450360122399,
+    45.8793129494543
+   ]
+  },
+  "properties": {
+   "uuid": "000125ce-d398-4905-9d7b-bf0ad17e0e5d",
+   "acquisition_date": -546721200000,
+   "acquisition_year": 1952,
+   "photo_common_name": "Washburn County, WI (2G-125, 09/04/1952)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "2G",
+   "frame_number": "125",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.5098405624287,
+    45.2871122928081
+   ]
+  },
+  "properties": {
+   "uuid": "00027f95-3f90-4fab-b9ae-2861163c3d59",
+   "acquisition_date": -577134000000,
+   "acquisition_year": 1951,
+   "photo_common_name": "Taylor County, WI (4H-145, 09/18/1951)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "4H",
+   "frame_number": "145",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.0632193048785,
+    44.6708773158277
+   ]
+  },
+  "properties": {
+   "uuid": "0002a9bd-6a04-4e1b-b75f-762fd79c93f3",
+   "acquisition_date": -359406000000,
+   "acquisition_year": 1958,
+   "photo_common_name": "Eau Claire County, WI (2V-139, 08/12/1958)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2V",
+   "frame_number": "139",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.8121773157178,
+    43.2113332911513
+   ]
+  },
+  "properties": {
+   "uuid": "0004b481-9975-47ba-9996-04a503b34b52",
+   "acquisition_date": -454014000000,
+   "acquisition_year": 1955,
+   "photo_common_name": "Dane County, WI (10P-107, 08/13/1955)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "10P",
+   "frame_number": "107",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.9472694567174,
+    46.5037605654339
+   ]
+  },
+  "properties": {
+   "uuid": "0006dd0a-027f-45ca-b39a-f8e87bb931f9",
+   "acquisition_date": -365281200000,
+   "acquisition_year": 1958,
+   "photo_common_name": "Douglas County, WI (3V-126, 06/05/1958)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3V",
+   "frame_number": "126",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.6232500779211,
+    44.3934676964977
+   ]
+  },
+  "properties": {
+   "uuid": "000881e8-227c-40bf-a7a3-e578972a3a75",
+   "acquisition_date": -578084400000,
+   "acquisition_year": 1951,
+   "photo_common_name": "Jackson County, WI (3H-95, 09/07/1951)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3H",
+   "frame_number": "95",
+   "map_scale_denom": 20000,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.4035378847618,
+    44.796276046079
+   ]
+  },
+  "properties": {
+   "uuid": "0008a0ae-8de1-4415-8042-b587cad9828e",
+   "acquisition_date": -294087600000,
+   "acquisition_year": 1960,
+   "photo_common_name": "Marathon County, WI (7AA-114, 09/06/1960)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "7AA",
+   "frame_number": "114",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.1318891205347,
+    42.6020627252138
+   ]
+  },
+  "properties": {
+   "uuid": "000957d1-feef-4a2d-bf97-0df725a3998c",
+   "acquisition_date": -452026800000,
+   "acquisition_year": 1955,
+   "photo_common_name": "Lafayette County, WI (3P-12, 09/05/1955)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3P",
+   "frame_number": "12",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.5530613287561,
+    45.192699525451
+   ]
+  },
+  "properties": {
+   "uuid": "0009fc7e-11f7-4f91-bb59-3cd6a4c9564d",
+   "acquisition_date": -577220400000,
+   "acquisition_year": 1951,
+   "photo_common_name": "Chippewa County, WI (2H-139, 09/17/1951)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2H",
+   "frame_number": "139",
+   "map_scale_denom": 20000,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.2021453909339,
+    45.0562623083366
+   ]
+  },
+  "properties": {
+   "uuid": "000a4e33-5eef-43a9-ba6d-1eea560f71d8",
+   "acquisition_date": -360356400000,
+   "acquisition_year": 1958,
+   "photo_common_name": "Langlade County, WI (8V-13, 08/01/1958)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "8V",
+   "frame_number": "13",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.1893539635419,
+    44.701041221913
+   ]
+  },
+  "properties": {
+   "uuid": "000b1c5b-7873-4f4c-80ff-4ff4da6aa565",
+   "acquisition_date": -363380400000,
+   "acquisition_year": 1958,
+   "photo_common_name": "Oconto County, WI (5V-35, 06/27/1958)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5V",
+   "frame_number": "35",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.1896439499873,
+    44.8575462368753
+   ]
+  },
+  "properties": {
+   "uuid": "000c1a0e-b0da-4821-8617-088d534f2230",
+   "acquisition_date": -363380400000,
+   "acquisition_year": 1958,
+   "photo_common_name": "Oconto County, WI (5V-25, 06/27/1958)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5V",
+   "frame_number": "25",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.4203775577564,
+    45.9970604170849
+   ]
+  },
+  "properties": {
+   "uuid": "000d94f3-5f83-41cf-9ef4-fb2453835adf",
+   "acquisition_date": -583614000000,
+   "acquisition_year": 1951,
+   "photo_common_name": "Iron County, MI (5G-55, 07/05/1951)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "5G",
+   "frame_number": "55",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.972858068409,
+    42.8077324065341
+   ]
+  },
+  "properties": {
+   "uuid": "000ef7fb-b0f5-498a-a621-cc4ebd7aef72",
+   "acquisition_date": -418676400000,
+   "acquisition_year": 1956,
+   "photo_common_name": "Racine County, WI (3R-24, 09/25/1956)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3R",
+   "frame_number": "24",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.9983974587538,
+    44.2434477623251
+   ]
+  },
+  "properties": {
+   "uuid": "000f486e-08b6-4ae5-bbfb-c48c9bb7e9ae",
+   "acquisition_date": -294519600000,
+   "acquisition_year": 1960,
+   "photo_common_name": "Juneau County, WI (6AA-35, 09/01/1960)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "6AA",
+   "frame_number": "35",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.706425901647,
+    44.0391002702265
+   ]
+  },
+  "properties": {
+   "uuid": "000fc897-cf1e-4b89-8e38-83af9292d970",
+   "acquisition_date": -390855600000,
+   "acquisition_year": 1957,
+   "photo_common_name": "Winnebago County, WI (2T-13, 08/13/1957)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2T",
+   "frame_number": "13",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.1062979998413,
+    42.5196589516429
+   ]
+  },
+  "properties": {
+   "uuid": "00109aeb-af6c-468a-ad46-334f29cb2caf",
+   "acquisition_date": -429908400000,
+   "acquisition_year": 1956,
+   "photo_common_name": "Rock County, WI (2R-141, 05/18/1956)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2R",
+   "frame_number": "141",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.7035635825819,
+    46.0047476077866
+   ]
+  },
+  "properties": {
+   "uuid": "0012900d-08d1-4a43-9b49-ed13f053dafc",
+   "acquisition_date": -546721200000,
+   "acquisition_year": 1952,
+   "photo_common_name": "Washburn County, WI (2G-34, 09/04/1952)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "2G",
+   "frame_number": "34",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.3200696108416,
+    46.0386597341269
+   ]
+  },
+  "properties": {
+   "uuid": "00135fb9-b5a7-4e51-b689-c0c6fdd023c1",
+   "acquisition_date": -609534000000,
+   "acquisition_year": 1950,
+   "photo_common_name": "Ashland County, WI (7G-165, 09/08/1950)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "7G",
+   "frame_number": "165",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.711896401399,
+    45.3987407194795
+   ]
+  },
+  "properties": {
+   "uuid": "00151f1c-81dc-4a96-bd7f-35e934df6a28",
+   "acquisition_date": -583614000000,
+   "acquisition_year": 1951,
+   "photo_common_name": "Forest County, WI (6G-57, 07/05/1951)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "6G",
+   "frame_number": "57",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.2659688742635,
+    45.7104304168223
+   ]
+  },
+  "properties": {
+   "uuid": "001532fd-9290-47e5-9525-22e938a32a43",
+   "acquisition_date": -583614000000,
+   "acquisition_year": 1951,
+   "photo_common_name": "Marinette County, WI (5G-23, 07/05/1951)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "5G",
+   "frame_number": "23",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.4597099533793,
+    44.1559031080817
+   ]
+  },
+  "properties": {
+   "uuid": "0015dbdd-896d-4a94-9836-06fad4350c3e",
+   "acquisition_date": -392583600000,
+   "acquisition_year": 1957,
+   "photo_common_name": "Monroe County, WI (1T-74, 07/24/1957)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1T",
+   "frame_number": "74",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.2147296143279,
+    44.6074339695919
+   ]
+  },
+  "properties": {
+   "uuid": "0016589a-36ef-4e58-919f-164910aaa740",
+   "acquisition_date": -386535600000,
+   "acquisition_year": 1957,
+   "photo_common_name": "Waupaca County, WI (3T-95, 10/02/1957)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3T",
+   "frame_number": "95",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.1153593032434,
+    45.6864571698494
+   ]
+  },
+  "properties": {
+   "uuid": "00168e44-35bd-477a-9ddd-32a6a9c3f24f",
+   "acquisition_date": -454186800000,
+   "acquisition_year": 1955,
+   "photo_common_name": "Price County, WI (5H-4, 08/11/1955)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "5H",
+   "frame_number": "4",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.530692846015,
+    44.7316735599686
+   ]
+  },
+  "properties": {
+   "uuid": "0018d624-6182-4e92-adcb-6e1386f102dd",
+   "acquisition_date": -678135600000,
+   "acquisition_year": 1948,
+   "photo_common_name": "Marathon County, WI (2E-123, 07/06/1948)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2E",
+   "frame_number": "123",
+   "map_scale_denom": 20000,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.402913134015,
+    46.7806655081168
+   ]
+  },
+  "properties": {
+   "uuid": "001a5f6e-b18e-48cf-8bb6-f31842d96bd5",
+   "acquisition_date": -579121200000,
+   "acquisition_year": 1951,
+   "photo_common_name": "Bayfield County, WI (4G-114, 08/26/1951)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "4G",
+   "frame_number": "114",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.052979689717,
+    42.6574186341431
+   ]
+  },
+  "properties": {
+   "uuid": "001ce72f-a790-488e-a053-2688fe8d16b2",
+   "acquisition_date": -452026800000,
+   "acquisition_year": 1955,
+   "photo_common_name": "Lafayette County, WI (2P-158, 09/05/1955)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2P",
+   "frame_number": "158",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.5415910191163,
+    45.2912404355667
+   ]
+  },
+  "properties": {
+   "uuid": "00210205-50d2-4f0e-8f8c-6beb86f46e15",
+   "acquisition_date": -547844400000,
+   "acquisition_year": 1952,
+   "photo_common_name": "Barron County, WI (4H-143, 08/22/1952)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "4H",
+   "frame_number": "143",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.6389023481122,
+    45.3899101529981
+   ]
+  },
+  "properties": {
+   "uuid": "00237079-5113-47c8-9d7e-01cd1b00962e",
+   "acquisition_date": -545684400000,
+   "acquisition_year": 1952,
+   "photo_common_name": "Price County, WI (2H-115, 09/16/1952)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "2H",
+   "frame_number": "115",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.2702588585559,
+    44.687222210148
+   ]
+  },
+  "properties": {
+   "uuid": "0023e05f-b036-42a2-b5b5-4226d7579ee7",
+   "acquisition_date": -612126000000,
+   "acquisition_year": 1950,
+   "photo_common_name": "Marathon County, WI (1G-49, 08/09/1950)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "1G",
+   "frame_number": "49",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.4284192546241,
+    45.0972461419347
+   ]
+  },
+  "properties": {
+   "uuid": "0024410e-dc43-4c1c-b120-99faa2bcdfcf",
+   "acquisition_date": -575319600000,
+   "acquisition_year": 1951,
+   "photo_common_name": "Chippewa County, WI (5H-130, 10/09/1951)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5H",
+   "frame_number": "130",
+   "map_scale_denom": 20000,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.5530962622279,
+    45.8019090729754
+   ]
+  },
+  "properties": {
+   "uuid": "0025c0d8-4b4d-49be-8f91-7cd7c74ee5dd",
+   "acquisition_date": -583527600000,
+   "acquisition_year": 1951,
+   "photo_common_name": "Florence County, WI (8G-199, 07/06/1951)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "8G",
+   "frame_number": "199",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.2973214047998,
+    45.49418262238
+   ]
+  },
+  "properties": {
+   "uuid": "0027564b-79c9-4ec1-9a0d-d27be63341cc",
+   "acquisition_date": -453495600000,
+   "acquisition_year": 1955,
+   "photo_common_name": "Price County, WI (7H-58, 08/19/1955)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "7H",
+   "frame_number": "58",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.7558023896862,
+    45.8981486692793
+   ]
+  },
+  "properties": {
+   "uuid": "00282d8a-6f80-44bf-b5c5-3d1702fc266f",
+   "acquisition_date": -609793200000,
+   "acquisition_year": 1950,
+   "photo_common_name": "Pine County, MN (1G-62, 09/05/1950)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "1G",
+   "frame_number": "62",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.8715294645718,
+    45.1207432459331
+   ]
+  },
+  "properties": {
+   "uuid": "0028e122-f37e-4b05-b3fa-5b240c56ca8c",
+   "acquisition_date": -360874800000,
+   "acquisition_year": 1958,
+   "photo_common_name": "Dunn County, WI (8V-128, 07/26/1958)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "8V",
+   "frame_number": "128",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.1068604294965,
+    44.4112116783894
+   ]
+  },
+  "properties": {
+   "uuid": "002917e7-430e-4a84-a62a-69427cf43cdb",
+   "acquisition_date": -390769200000,
+   "acquisition_year": 1957,
+   "photo_common_name": "Jackson County, WI (4T-10, 08/14/1957)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "4T",
+   "frame_number": "10",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.4654997913205,
+    44.9590843194184
+   ]
+  },
+  "properties": {
+   "uuid": "002decfe-5153-4039-8633-a74dd8fd0e8b",
+   "acquisition_date": -360356400000,
+   "acquisition_year": 1958,
+   "photo_common_name": "Oconto County, WI (8V-72, 08/01/1958)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "8V",
+   "frame_number": "72",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.8940508964143,
+    43.6385981391587
+   ]
+  },
+  "properties": {
+   "uuid": "00307118-48ad-44e6-a01d-0d14e26dc967",
+   "acquisition_date": -394138800000,
+   "acquisition_year": 1957,
+   "photo_common_name": "Sauk County, WI (2T-195, 07/06/1957)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2T",
+   "frame_number": "195",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.1181311633932,
+    42.8489820757489
+   ]
+  },
+  "properties": {
+   "uuid": "0030916d-1aa8-4881-9e6b-2d3b43a2fad1",
+   "acquisition_date": -429908400000,
+   "acquisition_year": 1956,
+   "photo_common_name": "Dane County, WI (2R-119, 05/18/1956)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2R",
+   "frame_number": "119",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.1436388752234,
+    44.5988586736201
+   ]
+  },
+  "properties": {
+   "uuid": "003356cd-4038-487e-a3fe-d57a241615e6",
+   "acquisition_date": -367354800000,
+   "acquisition_year": 1958,
+   "photo_common_name": "Eau Claire County, WI (2V-180, 05/12/1958)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2V",
+   "frame_number": "180",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.2409141963605,
+    46.0059895920062
+   ]
+  },
+  "properties": {
+   "uuid": "0036b49c-5d86-4c1e-9af8-f7707b66f6be",
+   "acquisition_date": -609706800000,
+   "acquisition_year": 1950,
+   "photo_common_name": "Burnett County, WI (3G-140, 09/06/1950)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "3G",
+   "frame_number": "140",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.1406990859602,
+    44.0801370321232
+   ]
+  },
+  "properties": {
+   "uuid": "0037d929-f9db-4bdc-8d06-2114f4dc0686",
+   "acquisition_date": -390769200000,
+   "acquisition_year": 1957,
+   "photo_common_name": "Jackson County, WI (4T-38, 08/14/1957)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "4T",
+   "frame_number": "38",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.2995111548421,
+    45.1433806319088
+   ]
+  },
+  "properties": {
+   "uuid": "003813d8-6059-4aae-a16c-7e0cbc27482a",
+   "acquisition_date": -577047600000,
+   "acquisition_year": 1951,
+   "photo_common_name": "Taylor County, WI (6H-33, 09/19/1951)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "6H",
+   "frame_number": "33",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.8944349426591,
+    45.3938907688593
+   ]
+  },
+  "properties": {
+   "uuid": "003a45c4-afe5-425f-babd-a255275ba279",
+   "acquisition_date": -547758000000,
+   "acquisition_year": 1952,
+   "photo_common_name": "Rusk County, WI (5H-114, 08/23/1952)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "5H",
+   "frame_number": "114",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.6364593146196,
+    45.1724877144908
+   ]
+  },
+  "properties": {
+   "uuid": "003b8713-45cd-4df9-b854-fe53b71ff575",
+   "acquisition_date": -361738800000,
+   "acquisition_year": 1958,
+   "photo_common_name": "St. Croix County, WI (5V-6, 07/16/1958)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5V",
+   "frame_number": "6",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.7183189467667,
+    44.6479915337709
+   ]
+  },
+  "properties": {
+   "uuid": "003d53b3-c29f-4aee-8102-c9602e0e1d8a",
+   "acquisition_date": -360961200000,
+   "acquisition_year": 1958,
+   "photo_common_name": "Goodhue County, MN (6V-150, 07/25/1958)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "6V",
+   "frame_number": "150",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.1153238721939,
+    44.4471452984727
+   ]
+  },
+  "properties": {
+   "uuid": "00439f17-a2a8-4ce6-a92b-005d57fc4a54",
+   "acquisition_date": -610052400000,
+   "acquisition_year": 1950,
+   "photo_common_name": "Wood County, WI (5G-70, 09/02/1950)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "5G",
+   "frame_number": "70",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.9245308279396,
+    42.8542067328092
+   ]
+  },
+  "properties": {
+   "uuid": "00442031-cf9f-45b2-bab3-71ec97a85508",
+   "acquisition_date": -449175600000,
+   "acquisition_year": 1955,
+   "photo_common_name": "Grant County, WI (8P-38, 10/08/1955)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "8P",
+   "frame_number": "38",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.3146978894853,
+    44.742249538527
+   ]
+  },
+  "properties": {
+   "uuid": "0045f123-6cd9-451f-83cb-66c0bbea225d",
+   "acquisition_date": -366231600000,
+   "acquisition_year": 1958,
+   "photo_common_name": "Pierce County, WI (2V-10, 05/25/1958)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2V",
+   "frame_number": "10",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.9549449595086,
+    42.8420599140557
+   ]
+  },
+  "properties": {
+   "uuid": "00518f93-8f04-4474-b4c3-c2db3b4c3493",
+   "acquisition_date": -430081200000,
+   "acquisition_year": 1956,
+   "photo_common_name": "Rock County, WI (1R-88, 05/16/1956)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1R",
+   "frame_number": "88",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.6010668057675,
+    45.8943722289711
+   ]
+  },
+  "properties": {
+   "uuid": "0052a5f7-f684-474e-bb34-691da28f2865",
+   "acquisition_date": -297284400000,
+   "acquisition_year": 1960,
+   "photo_common_name": "Oneida County, WI (2AA-285, 07/31/1960)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2AA",
+   "frame_number": "285",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.2721065020647,
+    45.8312972561824
+   ]
+  },
+  "properties": {
+   "uuid": "0054370f-d8f9-46b4-9d74-efd99c49fa82",
+   "acquisition_date": -454100400000,
+   "acquisition_year": 1955,
+   "photo_common_name": "Price County, WI (6H-81, 08/12/1955)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "6H",
+   "frame_number": "81",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.8736648220812,
+    45.5944516783873
+   ]
+  },
+  "properties": {
+   "uuid": "0058648a-08df-47b7-b2ab-0d58a69748a3",
+   "acquisition_date": -609620400000,
+   "acquisition_year": 1950,
+   "photo_common_name": "Forest County, WI (1G-156, 09/07/1950)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "1G",
+   "frame_number": "156",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.6107270371321,
+    44.2559292164347
+   ]
+  },
+  "properties": {
+   "uuid": "005e8a8a-b87a-43fc-9135-472208a012b8",
+   "acquisition_date": -360183600000,
+   "acquisition_year": 1958,
+   "photo_common_name": "Buffalo County, WI (4V-46, 08/03/1958)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "4V",
+   "frame_number": "46",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.185541990943,
+    43.574235662247
+   ]
+  },
+  "properties": {
+   "uuid": "005eca56-ad0f-4853-a721-c8391c077c12",
+   "acquisition_date": -458161200000,
+   "acquisition_year": 1955,
+   "photo_common_name": "Columbia County, WI (2P-65, 06/26/1955)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2P",
+   "frame_number": "65",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.2348344816936,
+    43.9795212208409
+   ]
+  },
+  "properties": {
+   "uuid": "005f3b0e-9622-401f-92b5-de82aec37f97",
+   "acquisition_date": -546462000000,
+   "acquisition_year": 1952,
+   "photo_common_name": "Calumet County, WI (3H-154, 09/07/1952)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3H",
+   "frame_number": "154",
+   "map_scale_denom": 20000,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.5499397921066,
+    45.3865734311041
+   ]
+  },
+  "properties": {
+   "uuid": "005f4e8d-a8de-445b-9a53-ed31972b1e76",
+   "acquisition_date": -577134000000,
+   "acquisition_year": 1951,
+   "photo_common_name": "Price County, WI (5H-34, 09/18/1951)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "5H",
+   "frame_number": "34",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.3010813573903,
+    45.9543824028473
+   ]
+  },
+  "properties": {
+   "uuid": "005f756c-e45f-4d2c-afe5-e58400e2af19",
+   "acquisition_date": -453495600000,
+   "acquisition_year": 1955,
+   "photo_common_name": "Price County, WI (7H-22, 08/19/1955)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "7H",
+   "frame_number": "22",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.0998684627913,
+    44.1224358391984
+   ]
+  },
+  "properties": {
+   "uuid": "0061577e-bc38-4db3-b4f2-6ad587bedf50",
+   "acquisition_date": -390769200000,
+   "acquisition_year": 1957,
+   "photo_common_name": "Jackson County, WI (4T-29, 08/14/1957)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "4T",
+   "frame_number": "29",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.4562586388892,
+    46.3304676592929
+   ]
+  },
+  "properties": {
+   "uuid": "0061a11e-da18-4fe7-ab4e-0401bf24d145",
+   "acquisition_date": -579121200000,
+   "acquisition_year": 1951,
+   "photo_common_name": "Iron County, WI (17G-28, 08/26/1951)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "17G",
+   "frame_number": "28",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.297268532014,
+    45.4433307408283
+   ]
+  },
+  "properties": {
+   "uuid": "0061ab12-0d4d-44a9-9a87-2a5e647ebb6e",
+   "acquisition_date": -453495600000,
+   "acquisition_year": 1955,
+   "photo_common_name": "Price County, WI (7H-62, 08/19/1955)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "7H",
+   "frame_number": "62",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.9989041171361,
+    45.7396598905445
+   ]
+  },
+  "properties": {
+   "uuid": "006242a8-8a54-4f28-b56f-523b786c2761",
+   "acquisition_date": -609620400000,
+   "acquisition_year": 1950,
+   "photo_common_name": "Sawyer County, WI (2G-134, 09/07/1950)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "2G",
+   "frame_number": "134",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.4032146973647,
+    46.7922694801975
+   ]
+  },
+  "properties": {
+   "uuid": "0062a2ec-6dab-46aa-8e5c-c329583cd004",
+   "acquisition_date": -579121200000,
+   "acquisition_year": 1951,
+   "photo_common_name": "Bayfield County, WI (4G-113, 08/26/1951)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "4G",
+   "frame_number": "113",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.4219925378481,
+    43.3989451979319
+   ]
+  },
+  "properties": {
+   "uuid": "0066036f-cd58-41e9-a577-c17fb35db28f",
+   "acquisition_date": -456778800000,
+   "acquisition_year": 1955,
+   "photo_common_name": "Columbia County, WI (6P-162, 07/12/1955)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "6P",
+   "frame_number": "162",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.3551996161912,
+    44.178506951533
+   ]
+  },
+  "properties": {
+   "uuid": "006901fd-7f12-453f-90d3-34012168e480",
+   "acquisition_date": -390769200000,
+   "acquisition_year": 1957,
+   "photo_common_name": "Jackson County, WI (1T-69, 08/14/1957)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1T",
+   "frame_number": "69",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.9977789846559,
+    44.8355286067286
+   ]
+  },
+  "properties": {
+   "uuid": "006b2688-cdd0-4c1e-a047-21e1feb11ed6",
+   "acquisition_date": -361998000000,
+   "acquisition_year": 1958,
+   "photo_common_name": "Shawano County, WI (7V-42, 07/13/1958)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "7V",
+   "frame_number": "42",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.7178598669511,
+    44.7743109336956
+   ]
+  },
+  "properties": {
+   "uuid": "006b5d5f-c9ea-42a3-964f-ec3f2830a48f",
+   "acquisition_date": -360961200000,
+   "acquisition_year": 1958,
+   "photo_common_name": "Pierce County, WI (6V-142, 07/25/1958)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "6V",
+   "frame_number": "142",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.3150935069612,
+    45.6543191657688
+   ]
+  },
+  "properties": {
+   "uuid": "006c13f5-3045-409d-a6fa-2523796a85e6",
+   "acquisition_date": -609534000000,
+   "acquisition_year": 1950,
+   "photo_common_name": "Sawyer County, WI (4G-146, 09/08/1950)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "4G",
+   "frame_number": "146",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.2888224770906,
+    42.9384113907927
+   ]
+  },
+  "properties": {
+   "uuid": "006d6834-081d-497f-8999-2afb7678a88a",
+   "acquisition_date": -426711600000,
+   "acquisition_year": 1956,
+   "photo_common_name": "Waukesha County, WI (1R-176, 06/24/1956)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1R",
+   "frame_number": "176",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.3639548011935,
+    42.7734203814727
+   ]
+  },
+  "properties": {
+   "uuid": "006d8f88-f9b0-4423-8fc1-34afb77ec904",
+   "acquisition_date": -452113200000,
+   "acquisition_year": 1955,
+   "photo_common_name": "Lafayette County, WI (1P-53, 09/04/1955)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1P",
+   "frame_number": "53",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.8129344536688,
+    43.5229963411134
+   ]
+  },
+  "properties": {
+   "uuid": "006fd1e0-1335-4ac3-9799-3688c871e83a",
+   "acquisition_date": -454014000000,
+   "acquisition_year": 1955,
+   "photo_common_name": "Sauk County, WI (10P-129, 08/13/1955)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "10P",
+   "frame_number": "129",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.095077968219,
+    45.7091369182981
+   ]
+  },
+  "properties": {
+   "uuid": "00727c6b-28d3-4fd4-a4ea-f27138c19b8b",
+   "acquisition_date": -583614000000,
+   "acquisition_year": 1951,
+   "photo_common_name": "Marinette County, WI (4G-144, 07/05/1951)\n",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White Infrared",
+   "roll_number": "4G",
+   "frame_number": "144",
+   "map_scale_denom": 15840,
+   "collection_identifier": "UWDC",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.9201109847997,
+    43.3291635413636
+   ]
+  },
+  "properties": {
+   "uuid": "00758fd9-309f-4aa5-a143-35247e9abc34",
+   "acquisition_date": -430081200000,
+   "acquisition_year": 1956,
+   "photo_common_name": "Ozaukee County, WI (1R-61, 05/16/1956)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1R",
+   "frame_number": "61",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.0477171810046,
+    43.0453419353629
+   ]
+  },
+  "properties": {
+   "uuid": "0078f7ae-4277-47c1-8894-dc791f74e408",
+   "acquisition_date": -426711600000,
+   "acquisition_year": 1956,
+   "photo_common_name": "Milwaukee County, WI (1R-157, 06/24/1956)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1R",
+   "frame_number": "157",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.8964438409181,
+    45.644618952122
+   ]
+  },
+  "properties": {
+   "uuid": "007b2211-3fa6-4f5a-a57f-b1b680e26941",
+   "acquisition_date": -290458800000,
+   "acquisition_year": 1960,
+   "photo_common_name": "Oneida County, WI (5AA-71, 10/18/1960)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5AA",
+   "frame_number": "71",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.559538178793,
+    43.2628061117347
+   ]
+  },
+  "properties": {
+   "uuid": "0000e617-68c2-4be6-9e76-4aa335390797",
+   "acquisition_date": -231966000000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Richland County, WI (1CC-88, 08/26/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1CC",
+   "frame_number": "88",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.836502274436,
+    42.480116763087
+   ]
+  },
+  "properties": {
+   "uuid": "0003047b-c72d-4e90-b244-f9faba2dd746",
+   "acquisition_date": -201380400000,
+   "acquisition_year": 1963,
+   "photo_common_name": "Boone County, IL (1DD-057, 08/15/1963)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1DD",
+   "frame_number": "057",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.0807546075565,
+    42.8937027838345
+   ]
+  },
+  "properties": {
+   "uuid": "0006e4c4-c2a6-486b-9b4e-70c7cd4649a7",
+   "acquisition_date": -71175600000,
+   "acquisition_year": 1967,
+   "photo_common_name": "Grant County, WI (2HH-198, 09/30/1967)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2HH",
+   "frame_number": "198",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.5806431738113,
+    44.2411203425664
+   ]
+  },
+  "properties": {
+   "uuid": "000a578f-7abf-450f-9229-bbef7ba68890",
+   "acquisition_date": -74026800000,
+   "acquisition_year": 1967,
+   "photo_common_name": "Manitowoc County, WI (1HH-029, 08/28/1967)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1HH",
+   "frame_number": "029",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.437437063016,
+    44.7344928560865
+   ]
+  },
+  "properties": {
+   "uuid": "000ac9fc-9a18-415f-8b78-052f684d5cf2",
+   "acquisition_date": -261514800000,
+   "acquisition_year": 1961,
+   "photo_common_name": "Door County, WI (2AA-56, 09/18/1961)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2AA",
+   "frame_number": "56",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.5202192312752,
+    44.8343405560993
+   ]
+  },
+  "properties": {
+   "uuid": "000adcb4-7ac2-4d00-b020-b0262b3e1951",
+   "acquisition_date": -74026800000,
+   "acquisition_year": 1967,
+   "photo_common_name": "Door County, WI (2HH-222, 08/28/1967)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2HH",
+   "frame_number": "222",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.6798262854693,
+    42.7147274038753
+   ]
+  },
+  "properties": {
+   "uuid": "000e5a6d-a6a1-4df9-9a76-fdae07c63dfa",
+   "acquisition_date": -201466800000,
+   "acquisition_year": 1963,
+   "photo_common_name": "Walworth County, WI (2DD-163, 08/14/1963)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2DD",
+   "frame_number": "163",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.6372125948635,
+    44.6471503898464
+   ]
+  },
+  "properties": {
+   "uuid": "000eb453-aafe-41f9-a7c8-e4b6c46363e2",
+   "acquisition_date": -138567600000,
+   "acquisition_year": 1965,
+   "photo_common_name": "Goodhue County, MN (2FF-217, 08/11/1965)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2FF",
+   "frame_number": "217",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.4025158231249,
+    42.5619337245846
+   ]
+  },
+  "properties": {
+   "uuid": "001250ef-7dd0-4ad9-b369-9f31fea80a08",
+   "acquisition_date": -202762800000,
+   "acquisition_year": 1963,
+   "photo_common_name": "Walworth County, WI (2DD-035, 07/30/1963)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2DD",
+   "frame_number": "035",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.9281833092525,
+    43.4521027531972
+   ]
+  },
+  "properties": {
+   "uuid": "001445b4-dc28-42a9-9488-4b90d2c02d38",
+   "acquisition_date": -71002800000,
+   "acquisition_year": 1967,
+   "photo_common_name": "Vernon County, WI (3HH-288, 10/02/1967)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3HH",
+   "frame_number": "288",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.733692491001,
+    43.9358645338578
+   ]
+  },
+  "properties": {
+   "uuid": "0015e9ec-bc46-45f7-b5e0-91c2c774cf39",
+   "acquisition_date": -260823600000,
+   "acquisition_year": 1961,
+   "photo_common_name": "Manitowoc County, WI (3AA-33, 09/26/1961)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3AA",
+   "frame_number": "33",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.289990433343,
+    43.5492325992164
+   ]
+  },
+  "properties": {
+   "uuid": "00175814-3730-4f5a-b607-b4223afdb40a",
+   "acquisition_date": -231447600000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Richland County, WI (1CC-128, 09/01/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1CC",
+   "frame_number": "128",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.8587879338657,
+    45.6787513661917
+   ]
+  },
+  "properties": {
+   "uuid": "001b40f2-7df0-4fab-90bb-f92ecba72a64",
+   "acquisition_date": -228769200000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Sawyer County, WI (4CC-238, 10/02/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "4CC",
+   "frame_number": "238",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.8636066328952,
+    44.4677044726758
+   ]
+  },
+  "properties": {
+   "uuid": "001f7f77-c191-4269-b3e5-0affeb12c326",
+   "acquisition_date": -133124400000,
+   "acquisition_year": 1965,
+   "photo_common_name": "Jackson County, WI (3FF-099, 10/13/1965)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3FF",
+   "frame_number": "099",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.1969744214147,
+    45.2460720139626
+   ]
+  },
+  "properties": {
+   "uuid": "0021d0fc-6a63-4290-b74e-b66da7f37205",
+   "acquisition_date": -115066800000,
+   "acquisition_year": 1966,
+   "photo_common_name": "Langlade County, WI (1GG-167, 05/10/1966)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1GG",
+   "frame_number": "167",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.8942269585867,
+    42.7142305748898
+   ]
+  },
+  "properties": {
+   "uuid": "0023c241-00ac-47af-93e8-1ff138a401cc",
+   "acquisition_date": -205873200000,
+   "acquisition_year": 1963,
+   "photo_common_name": "Racine County, WI (1DD-078, 06/24/1963)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1DD",
+   "frame_number": "078",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.3862359300893,
+    43.8622429141212
+   ]
+  },
+  "properties": {
+   "uuid": "0024ab25-06eb-4ec6-97ec-77316cfb3588",
+   "acquisition_date": -173905200000,
+   "acquisition_year": 1964,
+   "photo_common_name": "Marquette County, WI (3EE-121, 06/28/1964)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3EE",
+   "frame_number": "121",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.6800250903951,
+    45.2619764018447
+   ]
+  },
+  "properties": {
+   "uuid": "0024c1b0-9d7f-45fc-b9a8-9f087fa23805",
+   "acquisition_date": -260650800000,
+   "acquisition_year": 1961,
+   "photo_common_name": "Barron County, WI (1AA-141, 09/28/1961)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1AA",
+   "frame_number": "141",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.3089419803483,
+    44.6886783413019
+   ]
+  },
+  "properties": {
+   "uuid": "002551d5-9522-4933-bf37-f8102e74478f",
+   "acquisition_date": -115498800000,
+   "acquisition_year": 1966,
+   "photo_common_name": "Shawano County, WI (1GG-200, 05/05/1966)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1GG",
+   "frame_number": "200",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.7298890804534,
+    44.2628027207116
+   ]
+  },
+  "properties": {
+   "uuid": "00267a60-9876-458c-aa89-edce87c55e42",
+   "acquisition_date": -134074800000,
+   "acquisition_year": 1965,
+   "photo_common_name": "Jackson County, WI (2FF-080, 10/02/1965)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2FF",
+   "frame_number": "080",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.1036097847823,
+    43.2520471139575
+   ]
+  },
+  "properties": {
+   "uuid": "002f6ecc-ca28-46ef-82dc-725d60c78062",
+   "acquisition_date": -230929200000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Dane County, WI (3CC-5, 09/07/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3CC",
+   "frame_number": "5",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.4309247396115,
+    45.4675135272403
+   ]
+  },
+  "properties": {
+   "uuid": "00310d7a-53b6-4c43-8f2a-59469007b375",
+   "acquisition_date": -134593200000,
+   "acquisition_year": 1965,
+   "photo_common_name": "Polk County, WI (3FF-229, 09/26/1965)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3FF",
+   "frame_number": "229",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.4111118966137,
+    43.6544490600539
+   ]
+  },
+  "properties": {
+   "uuid": "0032234b-8160-43a3-b2ae-7f840666bd4f",
+   "acquisition_date": -71607600000,
+   "acquisition_year": 1967,
+   "photo_common_name": "Vernon County, WI (1HH-039, 09/25/1967)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1HH",
+   "frame_number": "039",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.0930944710689,
+    43.9186080979963
+   ]
+  },
+  "properties": {
+   "uuid": "00336fd2-dbb7-4177-bbc0-7aa5c3092831",
+   "acquisition_date": -138222000000,
+   "acquisition_year": 1965,
+   "photo_common_name": "Juneau County, WI (3FF-210, 08/15/1965)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3FF",
+   "frame_number": "210",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.2127651227682,
+    43.7582985465599
+   ]
+  },
+  "properties": {
+   "uuid": "003438ca-d0db-449f-ba09-91814f6cf0fc",
+   "acquisition_date": -71175600000,
+   "acquisition_year": 1967,
+   "photo_common_name": "La Crosse County, WI (1HH-137, 09/30/1967)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1HH",
+   "frame_number": "137",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.1632400123104,
+    44.4723504023082
+   ]
+  },
+  "properties": {
+   "uuid": "00373794-7c5c-4075-ae9e-2f142b0c2e90",
+   "acquisition_date": -175892400000,
+   "acquisition_year": 1964,
+   "photo_common_name": "Waupaca County, WI (1EE-161, 06/05/1964)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1EE",
+   "frame_number": "161",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.3863863329415,
+    45.2384367802939
+   ]
+  },
+  "properties": {
+   "uuid": "00389466-5c11-424f-a497-311374c25724",
+   "acquisition_date": -134593200000,
+   "acquisition_year": 1965,
+   "photo_common_name": "Polk County, WI (3FF-204, 09/26/1965)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3FF",
+   "frame_number": "204",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.8925250231211,
+    44.2671329056512
+   ]
+  },
+  "properties": {
+   "uuid": "0039519d-d1a0-4d60-8412-38ef99f7bfb5",
+   "acquisition_date": -138567600000,
+   "acquisition_year": 1965,
+   "photo_common_name": "Buffalo County, WI (5FF-157, 08/11/1965)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5FF",
+   "frame_number": "157",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.7235293973293,
+    43.1899115025027
+   ]
+  },
+  "properties": {
+   "uuid": "003ce8b4-f656-481c-a118-3dc62fd430f4",
+   "acquisition_date": -73508400000,
+   "acquisition_year": 1967,
+   "photo_common_name": "Crawford County, WI (3HH-123, 09/03/1967)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3HH",
+   "frame_number": "123",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.8538326054885,
+    44.2607628327288
+   ]
+  },
+  "properties": {
+   "uuid": "003d3d5e-bbd7-46bf-baa9-97669c1e969c",
+   "acquisition_date": -134074800000,
+   "acquisition_year": 1965,
+   "photo_common_name": "Jackson County, WI (2FF-086, 10/02/1965)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2FF",
+   "frame_number": "086",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.7147316767139,
+    45.8444612739761
+   ]
+  },
+  "properties": {
+   "uuid": "003dd36f-5314-4c26-8ed0-ebd2b96ff67c",
+   "acquisition_date": -232052400000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Burnett County, WI (1CC-234, 08/25/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1CC",
+   "frame_number": "234",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.2885791693538,
+    43.8101461738477
+   ]
+  },
+  "properties": {
+   "uuid": "0041af21-58c0-4490-9172-2516b7700c46",
+   "acquisition_date": -259959600000,
+   "acquisition_year": 1961,
+   "photo_common_name": "Houston County, MN (4BB-63, 10/06/1961)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "4BB",
+   "frame_number": "63",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.1649402224079,
+    44.7085887884439
+   ]
+  },
+  "properties": {
+   "uuid": "0043fab0-a4bf-4452-b26c-d24b47cd5f06",
+   "acquisition_date": -115498800000,
+   "acquisition_year": 1966,
+   "photo_common_name": "Shawano County, WI (1GG-070, 05/05/1966)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1GG",
+   "frame_number": "070",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.1967038866842,
+    46.4746954353775
+   ]
+  },
+  "properties": {
+   "uuid": "00462505-29a9-4e43-8d8e-ab804c111589",
+   "acquisition_date": -113338800000,
+   "acquisition_year": 1966,
+   "photo_common_name": "Bayfield County, WI (3GG-159, 05/30/1966)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3GG",
+   "frame_number": "159",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.5167932895731,
+    44.2339132848281
+   ]
+  },
+  "properties": {
+   "uuid": "00467778-abea-4b85-8b87-d4d6c3823406",
+   "acquisition_date": -259959600000,
+   "acquisition_year": 1961,
+   "photo_common_name": "Manitowoc County, WI (2AA-145, 10/06/1961)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2AA",
+   "frame_number": "145",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.8198157299823,
+    42.7200240906202
+   ]
+  },
+  "properties": {
+   "uuid": "00511bad-4dc5-4a76-ad7b-bce291f6c34a",
+   "acquisition_date": -204404400000,
+   "acquisition_year": 1963,
+   "photo_common_name": "Green County, WI (1DD-040, 07/11/1963)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1DD",
+   "frame_number": "040",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.8017542000917,
+    43.3632824696884
+   ]
+  },
+  "properties": {
+   "uuid": "0052a6be-267b-4e47-9a83-3bd741b6aff5",
+   "acquisition_date": -71607600000,
+   "acquisition_year": 1967,
+   "photo_common_name": "Crawford County, WI (2HH-043, 09/25/1967)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2HH",
+   "frame_number": "043",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.0940139605395,
+    42.9190992908072
+   ]
+  },
+  "properties": {
+   "uuid": "005355e7-4450-4dbf-b2e3-a55fe39ceb90",
+   "acquisition_date": -229028400000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Iowa County, WI (4CC-157, 09/29/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "4CC",
+   "frame_number": "157",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.3084249342253,
+    45.3957348608473
+   ]
+  },
+  "properties": {
+   "uuid": "0053b219-6f55-4a40-91ec-98969e2dc538",
+   "acquisition_date": -134593200000,
+   "acquisition_year": 1965,
+   "photo_common_name": "Polk County, WI (3FF-110, 09/26/1965)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3FF",
+   "frame_number": "110",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.2522874606556,
+    43.2741317062254
+   ]
+  },
+  "properties": {
+   "uuid": "005b3ef4-9812-4a32-a753-6f29c17a7903",
+   "acquisition_date": -231879600000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Richland County, WI (2CC-22, 08/27/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2CC",
+   "frame_number": "22",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.6849201783646,
+    43.1218947570887
+   ]
+  },
+  "properties": {
+   "uuid": "005cdd55-3a0d-4314-b0d1-a2c69c79cbb1",
+   "acquisition_date": -259009200000,
+   "acquisition_year": 1961,
+   "photo_common_name": "Grant County, WI (5BB-3, 10/17/1961)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5BB",
+   "frame_number": "3",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.0979972455693,
+    44.4359320382385
+   ]
+  },
+  "properties": {
+   "uuid": "00618e42-c5be-4ead-8705-ee7db1fdf0d6",
+   "acquisition_date": -138567600000,
+   "acquisition_year": 1965,
+   "photo_common_name": "Pepin County, WI (3FF-196, 08/11/1965)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3FF",
+   "frame_number": "196",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.5652490880066,
+    43.0600025930746
+   ]
+  },
+  "properties": {
+   "uuid": "0062324d-5818-44f2-add0-ebeaf0ad6d2a",
+   "acquisition_date": -259009200000,
+   "acquisition_year": 1961,
+   "photo_common_name": "Grant County, WI (4BB-136, 10/17/1961)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "4BB",
+   "frame_number": "136",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.9749609659788,
+    42.5971110026237
+   ]
+  },
+  "properties": {
+   "uuid": "00623a3e-02e5-4716-b250-7d3bad957866",
+   "acquisition_date": -231879600000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Lafayette County, WI (2CC-109, 08/27/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2CC",
+   "frame_number": "109",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.0519907149743,
+    42.6851683857664
+   ]
+  },
+  "properties": {
+   "uuid": "006a6d8c-9bfe-42f8-b9fe-6304ca4db6fd",
+   "acquisition_date": -203367600000,
+   "acquisition_year": 1963,
+   "photo_common_name": "Racine County, WI (1DD-202, 07/23/1963)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1DD",
+   "frame_number": "202",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.1867372624862,
+    43.2823927315229
+   ]
+  },
+  "properties": {
+   "uuid": "006abd32-931b-4374-95fc-0b8447feb558",
+   "acquisition_date": -231361200000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Dane County, WI (2CC-224, 09/02/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2CC",
+   "frame_number": "224",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.5586845681632,
+    44.3535115677228
+   ]
+  },
+  "properties": {
+   "uuid": "006c2f10-6d21-414b-aed1-33307429c9f4",
+   "acquisition_date": -261514800000,
+   "acquisition_year": 1961,
+   "photo_common_name": "Kewaunee County, WI (2AA-185, 09/18/1961)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2AA",
+   "frame_number": "185",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.9534513169244,
+    42.5544516701088
+   ]
+  },
+  "properties": {
+   "uuid": "006ca2f8-2575-413b-96de-ffe0594712af",
+   "acquisition_date": -200948400000,
+   "acquisition_year": 1963,
+   "photo_common_name": "Rock County, WI (2DD-023, 08/20/1963)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2DD",
+   "frame_number": "023",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.1653143775543,
+    44.557302843888
+   ]
+  },
+  "properties": {
+   "uuid": "006f5ae8-afb0-4c47-8daf-2004de6b837c",
+   "acquisition_date": -140814000000,
+   "acquisition_year": 1965,
+   "photo_common_name": "Jackson County, WI (1FF-065, 07/16/1965)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1FF",
+   "frame_number": "065",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.0031694258189,
+    44.7526514751204
+   ]
+  },
+  "properties": {
+   "uuid": "00736c6c-dd4a-4b4c-ad2b-cd52b45313d5",
+   "acquisition_date": -115498800000,
+   "acquisition_year": 1966,
+   "photo_common_name": "Shawano County, WI (2GG-211, 05/05/1966)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2GG",
+   "frame_number": "211",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.8137380853978,
+    44.3059866167395
+   ]
+  },
+  "properties": {
+   "uuid": "0074a997-41fe-4feb-8e8d-1fb63b798c1f",
+   "acquisition_date": -138567600000,
+   "acquisition_year": 1965,
+   "photo_common_name": "Buffalo County, WI (5FF-096, 08/11/1965)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5FF",
+   "frame_number": "096",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.9737574692474,
+    43.5849086888833
+   ]
+  },
+  "properties": {
+   "uuid": "00762693-9aa1-4aa7-afcd-75972bcdc771",
+   "acquisition_date": -230324400000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Sauk County, WI (5CC-6, 09/14/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5CC",
+   "frame_number": "6",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.7084566481386,
+    43.7764637578142
+   ]
+  },
+  "properties": {
+   "uuid": "00773809-3857-4a22-a6e6-fe8decdde9f4",
+   "acquisition_date": -257623200000,
+   "acquisition_year": 1961,
+   "photo_common_name": "Sheboygan County, WI (3AA-220, 11/02/1961)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3AA",
+   "frame_number": "220",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.0802908076808,
+    43.0031391327734
+   ]
+  },
+  "properties": {
+   "uuid": "0077e798-e8f6-48fd-ac6c-cb985eb40f99",
+   "acquisition_date": -259182000000,
+   "acquisition_year": 1961,
+   "photo_common_name": "Crawford County, WI (2BB-250, 10/15/1961)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2BB",
+   "frame_number": "250",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.8104758715703,
+    45.9900223841935
+   ]
+  },
+  "properties": {
+   "uuid": "007909ef-5b2c-489b-892f-91fa9d05efbc",
+   "acquisition_date": -231966000000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Washburn County, WI (2CC-149, 08/26/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2CC",
+   "frame_number": "149",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.8017813593356,
+    45.0594410752774
+   ]
+  },
+  "properties": {
+   "uuid": "007c6da0-6d44-4f30-956b-f9cef7ee6753",
+   "acquisition_date": -229028400000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Taylor County, WI (3CC-157, 09/29/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3CC",
+   "frame_number": "157",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.6127665052775,
+    45.1344658568038
+   ]
+  },
+  "properties": {
+   "uuid": "00853aa5-ec02-4f96-891d-0a6815130191",
+   "acquisition_date": -227905200000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Lincoln County, WI (1CC-139, 10/12/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1CC",
+   "frame_number": "139",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.6428406385359,
+    42.7837289106285
+   ]
+  },
+  "properties": {
+   "uuid": "00862c5a-7cf3-4297-bec5-75d5fb6671ea",
+   "acquisition_date": -73854000000,
+   "acquisition_year": 1967,
+   "photo_common_name": "Grant County, WI (1HH-283, 08/30/1967)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1HH",
+   "frame_number": "283",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.2388202770837,
+    46.1053340260508
+   ]
+  },
+  "properties": {
+   "uuid": "0086ee88-6b4d-42e3-8915-521a37cd7a3b",
+   "acquisition_date": -229028400000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Sawyer County, WI (2CC-194, 09/29/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2CC",
+   "frame_number": "194",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.2107254222603,
+    43.7968274521895
+   ]
+  },
+  "properties": {
+   "uuid": "008d1fb7-88ea-4280-ad08-1ee1f64b6c2d",
+   "acquisition_date": -259959600000,
+   "acquisition_year": 1961,
+   "photo_common_name": "La Crosse County, WI (3BB-269, 10/06/1961)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3BB",
+   "frame_number": "269",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.8349942120085,
+    45.3191156820716
+   ]
+  },
+  "properties": {
+   "uuid": "00952662-ed55-4017-af19-602e5da78efe",
+   "acquisition_date": -114030000000,
+   "acquisition_year": 1966,
+   "photo_common_name": "Marinette County, WI (1GG-194, 05/22/1966)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1GG",
+   "frame_number": "194",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -89.071214888814,
+    42.8632343994079
+   ]
+  },
+  "properties": {
+   "uuid": "0095f1e6-fc5b-477a-9ee9-82ecac32364b",
+   "acquisition_date": -200948400000,
+   "acquisition_year": 1963,
+   "photo_common_name": "Dane County, WI (2DD-110, 08/20/1963)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2DD",
+   "frame_number": "110",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -91.5398699024869,
+    46.5095479238706
+   ]
+  },
+  "properties": {
+   "uuid": "009684db-acff-443c-a94d-a4b003b31d1c",
+   "acquisition_date": -115066800000,
+   "acquisition_year": 1966,
+   "photo_common_name": "Bayfield County, WI (1GG-199, 05/10/1966)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1GG",
+   "frame_number": "199",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.985272525423,
+    45.3507722146184
+   ]
+  },
+  "properties": {
+   "uuid": "009a2f01-9337-4de2-a8eb-f1805e6a778b",
+   "acquisition_date": -115498800000,
+   "acquisition_year": 1966,
+   "photo_common_name": "Langlade County, WI (2GG-043, 05/05/1966)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2GG",
+   "frame_number": "043",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.3913782041092,
+    44.6467630288777
+   ]
+  },
+  "properties": {
+   "uuid": "009c7cb3-8b81-45e6-bb34-8c68594fd021",
+   "acquisition_date": -231793200000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Kewaunee County, WI (5AA-122, 08/28/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "5AA",
+   "frame_number": "122",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.0964615419355,
+    45.9734940458482
+   ]
+  },
+  "properties": {
+   "uuid": "00a10482-6f8d-403e-a5f4-a4443133deaa",
+   "acquisition_date": -232398000000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Burnett County, WI (1CC-107, 08/21/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1CC",
+   "frame_number": "107",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.4783179826772,
+    44.1294057822224
+   ]
+  },
+  "properties": {
+   "uuid": "00a1e6a6-1fd0-4928-b5c9-6dd07d9c40d3",
+   "acquisition_date": -134074800000,
+   "acquisition_year": 1965,
+   "photo_common_name": "Monroe County, WI (1FF-188, 10/02/1965)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1FF",
+   "frame_number": "188",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.3537695947721,
+    45.2178919822531
+   ]
+  },
+  "properties": {
+   "uuid": "00a3c403-2210-4223-9652-ee703595f9b4",
+   "acquisition_date": -230583600000,
+   "acquisition_year": 1962,
+   "photo_common_name": "Taylor County, WI (2CC-73, 09/11/1962)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2CC",
+   "frame_number": "73",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.0710048388288,
+    46.5914222198861
+   ]
+  },
+  "properties": {
+   "uuid": "00a42b85-55a2-4916-8656-5a250bf8049f",
+   "acquisition_date": -113598000000,
+   "acquisition_year": 1966,
+   "photo_common_name": "Douglas County, WI (2GG-063, 05/27/1966)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2GG",
+   "frame_number": "063",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -87.6842805858413,
+    44.3282289458831
+   ]
+  },
+  "properties": {
+   "uuid": "00a5d78f-aeb8-4ebd-a894-c2f751908392",
+   "acquisition_date": -74026800000,
+   "acquisition_year": 1967,
+   "photo_common_name": "Kewaunee County, WI (3HH-040, 08/28/1967)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3HH",
+   "frame_number": "040",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -88.7569174731977,
+    44.6940768289784
+   ]
+  },
+  "properties": {
+   "uuid": "00a615f4-ea86-4a66-bb26-dc9fd73b216a",
+   "acquisition_date": -175460400000,
+   "acquisition_year": 1964,
+   "photo_common_name": "Shawano County, WI (2EE-210, 06/10/1964)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "2EE",
+   "frame_number": "210",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -92.2759341761687,
+    44.6658983601669
+   ]
+  },
+  "properties": {
+   "uuid": "00a652c2-8b68-4f68-8f5e-1b80db5a8632",
+   "acquisition_date": -139431600000,
+   "acquisition_year": 1965,
+   "photo_common_name": "Pierce County, WI (1FF-085, 08/01/1965)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1FF",
+   "frame_number": "085",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.7674765468116,
+    43.1038152280842
+   ]
+  },
+  "properties": {
+   "uuid": "00a78b52-35c6-4d3b-9cd2-523abd7d2db5",
+   "acquisition_date": -259182000000,
+   "acquisition_year": 1961,
+   "photo_common_name": "Grant County, WI (3BB-83, 10/15/1961)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "3BB",
+   "frame_number": "83",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1955-1963",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.4123348229275,
+    46.145427366219
+   ]
+  },
+  "properties": {
+   "uuid": "00a8b50b-66b0-4612-b26a-33fc2f07b99c",
+   "acquisition_date": -115066800000,
+   "acquisition_year": 1966,
+   "photo_common_name": "Ashland County, WI (1GG-049, 05/10/1966)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1GG",
+   "frame_number": "049",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ },
+ {
+  "type": "Feature",
+  "geometry": {
+   "type": "Point",
+   "coordinates": [
+    -90.6124896214765,
+    46.1332911069225
+   ]
+  },
+  "properties": {
+   "uuid": "00ac10ec-7c01-4e98-a3b9-7b318ea2bad4",
+   "acquisition_date": -115066800000,
+   "acquisition_year": 1966,
+   "photo_common_name": "Ashland County, WI (1GG-176, 05/10/1966)",
+   "held_by": "UW-Madison Robinson Map Library",
+   "exposure_type": "Black & White",
+   "roll_number": "1GG",
+   "frame_number": "176",
+   "map_scale_denom": 20000,
+   "collection_identifier": "ASCS_1963-1967",
+   "source_organization": "U.S. Department of Agriculture"
+  }
+ }
+]

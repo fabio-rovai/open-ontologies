@@ -1,0 +1,8780 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.94774031609604,
+       45.89585169355231
+      ],
+      [
+       -89.88870574462236,
+       45.89585169355231
+      ],
+      [
+       -89.88870574462236,
+       45.936922480472894
+      ],
+      [
+       -89.94774031609604,
+       45.936922480472894
+      ],
+      [
+       -89.94774031609604,
+       45.89585169355231
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0000b412-773f-4461-99d7-80204883dc7c",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Geological Survey",
+    "roll": "2",
+    "frame": "54"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.26819721269571,
+       43.47561513649931
+      ],
+      [
+       -88.21158069815009,
+       43.47561513649931
+      ],
+      [
+       -88.21158069815009,
+       43.51668592341989
+      ],
+      [
+       -88.26819721269571,
+       43.51668592341989
+      ],
+      [
+       -88.26819721269571,
+       43.47561513649931
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00020b3a-5824-4829-ac1c-972300e70dbc",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "9",
+    "frame": "828"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.46216733790686,
+       45.75721149193381
+      ],
+      [
+       -90.40327971842913,
+       45.75721149193381
+      ],
+      [
+       -90.40327971842913,
+       45.798282278854394
+      ],
+      [
+       -90.46216733790686,
+       45.798282278854394
+      ],
+      [
+       -90.46216733790686,
+       45.75721149193381
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00040e49-db77-467a-bd95-225d9e3606b0",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "7",
+    "frame": "19"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.04555427030932,
+       46.65530211992371
+      ],
+      [
+       -91.98569524363869,
+       46.65530211992371
+      ],
+      [
+       -91.98569524363869,
+       46.696372906844296
+      ],
+      [
+       -92.04555427030932,
+       46.696372906844296
+      ],
+      [
+       -92.04555427030932,
+       46.65530211992371
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00061a0b-0ca5-4796-be2f-250bfb84649e",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "4",
+    "frame": "69"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.20200590788663,
+       45.62825925842151
+      ],
+      [
+       -91.14325400838636,
+       45.62825925842151
+      ],
+      [
+       -91.14325400838636,
+       45.66933004534209
+      ],
+      [
+       -91.20200590788663,
+       45.66933004534209
+      ],
+      [
+       -91.20200590788663,
+       45.62825925842151
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00061ffe-ad83-447e-913a-fa96ddbf1b3b",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "7",
+    "frame": "54"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.84362991445042,
+       43.115434549166906
+      ],
+      [
+       -88.78734799089338,
+       43.115434549166906
+      ],
+      [
+       -88.78734799089338,
+       43.15650533608749
+      ],
+      [
+       -88.84362991445042,
+       43.15650533608749
+      ],
+      [
+       -88.84362991445042,
+       43.115434549166906
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00066860-3842-45c7-9b0a-df31e7314f05",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "10",
+    "frame": "887"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.60333869649716,
+       44.78744554494331
+      ],
+      [
+       -88.54544951492684,
+       44.78744554494331
+      ],
+      [
+       -88.54544951492684,
+       44.828516331863895
+      ],
+      [
+       -88.60333869649716,
+       44.828516331863895
+      ],
+      [
+       -88.60333869649716,
+       44.78744554494331
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00068163-ded1-4291-a6c6-c9aeaa51c993",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "4",
+    "frame": "73"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.72046400772807,
+       44.95753280519221
+      ],
+      [
+       -88.66240336417114,
+       44.95753280519221
+      ],
+      [
+       -88.66240336417114,
+       44.998603592112794
+      ],
+      [
+       -88.72046400772807,
+       44.998603592112794
+      ],
+      [
+       -88.72046400772807,
+       44.95753280519221
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000f2567-e3c4-4054-ade5-6a1ea3e4c266",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "6",
+    "frame": "29"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.16717155645354,
+       45.63580273020031
+      ],
+      [
+       -89.10841174300167,
+       45.63580273020031
+      ],
+      [
+       -89.10841174300167,
+       45.676873517120896
+      ],
+      [
+       -89.16717155645354,
+       45.676873517120896
+      ],
+      [
+       -89.16717155645354,
+       45.63580273020031
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000fe24f-c45c-485e-bd73-b32ee9b1ca48",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "2",
+    "frame": "54"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.57938859971905,
+       43.609925891971606
+      ],
+      [
+       -90.52264572016274,
+       43.609925891971606
+      ],
+      [
+       -90.52264572016274,
+       43.65099667889219
+      ],
+      [
+       -90.57938859971905,
+       43.65099667889219
+      ],
+      [
+       -90.57938859971905,
+       43.609925891971606
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00103ebd-4d64-4e5f-ba48-77e1161ea04d",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "11",
+    "frame": "63"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.03760785750814,
+       42.68867824196241
+      ],
+      [
+       -88.98171444743687,
+       42.68867824196241
+      ],
+      [
+       -88.98171444743687,
+       42.72974902888299
+      ],
+      [
+       -89.03760785750814,
+       42.72974902888299
+      ],
+      [
+       -89.03760785750814,
+       42.68867824196241
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00110476-e331-4f30-8d0e-6b96e5b294c7",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "6",
+    "frame": "463"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.47570828760458,
+       43.978324801431604
+      ],
+      [
+       -89.41861427178283,
+       43.978324801431604
+      ],
+      [
+       -89.41861427178283,
+       44.01939558835219
+      ],
+      [
+       -89.47570828760458,
+       44.01939558835219
+      ],
+      [
+       -89.47570828760458,
+       43.978324801431604
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0014a8c6-92ee-41f4-aea7-1e7854cfbf20",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "12",
+    "frame": "1004"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.55752593229465,
+       44.74527726420111
+      ],
+      [
+       -91.49967902454216,
+       44.74527726420111
+      ],
+      [
+       -91.49967902454216,
+       44.78634805112169
+      ],
+      [
+       -91.55752593229465,
+       44.78634805112169
+      ],
+      [
+       -91.55752593229465,
+       44.74527726420111
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00150bdb-81ae-4223-8f6c-23171f7db47f",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "6",
+    "frame": "23"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.35785753537219,
+       45.157813040240704
+      ],
+      [
+       -91.29959302564761,
+       45.157813040240704
+      ],
+      [
+       -91.29959302564761,
+       45.19888382716129
+      ],
+      [
+       -91.35785753537219,
+       45.19888382716129
+      ],
+      [
+       -91.35785753537219,
+       45.157813040240704
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00158764-b739-45e5-a762-038493187e46",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "2",
+    "frame": "129"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.91780431077046,
+       43.91646453615451
+      ],
+      [
+       -88.86076972476593,
+       43.91646453615451
+      ],
+      [
+       -88.86076972476593,
+       43.95753532307509
+      ],
+      [
+       -88.91780431077046,
+       43.95753532307509
+      ],
+      [
+       -88.91780431077046,
+       43.91646453615451
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0016fd47-bcd9-4a1b-b1fe-eed88e7c1dc0",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "1",
+    "frame": "9"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.7423224848433,
+       45.615446487484405
+      ],
+      [
+       -92.68358402016571,
+       45.615446487484405
+      ],
+      [
+       -92.68358402016571,
+       45.65651727440499
+      ],
+      [
+       -92.7423224848433,
+       45.65651727440499
+      ],
+      [
+       -92.7423224848433,
+       45.615446487484405
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "001c0c8b-bb76-47bb-b901-5b058bc5d943",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "6",
+    "frame": "3"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.27321442828764,
+       42.617755850868505
+      ],
+      [
+       -89.21738476665377,
+       42.617755850868505
+      ],
+      [
+       -89.21738476665377,
+       42.65882663778909
+      ],
+      [
+       -89.27321442828764,
+       42.65882663778909
+      ],
+      [
+       -89.27321442828764,
+       42.617755850868505
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "001c6cbc-2452-4ea2-967d-f18e7c7b1ffc",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "3",
+    "frame": "214"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.64409579079116,
+       44.86798285619831
+      ],
+      [
+       -91.58612561105345,
+       44.86798285619831
+      ],
+      [
+       -91.58612561105345,
+       44.909053643118895
+      ],
+      [
+       -91.64409579079116,
+       44.909053643118895
+      ],
+      [
+       -91.64409579079116,
+       44.86798285619831
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "001f1ab5-30d2-4a14-ad87-df2e5aedfcf5",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "1",
+    "frame": "36"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.7942521568218,
+       45.82393891019291
+      ],
+      [
+       -90.7352939439866,
+       45.82393891019291
+      ],
+      [
+       -90.7352939439866,
+       45.86500969711349
+      ],
+      [
+       -90.7942521568218,
+       45.86500969711349
+      ],
+      [
+       -90.7942521568218,
+       45.82393891019291
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00200bca-83da-4b36-b142-654cd64b927b",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "7",
+    "frame": "80"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.46317490763927,
+       45.06703920560591
+      ],
+      [
+       -90.40500306220754,
+       45.06703920560591
+      ],
+      [
+       -90.40500306220754,
+       45.108109992526494
+      ],
+      [
+       -90.46317490763927,
+       45.108109992526494
+      ],
+      [
+       -90.46317490763927,
+       45.06703920560591
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00207d99-0107-49a8-9abf-1da96563b2db",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "5",
+    "frame": "97"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.89041710717599,
+       44.86209390278131
+      ],
+      [
+       -88.83245286165261,
+       44.86209390278131
+      ],
+      [
+       -88.83245286165261,
+       44.903164689701896
+      ],
+      [
+       -88.89041710717599,
+       44.903164689701896
+      ],
+      [
+       -88.89041710717599,
+       44.86209390278131
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0020d347-7987-4cd4-9085-53d971a4b582",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "12",
+    "frame": "36"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.13923173076851,
+       45.235155726113405
+      ],
+      [
+       -87.0808879186629,
+       45.235155726113405
+      ],
+      [
+       -87.0808879186629,
+       45.27622651303399
+      ],
+      [
+       -87.13923173076851,
+       45.27622651303399
+      ],
+      [
+       -87.13923173076851,
+       45.235155726113405
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0020e481-d24b-4a60-8f51-4450c4a69605",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "2",
+    "frame": "73"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.0822290960154,
+       46.58472435572731
+      ],
+      [
+       -92.0224481018758,
+       46.58472435572731
+      ],
+      [
+       -92.0224481018758,
+       46.625795142647895
+      ],
+      [
+       -92.0822290960154,
+       46.625795142647895
+      ],
+      [
+       -92.0822290960154,
+       46.58472435572731
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00236672-3f07-4b93-90b9-dcc64933a49b",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "3",
+    "frame": "102"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.3697577902302,
+       43.14823954298931
+      ],
+      [
+       -88.3134456481066,
+       43.14823954298931
+      ],
+      [
+       -88.3134456481066,
+       43.189310329909894
+      ],
+      [
+       -88.3697577902302,
+       43.189310329909894
+      ],
+      [
+       -88.3697577902302,
+       43.14823954298931
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0026af26-5402-42df-a880-1eabb2f6e465",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "20",
+    "frame": "1828"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.09697475138074,
+       45.430667069794005
+      ],
+      [
+       -90.03842903120807,
+       45.430667069794005
+      ],
+      [
+       -90.03842903120807,
+       45.47173785671459
+      ],
+      [
+       -90.09697475138074,
+       45.47173785671459
+      ],
+      [
+       -90.09697475138074,
+       45.430667069794005
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0028a2fe-a513-422a-8b19-b685c1c29d42",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "1",
+    "frame": "65"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.20370404298151,
+       44.84445689893211
+      ],
+      [
+       -92.14575755908828,
+       44.84445689893211
+      ],
+      [
+       -92.14575755908828,
+       44.88552768585269
+      ],
+      [
+       -92.20370404298151,
+       44.88552768585269
+      ],
+      [
+       -92.20370404298151,
+       44.84445689893211
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "002ab993-a46f-484e-a03e-c6077ca67182",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "1",
+    "frame": "30"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.26339203191534,
+       45.19740666359401
+      ],
+      [
+       -90.20508696557505,
+       45.19740666359401
+      ],
+      [
+       -90.20508696557505,
+       45.238477450514594
+      ],
+      [
+       -90.26339203191534,
+       45.238477450514594
+      ],
+      [
+       -90.26339203191534,
+       45.19740666359401
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "003236b5-46b2-4897-9ef5-beef109980bf",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "2",
+    "frame": "53"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.2380804879295,
+       45.26012870891261
+      ],
+      [
+       -91.1797110012229,
+       45.26012870891261
+      ],
+      [
+       -91.1797110012229,
+       45.301199495833195
+      ],
+      [
+       -91.2380804879295,
+       45.301199495833195
+      ],
+      [
+       -91.2380804879295,
+       45.26012870891261
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0034a773-dd6a-4c28-bd29-8366b947e654",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "5",
+    "frame": "35"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.25280005925671,
+       44.260666375346105
+      ],
+      [
+       -89.1954323625543,
+       44.260666375346105
+      ],
+      [
+       -89.1954323625543,
+       44.30173716226669
+      ],
+      [
+       -89.25280005925671,
+       44.30173716226669
+      ],
+      [
+       -89.25280005925671,
+       44.260666375346105
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00375c62-cf93-4686-b1ff-3ae943ca23a7",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "7",
+    "frame": "72"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.42013498383395,
+       43.04436160189881
+      ],
+      [
+       -90.36391835538285,
+       43.04436160189881
+      ],
+      [
+       -90.36391835538285,
+       43.08543238881939
+      ],
+      [
+       -90.42013498383395,
+       43.08543238881939
+      ],
+      [
+       -90.42013498383395,
+       43.04436160189881
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0039824c-ac9a-4073-9bd7-8845108f4784",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "18",
+    "frame": "1497"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.88668544388494,
+       43.011749652492604
+      ],
+      [
+       -88.83049869661406,
+       43.011749652492604
+      ],
+      [
+       -88.83049869661406,
+       43.05282043941319
+      ],
+      [
+       -88.88668544388494,
+       43.05282043941319
+      ],
+      [
+       -88.88668544388494,
+       43.011749652492604
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "003eade4-9962-4c43-9746-909611e79c76",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "10",
+    "frame": "861"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.35977614848554,
+       44.44487699086131
+      ],
+      [
+       -88.30222771683967,
+       44.44487699086131
+      ],
+      [
+       -88.30222771683967,
+       44.485947777781895
+      ],
+      [
+       -88.35977614848554,
+       44.485947777781895
+      ],
+      [
+       -88.35977614848554,
+       44.44487699086131
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "003eb749-55b6-4c2c-960d-862fbecce03d",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "2",
+    "frame": "33"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.03253538130008,
+       45.69895595968351
+      ],
+      [
+       -88.97370918922712,
+       45.69895595968351
+      ],
+      [
+       -88.97370918922712,
+       45.740026746604094
+      ],
+      [
+       -89.03253538130008,
+       45.740026746604094
+      ],
+      [
+       -89.03253538130008,
+       45.69895595968351
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "003fb766-fc03-4b80-90da-c0439f24b40e",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "18",
+    "frame": "23"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.48598680110464,
+       43.13343221543651
+      ],
+      [
+       -88.42968830516415,
+       43.13343221543651
+      ],
+      [
+       -88.42968830516415,
+       43.17450300235709
+      ],
+      [
+       -88.48598680110464,
+       43.17450300235709
+      ],
+      [
+       -88.48598680110464,
+       43.13343221543651
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0042b485-fd5f-4286-9241-24416fa23c2c",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "29",
+    "frame": "2576"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.52939324441355,
+       45.427165502069805
+      ],
+      [
+       -91.47085115866345,
+       45.427165502069805
+      ],
+      [
+       -91.47085115866345,
+       45.46823628899039
+      ],
+      [
+       -91.52939324441355,
+       45.46823628899039
+      ],
+      [
+       -91.52939324441355,
+       45.427165502069805
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "004747c4-c885-40a1-9825-f8c4750e4370",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "5",
+    "frame": "57"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.99199792438927,
+       43.81547913921651
+      ],
+      [
+       -87.93505994833592,
+       43.81547913921651
+      ],
+      [
+       -87.93505994833592,
+       43.85654992613709
+      ],
+      [
+       -87.99199792438927,
+       43.85654992613709
+      ],
+      [
+       -87.99199792438927,
+       43.81547913921651
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00479081-742a-4441-953a-eb3868413ad9",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "14",
+    "frame": "1289"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.91377034978845,
+       44.87983634919081
+      ],
+      [
+       -87.85578821991234,
+       44.87983634919081
+      ],
+      [
+       -87.85578821991234,
+       44.920907136111396
+      ],
+      [
+       -87.91377034978845,
+       44.920907136111396
+      ],
+      [
+       -87.91377034978845,
+       44.87983634919081
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00489bb2-c47a-45d7-8624-64ef43ee9c3d",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "1",
+    "frame": "46"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.21841246002161,
+       44.282039391955905
+      ],
+      [
+       -89.16102388220058,
+       44.282039391955905
+      ],
+      [
+       -89.16102388220058,
+       44.32311017887649
+      ],
+      [
+       -89.21841246002161,
+       44.32311017887649
+      ],
+      [
+       -89.21841246002161,
+       44.282039391955905
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00492e15-5d5c-4735-8973-0057e7e2f394",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "7",
+    "frame": "60"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.7178419287748,
+       43.11444141099701
+      ],
+      [
+       -88.66156091926099,
+       43.11444141099701
+      ],
+      [
+       -88.66156091926099,
+       43.155512197917595
+      ],
+      [
+       -88.7178419287748,
+       43.155512197917595
+      ],
+      [
+       -88.7178419287748,
+       43.11444141099701
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "004a773e-10ea-4b08-bd3f-5b376781949c",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "13",
+    "frame": "1135"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.59725514662243,
+       44.78342130387081
+      ],
+      [
+       -89.53937000338517,
+       44.78342130387081
+      ],
+      [
+       -89.53937000338517,
+       44.824492090791395
+      ],
+      [
+       -89.59725514662243,
+       44.824492090791395
+      ],
+      [
+       -89.59725514662243,
+       44.78342130387081
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "004fa9ee-0628-4852-beb4-df459334a31f",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "6",
+    "frame": "41"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.85592898481336,
+       43.90513020881941
+      ],
+      [
+       -90.79890526720745,
+       43.90513020881941
+      ],
+      [
+       -90.79890526720745,
+       43.94620099573999
+      ],
+      [
+       -90.85592898481336,
+       43.94620099573999
+      ],
+      [
+       -90.85592898481336,
+       43.90513020881941
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0050914e-ee85-44cf-993c-c32a672b03c5",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "3",
+    "frame": "65"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.50293085306275,
+       43.763057619944405
+      ],
+      [
+       -90.44604282870405,
+       43.763057619944405
+      ],
+      [
+       -90.44604282870405,
+       43.80412840686499
+      ],
+      [
+       -90.50293085306275,
+       43.80412840686499
+      ],
+      [
+       -90.50293085306275,
+       43.763057619944405
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00534e45-e5f1-4e40-9f76-0bdfd0adf215",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "8",
+    "frame": "8"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.44648184713915,
+       44.79261321199791
+      ],
+      [
+       -92.38858747856045,
+       44.79261321199791
+      ],
+      [
+       -92.38858747856045,
+       44.833683998918495
+      ],
+      [
+       -92.44648184713915,
+       44.833683998918495
+      ],
+      [
+       -92.44648184713915,
+       44.79261321199791
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00542801-8d98-4da3-88b0-bd4d6c59ba3a",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "6",
+    "frame": "7"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.05540271821462,
+       44.307924916298006
+      ],
+      [
+       -88.99798881955758,
+       44.307924916298006
+      ],
+      [
+       -88.99798881955758,
+       44.34899570321859
+      ],
+      [
+       -89.05540271821462,
+       44.34899570321859
+      ],
+      [
+       -89.05540271821462,
+       44.307924916298006
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00556f3f-ede3-49a2-9a3a-e69d2c855ad0",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "5",
+    "frame": "74"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.94043047504346,
+       43.733343211439205
+      ],
+      [
+       -90.88357070508314,
+       43.733343211439205
+      ],
+      [
+       -90.88357070508314,
+       43.77441399835979
+      ],
+      [
+       -90.94043047504346,
+       43.77441399835979
+      ],
+      [
+       -90.94043047504346,
+       43.733343211439205
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00563b6b-6ab4-4ec3-8f83-934952107581",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "1",
+    "frame": "4"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.59942736377998,
+       42.90067291682611
+      ],
+      [
+       -89.54334201813442,
+       42.90067291682611
+      ],
+      [
+       -89.54334201813442,
+       42.941743703746695
+      ],
+      [
+       -89.59942736377998,
+       42.941743703746695
+      ],
+      [
+       -89.59942736377998,
+       42.90067291682611
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "005a59aa-b09b-4ef6-bd7e-63f6c011c6a8",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "9",
+    "frame": "738"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.15626026880163,
+       44.626428492917604
+      ],
+      [
+       -88.09853200773337,
+       44.626428492917604
+      ],
+      [
+       -88.09853200773337,
+       44.66749927983819
+      ],
+      [
+       -88.15626026880163,
+       44.66749927983819
+      ],
+      [
+       -88.15626026880163,
+       44.626428492917604
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "005c49f4-59b9-411e-992a-5a3498ba7c40",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "7",
+    "frame": "36"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.19113297382717,
+       44.83289854842561
+      ],
+      [
+       -91.13319812107784,
+       44.83289854842561
+      ],
+      [
+       -91.13319812107784,
+       44.873969335346196
+      ],
+      [
+       -91.19113297382717,
+       44.873969335346196
+      ],
+      [
+       -91.19113297382717,
+       44.83289854842561
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "005d3cde-c469-40ea-a764-bbd217c0ba8f",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "4",
+    "frame": "21"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.69344695450029,
+       43.29146819689681
+      ],
+      [
+       -90.63700227807412,
+       43.29146819689681
+      ],
+      [
+       -90.63700227807412,
+       43.33253898381739
+      ],
+      [
+       -90.69344695450029,
+       43.33253898381739
+      ],
+      [
+       -90.69344695450029,
+       43.29146819689681
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "005f10d9-bdf7-497a-a1e7-40960ad183a2",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "1",
+    "frame": "17"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.61994508529398,
+       46.102166908484804
+      ],
+      [
+       -89.56068982221402,
+       46.102166908484804
+      ],
+      [
+       -89.56068982221402,
+       46.14323769540539
+      ],
+      [
+       -89.61994508529398,
+       46.14323769540539
+      ],
+      [
+       -89.61994508529398,
+       46.102166908484804
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0061178d-7f98-45ef-9ae3-23b354a02e0c",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Geological Survey",
+    "roll": "6",
+    "frame": "12"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.6577523239967,
+       45.412804606137804
+      ],
+      [
+       -89.5992251370115,
+       45.412804606137804
+      ],
+      [
+       -89.5992251370115,
+       45.45387539305839
+      ],
+      [
+       -89.6577523239967,
+       45.45387539305839
+      ],
+      [
+       -89.6577523239967,
+       45.412804606137804
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0061742e-0cec-4f18-880b-ea763739c2c9",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "8",
+    "frame": "66"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.74675066050285,
+       45.32437144015021
+      ],
+      [
+       -90.68831497115114,
+       45.32437144015021
+      ],
+      [
+       -90.68831497115114,
+       45.365442227070794
+      ],
+      [
+       -90.74675066050285,
+       45.365442227070794
+      ],
+      [
+       -90.74675066050285,
+       45.32437144015021
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006289fc-28ad-4191-8902-8d8ed9e8308e",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "8",
+    "frame": "37"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.94183882835574,
+       45.49502277459731
+      ],
+      [
+       -87.88322619125304,
+       45.49502277459731
+      ],
+      [
+       -87.88322619125304,
+       45.536093561517895
+      ],
+      [
+       -87.94183882835574,
+       45.536093561517895
+      ],
+      [
+       -87.94183882835574,
+       45.49502277459731
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0062be76-caf6-41c0-8d52-ba65f52069de",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "5",
+    "frame": "11"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.85610983342079,
+       45.568479210694605
+      ],
+      [
+       -87.79742053867102,
+       45.568479210694605
+      ],
+      [
+       -87.79742053867102,
+       45.60954999761519
+      ],
+      [
+       -87.85610983342079,
+       45.60954999761519
+      ],
+      [
+       -87.85610983342079,
+       45.568479210694605
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0063bb72-437d-4ee3-90f9-bea15ea6c6ad",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Geological Survey",
+    "roll": "30",
+    "frame": "96"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.55629269396796,
+       44.996818801321105
+      ],
+      [
+       -91.49819222949863,
+       44.996818801321105
+      ],
+      [
+       -91.49819222949863,
+       45.03788958824169
+      ],
+      [
+       -91.55629269396796,
+       45.03788958824169
+      ],
+      [
+       -91.55629269396796,
+       44.996818801321105
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00643f20-5de2-4b74-bdc0-d412e5f4905f",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "13",
+    "frame": "105"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.66590316139042,
+       46.662049739726704
+      ],
+      [
+       -91.60603665895317,
+       46.662049739726704
+      ],
+      [
+       -91.60603665895317,
+       46.70312052664729
+      ],
+      [
+       -91.66590316139042,
+       46.70312052664729
+      ],
+      [
+       -91.66590316139042,
+       46.662049739726704
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00649fa9-d9fd-4c82-9510-6ea1fbf0a901",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "7",
+    "frame": "71"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.60637508964568,
+       44.43378466501451
+      ],
+      [
+       -88.54883759009631,
+       44.43378466501451
+      ],
+      [
+       -88.54883759009631,
+       44.47485545193509
+      ],
+      [
+       -88.60637508964568,
+       44.47485545193509
+      ],
+      [
+       -88.60637508964568,
+       44.43378466501451
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00660c49-06a7-4c08-acc4-b137e7010bfc",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "6",
+    "frame": "19"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.14527865686723,
+       44.37422541867141
+      ],
+      [
+       -92.08779974846517,
+       44.37422541867141
+      ],
+      [
+       -92.08779974846517,
+       44.41529620559199
+      ],
+      [
+       -92.14527865686723,
+       44.41529620559199
+      ],
+      [
+       -92.14527865686723,
+       44.37422541867141
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006ab9d7-f654-44ae-955f-e265a4f68bf3",
+    "year": 1940,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "2",
+    "frame": "A"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.41236819098957,
+       45.73851974138041
+      ],
+      [
+       -91.35350030158703,
+       45.73851974138041
+      ],
+      [
+       -91.35350030158703,
+       45.77959052830099
+      ],
+      [
+       -91.41236819098957,
+       45.77959052830099
+      ],
+      [
+       -91.41236819098957,
+       45.73851974138041
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006c20b1-3f3a-4c79-b321-3cd6a62f636d",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "4",
+    "frame": "23"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.37638268941056,
+       42.592947741495706
+      ],
+      [
+       -90.32057527200364,
+       42.592947741495706
+      ],
+      [
+       -90.32057527200364,
+       42.63401852841629
+      ],
+      [
+       -90.37638268941056,
+       42.63401852841629
+      ],
+      [
+       -90.37638268941056,
+       42.592947741495706
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006c5ce2-3b84-4716-8c99-9f6401c02ddb",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "17",
+    "frame": "1352"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.4744923139125,
+       44.20663601967481
+      ],
+      [
+       -88.41717730082469,
+       44.20663601967481
+      ],
+      [
+       -88.41717730082469,
+       44.247706806595396
+      ],
+      [
+       -88.4744923139125,
+       44.247706806595396
+      ],
+      [
+       -88.4744923139125,
+       44.20663601967481
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006c9398-9f52-4cd3-b368-5838191bfbf9",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "5",
+    "frame": "417"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.8756213110512,
+       45.38697341650471
+      ],
+      [
+       -88.8171208944038,
+       45.38697341650471
+      ],
+      [
+       -88.8171208944038,
+       45.428044203425294
+      ],
+      [
+       -88.8756213110512,
+       45.428044203425294
+      ],
+      [
+       -88.8756213110512,
+       45.38697341650471
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006d5f28-0670-4d2b-ba95-5b49c559baa9",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "16",
+    "frame": "50"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.76566782475714,
+       45.73289269676471
+      ],
+      [
+       -92.70680587116544,
+       45.73289269676471
+      ],
+      [
+       -92.70680587116544,
+       45.77396348368529
+      ],
+      [
+       -92.76566782475714,
+       45.77396348368529
+      ],
+      [
+       -92.76566782475714,
+       45.73289269676471
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006e6508-c46e-42ec-aef4-d4a9bc26a730",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "5",
+    "frame": "86"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.77930355246058,
+       45.32412553139521
+      ],
+      [
+       -91.72086811694622,
+       45.32412553139521
+      ],
+      [
+       -91.72086811694622,
+       45.365196318315796
+      ],
+      [
+       -91.77930355246058,
+       45.365196318315796
+      ],
+      [
+       -91.77930355246058,
+       45.32412553139521
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00736ecc-fd0c-4be3-8f8e-437073fe6259",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "4",
+    "frame": "3"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.06913753623876,
+       42.95988636107321
+      ],
+      [
+       -91.01299820666783,
+       42.95988636107321
+      ],
+      [
+       -91.01299820666783,
+       43.000957147993795
+      ],
+      [
+       -91.06913753623876,
+       43.000957147993795
+      ],
+      [
+       -91.06913753623876,
+       42.95988636107321
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0074b7d8-c660-4a72-b922-1a0b38ea121a",
+    "year": 1940,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "1",
+    "frame": "A"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.19408800993108,
+       43.90523568469201
+      ],
+      [
+       -88.13706419121453,
+       43.90523568469201
+      ],
+      [
+       -88.13706419121453,
+       43.946306471612594
+      ],
+      [
+       -88.19408800993108,
+       43.946306471612594
+      ],
+      [
+       -88.19408800993108,
+       43.90523568469201
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "007503bf-772a-4c52-95ad-5522bfd5fc51",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "3",
+    "frame": "31"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.25045077473439,
+       45.96914128175721
+      ],
+      [
+       -90.19133808298682,
+       45.96914128175721
+      ],
+      [
+       -90.19133808298682,
+       46.010212068677795
+      ],
+      [
+       -90.25045077473439,
+       46.010212068677795
+      ],
+      [
+       -90.25045077473439,
+       45.96914128175721
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0077d8da-c178-4205-a17d-d8e3ffbbd640",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "6",
+    "frame": "43"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.19198243831997,
+       44.84121994935331
+      ],
+      [
+       -88.13403921247084,
+       44.84121994935331
+      ],
+      [
+       -88.13403921247084,
+       44.882290736273895
+      ],
+      [
+       -88.19198243831997,
+       44.882290736273895
+      ],
+      [
+       -88.19198243831997,
+       44.84121994935331
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0078219c-6b8f-4e90-9daa-2f2ad3ccdddf",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "6",
+    "frame": "58"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.17618906853104,
+       42.850181614876405
+      ],
+      [
+       -88.12014962579755,
+       42.850181614876405
+      ],
+      [
+       -88.12014962579755,
+       42.89125240179699
+      ],
+      [
+       -88.17618906853104,
+       42.89125240179699
+      ],
+      [
+       -88.17618906853104,
+       42.850181614876405
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00783dbd-e1be-4ea8-ba86-dccd3e86dce2",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "24",
+    "frame": "2189"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.05965815413623,
+       43.11917220032961
+      ],
+      [
+       -90.00337279018217,
+       43.11917220032961
+      ],
+      [
+       -90.00337279018217,
+       43.16024298725019
+      ],
+      [
+       -90.05965815413623,
+       43.16024298725019
+      ],
+      [
+       -90.05965815413623,
+       43.11917220032961
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "007861d8-38c9-483b-a62c-cd8f2f39f5dc",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "13",
+    "frame": "981"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.3493352310391,
+       45.028368528698905
+      ],
+      [
+       -88.2912027278947,
+       45.028368528698905
+      ],
+      [
+       -88.2912027278947,
+       45.06943931561949
+      ],
+      [
+       -88.3493352310391,
+       45.06943931561949
+      ],
+      [
+       -88.3493352310391,
+       45.028368528698905
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "007bf1ce-391f-40b3-988e-55931a6259a3",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "8",
+    "frame": "37"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.90884753430304,
+       46.196819712597105
+      ],
+      [
+       -90.84949021159296,
+       46.196819712597105
+      ],
+      [
+       -90.84949021159296,
+       46.23789049951769
+      ],
+      [
+       -90.90884753430304,
+       46.23789049951769
+      ],
+      [
+       -90.90884753430304,
+       46.196819712597105
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "007ce92a-e4d3-4a9f-b538-6562c27a1028",
+    "year": 1939,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "3",
+    "frame": "24"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.1927927656506,
+       44.49091122646381
+      ],
+      [
+       -91.13519889722481,
+       44.49091122646381
+      ],
+      [
+       -91.13519889722481,
+       44.53198201338439
+      ],
+      [
+       -91.1927927656506,
+       44.53198201338439
+      ],
+      [
+       -91.1927927656506,
+       44.49091122646381
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "007ea0e7-5126-4cbd-8853-649d569cabfe",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "1",
+    "frame": "44"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.09345354546912,
+       45.374869802678305
+      ],
+      [
+       -90.03496565997528,
+       45.374869802678305
+      ],
+      [
+       -90.03496565997528,
+       45.41594058959889
+      ],
+      [
+       -90.09345354546912,
+       45.41594058959889
+      ],
+      [
+       -90.09345354546912,
+       45.374869802678305
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00819380-cc9e-488f-82e0-6fe83947a016",
+    "year": 1938,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "1",
+    "frame": "60"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.10832376715994,
+       43.85871054460281
+      ],
+      [
+       -88.05134449457127,
+       43.85871054460281
+      ],
+      [
+       -88.05134449457127,
+       43.89978133152339
+      ],
+      [
+       -88.10832376715994,
+       43.89978133152339
+      ],
+      [
+       -88.10832376715994,
+       43.85871054460281
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00819770-c334-4e27-adff-ff3e64a07ff5",
+    "year": 1937,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "United States Department of Agriculture",
+    "roll": "13",
+    "frame": "1144"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.6683980991708,
+       45.86304891783375
+      ],
+      [
+       -91.621673925309,
+       45.86304891783375
+      ],
+      [
+       -91.621673925309,
+       45.89557698107485
+      ],
+      [
+       -91.6683980991708,
+       45.89557698107485
+      ],
+      [
+       -91.6683980991708,
+       45.86304891783375
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000125ce-d398-4905-9d7b-bf0ad17e0e5d",
+    "year": 1952,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2G",
+    "frame": "125"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.5329575065555,
+       45.270848261187545
+      ],
+      [
+       -90.48672361830191,
+       45.270848261187545
+      ],
+      [
+       -90.48672361830191,
+       45.30337632442865
+      ],
+      [
+       -90.5329575065555,
+       45.30337632442865
+      ],
+      [
+       -90.5329575065555,
+       45.270848261187545
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00027f95-3f90-4fab-b9ae-2861163c3d59",
+    "year": 1951,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "4H",
+    "frame": "145"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.09209534225181,
+       44.65034192236741
+      ],
+      [
+       -91.0343432675052,
+       44.65034192236741
+      ],
+      [
+       -91.0343432675052,
+       44.691412709287995
+      ],
+      [
+       -91.09209534225181,
+       44.691412709287995
+      ],
+      [
+       -91.09209534225181,
+       44.65034192236741
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0002a9bd-6a04-4e1b-b75f-762fd79c93f3",
+    "year": 1958,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2V",
+    "frame": "139"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.84035302622105,
+       43.190797897691006
+      ],
+      [
+       -89.78400160521456,
+       43.190797897691006
+      ],
+      [
+       -89.78400160521456,
+       43.23186868461159
+      ],
+      [
+       -89.84035302622105,
+       43.23186868461159
+      ],
+      [
+       -89.84035302622105,
+       43.190797897691006
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0004b481-9975-47ba-9996-04a503b34b52",
+    "year": 1955,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "10P",
+    "frame": "107"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.97710410101158,
+       46.48322517197361
+      ],
+      [
+       -91.91743481242321,
+       46.48322517197361
+      ],
+      [
+       -91.91743481242321,
+       46.52429595889419
+      ],
+      [
+       -91.97710410101158,
+       46.52429595889419
+      ],
+      [
+       -91.97710410101158,
+       46.48322517197361
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0006dd0a-027f-45ca-b39a-f8e87bb931f9",
+    "year": 1958,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3V",
+    "frame": "126"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.65198889707978,
+       44.37293230303741
+      ],
+      [
+       -90.59451125876242,
+       44.37293230303741
+      ],
+      [
+       -90.59451125876242,
+       44.414003089957994
+      ],
+      [
+       -90.65198889707978,
+       44.414003089957994
+      ],
+      [
+       -90.65198889707978,
+       44.37293230303741
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000881e8-227c-40bf-a7a3-e578972a3a75",
+    "year": 1951,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3H",
+    "frame": "95"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.43247660378489,
+       44.77574065261871
+      ],
+      [
+       -89.37459916573872,
+       44.77574065261871
+      ],
+      [
+       -89.37459916573872,
+       44.81681143953929
+      ],
+      [
+       -89.43247660378489,
+       44.81681143953929
+      ],
+      [
+       -89.43247660378489,
+       44.77574065261871
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0008a0ae-8de1-4415-8042-b587cad9828e",
+    "year": 1960,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "7AA",
+    "frame": "114"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.15978771391092,
+       42.581527331753506
+      ],
+      [
+       -90.10399052715847,
+       42.581527331753506
+      ],
+      [
+       -90.10399052715847,
+       42.62259811867409
+      ],
+      [
+       -90.15978771391092,
+       42.62259811867409
+      ],
+      [
+       -90.15978771391092,
+       42.581527331753506
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000957d1-feef-4a2d-bf97-0df725a3998c",
+    "year": 1955,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3P",
+    "frame": "12"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.58220092881919,
+       45.172164131990705
+      ],
+      [
+       -91.52392172869301,
+       45.172164131990705
+      ],
+      [
+       -91.52392172869301,
+       45.21323491891129
+      ],
+      [
+       -91.58220092881919,
+       45.21323491891129
+      ],
+      [
+       -91.58220092881919,
+       45.172164131990705
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0009fc7e-11f7-4f91-bb59-3cd6a4c9564d",
+    "year": 1951,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2H",
+    "frame": "139"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.23121538252725,
+       45.03572691487631
+      ],
+      [
+       -89.17307539934053,
+       45.03572691487631
+      ],
+      [
+       -89.17307539934053,
+       45.07679770179689
+      ],
+      [
+       -89.23121538252725,
+       45.07679770179689
+      ],
+      [
+       -89.23121538252725,
+       45.03572691487631
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000a4e33-5eef-43a9-ba6d-1eea560f71d8",
+    "year": 1958,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "8V",
+    "frame": "13"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.21824504115534,
+       44.68050582845271
+      ],
+      [
+       -88.16046288592847,
+       44.68050582845271
+      ],
+      [
+       -88.16046288592847,
+       44.721576615373294
+      ],
+      [
+       -88.21824504115534,
+       44.721576615373294
+      ],
+      [
+       -88.21824504115534,
+       44.68050582845271
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000b1c5b-7873-4f4c-80ff-4ff4da6aa565",
+    "year": 1958,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5V",
+    "frame": "35"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.2186134450562,
+       44.83701084341501
+      ],
+      [
+       -88.1606744549184,
+       44.83701084341501
+      ],
+      [
+       -88.1606744549184,
+       44.87808163033559
+      ],
+      [
+       -88.2186134450562,
+       44.87808163033559
+      ],
+      [
+       -88.2186134450562,
+       44.83701084341501
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000c1a0e-b0da-4821-8617-088d534f2230",
+    "year": 1958,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5V",
+    "frame": "25"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.44378930704087,
+       45.98079638546435
+      ],
+      [
+       -88.39696580847192,
+       45.98079638546435
+      ],
+      [
+       -88.39696580847192,
+       46.013324448705454
+      ],
+      [
+       -88.44378930704087,
+       46.013324448705454
+      ],
+      [
+       -88.44378930704087,
+       45.98079638546435
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000d94f3-5f83-41cf-9ef4-fb2453835adf",
+    "year": 1951,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5G",
+    "frame": "55"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.0008492423843,
+       42.78719701307381
+      ],
+      [
+       -87.94486689443369,
+       42.78719701307381
+      ],
+      [
+       -87.94486689443369,
+       42.82826779999439
+      ],
+      [
+       -88.0008492423843,
+       42.82826779999439
+      ],
+      [
+       -88.0008492423843,
+       42.78719701307381
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000ef7fb-b0f5-498a-a621-cc4ebd7aef72",
+    "year": 1956,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3R",
+    "frame": "24"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.02706289284703,
+       44.222912368864804
+      ],
+      [
+       -89.96973202466057,
+       44.222912368864804
+      ],
+      [
+       -89.96973202466057,
+       44.26398315578539
+      ],
+      [
+       -90.02706289284703,
+       44.26398315578539
+      ],
+      [
+       -90.02706289284703,
+       44.222912368864804
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000f486e-08b6-4ae5-bbfb-c48c9bb7e9ae",
+    "year": 1960,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "6AA",
+    "frame": "35"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.73499229024871,
+       44.018564876766206
+      ],
+      [
+       -88.67785951304528,
+       44.018564876766206
+      ],
+      [
+       -88.67785951304528,
+       44.05963566368679
+      ],
+      [
+       -88.73499229024871,
+       44.05963566368679
+      ],
+      [
+       -88.73499229024871,
+       44.018564876766206
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000fc897-cf1e-4b89-8e38-83af9292d970",
+    "year": 1957,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2T",
+    "frame": "13"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.13415977195346,
+       42.49912355818261
+      ],
+      [
+       -89.07843622772914,
+       42.49912355818261
+      ],
+      [
+       -89.07843622772914,
+       42.540194345103195
+      ],
+      [
+       -89.13415977195346,
+       42.540194345103195
+      ],
+      [
+       -89.13415977195346,
+       42.49912355818261
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00109aeb-af6c-468a-ad46-334f29cb2caf",
+    "year": 1956,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2R",
+    "frame": "141"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.72697858487781,
+       45.98848357616605
+      ],
+      [
+       -91.680148580286,
+       45.98848357616605
+      ],
+      [
+       -91.680148580286,
+       46.02101163940715
+      ],
+      [
+       -91.72697858487781,
+       46.02101163940715
+      ],
+      [
+       -91.72697858487781,
+       45.98848357616605
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0012900d-08d1-4a43-9b49-ed13f053dafc",
+    "year": 1952,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2G",
+    "frame": "34"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.3434989796668,
+       46.02239570250635
+      ],
+      [
+       -90.2966402420164,
+       46.02239570250635
+      ],
+      [
+       -90.2966402420164,
+       46.05492376574745
+      ],
+      [
+       -90.3434989796668,
+       46.05492376574745
+      ],
+      [
+       -90.3434989796668,
+       46.02239570250635
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00135fb9-b5a7-4e51-b689-c0c6fdd023c1",
+    "year": 1950,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "7G",
+    "frame": "165"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.73505897126383,
+       45.38247668785895
+      ],
+      [
+       -88.68873383153418,
+       45.38247668785895
+      ],
+      [
+       -88.68873383153418,
+       45.41500475110005
+      ],
+      [
+       -88.73505897126383,
+       45.41500475110005
+      ],
+      [
+       -88.73505897126383,
+       45.38247668785895
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00151f1c-81dc-4a96-bd7f-35e934df6a28",
+    "year": 1951,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "6G",
+    "frame": "57"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.28926026955119,
+       45.69416638520175
+      ],
+      [
+       -88.24267747897582,
+       45.69416638520175
+      ],
+      [
+       -88.24267747897582,
+       45.72669444844285
+      ],
+      [
+       -88.28926026955119,
+       45.72669444844285
+      ],
+      [
+       -88.28926026955119,
+       45.69416638520175
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "001532fd-9290-47e5-9525-22e938a32a43",
+    "year": 1951,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5G",
+    "frame": "23"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.48833282676968,
+       44.13536771462141
+      ],
+      [
+       -90.43108707998893,
+       44.13536771462141
+      ],
+      [
+       -90.43108707998893,
+       44.176438501541995
+      ],
+      [
+       -90.48833282676968,
+       44.176438501541995
+      ],
+      [
+       -90.48833282676968,
+       44.13536771462141
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0015dbdd-896d-4a94-9836-06fad4350c3e",
+    "year": 1957,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1T",
+    "frame": "74"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.24357409487874,
+       44.58689857613161
+      ],
+      [
+       -89.18588513377705,
+       44.58689857613161
+      ],
+      [
+       -89.18588513377705,
+       44.627969363052195
+      ],
+      [
+       -89.24357409487874,
+       44.627969363052195
+      ],
+      [
+       -89.24357409487874,
+       44.58689857613161
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0016589a-36ef-4e58-919f-164910aaa740",
+    "year": 1957,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3T",
+    "frame": "95"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.1386407147299,
+       45.670193138228846
+      ],
+      [
+       -90.09207789175689,
+       45.670193138228846
+      ],
+      [
+       -90.09207789175689,
+       45.70272120146995
+      ],
+      [
+       -90.1386407147299,
+       45.70272120146995
+      ],
+      [
+       -90.1386407147299,
+       45.670193138228846
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00168e44-35bd-477a-9ddd-32a6a9c3f24f",
+    "year": 1955,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5H",
+    "frame": "4"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.55959922168327,
+       44.711138166508306
+      ],
+      [
+       -89.50178647034673,
+       44.711138166508306
+      ],
+      [
+       -89.50178647034673,
+       44.75220895342889
+      ],
+      [
+       -89.55959922168327,
+       44.75220895342889
+      ],
+      [
+       -89.55959922168327,
+       44.711138166508306
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0018d624-6182-4e92-adcb-6e1386f102dd",
+    "year": 1948,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2E",
+    "frame": "123"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.42666342095954,
+       46.764401476496246
+      ],
+      [
+       -91.37916284707045,
+       46.764401476496246
+      ],
+      [
+       -91.37916284707045,
+       46.79692953973735
+      ],
+      [
+       -91.42666342095954,
+       46.79692953973735
+      ],
+      [
+       -91.42666342095954,
+       46.764401476496246
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "001a5f6e-b18e-48cf-8bb6-f31842d96bd5",
+    "year": 1951,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "4G",
+    "frame": "114"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.08090310546525,
+       42.636883240682806
+      ],
+      [
+       -90.02505627396876,
+       42.636883240682806
+      ],
+      [
+       -90.02505627396876,
+       42.67795402760339
+      ],
+      [
+       -90.08090310546525,
+       42.67795402760339
+      ],
+      [
+       -90.08090310546525,
+       42.636883240682806
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "001ce72f-a790-488e-a053-2688fe8d16b2",
+    "year": 1955,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2P",
+    "frame": "158"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.56470964577076,
+       45.27497640394615
+      ],
+      [
+       -91.51847239246183,
+       45.27497640394615
+      ],
+      [
+       -91.51847239246183,
+       45.30750446718725
+      ],
+      [
+       -91.56470964577076,
+       45.30750446718725
+      ],
+      [
+       -91.56470964577076,
+       45.27497640394615
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00210205-50d2-4f0e-8f8c-6beb86f46e15",
+    "year": 1952,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "4H",
+    "frame": "143"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.66206129890851,
+       45.37364612137755
+      ],
+      [
+       -90.61574339731588,
+       45.37364612137755
+      ],
+      [
+       -90.61574339731588,
+       45.40617418461865
+      ],
+      [
+       -90.66206129890851,
+       45.40617418461865
+      ],
+      [
+       -90.66206129890851,
+       45.37364612137755
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00237079-5113-47c8-9d7e-01cd1b00962e",
+    "year": 1952,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2H",
+    "frame": "115"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.29313513250533,
+       44.67095817852745
+      ],
+      [
+       -90.24738258460648,
+       44.67095817852745
+      ],
+      [
+       -90.24738258460648,
+       44.70348624176855
+      ],
+      [
+       -90.29313513250533,
+       44.70348624176855
+      ],
+      [
+       -90.29313513250533,
+       44.67095817852745
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0023e05f-b036-42a2-b5b5-4226d7579ee7",
+    "year": 1950,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1G",
+    "frame": "49"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.4575101033316,
+       45.076710748474405
+      ],
+      [
+       -91.3993284059166,
+       45.076710748474405
+      ],
+      [
+       -91.3993284059166,
+       45.11778153539499
+      ],
+      [
+       -91.4575101033316,
+       45.11778153539499
+      ],
+      [
+       -91.4575101033316,
+       45.076710748474405
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0024410e-dc43-4c1c-b120-99faa2bcdfcf",
+    "year": 1951,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5H",
+    "frame": "130"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.57642587072604,
+       45.78564504135485
+      ],
+      [
+       -88.52976665372975,
+       45.78564504135485
+      ],
+      [
+       -88.52976665372975,
+       45.81817310459595
+      ],
+      [
+       -88.57642587072604,
+       45.81817310459595
+      ],
+      [
+       -88.57642587072604,
+       45.78564504135485
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0025c0d8-4b4d-49be-8f91-7cd7c74ee5dd",
+    "year": 1951,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "8G",
+    "frame": "199"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.32052319753487,
+       45.47791859075945
+      ],
+      [
+       -90.27411961206474,
+       45.47791859075945
+      ],
+      [
+       -90.27411961206474,
+       45.51044665400055
+      ],
+      [
+       -90.32052319753487,
+       45.51044665400055
+      ],
+      [
+       -90.32052319753487,
+       45.47791859075945
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0027564b-79c9-4ec1-9a0d-d27be63341cc",
+    "year": 1955,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "7H",
+    "frame": "58"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.77917240016994,
+       45.88188463765875
+      ],
+      [
+       -92.73243237920245,
+       45.88188463765875
+      ],
+      [
+       -92.73243237920245,
+       45.91441270089985
+      ],
+      [
+       -92.77917240016994,
+       45.91441270089985
+      ],
+      [
+       -92.77917240016994,
+       45.88188463765875
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00282d8a-6f80-44bf-b5c5-3d1702fc266f",
+    "year": 1950,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1G",
+    "frame": "62"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.90063229143186,
+       45.100207852472806
+      ],
+      [
+       -91.84242663771172,
+       45.100207852472806
+      ],
+      [
+       -91.84242663771172,
+       45.14127863939339
+      ],
+      [
+       -91.90063229143186,
+       45.14127863939339
+      ],
+      [
+       -91.90063229143186,
+       45.100207852472806
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0028e122-f37e-4b05-b3fa-5b240c56ca8c",
+    "year": 1958,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "8V",
+    "frame": "128"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.13560796636102,
+       44.39067628492911
+      ],
+      [
+       -91.07811289263199,
+       44.39067628492911
+      ],
+      [
+       -91.07811289263199,
+       44.43174707184969
+      ],
+      [
+       -91.13560796636102,
+       44.43174707184969
+      ],
+      [
+       -91.13560796636102,
+       44.39067628492911
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "002917e7-430e-4a84-a62a-69427cf43cdb",
+    "year": 1957,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "4T",
+    "frame": "10"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.49452050658219,
+       44.93854892595811
+      ],
+      [
+       -88.4364790760588,
+       44.93854892595811
+      ],
+      [
+       -88.4364790760588,
+       44.979619712878694
+      ],
+      [
+       -88.49452050658219,
+       44.979619712878694
+      ],
+      [
+       -88.49452050658219,
+       44.93854892595811
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "002decfe-5153-4039-8633-a74dd8fd0e8b",
+    "year": 1958,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "8V",
+    "frame": "72"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.92242617800918,
+       43.61806274569841
+      ],
+      [
+       -89.86567561481942,
+       43.61806274569841
+      ],
+      [
+       -89.86567561481942,
+       43.659133532618995
+      ],
+      [
+       -89.92242617800918,
+       43.659133532618995
+      ],
+      [
+       -89.92242617800918,
+       43.61806274569841
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00307118-48ad-44e6-a01d-0d14e26dc967",
+    "year": 1957,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2T",
+    "frame": "195"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.14614102312977,
+       42.82844668228861
+      ],
+      [
+       -89.09012130365663,
+       42.82844668228861
+      ],
+      [
+       -89.09012130365663,
+       42.86951746920919
+      ],
+      [
+       -89.14614102312977,
+       42.86951746920919
+      ],
+      [
+       -89.14614102312977,
+       42.82844668228861
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0030916d-1aa8-4881-9e6b-2d3b43a2fad1",
+    "year": 1956,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2R",
+    "frame": "119"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.17247909841039,
+       44.57832328015981
+      ],
+      [
+       -91.11479865203641,
+       44.57832328015981
+      ],
+      [
+       -91.11479865203641,
+       44.61939406708039
+      ],
+      [
+       -91.17247909841039,
+       44.61939406708039
+      ],
+      [
+       -91.17247909841039,
+       44.57832328015981
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "003356cd-4038-487e-a3fe-d57a241615e6",
+    "year": 1958,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2V",
+    "frame": "180"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.26432972435497,
+       45.98972556038565
+      ],
+      [
+       -92.21749866836605,
+       45.98972556038565
+      ],
+      [
+       -92.21749866836605,
+       46.02225362362675
+      ],
+      [
+       -92.26432972435497,
+       46.02225362362675
+      ],
+      [
+       -92.26432972435497,
+       45.98972556038565
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0036b49c-5d86-4c1e-9af8-f7707b66f6be",
+    "year": 1950,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3G",
+    "frame": "140"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.16928528061071,
+       44.059601638662905
+      ],
+      [
+       -91.11211289130968,
+       44.059601638662905
+      ],
+      [
+       -91.11211289130968,
+       44.10067242558349
+      ],
+      [
+       -91.16928528061071,
+       44.10067242558349
+      ],
+      [
+       -91.16928528061071,
+       44.059601638662905
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0037d929-f9db-4bdc-8d06-2114f4dc0686",
+    "year": 1957,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "4T",
+    "frame": "38"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.32256974437142,
+       45.12711660028825
+      ],
+      [
+       -90.27645256531277,
+       45.12711660028825
+      ],
+      [
+       -90.27645256531277,
+       45.15964466352935
+      ],
+      [
+       -90.32256974437142,
+       45.15964466352935
+      ],
+      [
+       -90.32256974437142,
+       45.12711660028825
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "003813d8-6059-4aae-a16c-7e0cbc27482a",
+    "year": 1951,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "6H",
+    "frame": "33"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.91759552463998,
+       45.37762673723875
+      ],
+      [
+       -90.87127436067823,
+       45.37762673723875
+      ],
+      [
+       -90.87127436067823,
+       45.41015480047985
+      ],
+      [
+       -90.91759552463998,
+       45.41015480047985
+      ],
+      [
+       -90.91759552463998,
+       45.37762673723875
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "003a45c4-afe5-425f-babd-a255275ba279",
+    "year": 1952,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5H",
+    "frame": "114"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.66558857142863,
+       45.15195232103051
+      ],
+      [
+       -92.60733005781057,
+       45.15195232103051
+      ],
+      [
+       -92.60733005781057,
+       45.19302310795109
+      ],
+      [
+       -92.66558857142863,
+       45.19302310795109
+      ],
+      [
+       -92.66558857142863,
+       45.15195232103051
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "003b8713-45cd-4df9-b854-fe53b71ff575",
+    "year": 1958,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5V",
+    "frame": "6"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.74718358867588,
+       44.627456140310606
+      ],
+      [
+       -92.68945430485752,
+       44.627456140310606
+      ],
+      [
+       -92.68945430485752,
+       44.66852692723119
+      ],
+      [
+       -92.74718358867588,
+       44.66852692723119
+      ],
+      [
+       -92.74718358867588,
+       44.627456140310606
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "003d53b3-c29f-4aee-8102-c9602e0e1d8a",
+    "year": 1958,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "6V",
+    "frame": "150"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.13810592318245,
+       44.43088126685215
+      ],
+      [
+       -90.09254182120534,
+       44.43088126685215
+      ],
+      [
+       -90.09254182120534,
+       44.46340933009325
+      ],
+      [
+       -90.13810592318245,
+       44.46340933009325
+      ],
+      [
+       -90.13810592318245,
+       44.43088126685215
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00439f17-a2a8-4ce6-a92b-005d57fc4a54",
+    "year": 1950,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5G",
+    "frame": "70"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.95254305721934,
+       42.83367133934891
+      ],
+      [
+       -90.89651859865987,
+       42.83367133934891
+      ],
+      [
+       -90.89651859865987,
+       42.874742126269496
+      ],
+      [
+       -90.95254305721934,
+       42.874742126269496
+      ],
+      [
+       -90.95254305721934,
+       42.83367133934891
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00442031-cf9f-45b2-bab3-71ec97a85508",
+    "year": 1955,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "8P",
+    "frame": "38"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.34360955257152,
+       44.721714145066706
+      ],
+      [
+       -92.28578622639908,
+       44.721714145066706
+      ],
+      [
+       -92.28578622639908,
+       44.76278493198729
+      ],
+      [
+       -92.34360955257152,
+       44.76278493198729
+      ],
+      [
+       -92.34360955257152,
+       44.721714145066706
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0045f123-6cd9-451f-83cb-66c0bbea225d",
+    "year": 1958,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2V",
+    "frame": "10"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.98295168080725,
+       42.82152452059541
+      ],
+      [
+       -88.92693823820994,
+       42.82152452059541
+      ],
+      [
+       -88.92693823820994,
+       42.862595307515996
+      ],
+      [
+       -88.98295168080725,
+       42.862595307515996
+      ],
+      [
+       -88.98295168080725,
+       42.82152452059541
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00518f93-8f04-4474-b4c3-c2db3b4c3493",
+    "year": 1956,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1R",
+    "frame": "88"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.63057238812779,
+       45.87383683551081
+      ],
+      [
+       -89.57156122340722,
+       45.87383683551081
+      ],
+      [
+       -89.57156122340722,
+       45.91490762243139
+      ],
+      [
+       -89.63057238812779,
+       45.91490762243139
+      ],
+      [
+       -89.63057238812779,
+       45.87383683551081
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0052a5f7-f684-474e-bb34-691da28f2865",
+    "year": 1960,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2AA",
+    "frame": "285"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.2954484260997,
+       45.81503322456185
+      ],
+      [
+       -90.24876457802971,
+       45.81503322456185
+      ],
+      [
+       -90.24876457802971,
+       45.847561287802954
+      ],
+      [
+       -90.2954484260997,
+       45.847561287802954
+      ],
+      [
+       -90.2954484260997,
+       45.81503322456185
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0054370f-d8f9-46b4-9d74-efd99c49fa82",
+    "year": 1955,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "6H",
+    "frame": "81"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.89690803438998,
+       45.57818764676675
+      ],
+      [
+       -88.85042160977241,
+       45.57818764676675
+      ],
+      [
+       -88.85042160977241,
+       45.61071571000785
+      ],
+      [
+       -88.89690803438998,
+       45.61071571000785
+      ],
+      [
+       -88.89690803438998,
+       45.57818764676675
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0058648a-08df-47b7-b2ab-0d58a69748a3",
+    "year": 1950,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1G",
+    "frame": "156"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.63939855497496,
+       44.23539382297441
+      ],
+      [
+       -91.58205551928923,
+       44.23539382297441
+      ],
+      [
+       -91.58205551928923,
+       44.276464609894994
+      ],
+      [
+       -91.63939855497496,
+       44.276464609894994
+      ],
+      [
+       -91.63939855497496,
+       44.23539382297441
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "005e8a8a-b87a-43fc-9135-472208a012b8",
+    "year": 1958,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "4V",
+    "frame": "46"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.21388692780137,
+       43.553700268786706
+      ],
+      [
+       -89.15719705408462,
+       43.553700268786706
+      ],
+      [
+       -89.15719705408462,
+       43.59477105570729
+      ],
+      [
+       -89.21388692780137,
+       43.59477105570729
+      ],
+      [
+       -89.21388692780137,
+       43.553700268786706
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "005eca56-ad0f-4853-a721-c8391c077c12",
+    "year": 1955,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2P",
+    "frame": "65"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.26337218979893,
+       43.95898582738061
+      ],
+      [
+       -88.20629677358826,
+       43.95898582738061
+      ],
+      [
+       -88.20629677358826,
+       44.000056614301194
+      ],
+      [
+       -88.26337218979893,
+       44.000056614301194
+      ],
+      [
+       -88.26337218979893,
+       43.95898582738061
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "005f3b0e-9622-401f-92b5-de82aec37f97",
+    "year": 1952,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3H",
+    "frame": "154"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.57309737583759,
+       45.370309399483546
+      ],
+      [
+       -90.52678220837561,
+       45.370309399483546
+      ],
+      [
+       -90.52678220837561,
+       45.40283746272465
+      ],
+      [
+       -90.57309737583759,
+       45.40283746272465
+      ],
+      [
+       -90.57309737583759,
+       45.370309399483546
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "005f4e8d-a8de-445b-9a53-ed31972b1e76",
+    "year": 1951,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5H",
+    "frame": "34"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.324475070573,
+       45.93811837122675
+      ],
+      [
+       -90.2776876442076,
+       45.93811837122675
+      ],
+      [
+       -90.2776876442076,
+       45.97064643446785
+      ],
+      [
+       -90.324475070573,
+       45.97064643446785
+      ],
+      [
+       -90.324475070573,
+       45.93811837122675
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "005f756c-e45f-4d2c-afe5-e58400e2af19",
+    "year": 1955,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "7H",
+    "frame": "22"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.12847511674049,
+       44.10190044573811
+      ],
+      [
+       -91.07126180884212,
+       44.10190044573811
+      ],
+      [
+       -91.07126180884212,
+       44.142971232658695
+      ],
+      [
+       -91.12847511674049,
+       44.142971232658695
+      ],
+      [
+       -91.12847511674049,
+       44.10190044573811
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0061577e-bc38-4db3-b4f2-6ad587bedf50",
+    "year": 1957,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "4T",
+    "frame": "29"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.4798127038346,
+       46.31420362767235
+      ],
+      [
+       -90.4327045739438,
+       46.31420362767235
+      ],
+      [
+       -90.4327045739438,
+       46.34673169091345
+      ],
+      [
+       -90.4798127038346,
+       46.34673169091345
+      ],
+      [
+       -90.4798127038346,
+       46.31420362767235
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0061a11e-da18-4fe7-ab4e-0401bf24d145",
+    "year": 1951,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "17G",
+    "frame": "28"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.32044940210099,
+       45.42706670920775
+      ],
+      [
+       -90.27408766192701,
+       45.42706670920775
+      ],
+      [
+       -90.27408766192701,
+       45.45959477244885
+      ],
+      [
+       -90.32044940210099,
+       45.45959477244885
+      ],
+      [
+       -90.32044940210099,
+       45.42706670920775
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0061ab12-0d4d-44a9-9a87-2a5e647ebb6e",
+    "year": 1955,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "7H",
+    "frame": "62"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.0222077023248,
+       45.72339585892395
+      ],
+      [
+       -90.9756005319474,
+       45.72339585892395
+      ],
+      [
+       -90.9756005319474,
+       45.75592392216505
+      ],
+      [
+       -91.0222077023248,
+       45.75592392216505
+      ],
+      [
+       -91.0222077023248,
+       45.72339585892395
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006242a8-8a54-4f28-b56f-523b786c2761",
+    "year": 1950,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2G",
+    "frame": "134"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.42697010465945,
+       46.776005448576946
+      ],
+      [
+       -91.37945929006996,
+       46.776005448576946
+      ],
+      [
+       -91.37945929006996,
+       46.80853351181805
+      ],
+      [
+       -91.42697010465945,
+       46.80853351181805
+      ],
+      [
+       -91.42697010465945,
+       46.776005448576946
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0062a2ec-6dab-46aa-8e5c-c329583cd004",
+    "year": 1951,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "4G",
+    "frame": "113"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.45025533971084,
+       43.37840980447161
+      ],
+      [
+       -89.39372973598536,
+       43.37840980447161
+      ],
+      [
+       -89.39372973598536,
+       43.419480591392194
+      ],
+      [
+       -89.45025533971084,
+       43.419480591392194
+      ],
+      [
+       -89.45025533971084,
+       43.37840980447161
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0066036f-cd58-41e9-a577-c17fb35db28f",
+    "year": 1955,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "6P",
+    "frame": "162"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.38383346015635,
+       44.15797155807271
+      ],
+      [
+       -90.32656577222605,
+       44.15797155807271
+      ],
+      [
+       -90.32656577222605,
+       44.199042344993295
+      ],
+      [
+       -90.38383346015635,
+       44.199042344993295
+      ],
+      [
+       -90.38383346015635,
+       44.15797155807271
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006901fd-7f12-453f-90d3-34012168e480",
+    "year": 1957,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1T",
+    "frame": "69"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.02673740891434,
+       44.81499321326831
+      ],
+      [
+       -88.96882056039745,
+       44.81499321326831
+      ],
+      [
+       -88.96882056039745,
+       44.856064000188894
+      ],
+      [
+       -89.02673740891434,
+       44.856064000188894
+      ],
+      [
+       -89.02673740891434,
+       44.81499321326831
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006b2688-cdd0-4c1e-a047-21e1feb11ed6",
+    "year": 1958,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "7V",
+    "frame": "42"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.74678757685525,
+       44.75377554023531
+      ],
+      [
+       -92.68893215704695,
+       44.75377554023531
+      ],
+      [
+       -92.68893215704695,
+       44.794846327155895
+      ],
+      [
+       -92.74678757685525,
+       44.794846327155895
+      ],
+      [
+       -92.74678757685525,
+       44.75377554023531
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006b5d5f-c9ea-42a3-964f-ec3f2830a48f",
+    "year": 1958,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "6V",
+    "frame": "142"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.33836155419263,
+       45.638055134148246
+      ],
+      [
+       -91.29182545972978,
+       45.638055134148246
+      ],
+      [
+       -91.29182545972978,
+       45.67058319738935
+      ],
+      [
+       -91.33836155419263,
+       45.67058319738935
+      ],
+      [
+       -91.33836155419263,
+       45.638055134148246
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006c13f5-3045-409d-a6fa-2523796a85e6",
+    "year": 1950,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "4G",
+    "frame": "146"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.31687298335774,
+       42.91787599733241
+      ],
+      [
+       -88.26077197082347,
+       42.91787599733241
+      ],
+      [
+       -88.26077197082347,
+       42.958946784252994
+      ],
+      [
+       -88.31687298335774,
+       42.958946784252994
+      ],
+      [
+       -88.31687298335774,
+       42.91787599733241
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006d6834-081d-497f-8999-2afb7678a88a",
+    "year": 1956,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1R",
+    "frame": "176"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.39193046212756,
+       42.752884988012404
+      ],
+      [
+       -90.33597914025944,
+       42.752884988012404
+      ],
+      [
+       -90.33597914025944,
+       42.79395577493299
+      ],
+      [
+       -90.39193046212756,
+       42.79395577493299
+      ],
+      [
+       -90.39193046212756,
+       42.752884988012404
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006d8f88-f9b0-4423-8fc1-34afb77ec904",
+    "year": 1955,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1P",
+    "frame": "53"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.84125530480448,
+       43.502460947653105
+      ],
+      [
+       -89.78461360253313,
+       43.502460947653105
+      ],
+      [
+       -89.78461360253313,
+       43.54353173457369
+      ],
+      [
+       -89.84125530480448,
+       43.54353173457369
+      ],
+      [
+       -89.84125530480448,
+       43.502460947653105
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006fd1e0-1335-4ac3-9799-3688c871e83a",
+    "year": 1955,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "10P",
+    "frame": "129"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.11836882449892,
+       45.69287288667755
+      ],
+      [
+       -88.07178711193909,
+       45.69287288667755
+      ],
+      [
+       -88.07178711193909,
+       45.72540094991865
+      ],
+      [
+       -88.11836882449892,
+       45.72540094991865
+      ],
+      [
+       -88.11836882449892,
+       45.69287288667755
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00727c6b-28d3-4fd4-a4ea-f27138c19b8b",
+    "year": 1951,
+    "scale": 15840,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "4G",
+    "frame": "144"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.94834129512924,
+       43.308628147903306
+      ],
+      [
+       -87.89188067447017,
+       43.308628147903306
+      ],
+      [
+       -87.89188067447017,
+       43.34969893482389
+      ],
+      [
+       -87.94834129512924,
+       43.34969893482389
+      ],
+      [
+       -87.94834129512924,
+       43.308628147903306
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00758fd9-309f-4aa5-a143-35247e9abc34",
+    "year": 1956,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1R",
+    "frame": "61"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.07581653342424,
+       43.024806541902606
+      ],
+      [
+       -88.01961782858496,
+       43.024806541902606
+      ],
+      [
+       -88.01961782858496,
+       43.06587732882319
+      ],
+      [
+       -88.07581653342424,
+       43.06587732882319
+      ],
+      [
+       -88.07581653342424,
+       43.024806541902606
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0078f7ae-4277-47c1-8894-dc791f74e408",
+    "year": 1956,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1R",
+    "frame": "157"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.92581760095572,
+       45.62408355866171
+      ],
+      [
+       -89.86707008088047,
+       45.62408355866171
+      ],
+      [
+       -89.86707008088047,
+       45.665154345582295
+      ],
+      [
+       -89.92581760095572,
+       45.665154345582295
+      ],
+      [
+       -89.92581760095572,
+       45.62408355866171
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "007b2211-3fa6-4f5a-a57f-b1b680e26941",
+    "year": 1960,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5AA",
+    "frame": "71"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.58773769994694,
+       43.242270718274405
+      ],
+      [
+       -90.53133865763907,
+       43.242270718274405
+      ],
+      [
+       -90.53133865763907,
+       43.28334150519499
+      ],
+      [
+       -90.58773769994694,
+       43.28334150519499
+      ],
+      [
+       -90.58773769994694,
+       43.242270718274405
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0000e617-68c2-4be6-9e76-4aa335390797",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1CC",
+    "frame": "88"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.86434643245549,
+       42.459581369626704
+      ],
+      [
+       -88.80865811641651,
+       42.459581369626704
+      ],
+      [
+       -88.80865811641651,
+       42.50065215654729
+      ],
+      [
+       -88.86434643245549,
+       42.50065215654729
+      ],
+      [
+       -88.86434643245549,
+       42.459581369626704
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0003047b-c72d-4e90-b244-f9faba2dd746",
+    "year": 1963,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1DD",
+    "frame": "057"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.1087847700371,
+       42.873167390374206
+      ],
+      [
+       -91.0527244450759,
+       42.873167390374206
+      ],
+      [
+       -91.0527244450759,
+       42.91423817729479
+      ],
+      [
+       -91.1087847700371,
+       42.91423817729479
+      ],
+      [
+       -91.1087847700371,
+       42.873167390374206
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0006e4c4-c2a6-486b-9b4e-70c7cd4649a7",
+    "year": 1967,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2HH",
+    "frame": "198"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.6093074739023,
+       44.220584949106104
+      ],
+      [
+       -87.55197887372029,
+       44.220584949106104
+      ],
+      [
+       -87.55197887372029,
+       44.26165573602669
+      ],
+      [
+       -87.6093074739023,
+       44.26165573602669
+      ],
+      [
+       -87.6093074739023,
+       44.220584949106104
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000a578f-7abf-450f-9229-bbef7ba68890",
+    "year": 1967,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1HH",
+    "frame": "029"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.46634484789469,
+       44.713957462626205
+      ],
+      [
+       -87.40852927813732,
+       44.713957462626205
+      ],
+      [
+       -87.40852927813732,
+       44.75502824954679
+      ],
+      [
+       -87.46634484789469,
+       44.75502824954679
+      ],
+      [
+       -87.46634484789469,
+       44.713957462626205
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000ac9fc-9a18-415f-8b78-052f684d5cf2",
+    "year": 1961,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2AA",
+    "frame": "56"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.5491770585253,
+       44.81380516263901
+      ],
+      [
+       -87.49126140402511,
+       44.81380516263901
+      ],
+      [
+       -87.49126140402511,
+       44.85487594955959
+      ],
+      [
+       -87.5491770585253,
+       44.85487594955959
+      ],
+      [
+       -87.5491770585253,
+       44.81380516263901
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000adcb4-7ac2-4d00-b020-b0262b3e1951",
+    "year": 1967,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2HH",
+    "frame": "222"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.70777547336895,
+       42.69419201041501
+      ],
+      [
+       -88.65187709756965,
+       42.69419201041501
+      ],
+      [
+       -88.65187709756965,
+       42.735262797335594
+      ],
+      [
+       -88.70777547336895,
+       42.735262797335594
+      ],
+      [
+       -88.70777547336895,
+       42.69419201041501
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000e5a6d-a6a1-4df9-9a76-fdae07c63dfa",
+    "year": 1963,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2DD",
+    "frame": "163"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.66607681820294,
+       44.62661499638611
+      ],
+      [
+       -92.60834837152406,
+       44.62661499638611
+      ],
+      [
+       -92.60834837152406,
+       44.667685783306695
+      ],
+      [
+       -92.66607681820294,
+       44.667685783306695
+      ],
+      [
+       -92.66607681820294,
+       44.62661499638611
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "000eb453-aafe-41f9-a7c8-e4b6c46363e2",
+    "year": 1965,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2FF",
+    "frame": "217"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.43039646592368,
+       42.541398331124306
+      ],
+      [
+       -88.37463518032612,
+       42.541398331124306
+      ],
+      [
+       -88.37463518032612,
+       42.58246911804489
+      ],
+      [
+       -88.43039646592368,
+       42.58246911804489
+      ],
+      [
+       -88.43039646592368,
+       42.541398331124306
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "001250ef-7dd0-4ad9-b369-9f31fea80a08",
+    "year": 1963,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2DD",
+    "frame": "035"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.95647094059788,
+       43.43156735973691
+      ],
+      [
+       -90.89989567790712,
+       43.43156735973691
+      ],
+      [
+       -90.89989567790712,
+       43.472638146657495
+      ],
+      [
+       -90.95647094059788,
+       43.472638146657495
+      ],
+      [
+       -90.95647094059788,
+       43.43156735973691
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "001445b4-dc28-42a9-9488-4b90d2c02d38",
+    "year": 1967,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3HH",
+    "frame": "288"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.76220923949852,
+       43.91532914039751
+      ],
+      [
+       -87.70517574250347,
+       43.91532914039751
+      ],
+      [
+       -87.70517574250347,
+       43.956399927318095
+      ],
+      [
+       -87.76220923949852,
+       43.956399927318095
+      ],
+      [
+       -87.76220923949852,
+       43.91532914039751
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0015e9ec-bc46-45f7-b5e0-91c2c774cf39",
+    "year": 1961,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3AA",
+    "frame": "33"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.31832360923312,
+       43.52869720575611
+      ],
+      [
+       -90.26165725745287,
+       43.52869720575611
+      ],
+      [
+       -90.26165725745287,
+       43.569767992676695
+      ],
+      [
+       -90.31832360923312,
+       43.569767992676695
+      ],
+      [
+       -90.31832360923312,
+       43.52869720575611
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00175814-3730-4f5a-b607-b4223afdb40a",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1CC",
+    "frame": "128"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.88817960689799,
+       45.658215972731405
+      ],
+      [
+       -90.8293962608334,
+       45.658215972731405
+      ],
+      [
+       -90.8293962608334,
+       45.69928675965199
+      ],
+      [
+       -90.88817960689799,
+       45.69928675965199
+      ],
+      [
+       -90.88817960689799,
+       45.658215972731405
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "001b40f2-7df0-4fab-90bb-f92ecba72a64",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "4CC",
+    "frame": "238"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.89238197860105,
+       44.447169079215506
+      ],
+      [
+       -90.83483128718935,
+       44.447169079215506
+      ],
+      [
+       -90.83483128718935,
+       44.48823986613609
+      ],
+      [
+       -90.89238197860105,
+       44.48823986613609
+      ],
+      [
+       -90.89238197860105,
+       44.447169079215506
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "001f7f77-c191-4269-b3e5-0affeb12c326",
+    "year": 1965,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3FF",
+    "frame": "099"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.22614138727992,
+       45.22553662050231
+      ],
+      [
+       -89.16780745554946,
+       45.22553662050231
+      ],
+      [
+       -89.16780745554946,
+       45.266607407422896
+      ],
+      [
+       -89.22614138727992,
+       45.266607407422896
+      ],
+      [
+       -89.22614138727992,
+       45.22553662050231
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0021d0fc-6a63-4290-b74e-b66da7f37205",
+    "year": 1966,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1GG",
+    "frame": "167"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.9221759227343,
+       42.693695181429504
+      ],
+      [
+       -87.8662779944391,
+       42.693695181429504
+      ],
+      [
+       -87.8662779944391,
+       42.73476596835009
+      ],
+      [
+       -87.9221759227343,
+       42.73476596835009
+      ],
+      [
+       -87.9221759227343,
+       42.693695181429504
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0023c241-00ac-47af-93e8-1ff138a401cc",
+    "year": 1963,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1DD",
+    "frame": "078"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.41471743985922,
+       43.841707520660904
+      ],
+      [
+       -89.35775442031938,
+       43.841707520660904
+      ],
+      [
+       -89.35775442031938,
+       43.88277830758149
+      ],
+      [
+       -89.41471743985922,
+       43.88277830758149
+      ],
+      [
+       -89.41471743985922,
+       43.841707520660904
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0024ab25-06eb-4ec6-97ec-77316cfb3588",
+    "year": 1964,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3EE",
+    "frame": "121"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.70920022579634,
+       45.241441008384406
+      ],
+      [
+       -91.65084995499387,
+       45.241441008384406
+      ],
+      [
+       -91.65084995499387,
+       45.28251179530499
+      ],
+      [
+       -91.70920022579634,
+       45.28251179530499
+      ],
+      [
+       -91.70920022579634,
+       45.241441008384406
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0024c1b0-9d7f-45fc-b9a8-9f087fa23805",
+    "year": 1961,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1AA",
+    "frame": "141"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.33782689075514,
+       44.66814294784161
+      ],
+      [
+       -88.28005706994145,
+       44.66814294784161
+      ],
+      [
+       -88.28005706994145,
+       44.709213734762194
+      ],
+      [
+       -88.33782689075514,
+       44.709213734762194
+      ],
+      [
+       -88.33782689075514,
+       44.66814294784161
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "002551d5-9522-4933-bf37-f8102e74478f",
+    "year": 1966,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1GG",
+    "frame": "200"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.75856395028522,
+       44.242267327251305
+      ],
+      [
+       -90.70121421062159,
+       44.242267327251305
+      ],
+      [
+       -90.70121421062159,
+       44.28333811417189
+      ],
+      [
+       -90.75856395028522,
+       44.28333811417189
+      ],
+      [
+       -90.75856395028522,
+       44.242267327251305
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00267a60-9876-458c-aa89-edce87c55e42",
+    "year": 1965,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2FF",
+    "frame": "080"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.1318043237576,
+       43.23151172049721
+      ],
+      [
+       -89.07541524580698,
+       43.23151172049721
+      ],
+      [
+       -89.07541524580698,
+       43.272582507417795
+      ],
+      [
+       -89.1318043237576,
+       43.272582507417795
+      ],
+      [
+       -89.1318043237576,
+       43.23151172049721
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "002f6ecc-ca28-46ef-82dc-725d60c78062",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3CC",
+    "frame": "5"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.46020606907912,
+       45.44697813378001
+      ],
+      [
+       -92.40164341014388,
+       45.44697813378001
+      ],
+      [
+       -92.40164341014388,
+       45.48804892070059
+      ],
+      [
+       -92.46020606907912,
+       45.48804892070059
+      ],
+      [
+       -92.46020606907912,
+       45.44697813378001
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00310d7a-53b6-4c43-8f2a-59469007b375",
+    "year": 1965,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3FF",
+    "frame": "229"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.43949466685577,
+       43.63391366659361
+      ],
+      [
+       -90.38272912637164,
+       43.63391366659361
+      ],
+      [
+       -90.38272912637164,
+       43.67498445351419
+      ],
+      [
+       -90.43949466685577,
+       43.67498445351419
+      ],
+      [
+       -90.43949466685577,
+       43.63391366659361
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0032234b-8160-43a3-b2ae-7f840666bd4f",
+    "year": 1967,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1HH",
+    "frame": "039"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.12160294778846,
+       43.898072704536006
+      ],
+      [
+       -90.06458599434933,
+       43.898072704536006
+      ],
+      [
+       -90.06458599434933,
+       43.93914349145659
+      ],
+      [
+       -90.12160294778846,
+       43.93914349145659
+      ],
+      [
+       -90.12160294778846,
+       43.898072704536006
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00336fd2-dbb7-4177-bbc0-7aa5c3092831",
+    "year": 1965,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3FF",
+    "frame": "210"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.24119710776021,
+       43.73776315309961
+      ],
+      [
+       -91.18433313777619,
+       43.73776315309961
+      ],
+      [
+       -91.18433313777619,
+       43.77883394002019
+      ],
+      [
+       -91.24119710776021,
+       43.77883394002019
+      ],
+      [
+       -91.24119710776021,
+       43.73776315309961
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "003438ca-d0db-449f-ba09-91814f6cf0fc",
+    "year": 1967,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1HH",
+    "frame": "137"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.19201764863666,
+       44.45181500884791
+      ],
+      [
+       -89.13446237598413,
+       44.45181500884791
+      ],
+      [
+       -89.13446237598413,
+       44.492885795768494
+      ],
+      [
+       -89.19201764863666,
+       44.492885795768494
+      ],
+      [
+       -89.19201764863666,
+       44.45181500884791
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00373794-7c5c-4075-ae9e-2f142b0c2e90",
+    "year": 1964,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1EE",
+    "frame": "161"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.41554937927368,
+       45.21790138683361
+      ],
+      [
+       -92.35722328660931,
+       45.21790138683361
+      ],
+      [
+       -92.35722328660931,
+       45.258972173754195
+      ],
+      [
+       -92.41554937927368,
+       45.258972173754195
+      ],
+      [
+       -92.41554937927368,
+       45.21790138683361
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00389466-5c11-424f-a497-311374c25724",
+    "year": 1965,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3FF",
+    "frame": "204"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.92120200526044,
+       44.24659751219091
+      ],
+      [
+       -91.86384804098175,
+       44.24659751219091
+      ],
+      [
+       -91.86384804098175,
+       44.287668299111495
+      ],
+      [
+       -91.92120200526044,
+       44.287668299111495
+      ],
+      [
+       -91.92120200526044,
+       44.24659751219091
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0039519d-d1a0-4d60-8412-38ef99f7bfb5",
+    "year": 1965,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5FF",
+    "frame": "157"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.75169521693509,
+       43.16937610904241
+      ],
+      [
+       -90.69536357772351,
+       43.16937610904241
+      ],
+      [
+       -90.69536357772351,
+       43.210446895962995
+      ],
+      [
+       -90.75169521693509,
+       43.210446895962995
+      ],
+      [
+       -90.75169521693509,
+       43.16937610904241
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "003ce8b4-f656-481c-a118-3dc62fd430f4",
+    "year": 1967,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3HH",
+    "frame": "123"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.88250648040713,
+       44.24022743926851
+      ],
+      [
+       -90.82515873056988,
+       44.24022743926851
+      ],
+      [
+       -90.82515873056988,
+       44.281298226189094
+      ],
+      [
+       -90.88250648040713,
+       44.281298226189094
+      ],
+      [
+       -90.88250648040713,
+       44.24022743926851
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "003d3d5e-bbd7-46bf-baa9-97669c1e969c",
+    "year": 1965,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2FF",
+    "frame": "086"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.74421077622704,
+       45.82392588051581
+      ],
+      [
+       -92.68525257720076,
+       45.82392588051581
+      ],
+      [
+       -92.68525257720076,
+       45.864996667436394
+      ],
+      [
+       -92.74421077622704,
+       45.864996667436394
+      ],
+      [
+       -92.74421077622704,
+       45.82392588051581
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "003dd36f-5314-4c26-8ed0-ebd2b96ff67c",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1CC",
+    "frame": "234"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.3170358241347,
+       43.789610780387406
+      ],
+      [
+       -91.26012251457288,
+       43.789610780387406
+      ],
+      [
+       -91.26012251457288,
+       43.83068156730799
+      ],
+      [
+       -91.3170358241347,
+       43.83068156730799
+      ],
+      [
+       -91.3170358241347,
+       43.789610780387406
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0041af21-58c0-4490-9172-2516b7700c46",
+    "year": 1961,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "4BB",
+    "frame": "63"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.19383506707118,
+       44.688053394983605
+      ],
+      [
+       -89.13604537774464,
+       44.688053394983605
+      ],
+      [
+       -89.13604537774464,
+       44.72912418190419
+      ],
+      [
+       -89.19383506707118,
+       44.72912418190419
+      ],
+      [
+       -89.19383506707118,
+       44.688053394983605
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0043fab0-a4bf-4452-b26c-d24b47cd5f06",
+    "year": 1966,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1GG",
+    "frame": "070"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.22652259271601,
+       46.454160041917206
+      ],
+      [
+       -91.1668851806524,
+       46.454160041917206
+      ],
+      [
+       -91.1668851806524,
+       46.49523082883779
+      ],
+      [
+       -91.22652259271601,
+       46.49523082883779
+      ],
+      [
+       -91.22652259271601,
+       46.454160041917206
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00462505-29a9-4e43-8d8e-ab804c111589",
+    "year": 1966,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3GG",
+    "frame": "159"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.54545407899656,
+       44.213377891367806
+      ],
+      [
+       -87.48813250014965,
+       44.213377891367806
+      ],
+      [
+       -87.48813250014965,
+       44.25444867828839
+      ],
+      [
+       -87.54545407899656,
+       44.25444867828839
+      ],
+      [
+       -87.54545407899656,
+       44.213377891367806
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00467778-abea-4b85-8b87-d4d6c3823406",
+    "year": 1961,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2AA",
+    "frame": "145"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.8477673036528,
+       42.69948869715991
+      ],
+      [
+       -89.79186415631179,
+       42.69948869715991
+      ],
+      [
+       -89.79186415631179,
+       42.74055948408049
+      ],
+      [
+       -89.8477673036528,
+       42.74055948408049
+      ],
+      [
+       -89.8477673036528,
+       42.69948869715991
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00511bad-4dc5-4a76-ad7b-bce291f6c34a",
+    "year": 1963,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1DD",
+    "frame": "040"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.83000038220439,
+       43.34274707622811
+      ],
+      [
+       -90.773508017979,
+       43.34274707622811
+      ],
+      [
+       -90.773508017979,
+       43.38381786314869
+      ],
+      [
+       -90.83000038220439,
+       43.38381786314869
+      ],
+      [
+       -90.83000038220439,
+       43.34274707622811
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0052a6be-267b-4e47-9a83-3bd741b6aff5",
+    "year": 1967,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2HH",
+    "frame": "043"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.1220556734926,
+       42.89856389734691
+      ],
+      [
+       -90.0659722475864,
+       42.89856389734691
+      ],
+      [
+       -90.0659722475864,
+       42.939634684267496
+      ],
+      [
+       -90.1220556734926,
+       42.939634684267496
+      ],
+      [
+       -90.1220556734926,
+       42.89856389734691
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "005355e7-4450-4dbf-b2e3-a55fe39ceb90",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "4CC",
+    "frame": "157"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.33766904757415,
+       45.375199467387006
+      ],
+      [
+       -92.27918082087645,
+       45.375199467387006
+      ],
+      [
+       -92.27918082087645,
+       45.41627025430759
+      ],
+      [
+       -92.33766904757415,
+       45.41627025430759
+      ],
+      [
+       -92.33766904757415,
+       45.375199467387006
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0053b219-6f55-4a40-91ec-98969e2dc538",
+    "year": 1965,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3FF",
+    "frame": "110"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.28049222933993,
+       43.253596312765104
+      ],
+      [
+       -90.22408269197126,
+       43.253596312765104
+      ],
+      [
+       -90.22408269197126,
+       43.29466709968569
+      ],
+      [
+       -90.28049222933993,
+       43.29466709968569
+      ],
+      [
+       -90.28049222933993,
+       43.253596312765104
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "005b3ef4-9812-4a32-a753-6f29c17a7903",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2CC",
+    "frame": "22"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.71305466520852,
+       43.101359363628404
+      ],
+      [
+       -90.6567856915207,
+       43.101359363628404
+      ],
+      [
+       -90.6567856915207,
+       43.14243015054899
+      ],
+      [
+       -90.71305466520852,
+       43.14243015054899
+      ],
+      [
+       -90.71305466520852,
+       43.101359363628404
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "005cdd55-3a0d-4314-b0d1-a2c69c79cbb1",
+    "year": 1961,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5BB",
+    "frame": "3"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.12675694108908,
+       44.415396644778205
+      ],
+      [
+       -92.06923755004952,
+       44.415396644778205
+      ],
+      [
+       -92.06923755004952,
+       44.45646743169879
+      ],
+      [
+       -92.12675694108908,
+       44.45646743169879
+      ],
+      [
+       -92.12675694108908,
+       44.415396644778205
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00618e42-c5be-4ead-8705-ee7db1fdf0d6",
+    "year": 1965,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3FF",
+    "frame": "196"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.5933551583537,
+       43.03946719961431
+      ],
+      [
+       -90.53714301765949,
+       43.03946719961431
+      ],
+      [
+       -90.53714301765949,
+       43.08053798653489
+      ],
+      [
+       -90.5933551583537,
+       43.08053798653489
+      ],
+      [
+       -90.5933551583537,
+       43.03946719961431
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0062324d-5818-44f2-add0-ebeaf0ad6d2a",
+    "year": 1961,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "4BB",
+    "frame": "136"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.00285734235122,
+       42.576575609163406
+      ],
+      [
+       -89.94706458960637,
+       42.576575609163406
+      ],
+      [
+       -89.94706458960637,
+       42.61764639608399
+      ],
+      [
+       -90.00285734235122,
+       42.61764639608399
+      ],
+      [
+       -90.00285734235122,
+       42.576575609163406
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00623a3e-02e5-4716-b250-7d3bad957866",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2CC",
+    "frame": "109"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.07992660055044,
+       42.66463299230611
+      ],
+      [
+       -88.02405482939815,
+       42.66463299230611
+      ],
+      [
+       -88.02405482939815,
+       42.705703779226695
+      ],
+      [
+       -88.07992660055044,
+       42.705703779226695
+      ],
+      [
+       -88.07992660055044,
+       42.66463299230611
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006a6d8c-9bfe-42f8-b9fe-6304ca4db6fd",
+    "year": 1963,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1DD",
+    "frame": "202"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.21494586070979,
+       43.261857338062605
+      ],
+      [
+       -89.15852866426262,
+       43.261857338062605
+      ],
+      [
+       -89.15852866426262,
+       43.30292812498319
+      ],
+      [
+       -89.21494586070979,
+       43.30292812498319
+      ],
+      [
+       -89.21494586070979,
+       43.261857338062605
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006abd32-931b-4374-95fc-0b8447feb558",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2CC",
+    "frame": "224"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.5874037861025,
+       44.332976174262505
+      ],
+      [
+       -87.5299653502239,
+       44.332976174262505
+      ],
+      [
+       -87.5299653502239,
+       44.37404696118309
+      ],
+      [
+       -87.5874037861025,
+       44.37404696118309
+      ],
+      [
+       -87.5874037861025,
+       44.332976174262505
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006c2f10-6d21-414b-aed1-33307429c9f4",
+    "year": 1961,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2AA",
+    "frame": "185"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.98132861690374,
+       42.533916276648505
+      ],
+      [
+       -88.92557401694506,
+       42.533916276648505
+      ],
+      [
+       -88.92557401694506,
+       42.57498706356909
+      ],
+      [
+       -88.98132861690374,
+       42.57498706356909
+      ],
+      [
+       -88.98132861690374,
+       42.533916276648505
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006ca2f8-2575-413b-96de-ffe0594712af",
+    "year": 1963,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2DD",
+    "frame": "023"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.19413399651162,
+       44.53676745042771
+      ],
+      [
+       -91.13649475859697,
+       44.53676745042771
+      ],
+      [
+       -91.13649475859697,
+       44.577838237348296
+      ],
+      [
+       -91.19413399651162,
+       44.577838237348296
+      ],
+      [
+       -91.19413399651162,
+       44.53676745042771
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "006f5ae8-afb0-4c47-8daf-2004de6b837c",
+    "year": 1965,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1FF",
+    "frame": "065"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.03208629215987,
+       44.73211608166011
+      ],
+      [
+       -88.97425255947792,
+       44.73211608166011
+      ],
+      [
+       -88.97425255947792,
+       44.773186868580694
+      ],
+      [
+       -89.03208629215987,
+       44.773186868580694
+      ],
+      [
+       -89.03208629215987,
+       44.73211608166011
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00736c6c-dd4a-4b4c-ad2b-cd52b45313d5",
+    "year": 1966,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2GG",
+    "frame": "211"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.84243404203565,
+       44.28545122327921
+      ],
+      [
+       -91.78504212875995,
+       44.28545122327921
+      ],
+      [
+       -91.78504212875995,
+       44.326522010199795
+      ],
+      [
+       -91.84243404203565,
+       44.326522010199795
+      ],
+      [
+       -91.84243404203565,
+       44.28545122327921
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0074a997-41fe-4feb-8e8d-1fb63b798c1f",
+    "year": 1965,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5FF",
+    "frame": "096"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.00210743111437,
+       43.56437329542301
+      ],
+      [
+       -89.94540750738044,
+       43.56437329542301
+      ],
+      [
+       -89.94540750738044,
+       43.605444082343595
+      ],
+      [
+       -90.00210743111437,
+       43.605444082343595
+      ],
+      [
+       -90.00210743111437,
+       43.56437329542301
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00762693-9aa1-4aa7-afcd-75972bcdc771",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5CC",
+    "frame": "6"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.73689726885968,
+       43.755928364353906
+      ],
+      [
+       -87.68001602741751,
+       43.755928364353906
+      ],
+      [
+       -87.68001602741751,
+       43.79699915127449
+      ],
+      [
+       -87.73689726885968,
+       43.79699915127449
+      ],
+      [
+       -87.73689726885968,
+       43.755928364353906
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00773809-3857-4a22-a6e6-fe8decdde9f4",
+    "year": 1961,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3AA",
+    "frame": "220"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.10837084975819,
+       42.982603739313106
+      ],
+      [
+       -91.0522107656034,
+       42.982603739313106
+      ],
+      [
+       -91.0522107656034,
+       43.02367452623369
+      ],
+      [
+       -91.10837084975819,
+       43.02367452623369
+      ],
+      [
+       -91.10837084975819,
+       42.982603739313106
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0077e798-e8f6-48fd-ac6c-cb985eb40f99",
+    "year": 1961,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2BB",
+    "frame": "250"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.84003240205143,
+       45.96948699073321
+      ],
+      [
+       -91.78091934108917,
+       45.96948699073321
+      ],
+      [
+       -91.78091934108917,
+       46.010557777653794
+      ],
+      [
+       -91.84003240205143,
+       46.010557777653794
+      ],
+      [
+       -91.84003240205143,
+       45.96948699073321
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "007909ef-5b2c-489b-892f-91fa9d05efbc",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2CC",
+    "frame": "149"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.83085296703574,
+       45.038905681817106
+      ],
+      [
+       -90.77270975163547,
+       45.038905681817106
+      ],
+      [
+       -90.77270975163547,
+       45.07997646873769
+      ],
+      [
+       -90.83085296703574,
+       45.07997646873769
+      ],
+      [
+       -90.83085296703574,
+       45.038905681817106
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "007c6da0-6d44-4f30-956b-f9cef7ee6753",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3CC",
+    "frame": "157"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.64187633436148,
+       45.11393046334351
+      ],
+      [
+       -89.58365667619353,
+       45.11393046334351
+      ],
+      [
+       -89.58365667619353,
+       45.15500125026409
+      ],
+      [
+       -89.64187633436148,
+       45.15500125026409
+      ],
+      [
+       -89.64187633436148,
+       45.11393046334351
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00853aa5-ec02-4f96-891d-0a6815130191",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1CC",
+    "frame": "139"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.67082095726697,
+       42.763193517168204
+      ],
+      [
+       -90.61486031980483,
+       42.763193517168204
+      ],
+      [
+       -90.61486031980483,
+       42.80426430408879
+      ],
+      [
+       -90.67082095726697,
+       42.80426430408879
+      ],
+      [
+       -90.67082095726697,
+       42.763193517168204
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00862c5a-7cf3-4297-bec5-75d5fb6671ea",
+    "year": 1967,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1HH",
+    "frame": "283"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.26843857274788,
+       46.084798632590505
+      ],
+      [
+       -91.20920198141953,
+       46.084798632590505
+      ],
+      [
+       -91.20920198141953,
+       46.12586941951109
+      ],
+      [
+       -91.26843857274788,
+       46.12586941951109
+      ],
+      [
+       -91.26843857274788,
+       46.084798632590505
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0086ee88-6b4d-42e3-8915-521a37cd7a3b",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2CC",
+    "frame": "194"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.23917573350757,
+       43.776292058729204
+      ],
+      [
+       -91.18227511101303,
+       43.776292058729204
+      ],
+      [
+       -91.18227511101303,
+       43.81736284564979
+      ],
+      [
+       -91.23917573350757,
+       43.81736284564979
+      ],
+      [
+       -91.23917573350757,
+       43.776292058729204
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "008d1fb7-88ea-4280-ad08-1ee1f64b6c2d",
+    "year": 1961,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3BB",
+    "frame": "269"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.86419875426222,
+       45.298580288611305
+      ],
+      [
+       -87.80578966975477,
+       45.298580288611305
+      ],
+      [
+       -87.80578966975477,
+       45.33965107553189
+      ],
+      [
+       -87.86419875426222,
+       45.33965107553189
+      ],
+      [
+       -87.86419875426222,
+       45.298580288611305
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00952662-ed55-4017-af19-602e5da78efe",
+    "year": 1966,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1GG",
+    "frame": "194"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.09923121391316,
+       42.84269900594761
+      ],
+      [
+       -89.04319856371484,
+       42.84269900594761
+      ],
+      [
+       -89.04319856371484,
+       42.88376979286819
+      ],
+      [
+       -89.09923121391316,
+       42.88376979286819
+      ],
+      [
+       -89.09923121391316,
+       42.84269900594761
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "0095f1e6-fc5b-477a-9ee9-82ecac32364b",
+    "year": 1963,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2DD",
+    "frame": "110"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -91.56970772330955,
+       46.48901253041031
+      ],
+      [
+       -91.51003208166425,
+       46.48901253041031
+      ],
+      [
+       -91.51003208166425,
+       46.53008331733089
+      ],
+      [
+       -91.56970772330955,
+       46.53008331733089
+      ],
+      [
+       -91.56970772330955,
+       46.48901253041031
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "009684db-acff-443c-a94d-a4b003b31d1c",
+    "year": 1966,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1GG",
+    "frame": "199"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -89.01449339783174,
+       45.33023682115811
+      ],
+      [
+       -88.95605165301426,
+       45.33023682115811
+      ],
+      [
+       -88.95605165301426,
+       45.371307608078695
+      ],
+      [
+       -89.01449339783174,
+       45.371307608078695
+      ],
+      [
+       -89.01449339783174,
+       45.33023682115811
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "009a2f01-9337-4de2-a8eb-f1805e6a778b",
+    "year": 1966,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2GG",
+    "frame": "043"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.42024223469637,
+       44.62622763541741
+      ],
+      [
+       -87.36251417352203,
+       44.62622763541741
+      ],
+      [
+       -87.36251417352203,
+       44.66729842233799
+      ],
+      [
+       -87.42024223469637,
+       44.66729842233799
+      ],
+      [
+       -87.42024223469637,
+       44.62622763541741
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "009c7cb3-8b81-45e6-bb34-8c68594fd021",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "5AA",
+    "frame": "122"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.12600925012707,
+       45.952958652387906
+      ],
+      [
+       -92.06691383374393,
+       45.952958652387906
+      ],
+      [
+       -92.06691383374393,
+       45.99402943930849
+      ],
+      [
+       -92.12600925012707,
+       45.99402943930849
+      ],
+      [
+       -92.12600925012707,
+       45.952958652387906
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00a10482-6f8d-403e-a5f4-a4443133deaa",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1CC",
+    "frame": "107"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.5069280121909,
+       44.10887038876211
+      ],
+      [
+       -90.4497079531635,
+       44.10887038876211
+      ],
+      [
+       -90.4497079531635,
+       44.14994117568269
+      ],
+      [
+       -90.5069280121909,
+       44.14994117568269
+      ],
+      [
+       -90.5069280121909,
+       44.10887038876211
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00a1e6a6-1fd0-4928-b5c9-6dd07d9c40d3",
+    "year": 1965,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1FF",
+    "frame": "188"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.38292210226926,
+       45.19735658879281
+      ],
+      [
+       -90.32461708727494,
+       45.19735658879281
+      ],
+      [
+       -90.32461708727494,
+       45.23842737571339
+      ],
+      [
+       -90.38292210226926,
+       45.23842737571339
+      ],
+      [
+       -90.38292210226926,
+       45.19735658879281
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00a3c403-2210-4223-9652-ee703595f9b4",
+    "year": 1962,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2CC",
+    "frame": "73"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.10088770357774,
+       46.570886826425806
+      ],
+      [
+       -92.04112197407986,
+       46.570886826425806
+      ],
+      [
+       -92.04112197407986,
+       46.61195761334639
+      ],
+      [
+       -92.10088770357774,
+       46.61195761334639
+      ],
+      [
+       -92.10088770357774,
+       46.570886826425806
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00a42b85-55a2-4916-8656-5a250bf8049f",
+    "year": 1966,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2GG",
+    "frame": "063"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.71298742193602,
+       44.307693552422805
+      ],
+      [
+       -87.65557374974657,
+       44.307693552422805
+      ],
+      [
+       -87.65557374974657,
+       44.34876433934339
+      ],
+      [
+       -87.71298742193602,
+       44.34876433934339
+      ],
+      [
+       -87.71298742193602,
+       44.307693552422805
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00a5d78f-aeb8-4ebd-a894-c2f751908392",
+    "year": 1967,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3HH",
+    "frame": "040"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -88.78580507614367,
+       44.67354143551811
+      ],
+      [
+       -88.72802987025173,
+       44.67354143551811
+      ],
+      [
+       -88.72802987025173,
+       44.714612222438696
+      ],
+      [
+       -88.78580507614367,
+       44.714612222438696
+      ],
+      [
+       -88.78580507614367,
+       44.67354143551811
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00a615f4-ea86-4a66-bb26-dc9fd73b216a",
+    "year": 1964,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "2EE",
+    "frame": "210"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -92.30480773322437,
+       44.64536296670661
+      ],
+      [
+       -92.24706061911304,
+       44.64536296670661
+      ],
+      [
+       -92.24706061911304,
+       44.68643375362719
+      ],
+      [
+       -92.30480773322437,
+       44.68643375362719
+      ],
+      [
+       -92.30480773322437,
+       44.64536296670661
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00a652c2-8b68-4f68-8f5e-1b80db5a8632",
+    "year": 1965,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1FF",
+    "frame": "085"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.79560272348371,
+       43.08327983462391
+      ],
+      [
+       -90.73935037013948,
+       43.08327983462391
+      ],
+      [
+       -90.73935037013948,
+       43.124350621544494
+      ],
+      [
+       -90.79560272348371,
+       43.124350621544494
+      ],
+      [
+       -90.79560272348371,
+       43.08327983462391
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00a78b52-35c6-4d3b-9cd2-523abd7d2db5",
+    "year": 1961,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "3BB",
+    "frame": "83"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.44197468275553,
+       46.12489197275871
+      ],
+      [
+       -90.38269496309948,
+       46.12489197275871
+      ],
+      [
+       -90.38269496309948,
+       46.165962759679296
+      ],
+      [
+       -90.44197468275553,
+       46.165962759679296
+      ],
+      [
+       -90.44197468275553,
+       46.12489197275871
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00a8b50b-66b0-4612-b26a-33fc2f07b99c",
+    "year": 1966,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1GG",
+    "frame": "049"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -90.64212294898464,
+       46.11275571346221
+      ],
+      [
+       -90.58285629396836,
+       46.11275571346221
+      ],
+      [
+       -90.58285629396836,
+       46.15382650038279
+      ],
+      [
+       -90.64212294898464,
+       46.15382650038279
+      ],
+      [
+       -90.64212294898464,
+       46.11275571346221
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "uuid": "00ac10ec-7c01-4e98-a3b9-7b318ea2bad4",
+    "year": 1966,
+    "scale": 20000,
+    "held_by": "UW-Madison Robinson Map Library",
+    "source": "U.S. Department of Agriculture",
+    "roll": "1GG",
+    "frame": "176"
+   }
+  }
+ ]
+}
