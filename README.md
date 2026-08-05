@@ -1,3 +1,5 @@
+[![MCP Toplist](https://mcptoplist.com/badge/glama%2Ffabio-rovai%2Fopen-ontologies.svg)](https://mcptoplist.com/server/glama%2Ffabio-rovai%2Fopen-ontologies)
+
 <!-- mcp-name: io.github.fabio-rovai/open-ontologies -->
 
 <p align="center">
