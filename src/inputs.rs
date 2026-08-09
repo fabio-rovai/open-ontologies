@@ -232,6 +232,20 @@ pub struct OntoShaclCheckInput {
 }
 
 #[derive(Deserialize, JsonSchema)]
+pub struct OntoVocabCheckInput {
+    /// Path to a Turtle DATA file OR inline Turtle content to check against the
+    /// currently loaded ontology. Every predicate and every `rdf:type` class used
+    /// in the data, whose namespace belongs to the ontology, must be DECLARED in
+    /// the ontology — otherwise it is reported as a hallucinated/undeclared term.
+    pub data: String,
+    /// If true, treat `data` as inline Turtle content (default false = file path).
+    pub inline: Option<bool>,
+    /// Optional extra namespaces to police, beyond the ontology's own namespaces
+    /// (e.g. an imported vocabulary you also want closed-world-checked).
+    pub namespaces: Option<Vec<String>>,
+}
+
+#[derive(Deserialize, JsonSchema)]
 pub struct OntoReasonInput {
     /// Reasoning profile: rdfs (default), owl-rl
     pub profile: Option<String>,

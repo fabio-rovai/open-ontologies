@@ -1,0 +1,10 @@
+@prefix schema: <https://schema.org/> .
+@prefix ex: <https://ex.tesseract.academy/inst/> .
+
+# Identical to the clean record PLUS two fabricated schema.org terms an LLM might emit.
+# schema:priceBracket and schema:MerchandiseOffer DO NOT EXIST in schema.org.
+ex:offer1 a schema:Offer , schema:MerchandiseOffer ;   # <- fabricated class
+    schema:priceCurrency "GBP" ;
+    schema:price "49.00" ;
+    schema:availability "InStock" ;
+    schema:priceBracket "mid" .                          # <- fabricated predicate

@@ -1,0 +1,228 @@
+@prefix ns1: <https://w3id.org/biolink/vocab/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<https://identifiers.org/ncbigene:10399> a ns1:Gene ;
+    rdfs:label "RACK1" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D009369> .
+
+<https://identifiers.org/ncbigene:12189> a ns1:Gene ;
+    rdfs:label "Brca1" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D001259>,
+        <https://identifiers.org/mesh:D002658>,
+        <https://identifiers.org/mesh:D005315>,
+        <https://identifiers.org/mesh:D007859>,
+        <https://identifiers.org/mesh:OMIM:604370> .
+
+<https://identifiers.org/ncbigene:1956> a ns1:Gene ;
+    rdfs:label "EGFR" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D001260>,
+        <https://identifiers.org/mesh:D002289>,
+        <https://identifiers.org/mesh:D064420> .
+
+<https://identifiers.org/ncbigene:23252> a ns1:Gene ;
+    rdfs:label "OTUD3" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D009369> .
+
+<https://identifiers.org/ncbigene:238> a ns1:Gene ;
+    rdfs:label "ALK" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D002289>,
+        <https://identifiers.org/mesh:D008175>,
+        <https://identifiers.org/mesh:D018278>,
+        <https://identifiers.org/mesh:D064420> .
+
+<https://identifiers.org/ncbigene:27436> a ns1:Gene ;
+    rdfs:label "EML4" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D018278>,
+        <https://identifiers.org/mesh:D018287> .
+
+<https://identifiers.org/ncbigene:29789> a ns1:Gene ;
+    rdfs:label "OLA1" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D009369> .
+
+<https://identifiers.org/ncbigene:3845> a ns1:Gene ;
+    rdfs:label "KRAS" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D009369> .
+
+<https://identifiers.org/ncbigene:4287> a ns1:Gene ;
+    rdfs:label "ATXN3" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D009369> .
+
+<https://identifiers.org/ncbigene:4609> a ns1:Gene ;
+    rdfs:label "MYC" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D008223>,
+        <https://identifiers.org/mesh:D009362>,
+        <https://identifiers.org/mesh:D009369>,
+        <https://identifiers.org/mesh:D010190>,
+        <https://identifiers.org/mesh:D016393>,
+        <https://identifiers.org/mesh:D016403>,
+        <https://identifiers.org/mesh:D063646> .
+
+<https://identifiers.org/ncbigene:5609> a ns1:Gene ;
+    rdfs:label "MAP2K7" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D002289> .
+
+<https://identifiers.org/ncbigene:5728> a ns1:Gene ;
+    rdfs:label "PTEN" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:C537394>,
+        <https://identifiers.org/mesh:D009369>,
+        <https://identifiers.org/mesh:D009386>,
+        <https://identifiers.org/mesh:D015154>,
+        <https://identifiers.org/mesh:D063646> .
+
+<https://identifiers.org/ncbigene:672> a ns1:Gene ;
+    rdfs:label "BRCA1" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:C535296>,
+        <https://identifiers.org/mesh:D001943>,
+        <https://identifiers.org/mesh:D002658>,
+        <https://identifiers.org/mesh:D009369>,
+        <https://identifiers.org/mesh:D013274>,
+        <https://identifiers.org/mesh:D061325>,
+        <https://identifiers.org/mesh:D063646>,
+        <https://identifiers.org/mesh:D063647> .
+
+<https://identifiers.org/ncbigene:673> a ns1:Gene ;
+    rdfs:label "BRAF" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D002289>,
+        <https://identifiers.org/mesh:D008545> .
+
+<https://identifiers.org/ncbigene:7157> a ns1:Gene ;
+    rdfs:label "TP53" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D005767>,
+        <https://identifiers.org/mesh:D009190>,
+        <https://identifiers.org/mesh:D009369>,
+        <https://identifiers.org/mesh:D010677>,
+        <https://identifiers.org/mesh:D011014>,
+        <https://identifiers.org/mesh:D015470>,
+        <https://identifiers.org/mesh:D016864>,
+        <https://identifiers.org/mesh:D018365>,
+        <https://identifiers.org/mesh:D018805>,
+        <https://identifiers.org/mesh:D054198> .
+
+<https://identifiers.org/ncbigene:7874> a ns1:Gene ;
+    rdfs:label "USP7" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D009369> .
+
+<https://identifiers.org/ncbigene:8237> a ns1:Gene ;
+    rdfs:label "USP11" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D009369> .
+
+<https://identifiers.org/ncbigene:867> a ns1:Gene ;
+    rdfs:label "CBL" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D009369> .
+
+<https://identifiers.org/ncbigene:8975> a ns1:Gene ;
+    rdfs:label "USP13" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D009369> .
+
+<https://identifiers.org/ncbigene:9100> a ns1:Gene ;
+    rdfs:label "USP10" ;
+    ns1:gene_associated_with_condition <https://identifiers.org/mesh:D009369> .
+
+<https://identifiers.org/mesh:C535296> a ns1:Disease ;
+    rdfs:label "Recombinant chromosome 8 syndrome" .
+
+<https://identifiers.org/mesh:C537394> a ns1:Disease ;
+    rdfs:label "Neuronal intestinal pseudoobstruction" .
+
+<https://identifiers.org/mesh:D001259> a ns1:Disease ;
+    rdfs:label "Ataxia" .
+
+<https://identifiers.org/mesh:D001260> a ns1:Disease ;
+    rdfs:label "Ataxia Telangiectasia" .
+
+<https://identifiers.org/mesh:D001943> a ns1:Disease ;
+    rdfs:label "Breast Neoplasms" .
+
+<https://identifiers.org/mesh:D005315> a ns1:Disease ;
+    rdfs:label "Fetal Diseases" .
+
+<https://identifiers.org/mesh:D005767> a ns1:Disease ;
+    rdfs:label "Gastrointestinal Diseases" .
+
+<https://identifiers.org/mesh:D007859> a ns1:Disease ;
+    rdfs:label "Learning Disabilities" .
+
+<https://identifiers.org/mesh:D008175> a ns1:Disease ;
+    rdfs:label "Lung Neoplasms" .
+
+<https://identifiers.org/mesh:D008223> a ns1:Disease ;
+    rdfs:label "Lymphoma" .
+
+<https://identifiers.org/mesh:D008545> a ns1:Disease ;
+    rdfs:label "Melanoma" .
+
+<https://identifiers.org/mesh:D009190> a ns1:Disease ;
+    rdfs:label "Myelodysplastic Syndromes" .
+
+<https://identifiers.org/mesh:D009362> a ns1:Disease ;
+    rdfs:label "Neoplasm Metastasis" .
+
+<https://identifiers.org/mesh:D009386> a ns1:Disease ;
+    rdfs:label "Neoplastic Syndromes Hereditary" .
+
+<https://identifiers.org/mesh:D010190> a ns1:Disease ;
+    rdfs:label "Pancreatic Neoplasms" .
+
+<https://identifiers.org/mesh:D010677> a ns1:Disease ;
+    rdfs:label "Philadelphia Chromosome" .
+
+<https://identifiers.org/mesh:D011014> a ns1:Disease ;
+    rdfs:label "Pneumonia" .
+
+<https://identifiers.org/mesh:D013274> a ns1:Disease ;
+    rdfs:label "Stomach Neoplasms" .
+
+<https://identifiers.org/mesh:D015154> a ns1:Disease ;
+    rdfs:label "Esophageal Motility Disorders" .
+
+<https://identifiers.org/mesh:D015470> a ns1:Disease ;
+    rdfs:label "Leukemia Myeloid Acute" .
+
+<https://identifiers.org/mesh:D016393> a ns1:Disease ;
+    rdfs:label "Lymphoma B-Cell" .
+
+<https://identifiers.org/mesh:D016403> a ns1:Disease ;
+    rdfs:label "Lymphoma Large B-Cell Diffuse" .
+
+<https://identifiers.org/mesh:D016864> a ns1:Disease ;
+    rdfs:label "Li-Fraumeni Syndrome" .
+
+<https://identifiers.org/mesh:D018287> a ns1:Disease ;
+    rdfs:label "Carcinoma Large Cell" .
+
+<https://identifiers.org/mesh:D018365> a ns1:Disease ;
+    rdfs:label "Neoplasm Residual" .
+
+<https://identifiers.org/mesh:D018805> a ns1:Disease ;
+    rdfs:label "Sepsis" .
+
+<https://identifiers.org/mesh:D054198> a ns1:Disease ;
+    rdfs:label "Precursor Cell Lymphoblastic Leukemia-Lymphoma" .
+
+<https://identifiers.org/mesh:D061325> a ns1:Disease ;
+    rdfs:label "Hereditary Breast and Ovarian Cancer Syndrome" .
+
+<https://identifiers.org/mesh:D063647> a ns1:Disease ;
+    rdfs:label "Fetal Alcohol Spectrum Disorders" .
+
+<https://identifiers.org/mesh:OMIM:604370> a ns1:Disease ;
+    rdfs:label "604370" .
+
+<https://identifiers.org/mesh:D002658> a ns1:Disease ;
+    rdfs:label "Developmental Disabilities" .
+
+<https://identifiers.org/mesh:D018278> a ns1:Disease ;
+    rdfs:label "Carcinoma Neuroendocrine" .
+
+<https://identifiers.org/mesh:D064420> a ns1:Disease ;
+    rdfs:label "Drug-Related Side Effects and Adverse Reactions" .
+
+<https://identifiers.org/mesh:D063646> a ns1:Disease ;
+    rdfs:label "Carcinogenesis" .
+
+<https://identifiers.org/mesh:D002289> a ns1:Disease ;
+    rdfs:label "Carcinoma Non-Small-Cell Lung" .
+
+<https://identifiers.org/mesh:D009369> a ns1:Disease ;
+    rdfs:label "Neoplasms" .
+

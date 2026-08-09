@@ -1,5 +1,20 @@
 //! OWL 2 Conformance Validation Oracle
 //!
+//! # Timeouts are disabled here, deliberately
+//!
+//! The reasoner carries a wall-clock budget per satisfiability test (see
+//! `runtime::tableaux_test_timeout_ms`). That is correct in production: it is
+//! what turns an unbounded hang into an honest `Undetermined`. It is wrong in
+//! a conformance suite, because under heavy parallel load a test that normally
+//! runs in microseconds can hit the budget and return `Undetermined`, failing
+//! an assertion that expects a subsumption. That is a flaky test measuring the
+//! clock rather than the calculus, and it was observed once during a full
+//! `cargo test` run on 2026-07-27.
+//!
+//! `disable_reasoner_timeouts()` pins the budgets off so these tests measure
+//! what they claim to measure. Timeout BEHAVIOUR is covered separately in
+//! `tests/reasoner_soundness_test.rs`.
+//!
 //! Test cases derived from the W3C OWL 2 Test Cases specification and
 //! established DL reasoning benchmarks. Each test has a documented expected
 //! result that matches the output of HermiT/Pellet/FaCT++ reference reasoners.
@@ -16,12 +31,22 @@ use open_ontologies::graph::GraphStore;
 use open_ontologies::reason::Reasoner;
 use std::sync::Arc;
 
+/// Pin the reasoner's wall-clock budgets off for conformance testing.
+/// Idempotent and safe to call from every test; the underlying store is a
+/// process-global atomic.
+fn disable_reasoner_timeouts() {
+    open_ontologies::runtime::set_tableaux_test_timeout_ms(0);
+    open_ontologies::runtime::set_classify_timeout_ms(0);
+}
+
+
 // ── W3C-style Consistency Tests ─────────────────────────────────────────
 // Reference: OWL 2 Structural Specification §11 (consistency)
 // Oracle: HermiT 1.4.3
 
 #[test]
 fn w3c_consistent_empty_ontology() {
+    disable_reasoner_timeouts();
     // An empty ontology is trivially consistent.
     // HermiT: consistent ✓
     let store = Arc::new(GraphStore::new());
@@ -32,6 +57,7 @@ fn w3c_consistent_empty_ontology() {
 
 #[test]
 fn w3c_consistent_simple_hierarchy() {
+    disable_reasoner_timeouts();
     // A ⊑ B ⊑ C — simple subsumption chain is consistent.
     // HermiT: consistent ✓, A ⊑ C inferred
     let store = Arc::new(GraphStore::new());
@@ -60,6 +86,7 @@ fn w3c_consistent_simple_hierarchy() {
 
 #[test]
 fn w3c_inconsistent_subclass_disjoint() {
+    disable_reasoner_timeouts();
     // A ⊑ B, A disjointWith B → A unsatisfiable
     // HermiT: A unsatisfiable ✓
     let store = Arc::new(GraphStore::new());
@@ -92,6 +119,7 @@ fn w3c_inconsistent_subclass_disjoint() {
 
 #[test]
 fn w3c_entailment_equivalent_classes() {
+    disable_reasoner_timeouts();
     // A ≡ B → A ⊑ B and B ⊑ A
     // HermiT: equivalence detected ✓
     let store = Arc::new(GraphStore::new());
@@ -116,6 +144,7 @@ fn w3c_entailment_equivalent_classes() {
 
 #[test]
 fn w3c_entailment_intersection_subsumption() {
+    disable_reasoner_timeouts();
     // C ≡ A ⊓ B → C ⊑ A and C ⊑ B
     // HermiT: C subClassOf A ✓, C subClassOf B ✓
     let store = Arc::new(GraphStore::new());
@@ -161,6 +190,7 @@ fn w3c_entailment_intersection_subsumption() {
 
 #[test]
 fn w3c_entailment_complement_unsatisfiable() {
+    disable_reasoner_timeouts();
     // A ⊑ B, A ⊑ ¬B → A unsatisfiable
     // HermiT: A unsatisfiable ✓
     let store = Arc::new(GraphStore::new());
@@ -195,6 +225,7 @@ fn w3c_entailment_complement_unsatisfiable() {
 
 #[test]
 fn w3c_exists_forall_direct_clash() {
+    disable_reasoner_timeouts();
     // A ⊑ ∃R.C, A ⊑ ∀R.¬C → A unsatisfiable
     // Every R-successor must have C (from ∃) and ¬C (from ∀). Clash.
     // HermiT: A unsatisfiable ✓
@@ -236,6 +267,7 @@ fn w3c_exists_forall_direct_clash() {
 
 #[test]
 fn w3c_exists_forall_transitive_clash() {
+    disable_reasoner_timeouts();
     // Pizza pattern: Pizza ⊑ ∀hasTopping.Veg, NonVegPizza ⊑ Pizza ⊓ ∃hasTopping.Meat,
     // Veg disjoint Meat → NonVegPizza unsatisfiable
     // HermiT: NonVegPizza unsatisfiable ✓
@@ -284,6 +316,7 @@ fn w3c_exists_forall_transitive_clash() {
 
 #[test]
 fn w3c_min_card_satisfiable() {
+    disable_reasoner_timeouts();
     // A ⊑ ≥2 R.B — satisfiable (just needs 2 R-successors with B)
     // HermiT: consistent ✓
     let store = Arc::new(GraphStore::new());
@@ -319,6 +352,7 @@ fn w3c_min_card_satisfiable() {
 
 #[test]
 fn w3c_max_min_card_clash() {
+    disable_reasoner_timeouts();
     // A ⊑ ≥3 R.B ⊓ ≤1 R.B → unsatisfiable (needs ≥3 but max 1)
     // HermiT: A unsatisfiable ✓
     let store = Arc::new(GraphStore::new());
@@ -360,6 +394,7 @@ fn w3c_max_min_card_clash() {
 
 #[test]
 fn w3c_functional_property_max_one() {
+    disable_reasoner_timeouts();
     // R is Functional → ≤1 R.⊤ universally.
     // A ⊑ ≥2 R.⊤ should be unsatisfiable.
     // HermiT: A unsatisfiable ✓
@@ -397,6 +432,7 @@ fn w3c_functional_property_max_one() {
 
 #[test]
 fn w3c_inverse_role_consistency() {
+    disable_reasoner_timeouts();
     // R inverseOf S — basic inverse declaration is consistent.
     // HermiT: consistent ✓
     let store = Arc::new(GraphStore::new());
@@ -421,6 +457,7 @@ fn w3c_inverse_role_consistency() {
 
 #[test]
 fn w3c_symmetric_role_consistency() {
+    disable_reasoner_timeouts();
     // R is SymmetricProperty — consistent ontology with symmetric role.
     // HermiT: consistent ✓
     let store = Arc::new(GraphStore::new());
@@ -452,6 +489,7 @@ fn w3c_symmetric_role_consistency() {
 
 #[test]
 fn w3c_union_satisfiable() {
+    disable_reasoner_timeouts();
     // A ≡ B ⊔ C — satisfiable, A is the union.
     // HermiT: consistent ✓, B ⊑ A, C ⊑ A
     let store = Arc::new(GraphStore::new());
@@ -480,6 +518,7 @@ fn w3c_union_satisfiable() {
 
 #[test]
 fn w3c_disjoint_union_coverage() {
+    disable_reasoner_timeouts();
     // A ⊑ B ⊔ C, A disjoint B → A ⊑ C (via disjunction + elimination)
     // This tests that the ⊔-rule with backtracking correctly determines:
     // if A can't be B (disjoint), then A must be C.
@@ -530,6 +569,7 @@ fn w3c_disjoint_union_coverage() {
 
 #[test]
 fn w3c_transitive_forall_propagation() {
+    disable_reasoner_timeouts();
     // R is transitive, A ⊑ ∀R.B.
     // If x:A and x R y and y R z, then z should be B.
     // The ∀-rule with transitive roles should propagate ∀R.B through chains.
@@ -573,6 +613,7 @@ fn w3c_transitive_forall_propagation() {
 
 #[test]
 fn w3c_pizza_vegetarian_classification() {
+    disable_reasoner_timeouts();
     // MeatTopping and VegTopping are disjoint.
     // VegetarianPizza ≡ Pizza ⊓ ∀hasTopping.VegTopping
     // Margherita ⊑ Pizza ⊓ ∃hasTopping.Mozzarella ⊓ ∃hasTopping.Tomato
@@ -660,6 +701,7 @@ fn w3c_pizza_vegetarian_classification() {
 
 #[test]
 fn w3c_pizza_non_veg_unsatisfiable() {
+    disable_reasoner_timeouts();
     // Same as exists_forall_clash but more structured.
     // MeatPizza ⊑ Pizza ⊓ ∃hasTopping.Meat
     // Pizza ⊑ ∀hasTopping.Veg
@@ -707,6 +749,7 @@ fn w3c_pizza_non_veg_unsatisfiable() {
 
 #[test]
 fn w3c_abox_consistent_individual() {
+    disable_reasoner_timeouts();
     // john:Person, mary:Person — consistent ABox
     // HermiT: consistent ✓
     let store = Arc::new(GraphStore::new());
@@ -730,6 +773,7 @@ fn w3c_abox_consistent_individual() {
 
 #[test]
 fn w3c_abox_inconsistent_disjoint_types() {
+    disable_reasoner_timeouts();
     // john: Male AND Female, Male disjoint Female → inconsistent ABox
     // HermiT: inconsistent ✓
     let store = Arc::new(GraphStore::new());
@@ -762,6 +806,7 @@ fn w3c_abox_inconsistent_disjoint_types() {
 
 #[test]
 fn w3c_oracle_agent_metrics() {
+    disable_reasoner_timeouts();
     // Verify that the reasoner reports agent metrics in the output.
     let store = Arc::new(GraphStore::new());
     store

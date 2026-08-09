@@ -37,8 +37,21 @@ impl SchemaIntrospector {
             "integer" | "int" | "bigint" | "smallint" | "tinyint" | "hugeint"
             | "int4" | "int8" | "int2" | "int1" | "serial" | "bigserial"
             | "smallserial" | "ubigint" | "uinteger" | "usmallint" | "utinyint" => "xsd:integer",
-            "numeric" | "decimal" | "real" | "double precision" | "double"
-            | "float" | "float4" | "float8" => "xsd:decimal",
+            "numeric" | "decimal" => "xsd:decimal",
+            // IEEE 754 binary floats are deliberately NOT xsd:decimal. That
+            // type's value space is integers over powers of ten, so it cannot
+            // represent NaN, INF or -INF, and asserting it claims an exactness
+            // the source column does not have.
+            "real" | "float4" => "xsd:float",
+            // Bare `float` is dialect-dependent: Postgres reads it as float8,
+            // DuckDB as float4 (an alias of REAL). Widen rather than narrow.
+            // Every xsd:float value is exactly representable as an xsd:double,
+            // so calling a DuckDB single a double overstates the range without
+            // misrepresenting any value; the reverse would declare a range
+            // narrower than the data. Parameterised `float(p)` normalises to
+            // this arm too, which is the same safe direction under Postgres,
+            // where p <= 24 would otherwise select real.
+            "double precision" | "double" | "float" | "float8" => "xsd:double",
             "boolean" | "bool" => "xsd:boolean",
             "date" => "xsd:date",
             "timestamp" | "timestamptz" | "timestamp without time zone"

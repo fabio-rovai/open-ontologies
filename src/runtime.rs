@@ -23,6 +23,11 @@ use crate::config::{
 // ── Defaults match the previous hardcoded constants exactly ─────────────
 const DEFAULT_TABLEAUX_MAX_DEPTH: usize = 100;
 const DEFAULT_TABLEAUX_MAX_NODES: usize = 10_000;
+/// 10s per satisfiability test. Generous for well-behaved ontologies, and the
+/// difference between a reported Unknown and an unbounded hang for the rest.
+const DEFAULT_TABLEAUX_TEST_TIMEOUT_MS: usize = 10_000;
+/// 180s for a whole classification, matching the ORE competition timeout.
+const DEFAULT_CLASSIFY_TIMEOUT_MS: usize = 180_000;
 // Original reason.rs used 50; section 3 of the audit recommends 64 as a
 // slightly more generous, explicitly-documented value. We adopt 64 as the
 // new default since neither value affects fixpoint correctness — they only
@@ -38,6 +43,9 @@ const DEFAULT_WEBHOOK_TIMEOUT: u64 = 10;
 
 static TABLEAUX_MAX_DEPTH: AtomicUsize = AtomicUsize::new(DEFAULT_TABLEAUX_MAX_DEPTH);
 static TABLEAUX_MAX_NODES: AtomicUsize = AtomicUsize::new(DEFAULT_TABLEAUX_MAX_NODES);
+static TABLEAUX_TEST_TIMEOUT_MS: AtomicUsize =
+    AtomicUsize::new(DEFAULT_TABLEAUX_TEST_TIMEOUT_MS);
+static CLASSIFY_TIMEOUT_MS: AtomicUsize = AtomicUsize::new(DEFAULT_CLASSIFY_TIMEOUT_MS);
 static REASONER_MAX_ITER: AtomicUsize = AtomicUsize::new(DEFAULT_REASONER_MAX_ITER);
 static CACHE_HASH_PREFIX: AtomicUsize = AtomicUsize::new(DEFAULT_CACHE_HASH_PREFIX);
 static FB_SUPPRESS: AtomicI64 = AtomicI64::new(DEFAULT_FB_SUPPRESS);
@@ -111,6 +119,47 @@ fn apply_webhook(w: &WebhookConfig) {
 
 pub fn tableaux_max_depth() -> usize { TABLEAUX_MAX_DEPTH.load(Ordering::Relaxed) }
 pub fn tableaux_max_nodes() -> usize { TABLEAUX_MAX_NODES.load(Ordering::Relaxed) }
+
+/// Wall-clock cut-off for a single tableau satisfiability test, in
+/// milliseconds. `None` (value 0) means no time limit.
+///
+/// This exists because the node and depth budgets do not bound the number of
+/// BRANCHES explored. A tableau can stay small and shallow while backtracking
+/// through exponentially many disjunction and merge choices, which is exactly
+/// how nominal-bearing ontologies hang the reasoner. A clock is the only
+/// budget that catches that.
+pub fn tableaux_test_timeout_ms() -> Option<u64> {
+    match TABLEAUX_TEST_TIMEOUT_MS.load(Ordering::Relaxed) {
+        0 => None,
+        ms => Some(ms as u64),
+    }
+}
+
+/// Override the per-test timeout. Used by the CLI `--reason-timeout-ms` flag
+/// and by tests.
+pub fn set_tableaux_test_timeout_ms(ms: usize) {
+    TABLEAUX_TEST_TIMEOUT_MS.store(ms, Ordering::Relaxed);
+}
+
+/// Wall-clock cut-off for an ENTIRE classification run, in milliseconds.
+/// `None` (value 0) means no limit.
+///
+/// Distinct from the per-test timeout, which bounds one satisfiability check.
+/// Classification performs one check per class plus one per ordered pair, so
+/// the per-test budget multiplied by the pair count is the real worst case and
+/// it is enormous. This is the budget that actually bounds the run.
+///
+/// Default matches the ORE competition convention of 180s.
+pub fn classify_timeout_ms() -> Option<u64> {
+    match CLASSIFY_TIMEOUT_MS.load(Ordering::Relaxed) {
+        0 => None,
+        ms => Some(ms as u64),
+    }
+}
+
+pub fn set_classify_timeout_ms(ms: usize) {
+    CLASSIFY_TIMEOUT_MS.store(ms, Ordering::Relaxed);
+}
 pub fn reasoner_max_iterations() -> usize { REASONER_MAX_ITER.load(Ordering::Relaxed) }
 pub fn cache_hash_prefix_bytes() -> usize { CACHE_HASH_PREFIX.load(Ordering::Relaxed) }
 pub fn feedback_suppress_threshold() -> i64 { FB_SUPPRESS.load(Ordering::Relaxed) }

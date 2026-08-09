@@ -1,0 +1,134 @@
+@prefix zef:     <https://tesseract.academy/ns/zef#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix qudt:    <http://qudt.org/schema/qudt/> .
+
+# =============================================================================
+# UK Zero-Emission Flight (ZEF) ecosystem ontology  -- v0.2 (granular)
+# The Tesseract Academy. Open reference vocabulary (CC BY 4.0).
+#
+# Design principles (see README "Related work" for the literature these draw on):
+#  * Reuse before invention: provenance via PROV-O, controlled scales via SKOS,
+#    quantities aligned to QUDT, bibliographic/source metadata via Dublin Core.
+#  * Provenance-first: every maturity assessment and every quantitative claim is
+#    reified as its own node carrying a value, a date and prov:wasDerivedFrom a
+#    Source. No maturity value and no number is ever asserted unsourced.
+#  * Explicit competency: the ontology is scoped to answer the competency
+#    questions in queries/competency.rq (see README).
+# =============================================================================
+
+zef: a owl:Ontology ;
+  rdfs:label "UK Zero-Emission Flight Ecosystem Ontology" ;
+  owl:versionInfo "0.2" ;
+  rdfs:comment "A computation-ready vocabulary for the UK hydrogen and electric aviation ecosystem: organisations, airports, programmes, projects, funders, bodies, alliances and technologies; the hydrogen production-to-use chain; and provenanced technology-readiness assessments and quantities." .
+
+# ---------------------------------------------------------------------------
+# Core entity classes
+# ---------------------------------------------------------------------------
+zef:Entity        a owl:Class ; rdfs:label "Ecosystem entity" .
+zef:Organisation  a owl:Class ; rdfs:subClassOf zef:Entity ; rdfs:label "Organisation" .
+zef:Airport       a owl:Class ; rdfs:subClassOf zef:Entity ; rdfs:label "Airport" .
+zef:Programme     a owl:Class ; rdfs:subClassOf zef:Entity ; rdfs:label "Programme" .
+zef:Project       a owl:Class ; rdfs:subClassOf zef:Entity ; rdfs:label "Project" .
+zef:Funder        a owl:Class ; rdfs:subClassOf zef:Entity ; rdfs:label "Funder" .
+zef:Body          a owl:Class ; rdfs:subClassOf zef:Entity ; rdfs:label "Body" .
+zef:Alliance      a owl:Class ; rdfs:subClassOf zef:Entity ; rdfs:label "Alliance" .
+zef:Technology    a owl:Class ; rdfs:subClassOf zef:Entity ; rdfs:label "Technology" .
+
+# ---------------------------------------------------------------------------
+# Hydrogen production-to-use chain (a lightweight process/flow model)
+# ---------------------------------------------------------------------------
+zef:ChainStage a owl:Class ; rdfs:label "Hydrogen chain stage" ;
+  rdfs:comment "A stage in the end-to-end hydrogen operation, from production to aircraft use." .
+zef:HydrogenForm a owl:Class ; rdfs:label "Hydrogen form" ;
+  rdfs:comment "A physical form or state of the hydrogen carrier moving through the chain (e.g. gaseous, liquid)." .
+
+zef:realisesStage a owl:ObjectProperty ; rdfs:label "realises stage" ;
+  rdfs:domain zef:Technology ; rdfs:range zef:ChainStage ;
+  rdfs:comment "A technology performs the function of a chain stage." .
+zef:hasInput  a owl:ObjectProperty ; rdfs:label "has input"  ; rdfs:domain zef:ChainStage ; rdfs:range zef:HydrogenForm .
+zef:hasOutput a owl:ObjectProperty ; rdfs:label "has output" ; rdfs:domain zef:ChainStage ; rdfs:range zef:HydrogenForm .
+zef:stageOrder a owl:DatatypeProperty ; rdfs:label "stage order" ; rdfs:range xsd:integer .
+zef:feedsInto a owl:ObjectProperty, owl:TransitiveProperty ; rdfs:label "feeds into" ;
+  rdfs:comment "Upstream-to-downstream link in the hydrogen chain. Transitive." .
+
+# ---------------------------------------------------------------------------
+# Ecosystem relationships
+# ---------------------------------------------------------------------------
+zef:funds          a owl:ObjectProperty ; rdfs:label "funds" ; rdfs:range zef:Entity .
+zef:develops       a owl:ObjectProperty ; rdfs:label "develops" ; rdfs:range zef:Entity .
+zef:partnerOf      a owl:ObjectProperty, owl:SymmetricProperty ; rdfs:label "partner of" ; rdfs:range zef:Entity .
+zef:memberOf       a owl:ObjectProperty ; rdfs:label "member of" ; rdfs:range zef:Entity .
+zef:basedAt        a owl:ObjectProperty ; rdfs:label "based at" ; rdfs:range zef:Airport .
+zef:demonstratesAt a owl:ObjectProperty ; rdfs:label "demonstrates at" ; rdfs:range zef:Airport .
+zef:usesTechnology a owl:ObjectProperty ; rdfs:label "uses technology" ; rdfs:range zef:Technology .
+zef:leads          a owl:ObjectProperty ; rdfs:label "leads" ; rdfs:range zef:Entity .
+zef:regulates      a owl:ObjectProperty ; rdfs:label "regulates" ; rdfs:range zef:Entity .
+zef:coordinates    a owl:ObjectProperty ; rdfs:label "coordinates" ; rdfs:range zef:Entity .
+zef:governedBy     a owl:ObjectProperty ; rdfs:label "governed by" ; rdfs:range zef:Entity ;
+  rdfs:comment "A technology or activity is subject to a named standard or regulatory instrument." .
+
+# ---------------------------------------------------------------------------
+# Provenance-first: maturity assessments and quantities are reified nodes
+# ---------------------------------------------------------------------------
+zef:Source a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Source" ;
+  rdfs:comment "A citable document (report, paper, roadmap, standard) that a claim is derived from." .
+
+zef:TRLAssessment a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "TRL assessment" ;
+  rdfs:comment "A dated, sourced assessment of a technology's readiness. Reified so maturity is never a bare literal." .
+zef:hasTRLAssessment a owl:ObjectProperty ; rdfs:label "has TRL assessment" ;
+  rdfs:domain zef:Technology ; rdfs:range zef:TRLAssessment .
+zef:trlValue  a owl:DatatypeProperty ; rdfs:label "TRL value" ; rdfs:range xsd:integer ;
+  rdfs:comment "Technology Readiness Level, integer 1-9 (EU/NASA scale)." .
+zef:trlScale  a owl:DatatypeProperty ; rdfs:label "TRL scale" ; rdfs:range xsd:string .
+zef:maturityBand a owl:DatatypeProperty ; rdfs:label "maturity band" ; rdfs:range xsd:string ;
+  rdfs:comment "Coarse maturity band from zef:MaturityScheme, when a precise TRL is not sourced." .
+zef:assessedOn a owl:DatatypeProperty ; rdfs:label "assessed on" ; rdfs:range xsd:date .
+
+zef:Quantity a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Quantity" ;
+  rdfs:comment "A provenanced quantitative claim (value + unit + temporal/scenario scope + source). Aligned to qudt:Quantity." .
+owl:AnnotationProperty rdfs:seeAlso qudt:Quantity .
+zef:hasQuantity  a owl:ObjectProperty ; rdfs:label "has quantity" ; rdfs:range zef:Quantity .
+zef:aboutMetric  a owl:DatatypeProperty ; rdfs:label "about metric" ; rdfs:range xsd:string .
+zef:numericValue a owl:DatatypeProperty ; rdfs:label "numeric value" ; rdfs:range xsd:decimal .
+zef:unit         a owl:DatatypeProperty ; rdfs:label "unit" ; rdfs:range xsd:string ;
+  rdfs:comment "Unit label; where possible aligned to a QUDT unit IRI via zef:qudtUnit." .
+zef:qudtUnit     a owl:ObjectProperty ; rdfs:label "QUDT unit" ; rdfs:comment "The QUDT unit IRI for the quantity." .
+zef:forYear      a owl:DatatypeProperty ; rdfs:label "for year" ; rdfs:range xsd:gYear .
+zef:underScenario a owl:ObjectProperty ; rdfs:label "under scenario" ; rdfs:range zef:Scenario .
+zef:Scenario a owl:Class ; rdfs:label "Scenario" ; rdfs:comment "A named projection scenario a quantity is stated under." .
+
+# Standards / regulatory instruments as first-class, citable entities
+zef:Standard a owl:Class ; rdfs:subClassOf zef:Entity ; rdfs:label "Standard or regulatory instrument" .
+
+# Bibliographic source metadata reuses Dublin Core: dcterms:title, dcterms:date,
+# dcterms:creator, dcterms:source (URL). Every zef:Source SHOULD carry these.
+
+# ---------------------------------------------------------------------------
+# Controlled scales as a SKOS concept scheme (soft vocabulary, not OWL classes),
+# following the standard pattern of modelling ordinal scales such as TRL in SKOS.
+# ---------------------------------------------------------------------------
+zef:MaturityScheme a skos:ConceptScheme ; skos:prefLabel "ZEF maturity band scheme" ;
+  rdfs:comment "Coarse maturity bands used when a precise EU/NASA TRL is not sourced. Ordered research < development < demonstration < pilot < commercial." .
+zef:Research      a skos:Concept ; skos:inScheme zef:MaturityScheme ; skos:prefLabel "Research" ; skos:notation "1" .
+zef:Development   a skos:Concept ; skos:inScheme zef:MaturityScheme ; skos:prefLabel "Development" ; skos:notation "2" ; skos:broader zef:Research .
+zef:Demonstration a skos:Concept ; skos:inScheme zef:MaturityScheme ; skos:prefLabel "Demonstration" ; skos:notation "3" ; skos:broader zef:Development .
+zef:Pilot         a skos:Concept ; skos:inScheme zef:MaturityScheme ; skos:prefLabel "Pilot" ; skos:notation "4" ; skos:broader zef:Demonstration .
+zef:Commercial    a skos:Concept ; skos:inScheme zef:MaturityScheme ; skos:prefLabel "Commercial" ; skos:notation "5" ; skos:broader zef:Pilot .
+
+zef:TRLScheme a skos:ConceptScheme ; skos:prefLabel "Technology Readiness Level scale (EU/NASA, 1-9)" ;
+  rdfs:comment "The nine-level Technology Readiness Level scale, modelled as SKOS concepts so TRL integers carry a definition and cross-map to external scales." .
+zef:TRL1 a skos:Concept ; skos:inScheme zef:TRLScheme ; skos:notation "1" ; skos:prefLabel "TRL 1 basic principles observed" .
+zef:TRL2 a skos:Concept ; skos:inScheme zef:TRLScheme ; skos:notation "2" ; skos:prefLabel "TRL 2 technology concept formulated" .
+zef:TRL3 a skos:Concept ; skos:inScheme zef:TRLScheme ; skos:notation "3" ; skos:prefLabel "TRL 3 experimental proof of concept" .
+zef:TRL4 a skos:Concept ; skos:inScheme zef:TRLScheme ; skos:notation "4" ; skos:prefLabel "TRL 4 validated in lab" .
+zef:TRL5 a skos:Concept ; skos:inScheme zef:TRLScheme ; skos:notation "5" ; skos:prefLabel "TRL 5 validated in relevant environment" .
+zef:TRL6 a skos:Concept ; skos:inScheme zef:TRLScheme ; skos:notation "6" ; skos:prefLabel "TRL 6 demonstrated in relevant environment" .
+zef:TRL7 a skos:Concept ; skos:inScheme zef:TRLScheme ; skos:notation "7" ; skos:prefLabel "TRL 7 demonstrated in operational environment" .
+zef:TRL8 a skos:Concept ; skos:inScheme zef:TRLScheme ; skos:notation "8" ; skos:prefLabel "TRL 8 system complete and qualified" .
+zef:TRL9 a skos:Concept ; skos:inScheme zef:TRLScheme ; skos:notation "9" ; skos:prefLabel "TRL 9 proven in operational environment" .

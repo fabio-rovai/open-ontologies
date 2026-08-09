@@ -52,7 +52,7 @@ async function runTurn(prompt: string): Promise<boolean> {
     prompt,
     options: {
       systemPrompt: SYSTEM_PROMPT,
-      model: 'claude-opus-4-6',
+      model: 'claude-opus-4-8',
       mcpServers: { 'ontology-engine': { type: 'http', url: ENGINE_URL } },
       allowedTools: ['mcp__ontology-engine__*'],
       tools: [],

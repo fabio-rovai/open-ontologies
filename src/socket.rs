@@ -10,6 +10,7 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixListener;
+use tokio_util::sync::CancellationToken;
 use tracing::{error, info, warn};
 
 use crate::graph::GraphStore;
@@ -56,6 +57,24 @@ struct ConsistencyResponse {
 /// Each accepted connection is handled in a spawned task.  The listener
 /// runs until the process is killed or the socket is removed.
 pub async fn serve(socket_path: &str, graph: Arc<GraphStore>) -> anyhow::Result<()> {
+    // A token nobody holds is never cancelled, so this keeps the historical
+    // "accept forever" behaviour for existing callers.
+    serve_with_shutdown(socket_path, graph, CancellationToken::new()).await
+}
+
+/// Same as [`serve`], but stops accepting when `shutdown` is cancelled and
+/// unlinks the socket path on the way out.
+///
+/// Without this the accept loop is unconditionally infinite: the process can
+/// only be killed, and the socket file it bound is left on disk afterwards, so
+/// anything that treats the path's existence as liveness sees a server that is
+/// no longer there. The next `serve` call papers over it by unlinking a stale
+/// path at bind time, which hides the leak rather than avoiding it.
+pub async fn serve_with_shutdown(
+    socket_path: &str,
+    graph: Arc<GraphStore>,
+    shutdown: CancellationToken,
+) -> anyhow::Result<()> {
     // Clean up stale socket file if it exists.
     let _ = std::fs::remove_file(socket_path);
 
@@ -63,20 +82,32 @@ pub async fn serve(socket_path: &str, graph: Arc<GraphStore>) -> anyhow::Result<
     info!("Unix socket listening on {socket_path}");
 
     loop {
-        match listener.accept().await {
-            Ok((stream, _addr)) => {
-                let g = graph.clone();
-                tokio::spawn(async move {
-                    if let Err(e) = handle_connection(stream, &g).await {
-                        warn!("Connection error: {e}");
-                    }
-                });
+        tokio::select! {
+            _ = shutdown.cancelled() => {
+                info!("Shutdown requested — no longer accepting on {socket_path}");
+                break;
             }
-            Err(e) => {
-                error!("Accept error: {e}");
+            accepted = listener.accept() => match accepted {
+                Ok((stream, _addr)) => {
+                    let g = graph.clone();
+                    tokio::spawn(async move {
+                        if let Err(e) = handle_connection(stream, &g).await {
+                            warn!("Connection error: {e}");
+                        }
+                    });
+                }
+                Err(e) => {
+                    error!("Accept error: {e}");
+                }
             }
         }
     }
+
+    // Release the bound address before unlinking, then remove the path so the
+    // next bind starts clean and nothing mistakes the file for a live server.
+    drop(listener);
+    let _ = std::fs::remove_file(socket_path);
+    Ok(())
 }
 
 // ── Per-connection handler ───────────────────────────────────────────

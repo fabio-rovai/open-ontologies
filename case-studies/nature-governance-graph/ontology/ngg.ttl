@@ -1,0 +1,78 @@
+@prefix ngg:     <https://tesseract.academy/ns/ngg#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix org:     <http://www.w3.org/ns/org#> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+
+# =============================================================================
+# UK Nature Governance Graph (NGG) ontology  -- v0.1
+# The Tesseract Academy. Open reference vocabulary (CC BY 4.0).
+#
+# A computation-ready map of the organisations that govern, regulate, fund,
+# advise on and supply evidence for nature and the environment in the UK: the
+# stakeholder landscape a public body must navigate to plan engagement.
+#
+# Design principles:
+#  * Reuse before invention: organisational typing via W3C ORG, labels via
+#    RDFS/SKOS, provenance via PROV-O, source metadata via Dublin Core.
+#  * Provenance-first: EVERY relationship is reified as its own node carrying a
+#    typed predicate, a plain-language basis, and prov:wasDerivedFrom a Source.
+#    No relationship is ever asserted between two bodies without a citation.
+#  * Explicit competency: scoped to answer queries/competency.rq.
+# =============================================================================
+
+ngg: a owl:Ontology ;
+  rdfs:label "UK Nature Governance Graph Ontology" ;
+  owl:versionInfo "0.1" ;
+  dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+  rdfs:comment "A provenance-first vocabulary for the UK nature and environment governance landscape: statutory agencies, NGOs, data bodies, funders, sector bodies, partnerships and international conventions, and the sourced relationships between them." .
+
+# ---------------------------------------------------------------------------
+# Core actor classes
+# ---------------------------------------------------------------------------
+ngg:Actor a owl:Class ; rdfs:label "Governance actor" ;
+  rdfs:comment "Any organisation or body in the UK nature governance landscape." .
+ngg:StatutoryAgency a owl:Class ; rdfs:subClassOf ngg:Actor ; rdfs:label "Statutory agency" .
+ngg:NGO             a owl:Class ; rdfs:subClassOf ngg:Actor ; rdfs:label "Non-governmental organisation" .
+ngg:DataBody        a owl:Class ; rdfs:subClassOf ngg:Actor ; rdfs:label "Data / evidence body" .
+ngg:Funder          a owl:Class ; rdfs:subClassOf ngg:Actor ; rdfs:label "Funder" .
+ngg:SectorBody      a owl:Class ; rdfs:subClassOf ngg:Actor ; rdfs:label "Sector / representative body" .
+ngg:Partnership     a owl:Class ; rdfs:subClassOf ngg:Actor ; rdfs:label "Partnership / delivery structure" .
+ngg:International    a owl:Class ; rdfs:subClassOf ngg:Actor ; rdfs:label "International body / convention" .
+
+ngg:actorClass a owl:DatatypeProperty ; rdfs:label "actor class" ;
+  rdfs:domain ngg:Actor ; rdfs:range xsd:string ;
+  rdfs:comment "The controlled class slug for the actor (mirrors rdf:type for flat consumers)." .
+ngg:role a owl:DatatypeProperty ; rdfs:label "role" ;
+  rdfs:domain ngg:Actor ; rdfs:range xsd:string ;
+  rdfs:comment "One-line description of the actor's function." .
+
+# ---------------------------------------------------------------------------
+# Reified, sourced relationships
+# ---------------------------------------------------------------------------
+ngg:Relationship a owl:Class ; rdfs:label "Governance relationship" ;
+  rdfs:comment "A reified, directed, typed and sourced relationship from one actor to another." .
+
+ngg:relFrom a owl:ObjectProperty ; rdfs:label "relationship from" ;
+  rdfs:domain ngg:Relationship ; rdfs:range ngg:Actor .
+ngg:relTo a owl:ObjectProperty ; rdfs:label "relationship to" ;
+  rdfs:domain ngg:Relationship ; rdfs:range ngg:Actor .
+ngg:relType a owl:DatatypeProperty ; rdfs:label "relationship type" ;
+  rdfs:domain ngg:Relationship ; rdfs:range xsd:string ;
+  rdfs:comment "Controlled predicate: sponsors, advises, supplies-data-to, funds, partners-with, regulates, designated-under." .
+ngg:basis a owl:DatatypeProperty ; rdfs:label "basis" ;
+  rdfs:domain ngg:Relationship ; rdfs:range xsd:string ;
+  rdfs:comment "Plain-language statement of the factual basis for the relationship." .
+
+# ---------------------------------------------------------------------------
+# Sources (provenance)
+# ---------------------------------------------------------------------------
+ngg:Source a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Source" ;
+  rdfs:comment "A citable published source (an official web page or legislation) evidencing a relationship or an actor." .
+ngg:sourceUrl a owl:DatatypeProperty ; rdfs:label "source URL" ;
+  rdfs:domain ngg:Source ; rdfs:range xsd:anyURI .

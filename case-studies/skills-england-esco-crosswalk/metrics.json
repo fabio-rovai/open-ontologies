@@ -1,0 +1,11 @@
+{
+  "seom_occupations": 1269,
+  "matched": 665,
+  "match_rate": 0.524,
+  "band_counts": {
+    "unmatched": 604,
+    "closeMatch": 281,
+    "relatedMatch": 270,
+    "exactMatch": 114
+  }
+}

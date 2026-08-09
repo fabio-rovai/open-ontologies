@@ -1,0 +1,7 @@
+# never commit the MDS API token or any secrets
+*.token
+.env
+mds_token.txt
+__pycache__/
+*.pyc
+.venv/

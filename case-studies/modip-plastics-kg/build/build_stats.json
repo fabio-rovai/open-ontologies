@@ -1,0 +1,119 @@
+{
+  "records": 11865,
+  "instance_triples": 483067,
+  "objects": 11865,
+  "material_concept_links": 35123,
+  "unreconciled_material_assertions": 49,
+  "technique_links": 11482,
+  "maker_links": 12947,
+  "inscriptions": 7072,
+  "dimensions_parsed": 20735,
+  "object_name_types": 955,
+  "colour_types": 18,
+  "dag_edges": 289,
+  "dag_components": 114,
+  "dag_largest_component": 12,
+  "dag_nodes": 308,
+  "top_unreconciled_materials": [
+    [
+      "D3O - trade name",
+      9
+    ],
+    [
+      "Delaron - trade name",
+      5
+    ],
+    [
+      "Stamisol - trade name",
+      4
+    ],
+    [
+      "Diaplex - trade name",
+      3
+    ],
+    [
+      "Guardian - trade name",
+      3
+    ],
+    [
+      "Outlast - trade name",
+      2
+    ],
+    [
+      "Coruss - trade name",
+      2
+    ],
+    [
+      "Jenigor - trade name",
+      2
+    ],
+    [
+      "Poleasy - trade name",
+      2
+    ],
+    [
+      "Galatix - trade name",
+      2
+    ],
+    [
+      "Gaydon - trade name",
+      1
+    ],
+    [
+      "Simplex - trade name",
+      1
+    ],
+    [
+      "Lystav - trade name",
+      1
+    ],
+    [
+      "Thermolite - trade name",
+      1
+    ],
+    [
+      "Stomatex - trade name",
+      1
+    ],
+    [
+      "Thermalite - trade name",
+      1
+    ],
+    [
+      "Soltis - trade name",
+      1
+    ],
+    [
+      "Croslite - trade name",
+      1
+    ],
+    [
+      "Hygienik - trade name",
+      1
+    ],
+    [
+      "VaporWeave - trade name",
+      1
+    ],
+    [
+      "ZoomX foam - trade name",
+      1
+    ],
+    [
+      "Icorene - trade name",
+      1
+    ],
+    [
+      "Secutex - trade name",
+      1
+    ],
+    [
+      "Bortexx - trade name",
+      1
+    ],
+    [
+      "Evovinyl - trade name",
+      1
+    ]
+  ]
+}

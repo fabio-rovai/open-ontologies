@@ -1,0 +1,14 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ub: <http://lubm.example.org/> .
+ub:Faculty a owl:Class .
+ub:Department a owl:Class .
+ub:worksFor a owl:ObjectProperty .
+ub:Department1 a owl:Class ; rdfs:subClassOf ub:Department .
+ub:FacultyOf1 a owl:Class ; rdfs:subClassOf ub:Faculty ; owl:equivalentClass [ a owl:Restriction ; owl:onProperty ub:worksFor ; owl:hasValue ub:Department1 ] .
+ub:Department2 a owl:Class ; rdfs:subClassOf ub:Department .
+ub:FacultyOf2 a owl:Class ; rdfs:subClassOf ub:Faculty ; owl:equivalentClass [ a owl:Restriction ; owl:onProperty ub:worksFor ; owl:hasValue ub:Department2 ] .
+ub:Department3 a owl:Class ; rdfs:subClassOf ub:Department .
+ub:FacultyOf3 a owl:Class ; rdfs:subClassOf ub:Faculty ; owl:equivalentClass [ a owl:Restriction ; owl:onProperty ub:worksFor ; owl:hasValue ub:Department3 ] .
+ub:Department4 a owl:Class ; rdfs:subClassOf ub:Department .
+ub:FacultyOf4 a owl:Class ; rdfs:subClassOf ub:Faculty ; owl:equivalentClass [ a owl:Restriction ; owl:onProperty ub:worksFor ; owl:hasValue ub:Department4 ] .

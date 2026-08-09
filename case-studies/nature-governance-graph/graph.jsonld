@@ -1,0 +1,3405 @@
+[
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/oep",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#StatutoryAgency"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Office for Environmental Protection (OEP)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.theoep.org.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "statutory-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Independent environmental watchdog for England and NI; holds public authorities to account on environmental law"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/044",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/46ab516ba4b0"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Water UK is the trade association representing water companies, working to protect and improve the environment"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/water-uk"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/water-companies"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/d545c363edb1",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://jncc.gov.uk/our-work/ospar-convention/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/brc",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#DataBody"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Biological Records Centre (BRC)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.brc.ac.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "data-body"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "National focus for species recording; partnership between JNCC and UKCEH"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/14d6db0c9224",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.heritagefund.org.uk/news/national-lottery-support-nature-recovery-north-england"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/water-uk",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#SectorBody"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Water UK"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.water.org.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "sector-body"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Trade association for the UK water industry"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/wildlife-trusts",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#NGO"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "The Wildlife Trusts"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.wildlifetrusts.org/about-us/how-we-are-run"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "ngo"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Federation of 46 place-based Wildlife Trusts (Royal Society of Wildlife Trusts) managing 2,600+ reserves"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/036",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/254dc7332b76"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "National Park Authorities are relevant authorities under the strengthened Protected Landscapes duty"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/national-park-authorities"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/natural-england"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "designated-under"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/dd56c0a90c44",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.gov.uk/guidance/biodiversity-net-gain"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/local-nature-partnerships",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#Partnership"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Local Nature Partnerships"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.gov.uk/government/publications/natural-england-building-partnerships-for-natures-recovery/building-partnerships-for-natures-recovery"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "partnership"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Local strategic partnerships driving joined-up action for nature recovery"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/034",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/14d6db0c9224"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Heritage Fund and Esmee Fairbairn jointly funded Nature North for nature recovery"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/nlhf"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/esmee-fairbairn"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/467e7b05aed7",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.wildlifetrusts.org/news/uks-nature-charities-publish-nature-markets-principles"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/035",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/3ef5bf1ff479"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Government invests in the National Landscapes Association to build a green-finance project pipeline in Protected Landscapes"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/national-landscapes-association"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "funds"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/ramsar",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#International"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Ramsar Convention (Convention on Wetlands)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.ramsar.org/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "international"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Intergovernmental treaty for conservation and wise use of wetlands"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/016",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/b8269961be5f"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "LNRS statutory guidance sets how responsible authorities prepare strategies with Natural England support"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/lnrs"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/natural-england"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/fd72a0e69a02",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.heritagefund.org.uk/our-work/landscapes-parks-nature"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/c9dc6205b49b",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.ospar.org/work-areas/bdc"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/045",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/467e7b05aed7"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "UK's biggest nature charities jointly published shared Nature Markets Principles"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/national-trust"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/wildlife-trusts"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/030",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/20b21c32f1e9"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Water companies are core partners in CaBA catchment partnerships alongside government, LAs and NGOs"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/water-companies"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/caba"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/c7ca09b0de3d",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.gov.uk/government/publications/natural-england-building-partnerships-for-natures-recovery/building-partnerships-for-natures-recovery"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/tfa",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#SectorBody"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Tenant Farmers Association (TFA)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://tfa.org.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "sector-body"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Support and representation body for tenant farmers in England and Wales"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/rspb",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#NGO"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "RSPB"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.rspb.org.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "ngo"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "UK's largest nature conservation charity; birds and wider habitats"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/nlhf",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#Funder"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "National Lottery Heritage Fund"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.heritagefund.org.uk/our-work/landscapes-parks-nature"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "funder"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Distributes National Lottery funding for heritage, incl. landscapes, parks and nature"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/96457b884c10",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.nature.scot/about-naturescot/our-work/naturescot-responsibilities-and-other-organisations"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/esmee-fairbairn",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#Funder"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Esmee Fairbairn Foundation"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://esmeefairbairn.org.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "funder"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Independent grant-maker with 'Our Natural World' priority funding species/habitat restoration"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/033",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/8f924cdf0d5d"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Esmee Fairbairn Foundation funds nature restoration under its 'Our Natural World' priority"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/esmee-fairbairn"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/wildlife-trusts"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "funds"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/natural-england",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#StatutoryAgency"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Natural England"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.gov.uk/government/organisations/natural-england"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "statutory-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Government's statutory adviser on the natural environment in England; NDPB sponsored by Defra"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/038",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/c7ca09b0de3d"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Natural England builds Local Nature Partnerships and partnerships for nature's recovery"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/local-nature-partnerships"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/natural-england"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/024",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/3fd0feeb8975"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "BRC develops and maintains the Indicia tools underpinning iRecord"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/brc"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/irecord"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/nbn-trust",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#DataBody"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "National Biodiversity Network (NBN) Trust"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://nbn.org.uk/about-us/who-we-are/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "data-body"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Charity connecting 200+ organisations to share UK biodiversity data; operates the NBN Atlas"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/niea",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#StatutoryAgency"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Northern Ireland Environment Agency (NIEA)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.daera-ni.gov.uk/articles/northern-ireland-environment-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "statutory-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Executive agency within DAERA protecting NI's environment and natural heritage"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/0d26df1d586f",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.nfuonline.com/about-us/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/national-landscapes-association",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#Partnership"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "National Landscapes Association (AONBs / National Landscapes)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://national-landscapes.org.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "partnership"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Collective voice supporting the 34+ National Landscape (AONB) partnerships"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/f32376f5bc44",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://jncc.gov.uk/our-work/international-conventions/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/023",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/2895231a3708"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "BRC is hosted as a partnership between UKCEH and JNCC"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/ukceh"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/brc"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/019",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/e0a9987a9f98"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "NBN Trust operates the NBN Atlas, connecting 200+ organisations' biodiversity data"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/nbn-trust"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/nbn-atlas"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/015",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/4269654dafa4"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "48 responsible authorities appointed by the Secretary of State under Environment Act 2021 s.104"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/lnrs"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "designated-under"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/569958f39cc0",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.legislation.gov.uk/ukpga/2021/30"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/cbd",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#International"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Convention on Biological Diversity (CBD)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.cbd.int/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "international"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "UN treaty framework for biodiversity conservation, sustainable use and benefit sharing"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/014",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/5bd98e166782"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Natural England is the government's statutory adviser on the natural environment in England"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/natural-england"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "advises"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/026",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/9fff5300b904"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "NIEA is an executive agency within DAERA responsible for NI's environment and natural heritage"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/daera"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/niea"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "sponsors"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/environment-agency",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#StatutoryAgency"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Environment Agency"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.gov.uk/government/organisations/environment-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "statutory-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "England's environmental regulator (water, waste, flood risk); NDPB sponsored by Defra"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/040",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/7115ec000caa"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "CLA represents rural landowners/businesses and engages government via forums such as the Farm Tenancy Forum"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/cla"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/1c8651c35b80",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://registry.nbnatlas.org/public/show/dp29"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/018",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/9dc471396419"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Statutory biodiversity credits are purchased from Natural England on behalf of Defra; income reinvested in nature"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/natural-england"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/bng-market"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/7115ec000caa",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.cla.org.uk/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/000",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/303c9ab5eece"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "JNCC is an executive NDPB sponsored by Defra (jointly with devolved administrations)"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/jncc"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "sponsors"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/daera",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#StatutoryAgency"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Department of Agriculture, Environment and Rural Affairs (DAERA)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.daera-ni.gov.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "statutory-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Northern Ireland department for environment, agriculture and rural affairs"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/002",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/0f5e543b2418"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Environment Agency is an executive NDPB accountable to the Defra Secretary of State"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/environment-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "sponsors"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/001",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/5bd98e166782"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Natural England is an executive NDPB sponsored by Defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/natural-england"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "sponsors"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/032",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/fd72a0e69a02"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Heritage Fund provides grants for projects conserving habitats and species"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/nlhf"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/wildlife-trusts"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "funds"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/037",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/3ef5bf1ff479"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "National Landscapes and National Park Authorities are the lead partners managing England's protected landscapes"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/national-landscapes-association"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/national-park-authorities"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/nbn-atlas",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#DataBody"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "NBN Atlas"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://nbnatlas.org/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "data-body"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "UK's largest open biodiversity data portal (385M+ species occurrence records)"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/009",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/f3894e2e5848"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "ESS monitors and secures compliance by Scottish public authorities with environmental law"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/ess"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/sepa"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "regulates"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/iucn-uk",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#International"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "IUCN National Committee UK"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://iucn-nc.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "international"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Coordinates UK IUCN members and links them to the global union"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/bsbi",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#DataBody"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Botanical Society of Britain and Ireland (BSBI)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://bsbi.org/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "data-body"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Society for vascular-plant recording; maintains the plant Distribution Database"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/029",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/5afaf2dc32ab"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Water companies deliver the Water Industry National Environment Programme (WINEP) under environmental requirements"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/environment-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/water-companies"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "regulates"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/bng-market",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#Funder"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Biodiversity Net Gain market / statutory biodiversity credits"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.gov.uk/guidance/biodiversity-net-gain"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "funder"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Statutory market requiring 10% BNG on development; credits sold by Natural England on behalf of Defra"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/irecord",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#DataBody"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "iRecord"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://irecord.org.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "data-body"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Online biological-records platform developed and maintained by BRC"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/jncc",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#StatutoryAgency"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Joint Nature Conservation Committee (JNCC)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://jncc.gov.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "statutory-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Statutory nature conservation adviser to UK and devolved governments, including in international fora"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/011",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/f32376f5bc44"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "JNCC is the UK's nature conservation adviser in international fora, incl. UK implementation of the CBD"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/jncc"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/cbd"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "advises"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/041",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/6c07b64d457a"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "TFA represents tenant farmers and engages government via the Farm Tenancy Forum"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/tfa"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/nrw",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#StatutoryAgency"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Natural Resources Wales (NRW)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://naturalresources.wales/?lang=en"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "statutory-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Wales' environmental regulator and nature body; Welsh Government Sponsored Body"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/3fd0feeb8975",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.brc.ac.uk/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/buglife",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#NGO"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Buglife"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.buglife.org.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "ngo"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Charity dedicated to conservation of invertebrates"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/004",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/1515d19b135e"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Forestry Commission is a non-ministerial department within the Defra group"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/forestry-commission"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "sponsors"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/9fff5300b904",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.daera-ni.gov.uk/articles/northern-ireland-environment-agency"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/0c190030a021",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://jncc.gov.uk/our-work/biodiversity-recording/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/ospar",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#International"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "OSPAR Commission"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.ospar.org/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "international"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Regional convention protecting the marine environment of the North-East Atlantic"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/43817e0414d9",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://iucn-nc.uk/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/003",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/352fdbc5eb02"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "MMO is an executive NDPB of Defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/mmo"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "sponsors"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/e0a9987a9f98",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://nbn.org.uk/about-us/who-we-are/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/b8269961be5f",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.gov.uk/government/publications/local-nature-recovery-strategies/local-nature-recovery-strategies"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/plantlife",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#NGO"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Plantlife"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.plantlife.org.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "ngo"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Conservation charity for wild plants, fungi and their habitats"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/f3d4f4cbae82",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://jncc.gov.uk/our-work/convention-on-wetlands/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/caba",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#Partnership"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Catchment Based Approach (CaBA)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://catchmentbasedapproach.org/about/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "partnership"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Civil-society-led partnerships in 100+ river catchments linking government, water companies, LAs and NGOs"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/007",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/b8269961be5f"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "OEP reviewed LNRS and their role in contributing to nature recovery commitments in England"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/oep"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/lnrs"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "regulates"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/046",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/467e7b05aed7"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "RSPB and Wildlife Trusts are among the UK's biggest nature charities collaborating on shared nature-market principles"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/rspb"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/wildlife-trusts"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/043",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/c9dc6205b49b"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "OSPAR Biodiversity Committee coordinates biodiversity assessment with JNCC as UK adviser"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/ospar"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/jncc"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/national-trust",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#NGO"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "National Trust"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.nationaltrust.org.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "ngo"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Major heritage and nature conservation charity and landowner (Europe's largest conservation charity)"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/8f924cdf0d5d",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.wildlifetrusts.org/esmee-fairbairn-foundation"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/864a93384ec4",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://nbn.org.uk/news/46-million-butterfly-conservation-records-on-nbn-atlas/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/1515d19b135e",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.gov.uk/government/organisations/forestry-commission"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/cla",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#SectorBody"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Country Land and Business Association (CLA)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.cla.org.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "sector-body"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Membership body for rural landowners and land-based businesses in England and Wales"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/46ab516ba4b0",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.water.org.uk/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/ukceh",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#DataBody"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "UK Centre for Ecology & Hydrology (UKCEH)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.ceh.ac.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "data-body"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Research institute for environmental science; co-hosts the Biological Records Centre"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/025",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/2c1f59e821a4"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "BSBI works with UKCEH to import vascular-plant/stonewort records into the BSBI Distribution Database"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/bsbi"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/ukceh"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "supplies-data-to"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/5bd98e166782",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.gov.uk/government/organisations/natural-england"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/ess",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#StatutoryAgency"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Environmental Standards Scotland (ESS)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://environmentalstandards.scot/about-us/what-we-do/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "statutory-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Independent non-ministerial body monitoring public-authority compliance with environmental law in Scotland"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/6c07b64d457a",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://tfa.org.uk/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/rivers-trust",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#NGO"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "The Rivers Trust"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://theriverstrust.org/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "ngo"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Umbrella body for the rivers trust movement; river/catchment restoration"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/forestry-commission",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#StatutoryAgency"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Forestry Commission"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.gov.uk/government/organisations/forestry-commission"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "statutory-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Non-ministerial department for forestry/woodland in England (incl. Forest Research, Forestry England)"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/naturescot",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#StatutoryAgency"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "NatureScot"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.nature.scot/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "statutory-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Scotland's nature agency; Scottish Government sponsored NDPB"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/9dc471396419",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.gov.uk/government/publications/biodiversity-net-gain-bng-statutory-credit-reports-2025-to-2026/biodiversity-net-gain-bng-statutory-credits-report-1-april-2025-to-31-march-2026"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/031",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/b2af2aad0765"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Rivers Trusts work in partnership with water companies on catchment and river restoration"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/rivers-trust"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/water-companies"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/020",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/1c8651c35b80"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "BTO supplies bird monitoring datasets (160M+ records) to the NBN Atlas"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/bto"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/nbn-atlas"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "supplies-data-to"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/254dc7332b76",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.gov.uk/government/publications/the-protected-landscapes-duty/guidance-for-relevant-authorities-on-seeking-to-further-the-purposes-of-protected-landscapes"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/b2af2aad0765",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://theriverstrust.org/about-us/our-position-statements/working-with-water-companies"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/047",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/e0a9987a9f98"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "BTO is a member of the National Biodiversity Network"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/bto"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/nbn-trust"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/5afaf2dc32ab",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.gov.uk/government/publications/developing-the-environmental-resilience-and-flood-risk-actions-for-the-price-review-2024/water-industry-strategic-environmental-requirements-wiser"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/f5aa0a0ea230",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.theoep.org.uk/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/mmo",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#StatutoryAgency"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Marine Management Organisation (MMO)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.gov.uk/government/organisations/marine-management-organisation"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "statutory-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Marine licensing, planning and fisheries regulator for English waters; NDPB sponsored by Defra"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/005",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/f5aa0a0ea230"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "OEP is an independent NDPB established and funded within the Defra portfolio"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/oep"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "sponsors"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/sepa",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#StatutoryAgency"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Scottish Environment Protection Agency (SEPA)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.sepa.org.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "statutory-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Scotland's environmental regulator and flood forecasting/warning authority"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/017",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/dd56c0a90c44"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Statutory BNG framework introduced by Schedule 7A TCPA 1990, inserted by the Environment Act 2021"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/bng-market"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "designated-under"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/042",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/43817e0414d9"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "IUCN National Committee UK coordinates UK IUCN members and links them to the global union"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/iucn-uk"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/iucn"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/022",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/0c190030a021"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Biological Records Centre is a partnership between JNCC and UKCEH"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/jncc"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/brc"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/butterfly-conservation",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#DataBody"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Butterfly Conservation"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://butterfly-conservation.org/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "data-body"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Charity and data custodian of UK butterfly and moth recording schemes"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/352fdbc5eb02",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.gov.uk/government/organisations/marine-management-organisation"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/021",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/864a93384ec4"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Butterfly Conservation made 46M+ butterfly and moth records available on the NBN Atlas"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/butterfly-conservation"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/nbn-atlas"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "supplies-data-to"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/lnrs",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#Partnership"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Local Nature Recovery Strategies (responsible authorities)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.gov.uk/government/publications/local-nature-recovery-strategies/local-nature-recovery-strategies"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "partnership"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "48 responsible authorities appointed to prepare LNRS covering all of England"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/national-park-authorities",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#Partnership"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "National Park Authorities"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.gov.uk/government/publications/the-protected-landscapes-duty/guidance-for-relevant-authorities-on-seeking-to-further-the-purposes-of-protected-landscapes"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "partnership"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Statutory authorities managing England's National Parks and their protected-landscape purposes"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/027",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/96457b884c10"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "NatureScot is Scotland's nature agency, a Scottish Government sponsored NDPB advising on the natural environment"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/naturescot"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "advises"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/010",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/816b4ab9332b"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "JNCC is the only statutory nature adviser to the four countries of the UK across a range of legislation"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/jncc"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "advises"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/iucn",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#International"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "International Union for Conservation of Nature (IUCN)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://iucn.org/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "international"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Global union setting conservation standards (Red List, protected-area categories)"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/028",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/609ca08b040f"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "NRW is a Welsh Government Sponsored Body ensuring Wales' natural resources are sustainably managed"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/nrw"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "advises"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/303c9ab5eece",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.gov.uk/government/organisations/joint-nature-conservation-committee"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/woodland-trust",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#NGO"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Woodland Trust"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.woodlandtrust.org.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "ngo"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "UK's largest woodland conservation charity; ancient woodland protection and tree planting"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/wwf-uk",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#NGO"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "WWF-UK"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.wwf.org.uk/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "ngo"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "UK arm of the global environmental charity; nature, climate and species"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/006",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/f5aa0a0ea230"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "OEP monitors and holds government and public authorities to account on environmental law in England and NI"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/oep"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "regulates"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/nfu",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#SectorBody"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "National Farmers' Union (NFU)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.nfuonline.com/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "sector-body"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Representative body for ~43,000 farming/growing businesses in England and Wales"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/f3894e2e5848",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://environmentalstandards.scot/about-us/what-we-do/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/water-companies",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#SectorBody"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Water companies (as a class)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.gov.uk/government/publications/developing-the-environmental-resilience-and-flood-risk-actions-for-the-price-review-2024/water-industry-strategic-environmental-requirements-wiser"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "sector-body"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Regulated utilities; largest single spend on the water environment via WINEP"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/013",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/d545c363edb1"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "JNCC coordinates UK input to the OSPAR Convention on the North-East Atlantic marine environment"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/jncc"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/ospar"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "advises"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/816b4ab9332b",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://jncc.gov.uk/about-jncc/our-strategy/who-jncc-is/jnccs-statutory-duties/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/008",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/569958f39cc0"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "OEP established by the Environment Act 2021"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/oep"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "designated-under"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/012",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/f3d4f4cbae82"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "JNCC coordinates UK implementation of the Convention on Wetlands (Ramsar)"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/jncc"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/ramsar"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "advises"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/2895231a3708",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.ceh.ac.uk/our-science/projects/biological-records-centre"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/4269654dafa4",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.legislation.gov.uk/ukpga/2021/30/part/6/crossheading/local-nature-recovery-strategies/enacted"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/3ef5bf1ff479",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.gov.uk/government/publications/landscapes-review-national-parks-and-aonbs-government-response/landscapes-review-national-parks-and-aonbs-government-response"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/2c1f59e821a4",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.brc.ac.uk/scheme/botanical-society-britain-and-ireland"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/bto",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#DataBody"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "British Trust for Ornithology (BTO)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.bto.org/"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "data-body"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Bird monitoring/research charity; major volunteer-survey data supplier"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/0f5e543b2418",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.gov.uk/government/organisations/environment-agency"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/609ca08b040f",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://www.gov.wales/natural-resources-wales"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/actor/defra",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Actor",
+      "https://tesseract.academy/ns/ngg#StatutoryAgency"
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "Department for Environment, Food & Rural Affairs (Defra)"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso": [
+      {
+        "@id": "https://www.gov.uk/government/organisations/department-for-environment-food-rural-affairs"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#actorClass": [
+      {
+        "@value": "statutory-agency"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#role": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "UK government department for environment, food, farming and rural affairs; sponsors most England nature bodies"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/source/20b21c32f1e9",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Source"
+    ],
+    "https://tesseract.academy/ns/ngg#sourceUrl": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#anyURI",
+        "@value": "https://catchmentbasedapproach.org/about/"
+      }
+    ]
+  },
+  {
+    "@id": "https://tesseract.academy/id/ngg/rel/039",
+    "@type": [
+      "https://tesseract.academy/ns/ngg#Relationship"
+    ],
+    "http://www.w3.org/ns/prov#wasDerivedFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/source/0d26df1d586f"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#basis": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#string",
+        "@value": "NFU represents farming businesses and engages Defra on agriculture/environment policy (e.g. Farm Tenancy Forum)"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relFrom": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/nfu"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relTo": [
+      {
+        "@id": "https://tesseract.academy/id/ngg/actor/defra"
+      }
+    ],
+    "https://tesseract.academy/ns/ngg#relType": [
+      {
+        "@value": "partners-with"
+      }
+    ]
+  }
+]

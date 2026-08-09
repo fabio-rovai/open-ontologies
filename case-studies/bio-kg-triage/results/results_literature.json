@@ -1,0 +1,129 @@
+{
+  "source": "PubTator3 (NLM) machine-extracted gene-disease relations",
+  "pmids": 40,
+  "documents": 40,
+  "gene_disease_relations": 57,
+  "grounded": {
+    "label": "grounded literature KG",
+    "triples": 169,
+    "shacl_conforms": true,
+    "closed_world_violations": 0,
+    "violations": []
+  },
+  "ungrounded": {
+    "label": "ungrounded literature KG",
+    "triples": 169,
+    "shacl_conforms": true,
+    "closed_world_violations": 1,
+    "violations": [
+      "https://w3id.org/biolink/vocab/associated_with_disease"
+    ]
+  },
+  "target_genes_with_literature_edges": [
+    "ALK",
+    "BRAF",
+    "BRCA1",
+    "EGFR",
+    "KRAS",
+    "MYC",
+    "PTEN",
+    "TP53"
+  ],
+  "headline": {
+    "grounded_closed_world_violations": 0,
+    "ungrounded_shacl_conforms": true,
+    "ungrounded_caught_by_gate": true
+  },
+  "sample_edges": [
+    {
+      "gene_id": "672",
+      "gene_name": "BRCA1",
+      "disease_id": "MESH:D009369",
+      "disease_name": "Neoplasms",
+      "reltype": "Negative_Correlation",
+      "score": 0.9878,
+      "pmid": "33606355"
+    },
+    {
+      "gene_id": "672",
+      "gene_name": "BRCA1",
+      "disease_id": "MESH:D061325",
+      "disease_name": "Hereditary Breast and Ovarian Cancer Syndrome",
+      "reltype": "Association",
+      "score": 0.9943,
+      "pmid": "33606355"
+    },
+    {
+      "gene_id": "29789",
+      "gene_name": "OLA1",
+      "disease_id": "MESH:D009369",
+      "disease_name": "Neoplasms",
+      "reltype": "Association",
+      "score": 0.9763,
+      "pmid": "33606355"
+    },
+    {
+      "gene_id": "10399",
+      "gene_name": "RACK1",
+      "disease_id": "MESH:D009369",
+      "disease_name": "Neoplasms",
+      "reltype": "Association",
+      "score": 0.8088,
+      "pmid": "33606355"
+    },
+    {
+      "gene_id": "672",
+      "gene_name": "BRCA1",
+      "disease_id": "MESH:D063646",
+      "disease_name": "Carcinogenesis",
+      "reltype": "Association",
+      "score": 0.9994,
+      "pmid": "33606355"
+    },
+    {
+      "gene_id": "672",
+      "gene_name": "BRCA1",
+      "disease_id": "MESH:C535296",
+      "disease_name": "Recombinant chromosome 8 syndrome",
+      "reltype": "Association",
+      "score": 0.7364,
+      "pmid": "33606355"
+    },
+    {
+      "gene_id": "672",
+      "gene_name": "BRCA1",
+      "disease_id": "MESH:D001943",
+      "disease_name": "Breast Neoplasms",
+      "reltype": "Association",
+      "score": 0.9993,
+      "pmid": "34083286"
+    },
+    {
+      "gene_id": "7157",
+      "gene_name": "TP53",
+      "disease_id": "MESH:D010677",
+      "disease_name": "Philadelphia Chromosome",
+      "reltype": "Association",
+      "score": 0.9997,
+      "pmid": "34218582"
+    },
+    {
+      "gene_id": "7157",
+      "gene_name": "TP53",
+      "disease_id": "MESH:D054198",
+      "disease_name": "Precursor Cell Lymphoblastic Leukemia-Lymphoma",
+      "reltype": "Association",
+      "score": 0.9996,
+      "pmid": "34218582"
+    },
+    {
+      "gene_id": "7157",
+      "gene_name": "TP53",
+      "disease_id": "MESH:D018365",
+      "disease_name": "Neoplasm Residual",
+      "reltype": "Association",
+      "score": 0.9677,
+      "pmid": "34218582"
+    }
+  ]
+}

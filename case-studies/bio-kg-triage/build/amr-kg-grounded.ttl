@@ -1,0 +1,1583 @@
+@prefix ns1: <https://ex.tesseract.academy/amr/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<http://purl.obolibrary.org/obo/ARO_0000002> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tetracycline-resistant ribosomal protection protein" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000050> .
+
+<http://purl.obolibrary.org/obo/ARO_3000002> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "vanW" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000081> .
+
+<http://purl.obolibrary.org/obo/ARO_3000006> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "vanH" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000081> .
+
+<http://purl.obolibrary.org/obo/ARO_3000011> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "vanX" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000081> .
+
+<http://purl.obolibrary.org/obo/ARO_3000014> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "TEM beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000004>,
+        <http://purl.obolibrary.org/obo/ARO_0000032>,
+        <http://purl.obolibrary.org/obo/ARO_3000008>,
+        <http://purl.obolibrary.org/obo/ARO_3000637> .
+
+<http://purl.obolibrary.org/obo/ARO_3000015> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "SHV beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000032>,
+        <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000016> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "CTX-M beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000032> .
+
+<http://purl.obolibrary.org/obo/ARO_3000017> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "OXA beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000056> .
+
+<http://purl.obolibrary.org/obo/ARO_3000018> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "IMI beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000020> .
+
+<http://purl.obolibrary.org/obo/ARO_3000020> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "IMP beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000020>,
+        <http://purl.obolibrary.org/obo/ARO_0000032>,
+        <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000021> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "VIM beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000020>,
+        <http://purl.obolibrary.org/obo/ARO_0000032>,
+        <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000026> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "mepA" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000030>,
+        <http://purl.obolibrary.org/obo/ARO_0000042> .
+
+<http://purl.obolibrary.org/obo/ARO_3000036> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tetracycline inactivation enzyme" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000050> .
+
+<http://purl.obolibrary.org/obo/ARO_3000043> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "VEB beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000004>,
+        <http://purl.obolibrary.org/obo/ARO_0000032> .
+
+<http://purl.obolibrary.org/obo/ARO_3000055> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "SME beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000020> .
+
+<http://purl.obolibrary.org/obo/ARO_3000056> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "PER beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000004>,
+        <http://purl.obolibrary.org/obo/ARO_0000020>,
+        <http://purl.obolibrary.org/obo/ARO_0000032>,
+        <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000057> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "NDM beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000020>,
+        <http://purl.obolibrary.org/obo/ARO_0000032>,
+        <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000058> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "MIR beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000004>,
+        <http://purl.obolibrary.org/obo/ARO_0000032> .
+
+<http://purl.obolibrary.org/obo/ARO_3000059> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "KPC beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000004>,
+        <http://purl.obolibrary.org/obo/ARO_0000020>,
+        <http://purl.obolibrary.org/obo/ARO_0000032>,
+        <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000060> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "IND beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000020> .
+
+<http://purl.obolibrary.org/obo/ARO_3000066> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "GES beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000020>,
+        <http://purl.obolibrary.org/obo/ARO_0000032>,
+        <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000067> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "FOX beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000032> .
+
+<http://purl.obolibrary.org/obo/ARO_3000068> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "DHA beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000032> .
+
+<http://purl.obolibrary.org/obo/ARO_3000069> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "CMY beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3009106> .
+
+<http://purl.obolibrary.org/obo/ARO_3000071> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "vanS" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000081> .
+
+<http://purl.obolibrary.org/obo/ARO_3000072> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ACT beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000020>,
+        <http://purl.obolibrary.org/obo/ARO_0000032>,
+        <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000073> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ACC beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000004>,
+        <http://purl.obolibrary.org/obo/ARO_0000032>,
+        <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000077> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "vanY" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000081> .
+
+<http://purl.obolibrary.org/obo/ARO_3000083> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "MOX beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000032>,
+        <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000089> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "AER beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000091> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "CARB beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000094> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "OCH beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000004>,
+        <http://purl.obolibrary.org/obo/ARO_0000032>,
+        <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000095> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "SRT beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000032> .
+
+<http://purl.obolibrary.org/obo/ARO_3000097> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "LEN beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000098> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "PDC beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000004>,
+        <http://purl.obolibrary.org/obo/ARO_0000020>,
+        <http://purl.obolibrary.org/obo/ARO_0000032> .
+
+<http://purl.obolibrary.org/obo/ARO_3000113> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "vga-type ABC-F protein" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000034>,
+        <http://purl.obolibrary.org/obo/ARO_3000670> .
+
+<http://purl.obolibrary.org/obo/ARO_3000116> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "vanZ" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000081> .
+
+<http://purl.obolibrary.org/obo/ARO_3000118> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "vgaB" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000674> .
+
+<http://purl.obolibrary.org/obo/ARO_3000122> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "chloramphenicol acetyltransferase (CAT)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000387> .
+
+<http://purl.obolibrary.org/obo/ARO_3000126> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "APH(3')" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000016> .
+
+<http://purl.obolibrary.org/obo/ARO_3000127> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "APH(3'')" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000016> .
+
+<http://purl.obolibrary.org/obo/ARO_3000128> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "APH(2'')" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000016> .
+
+<http://purl.obolibrary.org/obo/ARO_3000133> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "fosfomycin thiol transferase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3007149> .
+
+<http://purl.obolibrary.org/obo/ARO_3000149> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "FosA" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000025> .
+
+<http://purl.obolibrary.org/obo/ARO_3000151> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "APH(6)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000016> .
+
+<http://purl.obolibrary.org/obo/ARO_3000153> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "APH(9)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000016> .
+
+<http://purl.obolibrary.org/obo/ARO_3000154> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "APH(7'')" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000016> .
+
+<http://purl.obolibrary.org/obo/ARO_3000155> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "APH(4)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000016> .
+
+<http://purl.obolibrary.org/obo/ARO_3000165> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(A)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000166> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(B)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000167> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(C)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000168> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(D)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000172> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "FosB" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000025> .
+
+<http://purl.obolibrary.org/obo/ARO_3000173> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(E)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000174> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(G)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000175> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(H)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000177> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(J)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000178> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(K)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000179> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(L)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000180> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tetA(P)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000181> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(V)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000182> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(Y)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000183> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(Z)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000186> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(M)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051>,
+        <http://purl.obolibrary.org/obo/ARO_0000069>,
+        <http://purl.obolibrary.org/obo/ARO_3000152>,
+        <http://purl.obolibrary.org/obo/ARO_3000528>,
+        <http://purl.obolibrary.org/obo/ARO_3000667>,
+        <http://purl.obolibrary.org/obo/ARO_3000668> .
+
+<http://purl.obolibrary.org/obo/ARO_3000190> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(O)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051>,
+        <http://purl.obolibrary.org/obo/ARO_0000069>,
+        <http://purl.obolibrary.org/obo/ARO_3000152>,
+        <http://purl.obolibrary.org/obo/ARO_3000528>,
+        <http://purl.obolibrary.org/obo/ARO_3000667>,
+        <http://purl.obolibrary.org/obo/ARO_3000668> .
+
+<http://purl.obolibrary.org/obo/ARO_3000191> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(Q)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051>,
+        <http://purl.obolibrary.org/obo/ARO_0000069>,
+        <http://purl.obolibrary.org/obo/ARO_3000152>,
+        <http://purl.obolibrary.org/obo/ARO_3000528>,
+        <http://purl.obolibrary.org/obo/ARO_3000667>,
+        <http://purl.obolibrary.org/obo/ARO_3000668> .
+
+<http://purl.obolibrary.org/obo/ARO_3000192> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(S)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051>,
+        <http://purl.obolibrary.org/obo/ARO_0000069>,
+        <http://purl.obolibrary.org/obo/ARO_3000152>,
+        <http://purl.obolibrary.org/obo/ARO_3000528>,
+        <http://purl.obolibrary.org/obo/ARO_3000667>,
+        <http://purl.obolibrary.org/obo/ARO_3000668> .
+
+<http://purl.obolibrary.org/obo/ARO_3000193> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(T)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051>,
+        <http://purl.obolibrary.org/obo/ARO_0000069>,
+        <http://purl.obolibrary.org/obo/ARO_3000152>,
+        <http://purl.obolibrary.org/obo/ARO_3000528>,
+        <http://purl.obolibrary.org/obo/ARO_3000667>,
+        <http://purl.obolibrary.org/obo/ARO_3000668> .
+
+<http://purl.obolibrary.org/obo/ARO_3000194> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(W)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051>,
+        <http://purl.obolibrary.org/obo/ARO_0000069>,
+        <http://purl.obolibrary.org/obo/ARO_3000152>,
+        <http://purl.obolibrary.org/obo/ARO_3000528>,
+        <http://purl.obolibrary.org/obo/ARO_3000667>,
+        <http://purl.obolibrary.org/obo/ARO_3000668> .
+
+<http://purl.obolibrary.org/obo/ARO_3000195> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tetB(P)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051>,
+        <http://purl.obolibrary.org/obo/ARO_0000069>,
+        <http://purl.obolibrary.org/obo/ARO_3000152>,
+        <http://purl.obolibrary.org/obo/ARO_3000528>,
+        <http://purl.obolibrary.org/obo/ARO_3000667>,
+        <http://purl.obolibrary.org/obo/ARO_3000668> .
+
+<http://purl.obolibrary.org/obo/ARO_3000196> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(32)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051>,
+        <http://purl.obolibrary.org/obo/ARO_0000069>,
+        <http://purl.obolibrary.org/obo/ARO_3000152>,
+        <http://purl.obolibrary.org/obo/ARO_3000528>,
+        <http://purl.obolibrary.org/obo/ARO_3000667>,
+        <http://purl.obolibrary.org/obo/ARO_3000668> .
+
+<http://purl.obolibrary.org/obo/ARO_3000197> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(36)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051>,
+        <http://purl.obolibrary.org/obo/ARO_0000069>,
+        <http://purl.obolibrary.org/obo/ARO_3000152>,
+        <http://purl.obolibrary.org/obo/ARO_3000528>,
+        <http://purl.obolibrary.org/obo/ARO_3000667>,
+        <http://purl.obolibrary.org/obo/ARO_3000668> .
+
+<http://purl.obolibrary.org/obo/ARO_3000198> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "FosX" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000025> .
+
+<http://purl.obolibrary.org/obo/ARO_3000202> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "Cfr 23S ribosomal RNA methyltransferase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000017>,
+        <http://purl.obolibrary.org/obo/ARO_0000026>,
+        <http://purl.obolibrary.org/obo/ARO_3000079>,
+        <http://purl.obolibrary.org/obo/ARO_3000387> .
+
+<http://purl.obolibrary.org/obo/ARO_3000205> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(X)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000030>,
+        <http://purl.obolibrary.org/obo/ARO_0000051>,
+        <http://purl.obolibrary.org/obo/ARO_0000069>,
+        <http://purl.obolibrary.org/obo/ARO_3000152>,
+        <http://purl.obolibrary.org/obo/ARO_3000528>,
+        <http://purl.obolibrary.org/obo/ARO_3000667>,
+        <http://purl.obolibrary.org/obo/ARO_3000668> .
+
+<http://purl.obolibrary.org/obo/ARO_3000210> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "rifamycin-resistant beta-subunit of RNA polymerase (rpoB)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000157> .
+
+<http://purl.obolibrary.org/obo/ARO_3000216> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "acrB" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000045> .
+
+<http://purl.obolibrary.org/obo/ARO_3000221> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "lincosamide nucleotidyltransferase (LNU)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000017> .
+
+<http://purl.obolibrary.org/obo/ARO_3000225> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ANT(6)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000016> .
+
+<http://purl.obolibrary.org/obo/ARO_3000228> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ANT(9)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000016> .
+
+<http://purl.obolibrary.org/obo/ARO_3000229> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ANT(4')" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000016> .
+
+<http://purl.obolibrary.org/obo/ARO_3000230> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ANT(2'')-Ia" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000007>,
+        <http://purl.obolibrary.org/obo/ARO_0000035>,
+        <http://purl.obolibrary.org/obo/ARO_0000049>,
+        <http://purl.obolibrary.org/obo/ARO_0000052>,
+        <http://purl.obolibrary.org/obo/ARO_3007382> .
+
+<http://purl.obolibrary.org/obo/ARO_3000234> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "glycopeptide resistance gene cluster" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000081> .
+
+<http://purl.obolibrary.org/obo/ARO_3000235> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ethambutol resistant embB" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000497>,
+        <http://purl.obolibrary.org/obo/ARO_3000527> .
+
+<http://purl.obolibrary.org/obo/ARO_3000236> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "glycopeptide resistance gene cluster VanA" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000028>,
+        <http://purl.obolibrary.org/obo/ARO_0000029> .
+
+<http://purl.obolibrary.org/obo/ARO_3000238> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "glycopeptide resistance gene cluster VanB" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000028> .
+
+<http://purl.obolibrary.org/obo/ARO_3000245> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "RbpA" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000169>,
+        <http://purl.obolibrary.org/obo/ARO_3000517>,
+        <http://purl.obolibrary.org/obo/ARO_3000530>,
+        <http://purl.obolibrary.org/obo/ARO_3000534> .
+
+<http://purl.obolibrary.org/obo/ARO_3000246> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "glycopeptide resistance gene cluster VanC" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000028> .
+
+<http://purl.obolibrary.org/obo/ARO_3000248> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "DnaA" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000169>,
+        <http://purl.obolibrary.org/obo/ARO_3000517>,
+        <http://purl.obolibrary.org/obo/ARO_3000530>,
+        <http://purl.obolibrary.org/obo/ARO_3000534> .
+
+<http://purl.obolibrary.org/obo/ARO_3000249> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "chloramphenicol phosphotransferase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000387> .
+
+<http://purl.obolibrary.org/obo/ARO_3000250> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ErmC" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000251> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "msrA" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_3000584> .
+
+<http://purl.obolibrary.org/obo/ARO_3000253> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "glycopeptide resistance gene cluster VanD" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000028>,
+        <http://purl.obolibrary.org/obo/ARO_0000029> .
+
+<http://purl.obolibrary.org/obo/ARO_3000255> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "glycopeptide resistance gene cluster VanF" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000028> .
+
+<http://purl.obolibrary.org/obo/ARO_3000256> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "glycopeptide resistance gene cluster VanM" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000028>,
+        <http://purl.obolibrary.org/obo/ARO_0000029> .
+
+<http://purl.obolibrary.org/obo/ARO_3000257> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "glycopeptide resistance gene cluster VanG" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000028> .
+
+<http://purl.obolibrary.org/obo/ARO_3000259> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "glycopeptide resistance gene cluster VanE" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000028> .
+
+<http://purl.obolibrary.org/obo/ARO_3000260> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "glycopeptide resistance gene cluster VanL" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000028> .
+
+<http://purl.obolibrary.org/obo/ARO_3000261> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "sigma factor conferring resistance to rifampin" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000169>,
+        <http://purl.obolibrary.org/obo/ARO_3000517>,
+        <http://purl.obolibrary.org/obo/ARO_3000530>,
+        <http://purl.obolibrary.org/obo/ARO_3000534> .
+
+<http://purl.obolibrary.org/obo/ARO_3000300> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "lsaA" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3001317> .
+
+<http://purl.obolibrary.org/obo/ARO_3000309> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "emrD" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000385>,
+        <http://purl.obolibrary.org/obo/ARO_3005386> .
+
+<http://purl.obolibrary.org/obo/ARO_3000316> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "mphA" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000318> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "mphB" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000319> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "mphC" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000320> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "macrolide esterase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000000> .
+
+<http://purl.obolibrary.org/obo/ARO_3000322> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "AAC(3)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000016> .
+
+<http://purl.obolibrary.org/obo/ARO_3000326> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ErmE" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000333> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "macrolide phosphotransferase (MPH)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000000> .
+
+<http://purl.obolibrary.org/obo/ARO_3000341> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "AAC(2')" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000016> .
+
+<http://purl.obolibrary.org/obo/ARO_3000343> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tap" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000344> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "EmrAB-TolC" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000661> .
+
+<http://purl.obolibrary.org/obo/ARO_3000345> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "AAC(6')" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000016> .
+
+<http://purl.obolibrary.org/obo/ARO_3000347> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ErmA" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000361> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "EreA" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000065> .
+
+<http://purl.obolibrary.org/obo/ARO_3000363> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "EreB" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_3000158> .
+
+<http://purl.obolibrary.org/obo/ARO_3000369> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "MtrCDE" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_3000158> .
+
+<http://purl.obolibrary.org/obo/ARO_3000372> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "vanT" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000081> .
+
+<http://purl.obolibrary.org/obo/ARO_3000373> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "EmrKY-TolC" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000375> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ErmB" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000376> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "streptogramin vgb lyase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000026> .
+
+<http://purl.obolibrary.org/obo/ARO_3000380> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "FosC" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000025> .
+
+<http://purl.obolibrary.org/obo/ARO_3000384> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "AcrAB-TolC" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000001>,
+        <http://purl.obolibrary.org/obo/ARO_0000030>,
+        <http://purl.obolibrary.org/obo/ARO_0000051>,
+        <http://purl.obolibrary.org/obo/ARO_3000169>,
+        <http://purl.obolibrary.org/obo/ARO_3000385>,
+        <http://purl.obolibrary.org/obo/ARO_3000637>,
+        <http://purl.obolibrary.org/obo/ARO_3000704>,
+        <http://purl.obolibrary.org/obo/ARO_3000870> .
+
+<http://purl.obolibrary.org/obo/ARO_3000386> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "MexAB-OprM" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000000>,
+        <http://purl.obolibrary.org/obo/ARO_0000001>,
+        <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000032>,
+        <http://purl.obolibrary.org/obo/ARO_0000036>,
+        <http://purl.obolibrary.org/obo/ARO_0000051>,
+        <http://purl.obolibrary.org/obo/ARO_0000060>,
+        <http://purl.obolibrary.org/obo/ARO_0000062>,
+        <http://purl.obolibrary.org/obo/ARO_0000073>,
+        <http://purl.obolibrary.org/obo/ARO_3000008>,
+        <http://purl.obolibrary.org/obo/ARO_3000111>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000188>,
+        <http://purl.obolibrary.org/obo/ARO_3000282>,
+        <http://purl.obolibrary.org/obo/ARO_3000385>,
+        <http://purl.obolibrary.org/obo/ARO_3000550>,
+        <http://purl.obolibrary.org/obo/ARO_3000622>,
+        <http://purl.obolibrary.org/obo/ARO_3000624>,
+        <http://purl.obolibrary.org/obo/ARO_3000637>,
+        <http://purl.obolibrary.org/obo/ARO_3003708>,
+        <http://purl.obolibrary.org/obo/ARO_3004024> .
+
+<http://purl.obolibrary.org/obo/ARO_3000390> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "rifampin ADP-ribosyltransferase (Arr)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000157>,
+        <http://purl.obolibrary.org/obo/ARO_3000169>,
+        <http://purl.obolibrary.org/obo/ARO_3000517>,
+        <http://purl.obolibrary.org/obo/ARO_3000530>,
+        <http://purl.obolibrary.org/obo/ARO_3000534> .
+
+<http://purl.obolibrary.org/obo/ARO_3000391> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "norA" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000036>,
+        <http://purl.obolibrary.org/obo/ARO_0000045>,
+        <http://purl.obolibrary.org/obo/ARO_3000662> .
+
+<http://purl.obolibrary.org/obo/ARO_3000392> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "Erm(37)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000410> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "sul1" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000324>,
+        <http://purl.obolibrary.org/obo/ARO_3000325>,
+        <http://purl.obolibrary.org/obo/ARO_3000327>,
+        <http://purl.obolibrary.org/obo/ARO_3000329>,
+        <http://purl.obolibrary.org/obo/ARO_3000330>,
+        <http://purl.obolibrary.org/obo/ARO_3000683>,
+        <http://purl.obolibrary.org/obo/ARO_3000684>,
+        <http://purl.obolibrary.org/obo/ARO_3000698>,
+        <http://purl.obolibrary.org/obo/ARO_3000699> .
+
+<http://purl.obolibrary.org/obo/ARO_3000412> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "sul2" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000324>,
+        <http://purl.obolibrary.org/obo/ARO_3000325>,
+        <http://purl.obolibrary.org/obo/ARO_3000327>,
+        <http://purl.obolibrary.org/obo/ARO_3000329>,
+        <http://purl.obolibrary.org/obo/ARO_3000330>,
+        <http://purl.obolibrary.org/obo/ARO_3000683>,
+        <http://purl.obolibrary.org/obo/ARO_3000684>,
+        <http://purl.obolibrary.org/obo/ARO_3000698>,
+        <http://purl.obolibrary.org/obo/ARO_3000699> .
+
+<http://purl.obolibrary.org/obo/ARO_3000413> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "sul3" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000324>,
+        <http://purl.obolibrary.org/obo/ARO_3000325>,
+        <http://purl.obolibrary.org/obo/ARO_3000327>,
+        <http://purl.obolibrary.org/obo/ARO_3000329>,
+        <http://purl.obolibrary.org/obo/ARO_3000330>,
+        <http://purl.obolibrary.org/obo/ARO_3000683>,
+        <http://purl.obolibrary.org/obo/ARO_3000684>,
+        <http://purl.obolibrary.org/obo/ARO_3000698>,
+        <http://purl.obolibrary.org/obo/ARO_3000699> .
+
+<http://purl.obolibrary.org/obo/ARO_3000419> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "quinolone resistance protein (qnr)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000001>,
+        <http://purl.obolibrary.org/obo/ARO_0000036>,
+        <http://purl.obolibrary.org/obo/ARO_0000071>,
+        <http://purl.obolibrary.org/obo/ARO_0000074>,
+        <http://purl.obolibrary.org/obo/ARO_3000659>,
+        <http://purl.obolibrary.org/obo/ARO_3000661>,
+        <http://purl.obolibrary.org/obo/ARO_3000662>,
+        <http://purl.obolibrary.org/obo/ARO_3000666> .
+
+<http://purl.obolibrary.org/obo/ARO_3000421> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "norB" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000036>,
+        <http://purl.obolibrary.org/obo/ARO_0000074>,
+        <http://purl.obolibrary.org/obo/ARO_3000662>,
+        <http://purl.obolibrary.org/obo/ARO_3000666> .
+
+<http://purl.obolibrary.org/obo/ARO_3000423> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "FomA" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000025> .
+
+<http://purl.obolibrary.org/obo/ARO_3000443> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "rifampin glycosyltransferase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000157> .
+
+<http://purl.obolibrary.org/obo/ARO_3000444> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "rphA" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000169>,
+        <http://purl.obolibrary.org/obo/ARO_3000517>,
+        <http://purl.obolibrary.org/obo/ARO_3000530>,
+        <http://purl.obolibrary.org/obo/ARO_3000534> .
+
+<http://purl.obolibrary.org/obo/ARO_3000445> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "rifampin monooxygenase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000157> .
+
+<http://purl.obolibrary.org/obo/ARO_3000446> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "antibiotic-resistant isoleucyl-tRNA synthetase (ileS)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3007151> .
+
+<http://purl.obolibrary.org/obo/ARO_3000448> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "QepA1" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000036>,
+        <http://purl.obolibrary.org/obo/ARO_3000662> .
+
+<http://purl.obolibrary.org/obo/ARO_3000449> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "FomB" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000025> .
+
+<http://purl.obolibrary.org/obo/ARO_3000453> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "streptogramin vat acetyltransferase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000026>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674> .
+
+<http://purl.obolibrary.org/obo/ARO_3000457> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "aminocoumarin resistant parE" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000103> .
+
+<http://purl.obolibrary.org/obo/ARO_3000462> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "mgtA" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3001232> .
+
+<http://purl.obolibrary.org/obo/ARO_3000463> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "gimA" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000867>,
+        <http://purl.obolibrary.org/obo/ARO_3001222>,
+        <http://purl.obolibrary.org/obo/ARO_3001232> .
+
+<http://purl.obolibrary.org/obo/ARO_3000464> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "Neisseria gonorrhoeae porin PIB (por)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000465> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ole glycosyltransferase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000000> .
+
+<http://purl.obolibrary.org/obo/ARO_3000467> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "NDM-5" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000008>,
+        <http://purl.obolibrary.org/obo/ARO_0000060>,
+        <http://purl.obolibrary.org/obo/ARO_0000070> .
+
+<http://purl.obolibrary.org/obo/ARO_3000476> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(31)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000478> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(33)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000479> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "aminocoumarin resistant gyrB" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000103> .
+
+<http://purl.obolibrary.org/obo/ARO_3000480> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "aminocoumarin resistant parY" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000103> .
+
+<http://purl.obolibrary.org/obo/ARO_3000481> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(35)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000489> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "sav1866" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3005386> .
+
+<http://purl.obolibrary.org/obo/ARO_3000491> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "acrD" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000005>,
+        <http://purl.obolibrary.org/obo/ARO_0000013>,
+        <http://purl.obolibrary.org/obo/ARO_0000016>,
+        <http://purl.obolibrary.org/obo/ARO_0000049>,
+        <http://purl.obolibrary.org/obo/ARO_0000052>,
+        <http://purl.obolibrary.org/obo/ARO_3007382> .
+
+<http://purl.obolibrary.org/obo/ARO_3000495> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ErmD" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000496> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "vanXY" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000081> .
+
+<http://purl.obolibrary.org/obo/ARO_3000498> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ErmF" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000501> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "rpoB2" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000169>,
+        <http://purl.obolibrary.org/obo/ARO_3000517>,
+        <http://purl.obolibrary.org/obo/ARO_3000530>,
+        <http://purl.obolibrary.org/obo/ARO_3000534> .
+
+<http://purl.obolibrary.org/obo/ARO_3000503> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "AcrEF-TolC" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000001>,
+        <http://purl.obolibrary.org/obo/ARO_0000032>,
+        <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000510> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "Staphylococcus aureus mupB conferring resistance to mupirocin" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000554> .
+
+<http://purl.obolibrary.org/obo/ARO_3000521> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "Staphylococcus aureus mupA conferring resistance to mupirocin" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000554> .
+
+<http://purl.obolibrary.org/obo/ARO_3000522> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ErmG" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000545> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "MacAB-TolC" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006> .
+
+<http://purl.obolibrary.org/obo/ARO_3000556> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(44)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051>,
+        <http://purl.obolibrary.org/obo/ARO_0000069>,
+        <http://purl.obolibrary.org/obo/ARO_3000152>,
+        <http://purl.obolibrary.org/obo/ARO_3000528>,
+        <http://purl.obolibrary.org/obo/ARO_3000667>,
+        <http://purl.obolibrary.org/obo/ARO_3000668> .
+
+<http://purl.obolibrary.org/obo/ARO_3000560> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "Erm 23S ribosomal RNA methyltransferase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000000>,
+        <http://purl.obolibrary.org/obo/ARO_0000017>,
+        <http://purl.obolibrary.org/obo/ARO_0000026> .
+
+<http://purl.obolibrary.org/obo/ARO_3000561> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(30)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000565> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(38)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000566> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(39)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000567> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(40)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000569> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(41)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000572> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(42)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000573> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "tet(43)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000051> .
+
+<http://purl.obolibrary.org/obo/ARO_3000574> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "vanR" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000081> .
+
+<http://purl.obolibrary.org/obo/ARO_3000575> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "vanU" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3000081> .
+
+<http://purl.obolibrary.org/obo/ARO_3000577> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "subclass B1 Bacillus cereus Bc beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000032>,
+        <http://purl.obolibrary.org/obo/ARO_3000008> .
+
+<http://purl.obolibrary.org/obo/ARO_3000580> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "SPM beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000020> .
+
+<http://purl.obolibrary.org/obo/ARO_3000581> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "CphA beta-lactamase" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000020> .
+
+<http://purl.obolibrary.org/obo/ARO_3000589> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "NDM-1" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000070>,
+        <http://purl.obolibrary.org/obo/ARO_0000073>,
+        <http://purl.obolibrary.org/obo/ARO_3000170> .
+
+<http://purl.obolibrary.org/obo/ARO_3000592> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ErmN" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000593> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ErmQ" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000594> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ErmR" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000595> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ErmT" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000596> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "ErmX" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000598> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "Erm(31)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_3001226>,
+        <http://purl.obolibrary.org/obo/ARO_3001232>,
+        <http://purl.obolibrary.org/obo/ARO_3001233> .
+
+<http://purl.obolibrary.org/obo/ARO_3000599> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "Erm(33)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000600> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "Erm(34)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000601> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "Erm(38)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066>,
+        <http://purl.obolibrary.org/obo/ARO_3000145>,
+        <http://purl.obolibrary.org/obo/ARO_3000156>,
+        <http://purl.obolibrary.org/obo/ARO_3000158>,
+        <http://purl.obolibrary.org/obo/ARO_3000176>,
+        <http://purl.obolibrary.org/obo/ARO_3000583>,
+        <http://purl.obolibrary.org/obo/ARO_3000584>,
+        <http://purl.obolibrary.org/obo/ARO_3000669>,
+        <http://purl.obolibrary.org/obo/ARO_3000672>,
+        <http://purl.obolibrary.org/obo/ARO_3000673>,
+        <http://purl.obolibrary.org/obo/ARO_3000674>,
+        <http://purl.obolibrary.org/obo/ARO_3000675>,
+        <http://purl.obolibrary.org/obo/ARO_3000677>,
+        <http://purl.obolibrary.org/obo/ARO_3000678>,
+        <http://purl.obolibrary.org/obo/ARO_3000679>,
+        <http://purl.obolibrary.org/obo/ARO_3000680>,
+        <http://purl.obolibrary.org/obo/ARO_3000681>,
+        <http://purl.obolibrary.org/obo/ARO_3000682>,
+        <http://purl.obolibrary.org/obo/ARO_3000867> .
+
+<http://purl.obolibrary.org/obo/ARO_3000602> a <http://purl.obolibrary.org/obo/ARO_3000000> ;
+    rdfs:label "Erm(39)" ;
+    ns1:confersResistanceTo <http://purl.obolibrary.org/obo/ARO_0000006>,
+        <http://purl.obolibrary.org/obo/ARO_0000027>,
+        <http://purl.obolibrary.org/obo/ARO_0000046>,
+        <http://purl.obolibrary.org/obo/ARO_0000057>,
+        <http://purl.obolibrary.org/obo/ARO_0000065>,
+        <http://purl.obolibrary.org/obo/ARO_0000066> .
+
+<http://purl.obolibrary.org/obo/ARO_0000005> rdfs:label "neomycin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000007> rdfs:label "dibekacin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000008> rdfs:label "cefoxitin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000013> rdfs:label "amikacin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000034> rdfs:label "streptogramin A antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_0000035> rdfs:label "sisomicin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000042> rdfs:label "glycylcycline" .
+
+<http://purl.obolibrary.org/obo/ARO_0000056> rdfs:label "oxacillin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000062> rdfs:label "ceftriaxone" .
+
+<http://purl.obolibrary.org/obo/ARO_0000071> rdfs:label "levofloxacin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000079> rdfs:label "oxazolidinone antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_3000111> rdfs:label "novobiocin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000170> rdfs:label "imipenem" .
+
+<http://purl.obolibrary.org/obo/ARO_3000188> rdfs:label "trimethoprim" .
+
+<http://purl.obolibrary.org/obo/ARO_3000282> rdfs:label "sulfonamide antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_3000497> rdfs:label "ethambutol" .
+
+<http://purl.obolibrary.org/obo/ARO_3000527> rdfs:label "polyamine antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_3000550> rdfs:label "aztreonam" .
+
+<http://purl.obolibrary.org/obo/ARO_3000622> rdfs:label "colistin A" .
+
+<http://purl.obolibrary.org/obo/ARO_3000624> rdfs:label "colistin B" .
+
+<http://purl.obolibrary.org/obo/ARO_3000659> rdfs:label "gatifloxacin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000670> rdfs:label "pleuromutilin antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_3000704> rdfs:label "cefalotin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000870> rdfs:label "triclosan" .
+
+<http://purl.obolibrary.org/obo/ARO_3001222> rdfs:label "chalcomycin" .
+
+<http://purl.obolibrary.org/obo/ARO_3001226> rdfs:label "narbomycin" .
+
+<http://purl.obolibrary.org/obo/ARO_3001233> rdfs:label "pikromycin" .
+
+<http://purl.obolibrary.org/obo/ARO_3001317> rdfs:label "pleuromutilin" .
+
+<http://purl.obolibrary.org/obo/ARO_3003708> rdfs:label "panipenem" .
+
+<http://purl.obolibrary.org/obo/ARO_3004024> rdfs:label "trimethoprim-sulfamethoxazole" .
+
+<http://purl.obolibrary.org/obo/ARO_3007149> rdfs:label "phosphonic acid antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_3007151> rdfs:label "mupirocin-like antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_3009106> rdfs:label "second-generation cephalosporin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000045> rdfs:label "acriflavine" .
+
+<http://purl.obolibrary.org/obo/ARO_0000049> rdfs:label "kanamycin A" .
+
+<http://purl.obolibrary.org/obo/ARO_0000052> rdfs:label "tobramycin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000060> rdfs:label "ceftazidime" .
+
+<http://purl.obolibrary.org/obo/ARO_0000070> rdfs:label "ertapenem" .
+
+<http://purl.obolibrary.org/obo/ARO_0000073> rdfs:label "meropenem" .
+
+<http://purl.obolibrary.org/obo/ARO_0000074> rdfs:label "moxifloxacin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000050> rdfs:label "tetracycline antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_3000554> rdfs:label "mupirocin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000661> rdfs:label "nalidixic acid" .
+
+<http://purl.obolibrary.org/obo/ARO_3000666> rdfs:label "sparfloxacin" .
+
+<http://purl.obolibrary.org/obo/ARO_3005386> rdfs:label "disinfecting agents and antiseptics" .
+
+<http://purl.obolibrary.org/obo/ARO_3007382> rdfs:label "gentamicin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000017> rdfs:label "lincosamide antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_0000029> rdfs:label "teicoplanin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000030> rdfs:label "tigecycline" .
+
+<http://purl.obolibrary.org/obo/ARO_3000103> rdfs:label "aminocoumarin antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_3000324> rdfs:label "sulfadiazine" .
+
+<http://purl.obolibrary.org/obo/ARO_3000325> rdfs:label "sulfadimidine" .
+
+<http://purl.obolibrary.org/obo/ARO_3000327> rdfs:label "sulfadoxine" .
+
+<http://purl.obolibrary.org/obo/ARO_3000329> rdfs:label "sulfamethoxazole" .
+
+<http://purl.obolibrary.org/obo/ARO_3000330> rdfs:label "sulfisoxazole" .
+
+<http://purl.obolibrary.org/obo/ARO_3000385> rdfs:label "chloramphenicol" .
+
+<http://purl.obolibrary.org/obo/ARO_3000387> rdfs:label "phenicol antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_3000637> rdfs:label "ampicillin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000683> rdfs:label "sulfacetamide" .
+
+<http://purl.obolibrary.org/obo/ARO_3000684> rdfs:label "mafenide" .
+
+<http://purl.obolibrary.org/obo/ARO_3000698> rdfs:label "sulfasalazine" .
+
+<http://purl.obolibrary.org/obo/ARO_3000699> rdfs:label "sulfamethizole" .
+
+<http://purl.obolibrary.org/obo/ARO_3001232> rdfs:label "methymycin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000001> rdfs:label "fluoroquinolone antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_0000026> rdfs:label "streptogramin antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_3000157> rdfs:label "rifamycin antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_3000662> rdfs:label "norfloxacin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000000> rdfs:label "macrolide antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_0000036> rdfs:label "ciprofloxacin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000025> rdfs:label "fosfomycin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000517> rdfs:label "rifaximin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000530> rdfs:label "rifabutin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000534> rdfs:label "rifapentine" .
+
+<http://purl.obolibrary.org/obo/ARO_3000169> rdfs:label "rifampin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000004> rdfs:label "monobactam" .
+
+<http://purl.obolibrary.org/obo/ARO_0000028> rdfs:label "vancomycin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000069> rdfs:label "doxycycline" .
+
+<http://purl.obolibrary.org/obo/ARO_3000081> rdfs:label "glycopeptide antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_3000152> rdfs:label "minocycline" .
+
+<http://purl.obolibrary.org/obo/ARO_3000528> rdfs:label "chlortetracycline" .
+
+<http://purl.obolibrary.org/obo/ARO_3000667> rdfs:label "demeclocycline" .
+
+<http://purl.obolibrary.org/obo/ARO_3000668> rdfs:label "oxytetracycline" .
+
+<http://purl.obolibrary.org/obo/ARO_0000020> rdfs:label "carbapenem" .
+
+<http://purl.obolibrary.org/obo/ARO_0000016> rdfs:label "aminoglycoside antibiotic" .
+
+<http://purl.obolibrary.org/obo/ARO_3000583> rdfs:label "pristinamycin IA" .
+
+<http://purl.obolibrary.org/obo/ARO_3000675> rdfs:label "pristinamycin IB" .
+
+<http://purl.obolibrary.org/obo/ARO_3000677> rdfs:label "virginiamycin S2" .
+
+<http://purl.obolibrary.org/obo/ARO_3000678> rdfs:label "pristinamycin IC" .
+
+<http://purl.obolibrary.org/obo/ARO_3000679> rdfs:label "vernamycin C" .
+
+<http://purl.obolibrary.org/obo/ARO_3000680> rdfs:label "patricin A" .
+
+<http://purl.obolibrary.org/obo/ARO_3000681> rdfs:label "patricin B" .
+
+<http://purl.obolibrary.org/obo/ARO_3000682> rdfs:label "ostreogrycin B3" .
+
+<http://purl.obolibrary.org/obo/ARO_0000046> rdfs:label "lincomycin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000672> rdfs:label "madumycin II" .
+
+<http://purl.obolibrary.org/obo/ARO_3000673> rdfs:label "griseoviridin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000066> rdfs:label "clindamycin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000008> rdfs:label "penicillin beta-lactam" .
+
+<http://purl.obolibrary.org/obo/ARO_3000156> rdfs:label "spiramycin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000584> rdfs:label "quinupristin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000669> rdfs:label "virginiamycin M1" .
+
+<http://purl.obolibrary.org/obo/ARO_3000176> rdfs:label "dirithromycin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000674> rdfs:label "dalfopristin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000057> rdfs:label "telithromycin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000145> rdfs:label "tylosin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000867> rdfs:label "oleandomycin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000027> rdfs:label "roxithromycin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000032> rdfs:label "cephalosporin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000065> rdfs:label "clarithromycin" .
+
+<http://purl.obolibrary.org/obo/ARO_3000158> rdfs:label "azithromycin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000006> rdfs:label "erythromycin" .
+
+<http://purl.obolibrary.org/obo/ARO_0000051> rdfs:label "tetracycline" .
+

@@ -1,0 +1,52 @@
+@prefix ngg:  <https://tesseract.academy/ns/ngg#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+# SHACL shapes for the UK Nature Governance Graph (v0.1).
+# Enforce: every actor labelled and typed; every relationship fully connected,
+# controlled-typed, and sourced; every source carrying a URL; and referential
+# integrity, so no relationship can point at an actor that is not in the graph.
+
+ngg:ActorShape a sh:NodeShape ;
+  sh:targetClass ngg:Actor ;
+  sh:property [
+    sh:path rdfs:label ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ;
+    sh:message "Every actor must have exactly one string label." ] ;
+  sh:property [
+    sh:path ngg:actorClass ; sh:minCount 1 ; sh:maxCount 1 ;
+    sh:in ( "statutory-agency" "ngo" "data-body" "funder" "sector-body" "partnership" "international" ) ;
+    sh:message "Actor class must be one of the seven controlled classes." ] ;
+  sh:property [
+    sh:path ngg:role ; sh:minCount 1 ; sh:datatype xsd:string ;
+    sh:message "Every actor must carry a one-line role." ] .
+
+# A relationship must connect two actors, carry a controlled type and a basis,
+# and be derived from at least one source.
+ngg:RelationshipShape a sh:NodeShape ;
+  sh:targetClass ngg:Relationship ;
+  sh:property [
+    sh:path ngg:relFrom ; sh:minCount 1 ; sh:maxCount 1 ; sh:class ngg:Actor ;
+    sh:message "A relationship must have exactly one source actor that exists in the graph." ] ;
+  sh:property [
+    sh:path ngg:relTo ; sh:minCount 1 ; sh:maxCount 1 ; sh:class ngg:Actor ;
+    sh:message "A relationship must have exactly one target actor that exists in the graph." ] ;
+  sh:property [
+    sh:path ngg:relType ; sh:minCount 1 ; sh:maxCount 1 ;
+    sh:in ( "sponsors" "advises" "supplies-data-to" "funds" "partners-with" "regulates" "designated-under" ) ;
+    sh:message "Relationship type must be one of the seven controlled predicates." ] ;
+  sh:property [
+    sh:path ngg:basis ; sh:minCount 1 ; sh:datatype xsd:string ;
+    sh:message "Every relationship must state its factual basis." ] ;
+  sh:property [
+    sh:path prov:wasDerivedFrom ; sh:minCount 1 ; sh:class ngg:Source ;
+    sh:message "Every relationship must be derived from at least one cited source." ] .
+
+# Every source must carry a resolvable URL.
+ngg:SourceShape a sh:NodeShape ;
+  sh:targetClass ngg:Source ;
+  sh:property [
+    sh:path ngg:sourceUrl ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:anyURI ;
+    sh:message "Every source must carry exactly one URL." ] .

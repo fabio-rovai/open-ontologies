@@ -1,0 +1,10 @@
+# Every object made of any polyolefin — including records tagged only by
+# abbreviation (PP, PE, HDPE) or trade name — reachable in ONE query because the
+# taxonomy unifies them under mat:polyolefin. Impossible against the raw strings.
+PREFIX crm:  <http://www.cidoc-crm.org/cidoc-crm/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX mat:  <https://ontology.tesseract.academy/modip/materials/>
+SELECT ?obj ?label WHERE {
+  ?c skos:broader+ mat:polyolefin .
+  ?obj crm:P45_consists_of ?c ; rdfs:label ?label .
+} LIMIT 50

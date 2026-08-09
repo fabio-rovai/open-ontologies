@@ -1,0 +1,785 @@
+[
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/BRAF> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/BRAF_protein> .\n\n<https://example.org/disease/cardiofaciocutaneous_syndrome> a biolink:Disease .\n\n<https://example.org/gene/BRAF> biolink:causes <https://example.org/disease/cardiofaciocutaneous_syndrome> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 5,
+    "n_real": 5,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://identifiers.org/ncbigene:7157> a biolink:Gene ;\n    biolink:has_gene_product <https://identifiers.org/ncbigene:7157> .\n\n<https://identifiers.org/omim:151627> a biolink:Disease ;\n    biolink:has_phenotype <https://identifiers.org/omim:151627> .\n\n<https://identifiers.org/ncbigene:7157> biolink:causes <https://identifiers.org/omim:151627> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 5,
+    "n_real": 5,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://identifiers.org/ncbigene:5728> a biolink:Gene ;\n    biolink:has_gene_product <https://identifiers.org/ncbigene:5728> .\n\n<https://identifiers.org/omim:601209> a biolink:Disease ;\n    biolink:has_phenotype <https://identifiers.org/omim:601209> .\n\n<https://identifiers.org/ncbigene:5728> biolink:causes <https://identifiers.org/omim:601209> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/EGFR> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/EGFR_protein> .\n\n<https://example.org/non-small_cell_lung_carcinoma> a biolink:Disease .\n\n<https://example.org/EGFR> biolink:causes <https://example.org/non-small_cell_lung_carcinoma> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/BRCA1> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/BRCA1_protein> .\n\n<https://example.org/breast_cancer> a biolink:Disease .\n\n<https://example.org/BRCA1> biolink:causes <https://example.org/breast_cancer> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 7,
+    "n_real": 7,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://identifiers.org/ncbigene:675> a biolink:Gene ;\n    biolink:has_gene_product <https://identifiers.org/ncbigene:675#protein> .\n\n<https://identifiers.org/ncbigene:675#protein> a biolink:Protein ;\n    biolink:associated_with <https://identifiers.org/mondo:0004975> .\n\n<https://identifiers.org/mondo:0004975> a biolink:Disease ;\n    biolink:name \"breast cancer\" .\n\n<https://identifiers.org/ncbigene:675> biolink:causes <https://identifiers.org/mondo:0004975> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/KRAS> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/KRAS_protein> .\n\n<https://example.org/disease/pancreatic_carcinoma> a biolink:Disease .\n\n<https://example.org/gene/KRAS> biolink:causes <https://example.org/disease/pancreatic_carcinoma> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 3,
+    "n_real": 3,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/APC> a biolink:Gene ;\n    biolink:associated_with <https://example.org/disease/familial_adenomatous_polyposis> .\n\n<https://example.org/disease/familial_adenomatous_polyposis> a biolink:Disease .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/RB1> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/RB1_protein> .\n\n<https://example.org/disease/retinoblastoma> a biolink:Disease .\n\n<https://example.org/gene/RB1> biolink:causes <https://example.org/disease/retinoblastoma> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://example.org/gene/VHL> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/VHL> .\n\n<https://example.org/disease/von_Hippel-Lindau_disease> a biolink:Disease .\n\n<https://example.org/gene/VHL> biolink:causes <https://example.org/disease/von_Hippel-Lindau_disease> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/CFTR> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/CFTR> .\n\n<https://example.org/disease/cystic_fibrosis> a biolink:Disease .\n\n<https://example.org/gene/CFTR> biolink:causes <https://example.org/disease/cystic_fibrosis> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/HTT> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/HTT> .\n\n<https://example.org/disease/HuntingtonDisease> a biolink:Disease .\n\n<https://example.org/gene/HTT> biolink:causes <https://example.org/disease/HuntingtonDisease> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/FMR1> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/FMR1_protein> .\n\n<https://example.org/fragile_X_syndrome> a biolink:Disease .\n\n<https://example.org/FMR1> biolink:causes <https://example.org/fragile_X_syndrome> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/DMD> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/DMD_protein> .\n\n<https://example.org/disease/Duchenne_muscular_dystrophy> a biolink:Disease .\n\n<https://example.org/gene/DMD> biolink:causes <https://example.org/disease/Duchenne_muscular_dystrophy> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/HBB> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/HBB_protein> .\n\n<https://example.org/beta_thalassemia> a biolink:Disease .\n\n<https://example.org/HBB> biolink:causes <https://example.org/beta_thalassemia> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/F8> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/F8> .\n\n<https://example.org/disease/hemophilia_A> a biolink:Disease .\n\n<https://example.org/gene/F8> biolink:causes <https://example.org/disease/hemophilia_A> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/LDLR> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/LDLR_protein> .\n\n<https://example.org/disease/familial_hypercholesterolemia> a biolink:Disease .\n\n<https://example.org/gene/LDLR> biolink:causes <https://example.org/disease/familial_hypercholesterolemia> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/MLH1> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/MLH1> .\n\n<https://example.org/disease/LynchSyndrome> a biolink:Disease .\n\n<https://example.org/gene/MLH1> biolink:causes <https://example.org/disease/LynchSyndrome> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/NF1> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/NF1_protein> .\n\n<https://example.org/disease/neurofibromatosis_type_1> a biolink:Disease .\n\n<https://example.org/gene/NF1> biolink:causes <https://example.org/disease/neurofibromatosis_type_1> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/SMN1> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/SMN1_protein> .\n\n<https://example.org/spinal_muscular_atrophy> a biolink:Disease .\n\n<https://example.org/SMN1> biolink:causes <https://example.org/spinal_muscular_atrophy> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/PAH> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/PAH> .\n\n<https://example.org/disease/phenylketonuria> a biolink:Disease .\n\n<https://example.org/gene/PAH> biolink:causes <https://example.org/disease/phenylketonuria> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/G6PD> a biolink:Gene ;\n    biolink:associated_with <https://example.org/disease/G6PD_deficiency> .\n\n<https://example.org/disease/G6PD_deficiency> a biolink:Disease ;\n    biolink:has_gene <https://example.org/gene/G6PD> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 5,
+    "n_real": 5,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://identifiers.org/ncbigene:472> a biolink:Gene ;\n    biolink:has_gene_product <https://identifiers.org/ncbigene:472> .\n\n<https://identifiers.org/omim:208900> a biolink:Disease ;\n    biolink:has_phenotype <https://identifiers.org/omim:208900> .\n\n<https://identifiers.org/ncbigene:472> biolink:causes <https://identifiers.org/omim:208900> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/TSC1> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/TSC1_protein> .\n\n<https://example.org/disease/tuberous_sclerosis> a biolink:Disease .\n\n<https://example.org/gene/TSC1> biolink:causes <https://example.org/disease/tuberous_sclerosis> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/MECP2> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/MECP2> .\n\n<https://example.org/disease/Rett_syndrome> a biolink:Disease .\n\n<https://example.org/gene/MECP2> biolink:causes <https://example.org/disease/Rett_syndrome> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/SCN1A> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/SCN1A_protein> .\n\n<https://example.org/disease/Dravet_syndrome> a biolink:Disease .\n\n<https://example.org/gene/SCN1A> biolink:causes <https://example.org/disease/Dravet_syndrome> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/COL1A1> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/COL1A1_protein> .\n\n<https://example.org/disease/osteogenesis_imperfecta> a biolink:Disease .\n\n<https://example.org/gene/COL1A1> biolink:causes <https://example.org/disease/osteogenesis_imperfecta> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/GBA> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/GBA_protein> .\n\n<https://example.org/disease/Gaucher_disease> a biolink:Disease .\n\n<https://example.org/gene/GBA> biolink:causes <https://example.org/disease/Gaucher_disease> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/HFE_gene> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/HFE_protein> .\n\n<https://example.org/hereditary_hemochromatosis> a biolink:Disease .\n\n<https://example.org/HFE_gene> biolink:causes <https://example.org/hereditary_hemochromatosis> .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n<https://example.org/gene/PKD1> a biolink:Gene ;\n    biolink:has_gene_product <https://example.org/protein/PKD1_protein> .\n\n<https://example.org/disease/Polycystic_Kidney_Disease> a biolink:Disease .\n\n<https://example.org/gene/PKD1> biolink:causes <https://example.org/disease/Polycystic_Kidney_Disease> .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene/7157> a biolink:Gene ;\n    biolink:involved_in GO:0008150 .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nbiolink:EGFR rdf:type biolink:Gene ;\n    biolink:involved_in GO:0007165 .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n<https://w3id.org/biolink/vocab/Gene/BRCA1> <https://w3id.org/biolink/vocab/involved_in> <http://purl.obolibrary.org/obo/GO_0008150> .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nbiolink:KRAS rdf:type biolink:Gene ;\n    biolink:involved_in GO:0008150 .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n<https://w3id.org/biolink/vocab/Gene/MYC> <https://w3id.org/biolink/vocab/involved_in> <http://purl.obolibrary.org/obo/GO_0008150> .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://w3id.org/biolink/vocab/Gene/CFTR> biolink:involved_in GO:0006811 .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://w3id.org/biolink/vocab/Gene/MLH1> rdf:type biolink:Gene ;\n    rdfs:label \"MLH1\" ;\n    biolink:involved_in GO:0006281 .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene/472> a biolink:Gene ;\n    biolink:involved_in GO:0006996 .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://w3id.org/biolink/vocab/Gene/VEGFA> biolink:involved_in GO:0008150 .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n<https://w3id.org/biolink/vocab/Gene/TNF> <https://w3id.org/biolink/vocab/involved_in> <http://purl.obolibrary.org/obo/GO_0009611> .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://w3id.org/biolink/vocab/Gene/INS> rdf:type biolink:Gene ;\n    biolink:involved_in GO:0008150 .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n<https://w3id.org/biolink/vocab/Gene/SOD1> <https://w3id.org/biolink/vocab/involved_in> <http://purl.obolibrary.org/obo/GO_0006979> .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n<https://w3id.org/biolink/vocab/Gene/HMGCR> <https://w3id.org/biolink/vocab/involved_in> <http://purl.obolibrary.org/obo/GO_0008150> .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n<https://w3id.org/biolink/vocab/Gene/CDK1> <https://w3id.org/biolink/vocab/involved_in> <http://purl.obolibrary.org/obo/GO_0007049> .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n<https://w3id.org/biolink/vocab/Gene/CASP3> <https://w3id.org/biolink/vocab/involved_in> <http://purl.obolibrary.org/obo/GO_0008150> .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n<https://w3id.org/biolink/vocab/Gene/IL6> <https://w3id.org/biolink/vocab/involved_in> <http://purl.obolibrary.org/obo/GO_0009611> .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nbiolink:MTOR rdf:type biolink:Gene ;\n    biolink:involved_in GO:0008150 .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://w3id.org/biolink/vocab/Gene/PARP1> biolink:involved_in GO:0006281 .\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://w3id.org/biolink/vocab/Gene/ESR1> rdf:type biolink:Gene ;\n    biolink:involved_in GO:0007165 .\n\n```"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://w3id.org/biolink/vocab/Gene/HIF1A> biolink:involved_in GO:0009408 .\n```"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene:7157> a biolink:Gene ;\n    biolink:associated_with <https://identifiers.org/omim:151623> ;\n    biolink:involved_in GO:0006915 .\n\n<https://identifiers.org/omim:151623> a biolink:Disease .\n```"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene:672> a biolink:Gene ;\n    rdfs:label \"BRCA1\" .\n\n<https://identifiers.org/omim:114480> a biolink:Disease ;\n    rdfs:label \"breast cancer\" .\n\n<https://identifiers.org/ncbigene:672> biolink:causes <https://identifiers.org/omim:114480> .\n"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 7,
+    "n_real": 6,
+    "n_fake": 1,
+    "term_existence_rate": 0.8571428571428571,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene:1956> a biolink:Gene ;\n    biolink:has_gene_product <https://identifiers.org/ncbigene:1956> .\n\n<https://identifiers.org/ncbigene:1956> biolink:associated_with <https://identifiers.org/omim:600768> ;\n    biolink:involved_in GO:0007165 "
+  },
+  {
+    "family": "multihop",
+    "n_terms": 8,
+    "n_real": 8,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene:3845> a biolink:Gene ;\n    rdfs:label \"KRAS\" .\n\n<https://identifiers.org/mondo:0005076> a biolink:Disease ;\n    rdfs:label \"pancreatic carcinoma\" .\n\nGO:0007267 a biolink:BiologicalProcess ;\n    rdfs:label \"Ras protein signal transduct"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene:1084> a biolink:Gene ;\n    biolink:associated_with <https://identifiers.org/omim:219700> ;\n    biolink:involved_in GO:0006811 .\n\n<https://identifiers.org/omim:219700> a biolink:Disease .\n```"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 7,
+    "n_real": 6,
+    "n_fake": 1,
+    "term_existence_rate": 0.8571428571428571,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene:4292> a biolink:Gene ;\n    biolink:has_gene_product <https://identifiers.org/ncbigene:4292> .\n\n<https://identifiers.org/omim:120435> a biolink:Disease .\n\n<https://identifiers.org/ncbigene:4292> biolink:causes <https://identifiers.org/"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 7,
+    "n_real": 6,
+    "n_fake": 1,
+    "term_existence_rate": 0.8571428571428571,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene:472> a biolink:Gene ;\n    biolink:has_gene_product <https://identifiers.org/ncbigene:472> .\n\n<https://identifiers.org/omim:208900> a biolink:Disease ;\n    rdfs:label \"ataxia telangiectasia\" .\n\n<https://identifiers.org/ncbigene:472> bi"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 6,
+    "n_real": 5,
+    "n_fake": 1,
+    "term_existence_rate": 0.8333333333333334,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene/3064> a biolink:Gene ;\n    biolink:has_gene_product <https://identifiers.org/ncbigene/3064> .\n\n<https://identifiers.org/omim/143100> a biolink:Disease ;\n    rdfs:label \"Huntington disease\" .\n\n<https://identifiers.org/ncbigene/3064> bi"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene:4609> a biolink:Gene ;\n    rdfs:label \"MYC\" .\n\n<https://identifiers.org/omim:606842> a biolink:Disease ;\n    rdfs:label \"Burkitt lymphoma\" .\n\n<https://identifiers.org/ncbigene:4609> biolink:associated_with <https://identifiers.org/omi"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 6,
+    "n_real": 5,
+    "n_fake": 1,
+    "term_existence_rate": 0.8333333333333334,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene:7428> a biolink:Gene ;\n    biolink:has_gene_product <https://identifiers.org/ncbigene:7428> .\n\n<https://identifiers.org/omim:193300> a biolink:Disease ;\n    rdfs:label \"von Hippel-Lindau disease\" .\n\n<https://identifiers.org/ncbigene:7"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene:5728> a biolink:Gene ;\n    rdfs:label \"PTEN\" .\n\n<https://identifiers.org/omim:608106> a biolink:Disease ;\n    rdfs:label \"Cowden syndrome\" .\n\n<https://identifiers.org/ncbigene:5728> biolink:associated_with <https://identifiers.org/omi"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene:6647> a biolink:Gene ;\n    rdfs:label \"SOD1\" .\n\n<https://identifiers.org/omim:105400> a biolink:Disease ;\n    rdfs:label \"amyotrophic lateral sclerosis\" .\n\n<https://identifiers.org/ncbigene:6647> biolink:associated_with <https://ident"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene:324> a biolink:Gene ;\n    rdfs:label \"APC\" .\n\n<https://identifiers.org/omim:175100> a biolink:Disease ;\n    rdfs:label \"familial adenomatous polyposis\" .\n\n<https://identifiers.org/ncbigene:324> biolink:associated_with <https://identif"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene:5925> a biolink:Gene ;\n    rdfs:label \"RB1\" .\n\n<https://identifiers.org/omim:180200> a biolink:Disease ;\n    rdfs:label \"retinoblastoma\" .\n\n<https://identifiers.org/ncbigene:5925> biolink:associated_with <https://identifiers.org/omim:"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<https://identifiers.org/ncbigene:1387> a biolink:Gene ;\n    rdfs:label \"CASP3\" .\n\n<https://identifiers.org/ncit:C3262> a biolink:Disease ;\n    rdfs:label \"cancer\" .\n\n<https://identifiers.org/ncbigene:1387> biolink:associated_with <https://identifiers.org/ncit:C3262> "
+  }
+]

@@ -30,12 +30,48 @@ for SIZE in $SIZES; do
     echo "--- Size: $SIZE axioms ---"
 
     # Open Ontologies
+    #
+    # MUST be a single process. Each CLI invocation calls setup(), which
+    # builds a fresh empty in-memory GraphStore (src/main.rs), so `load` in
+    # one process and `reason` in another would time reasoning over ZERO
+    # triples — flat ~15ms of process start-up regardless of input size.
+    # Batch mode shares one store across commands, which is the only valid
+    # way to time this.
+    #
+    # Errors are NOT swallowed. A benchmark that silently reports a failed
+    # run as a fast run is worse than no benchmark, so the harness asserts
+    # triples > 0 before trusting any timing.
     START_MS=$(python3 -c "import time; print(int(time.time()*1000))")
-    $OO_BIN load "$OWL_FILE" > /dev/null 2>&1
-    OO_OUT=$($OO_BIN reason --profile owl-dl 2>/dev/null || echo '{"error":"failed"}')
+    OO_OUT=$(printf 'load %s\nstats\nreason --profile owl-dl\n' "$OWL_FILE" \
+             | $OO_BIN batch -)
+    OO_STATUS=$?
     END_MS=$(python3 -c "import time; print(int(time.time()*1000))")
     OO_MS=$((END_MS - START_MS))
-    echo "  Open Ontologies: ${OO_MS}ms"
+
+    # Verify the store was actually populated before trusting the timing.
+    OO_TRIPLES=$(printf '%s' "$OO_OUT" | python3 -c "
+import json,sys
+n = 0
+for line in sys.stdin:
+    line = line.strip()
+    if not line:
+        continue
+    try:
+        rec = json.loads(line)
+    except json.JSONDecodeError:
+        continue
+    if rec.get('command') == 'stats':
+        n = rec.get('result', {}).get('triples', 0)
+print(n)
+")
+
+    if [ "$OO_STATUS" -ne 0 ] || [ "${OO_TRIPLES:-0}" -eq 0 ]; then
+        echo "  Open Ontologies: FAILED (exit $OO_STATUS, $OO_TRIPLES triples in store)"
+        printf '%s\n' "$OO_OUT" | head -5
+        OO_MS="null"
+    else
+        echo "  Open Ontologies: ${OO_MS}ms (${OO_TRIPLES} triples loaded)"
+    fi
 
     # Java reasoners (if available)
     HERMIT_MS="null"

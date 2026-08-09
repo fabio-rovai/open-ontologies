@@ -1,4 +1,5 @@
 use std::io::Cursor;
+use std::path::Path;
 use std::sync::Mutex;
 
 use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
@@ -66,6 +67,30 @@ impl GraphStore {
         }
     }
 
+    /// Open a RocksDB-backed persistent store at `path`, creating it if missing.
+    ///
+    /// Oxigraph allows only one read-write handle per directory; opening the
+    /// same path from a second process will fail. Sandbox stores throughout
+    /// the codebase keep using [`GraphStore::new`] — only the main graph
+    /// should ever be persistent.
+    pub fn open_persistent(path: &Path) -> anyhow::Result<Self> {
+        std::fs::create_dir_all(path).map_err(|e| {
+            anyhow::anyhow!(
+                "failed to create persistent triplestore directory {}: {e}",
+                path.display()
+            )
+        })?;
+        let store = Store::open(path).map_err(|e| {
+            anyhow::anyhow!(
+                "failed to open persistent Oxigraph store at {}: {e}",
+                path.display()
+            )
+        })?;
+        Ok(Self {
+            store: Mutex::new(store),
+        })
+    }
+
     pub fn triple_count(&self) -> usize {
         let store = self.store.lock().unwrap();
         store.len().unwrap_or(0)
@@ -111,7 +136,7 @@ impl GraphStore {
 
     pub fn load_file(&self, path: &str) -> anyhow::Result<usize> {
         let content = std::fs::read_to_string(path)?;
-        let format = Self::detect_format(path);
+        let format = Self::detect_format_sniffed(path, &content);
         let store = self.store.lock().unwrap();
         let reader = Cursor::new(content.as_bytes());
         let parser = RdfParser::from_format(format).for_reader(reader);
@@ -142,7 +167,7 @@ impl GraphStore {
 
     pub fn validate_file(path: &str) -> anyhow::Result<usize> {
         let content = std::fs::read_to_string(path)?;
-        let format = Self::detect_format(path);
+        let format = Self::detect_format_sniffed(path, &content);
         let reader = Cursor::new(content.as_bytes());
         let parser = RdfParser::from_format(format).for_reader(reader);
         let mut count = 0;
@@ -316,15 +341,38 @@ impl GraphStore {
             lit.value().parse().unwrap_or(0)
         };
 
+        // Typed subsets: object vs datatype properties. The broad `prop_query`
+        // above also counts rdf:Property and implicit (subPropertyOf/domain/range)
+        // properties, so object + data need not sum to `properties` — but
+        // reporting the real datatype-property count is more honest than the
+        // previous hardcoded 0 (which showed e.g. Schema.org / FOAF as having no
+        // properties even though they declare hundreds).
+        let obj_prop_query = "SELECT (COUNT(DISTINCT ?p) AS ?count) WHERE {
+            ?p a <http://www.w3.org/2002/07/owl#ObjectProperty> .
+            FILTER(isIRI(?p)
+                && !STRSTARTS(STR(?p), \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\")
+                && !STRSTARTS(STR(?p), \"http://www.w3.org/2000/01/rdf-schema#\")
+                && !STRSTARTS(STR(?p), \"http://www.w3.org/2002/07/owl#\"))
+        }";
+        let data_prop_query = "SELECT (COUNT(DISTINCT ?p) AS ?count) WHERE {
+            ?p a <http://www.w3.org/2002/07/owl#DatatypeProperty> .
+            FILTER(isIRI(?p)
+                && !STRSTARTS(STR(?p), \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\")
+                && !STRSTARTS(STR(?p), \"http://www.w3.org/2000/01/rdf-schema#\")
+                && !STRSTARTS(STR(?p), \"http://www.w3.org/2002/07/owl#\"))
+        }";
+
         let classes = count_from_query(class_query);
         let props = count_from_query(prop_query);
+        let object_props = count_from_query(obj_prop_query);
+        let data_props = count_from_query(data_prop_query);
         let individuals = count_from_query(individual_query);
 
         Ok(serde_json::json!({
             "triples": total,
             "classes": classes,
-            "object_properties": props,
-            "data_properties": 0,
+            "object_properties": object_props,
+            "data_properties": data_props,
             "properties": props,
             "individuals": individuals
         })
@@ -448,6 +496,41 @@ impl GraphStore {
         } else {
             RdfFormat::Turtle
         }
+    }
+
+    /// Format detection that consults the file body, not just the extension.
+    ///
+    /// `.owl` is ambiguous in the wild: the extension says "an OWL ontology"
+    /// and says nothing about the serialisation. Both RDF/XML and Turtle are
+    /// routinely published as `.owl`, so trusting the extension alone makes a
+    /// perfectly valid file fail to parse. Sniff the first non-blank,
+    /// non-comment line and let the content decide.
+    fn detect_format_sniffed(path: &str, content: &str) -> RdfFormat {
+        let ext_format = Self::detect_format(path);
+
+        let head = content
+            .lines()
+            .map(str::trim)
+            .find(|l| !l.is_empty() && !l.starts_with('#'))
+            .unwrap_or("");
+
+        // XML declaration or an opening tag means RDF/XML regardless of name.
+        if head.starts_with("<?xml") || head.starts_with("<rdf:") || head.starts_with("<RDF") {
+            return RdfFormat::RdfXml;
+        }
+
+        // Turtle/TriG directives. `<` alone is not a signal: it also opens an
+        // N-Triples subject IRI, so only treat explicit directives as proof.
+        let is_turtle_directive = head.starts_with("@prefix")
+            || head.starts_with("@base")
+            || head.to_uppercase().starts_with("PREFIX ")
+            || head.to_uppercase().starts_with("BASE ");
+
+        if is_turtle_directive && matches!(ext_format, RdfFormat::RdfXml) {
+            return RdfFormat::Turtle;
+        }
+
+        ext_format
     }
 
     fn parse_format(name: &str) -> anyhow::Result<RdfFormat> {

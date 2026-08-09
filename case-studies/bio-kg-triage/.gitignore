@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+data/biolink-model.yaml
+data/aro.obo
+data/*.obo
+data/nodes.dmp
+data/merged.dmp
+data/delnodes.dmp
+data/taxdump.tar.gz
+data/card-data.tar.bz2
+data/card/
+build/pathogen-kg-grounded.ttl

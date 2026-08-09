@@ -1,0 +1,120 @@
+{
+  "_meta": {
+    "reference_mappings": 1516,
+    "note": "Single-variable ablation: stable 1-to-1 matching removed from src/align.rs, everything else held constant. Source is restored and rebuilt at the end of this script."
+  },
+  "with_stable": [
+    {
+      "weights": "full",
+      "threshold": 0.7,
+      "candidates": 1913,
+      "tp": 1233,
+      "fp": 680,
+      "fn": 283,
+      "precision": 0.6445,
+      "recall": 0.8133,
+      "f1": 0.7192
+    },
+    {
+      "weights": "full",
+      "threshold": 0.75,
+      "candidates": 1475,
+      "tp": 1210,
+      "fp": 265,
+      "fn": 306,
+      "precision": 0.8203,
+      "recall": 0.7982,
+      "f1": 0.8091
+    },
+    {
+      "weights": "full",
+      "threshold": 0.8,
+      "candidates": 1154,
+      "tp": 1109,
+      "fp": 45,
+      "fn": 407,
+      "precision": 0.961,
+      "recall": 0.7315,
+      "f1": 0.8307
+    },
+    {
+      "weights": "full",
+      "threshold": 0.85,
+      "candidates": 1070,
+      "tp": 1041,
+      "fp": 29,
+      "fn": 475,
+      "precision": 0.9729,
+      "recall": 0.6867,
+      "f1": 0.8051
+    }
+  ],
+  "without_stable": [
+    {
+      "weights": "full_no_stable",
+      "threshold": 0.8,
+      "candidates": 1590,
+      "tp": 1131,
+      "fp": 459,
+      "fn": 385,
+      "precision": 0.7113,
+      "recall": 0.746,
+      "f1": 0.7283
+    },
+    {
+      "weights": "full_no_stable",
+      "threshold": 0.85,
+      "candidates": 1106,
+      "tp": 1063,
+      "fp": 43,
+      "fn": 453,
+      "precision": 0.9611,
+      "recall": 0.7012,
+      "f1": 0.8108
+    },
+    {
+      "weights": "label_no_stable",
+      "threshold": 0.8,
+      "candidates": 1590,
+      "tp": 1131,
+      "fp": 459,
+      "fn": 385,
+      "precision": 0.7113,
+      "recall": 0.746,
+      "f1": 0.7283
+    },
+    {
+      "weights": "label_no_stable",
+      "threshold": 0.85,
+      "candidates": 1106,
+      "tp": 1063,
+      "fp": 43,
+      "fn": 453,
+      "precision": 0.9611,
+      "recall": 0.7012,
+      "f1": 0.8108
+    },
+    {
+      "weights": "struct_no_stable",
+      "threshold": 0.8,
+      "candidates": 1590,
+      "tp": 1131,
+      "fp": 459,
+      "fn": 385,
+      "precision": 0.7113,
+      "recall": 0.746,
+      "f1": 0.7283
+    },
+    {
+      "weights": "struct_no_stable",
+      "threshold": 0.85,
+      "candidates": 1106,
+      "tp": 1063,
+      "fp": 43,
+      "fn": 453,
+      "precision": 0.9611,
+      "recall": 0.7012,
+      "f1": 0.8108
+    }
+  ]
+}

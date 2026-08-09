@@ -1,0 +1,3 @@
+gradio>=4.44
+rdflib>=7.0
+pyshacl>=0.26

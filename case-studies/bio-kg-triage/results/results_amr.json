@@ -1,0 +1,69 @@
+{
+  "source": "CARD Antibiotic Resistance Ontology (aro.obo)",
+  "aro_declared_terms": 8564,
+  "confers_resistance_relationships_total": 5053,
+  "edges_used": 800,
+  "grounded": {
+    "label": "grounded AMR KG",
+    "triples": 1283,
+    "shacl_conforms": true,
+    "closed_world_violations": 0,
+    "violations": []
+  },
+  "ungrounded": {
+    "label": "ungrounded AMR KG",
+    "triples": 1283,
+    "shacl_conforms": true,
+    "closed_world_violations": 1,
+    "violations": [
+      "http://purl.obolibrary.org/obo/ARO_9999999"
+    ]
+  },
+  "headline": {
+    "grounded_closed_world_violations": 0,
+    "ungrounded_shacl_conforms": true,
+    "ungrounded_caught_by_gate": true
+  },
+  "sample_edges": [
+    {
+      "determinant": "tetracycline-resistant ribosomal protection protein",
+      "confers_resistance_to": "tetracycline antibiotic"
+    },
+    {
+      "determinant": "vanW",
+      "confers_resistance_to": "glycopeptide antibiotic"
+    },
+    {
+      "determinant": "vanH",
+      "confers_resistance_to": "glycopeptide antibiotic"
+    },
+    {
+      "determinant": "vanX",
+      "confers_resistance_to": "glycopeptide antibiotic"
+    },
+    {
+      "determinant": "TEM beta-lactamase",
+      "confers_resistance_to": "ampicillin"
+    },
+    {
+      "determinant": "TEM beta-lactamase",
+      "confers_resistance_to": "monobactam"
+    },
+    {
+      "determinant": "TEM beta-lactamase",
+      "confers_resistance_to": "cephalosporin"
+    },
+    {
+      "determinant": "TEM beta-lactamase",
+      "confers_resistance_to": "penicillin beta-lactam"
+    },
+    {
+      "determinant": "SHV beta-lactamase",
+      "confers_resistance_to": "cephalosporin"
+    },
+    {
+      "determinant": "SHV beta-lactamase",
+      "confers_resistance_to": "penicillin beta-lactam"
+    }
+  ]
+}

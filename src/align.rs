@@ -112,7 +112,16 @@ impl AlignmentEngine {
             }
         }
 
-        class_map.into_values().collect()
+        // Sorted by IRI. `into_values()` yields HashMap iteration order, which Rust
+        // seeds per process. That order propagates into the candidate-generation
+        // loop, and because the confidence sort below is stable, equal-confidence
+        // candidates keep it; the greedy 1-to-1 retain then picks a different
+        // winner among ties on every run. Measured before this fix: five runs of
+        // the same binary on OAEI Anatomy produced five different alignments
+        // (1151/1153/1151/1152/1154 candidates, all five sets distinct).
+        let mut out: Vec<ClassInfo> = class_map.into_values().collect();
+        out.sort_by(|a, b| a.iri.cmp(&b.iri));
+        out
     }
 
     /// Extract property IRIs whose domain is the given class.
@@ -584,11 +593,21 @@ impl AlignmentEngine {
             }
         }
 
-        // Sort by confidence descending
+        // Sort by confidence descending, ties broken by (source IRI, target IRI).
+        //
+        // Confidence alone is not a total order: on Anatomy many pairs tie exactly,
+        // because the zero-structural-signal branch gives them all label_sim * 0.85.
+        // `sort_by` is stable, so a confidence-only comparator leaves tied pairs in
+        // input order, which makes the 1-to-1 selection below depend on how the
+        // candidate list happened to be built. Breaking ties on the IRIs makes the
+        // comparator total, so the result no longer depends on upstream ordering
+        // even if that ordering changes again.
         candidates.sort_by(|a, b| {
             b["confidence"].as_f64().unwrap_or(0.0)
                 .partial_cmp(&a["confidence"].as_f64().unwrap_or(0.0))
                 .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a["source_iri"].as_str().unwrap_or("").cmp(b["source_iri"].as_str().unwrap_or("")))
+                .then_with(|| a["target_iri"].as_str().unwrap_or("").cmp(b["target_iri"].as_str().unwrap_or("")))
         });
 
         // Stable matching: for each source class, keep only the top-scoring target.

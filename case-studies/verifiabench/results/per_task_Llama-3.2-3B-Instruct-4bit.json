@@ -1,0 +1,561 @@
+[
+  {
+    "parsed_turtle": false,
+    "n_terms": 4,
+    "n_real": 2,
+    "n_fake": 2,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "CardiofaciocutaneousSyndrome",
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/BRAF> a biolink:Gene.\n<http://www.example.org/CardiofaciocutaneousSyndrome> a biolink:Disease.\n\n<http://www.example.org/BRAF> biolink:associatedWith biolink:CardiofaciocutaneousSyndrome.\n\nNote: The Biolink Model is a large ontology, and the classes and predicates used here are just a few examples. The actual classes and predicates used may vary depending on the specific use case.",
+    "gene": "BRAF",
+    "disease": "cardiofaciocutaneous syndrome"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 4,
+    "n_real": 2,
+    "n_fake": 2,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "Lifraumeni",
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/TP53> a biolink:Gene.\n<http://www.example.org/LiFraumeni> a biolink:Disease.\n\n<http://www.example.org/TP53> biolink:associatedWith biolink:Lifraumeni.\n\nNote: The Biolink model is a large ontology, and this is a very simple example. In a real-world scenario, you would need to consider the relationships between the classes and predicates in the Biolink model.",
+    "gene": "TP53",
+    "disease": "Li-Fraumeni syndrome"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 4,
+    "n_real": 2,
+    "n_fake": 2,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "CowdenSyndrome",
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/PTEN> a biolink:Gene.\n<http://www.example.org/CowdenSyndrome> a biolink:Disease.\n\n<http://www.example.org/PTEN> biolink:associatedWith biolink:CowdenSyndrome.\n\nThis RDF asserts that the gene PTEN is associated with the disease Cowden syndrome using the Biolink Model classes and predicates.",
+    "gene": "PTEN",
+    "disease": "Cowden syndrome"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/EGFR> a biolink:Gene.\n<http://www.example.org/EGFR> biolink:associatedWith biolink:Disease <http://www.example.org/NSCLC>.\n\nNote: The above code is written in Turtle format which is used to represent RDF data in a human-readable format. The actual RDF data would be represented in a different format, such as XML or JSON.",
+    "gene": "EGFR",
+    "disease": "non-small cell lung carcinoma"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "isAssociatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/BRCA1> a biolink:Gene.\n<http://www.example.org/BreastCancer> a biolink:Disease.\n<http://www.example.org/BRCA1> biolink:isAssociatedWith biolink:Disease.\n<http://www.example.org/BreastCancer> biolink:isAssociatedWith biolink:Gene.",
+    "gene": "BRCA1",
+    "disease": "breast cancer"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "isAssociatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/BRCA2> a biolink:Gene.\n<http://www.example.org/BreastCancer> a biolink:Disease.\n<http://www.example.org/BRCA2> biolink:isAssociatedWith biolink:Disease.\n<http://www.example.org/BreastCancer> biolink:isAssociatedWith biolink:Gene.",
+    "gene": "BRCA2",
+    "disease": "breast cancer"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 1,
+    "n_real": 0,
+    "n_fake": 1,
+    "term_existence_rate": 0.0,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": false,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "isAssociatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/gene/KRAS> biolink:isAssociatedWith <http://www.example.org/disease/pancreatic_carcinoma>.",
+    "gene": "KRAS",
+    "disease": "pancreatic carcinoma"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 1,
+    "n_real": 0,
+    "n_fake": 1,
+    "term_existence_rate": 0.0,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": false,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/gene/APC> biolink:associatedWith <http://www.example.org/disease/FamilialAdenomatousPolyposis>.",
+    "gene": "APC",
+    "disease": "familial adenomatous polyposis"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/RB1> a biolink:Gene.\n<http://www.example.org/Retinoblastoma> a biolink:Disease.\n\n<http://www.example.org/RB1> biolink:associatedWith <http://www.example.org/Retinoblastoma>.",
+    "gene": "RB1",
+    "disease": "retinoblastoma"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/VHL> a biolink:Gene.\n<http://www.example.org/VHL> biolink:associatedWith biolink:Disease <http://www.example.org/VonHippelLindauDisease>.\n\nNote: The above code is written in Turtle format which is used to represent RDF data in a human-readable format. The RDF data is represented as a series of statements, each of which is a subject-predicate-object triple.",
+    "gene": "VHL",
+    "disease": "von Hippel-Lindau disease"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 4,
+    "n_real": 2,
+    "n_fake": 2,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "associatedWith",
+      "hasAssociation"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/cftr> a biolink:Gene.\n<http://www.example.org/cftr> biolink:associatedWith biolink:Disease.\n<http://www.example.org/cftr> biolink:hasAssociation biolink:Disease.\n\nNote: The Biolink Model is a large ontology, and the classes and predicates used here are just a few examples. The actual classes and predicates used may vary depending on the specific use case and the version of the Biolink Model being used.",
+    "gene": "CFTR",
+    "disease": "cystic fibrosis"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 4,
+    "n_real": 2,
+    "n_fake": 2,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "HuntingtonDisease",
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/HTT> a biolink:Gene.\n<http://www.example.org/HTT> biolink:associatedWith biolink:Disease.\n<http://www.example.org/HTT> biolink:associatedWith biolink:HuntingtonDisease.\n\nNote: The above code is just an example and does not represent real data. The HTT gene is associated with Huntington's disease in the Biolink model.",
+    "gene": "HTT",
+    "disease": "Huntington disease"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 5,
+    "n_real": 3,
+    "n_fake": 2,
+    "term_existence_rate": 0.6,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "GeneAssociation",
+      "hasAssociation"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/FragileX> a biolink:Disease.\n<http://www.example.org/FragileX> biolink:hasAssociation biolink:Gene.\n<http://www.example.org/FragileX> biolink:hasAssociation biolink:Association.\n<http://www.example.org/FragileX> biolink:hasAssociation biolink:GeneAssociation.\n<http://www.example.org/FragileX> biolink:hasAssociation biolink:GeneAssociation.\n<http://www.example.org/FragileX> biolink:hasAssociation biolink:GeneAssociation.\n<http://www.example.org/FragileX> biolink:hasAssociation biolink:GeneAssociation.\n<http://www.examp",
+    "gene": "FMR1",
+    "disease": "fragile X syndrome"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 4,
+    "n_real": 2,
+    "n_fake": 2,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "DuchenneMuscularDystrophy",
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/DMD> a biolink:Gene.\n<http://www.example.org/DMD> biolink:associatedWith biolink:Disease.\n<http://www.example.org/DMD> biolink:associatedWith biolink:DuchenneMuscularDystrophy.\n\nNote: The Biolink Model classes and predicates used in this example are:\n\n- biolink:Gene\n- biolink:associatedWith\n- biolink:Disease\n- biolink:DuchenneMuscularDystrophy",
+    "gene": "DMD",
+    "disease": "Duchenne muscular dystrophy"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/HBB> a biolink:Gene.\n<http://www.example.org/BetaThalassemia> a biolink:Disease.\n\n<http://www.example.org/HBB> biolink:associatedWith biolink:Disease.\n<http://www.example.org/BetaThalassemia> biolink:associatedWith biolink:Gene.\n\nThis RDF asserts that the gene HBB is associated with the disease Beta Thalassemia.",
+    "gene": "HBB",
+    "disease": "beta thalassemia"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 4,
+    "n_real": 2,
+    "n_fake": 2,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "HemophiliaA",
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/F8> a biolink:Gene.\n<http://www.example.org/HemophiliaA> a biolink:Disease.\n<http://www.example.org/F8> biolink:associatedWith biolink:HemophiliaA.\n\nThis RDF asserts that the gene F8 is associated with the disease Hemophilia A.",
+    "gene": "F8",
+    "disease": "hemophilia A"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 4,
+    "n_real": 2,
+    "n_fake": 2,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "FamilialHypercholesterolemia",
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/LDLR> a biolink:Gene.\n<http://www.example.org/FamilialHypercholesterolemia> a biolink:Disease.\n\n<http://www.example.org/LDLR> biolink:associatedWith biolink:FamilialHypercholesterolemia.\n\nNote: The Biolink Model is a large ontology, and this is a very small example. In a real-world scenario, you would need to include more classes, predicates, and resources to create a complete RDF graph.",
+    "gene": "LDLR",
+    "disease": "familial hypercholesterolemia"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 4,
+    "n_real": 2,
+    "n_fake": 2,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "LynchSyndrome",
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/MLH1> a biolink:Gene.\n<http://www.example.org/LynchSyndrome> a biolink:Disease.\n\n<http://www.example.org/MLH1> biolink:associatedWith biolink:LynchSyndrome.\n\nNote: The Biolink model is a large ontology, and the above code snippet is just a small example. Also, the example URIs are fictional and for demonstration purposes only.",
+    "gene": "MLH1",
+    "disease": "Lynch syndrome"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/NF1> a biolink:Gene.\n<http://www.example.org/NeurofibromatosisType1> a biolink:Disease.\n<http://www.example.org/NF1> biolink:associatedWith <http://www.example.org/NeurofibromatosisType1>.\n\nNote: The Biolink Model is a large ontology, and this is a very simple example. In a real-world scenario, you would need to consider the relationships between the classes and predicates in the Biolink Model.",
+    "gene": "NF1",
+    "disease": "neurofibromatosis type 1"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/smn1> a biolink:Gene.\n<http://www.example.org/sma> a biolink:Disease.\n\n<http://www.example.org/smn1> biolink:associatedWith biolink:Disease.\n<http://www.example.org/sma> biolink:associatedWith biolink:Gene.\n\nThis RDF asserts that the gene SMN1 is associated with the disease Spinal Muscular Atrophy (SMA) using the Biolink Model classes and predicates.",
+    "gene": "SMN1",
+    "disease": "spinal muscular atrophy"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/gene/PAH> a biolink:Gene.\n<http://www.example.org/disease/Phenylketonuria> a biolink:Disease.\n\n<http://www.example.org/gene/PAH> biolink:associatedWith biolink:Disease.\n<http://www.example.org/disease/Phenylketonuria> biolink:associatedWith biolink:Gene.\n\nThis RDF asserts that the gene PAH is associated with the disease Phenylketonuria.",
+    "gene": "PAH",
+    "disease": "phenylketonuria"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 4,
+    "n_real": 2,
+    "n_fake": 2,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "G6PD_deficiency",
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/G6PD> a biolink:Gene.\n<http://www.example.org/G6PD_deficiency> a biolink:Disease.\n\n<http://www.example.org/G6PD> biolink:associatedWith biolink:G6PD_deficiency.\n\nThis RDF asserts that the gene G6PD is associated with the disease G6PD deficiency using the Biolink Model classes and predicates.",
+    "gene": "G6PD",
+    "disease": "G6PD deficiency"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 4,
+    "n_real": 2,
+    "n_fake": 2,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "AtaxiaTelangiectasia",
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/ATM> a biolink:Gene.\n<http://www.example.org/ATM> biolink:associatedWith biolink:Disease.\n<http://www.example.org/ATM> biolink:associatedWith biolink:AtaxiaTelangiectasia.\n\nNote: The above code is just an example and does not represent real data. The actual data would be represented as URIs.",
+    "gene": "ATM",
+    "disease": "ataxia telangiectasia"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/TSC1> a biolink:Gene.\n<http://www.example.org/TSC1> biolink:associatedWith biolink:Disease <http://www.example.org/TuberousSclerosis>.\n\nThis RDF in Turtle asserts that the gene TSC1 is associated with the disease tuberous sclerosis.",
+    "gene": "TSC1",
+    "disease": "tuberous sclerosis"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/MECP2> a biolink:Gene.\n<http://www.example.org/RettSyndrome> a biolink:Disease.\n\n<http://www.example.org/MECP2> biolink:associatedWith biolink:Disease.\n<http://www.example.org/RettSyndrome> biolink:associatedWith biolink:Gene.\n\nThis RDF asserts that the gene MECP2 is associated with the disease Rett syndrome.",
+    "gene": "MECP2",
+    "disease": "Rett syndrome"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 6,
+    "n_real": 2,
+    "n_fake": 4,
+    "term_existence_rate": 0.3333333333333333,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "GeneAssociation",
+      "NeurotransmitterGating",
+      "has_association",
+      "is_a"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/scn1a> biolink:is_a biolink:Gene.\n<http://www.example.org/scn1a> biolink:is_a biolink:NeurotransmitterGating.\n\n<http://www.example.org/dravet> biolink:is_a biolink:Disease.\n\n<http://www.example.org/dravet> biolink:has_association biolink:GeneAssociation.\n<http://www.example.org/dravet> biolink:has_association biolink:GeneAssociation.\n<http://www.example.org/dravet> biolink:has_association biolink:GeneAssociation.\n\n<http://www.example.org/dravet> biolink:has_association biolink:GeneAssociation.\n<http://www.example.org/",
+    "gene": "SCN1A",
+    "disease": "Dravet syndrome"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 1,
+    "n_real": 0,
+    "n_fake": 1,
+    "term_existence_rate": 0.0,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": false,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "isAssociatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/gene/COL1A1> biolink:isAssociatedWith <http://www.example.org/disease/OsteogenesisImperfecta>.",
+    "gene": "COL1A1",
+    "disease": "osteogenesis imperfecta"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 4,
+    "n_real": 2,
+    "n_fake": 2,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "GaucherDisease",
+      "associatedWith"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/GBA> a biolink:Gene.\n<http://www.example.org/GaucherDisease> a biolink:Disease.\n\n<http://www.example.org/GBA> biolink:associatedWith biolink:GaucherDisease.\n\nNote: The Biolink model is a large ontology, and the classes and predicates used here are just a few examples. The actual classes and predicates used may vary depending on the specific use case.",
+    "gene": "GBA",
+    "disease": "Gaucher disease"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 5,
+    "n_real": 3,
+    "n_fake": 2,
+    "term_existence_rate": 0.6,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "associatedWith",
+      "hasAssociation"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/HFE> a biolink:Gene.\n<http://www.example.org/HFE> biolink:associatedWith biolink:Disease <http://www.example.org/HereditaryHemochromatosis>.\nbiolink:hasAssociation biolink:Association <http://www.example.org/HFE> <http://www.example.org/HereditaryHemochromatosis>.\nbiolink:hasAssociation biolink:Association <http://www.example.org/HereditaryHemochromatosis> <http://www.example.org/HFE>.",
+    "gene": "HFE",
+    "disease": "hereditary hemochromatosis"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 5,
+    "n_real": 2,
+    "n_fake": 3,
+    "term_existence_rate": 0.4,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "associatedWith",
+      "hasDisease",
+      "polycysticKidneyDisease"
+    ],
+    "output": "@prefix biolink: <https://w3id.org/biolink/vocab/>.\n\n<http://www.example.org/pkd1> a biolink:Gene.\n<http://www.example.org/pkd1> biolink:associatedWith biolink:Disease.\n<http://www.example.org/pkd1> biolink:hasDisease biolink:polycysticKidneyDisease.\n\nNote: The Biolink Model classes and predicates used in this example are:\n\n- biolink:Gene\n- biolink:associatedWith\n- biolink:hasDisease\n- biolink:Disease\n- biolink:polycysticKidneyDisease",
+    "gene": "PKD1",
+    "disease": "polycystic kidney disease"
+  }
+]

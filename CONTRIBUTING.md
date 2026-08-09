@@ -79,6 +79,17 @@ The codebase is organized into domain modules under `src/`:
 - Update CHANGELOG.md for user-facing changes
 - CI must pass (build, test, clippy, audit)
 
+## Releasing
+
+Releases are cut from tags and their GitHub release notes are populated automatically from CHANGELOG.md. The convention:
+
+1. Add the CHANGELOG.md entry for the new version first. Both heading formats in use are recognized by the automation: `## X.Y.Z - YYYY-MM-DD` (bare version) and `## [X.Y.Z] - YYYY-MM-DD` (bracketed version).
+2. Bump `version` in `Cargo.toml` to the same `X.Y.Z` and commit both changes together.
+3. Tag that commit: `git tag vX.Y.Z` (the tag carries the leading `v`; the CHANGELOG heading does not need one).
+4. Push the tag: `git push origin vX.Y.Z`.
+
+Pushing the tag fires `.github/workflows/release.yml`, which builds the binaries, extracts the matching CHANGELOG section via `scripts/extract-changelog.sh`, and publishes the release with that section as the body. If no matching section exists, the release still publishes with an empty body, so check the heading version matches the tag before pushing.
+
 ## Code Style
 
 - Follow standard Rust conventions (rustfmt defaults)

@@ -1,0 +1,2869 @@
+@prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
+@prefix onm: <https://ontology.tesseract.academy/modip/objectnames/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+onm:3d-printing a crm:E55_Type ;
+    rdfs:label "3D printing"@en .
+
+onm:3d-puzzle a crm:E55_Type ;
+    rdfs:label "3D puzzle"@en .
+
+onm:8-track-cartridge a crm:E55_Type ;
+    rdfs:label "8-track cartridge"@en .
+
+onm:a-line-skirt a crm:E55_Type ;
+    rdfs:label "A-line skirt"@en .
+
+onm:accessory-set a crm:E55_Type ;
+    rdfs:label "accessory set"@en .
+
+onm:action-figure a crm:E55_Type ;
+    rdfs:label "action figure"@en .
+
+onm:activity-game a crm:E55_Type ;
+    rdfs:label "activity game"@en .
+
+onm:activity-toy a crm:E55_Type ;
+    rdfs:label "activity toy"@en .
+
+onm:address-book a crm:E55_Type ;
+    rdfs:label "address book"@en .
+
+onm:advert a crm:E55_Type ;
+    rdfs:label "advert"@en .
+
+onm:advertising a crm:E55_Type ;
+    rdfs:label "advertising"@en .
+
+onm:aerial a crm:E55_Type ;
+    rdfs:label "aerial"@en .
+
+onm:air-freshener a crm:E55_Type ;
+    rdfs:label "air freshener"@en .
+
+onm:aircraft a crm:E55_Type ;
+    rdfs:label "aircraft"@en .
+
+onm:alarm a crm:E55_Type ;
+    rdfs:label "alarm"@en .
+
+onm:alarm-clock a crm:E55_Type ;
+    rdfs:label "alarm clock"@en .
+
+onm:album a crm:E55_Type ;
+    rdfs:label "album"@en .
+
+onm:amplifier a crm:E55_Type ;
+    rdfs:label "amplifier"@en .
+
+onm:animal a crm:E55_Type ;
+    rdfs:label "animal"@en .
+
+onm:annual a crm:E55_Type ;
+    rdfs:label "annual"@en .
+
+onm:answer-machine a crm:E55_Type ;
+    rdfs:label "answer machine"@en .
+
+onm:appliance-accessory a crm:E55_Type ;
+    rdfs:label "appliance accessory"@en .
+
+onm:apron a crm:E55_Type ;
+    rdfs:label "apron"@en .
+
+onm:art-and-design-in-general a crm:E55_Type ;
+    rdfs:label "art and design in general"@en .
+
+onm:art-equipment a crm:E55_Type ;
+    rdfs:label "art equipment"@en .
+
+onm:art-product a crm:E55_Type ;
+    rdfs:label "art product"@en .
+
+onm:ashtray a crm:E55_Type ;
+    rdfs:label "ashtray"@en .
+
+onm:audible-stimulation a crm:E55_Type ;
+    rdfs:label "audible stimulation"@en .
+
+onm:audio-accessory a crm:E55_Type ;
+    rdfs:label "audio accessory"@en .
+
+onm:audio-equipment-or-component a crm:E55_Type ;
+    rdfs:label "audio equipment or component"@en .
+
+onm:audio-recording a crm:E55_Type ;
+    rdfs:label "audio recording"@en .
+
+onm:audio-visual-accessory a crm:E55_Type ;
+    rdfs:label "audio visual accessory"@en .
+
+onm:audio-visual-accessory-kit a crm:E55_Type ;
+    rdfs:label "audio visual accessory kit"@en .
+
+onm:audio-visual-company-merchandise a crm:E55_Type ;
+    rdfs:label "audio visual company merchandise"@en .
+
+onm:automatic-button-attacher a crm:E55_Type ;
+    rdfs:label "automatic button attacher"@en .
+
+onm:automatic-dish-siphon a crm:E55_Type ;
+    rdfs:label "automatic dish siphon"@en .
+
+onm:baby-and-child-care a crm:E55_Type ;
+    rdfs:label "baby and child care"@en .
+
+onm:baby-and-pre-school-toys a crm:E55_Type ;
+    rdfs:label "baby and pre-school toys"@en .
+
+onm:baby-doll a crm:E55_Type ;
+    rdfs:label "baby doll"@en .
+
+onm:backpack a crm:E55_Type ;
+    rdfs:label "backpack"@en .
+
+onm:bag a crm:E55_Type ;
+    rdfs:label "bag"@en .
+
+onm:baking-equipment a crm:E55_Type ;
+    rdfs:label "baking equipment"@en .
+
+onm:ball a crm:E55_Type ;
+    rdfs:label "ball"@en .
+
+onm:bank-and-finance-company-merchandise a crm:E55_Type ;
+    rdfs:label "bank and finance company merchandise"@en .
+
+onm:basket a crm:E55_Type ;
+    rdfs:label "basket"@en .
+
+onm:bath a crm:E55_Type ;
+    rdfs:label "bath"@en .
+
+onm:bath-brush a crm:E55_Type ;
+    rdfs:label "bath brush"@en .
+
+onm:bath-toy a crm:E55_Type ;
+    rdfs:label "bath toy"@en .
+
+onm:bathing-equipment a crm:E55_Type ;
+    rdfs:label "bathing equipment"@en .
+
+onm:bathroom-accessory a crm:E55_Type ;
+    rdfs:label "bathroom accessory"@en .
+
+onm:beach-toy a crm:E55_Type ;
+    rdfs:label "beach toy"@en .
+
+onm:beaker a crm:E55_Type ;
+    rdfs:label "beaker"@en .
+
+onm:beauty-accessory a crm:E55_Type ;
+    rdfs:label "beauty accessory"@en .
+
+onm:beauty-kit a crm:E55_Type ;
+    rdfs:label "beauty kit"@en .
+
+onm:bed-jacket a crm:E55_Type ;
+    rdfs:label "bed jacket"@en .
+
+onm:bed-warmer a crm:E55_Type ;
+    rdfs:label "bed warmer"@en .
+
+onm:bedding a crm:E55_Type ;
+    rdfs:label "bedding"@en .
+
+onm:bedtime-equipment a crm:E55_Type ;
+    rdfs:label "bedtime equipment"@en .
+
+onm:belt a crm:E55_Type ;
+    rdfs:label "belt"@en .
+
+onm:beverage-accessory a crm:E55_Type ;
+    rdfs:label "beverage accessory"@en .
+
+onm:beverage-equipment a crm:E55_Type ;
+    rdfs:label "beverage equipment"@en .
+
+onm:bicycle-part a crm:E55_Type ;
+    rdfs:label "bicycle part"@en .
+
+onm:bin a crm:E55_Type ;
+    rdfs:label "bin"@en .
+
+onm:biodegradable a crm:E55_Type ;
+    rdfs:label "biodegradable"@en .
+
+onm:biodegradable-material a crm:E55_Type ;
+    rdfs:label "biodegradable material"@en .
+
+onm:bioplastic a crm:E55_Type ;
+    rdfs:label "bioplastic"@en .
+
+onm:biscuit-container a crm:E55_Type ;
+    rdfs:label "biscuit container"@en .
+
+onm:blanket a crm:E55_Type ;
+    rdfs:label "blanket"@en .
+
+onm:blocks a crm:E55_Type ;
+    rdfs:label "blocks"@en .
+
+onm:blouse a crm:E55_Type ;
+    rdfs:label "blouse"@en .
+
+onm:blow-moulding a crm:E55_Type ;
+    rdfs:label "blow moulding"@en .
+
+onm:board a crm:E55_Type ;
+    rdfs:label "board"@en .
+
+onm:board-game a crm:E55_Type ;
+    rdfs:label "board game"@en .
+
+onm:bodice a crm:E55_Type ;
+    rdfs:label "bodice"@en .
+
+onm:body-armour a crm:E55_Type ;
+    rdfs:label "body armour"@en .
+
+onm:body-support a crm:E55_Type ;
+    rdfs:label "body support"@en .
+
+onm:bodysuit a crm:E55_Type ;
+    rdfs:label "bodysuit"@en .
+
+onm:bolero a crm:E55_Type ;
+    rdfs:label "bolero"@en .
+
+onm:boob-tube a crm:E55_Type ;
+    rdfs:label "boob-tube"@en .
+
+onm:book a crm:E55_Type ;
+    rdfs:label "book"@en .
+
+onm:book-rack a crm:E55_Type ;
+    rdfs:label "book rack"@en .
+
+onm:booklet a crm:E55_Type ;
+    rdfs:label "booklet"@en .
+
+onm:bookmark a crm:E55_Type ;
+    rdfs:label "bookmark"@en .
+
+onm:boots a crm:E55_Type ;
+    rdfs:label "boots"@en .
+
+onm:bottle a crm:E55_Type ;
+    rdfs:label "bottle"@en .
+
+onm:bowl a crm:E55_Type ;
+    rdfs:label "bowl"@en .
+
+onm:box a crm:E55_Type ;
+    rdfs:label "box"@en .
+
+onm:bra a crm:E55_Type ;
+    rdfs:label "bra"@en .
+
+onm:bracelet a crm:E55_Type ;
+    rdfs:label "bracelet"@en .
+
+onm:brake-pad a crm:E55_Type ;
+    rdfs:label "brake pad"@en .
+
+onm:bread-bin a crm:E55_Type ;
+    rdfs:label "bread bin"@en .
+
+onm:bricks a crm:E55_Type ;
+    rdfs:label "bricks"@en .
+
+onm:bridesmaid-dress a crm:E55_Type ;
+    rdfs:label "bridesmaid dress"@en .
+
+onm:brochure a crm:E55_Type ;
+    rdfs:label "brochure"@en .
+
+onm:brooch a crm:E55_Type ;
+    rdfs:label "brooch"@en .
+
+onm:brush a crm:E55_Type ;
+    rdfs:label "brush"@en .
+
+onm:bucket a crm:E55_Type ;
+    rdfs:label "bucket"@en .
+
+onm:buckle a crm:E55_Type ;
+    rdfs:label "buckle"@en .
+
+onm:building a crm:E55_Type ;
+    rdfs:label "building"@en .
+
+onm:building-material a crm:E55_Type ;
+    rdfs:label "building material"@en .
+
+onm:building-process a crm:E55_Type ;
+    rdfs:label "building process"@en .
+
+onm:building-services a crm:E55_Type ;
+    rdfs:label "building services"@en .
+
+onm:business-and-administration-staff a crm:E55_Type ;
+    rdfs:label "business and administration staff"@en .
+
+onm:business-card-holder a crm:E55_Type ;
+    rdfs:label "business card holder"@en .
+
+onm:butter-dish a crm:E55_Type ;
+    rdfs:label "butter dish"@en .
+
+onm:button a crm:E55_Type ;
+    rdfs:label "button"@en .
+
+onm:cable a crm:E55_Type ;
+    rdfs:label "cable"@en .
+
+onm:cable-collar a crm:E55_Type ;
+    rdfs:label "cable collar"@en .
+
+onm:cable-tidy a crm:E55_Type ;
+    rdfs:label "cable tidy"@en .
+
+onm:cake-container a crm:E55_Type ;
+    rdfs:label "cake container"@en .
+
+onm:cake-stand a crm:E55_Type ;
+    rdfs:label "cake stand"@en .
+
+onm:calculator a crm:E55_Type ;
+    rdfs:label "calculator"@en .
+
+onm:calendar a crm:E55_Type ;
+    rdfs:label "calendar"@en .
+
+onm:camera a crm:E55_Type ;
+    rdfs:label "camera"@en .
+
+onm:camera-case a crm:E55_Type ;
+    rdfs:label "camera case"@en .
+
+onm:campaign-related-material a crm:E55_Type ;
+    rdfs:label "campaign related material"@en .
+
+onm:camping-equipment a crm:E55_Type ;
+    rdfs:label "camping equipment"@en .
+
+onm:can a crm:E55_Type ;
+    rdfs:label "can"@en .
+
+onm:candle-holder a crm:E55_Type ;
+    rdfs:label "candle holder"@en .
+
+onm:cape a crm:E55_Type ;
+    rdfs:label "cape"@en .
+
+onm:car a crm:E55_Type ;
+    rdfs:label "car"@en .
+
+onm:car-phone a crm:E55_Type ;
+    rdfs:label "car phone"@en .
+
+onm:carafe a crm:E55_Type ;
+    rdfs:label "carafe"@en .
+
+onm:card a crm:E55_Type ;
+    rdfs:label "card"@en .
+
+onm:cardigan a crm:E55_Type ;
+    rdfs:label "cardigan"@en .
+
+onm:carpet-sweeper a crm:E55_Type ;
+    rdfs:label "carpet sweeper"@en .
+
+onm:carrier a crm:E55_Type ;
+    rdfs:label "carrier"@en .
+
+onm:carton a crm:E55_Type ;
+    rdfs:label "carton"@en .
+
+onm:cartridge a crm:E55_Type ;
+    rdfs:label "cartridge"@en .
+
+onm:case a crm:E55_Type ;
+    rdfs:label "case"@en .
+
+onm:cassette-player a crm:E55_Type ;
+    rdfs:label "cassette player"@en .
+
+onm:cassette-tape a crm:E55_Type ;
+    rdfs:label "cassette tape"@en .
+
+onm:cassette-tape-storage a crm:E55_Type ;
+    rdfs:label "cassette tape storage"@en .
+
+onm:caster-holder a crm:E55_Type ;
+    rdfs:label "caster holder"@en .
+
+onm:casting a crm:E55_Type ;
+    rdfs:label "casting"@en .
+
+onm:casual-jacket a crm:E55_Type ;
+    rdfs:label "casual jacket"@en .
+
+onm:catalogue a crm:E55_Type ;
+    rdfs:label "catalogue"@en .
+
+onm:cd a crm:E55_Type ;
+    rdfs:label "CD"@en .
+
+onm:cd-player a crm:E55_Type ;
+    rdfs:label "CD player"@en .
+
+onm:cd-storage a crm:E55_Type ;
+    rdfs:label "CD storage"@en .
+
+onm:ceremonial-wear a crm:E55_Type ;
+    rdfs:label "ceremonial wear"@en .
+
+onm:chair a crm:E55_Type ;
+    rdfs:label "chair"@en .
+
+onm:character-doll a crm:E55_Type ;
+    rdfs:label "character doll"@en .
+
+onm:charity-product a crm:E55_Type ;
+    rdfs:label "charity product"@en .
+
+onm:cheese-board a crm:E55_Type ;
+    rdfs:label "cheese board"@en .
+
+onm:cheese-dish a crm:E55_Type ;
+    rdfs:label "cheese dish"@en .
+
+onm:child-development a crm:E55_Type ;
+    rdfs:label "child development"@en .
+
+onm:chopping-board a crm:E55_Type ;
+    rdfs:label "chopping board"@en .
+
+onm:christmas a crm:E55_Type ;
+    rdfs:label "christmas"@en .
+
+onm:cigarette-container a crm:E55_Type ;
+    rdfs:label "cigarette container"@en .
+
+onm:cigarette-holder a crm:E55_Type ;
+    rdfs:label "cigarette holder"@en .
+
+onm:cigarette-packet a crm:E55_Type ;
+    rdfs:label "cigarette packet"@en .
+
+onm:cine-projector a crm:E55_Type ;
+    rdfs:label "cine projector"@en .
+
+onm:circuit-board a crm:E55_Type ;
+    rdfs:label "circuit board"@en .
+
+onm:clip a crm:E55_Type ;
+    rdfs:label "clip"@en .
+
+onm:clippings a crm:E55_Type ;
+    rdfs:label "clippings"@en .
+
+onm:clock a crm:E55_Type ;
+    rdfs:label "clock"@en .
+
+onm:clothes-brush a crm:E55_Type ;
+    rdfs:label "clothes brush"@en .
+
+onm:clothes-hanger a crm:E55_Type ;
+    rdfs:label "clothes hanger"@en .
+
+onm:clothes-peg a crm:E55_Type ;
+    rdfs:label "clothes peg"@en .
+
+onm:clothing a crm:E55_Type ;
+    rdfs:label "clothing"@en .
+
+onm:clothing-care a crm:E55_Type ;
+    rdfs:label "clothing care"@en .
+
+onm:clothing-company-merchandise a crm:E55_Type ;
+    rdfs:label "clothing company merchandise"@en .
+
+onm:coaster a crm:E55_Type ;
+    rdfs:label "coaster"@en .
+
+onm:coat a crm:E55_Type ;
+    rdfs:label "coat"@en .
+
+onm:coat-hanger a crm:E55_Type ;
+    rdfs:label "coat hanger"@en .
+
+onm:coat-rack a crm:E55_Type ;
+    rdfs:label "coat rack"@en .
+
+onm:coating a crm:E55_Type ;
+    rdfs:label "coating"@en .
+
+onm:cocktail-accessory a crm:E55_Type ;
+    rdfs:label "cocktail accessory"@en .
+
+onm:cocktail-shaker a crm:E55_Type ;
+    rdfs:label "cocktail shaker"@en .
+
+onm:coffee-maker a crm:E55_Type ;
+    rdfs:label "coffee maker"@en .
+
+onm:coffee-pot a crm:E55_Type ;
+    rdfs:label "coffee pot"@en .
+
+onm:coffee-set a crm:E55_Type ;
+    rdfs:label "coffee set"@en .
+
+onm:colander a crm:E55_Type ;
+    rdfs:label "colander"@en .
+
+onm:collar a crm:E55_Type ;
+    rdfs:label "collar"@en .
+
+onm:collar-studs a crm:E55_Type ;
+    rdfs:label "collar studs"@en .
+
+onm:collectable a crm:E55_Type ;
+    rdfs:label "collectable"@en .
+
+onm:collection-care a crm:E55_Type ;
+    rdfs:label "collection care"@en .
+
+onm:comb a crm:E55_Type ;
+    rdfs:label "comb"@en .
+
+onm:comic a crm:E55_Type ;
+    rdfs:label "comic"@en .
+
+onm:commemorative-souvenir a crm:E55_Type ;
+    rdfs:label "commemorative souvenir"@en .
+
+onm:communication a crm:E55_Type ;
+    rdfs:label "communication"@en .
+
+onm:communications-equipment a crm:E55_Type ;
+    rdfs:label "communications equipment"@en .
+
+onm:company-document a crm:E55_Type ;
+    rdfs:label "company document"@en .
+
+onm:company-related-merchandise a crm:E55_Type ;
+    rdfs:label "company related merchandise"@en .
+
+onm:component a crm:E55_Type ;
+    rdfs:label "component"@en .
+
+onm:compression-moulding a crm:E55_Type ;
+    rdfs:label "compression moulding"@en .
+
+onm:computer a crm:E55_Type ;
+    rdfs:label "computer"@en .
+
+onm:computer-accessory a crm:E55_Type ;
+    rdfs:label "computer accessory"@en .
+
+onm:computer-game a crm:E55_Type ;
+    rdfs:label "computer game"@en .
+
+onm:computer-hardware a crm:E55_Type ;
+    rdfs:label "computer hardware"@en .
+
+onm:computer-software a crm:E55_Type ;
+    rdfs:label "computer software"@en .
+
+onm:computing-company-merchandise a crm:E55_Type ;
+    rdfs:label "computing company merchandise"@en .
+
+onm:confectionery-packaging a crm:E55_Type ;
+    rdfs:label "confectionery packaging"@en .
+
+onm:connector a crm:E55_Type ;
+    rdfs:label "connector"@en .
+
+onm:construction-toy a crm:E55_Type ;
+    rdfs:label "construction toy"@en .
+
+onm:contact-lens a crm:E55_Type ;
+    rdfs:label "contact lens"@en .
+
+onm:container a crm:E55_Type ;
+    rdfs:label "container"@en .
+
+onm:controller a crm:E55_Type ;
+    rdfs:label "controller"@en .
+
+onm:cooker a crm:E55_Type ;
+    rdfs:label "cooker"@en .
+
+onm:cool-box a crm:E55_Type ;
+    rdfs:label "cool box"@en .
+
+onm:corporate-publication a crm:E55_Type ;
+    rdfs:label "corporate publication"@en .
+
+onm:correction-device a crm:E55_Type ;
+    rdfs:label "correction device"@en .
+
+onm:correspondence a crm:E55_Type ;
+    rdfs:label "correspondence"@en .
+
+onm:cosmetic-case a crm:E55_Type ;
+    rdfs:label "cosmetic case"@en .
+
+onm:cosmetics-bag a crm:E55_Type ;
+    rdfs:label "cosmetics bag"@en .
+
+onm:cosmetics-packaging a crm:E55_Type ;
+    rdfs:label "cosmetics packaging"@en .
+
+onm:cover a crm:E55_Type ;
+    rdfs:label "cover"@en .
+
+onm:coverall a crm:E55_Type ;
+    rdfs:label "coverall"@en .
+
+onm:craft-set a crm:E55_Type ;
+    rdfs:label "craft set"@en .
+
+onm:crate a crm:E55_Type ;
+    rdfs:label "crate"@en .
+
+onm:cream-maker a crm:E55_Type ;
+    rdfs:label "cream maker"@en .
+
+onm:creative-play a crm:E55_Type ;
+    rdfs:label "creative play"@en .
+
+onm:cruet a crm:E55_Type ;
+    rdfs:label "cruet"@en .
+
+onm:cuff a crm:E55_Type ;
+    rdfs:label "cuff"@en .
+
+onm:cuff-links a crm:E55_Type ;
+    rdfs:label "cuff links"@en .
+
+onm:culture-society-and-politics a crm:E55_Type ;
+    rdfs:label "culture, society, and politics"@en .
+
+onm:cup a crm:E55_Type ;
+    rdfs:label "cup"@en .
+
+onm:cup-and-saucer a crm:E55_Type ;
+    rdfs:label "cup and saucer"@en .
+
+onm:current-affairs a crm:E55_Type ;
+    rdfs:label "current affairs"@en .
+
+onm:current-affairs-magazine a crm:E55_Type ;
+    rdfs:label "current affairs magazine"@en .
+
+onm:cutlery a crm:E55_Type ;
+    rdfs:label "cutlery"@en .
+
+onm:cutting a crm:E55_Type ;
+    rdfs:label "cutting"@en .
+
+onm:darkroom-equipment a crm:E55_Type ;
+    rdfs:label "darkroom equipment"@en .
+
+onm:darning-aid a crm:E55_Type ;
+    rdfs:label "darning aid"@en .
+
+onm:data-cassette-recorder a crm:E55_Type ;
+    rdfs:label "data cassette recorder"@en .
+
+onm:day-dress a crm:E55_Type ;
+    rdfs:label "day dress"@en .
+
+onm:delivery a crm:E55_Type ;
+    rdfs:label "delivery"@en .
+
+onm:dental-equipment a crm:E55_Type ;
+    rdfs:label "dental equipment"@en .
+
+onm:dental-floss a crm:E55_Type ;
+    rdfs:label "dental floss"@en .
+
+onm:denture-box a crm:E55_Type ;
+    rdfs:label "denture box"@en .
+
+onm:design-artwork a crm:E55_Type ;
+    rdfs:label "design artwork"@en .
+
+onm:design-company-merchandise a crm:E55_Type ;
+    rdfs:label "design company merchandise"@en .
+
+onm:design-equipment a crm:E55_Type ;
+    rdfs:label "design equipment"@en .
+
+onm:designer-made-work a crm:E55_Type ;
+    rdfs:label "designer made work"@en .
+
+onm:designer-toy a crm:E55_Type ;
+    rdfs:label "designer toy"@en .
+
+onm:desk-set a crm:E55_Type ;
+    rdfs:label "desk set"@en .
+
+onm:desk-sponge-moistener a crm:E55_Type ;
+    rdfs:label "desk sponge moistener"@en .
+
+onm:desk-tidy a crm:E55_Type ;
+    rdfs:label "desk tidy"@en .
+
+onm:developer-bottle a crm:E55_Type ;
+    rdfs:label "developer bottle"@en .
+
+onm:developing-tank a crm:E55_Type ;
+    rdfs:label "developing tank"@en .
+
+onm:developing-tray a crm:E55_Type ;
+    rdfs:label "developing tray"@en .
+
+onm:dictation-machine a crm:E55_Type ;
+    rdfs:label "dictation machine"@en .
+
+onm:digital-camera a crm:E55_Type ;
+    rdfs:label "digital camera"@en .
+
+onm:dish a crm:E55_Type ;
+    rdfs:label "dish"@en .
+
+onm:dispenser a crm:E55_Type ;
+    rdfs:label "dispenser"@en .
+
+onm:disposable a crm:E55_Type ;
+    rdfs:label "disposable"@en .
+
+onm:diy a crm:E55_Type ;
+    rdfs:label "DIY"@en .
+
+onm:document a crm:E55_Type ;
+    rdfs:label "document"@en .
+
+onm:dolls-and-accessories a crm:E55_Type ;
+    rdfs:label "dolls and accessories"@en .
+
+onm:door-furniture a crm:E55_Type ;
+    rdfs:label "door furniture"@en .
+
+onm:doorstop a crm:E55_Type ;
+    rdfs:label "doorstop"@en .
+
+onm:drainage-pipe a crm:E55_Type ;
+    rdfs:label "drainage pipe"@en .
+
+onm:drainage-services a crm:E55_Type ;
+    rdfs:label "drainage services"@en .
+
+onm:drainer a crm:E55_Type ;
+    rdfs:label "drainer"@en .
+
+onm:drawing-instrument a crm:E55_Type ;
+    rdfs:label "drawing instrument"@en .
+
+onm:drawing-pin a crm:E55_Type ;
+    rdfs:label "drawing pin"@en .
+
+onm:dress a crm:E55_Type ;
+    rdfs:label "dress"@en .
+
+onm:dress-up a crm:E55_Type ;
+    rdfs:label "dress-up"@en .
+
+onm:dressmakers-mannequin a crm:E55_Type ;
+    rdfs:label "dressmakers mannequin"@en .
+
+onm:dressmaking-and-needlework a crm:E55_Type ;
+    rdfs:label "dressmaking and needlework"@en .
+
+onm:drinking-water-aid a crm:E55_Type ;
+    rdfs:label "drinking water aid"@en .
+
+onm:drinks-container a crm:E55_Type ;
+    rdfs:label "drinks container"@en .
+
+onm:drying-aid a crm:E55_Type ;
+    rdfs:label "drying aid"@en .
+
+onm:dustpan a crm:E55_Type ;
+    rdfs:label "dustpan"@en .
+
+onm:ear-cleaning-set a crm:E55_Type ;
+    rdfs:label "ear-cleaning set"@en .
+
+onm:earrings a crm:E55_Type ;
+    rdfs:label "earrings"@en .
+
+onm:editing-equipment a crm:E55_Type ;
+    rdfs:label "editing equipment"@en .
+
+onm:education a crm:E55_Type ;
+    rdfs:label "education"@en .
+
+onm:educational-toy a crm:E55_Type ;
+    rdfs:label "educational toy"@en .
+
+onm:egg-cooker a crm:E55_Type ;
+    rdfs:label "egg cooker"@en .
+
+onm:egg-cup a crm:E55_Type ;
+    rdfs:label "egg cup"@en .
+
+onm:egg-separator a crm:E55_Type ;
+    rdfs:label "egg separator"@en .
+
+onm:electrical-connector a crm:E55_Type ;
+    rdfs:label "electrical connector"@en .
+
+onm:electrical-services a crm:E55_Type ;
+    rdfs:label "electrical services"@en .
+
+onm:electrolysis-machine a crm:E55_Type ;
+    rdfs:label "electrolysis machine"@en .
+
+onm:electronic-game a crm:E55_Type ;
+    rdfs:label "electronic game"@en .
+
+onm:emailer a crm:E55_Type ;
+    rdfs:label "emailer"@en .
+
+onm:embroidery a crm:E55_Type ;
+    rdfs:label "embroidery"@en .
+
+onm:employees a crm:E55_Type ;
+    rdfs:label "employees"@en .
+
+onm:environmental-materials a crm:E55_Type ;
+    rdfs:label "environmental materials"@en .
+
+onm:environmental-products a crm:E55_Type ;
+    rdfs:label "environmental products"@en .
+
+onm:environmental-protection a crm:E55_Type ;
+    rdfs:label "environmental protection"@en .
+
+onm:ephemera a crm:E55_Type ;
+    rdfs:label "ephemera"@en .
+
+onm:equipment a crm:E55_Type ;
+    rdfs:label "equipment"@en .
+
+onm:equipment-accessory a crm:E55_Type ;
+    rdfs:label "equipment accessory"@en .
+
+onm:equipment-surface a crm:E55_Type ;
+    rdfs:label "equipment surface"@en .
+
+onm:eraser a crm:E55_Type ;
+    rdfs:label "eraser"@en .
+
+onm:evening-dress a crm:E55_Type ;
+    rdfs:label "evening dress"@en .
+
+onm:event-souvenir a crm:E55_Type ;
+    rdfs:label "event souvenir"@en .
+
+onm:exterior a crm:E55_Type ;
+    rdfs:label "exterior"@en .
+
+onm:external-disk-drive a crm:E55_Type ;
+    rdfs:label "external disk drive"@en .
+
+onm:external-hard-drive a crm:E55_Type ;
+    rdfs:label "external hard drive"@en .
+
+onm:extrusion a crm:E55_Type ;
+    rdfs:label "extrusion"@en .
+
+onm:eye-protection a crm:E55_Type ;
+    rdfs:label "eye protection"@en .
+
+onm:eyewear a crm:E55_Type ;
+    rdfs:label "eyewear"@en .
+
+onm:fabric a crm:E55_Type ;
+    rdfs:label "fabric"@en .
+
+onm:fabrication a crm:E55_Type ;
+    rdfs:label "fabrication"@en .
+
+onm:fairy-lights a crm:E55_Type ;
+    rdfs:label "fairy lights"@en .
+
+onm:fan a crm:E55_Type ;
+    rdfs:label "fan"@en .
+
+onm:fashion a crm:E55_Type ;
+    rdfs:label "fashion"@en .
+
+onm:fashion-and-costume-accessory a crm:E55_Type ;
+    rdfs:label "fashion and costume accessory"@en .
+
+onm:fashion-doll a crm:E55_Type ;
+    rdfs:label "fashion doll"@en .
+
+onm:fastening a crm:E55_Type ;
+    rdfs:label "fastening"@en .
+
+onm:fax-machine a crm:E55_Type ;
+    rdfs:label "fax machine"@en .
+
+onm:feeding-equipment a crm:E55_Type ;
+    rdfs:label "feeding equipment"@en .
+
+onm:feminine-hygiene a crm:E55_Type ;
+    rdfs:label "feminine hygiene"@en .
+
+onm:figurine a crm:E55_Type ;
+    rdfs:label "figurine"@en .
+
+onm:film a crm:E55_Type ;
+    rdfs:label "film"@en .
+
+onm:film-and-television-merchandise a crm:E55_Type ;
+    rdfs:label "film and television merchandise"@en .
+
+onm:film-camera a crm:E55_Type ;
+    rdfs:label "film camera"@en .
+
+onm:film-editor a crm:E55_Type ;
+    rdfs:label "film editor"@en .
+
+onm:fine-motor-skills a crm:E55_Type ;
+    rdfs:label "fine motor skills"@en .
+
+onm:fins a crm:E55_Type ;
+    rdfs:label "fins"@en .
+
+onm:fire-engine a crm:E55_Type ;
+    rdfs:label "fire engine"@en .
+
+onm:first-aid a crm:E55_Type ;
+    rdfs:label "first aid"@en .
+
+onm:fishing-accessory a crm:E55_Type ;
+    rdfs:label "fishing accessory"@en .
+
+onm:fishing-equipment a crm:E55_Type ;
+    rdfs:label "fishing equipment"@en .
+
+onm:fixtures-and-fittings a crm:E55_Type ;
+    rdfs:label "fixtures and fittings"@en .
+
+onm:flash-bulb a crm:E55_Type ;
+    rdfs:label "flash bulb"@en .
+
+onm:flash-unit a crm:E55_Type ;
+    rdfs:label "flash unit"@en .
+
+onm:flask a crm:E55_Type ;
+    rdfs:label "flask"@en .
+
+onm:flight-kit a crm:E55_Type ;
+    rdfs:label "flight kit"@en .
+
+onm:flood-defence a crm:E55_Type ;
+    rdfs:label "flood defence"@en .
+
+onm:floor-covering a crm:E55_Type ;
+    rdfs:label "floor covering"@en .
+
+onm:floor-polisher a crm:E55_Type ;
+    rdfs:label "floor polisher"@en .
+
+onm:floppy-disk a crm:E55_Type ;
+    rdfs:label "floppy disk"@en .
+
+onm:flower a crm:E55_Type ;
+    rdfs:label "flower"@en .
+
+onm:fly-swat a crm:E55_Type ;
+    rdfs:label "fly swat"@en .
+
+onm:food-and-drink a crm:E55_Type ;
+    rdfs:label "food and drink"@en .
+
+onm:food-and-drink-merchandise a crm:E55_Type ;
+    rdfs:label "food and drink merchandise"@en .
+
+onm:food-and-drink-packaging a crm:E55_Type ;
+    rdfs:label "food and drink packaging"@en .
+
+onm:food-and-drink-product a crm:E55_Type ;
+    rdfs:label "food and drink product"@en .
+
+onm:food-basket a crm:E55_Type ;
+    rdfs:label "food basket"@en .
+
+onm:food-chopper a crm:E55_Type ;
+    rdfs:label "food chopper"@en .
+
+onm:food-container a crm:E55_Type ;
+    rdfs:label "food container"@en .
+
+onm:food-crusher a crm:E55_Type ;
+    rdfs:label "food crusher"@en .
+
+onm:food-grater a crm:E55_Type ;
+    rdfs:label "food grater"@en .
+
+onm:food-industry-equipment a crm:E55_Type ;
+    rdfs:label "food industry equipment"@en .
+
+onm:food-mincer a crm:E55_Type ;
+    rdfs:label "food mincer"@en .
+
+onm:food-processor a crm:E55_Type ;
+    rdfs:label "food processor"@en .
+
+onm:food-slicer a crm:E55_Type ;
+    rdfs:label "food slicer"@en .
+
+onm:food-storage a crm:E55_Type ;
+    rdfs:label "food storage"@en .
+
+onm:footwear a crm:E55_Type ;
+    rdfs:label "footwear"@en .
+
+onm:footwear-accessory a crm:E55_Type ;
+    rdfs:label "footwear accessory"@en .
+
+onm:footwear-shaper a crm:E55_Type ;
+    rdfs:label "footwear shaper"@en .
+
+onm:fork a crm:E55_Type ;
+    rdfs:label "fork"@en .
+
+onm:formal-jacket a crm:E55_Type ;
+    rdfs:label "formal jacket"@en .
+
+onm:foundation-garment a crm:E55_Type ;
+    rdfs:label "foundation garment"@en .
+
+onm:frame a crm:E55_Type ;
+    rdfs:label "frame"@en .
+
+onm:fridge-magnet a crm:E55_Type ;
+    rdfs:label "fridge magnet"@en .
+
+onm:frisbee a crm:E55_Type ;
+    rdfs:label "frisbee"@en .
+
+onm:fruit a crm:E55_Type ;
+    rdfs:label "fruit"@en .
+
+onm:fryer a crm:E55_Type ;
+    rdfs:label "fryer"@en .
+
+onm:furniture a crm:E55_Type ;
+    rdfs:label "furniture"@en .
+
+onm:furniture-and-furnishing a crm:E55_Type ;
+    rdfs:label "furniture and furnishing"@en .
+
+onm:fuse-box a crm:E55_Type ;
+    rdfs:label "fuse box"@en .
+
+onm:games-and-accessories a crm:E55_Type ;
+    rdfs:label "games and accessories"@en .
+
+onm:gaming-merchandise a crm:E55_Type ;
+    rdfs:label "gaming merchandise"@en .
+
+onm:gaming-pieces a crm:E55_Type ;
+    rdfs:label "gaming pieces"@en .
+
+onm:garage a crm:E55_Type ;
+    rdfs:label "garage"@en .
+
+onm:garden-and-horticultural-equipment a crm:E55_Type ;
+    rdfs:label "garden and horticultural equipment"@en .
+
+onm:garden-ornament a crm:E55_Type ;
+    rdfs:label "garden ornament"@en .
+
+onm:give-away a crm:E55_Type ;
+    rdfs:label "give-away"@en .
+
+onm:glass a crm:E55_Type ;
+    rdfs:label "glass"@en .
+
+onm:glasses a crm:E55_Type ;
+    rdfs:label "glasses"@en .
+
+onm:glasses-case a crm:E55_Type ;
+    rdfs:label "glasses case"@en .
+
+onm:glove-stretcher a crm:E55_Type ;
+    rdfs:label "glove stretcher"@en .
+
+onm:gloves a crm:E55_Type ;
+    rdfs:label "gloves"@en .
+
+onm:graphic-novel a crm:E55_Type ;
+    rdfs:label "graphic novel"@en .
+
+onm:graphics-pad a crm:E55_Type ;
+    rdfs:label "graphics pad"@en .
+
+onm:grinding-or-polishing a crm:E55_Type ;
+    rdfs:label "grinding or polishing"@en .
+
+onm:grooming a crm:E55_Type ;
+    rdfs:label "grooming"@en .
+
+onm:grooming-equipment a crm:E55_Type ;
+    rdfs:label "grooming equipment"@en .
+
+onm:grooming-set a crm:E55_Type ;
+    rdfs:label "grooming set"@en .
+
+onm:gross-motor-skills a crm:E55_Type ;
+    rdfs:label "gross motor skills"@en .
+
+onm:growing-system a crm:E55_Type ;
+    rdfs:label "growing system"@en .
+
+onm:guttering a crm:E55_Type ;
+    rdfs:label "guttering"@en .
+
+onm:haberdashery a crm:E55_Type ;
+    rdfs:label "haberdashery"@en .
+
+onm:hair-accessory a crm:E55_Type ;
+    rdfs:label "hair accessory"@en .
+
+onm:hair-styler a crm:E55_Type ;
+    rdfs:label "hair styler"@en .
+
+onm:hairdryer a crm:E55_Type ;
+    rdfs:label "hairdryer"@en .
+
+onm:hand-fan a crm:E55_Type ;
+    rdfs:label "hand fan"@en .
+
+onm:hand-tool a crm:E55_Type ;
+    rdfs:label "hand tool"@en .
+
+onm:hand-warmer a crm:E55_Type ;
+    rdfs:label "hand warmer"@en .
+
+onm:handbag a crm:E55_Type ;
+    rdfs:label "handbag"@en .
+
+onm:handbook a crm:E55_Type ;
+    rdfs:label "handbook"@en .
+
+onm:handkerchief-box a crm:E55_Type ;
+    rdfs:label "handkerchief box"@en .
+
+onm:handle a crm:E55_Type ;
+    rdfs:label "handle"@en .
+
+onm:hands-free-kit a crm:E55_Type ;
+    rdfs:label "hands free kit"@en .
+
+onm:hardback a crm:E55_Type ;
+    rdfs:label "hardback"@en .
+
+onm:hardware a crm:E55_Type ;
+    rdfs:label "hardware"@en .
+
+onm:hat a crm:E55_Type ;
+    rdfs:label "hat"@en .
+
+onm:hat-pin a crm:E55_Type ;
+    rdfs:label "hat pin"@en .
+
+onm:headgear a crm:E55_Type ;
+    rdfs:label "headgear"@en .
+
+onm:headphones a crm:E55_Type ;
+    rdfs:label "headphones"@en .
+
+onm:heater a crm:E55_Type ;
+    rdfs:label "heater"@en .
+
+onm:hi-fi-system a crm:E55_Type ;
+    rdfs:label "hi-fi system"@en .
+
+onm:hobby-equipment a crm:E55_Type ;
+    rdfs:label "hobby equipment"@en .
+
+onm:hole-punch a crm:E55_Type ;
+    rdfs:label "hole punch"@en .
+
+onm:horn a crm:E55_Type ;
+    rdfs:label "horn"@en .
+
+onm:hosiery a crm:E55_Type ;
+    rdfs:label "hosiery"@en .
+
+onm:hospital-equipment a crm:E55_Type ;
+    rdfs:label "hospital equipment"@en .
+
+onm:hotel-merchandise a crm:E55_Type ;
+    rdfs:label "hotel merchandise"@en .
+
+onm:household-appliance a crm:E55_Type ;
+    rdfs:label "household appliance"@en .
+
+onm:household-hygiene a crm:E55_Type ;
+    rdfs:label "household hygiene"@en .
+
+onm:humanoid a crm:E55_Type ;
+    rdfs:label "humanoid"@en .
+
+onm:ice-lolly-set a crm:E55_Type ;
+    rdfs:label "ice-lolly set"@en .
+
+onm:ice-pack a crm:E55_Type ;
+    rdfs:label "ice pack"@en .
+
+onm:icing-utensil a crm:E55_Type ;
+    rdfs:label "icing utensil"@en .
+
+onm:imaginative-play a crm:E55_Type ;
+    rdfs:label "imaginative play"@en .
+
+onm:implant a crm:E55_Type ;
+    rdfs:label "implant"@en .
+
+onm:inflatable a crm:E55_Type ;
+    rdfs:label "inflatable"@en .
+
+onm:information-pack a crm:E55_Type ;
+    rdfs:label "information pack"@en .
+
+onm:information-storage a crm:E55_Type ;
+    rdfs:label "information storage"@en .
+
+onm:injection-moulding a crm:E55_Type ;
+    rdfs:label "injection moulding"@en .
+
+onm:ink-bottle-holder a crm:E55_Type ;
+    rdfs:label "ink bottle holder"@en .
+
+onm:inkwell a crm:E55_Type ;
+    rdfs:label "inkwell"@en .
+
+onm:instruction-card a crm:E55_Type ;
+    rdfs:label "instruction card"@en .
+
+onm:instrument a crm:E55_Type ;
+    rdfs:label "instrument"@en .
+
+onm:interactive a crm:E55_Type ;
+    rdfs:label "interactive"@en .
+
+onm:interior a crm:E55_Type ;
+    rdfs:label "interior"@en .
+
+onm:interview-transcript a crm:E55_Type ;
+    rdfs:label "interview transcript"@en .
+
+onm:iron a crm:E55_Type ;
+    rdfs:label "iron"@en .
+
+onm:ironing-accessory a crm:E55_Type ;
+    rdfs:label "ironing accessory"@en .
+
+onm:jacket a crm:E55_Type ;
+    rdfs:label "jacket"@en .
+
+onm:jar a crm:E55_Type ;
+    rdfs:label "jar"@en .
+
+onm:jewellery a crm:E55_Type ;
+    rdfs:label "jewellery"@en .
+
+onm:jewellery-cleaner a crm:E55_Type ;
+    rdfs:label "jewellery cleaner"@en .
+
+onm:jigsaw-puzzle a crm:E55_Type ;
+    rdfs:label "jigsaw puzzle"@en .
+
+onm:journal a crm:E55_Type ;
+    rdfs:label "journal"@en .
+
+onm:joystick a crm:E55_Type ;
+    rdfs:label "joystick"@en .
+
+onm:jug a crm:E55_Type ;
+    rdfs:label "jug"@en .
+
+onm:juicer a crm:E55_Type ;
+    rdfs:label "juicer"@en .
+
+onm:jumper a crm:E55_Type ;
+    rdfs:label "jumper"@en .
+
+onm:kerb a crm:E55_Type ;
+    rdfs:label "kerb"@en .
+
+onm:kettle a crm:E55_Type ;
+    rdfs:label "kettle"@en .
+
+onm:keyboard a crm:E55_Type ;
+    rdfs:label "keyboard"@en .
+
+onm:kit a crm:E55_Type ;
+    rdfs:label "kit"@en .
+
+onm:kitchen-accessory a crm:E55_Type ;
+    rdfs:label "kitchen accessory"@en .
+
+onm:kitchenware a crm:E55_Type ;
+    rdfs:label "kitchenware"@en .
+
+onm:kite a crm:E55_Type ;
+    rdfs:label "kite"@en .
+
+onm:knickers a crm:E55_Type ;
+    rdfs:label "knickers"@en .
+
+onm:knife a crm:E55_Type ;
+    rdfs:label "knife"@en .
+
+onm:knitting-accessory a crm:E55_Type ;
+    rdfs:label "knitting accessory"@en .
+
+onm:knitting-and-crochet a crm:E55_Type ;
+    rdfs:label "knitting and crochet"@en .
+
+onm:knitting-machine a crm:E55_Type ;
+    rdfs:label "knitting machine"@en .
+
+onm:knitting-needles a crm:E55_Type ;
+    rdfs:label "knitting needles"@en .
+
+onm:knitting-or-sewing-magazine a crm:E55_Type ;
+    rdfs:label "knitting or sewing magazine"@en .
+
+onm:knitting-pattern a crm:E55_Type ;
+    rdfs:label "knitting pattern"@en .
+
+onm:knitting-publication a crm:E55_Type ;
+    rdfs:label "knitting publication"@en .
+
+onm:knitwear a crm:E55_Type ;
+    rdfs:label "knitwear"@en .
+
+onm:label a crm:E55_Type ;
+    rdfs:label "label"@en .
+
+onm:label-maker a crm:E55_Type ;
+    rdfs:label "label maker"@en .
+
+onm:ladle a crm:E55_Type ;
+    rdfs:label "ladle"@en .
+
+onm:lamp a crm:E55_Type ;
+    rdfs:label "lamp"@en .
+
+onm:landline-telephone a crm:E55_Type ;
+    rdfs:label "landline telephone"@en .
+
+onm:laser-videodisc a crm:E55_Type ;
+    rdfs:label "laser videodisc"@en .
+
+onm:laundry-accessory a crm:E55_Type ;
+    rdfs:label "laundry accessory"@en .
+
+onm:laundry-equipment a crm:E55_Type ;
+    rdfs:label "laundry equipment"@en .
+
+onm:leaflet a crm:E55_Type ;
+    rdfs:label "leaflet"@en .
+
+onm:learning-aid a crm:E55_Type ;
+    rdfs:label "learning aid"@en .
+
+onm:leisure-equipment a crm:E55_Type ;
+    rdfs:label "leisure equipment"@en .
+
+onm:leisurewear a crm:E55_Type ;
+    rdfs:label "leisurewear"@en .
+
+onm:lens a crm:E55_Type ;
+    rdfs:label "lens"@en .
+
+onm:letter-rack a crm:E55_Type ;
+    rdfs:label "letter rack"@en .
+
+onm:lid a crm:E55_Type ;
+    rdfs:label "lid"@en .
+
+onm:lid-opener a crm:E55_Type ;
+    rdfs:label "lid opener"@en .
+
+onm:lifestyle a crm:E55_Type ;
+    rdfs:label "lifestyle"@en .
+
+onm:light a crm:E55_Type ;
+    rdfs:label "light"@en .
+
+onm:light-accessory a crm:E55_Type ;
+    rdfs:label "light accessory"@en .
+
+onm:light-fitting a crm:E55_Type ;
+    rdfs:label "light fitting"@en .
+
+onm:light-pen a crm:E55_Type ;
+    rdfs:label "light pen"@en .
+
+onm:light-switch a crm:E55_Type ;
+    rdfs:label "light switch"@en .
+
+onm:lighter a crm:E55_Type ;
+    rdfs:label "lighter"@en .
+
+onm:lighting a crm:E55_Type ;
+    rdfs:label "lighting"@en .
+
+onm:lighting-accessory a crm:E55_Type ;
+    rdfs:label "lighting accessory"@en .
+
+onm:linguistic a crm:E55_Type ;
+    rdfs:label "linguistic"@en .
+
+onm:location-souvenir a crm:E55_Type ;
+    rdfs:label "location souvenir"@en .
+
+onm:logic-puzzle a crm:E55_Type ;
+    rdfs:label "logic puzzle"@en .
+
+onm:loom a crm:E55_Type ;
+    rdfs:label "loom"@en .
+
+onm:lorry a crm:E55_Type ;
+    rdfs:label "lorry"@en .
+
+onm:luggage a crm:E55_Type ;
+    rdfs:label "luggage"@en .
+
+onm:machinery a crm:E55_Type ;
+    rdfs:label "machinery"@en .
+
+onm:magazine a crm:E55_Type ;
+    rdfs:label "magazine"@en .
+
+onm:magazine-or-newspaper-clipping a crm:E55_Type ;
+    rdfs:label "magazine or newspaper clipping"@en .
+
+onm:magazine-rack a crm:E55_Type ;
+    rdfs:label "magazine rack"@en .
+
+onm:magazines-and-newspapers a crm:E55_Type ;
+    rdfs:label "magazines and newspapers"@en .
+
+onm:magnifying-glass a crm:E55_Type ;
+    rdfs:label "magnifying glass"@en .
+
+onm:make-up-accessory a crm:E55_Type ;
+    rdfs:label "make-up accessory"@en .
+
+onm:manicure-equipment a crm:E55_Type ;
+    rdfs:label "manicure equipment"@en .
+
+onm:mantel-clock a crm:E55_Type ;
+    rdfs:label "mantel clock"@en .
+
+onm:manual-aid a crm:E55_Type ;
+    rdfs:label "manual aid"@en .
+
+onm:manual-game a crm:E55_Type ;
+    rdfs:label "manual game"@en .
+
+onm:manufacturers-and-designers a crm:E55_Type ;
+    rdfs:label "manufacturers and designers"@en .
+
+onm:manufacturing-and-engineering a crm:E55_Type ;
+    rdfs:label "manufacturing and engineering"@en .
+
+onm:manufacturing-company-merchandise a crm:E55_Type ;
+    rdfs:label "manufacturing company merchandise"@en .
+
+onm:manufacturing-process a crm:E55_Type ;
+    rdfs:label "manufacturing process"@en .
+
+onm:manufacturing-process-or-machinery a crm:E55_Type ;
+    rdfs:label "manufacturing process or machinery"@en .
+
+onm:manufacturing-staff a crm:E55_Type ;
+    rdfs:label "manufacturing staff"@en .
+
+onm:maquette a crm:E55_Type ;
+    rdfs:label "maquette"@en .
+
+onm:marketing-and-publicity a crm:E55_Type ;
+    rdfs:label "marketing and publicity"@en .
+
+onm:masher a crm:E55_Type ;
+    rdfs:label "masher"@en .
+
+onm:mask a crm:E55_Type ;
+    rdfs:label "mask"@en .
+
+onm:massager a crm:E55_Type ;
+    rdfs:label "massager"@en .
+
+onm:matchbook-case a crm:E55_Type ;
+    rdfs:label "matchbook case"@en .
+
+onm:matchbox a crm:E55_Type ;
+    rdfs:label "matchbox"@en .
+
+onm:material a crm:E55_Type ;
+    rdfs:label "material"@en .
+
+onm:materials a crm:E55_Type ;
+    rdfs:label "materials"@en .
+
+onm:materials-handling a crm:E55_Type ;
+    rdfs:label "materials handling"@en .
+
+onm:measure a crm:E55_Type ;
+    rdfs:label "measure"@en .
+
+onm:measuring-equipment a crm:E55_Type ;
+    rdfs:label "measuring equipment"@en .
+
+onm:media-related-merchandise a crm:E55_Type ;
+    rdfs:label "media related merchandise"@en .
+
+onm:media-related-toy a crm:E55_Type ;
+    rdfs:label "media-related toy"@en .
+
+onm:media-storage a crm:E55_Type ;
+    rdfs:label "media storage"@en .
+
+onm:medical a crm:E55_Type ;
+    rdfs:label "medical"@en .
+
+onm:medical-product a crm:E55_Type ;
+    rdfs:label "medical product"@en .
+
+onm:medicine-dispenser a crm:E55_Type ;
+    rdfs:label "medicine dispenser"@en .
+
+onm:meditation-aid a crm:E55_Type ;
+    rdfs:label "meditation aid"@en .
+
+onm:men-s-shirt a crm:E55_Type ;
+    rdfs:label "men's shirt"@en .
+
+onm:men-s-suit a crm:E55_Type ;
+    rdfs:label "men's suit"@en .
+
+onm:men-s-trousers a crm:E55_Type ;
+    rdfs:label "men's trousers"@en .
+
+onm:microphone a crm:E55_Type ;
+    rdfs:label "microphone"@en .
+
+onm:microwave-dish a crm:E55_Type ;
+    rdfs:label "microwave dish"@en .
+
+onm:microwave-oven a crm:E55_Type ;
+    rdfs:label "microwave oven"@en .
+
+onm:military-equipment a crm:E55_Type ;
+    rdfs:label "military equipment"@en .
+
+onm:mini-skirt a crm:E55_Type ;
+    rdfs:label "mini skirt"@en .
+
+onm:minidisc a crm:E55_Type ;
+    rdfs:label "MiniDisc"@en .
+
+onm:minidisc-player a crm:E55_Type ;
+    rdfs:label "MiniDisc player"@en .
+
+onm:mirror a crm:E55_Type ;
+    rdfs:label "mirror"@en .
+
+onm:mixing-equipment a crm:E55_Type ;
+    rdfs:label "mixing equipment"@en .
+
+onm:mobile a crm:E55_Type ;
+    rdfs:label "mobile"@en .
+
+onm:mobile-phone a crm:E55_Type ;
+    rdfs:label "mobile phone"@en .
+
+onm:mobile-phone-case a crm:E55_Type ;
+    rdfs:label "mobile phone case"@en .
+
+onm:mobile-phone-charm a crm:E55_Type ;
+    rdfs:label "mobile phone charm"@en .
+
+onm:model a crm:E55_Type ;
+    rdfs:label "model"@en .
+
+onm:model-kit a crm:E55_Type ;
+    rdfs:label "model kit"@en .
+
+onm:modem a crm:E55_Type ;
+    rdfs:label "modem"@en .
+
+onm:money a crm:E55_Type ;
+    rdfs:label "money"@en .
+
+onm:money-box a crm:E55_Type ;
+    rdfs:label "money box"@en .
+
+onm:monitoring a crm:E55_Type ;
+    rdfs:label "monitoring"@en .
+
+onm:motor-vehicle-part a crm:E55_Type ;
+    rdfs:label "motor vehicle part"@en .
+
+onm:mould a crm:E55_Type ;
+    rdfs:label "mould"@en .
+
+onm:mouldable-material a crm:E55_Type ;
+    rdfs:label "mouldable material"@en .
+
+onm:mouse a crm:E55_Type ;
+    rdfs:label "mouse"@en .
+
+onm:mouse-mat a crm:E55_Type ;
+    rdfs:label "mouse mat"@en .
+
+onm:movie-camera a crm:E55_Type ;
+    rdfs:label "movie camera"@en .
+
+onm:mowing-equipment a crm:E55_Type ;
+    rdfs:label "mowing equipment"@en .
+
+onm:mp3-player a crm:E55_Type ;
+    rdfs:label "mp3 player"@en .
+
+onm:mug a crm:E55_Type ;
+    rdfs:label "mug"@en .
+
+onm:museums-collections-and-exhibitions a crm:E55_Type ;
+    rdfs:label "museums, collections, and exhibitions"@en .
+
+onm:music-book a crm:E55_Type ;
+    rdfs:label "music book"@en .
+
+onm:music-equipment a crm:E55_Type ;
+    rdfs:label "music equipment"@en .
+
+onm:music-merchandise a crm:E55_Type ;
+    rdfs:label "music merchandise"@en .
+
+onm:musical-instrument a crm:E55_Type ;
+    rdfs:label "musical instrument"@en .
+
+onm:musical-instrument-accessory a crm:E55_Type ;
+    rdfs:label "musical instrument accessory"@en .
+
+onm:nail-brush a crm:E55_Type ;
+    rdfs:label "nail brush"@en .
+
+onm:nail-embellishment a crm:E55_Type ;
+    rdfs:label "nail embellishment"@en .
+
+onm:napkin a crm:E55_Type ;
+    rdfs:label "napkin"@en .
+
+onm:napkin-ring a crm:E55_Type ;
+    rdfs:label "napkin ring"@en .
+
+onm:natural-fibre-sample a crm:E55_Type ;
+    rdfs:label "natural fibre sample"@en .
+
+onm:natural-plastic a crm:E55_Type ;
+    rdfs:label "natural plastic"@en .
+
+onm:necklace a crm:E55_Type ;
+    rdfs:label "necklace"@en .
+
+onm:needle a crm:E55_Type ;
+    rdfs:label "needle"@en .
+
+onm:needle-holder a crm:E55_Type ;
+    rdfs:label "needle holder"@en .
+
+onm:negative a crm:E55_Type ;
+    rdfs:label "negative"@en .
+
+onm:negative-mask a crm:E55_Type ;
+    rdfs:label "negative mask"@en .
+
+onm:newsletter a crm:E55_Type ;
+    rdfs:label "newsletter"@en .
+
+onm:night-dress a crm:E55_Type ;
+    rdfs:label "night dress"@en .
+
+onm:nightwear a crm:E55_Type ;
+    rdfs:label "nightwear"@en .
+
+onm:non-skid-pad a crm:E55_Type ;
+    rdfs:label "non-skid pad"@en .
+
+onm:note a crm:E55_Type ;
+    rdfs:label "note"@en .
+
+onm:notepad a crm:E55_Type ;
+    rdfs:label "notepad"@en .
+
+onm:notepad-holder a crm:E55_Type ;
+    rdfs:label "notepad holder"@en .
+
+onm:novelty a crm:E55_Type ;
+    rdfs:label "novelty"@en .
+
+onm:number-game a crm:E55_Type ;
+    rdfs:label "number game"@en .
+
+onm:numeric a crm:E55_Type ;
+    rdfs:label "numeric"@en .
+
+onm:nutcracker a crm:E55_Type ;
+    rdfs:label "nutcracker"@en .
+
+onm:office-equipment a crm:E55_Type ;
+    rdfs:label "office equipment"@en .
+
+onm:one-piece-suit a crm:E55_Type ;
+    rdfs:label "one-piece suit"@en .
+
+onm:organisation-merchandise a crm:E55_Type ;
+    rdfs:label "organisation merchandise"@en .
+
+onm:organisation-sign a crm:E55_Type ;
+    rdfs:label "organisation sign"@en .
+
+onm:ornament a crm:E55_Type ;
+    rdfs:label "ornament"@en .
+
+onm:other-vehicle-part a crm:E55_Type ;
+    rdfs:label "other vehicle part"@en .
+
+onm:outerwear a crm:E55_Type ;
+    rdfs:label "outerwear"@en .
+
+onm:outside-surface a crm:E55_Type ;
+    rdfs:label "outside surface"@en .
+
+onm:oven-mitt a crm:E55_Type ;
+    rdfs:label "oven mitt"@en .
+
+onm:pa-system a crm:E55_Type ;
+    rdfs:label "PA system"@en .
+
+onm:packaging a crm:E55_Type ;
+    rdfs:label "packaging"@en .
+
+onm:packet a crm:E55_Type ;
+    rdfs:label "packet"@en .
+
+onm:padding a crm:E55_Type ;
+    rdfs:label "padding"@en .
+
+onm:paddle a crm:E55_Type ;
+    rdfs:label "paddle"@en .
+
+onm:page-turner a crm:E55_Type ;
+    rdfs:label "page turner"@en .
+
+onm:painting-equipment a crm:E55_Type ;
+    rdfs:label "painting equipment"@en .
+
+onm:panel a crm:E55_Type ;
+    rdfs:label "panel"@en .
+
+onm:pants a crm:E55_Type ;
+    rdfs:label "pants"@en .
+
+onm:paper-clip a crm:E55_Type ;
+    rdfs:label "paper clip"@en .
+
+onm:paper-knife a crm:E55_Type ;
+    rdfs:label "paper knife"@en .
+
+onm:paperback a crm:E55_Type ;
+    rdfs:label "paperback"@en .
+
+onm:pastry-cutter a crm:E55_Type ;
+    rdfs:label "pastry cutter"@en .
+
+onm:pattern-paper a crm:E55_Type ;
+    rdfs:label "pattern paper"@en .
+
+onm:paver a crm:E55_Type ;
+    rdfs:label "paver"@en .
+
+onm:pedagogy a crm:E55_Type ;
+    rdfs:label "pedagogy"@en .
+
+onm:peeler a crm:E55_Type ;
+    rdfs:label "peeler"@en .
+
+onm:pen a crm:E55_Type ;
+    rdfs:label "pen"@en .
+
+onm:pen-holder a crm:E55_Type ;
+    rdfs:label "pen holder"@en .
+
+onm:pen-tray a crm:E55_Type ;
+    rdfs:label "pen tray"@en .
+
+onm:pencil a crm:E55_Type ;
+    rdfs:label "pencil"@en .
+
+onm:pencil-case a crm:E55_Type ;
+    rdfs:label "pencil case"@en .
+
+onm:pencil-sharpener a crm:E55_Type ;
+    rdfs:label "pencil sharpener"@en .
+
+onm:pencil-skirt a crm:E55_Type ;
+    rdfs:label "pencil skirt"@en .
+
+onm:pencil-topper a crm:E55_Type ;
+    rdfs:label "pencil topper"@en .
+
+onm:pendant a crm:E55_Type ;
+    rdfs:label "pendant"@en .
+
+onm:people a crm:E55_Type ;
+    rdfs:label "people"@en .
+
+onm:periodical a crm:E55_Type ;
+    rdfs:label "periodical"@en .
+
+onm:personal-hygiene a crm:E55_Type ;
+    rdfs:label "personal hygiene"@en .
+
+onm:personal-music-player a crm:E55_Type ;
+    rdfs:label "personal music player"@en .
+
+onm:personal-organiser a crm:E55_Type ;
+    rdfs:label "personal organiser"@en .
+
+onm:personal-protection a crm:E55_Type ;
+    rdfs:label "personal protection"@en .
+
+onm:personality-merchandise a crm:E55_Type ;
+    rdfs:label "personality merchandise"@en .
+
+onm:petticoat a crm:E55_Type ;
+    rdfs:label "petticoat"@en .
+
+onm:phone-card a crm:E55_Type ;
+    rdfs:label "phone card"@en .
+
+onm:photographic-accessory a crm:E55_Type ;
+    rdfs:label "photographic accessory"@en .
+
+onm:photographic-image a crm:E55_Type ;
+    rdfs:label "photographic image"@en .
+
+onm:photographic-outcome a crm:E55_Type ;
+    rdfs:label "photographic outcome"@en .
+
+onm:photographic-print a crm:E55_Type ;
+    rdfs:label "photographic print"@en .
+
+onm:physical-well-being a crm:E55_Type ;
+    rdfs:label "physical well being"@en .
+
+onm:piano-roll a crm:E55_Type ;
+    rdfs:label "piano roll"@en .
+
+onm:pick-up a crm:E55_Type ;
+    rdfs:label "pick up"@en .
+
+onm:picnic-set a crm:E55_Type ;
+    rdfs:label "picnic set"@en .
+
+onm:picture-book a crm:E55_Type ;
+    rdfs:label "picture book"@en .
+
+onm:picture-shapes a crm:E55_Type ;
+    rdfs:label "picture shapes"@en .
+
+onm:pill-box a crm:E55_Type ;
+    rdfs:label "pill box"@en .
+
+onm:pin a crm:E55_Type ;
+    rdfs:label "pin"@en .
+
+onm:pin-badge a crm:E55_Type ;
+    rdfs:label "pin badge"@en .
+
+onm:pin-holder a crm:E55_Type ;
+    rdfs:label "pin holder"@en .
+
+onm:pipe a crm:E55_Type ;
+    rdfs:label "pipe"@en .
+
+onm:plant a crm:E55_Type ;
+    rdfs:label "plant"@en .
+
+onm:plant-cache-pot a crm:E55_Type ;
+    rdfs:label "plant cache pot"@en .
+
+onm:plant-pot a crm:E55_Type ;
+    rdfs:label "plant pot"@en .
+
+onm:plant-protector a crm:E55_Type ;
+    rdfs:label "plant protector"@en .
+
+onm:plastics-construction a crm:E55_Type ;
+    rdfs:label "plastics construction"@en .
+
+onm:plastics-in-general a crm:E55_Type ;
+    rdfs:label "plastics in general"@en .
+
+onm:plate a crm:E55_Type ;
+    rdfs:label "plate"@en .
+
+onm:play-mat a crm:E55_Type ;
+    rdfs:label "play mat"@en .
+
+onm:plug a crm:E55_Type ;
+    rdfs:label "plug"@en .
+
+onm:plumbing-part a crm:E55_Type ;
+    rdfs:label "plumbing part"@en .
+
+onm:plumbing-services a crm:E55_Type ;
+    rdfs:label "plumbing services"@en .
+
+onm:plunger a crm:E55_Type ;
+    rdfs:label "plunger"@en .
+
+onm:political-material a crm:E55_Type ;
+    rdfs:label "political material"@en .
+
+onm:pomander a crm:E55_Type ;
+    rdfs:label "pomander"@en .
+
+onm:poncho a crm:E55_Type ;
+    rdfs:label "poncho"@en .
+
+onm:postal-equipment a crm:E55_Type ;
+    rdfs:label "postal equipment"@en .
+
+onm:poster a crm:E55_Type ;
+    rdfs:label "poster"@en .
+
+onm:pot a crm:E55_Type ;
+    rdfs:label "pot"@en .
+
+onm:powder-bowl a crm:E55_Type ;
+    rdfs:label "powder bowl"@en .
+
+onm:power-tool a crm:E55_Type ;
+    rdfs:label "power tool"@en .
+
+onm:presentation-script a crm:E55_Type ;
+    rdfs:label "presentation script"@en .
+
+onm:preserves-dish a crm:E55_Type ;
+    rdfs:label "preserves dish"@en .
+
+onm:preserves-pot a crm:E55_Type ;
+    rdfs:label "preserves pot"@en .
+
+onm:press-release a crm:E55_Type ;
+    rdfs:label "press release"@en .
+
+onm:pressure-cooker a crm:E55_Type ;
+    rdfs:label "pressure cooker"@en .
+
+onm:preview-screen a crm:E55_Type ;
+    rdfs:label "preview screen"@en .
+
+onm:printed-media-merchandise a crm:E55_Type ;
+    rdfs:label "printed media merchandise"@en .
+
+onm:printer a crm:E55_Type ;
+    rdfs:label "printer"@en .
+
+onm:printing a crm:E55_Type ;
+    rdfs:label "printing"@en .
+
+onm:product a crm:E55_Type ;
+    rdfs:label "product"@en .
+
+onm:product-packaging a crm:E55_Type ;
+    rdfs:label "product packaging"@en .
+
+onm:product-related-merchandise a crm:E55_Type ;
+    rdfs:label "product related merchandise"@en .
+
+onm:prosthesis a crm:E55_Type ;
+    rdfs:label "prosthesis"@en .
+
+onm:protection a crm:E55_Type ;
+    rdfs:label "protection"@en .
+
+onm:protective-equipment a crm:E55_Type ;
+    rdfs:label "protective equipment"@en .
+
+onm:publicity-and-marketing-material a crm:E55_Type ;
+    rdfs:label "publicity and marketing material"@en .
+
+onm:pull-along a crm:E55_Type ;
+    rdfs:label "pull-along"@en .
+
+onm:purse a crm:E55_Type ;
+    rdfs:label "purse"@en .
+
+onm:puzzle a crm:E55_Type ;
+    rdfs:label "puzzle"@en .
+
+onm:pyjama-suit a crm:E55_Type ;
+    rdfs:label "pyjama suit"@en .
+
+onm:quality-assurance a crm:E55_Type ;
+    rdfs:label "quality assurance"@en .
+
+onm:racket a crm:E55_Type ;
+    rdfs:label "racket"@en .
+
+onm:radio a crm:E55_Type ;
+    rdfs:label "radio"@en .
+
+onm:rattle a crm:E55_Type ;
+    rdfs:label "rattle"@en .
+
+onm:razor a crm:E55_Type ;
+    rdfs:label "razor"@en .
+
+onm:record a crm:E55_Type ;
+    rdfs:label "record"@en .
+
+onm:record-player a crm:E55_Type ;
+    rdfs:label "record player"@en .
+
+onm:record-storage a crm:E55_Type ;
+    rdfs:label "record storage"@en .
+
+onm:recyclable a crm:E55_Type ;
+    rdfs:label "recyclable"@en .
+
+onm:recycled a crm:E55_Type ;
+    rdfs:label "recycled"@en .
+
+onm:recycled-material a crm:E55_Type ;
+    rdfs:label "recycled material"@en .
+
+onm:recycling-company-merchandise a crm:E55_Type ;
+    rdfs:label "recycling company merchandise"@en .
+
+onm:reduced-resource-use a crm:E55_Type ;
+    rdfs:label "reduced resource use"@en .
+
+onm:reel-to-reel-tape a crm:E55_Type ;
+    rdfs:label "reel-to-reel tape"@en .
+
+onm:reel-to-reel-tape-recorder a crm:E55_Type ;
+    rdfs:label "reel-to-reel tape recorder"@en .
+
+onm:reference-book a crm:E55_Type ;
+    rdfs:label "reference book"@en .
+
+onm:refrigerator a crm:E55_Type ;
+    rdfs:label "refrigerator"@en .
+
+onm:remote-control a crm:E55_Type ;
+    rdfs:label "remote control"@en .
+
+onm:repair-kit a crm:E55_Type ;
+    rdfs:label "repair kit"@en .
+
+onm:report a crm:E55_Type ;
+    rdfs:label "report"@en .
+
+onm:respiratory-protection a crm:E55_Type ;
+    rdfs:label "respiratory protection"@en .
+
+onm:retail-company-merchandise a crm:E55_Type ;
+    rdfs:label "retail company merchandise"@en .
+
+onm:retail-display a crm:E55_Type ;
+    rdfs:label "retail display"@en .
+
+onm:reusable-product a crm:E55_Type ;
+    rdfs:label "reusable product"@en .
+
+onm:ring a crm:E55_Type ;
+    rdfs:label "ring"@en .
+
+onm:road-and-street-furniture a crm:E55_Type ;
+    rdfs:label "road and street furniture"@en .
+
+onm:road-marking a crm:E55_Type ;
+    rdfs:label "road marking"@en .
+
+onm:robe a crm:E55_Type ;
+    rdfs:label "robe"@en .
+
+onm:robot a crm:E55_Type ;
+    rdfs:label "robot"@en .
+
+onm:rolling-pin a crm:E55_Type ;
+    rdfs:label "rolling pin"@en .
+
+onm:rug-making-tool a crm:E55_Type ;
+    rdfs:label "rug making tool"@en .
+
+onm:rule a crm:E55_Type ;
+    rdfs:label "rule"@en .
+
+onm:saddle a crm:E55_Type ;
+    rdfs:label "saddle"@en .
+
+onm:safety-clothing a crm:E55_Type ;
+    rdfs:label "safety clothing"@en .
+
+onm:safety-equipment a crm:E55_Type ;
+    rdfs:label "safety equipment"@en .
+
+onm:sailing-equipment a crm:E55_Type ;
+    rdfs:label "sailing equipment"@en .
+
+onm:salad-spinner a crm:E55_Type ;
+    rdfs:label "salad spinner"@en .
+
+onm:sample a crm:E55_Type ;
+    rdfs:label "sample"@en .
+
+onm:sauce-server a crm:E55_Type ;
+    rdfs:label "sauce server"@en .
+
+onm:saucer a crm:E55_Type ;
+    rdfs:label "saucer"@en .
+
+onm:scarf a crm:E55_Type ;
+    rdfs:label "scarf"@en .
+
+onm:scientific a crm:E55_Type ;
+    rdfs:label "scientific"@en .
+
+onm:scientific-equipment a crm:E55_Type ;
+    rdfs:label "scientific equipment"@en .
+
+onm:scissors a crm:E55_Type ;
+    rdfs:label "scissors"@en .
+
+onm:scoop a crm:E55_Type ;
+    rdfs:label "scoop"@en .
+
+onm:scrap-book a crm:E55_Type ;
+    rdfs:label "scrap book"@en .
+
+onm:seasonal a crm:E55_Type ;
+    rdfs:label "seasonal"@en .
+
+onm:seasonal-decoration a crm:E55_Type ;
+    rdfs:label "seasonal decoration"@en .
+
+onm:seat a crm:E55_Type ;
+    rdfs:label "seat"@en .
+
+onm:semi-synthetic-fibre-sample a crm:E55_Type ;
+    rdfs:label "semi-synthetic fibre sample"@en .
+
+onm:serving-dish a crm:E55_Type ;
+    rdfs:label "serving dish"@en .
+
+onm:serving-utensil a crm:E55_Type ;
+    rdfs:label "serving utensil"@en .
+
+onm:set-square a crm:E55_Type ;
+    rdfs:label "set square"@en .
+
+onm:sewing-accessory a crm:E55_Type ;
+    rdfs:label "sewing accessory"@en .
+
+onm:sewing-machine a crm:E55_Type ;
+    rdfs:label "sewing machine"@en .
+
+onm:sewing-machine-accessory a crm:E55_Type ;
+    rdfs:label "sewing machine accessory"@en .
+
+onm:sewing-machine-case a crm:E55_Type ;
+    rdfs:label "sewing machine case"@en .
+
+onm:sewing-pattern a crm:E55_Type ;
+    rdfs:label "sewing pattern"@en .
+
+onm:sewing-publication a crm:E55_Type ;
+    rdfs:label "sewing publication"@en .
+
+onm:sewing-thread a crm:E55_Type ;
+    rdfs:label "sewing thread"@en .
+
+onm:shade a crm:E55_Type ;
+    rdfs:label "shade"@en .
+
+onm:shaped-pieces a crm:E55_Type ;
+    rdfs:label "shaped pieces"@en .
+
+onm:shaver a crm:E55_Type ;
+    rdfs:label "shaver"@en .
+
+onm:shaving-accessory a crm:E55_Type ;
+    rdfs:label "shaving accessory"@en .
+
+onm:shawl a crm:E55_Type ;
+    rdfs:label "shawl"@en .
+
+onm:shirt a crm:E55_Type ;
+    rdfs:label "shirt"@en .
+
+onm:shoehorn a crm:E55_Type ;
+    rdfs:label "shoehorn"@en .
+
+onm:shoes a crm:E55_Type ;
+    rdfs:label "shoes"@en .
+
+onm:shorts a crm:E55_Type ;
+    rdfs:label "shorts"@en .
+
+onm:shoulder-bag a crm:E55_Type ;
+    rdfs:label "shoulder bag"@en .
+
+onm:shrink-wrapping a crm:E55_Type ;
+    rdfs:label "shrink wrapping"@en .
+
+onm:shuttlecock a crm:E55_Type ;
+    rdfs:label "shuttlecock"@en .
+
+onm:sieve a crm:E55_Type ;
+    rdfs:label "sieve"@en .
+
+onm:sieving a crm:E55_Type ;
+    rdfs:label "sieving"@en .
+
+onm:sifter a crm:E55_Type ;
+    rdfs:label "sifter"@en .
+
+onm:sign a crm:E55_Type ;
+    rdfs:label "sign"@en .
+
+onm:skirt a crm:E55_Type ;
+    rdfs:label "skirt"@en .
+
+onm:skis a crm:E55_Type ;
+    rdfs:label "skis"@en .
+
+onm:sleeve-protectors a crm:E55_Type ;
+    rdfs:label "sleeve protectors"@en .
+
+onm:slip a crm:E55_Type ;
+    rdfs:label "slip"@en .
+
+onm:slipper a crm:E55_Type ;
+    rdfs:label "slipper"@en .
+
+onm:smoking-accessory a crm:E55_Type ;
+    rdfs:label "smoking accessory"@en .
+
+onm:smoking-merchandise a crm:E55_Type ;
+    rdfs:label "smoking merchandise"@en .
+
+onm:smoking-packaging a crm:E55_Type ;
+    rdfs:label "smoking packaging"@en .
+
+onm:smoking-product a crm:E55_Type ;
+    rdfs:label "smoking product"@en .
+
+onm:smoking-storage a crm:E55_Type ;
+    rdfs:label "smoking storage"@en .
+
+onm:snorkel a crm:E55_Type ;
+    rdfs:label "snorkel"@en .
+
+onm:snow-globe a crm:E55_Type ;
+    rdfs:label "snow globe"@en .
+
+onm:snuff-container a crm:E55_Type ;
+    rdfs:label "snuff container"@en .
+
+onm:soap a crm:E55_Type ;
+    rdfs:label "soap"@en .
+
+onm:soap-holder a crm:E55_Type ;
+    rdfs:label "soap holder"@en .
+
+onm:socket a crm:E55_Type ;
+    rdfs:label "socket"@en .
+
+onm:socks a crm:E55_Type ;
+    rdfs:label "socks"@en .
+
+onm:soft-drink-maker a crm:E55_Type ;
+    rdfs:label "soft drink maker"@en .
+
+onm:soft-furnishings a crm:E55_Type ;
+    rdfs:label "soft furnishings"@en .
+
+onm:soft-toy a crm:E55_Type ;
+    rdfs:label "soft toy"@en .
+
+onm:souvenir a crm:E55_Type ;
+    rdfs:label "souvenir"@en .
+
+onm:spacecraft a crm:E55_Type ;
+    rdfs:label "spacecraft"@en .
+
+onm:spatula a crm:E55_Type ;
+    rdfs:label "spatula"@en .
+
+onm:speaker a crm:E55_Type ;
+    rdfs:label "speaker"@en .
+
+onm:specialist-interest a crm:E55_Type ;
+    rdfs:label "specialist interest"@en .
+
+onm:specific-objects a crm:E55_Type ;
+    rdfs:label "specific objects"@en .
+
+onm:spice-processor a crm:E55_Type ;
+    rdfs:label "spice processor"@en .
+
+onm:spiritual-well-being a crm:E55_Type ;
+    rdfs:label "spiritual well being"@en .
+
+onm:sponge a crm:E55_Type ;
+    rdfs:label "sponge"@en .
+
+onm:spoon a crm:E55_Type ;
+    rdfs:label "spoon"@en .
+
+onm:sports-equipment a crm:E55_Type ;
+    rdfs:label "sports equipment"@en .
+
+onm:sports-souvenir a crm:E55_Type ;
+    rdfs:label "sports souvenir"@en .
+
+onm:sports-surface a crm:E55_Type ;
+    rdfs:label "sports surface"@en .
+
+onm:sports-team-merchandise a crm:E55_Type ;
+    rdfs:label "sports team merchandise"@en .
+
+onm:sports-toy a crm:E55_Type ;
+    rdfs:label "sports toy"@en .
+
+onm:sportswear a crm:E55_Type ;
+    rdfs:label "sportswear"@en .
+
+onm:squeegee a crm:E55_Type ;
+    rdfs:label "squeegee"@en .
+
+onm:stair-carpet-clip a crm:E55_Type ;
+    rdfs:label "stair carpet clip"@en .
+
+onm:stand a crm:E55_Type ;
+    rdfs:label "stand"@en .
+
+onm:stapler a crm:E55_Type ;
+    rdfs:label "stapler"@en .
+
+onm:stereogram a crm:E55_Type ;
+    rdfs:label "stereogram"@en .
+
+onm:sticker a crm:E55_Type ;
+    rdfs:label "sticker"@en .
+
+onm:stocking-dye a crm:E55_Type ;
+    rdfs:label "stocking dye"@en .
+
+onm:stocking-toe-protectors a crm:E55_Type ;
+    rdfs:label "stocking toe protectors"@en .
+
+onm:stockings a crm:E55_Type ;
+    rdfs:label "stockings"@en .
+
+onm:stopper a crm:E55_Type ;
+    rdfs:label "stopper"@en .
+
+onm:storage a crm:E55_Type ;
+    rdfs:label "storage"@en .
+
+onm:storage-box a crm:E55_Type ;
+    rdfs:label "storage box"@en .
+
+onm:storage-container a crm:E55_Type ;
+    rdfs:label "storage container"@en .
+
+onm:storage-pot a crm:E55_Type ;
+    rdfs:label "storage pot"@en .
+
+onm:structure a crm:E55_Type ;
+    rdfs:label "structure"@en .
+
+onm:student-made-work a crm:E55_Type ;
+    rdfs:label "student made work"@en .
+
+onm:sugar-dispenser a crm:E55_Type ;
+    rdfs:label "sugar dispenser"@en .
+
+onm:suit a crm:E55_Type ;
+    rdfs:label "suit"@en .
+
+onm:support a crm:E55_Type ;
+    rdfs:label "support"@en .
+
+onm:suspender-belt a crm:E55_Type ;
+    rdfs:label "suspender belt"@en .
+
+onm:sweatshirt a crm:E55_Type ;
+    rdfs:label "sweatshirt"@en .
+
+onm:swimwear a crm:E55_Type ;
+    rdfs:label "swimwear"@en .
+
+onm:synthesizer a crm:E55_Type ;
+    rdfs:label "synthesizer"@en .
+
+onm:synthetic-fibre-sample a crm:E55_Type ;
+    rdfs:label "synthetic fibre sample"@en .
+
+onm:t-shirt a crm:E55_Type ;
+    rdfs:label "t-shirt"@en .
+
+onm:table a crm:E55_Type ;
+    rdfs:label "table"@en .
+
+onm:table-decoration a crm:E55_Type ;
+    rdfs:label "table decoration"@en .
+
+onm:table-mat a crm:E55_Type ;
+    rdfs:label "table mat"@en .
+
+onm:table-set a crm:E55_Type ;
+    rdfs:label "table set"@en .
+
+onm:tableware a crm:E55_Type ;
+    rdfs:label "tableware"@en .
+
+onm:talisman a crm:E55_Type ;
+    rdfs:label "talisman"@en .
+
+onm:tank a crm:E55_Type ;
+    rdfs:label "tank"@en .
+
+onm:tap a crm:E55_Type ;
+    rdfs:label "tap"@en .
+
+onm:tape-dispenser a crm:E55_Type ;
+    rdfs:label "tape dispenser"@en .
+
+onm:tape-measure a crm:E55_Type ;
+    rdfs:label "tape measure"@en .
+
+onm:tea-caddy a crm:E55_Type ;
+    rdfs:label "tea caddy"@en .
+
+onm:tea-dispenser a crm:E55_Type ;
+    rdfs:label "tea dispenser"@en .
+
+onm:tea-maker a crm:E55_Type ;
+    rdfs:label "tea maker"@en .
+
+onm:tea-set a crm:E55_Type ;
+    rdfs:label "tea set"@en .
+
+onm:tea-strainer a crm:E55_Type ;
+    rdfs:label "tea strainer"@en .
+
+onm:teapot a crm:E55_Type ;
+    rdfs:label "teapot"@en .
+
+onm:telephone a crm:E55_Type ;
+    rdfs:label "telephone"@en .
+
+onm:telephone-accessory a crm:E55_Type ;
+    rdfs:label "telephone accessory"@en .
+
+onm:television a crm:E55_Type ;
+    rdfs:label "television"@en .
+
+onm:television-accessory a crm:E55_Type ;
+    rdfs:label "television accessory"@en .
+
+onm:televisual-equipment-or-component a crm:E55_Type ;
+    rdfs:label "televisual equipment or component"@en .
+
+onm:televisual-recording a crm:E55_Type ;
+    rdfs:label "televisual recording"@en .
+
+onm:test-equipment a crm:E55_Type ;
+    rdfs:label "test equipment"@en .
+
+onm:textile-piece a crm:E55_Type ;
+    rdfs:label "textile piece"@en .
+
+onm:therapy-lamp a crm:E55_Type ;
+    rdfs:label "therapy lamp"@en .
+
+onm:thermoforming a crm:E55_Type ;
+    rdfs:label "thermoforming"@en .
+
+onm:thermometer a crm:E55_Type ;
+    rdfs:label "thermometer"@en .
+
+onm:thermoplastic-material a crm:E55_Type ;
+    rdfs:label "thermoplastic material"@en .
+
+onm:thermoset-material a crm:E55_Type ;
+    rdfs:label "thermoset material"@en .
+
+onm:thimble a crm:E55_Type ;
+    rdfs:label "thimble"@en .
+
+onm:throw-toy a crm:E55_Type ;
+    rdfs:label "throw toy"@en .
+
+onm:ticket a crm:E55_Type ;
+    rdfs:label "ticket"@en .
+
+onm:tie a crm:E55_Type ;
+    rdfs:label "tie"@en .
+
+onm:tie-press a crm:E55_Type ;
+    rdfs:label "tie press"@en .
+
+onm:tights a crm:E55_Type ;
+    rdfs:label "tights"@en .
+
+onm:tile a crm:E55_Type ;
+    rdfs:label "tile"@en .
+
+onm:tile-puzzle a crm:E55_Type ;
+    rdfs:label "tile puzzle"@en .
+
+onm:timer a crm:E55_Type ;
+    rdfs:label "timer"@en .
+
+onm:tin a crm:E55_Type ;
+    rdfs:label "tin"@en .
+
+onm:tin-opener a crm:E55_Type ;
+    rdfs:label "tin opener"@en .
+
+onm:titling-outfit a crm:E55_Type ;
+    rdfs:label "titling outfit"@en .
+
+onm:toast-rack a crm:E55_Type ;
+    rdfs:label "toast rack"@en .
+
+onm:toaster a crm:E55_Type ;
+    rdfs:label "toaster"@en .
+
+onm:toasting-equipment a crm:E55_Type ;
+    rdfs:label "toasting equipment"@en .
+
+onm:tobacco-container a crm:E55_Type ;
+    rdfs:label "tobacco container"@en .
+
+onm:tobacco-packet a crm:E55_Type ;
+    rdfs:label "tobacco packet"@en .
+
+onm:toilet a crm:E55_Type ;
+    rdfs:label "toilet"@en .
+
+onm:toileting a crm:E55_Type ;
+    rdfs:label "toileting"@en .
+
+onm:toiletries-and-medical-merchandise a crm:E55_Type ;
+    rdfs:label "toiletries and medical merchandise"@en .
+
+onm:toiletries-product a crm:E55_Type ;
+    rdfs:label "toiletries product"@en .
+
+onm:toiletry-packaging a crm:E55_Type ;
+    rdfs:label "toiletry packaging"@en .
+
+onm:token a crm:E55_Type ;
+    rdfs:label "token"@en .
+
+onm:tongs a crm:E55_Type ;
+    rdfs:label "tongs"@en .
+
+onm:tool a crm:E55_Type ;
+    rdfs:label "tool"@en .
+
+onm:toothbrush a crm:E55_Type ;
+    rdfs:label "toothbrush"@en .
+
+onm:toothbrush-holder a crm:E55_Type ;
+    rdfs:label "toothbrush holder"@en .
+
+onm:toothpick-dispenser a crm:E55_Type ;
+    rdfs:label "toothpick dispenser"@en .
+
+onm:torch a crm:E55_Type ;
+    rdfs:label "torch"@en .
+
+onm:tote a crm:E55_Type ;
+    rdfs:label "tote"@en .
+
+onm:towel-rail a crm:E55_Type ;
+    rdfs:label "towel rail"@en .
+
+onm:toy-appliance a crm:E55_Type ;
+    rdfs:label "toy appliance"@en .
+
+onm:toy-food a crm:E55_Type ;
+    rdfs:label "toy food"@en .
+
+onm:toys a crm:E55_Type ;
+    rdfs:label "toys"@en .
+
+onm:tracker a crm:E55_Type ;
+    rdfs:label "tracker"@en .
+
+onm:trade-equipment a crm:E55_Type ;
+    rdfs:label "trade equipment"@en .
+
+onm:trade-show-display a crm:E55_Type ;
+    rdfs:label "trade show display"@en .
+
+onm:training-accessory a crm:E55_Type ;
+    rdfs:label "training accessory"@en .
+
+onm:transformer a crm:E55_Type ;
+    rdfs:label "transformer"@en .
+
+onm:transparency-projector a crm:E55_Type ;
+    rdfs:label "transparency projector"@en .
+
+onm:transparency-viewer a crm:E55_Type ;
+    rdfs:label "transparency viewer"@en .
+
+onm:transport a crm:E55_Type ;
+    rdfs:label "transport"@en .
+
+onm:transport-merchandise a crm:E55_Type ;
+    rdfs:label "transport merchandise"@en .
+
+onm:transport-product a crm:E55_Type ;
+    rdfs:label "transport product"@en .
+
+onm:travel-accessory a crm:E55_Type ;
+    rdfs:label "travel accessory"@en .
+
+onm:travel-keepsake-and-ephemera a crm:E55_Type ;
+    rdfs:label "travel keepsake and ephemera"@en .
+
+onm:tray a crm:E55_Type ;
+    rdfs:label "tray"@en .
+
+onm:trivet a crm:E55_Type ;
+    rdfs:label "trivet"@en .
+
+onm:trolley a crm:E55_Type ;
+    rdfs:label "trolley"@en .
+
+onm:trousers a crm:E55_Type ;
+    rdfs:label "trousers"@en .
+
+onm:trowel a crm:E55_Type ;
+    rdfs:label "trowel"@en .
+
+onm:tub a crm:E55_Type ;
+    rdfs:label "tub"@en .
+
+onm:tube a crm:E55_Type ;
+    rdfs:label "tube"@en .
+
+onm:typewriter a crm:E55_Type ;
+    rdfs:label "typewriter"@en .
+
+onm:umbrella a crm:E55_Type ;
+    rdfs:label "umbrella"@en .
+
+onm:umbrella-stand a crm:E55_Type ;
+    rdfs:label "umbrella stand"@en .
+
+onm:underwear a crm:E55_Type ;
+    rdfs:label "underwear"@en .
+
+onm:uniform-accessory a crm:E55_Type ;
+    rdfs:label "uniform accessory"@en .
+
+onm:uniform-and-clothing a crm:E55_Type ;
+    rdfs:label "uniform and clothing"@en .
+
+onm:utilities-company-merchandise a crm:E55_Type ;
+    rdfs:label "utilities company merchandise"@en .
+
+onm:vacuum-cleaner a crm:E55_Type ;
+    rdfs:label "vacuum cleaner"@en .
+
+onm:vacuum-forming a crm:E55_Type ;
+    rdfs:label "vacuum forming"@en .
+
+onm:van a crm:E55_Type ;
+    rdfs:label "van"@en .
+
+onm:vanity-case a crm:E55_Type ;
+    rdfs:label "vanity case"@en .
+
+onm:vanity-set a crm:E55_Type ;
+    rdfs:label "vanity set"@en .
+
+onm:vape a crm:E55_Type ;
+    rdfs:label "vape"@en .
+
+onm:vase a crm:E55_Type ;
+    rdfs:label "vase"@en .
+
+onm:vegetable-brush a crm:E55_Type ;
+    rdfs:label "vegetable brush"@en .
+
+onm:vehicle a crm:E55_Type ;
+    rdfs:label "vehicle"@en .
+
+onm:vehicle-accessory a crm:E55_Type ;
+    rdfs:label "vehicle accessory"@en .
+
+onm:vehicle-or-vehicle-part a crm:E55_Type ;
+    rdfs:label "vehicle or vehicle part"@en .
+
+onm:vehicle-part a crm:E55_Type ;
+    rdfs:label "vehicle part"@en .
+
+onm:vehicles-and-accessories a crm:E55_Type ;
+    rdfs:label "vehicles and accessories"@en .
+
+onm:vest a crm:E55_Type ;
+    rdfs:label "vest"@en .
+
+onm:vesta-case a crm:E55_Type ;
+    rdfs:label "vesta case"@en .
+
+onm:veterinary-equipment a crm:E55_Type ;
+    rdfs:label "veterinary equipment"@en .
+
+onm:video-player a crm:E55_Type ;
+    rdfs:label "video player"@en .
+
+onm:video-tape a crm:E55_Type ;
+    rdfs:label "video tape"@en .
+
+onm:viewing-equipment a crm:E55_Type ;
+    rdfs:label "viewing equipment"@en .
+
+onm:visual-display-unit a crm:E55_Type ;
+    rdfs:label "visual display unit"@en .
+
+onm:visual-stimulation a crm:E55_Type ;
+    rdfs:label "visual stimulation"@en .
+
+onm:volume-control a crm:E55_Type ;
+    rdfs:label "volume control"@en .
+
+onm:waist-pack a crm:E55_Type ;
+    rdfs:label "waist pack"@en .
+
+onm:wall-clock a crm:E55_Type ;
+    rdfs:label "wall clock"@en .
+
+onm:wall-hook a crm:E55_Type ;
+    rdfs:label "wall hook"@en .
+
+onm:wall-plaque a crm:E55_Type ;
+    rdfs:label "wall plaque"@en .
+
+onm:wallet a crm:E55_Type ;
+    rdfs:label "wallet"@en .
+
+onm:washing-equipment a crm:E55_Type ;
+    rdfs:label "washing equipment"@en .
+
+onm:washing-up-equipment a crm:E55_Type ;
+    rdfs:label "washing up equipment"@en .
+
+onm:watch a crm:E55_Type ;
+    rdfs:label "watch"@en .
+
+onm:watering-device a crm:E55_Type ;
+    rdfs:label "watering device"@en .
+
+onm:weapon a crm:E55_Type ;
+    rdfs:label "weapon"@en .
+
+onm:web-cam a crm:E55_Type ;
+    rdfs:label "web cam"@en .
+
+onm:wedding-dress a crm:E55_Type ;
+    rdfs:label "wedding dress"@en .
+
+onm:wheelchair a crm:E55_Type ;
+    rdfs:label "wheelchair"@en .
+
+onm:whisk a crm:E55_Type ;
+    rdfs:label "whisk"@en .
+
+onm:whistle a crm:E55_Type ;
+    rdfs:label "whistle"@en .
+
+onm:widget a crm:E55_Type ;
+    rdfs:label "widget"@en .
+
+onm:window-decoration a crm:E55_Type ;
+    rdfs:label "window decoration"@en .
+
+onm:women-s-shirt a crm:E55_Type ;
+    rdfs:label "women's shirt"@en .
+
+onm:women-s-shorts a crm:E55_Type ;
+    rdfs:label "women's shorts"@en .
+
+onm:women-s-suit a crm:E55_Type ;
+    rdfs:label "women's suit"@en .
+
+onm:women-s-trousers a crm:E55_Type ;
+    rdfs:label "women's trousers"@en .
+
+onm:word-game a crm:E55_Type ;
+    rdfs:label "word game"@en .
+
+onm:wrapper a crm:E55_Type ;
+    rdfs:label "wrapper"@en .
+
+onm:writing-and-stationery a crm:E55_Type ;
+    rdfs:label "writing and stationery"@en .
+
+onm:writing-set a crm:E55_Type ;
+    rdfs:label "writing set"@en .
+
+onm:yarn a crm:E55_Type ;
+    rdfs:label "yarn"@en .
+
+onm:yarn-holder a crm:E55_Type ;
+    rdfs:label "yarn holder"@en .
+
+onm:yo-yo a crm:E55_Type ;
+    rdfs:label "yo-yo"@en .
+
+onm:yoghurt-maker a crm:E55_Type ;
+    rdfs:label "yoghurt maker"@en .
+
+onm:zip a crm:E55_Type ;
+    rdfs:label "zip"@en .
+

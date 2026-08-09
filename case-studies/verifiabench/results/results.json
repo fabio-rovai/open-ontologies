@@ -1,0 +1,97 @@
+{
+  "authority": "Biolink Model",
+  "n_tasks": 30,
+  "oracle": "closed-world term existence + structural constraints (deterministic, no LLM judge)",
+  "leaderboard": [
+    {
+      "model": "Qwen3-Coder-30B-A3B-Instruct-8bit",
+      "n_tasks": 30,
+      "raw_capability": 1.0,
+      "verified_capability": 1.0,
+      "mean_term_existence": 1.0,
+      "tasks_with_any_fabricated_term": 0,
+      "total_fabricated_terms": 0,
+      "verification_gap": 0.0
+    },
+    {
+      "model": "Claude Opus",
+      "n_tasks": 30,
+      "raw_capability": 1.0,
+      "verified_capability": 1.0,
+      "mean_term_existence": 1.0,
+      "tasks_with_any_fabricated_term": 0,
+      "total_fabricated_terms": 0,
+      "verification_gap": 0.0
+    },
+    {
+      "model": "Claude Haiku",
+      "n_tasks": 30,
+      "raw_capability": 1.0,
+      "verified_capability": 0.933,
+      "mean_term_existence": 0.992,
+      "tasks_with_any_fabricated_term": 1,
+      "total_fabricated_terms": 1,
+      "verification_gap": 0.067
+    },
+    {
+      "model": "Qwen3.6-35B-A3B-8bit",
+      "n_tasks": 30,
+      "raw_capability": 1.0,
+      "verified_capability": 0.767,
+      "mean_term_existence": 0.922,
+      "tasks_with_any_fabricated_term": 7,
+      "total_fabricated_terms": 7,
+      "verification_gap": 0.233
+    },
+    {
+      "model": "Claude Sonnet",
+      "n_tasks": 30,
+      "raw_capability": 1.0,
+      "verified_capability": 0.733,
+      "mean_term_existence": 1.0,
+      "tasks_with_any_fabricated_term": 0,
+      "total_fabricated_terms": 0,
+      "verification_gap": 0.267
+    },
+    {
+      "model": "Llama-3.2-3B-Instruct-4bit",
+      "n_tasks": 30,
+      "raw_capability": 1.0,
+      "verified_capability": 0.0,
+      "mean_term_existence": 0.509,
+      "tasks_with_any_fabricated_term": 30,
+      "total_fabricated_terms": 49,
+      "verification_gap": 1.0
+    },
+    {
+      "model": "Qwen2.5-3B-Instruct-4bit",
+      "n_tasks": 30,
+      "raw_capability": 1.0,
+      "verified_capability": 0.0,
+      "mean_term_existence": 0.506,
+      "tasks_with_any_fabricated_term": 30,
+      "total_fabricated_terms": 65,
+      "verification_gap": 1.0
+    },
+    {
+      "model": "gemma-2-2b-it-4bit",
+      "n_tasks": 30,
+      "raw_capability": 0.233,
+      "verified_capability": 0.0,
+      "mean_term_existence": 0.058,
+      "tasks_with_any_fabricated_term": 7,
+      "total_fabricated_terms": 21,
+      "verification_gap": 0.233
+    },
+    {
+      "model": "Qwen2.5-0.5B-Instruct-4bit",
+      "n_tasks": 30,
+      "raw_capability": 0.0,
+      "verified_capability": 0.0,
+      "mean_term_existence": 0.0,
+      "tasks_with_any_fabricated_term": 0,
+      "total_fabricated_terms": 0,
+      "verification_gap": 0.0
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "sources": {
+    "vocabulary": "Biolink Model (biolink/biolink-model)",
+    "associations": "Open Targets Platform GraphQL API",
+    "biolink_declared_terms": 868
+  },
+  "associations": 40,
+  "grounded": {
+    "label": "grounded (real Biolink predicate)",
+    "triples": 284,
+    "shacl_conforms": true,
+    "biolink_terms_used": 3,
+    "closed_world_violations": 0,
+    "violations": []
+  },
+  "ungrounded": {
+    "label": "ungrounded (fabricated Biolink predicate)",
+    "triples": 284,
+    "shacl_conforms": true,
+    "biolink_terms_used": 3,
+    "closed_world_violations": 1,
+    "violations": [
+      "https://w3id.org/biolink/vocab/associated_with_disease"
+    ]
+  },
+  "headline": {
+    "grounded_shacl_violations": 0,
+    "grounded_closed_world_violations": 0,
+    "ungrounded_shacl_conforms": true,
+    "ungrounded_caught_by_gate": true
+  },
+  "triage_top": [
+    {
+      "ensembl": "ENSG00000157764",
+      "symbol": "BRAF",
+      "disease_id": "MONDO_0015280",
+      "disease_name": "cardiofaciocutaneous syndrome",
+      "score": 0.877
+    },
+    {
+      "ensembl": "ENSG00000141510",
+      "symbol": "TP53",
+      "disease_id": "MONDO_0018875",
+      "disease_name": "Li-Fraumeni syndrome",
+      "score": 0.8763
+    },
+    {
+      "ensembl": "ENSG00000171862",
+      "symbol": "PTEN",
+      "disease_id": "MONDO_0008021",
+      "disease_name": "Cowden syndrome 1",
+      "score": 0.8743
+    },
+    {
+      "ensembl": "ENSG00000146648",
+      "symbol": "EGFR",
+      "disease_id": "MONDO_0005233",
+      "disease_name": "non-small cell lung carcinoma",
+      "score": 0.8526
+    },
+    {
+      "ensembl": "ENSG00000012048",
+      "symbol": "BRCA1",
+      "disease_id": "MONDO_0007254",
+      "disease_name": "breast cancer",
+      "score": 0.839
+    },
+    {
+      "ensembl": "ENSG00000157764",
+      "symbol": "BRAF",
+      "disease_id": "MONDO_0018997",
+      "disease_name": "Noonan syndrome",
+      "score": 0.8381
+    },
+    {
+      "ensembl": "ENSG00000171094",
+      "symbol": "ALK",
+      "disease_id": "MONDO_0005072",
+      "disease_name": "neuroblastoma",
+      "score": 0.8375
+    },
+    {
+      "ensembl": "ENSG00000133703",
+      "symbol": "KRAS",
+      "disease_id": "MONDO_0018997",
+      "disease_name": "Noonan syndrome",
+      "score": 0.8336
+    },
+    {
+      "ensembl": "ENSG00000133703",
+      "symbol": "KRAS",
+      "disease_id": "MONDO_0012371",
+      "disease_name": "Noonan syndrome 3",
+      "score": 0.8289
+    },
+    {
+      "ensembl": "ENSG00000012048",
+      "symbol": "BRCA1",
+      "disease_id": "Orphanet_145",
+      "disease_name": "Hereditary breast and ovarian cancer syndrome",
+      "score": 0.8278
+    },
+    {
+      "ensembl": "ENSG00000133703",
+      "symbol": "KRAS",
+      "disease_id": "MONDO_0014112",
+      "disease_name": "cardiofaciocutaneous syndrome 2",
+      "score": 0.8216
+    },
+    {
+      "ensembl": "ENSG00000157764",
+      "symbol": "BRAF",
+      "disease_id": "MONDO_0005105",
+      "disease_name": "melanoma",
+      "score": 0.8195
+    },
+    {
+      "ensembl": "ENSG00000012048",
+      "symbol": "BRCA1",
+      "disease_id": "MONDO_0054748",
+      "disease_name": "Fanconi anemia, complementation group S",
+      "score": 0.8174
+    },
+    {
+      "ensembl": "ENSG00000171862",
+      "symbol": "PTEN",
+      "disease_id": "MONDO_0011537",
+      "disease_name": "macrocephaly-autism syndrome",
+      "score": 0.817
+    },
+    {
+      "ensembl": "ENSG00000133703",
+      "symbol": "KRAS",
+      "disease_id": "MONDO_0015280",
+      "disease_name": "cardiofaciocutaneous syndrome",
+      "score": 0.8161
+    }
+  ]
+}

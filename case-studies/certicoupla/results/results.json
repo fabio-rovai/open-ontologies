@@ -1,0 +1,57 @@
+{
+  "source": "OQMD (Open Quantum Materials Database), real DFT properties",
+  "n_materials": 1600,
+  "targets": [
+    "delta_e",
+    "band_gap",
+    "stability"
+  ],
+  "nominal_joint_coverage": 0.9,
+  "residual_correlation": [
+    [
+      1.0,
+      -0.282,
+      0.502
+    ],
+    [
+      -0.282,
+      1.0,
+      -0.156
+    ],
+    [
+      0.502,
+      -0.156,
+      1.0
+    ]
+  ],
+  "methods": {
+    "independent": {
+      "marginal_mean": 0.9025,
+      "joint": 0.7925,
+      "rel_volume": 1.0
+    },
+    "bonferroni": {
+      "marginal_mean": 0.96,
+      "joint": 0.9075,
+      "rel_volume": 6.178609424489175
+    },
+    "coupled_conformal": {
+      "marginal_mean": 0.9541666666666666,
+      "joint": 0.8975,
+      "rel_volume": 4.829738682379062
+    },
+    "copula": {
+      "marginal_mean": null,
+      "joint": 0.8925,
+      "rel_region_vs_coupled_in_copula_space": 0.4265961733746242
+    }
+  },
+  "headline": {
+    "independent_marginal_coverage": 0.902,
+    "independent_joint_coverage": 0.792,
+    "coupled_joint_coverage": 0.897,
+    "copula_joint_coverage": 0.892,
+    "bonferroni_joint_coverage": 0.907,
+    "coupled_rel_volume_vs_bonferroni": 0.782
+  }
+}

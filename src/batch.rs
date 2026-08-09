@@ -79,6 +79,7 @@ impl BatchRunner {
             "lint" => self.exec_lint(&cmd.args),
             "reason" => self.exec_reason(&cmd.args),
             "shacl" => self.exec_shacl(&cmd.args),
+            "vocab_check" => self.exec_vocab_check(&cmd.args),
             "diff" => self.exec_diff(&cmd.args),
             "convert" => self.exec_convert(&cmd.args),
             "enforce" => self.exec_enforce(&cmd.args),
@@ -194,6 +195,21 @@ impl BatchRunner {
         match std::fs::read_to_string(shapes_path) {
             Ok(shapes_content) => {
                 let result = ShaclValidator::validate(&self.graph, &shapes_content)
+                    .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
+            }
+            Err(e) => json!({"error": e.to_string()}),
+        }
+    }
+
+    fn exec_vocab_check(&self, args: &[String]) -> Value {
+        let data_path = match args.first() {
+            Some(p) => p,
+            None => return json!({"error": "vocab_check requires a data file path"}),
+        };
+        match std::fs::read_to_string(data_path) {
+            Ok(data) => {
+                let result = crate::vocab_check::check_data_vocab(&self.graph, &data, &[])
                     .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
                 serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
             }

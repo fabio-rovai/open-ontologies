@@ -1,0 +1,371 @@
+@prefix biolink: <https://w3id.org/biolink/vocab/> .
+@prefix ex: <https://ex.tesseract.academy/bio/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000012048_MONDO_0007254> ex:object <http://purl.obolibrary.org/obo/MONDO_0007254> ;
+    ex:otScore 8.39e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000012048> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000012048_MONDO_0008170> ex:object <http://purl.obolibrary.org/obo/MONDO_0008170> ;
+    ex:otScore 8.107e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000012048> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000012048_MONDO_0021100> ex:object <http://purl.obolibrary.org/obo/MONDO_0021100> ;
+    ex:otScore 7.999e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000012048> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000012048_MONDO_0054748> ex:object <http://purl.obolibrary.org/obo/MONDO_0054748> ;
+    ex:otScore 8.174e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000012048> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000012048_Orphanet_145> ex:object <https://identifiers.org/orphanet:145> ;
+    ex:otScore 8.278e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000012048> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000133703_MONDO_0005233> ex:object <http://purl.obolibrary.org/obo/MONDO_0005233> ;
+    ex:otScore 8.035e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000133703> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000133703_MONDO_0012371> ex:object <http://purl.obolibrary.org/obo/MONDO_0012371> ;
+    ex:otScore 8.289e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000133703> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000133703_MONDO_0014112> ex:object <http://purl.obolibrary.org/obo/MONDO_0014112> ;
+    ex:otScore 8.216e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000133703> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000133703_MONDO_0015280> ex:object <http://purl.obolibrary.org/obo/MONDO_0015280> ;
+    ex:otScore 8.161e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000133703> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000133703_MONDO_0018997> ex:object <http://purl.obolibrary.org/obo/MONDO_0018997> ;
+    ex:otScore 8.336e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000133703> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000136997_MONDO_0001187> ex:object <http://purl.obolibrary.org/obo/MONDO_0001187> ;
+    ex:otScore 4.97e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000136997> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000136997_MONDO_0004979> ex:object <http://purl.obolibrary.org/obo/MONDO_0004979> ;
+    ex:otScore 4.838e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000136997> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000136997_MONDO_0004986> ex:object <http://purl.obolibrary.org/obo/MONDO_0004986> ;
+    ex:otScore 5.35e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000136997> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000136997_MONDO_0005559> ex:object <http://purl.obolibrary.org/obo/MONDO_0005559> ;
+    ex:otScore 5.436e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000136997> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000136997_MONDO_0007243> ex:object <http://purl.obolibrary.org/obo/MONDO_0007243> ;
+    ex:otScore 6.302e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000136997> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000141510_MONDO_0005575> ex:object <http://purl.obolibrary.org/obo/MONDO_0005575> ;
+    ex:otScore 7.5e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000141510> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000141510_MONDO_0007256> ex:object <http://purl.obolibrary.org/obo/MONDO_0007256> ;
+    ex:otScore 7.97e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000141510> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000141510_MONDO_0009837> ex:object <http://purl.obolibrary.org/obo/MONDO_0009837> ;
+    ex:otScore 7.665e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000141510> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000141510_MONDO_0010150> ex:object <http://purl.obolibrary.org/obo/MONDO_0010150> ;
+    ex:otScore 7.771e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000141510> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000141510_MONDO_0018875> ex:object <http://purl.obolibrary.org/obo/MONDO_0018875> ;
+    ex:otScore 8.763e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000141510> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000146648_MONDO_0004992> ex:object <http://purl.obolibrary.org/obo/MONDO_0004992> ;
+    ex:otScore 7.369e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000146648> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000146648_MONDO_0005061> ex:object <http://purl.obolibrary.org/obo/MONDO_0005061> ;
+    ex:otScore 7.744e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000146648> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000146648_MONDO_0005233> ex:object <http://purl.obolibrary.org/obo/MONDO_0005233> ;
+    ex:otScore 8.526e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000146648> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000146648_MONDO_0008903> ex:object <http://purl.obolibrary.org/obo/MONDO_0008903> ;
+    ex:otScore 7.174e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000146648> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000146648_MONDO_0010150> ex:object <http://purl.obolibrary.org/obo/MONDO_0010150> ;
+    ex:otScore 7.252e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000146648> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000157764_MONDO_0005105> ex:object <http://purl.obolibrary.org/obo/MONDO_0005105> ;
+    ex:otScore 8.195e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000157764> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000157764_MONDO_0007265> ex:object <http://purl.obolibrary.org/obo/MONDO_0007265> ;
+    ex:otScore 7.64e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000157764> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000157764_MONDO_0013379> ex:object <http://purl.obolibrary.org/obo/MONDO_0013379> ;
+    ex:otScore 7.588e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000157764> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000157764_MONDO_0015280> ex:object <http://purl.obolibrary.org/obo/MONDO_0015280> ;
+    ex:otScore 8.77e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000157764> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000157764_MONDO_0018997> ex:object <http://purl.obolibrary.org/obo/MONDO_0018997> ;
+    ex:otScore 8.381e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000157764> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000171094_MONDO_0004992> ex:object <http://purl.obolibrary.org/obo/MONDO_0004992> ;
+    ex:otScore 7.253e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000171094> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000171094_MONDO_0005070> ex:object <http://purl.obolibrary.org/obo/MONDO_0005070> ;
+    ex:otScore 6.614e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000171094> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000171094_MONDO_0005072> ex:object <http://purl.obolibrary.org/obo/MONDO_0005072> ;
+    ex:otScore 8.375e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000171094> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000171094_MONDO_0005233> ex:object <http://purl.obolibrary.org/obo/MONDO_0005233> ;
+    ex:otScore 7.571e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000171094> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000171094_MONDO_0013083> ex:object <http://purl.obolibrary.org/obo/MONDO_0013083> ;
+    ex:otScore 7.605e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000171094> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000171862_MONDO_0008021> ex:object <http://purl.obolibrary.org/obo/MONDO_0008021> ;
+    ex:otScore 8.743e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000171862> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000171862_MONDO_0011537> ex:object <http://purl.obolibrary.org/obo/MONDO_0011537> ;
+    ex:otScore 8.17e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000171862> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000171862_MONDO_0013092> ex:object <http://purl.obolibrary.org/obo/MONDO_0013092> ;
+    ex:otScore 7.634e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000171862> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000171862_MONDO_0016063> ex:object <http://purl.obolibrary.org/obo/MONDO_0016063> ;
+    ex:otScore 7.815e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000171862> .
+
+<https://ex.tesseract.academy/bio/edge/ENSG00000171862_MONDO_0017623> ex:object <http://purl.obolibrary.org/obo/MONDO_0017623> ;
+    ex:otScore 8.079e-01 ;
+    ex:source "Open Targets Platform" ;
+    ex:subject <https://identifiers.org/ensembl:ENSG00000171862> .
+
+<http://purl.obolibrary.org/obo/MONDO_0001187> a biolink:Disease ;
+    rdfs:label "urinary bladder cancer" .
+
+<http://purl.obolibrary.org/obo/MONDO_0004979> a biolink:Disease ;
+    rdfs:label "asthma" .
+
+<http://purl.obolibrary.org/obo/MONDO_0004986> a biolink:Disease ;
+    rdfs:label "urinary bladder carcinoma" .
+
+<http://purl.obolibrary.org/obo/MONDO_0005061> a biolink:Disease ;
+    rdfs:label "lung adenocarcinoma" .
+
+<http://purl.obolibrary.org/obo/MONDO_0005070> a biolink:Disease ;
+    rdfs:label "neoplasm" .
+
+<http://purl.obolibrary.org/obo/MONDO_0005072> a biolink:Disease ;
+    rdfs:label "neuroblastoma" .
+
+<http://purl.obolibrary.org/obo/MONDO_0005105> a biolink:Disease ;
+    rdfs:label "melanoma" .
+
+<http://purl.obolibrary.org/obo/MONDO_0005559> a biolink:Disease ;
+    rdfs:label "neurodegenerative disease" .
+
+<http://purl.obolibrary.org/obo/MONDO_0005575> a biolink:Disease ;
+    rdfs:label "colorectal cancer" .
+
+<http://purl.obolibrary.org/obo/MONDO_0007243> a biolink:Disease ;
+    rdfs:label "Burkitt lymphoma" .
+
+<http://purl.obolibrary.org/obo/MONDO_0007254> a biolink:Disease ;
+    rdfs:label "breast cancer" .
+
+<http://purl.obolibrary.org/obo/MONDO_0007256> a biolink:Disease ;
+    rdfs:label "hepatocellular carcinoma" .
+
+<http://purl.obolibrary.org/obo/MONDO_0007265> a biolink:Disease ;
+    rdfs:label "cardiofaciocutaneous syndrome 1" .
+
+<http://purl.obolibrary.org/obo/MONDO_0008021> a biolink:Disease ;
+    rdfs:label "Cowden syndrome 1" .
+
+<http://purl.obolibrary.org/obo/MONDO_0008170> a biolink:Disease ;
+    rdfs:label "ovarian cancer" .
+
+<http://purl.obolibrary.org/obo/MONDO_0008903> a biolink:Disease ;
+    rdfs:label "lung cancer" .
+
+<http://purl.obolibrary.org/obo/MONDO_0009837> a biolink:Disease ;
+    rdfs:label "choroid plexus papilloma" .
+
+<http://purl.obolibrary.org/obo/MONDO_0011537> a biolink:Disease ;
+    rdfs:label "macrocephaly-autism syndrome" .
+
+<http://purl.obolibrary.org/obo/MONDO_0012371> a biolink:Disease ;
+    rdfs:label "Noonan syndrome 3" .
+
+<http://purl.obolibrary.org/obo/MONDO_0013083> a biolink:Disease ;
+    rdfs:label "neuroblastoma, susceptibility to, 3" .
+
+<http://purl.obolibrary.org/obo/MONDO_0013092> a biolink:Disease ;
+    rdfs:label "glioma susceptibility 2" .
+
+<http://purl.obolibrary.org/obo/MONDO_0013379> a biolink:Disease ;
+    rdfs:label "Noonan syndrome 7" .
+
+<http://purl.obolibrary.org/obo/MONDO_0014112> a biolink:Disease ;
+    rdfs:label "cardiofaciocutaneous syndrome 2" .
+
+<http://purl.obolibrary.org/obo/MONDO_0016063> a biolink:Disease ;
+    rdfs:label "Cowden disease" .
+
+<http://purl.obolibrary.org/obo/MONDO_0017623> a biolink:Disease ;
+    rdfs:label "PTEN hamartoma tumor syndrome" .
+
+<http://purl.obolibrary.org/obo/MONDO_0018875> a biolink:Disease ;
+    rdfs:label "Li-Fraumeni syndrome" .
+
+<http://purl.obolibrary.org/obo/MONDO_0021100> a biolink:Disease ;
+    rdfs:label "breast neoplasm" .
+
+<http://purl.obolibrary.org/obo/MONDO_0054748> a biolink:Disease ;
+    rdfs:label "Fanconi anemia, complementation group S" .
+
+<https://identifiers.org/orphanet:145> a biolink:Disease ;
+    rdfs:label "Hereditary breast and ovarian cancer syndrome" .
+
+<http://purl.obolibrary.org/obo/MONDO_0004992> a biolink:Disease ;
+    rdfs:label "cancer" .
+
+<http://purl.obolibrary.org/obo/MONDO_0010150> a biolink:Disease ;
+    rdfs:label "head and neck squamous cell carcinoma" .
+
+<http://purl.obolibrary.org/obo/MONDO_0015280> a biolink:Disease ;
+    rdfs:label "cardiofaciocutaneous syndrome" .
+
+<http://purl.obolibrary.org/obo/MONDO_0018997> a biolink:Disease ;
+    rdfs:label "Noonan syndrome" .
+
+<https://identifiers.org/ensembl:ENSG00000012048> a biolink:Gene ;
+    rdfs:label "BRCA1" ;
+    biolink:gene_associated_with_condition <http://purl.obolibrary.org/obo/MONDO_0007254>,
+        <http://purl.obolibrary.org/obo/MONDO_0008170>,
+        <http://purl.obolibrary.org/obo/MONDO_0021100>,
+        <http://purl.obolibrary.org/obo/MONDO_0054748>,
+        <https://identifiers.org/orphanet:145> .
+
+<https://identifiers.org/ensembl:ENSG00000133703> a biolink:Gene ;
+    rdfs:label "KRAS" ;
+    biolink:gene_associated_with_condition <http://purl.obolibrary.org/obo/MONDO_0005233>,
+        <http://purl.obolibrary.org/obo/MONDO_0012371>,
+        <http://purl.obolibrary.org/obo/MONDO_0014112>,
+        <http://purl.obolibrary.org/obo/MONDO_0015280>,
+        <http://purl.obolibrary.org/obo/MONDO_0018997> .
+
+<https://identifiers.org/ensembl:ENSG00000136997> a biolink:Gene ;
+    rdfs:label "MYC" ;
+    biolink:gene_associated_with_condition <http://purl.obolibrary.org/obo/MONDO_0001187>,
+        <http://purl.obolibrary.org/obo/MONDO_0004979>,
+        <http://purl.obolibrary.org/obo/MONDO_0004986>,
+        <http://purl.obolibrary.org/obo/MONDO_0005559>,
+        <http://purl.obolibrary.org/obo/MONDO_0007243> .
+
+<https://identifiers.org/ensembl:ENSG00000141510> a biolink:Gene ;
+    rdfs:label "TP53" ;
+    biolink:gene_associated_with_condition <http://purl.obolibrary.org/obo/MONDO_0005575>,
+        <http://purl.obolibrary.org/obo/MONDO_0007256>,
+        <http://purl.obolibrary.org/obo/MONDO_0009837>,
+        <http://purl.obolibrary.org/obo/MONDO_0010150>,
+        <http://purl.obolibrary.org/obo/MONDO_0018875> .
+
+<https://identifiers.org/ensembl:ENSG00000146648> a biolink:Gene ;
+    rdfs:label "EGFR" ;
+    biolink:gene_associated_with_condition <http://purl.obolibrary.org/obo/MONDO_0004992>,
+        <http://purl.obolibrary.org/obo/MONDO_0005061>,
+        <http://purl.obolibrary.org/obo/MONDO_0005233>,
+        <http://purl.obolibrary.org/obo/MONDO_0008903>,
+        <http://purl.obolibrary.org/obo/MONDO_0010150> .
+
+<https://identifiers.org/ensembl:ENSG00000157764> a biolink:Gene ;
+    rdfs:label "BRAF" ;
+    biolink:gene_associated_with_condition <http://purl.obolibrary.org/obo/MONDO_0005105>,
+        <http://purl.obolibrary.org/obo/MONDO_0007265>,
+        <http://purl.obolibrary.org/obo/MONDO_0013379>,
+        <http://purl.obolibrary.org/obo/MONDO_0015280>,
+        <http://purl.obolibrary.org/obo/MONDO_0018997> .
+
+<https://identifiers.org/ensembl:ENSG00000171094> a biolink:Gene ;
+    rdfs:label "ALK" ;
+    biolink:gene_associated_with_condition <http://purl.obolibrary.org/obo/MONDO_0004992>,
+        <http://purl.obolibrary.org/obo/MONDO_0005070>,
+        <http://purl.obolibrary.org/obo/MONDO_0005072>,
+        <http://purl.obolibrary.org/obo/MONDO_0005233>,
+        <http://purl.obolibrary.org/obo/MONDO_0013083> .
+
+<https://identifiers.org/ensembl:ENSG00000171862> a biolink:Gene ;
+    rdfs:label "PTEN" ;
+    biolink:gene_associated_with_condition <http://purl.obolibrary.org/obo/MONDO_0008021>,
+        <http://purl.obolibrary.org/obo/MONDO_0011537>,
+        <http://purl.obolibrary.org/obo/MONDO_0013092>,
+        <http://purl.obolibrary.org/obo/MONDO_0016063>,
+        <http://purl.obolibrary.org/obo/MONDO_0017623> .
+
+<http://purl.obolibrary.org/obo/MONDO_0005233> a biolink:Disease ;
+    rdfs:label "non-small cell lung carcinoma" .
+

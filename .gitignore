@@ -5,5 +5,17 @@ data/
 !case-studies/heritage-aerial/data/**
 !case-studies/mcp-ies-rag-demo/data/
 !case-studies/mcp-ies-rag-demo/data/**
+!case-studies/modip-plastics-kg/data/
+!case-studies/modip-plastics-kg/data/**
+# OntoAxiom ground truth + scored results — the benchmark claims are unverifiable without them
+!benchmark/ontoaxiom/data/
+!benchmark/ontoaxiom/data/**
 # Ignore generated OWL files in root, but keep benchmark references
 /*.owl
+
+# Reasoner benchmark artifacts (downloaded corpora, jars, generated files)
+benchmark/reasoner/corpora/
+benchmark/reasoner/lib/
+benchmark/reasoner/*.class
+benchmark/reasoner/results/
+__pycache__/

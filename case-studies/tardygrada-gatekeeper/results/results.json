@@ -1,0 +1,27 @@
+{
+  "scenario": "2 robots, 3x3 grid, shared battery, 1 irreversible hazard cell",
+  "specification": [
+    "collision-free (robots never share a cell)",
+    "no hazard entry (no irreversible side effect)",
+    "battery budget never negative"
+  ],
+  "verification": "exhaustive over the full reachable state space (bounded model checking)",
+  "reachable_states": 96,
+  "transitions_checked": 1176,
+  "unsafe_transitions": 672,
+  "unsafe_blocked": 672,
+  "safe_transitions": 504,
+  "safe_admitted": 504,
+  "soundness_no_unsafe_admitted": true,
+  "completeness_no_safe_blocked": true,
+  "unsafe_blocked_rate": 1.0,
+  "safe_admitted_rate": 1.0,
+  "adversarial_unsafe_proposed": 672,
+  "adversarial_unsafe_blocked": 672,
+  "ungated_transitions": 1176,
+  "ungated_unsafe": 672,
+  "ungated_unsafe_rate": 0.5714,
+  "checker_latency_us": 0.366,
+  "trusted_core_lines": 31,
+  "continuous_assurance": "every dispatched action carries a re-checked certificate (100%)"
+}

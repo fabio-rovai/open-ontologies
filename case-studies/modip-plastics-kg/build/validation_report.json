@@ -1,0 +1,7 @@
+{
+  "parse_ok": true,
+  "union_triples": 487243,
+  "shacl_conforms": true,
+  "concepts_referenced": 233,
+  "dangling_concepts": 0
+}

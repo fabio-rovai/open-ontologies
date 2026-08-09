@@ -1,0 +1,13 @@
+{
+  "records": 11865,
+  "instance_triples": 483067,
+  "material_strings": 476,
+  "material_concepts": 137,
+  "material_resolution_pct": 99.9,
+  "getty_aat_exactmatches": 55,
+  "dag_edges": 289,
+  "dag_components": 114,
+  "shacl_conforms": true,
+  "dangling_concepts": 0,
+  "union_triples": 487243
+}

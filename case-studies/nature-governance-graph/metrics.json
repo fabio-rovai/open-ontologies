@@ -1,0 +1,27 @@
+{
+  "actors": 47,
+  "relationships": 48,
+  "sources": 42,
+  "dangling_relationships": 0,
+  "actor_classes": {
+    "statutory-agency": 13,
+    "ngo": 8,
+    "data-body": 8,
+    "funder": 3,
+    "sector-body": 5,
+    "partnership": 5,
+    "international": 5
+  },
+  "relationship_types": {
+    "sponsors": 7,
+    "regulates": 4,
+    "designated-under": 4,
+    "advises": 7,
+    "partners-with": 20,
+    "supplies-data-to": 3,
+    "funds": 3
+  },
+  "shacl_conforms": true,
+  "referential_integrity_violations": 0,
+  "dangling_dropped": []
+}

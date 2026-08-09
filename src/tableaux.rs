@@ -29,7 +29,7 @@
 //! - **Explanation Agent**: Clash tracing and justification extraction
 //! - **ABox Agent**: Individual consistency checking and type inference
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -804,12 +804,67 @@ impl ExplanationTrace {
 
 // ── Tableau ─────────────────────────────────────────────────────────────
 
+/// Outcome of a satisfiability test.
+///
+/// A two-valued `bool` cannot express the difference between "I constructed a
+/// clash, this concept is impossible" and "I ran out of budget before I could
+/// decide". Conflating them is a soundness bug: the caller turns exhaustion
+/// into an asserted `owl:Nothing` subsumption. This enum makes the third
+/// outcome unavoidable at the type level.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Verdict {
+    /// A complete, clash-free model was constructed.
+    Satisfiable,
+    /// Every branch clashed. This is a proof.
+    Unsatisfiable,
+    /// A resource budget was hit first. Nothing is proven either way.
+    Unknown,
+}
+
+impl Verdict {
+    /// True only when the concept is PROVEN satisfiable. `Unknown` is not.
+    ///
+    /// Note that this is NOT the negation of [`Verdict::is_unsat`]: both return
+    /// false for `Unknown`. Callers must handle the third case explicitly,
+    /// which is the whole point of the type.
+    pub fn is_sat(self) -> bool {
+        matches!(self, Verdict::Satisfiable)
+    }
+
+    /// True only when unsatisfiability is PROVEN. `Unknown` is not.
+    pub fn is_unsat(self) -> bool {
+        matches!(self, Verdict::Unsatisfiable)
+    }
+
+    /// True when no decision was reached. Callers that treat this as either
+    /// answer are reintroducing the bug this enum exists to prevent.
+    pub fn is_unknown(self) -> bool {
+        matches!(self, Verdict::Unknown)
+    }
+}
+
+/// Why a tableau run stopped short of a decision.
+#[derive(Debug, Clone, Copy, Default)]
+struct Budget {
+    /// Wall-clock cut-off for a single satisfiability test.
+    deadline: Option<Instant>,
+    /// Set when any budget was hit during expansion.
+    exhausted: bool,
+}
+
+impl Budget {
+    fn expired(&self) -> bool {
+        self.deadline.is_some_and(|d| Instant::now() >= d)
+    }
+}
+
 #[derive(Clone)]
 struct Tableau {
     nodes: HashMap<u32, TNode>,
     next_id: u32,
     tbox: Arc<ProcessedTBox>,
     trace: ExplanationTrace,
+    budget: Budget,
 }
 
 impl Tableau {
@@ -819,7 +874,14 @@ impl Tableau {
             next_id: 0,
             tbox,
             trace: ExplanationTrace::new(false),
+            budget: Budget::default(),
         }
+    }
+
+    fn with_deadline(tbox: Arc<ProcessedTBox>, deadline: Option<Instant>) -> Self {
+        let mut t = Self::new(tbox);
+        t.budget.deadline = deadline;
+        t
     }
 
     fn new_with_tracing(tbox: Arc<ProcessedTBox>) -> Self {
@@ -828,17 +890,25 @@ impl Tableau {
             next_id: 0,
             tbox,
             trace: ExplanationTrace::new(true),
+            budget: Budget::default(),
         }
     }
 
-    fn is_satisfiable(&mut self, concept: &Concept) -> bool {
+    fn decide(&mut self, concept: &Concept) -> Verdict {
         let root = self.fresh_node(None, None);
         self.add_label(root, concept.clone());
         // Add GCIs to root
         for gci in self.tbox.gcis.clone() {
             self.add_label(root, gci);
         }
-        self.expand(0)
+        if self.expand(0) {
+            Verdict::Satisfiable
+        } else if self.budget.exhausted {
+            // We never completed the search, so we have proven nothing.
+            Verdict::Unknown
+        } else {
+            Verdict::Unsatisfiable
+        }
     }
 
     fn fresh_node(&mut self, parent: Option<u32>, parent_role: Option<u32>) -> u32 {
@@ -986,7 +1056,12 @@ impl Tableau {
         }
 
         // 3. Redirect references: in all other nodes, replace remove_id with keep_id
-        let all_ids: Vec<u32> = self.nodes.keys().copied().collect();
+        let mut all_ids: Vec<u32> = self.nodes.keys().copied().collect();
+        // Sorted: HashMap iteration order is seeded per process, so an unsorted
+        // traversal makes expansion order (and therefore which checks finish
+        // inside budget) vary run to run. Node ids are assigned sequentially, so
+        // sorting by id is creation order.
+        all_ids.sort_unstable();
         for &nid in &all_ids {
             if nid == remove_id {
                 continue;
@@ -1015,17 +1090,35 @@ impl Tableau {
     fn expand(&mut self, depth: usize) -> bool {
         let max_depth = crate::runtime::tableaux_max_depth();
         let max_nodes = crate::runtime::tableaux_max_nodes();
-        if depth > max_depth || self.nodes.len() > max_nodes {
+        // Hitting a budget is NOT a clash. Record it so the caller can report
+        // Unknown instead of asserting unsatisfiability, then unwind. The
+        // `false` return here means only "this branch produced no model".
+        if depth > max_depth || self.nodes.len() > max_nodes || self.budget.expired() {
+            self.budget.exhausted = true;
             return false;
         }
 
         // Apply deterministic rules until fixpoint
         loop {
+            // The deadline must be checked HERE, not only on entry to expand().
+            // This fixpoint loop can run for a very long time on a single call
+            // (every iteration re-runs blocking over every node), so a check
+            // only at function entry lets one expansion overrun the budget
+            // without bound.
+            if self.budget.expired() {
+                self.budget.exhausted = true;
+                return false;
+            }
             if self.any_clash() {
                 return false;
             }
             let mut changed = false;
-            let node_ids: Vec<u32> = self.nodes.keys().copied().collect();
+            let mut node_ids: Vec<u32> = self.nodes.keys().copied().collect();
+            // Sorted: HashMap iteration order is seeded per process, so an unsorted
+            // traversal makes expansion order (and therefore which checks finish
+            // inside budget) vary run to run. Node ids are assigned sequentially, so
+            // sorting by id is creation order.
+            node_ids.sort_unstable();
 
             for &nid in &node_ids {
                 if !self.nodes.contains_key(&nid) || self.nodes[&nid].blocked {
@@ -1133,7 +1226,12 @@ impl Tableau {
 
         // ── ≤-rule (MaxCard) with node merging ──────────────────────────
         // Check for MaxCard violations and merge nodes
-        let node_ids: Vec<u32> = self.nodes.keys().copied().collect();
+        let mut node_ids: Vec<u32> = self.nodes.keys().copied().collect();
+        // Sorted: HashMap iteration order is seeded per process, so an unsorted
+        // traversal makes expansion order (and therefore which checks finish
+        // inside budget) vary run to run. Node ids are assigned sequentially, so
+        // sorting by id is creation order.
+        node_ids.sort_unstable();
         for &nid in &node_ids {
             if !self.nodes.contains_key(&nid) || self.nodes[&nid].blocked {
                 continue;
@@ -1186,6 +1284,9 @@ impl Tableau {
                                 *self = branch;
                                 return true;
                             }
+                            // Carry the budget flag back: a branch that ran out
+                            // of room does not license "all merges clash".
+                            self.budget.exhausted |= branch.budget.exhausted;
                         }
                     }
                     return false; // All merges lead to clash
@@ -1202,7 +1303,12 @@ impl Tableau {
         }
 
         // ── ⊔-rule: find unprocessed disjunction → branch ──────────────
-        let node_ids: Vec<u32> = self.nodes.keys().copied().collect();
+        let mut node_ids: Vec<u32> = self.nodes.keys().copied().collect();
+        // Sorted: HashMap iteration order is seeded per process, so an unsorted
+        // traversal makes expansion order (and therefore which checks finish
+        // inside budget) vary run to run. Node ids are assigned sequentially, so
+        // sorting by id is creation order.
+        node_ids.sort_unstable();
         for &nid in &node_ids {
             if !self.nodes.contains_key(&nid) || self.nodes[&nid].blocked {
                 continue;
@@ -1240,6 +1346,8 @@ impl Tableau {
                         if branch.expand(depth + 1) {
                             return true;
                         }
+                        // Same here: an exhausted disjunct is not a refuted one.
+                        self.budget.exhausted |= branch.budget.exhausted;
                     }
                     return false; // All branches clash
                 }
@@ -1269,27 +1377,98 @@ impl Tableau {
 
     /// Subset blocking: node blocked by ancestor with ⊇ labels.
     fn update_blocking(&mut self) {
-        let node_ids: Vec<u32> = self.nodes.keys().copied().collect();
+        let mut node_ids: Vec<u32> = self.nodes.keys().copied().collect();
+        // Sorted: HashMap iteration order is seeded per process, so an unsorted
+        // traversal makes expansion order (and therefore which checks finish
+        // inside budget) vary run to run. Node ids are assigned sequentially, so
+        // sorting by id is creation order.
+        node_ids.sort_unstable();
         for &nid in &node_ids {
-            if self.nodes[&nid].parent.is_none() {
-                continue;
-            }
-            let node_labels = self.nodes[&nid].labels.clone();
-            let mut ancestor = self.nodes[&nid].parent;
-            let mut found = false;
-            while let Some(anc_id) = ancestor {
-                if let Some(anc_node) = self.nodes.get(&anc_id) {
-                    if node_labels.is_subset(&anc_node.labels) {
-                        found = true;
-                        break;
-                    }
-                    ancestor = anc_node.parent;
-                } else {
-                    break;
+            let blocked = self.is_pairwise_blocked(nid);
+            self.nodes.get_mut(&nid).unwrap().blocked = blocked;
+        }
+    }
+
+    /// The set of roles labelling the edge from `from` to `to`.
+    fn roles_between(&self, from: u32, to: u32) -> BTreeSet<u32> {
+        match self.nodes.get(&from) {
+            Some(n) => n
+                .edges
+                .iter()
+                .filter(|(_, targets)| targets.contains(&to))
+                .map(|(r, _)| *r)
+                .collect(),
+            None => BTreeSet::new(),
+        }
+    }
+
+    /// Pairwise (double) ancestor blocking.
+    ///
+    /// Horrocks and Sattler, *A Tableau Decision Procedure for SHOIQ* (JAR 39,
+    /// 2007): once a logic has BOTH inverse roles and number restrictions,
+    /// single-node blocking is not sound. The reason is unravelling. To build a
+    /// model from a completion graph you replicate the fragment between the
+    /// blocked node and its blocker infinitely often, and that only yields a
+    /// model if the blocked node behaves like its blocker *in its context*.
+    /// With inverse roles a node constrains its predecessor, so the contexts
+    /// have to match too.
+    ///
+    /// The condition, for `s` a blockable successor of `s'` and `t` a blockable
+    /// successor of `t'`, is that `t` blocks `s` iff
+    ///
+    ///   t ≺ s,  L(s) = L(t),  L(s') = L(t'),  L(s,s') = L(t,t'),  L(s',s) = L(t',t)
+    ///
+    /// Note `=`, not `⊆`. This replaces the previous implementation, which used
+    /// ancestor SUBSET blocking on the node label alone and ignored parents and
+    /// edge labels entirely. That was adequate for ALC but unsound for the
+    /// SHOIQ this reasoner advertises.
+    ///
+    /// This is deliberately the classical ancestor variant rather than HermiT's
+    /// "anywhere" blocking. Anywhere blocking yields smaller models but is a
+    /// further optimisation on top of a correct base; get the base right first.
+    fn is_pairwise_blocked(&self, s: u32) -> bool {
+        // Only blockable successors can be blocked. A node with no parent is
+        // a root and is never blocked.
+        let Some(s_parent) = self.nodes.get(&s).and_then(|n| n.parent) else {
+            return false;
+        };
+        let Some(s_node) = self.nodes.get(&s) else {
+            return false;
+        };
+        let Some(s_parent_node) = self.nodes.get(&s_parent) else {
+            return false;
+        };
+
+        let s_labels = &s_node.labels;
+        let s_parent_labels = &s_parent_node.labels;
+        let s_down = self.roles_between(s_parent, s);
+        let s_up = self.roles_between(s, s_parent);
+
+        // Walk strict ancestors, looking for a blocker.
+        let mut cur = s_node.parent;
+        while let Some(t) = cur {
+            let Some(t_node) = self.nodes.get(&t) else {
+                break;
+            };
+            if let Some(t_parent) = t_node.parent {
+                // Node ids are allocated monotonically, so `t < s` is the
+                // strict ordering the calculus requires. It also guarantees we
+                // never create a blocking cycle.
+                if t < s
+                    && t_node.labels == *s_labels
+                    && self
+                        .nodes
+                        .get(&t_parent)
+                        .is_some_and(|tp| tp.labels == *s_parent_labels)
+                    && self.roles_between(t_parent, t) == s_down
+                    && self.roles_between(t, t_parent) == s_up
+                {
+                    return true;
                 }
             }
-            self.nodes.get_mut(&nid).unwrap().blocked = found;
+            cur = t_node.parent;
         }
+        false
     }
 }
 
@@ -1303,6 +1482,9 @@ pub struct DlReasoner {
     nothing_id: u32,
     individual_types: HashMap<u32, HashSet<u32>>,
     role_assertions: Vec<(u32, u32, u32)>,
+    /// Wall-clock cut-off applied to each individual satisfiability test.
+    /// `None` means no time limit (the node/depth budgets still apply).
+    deadline: Option<Instant>,
 }
 
 impl DlReasoner {
@@ -1329,33 +1511,57 @@ impl DlReasoner {
             nothing_id: result.nothing_id,
             individual_types: result.individual_types,
             role_assertions: result.role_assertions,
+            deadline: crate::runtime::tableaux_test_timeout_ms()
+                .map(|ms| Instant::now() + std::time::Duration::from_millis(ms)),
         })
     }
 
-    /// Thread-safe satisfiability test — each call creates its own Tableau.
+    /// Three-valued satisfiability test — each call creates its own Tableau.
+    ///
+    /// Returns `Unknown` when a resource budget was hit before a decision was
+    /// reached. Callers MUST NOT read `Unknown` as either answer.
+    pub fn decide_satisfiable(&self, concept: &Concept) -> Verdict {
+        let mut tableau = Tableau::with_deadline(Arc::clone(&self.tbox), self.deadline);
+        tableau.decide(concept)
+    }
+
+    /// Thread-safe satisfiability test.
+    ///
+    /// Collapses `Unknown` to `true`, which is the SAFE direction: an
+    /// undecided class is left in the hierarchy rather than being declared
+    /// impossible. Prefer `decide_satisfiable` where the distinction matters.
     pub fn is_satisfiable(&self, concept: &Concept) -> bool {
-        let mut tableau = Tableau::new(Arc::clone(&self.tbox));
-        tableau.is_satisfiable(concept)
+        !self.decide_satisfiable(concept).is_unsat()
     }
 
     /// Check if sub ⊑ sup (sub is subsumed by sup).
+    ///
+    /// A subsumption is asserted ONLY when the negated test concept is proven
+    /// unsatisfiable. `Unknown` yields `false`: we decline to claim a
+    /// subsumption we could not establish.
     pub fn is_subsumed(&self, sub: &Concept, sup: &Concept) -> bool {
-        let mut test = vec![sub.clone(), sup.negate()];
-        test.sort();
-        let test_concept = Concept::And(test);
-        !self.is_satisfiable(&test_concept)
+        self.decide_subsumption(sub, sup).is_unsat()
     }
 
-    /// Check TBox consistency.
+    /// Subsumption as a three-valued verdict. `Unsatisfiable` on the negated
+    /// test concept means the subsumption holds.
+    pub fn decide_subsumption(&self, sub: &Concept, sup: &Concept) -> Verdict {
+        let mut test = vec![sub.clone(), sup.negate()];
+        test.sort();
+        self.decide_satisfiable(&Concept::And(test))
+    }
+
+    /// Check TBox consistency. An undecided run reports consistent, which is
+    /// the safe direction: we do not condemn an ontology we failed to refute.
     pub fn is_consistent(&self) -> bool {
-        self.is_satisfiable(&Concept::Top)
+        !self.decide_satisfiable(&Concept::Top).is_unsat()
     }
 
     /// Explain why a class is unsatisfiable. Returns None if satisfiable.
     pub fn explain_unsatisfiable(&self, class_id: u32) -> Option<Vec<String>> {
         let concept = Concept::Atom(class_id);
         let mut tableau = Tableau::new_with_tracing(Arc::clone(&self.tbox));
-        if tableau.is_satisfiable(&concept) {
+        if !tableau.decide(&concept).is_unsat() {
             return None;
         }
         Some(tableau.trace.steps)
@@ -1371,8 +1577,8 @@ impl DlReasoner {
         test.sort();
         let test_concept = Concept::And(test);
         let mut tableau = Tableau::new_with_tracing(Arc::clone(&self.tbox));
-        let sat = tableau.is_satisfiable(&test_concept);
-        (!sat, tableau.trace.steps)
+        let verdict = tableau.decide(&test_concept);
+        (verdict.is_unsat(), tableau.trace.steps)
     }
 
     /// Compute told-subsumer transitive closure (for pruning).
@@ -1418,28 +1624,60 @@ impl DlReasoner {
     pub fn classify_parallel(&self) -> AgentClassificationResult {
         let start = Instant::now();
 
-        let classes: Vec<u32> = self
+        // Sorted for the same reason as the node traversals: `named_classes` is a
+        // HashSet, so its iteration order is seeded per process. That order fixes
+        // the order of `satisfiable`, which fixes the order of `pairs`, which
+        // decides which subsumption checks are reached before a budget runs out.
+        // Unsorted, classification is not a function of the ontology alone.
+        let mut classes: Vec<u32> = self
             .named_classes
             .iter()
             .filter(|&&c| c != self.thing_id && c != self.nothing_id)
             .copied()
             .collect();
+        classes.sort_unstable();
+
+        // Global budget for the WHOLE classification.
+        //
+        // The per-test deadline bounds one satisfiability check. It does not
+        // bound classification, which runs one check per class plus one per
+        // ordered pair of classes. On the Pizza ontology that is ~100 classes
+        // and ~10,000 pairs; at the 10s per-test budget the worst case is over
+        // a day. A global deadline is what actually stops that.
+        let global_deadline = crate::runtime::classify_timeout_ms()
+            .map(|ms| Instant::now() + std::time::Duration::from_millis(ms));
+        let out_of_time = || global_deadline.is_some_and(|d| Instant::now() >= d);
 
         // ── Satisfiability Agent ─────────────────────────────────────
         let sat_start = Instant::now();
-        let sat_results: Vec<(u32, bool)> = classes
+        let sat_results: Vec<(u32, Verdict)> = classes
             .par_iter()
-            .map(|&cls| (cls, self.is_satisfiable(&Concept::Atom(cls))))
+            .map(|&cls| {
+                if out_of_time() {
+                    // Budget gone: report Unknown rather than guessing.
+                    return (cls, Verdict::Unknown);
+                }
+                (cls, self.decide_satisfiable(&Concept::Atom(cls)))
+            })
             .collect();
 
+        // Only PROVEN unsatisfiable classes go in the unsatisfiable list.
+        // Classes we ran out of budget on are undetermined, and are kept in
+        // the satisfiable set for downstream subsumption testing so they stay
+        // in the hierarchy rather than silently vanishing.
         let satisfiable: Vec<u32> = sat_results
             .iter()
-            .filter(|(_, s)| *s)
+            .filter(|(_, v)| !v.is_unsat())
             .map(|(c, _)| *c)
             .collect();
         let unsatisfiable: Vec<u32> = sat_results
             .iter()
-            .filter(|(_, s)| !*s)
+            .filter(|(_, v)| v.is_unsat())
+            .map(|(c, _)| *c)
+            .collect();
+        let undetermined: Vec<u32> = sat_results
+            .iter()
+            .filter(|(_, v)| matches!(v, Verdict::Unknown))
             .map(|(c, _)| *c)
             .collect();
         let sat_time = sat_start.elapsed();
@@ -1458,11 +1696,22 @@ impl DlReasoner {
             }
         }
 
+        let subsumption_cut_short = std::sync::atomic::AtomicBool::new(false);
         let inferred: Vec<(u32, u32)> = pairs
             .par_iter()
-            .filter(|(sub, sup)| self.is_subsumed(&Concept::Atom(*sub), &Concept::Atom(*sup)))
+            .filter(|(sub, sup)| {
+                if out_of_time() {
+                    // Untested pairs are NOT non-subsumptions. Flag the run as
+                    // incomplete so no caller reads absence as refutation.
+                    subsumption_cut_short.store(true, std::sync::atomic::Ordering::Relaxed);
+                    return false;
+                }
+                self.is_subsumed(&Concept::Atom(*sub), &Concept::Atom(*sup))
+            })
             .cloned()
             .collect();
+        let subsumption_cut_short =
+            subsumption_cut_short.load(std::sync::atomic::Ordering::Relaxed);
         let sub_time = sub_start.elapsed();
 
         // Build hierarchy (told + inferred)
@@ -1496,6 +1745,8 @@ impl DlReasoner {
         AgentClassificationResult {
             hierarchy,
             unsatisfiable,
+            undetermined,
+            subsumption_cut_short,
             equivalences,
             inferred_subsumptions: inferred.len(),
             agents: AgentMetrics {
@@ -1520,12 +1771,17 @@ impl DlReasoner {
         if self.individual_types.is_empty() {
             return ABoxResult {
                 consistent: true,
+                undecided: false,
                 individuals_checked: 0,
                 inferred_types: HashMap::new(),
             };
         }
 
-        let mut tableau = Tableau::new(Arc::clone(&self.tbox));
+        // The ABox check builds ONE tableau containing every named individual,
+        // so it is the largest single expansion the reasoner ever performs. It
+        // must carry the same deadline as every other test, otherwise it is an
+        // unbounded hole in the budget.
+        let mut tableau = Tableau::with_deadline(Arc::clone(&self.tbox), self.deadline);
         let mut ind_to_node: HashMap<u32, u32> = HashMap::new();
 
         // Create nodes for each individual
@@ -1555,11 +1811,18 @@ impl DlReasoner {
             }
         }
 
-        let consistent = tableau.expand(0);
+        // Same three-valued discipline as everywhere else: exhausting the
+        // budget is not a proof of inconsistency. Declaring an ABox
+        // inconsistent is a strong, user-visible claim and must never be the
+        // by-product of giving up. Default to consistent when undecided.
+        let expanded = tableau.expand(0);
+        let abox_undecided = !expanded && tableau.budget.exhausted;
+        let consistent = expanded || abox_undecided;
 
-        // Infer additional types for each individual
+        // Infer additional types for each individual. Only when the expansion
+        // genuinely completed: a partial tableau's labels are not conclusions.
         let mut inferred: HashMap<u32, HashSet<u32>> = HashMap::new();
-        if consistent {
+        if expanded {
             for (&ind, &node_id) in &ind_to_node {
                 if let Some(node) = tableau.nodes.get(&node_id) {
                     for label in &node.labels {
@@ -1574,6 +1837,7 @@ impl DlReasoner {
 
         ABoxResult {
             consistent,
+            undecided: abox_undecided,
             individuals_checked: self.individual_types.len(),
             inferred_types: inferred,
         }
@@ -1604,6 +1868,18 @@ impl DlReasoner {
             .iter()
             .map(|&id| reasoner.interner.resolve(id))
             .collect();
+
+        // Completeness signal. A caller must be able to tell a proof from a
+        // run that gave up; without this the two are indistinguishable in the
+        // output and every consumer silently over-trusts the result.
+        let undetermined_names: Vec<&str> = result
+            .undetermined
+            .iter()
+            .map(|&id| reasoner.interner.resolve(id))
+            .collect();
+        let complete = undetermined_names.is_empty()
+            && !result.subsumption_cut_short
+            && !abox_result.undecided;
 
         let mut hierarchy_json: Vec<serde_json::Value> = Vec::new();
         for (&cls, supers) in &result.hierarchy {
@@ -1644,6 +1920,7 @@ impl DlReasoner {
             }
             serde_json::json!({
                 "consistent": abox_result.consistent,
+                "undecided": abox_result.undecided,
                 "individuals_checked": abox_result.individuals_checked,
                 "inferred": ind_json,
             })
@@ -1680,6 +1957,9 @@ impl DlReasoner {
             "consistent": consistent,
             "named_classes": reasoner.named_classes.len(),
             "unsatisfiable_classes": unsat_names,
+            "complete": complete,
+            "undetermined_classes": undetermined_names,
+            "subsumption_sweep_cut_short": result.subsumption_cut_short,
             "inferred_subsumptions": result.inferred_subsumptions,
             "equivalences": equiv_json,
             "classification": hierarchy_json,
@@ -1780,7 +2060,16 @@ impl DlReasoner {
 
 pub struct AgentClassificationResult {
     pub hierarchy: HashMap<u32, HashSet<u32>>,
+    /// Classes PROVEN to have no instances.
     pub unsatisfiable: Vec<u32>,
+    /// Classes on which a resource budget was hit before a decision. Neither
+    /// proven satisfiable nor proven unsatisfiable. Their presence means the
+    /// classification as a whole is incomplete.
+    pub undetermined: Vec<u32>,
+    /// True when the subsumption sweep ran out of global budget, so some pairs
+    /// were never tested. Absence of a subsumption in the output is then not
+    /// evidence that it does not hold.
+    pub subsumption_cut_short: bool,
     pub equivalences: Vec<(u32, u32)>,
     pub inferred_subsumptions: usize,
     pub agents: AgentMetrics,
@@ -1800,7 +2089,11 @@ pub struct AgentTaskMetrics {
 }
 
 pub struct ABoxResult {
+    /// Reported consistent unless inconsistency was PROVEN. See `undecided`.
     pub consistent: bool,
+    /// True when the ABox expansion ran out of budget. `consistent` is then a
+    /// default, not a finding.
+    pub undecided: bool,
     pub individuals_checked: usize,
     pub inferred_types: HashMap<u32, HashSet<u32>>,
 }

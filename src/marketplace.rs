@@ -10,7 +10,7 @@ pub struct MarketplaceEntry {
     pub format: RdfFormat,
 }
 
-/// Curated catalogue of 32 standard W3C/ISO/industry ontologies.
+/// Curated catalogue of 33 standard W3C/ISO/industry ontologies.
 pub static CATALOGUE: &[MarketplaceEntry] = &[
     // ── Foundational ──────────────────────────────────────────────
     MarketplaceEntry {

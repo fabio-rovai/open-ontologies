@@ -1,0 +1,28 @@
+{
+  "scenario": "Commons Harvest (Melting Pot substrate, reimplemented)",
+  "source": "https://github.com/google-deepmind/meltingpot",
+  "safety_spec": "sustainability: never harvest so as to kill a patch (empty a neighbourhood)",
+  "verification": {
+    "grid": "3x3",
+    "configs": 512,
+    "harvest_actions_checked": 2304,
+    "unsafe_harvests": 447,
+    "unsafe_blocked": 447,
+    "safe_harvests": 1857,
+    "safe_admitted": 1857,
+    "soundness_no_patch_killed": true,
+    "completeness_no_safe_blocked": true,
+    "unsafe_blocked_rate": 1.0,
+    "safe_admitted_rate": 1.0
+  },
+  "dynamic_episode": {
+    "grid": "6x6",
+    "agents": 4,
+    "steps": 200,
+    "trials": 20,
+    "ungated_mean_dead_cells": 36.0,
+    "ungated_mean_apples_remaining": 0.0,
+    "gated_mean_dead_cells": 0.0,
+    "gated_mean_apples_remaining": 9.8
+  }
+}

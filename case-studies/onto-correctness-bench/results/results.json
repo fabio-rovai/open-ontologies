@@ -1,0 +1,59 @@
+{
+  "per_vocabulary": [
+    {
+      "name": "schema.org",
+      "ontology_triples": 17949,
+      "declared_classes": 933,
+      "declared_properties": 1521,
+      "records_clean": 100,
+      "records_hallucinated": 100,
+      "fabricated_terms_injected": 136,
+      "shacl_false_pass_rate_pct": 100.0,
+      "closed_world_catch_rate_pct": 100.0,
+      "closed_world_false_positive_rate_clean_pct": 0.0,
+      "shacl_conforms_on_clean_pct": 100.0,
+      "term_recall_closed_world_pct": 100.0,
+      "term_recall_shacl_pct": 0.0,
+      "shacl_validation_errors": 0
+    },
+    {
+      "name": "IES4",
+      "ontology_triples": 3976,
+      "declared_classes": 510,
+      "declared_properties": 204,
+      "records_clean": 100,
+      "records_hallucinated": 100,
+      "fabricated_terms_injected": 134,
+      "shacl_false_pass_rate_pct": 100.0,
+      "closed_world_catch_rate_pct": 100.0,
+      "closed_world_false_positive_rate_clean_pct": 0.0,
+      "shacl_conforms_on_clean_pct": 100.0,
+      "term_recall_closed_world_pct": 100.0,
+      "term_recall_shacl_pct": 0.0,
+      "shacl_validation_errors": 0
+    },
+    {
+      "name": "OBO (PATO+RO)",
+      "ontology_triples": 270126,
+      "declared_classes": 2889,
+      "declared_properties": 759,
+      "records_clean": 100,
+      "records_hallucinated": 100,
+      "fabricated_terms_injected": 148,
+      "shacl_false_pass_rate_pct": 100.0,
+      "closed_world_catch_rate_pct": 100.0,
+      "closed_world_false_positive_rate_clean_pct": 0.0,
+      "shacl_conforms_on_clean_pct": 100.0,
+      "term_recall_closed_world_pct": 100.0,
+      "term_recall_shacl_pct": 0.0,
+      "shacl_validation_errors": 0
+    }
+  ],
+  "aggregate": {
+    "vocabularies": 3,
+    "total_fabricated_terms": 418,
+    "total_hallucinated_graphs": 300,
+    "shacl_false_pass_graphs": 300,
+    "closed_world_caught_graphs": 300
+  }
+}
