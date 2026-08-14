@@ -38,6 +38,7 @@ impl ShaclValidator {
         )?;
 
         let mut violations: Vec<serde_json::Value> = Vec::new();
+        let mut skipped: Vec<serde_json::Value> = Vec::new();
 
         for shape in &shapes {
             let target_class = match shape.get("targetClass") {
@@ -56,13 +57,15 @@ impl ShaclValidator {
                 &format!(
                     r#"
                     PREFIX sh: <http://www.w3.org/ns/shacl#>
-                    SELECT ?prop ?path ?minCount ?maxCount ?datatype ?message WHERE {{
+                    SELECT ?prop ?path ?invPath ?minCount ?maxCount ?datatype ?message ?severity WHERE {{
                         {} sh:property ?prop .
                         ?prop sh:path ?path .
+                        OPTIONAL {{ ?path sh:inversePath ?invPath }}
                         OPTIONAL {{ ?prop sh:minCount ?minCount }}
                         OPTIONAL {{ ?prop sh:maxCount ?maxCount }}
                         OPTIONAL {{ ?prop sh:datatype ?datatype }}
                         OPTIONAL {{ ?prop sh:message ?message }}
+                        OPTIONAL {{ ?prop sh:severity ?severity }}
                     }}
                     "#,
                     shape_iri
@@ -71,15 +74,44 @@ impl ShaclValidator {
 
             // 4. For each constraint, run SPARQL queries against the main graph
             for prop in &props {
-                let path = match prop.get("path") {
+                let raw_path = match prop.get("path") {
                     Some(p) => strip_angle_brackets(p),
                     None => continue,
+                };
+
+                // sh:path is either a direct IRI, or a blank node carrying a
+                // property-path expression. sh:inversePath maps onto SPARQL's
+                // `^` operator; any other blank-node path (sequence,
+                // alternative, zero-or-more) is skipped and reported rather
+                // than injected into a query it would break.
+                let (path, path_expr) = match prop.get("invPath") {
+                    Some(inv) => {
+                        let inv = strip_angle_brackets(inv);
+                        (format!("^{}", inv), format!("^<{}>", inv))
+                    }
+                    None if raw_path.starts_with("_:") => {
+                        skipped.push(serde_json::json!({
+                            "shape": strip_angle_brackets(&shape_iri),
+                            "reason": "unsupported property path (only direct IRIs and sh:inversePath are executable)",
+                        }));
+                        continue;
+                    }
+                    None => (raw_path.clone(), format!("<{}>", raw_path)),
                 };
 
                 let message = prop
                     .get("message")
                     .map(|m| strip_quotes(m))
                     .unwrap_or_default();
+
+                // sh:severity, defaulting to sh:Violation per the SHACL spec.
+                let severity = prop
+                    .get("severity")
+                    .map(|s| {
+                        let s = strip_angle_brackets(s);
+                        s.rsplit('#').next().unwrap_or("Violation").to_string()
+                    })
+                    .unwrap_or_else(|| "Violation".to_string());
 
                 // sh:minCount
                 if let Some(min_count_str) = prop.get("minCount") {
@@ -90,7 +122,7 @@ impl ShaclValidator {
                         let query = format!(
                             r#"SELECT ?focus (COUNT(?val) AS ?cnt) WHERE {{
                                 ?focus a <{target_class}> .
-                                OPTIONAL {{ ?focus <{path}> ?val }}
+                                OPTIONAL {{ ?focus {path_expr} ?val }}
                             }} GROUP BY ?focus HAVING (COUNT(?val) < {min_count})"#
                         );
                         let results = graph_sparql_select(graph, &query)?;
@@ -105,7 +137,7 @@ impl ShaclValidator {
                                     message.clone()
                                 };
                                 violations.push(serde_json::json!({
-                                    "severity": "Violation",
+                                    "severity": severity,
                                     "focus_node": strip_angle_brackets(focus),
                                     "path": path,
                                     "constraint": "minCount",
@@ -124,7 +156,7 @@ impl ShaclValidator {
                     let query = format!(
                         r#"SELECT ?focus (COUNT(?val) AS ?cnt) WHERE {{
                             ?focus a <{target_class}> .
-                            ?focus <{path}> ?val .
+                            ?focus {path_expr} ?val .
                         }} GROUP BY ?focus HAVING (COUNT(?val) > {max_count})"#
                     );
                     let results = graph_sparql_select(graph, &query)?;
@@ -139,7 +171,7 @@ impl ShaclValidator {
                                 message.clone()
                             };
                             violations.push(serde_json::json!({
-                                "severity": "Violation",
+                                "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
                                 "path": path,
                                 "constraint": "maxCount",
@@ -155,7 +187,7 @@ impl ShaclValidator {
                     let query = format!(
                         r#"SELECT ?focus ?val WHERE {{
                             ?focus a <{target_class}> .
-                            ?focus <{path}> ?val .
+                            ?focus {path_expr} ?val .
                             FILTER(DATATYPE(?val) != <{dt}>)
                         }}"#
                     );
@@ -171,7 +203,7 @@ impl ShaclValidator {
                                 message.clone()
                             };
                             violations.push(serde_json::json!({
-                                "severity": "Violation",
+                                "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
                                 "path": path,
                                 "constraint": "datatype",
@@ -184,11 +216,14 @@ impl ShaclValidator {
         }
 
         let conforms = violations.is_empty();
-        let report = serde_json::json!({
+        let mut report = serde_json::json!({
             "conforms": conforms,
             "violation_count": violations.len(),
             "violations": violations,
         });
+        if !skipped.is_empty() {
+            report["skipped_constraints"] = serde_json::Value::Array(skipped);
+        }
 
         Ok(report.to_string())
     }
