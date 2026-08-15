@@ -193,6 +193,15 @@ Add to `.cursor/mcp.json` or equivalent:
 </details>
 
 <details>
+<summary><strong>Obsidian</strong></summary>
+
+The [Open Ontologies plugin for Obsidian](https://github.com/fabio-rovai/obsidian-open-ontologies) runs this engine as a managed sidecar inside Obsidian: ontology tree, SPARQL console, validation panel, validate-on-save for Turtle files, and a vault-to-RDF mapper so your notes become a graph the reasoners can work on. It also exposes the engine over MCP on a stable authenticated loopback port, so Claude Code or Claude Desktop can query the reasoned vault graph. Desktop only; the plugin auto-downloads the pinned engine release, or point it at an existing binary.
+
+See [docs/obsidian.md](docs/obsidian.md) for the settings reference and the agent-access model.
+
+</details>
+
+<details>
 <summary><strong>HTTP transport (<code>serve-http</code>)</strong></summary>
 
 For clients that speak MCP over HTTP rather than stdio:
