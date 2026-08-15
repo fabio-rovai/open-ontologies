@@ -99,6 +99,7 @@ Register it with any MCP client (e.g. Claude):
 | `onto_diff` | Triple-level diff between two ontologies |
 | `onto_kgcl_diff` | KGCL change records between two versions (governance / change logs) |
 | `onto_lint` | Missing labels, domains, ranges |
+| `onto_shacl` | SHACL conformance: violations with focus node, path, value, severity and constraint (needs the `[shacl]` extra) |
 
 ## Relationship to the Rust engine
 

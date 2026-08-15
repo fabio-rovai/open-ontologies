@@ -100,6 +100,26 @@ def onto_kgcl_diff(data_a: str, data_b: str, format: str = "turtle") -> dict:
     return {"changes": cs.changes, "counts": cs.counts(), "kgcl": cs.to_kgcl()}
 
 
+@mcp.tool()
+def onto_shacl(
+    shapes: str, shapes_format: str = "turtle", inference: str | None = None
+) -> dict:
+    """Validate the loaded graph against SHACL shapes.
+
+    Returns conformance plus each violation's focus node, path, offending value,
+    message, severity and the constraint component that produced it. `inference`
+    ("rdfs", "owlrl", "both") is off by default, because materialising
+    entailments changes what counts as a violation.
+
+    Needs the optional extra: pip install "open-ontologies-lite[shacl]"
+    """
+    from .shacl import shacl_validate
+
+    return shacl_validate(
+        _engine.dump(), shapes, shapes_format=shapes_format, inference=inference
+    )
+
+
 def main() -> None:
     import argparse
 

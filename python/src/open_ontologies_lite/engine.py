@@ -139,6 +139,11 @@ class OntologyEngine:
         _dump(self.store, str(p), rdf_format)
         return str(p)
 
+    def dump(self, fmt: str = "turtle") -> str:
+        """Serialize the loaded store to a string (needed to hand it to pySHACL)."""
+        out = _dump(self.store, None, resolve_format(fmt))
+        return out.decode("utf-8") if isinstance(out, (bytes, bytearray)) else str(out)
+
     @staticmethod
     def convert(data: str, from_fmt: str, to_fmt: str) -> str:
         tmp = ox.Store()
