@@ -14,7 +14,10 @@
 - Plugin id `open-ontologies`, name "Open Ontologies", `isDesktopOnly: true`, `minAppVersion: "1.5.0"`, initial version `0.1.0`.
 - Engine consumed **as released, zero Rust changes**. Pinned `ENGINE_VERSION = "1.1.1"`; compatibility rule `major === 1 && minor >= 1`.
 - Engine release facts (verified 2026-08-14): tags are `v`-prefixed (`v1.1.1`); assets are `open-ontologies-aarch64-apple-darwin`, `open-ontologies-x86_64-apple-darwin`, `open-ontologies-x86_64-unknown-linux-gnu`, `open-ontologies-x86_64-pc-windows-msvc.exe`, plus `SHASUMS.txt` (sha256sum format, two-space separator).
-- Sidecar CLI: `open-ontologies serve-http --host 127.0.0.1 --port <p>`. Defaults to 127.0.0.1 already; we pass it explicitly anyway. MCP endpoint `http://127.0.0.1:<p>/mcp`; liveness `GET /health` → `{"status":"ok","version":"1.1.1"}`.
+- Sidecar CLI: `open-ontologies serve-http --host 127.0.0.1 --port <p> --token <t>`. Defaults to 127.0.0.1 already; we pass it explicitly anyway. MCP endpoint `http://127.0.0.1:<p>/mcp`; liveness `GET /health` → `{"status":"ok","version":"1.1.1"}` (outside the bearer layer, so health checks need no token).
+- **Auth is mandatory.** The engine applies `CorsLayer::permissive()` to the router (verified in `src/main.rs`), so a fixed, documented port without a token would be reachable cross-origin from any page in the user's browser. The plugin generates a 32-byte hex token on first run and never spawns the engine without one. No setting disables it.
+- Stable port default **27125** (beside Local REST API's 27124), so an external MCP client can be configured once. Falls back to an ephemeral port with a notice if occupied.
+- MCP client config emitted by settings (verified against current Claude Code docs; same shape for Claude Desktop's `claude_desktop_config.json`): `{"mcpServers":{"open-ontologies":{"type":"http","url":"http://127.0.0.1:27125/mcp","headers":{"Authorization":"Bearer <token>"}}}}`.
 - All engine tools return a JSON **string** in `result.content[0].text` of a `tools/call` response. Tool names verified: `onto_validate`, `onto_load`, `onto_query`, `onto_reason`, `onto_reason_incremental`, `onto_classify_el`, `onto_shacl`, `onto_shacl_check`, `onto_diff`, `onto_lint`, `onto_apply`, `onto_save`, `onto_stats`, `onto_pack`, `onto_unpack`.
 - Spec deviation (agreed rationale): typed links use the Dataview inline-field convention `property:: [[Target]]` (community standard, machine-parseable) rather than the literal `[[property::Target]]` syntax, which is not a valid Obsidian link.
 - No em dashes in any user-facing copy (README, settings text, notices).
@@ -42,6 +45,8 @@ obsidian-open-ontologies/
 │   │   ├── rules.ts         # MappingRules + YAML parse (pure)
 │   │   └── mapper.ts        # NoteInput → N-Triples (pure)
 │   ├── sparql.ts            # tolerant SPARQL-result parsing (pure)
+│   ├── inferred.ts          # entailed-minus-asserted diff (pure)
+│   ├── starter/             # bundled vault ontology + SHACL shapes
 │   └── views/
 │       ├── validation.ts    # validation results pane
 │       ├── tree.ts          # ontology tree pane
@@ -683,7 +688,10 @@ export class EngineClient {
   private nextId = 1;
   private sessionId?: string;
 
-  constructor(public baseUrl: string) {}
+  constructor(
+    public baseUrl: string,
+    private token?: string,
+  ) {}
 
   async health(): Promise<HealthInfo> {
     const res = await fetch(`${this.baseUrl}/health`);
@@ -697,6 +705,7 @@ export class EngineClient {
       accept: "application/json, text/event-stream",
     };
     if (this.sessionId) headers["mcp-session-id"] = this.sessionId;
+    if (this.token) headers["authorization"] = `Bearer ${this.token}`;
     const res = await fetch(`${this.baseUrl}/mcp`, { method: "POST", headers, body: JSON.stringify(payload) });
     const sid = res.headers.get("mcp-session-id");
     if (sid) this.sessionId = sid;
@@ -989,6 +998,8 @@ import { downloadEngine } from "./download";
 export interface ManagerOptions {
   binDir: string;
   explicitPath?: string;
+  preferredPort: number;
+  token: string;
   log: (line: string) => void;
 }
 
@@ -996,6 +1007,7 @@ const BACKOFF_MS = [1000, 5000, 15000];
 
 export class EngineManager {
   client: EngineClient | null = null;
+  port: number | null = null;
   private child: ChildProcess | null = null;
   private stopping = false;
   private restarts = 0;
@@ -1023,23 +1035,39 @@ export class EngineManager {
     return downloadEngine(this.opts.binDir, (s) => this.log(s));
   }
 
-  private freePort(): Promise<number> {
-    return new Promise((resolve, reject) => {
+  private probePort(candidate: number): Promise<number | null> {
+    return new Promise((resolve) => {
       const srv = net.createServer();
-      srv.listen(0, "127.0.0.1", () => {
+      srv.once("error", () => resolve(null));
+      srv.listen(candidate, "127.0.0.1", () => {
         const port = (srv.address() as net.AddressInfo).port;
         srv.close(() => resolve(port));
       });
-      srv.on("error", reject);
     });
+  }
+
+  private async resolvePort(): Promise<number> {
+    const preferred = await this.probePort(this.opts.preferredPort);
+    if (preferred !== null) return preferred;
+    this.log(
+      `Port ${this.opts.preferredPort} is in use; falling back to a random port. External MCP clients configured against ${this.opts.preferredPort} will not reach this engine until the port is free.`,
+    );
+    const ephemeral = await this.probePort(0);
+    if (ephemeral === null) throw new Error("Could not bind any loopback port");
+    return ephemeral;
   }
 
   async start(): Promise<EngineClient> {
     this.stopping = false;
     const binary = await this.resolveBinary();
-    const port = await this.freePort();
-    this.log(`Starting engine: ${binary} serve-http --host 127.0.0.1 --port ${port}`);
-    this.child = spawn(binary, ["serve-http", "--host", "127.0.0.1", "--port", String(port)], { stdio: ["ignore", "ignore", "pipe"] });
+    const port = await this.resolvePort();
+    this.port = port;
+    this.log(`Starting engine: ${binary} serve-http --host 127.0.0.1 --port ${port} --token <redacted>`);
+    this.child = spawn(
+      binary,
+      ["serve-http", "--host", "127.0.0.1", "--port", String(port), "--token", this.opts.token],
+      { stdio: ["ignore", "ignore", "pipe"] },
+    );
     this.child.stderr!.on("data", (c: Buffer) => c.toString().split("\n").filter(Boolean).forEach((l) => this.log(l)));
     this.child.on("exit", (code) => {
       this.client = null;
@@ -1054,7 +1082,7 @@ export class EngineManager {
       }
     });
 
-    const client = new EngineClient(`http://127.0.0.1:${port}`);
+    const client = new EngineClient(`http://127.0.0.1:${port}`, this.opts.token);
     let health = null;
     for (let i = 0; i < 30; i++) {
       try { health = await client.health(); break; } catch { await new Promise((r) => setTimeout(r, 500)); }
@@ -1177,16 +1205,43 @@ git add src/sparql.ts tests/sparql.test.ts && git commit -m "feat: tolerant SPAR
 - [ ] **Step 1: Implement settings.ts**
 
 ```ts
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, Notice, PluginSettingTab, Setting } from "obsidian";
+import { randomBytes } from "node:crypto";
 import type OpenOntologiesPlugin from "./main";
 
 export interface OpenOntologiesSettings {
   enginePath: string;      // empty = auto-download
   mappingYaml: string;     // overrides for MappingRules
   sparqlHistory: string[];
+  mcpPort: number;         // stable port for external MCP clients
+  mcpToken: string;        // generated on first run; never empty at runtime
+  autoSync: boolean;       // debounced vault -> graph re-sync on markdown change
 }
 
-export const DEFAULT_SETTINGS: OpenOntologiesSettings = { enginePath: "", mappingYaml: "", sparqlHistory: [] };
+export const DEFAULT_SETTINGS: OpenOntologiesSettings = {
+  enginePath: "",
+  mappingYaml: "",
+  sparqlHistory: [],
+  mcpPort: 27125,
+  mcpToken: "",
+  autoSync: true,
+};
+
+export function mcpClientConfig(port: number, token: string): string {
+  return JSON.stringify(
+    {
+      mcpServers: {
+        "open-ontologies": {
+          type: "http",
+          url: `http://127.0.0.1:${port}/mcp`,
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      },
+    },
+    null,
+    2,
+  );
+}
 
 export class OpenOntologiesSettingTab extends PluginSettingTab {
   constructor(app: App, private plugin: OpenOntologiesPlugin) { super(app, plugin); }
@@ -1212,6 +1267,49 @@ export class OpenOntologiesSettingTab extends PluginSettingTab {
       }));
 
     new Setting(containerEl)
+      .setName("Auto-sync vault to graph")
+      .setDesc("Re-compile the vault into the knowledge graph 10 seconds after the last note change, so an MCP client always queries current data.")
+      .addToggle((t) => t.setValue(this.plugin.settings.autoSync).onChange(async (v) => {
+        this.plugin.settings.autoSync = v;
+        await this.plugin.saveSettings();
+      }));
+
+    containerEl.createEl("h3", { text: "Connect an AI agent" });
+    containerEl.createEl("p", {
+      text: "The engine is an MCP server. Point Claude Code or Claude Desktop at it and your agent can query, reason over and validate the vault graph. Access requires the token below, so keep it private.",
+    });
+
+    new Setting(containerEl)
+      .setName("MCP port")
+      .setDesc("Stable loopback port for external MCP clients. Changing it restarts the engine and invalidates any config you already copied.")
+      .addText((t) => t.setValue(String(this.plugin.settings.mcpPort)).onChange(async (v) => {
+        const n = Number(v);
+        if (!Number.isInteger(n) || n < 1024 || n > 65535) return;
+        this.plugin.settings.mcpPort = n;
+        await this.plugin.saveSettings();
+      }));
+
+    new Setting(containerEl)
+      .setName("Copy MCP client config")
+      .setDesc("Copies a ready-to-paste JSON block containing the URL and access token.")
+      .addButton((b) => b.setButtonText("Copy").onClick(async () => {
+        await navigator.clipboard.writeText(
+          mcpClientConfig(this.plugin.settings.mcpPort, this.plugin.settings.mcpToken),
+        );
+        new Notice("MCP client config copied. It contains your access token.");
+      }));
+
+    new Setting(containerEl)
+      .setName("Regenerate access token")
+      .setDesc("Issues a new token and restarts the engine. Any MCP client using the old token stops working until you copy the config again.")
+      .addButton((b) => b.setButtonText("Regenerate").setWarning().onClick(async () => {
+        this.plugin.settings.mcpToken = randomBytes(32).toString("hex");
+        await this.plugin.saveSettings();
+        await this.plugin.restartEngine();
+        this.display();
+      }));
+
+    new Setting(containerEl)
       .setName("Restart engine")
       .addButton((b) => b.setButtonText("Restart").onClick(() => this.plugin.restartEngine()));
 
@@ -1227,6 +1325,7 @@ export class OpenOntologiesSettingTab extends PluginSettingTab {
 
 ```ts
 import { Notice, Plugin, TFile, FuzzySuggestModal, FileSystemAdapter, normalizePath } from "obsidian";
+import { randomBytes } from "node:crypto";
 import { EngineManager } from "./engine/manager";
 import { EngineClient } from "./engine/client";
 import { DEFAULT_SETTINGS, OpenOntologiesSettings, OpenOntologiesSettingTab } from "./settings";
@@ -1301,12 +1400,35 @@ export default class OpenOntologiesPlugin extends Plugin {
 
   async onload() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    if (!this.settings.mcpToken) {
+      this.settings.mcpToken = randomBytes(32).toString("hex");
+      await this.saveSettings();
+    }
     const binDir = path.join(this.fullPath(this.app.vault.configDir + "/plugins/open-ontologies"), "bin");
     this.manager = new EngineManager({
       binDir,
       explicitPath: this.settings.enginePath || undefined,
+      preferredPort: this.settings.mcpPort,
+      token: this.settings.mcpToken,
       log: (l) => console.log(`[open-ontologies] ${l}`),
     });
+
+    // Auto-sync: keep the graph an MCP client queries current.
+    let syncTimer: number | null = null;
+    const scheduleSync = () => {
+      if (!this.settings.autoSync) return;
+      if (syncTimer) window.clearTimeout(syncTimer);
+      syncTimer = window.setTimeout(() => {
+        this.syncVault().catch((e) => console.error("[open-ontologies] auto-sync failed", e));
+      }, 10000);
+    };
+    for (const ev of ["create", "modify", "delete", "rename"] as const) {
+      this.registerEvent(
+        (this.app.vault as any).on(ev, (f: any) => {
+          if (f?.extension === "md") scheduleSync();
+        }),
+      );
+    }
     this.addSettingTab(new OpenOntologiesSettingTab(this.app, this));
 
     // Views are registered in Tasks 10-12; commands that depend on them activate the leaves.
@@ -1789,6 +1911,246 @@ git add src/views/console.ts src/main.ts && git commit -m "feat(views): SPARQL c
 
 ---
 
+### Task 12b: Starter vault ontology and shapes
+
+**Files:**
+- Create: `src/starter/vault-ontology.ttl.ts` (Turtle embedded as a TS string constant so esbuild bundles it), `src/starter/vault-shapes.ttl.ts`
+- Modify: `src/main.ts` (command `oo-install-starter-ontology`)
+- Test: `tests/starter.test.ts`
+
+**Why this task exists:** OWL-RL over an untyped vault entails nothing. `vault:linksTo` triples alone support no interesting inference, so without a vocabulary the whole agent-facing story is vacuous. Transitive `partOf` and symmetric `relatesTo` are what give the reasoner derivations to make.
+
+**Interfaces:**
+- Produces: `VAULT_ONTOLOGY_TTL: string`, `VAULT_SHAPES_TTL: string`; command writes them to `<vault>/ontology/vault-ontology.ttl` and `<vault>/ontology/vault-shapes.ttl`, refusing to overwrite existing files.
+
+- [ ] **Step 1: Write the failing test**
+
+```ts
+import { describe, it, expect } from "vitest";
+import { VAULT_ONTOLOGY_TTL, VAULT_SHAPES_TTL } from "../src/starter/vault-ontology.ttl";
+
+describe("starter ontology", () => {
+  it("declares the second-brain vocabulary", () => {
+    for (const cls of ["Note", "Person", "Project", "Task", "Source", "Idea", "Topic"]) {
+      expect(VAULT_ONTOLOGY_TTL).toContain(`vault:${cls}`);
+    }
+  });
+  it("makes partOf transitive and relatesTo symmetric so reasoning has something to derive", () => {
+    expect(VAULT_ONTOLOGY_TTL).toContain("owl:TransitiveProperty");
+    expect(VAULT_ONTOLOGY_TTL).toContain("owl:SymmetricProperty");
+  });
+  it("ships shapes targeting the vocabulary", () => {
+    expect(VAULT_SHAPES_TTL).toContain("sh:NodeShape");
+    expect(VAULT_SHAPES_TTL).toContain("sh:targetClass");
+  });
+});
+```
+
+- [ ] **Step 2: Run to verify it fails** — `npm test -- tests/starter.test.ts` → FAIL (module missing).
+
+- [ ] **Step 3: Implement `src/starter/vault-ontology.ttl.ts`**
+
+```ts
+export const VAULT_ONTOLOGY_TTL = `@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix vault: <vault:> .
+
+vault:Note    a owl:Class ; rdfs:label "Note" .
+vault:Person  a owl:Class ; rdfs:subClassOf vault:Note ; rdfs:label "Person" .
+vault:Project a owl:Class ; rdfs:subClassOf vault:Note ; rdfs:label "Project" .
+vault:Task    a owl:Class ; rdfs:subClassOf vault:Note ; rdfs:label "Task" .
+vault:Source  a owl:Class ; rdfs:subClassOf vault:Note ; rdfs:label "Source" .
+vault:Idea    a owl:Class ; rdfs:subClassOf vault:Note ; rdfs:label "Idea" .
+vault:Topic   a owl:Class ; rdfs:subClassOf vault:Note ; rdfs:label "Topic" .
+
+# Transitive: a Task partOf a Project partOf a Programme is entailed to be partOf the Programme.
+vault:partOf a owl:ObjectProperty, owl:TransitiveProperty ;
+  rdfs:label "part of" ; rdfs:domain vault:Note ; rdfs:range vault:Note .
+
+# Symmetric: relating A to B entails B relates to A, so one-directional notes still connect.
+vault:relatesTo a owl:ObjectProperty, owl:SymmetricProperty ;
+  rdfs:label "relates to" ; rdfs:domain vault:Note ; rdfs:range vault:Note .
+
+vault:authoredBy a owl:ObjectProperty ;
+  rdfs:label "authored by" ; rdfs:domain vault:Note ; rdfs:range vault:Person .
+
+vault:references a owl:ObjectProperty ;
+  rdfs:label "references" ; rdfs:domain vault:Note ; rdfs:range vault:Source .
+
+vault:about a owl:ObjectProperty ;
+  rdfs:label "about" ; rdfs:domain vault:Note ; rdfs:range vault:Topic .
+`;
+
+export const VAULT_SHAPES_TTL = `@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix vault: <vault:> .
+
+vault:TaskShape a sh:NodeShape ;
+  sh:targetClass vault:Task ;
+  sh:property [ sh:path vault:partOf ; sh:minCount 1 ;
+                sh:message "A Task should record which Project it is part of." ] .
+
+vault:SourceShape a sh:NodeShape ;
+  sh:targetClass vault:Source ;
+  sh:property [ sh:path vault:url ; sh:minCount 1 ; sh:datatype xsd:string ;
+                sh:message "A Source should record where it came from." ] .
+`;
+```
+
+- [ ] **Step 4: Run to verify it passes** — `npm test -- tests/starter.test.ts` → PASS.
+
+- [ ] **Step 5: Add the install command to `main.ts` `onload()`**
+
+```ts
+this.addCommand({
+  id: "oo-install-starter-ontology",
+  name: "Install starter vault ontology",
+  callback: async () => {
+    const { VAULT_ONTOLOGY_TTL, VAULT_SHAPES_TTL } = await import("./starter/vault-ontology.ttl");
+    const targets: [string, string][] = [
+      ["ontology/vault-ontology.ttl", VAULT_ONTOLOGY_TTL],
+      ["ontology/vault-shapes.ttl", VAULT_SHAPES_TTL],
+    ];
+    let written = 0;
+    for (const [rel, body] of targets) {
+      if (await this.app.vault.adapter.exists(rel)) continue;
+      const dir = rel.split("/").slice(0, -1).join("/");
+      if (dir && !(await this.app.vault.adapter.exists(dir))) await this.app.vault.adapter.mkdir(dir);
+      await this.app.vault.adapter.write(rel, body);
+      written++;
+    }
+    new Notice(
+      written === 0
+        ? "Starter ontology already present; nothing overwritten."
+        : `Installed ${written} starter file(s) under ontology/. Add 'type: \"[[Project]]\"' style frontmatter to your notes, then sync.`,
+      10000,
+    );
+  },
+});
+```
+
+- [ ] **Step 6: Build, test, commit**
+
+```bash
+npm run build && npm test
+git add src/starter src/main.ts tests/starter.test.ts
+git commit -m "feat(starter): vault ontology and SHACL shapes so reasoning has something to entail"
+```
+
+---
+
+### Task 12c: Inferred connections
+
+**Files:**
+- Create: `src/inferred.ts`
+- Modify: `src/main.ts` (command `oo-inferred-connections`)
+- Test: `tests/inferred.test.ts`
+
+**Why this task exists:** this is the feature a file-access MCP server cannot offer, and the concrete meaning of "the brain gets smarter". Obsidian shows asserted backlinks; we show entailed ones.
+
+**Interfaces:**
+- Consumes: `EngineClient` (Task 5), `parseBindings` (Task 8), `toValidationItems`/`ValidationItem` (Task 10), `mintNoteIri` (Task 2).
+- Produces: `diffTriples(closure: Triple[], asserted: Triple[]): Triple[]` where `interface Triple { s: string; p: string; o: string }` — set difference keyed on `s|p|o`; `inferredToItems(rows: Triple[]): ValidationItem[]`.
+
+- [ ] **Step 1: Write the failing test**
+
+```ts
+import { describe, it, expect } from "vitest";
+import { diffTriples } from "../src/inferred";
+
+describe("diffTriples", () => {
+  it("returns closure triples that were never asserted", () => {
+    const asserted = [{ s: "vault:A", p: "vault:partOf", o: "vault:B" }];
+    const closure = [
+      { s: "vault:A", p: "vault:partOf", o: "vault:B" },
+      { s: "vault:A", p: "vault:partOf", o: "vault:C" },
+    ];
+    expect(diffTriples(closure, asserted)).toEqual([{ s: "vault:A", p: "vault:partOf", o: "vault:C" }]);
+  });
+  it("returns nothing when the closure adds nothing", () => {
+    const t = [{ s: "vault:A", p: "vault:relatesTo", o: "vault:B" }];
+    expect(diffTriples(t, t)).toEqual([]);
+  });
+});
+```
+
+- [ ] **Step 2: Run to verify it fails** — `npm test -- tests/inferred.test.ts` → FAIL.
+
+- [ ] **Step 3: Implement `src/inferred.ts`**
+
+```ts
+import { ValidationItem } from "./views/validation";
+
+export interface Triple { s: string; p: string; o: string }
+
+const key = (t: Triple) => `${t.s}|${t.p}|${t.o}`;
+
+export function diffTriples(closure: Triple[], asserted: Triple[]): Triple[] {
+  const seen = new Set(asserted.map(key));
+  return closure.filter((t) => !seen.has(key(t)));
+}
+
+function short(iri: string): string {
+  const tail = iri.split(/[/#:]/).pop() ?? iri;
+  try { return decodeURIComponent(tail); } catch { return tail; }
+}
+
+export function inferredToItems(rows: Triple[]): ValidationItem[] {
+  if (!rows.length) {
+    return [{ severity: "info", message: "No inferred connections. Add types and relations to your notes, then reason again." }];
+  }
+  return rows.map((t) => ({
+    severity: "inferred",
+    message: `${short(t.s)} — ${short(t.p)} → ${short(t.o)}`,
+  }));
+}
+```
+
+- [ ] **Step 4: Run to verify it passes** — `npm test -- tests/inferred.test.ts` → PASS.
+
+- [ ] **Step 5: Add the command to `main.ts` `onload()`**
+
+The order matters: capture the asserted state, reason, capture the closure, diff. `onto_clear` + reload of the vault N-Triples restores the asserted-only graph afterwards so a later sync is not confused by materialised triples.
+
+```ts
+this.addCommand({
+  id: "oo-inferred-connections",
+  name: "Show inferred connections for this note",
+  checkCallback: (checking) => {
+    const f = this.app.workspace.getActiveFile();
+    if (!f || f.extension !== "md") return false;
+    if (!checking) {
+      (async () => {
+        const c = await this.client();
+        const rules = this.rules();
+        const subject = `<${mintNoteIri(f.path, rules.iriBase)}>`;
+        const q = `SELECT ?p ?o WHERE { ${subject} ?p ?o . FILTER(isIRI(?o)) }`;
+        const before = parseBindings(await c.call("onto_query", { query: q })) ?? [];
+        await c.call("onto_reason", { profile: "owl-rl" });
+        const after = parseBindings(await c.call("onto_query", { query: q })) ?? [];
+        const toTriple = (r: Record<string, string>): Triple => ({ s: subject, p: r.p, o: r.o });
+        const fresh = diffTriples(after.map(toTriple), before.map(toTriple));
+        await this.showValidation(inferredToItems(fresh));
+        await this.syncVault(); // reload asserted-only state after materialisation
+      })().catch((e) => new Notice(e.message, 8000));
+    }
+    return true;
+  },
+});
+```
+
+Add imports: `import { diffTriples, inferredToItems, Triple } from "./inferred";`, `import { mintNoteIri } from "./mapper/iri";`, `import { parseBindings } from "./sparql";`. Add a `.oo-sev-inferred { border-left-color: var(--text-accent); }` rule to `styles.css`.
+
+- [ ] **Step 6: Build, test, commit**
+
+```bash
+npm run build && npm test
+git add src/inferred.ts src/main.ts src/views/validation.ts styles.css tests/inferred.test.ts
+git commit -m "feat(inferred): surface entailed connections a note never asserted"
+```
+
+---
+
 ### Task 13: test-vault, e2e test against the real engine, CI
 
 **Files:**
@@ -1983,7 +2345,30 @@ Desktop only. On first run the plugin downloads the pinned engine release for yo
 - Ontology tree pane, SPARQL console with history, validation panel with per-note deep links
 - Validate-on-save for .ttl, .owl, .rdf and .jsonld files
 - Vault to RDF mapping: notes become individuals, `type:` frontmatter becomes `rdf:type`, `property:: [[Target]]` inline fields become object properties, tags become SKOS concepts
+- Inferred connections: see the links your notes entail but never stated
 - Every engine tool is reachable; reasoning profiles from RDFS to full OWL 2 DL tableaux
+
+## Give your AI agent a reasoned second brain
+
+The engine this plugin runs is an MCP server, so Claude Code and Claude Desktop can query your vault as a knowledge graph. This is a different thing from letting an agent read your files. Tools like mcp-obsidian already do file read, write and search well, and this plugin does not duplicate them. What it adds is reasoning: your agent can ask which notes violate a shape, what is transitively part of a project, or which people sit two hops from a topic, and get answers derived from the graph rather than guessed from text.
+
+Open the plugin settings, copy the MCP client config, and paste it into your Claude Code config:
+
+```json
+{
+  "mcpServers": {
+    "open-ontologies": {
+      "type": "http",
+      "url": "http://127.0.0.1:27125/mcp",
+      "headers": { "Authorization": "Bearer YOUR_TOKEN" }
+    }
+  }
+}
+```
+
+The endpoint listens on loopback only and always requires the generated token. Treat that token like a password: anything holding it can read and modify your vault graph.
+
+One honest caveat about how much this buys you. Reasoning needs types. A vault of untyped notes and plain wikilinks compiles to a flat graph of "links to" statements, and a reasoner derives nothing interesting from it. Run the "Install starter vault ontology" command, add `type:` frontmatter to the notes you care about, and use `property:: [[Target]]` for relations that mean something. The payoff scales with how much structure your vault actually carries.
 
 ## Install
 
