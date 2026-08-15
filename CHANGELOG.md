@@ -4,6 +4,63 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-15
+
+### Added
+- **`onto_pack` / `onto_unpack`.** Portable verified knowledge artifacts: sorted
+  N-Triples plus a manifest (name, version, counts, timestamp, tool version,
+  sha256) and the lint/enforce results recorded at pack time. What you promote
+  between environments is a graph that has already passed its checks, with the
+  evidence attached. `onto_unpack` refuses a pack whose checksum does not match.
+- **Bi-temporal facts.** `onto_temporal_snapshot`, `onto_temporal_query` and
+  `onto_temporal_conflicts` separate two independent clocks: `valid_at` asks what
+  was true then, `as_of` asks what was known then. A disjointness violation only
+  counts as a conflict when the two assertions claim overlapping validity, so
+  superseded history stops being reported as contradiction. Graphs without
+  validity metadata are timeless and always in scope, making the vocabulary
+  additive to an existing store.
+- **`onto_reason_incremental`.** Derives the consequences of newly added triples
+  by joining the delta against the existing closure, so the cost tracks what
+  changed rather than the size of the store. Schema axioms are refused with an
+  explanation, because those change what the whole store entails.
+- **Claim support checking.** `onto_support_check`, `onto_support_verdict` and
+  `onto_support_report` add the second axis beside conformance: conformance asks
+  whether a claim is expressible, support asks whether it is true to its source,
+  and a claim can fail either independently.
+- **`onto_communities`.** Deterministic modularity clustering that returns a
+  skeleton per community (size, top members by degree, internal relations,
+  bridges) so corpus-wide questions can be answered from reports instead of
+  traversal from an anchor entity.
+- **`onto_ossie_import`.** Compiles Apache Ossie (incubating) ontology documents
+  to OWL 2 DL plus SHACL, making a vendor semantic model reasonable and
+  validatable. The four constructs OWL 2 DL cannot express are reported and
+  preserved as annotations rather than silently dropped.
+- **SHACL `sh:inversePath` and `sh:severity`.**
+- **Unauthenticated `/health` liveness route on `serve-http`.** Registered
+  outside the bearer layer on purpose, so a probe does not need credentials
+  while `/api` and `/mcp` stay behind them. The body is limited to status and
+  version: an unauthenticated endpoint should not describe loaded state.
+- **Optional PROV-O provenance emission on ingest.**
+- **Embedding fingerprints.** Each vector records the configuration that
+  produced it, including the tokenizer and a hash of the whole model file, so a
+  changed embedder invalidates rather than silently mixes vector spaces.
+- **Build-time modelling buffer, phase 1.**
+
+### Changed
+- **Loads are all-or-nothing.** A failed load no longer leaves a partially
+  populated store.
+- **`enforce` gained a competing-modelling-pattern rule.**
+
+### Fixed
+- **`onto_load` did not set the base IRI from the file path**, so relative IRIs
+  resolved against the wrong base.
+- **`serve-http` and `serve-unix` shutdown.** The cancellation token is now
+  cancelled on ctrl-c and SIGTERM, the server keeps listening so a second signal
+  can force the exit, and `serve-unix` unlinks its socket.
+- **`plan` / `apply`.** Apply works against the ABox and stops fabricating
+  bridges; plans are scoped to their owner and Windows paths are tokenised.
+- **Alignment claim strength now tracks evidence strength.**
+
 ### Fixed
 - **SQLite migrations discarded every error and tracked no schema version.**
   `StateDb::open` upgraded old databases with two `let _ = conn.execute_batch(...)`
