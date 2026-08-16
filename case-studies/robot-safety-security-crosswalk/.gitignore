@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# Build / temp
+*.tmp
+.cache/
+node_modules/
+
+# Open Ontologies runtime
+.open-ontologies/
+
+# Oxigraph runtime
+.oxigraph/

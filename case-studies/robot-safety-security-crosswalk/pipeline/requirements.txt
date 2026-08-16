@@ -1,0 +1,6 @@
+# RSSC pipeline dependencies.
+# Verified on this build with Python 3.13.14, rdflib 7.6.0, pyshacl 0.40.1.
+# Also runs on Python 3.9.6 with rdflib 7.6.0 and pyshacl 0.31.0; the scripts
+# avoid PEP 604 unions and match statements so that 3.9 stays supported.
+rdflib>=7.0
+pyshacl>=0.26

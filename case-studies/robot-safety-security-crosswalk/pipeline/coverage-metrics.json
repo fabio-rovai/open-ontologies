@@ -1,0 +1,64 @@
+{
+  "generated": "2026-08-08 20:31 UTC",
+  "graph_triples": 2167,
+  "files": [
+    {
+      "path": "ontology/rssc.ttl",
+      "triples": 675,
+      "sha256_16": "f4856da49a1dd473"
+    },
+    {
+      "path": "crosswalk/iso10218-iec62443.ttl",
+      "triples": 1492,
+      "sha256_16": "638f35b752554ba6"
+    }
+  ],
+  "evidenced_assertions": 48,
+  "crosswalk_assertions": 32,
+  "safety_impact_assertions": 6,
+  "security_level_claims": 3,
+  "control_gaps": 7,
+  "standards": 8,
+  "clause_references": 38,
+  "security_requirements": 20,
+  "foundational_requirements": 7,
+  "safety_functions": 6,
+  "autonomy_bands": 3,
+  "sources": 10,
+  "iso10218_clauses_declared": 21,
+  "iso10218_clauses_mapped": 15,
+  "iso10218_clauses_unmapped": 6,
+  "iso10218_clauses_reached_any": 20,
+  "iso10218_clauses_reached_none": 1,
+  "iso10218_mapping_rate": 0.7143,
+  "iso10218_reached_rate": 0.9524,
+  "assertions_by_band": {
+    "A": 41,
+    "B": 38,
+    "C": 22
+  },
+  "assertions_without_band": 0,
+  "iso10218_clauses_by_band": {
+    "A": 13,
+    "B": 13,
+    "C": 8
+  },
+  "evidence_types": {
+    "analytical-inference": 36,
+    "published-summary": 1,
+    "published-preview": 9,
+    "secondary-literature": 2
+  },
+  "confidence_levels": {
+    "moderate": 36,
+    "high": 9,
+    "low": 3
+  },
+  "foundational_requirements_unreached": [],
+  "security_requirements_unreached": 0,
+  "assertions_without_citation": 0,
+  "assertions_without_source_link": 0,
+  "sources_unused": 0,
+  "standards_without_clauses": 3,
+  "clause_references_without_standard": 0
+}
