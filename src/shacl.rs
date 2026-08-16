@@ -10,7 +10,8 @@ use std::sync::Arc;
 ///
 /// Shapes are parsed from inline Turtle into a temporary Oxigraph store.
 /// Constraints are translated into SPARQL queries run against the main graph.
-/// Supports `sh:minCount`, `sh:maxCount`, and `sh:datatype` constraints.
+/// Supports `sh:minCount`, `sh:maxCount`, `sh:datatype`, `sh:pattern`, and
+/// `sh:hasValue` constraints.
 pub struct ShaclValidator;
 
 impl ShaclValidator {
@@ -57,13 +58,15 @@ impl ShaclValidator {
                 &format!(
                     r#"
                     PREFIX sh: <http://www.w3.org/ns/shacl#>
-                    SELECT ?prop ?path ?invPath ?minCount ?maxCount ?datatype ?message ?severity WHERE {{
+                    SELECT ?prop ?path ?invPath ?minCount ?maxCount ?datatype ?pattern ?hasValue ?message ?severity WHERE {{
                         {} sh:property ?prop .
                         ?prop sh:path ?path .
                         OPTIONAL {{ ?path sh:inversePath ?invPath }}
                         OPTIONAL {{ ?prop sh:minCount ?minCount }}
                         OPTIONAL {{ ?prop sh:maxCount ?maxCount }}
                         OPTIONAL {{ ?prop sh:datatype ?datatype }}
+                        OPTIONAL {{ ?prop sh:pattern ?pattern }}
+                        OPTIONAL {{ ?prop sh:hasValue ?hasValue }}
                         OPTIONAL {{ ?prop sh:message ?message }}
                         OPTIONAL {{ ?prop sh:severity ?severity }}
                     }}
@@ -207,6 +210,69 @@ impl ShaclValidator {
                                 "focus_node": strip_angle_brackets(focus),
                                 "path": path,
                                 "constraint": "datatype",
+                                "message": msg,
+                            }));
+                        }
+                    }
+                }
+
+                // sh:pattern (regex over the string form of each value node,
+                // per SHACL; `sh:flags` is not supported and simply absent
+                // from real-world shapes we have seen so far).
+                if let Some(pattern_raw) = prop.get("pattern") {
+                    let pattern = strip_quotes(pattern_raw);
+                    let escaped = pattern.replace('\\', "\\\\").replace('"', "\\\"");
+                    let query = format!(
+                        r#"SELECT ?focus ?val WHERE {{
+                            ?focus a <{target_class}> .
+                            ?focus {path_expr} ?val .
+                            FILTER(!REGEX(STR(?val), "{escaped}"))
+                        }}"#
+                    );
+                    let results = graph_sparql_select(graph, &query)?;
+                    for row in &results {
+                        if let Some(focus) = row.get("focus") {
+                            let msg = if message.is_empty() {
+                                format!("Value does not match pattern {}", pattern)
+                            } else {
+                                message.clone()
+                            };
+                            violations.push(serde_json::json!({
+                                "severity": severity,
+                                "focus_node": strip_angle_brackets(focus),
+                                "path": path,
+                                "constraint": "pattern",
+                                "message": msg,
+                            }));
+                        }
+                    }
+                }
+
+                // sh:hasValue: every focus node must carry the exact term at
+                // least once on the path. The term arrives from the shapes
+                // store in N-Triples form (`<iri>` or `"lit"^^<dt>`), which is
+                // valid SPARQL as-is.
+                if let Some(has_value_term) = prop.get("hasValue") {
+                    let term = has_value_term.trim();
+                    let query = format!(
+                        r#"SELECT ?focus WHERE {{
+                            ?focus a <{target_class}> .
+                            FILTER NOT EXISTS {{ ?focus {path_expr} {term} }}
+                        }}"#
+                    );
+                    let results = graph_sparql_select(graph, &query)?;
+                    for row in &results {
+                        if let Some(focus) = row.get("focus") {
+                            let msg = if message.is_empty() {
+                                format!("Required value {} is not present", term)
+                            } else {
+                                message.clone()
+                            };
+                            violations.push(serde_json::json!({
+                                "severity": severity,
+                                "focus_node": strip_angle_brackets(focus),
+                                "path": path,
+                                "constraint": "hasValue",
                                 "message": msg,
                             }));
                         }

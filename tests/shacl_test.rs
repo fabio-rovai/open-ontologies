@@ -152,6 +152,70 @@ fn test_shacl_inverse_path_mincount() {
 }
 
 #[test]
+fn test_shacl_pattern_violation() {
+    // LEI-style syntax rule: 18 alphanumerics + 2 decimal check digits.
+    // id1 conforms; id2 is 19 characters (a truncation) and must fire.
+    let store = Arc::new(GraphStore::new());
+    let ttl = r#"
+        @prefix ex: <http://example.org/> .
+        ex:id1 a ex:LEI ; ex:value "969500AAAAAAAAAAAA75" .
+        ex:id2 a ex:LEI ; ex:value "969500BBBBBBBBBBB12" .
+    "#;
+    store.load_turtle(ttl, None).unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:LEIShape a sh:NodeShape ;
+            sh:targetClass ex:LEI ;
+            sh:property [
+                sh:path ex:value ;
+                sh:pattern "^[A-Z0-9]{18}[0-9]{2}$" ;
+                sh:message "LEI must be 20 characters (ISO 17442)" ;
+            ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false);
+    let violations = parsed["violations"].as_array().unwrap();
+    assert!(violations.iter().any(|v| v["focus_node"].as_str().unwrap().contains("id2")));
+    assert!(!violations.iter().any(|v| v["focus_node"].as_str().unwrap().contains("id1")));
+    assert!(violations.iter().any(|v| v["constraint"] == "pattern"));
+}
+
+#[test]
+fn test_shacl_has_value_violation() {
+    // Checksum policy: every LEI node must record ex:checksumValid true.
+    // id1 records true; id2 records false; id3 records nothing.
+    let store = Arc::new(GraphStore::new());
+    let ttl = r#"
+        @prefix ex: <http://example.org/> .
+        ex:id1 a ex:LEI ; ex:checksumValid true .
+        ex:id2 a ex:LEI ; ex:checksumValid false .
+        ex:id3 a ex:LEI .
+    "#;
+    store.load_turtle(ttl, None).unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:LEIChecksumShape a sh:NodeShape ;
+            sh:targetClass ex:LEI ;
+            sh:property [
+                sh:path ex:checksumValid ;
+                sh:hasValue true ;
+                sh:message "LEI check digits fail or are unrecorded" ;
+            ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false);
+    let violations = parsed["violations"].as_array().unwrap();
+    assert!(violations.iter().any(|v| v["focus_node"].as_str().unwrap().contains("id2")));
+    assert!(violations.iter().any(|v| v["focus_node"].as_str().unwrap().contains("id3")));
+    assert!(!violations.iter().any(|v| v["focus_node"].as_str().unwrap().contains("id1")));
+    assert!(violations.iter().any(|v| v["constraint"] == "hasValue"));
+}
+
+#[test]
 fn test_shacl_unsupported_path_skipped_not_fatal() {
     // A sequence path is not executable; it must be reported as skipped
     // while the rest of the shapes still run.
