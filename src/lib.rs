@@ -55,6 +55,8 @@ pub mod plan;
 pub mod plan_classical;
 pub mod plan_pddl;
 pub mod plan_validate;
+#[cfg(feature = "plugins")]
+pub mod plugins;
 #[cfg(feature = "embeddings")]
 pub mod poincare;
 pub mod reason;

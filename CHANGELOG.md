@@ -5,6 +5,26 @@ All notable changes to Open Ontologies are documented here.
 ## [Unreleased]
 
 ### Added
+- **Four extension surfaces** (ECOSYSTEM.md maps them). (1) **Community
+  marketplace packs**: `onto_marketplace` now merges an open runtime-fetched
+  registry (`community/registry.json`, override with
+  `OPEN_ONTOLOGIES_COMMUNITY_REGISTRY`, `community=false` to skip) with the
+  curated catalogue — entries are tagged `"source": "curated"|"community"`,
+  curated IDs always shadow community IDs, and the shipped registry is
+  validated in CI. Seeded with the Manchester/Stanford Pizza teaching
+  ontology. (2) **Community skills**: `skills/community/` with a template —
+  zero-code markdown workflow recipes. (3) **Companion servers**: the
+  five-rule contract (`docs/companion-servers.md`) naming the compose-over-MCP
+  pattern OpenCheir already uses (no embedded LLM, no `onto_*` squatting,
+  packs/files as interchange, lineage webhook, graceful degradation).
+  (4) **WASM plugins** (`--features plugins`): sandboxed community tools via
+  the pure-Rust wasmi interpreter — `onto_plugin_list` / `onto_plugin_call`,
+  ABI v1 (no host imports, no IO, fuel-metered, fresh instance per call,
+  16 MB return cap), graph access only by caller-passed `sparql` whose rows
+  are injected as `bindings`. Reference plugin in
+  `examples/plugins/label-case-lint`; ABI exercised by WAT-built plugins in
+  `tests/plugin_host_test.rs` (including fuel-exhaustion and oversized-return
+  guards). Docs: `docs/plugins.md`.
 - **fenic support.** [fenic](https://github.com/typedef-ai/fenic) (typedef-ai's
   semantic DataFrame framework) keeps its local catalog in a plain DuckDB file
   with user tables under the `typedef_default` schema. The DuckDB schema

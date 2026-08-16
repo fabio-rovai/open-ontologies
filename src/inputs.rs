@@ -562,6 +562,20 @@ pub struct OntoMarketplaceInput {
     pub id: Option<String>,
     /// Filter list by domain (e.g. "foundational", "metadata", "iot", "geospatial")
     pub domain: Option<String>,
+    /// Include community packs from the open registry (default true). Set false for the curated catalogue only / offline use.
+    pub community: Option<bool>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoPluginCallInput {
+    /// Plugin name (as reported by onto_plugin_list)
+    pub plugin: String,
+    /// Tool name within the plugin (as reported by onto_plugin_list)
+    pub tool: String,
+    /// JSON input passed to the plugin tool
+    pub input: Option<serde_json::Value>,
+    /// Optional SPARQL SELECT run against the loaded store first; its result bindings are injected into the plugin's input as "bindings". This is the only way a plugin sees graph data — plugins have no direct store access.
+    pub sparql: Option<String>,
 }
 
 // ─── Prompt input structs ───────────────────────────────────────────────────

@@ -1559,7 +1559,7 @@ async fn async_main() -> anyhow::Result<()> {
             match action.as_str() {
                 "list" => {
                     let entries = marketplace::list(domain.as_deref());
-                    let items: Vec<serde_json::Value> = entries
+                    let mut items: Vec<serde_json::Value> = entries
                         .iter()
                         .map(|e| {
                             serde_json::json!({
@@ -1568,13 +1568,34 @@ async fn async_main() -> anyhow::Result<()> {
                                 "description": e.description,
                                 "domain": e.domain,
                                 "format": marketplace::format_name(e.format),
+                                "source": "curated",
                             })
                         })
                         .collect();
+                    let mut community_error = None;
+                    match marketplace::load_community_packs().await {
+                        Ok((packs, _shadowed, _source)) => {
+                            for p in packs
+                                .iter()
+                                .filter(|p| domain.as_deref().is_none_or(|d| p.domain == d))
+                            {
+                                items.push(serde_json::json!({
+                                    "id": p.id,
+                                    "name": p.name,
+                                    "description": p.description,
+                                    "domain": p.domain,
+                                    "format": p.format,
+                                    "source": "community",
+                                }));
+                            }
+                        }
+                        Err(e) => community_error = Some(e),
+                    }
                     output_json(
                         &serde_json::json!({
                             "count": items.len(),
                             "ontologies": items,
+                            "community_registry_error": community_error,
                         }),
                         cli.pretty,
                     );
@@ -1584,26 +1605,40 @@ async fn async_main() -> anyhow::Result<()> {
                         eprintln!("Error: --id is required for install");
                         std::process::exit(1);
                     });
-                    let entry = match marketplace::find(id) {
-                        Some(e) => e,
-                        None => {
-                            eprintln!(
-                                "Unknown ontology ID: '{}'. Run 'marketplace list' to see available IDs.",
-                                id
-                            );
-                            std::process::exit(1);
-                        }
-                    };
+                    // Curated first; community packs can never shadow a curated ID.
+                    let (entry_id, entry_name, entry_url, entry_format) =
+                        match marketplace::find(id) {
+                            Some(e) => (e.id.to_string(), e.name.to_string(), e.url.to_string(), e.format),
+                            None => {
+                                let community = match marketplace::load_community_packs().await {
+                                    Ok((packs, _, _)) => packs.into_iter().find(|p| p.id == id),
+                                    Err(_) => None,
+                                };
+                                match community.and_then(|p| {
+                                    marketplace::parse_format(&p.format)
+                                        .map(|f| (p.id, p.name, p.url, f))
+                                }) {
+                                    Some(t) => t,
+                                    None => {
+                                        eprintln!(
+                                            "Unknown ontology ID: '{}'. Run 'marketplace list' to see curated and community IDs.",
+                                            id
+                                        );
+                                        std::process::exit(1);
+                                    }
+                                }
+                            }
+                        };
                     let (_db, graph) = setup(&cli.data_dir)?;
-                    let content = GraphStore::fetch_url(entry.url).await?;
-                    match graph.load_content_with_base(&content, entry.format, Some(entry.url)) {
+                    let content = GraphStore::fetch_url(&entry_url).await?;
+                    match graph.load_content_with_base(&content, entry_format, Some(&entry_url)) {
                         Ok(count) => {
                             let stats = graph.get_stats().unwrap_or_default();
                             output_json(
                                 &serde_json::json!({
                                     "ok": true,
-                                    "installed": entry.id,
-                                    "name": entry.name,
+                                    "installed": entry_id,
+                                    "name": entry_name,
                                     "triples_loaded": count,
                                     "stats": serde_json::from_str::<serde_json::Value>(&stats).unwrap_or_default(),
                                 }),
