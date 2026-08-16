@@ -81,6 +81,21 @@ class OntologyEngine:
         self.store.load(path=str(p), format=rdf_format)
         return len(self.store)
 
+    def load_rows(
+        self,
+        rows_or_df,
+        base_iri: str = "http://example.org/data/",
+        class_iri: str | None = None,
+        id_column: str | None = None,
+    ) -> int:
+        """Load tabular rows (or any dataframe-like object — fenic, polars,
+        pandas, pyarrow) into the store as RDF; return total triple count."""
+        from .dataframe import rows_from_dataframe, rows_to_turtle
+
+        rows = rows_from_dataframe(rows_or_df)
+        ntriples = rows_to_turtle(rows, base_iri=base_iri, class_iri=class_iri, id_column=id_column)
+        return self.load(ntriples, "ntriples")
+
     def clear(self) -> None:
         self.store.clear()
 

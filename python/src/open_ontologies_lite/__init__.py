@@ -2,6 +2,7 @@
 Oxigraph RDF/OWL engine. No Rust toolchain, no compilation, prebuilt wheels only.
 """
 
+from .dataframe import rows_from_dataframe, rows_to_turtle
 from .engine import OntologyEngine, ValidationResult, resolve_format
 from .kgcl import ChangeSet, kgcl_diff
 
@@ -12,6 +13,8 @@ __all__ = [
     "resolve_format",
     "ChangeSet",
     "kgcl_diff",
+    "rows_from_dataframe",
+    "rows_to_turtle",
     "__version__",
 ]
 

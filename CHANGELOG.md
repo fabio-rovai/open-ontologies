@@ -4,6 +4,21 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Added
+- **fenic support.** [fenic](https://github.com/typedef-ai/fenic) (typedef-ai's
+  semantic DataFrame framework) keeps its local catalog in a plain DuckDB file
+  with user tables under the `typedef_default` schema. The DuckDB schema
+  introspector now scans all user schemas instead of only `main` (excluding
+  `information_schema`, `pg_catalog`, `__`-prefixed internals, and fenic's
+  `fenic_system` telemetry schema), so `import-schema` / `onto_import_schema`
+  work directly against fenic catalogs; cross-schema table-name collisions are
+  disambiguated as `<schema>_<table>`. `open-ontologies-lite` gains a
+  duck-typed dataframe bridge — `rows_from_dataframe`, `rows_to_turtle`, and
+  `OntologyEngine.load_rows` accept fenic, polars, pandas, and pyarrow objects
+  with no new dependencies. New end-to-end example
+  `python/examples/fenic_pipeline.py` and a "fenic" section in
+  `docs/data-pipeline.md`.
+
 ## [1.2.0] - 2026-08-15
 
 ### Added

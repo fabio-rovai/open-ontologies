@@ -297,6 +297,42 @@ The same query runs identically as MCP from Claude:
 > from Open Ontologies. Credentials are passed via DuckDB's standard
 > `CREATE SECRET` / environment-variable mechanism, never written to RDF.
 
+### 4. Pull from a fenic catalog (semantic DataFrames)
+
+[fenic](https://github.com/typedef-ai/fenic) is typedef-ai's PySpark-inspired
+DataFrame framework whose `semantic.*` operators (extract, classify, map, join)
+turn unstructured text into typed rows with an LLM. Its local catalog is a
+**plain DuckDB file**: a session with `app_name="my_app"` writes
+`my_app.duckdb` into the working directory, and `df.write.save_as_table("t")`
+lands the table at `typedef_default.t`. That makes every fenic pipeline output
+directly ingestable — fenic does the LLM extraction, Open Ontologies does the
+ontology governance.
+
+```bash
+# Import the fenic tables as an OWL ontology (fenic's internal
+# __fenic_system / fenic_system schemas are excluded automatically)
+open-ontologies import-schema duckdb:///path/to/my_app.duckdb
+
+# Ingest rows from a fenic table — note the typedef_default schema qualifier
+open-ontologies sql-ingest \
+  duckdb:///path/to/my_app.duckdb \
+  "SELECT id, name, parent FROM typedef_default.product_category"
+```
+
+Caveats and alternatives:
+
+- **Close the fenic session first** (`session.stop()`): DuckDB files are
+  single-writer, so ingest after the pipeline finishes — or have fenic
+  `df.write.parquet("out.parquet")` and feed that to `onto_ingest` instead.
+- **Python-side handoff:** `open-ontologies-lite` accepts a fenic DataFrame
+  directly — `engine.load_rows(df, base_iri=…, class_iri=…, id_column=…)`
+  (duck-typed via `to_pylist()`; polars, pandas, and pyarrow objects work
+  too). See [python/examples/fenic_pipeline.py](../python/examples/fenic_pipeline.py).
+- **MCP composition:** fenic can serve its tables as MCP tools
+  (`fenic-serve`), and Open Ontologies is an MCP server — connect both to the
+  same agent and it can query fenic tables and govern the resulting graph in
+  one conversation.
+
 ## Schema → ontology in 3 commands
 
 `onto_import_schema` introspects a database, generates OWL, and loads it into

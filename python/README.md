@@ -48,6 +48,23 @@ print(cs.to_kgcl())    # KGCL change records, one per line
 (node created/deleted, renamed, annotation changed, edge created/deleted). Pure
 structural comparison, no model. Also exposed as the `onto_kgcl_diff` MCP tool.
 
+### Dataframe ingestion (fenic, polars, pandas, pyarrow)
+
+```python
+engine.load_rows(df, base_iri="http://x.org/", class_iri="http://x.org/Thing", id_column="id")
+```
+
+`load_rows` duck-types against the common export methods — `to_pylist()`
+(fenic DataFrame, pyarrow Table), `to_dicts()` (polars), `to_dict("records")`
+(pandas) — or takes a plain list of dicts. Values become typed literals
+(int/float/bool → XSD), `None` is skipped, and the output is deterministic.
+The primary consumer is [fenic](https://github.com/typedef-ai/fenic): its
+semantic operators do the LLM extraction, this bridge just loads and lets
+SHACL/lint/SPARQL govern the result. See
+[examples/fenic_pipeline.py](examples/fenic_pipeline.py) for the end-to-end
+shape, and `docs/data-pipeline.md` for ingesting a fenic DuckDB catalog with
+the full Rust engine.
+
 ### Alignment candidate generation with HNSW (optional `[align]` extra)
 
 ```bash
