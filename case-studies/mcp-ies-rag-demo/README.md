@@ -12,10 +12,10 @@ Per the May 2026 IES4 ecosystem research finding: nobody has publicly grafted LL
 
 ```
 case-studies/mcp-ies-rag-demo/
-├── README.md                          this file — the pattern, the why
+├── README.md                          this file: the pattern, the why
 ├── data/
 │   ├── ies-sample.ttl                 small IES4-conformant graph (~30 individuals,
-│   │                                  ~80 triples) — people / orgs / locations /
+│   │                                  ~80 triples): people / orgs / locations /
 │   │                                  4D role-states / events with participants
 │   └── competency-questions.md        6 natural-language questions, each with
 │                                      the ontology-grounded answer and the
@@ -27,7 +27,7 @@ case-studies/mcp-ies-rag-demo/
 
 ## The pattern in one paragraph
 
-`onto_embed` over the loaded IES4 graph gives Claude semantic retrieval over particulars (named entities like Alice Patel, Acme Bristol). `onto_query` lets Claude run SPARQL when a question requires structural reasoning (temporal extents, set membership, participant edges). The two combine: Claude retrieves the relevant subgraph by semantic search, then queries it precisely to answer. The 4D modelling means that **states are first-class** — "Alice was the Bristol manager" is a state with a period, not an attribute of Alice — so questions like "who held that role in 2022?" reduce to a SPARQL FILTER over period strings rather than a guess.
+`onto_embed` over the loaded IES4 graph gives Claude semantic retrieval over particulars (named entities like Alice Patel, Acme Bristol). `onto_query` lets Claude run SPARQL when a question requires structural reasoning (temporal extents, set membership, participant edges). The two combine: Claude retrieves the relevant subgraph by semantic search, then queries it precisely to answer. The 4D modelling means that **states are first-class** ("Alice was the Bristol manager" is a state with a period, not an attribute of Alice), so questions like "who held that role in 2022?" reduce to a SPARQL FILTER over period strings rather than a guess.
 
 ## Why this beats flat document RAG
 
@@ -79,23 +79,23 @@ This is a **case study**, not a product. It:
 
 - Uses a synthetic 30-individual dataset, not real operational data. Real deployments would load actual IES-conformant graphs (e.g. NDTP-style assets, MOD intelligence corpora).
 - Uses a placeholder `demo:roleIn` helper property. A production IES4 implementation would use the canonical `ies:MemberState` + `ies:isMemberOf` pattern. The shortcut keeps the demo Turtle readable.
-- Doesn't include a quantitative evaluation. A real comparison vs flat document RAG would need a benchmark corpus and human-evaluated accuracy on both temporal and atemporal questions — that's a follow-up paper, not a case study.
+- Doesn't include a quantitative evaluation. A real comparison vs flat document RAG would need a benchmark corpus and human-evaluated accuracy on both temporal and atemporal questions; that's a follow-up paper, not a case study.
 - Doesn't ship runtime code beyond what's already in Open Ontologies (load, query, embed, search). The case study is the dataset + the questions + the documented pattern.
 
 ## How to extend
 
 PRs welcome. Useful directions:
 
-1. **Add more competency questions** to `data/competency-questions.md` — particularly questions that combine multiple temporal extents (e.g. "who held overlapping roles in different orgs simultaneously?").
-2. **Add a real dataset** — replace the synthetic data with an IES-conformant transformation of public NDTP data, the Wales valuation report dataset, or similar.
-3. **Add a quantitative benchmark** — define a question set, run flat-RAG and onto-grounded-RAG on the same corpus, measure accuracy + latency.
+1. **Add more competency questions** to `data/competency-questions.md`, particularly questions that combine multiple temporal extents (e.g. "who held overlapping roles in different orgs simultaneously?").
+2. **Add a real dataset**: replace the synthetic data with an IES-conformant transformation of public NDTP data, the Wales valuation report dataset, or similar.
+3. **Add a quantitative benchmark**: define a question set, run flat-RAG and onto-grounded-RAG on the same corpus, measure accuracy + latency.
 4. **Extend the JC3IEDM crosswalk** (the sibling case study at [`../jc3iedm-ies4-crosswalk/`](../jc3iedm-ies4-crosswalk/)) so you can ingest JC3IEDM-shaped data and answer questions via the IES4 4D model.
 
 ## References
 
 - [IES Information Exchange Standard](https://informationexchangestandard.org/)
-- [`IES-Org/ont-ies`](https://github.com/IES-Org/ont-ies) — canonical IES repo (custodied by UK DBT since March 2025)
-- [Telicent Smart-Cache-Graph](https://github.com/orgs/telicent-oss/repositories) — the RAG-substrate-shaped commercial stack from the IES Working Group's primary implementation partner
+- [`IES-Org/ont-ies`](https://github.com/IES-Org/ont-ies): canonical IES repo (custodied by UK DBT since March 2025)
+- [Telicent Smart-Cache-Graph](https://github.com/orgs/telicent-oss/repositories): the RAG-substrate-shaped commercial stack from the IES Working Group's primary implementation partner
 - FOUST 7 paper, "Comparing IES and BORO" (CEUR Vol-4176, JOWO 2024)
 
 ## Licence

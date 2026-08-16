@@ -1,4 +1,4 @@
-# Case study: blast-furnace fault diagnosis — Open Ontologies vs Huang et al. 2024
+# Case study: blast-furnace fault diagnosis, Open Ontologies vs Huang et al. 2024
 
 **Paper:** Huang, Yang, Zhang, Lou, Kong & Zhou. *Ontology guided multi-level knowledge graph construction and its applications in blast furnace ironmaking process.* Advanced Engineering Informatics 62 (2024), [DOI 10.1016/j.aei.2024.102927](https://doi.org/10.1016/j.aei.2024.102927). Authors: Zhejiang University (Chunjie Yang's process-control group).
 
@@ -10,7 +10,7 @@
 
 1. **Multi-level ontology** for the blast furnace: physical structure (zones, sensors, tuyeres), operational states (fault classes), criticality.
 2. **KG construction** by tying real sensor streams + maintenance logs to the ontology.
-3. **Embedding + ML classifier** (the specific ML choice isn't load-bearing — KG features feeding a tree-ensemble-style discriminative model).
+3. **Embedding + ML classifier** (the specific ML choice isn't load-bearing: KG features feeding a tree-ensemble-style discriminative model).
 4. **Output:** discrete fault label per time-window. Accuracy 92.76%; diagnosis 58.44% faster than baseline.
 
 The whole pipeline is engineered toward one task: turn sensor readings into a fault label as fast and accurately as possible. State-changing reactive actions (slow down the blast, schedule a tap, swap a tuyere) are operator decisions downstream of the label.
@@ -19,12 +19,12 @@ The whole pipeline is engineered toward one task: turn sensor readings into a fa
 
 Three files in this directory plus a runnable script:
 
-- [`blast-furnace-ontology.ttl`](blast-furnace-ontology.ttl) — the TBox, structurally identical to the paper's multi-level model (4 zones, 5 fault classes, criticality levels).
-- [`sensor-snapshots.ttl`](sensor-snapshots.ttl) — 8 time-window snapshots (6 labelled, 2 unlabelled test).
-- [`safety-invariants.ttl`](safety-invariants.ttl) — 4 SHACL constraints (descent-rate required, hearth temp floor 1300°C, stack pressure ceiling 320 kPa, tuyere lifetime 30000 h).
-- [`run-demo.sh`](run-demo.sh) — load → query (5 SPARQL classifier rules) → reason → SHACL → print report.
+- [`blast-furnace-ontology.ttl`](blast-furnace-ontology.ttl): the TBox, structurally identical to the paper's multi-level model (4 zones, 5 fault classes, criticality levels).
+- [`sensor-snapshots.ttl`](sensor-snapshots.ttl): 8 time-window snapshots (6 labelled, 2 unlabelled test).
+- [`safety-invariants.ttl`](safety-invariants.ttl): 4 SHACL constraints (descent-rate required, hearth temp floor 1300°C, stack pressure ceiling 320 kPa, tuyere lifetime 30000 h).
+- [`run-demo.sh`](run-demo.sh): load → query (5 SPARQL classifier rules) → reason → SHACL → print report.
 
-Classification is **declarative**, not learned: each fault class is a SPARQL pattern. No training data needed beyond the rules. No model retraining when a new fault class appears — add a SPARQL rule.
+Classification is **declarative**, not learned: each fault class is a SPARQL pattern. No training data needed beyond the rules. No model retraining when a new fault class appears: add a SPARQL rule.
 
 ## Empirical run on the synthetic 8-snapshot suite
 
@@ -58,7 +58,7 @@ The SHACL safety check additionally caught a **data-model bug we didn't author i
 }
 ```
 
-That kind of finding is what SHACL invariants are for — independent verification of data shape against the ontology's domain/range declarations.
+That kind of finding is what SHACL invariants are for: independent verification of data shape against the ontology's domain/range declarations.
 
 ## What this comparison actually shows
 
@@ -82,18 +82,18 @@ That kind of finding is what SHACL invariants are for — independent verificati
 
 3. **Probabilistic confidence per prediction.** ML returns a posterior; OO's rule either fires or doesn't. Operators downstream may want the probability.
 
-4. **Threshold robustness.** The thresholds in `fault-rules.sparql` (700 mm/h, 1400°C, 0.75 CO ratio, 25000 h) are hand-set against the synthetic data. Real-furnace deployment requires per-site calibration — a real cost OO doesn't avoid.
+4. **Threshold robustness.** The thresholds in `fault-rules.sparql` (700 mm/h, 1400°C, 0.75 CO ratio, 25000 h) are hand-set against the synthetic data. Real-furnace deployment requires per-site calibration, a real cost OO doesn't avoid.
 
 5. **The whole demonstrated benchmark.** Their evaluation says "we tested this on a real plant." Ours says "we tested this on 8 snapshots we wrote." The honest answer is: the paper is real engineering with measured performance; this case study is a methodological argument.
 
-## Bridge attempt — what changes if Huang et al. add OO's strengths?
+## Bridge attempt: what changes if Huang et al. add OO's strengths?
 
 | OO advantage | What they would add | Cost to their stack |
 |---|---|---|
 | SPARQL rules for auditable classification | Layer a rule-based explainer over their ML output | 2-3 weeks; doesn't remove the ML retraining cost |
 | SHACL safety invariants | Add a SHACL validator before the ML classifier fires | ~1 week; high payoff |
-| CIVeX-certified reactive actions | Wrap operator actions in a verifier | 2-4 weeks; requires authoring action schemas — they'd need an equivalent of our Dynamics layer |
-| New-fault-type-as-SPARQL-rule | Drop ML retraining for some fault classes | Strategic — they probably resist because it undercuts their main contribution |
+| CIVeX-certified reactive actions | Wrap operator actions in a verifier | 2-4 weeks; requires authoring action schemas; they'd need an equivalent of our Dynamics layer |
+| New-fault-type-as-SPARQL-rule | Drop ML retraining for some fault classes | Strategic; they probably resist because it undercuts their main contribution |
 
 ### Where OO does not catch up after their bridge attempt
 
@@ -101,18 +101,18 @@ OO does not get a real-dataset benchmark from a bridge attempt by Huang's team. 
 
 ## Honest recommendation if a real Korean / Chinese steel-plant pilot were on the table
 
-1. **Use OO's SHACL invariants from day one** — independent of any ML stack. Safety bounds are easy wins.
-2. **Author the fault taxonomy as SPARQL rules in parallel with an ML classifier** — keep both, route the operator UI through whichever has higher confidence per case.
-3. **Gate every reactive operator action through `onto_certify_action`** — the audit trail alone justifies the architecture.
+1. **Use OO's SHACL invariants from day one**; they are independent of any ML stack. Safety bounds are easy wins.
+2. **Author the fault taxonomy as SPARQL rules in parallel with an ML classifier**: keep both, route the operator UI through whichever has higher confidence per case.
+3. **Gate every reactive operator action through `onto_certify_action`**: the audit trail alone justifies the architecture.
 4. **Don't claim to beat 92.76%** unless and until a plant trial says so.
 
 That's the honest position. The architectural argument is real; the empirical comparison is not yet.
 
 ## Sources
 
-- Huang et al. 2024 — [DOI 10.1016/j.aei.2024.102927](https://doi.org/10.1016/j.aei.2024.102927)
-- Open Ontologies CIVeX certification — [arXiv 2605.09168](https://arxiv.org/abs/2605.09168)
-- Open Ontologies CIVeX module — [`src/civex.rs`](../../src/civex.rs)
-- Open Ontologies BC+ Dynamics — [`src/dynamics.rs`](../../src/dynamics.rs), [`src/dynamics_bcplus.rs`](../../src/dynamics_bcplus.rs)
-- FLORA fuzzy alignment (ISWC 2025 Best Paper) — [`src/align_fuzzy.rs`](../../src/align_fuzzy.rs)
-- SHACL co-evolution (K-CAP 2025) — [`src/coevolve.rs`](../../src/coevolve.rs)
+- Huang et al. 2024: [DOI 10.1016/j.aei.2024.102927](https://doi.org/10.1016/j.aei.2024.102927)
+- Open Ontologies CIVeX certification: [arXiv 2605.09168](https://arxiv.org/abs/2605.09168)
+- Open Ontologies CIVeX module: [`src/civex.rs`](../../src/civex.rs)
+- Open Ontologies BC+ Dynamics: [`src/dynamics.rs`](../../src/dynamics.rs), [`src/dynamics_bcplus.rs`](../../src/dynamics_bcplus.rs)
+- FLORA fuzzy alignment (ISWC 2025 Best Paper): [`src/align_fuzzy.rs`](../../src/align_fuzzy.rs)
+- SHACL co-evolution (K-CAP 2025): [`src/coevolve.rs`](../../src/coevolve.rs)

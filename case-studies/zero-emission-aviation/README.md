@@ -1,4 +1,4 @@
-# UK Zero-Emission Flight Ecosystem — an open, computation-ready reference graph
+# UK Zero-Emission Flight Ecosystem: an open, computation-ready reference graph
 
 An open, SHACL-validated, **provenance-first** knowledge graph of the UK hydrogen and electric
 aviation ecosystem: organisations, airports, programmes, projects, funders, bodies, alliances,
@@ -44,7 +44,7 @@ Entities by type: 15 organisations, 6 projects, 3 programmes, 3 funders, 3 bodie
 ## Design and methodology
 
 The ontology is engineered, not hand-waved. It follows the **Linked Open Terms (LOT)** framework
-(Poveda-Villalón et al., 2022) — requirements, implementation, publication — with these disciplines:
+(Poveda-Villalón et al., 2022) across requirements, implementation and publication, with these disciplines:
 
 - **Competency-question driven** (Grüninger & Fox, 1995). The scope is fixed by six competency
   questions (`queries/competency.rq`), and those same questions are re-run as SPARQL **acceptance
@@ -91,54 +91,54 @@ The SHACL shapes (`shapes/zef-shapes.ttl`) enforce, and the pipeline proves:
 CQ3, for example, returns eight provenanced figures including the January 2021 £84.6m green-aviation
 package, GKN H2GEAR (£54.4m total / £27.2m ATI grant), ZeroAvia HyFlyer II (£24.6m / £12.3m ATI),
 GKN H2FlyGHT (£44m, 2 MW), and the Hydrogen in Aviation alliance's projected £34bn/year UK benefit by
-2050 — each traceable to a primary source.
+2050, each traceable to a primary source.
 
 ## Related work (verified, 2020-2026 unless noted as foundational)
 
 **Hydrogen and energy ontologies / KGs**
 - Ascencion Arevalo K M, Neunsinger C. *HOLY: An Ontology Covering the Hydrogen Market.* ISWC 2023,
-  LNCS 14266. https://doi.org/10.1007/978-3-031-47243-5_1 — the two-axis actors x value-chain design.
+  LNCS 14266. https://doi.org/10.1007/978-3-031-47243-5_1; the two-axis actors x value-chain design.
 - Booshehri M et al. *Introducing the Open Energy Ontology.* Energy and AI 5, 2021.
-  https://doi.org/10.1016/j.egyai.2021.100074 — BFO-based modular energy ontology; continuant/occurrent.
+  https://doi.org/10.1016/j.egyai.2021.100074; BFO-based modular energy ontology; continuant/occurrent.
 - Santos G et al. *Intelligent Energy Systems Ontology (IESO).* Energy and AI, 2023.
-  https://doi.org/10.1016/j.ecmx.2023.100495 — integrate-don't-reinvent + SHACL + unit conversion.
+  https://doi.org/10.1016/j.ecmx.2023.100495; integrate-don't-reinvent + SHACL + unit conversion.
 - Haghgoo M et al. *SARGON – Smart energy domain ontology.* IET Smart Cities 2(4), 2020.
-  https://doi.org/10.1049/iet-smc.2020.0049 — SAREF-extension pattern (lightweight, no upper ontology).
+  https://doi.org/10.1049/iet-smc.2020.0049; SAREF-extension pattern (lightweight, no upper ontology).
 
 **Emissions provenance and quantities**
 - Markovic M, Garijo D, Germano S, Naja I. *PECO: The Provenance of Emission Calculations Ontology*, 2023.
-  https://w3id.org/peco — PROV-O + QUDT + SOSA composition for auditable figures.
+  https://w3id.org/peco; PROV-O + QUDT + SOSA composition for auditable figures.
 
 **Aviation / aerospace knowledge engineering**
 - Wittenborg T et al. *Knowledge-Based Aerospace Engineering — A Systematic Literature Review.* arXiv
-  2505.10142, 2025. https://arxiv.org/abs/2505.10142 — process/software/data backbone; names the
+  2505.10142, 2025. https://arxiv.org/abs/2505.10142; process/software/data backbone; names the
   sustainable-aviation gap.
 - Kabashkin I. *Ontology-Driven Digital Twin Framework for Aviation Maintenance and Operations.*
-  Mathematics 13(17):2817, 2025. https://doi.org/10.3390/math13172817 — modular multi-ontology design.
+  Mathematics 13(17):2817, 2025. https://doi.org/10.3390/math13172817; modular multi-ontology design.
 - Georgiou J et al. *The ICARUS Ontology: A General Aviation Ontology.* WIMS 2020.
-  https://doi.org/10.1145/3405962.3405983 — reuse + generic-metadata/domain-layer separation.
+  https://doi.org/10.1145/3405962.3405983; reuse + generic-metadata/domain-layer separation.
 
 **Funding and technology-maturity KGs**
 - Chialva D, Mugabushaka A-M. *DINGO: an ontology for projects and grants linked data.* SKG/TPDL 2020.
-  https://arxiv.org/abs/2006.13438 · https://w3id.org/dingo — the funds/grant/policy schema.
+  https://arxiv.org/abs/2006.13438 · https://w3id.org/dingo; the funds/grant/policy schema.
 - EURIO / CORDIS Knowledge Graph, Publications Office of the EU.
-  https://op.europa.eu/en/web/eu-vocabularies/eurio — EU-funding interoperability target.
+  https://op.europa.eu/en/web/eu-vocabularies/eurio; EU-funding interoperability target.
 - Trappey A J C, Lin G-B, Hung L-P. *Intelligent Text Mining for Ontological KG Refinement and Patent
   Portfolio Analysis — Net-Zero Data Center.* Information 15(7):374, 2024.
-  https://doi.org/10.3390/info15070374 — couples an ontology/KG to technology-maturity analytics.
+  https://doi.org/10.3390/info15070374; couples an ontology/KG to technology-maturity analytics.
 
 **Reusable W3C / standard building blocks**
 - Haller A et al. *Semantic Sensor Network Ontology (SOSA/SSN).* W3C Recommendation, 2017.
   https://www.w3.org/TR/vocab-ssn/
 - Lebo T et al. *PROV-O: The PROV Ontology.* W3C Recommendation, 2013. https://www.w3.org/TR/prov-o/
 - Miles A, Bechhofer S. *SKOS Reference.* W3C Recommendation, 2009. https://www.w3.org/TR/skos-reference/
-- QUDT — Quantities, Units, Dimensions and Types. https://qudt.org/
+- QUDT: Quantities, Units, Dimensions and Types. https://qudt.org/
 
 **Ontology-engineering methodology**
 - Poveda-Villalón M et al. *LOT: An industrial oriented ontology engineering framework.* EAAI 111, 2022.
   https://doi.org/10.1016/j.engappai.2022.104755
 - Grüninger M, Fox M S. *Methodology for the Design and Evaluation of Ontologies.* IJCAI-95 workshop
-  (foundational). — competency questions.
+  (foundational); competency questions.
 - Poveda-Villalón M et al. *OOPS! (OntOlogy Pitfall Scanner!).* IJSWIS 10(2), 2014.
   https://doi.org/10.4018/ijswis.2014040102
 - Wilkinson M D et al. *The FAIR Guiding Principles.* Scientific Data 3:160018, 2016.

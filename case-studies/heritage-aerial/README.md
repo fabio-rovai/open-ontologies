@@ -1,6 +1,6 @@
-# NAPH — Computation-Ready Digitisation Standard for Aerial Photography Heritage
+# NAPH: Computation-Ready Digitisation Standard for Aerial Photography Heritage
 
-A focused, vertical, openly-licensed digitisation standard for **aerial photography heritage collections**. Provides ontology, validation shapes, transformation pipeline, IIIF bridge, governance model, and full deliverables — the complete A-to-Z system designed for institutions like NCAP, IWM, NARA-partnered archives, and equivalent national aerial photography holdings worldwide.
+A focused, vertical, openly-licensed digitisation standard for **aerial photography heritage collections**. Provides ontology, validation shapes, transformation pipeline, IIIF bridge, governance model, and full deliverables: the complete A-to-Z system designed for institutions like NCAP, IWM, NARA-partnered archives, and equivalent national aerial photography holdings worldwide.
 
 Aligned with the goals of the **Towards a National Collection** programme (AHRC / UKRI) and the **N-RICH Prototype**. See [CHANGELOG](CHANGELOG.md).
 
@@ -9,11 +9,11 @@ Aligned with the goals of the **Towards a National Collection** programme (AHRC 
 > This case study no longer runs on synthetic records alone. It ingests a live,
 > reproducible sample of **292 real frames** harvested from NCAP's public
 > [Air Photo Finder API](https://airphotofinder.ncap.org/), reprojected from
-> EPSG:3857 to WGS84 and auto-lifted to the NAPH Baseline tier — **0 SHACL
+> EPSG:3857 to WGS84 and auto-lifted to the NAPH Baseline tier with **0 SHACL
 > violations**. Testing the standard against real holdings found (and fixed) a
 > real defect in the standard's own date-precision shape.
 >
-> - **What the live API actually exposes:** [`docs/empirical-api-findings.md`](docs/empirical-api-findings.md) — 100% of records already carry a machine-readable footprint and an ISO-8601 date. NCAP is closer to Baseline than the browser suggests.
+> - **What the live API actually exposes:** [`docs/empirical-api-findings.md`](docs/empirical-api-findings.md): 100% of records already carry a machine-readable footprint and an ISO-8601 date. NCAP is closer to Baseline than the browser suggests.
 > - **Harvester:** [`pipeline/scrapers/ncap_airphotofinder.py`](pipeline/scrapers/ncap_airphotofinder.py) (respectful, rate-limited, metadata only)
 > - **Real data:** [`data/real-ncap-sample.ttl`](data/real-ncap-sample.ttl) · **Live map:** [`demo/real.html`](demo/real.html) · **STAC + GeoJSON exports:** [`reports/`](reports/)
 
@@ -23,7 +23,7 @@ Aligned with the goals of the **Towards a National Collection** programme (AHRC 
 > around one archive, it was run against a second national collection: Canada's
 > **National Air Photo Library** (NAPL, Natural Resources Canada), via the open
 > **Government of Canada CKAN API** (no authentication). **40 dated orthophoto
-> mosaics across 8 regions (1932–2004)** lifted to NAPH Baseline — **0 SHACL
+> mosaics across 8 regions (1932–2004)** lifted to NAPH Baseline with **0 SHACL
 > violations**. The ontology, shapes and crosswalk were unchanged; only the
 > harvester adapter differs.
 >
@@ -31,27 +31,27 @@ Aligned with the goals of the **Towards a National Collection** programme (AHRC 
 > footprints but **0%** machine-readable rights, while NAPL (Canada) ships
 > **100%** machine-readable rights (Open Government Licence) and native-WGS84
 > footprints but at collection (mosaic) granularity. The two archives are missing
-> opposite things — which is exactly what a shared Baseline test is for.
+> opposite things, which is exactly what a shared Baseline test is for.
 >
 > - **Findings + cross-national table:** [`docs/canada-napl-findings.md`](docs/canada-napl-findings.md)
 > - **Harvester:** [`pipeline/scrapers/napl_opencanada.py`](pipeline/scrapers/napl_opencanada.py) (open CKAN API, metadata only, no auth)
 > - **Real data:** [`data/real-napl-sample.ttl`](data/real-napl-sample.ttl) · **GeoJSON:** [`reports/real-napl-footprints.geojson`](reports/real-napl-footprints.geojson)
 
-> **And backed by real US data (WHAIFinder) — without the token-gated API**
+> **And backed by real US data (WHAIFinder), without the token-gated API**
 >
 > The obvious US target, USGS EROS, has a token-gated M2M API. Rather than gate the
 > demo behind credentials, the third national collection uses an **openly queryable**
 > holding: the **Wisconsin Historic Aerial Imagery Finder** (~201k frame-level
 > records, largely public-domain USDA survey photography), via its public **ArcGIS
-> FeatureServer** (no auth). **225 real frames (1937–1967)** lifted to NAPH Baseline —
+> FeatureServer** (no auth). **225 real frames (1937–1967)** lifted to NAPH Baseline with
 > **0 SHACL violations**.
 >
-> The US index publishes a **point centerpoint**, not a polygon — so the Baseline
+> The US index publishes a **point centerpoint**, not a polygon, so the Baseline
 > footprint is a **closed-form reconstruction** from centerpoint + map scale (standard
 > 9×9-inch frame). That gives the full three-country result: each archive was missing
 > a *different* Baseline piece (rights in the UK, frame granularity in Canada, footprint
-> geometry in the US) and each was closed by a *different* single transform — reproject,
-> publish-as-is, reconstruct — with the ontology, shapes and crosswalk **unchanged**.
+> geometry in the US) and each was closed by a *different* single transform (reproject,
+> publish-as-is, reconstruct) with the ontology, shapes and crosswalk **unchanged**.
 >
 > - **Findings + three-country table:** [`docs/usa-whaifinder-findings.md`](docs/usa-whaifinder-findings.md)
 > - **Harvester:** [`pipeline/scrapers/whaifinder_arcgis.py`](pipeline/scrapers/whaifinder_arcgis.py) (open ArcGIS REST, no auth)
@@ -60,15 +60,15 @@ Aligned with the goals of the **Towards a National Collection** programme (AHRC 
 
 ## Why narrow
 
-Generic GLAM-wide digitisation standards exist. Aerial photography heritage has distinctive characteristics — stereo pairs, ground sample distance, declassification provenance, sortie metadata — that benefit from a focused, deep treatment rather than a generic framework. NAPH is deliberately one vertical, done well. See [ADR-0001](deliverables/06-knowledge-transfer/architecture-decision-records/0001-narrow-vertical.md).
+Generic GLAM-wide digitisation standards exist. Aerial photography heritage has distinctive characteristics (stereo pairs, ground sample distance, declassification provenance, sortie metadata) that benefit from a focused, deep treatment rather than a generic framework. NAPH is deliberately one vertical, done well. See [ADR-0001](deliverables/06-knowledge-transfer/architecture-decision-records/0001-narrow-vertical.md).
 
 ## Why this exists
 
-The aerial photography heritage sector — NCAP, IWM, NARA, RAF Museum, RCAHMS, equivalent national institutions — holds collectively ~50 million records that are **digitised but not computable**. They sit on the web for human browsing but cannot be queried, aggregated, or analysed at scale by modern research tools.
+The aerial photography heritage sector (NCAP, IWM, NARA, RAF Museum, RCAHMS, equivalent national institutions) holds collectively ~50 million records that are **digitised but not computable**. They sit on the web for human browsing but cannot be queried, aggregated, or analysed at scale by modern research tools.
 
-NAPH is a focused vertical standard that closes that gap for aerial photography specifically, rather than chasing a generic GLAM-wide framework that has to compromise on every domain. Aerial photography has rich spatial, temporal, and event-linked context that becomes far more powerful when modelled as linked data — and that depth deserves a dedicated treatment.
+NAPH is a focused vertical standard that closes that gap for aerial photography specifically, rather than chasing a generic GLAM-wide framework that has to compromise on every domain. Aerial photography has rich spatial, temporal, and event-linked context that becomes far more powerful when modelled as linked data, and that depth deserves a dedicated treatment.
 
-This case study shows what a **3-tier digitisation standard** looks like when applied to a real-shaped heritage dataset — and what the gap is between current archive-cataloguing practice (ISAD-G, free-text fields, image-on-the-web) and computation-readiness.
+This case study shows what a **3-tier digitisation standard** looks like when applied to a real-shaped heritage dataset, and what the gap is between current archive-cataloguing practice (ISAD-G, free-text fields, image-on-the-web) and computation-readiness.
 
 ## The three tiers
 
@@ -78,7 +78,7 @@ This case study shows what a **3-tier digitisation standard** looks like when ap
 | **Enhanced** | Supports research workflows | Baseline + digitisation provenance (date, resolution, format, operator), capture context (altitude, camera, squadron, aircraft), full provenance chain, multiple surrogate formats |
 | **Aspirational** | Supports semantic discovery | Enhanced + subject classification, place authority links (GeoNames / Wikidata), cross-collection linked records, event linkage |
 
-Each tier is **incrementally adoptable** — a collection at Baseline does not need to rebuild to reach Enhanced.
+Each tier is **incrementally adoptable**: a collection at Baseline does not need to rebuild to reach Enhanced.
 
 ## The full deliverable set
 
@@ -86,11 +86,11 @@ The [`deliverables/`](deliverables/) directory contains the complete A-to-Z syst
 
 | Output | Location |
 |---|---|
-| **1. Standard v1.0** — formal specification | [`deliverables/01-standard/NAPH-STANDARD.md`](deliverables/01-standard/NAPH-STANDARD.md) |
+| **1. Standard v1.0**: formal specification | [`deliverables/01-standard/NAPH-STANDARD.md`](deliverables/01-standard/NAPH-STANDARD.md) |
 | 6 module specifications (A: Capture, B: Metadata, C: Rights, D: Packaging, E: Paradata, F: QA) | [`deliverables/01-standard/modules/`](deliverables/01-standard/modules/) |
 | Aerial Photography Profile (the single normative profile in v1.0) | [`deliverables/01-standard/profiles/aerial-photography.md`](deliverables/01-standard/profiles/aerial-photography.md) |
 | 5 sub-profiles (reconnaissance, satellite, UAV, photogrammetric, aerial archaeology) | [`deliverables/01-standard/profiles/aerial-subprofiles/`](deliverables/01-standard/profiles/aerial-subprofiles/) |
-| **2. Testing evidence** — partner clinic playbook | [`deliverables/05-governance/partner-clinic-playbook.md`](deliverables/05-governance/partner-clinic-playbook.md) |
+| **2. Testing evidence**: partner clinic playbook | [`deliverables/05-governance/partner-clinic-playbook.md`](deliverables/05-governance/partner-clinic-playbook.md) |
 | **3. Cost / capacity / skills analysis** | [`deliverables/03-cost-capacity-skills/`](deliverables/03-cost-capacity-skills/) |
 | Investment case + skills map | [`investment-case.md`](deliverables/03-cost-capacity-skills/investment-case.md), [`skills-map.md`](deliverables/03-cost-capacity-skills/skills-map.md) |
 | **4. Adoption guidance** | [`deliverables/04-adoption-guidance/`](deliverables/04-adoption-guidance/) |
@@ -123,14 +123,14 @@ case-studies/heritage-aerial/
 ├── LICENSE                            (CC BY 4.0 + CC0 + MIT)
 ├── CONTRIBUTING.md
 ├── ontology/
-│   ├── naph-core.ttl                  (the ontology — 30 classes, 29 properties)
-│   └── naph-shapes.ttl                (SHACL shapes — tiered + DigitalSurrogate + Place)
+│   ├── naph-core.ttl                  (the ontology: 30 classes, 29 properties)
+│   └── naph-shapes.ttl                (SHACL shapes: tiered + DigitalSurrogate + Place)
 ├── data/
 │   └── sample-photographs.ttl         (10 illustrative records across all 3 tiers)
 ├── pipeline/
 │   ├── legacy-ncap-style.csv          (current-state metadata: messy dates, free-text rights)
 │   ├── ingest.py                      (CSV → NAPH TTL transformation pipeline)
-│   ├── generated-from-csv.ttl         (output of ingest.py — all records lifted to Baseline)
+│   ├── generated-from-csv.ttl         (output of ingest.py: all records lifted to Baseline)
 │   ├── self-assessment.py             (self-service compliance check CLI)
 │   ├── generate-report.py             (runs full validation + emits HTML report)
 │   ├── iiif-bridge.py                 (NAPH → IIIF Presentation 3.0 manifest generator)
@@ -164,7 +164,7 @@ python3 -m http.server 8765
 # http://localhost:8765/demo/index.html
 ```
 
-The demo loads the IIIF collection manifest and renders the 10 records on an interactive map — tier-coloured markers, WGS84 footprint polygons, click-through metadata panel. The user-facing artefact that makes the standard concrete.
+The demo loads the IIIF collection manifest and renders the 10 records on an interactive map: tier-coloured markers, WGS84 footprint polygons, click-through metadata panel. The user-facing artefact that makes the standard concrete.
 
 ## The sample dataset
 
@@ -183,17 +183,17 @@ Ten illustrative photograph records distributed across the three tiers:
 | 9 | Aspirational | RAF/541/EDI | Edinburgh Castle | 1946-08-04 |
 | 10 | Aspirational | USAAF/3PRS/HIR | Hiroshima post-detonation | 1945-08-11 |
 
-**Note on the dataset:** these records are *modeled on the structure* of NCAP holdings — they use plausible sortie identifier formats, real squadron/aircraft pairings, real geographic coordinates, and rights statements aligned with rightsstatements.org. They are illustrative of what NCAP records *could look like* under the proposed standard, not assertions that these specific frames exist in the NCAP catalogue with these exact identifiers.
+**Note on the dataset:** these records are *modeled on the structure* of NCAP holdings: they use plausible sortie identifier formats, real squadron/aircraft pairings, real geographic coordinates, and rights statements aligned with rightsstatements.org. They are illustrative of what NCAP records *could look like* under the proposed standard, not assertions that these specific frames exist in the NCAP catalogue with these exact identifiers.
 
 ## What this demonstrates
 
-**1. The cost of going from Baseline to Enhanced is small.** Most of the data already exists in NCAP — sortie metadata, squadron, aircraft, capture conditions are routinely recorded. The gap is structuring it (ISO dates, machine-readable fields, explicit provenance chains) rather than acquiring new information.
+**1. The cost of going from Baseline to Enhanced is small.** Most of the data already exists in NCAP: sortie metadata, squadron, aircraft, capture conditions are routinely recorded. The gap is structuring it (ISO dates, machine-readable fields, explicit provenance chains) rather than acquiring new information.
 
-**2. The cost of going from Enhanced to Aspirational is significant — but partly automatable.** Subject classification, place authority linking, cross-collection record matching can be partially performed by vision-language models and entity-linking tools. The standard should specify *outcome requirements* (what needs to be linked, to which authorities) rather than prescribing manual workflows.
+**2. The cost of going from Enhanced to Aspirational is significant, but partly automatable.** Subject classification, place authority linking, cross-collection record matching can be partially performed by vision-language models and entity-linking tools. The standard should specify *outcome requirements* (what needs to be linked, to which authorities) rather than prescribing manual workflows.
 
 **3. The same standard works across collection sub-types.** RAF reconnaissance, US-transferred imagery, post-war urban surveys, and overseas surveys all model cleanly into the same ontology. The differences are in which optional fields apply, not in the core structure.
 
-**4. Computation-ready is achievable with no new research.** The ontology is built from existing standards (PROV-O, GeoSPARQL, SKOS, Dublin Core, DCAT, FOAF) — synthesis, not invention.
+**4. Computation-ready is achievable with no new research.** The ontology is built from existing standards (PROV-O, GeoSPARQL, SKOS, Dublin Core, DCAT, FOAF): synthesis, not invention.
 
 ## How to use it
 
@@ -276,7 +276,7 @@ The pipeline performs the exact transformations the standard requires:
 | Unit conversion | `30000` (feet) | `9144.0` (metres) |
 | Identifier minting | `RAF/106G/UK/1655` + frame `4023` | `https://w3id.org/naph/photo/RAF-106G-UK-1655-4023` |
 
-This is what an institution actually pays for when adopting the standard — and `ingest.py` is 200 lines.
+This is what an institution actually pays for when adopting the standard, and `ingest.py` is 200 lines.
 
 ## Generating validation reports
 
@@ -284,7 +284,7 @@ This is what an institution actually pays for when adopting the standard — and
 python3 pipeline/generate-report.py > reports/validation-report.html
 ```
 
-Runs the full validation suite (load → SHACL → all competency queries) and emits a styled HTML report with live results. Designed as the artefact institutions publish alongside their data to demonstrate compliance — the dashboard view of NAPH adoption.
+Runs the full validation suite (load → SHACL → all competency queries) and emits a styled HTML report with live results. Designed as the artefact institutions publish alongside their data to demonstrate compliance: the dashboard view of NAPH adoption.
 
 ## IIIF interoperability
 
@@ -302,19 +302,19 @@ This is interoperability without lock-in: institutions adopt NAPH and gain the I
 
 ## Roadmap
 
-This is **v0.3** — working ontology, validated SHACL shapes, end-to-end ingest pipeline, IIIF bridge, validation reports, **and a live real-data harvest** from the NCAP Air Photo Finder API.
+This is **v0.3**: working ontology, validated SHACL shapes, end-to-end ingest pipeline, IIIF bridge, validation reports, **and a live real-data harvest** from the NCAP Air Photo Finder API.
 
-- [x] **v0.3** — real Air Photo Finder data (292 frames, live API, reprojected + validated); date-precision shape fix; STAC + GeoJSON exports; RiC-O × STAC crosswalk
-- [ ] **v0.4** — automated subject classification pipeline (vision-language models, drafts requiring human validation)
-- [ ] **v0.5** — full case study writeup with cost/effort breakdown per tier and partner adoption playbook
+- [x] **v0.3**: real Air Photo Finder data (292 frames, live API, reprojected + validated); date-precision shape fix; STAC + GeoJSON exports; RiC-O × STAC crosswalk
+- [ ] **v0.4**: automated subject classification pipeline (vision-language models, drafts requiring human validation)
+- [ ] **v0.5**: full case study writeup with cost/effort breakdown per tier and partner adoption playbook
 
 ## Why publish this as open source
 
 This case study is published openly because:
 
-- **Heritage collections need this work** — the problem is real and the gap is sector-wide.
+- **Heritage collections need this work**: the problem is real and the gap is sector-wide.
 - **Standards adopt faster when they have working reference implementations alongside specification documents.**
-- **Open Ontologies is a general-purpose tool** — heritage / GLAM is one application domain among many, and a real-world case study makes the tool more useful to other domains too.
+- **Open Ontologies is a general-purpose tool**: heritage / GLAM is one application domain among many, and a real-world case study makes the tool more useful to other domains too.
 
 ## Licence
 

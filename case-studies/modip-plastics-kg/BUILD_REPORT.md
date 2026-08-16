@@ -3,10 +3,10 @@
 A scrupulous account of what was fetched, what was computed, and what could not
 be obtained. Every number here is reproduced by the scripts in `src/`.
 
-## Source data — what was fetched
+## Source data: what was fetched
 
-- **Provider:** Museum Data Service (MDS) — a joint service of Art UK, Collections
-  Trust and the University of Leicester — via its public `extract` API
+- **Provider:** Museum Data Service (MDS), a joint service of Art UK, Collections
+  Trust and the University of Leicester, via its public `extract` API
   (`https://mds-data-2.ciim.k-int.com/api/v1/extract`).
 - **Collection:** Museum of Design in Plastics (MoDiP), Arts University Bournemouth.
 - **Records fetched:** **11,865** (the complete MoDiP set in MDS at the time of
@@ -18,7 +18,7 @@ be obtained. Every number here is reproduced by the scripts in `src/`.
 - **API access:** the MDS API token is obtained free from the declaration form on
   any MDS object-search results page. It is supplied to the fetch script via the
   `MDS_TOKEN` environment variable and is **not** committed to this repository.
-- The raw records are stored unmodified at `data/raw/modip_records.json` so every
+- The raw records are stored unmodified (gzipped) at `data/raw/modip_records.json.gz` so every
   downstream step is reproducible without re-hitting the API.
 
 ## What was computed
@@ -40,7 +40,7 @@ to value+unit; 955 controlled object-name types; 18 colour types.
 
 ## What could NOT be obtained / limitations
 
-- **49 material assertions (0.1%) are unreconciled** — obscure single-occurrence
+- **49 material assertions (0.1%) are unreconciled**: obscure single-occurrence
   trade names (D3O, Delaron, Stamisol, Diaplex, Guardian, …). They are linked to
   `mat:plastic_unidentified` and listed in `build/build_stats.json`
   (`top_unreconciled_materials`) rather than silently dropped or guessed.

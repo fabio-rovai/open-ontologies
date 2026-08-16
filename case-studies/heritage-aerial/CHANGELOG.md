@@ -4,14 +4,14 @@ All notable changes to NAPH are documented here. The format follows [Keep a Chan
 
 ## [Unreleased]
 
-## [1.0.0] — 2026-04-30
+## [1.0.0] - 2026-04-30
 
 Initial v1.0 release of the NAPH standard for aerial photography heritage.
 
 ### Added
 
-- NAPH ontology (`ontology/naph-core.ttl`) — 30 classes, 29 properties, 198 triples
-- SHACL shapes (`ontology/naph-shapes.ttl`) — tiered Baseline / Enhanced / Aspirational + DigitalSurrogate + Place + RightsStatement
+- NAPH ontology (`ontology/naph-core.ttl`): 30 classes, 29 properties, 198 triples
+- SHACL shapes (`ontology/naph-shapes.ttl`): tiered Baseline / Enhanced / Aspirational + DigitalSurrogate + Place + RightsStatement
 - 10-record sample dataset modelled on NCAP collection structure
 - 6 module specifications (A: Capture, B: Metadata, C: Rights, D: Packaging, E: Paradata, F: QA)
 - Aerial Photography Profile (the single normative profile in v1.0)

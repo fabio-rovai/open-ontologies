@@ -32,9 +32,9 @@ For each JC3IEDM entity:
 
 1. **Identify the IES4 nearest neighbour.** Walk the IES4 4D taxonomy (Particular vs ClassOfEntity vs Event vs State) and pick the class whose extension covers the JC3IEDM entity's instances. Prefer specificity (a JC3IEDM PERSON maps to IES4 Person, not to the abstract Particular).
 2. **Choose the SKOS relation:**
-   - `skos:exactMatch` — when the IES4 class's extension matches the JC3IEDM entity's intended population exactly. Rare in this sketch; the 4D vs snapshot difference usually prevents true exactMatch.
-   - `skos:closeMatch` — when the IES4 class covers the JC3IEDM entity's population but adds 4D structure (time-extents, role-states) that JC3IEDM treats as attributes. Used for most mappings here.
-   - `skos:relatedMatch` — when the IES4 class is conceptually adjacent but not a substitution candidate. Used for cases where the semantic gap is too wide for a straight match.
+   - `skos:exactMatch`: when the IES4 class's extension matches the JC3IEDM entity's intended population exactly. Rare in this sketch; the 4D vs snapshot difference usually prevents true exactMatch.
+   - `skos:closeMatch`: when the IES4 class covers the JC3IEDM entity's population but adds 4D structure (time-extents, role-states) that JC3IEDM treats as attributes. Used for most mappings here.
+   - `skos:relatedMatch`: when the IES4 class is conceptually adjacent but not a substitution candidate. Used for cases where the semantic gap is too wide for a straight match.
 3. **Document the gap.** For every mapping, the crosswalk TTL includes an `rdfs:comment` explaining what the IES4 class adds, removes, or reframes vs the JC3IEDM entity.
 4. **Use a placeholder JC3IEDM IRI namespace.** STANAG 5525 doesn't issue canonical web IRIs; this sketch uses `http://example.org/jc3iedm/` as a placeholder. A real implementation would use NATO/MIP-issued IRIs.
 
@@ -50,15 +50,15 @@ For each JC3IEDM entity:
 | FACILITY | `ies:BuiltStructure` | `skos:closeMatch` | IES4 treats location as separate 4D extent |
 | LOCATION | `ies:Location` | `skos:exactMatch` | Both are spatial Particulars; closest match in the set |
 | EVENT | `ies:Event` | `skos:closeMatch` | IES4 requires participants (per the `ies4` enforce rule); JC3IEDM EVENT is looser |
-| ACTION | `ies:CommunicationEvent` ⊔ `ies:Process` | `skos:relatedMatch` | JC3IEDM ACTION subsumes both deliberate processes and communication acts — needs splitting |
+| ACTION | `ies:CommunicationEvent` ⊔ `ies:Process` | `skos:relatedMatch` | JC3IEDM ACTION subsumes both deliberate processes and communication acts; needs splitting |
 | CAPABILITY | `ies:PowerOfDisposition` | `skos:closeMatch` | Both encode a ZUR (ability) over actions; IES4 attaches it to a state |
 | REPORTING-DATA | `ies:Representation` | `skos:closeMatch` | IES4 frames reports as Representations of underlying particulars |
 | AFFILIATION | `ies:MemberState` | `skos:closeMatch` | JC3IEDM treats as attribute; IES4 models as state-of-being-member |
 
 ## Files
 
-- [`crosswalk.ttl`](crosswalk.ttl) — the SKOS mappings, runnable through Open Ontologies' tooling
-- [`verify.sh`](verify.sh) — checks the IES4 IRIs in the crosswalk resolve against `IES-Org/ont-ies` (live) and `dstl/IES4` v4.3.1 (frozen MIT baseline, via `onto_marketplace install ies-4.3.1`)
+- [`crosswalk.ttl`](crosswalk.ttl): the SKOS mappings, runnable through Open Ontologies' tooling
+- [`verify.sh`](verify.sh): checks the IES4 IRIs in the crosswalk resolve against `IES-Org/ont-ies` (live) and `dstl/IES4` v4.3.1 (frozen MIT baseline, via `onto_marketplace install ies-4.3.1`)
 
 ## Usage
 
@@ -79,16 +79,16 @@ bash case-studies/jc3iedm-ies4-crosswalk/verify.sh
 
 PRs welcome. Useful contributions in priority order:
 
-1. **Correct misalignments** — if you have JC3IEDM expertise and an IES4 class is wrong for a given entity, open a PR with the fix and a rationale.
-2. **Extend coverage** — pick a JC3IEDM entity from the remaining 261 and add a mapping.
-3. **Add bidirectional transformation logic** — beyond SKOS, the real work is mapping JC3IEDM attributes and relationships to IES4's 4D patterns.
+1. **Correct misalignments**: if you have JC3IEDM expertise and an IES4 class is wrong for a given entity, open a PR with the fix and a rationale.
+2. **Extend coverage**: pick a JC3IEDM entity from the remaining 261 and add a mapping.
+3. **Add bidirectional transformation logic**: beyond SKOS, the real work is mapping JC3IEDM attributes and relationships to IES4's 4D patterns.
 
 ## References
 
-- STANAG 5525 (JC3IEDM specification — NATO restricted)
+- STANAG 5525 (JC3IEDM specification, NATO restricted)
 - [IES Information Exchange Standard](https://informationexchangestandard.org/) (canonical portal; custodied by UK DBT since March 2025)
 - [`IES-Org/ont-ies`](https://github.com/IES-Org/ont-ies) (canonical IES repo)
-- [`dstl/IES4`](https://github.com/dstl/IES4) (archived; tag `v4.3.1` is the last MIT-licensed snapshot — available in this repo's marketplace as `ies-4.3.1`)
+- [`dstl/IES4`](https://github.com/dstl/IES4) (archived; tag `v4.3.1` is the last MIT-licensed snapshot, available in this repo's marketplace as `ies-4.3.1`)
 - FOUST 7 paper, "Comparing IES and BORO" (CEUR Vol-4176, JOWO 2024)
 
 ## Licence

@@ -44,11 +44,11 @@ not quietly assumed away.
 
 ## Files
 
-- `data/esco_candidates.jsonl` — cached ESCO API candidates per occupation
-- `data/crosswalk.json` — full banded crosswalk incl. unmatched
-- `crosswalk.ttl` — SKOS mappings (skos:exactMatch / closeMatch / relatedMatch)
-- `pipeline/fetch_esco.py`, `pipeline/build_crosswalk.py` — reproducible build
-- `metrics.json` — band counts and match rate
+- `data/esco_candidates.jsonl`: cached ESCO API candidates per occupation
+- `data/crosswalk.json`: full banded crosswalk incl. unmatched
+- `crosswalk.ttl`: SKOS mappings (skos:exactMatch / closeMatch / relatedMatch)
+- `pipeline/fetch_esco.py`, `pipeline/build_crosswalk.py`: reproducible build
+- `metrics.json`: band counts and match rate
 
 ## Reproduce
 
