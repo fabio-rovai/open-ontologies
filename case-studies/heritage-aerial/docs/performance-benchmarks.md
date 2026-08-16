@@ -24,7 +24,7 @@ All measurements via `time.perf_counter()` median of 3-5 iterations. Tested on 2
 
 **Headline:** every operation against the reference dataset completes in under 130 ms. The slowest is IIIF bridge generation, which makes 11 SPARQL calls (one per record + setup).
 
-## Scalability — synthetic dataset 100 → 100,000 records
+## Scalability - synthetic dataset 100 → 100,000 records
 
 | Records | Ingest | Validate | SHACL | Triples | File |
 |---|---|---|---|---|---|
@@ -44,7 +44,7 @@ All measurements via `time.perf_counter()` median of 3-5 iterations. Tested on 2
 - Load ontology + load 100k records + stats + 2 SPARQL queries: **4.2 seconds**
 - Peak memory: **1.17 GB**
 
-Memory scales linearly with triple count — each loaded triple uses ~480 bytes in the in-memory Oxigraph store.
+Memory scales linearly with triple count: each loaded triple uses ~480 bytes in the in-memory Oxigraph store.
 
 ## Projection to NCAP-realistic scale
 
@@ -59,10 +59,10 @@ NCAP holds ~30M records. Linear projection from 100k benchmarks:
 
 **Implication:** at NCAP-full-collection scale, validation needs to be partitioned. Realistic strategies:
 
-- **Partition by sortie or collection** — validate each collection separately
-- **Stream-validate** — process records in batches without holding the whole collection in memory
-- **Distributed validation** — multiple workers each handle a partition
-- **Incremental validation** — only validate what changed since last run (CI-driven)
+- **Partition by sortie or collection**: validate each collection separately
+- **Stream-validate**: process records in batches without holding the whole collection in memory
+- **Distributed validation**: multiple workers each handle a partition
+- **Incremental validation**: only validate what changed since last run (CI-driven)
 
 For institutional-scale (100k records typical of a single sub-collection), the toolchain runs comfortably on a single laptop or server.
 
@@ -100,11 +100,11 @@ For larger datasets (>10k records):
 
 Easy wins (not yet implemented):
 
-- **Pre-loaded persistent server** — avoid 30ms startup by running `open-ontologies serve` and using HTTP API instead of CLI. Savings: ~25-30 ms per operation.
-- **Parallel SHACL evaluation** — independent shapes can validate concurrently. Savings: 2-4× speedup at large scale.
-- **Incremental validation** — only re-validate records that changed. Critical for production CI.
-- **Query plan caching** — repeated competency questions could be planned once. Savings: ~10-30 ms per query.
-- **Streaming Turtle parser** — for ingest of multi-GB files. Avoids holding the full TTL in memory.
+- **Pre-loaded persistent server**: avoid 30ms startup by running `open-ontologies serve` and using HTTP API instead of CLI. Savings: ~25-30 ms per operation.
+- **Parallel SHACL evaluation**: independent shapes can validate concurrently. Savings: 2-4× speedup at large scale.
+- **Incremental validation**: only re-validate records that changed. Critical for production CI.
+- **Query plan caching**: repeated competency questions could be planned once. Savings: ~10-30 ms per query.
+- **Streaming Turtle parser**: for ingest of multi-GB files. Avoids holding the full TTL in memory.
 
 Hard wins (would require Oxigraph internal changes):
 
@@ -124,7 +124,7 @@ For the in-memory triple store backing Open Ontologies (Oxigraph):
 
 The asymptote is around 480 bytes per triple, dominated by string interning of IRIs.
 
-For very large collections, persistent storage backends (RocksDB, Sled) trade memory for disk I/O — not currently used by Open Ontologies but available in the underlying Oxigraph library.
+For very large collections, persistent storage backends (RocksDB, Sled) trade memory for disk I/O, not currently used by Open Ontologies but available in the underlying Oxigraph library.
 
 ## Reproducing these benchmarks
 
@@ -147,7 +147,7 @@ Hardware tested on:
 
 ### For a single-collection institution (100k records)
 
-- Full validation runs in <10 seconds — can be part of every commit's CI
+- Full validation runs in <10 seconds, so it can be part of every commit's CI
 - Full HTML report generation in <2 seconds
 - Memory footprint fits on a developer laptop
 - No special infrastructure required
@@ -170,6 +170,6 @@ This is the natural infrastructure level where N-RICH shared services would add 
 
 ## Cross-references
 
-- [Cost & effort analysis](cost-effort-analysis.md) — costs are in FTE-days, not compute time
-- [`pipeline/`](../pipeline/) — all benchmarked tools
-- [Federation playbook](../deliverables/06-knowledge-transfer/federation-playbook/README.md) — distributed query model
+- [Cost & effort analysis](cost-effort-analysis.md): costs are in FTE-days, not compute time
+- [`pipeline/`](../pipeline/): all benchmarked tools
+- [Federation playbook](../deliverables/06-knowledge-transfer/federation-playbook/README.md): distributed query model

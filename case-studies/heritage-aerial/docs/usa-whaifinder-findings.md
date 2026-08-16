@@ -1,10 +1,10 @@
-# Empirical Findings — Reaching Baseline for a US Collection Without the Token-Gated API
+# Empirical Findings - Reaching Baseline for a US Collection Without the Token-Gated API
 
 *Third national-scale collection tested against NAPH, after NCAP (UK) and NAPL
 (Canada). Measured against the **Wisconsin Historic Aerial Imagery Finder
-(WHAIFinder)** — ~201,000 frame-level records held by the UW-Madison Robinson Map
+(WHAIFinder)**, ~201,000 frame-level records held by the UW-Madison Robinson Map
 Library and the Wisconsin State Cartographer's Office, drawn largely from
-public-domain USDA survey photography — read from its public **ArcGIS
+public-domain USDA survey photography, read from its public **ArcGIS
 FeatureServer** on 2 July 2026. Metadata only; read-only; no authentication. See
 [`pipeline/scrapers/whaifinder_arcgis.py`](../pipeline/scrapers/whaifinder_arcgis.py).*
 
@@ -18,7 +18,7 @@ closed-form from the published centerpoint plus map scale.*
 ## Why not USGS
 
 The obvious US target is the USGS EROS "Aerial Photo Single Frames" archive (6.5M
-frames). Its Machine-to-Machine API is real but **token-gated** — it needs a free
+frames). Its Machine-to-Machine API is real but **token-gated**: it needs a free
 USGS account and per-dataset access grants (documented, unused, in
 [`pipeline/scrapers/usgs_earthexplorer.py`](../pipeline/scrapers/usgs_earthexplorer.py)).
 Rather than gate the demonstration behind credentials, this adapter uses an
@@ -29,7 +29,7 @@ such service; UCSB's national FrameFinder and many state indexes share the patte
 ## Headline
 
 > WHAIFinder publishes, for every frame, a **stable UUID**, a full **ISO date**, a
-> **map scale**, a **public-domain rights** provenance (USDA/USGS federal work) —
+> **map scale**, a **public-domain rights** provenance (USDA/USGS federal work),
 > and a **point centerpoint** rather than a polygon footprint. The Baseline
 > footprint is a **closed-form reconstruction** from centerpoint + scale (standard
 > 9x9-inch frame): ground side = 0.2286 m x scale. **225 real frames (1937–1967)
@@ -42,18 +42,18 @@ such service; UCSB's national FrameFinder and many state indexes share the patte
 |---|---:|---|
 | Stable identifier (`uuid`) | **100%** | Plus roll/frame and a `collection_identifier`. |
 | Capture date (`acquisition_date`) | **100%** | Full `YYYY-MM-DD` (`xsd:date`); all 225 day-precision in this pull. |
-| Geometry | **100% — but a *centerpoint*** | `esriGeometryPoint` in WGS84, not a polygon. **This is the US-specific gap.** |
-| Map scale (`map_scale_denom`) | **100%** | e.g. 1:20000 — the key that makes the footprint reconstructable. |
+| Geometry | **100%, but a *centerpoint*** | `esriGeometryPoint` in WGS84, not a polygon. **This is the US-specific gap.** |
+| Map scale (`map_scale_denom`) | **100%** | e.g. 1:20000, the key that makes the footprint reconstructable. |
 | Machine-readable **rights** | **100%** | USDA/USGS survey photography is US-Government work → public domain. |
 | Sortie / collection linkage | **100%** | One `naph:Sortie` per roll; all frames linked to the WHAIFinder collection. |
 
-Provenance in the sample: **222/225 USDA**, 3 USGS — all federal, public domain.
+Provenance in the sample: **222/225 USDA**, 3 USGS; all federal, public domain.
 Also present for the Enhanced tier: scan resolution, ground resolution, exposure
 type, and direct TIFF/JPEG download URLs.
 
 ## The reconstruction transform
 
-The US index gives a centerpoint, not an area — so, unlike NCAP (polygon in the
+The US index gives a centerpoint, not an area. So, unlike NCAP (polygon in the
 wrong CRS) or NAPL (native-WGS84 polygon), the Baseline geometry has to be
 *derived*. It is still a closed-form transform, not a guess:
 
@@ -63,13 +63,13 @@ wrong CRS) or NAPL (native-WGS84 polygon), the Baseline geometry has to be
 
 This is a **nominal** footprint: it ignores terrain relief and camera tilt, which
 is exactly what the Enhanced tier refines using altitude / ground-sample-distance.
-At Baseline it is a faithful, automatable reconstruction of where the frame looks —
+At Baseline it is a faithful, automatable reconstruction of where the frame looks;
 the substrate (centerpoint + scale) was already in the data.
 
-## Three collections, three different transforms — same standard
+## Three collections, three different transforms - same standard
 
-![Three national aerial collections — NCAP (UK), NAPL (Canada), WHAIFinder (USA) —
-on one map, all lifted to the same NAPH Baseline](../assets/real-demo-three-country.png)
+![Three national aerial collections on one map, NCAP (UK), NAPL (Canada) and
+WHAIFinder (USA), all lifted to the same NAPH Baseline](../assets/real-demo-three-country.png)
 
 *NCAP (teal, UK), NAPL (red, Canada) and WHAIFinder (amber, USA), harvested live
 from public endpoints and lifted to the same NAPH Baseline with 0 SHACL violations.
@@ -87,8 +87,8 @@ Same ontology, shapes and crosswalk throughout; only the harvester differs.*
 
 The point of running three national collections was to see whether NAPH is
 genuinely source-agnostic or quietly shaped around NCAP. It survived the test:
-each archive was missing a *different* Baseline piece — rights (UK), frame
-granularity (Canada), footprint geometry (US) — and each gap was closed by a
+each archive was missing a *different* Baseline piece: rights (UK), frame
+granularity (Canada), footprint geometry (US). Each gap was closed by a
 *different* single automatable transform, with **no change to the ontology, SHACL
 shapes or RiC-O × STAC crosswalk**. That is the strongest evidence so far that the
 standard is a real interoperability layer and not a one-archive artefact.
@@ -111,6 +111,6 @@ Reconstructed footprints as GeoJSON:
 
 This harvest touches only the public ArcGIS FeatureServer query endpoint of the
 Wisconsin Historic Aerial Imagery service. It fetches attribute + geometry
-metadata only — no image binaries. It is rate-limited and identifies itself in the
+metadata only: no image binaries. It is rate-limited and identifies itself in the
 User-Agent. The underlying photography is public-domain US-Government work. This is
 a good-faith interoperability demonstration of the NAPH standard's portability.

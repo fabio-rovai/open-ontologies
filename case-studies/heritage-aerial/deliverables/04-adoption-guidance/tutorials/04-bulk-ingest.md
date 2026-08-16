@@ -1,5 +1,4 @@
-# Tutorial 4 — Bulk Ingest from CSV
-
+# Tutorial 4: Bulk Ingest from CSV
 Manually crafting NAPH records as in Tutorials 1-3 is fine for understanding the format, but no-one wants to handcraft 100,000 records. This tutorial shows how to use the bulk ingest pipeline to convert legacy CSV exports into NAPH-compliant Turtle in one command.
 
 **Estimated time:** 30-45 minutes
@@ -18,8 +17,7 @@ The pipeline at [`pipeline/ingest.py`](../../../pipeline/ingest.py) handles comm
 
 It produces NAPH Baseline-compliant Turtle for any record where the source CSV has the expected fields.
 
-## Step 1 — Prepare your CSV
-
+## Step 1: Prepare your CSV
 The default ingest pipeline expects a CSV with these columns:
 
 | Column | Required | Type | Description |
@@ -45,8 +43,7 @@ Example CSV row:
 RAF/106G/UK/1655,4023,28 March 1944,No 540 Sqn,Mosquito PR.IX,"Berlin, Germany",52.52,13.40,30000,F.52,Crown Copyright Expired,12/04/2018,1200,TIFF
 ```
 
-## Step 2 — Run the ingest pipeline
-
+## Step 2: Run the ingest pipeline
 ```bash
 python3 pipeline/ingest.py my-collection.csv > my-collection.ttl
 ```
@@ -78,8 +75,7 @@ Or, if there were errors:
 
 The script silently skips erroneous rows; the output Turtle contains only successfully-transformed records.
 
-## Step 3 — Validate the output
-
+## Step 3: Validate the output
 ```bash
 open-ontologies validate my-collection.ttl
 ```
@@ -90,8 +86,7 @@ Should show:
 {"ok":true,"triples":N}
 ```
 
-## Step 4 — Run SHACL validation
-
+## Step 4: Run SHACL validation
 ```bash
 echo "clear
 load ontology/naph-core.ttl
@@ -101,8 +96,7 @@ shacl ontology/naph-shapes.ttl" | open-ontologies batch
 
 Expected: `"conforms": true, "violation_count": 0`.
 
-## Step 5 — Self-assess
-
+## Step 5: Self-assess
 ```bash
 python3 pipeline/self-assessment.py my-collection.ttl
 ```
@@ -114,8 +108,7 @@ This produces a full self-assessment report including:
 - SHACL conformance
 - Graph statistics
 
-## Step 6 — Spot-check a few records
-
+## Step 6: Spot-check a few records
 ```bash
 echo "clear
 load ontology/naph-core.ttl
@@ -129,7 +122,7 @@ SELECT ?photo ?label WHERE {
 LIMIT 5\"" | open-ontologies batch
 ```
 
-Verify the records look right — do labels make sense, are dates parsed correctly, are footprints in the right hemisphere?
+Verify the records look right: do labels make sense, are dates parsed correctly, are footprints in the right hemisphere?
 
 ## Customising the pipeline
 
@@ -200,29 +193,29 @@ The coordinate is wrong (e.g. `91.0`, `200.0`). Options:
 
 ### "Sortie reference contains invalid characters"
 
-The sortie reference has characters that can't be slugified. Investigate — usually a data-entry artefact.
+The sortie reference has characters that can't be slugified. Investigate, usually a data-entry artefact.
 
 ## Production considerations
 
 For production use:
 
-1. **Run in CI/CD** — every CSV update triggers re-ingest + re-validation
-2. **Track ingest provenance** — record the pipeline version, ingest date, source CSV path in the output Turtle's metadata
-3. **Validate before publishing** — never publish without successful SHACL validation
-4. **Diff before deploying** — compare new vs old Turtle to catch regression
-5. **Backup the source CSV** — the Turtle is derivative; the CSV is your source of truth
+1. **Run in CI/CD**: every CSV update triggers re-ingest + re-validation
+2. **Track ingest provenance**: record the pipeline version, ingest date, source CSV path in the output Turtle's metadata
+3. **Validate before publishing**: never publish without successful SHACL validation
+4. **Diff before deploying**: compare new vs old Turtle to catch regression
+5. **Backup the source CSV**: the Turtle is derivative; the CSV is your source of truth
 
 See the GitHub Actions workflow at [`.github/workflows/validate.yml`](../../../.github/workflows/validate.yml) for a CI-driven validation pattern.
 
 ## Next steps
 
-- **Tutorial 5** — set up CI/CD validation
-- **Tutorial 6** — add Enhanced/Aspirational metadata at scale
-- **Tutorial 7** — publish to a SPARQL endpoint
+- **Tutorial 5**: set up CI/CD validation
+- **Tutorial 6**: add Enhanced/Aspirational metadata at scale
+- **Tutorial 7**: publish to a SPARQL endpoint
 
 ## Cross-references
 
-- [`pipeline/ingest.py`](../../../pipeline/ingest.py) — reference implementation
-- [`pipeline/legacy-ncap-style.csv`](../../../pipeline/legacy-ncap-style.csv) — sample CSV
-- [Module B — Metadata](../../01-standard/modules/B-metadata-data-structures.md)
+- [`pipeline/ingest.py`](../../../pipeline/ingest.py): reference implementation
+- [`pipeline/legacy-ncap-style.csv`](../../../pipeline/legacy-ncap-style.csv): sample CSV
+- [Module B: Metadata](../../01-standard/modules/B-metadata-data-structures.md)
 - [Date Normalisation Decision Tree](../decision-trees/date-normalisation.md)

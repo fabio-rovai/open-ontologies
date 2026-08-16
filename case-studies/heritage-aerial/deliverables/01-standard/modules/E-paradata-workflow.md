@@ -1,12 +1,11 @@
-# Module E — Paradata & Workflow Documentation
-
+# Module E: Paradata & Workflow Documentation
 **Status:** Normative · v1.0
 **Applies to:** Enhanced and Aspirational tiers
 **Defines:** the documentation of how digitisation, transcription, and processing decisions were made
 
 ## E.1 Purpose
 
-**Paradata** is the documentation of process — what decisions were made, by whom, on what basis, with what tools, with what known limitations. Without paradata, computational research depends on records whose interpretation is opaque.
+**Paradata** is the documentation of process: what decisions were made, by whom, on what basis, with what tools, with what known limitations. Without paradata, computational research depends on records whose interpretation is opaque.
 
 Module E specifies the minimum paradata that must accompany Enhanced and Aspirational records so:
 
@@ -132,7 +131,7 @@ ex:photo-X-Y-validation a prov:Activity ;
     naph:validationOutcome "accepted" .
 ```
 
-The validation event is critical — without it, an AI-derived claim is unverified and SHOULD be marked accordingly in queries.
+The validation event is critical: without it, an AI-derived claim is unverified and SHOULD be marked accordingly in queries.
 
 ## E.7 Workflow document
 
@@ -164,9 +163,9 @@ ex:photo-X-qc-001 a prov:Activity ;
 
 QC levels:
 
-- `frame` — individual frame review
-- `feature-class` — review of all records of one type within a sortie
-- `independent-manual` — independent review by a second reviewer
+- `frame`: individual frame review
+- `feature-class`: review of all records of one type within a sortie
+- `independent-manual`: independent review by a second reviewer
 
 ## E.9 Worked example: full Enhanced paradata
 
@@ -234,7 +233,7 @@ A SHACL shape (`naph:ProvenanceChainShape`) checks:
 
 ## E.12 Cross-references
 
-- [Module A — Capture & Imaging](A-capture-imaging.md)
-- [Module B — Metadata & Data Structures](B-metadata-data-structures.md)
-- [Module C — Rights, Licensing & Ethics](C-rights-licensing-ethics.md) (declassification events feed rights determinations)
+- [Module A: Capture & Imaging](A-capture-imaging.md)
+- [Module B: Metadata & Data Structures](B-metadata-data-structures.md)
+- [Module C: Rights, Licensing & Ethics](C-rights-licensing-ethics.md) (declassification events feed rights determinations)
 - [PROV-O specification](https://www.w3.org/TR/prov-o/)

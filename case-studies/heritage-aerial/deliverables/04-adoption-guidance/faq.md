@@ -6,7 +6,7 @@ Quick answers to common questions. Where deeper detail is needed, follow the cro
 
 ### What is NAPH?
 
-NAPH is a **focused vertical digitisation standard** for aerial photography heritage collections. It specifies what metadata an aerial photograph must expose to be **computation-ready** — so that researchers, aggregators, and AI tools can use it without manual interpretation.
+NAPH is a **focused vertical digitisation standard** for aerial photography heritage collections. It specifies what metadata an aerial photograph must expose to be **computation-ready**, so that researchers, aggregators, and AI tools can use it without manual interpretation.
 
 It's narrow on purpose. Aerial photography has distinctive features (stereo pairs, GSD, declassification provenance) that benefit from focused treatment. See [ADR-0001](../06-knowledge-transfer/architecture-decision-records/0001-narrow-vertical.md).
 
@@ -16,7 +16,7 @@ It's narrow on purpose. Aerial photography has distinctive features (stereo pair
 
 ### What does "computation-ready" mean?
 
-A computational research workflow can query, filter, and aggregate the data via standard tools (SPARQL, IIIF, etc.) without manual interpretation. The opposite is "digitised but not computable" — images on the web that humans can browse but machines can't analyse at scale.
+A computational research workflow can query, filter, and aggregate the data via standard tools (SPARQL, IIIF, etc.) without manual interpretation. The opposite is "digitised but not computable": images on the web that humans can browse but machines can't analyse at scale.
 
 ### Who's behind NAPH?
 
@@ -60,7 +60,7 @@ Pick a high-research-value subset:
 - Subsets with clearest rights status (NARA-public-domain, Crown Copyright Expired)
 - Subsets with active research collaborations (researchers can validate)
 
-Avoid starting with subsets that have known data-quality problems — those become a sink for time.
+Avoid starting with subsets that have known data-quality problems: those become a sink for time.
 
 ## Technical
 
@@ -78,7 +78,7 @@ In practice: you run `open-ontologies shacl naph-shapes.ttl my-data.ttl` and it 
 
 ### Can NAPH-compliant data go in [our existing system]?
 
-Most institutional systems can store and serve RDF. NAPH-compliant Turtle is a publication artefact — you can:
+Most institutional systems can store and serve RDF. NAPH-compliant Turtle is a publication artefact. You can:
 
 - Store it in a triple store (Apache Jena Fuseki, GraphDB, Stardog, Virtuoso)
 - Serve it via your existing CMS with content negotiation
@@ -93,7 +93,7 @@ For Baseline: no. You just need to make the records discoverable (a sitemap, a m
 
 For Enhanced/Aspirational: a SPARQL endpoint is recommended. Federation queries (cross-institutional) only work with SPARQL endpoints.
 
-Hosted SPARQL services exist if you don't want to run your own — see the [skills map](../03-cost-capacity-skills/skills-map.md).
+Hosted SPARQL services exist if you don't want to run your own, see the [skills map](../03-cost-capacity-skills/skills-map.md).
 
 ### What about IIIF?
 
@@ -105,7 +105,7 @@ For images to actually load in IIIF viewers (Mirador, Universal Viewer), your in
 
 ### What if our identifiers aren't URIs?
 
-Wrap your existing internal identifiers in your namespace. If you don't have a namespace, use [w3id.org](https://w3id.org/) — it's free and permanent. See the [Identifier Policy decision tree](decision-trees/identifier-policy.md).
+Wrap your existing internal identifiers in your namespace. If you don't have a namespace, use [w3id.org](https://w3id.org/): it's free and permanent. See the [Identifier Policy decision tree](decision-trees/identifier-policy.md).
 
 ### What if our dates are messy?
 
@@ -121,7 +121,7 @@ For sortie-level coverage where individual frames have approximate location:
 - Note the approximation: `rdfs:comment "Sortie-level footprint; exact frame coverage not determined"`
 - Plan to refine when resources allow
 
-A coarse footprint is better than no footprint — it allows spatial queries to find the record.
+A coarse footprint is better than no footprint: it allows spatial queries to find the record.
 
 ### What about rights for declassified material?
 
@@ -133,7 +133,7 @@ The [rights decision tree](decision-trees/rights-decision-tree.md) walks through
 
 Records with current restrictions (still classified, donor restrictions, in copyright with no licence):
 
-- Can still be NAPH-compliant — the rights statement makes the restriction explicit
+- Can still be NAPH-compliant: the rights statement makes the restriction explicit
 - The identifier still resolves but returns metadata + access notice rather than image
 - The metadata is queryable; access to image content is gated
 
@@ -157,16 +157,16 @@ See [Partner Clinic Playbook](../05-governance/partner-clinic-playbook.md).
 
 For a partner clinic:
 
-- **Sponsor** (senior, authorising engagement) — minimal time
-- **Collections manager** — content expertise, scoping participation
-- **Digital officer** — primary technical engagement, ~8-12 hours
-- **ML/data engineer** (optional) — if Aspirational-tier work is in scope
+- **Sponsor** (senior, authorising engagement): minimal time
+- **Collections manager**: content expertise, scoping participation
+- **Digital officer**: primary technical engagement, ~8-12 hours
+- **ML/data engineer** (optional): if Aspirational-tier work is in scope
 
 Total institutional time commitment: 12-20 hours over 4-6 weeks.
 
 ### What about our IT department?
 
-For Baseline tier: IT involvement is minimal — the work happens at the catalogue/data export layer.
+For Baseline tier: IT involvement is minimal: the work happens at the catalogue/data export layer.
 
 For Enhanced/Aspirational: more involvement needed for SPARQL endpoint hosting, IIIF Image API hosting, and ongoing CI/CD.
 
@@ -178,12 +178,12 @@ Engage IT early if you're targeting higher tiers; the work is more pleasant when
 
 NAPH is built on top of W3C/OGC/IIIF standards via subclass alignment. So yes, it's compatible with:
 
-- **DCAT** — every NAPH `Collection` is also a `dcat:Catalog`; every `AerialPhotograph` is a `dcat:Resource`
-- **PROV-O** — every `CaptureEvent` and `DigitisationEvent` is a `prov:Activity`
-- **SKOS** — every `Place` and `HistoricEvent` is a `skos:Concept`
-- **GeoSPARQL** — every `GeographicFootprint` is a `geo:Geometry`
-- **IIIF Presentation 3.0** — manifests can be generated for every photograph
-- **Dublin Core** — `dcterms:type` typing aligns with DCMI vocabulary
+- **DCAT**: every NAPH `Collection` is also a `dcat:Catalog`; every `AerialPhotograph` is a `dcat:Resource`
+- **PROV-O**: every `CaptureEvent` and `DigitisationEvent` is a `prov:Activity`
+- **SKOS**: every `Place` and `HistoricEvent` is a `skos:Concept`
+- **GeoSPARQL**: every `GeographicFootprint` is a `geo:Geometry`
+- **IIIF Presentation 3.0**: manifests can be generated for every photograph
+- **Dublin Core**: `dcterms:type` typing aligns with DCMI vocabulary
 
 ### What about ISAD-G?
 
@@ -193,7 +193,7 @@ For aerial photography specifically, the institutional structure (Fonds → Seri
 
 ### What if we already published to Europeana?
 
-Excellent — the work is largely transferable. Europeana ingests Europeana Data Model (EDM); NAPH-compliant collections can also be expressed in EDM via property mapping. NAPH doesn't replace EDM publication; it adds computational-research richness alongside.
+Excellent. The work is largely transferable. Europeana ingests Europeana Data Model (EDM); NAPH-compliant collections can also be expressed in EDM via property mapping. NAPH doesn't replace EDM publication; it adds computational-research richness alongside.
 
 ### What if we already use OAI-PMH?
 
@@ -207,7 +207,7 @@ The Steward (HES, post-v1.0) makes operational decisions. Substantive changes fo
 
 ### Can my institution be on the Standards Council?
 
-Yes — institutional representatives are recruited from active NAPH-adopting institutions via open call. See the [Standards Council Charter Template](../07-templates/standards-council-charter-template.md).
+Yes. Institutional representatives are recruited from active NAPH-adopting institutions via open call. See the [Standards Council Charter Template](../07-templates/standards-council-charter-template.md).
 
 ### What if NAPH stops being maintained?
 
@@ -219,7 +219,7 @@ This is a low-probability scenario but the standard is designed to survive it.
 
 ### My SHACL validation keeps failing
 
-Run the [self-assessment tool](../../pipeline/self-assessment.py) — it summarises violations by frequency and tells you which patterns are most common in your data.
+Run the [self-assessment tool](../../pipeline/self-assessment.py): it summarises violations by frequency and tells you which patterns are most common in your data.
 
 Most common causes:
 

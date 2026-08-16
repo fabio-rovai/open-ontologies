@@ -1,4 +1,4 @@
-# Red-Team Report — v0.2
+# Red-Team Report - v0.2
 
 Honest adversarial review of the NAPH case study. Every claim tested against external authority. Every transformation tested with adversarial inputs. Every standards alignment audited against the canonical spec.
 
@@ -6,10 +6,10 @@ This is **not** a marketing document. The purpose is to surface gaps before some
 
 ## Severity scale
 
-- **🔴 Critical** — wrong information that would damage credibility if anyone clicked through
-- **🟠 High** — substantive modelling error that a domain ontologist would catch
-- **🟡 Medium** — a claim made stronger than the evidence supports
-- **🟢 Low** — minor inaccuracy or scope-clipping observation
+- **🔴 Critical**: wrong information that would damage credibility if anyone clicked through
+- **🟠 High**: substantive modelling error that a domain ontologist would catch
+- **🟡 Medium**: a claim made stronger than the evidence supports
+- **🟢 Low**: minor inaccuracy or scope-clipping observation
 
 ---
 
@@ -20,11 +20,11 @@ This is **not** a marketing document. The purpose is to surface gaps before some
 | Original QID | Claimed entity | Actual entity |
 |---|---|---|
 | `Q11461` | Atomic bombing of Hiroshima | **Sound** (acoustics) |
-| `Q165072` | V-2 rocket programme | **404 — does not exist** |
+| `Q165072` | V-2 rocket programme | **404 (does not exist)** |
 | `Q160157` | Peenemünde | **Joe Lieberman** (US politician) |
 | `Q188668` | Edinburgh Castle | **Thom Yorke** (Radiohead) |
 | `Q34201` | Hiroshima | **Zeus** (Greek god) |
-| `Q201149` | Edinburgh Old Town | unknown — assumed wrong |
+| `Q201149` | Edinburgh Old Town | unknown, assumed wrong |
 
 **Why this matters:** any reviewer clicking a link in the case study would have seen unrelated entities and immediately distrusted everything else. This was the worst-case credibility failure mode.
 
@@ -48,7 +48,7 @@ This is **not** a marketing document. The purpose is to surface gaps before some
 naph:AerialPhotograph rdfs:subClassOf dcat:Dataset .
 ```
 
-The W3C DCAT 3 specification explicitly states `dcat:Dataset` is "a collection of data, published or curated by a single agent" — an aggregation, not a single resource. An individual photograph should be modelled as:
+The W3C DCAT 3 specification explicitly states `dcat:Dataset` is "a collection of data, published or curated by a single agent": an aggregation, not a single resource. An individual photograph should be modelled as:
 
 - `dcat:Resource` (the parent class)
 - with `dcterms:type` = `dctype:StillImage` (DCMI Type vocabulary)
@@ -63,7 +63,7 @@ The W3C DCAT 3 specification explicitly states `dcat:Dataset` is "a collection o
 
 ## 🟠 High: GeoSPARQL spatial functions don't work in Oxigraph
 
-**Finding:** the case study includes a competency question (CQ2 — "Which photographs cover central Edinburgh?") using `geof:sfIntersects`. When run live against the sample data:
+**Finding:** the case study includes a competency question (CQ2, "Which photographs cover central Edinburgh?") using `geof:sfIntersects`. When run live against the sample data:
 
 ```bash
 $ open-ontologies batch geo-test.batch.txt
@@ -88,9 +88,9 @@ Oxigraph (the triple store backing Open Ontologies) does not implement GeoSPARQL
 
 **Finding:** real NCAP records have a 3-part identifier:
 
-- **Collection** — institutional accession namespace (e.g. `DOS`, `NARA`, `RAF`, `JARIC`)
-- **Sortie** — flight mission reference (e.g. `CAS/6366`, `US7/LOC/0001D/LIB`)
-- **Frame** — sequential frame number within the sortie (e.g. `0158`, `0085`)
+- **Collection**: institutional accession namespace (e.g. `DOS`, `NARA`, `RAF`, `JARIC`)
+- **Sortie**: flight mission reference (e.g. `CAS/6366`, `US7/LOC/0001D/LIB`)
+- **Frame**: sequential frame number within the sortie (e.g. `0158`, `0085`)
 
 NAPH treats the whole `RAF/106G/UK/1655` string as `naph:sortieReference`, conflating Collection (`RAF`) with Sortie. This works for the sample data but breaks alignment with NCAP's actual data model.
 
@@ -116,7 +116,7 @@ NAPH treats the whole `RAF/106G/UK/1655` string as `naph:sortieReference`, confl
 
 These URLs do not resolve to a real IIIF Image API endpoint. Per the IIIF Image API 3.0 spec, the `id` *should* dereference to an `info.json` document, though "should" not "must."
 
-**Impact:** the manifests are syntactically valid Presentation 3.0, but no IIIF viewer (Mirador, Universe Viewer) will display the actual images because the image services don't exist. The interoperability claim is structural only — it would work if NCAP exposed real IIIF Image API endpoints, but currently NCAP doesn't.
+**Impact:** the manifests are syntactically valid Presentation 3.0, but no IIIF viewer (Mirador, Universe Viewer) will display the actual images because the image services don't exist. The interoperability claim is structural only: it would work if NCAP exposed real IIIF Image API endpoints, but currently NCAP doesn't.
 
 **Mitigation:**
 
@@ -124,7 +124,7 @@ These URLs do not resolve to a real IIIF Image API endpoint. Per the IIIF Image 
 2. Add a stub IIIF Image API in the demo pipeline that serves placeholder images so manifests fully resolve
 3. Note that NCAP is not currently running a public IIIF Image API service
 
-**Status:** documented in the red-team report. This is what one would expect — structural compliance is what NAPH provides; the source institution must provide image hosting infrastructure separately.
+**Status:** documented in the red-team report. This is what one would expect: structural compliance is what NAPH provides; the source institution must provide image hosting infrastructure separately.
 
 ---
 
@@ -154,7 +154,7 @@ The `/page/` form is the human-readable HTML page; the `/vocab/` form is the can
 
 ## 🟡 Medium: CSV ingest accepts geographically invalid coordinates
 
-**Finding:** adversarial CSV testing with `lat=91, lon=200` (invalid — beyond pole, beyond date line) silently produces a NAPH record with a malformed footprint polygon. The Python code does not validate coordinate ranges.
+**Finding:** adversarial CSV testing with `lat=91, lon=200` (invalid: beyond pole, beyond date line) silently produces a NAPH record with a malformed footprint polygon. The Python code does not validate coordinate ranges.
 
 **Test input** (row 5 in `/tmp/naph-adversarial.csv`):
 ```
@@ -163,7 +163,7 @@ RAF/test/UK/5,5,28 March 1944,541 Sqn,Spitfire,Berlin,91,200,30000,F.52,Crown Co
 
 **Result:** record ingested without warning; produces invalid WGS84 polygon.
 
-**Impact:** real archives have transcription errors. A pipeline that doesn't catch them produces garbage downstream — failed map rendering, broken spatial queries, integrity loss.
+**Impact:** real archives have transcription errors. A pipeline that doesn't catch them produces garbage downstream: failed map rendering, broken spatial queries, integrity loss.
 
 **Recommended fix:** add coordinate-range validation in `pipeline/ingest.py`:
 - `-90 ≤ lat ≤ 90`
@@ -220,9 +220,9 @@ The current pipeline treats these as parse errors and rejects the record entirel
 - `RAF/540/PEEN` (540 Squadron) with `Mosquito PR.IX` at `9144m`
 - `USAAF/3PRS` with `F-13A Superfortress` at `9144m`
 
-These pairings are plausible — these were photo-reconnaissance squadrons, these aircraft were in service in the relevant periods, and 30,000ft (9144m) was typical for high-altitude reconnaissance. But I have not verified against historical squadron-aircraft assignment records that 540 Squadron specifically operated Mosquito PR.IX over Peenemünde on 1943-06-23.
+These pairings are plausible: these were photo-reconnaissance squadrons, these aircraft were in service in the relevant periods, and 30,000ft (9144m) was typical for high-altitude reconnaissance. But I have not verified against historical squadron-aircraft assignment records that 540 Squadron specifically operated Mosquito PR.IX over Peenemünde on 1943-06-23.
 
-**Impact:** if a real RAF historian audits the data, plausible-but-wrong pairings could be embarrassing. The README already states the records are "modeled on the structure" of NCAP holdings, not real frame identifiers — but the squadron/aircraft combinations are presented as if real.
+**Impact:** if a real RAF historian audits the data, plausible-but-wrong pairings could be embarrassing. The README already states the records are "modeled on the structure" of NCAP holdings, not real frame identifiers, but the squadron/aircraft combinations are presented as if real.
 
 **Recommended fix:** either verify each pairing against historical sources, or annotate explicitly that combinations are plausibility-checked rather than fact-checked.
 
@@ -264,23 +264,23 @@ The `.markdownlint.json` disables MD060 and MD013 because they flag style issues
 
 Despite the issues above, several things hold up:
 
-- **Ontology validates** — 193 triples, 0 lint issues, 0 SHACL violations against the sample data
-- **Tier model is incrementally adoptable** — Baseline/Enhanced/Aspirational nested compliance works as designed
-- **CSV ingest produces valid TTL for well-formed input** — 263 triples generated, validates clean
-- **PROV, SKOS, GeoSPARQL, FOAF subclass alignments are correct** — only DCAT was misapplied
-- **SHACL shapes correctly target only the records that claim each tier** — no spurious violations
-- **Competency question framework is sound** — 6/7 queries return correct results (CQ2 fails due to Oxigraph GeoSPARQL gap)
-- **Reasoning produces meaningful inferences** — RDFS inference correctly propagates PROV/SKOS/Geo class memberships even after DCAT correction
-- **IIIF manifests are structurally valid Presentation 3.0** — they fail only because image service endpoints don't exist
-- **Documentation is honest about being illustrative** — the README explicitly states the records are modeled, not real
+- **Ontology validates**: 193 triples, 0 lint issues, 0 SHACL violations against the sample data
+- **Tier model is incrementally adoptable**: Baseline/Enhanced/Aspirational nested compliance works as designed
+- **CSV ingest produces valid TTL for well-formed input**: 263 triples generated, validates clean
+- **PROV, SKOS, GeoSPARQL, FOAF subclass alignments are correct**: only DCAT was misapplied
+- **SHACL shapes correctly target only the records that claim each tier**: no spurious violations
+- **Competency question framework is sound**: 6/7 queries return correct results (CQ2 fails due to Oxigraph GeoSPARQL gap)
+- **Reasoning produces meaningful inferences**: RDFS inference correctly propagates PROV/SKOS/Geo class memberships even after DCAT correction
+- **IIIF manifests are structurally valid Presentation 3.0**: they fail only because image service endpoints don't exist
+- **Documentation is honest about being illustrative**: the README explicitly states the records are modeled, not real
 
 ## Priority fix list
 
-1. **Fix DCAT modelling** — change `AerialPhotograph rdfs:subClassOf dcat:Dataset` to `dcat:Resource`, add `dcterms:type dctype:StillImage`. (30 min)
-2. **Fix rights URIs** — global replace `rightsstatements.org/page/` → `rightsstatements.org/vocab/`. (5 min)
-3. **Add coordinate validation to ingest pipeline** — reject lat/lon outside valid ranges. (15 min)
-4. **Document GeoSPARQL limitation prominently** — note in README that spatial queries require a non-Oxigraph triple store. (10 min)
-5. **Split Collection from Sortie identifier** — add `naph:collectionCode`, update ingest. (30 min)
+1. **Fix DCAT modelling**: change `AerialPhotograph rdfs:subClassOf dcat:Dataset` to `dcat:Resource`, add `dcterms:type dctype:StillImage`. (30 min)
+2. **Fix rights URIs**: global replace `rightsstatements.org/page/` → `rightsstatements.org/vocab/`. (5 min)
+3. **Add coordinate validation to ingest pipeline**: reject lat/lon outside valid ranges. (15 min)
+4. **Document GeoSPARQL limitation prominently**: note in README that spatial queries require a non-Oxigraph triple store. (10 min)
+5. **Split Collection from Sortie identifier**: add `naph:collectionCode`, update ingest. (30 min)
 6. **Move cost-analysis disclaimer to top of doc.** (2 min)
 
 Total fix time: ~90 minutes.

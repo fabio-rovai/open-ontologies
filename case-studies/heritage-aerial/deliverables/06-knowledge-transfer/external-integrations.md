@@ -1,5 +1,4 @@
-# External Integrations — what to use instead of building from scratch
-
+# External Integrations: what to use instead of building from scratch
 For each NAPH gap previously marked "stub" or "skipped (external API)", this document maps to the existing open-source implementation worth adopting rather than rebuilding. Status as of 2026-05.
 
 > ⚠️ **Read [`external-integrations-tested.md`](external-integrations-tested.md) first.** This document lists candidates surveyed via search; the tested doc records what was actually run. Notably:
@@ -21,15 +20,14 @@ For each NAPH gap previously marked "stub" or "skipped (external API)", this doc
 **NAPH integration approach:**
 
 ```python
-# pseudo-code — wrap usgsxplore in a NAPH adapter
-from usgsxplore.api import USGSExplorerAPI
+# pseudo-code: wrap usgsxplore in a NAPH adapterfrom usgsxplore.api import USGSExplorerAPI
 
 api = USGSExplorerAPI(username=os.environ["USGS_USER"], token=os.environ["USGS_TOKEN"])
 scenes = api.search(dataset="declass_3", bbox=(-3.5, 55.5, -3.0, 56.0))
 
 for scene in scenes:
     # Map scene metadata → NAPH SatelliteAcquisition + AerialPhotograph
-    # See pipeline/scrapers/usgs_earthexplorer.py — fill in the TODO sections
+    # See pipeline/scrapers/usgs_earthexplorer.py, fill in the TODO sections
 ```
 
 **Account required:** Free USGS ERS account at <https://ers.cr.usgs.gov/register> + access permission for declassified-imagery dataset.
@@ -73,13 +71,13 @@ for scene in scenes:
 | [`SuLab/WikidataIntegrator`](https://github.com/SuLab/WikidataIntegrator) | Full read/write library with built-in conflict checks. Used in WikiCite. |
 | [`suhasshrinivasan/wikidata-toolkit`](https://github.com/suhasshrinivasan/wikidata-toolkit) | High-level query/manipulation methods. |
 
-**NAPH integration delivered:** [`pipeline/qid-verify.py`](../../pipeline/qid-verify.py) — implemented in this case study using direct SPARQL (no auth, no library dependency). Verifies that Wikidata QIDs in a NAPH dataset point to entities of the expected type and have not been deprecated.
+**NAPH integration delivered:** [`pipeline/qid-verify.py`](../../pipeline/qid-verify.py), implemented in this case study using direct SPARQL (no auth, no library dependency). Verifies that Wikidata QIDs in a NAPH dataset point to entities of the expected type and have not been deprecated.
 
 ---
 
 ## 4. Vision-language model classification (Aspirational tier subject classification)
 
-**Don't build from scratch — partial.** Two distinct paths depending on whether you want general-purpose VLMs or remote-sensing-specific models.
+**Don't build from scratch (partial).** Two distinct paths depending on whether you want general-purpose VLMs or remote-sensing-specific models.
 
 ### Remote-sensing-specific (Recommended for aerial heritage)
 
@@ -92,10 +90,10 @@ for scene in scenes:
 
 ### General-purpose VLMs (require API access)
 
-- Claude 3.5 Sonnet Vision (Anthropic) — paid API
-- GPT-4 Vision (OpenAI) — paid API
-- Gemini Vision (Google) — paid API
-- LLaVA (open-source, runs locally on GPU) — free but needs hardware
+- Claude 3.5 Sonnet Vision (Anthropic): paid API
+- GPT-4 Vision (OpenAI): paid API
+- Gemini Vision (Google): paid API
+- LLaVA (open-source, runs locally on GPU): free but needs hardware
 
 **NAPH integration approach:**
 
@@ -180,6 +178,6 @@ For each "Existing" entry, the engineering effort is integration (1-5 days) rath
 
 ## Cross-references
 
-- [VLM pipeline spec](vlm-pipeline-spec.md) — when external API VLMs are acceptable
-- [Federation playbook](federation-playbook/README.md) — how to set up multi-institution federation
-- [QID verifier](../../pipeline/qid-verify.py) — actual integration in this case study
+- [VLM pipeline spec](vlm-pipeline-spec.md): when external API VLMs are acceptable
+- [Federation playbook](federation-playbook/README.md): how to set up multi-institution federation
+- [QID verifier](../../pipeline/qid-verify.py): actual integration in this case study

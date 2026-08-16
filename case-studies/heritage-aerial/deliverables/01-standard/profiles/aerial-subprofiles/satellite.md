@@ -16,10 +16,10 @@ This sub-profile specialises NAPH for satellite reconnaissance imagery from decl
 
 Programmes covered:
 
-- **CORONA** (US, 1959-1972) — KH-1 through KH-4B series
-- **GAMBIT** (US, 1963-1984) — KH-7 and KH-8
-- **HEXAGON** (US, 1971-1986) — KH-9 "Big Bird"
-- **ZENIT** (USSR, 1962-1994) — declassified post-1991
+- **CORONA** (US, 1959-1972): KH-1 through KH-4B series
+- **GAMBIT** (US, 1963-1984): KH-7 and KH-8
+- **HEXAGON** (US, 1971-1986): KH-9 "Big Bird"
+- **ZENIT** (USSR, 1962-1994): declassified post-1991
 - **National Reconnaissance Programme partner imagery** that has been declassified
 
 Held principally by USGS Earth Explorer, NARA, and (digitisation-partnered) NCAP.
@@ -75,16 +75,16 @@ naph:passNumber a owl:DatatypeProperty ;
 ```turtle
 naph:groundCoveragePerFrame a owl:DatatypeProperty ;
     rdfs:label "ground coverage per frame (km²)" ;
-    rdfs:comment "Approximate coverage area — e.g. CORONA KH-4B: ~250 × 16 km strips" .
+    rdfs:comment "Approximate coverage area, e.g. CORONA KH-4B: ~250 × 16 km strips" .
 ```
 
 ## S.3 Declassification
 
 US satellite reconnaissance was declassified under specific Executive Orders:
 
-- **EO 12951 (1995)** — declassified CORONA, ARGON, LANYARD
-- **EO 13526 (2009)** — declassified KH-7, KH-9 partial
-- **Subsequent administrative releases** — additional KH-9, IGLOO, HEXAGON
+- **EO 12951 (1995)**: declassified CORONA, ARGON, LANYARD
+- **EO 13526 (2009)**: declassified KH-7, KH-9 partial
+- **Subsequent administrative releases**: additional KH-9, IGLOO, HEXAGON
 
 Provenance MUST record the specific EO:
 
@@ -105,36 +105,33 @@ Satellite footprints are large strips, not bounded frames. The geographic footpr
 ex:hexagon-001-footprint a naph:GeographicFootprint ;
     naph:asWKT "POLYGON((-3.5 55.5, -3.5 56.5, -2.5 56.5, -2.5 55.5, -3.5 55.5))"^^geo:wktLiteral ;
     naph:stripGeometry true ;
-    rdfs:comment "Approximate strip — actual coverage subject to platform geometry. For higher precision use the USGS-provided shapefile." .
+    rdfs:comment "Approximate strip; actual coverage subject to platform geometry. For higher precision use the USGS-provided shapefile." .
 ```
 
 For research-grade applications, link to a USGS-provided footprint shapefile rather than relying on bounding-box approximation.
 
-## S.5 Rights — straightforward but with caveats
-
+## S.5 Rights: straightforward but with caveats
 US satellite imagery in the declassified archives is in the public domain. Use:
 
 ```turtle
 ex:satellite-rights a naph:RightsStatement ;
     naph:rightsURI <http://rightsstatements.org/vocab/NoC-US/1.0/> ;
-    naph:rightsLabel "No Copyright — United States" ;
-    naph:rightsNote "Declassified satellite reconnaissance — public domain in US per declassification authority. Status outside US not asserted." .
+    naph:rightsLabel "No Copyright - United States" ;
+    naph:rightsNote "Declassified satellite reconnaissance: public domain in US per declassification authority. Status outside US not asserted." .
 ```
 
 For Soviet/Russian declassified material (ZENIT), rights regime is more variable. Consult the holding repository for specifics.
 
-## S.6 Cross-collection linking — USGS Earth Explorer
-
+## S.6 Cross-collection linking: USGS Earth Explorer
 USGS provides canonical entity IDs and resolution. NAPH-compliant satellite records SHOULD link to USGS:
 
 ```turtle
 ex:hexagon-001 naph:linkedRecord <https://earthexplorer.usgs.gov/scene/metadata/full/declass3/DS1117-1019DA037> .
 ```
 
-This enables federated discovery — researchers using USGS Earth Explorer can find NCAP-held satellite material via NAPH link-back, and vice versa.
+This enables federated discovery: researchers using USGS Earth Explorer can find NCAP-held satellite material via NAPH link-back, and vice versa.
 
-## S.7 Worked example — HEXAGON KH-9 frame
-
+## S.7 Worked example: HEXAGON KH-9 frame
 ```turtle
 @prefix naph: <https://w3id.org/naph/ontology#> .
 

@@ -3,7 +3,7 @@
 UK museums catalogue to the **Spectrum** standard (Collections Trust). The Museum
 Data Service exposes those fields as typed units (`spectrum/…`). To publish the
 records as a proper linked-data graph they must be mapped to **CIDOC-CRM**
-(ISO 21127) — the reference ontology for cultural heritage — rather than a
+(ISO 21127), the reference ontology for cultural heritage, rather than a
 home-grown schema. This is the crosswalk `src/build_graph.py` implements. It is
 Linked Art compatible (same CRM classes and property paths).
 

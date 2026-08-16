@@ -6,7 +6,7 @@
 
 ## G.1 Scope
 
-This sub-profile specialises NAPH for aerial photography that was captured for the explicit purpose of photogrammetric mapping — producing topographic maps, contour data, or 3D models. The defining characteristics:
+This sub-profile specialises NAPH for aerial photography that was captured for the explicit purpose of photogrammetric mapping: producing topographic maps, contour data, or 3D models. The defining characteristics:
 
 - Vertical-only photography with high precision (typically 60% along-track, 30% across-track overlap)
 - Calibrated cameras with documented focal length and lens distortion
@@ -18,7 +18,7 @@ Examples:
 - Ordnance Survey aerial mapping (UK, 1940s-2000s)
 - IGN photogrammetric campaigns (France)
 - USGS National High-Altitude Photography (US, 1980s)
-- Directorate of Overseas Surveys (DOS) — colonial mapping
+- Directorate of Overseas Surveys (DOS): colonial mapping
 - Regional aerial mapping campaigns
 
 ## G.2 Sub-profile additions
@@ -107,8 +107,7 @@ ex:footprint-survey-1947-L042 a naph:GeographicFootprint ;
     rdfs:comment "WKT in WGS84 for federation; native CRS preserved for analytical reuse." .
 ```
 
-## G.5 Worked example — OS aerial mapping frame
-
+## G.5 Worked example: OS aerial mapping frame
 ```turtle
 @prefix naph: <https://w3id.org/naph/ontology#> .
 
@@ -135,7 +134,7 @@ ex:os-survey-1947-50-B47 a naph:MappingSurvey ;
     naph:collectionCode "OS" ;
     naph:sortieReference "AS/1947-50/B47" ;
     naph:surveyProgramme "Ordnance Survey Aerial Survey 1947-50 (post-war re-mapping)" ;
-    naph:surveyArea "Block 47 — Edinburgh and East Lothian" ;
+    naph:surveyArea "Block 47 - Edinburgh and East Lothian" ;
     naph:flightLine "L042" ;
     naph:aircraft "Avro Lincoln B.II" ;
     naph:hasDerivedMap <https://canmore.org.uk/maps/os-1955-1-25k-edinburgh-and-east-lothian> .

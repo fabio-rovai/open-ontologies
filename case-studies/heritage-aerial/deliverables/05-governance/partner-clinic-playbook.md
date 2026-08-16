@@ -1,6 +1,6 @@
 # Partner Clinic Playbook
 
-Operational guide for engaging GLAM institutions in NAPH adoption. The 4-step partner clinic is the recommended engagement model for institutions applying NAPH to a representative subset of their collection — generating evidence, refining the standard, and building institutional capability.
+Operational guide for engaging GLAM institutions in NAPH adoption. The 4-step partner clinic is the recommended engagement model for institutions applying NAPH to a representative subset of their collection, generating evidence, refining the standard, and building institutional capability.
 
 ## 1. Purpose of the clinic
 
@@ -16,21 +16,20 @@ The clinic is **collaborative, not extractive**. The standard is refined as much
 ## 2. The 4-step cycle (per institution)
 
 ```
-Step 1 — Readiness & Scoping (2-3 hrs)
+Step 1: Readiness & Scoping (2-3 hrs)
    ↓
-Step 2 — Application Session (half-day, 4 hrs)
+Step 2: Application Session (half-day, 4 hrs)
    ↓
-Step 3 — Computational Readiness Check (2-3 hrs)
+Step 3: Computational Readiness Check (2-3 hrs)
    ↓
-Step 4 — Reflection & Refinement (1-2 hrs)
+Step 4: Reflection & Refinement (1-2 hrs)
    ↓
 Output: Application case study + spec refinements + cost evidence
 ```
 
 Total time commitment per institution: **~12 hours** of active engagement, spread over 4-6 weeks.
 
-## 3. Step 1 — Readiness & Scoping
-
+## 3. Step 1: Readiness & Scoping
 **Format:** 2-3 hour video call with institutional team
 **Participants:** Editorial team (Programme Manager + Technical Lead) + institutional team (collections manager + digital officer + project sponsor)
 **Output:** scoping document with agreed test subset, current-state assessment, and engagement plan
@@ -45,7 +44,7 @@ The Editorial team sends, 1 week before:
 
 The institution prepares:
 
-- Sample of 100 records from their collection — CSV, XML, or database export
+- Sample of 100 records from their collection (CSV, XML, or database export)
 - Existing rights vocabulary (text strings used)
 - Existing identifier scheme documentation (if any)
 - Names and roles of internal staff who will be involved
@@ -56,9 +55,9 @@ The institution prepares:
 |---|---|
 | 0:00 - 0:15 | Introductions, programme context, what we mean by "clinic" |
 | 0:15 - 0:45 | Walkthrough of NAPH Standard at the institution's collection level |
-| 0:45 - 1:30 | Joint review of institution's sample data — identify Baseline gaps |
-| 1:30 - 2:00 | Scope agreement — which records get applied, which tier, what timeline |
-| 2:00 - 2:30 | Engagement plan — who does what, when, how feedback flows |
+| 0:45 - 1:30 | Joint review of institution's sample data: identify Baseline gaps |
+| 1:30 - 2:00 | Scope agreement: which records get applied, which tier, what timeline |
+| 2:00 - 2:30 | Engagement plan: who does what, when, how feedback flows |
 
 ### 3.3 Scoping document template
 
@@ -74,8 +73,7 @@ The scoping document records:
 
 Template: [`07-templates/clinic-scoping-template.md`](../07-templates/clinic-scoping-template.md)
 
-## 4. Step 2 — Application Session
-
+## 4. Step 2: Application Session
 **Format:** half-day workshop (4 hours), can be in-person or video
 **Participants:** Technical lead + institutional digital officer + (optional) institutional ML/data engineer
 **Output:** sample subset transformed to NAPH-compliant form; mapping documentation
@@ -100,25 +98,24 @@ Institution prepares:
 |---|---|
 | 0:00 - 0:30 | Quick recap; agree session outputs |
 | 0:30 - 1:30 | Run ingest pipeline on sample; review output Turtle |
-| 1:30 - 2:30 | Identify what worked, what didn't — refine mapping config together |
+| 1:30 - 2:30 | Identify what worked, what didn't; refine mapping config together |
 | 2:30 - 3:00 | Run SHACL validation; review violations |
 | 3:00 - 3:30 | Generate validation report; review competency-question results |
-| 3:30 - 4:00 | Discuss next steps — what's needed to scale to full collection |
+| 3:30 - 4:00 | Discuss next steps: what's needed to scale to full collection |
 
 ### 4.3 Common findings during application
 
 From the case study and likely from real institutions:
 
-- Date formats more variable than expected — additional patterns needed
+- Date formats more variable than expected (additional patterns needed)
 - Rights vocabulary has institution-specific entries that don't map cleanly to rightsstatements.org
 - Identifier scheme has historical inconsistencies (different prefixes used over time)
 - Geographic data may be only at sortie level, not per-frame
-- Internal data has fields that NAPH doesn't represent — opportunity for profile extension
+- Internal data has fields that NAPH doesn't represent (opportunity for profile extension)
 
 These findings feed back into the standard via [RFCs](rfc-process.md) where general; or via institution-specific extensions where bespoke.
 
-## 5. Step 3 — Computational Readiness Check
-
+## 5. Step 3: Computational Readiness Check
 **Format:** 2-3 hour focused work session
 **Participants:** Technical lead + institutional digital officer
 **Output:** evidence that the transformed data actually supports research workflows
@@ -127,7 +124,7 @@ These findings feed back into the standard via [RFCs](rfc-process.md) where gene
 
 Module F.A.1 says: "computational reuse tests... actually execute typical research queries against the collection and assert they return correct results."
 
-Step 3 is where this happens during the clinic. We don't just check the schema — we actually try to use the data.
+Step 3 is where this happens during the clinic. We don't just check the schema: we actually try to use the data.
 
 ### 5.2 Test workflow examples
 
@@ -150,15 +147,14 @@ For each test, the result is recorded:
 
 Findings often include:
 
-- A query that should return N records but returns N-3 — investigation shows 3 records have inconsistent metadata
-- A spatial query that fails because the SPARQL endpoint doesn't support GeoSPARQL — implementation gap
-- Acceptable performance for 100,000 records but degradation predicted at 1,000,000 — capacity planning needed
-- External authority links that have moved or been deprecated — link health monitoring required
+- A query that should return N records but returns N-3: investigation shows 3 records have inconsistent metadata
+- A spatial query that fails because the SPARQL endpoint doesn't support GeoSPARQL (implementation gap)
+- Acceptable performance for 100,000 records but degradation predicted at 1,000,000 (capacity planning needed)
+- External authority links that have moved or been deprecated (link health monitoring required)
 
 These become input to either institutional remediation or standard refinement (RFCs).
 
-## 6. Step 4 — Reflection & Refinement
-
+## 6. Step 4: Reflection & Refinement
 **Format:** 1-2 hour video call
 **Participants:** Editorial team (full) + institutional team (full)
 **Output:** clinic case study; standard refinements; cost evidence
@@ -167,10 +163,10 @@ These become input to either institutional remediation or standard refinement (R
 
 | Time | Activity |
 |---|---|
-| 0:00 - 0:20 | Recap of the cycle — what was done, what was learned |
-| 0:20 - 0:50 | Standard refinements — what should change in the spec based on this engagement |
-| 0:50 - 1:20 | Cost evidence — actual hours, actual blockers, actual learning curve |
-| 1:20 - 1:50 | Future plans — what does the institution do next, what support would help |
+| 0:00 - 0:20 | Recap of the cycle: what was done, what was learned |
+| 0:20 - 0:50 | Standard refinements: what should change in the spec based on this engagement |
+| 0:50 - 1:20 | Cost evidence: actual hours, actual blockers, actual learning curve |
+| 1:20 - 1:50 | Future plans: what does the institution do next, what support would help |
 | 1:50 - 2:00 | Wrap, agreed next-step actions, agreed publication of case study |
 
 ### 6.2 Clinic case study
@@ -244,7 +240,7 @@ Estimated Editorial team time per partner:
 
 For 5 partners: ~125 hours of Editorial team effort + 60 hours institutional engagement.
 
-This is roughly £15,000-£20,000 at typical Pilot-team rates — a significant but tractable commitment within the contract budget.
+This is roughly £15,000-£20,000 at typical Pilot-team rates, a significant but tractable commitment within the contract budget.
 
 ## 10. Outputs
 

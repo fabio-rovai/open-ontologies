@@ -6,9 +6,9 @@ A practical decision tree for choosing an identifier scheme for a NAPH-compliant
 
 Whatever scheme you choose, identifiers MUST satisfy:
 
-1. **Persistent** — once assigned, never reassigned, never silently changed
-2. **Resolvable** — when dereferenced via HTTP(S), returns a representation
-3. **Globally unique** — no collision with any other heritage organisation's identifiers
+1. **Persistent**: once assigned, never reassigned, never silently changed
+2. **Resolvable**: when dereferenced via HTTP(S), returns a representation
+3. **Globally unique**: no collision with any other heritage organisation's identifiers
 
 ## Q1: Do you have an existing institutional URL prefix that you can guarantee will outlive any specific website redesign?
 
@@ -121,7 +121,7 @@ https://w3id.org/example/civil-rights-1968/2010-acquisitions/photo-march-001
 - **Use only ASCII alphanumerics, hyphens, and forward slashes.** No spaces, no diacritics, no encoding-dependent characters.
 - **Use stable codes.** A collection name might change ("Industrial Heritage Collection" → "Industrial Archive"). The identifier MUST NOT.
 - **Avoid encoding mutable facts.** Don't put the date of the most recent edit in the identifier. Don't include the cataloguer's name.
-- **Do encode immutable structural information.** Sortie reference, frame number, archival fonds — these are stable.
+- **Do encode immutable structural information.** Sortie reference, frame number, archival fonds: these are stable.
 
 ### Q4.4: Test your scheme before committing
 
@@ -189,7 +189,7 @@ Even if the record's content is restricted (e.g. sensitive material, in copyrigh
 ```turtle
 ex:photo-restricted naph:hasIdentifier "https://yourinst.org/photo/X" ;
     naph:hasRightsStatement ex:in-copyright ;
-    naph:accessRestrictions "Onsite only — no digital surrogate available" .
+    naph:accessRestrictions "Onsite only, no digital surrogate available" .
 ```
 
 ### Q6.3: Born-digital with vendor-assigned identifiers
@@ -215,7 +215,7 @@ Publish this document at a stable URL. Reference it in your collection's manifes
 
 ## Cross-references
 
-- [Module B — Metadata & Data Structures](../../01-standard/modules/B-metadata-data-structures.md) §B.3
-- [Module D — Packaging & Publication](../../01-standard/modules/D-packaging-publication.md)
+- [Module B: Metadata & Data Structures](../../01-standard/modules/B-metadata-data-structures.md) §B.3
+- [Module D: Packaging & Publication](../../01-standard/modules/D-packaging-publication.md)
 - [w3id.org service](https://w3id.org/)
 - [Identifier policy template](../../07-templates/identifier-policy-template.md)

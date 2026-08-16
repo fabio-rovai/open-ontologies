@@ -1,16 +1,16 @@
 # Governance Proposal
 
-How NAPH is maintained, evolved, and stewarded after NAPH. Designed to be **lightweight but credible** — small enough that HES can operate it without specialist resourcing, robust enough that adopting institutions trust their investment is durable.
+How NAPH is maintained, evolved, and stewarded after NAPH. Designed to be **lightweight but credible**: small enough that HES can operate it without specialist resourcing, robust enough that adopting institutions trust their investment is durable.
 
 ## 1. Principles
 
 NAPH governance follows these principles, in priority order:
 
-1. **Lightweight** — not creating committee overhead disproportionate to a single-vertical standard
-2. **Transparent** — every decision is visible in a public repository with documented rationale
-3. **Multi-stakeholder** — adopting institutions have a voice; users (researchers) have a voice; the host institution maintains operational decision rights
-4. **Sustainable** — designed to outlive the initial delivery contract; HES-operable
-5. **Open** — all governance artefacts (RFCs, decisions, change log) under the same open licence as the standard itself
+1. **Lightweight**: not creating committee overhead disproportionate to a single-vertical standard
+2. **Transparent**: every decision is visible in a public repository with documented rationale
+3. **Multi-stakeholder**: adopting institutions have a voice; users (researchers) have a voice; the host institution maintains operational decision rights
+4. **Sustainable**: designed to outlive the initial delivery contract; HES-operable
+5. **Open**: all governance artefacts (RFCs, decisions, change log) under the same open licence as the standard itself
 
 ## 2. Roles and decision rights
 
@@ -35,7 +35,7 @@ NAPH governance follows these principles, in priority order:
 
 - One representative from the Steward (chair)
 - One representative each from up to 5 adopting institutions
-- Two external representatives — one researcher, one technical (linked-data / heritage informatics)
+- Two external representatives: one researcher, one technical (linked-data / heritage informatics)
 - Editor (typically a contracted role; the editor can be the Steward representative or external)
 
 **Term:** institutional representatives serve 2-year terms, renewable once. External representatives serve 3-year terms.
@@ -45,7 +45,7 @@ NAPH governance follows these principles, in priority order:
 - Annual review of the standard's direction
 - Advice on substantive RFCs (recommend accept / reject / defer)
 - Annual public report on adoption metrics
-- Adjudication of disputes (rare, but possible — e.g. a contested rights modelling decision)
+- Adjudication of disputes (rare, but possible, e.g. a contested rights modelling decision)
 
 **Decision rights:** advisory only. The Steward retains final say but is expected to follow Council advice in most cases. Council disagreement with the Steward is recorded publicly.
 
@@ -76,7 +76,7 @@ Contributions follow the [Code of Conduct](#7-code-of-conduct).
 Substantive changes follow the RFC (Request for Comments) process, documented in detail at [rfc-process.md](rfc-process.md). Summary:
 
 1. Anyone opens an RFC as a pull request to the `rfcs/` directory
-2. The Editor triages — is it substantive or editorial?
+2. The Editor triages: is it substantive or editorial?
 3. Substantive RFCs go through:
    - Public comment period (30 days minimum)
    - Standards Council review and recommendation
@@ -90,9 +90,9 @@ Substantive changes follow the RFC (Request for Comments) process, documented in
 
 NAPH follows [semantic versioning 2.0.0](https://semver.org/):
 
-- **MAJOR** — backwards-incompatible changes. Reserved for v2.0+
-- **MINOR** — backwards-compatible additions
-- **PATCH** — clarifications, errata, doc fixes
+- **MAJOR**: backwards-incompatible changes. Reserved for v2.0+
+- **MINOR**: backwards-compatible additions
+- **PATCH**: clarifications, errata, doc fixes
 
 A v1.x record is guaranteed to validate against any future v1.y. v2.0 is a deliberate breaking-change point requiring migration tooling.
 
@@ -200,11 +200,11 @@ This is a real but low-probability scenario; the standard is small enough that e
 
 NAPH actively engages with:
 
-- **W3C** (DCAT, PROV, SKOS) — via public mailing lists; participation in working groups when scope permits
-- **OGC** (GeoSPARQL) — particularly on geographic-footprint best practices
-- **IIIF Consortium** — Presentation API and Image API alignment
-- **rightsstatements.org** — coordinated rights vocabulary
-- **DPLA / Europeana** — aggregator harvesting compatibility
+- **W3C** (DCAT, PROV, SKOS), via public mailing lists; participation in working groups when scope permits
+- **OGC** (GeoSPARQL): particularly on geographic-footprint best practices
+- **IIIF Consortium**: Presentation API and Image API alignment
+- **rightsstatements.org**: coordinated rights vocabulary
+- **DPLA / Europeana**: aggregator harvesting compatibility
 
 NAPH does not seek to be a member organisation of these bodies but does monitor their work and contribute where relevant.
 

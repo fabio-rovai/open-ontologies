@@ -31,8 +31,8 @@ configs:
 # MoDiP Plastics Knowledge Graph
 
 A standards-based knowledge graph built from the full open catalogue of the
-**Museum of Design in Plastics** (MoDiP, Arts University Bournemouth) — the UK's
-only accredited museum devoted to plastics in design — as a worked example of
+**Museum of Design in Plastics** (MoDiP, Arts University Bournemouth), the UK's
+only accredited museum devoted to plastics in design, as a worked example of
 turning a small museum's raw "collections as data" into something computable.
 
 - **11,865** object records (the complete MoDiP set), retrieved from the

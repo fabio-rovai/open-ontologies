@@ -4,7 +4,7 @@ How to run federated SPARQL queries across NAPH-compliant aerial photography col
 
 ## What federation enables
 
-Federation lets a researcher query "all aerial coverage of [location] across [date range] from any NAPH-compliant institution" — in one query. Instead of:
+Federation lets a researcher query "all aerial coverage of [location] across [date range] from any NAPH-compliant institution", in one query. Instead of:
 
 1. Searching NCAP's catalogue
 2. Searching IWM's catalogue  
@@ -19,11 +19,11 @@ A federated query returns combined results in seconds.
 For federation to work:
 
 1. **Each participating institution publishes a SPARQL endpoint** that exposes their NAPH-compliant collection
-2. **Endpoints support SPARQL 1.1 federation** (`SERVICE` keyword) — true for Apache Jena Fuseki, GraphDB, Stardog, Virtuoso
+2. **Endpoints support SPARQL 1.1 federation** (`SERVICE` keyword): true for Apache Jena Fuseki, GraphDB, Stardog, Virtuoso
 3. **Endpoints are publicly accessible** (no authentication required for read access)
 4. **Endpoints have stable URLs** registered in the [NAPH compliance registry](../../../registry/)
 
-If even one institution doesn't have a SPARQL endpoint, they can't participate in federation. (They can still publish NAPH-compliant data via bulk download — federation just isn't possible for them.)
+If even one institution doesn't have a SPARQL endpoint, they can't participate in federation. (They can still publish NAPH-compliant data via bulk download; federation just isn't possible for them.)
 
 ## Endpoint requirements
 
@@ -44,8 +44,7 @@ A federation-ready SPARQL endpoint SHOULD:
 
 ## Query patterns
 
-### Pattern 1 — Multi-collection count
-
+### Pattern 1: Multi-collection count
 "How many records exist sector-wide?"
 
 ```sparql
@@ -75,8 +74,7 @@ WHERE {
 }
 ```
 
-### Pattern 2 — Multi-collection geographic query
-
+### Pattern 2: Multi-collection geographic query
 "Find all aerial coverage of central London 1939-1945 across NAPH institutions."
 
 ```sparql
@@ -106,8 +104,7 @@ WHERE {
 ORDER BY ?date
 ```
 
-### Pattern 3 — Cross-institution stereo pair detection
-
+### Pattern 3: Cross-institution stereo pair detection
 "Find pairs of frames where one is in NCAP and the other in IWM, with overlapping coverage."
 
 ```sparql
@@ -134,8 +131,7 @@ WHERE {
 }
 ```
 
-### Pattern 4 — Wikidata-enriched federation
-
+### Pattern 4: Wikidata-enriched federation
 "For aerial photographs depicting specific Wikidata historic events, list with multilingual labels."
 
 ```sparql
@@ -164,7 +160,7 @@ WHERE {
 
 What happens when one of the federated endpoints is down?
 
-- Default behaviour: SPARQL Federation propagates the failure — your query fails
+- Default behaviour: SPARQL Federation propagates the failure; your query fails
 - Workaround: use `SERVICE SILENT` to ignore failures from individual endpoints
 
 ```sparql
@@ -179,9 +175,9 @@ This produces partial results when an endpoint is down rather than total failure
 
 Federated queries can be slow. Optimisation strategies:
 
-- **Reduce per-endpoint result size** — use FILTER and LIMIT inside each SERVICE block
+- **Reduce per-endpoint result size**: use FILTER and LIMIT inside each SERVICE block
 - **Use ASK queries** when you only need existence, not retrieval
-- **Cache aggressively** — federation is read-only; results can be cached
+- **Cache aggressively**: federation is read-only; results can be cached
 - **Run during off-peak hours** for batch federation
 
 ### Query timeouts
@@ -202,32 +198,29 @@ Some endpoints rate-limit anonymous queries (e.g. "100 queries per IP per hour")
 
 Federation results combine data from multiple institutions, each of which controls their own data quality. NAPH compliance + SHACL validation is the institutional guarantee, but cross-institution verification (e.g. Wikidata QID consistency) is the researcher's responsibility.
 
-For critical work, validate cross-references — e.g. a Wikidata QID in NCAP should match the same QID's referent in NARA.
+For critical work, validate cross-references, e.g. a Wikidata QID in NCAP should match the same QID's referent in NARA.
 
 ## Setting up a federation-ready endpoint
 
 If your institution wants to be federation-ready:
 
-### Step 1 — Choose a triple store
-
+### Step 1: Choose a triple store
 Recommended for production:
 
-- **Apache Jena Fuseki** — most widely used, open source, full GeoSPARQL support
-- **GraphDB** (free version) — excellent SPARQL Federation, GUI
-- **Stardog** — good federation, requires licensing
-- **Virtuoso Open Source** — established, full feature support
-- **Oxigraph** — lightweight, but limited GeoSPARQL support — not recommended for primary endpoint
+- **Apache Jena Fuseki**: most widely used, open source, full GeoSPARQL support
+- **GraphDB** (free version): excellent SPARQL Federation, GUI
+- **Stardog**: good federation, requires licensing
+- **Virtuoso Open Source**: established, full feature support
+- **Oxigraph**: lightweight, but limited GeoSPARQL support, not recommended for primary endpoint
 
-### Step 2 — Load the data
-
+### Step 2: Load the data
 Load:
 
 - The NAPH ontology (`naph-core.ttl`)
 - The NAPH shapes (`naph-shapes.ttl`)
 - Your collection data
 
-### Step 3 — Configure CORS
-
+### Step 3: Configure CORS
 Browser-based federation clients require CORS. Add to your endpoint config:
 
 ```
@@ -236,8 +229,7 @@ Access-Control-Allow-Methods: GET, POST, OPTIONS
 Access-Control-Allow-Headers: Content-Type, Authorization
 ```
 
-### Step 4 — Publish endpoint URL
-
+### Step 4: Publish endpoint URL
 Update the [NAPH compliance registry](../../../registry/) with your endpoint URL.
 
 Add a VOID descriptor at `[endpoint]/.well-known/void`:
@@ -254,8 +246,7 @@ Add a VOID descriptor at `[endpoint]/.well-known/void`:
     dcterms:license <[your data licence]> .
 ```
 
-### Step 5 — Test
-
+### Step 5: Test
 Run a self-federation query to verify everything works:
 
 ```sparql
@@ -271,9 +262,9 @@ WHERE {
 
 Federation is powerful but not suitable for:
 
-- **Bulk research downloads** — use bulk download URLs instead
-- **Citation-grade reproducibility** — federated queries can fail in interesting ways. For published research, document a snapshot of results.
-- **Real-time UI** — federation queries can be slow; cache results in your application layer
+- **Bulk research downloads**: use bulk download URLs instead
+- **Citation-grade reproducibility**: federated queries can fail in interesting ways. For published research, document a snapshot of results.
+- **Real-time UI**: federation queries can be slow; cache results in your application layer
 
 ## The N-RICH role
 
@@ -289,7 +280,7 @@ This is the natural sector-shared infrastructure layer that NAPH adoption unlock
 ## Cross-references
 
 - [NAPH compliance registry](../../../registry/)
-- [SPARQL library — Federation queries](../../04-adoption-guidance/sparql-library/federation.sparql)
-- [Module D — Packaging & Publication](../../01-standard/modules/D-packaging-publication.md)
+- [SPARQL library: Federation queries](../../04-adoption-guidance/sparql-library/federation.sparql)
+- [Module D: Packaging & Publication](../../01-standard/modules/D-packaging-publication.md)
 - [Apache Jena Fuseki](https://jena.apache.org/documentation/fuseki2/)
 - [SPARQL 1.1 Federated Query](https://www.w3.org/TR/sparql11-federated-query/)

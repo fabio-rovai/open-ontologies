@@ -4,7 +4,7 @@ Self-assessment checklists for each tier and module. Use these for pre-flight ch
 
 ## How to use these checklists
 
-For each module, work through the checklist for your target tier. A `MUST` item that is missing means non-compliance — you cannot claim that tier.
+For each module, work through the checklist for your target tier. A `MUST` item that is missing means non-compliance: you cannot claim that tier.
 
 The companion automated tool is [`pipeline/self-assessment.py`](../../pipeline/self-assessment.py) which runs equivalent checks programmatically and produces a JSON report.
 
@@ -47,8 +47,7 @@ Legend: ✅ = MUST · (S) = SHOULD · blank = not required for this tier
 
 ## Module-by-module detailed checklists
 
-### Module A — Capture & Imaging
-
+### Module A: Capture & Imaging
 #### A-Baseline checklist
 
 - [ ] Every digital surrogate is in TIFF, JP2-lossless, or PNG (no JPEG masters)
@@ -70,8 +69,7 @@ Legend: ✅ = MUST · (S) = SHOULD · blank = not required for this tier
 - [ ] Colour profile embedded in file
 - [ ] IIIF Image API service running and resolvable
 
-### Module B — Metadata
-
+### Module B: Metadata
 #### B-Baseline checklist
 
 - [ ] Every record has `naph:hasIdentifier` (URI)
@@ -100,8 +98,7 @@ Legend: ✅ = MUST · (S) = SHOULD · blank = not required for this tier
 - [ ] Every record has at least one `naph:linkedRecord` cross-reference
 - [ ] Subject `skos:exactMatch` or `skos:closeMatch` to authority
 
-### Module C — Rights, Licensing & Ethics
-
+### Module C: Rights, Licensing & Ethics
 #### C-Baseline checklist
 
 - [ ] Every record has `naph:hasRightsStatement`
@@ -121,8 +118,7 @@ Legend: ✅ = MUST · (S) = SHOULD · blank = not required for this tier
 - [ ] TK / BC labels applied where culturally appropriate
 - [ ] Data subject linkage for records with identifiable living individuals
 
-### Module D — Packaging & Publication
-
+### Module D: Packaging & Publication
 #### D-Baseline checklist
 
 - [ ] Manifest published (BagIt / RO-Crate / DCAT)
@@ -143,8 +139,7 @@ Legend: ✅ = MUST · (S) = SHOULD · blank = not required for this tier
 - [ ] Federated SPARQL endpoint with VOID descriptor
 - [ ] OAI-PMH harvesting supported
 
-### Module E — Paradata & Workflow
-
+### Module E: Paradata & Workflow
 #### E-Enhanced checklist
 
 - [ ] ProvenanceChain documented per record (or per sortie if uniform)
@@ -160,8 +155,7 @@ Legend: ✅ = MUST · (S) = SHOULD · blank = not required for this tier
 - [ ] Human validation events recorded as `prov:Activity` with validator
 - [ ] Complete activity graph reachable from each record
 
-### Module F — QA & Validation
-
+### Module F: QA & Validation
 #### F-Baseline checklist
 
 - [ ] SHACL validation passes for Baseline shape
@@ -189,14 +183,14 @@ Legend: ✅ = MUST · (S) = SHOULD · blank = not required for this tier
 
 Things that frequently cause SHACL validation to fail:
 
-1. **Free-text dates** — "March 1944" instead of `xsd:gYearMonth` `1944-03`
-2. **Lat/lon order** — using `POLYGON((lat lon, ...))` instead of `POLYGON((lon lat, ...))`
-3. **Identifiers with `/page/` form** — using `https://rightsstatements.org/page/` instead of `http://rightsstatements.org/vocab/`
-4. **Missing `dcterms:type`** — every record SHOULD have `dctype:StillImage` (or equivalent)
-5. **Polygon doesn't close** — first and last coordinates of the WKT polygon must be identical
-6. **Missing collection link** — record has sortie but no `naph:belongsToCollection`
-7. **Mixed tier compliance claim** — record claims `naph:TierEnhanced` but lacks DigitalSurrogate
-8. **Stale rights review** — no `naph:rightsReviewedOn` more recent than spec policy
+1. **Free-text dates**: "March 1944" instead of `xsd:gYearMonth` `1944-03`
+2. **Lat/lon order**: using `POLYGON((lat lon, ...))` instead of `POLYGON((lon lat, ...))`
+3. **Identifiers with `/page/` form**: using `https://rightsstatements.org/page/` instead of `http://rightsstatements.org/vocab/`
+4. **Missing `dcterms:type`**: every record SHOULD have `dctype:StillImage` (or equivalent)
+5. **Polygon doesn't close**: first and last coordinates of the WKT polygon must be identical
+6. **Missing collection link**: record has sortie but no `naph:belongsToCollection`
+7. **Mixed tier compliance claim**: record claims `naph:TierEnhanced` but lacks DigitalSurrogate
+8. **Stale rights review**: no `naph:rightsReviewedOn` more recent than spec policy
 
 The [self-assessment tool](../../pipeline/self-assessment.py) catches all of these.
 

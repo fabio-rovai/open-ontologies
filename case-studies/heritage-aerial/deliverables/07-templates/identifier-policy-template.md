@@ -1,5 +1,4 @@
-# [Institution] — Identifier Policy
-
+# [Institution]: Identifier Policy
 **Status:** Adopted YYYY-MM-DD
 **Owner:** [Name, Role]
 **Review cycle:** every 3 years
@@ -101,7 +100,7 @@ Implementation: HTTP content negotiation handled by [Institution]'s web server /
 
 Identifiers are minted by:
 
-[Specify role(s)] — typically the digital officer, repository manager, or a designated cataloguer.
+[Specify role(s)], typically the digital officer, repository manager, or a designated cataloguer.
 
 The minting process MUST:
 
@@ -164,10 +163,10 @@ Questions, errata, or migration requests:
 
 ## 11. References
 
-- [NAPH Standard v1.0](https://w3id.org/naph/ontology) — Module B §B.3 Identifier requirements
-- [w3id.org service](https://w3id.org/) — permanent URI service
+- [NAPH Standard v1.0](https://w3id.org/naph/ontology): Module B §B.3 Identifier requirements
+- [w3id.org service](https://w3id.org/): permanent URI service
 - [Identifier policy decision tree](https://w3id.org/naph/ontology/decision-trees/identifier-policy)
 
 ## 12. Document history
 
-- YYYY-MM-DD — initial policy adopted
+- YYYY-MM-DD: initial policy adopted

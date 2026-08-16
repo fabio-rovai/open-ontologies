@@ -1,8 +1,7 @@
-# Maintenance Runbook — for HES (or successor Steward)
-
+# Maintenance Runbook: for HES (or successor Steward)
 Operational handover document. Designed so HES can take over NAPH stewardship at end-of-Pilot without bringing the Editorial team back for routine work.
 
-This runbook assumes the reader is the **operational Steward** — the person at HES (or successor institution) responsible for keeping NAPH alive day-to-day.
+This runbook assumes the reader is the **operational Steward**, the person at HES (or successor institution) responsible for keeping NAPH alive day-to-day.
 
 ## 1. What you've inherited
 
@@ -48,7 +47,7 @@ Nothing required. The standard is static between releases.
 
 - Review pending pull requests
 - Triage RFCs in their early stages
-- Convene Standards Council meeting (if scheduled — typically every 1-2 months during active periods)
+- Convene Standards Council meeting (if scheduled, typically every 1-2 months during active periods)
 
 ### 2.4 Quarterly
 
@@ -67,10 +66,10 @@ Nothing required. The standard is static between releases.
 
 When an issue arrives:
 
-1. **Categorise** — bug / question / RFC candidate / out-of-scope
-2. **Label** — `bug`, `question`, `rfc-needed`, `documentation`, `out-of-scope`
-3. **Assign priority** — critical / high / medium / low
-4. **Respond within 5 working days** — at minimum acknowledging receipt and rough timeline
+1. **Categorise**: bug / question / RFC candidate / out-of-scope
+2. **Label**: `bug`, `question`, `rfc-needed`, `documentation`, `out-of-scope`
+3. **Assign priority**: critical / high / medium / low
+4. **Respond within 5 working days**: at minimum acknowledging receipt and rough timeline
 
 ### 3.1 Critical issues
 
@@ -152,11 +151,11 @@ The validation pipeline runs:
 
 The pipeline runs in this order:
 
-1. `open-ontologies validate ontology/naph-core.ttl` — basic Turtle syntax
-2. `open-ontologies validate ontology/naph-shapes.ttl` — shapes syntax
-3. `open-ontologies validate data/canonical-sample/sample-photographs.ttl` — sample data syntax
-4. `open-ontologies batch < pipeline/full-validation.batch.txt` — load + SHACL
-5. `python3 pipeline/self-assessment.py` — check all assertions
+1. `open-ontologies validate ontology/naph-core.ttl`: basic Turtle syntax
+2. `open-ontologies validate ontology/naph-shapes.ttl`: shapes syntax
+3. `open-ontologies validate data/canonical-sample/sample-photographs.ttl`: sample data syntax
+4. `open-ontologies batch < pipeline/full-validation.batch.txt`: load + SHACL
+5. `python3 pipeline/self-assessment.py`: check all assertions
 6. Generate validation report
 
 Common failures and their remediation:

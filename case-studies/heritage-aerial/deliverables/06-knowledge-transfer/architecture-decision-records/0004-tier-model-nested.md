@@ -9,23 +9,23 @@
 
 A digitisation standard could specify:
 
-(a) A single bar of compliance — institutions either meet the standard or don't
-(b) Multiple independent profiles — institutions pick which profile applies
-(c) Tiered compliance — institutions can claim incremental levels of compliance
+(a) A single bar of compliance: institutions either meet the standard or don't
+(b) Multiple independent profiles: institutions pick which profile applies
+(c) Tiered compliance: institutions can claim incremental levels of compliance
 
 Each has trade-offs:
 
-- (a) is simplest but creates a high adoption barrier — institutions either invest heavily upfront or don't engage at all
-- (b) is flexible but creates fragmentation — different institutions with different profiles can't easily compare
+- (a) is simplest but creates a high adoption barrier: institutions either invest heavily upfront or don't engage at all
+- (b) is flexible but creates fragmentation: different institutions with different profiles can't easily compare
 - (c) requires more design work but enables incremental adoption while preserving comparability
 
 ## Decision
 
 NAPH uses **three nested compliance tiers**:
 
-- **Baseline** — minimum for computation-readiness
-- **Enhanced** — supports research workflows
-- **Aspirational** — supports semantic discovery
+- **Baseline**: minimum for computation-readiness
+- **Enhanced**: supports research workflows
+- **Aspirational**: supports semantic discovery
 
 Each tier is a strict superset of the previous. A record claiming Enhanced MUST also satisfy Baseline. A record claiming Aspirational MUST also satisfy Enhanced.
 
@@ -33,18 +33,18 @@ Each tier is a strict superset of the previous. A record claiming Enhanced MUST 
 
 ### Positive
 
-- **Low adoption barrier** — Baseline is achievable for any institution within weeks; doesn't require waiting for full Aspirational implementation
-- **Incremental upgrade path** — institutions plan Enhanced and Aspirational adoption when capacity allows; never have to redo Baseline work
-- **Comparability across institutions** — every NAPH-compliant record's tier is explicit; queries can filter by tier
-- **Clear progress signal** — institutions and funders can measure adoption progress (% of records at each tier)
-- **Right-sized investment** — institutions invest at the tier they can sustain rather than over-commit
-- **Encourages partial compliance** — even Baseline-only adoption produces real research value
+- **Low adoption barrier**: Baseline is achievable for any institution within weeks; doesn't require waiting for full Aspirational implementation
+- **Incremental upgrade path**: institutions plan Enhanced and Aspirational adoption when capacity allows; never have to redo Baseline work
+- **Comparability across institutions**: every NAPH-compliant record's tier is explicit; queries can filter by tier
+- **Clear progress signal**: institutions and funders can measure adoption progress (% of records at each tier)
+- **Right-sized investment**: institutions invest at the tier they can sustain rather than over-commit
+- **Encourages partial compliance**: even Baseline-only adoption produces real research value
 
 ### Negative
 
-- **More design work** — three tiers is more to maintain than one
-- **Risk of tier inflation** — institutions claiming a tier they don't actually achieve. Mitigated by SHACL validation requirement
-- **Risk of tier inertia** — institutions getting stuck at Baseline forever. Mitigated by clear upgrade path documentation, partner clinic encouragement, funder incentives at higher tiers
+- **More design work**: three tiers is more to maintain than one
+- **Risk of tier inflation**: institutions claiming a tier they don't actually achieve. Mitigated by SHACL validation requirement
+- **Risk of tier inertia**: institutions getting stuck at Baseline forever. Mitigated by clear upgrade path documentation, partner clinic encouragement, funder incentives at higher tiers
 
 ### Neutral
 
@@ -73,45 +73,42 @@ Considered but rejected:
 Rejected because:
 
 - Loses the meaningful distinction between research workflows (Enhanced) and semantic discovery (Aspirational)
-- The Enhanced→Aspirational delta requires substantively different capabilities (ML/NLP, entity linking) — collapsing them hides the capability gap
+- The Enhanced→Aspirational delta requires substantively different capabilities (ML/NLP, entity linking); collapsing them hides the capability gap
 
 ### Alternative 4: Multiple parallel profiles per resource type, single tier
 
-Rejected because of [ADR-0001](0001-narrow-vertical.md) — NAPH covers only aerial photography, no need for resource-type profiles.
+Rejected because of [ADR-0001](0001-narrow-vertical.md): NAPH covers only aerial photography, no need for resource-type profiles.
 
 ## Tier design rationale
 
-### Baseline — what's the minimum?
-
+### Baseline: what's the minimum?
 The Baseline question is: "what's the least metadata that allows computational find / identify / locate / use?"
 
-- **Identifier** — to find the record
-- **Date** — to filter temporally
-- **Geographic footprint** — to filter spatially
-- **Rights** — to determine reuse permission
-- **Sortie / Collection link** — to locate within the institutional structure
+- **Identifier**: to find the record
+- **Date**: to filter temporally
+- **Geographic footprint**: to filter spatially
+- **Rights**: to determine reuse permission
+- **Sortie / Collection link**: to locate within the institutional structure
 
 Without any of these, computational queries fail. With all of these, basic computational research is enabled.
 
-### Enhanced — what unlocks research workflows?
-
+### Enhanced: what unlocks research workflows?
 The Enhanced question is: "what additional metadata makes computational research **reproducible**?"
 
-- **Digital surrogate variants** — preservation master + access copy
-- **Capture context** — how the photograph was taken
-- **Provenance chain** — how the artefact got to where it is
-- **Workflow documentation** — how the institution does its work
+- **Digital surrogate variants**: preservation master + access copy
+- **Capture context**: how the photograph was taken
+- **Provenance chain**: how the artefact got to where it is
+- **Workflow documentation**: how the institution does its work
 
 These don't enable new query types; they enable trust in query results. A reproducible research workflow needs to know the provenance, not just the data.
 
-### Aspirational — what unlocks semantic discovery?
-
+### Aspirational: what unlocks semantic discovery?
 The Aspirational question is: "what additional metadata makes the collection **part of the wider knowledge graph**?"
 
-- **Subject classification** — what each photograph depicts
-- **Place authority links** — connection to GeoNames, Wikidata
-- **Cross-collection links** — connection to other archives
-- **AI-derived enrichment with provenance** — automated classification with human validation
+- **Subject classification**: what each photograph depicts
+- **Place authority links**: connection to GeoNames, Wikidata
+- **Cross-collection links**: connection to other archives
+- **AI-derived enrichment with provenance**: automated classification with human validation
 
 These enable the federated queries and content-based retrieval that justify the heaviest investment.
 
@@ -142,7 +139,7 @@ Realistic timeframe: review at v1.5 or v2.0 milestone.
 
 ## Cross-references
 
-- [NAPH Standard §3 — The three tiers](../../01-standard/NAPH-STANDARD.md#3-the-three-tiers)
-- [Module specifications](../../01-standard/modules/) — each defines tier-specific requirements
-- [Cost & effort analysis](../../../docs/cost-effort-analysis.md) — per-tier cost analysis validating the structure
+- [NAPH Standard §3: The three tiers](../../01-standard/NAPH-STANDARD.md#3-the-three-tiers)
+- [Module specifications](../../01-standard/modules/): each defines tier-specific requirements
+- [Cost & effort analysis](../../../docs/cost-effort-analysis.md): per-tier cost analysis validating the structure
 - [Validation checklists](../../04-adoption-guidance/validation-checklists.md)

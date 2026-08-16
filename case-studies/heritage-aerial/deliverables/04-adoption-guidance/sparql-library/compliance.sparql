@@ -1,10 +1,8 @@
-# NAPH SPARQL Library — Compliance and validation queries
-#
+# NAPH SPARQL Library: Compliance and validation queries#
 # Tier compliance and self-assessment queries.
 
 # =============================================================================
-# Q-COMP-1 [B] — Tier distribution (dashboard query)
-# =============================================================================
+# Q-COMP-1 [B]: Tier distribution (dashboard query)# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -17,10 +15,8 @@ WHERE {
 GROUP BY ?tierLabel
 
 # =============================================================================
-# Q-COMP-2 [B] — Records claiming tier without meeting requirements
-# =============================================================================
-# Use case: data-quality audit — records with inconsistent tier claims.
-# Note: SHACL is the canonical validator; this is a quick SPARQL check.
+# Q-COMP-2 [B]: Records claiming tier without meeting requirements# =============================================================================
+# Use case: data-quality audit: records with inconsistent tier claims.# Note: SHACL is the canonical validator; this is a quick SPARQL check.
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 
@@ -31,8 +27,7 @@ WHERE {
 }
 
 # =============================================================================
-# Q-COMP-3 [B] — Records missing required fields for Baseline
-# =============================================================================
+# Q-COMP-3 [B]: Records missing required fields for Baseline# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 
@@ -61,8 +56,7 @@ WHERE {
 GROUP BY ?photo
 
 # =============================================================================
-# Q-COMP-4 [E] — Records claiming Enhanced but missing capture context
-# =============================================================================
+# Q-COMP-4 [E]: Records claiming Enhanced but missing capture context# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 
@@ -73,8 +67,7 @@ WHERE {
 }
 
 # =============================================================================
-# Q-COMP-5 [A] — Aspirational records missing subject classification
-# =============================================================================
+# Q-COMP-5 [A]: Aspirational records missing subject classification# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 
@@ -85,11 +78,9 @@ WHERE {
 }
 
 # =============================================================================
-# Q-COMP-6 [A] — Records with broken cross-collection links
-# =============================================================================
+# Q-COMP-6 [A]: Records with broken cross-collection links# =============================================================================
 # Use case: identify cross-references that may have moved or been deprecated.
-# Requires runtime URL resolution (not pure SPARQL — use the validation toolkit).
-
+# Requires runtime URL resolution (not pure SPARQL: use the validation toolkit).
 PREFIX naph: <https://w3id.org/naph/ontology#>
 
 SELECT ?photo ?linkedRecord
@@ -100,8 +91,7 @@ WHERE {
 # Companion link-health checker required to validate each ?linkedRecord URI
 
 # =============================================================================
-# Q-COMP-7 [B] — Date precision distribution
-# =============================================================================
+# Q-COMP-7 [B]: Date precision distribution# =============================================================================
 # Use case: how many records have full-date vs partial-date precision?
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
@@ -116,8 +106,7 @@ WHERE {
 GROUP BY ?precision
 
 # =============================================================================
-# Q-COMP-8 [E] — Surrogate quality distribution
-# =============================================================================
+# Q-COMP-8 [E]: Surrogate quality distribution# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 
