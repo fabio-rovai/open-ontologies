@@ -707,13 +707,13 @@ impl OpenOntologiesServer {
 
     // ── Marketplace ────────────────────────────────────────────────────────
 
-    #[tool(name = "onto_marketplace", description = "Browse and install standard ontologies from a curated catalogue of 33 W3C/ISO/industry standards. Actions: 'list' (browse catalogue, optional domain filter) or 'install' (fetch and load by ID)")]
+    #[tool(name = "onto_marketplace", description = "Browse and install ontologies from the curated catalogue of 33 W3C/ISO/industry standards plus the open community-pack registry (community/registry.json, fetched at runtime; override with OPEN_ONTOLOGIES_COMMUNITY_REGISTRY). Actions: 'list' (browse both tiers, optional domain filter; community=false for curated only) or 'install' (fetch and load by ID — curated IDs win over community)")]
     async fn onto_marketplace(&self, Parameters(input): Parameters<OntoMarketplaceInput>) -> String {
         use crate::marketplace;
         match input.action.as_str() {
             "list" => {
                 let entries = marketplace::list(input.domain.as_deref());
-                let items: Vec<serde_json::Value> = entries.iter().map(|e| {
+                let mut items: Vec<serde_json::Value> = entries.iter().map(|e| {
                     serde_json::json!({
                         "id": e.id,
                         "name": e.name,
@@ -721,12 +721,46 @@ impl OpenOntologiesServer {
                         "domain": e.domain,
                         "url": e.url,
                         "format": marketplace::format_name(e.format),
+                        "source": "curated",
                     })
                 }).collect();
+                let mut community_error = None;
+                let mut registry_source = None;
+                if input.community.unwrap_or(true) {
+                    match marketplace::load_community_packs().await {
+                        Ok((packs, shadowed, source)) => {
+                            registry_source = Some(source);
+                            for p in packs.iter().filter(|p| {
+                                input.domain.as_deref().is_none_or(|d| p.domain == d)
+                            }) {
+                                items.push(serde_json::json!({
+                                    "id": p.id,
+                                    "name": p.name,
+                                    "description": p.description,
+                                    "domain": p.domain,
+                                    "url": p.url,
+                                    "format": p.format,
+                                    "source": "community",
+                                    "maintainer": p.maintainer,
+                                    "license": p.license,
+                                }));
+                            }
+                            if !shadowed.is_empty() {
+                                community_error = Some(format!(
+                                    "community packs shadowing curated ids were ignored: {}",
+                                    shadowed.join(", ")
+                                ));
+                            }
+                        }
+                        Err(e) => community_error = Some(e),
+                    }
+                }
                 serde_json::json!({
                     "ok": true,
                     "count": items.len(),
                     "ontologies": items,
+                    "community_registry": registry_source,
+                    "community_registry_error": community_error,
                 }).to_string()
             }
             "install" => {
@@ -734,40 +768,131 @@ impl OpenOntologiesServer {
                     Some(id) => id,
                     None => return r#"{"error":"'id' is required for install action"}"#.to_string(),
                 };
-                let entry = match marketplace::find(id) {
-                    Some(e) => e,
-                    None => {
-                        let available: Vec<&str> = marketplace::CATALOGUE.iter().map(|e| e.id).collect();
-                        return serde_json::json!({
-                            "error": format!("Unknown ontology ID: '{}'. Use action 'list' to see available IDs.", id),
-                            "available": available,
-                        }).to_string();
-                    }
+                // Curated first; community packs can never shadow a curated ID.
+                let (name, url, format, tier, license) = match marketplace::find(id) {
+                    Some(e) => (e.name.to_string(), e.url.to_string(), e.format, "curated", None),
+                    None => match marketplace::load_community_packs().await {
+                        Ok((packs, _, _)) => match packs.into_iter().find(|p| p.id == id) {
+                            Some(p) => {
+                                let format = match marketplace::parse_format(&p.format) {
+                                    Some(f) => f,
+                                    None => return serde_json::json!({
+                                        "error": format!("community pack '{}' has invalid format '{}'", id, p.format),
+                                    }).to_string(),
+                                };
+                                (p.name, p.url, format, "community", p.license)
+                            }
+                            None => {
+                                let available: Vec<&str> = marketplace::CATALOGUE.iter().map(|e| e.id).collect();
+                                return serde_json::json!({
+                                    "error": format!("Unknown ontology ID: '{}'. Use action 'list' to see curated and community IDs.", id),
+                                    "available_curated": available,
+                                }).to_string();
+                            }
+                        },
+                        Err(e) => {
+                            let available: Vec<&str> = marketplace::CATALOGUE.iter().map(|e| e.id).collect();
+                            return serde_json::json!({
+                                "error": format!("'{}' is not a curated ID and the community registry could not be loaded: {}", id, e),
+                                "available_curated": available,
+                            }).to_string();
+                        }
+                    },
                 };
-                match crate::graph::GraphStore::fetch_url(entry.url).await {
+                match crate::graph::GraphStore::fetch_url(&url).await {
                     Ok(content) => {
-                        match self.graph.load_content_with_base(&content, entry.format, Some(entry.url)) {
+                        match self.graph.load_content_with_base(&content, format, Some(&url)) {
                             Ok(count) => {
                                 let stats = self.graph.get_stats().unwrap_or_default();
                                 let stats_val: serde_json::Value = serde_json::from_str(&stats).unwrap_or_default();
                                 serde_json::json!({
                                     "ok": true,
-                                    "installed": entry.id,
-                                    "name": entry.name,
+                                    "installed": id,
+                                    "name": name,
+                                    "tier": tier,
+                                    "license": license,
                                     "triples_loaded": count,
-                                    "source": entry.url,
+                                    "source": url,
                                     "classes": stats_val["classes"],
                                     "properties": stats_val["properties"],
                                     "individuals": stats_val["individuals"],
                                 }).to_string()
                             }
-                            Err(e) => format!(r#"{{"error":"Parse error for {}: {}"}}"#, entry.id, e),
+                            Err(e) => format!(r#"{{"error":"Parse error for {}: {}"}}"#, id, e),
                         }
                     }
-                    Err(e) => format!(r#"{{"error":"Fetch error for {}: {}"}}"#, entry.id, e),
+                    Err(e) => format!(r#"{{"error":"Fetch error for {}: {}"}}"#, id, e),
                 }
             }
             other => format!(r#"{{"error":"Unknown action '{}'. Use 'list' or 'install'."}}"#, other),
+        }
+    }
+
+    // ── WASM plugins ───────────────────────────────────────────────────────
+
+    #[tool(name = "onto_plugin_list", description = "Discover installed WASM plugins and the tools they provide. Plugins are community .wasm modules in ~/.open-ontologies/plugins or ./plugins (override with OPEN_ONTOLOGIES_PLUGIN_DIRS), run in-process with fuel metering. Requires a build with --features plugins.")]
+    fn onto_plugin_list(&self) -> String {
+        #[cfg(not(feature = "plugins"))]
+        { r#"{"error":"Compiled without plugins feature. Rebuild with --features plugins"}"#.to_string() }
+        #[cfg(feature = "plugins")]
+        {
+        let (plugins, errors) = crate::plugins::discover();
+        let items: Vec<serde_json::Value> = plugins.iter().map(|p| {
+            serde_json::json!({
+                "name": p.manifest.name,
+                "version": p.manifest.version,
+                "path": p.path.display().to_string(),
+                "tools": p.manifest.tools.iter().map(|t| serde_json::json!({
+                    "name": t.name,
+                    "description": t.description,
+                })).collect::<Vec<_>>(),
+            })
+        }).collect();
+        serde_json::json!({
+            "ok": true,
+            "count": items.len(),
+            "plugins": items,
+            "search_dirs": crate::plugins::plugin_dirs().iter().map(|d| d.display().to_string()).collect::<Vec<_>>(),
+            "broken": errors,
+        }).to_string()
+        }
+    }
+
+    #[tool(name = "onto_plugin_call", description = "Invoke a tool on an installed WASM plugin. Plugins are pure JSON->JSON transforms with no direct store access; pass 'sparql' to run a SELECT against the loaded store and inject its result rows into the plugin input as 'bindings'. Requires a build with --features plugins.")]
+    async fn onto_plugin_call(&self, Parameters(input): Parameters<OntoPluginCallInput>) -> String {
+        #[cfg(not(feature = "plugins"))]
+        { let _ = input; return r#"{"error":"Compiled without plugins feature. Rebuild with --features plugins"}"#.to_string(); }
+        #[cfg(feature = "plugins")]
+        {
+        let plugin = match crate::plugins::find(&input.plugin) {
+            Ok(p) => p,
+            Err(e) => return serde_json::json!({"error": e}).to_string(),
+        };
+        let mut payload = serde_json::json!({
+            "tool": input.tool,
+            "input": input.input.unwrap_or(serde_json::Value::Null),
+        });
+        if let Some(sparql) = input.sparql.as_deref() {
+            if let Err(e) = self.registry.ensure_loaded() {
+                return format!(r#"{{"error":"ensure_loaded: {}"}}"#, e.to_string().replace('"', "'"));
+            }
+            match self.graph.sparql_select(sparql) {
+                Ok(json) => {
+                    let parsed: serde_json::Value = serde_json::from_str(&json).unwrap_or_default();
+                    payload["bindings"] = parsed.get("results").cloned().unwrap_or(serde_json::Value::Null);
+                }
+                Err(e) => return serde_json::json!({"error": format!("sparql failed: {e}")}).to_string(),
+            }
+        }
+        match crate::plugins::call(&plugin.path, &payload) {
+            Ok(result) => serde_json::json!({
+                "ok": true,
+                "plugin": plugin.manifest.name,
+                "tool": input.tool,
+                "result": result,
+            }).to_string(),
+            Err(e) => serde_json::json!({"error": e, "plugin": plugin.manifest.name}).to_string(),
+        }
         }
     }
 

@@ -30,6 +30,7 @@
   <a href="#benchmarks">Benchmarks</a> ·
   <a href="#ies-support">IES</a> ·
   <a href="#tools">Tools</a> ·
+  <a href="#extending-open-ontologies">Extending</a> ·
   <a href="#architecture">Architecture</a> ·
   <a href="#documentation">Docs</a>
 </p>
@@ -822,7 +823,8 @@ The same tool, applied to any ontology, produces the same kind of improvement. T
 | **Core** | `validate` `load` `save` `clear` `stats` `query` `diff` `lint` `convert` `status` | RDF/OWL validation, querying, and management |
 | **Repository** | `repo_list` `repo_load` | Browse and load ontologies from configured `[general] ontology_dirs` directories |
 | **Cache** | `cache_status` `cache_list` `cache_remove` `unload` `recompile` | On-disk N-Triples compile cache, idle-TTL eviction, per-name management ([details](docs/cache-and-registry.md)) |
-| **Marketplace** | `marketplace` | Browse and install 33 standard W3C/ISO/industry ontologies |
+| **Marketplace** | `marketplace` | Browse and install 33 curated W3C/ISO/industry ontologies + open [community packs](community/README.md) |
+| **Plugins** | `plugin_list` `plugin_call` | Discover and invoke sandboxed community WASM plugins (`--features plugins`, [details](docs/plugins.md)) |
 | **Remote** | `pull` `push` `import` | Fetch/push ontologies, resolve owl:imports |
 | **Schema** | `import-schema` `sql-ingest` | Postgres + DuckDB → OWL + SQL → RDF ingest |
 | **Data** | `map` `ingest` `shacl` `shacl_check` `vocab_check` `reason` `extend` | Structured data → RDF pipeline; `vocab_check` = closed-world check that generated data uses only ontology-declared terms (catches what open-world SHACL misses) |
@@ -845,6 +847,21 @@ The same tool, applied to any ontology, produces the same kind of improvement. T
 | **Borderline loop** | `borderline_partition` `borderline_record_verdict` | Generalised two-threshold review pattern for any candidate set |
 | **SQL sync** | `sql_sync_state` `sql_sync_reset` `sql_sync_states_list` | CDC watermark tracking for incremental SQL ingest |
 | **Evaluation** | `eval_alignment` `eval_rag` `eval_rag_mmrag` | Alignment P/R/F1 + RAG Hit@k / MRR / faithfulness + dataset adapter |
+
+---
+
+## Extending Open Ontologies
+
+Four extension surfaces, in increasing order of coupling — full map in [ECOSYSTEM.md](ECOSYSTEM.md):
+
+| Surface | Contribution is | How |
+| ------- | --------------- | --- |
+| **[Community packs](community/README.md)** | Data — an ontology manifest in an open registry, installable via `onto_marketplace` the moment the PR merges (no release) | PR to [`community/registry.json`](community/registry.json) |
+| **[Community skills](skills/community/)** | Markdown — workflow recipes teaching agents to chain `onto_*` tools | PR a `SKILL.md` directory |
+| **[Companion servers](docs/companion-servers.md)** | An independent MCP server composing with this one in-session (lineage webhook, pack interchange, SPARQL endpoints) — [OpenCheir](https://github.com/fabio-rovai/opencheir) is the reference | Follow the five-rule contract, PR an [ECOSYSTEM.md](ECOSYSTEM.md) row |
+| **[WASM plugins](docs/plugins.md)** | Code — sandboxed wasm32 tools run in-process with fuel metering, no imports, no IO, per-call capability grants | Implement ABI v1 (reference: [`examples/plugins/`](examples/plugins/)) |
+
+Everything holds the MCP-native convention: extensions provide validation and scaffolding; the connected LLM does the intelligence.
 
 ---
 

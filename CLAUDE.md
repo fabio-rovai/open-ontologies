@@ -58,7 +58,9 @@ Claude dynamically decides the next tool call based on what the previous tool re
 | `onto_save` | To persist the ontology to a file |
 | `onto_convert` | To convert between formats (Turtle, N-Triples, RDF/XML, N-Quads, TriG) |
 | `onto_clear` | To reset the store before loading a different ontology |
-| `onto_marketplace` | To browse and install standard ontologies from a curated catalogue of 33 W3C/ISO/industry standards |
+| `onto_marketplace` | To browse and install ontologies: 33 curated W3C/ISO/industry standards plus community packs from the open registry (`community/registry.json`, fetched at runtime; `community=false` for curated/offline only). Curated IDs always win over community IDs |
+| `onto_plugin_list` | To discover installed WASM plugins (community `.wasm` tools in `~/.open-ontologies/plugins` or `./plugins`) and the tools each declares. Requires a build with `--features plugins` |
+| `onto_plugin_call` | To invoke a plugin tool. Plugins are sandboxed pure JSON→JSON transforms with no store access — pass `sparql` to run a SELECT and inject its rows into the plugin input as `bindings`. Use for domain-specific lint/validation logic contributed by the community |
 | `onto_pull` | To fetch an ontology from a remote URL or SPARQL endpoint |
 | `onto_push` | To push an ontology to a SPARQL endpoint |
 | `onto_import` | To resolve and load owl:imports chains |

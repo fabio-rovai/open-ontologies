@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "packs": [
+    {
+      "id": "pizza",
+      "name": "Pizza Ontology",
+      "description": "The Manchester/Stanford Pizza tutorial ontology — the canonical OWL teaching example, with defined classes, disjointness, and value partitions. Useful for demos, tests, and learning DL reasoning with onto_dl_check / onto_dl_explain.",
+      "domain": "teaching",
+      "url": "https://protege.stanford.edu/ontologies/pizza/pizza.owl",
+      "format": "rdfxml",
+      "maintainer": "Stanford Protégé team (pack submitted by @fabio-rovai)",
+      "homepage": "https://protege.stanford.edu",
+      "license": "CC-BY-3.0"
+    }
+  ]
+}
