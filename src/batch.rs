@@ -140,9 +140,20 @@ impl BatchRunner {
     }
 
     fn exec_query(&self, args: &[String]) -> Value {
-        let query = match args.first() {
-            Some(q) => q,
-            None => return json!({"error": "query requires a SPARQL string"}),
+        if args.is_empty() {
+            return json!({"error": "query requires a SPARQL string. Accepted forms: \
+                a line such as `query SELECT ?s WHERE { ?s ?p ?o }`, or JSON \
+                {\"command\":\"query\",\"args\":\"SELECT ...\"}, or \
+                {\"command\":\"query\",\"args\":[\"SELECT ...\"]}"});
+        }
+        // Defensive: if a caller supplies a query already split across arguments,
+        // rejoin it rather than silently running the first fragment.
+        let joined;
+        let query = if args.len() == 1 {
+            &args[0]
+        } else {
+            joined = args.join(" ");
+            &joined
         };
         match self.graph.sparql_select(query) {
             Ok(s) => serde_json::from_str(&s).unwrap_or(json!({"raw": s})),
@@ -476,7 +487,14 @@ fn parse_json(input: &str) -> Result<Vec<BatchCmd>, String> {
         let name = item["command"].as_str()
             .ok_or_else(|| "each JSON object must have a \"command\" field".to_string())?
             .to_string();
-        let args = if let Some(obj) = item["args"].as_object() {
+        // A bare string is the single positional argument. Without this the only
+        // object form available was the flag-flattening branch below, which turns
+        // {"args":{"path":"x.ttl"}} into ["--path","x.ttl"] and hands "--path" to a
+        // command expecting a path. That broke every positional-argument command,
+        // not only query.
+        let args = if let Some(s) = item["args"].as_str() {
+            vec![s.to_string()]
+        } else if let Some(obj) = item["args"].as_object() {
             let mut flat = Vec::new();
             for (k, v) in obj {
                 if v.is_boolean() {
@@ -559,6 +577,13 @@ fn split_command_line(line: &str) -> Result<Vec<String>, String> {
     Ok(words)
 }
 
+/// Commands whose argument is free text rather than a path or a flag. When such an
+/// argument is not quoted it is taken from the line verbatim, because tokenising it
+/// destroys it: an unquoted SPARQL query split on whitespace into a dozen fragments
+/// and only the first, the bare word "SELECT", ever reached the engine. A quoted
+/// argument still goes through the tokeniser, which has always handled it correctly.
+const VERBATIM_ARG_COMMANDS: &[&str] = &["query"];
+
 fn parse_lines(input: &str) -> Result<Vec<BatchCmd>, String> {
     let mut cmds = Vec::new();
     for line in input.lines() {
@@ -566,6 +591,27 @@ fn parse_lines(input: &str) -> Result<Vec<BatchCmd>, String> {
         if line.is_empty() || line.starts_with('#') {
             continue;
         }
+        // Verbs whose single argument is free text must not be tokenised. A SPARQL
+        // query splits on whitespace into a dozen useless fragments, and taking the
+        // first of them handed the engine the bare word "SELECT". For these, the
+        // remainder of the line after the verb is the argument, verbatim.
+        let (verb, rest) = match line.find(char::is_whitespace) {
+            Some(i) => (&line[..i], line[i..].trim()),
+            None => (line, ""),
+        };
+        // A quoted argument was always handled correctly by the tokeniser, and
+        // several tests pin that behaviour, so only an UNQUOTED remainder takes the
+        // verbatim path. That is the case that was broken: an unquoted query was
+        // split on whitespace and only its first fragment reached the engine.
+        let rest_is_quoted = rest.starts_with('"') || rest.starts_with('\'');
+        if VERBATIM_ARG_COMMANDS.contains(&verb) && !rest.is_empty() && !rest_is_quoted {
+            cmds.push(BatchCmd {
+                name: verb.to_string(),
+                args: vec![rest.to_string()],
+            });
+            continue;
+        }
+
         let words = split_command_line(line)
             .map_err(|e| format!("bad quoting on line '{}': {}", line, e))?;
         if words.is_empty() {
@@ -676,5 +722,70 @@ query "SELECT (COUNT(*) AS ?c) WHERE { ?s ?p ?o }"
         assert_eq!(BatchRunner::flag_value(&args, "--format"), Some("ntriples".to_string()));
         assert_eq!(BatchRunner::flag_value(&args, "--output"), Some("out.nt".to_string()));
         assert_eq!(BatchRunner::flag_value(&args, "--missing"), None);
+    }
+}
+
+#[cfg(test)]
+mod batch_query_parsing_tests {
+    use super::*;
+
+    // Regression tests for issue #100: a SPARQL query could not be executed in any
+    // accepted batch input form.
+
+    #[test]
+    fn line_form_keeps_the_query_verbatim() {
+        let cmds = parse_lines("query SELECT (COUNT(?s) AS ?n) WHERE { ?s ?p ?o }").unwrap();
+        assert_eq!(cmds.len(), 1);
+        assert_eq!(cmds[0].name, "query");
+        assert_eq!(cmds[0].args.len(), 1, "the query must arrive as one argument, not tokenised");
+        assert_eq!(cmds[0].args[0], "SELECT (COUNT(?s) AS ?n) WHERE { ?s ?p ?o }");
+    }
+
+    #[test]
+    fn line_form_preserves_quotes_and_braces_inside_a_query() {
+        let q = r#"SELECT ?s WHERE { ?s <http://example.org/p> "a literal with spaces" }"#;
+        let cmds = parse_lines(&format!("query {}", q)).unwrap();
+        assert_eq!(cmds[0].args[0], q);
+    }
+
+    #[test]
+    fn json_string_args_is_a_single_positional() {
+        let cmds = parse_json(r#"[{"command":"query","args":"SELECT ?s WHERE { ?s ?p ?o }"}]"#).unwrap();
+        assert_eq!(cmds[0].args, vec!["SELECT ?s WHERE { ?s ?p ?o }".to_string()]);
+    }
+
+    #[test]
+    fn json_string_args_works_for_paths_too() {
+        // The object form flattens to --key value, which handed "--path" to load.
+        let cmds = parse_json(r#"[{"command":"load","args":"data/graph.ttl"}]"#).unwrap();
+        assert_eq!(cmds[0].args, vec!["data/graph.ttl".to_string()]);
+    }
+
+    #[test]
+    fn json_array_args_still_works() {
+        let cmds = parse_json(r#"[{"command":"query","args":["SELECT ?s WHERE { ?s ?p ?o }"]}]"#).unwrap();
+        assert_eq!(cmds[0].args, vec!["SELECT ?s WHERE { ?s ?p ?o }".to_string()]);
+    }
+
+    #[test]
+    fn non_verbatim_commands_are_still_tokenised() {
+        // Only free-text verbs bypass tokenisation; paths and flags must not.
+        let cmds = parse_lines("lint ontology.ttl --strict").unwrap();
+        assert_eq!(cmds[0].name, "lint");
+        assert_eq!(cmds[0].args, vec!["ontology.ttl".to_string(), "--strict".to_string()]);
+    }
+
+    #[test]
+    fn windows_paths_survive_as_before() {
+        // Guards the backslash behaviour documented on split_command_line.
+        let cmds = parse_lines(r"plan C:\onto\proposed.ttl").unwrap();
+        assert_eq!(cmds[0].args[0], r"C:\onto\proposed.ttl");
+    }
+
+    #[test]
+    fn bare_query_verb_yields_a_helpful_error_not_a_panic() {
+        let cmds = parse_lines("query").unwrap();
+        assert_eq!(cmds[0].name, "query");
+        assert!(cmds[0].args.is_empty());
     }
 }
