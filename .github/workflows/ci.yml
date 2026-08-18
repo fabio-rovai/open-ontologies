@@ -38,6 +38,29 @@ jobs:
           cargo install cargo-audit
           cargo audit
 
+  # Windows is the only leg that rejects an unrepresentable path, and it rejects
+  # it inside actions/checkout, before a line is compiled: `benchmark/lubm\Uni-
+  # versity0_0.owl` is one file on Linux and macOS and an invalid path on
+  # Windows, so git exits 128 and cancels the rest of the matrix. That is how
+  # 190 generated LUBM files rode in on #100 while every local `git status`
+  # stayed clean and the failure surfaced as an unexplained build break. This
+  # job names the offending paths in seconds.
+  paths:
+    name: paths / windows-safe
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject paths Windows cannot check out
+        run: |
+          bad=$(git ls-files -z | tr '\0' '\n' \
+            | grep -Ei '\\|[:?*<>"|]|[ .]$|(^|/)(con|prn|aux|nul|com[1-9]|lpt[1-9])(\.|$)' || true)
+          if [ -n "$bad" ]; then
+            echo "Tracked paths that actions/checkout will reject on Windows:"
+            echo "$bad"
+            exit 1
+          fi
+          echo "All tracked paths are representable on Windows."
+
   # Optional features are compiled by nothing above: `default = []`, and the
   # three cargo invocations in `build` are bare. A green run there says nothing
   # about postgres, duckdb, sql, embeddings or causal-pywhy, nor about the
