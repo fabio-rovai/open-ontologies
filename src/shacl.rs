@@ -10,8 +10,13 @@ use std::sync::Arc;
 ///
 /// Shapes are parsed from inline Turtle into a temporary Oxigraph store.
 /// Constraints are translated into SPARQL queries run against the main graph.
-/// Supports `sh:minCount`, `sh:maxCount`, `sh:datatype`, `sh:pattern`, and
-/// `sh:hasValue` constraints.
+/// Supports the core constraints `sh:minCount`, `sh:maxCount`, `sh:datatype`,
+/// `sh:pattern` and `sh:hasValue`, and SPARQL-based constraints via `sh:sparql`.
+///
+/// Any constraint the validator cannot execute is recorded in
+/// `skipped_constraints` and suppresses the conformance verdict: `conforms`
+/// becomes null rather than true. Reporting success for rules that were never
+/// run is the one failure mode this validator must not have.
 pub struct ShaclValidator;
 
 impl ShaclValidator {
@@ -281,13 +286,146 @@ impl ShaclValidator {
             }
         }
 
-        let conforms = violations.is_empty();
+        // 5. SPARQL-based constraints (sh:sparql).
+        //
+        // These were previously not read at all, which meant a shapes file built
+        // entirely on sh:sparql returned conforms:true having evaluated nothing.
+        // A validator that reports success on rules it never ran is worse than
+        // one that refuses, so every constraint here is either executed or
+        // recorded in skipped_constraints, and skipping suppresses `conforms`.
+        for shape in &shapes {
+            let target_class = match shape.get("targetClass") {
+                Some(tc) => strip_angle_brackets(tc),
+                None => continue,
+            };
+            let shape_iri = match shape.get("shape") {
+                Some(s) => s.clone(),
+                None => continue,
+            };
+
+            let constraints = query_solutions(
+                &shapes_store,
+                &format!(
+                    r#"
+                    PREFIX sh: <http://www.w3.org/ns/shacl#>
+                    SELECT ?select ?message ?severity WHERE {{
+                        {} sh:sparql ?c .
+                        ?c sh:select ?select .
+                        OPTIONAL {{ ?c sh:message ?message }}
+                        OPTIONAL {{ ?c sh:severity ?severity }}
+                    }}
+                    "#,
+                    shape_iri
+                ),
+            )?;
+            if constraints.is_empty() {
+                continue;
+            }
+
+            // Focus nodes for this shape. Blank nodes are excluded because they
+            // cannot be named in a VALUES clause; excluding them is recorded
+            // rather than assumed harmless.
+            let focus_rows = graph_sparql_select(
+                graph,
+                &format!("SELECT ?this WHERE {{ ?this a <{target_class}> }}"),
+            )?;
+            let focus_nodes: Vec<String> = focus_rows
+                .iter()
+                .filter_map(|r| r.get("this"))
+                .filter(|t| t.starts_with('<'))
+                .cloned()
+                .collect();
+            let blank_focus = focus_rows.len() - focus_nodes.len();
+            if blank_focus > 0 {
+                skipped.push(serde_json::json!({
+                    "shape": strip_angle_brackets(&shape_iri),
+                    "reason": format!(
+                        "{} blank-node focus nodes excluded from sh:sparql evaluation (blank nodes cannot be bound in a VALUES clause)",
+                        blank_focus
+                    ),
+                }));
+            }
+            if focus_nodes.is_empty() {
+                continue;
+            }
+
+            let prefix_block = sparql_prefix_block(&shapes_store)?;
+
+            for constraint in &constraints {
+                let select_raw = match constraint.get("select") {
+                    Some(s) => strip_quotes(s),
+                    None => continue,
+                };
+                let message = constraint
+                    .get("message")
+                    .map(|m| strip_quotes(m))
+                    .unwrap_or_default();
+                let severity = constraint
+                    .get("severity")
+                    .map(|s| {
+                        strip_angle_brackets(s)
+                            .rsplit('#')
+                            .next()
+                            .unwrap_or("Violation")
+                            .to_string()
+                    })
+                    .unwrap_or_else(|| "Violation".to_string());
+
+                // SHACL pre-binds $this to the focus node. Rewrite it to the
+                // ordinary variable ?this and bind it through a VALUES clause,
+                // wrapping the author's SELECT as a subquery so that nothing is
+                // spliced into the middle of their query text.
+                let inner = select_raw.replace("$this", "?this");
+                let values = focus_nodes.join(" ");
+                let wrapped = format!(
+                    "{prefix_block}SELECT ?this WHERE {{ VALUES ?this {{ {values} }} {{ {inner} }} }}"
+                );
+
+                match graph_sparql_select(graph, &wrapped) {
+                    Ok(rows) => {
+                        for row in &rows {
+                            if let Some(focus) = row.get("this") {
+                                let msg = if message.is_empty() {
+                                    "SPARQL constraint violated".to_string()
+                                } else {
+                                    message.clone()
+                                };
+                                violations.push(serde_json::json!({
+                                    "severity": severity,
+                                    "focus_node": strip_angle_brackets(focus),
+                                    "constraint": "sparql",
+                                    "message": msg,
+                                }));
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        // Most often an undeclared prefix inside the author's
+                        // SELECT. Report it; never let it read as conformance.
+                        skipped.push(serde_json::json!({
+                            "shape": strip_angle_brackets(&shape_iri),
+                            "constraint": "sparql",
+                            "reason": format!("sh:sparql constraint could not be executed: {}", e),
+                        }));
+                    }
+                }
+            }
+        }
+
         let mut report = serde_json::json!({
-            "conforms": conforms,
             "violation_count": violations.len(),
             "violations": violations,
         });
-        if !skipped.is_empty() {
+        if skipped.is_empty() {
+            report["conforms"] = serde_json::Value::Bool(violations.is_empty());
+        } else {
+            // Some constraints in this shapes graph were not evaluated, so no
+            // conformance verdict can honestly be given. Null rather than true.
+            report["conforms"] = serde_json::Value::Null;
+            report["warning"] = serde_json::Value::String(format!(
+                "{} constraint(s) were not evaluated, so conformance is undetermined. See skipped_constraints.",
+                skipped.len()
+            ));
             report["skipped_constraints"] = serde_json::Value::Array(skipped);
         }
 
@@ -584,7 +722,80 @@ fn strip_quotes(s: &str) -> String {
     } else {
         s
     };
-    // Strip surrounding quotes
     let s = s.trim_matches('"');
-    s.to_string()
+    unescape_literal(s)
+}
+
+/// Undo the N-Triples escaping that Oxigraph applies when rendering a literal
+/// through `Term::to_string()`.
+///
+/// This matters well beyond cosmetics. A multi-line `sh:select` string arrives
+/// here carrying the two characters backslash and n where the author wrote a
+/// newline, and a SPARQL parser rejects that outright. Before this was fixed,
+/// every multi-line SPARQL constraint failed to parse.
+fn unescape_literal(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut chars = s.chars();
+    while let Some(c) = chars.next() {
+        if c != '\\' {
+            out.push(c);
+            continue;
+        }
+        match chars.next() {
+            Some('n') => out.push('\n'),
+            Some('t') => out.push('\t'),
+            Some('r') => out.push('\r'),
+            Some('b') => out.push('\u{8}'),
+            Some('f') => out.push('\u{c}'),
+            Some('"') => out.push('"'),
+            Some('\'') => out.push('\''),
+            Some('\\') => out.push('\\'),
+            Some('u') => {
+                let hex: String = chars.by_ref().take(4).collect();
+                match u32::from_str_radix(&hex, 16).ok().and_then(char::from_u32) {
+                    Some(decoded) => out.push(decoded),
+                    None => {
+                        out.push_str("\\u");
+                        out.push_str(&hex);
+                    }
+                }
+            }
+            Some(other) => {
+                out.push('\\');
+                out.push(other);
+            }
+            None => out.push('\\'),
+        }
+    }
+    out
+}
+
+/// Build a SPARQL PREFIX block from any `sh:declare` blocks in the shapes graph.
+///
+/// SHACL lets a `sh:sparql` constraint reference prefixed names and point at its
+/// prefix declarations with `sh:prefixes`. Rather than resolve that pointer
+/// strictly, every declaration present in the shapes graph is collected, which is
+/// permissive but never wrong: an unused PREFIX line changes no result, whereas a
+/// missing one turns an executable constraint into an unevaluated one.
+fn sparql_prefix_block(shapes_store: &Store) -> anyhow::Result<String> {
+    let rows = query_solutions(
+        shapes_store,
+        r#"
+        PREFIX sh: <http://www.w3.org/ns/shacl#>
+        SELECT ?prefix ?namespace WHERE {
+            ?decl sh:prefix ?prefix ; sh:namespace ?namespace .
+        }
+        "#,
+    )?;
+    let mut block = String::new();
+    for row in &rows {
+        if let (Some(prefix), Some(namespace)) = (row.get("prefix"), row.get("namespace")) {
+            block.push_str(&format!(
+                "PREFIX {}: <{}>\n",
+                strip_quotes(prefix),
+                strip_angle_brackets(&strip_quotes(namespace))
+            ));
+        }
+    }
+    Ok(block)
 }
