@@ -5,8 +5,16 @@ on:
   pull_request:
     branches: [main]
 
+# Superseded branch runs are cancelled; main runs are kept so every commit
+# keeps its own status. Three pushes to main landed inside 33 minutes on
+# 2026-08-18 and each one started a fresh 6 hour hang.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   build:
+    timeout-minutes: 30
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -46,6 +54,7 @@ jobs:
   # stayed clean and the failure surfaced as an unexplained build break. This
   # job names the offending paths in seconds.
   paths:
+    timeout-minutes: 10
     name: paths / windows-safe
     runs-on: ubuntu-latest
     steps:
@@ -75,6 +84,7 @@ jobs:
   # Ubuntu only. The bundled duckdb build dominates wall time and Windows would
   # double it for no signal the Linux leg does not already give.
   features:
+    timeout-minutes: 45
     name: features / ${{ matrix.name }}
     runs-on: ubuntu-latest
     strategy:
@@ -106,7 +116,32 @@ jobs:
           sudo apt-get clean
           df -h
       - name: Install build deps (OpenSSL/libpq)
-        run: sudo apt-get update && sudo apt-get install -y pkg-config libssl-dev libpq-dev
+        # The runner image already ships all three of these, so the common case
+        # is a no-op: the step logged "0 upgraded, 0 newly installed" every time
+        # it succeeded. Its only real effect was an unconditional network call.
+        # On 2026-08-18 the Azure apt mirror went dark, apt fell back to
+        # archive.ubuntu.com, stalled mid-transfer, and sat there with no
+        # timeout until GitHub killed the job at the 6 hour ceiling (runs
+        # 32156117278 and 32157458411, 5h58m of silence after the last Get:).
+        # So: touch the network only when something is genuinely missing, and
+        # bound apt when it is.
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          missing=()
+          for p in pkg-config libssl-dev libpq-dev; do
+            dpkg -s "$p" >/dev/null 2>&1 || missing+=("$p")
+          done
+          if [ ${#missing[@]} -eq 0 ]; then
+            echo "Build deps already present on the image; skipping apt."
+            exit 0
+          fi
+          echo "Missing build deps: ${missing[*]}"
+          sudo apt-get -o Acquire::Retries=3 \
+                       -o Acquire::http::Timeout=30 \
+                       -o Acquire::https::Timeout=30 update
+          sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
+                       --no-install-recommends "${missing[@]}"
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
@@ -146,6 +181,7 @@ jobs:
   # runs at publish time tells you about the defect after the artefact is
   # public.
   python:
+    timeout-minutes: 15
     name: python (open-ontologies-lite)
     runs-on: ubuntu-latest
     steps:
@@ -171,6 +207,7 @@ jobs:
   # crate. Type-checking is the part that catches the errors a reviewer cannot
   # see by reading a diff.
   studio:
+    timeout-minutes: 15
     name: studio (typecheck)
     runs-on: ubuntu-latest
     steps:
