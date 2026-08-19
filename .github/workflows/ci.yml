@@ -101,9 +101,13 @@ jobs:
           # causal-pywhy is left out here rather than everywhere — it shells out
           # to Python/DoWhy at runtime, which is a service dependency in all but
           # name. It is still compiled and linted by the breadth leg.
-          - name: depth (postgres,duckdb,embeddings,sql)
+          # `turbovec` belongs in this leg rather than only in the breadth
+          # leg, because breadth is `test: false`. Without it here the
+          # TurboQuant backend and the text-vector eviction mode are compiled
+          # and linted by CI but never once executed by it.
+          - name: depth (postgres,duckdb,embeddings,sql,turbovec)
             cache_key: depth
-            flags: --features postgres,duckdb,embeddings,sql
+            flags: --features postgres,duckdb,embeddings,sql,turbovec
             test: true
     env:
       CARGO_INCREMENTAL: 0
