@@ -577,6 +577,19 @@ fn setup(data_dir: &str) -> anyhow::Result<(StateDb, Arc<GraphStore>)> {
     Ok((db, graph))
 }
 
+/// Whether the resolved storage backend keeps the graph in RAM only.
+///
+/// One-shot CLI subcommands each build their own store, so in this mode nothing
+/// a command loads is visible to the next one.
+fn is_memory_storage(data_dir: &str) -> bool {
+    use open_ontologies::config::{resolve_storage_mode, StorageMode};
+    let data_path = std::path::PathBuf::from(expand_tilde(data_dir));
+    let storage_cfg = open_ontologies::config::Config::load(&data_path.join("config.toml"))
+        .map(|c| c.storage)
+        .unwrap_or_default();
+    matches!(resolve_storage_mode(&storage_cfg), StorageMode::Memory)
+}
+
 /// Build the singleton main graph using the configured storage backend.
 ///
 /// In-memory: returns an empty `GraphStore`.
@@ -1436,10 +1449,24 @@ async fn async_main() -> anyhow::Result<()> {
         Commands::Load { path } => {
             let (_db, graph) = setup(&cli.data_dir)?;
             match graph.load_file(&path) {
-                Ok(count) => output_json(
-                    &serde_json::json!({"ok": true, "triples_loaded": count, "path": path}),
-                    cli.pretty,
-                ),
+                Ok(count) => {
+                    let mut report =
+                        serde_json::json!({"ok": true, "triples_loaded": count, "path": path});
+                    // In-memory is the default backend, so a one-shot `load`
+                    // fills a store that dies with the process. Saying only
+                    // "triples_loaded" here reads as durable, and the next
+                    // command reporting zero reads as data loss.
+                    if is_memory_storage(&cli.data_dir) {
+                        report["warning"] = serde_json::Value::String(
+                            "storage mode is 'memory', so this load did not persist: \
+                             a following command starts from an empty store. Set \
+                             [storage] mode = \"persistent\" or OPEN_ONTOLOGIES_STORAGE_MODE=persistent \
+                             to chain CLI commands."
+                                .to_string(),
+                        );
+                    }
+                    output_json(&report, cli.pretty)
+                }
                 Err(e) => {
                     output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
                     std::process::exit(1);

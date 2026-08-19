@@ -45,12 +45,30 @@ impl ShaclValidator {
 
         let mut violations: Vec<serde_json::Value> = Vec::new();
         let mut skipped: Vec<serde_json::Value> = Vec::new();
+        let mut unmatched: Vec<serde_json::Value> = Vec::new();
+        let mut focus_nodes_total: u64 = 0;
 
         for shape in &shapes {
             let target_class = match shape.get("targetClass") {
                 Some(tc) => strip_angle_brackets(tc),
                 None => continue,
             };
+
+            // How many nodes does this shape actually apply to? A shape whose
+            // target class appears nowhere in the data evaluates every one of
+            // its constraints against the empty set and contributes no
+            // violations, which is indistinguishable in the report from a shape
+            // that checked its nodes and found them sound.
+            let focus_count = count_focus_nodes(graph, &target_class)?;
+            focus_nodes_total += focus_count;
+            if focus_count == 0 {
+                unmatched.push(serde_json::json!({
+                    "shape": strip_angle_brackets(
+                        shape.get("shape").map(|s| s.as_str()).unwrap_or_default()
+                    ),
+                    "target_class": target_class,
+                }));
+            }
 
             // 3. Find property constraints for this shape
             let shape_iri = match shape.get("shape") {
@@ -412,11 +430,24 @@ impl ShaclValidator {
             }
         }
 
+        let nothing_matched = !shapes.is_empty() && focus_nodes_total == 0;
+
         let mut report = serde_json::json!({
             "violation_count": violations.len(),
             "violations": violations,
+            "focus_nodes": focus_nodes_total,
+            "unmatched_shapes": unmatched,
         });
-        if skipped.is_empty() {
+        if nothing_matched && skipped.is_empty() {
+            // Every shape targeted a class with no instances in the data, so
+            // nothing was checked. Reporting `conforms: true` here would be the
+            // same lie as reporting it for a constraint that never ran.
+            report["conforms"] = serde_json::Value::Null;
+            report["warning"] = serde_json::Value::String(format!(
+                "no focus nodes matched: all {} shape(s) target classes absent from the data, so conformance is undetermined. See unmatched_shapes.",
+                shapes.len()
+            ));
+        } else if skipped.is_empty() {
             report["conforms"] = serde_json::Value::Bool(violations.is_empty());
         } else {
             // Some constraints in this shapes graph were not evaluated, so no
@@ -698,6 +729,23 @@ fn is_recognised_xsd_datatype(iri: &str) -> bool {
 }
 
 /// Trim angle brackets from IRI strings like `<http://example.org/foo>`.
+/// Count the distinct nodes a `sh:targetClass` shape applies to.
+///
+/// Used to tell "checked and clean" apart from "checked nothing": a shape whose
+/// target class has no instances passes every constraint vacuously.
+fn count_focus_nodes(graph: &Arc<GraphStore>, target_class: &str) -> anyhow::Result<u64> {
+    let query = format!(
+        r#"SELECT (COUNT(DISTINCT ?focus) AS ?cnt) WHERE {{ ?focus a <{target_class}> }}"#
+    );
+    let rows = graph_sparql_select(graph, &query)?;
+    Ok(rows
+        .first()
+        .and_then(|row| row.get("cnt"))
+        .map(|c| strip_quotes(c))
+        .and_then(|c| c.parse::<u64>().ok())
+        .unwrap_or(0))
+}
+
 fn strip_angle_brackets(s: &str) -> String {
     let s = s.trim();
     if s.starts_with('<') && s.ends_with('>') {
