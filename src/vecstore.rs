@@ -8,7 +8,12 @@ use std::collections::HashMap;
 
 #[derive(Clone)]
 struct VecEntry {
-    text_vec: Vec<f32>,
+    /// `None` when the store is evicting text vectors: the float32 lives only
+    /// in the `embeddings` table and is loaded on demand.
+    text_vec: Option<Vec<f32>>,
+    /// Retained in both modes. The dimensionality is needed by callers that
+    /// only want to know the shape, and an evicted entry has no vector to ask.
+    text_dim: usize,
     struct_vec: Vec<f32>,
 }
 
@@ -41,6 +46,15 @@ pub struct VecStore {
     /// `remove` maintain it in place, which is the entire reason it exists.
     #[cfg(feature = "turbovec")]
     turbo_index: Option<crate::turbo_index::TurboCosineIndex>,
+    /// When true, float32 text vectors are not retained in memory. They are
+    /// written through to the `embeddings` table on upsert and loaded back on
+    /// demand: a shortlist per query for the exact re-score, the whole set for
+    /// paths that genuinely need every vector.
+    ///
+    /// Only worth turning on with the TurboQuant backend. The HNSW graph holds
+    /// its own float32 copies of every point, so evicting the store's copy
+    /// while querying through HNSW moves the memory rather than saving it.
+    evict_text: bool,
 }
 
 impl VecStore {
@@ -53,7 +67,26 @@ impl VecStore {
             embeddings_fp: None,
             #[cfg(feature = "turbovec")]
             turbo_index: None,
+            evict_text: false,
         }
+    }
+
+    /// Stop retaining float32 text vectors in memory.
+    ///
+    /// Set it before loading or upserting anything. See the `evict_text` field
+    /// for what it costs and when it pays.
+    pub fn with_text_vectors_evicted(mut self) -> Self {
+        self.evict_text = true;
+        self
+    }
+
+    /// Bytes of float32 text vector currently held in memory. Zero in eviction
+    /// mode, which is the whole point of it.
+    pub fn resident_text_vector_bytes(&self) -> usize {
+        self.entries
+            .values()
+            .map(|e| e.text_vec.as_ref().map_or(0, |v| v.len() * 4))
+            .sum()
     }
 
     /// Record which embedding configuration produced (and will produce) the
@@ -91,8 +124,17 @@ impl VecStore {
 
     pub fn upsert(&mut self, iri: &str, text_vec: &[f32], struct_vec: &[f32]) {
         let normalised = l2_normalize(text_vec);
+        // In eviction mode the row IS the storage, so it is written before the
+        // in-memory bookkeeping: a later read must never find an entry whose
+        // vector was never persisted.
+        if self.evict_text
+            && let Err(e) = self.write_through(iri, &normalised, struct_vec)
+        {
+            tracing::error!("failed to persist embedding for {iri}: {e}");
+        }
         self.entries.insert(iri.to_string(), VecEntry {
-            text_vec: normalised.clone(),
+            text_vec: if self.evict_text { None } else { Some(normalised.clone()) },
+            text_dim: normalised.len(),
             struct_vec: struct_vec.to_vec(),
         });
         // Invalidate BOTH HNSW indices — instant-distance is immutable.
@@ -114,6 +156,12 @@ impl VecStore {
     }
 
     pub fn remove(&mut self, iri: &str) {
+        if self.evict_text && self.entries.contains_key(iri) {
+            let conn = self.db.conn();
+            if let Err(e) = conn.execute("DELETE FROM embeddings WHERE iri = ?1", [iri]) {
+                tracing::error!("failed to delete embedding row for {iri}: {e}");
+            }
+        }
         self.entries.remove(iri);
         self.cosine_index = None;
         self.poincare_index = None;
@@ -123,10 +171,159 @@ impl VecStore {
         }
     }
 
+    /// Write one entry straight to the `embeddings` table. Eviction mode only:
+    /// with vectors resident, `persist` does this in bulk instead.
+    fn write_through(&self, iri: &str, text_vec: &[f32], struct_vec: &[f32]) -> anyhow::Result<()> {
+        let conn = self.db.conn();
+        conn.execute(
+            "INSERT OR REPLACE INTO embeddings (iri, text_vec, struct_vec, text_dim, struct_dim, model_fp) \
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            rusqlite::params![
+                iri,
+                f32_slice_to_bytes(text_vec),
+                f32_slice_to_bytes(struct_vec),
+                text_vec.len() as i64,
+                struct_vec.len() as i64,
+                self.embeddings_fp,
+            ],
+        )?;
+        Ok(())
+    }
+
+    /// One text vector, from memory or from the row, whichever holds it.
+    ///
+    /// Prefer this over [`Self::get_text_vec`], which can only answer for a
+    /// resident store and returns `None` under eviction.
+    pub fn load_text_vec(&self, iri: &str) -> Option<Vec<f32>> {
+        match self.entries.get(iri) {
+            None => None,
+            Some(e) => match &e.text_vec {
+                Some(v) => Some(v.clone()),
+                None => {
+                    let conn = self.db.conn();
+                    conn.query_row(
+                        "SELECT text_vec FROM embeddings WHERE iri = ?1",
+                        [iri],
+                        |row| row.get::<_, Vec<u8>>(0),
+                    )
+                    .ok()
+                    .map(|b| bytes_to_f32_vec(&b))
+                }
+            },
+        }
+    }
+
+    /// A named subset of text vectors in one query. This is the hot path under
+    /// eviction: the re-score needs the shortlist and nothing else, so it must
+    /// not degenerate into one round trip per candidate.
+    fn fetch_text_vecs(&self, iris: &[String]) -> HashMap<String, Vec<f32>> {
+        if !self.evict_text {
+            return iris
+                .iter()
+                .filter_map(|iri| {
+                    self.entries
+                        .get(iri)
+                        .and_then(|e| e.text_vec.as_ref())
+                        .map(|v| (iri.clone(), v.clone()))
+                })
+                .collect();
+        }
+        if iris.is_empty() {
+            return HashMap::new();
+        }
+        let placeholders = std::iter::repeat_n("?", iris.len())
+            .collect::<Vec<_>>()
+            .join(",");
+        let sql = format!("SELECT iri, text_vec FROM embeddings WHERE iri IN ({placeholders})");
+        let conn = self.db.conn();
+        let mut out = HashMap::with_capacity(iris.len());
+        if let Ok(mut stmt) = conn.prepare(&sql) {
+            let params = rusqlite::params_from_iter(iris.iter());
+            if let Ok(rows) = stmt.query_map(params, |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, Vec<u8>>(1)?))
+            }) {
+                for row in rows.flatten() {
+                    out.insert(row.0, bytes_to_f32_vec(&row.1));
+                }
+            }
+        }
+        out
+    }
+
+    /// Every text vector, sorted by IRI so the order is deterministic in both
+    /// modes. Used by the paths that genuinely need the whole set: the exact
+    /// scan, the product search, index builds, and the fingerprint.
+    ///
+    /// Borrowed when the vectors are resident. A scan that cloned the entire
+    /// corpus per query would cost more than the arithmetic it exists to do,
+    /// and would make a resident store slower than an evicted one.
+    fn all_text_vecs_cow(&self) -> Vec<(&str, std::borrow::Cow<'_, [f32]>)> {
+        if !self.evict_text {
+            let mut out: Vec<(&str, std::borrow::Cow<'_, [f32]>)> = self
+                .entries
+                .iter()
+                .filter_map(|(iri, e)| {
+                    e.text_vec
+                        .as_ref()
+                        .map(|v| (iri.as_str(), std::borrow::Cow::Borrowed(v.as_slice())))
+                })
+                .collect();
+            out.sort_by(|a, b| a.0.cmp(b.0));
+            return out;
+        }
+        self.stream_text_vecs()
+            .into_iter()
+            .map(|(iri, v)| {
+                let key = self
+                    .entries
+                    .get_key_value(&iri)
+                    .map(|(k, _)| k.as_str())
+                    .unwrap_or("");
+                (key, std::borrow::Cow::Owned(v))
+            })
+            .collect()
+    }
+
+    /// Owned form, for the index builders that need to hand vectors on.
+    fn all_text_vecs(&self) -> Vec<(String, Vec<f32>)> {
+        self.all_text_vecs_cow()
+            .into_iter()
+            .map(|(iri, v)| (iri.to_string(), v.into_owned()))
+            .collect()
+    }
+
+    /// The evicted arm of [`Self::all_text_vecs_cow`]: read every row back.
+    fn stream_text_vecs(&self) -> Vec<(String, Vec<f32>)> {
+        let conn = self.db.conn();
+        let mut out = Vec::with_capacity(self.entries.len());
+        if let Ok(mut stmt) =
+            conn.prepare("SELECT iri, text_vec FROM embeddings ORDER BY iri ASC")
+            && let Ok(rows) = stmt.query_map([], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, Vec<u8>>(1)?))
+            })
+        {
+            {
+                for (iri, bytes) in rows.flatten() {
+                    // The table can outlive an entry that was removed from the
+                    // set in a mode that did not delete rows; trust `entries`.
+                    if self.entries.contains_key(&iri) {
+                        out.push((iri, bytes_to_f32_vec(&bytes)));
+                    }
+                }
+            }
+        }
+        out
+    }
+
     pub fn search_cosine(&self, query: &[f32], top_k: usize) -> Vec<(String, f32)> {
         let query_norm = l2_normalize(query);
-        let mut scores: Vec<(String, f32)> = self.entries.iter()
-            .map(|(iri, e)| (iri.clone(), cosine_similarity(&query_norm, &e.text_vec)))
+        let mut scores: Vec<(String, f32)> = self
+            .all_text_vecs_cow()
+            .into_iter()
+            .map(|(iri, v)| {
+                let sim = cosine_similarity(&query_norm, &v);
+                (iri.to_string(), sim)
+            })
             .collect();
         scores.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         scores.truncate(top_k);
@@ -157,11 +354,7 @@ impl VecStore {
             // Lazy build from current entries. Vectors are already L2-normalised
             // (the upsert path guarantees that), so the HNSW index sees unit
             // vectors and the cosine distance == 1 - dot product.
-            let points: Vec<(String, Vec<f32>)> = self
-                .entries
-                .iter()
-                .map(|(iri, e)| (iri.clone(), e.text_vec.clone()))
-                .collect();
+            let points = self.all_text_vecs();
             self.cosine_index = Some(CosineIndex::build(points));
         }
         let query_norm = l2_normalize(query);
@@ -210,13 +403,15 @@ impl VecStore {
         alpha: f32,
     ) -> Vec<(String, f32)> {
         let text_norm = l2_normalize(text_query);
-        let mut scores: Vec<(String, f32)> = self.entries.iter()
-            .map(|(iri, e)| {
-                let cos = cosine_similarity(&text_norm, &e.text_vec);
-                let poinc = poincare_distance(struct_query, &e.struct_vec);
+        let mut scores: Vec<(String, f32)> = self
+            .all_text_vecs_cow()
+            .into_iter()
+            .filter_map(|(iri, text)| {
+                let struct_vec = &self.entries.get(iri)?.struct_vec;
+                let cos = cosine_similarity(&text_norm, &text);
+                let poinc = poincare_distance(struct_query, struct_vec);
                 let poinc_sim = 1.0 / (1.0 + poinc);
-                let combined = alpha * cos + (1.0 - alpha) * poinc_sim;
-                (iri.clone(), combined)
+                Some((iri.to_string(), alpha * cos + (1.0 - alpha) * poinc_sim))
             })
             .collect();
         scores.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
@@ -229,17 +424,18 @@ impl VecStore {
     /// underlying vectors have changed. Includes both keys and text-vec bytes
     /// in the hash so re-embedding the same IRI with a new vector triggers a
     /// rebuild.
-    fn entries_fingerprint(&self) -> Vec<u8> {
-        let mut keys: Vec<&String> = self.entries.keys().collect();
-        keys.sort();
+    pub fn entries_fingerprint(&self) -> Vec<u8> {
+        // `all_text_vecs` returns IRI-sorted pairs in both modes, and SQLite's
+        // default BINARY collation orders the same way Rust's `String` does,
+        // so an evicted store and a resident one hash the same stream and can
+        // share a database and its index caches.
         let mut hash: u64 = 0xcbf29ce484222325;
-        for k in keys {
-            for byte in k.as_bytes() {
+        for (iri, vec) in self.all_text_vecs_cow() {
+            for byte in iri.as_bytes() {
                 hash ^= *byte as u64;
                 hash = hash.wrapping_mul(0x100000001b3);
             }
-            let v = &self.entries[k];
-            for f in &v.text_vec {
+            for f in vec.iter() {
                 for byte in f.to_le_bytes() {
                     hash ^= byte as u64;
                     hash = hash.wrapping_mul(0x100000001b3);
@@ -257,11 +453,7 @@ impl VecStore {
             self.cosine_index = None;
             return;
         }
-        let points: Vec<(String, Vec<f32>)> = self
-            .entries
-            .iter()
-            .map(|(iri, e)| (iri.clone(), e.text_vec.clone()))
-            .collect();
+        let points = self.all_text_vecs();
         self.cosine_index = Some(crate::hnsw_index::CosineIndex::build_with_params(
             points, params,
         ));
@@ -294,11 +486,7 @@ impl VecStore {
             return Ok(());
         }
         if self.cosine_index.is_none() {
-            let points: Vec<(String, Vec<f32>)> = self
-                .entries
-                .iter()
-                .map(|(iri, e)| (iri.clone(), e.text_vec.clone()))
-                .collect();
+            let points = self.all_text_vecs();
             self.cosine_index = Some(CosineIndex::build(points));
         }
         let bytes = match self.cosine_index.as_ref() {
@@ -378,11 +566,7 @@ impl VecStore {
             return Ok(tokio::task::spawn(async { Ok::<(), anyhow::Error>(()) }));
         }
         if self.cosine_index.is_none() {
-            let points: Vec<(String, Vec<f32>)> = self
-                .entries
-                .iter()
-                .map(|(iri, e)| (iri.clone(), e.text_vec.clone()))
-                .collect();
+            let points = self.all_text_vecs();
             self.cosine_index = Some(CosineIndex::build(points));
         }
         let bytes = self
@@ -546,12 +730,13 @@ impl VecStore {
             None => return self.search_cosine(query, top_k),
         };
         // Re-score the shortlist exactly. The quantised score is discarded.
-        let mut rescored: Vec<(String, f32)> = shortlist
+        let candidates: Vec<String> = shortlist.into_iter().map(|(iri, _quantised)| iri).collect();
+        let vecs = self.fetch_text_vecs(&candidates);
+        let mut rescored: Vec<(String, f32)> = candidates
             .into_iter()
-            .filter_map(|(iri, _quantised)| {
-                self.entries
-                    .get(&iri)
-                    .map(|e| (iri.clone(), cosine_similarity(&query_norm, &e.text_vec)))
+            .filter_map(|iri| {
+                let sim = cosine_similarity(&query_norm, vecs.get(&iri)?);
+                Some((iri, sim))
             })
             .collect();
         rescored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
@@ -571,12 +756,7 @@ impl VecStore {
 
     #[cfg(feature = "turbovec")]
     fn build_turbo_index(&self) -> anyhow::Result<crate::turbo_index::TurboCosineIndex> {
-        let points: Vec<(String, Vec<f32>)> = self
-            .entries
-            .iter()
-            .map(|(iri, e)| (iri.clone(), e.text_vec.clone()))
-            .collect();
-        crate::turbo_index::TurboCosineIndex::build(points)
+        crate::turbo_index::TurboCosineIndex::build(self.all_text_vecs())
     }
 
     /// Number of vectors in the live TurboQuant index, or `None` when it has
@@ -653,6 +833,12 @@ impl VecStore {
     }
 
     pub fn persist(&self) -> anyhow::Result<()> {
+        if self.evict_text {
+            // Every upsert already wrote its row. Re-running the bulk path here
+            // would DELETE the table and re-insert from memory, which under
+            // eviction holds no text vectors at all.
+            return Ok(());
+        }
         let conn = self.db.conn();
         let tx = conn.unchecked_transaction()?;
         tx.execute("DELETE FROM embeddings", [])?;
@@ -661,13 +847,13 @@ impl VecStore {
                 "INSERT INTO embeddings (iri, text_vec, struct_vec, text_dim, struct_dim, model_fp) VALUES (?1, ?2, ?3, ?4, ?5, ?6)"
             )?;
             for (iri, entry) in &self.entries {
-                let text_bytes = f32_slice_to_bytes(&entry.text_vec);
+                let text_bytes = f32_slice_to_bytes(entry.text_vec.as_deref().unwrap_or(&[]));
                 let struct_bytes = f32_slice_to_bytes(&entry.struct_vec);
                 stmt.execute(rusqlite::params![
                     iri,
                     text_bytes,
                     struct_bytes,
-                    entry.text_vec.len() as i64,
+                    entry.text_dim as i64,
                     entry.struct_vec.len() as i64,
                     self.embeddings_fp,
                 ])?;
@@ -708,8 +894,10 @@ impl VecStore {
                     }
                     continue;
                 }
+                let text_vec = bytes_to_f32_vec(&text_bytes);
                 self.entries.insert(iri, VecEntry {
-                    text_vec: bytes_to_f32_vec(&text_bytes),
+                    text_dim: text_vec.len(),
+                    text_vec: if self.evict_text { None } else { Some(text_vec) },
                     struct_vec: bytes_to_f32_vec(&struct_bytes),
                 });
             }
@@ -752,8 +940,13 @@ impl VecStore {
         self.entries.is_empty()
     }
 
+    /// The resident text vector, if there is one.
+    ///
+    /// Returns `None` under eviction even for an IRI the store holds, because
+    /// there is no in-memory vector to borrow. Use [`Self::load_text_vec`] on
+    /// any path that must work in both modes.
     pub fn get_text_vec(&self, iri: &str) -> Option<&[f32]> {
-        self.entries.get(iri).map(|e| e.text_vec.as_slice())
+        self.entries.get(iri).and_then(|e| e.text_vec.as_deref())
     }
 
     pub fn get_struct_vec(&self, iri: &str) -> Option<&[f32]> {

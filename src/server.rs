@@ -2656,8 +2656,9 @@ impl OpenOntologiesServer {
         {
         let vecstore = self.vecstore.lock().unwrap();
 
-        let text_a = vecstore.get_text_vec(&input.iri_a);
-        let text_b = vecstore.get_text_vec(&input.iri_b);
+        // Owned loads, so this works under text-vector eviction too.
+        let text_a = vecstore.load_text_vec(&input.iri_a);
+        let text_b = vecstore.load_text_vec(&input.iri_b);
         let struct_a = vecstore.get_struct_vec(&input.iri_a);
         let struct_b = vecstore.get_struct_vec(&input.iri_b);
 
@@ -2666,7 +2667,7 @@ impl OpenOntologiesServer {
                 if text_a.is_none() { &input.iri_a } else { &input.iri_b });
         }
 
-        let cos = crate::poincare::cosine_similarity(text_a.unwrap(), text_b.unwrap());
+        let cos = crate::poincare::cosine_similarity(&text_a.unwrap(), &text_b.unwrap());
         let poinc = if let (Some(a), Some(b)) = (struct_a, struct_b) {
             crate::poincare::poincare_distance(a, b)
         } else {

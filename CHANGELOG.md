@@ -5,6 +5,47 @@ All notable changes to Open Ontologies are documented here.
 ## [Unreleased]
 
 ### Added
+- **Optional eviction of float32 text vectors from memory**
+  (`VecStore::with_text_vectors_evicted`, `turbovec` feature). Without it the
+  TurboQuant backend's compression is a smaller SQLite blob rather than less
+  RAM, because the 4 bit codes and the float32 vectors they were made from are
+  both resident. In eviction mode the float32 lives only in the `embeddings`
+  table: upserts write through to the row before touching memory, removals
+  delete it, and reads load on demand. Three new accessors carry every path
+  that used to reach into the entry map directly: `fetch_text_vecs` pulls just
+  the shortlist for the exact re-score (the hot path, one query rather than one
+  round trip per candidate), `all_text_vecs` streams the whole set IRI-sorted
+  for the paths that genuinely need every vector, and the public
+  `load_text_vec` returns one owned vector in either mode. New
+  `resident_text_vector_bytes()` reports what is still held.
+
+  `entries_fingerprint` is now public and reads through `all_text_vecs`, so an
+  evicted store and a resident one over the same database hash the same stream
+  and can share persisted index caches; a test asserts that equality.
+  `get_text_vec` still returns a borrowed slice and therefore returns `None`
+  under eviction, which is why `align.rs` and `onto_compare` were moved to
+  `load_text_vec`: left alone they would have silently scored every pair at
+  0.0. Eviction is only coherent with the TurboQuant backend, since an
+  `instant-distance` graph holds its own float32 copy of every point. 8 tests
+  in `tests/vecstore_eviction_test.rs`, each asserting an evicted store returns
+  exactly what a resident one built from identical data returns, plus an
+  `#[ignore]`d measurement of what the mode costs per query.
+
+  Measured at 20,000 vectors x 384 dims on an M3 Max: 30.7 MB of resident
+  float32 goes to zero, `search_cosine_turbo` costs about 75 us more per query
+  (312 us to 387 us) for the shortlist fetch, and the exact `search_cosine`
+  scan costs 2.4x more (16.4 ms to 39.4 ms) because it reads every row. Evict
+  when the workload queries through the turbo path; do not evict when it leans
+  on the exact scan.
+
+### Fixed
+- **`search_cosine` and `search_product` no longer clone the entire corpus per
+  query.** Routing them through the new whole-set accessor initially copied
+  every float32 vector on every call, which cost 20 ms per query at 20,000 x
+  384 and made a resident store measurably slower than an evicted one. The
+  accessor now yields `Cow` and borrows when the vectors are resident: the
+  exact scan went from 36.6 ms to 16.4 ms. Caught by the eviction measurement,
+  not by the tests, which only assert results.
 - **TurboQuant cosine index backend** (new optional `turbovec` feature, off by
   default, implies `embeddings`). A second index backend for the text half of
   the vector store, built on Google Research's TurboQuant quantiser
@@ -62,16 +103,23 @@ All notable changes to Open Ontologies are documented here.
   `#[ignore]`d measurement against HNSW.
 
   Measured at 10,000 vectors x 768 dims on an M3 Max (`docs/embeddings.md` has
-  the table): build 116 s vs 178 ms, one added embedding 137 s vs 52 us, query
+  the tables): build 116 s vs 178 ms, one added embedding 137 s vs 52 us, query
   4.7 ms vs 0.25 ms, serialised index 34.1 MB vs 5.2 MB against 30.7 MB of raw
-  float32. recall@10 is 91.6% for HNSW and 100% for the re-scored TurboQuant
-  shortlist, and the control says that gap is structural rather than a matter
-  of shortlist width: giving HNSW 40 candidates instead of 10 leaves its recall
-  at exactly 91.6%, because the entries it misses are ones the graph walk never
-  reaches. The corpus is isotropic random vectors, which is close to the worst
-  case for a graph index and kinder data would narrow the gap, so the claim is
-  that flat-scan recall is data-independent, not that HNSW loses 8% on a real
-  ontology.
+  float32.
+
+  The recall picture is worth stating carefully, because the first measurement
+  overstated it. On that synthetic corpus recall@10 is 91.6% for HNSW and 100%
+  for the re-scored TurboQuant shortlist, and the control shows the gap is
+  structural rather than a matter of shortlist width: giving HNSW 40 candidates
+  instead of 10 leaves it at exactly 91.6%, because the entries it misses are
+  ones the graph walk never reaches. But isotropic random vectors are close to
+  the worst case for a graph index, and on a real corpus the gap all but
+  vanishes. `measure_recall_on_a_real_corpus` embeds 10,000 real ontology
+  labels with the shipped local MiniLM model over two contrasting real corpora,
+  a topical taxonomy (mean pairwise cosine 0.25) and a set of real-world entity
+  names (0.34), against ~0 for the synthetic corpus. HNSW scores 99.9% and
+  99.8% there, against 100% for TurboQuant. So recall is not a reason to switch backends; mutation cost and
+  index size are.
 - **Four extension surfaces** (ECOSYSTEM.md maps them). (1) **Community
   marketplace packs**: `onto_marketplace` now merges an open runtime-fetched
   registry (`community/registry.json`, override with

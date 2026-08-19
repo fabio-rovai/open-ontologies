@@ -63,9 +63,8 @@ configuration, and `entries_hash` rejects one whose entry set has moved on.
 
 ### Measured
 
-10,000 vectors x 768 dims, Apple M3 Max, release build,
-`cargo test --release --features turbovec -- --ignored --nocapture`
-(`measure_turbo_against_hnsw` in `tests/turbovec_index_test.rs`).
+10,000 vectors x 768 dims of isotropic random data, Apple M3 Max, release
+build, `measure_turbo_against_hnsw` in `tests/turbovec_index_test.rs`:
 
 | | HNSW | TurboQuant |
 | --- | --- | --- |
@@ -77,29 +76,85 @@ configuration, and `entries_hash` rejects one whose entry set has moved on.
 | Serialised index | 34.1 MB | 5.2 MB |
 
 Raw float32 for that corpus is 30.7 MB, so the HNSW blob is larger than the
-vectors it indexes and the TurboQuant one is a sixth of them. Build and
-rebuild times move by a factor of several between runs depending on machine
-load; the query, recall and size figures are stable.
+vectors it indexes and the TurboQuant one is a sixth of them. Build and rebuild
+times move by a factor of several between runs depending on machine load; the
+query, recall and size figures are stable.
 
-Read the two recall rows together, because that is the control. Asking HNSW
-for 40 candidates instead of 10 and re-scoring changes nothing: the entries it
-misses are ones its graph walk never reaches, so no amount of over-fetching
-recovers them, and `ef_search` (default 100) is the only lever. The flat
-quantised scan has no such failure mode by construction, because it scores
-every vector. That is a structural difference, not a tuning one.
+**Do not read the recall rows as a reason to switch.** They come from
+isotropic random vectors, which is close to the worst case for a graph index:
+every pairwise cosine sits near zero, so ranks 10 and 11 are separated by noise
+and there is no cluster structure for the walk to exploit. On a real corpus the
+gap all but disappears. `measure_recall_on_a_real_corpus` embeds 10,000 real
+ontology labels with the shipped local MiniLM model over two contrasting real
+corpora, one a topical taxonomy and one a set of real-world entity names:
 
-One caveat on those recall numbers: the corpus is isotropic random vectors,
-which is close to the worst case for a graph index. Every pairwise cosine sits
-near zero, so ranks 10 and 11 are separated by noise and there is no cluster
-structure for the walk to exploit. Real text embeddings are kinder to HNSW.
-The point is not that HNSW loses 8% on your ontology; it is that its recall is
-data-dependent while the flat index's is not.
+| Corpus (10,000 labels, 384 dims) | mean pairwise cosine | HNSW as wired | HNSW, 40 re-scored to 10 | TurboQuant |
+| --- | --- | --- | --- | --- |
+| Learning-standards labels | 0.25 | 99.9% | 99.9% | 100% |
+| Securities-register entity names | 0.34 | 99.8% | 99.8% | 100% |
+| Isotropic random (for contrast) | ~0 | 91.6% | 91.6% | 100% |
+
+So HNSW's recall is data-dependent and TurboQuant's is not, but on data that
+looks like anything you would actually embed, HNSW is already effectively
+exact. The honest reasons to prefer the TurboQuant backend are mutation cost
+and index size, not accuracy.
+
+The one structural point the synthetic run does establish: over-fetching does
+not help a graph index. Giving HNSW 40 candidates instead of 10 leaves its
+recall unchanged to the digit in both corpora, because the entries it misses
+are ones the walk never reaches and `ef_search` is the only lever. A flat
+quantised scan cannot have that failure mode, because it scores every vector.
 
 **When to pick which.** HNSW if the ontology is embedded once and then only
 queried. TurboQuant if embeddings arrive incrementally (the rebuild is what
 you are paying for, not the query), or if the corpus is large enough that
 float32 storage is the constraint: at 768 dims a 4 bit code is 388 bytes
 against 3,072.
+
+### Evicting float32 text vectors
+
+`VecStore` normally keeps every float32 text vector in memory for the lifetime
+of the process. That makes TurboQuant's compression a smaller SQLite blob
+rather than less RAM, because the codes and the vectors they were made from
+are both resident.
+
+```rust
+let store = VecStore::new(db).with_text_vectors_evicted();
+```
+
+In eviction mode the float32 lives only in the `embeddings` table. Upserts
+write through to the row before touching memory, removals delete it, and reads
+load on demand: `fetch_text_vecs` pulls just the shortlist for the exact
+re-score, `all_text_vecs` streams the whole set for the paths that genuinely
+need every vector (the exact scan, the product search, index builds, the
+fingerprint). `resident_text_vector_bytes()` reports what is still held, and it
+is zero under eviction.
+
+Two things to know before turning it on:
+
+- **It is only coherent with the TurboQuant backend.** An `instant-distance`
+  graph holds its own float32 copy of every point, so evicting the store's copy
+  while querying through HNSW moves the memory rather than saving it.
+- **`get_text_vec` returns `None` under eviction**, because there is no
+  in-memory vector to borrow. `load_text_vec` returns an owned vector and works
+  in both modes; every internal caller uses it.
+
+An evicted store and a resident one over the same database produce the same
+entry-set fingerprint, so they can share persisted index caches.
+
+Measured at 20,000 vectors x 384 dims on an M3 Max
+(`measure_eviction_cost` in `tests/vecstore_eviction_test.rs`):
+
+| | Resident | Evicted |
+| --- | --- | --- |
+| float32 held in memory | 30.7 MB | 0 MB |
+| `search_cosine_turbo`, top-10 | 312 us | 387 us (1.2x) |
+| `search_cosine`, exact scan | 16.4 ms | 39.4 ms (2.4x) |
+
+The turbo path pays about 75 us per query for the shortlist fetch, which is the
+trade the mode exists to make. The exact scan pays much more, because it reads
+every row: if a workload leans on `search_cosine` rather than
+`search_cosine_turbo`, do not evict.
 
 ## Providers
 

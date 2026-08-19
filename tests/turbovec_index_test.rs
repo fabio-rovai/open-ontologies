@@ -475,3 +475,165 @@ fn measure_turbo_against_hnsw() {
     );
     println!();
 }
+
+/// Recall of both backends over a *real* embedded corpus.
+///
+/// `measure_turbo_against_hnsw` runs on isotropic random vectors, which is
+/// close to the worst case for a graph index: every pairwise cosine sits near
+/// zero, so ranks 10 and 11 are separated by noise and there is no cluster
+/// structure for the walk to exploit. This runs the same comparison over real
+/// ontology labels embedded with the shipped local ONNX model, which is the
+/// only way to know whether that 8 point gap is an artefact of the corpus.
+///
+/// ```text
+/// OO_BENCH_LABELS=/tmp/labels_lso.txt \
+///   cargo test --release --features turbovec -- --ignored --nocapture real_corpus
+/// ```
+///
+/// Embeddings are cached next to the labels file, so re-runs skip the model.
+#[test]
+#[ignore = "measurement; needs OO_BENCH_LABELS and the local ONNX model"]
+fn measure_recall_on_a_real_corpus() {
+    use open_ontologies::embed::{TextEmbedder, DEFAULT_MODEL_FILENAME};
+    use open_ontologies::hnsw_index::CosineIndex;
+    use std::io::Write;
+    use std::path::PathBuf;
+
+    const TOP_K: usize = 10;
+    const WIDE: usize = TOP_K * 4;
+
+    let labels_path = match std::env::var("OO_BENCH_LABELS") {
+        Ok(p) => PathBuf::from(p),
+        Err(_) => {
+            println!("set OO_BENCH_LABELS to a newline-delimited label file");
+            return;
+        }
+    };
+    let limit: usize = std::env::var("OO_BENCH_LIMIT")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(usize::MAX);
+
+    let labels: Vec<String> = std::fs::read_to_string(&labels_path)
+        .expect("labels file")
+        .lines()
+        .filter(|l| !l.trim().is_empty())
+        .take(limit)
+        .map(|l| l.to_string())
+        .collect();
+    let n = labels.len();
+
+    // Embed once, cache to disk. The cache is keyed by the labels file and the
+    // count, so a different slice does not silently reuse the wrong vectors.
+    let cache_path = labels_path.with_extension(format!("{n}.f32"));
+    let flat: Vec<f32> = if cache_path.exists() {
+        let raw = std::fs::read(&cache_path).unwrap();
+        raw.chunks_exact(4)
+            .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+            .collect()
+    } else {
+        let models = PathBuf::from(std::env::var("HOME").unwrap()).join(".open-ontologies/models");
+        let embedder = TextEmbedder::load(
+            &models.join(DEFAULT_MODEL_FILENAME),
+            &models.join("tokenizer.json"),
+        )
+        .expect("local ONNX model + tokenizer");
+        let started = std::time::Instant::now();
+        let mut flat = Vec::with_capacity(n * embedder.dim());
+        for (i, chunk) in labels.chunks(64).enumerate() {
+            let refs: Vec<&str> = chunk.iter().map(|s| s.as_str()).collect();
+            for v in embedder.embed_batch(&refs).unwrap() {
+                flat.extend_from_slice(&v);
+            }
+            if i % 20 == 0 {
+                println!("  embedded {}/{n} ({:.0?})", (i + 1) * 64, started.elapsed());
+            }
+        }
+        let mut fh = std::fs::File::create(&cache_path).unwrap();
+        for v in &flat {
+            fh.write_all(&v.to_le_bytes()).unwrap();
+        }
+        flat
+    };
+
+    let dim = flat.len() / n;
+    let entries: Vec<(String, Vec<f32>)> = (0..n)
+        .map(|i| {
+            (
+                format!("http://ex.org/L{i}"),
+                l2_normalize(&flat[i * dim..(i + 1) * dim]),
+            )
+        })
+        .collect();
+    println!("\n{n} real labels x {dim} dims  ({})\n", labels_path.display());
+
+    let mut hnsw = CosineIndex::build(entries.clone());
+    let turbo = TurboCosineIndex::build(entries.clone()).unwrap();
+
+    // Anisotropy of the corpus, as the one number that says how far it is from
+    // the synthetic case: the mean cosine between random distinct pairs. Near
+    // zero is isotropic; real embeddings sit well above it.
+    let mut acc = 0.0f64;
+    let pairs = 20_000;
+    for p in 0..pairs {
+        let a = &entries[(p * 7919) % n].1;
+        let b = &entries[(p * 104729 + 13) % n].1;
+        acc += a.iter().zip(b).map(|(x, y)| x * y).sum::<f32>() as f64;
+    }
+    println!("mean pairwise cosine  {:.4}  (isotropic random ~= 0)", acc / pairs as f64);
+
+    let queries: Vec<usize> = (0..300).map(|i| (i * 7919) % n).collect();
+    let (mut h_hits, mut h_wide_hits, mut t_hits, mut total) = (0usize, 0usize, 0usize, 0usize);
+    let mut self_match_failures = 0usize;
+
+    for &qi in &queries {
+        let q = &entries[qi].1;
+        let mut exact: Vec<(usize, f32)> = entries
+            .iter()
+            .enumerate()
+            .map(|(i, (_, v))| (i, q.iter().zip(v).map(|(a, b)| a * b).sum::<f32>()))
+            .collect();
+        exact.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        let truth: Vec<String> = exact
+            .iter()
+            .take(TOP_K)
+            .map(|(i, _)| entries[*i].0.clone())
+            .collect();
+
+        let h: Vec<String> = hnsw.search(q, TOP_K).into_iter().map(|(i, _)| i).collect();
+        let h_wide: Vec<String> = hnsw.search(q, WIDE).into_iter().map(|(i, _)| i).collect();
+        let t: Vec<String> = turbo.search(q, WIDE).into_iter().map(|(i, _)| i).collect();
+
+        // Sanity: a query that IS an indexed vector must retrieve itself.
+        if t.first().map(|s| s.as_str()) != Some(entries[qi].0.as_str()) {
+            self_match_failures += 1;
+        }
+
+        for iri in &truth {
+            total += 1;
+            if h.contains(iri) {
+                h_hits += 1;
+            }
+            if h_wide.contains(iri) {
+                h_wide_hits += 1;
+            }
+            if t.contains(iri) {
+                t_hits += 1;
+            }
+        }
+    }
+
+    println!(
+        "recall@{TOP_K}     hnsw {:>9.1}%  (as wired: {TOP_K} returned, {TOP_K} kept)",
+        100.0 * h_hits as f64 / total as f64
+    );
+    println!(
+        "              hnsw {:>9.1}%  (control: {WIDE} returned, re-scored to {TOP_K})",
+        100.0 * h_wide_hits as f64 / total as f64
+    );
+    println!(
+        "             turbo {:>9.1}%  (as wired: {WIDE} returned, re-scored to {TOP_K})",
+        100.0 * t_hits as f64 / total as f64
+    );
+    println!("turbo self-match failures: {self_match_failures}/{}\n", queries.len());
+}

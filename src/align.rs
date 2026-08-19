@@ -435,7 +435,7 @@ impl AlignmentEngine {
                     std::collections::HashMap::new();
                 let mut any_used = false;
                 for sc in &source_classes {
-                    if let Some(src_vec) = vs.get_text_vec(&sc.iri).map(|v| v.to_vec()) {
+                    if let Some(src_vec) = vs.load_text_vec(&sc.iri) {
                         let shortlist = vs.search_cosine_hnsw(&src_vec, HNSW_TOP_K);
                         if !shortlist.is_empty() {
                             let filtered: std::collections::HashSet<String> = shortlist
@@ -491,8 +491,11 @@ impl AlignmentEngine {
                 let embedding_sim = {
                     if let Some(ref vs) = self.vecstore {
                         let vs = vs.lock().unwrap();
-                        match (vs.get_text_vec(&sc.iri), vs.get_text_vec(&tc.iri)) {
-                            (Some(a), Some(b)) => Self::embedding_similarity_score(a, b),
+                        // `load_text_vec`, not `get_text_vec`: the latter can
+                        // only answer for a resident store, and would silently
+                        // score every pair at 0.0 under text-vector eviction.
+                        match (vs.load_text_vec(&sc.iri), vs.load_text_vec(&tc.iri)) {
+                            (Some(a), Some(b)) => Self::embedding_similarity_score(&a, &b),
                             _ => 0.0,
                         }
                     } else {
