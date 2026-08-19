@@ -1,0 +1,86 @@
+{
+  "version": "v1.0.0",
+  "entity": {
+    "type": "individual",
+    "role": "owner",
+    "name": "Fabio Rovai",
+    "email": "fabio@thetesseractacademy.com",
+    "description": "Ontology engineer and open-source maintainer working on machine-checkable semantics for public data. Author and maintainer of Open Ontologies, a Rust MCP server and desktop Studio for building, validating and governing RDF/OWL ontologies, together with a family of public register-integrity ontologies and audit datasets covering securities, banking, education, media, insurance, scholarly, space, biosurveillance and national company registers. The work is published openly on GitHub under permissive licences, with findings reported upstream to the standards bodies and registry operators concerned. Consultancy work is carried out through The Tesseract Academy (Kampakis and Co Ltd, UK), but the software listed here is maintained personally and released free of charge. GitHub: https://github.com/fabio-rovai",
+    "webpageUrl": {
+      "url": "https://github.com/fabio-rovai"
+    }
+  },
+  "projects": [
+    {
+      "guid": "open-ontologies",
+      "name": "Open Ontologies",
+      "description": "Open Ontologies is a Rust MCP (Model Context Protocol) server and desktop Studio for AI-native ontology engineering. It exposes 70+ tools that let an LLM client build, validate, query, diff, lint, version, reason over, align, plan, certify and govern RDF/OWL ontologies against an in-memory Oxigraph triple store. It ships as a single binary with no JVM and no Protege dependency, and covers OWL 2 profile checking, SHACL validation, SPARQL, OWL-RL reasoning, ontology diffing, a marketplace of 33 standard ontologies, IES (Information Exchange Standard) support for UK defence and government data, semantic embeddings, PDDL planning, and a full lineage audit trail. The design is deliberately MCP-native: the server provides validation, scaffolding and proof, while the connected model supplies the intelligence. There are no embedded LLM clients, no API keys and no provider lock-in, so the same engine runs offline and in air-gapped environments. Open Ontologies is the verification engine behind a public programme of register-integrity audits, where every published finding is re-checked by an independent path before release. Funding supports maintenance, cross-platform release engineering, the reasoning and planner layers, and continued free distribution.",
+      "webpageUrl": {
+        "url": "https://github.com/fabio-rovai/open-ontologies"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/fabio-rovai/open-ontologies"
+      },
+      "licenses": ["spdx:MIT"],
+      "tags": [
+        "artificial-intelligence",
+        "knowledge",
+        "information-management",
+        "developer-tools",
+        "database",
+        "data",
+        "science",
+        "software-engineering",
+        "api"
+      ]
+    }
+  ],
+  "funding": {
+    "channels": [
+      {
+        "guid": "github-sponsors",
+        "type": "payment-provider",
+        "address": "https://github.com/sponsors/fabio-rovai",
+        "description": "GitHub Sponsors. Accepts custom monthly or one-time amounts by card. Preferred channel for individual and small recurring support."
+      },
+      {
+        "guid": "bank-transfer",
+        "type": "bank",
+        "address": "Account details supplied on request to fabio@thetesseractacademy.com",
+        "description": "UK bank transfer, for grant-scale or institutional funding where an invoice and written funding agreement are required. GBP, EUR and USD accepted."
+      }
+    ],
+    "plans": [
+      {
+        "guid": "goodwill",
+        "status": "active",
+        "name": "Goodwill donation",
+        "description": "Any amount, one time. Supports general maintenance and keeps the project free to use.",
+        "amount": 0,
+        "currency": "USD",
+        "frequency": "one-time",
+        "channels": ["github-sponsors"]
+      },
+      {
+        "guid": "sustaining-monthly",
+        "status": "active",
+        "name": "Sustaining maintenance",
+        "description": "Covers ongoing maintenance: issue triage, dependency and security updates, CI, and signed cross-platform release binaries for Linux, macOS and Windows.",
+        "amount": 300,
+        "currency": "USD",
+        "frequency": "monthly",
+        "channels": ["github-sponsors", "bank-transfer"]
+      },
+      {
+        "guid": "annual-development",
+        "status": "active",
+        "name": "Annual development programme",
+        "description": "Funds a defined block of roadmap work for one year, agreed in writing with the funder and delivered in public. Current priorities are hardening the Dynamics, Causal and Planner layers, the plugin and extension surfaces, Studio release engineering, and expanding the public register-integrity audit corpus that the engine validates.",
+        "amount": 25000,
+        "currency": "USD",
+        "frequency": "yearly",
+        "channels": ["bank-transfer", "github-sponsors"]
+      }
+    ]
+  }
+}
