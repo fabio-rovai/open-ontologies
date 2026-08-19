@@ -216,6 +216,10 @@ impl VecStore {
     /// A named subset of text vectors in one query. This is the hot path under
     /// eviction: the re-score needs the shortlist and nothing else, so it must
     /// not degenerate into one round trip per candidate.
+    ///
+    /// Only the TurboQuant path re-scores a shortlist, so this is gated with
+    /// it; the HNSW backend either scans everything or trusts the graph.
+    #[cfg(feature = "turbovec")]
     fn fetch_text_vecs(&self, iris: &[String]) -> HashMap<String, Vec<f32>> {
         if !self.evict_text {
             return iris

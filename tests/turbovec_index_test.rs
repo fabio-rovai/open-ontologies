@@ -219,10 +219,10 @@ fn a_query_of_the_wrong_dimensionality_returns_nothing_rather_than_being_truncat
 
     // Silently truncating or padding a mismatched query would return a
     // plausible-looking ranking computed against the wrong vector.
-    assert!(index.search(&vec![0.1f32; 128], 5).is_empty());
-    assert!(index.search(&vec![0.1f32; 32], 5).is_empty());
+    assert!(index.search(&[0.1f32; 128], 5).is_empty());
+    assert!(index.search(&[0.1f32; 32], 5).is_empty());
     assert!(index
-        .search_within(&vec![0.1f32; 128], 5, &["http://ex.org/C1".to_string()])
+        .search_within(&[0.1f32; 128], 5, &["http://ex.org/C1".to_string()])
         .unwrap()
         .is_empty());
 }
@@ -269,7 +269,7 @@ fn turbo_search_returns_the_same_ranking_and_scores_as_the_exact_scan() {
 fn upsert_keeps_the_turbo_index_warm_instead_of_dropping_it() {
     let (mut store, _entries) = populated_store(100, 64);
     // Warm the index.
-    let _ = store.search_cosine_turbo(&vec![0.1; 64], 5);
+    let _ = store.search_cosine_turbo(&[0.1; 64], 5);
     assert_eq!(store.turbo_index_len(), Some(100));
 
     let mut newcomer = vec![0.0f32; 64];
@@ -342,7 +342,7 @@ fn a_stale_turbo_index_cache_is_rejected() {
         let _ = store.search_cosine_turbo(&entries[0].1, 5);
         store.persist_turbo_index().unwrap();
         // Entries move on without the cache being refreshed.
-        store.upsert("http://ex.org/Extra", &vec![0.5; 64], &[0.1, 0.1]);
+        store.upsert("http://ex.org/Extra", &[0.5; 64], &[0.1, 0.1]);
         store.persist().unwrap();
     }
 
