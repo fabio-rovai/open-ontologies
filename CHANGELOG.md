@@ -5,6 +5,73 @@ All notable changes to Open Ontologies are documented here.
 ## [Unreleased]
 
 ### Added
+- **TurboQuant cosine index backend** (new optional `turbovec` feature, off by
+  default, implies `embeddings`). A second index backend for the text half of
+  the vector store, built on Google Research's TurboQuant quantiser
+  (arXiv:2504.19874) via the `turbovec` crate, alongside the existing
+  `instant-distance` HNSW graph. New `src/turbo_index.rs` with
+  `TurboCosineIndex` (`build`, `upsert`, `remove`, `search`, `search_within`,
+  `to_bytes`, `from_bytes`), and three new `VecStore` entry points
+  (`search_cosine_turbo`, `persist_turbo_index`, `load_turbo_index`) plus the
+  `turbo_index_len` accessor.
+
+  The motivation is mutation cost, not compression. An `instant-distance`
+  graph is immutable, so every `VecStore::upsert` sets `cosine_index = None`
+  and the next search pays a full rebuild; an ontology whose embeddings arrive
+  incrementally pays that rebuild once per class. TurboQuant has no training
+  phase and no graph, so an insert is an append and a removal is O(1), and
+  `upsert`/`remove` now maintain the live index rather than dropping it.
+
+  The quantised index is a candidate generator, never the answer.
+  `search_cosine_turbo` pulls a shortlist four times wider than the request
+  (floor of `top_k + 32`), re-scores every candidate against the float32
+  vector the store already holds, and returns that, so no approximate
+  similarity number reaches a caller and the result is identical to the exact
+  brute-force scan whenever the shortlist covers the true top-k. That identity
+  is asserted directly against `search_cosine` in the tests rather than
+  assumed.
+
+  Scope limits, both deliberate. (1) `PoincareIndex` is untouched and stays on
+  `instant-distance`: TurboQuant scores inner products, and hyperbolic
+  distance is not an inner product on the ambient coordinates. (2) The store
+  still holds float32 vectors in memory, because the exact re-score and
+  `search_cosine` need them, so this change does not yet realise TurboQuant's
+  memory win. Evicting float32 to SQLite with load-on-demand for the re-score
+  is the follow-on.
+
+  Implementation notes: vectors are zero-padded to the next multiple of 8
+  (`turbovec` requires `dim % 8 == 0`; zero padding leaves every inner product
+  unchanged). IRIs map to `u64` ids that are never recycled, so a stale
+  allowlist entry naming a removed id fails loudly rather than resolving to
+  whatever vector took its place; the id counter is serialised with the index
+  so a reload cannot restart allocation at 0. A query is validated before it
+  reaches the kernel: `turbovec`'s allowlist-free `search` is the panicking
+  form, so a non-finite coordinate from a misbehaving embedding provider, or a
+  query whose dimensionality disagrees with the index, is reported as no
+  results rather than panicking the server or being silently truncated into a
+  plausible-looking ranking against the wrong vector. Persistence reuses the existing
+  `hnsw_index_cache` table under `kind = 'turbo_cosine'` with no schema
+  change, and both load guards are unchanged: `model_fp` rejects an index
+  built under a different embedding configuration, `entries_hash` rejects one
+  whose entry set has moved on. 17 new tests in `tests/turbovec_index_test.rs`
+  covering top-1 agreement with the exact scan, incremental add/replace/remove,
+  byte round-trip, id allocation after a reload, allowlist search (including
+  unknown and empty allowlists), sub-8 dimensionality padding, non-finite and
+  wrong-width query rejection, the VecStore score-identity guarantee, index
+  warmth across mutations, SQLite round-trip and stale-cache rejection, plus an
+  `#[ignore]`d measurement against HNSW.
+
+  Measured at 10,000 vectors x 768 dims on an M3 Max (`docs/embeddings.md` has
+  the table): build 116 s vs 178 ms, one added embedding 137 s vs 52 us, query
+  4.7 ms vs 0.25 ms, serialised index 34.1 MB vs 5.2 MB against 30.7 MB of raw
+  float32. recall@10 is 91.6% for HNSW and 100% for the re-scored TurboQuant
+  shortlist, and the control says that gap is structural rather than a matter
+  of shortlist width: giving HNSW 40 candidates instead of 10 leaves its recall
+  at exactly 91.6%, because the entries it misses are ones the graph walk never
+  reaches. The corpus is isotropic random vectors, which is close to the worst
+  case for a graph index and kinder data would narrow the gap, so the claim is
+  that flat-scan recall is data-independent, not that HNSW loses 8% on a real
+  ontology.
 - **Four extension surfaces** (ECOSYSTEM.md maps them). (1) **Community
   marketplace packs**: `onto_marketplace` now merges an open runtime-fetched
   registry (`community/registry.json`, override with

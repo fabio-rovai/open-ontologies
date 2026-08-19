@@ -28,6 +28,79 @@ The embedding model (~33MB) is downloaded on `open-ontologies init`. All inferen
 | `structure` | Poincare distance on structural embeddings only |
 | `product` | Weighted combination of both (default, alpha=0.5) |
 
+## Cosine index backends
+
+The text (cosine) half of the store has two interchangeable index backends.
+The structural (Poincare) half has one, and will keep having one: TurboQuant
+scores inner products, and hyperbolic distance is not an inner product on the
+ambient coordinates.
+
+| | `embeddings` (default) | `turbovec` |
+| --- | --- | --- |
+| Algorithm | HNSW graph (`instant-distance`) | TurboQuant quantiser (`turbovec`, arXiv:2504.19874) |
+| Entry point | `VecStore::search_cosine_hnsw` | `VecStore::search_cosine_turbo` |
+| Cost of one added embedding | Full graph rebuild, the graph is immutable | One append |
+| Cost of one removal | Full graph rebuild | O(1) |
+| Storage | float32 in the graph | 4 bit codes plus a per-vector scale |
+| Scores returned | Exact for whichever entries the graph walk reaches | Exact, the shortlist is re-scored against float32 |
+| Approximation lives in | Which entries the walk reaches | Which entries the quantised shortlist contains |
+
+Build it with `cargo build --features turbovec`. The feature implies
+`embeddings`; it replaces one backend rather than the whole subsystem, and the
+exact brute-force `search_cosine` stays available under both.
+
+`search_cosine_turbo` treats the quantised index as a candidate generator
+only. It pulls a shortlist four times wider than the request (floor of
+`top_k + 32`), re-scores every candidate against the float32 vector the store
+already holds, and returns that. So a quantised similarity number never
+reaches a caller, and the result is identical to the exact scan whenever the
+shortlist covers the true top-k.
+
+Both backends persist into `hnsw_index_cache` under their own `kind`
+(`cosine`, `poincare`, `turbo_cosine`), and both are gated by the same two
+checks on load: `model_fp` rejects an index built under a different embedding
+configuration, and `entries_hash` rejects one whose entry set has moved on.
+
+### Measured
+
+10,000 vectors x 768 dims, Apple M3 Max, release build,
+`cargo test --release --features turbovec -- --ignored --nocapture`
+(`measure_turbo_against_hnsw` in `tests/turbovec_index_test.rs`).
+
+| | HNSW | TurboQuant |
+| --- | --- | --- |
+| Build | 116 s | 178 ms |
+| One added embedding | 137 s (full rebuild) | 52 us |
+| Query, top-10 | 4.7 ms | 0.25 ms (pulling 40 candidates) |
+| recall@10 as wired | 91.6% | 100% |
+| recall@10, 40 candidates re-scored to 10 | 91.6% | 100% |
+| Serialised index | 34.1 MB | 5.2 MB |
+
+Raw float32 for that corpus is 30.7 MB, so the HNSW blob is larger than the
+vectors it indexes and the TurboQuant one is a sixth of them. Build and
+rebuild times move by a factor of several between runs depending on machine
+load; the query, recall and size figures are stable.
+
+Read the two recall rows together, because that is the control. Asking HNSW
+for 40 candidates instead of 10 and re-scoring changes nothing: the entries it
+misses are ones its graph walk never reaches, so no amount of over-fetching
+recovers them, and `ef_search` (default 100) is the only lever. The flat
+quantised scan has no such failure mode by construction, because it scores
+every vector. That is a structural difference, not a tuning one.
+
+One caveat on those recall numbers: the corpus is isotropic random vectors,
+which is close to the worst case for a graph index. Every pairwise cosine sits
+near zero, so ranks 10 and 11 are separated by noise and there is no cluster
+structure for the walk to exploit. Real text embeddings are kinder to HNSW.
+The point is not that HNSW loses 8% on your ontology; it is that its recall is
+data-dependent while the flat index's is not.
+
+**When to pick which.** HNSW if the ontology is embedded once and then only
+queried. TurboQuant if embeddings arrive incrementally (the rebuild is what
+you are paying for, not the query), or if the corpus is large enough that
+float32 storage is the constraint: at 768 dims a 4 bit code is 388 bytes
+against 3,072.
+
 ## Providers
 
 The text-embedding side is pluggable via `[embeddings] provider`:

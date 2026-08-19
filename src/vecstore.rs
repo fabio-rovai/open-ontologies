@@ -36,6 +36,11 @@ pub struct VecStore {
     /// `None` the fingerprint checks are skipped entirely, so an unconfigured
     /// store behaves exactly as it did before this column existed.
     embeddings_fp: Option<String>,
+    /// Lazily-built TurboQuant index over `text_vec`s. Unlike the two HNSW
+    /// indices above it is *not* invalidated by a mutation: `upsert` and
+    /// `remove` maintain it in place, which is the entire reason it exists.
+    #[cfg(feature = "turbovec")]
+    turbo_index: Option<crate::turbo_index::TurboCosineIndex>,
 }
 
 impl VecStore {
@@ -46,6 +51,8 @@ impl VecStore {
             cosine_index: None,
             poincare_index: None,
             embeddings_fp: None,
+            #[cfg(feature = "turbovec")]
+            turbo_index: None,
         }
     }
 
@@ -83,19 +90,37 @@ impl VecStore {
     }
 
     pub fn upsert(&mut self, iri: &str, text_vec: &[f32], struct_vec: &[f32]) {
+        let normalised = l2_normalize(text_vec);
         self.entries.insert(iri.to_string(), VecEntry {
-            text_vec: l2_normalize(text_vec),
+            text_vec: normalised.clone(),
             struct_vec: struct_vec.to_vec(),
         });
         // Invalidate BOTH HNSW indices — instant-distance is immutable.
         self.cosine_index = None;
         self.poincare_index = None;
+        // The TurboQuant index is not immutable, so it is updated rather than
+        // dropped. A failure here (a dimensionality that disagrees with the
+        // index the store was built with) drops the index instead of being
+        // swallowed, so the next search rebuilds from scratch and stays
+        // correct rather than silently missing the new entry.
+        #[cfg(feature = "turbovec")]
+        if self
+            .turbo_index
+            .as_mut()
+            .is_some_and(|idx| idx.upsert(iri, &normalised).is_err())
+        {
+            self.turbo_index = None;
+        }
     }
 
     pub fn remove(&mut self, iri: &str) {
         self.entries.remove(iri);
         self.cosine_index = None;
         self.poincare_index = None;
+        #[cfg(feature = "turbovec")]
+        if let Some(idx) = self.turbo_index.as_mut() {
+            idx.remove(iri);
+        }
     }
 
     pub fn search_cosine(&self, query: &[f32], top_k: usize) -> Vec<(String, f32)> {
@@ -487,6 +512,143 @@ impl VecStore {
             return Ok(false);
         }
         self.poincare_index = Some(PoincareIndex::from_bytes(&bytes)?);
+        Ok(true)
+    }
+
+    /// Exact top-k cosine search, accelerated by the TurboQuant index.
+    ///
+    /// The index is a candidate generator, not the answer: it returns a
+    /// shortlist several times wider than `top_k` scored over 2-4 bit codes,
+    /// and every candidate is then re-scored against the float32 vector the
+    /// store already holds. So the result is identical to
+    /// [`Self::search_cosine`] whenever the shortlist covers the true top-k,
+    /// and no approximate similarity number ever reaches a caller.
+    ///
+    /// Builds the index on first call. Unlike [`Self::search_cosine_hnsw`],
+    /// subsequent mutations do not force a rebuild.
+    #[cfg(feature = "turbovec")]
+    pub fn search_cosine_turbo(&mut self, query: &[f32], top_k: usize) -> Vec<(String, f32)> {
+        if self.entries.is_empty() || top_k == 0 {
+            return Vec::new();
+        }
+        if self.turbo_index.is_none() {
+            match self.build_turbo_index() {
+                Ok(idx) => self.turbo_index = Some(idx),
+                Err(e) => {
+                    tracing::warn!("turbovec index build failed ({e}); falling back to the exact scan");
+                    return self.search_cosine(query, top_k);
+                }
+            }
+        }
+        let query_norm = l2_normalize(query);
+        let shortlist = match self.turbo_index.as_ref() {
+            Some(idx) => idx.search(&query_norm, Self::shortlist_width(top_k)),
+            None => return self.search_cosine(query, top_k),
+        };
+        // Re-score the shortlist exactly. The quantised score is discarded.
+        let mut rescored: Vec<(String, f32)> = shortlist
+            .into_iter()
+            .filter_map(|(iri, _quantised)| {
+                self.entries
+                    .get(&iri)
+                    .map(|e| (iri.clone(), cosine_similarity(&query_norm, &e.text_vec)))
+            })
+            .collect();
+        rescored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        rescored.truncate(top_k);
+        rescored
+    }
+
+    /// How many quantised candidates to pull for a requested `top_k`.
+    ///
+    /// Four times the request plus a floor of 32: the multiplier covers the
+    /// quantisation error on large requests, the floor covers small ones,
+    /// where 4 x 3 candidates would leave no margin at all.
+    #[cfg(feature = "turbovec")]
+    fn shortlist_width(top_k: usize) -> usize {
+        (top_k.saturating_mul(4)).max(top_k.saturating_add(32))
+    }
+
+    #[cfg(feature = "turbovec")]
+    fn build_turbo_index(&self) -> anyhow::Result<crate::turbo_index::TurboCosineIndex> {
+        let points: Vec<(String, Vec<f32>)> = self
+            .entries
+            .iter()
+            .map(|(iri, e)| (iri.clone(), e.text_vec.clone()))
+            .collect();
+        crate::turbo_index::TurboCosineIndex::build(points)
+    }
+
+    /// Number of vectors in the live TurboQuant index, or `None` when it has
+    /// not been built yet.
+    #[cfg(feature = "turbovec")]
+    pub fn turbo_index_len(&self) -> Option<usize> {
+        self.turbo_index.as_ref().map(|idx| idx.len())
+    }
+
+    /// Persist the TurboQuant index into the shared index-cache table under
+    /// its own `kind`, so it coexists with the two HNSW caches rather than
+    /// competing with them for the row.
+    #[cfg(feature = "turbovec")]
+    pub fn persist_turbo_index(&mut self) -> anyhow::Result<()> {
+        if self.entries.is_empty() {
+            return Ok(());
+        }
+        if self.turbo_index.is_none() {
+            self.turbo_index = Some(self.build_turbo_index()?);
+        }
+        let bytes = match self.turbo_index.as_ref() {
+            Some(idx) => idx.to_bytes()?,
+            None => return Ok(()),
+        };
+        let fp = self.entries_fingerprint();
+        let count = self.entries.len() as i64;
+        let conn = self.db.conn();
+        conn.execute(
+            "INSERT OR REPLACE INTO hnsw_index_cache (kind, entries_hash, entry_count, serialised, model_fp) \
+             VALUES ('turbo_cosine', ?1, ?2, ?3, ?4)",
+            rusqlite::params![fp, count, bytes, self.embeddings_fp],
+        )?;
+        Ok(())
+    }
+
+    /// Load a persisted TurboQuant index. Returns whether one was adopted.
+    ///
+    /// Both guards from the HNSW load path apply unchanged: `model_fp` catches
+    /// an index built under a different embedding configuration, and
+    /// `entries_hash` catches an entry set that has moved on since the cache
+    /// was written.
+    #[cfg(feature = "turbovec")]
+    pub fn load_turbo_index(&mut self) -> anyhow::Result<bool> {
+        let conn = self.db.conn();
+        let row: Option<(Vec<u8>, Vec<u8>, Option<String>)> = conn
+            .query_row(
+                "SELECT entries_hash, serialised, model_fp FROM hnsw_index_cache WHERE kind = 'turbo_cosine'",
+                [],
+                |row| {
+                    Ok((
+                        row.get::<_, Vec<u8>>(0)?,
+                        row.get::<_, Vec<u8>>(1)?,
+                        row.get::<_, Option<String>>(2)?,
+                    ))
+                },
+            )
+            .ok();
+        let (stored_hash, bytes, stored_fp) = match row {
+            Some(x) => x,
+            None => return Ok(false),
+        };
+        if !self.fingerprint_matches(stored_fp.as_deref()) {
+            tracing::warn!(
+                "cached TurboQuant index was built under a different embedding configuration \
+                 — discarding it and rebuilding. One-off cost per configuration change."
+            );
+            return Ok(false);
+        }
+        if stored_hash != self.entries_fingerprint() {
+            return Ok(false);
+        }
+        self.turbo_index = Some(crate::turbo_index::TurboCosineIndex::from_bytes(&bytes)?);
         Ok(true)
     }
 

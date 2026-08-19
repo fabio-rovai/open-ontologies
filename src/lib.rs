@@ -81,6 +81,8 @@ pub mod state;
 pub mod structembed;
 pub mod tableaux;
 pub mod toolfilter;
+#[cfg(feature = "turbovec")]
+pub mod turbo_index;
 #[cfg(feature = "embeddings")]
 pub mod vecstore;
 pub mod webhook;
