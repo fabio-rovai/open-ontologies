@@ -32,6 +32,68 @@ def _local(term: str) -> str:
     return term[len(SH) :] if term.startswith(SH) else term
 
 
+def _focus_nodes(data_graph, shapes_graph) -> tuple[int, list[dict]]:
+    """Count the nodes each shape actually selected.
+
+    A shapes graph whose targets match nothing validates every constraint against
+    the empty set and reports conformance, which is indistinguishable from a run
+    that examined the data and found it sound. Counting the selected nodes is
+    what separates "checked and clean" from "checked nothing".
+
+    Only the four declarative target predicates are counted. A shape with no
+    declared target, or one using SPARQL-based `sh:target`, is not judged here:
+    reporting it as unmatched would be a guess.
+    """
+    import rdflib
+
+    sh = rdflib.Namespace(SH)
+    rdfs = rdflib.RDFS
+
+    total = 0
+    unmatched: list[dict] = []
+
+    for shape in set(shapes_graph.subjects(rdflib.RDF.type, sh.NodeShape)):
+        selected: set = set()
+        declared = False
+
+        for target_class in shapes_graph.objects(shape, sh.targetClass):
+            declared = True
+            # SHACL selects SHACL-instances, so instances of subclasses count.
+            selected.update(data_graph.subjects(rdflib.RDF.type, target_class))
+            for sub in data_graph.transitive_subjects(rdfs.subClassOf, target_class):
+                selected.update(data_graph.subjects(rdflib.RDF.type, sub))
+
+        for node in shapes_graph.objects(shape, sh.targetNode):
+            declared = True
+            selected.add(node)
+
+        for prop in shapes_graph.objects(shape, sh.targetSubjectsOf):
+            declared = True
+            selected.update(data_graph.subjects(prop, None))
+
+        for prop in shapes_graph.objects(shape, sh.targetObjectsOf):
+            declared = True
+            selected.update(data_graph.objects(None, prop))
+
+        if not declared:
+            continue
+
+        total += len(selected)
+        if not selected:
+            unmatched.append(
+                {
+                    "shape": str(shape),
+                    "target_class": next(
+                        (str(t) for t in shapes_graph.objects(shape, sh.targetClass)),
+                        "",
+                    ),
+                }
+            )
+
+    unmatched.sort(key=lambda u: (u["target_class"], u["shape"]))
+    return total, unmatched
+
+
 def shacl_validate(
     data: str,
     shapes: str,
@@ -50,14 +112,17 @@ def shacl_validate(
     pyshacl = _require_pyshacl()
     import rdflib
 
+    data_graph = rdflib.Graph().parse(data=data, format=data_format)
+    shapes_graph = rdflib.Graph().parse(data=shapes, format=shapes_format)
+
     conforms, results_graph, results_text = pyshacl.validate(
-        data,
-        shacl_graph=shapes,
-        data_graph_format=data_format,
-        shacl_graph_format=shapes_format,
+        data_graph,
+        shacl_graph=shapes_graph,
         inference=inference,
         advanced=True,
     )
+
+    focus_nodes, unmatched_shapes = _focus_nodes(data_graph, shapes_graph)
 
     sh = rdflib.Namespace(SH)
     violations: list[dict] = []
@@ -81,10 +146,25 @@ def shacl_validate(
     for v in violations:
         by_severity[v["severity"]] = by_severity.get(v["severity"], 0) + 1
 
-    return {
+    report = {
         "conforms": bool(conforms),
         "count": len(violations),
         "by_severity": by_severity,
         "violations": violations,
+        "focus_nodes": focus_nodes,
+        "unmatched_shapes": unmatched_shapes,
         "text": results_text,
     }
+
+    # Every shape that declared a target selected nothing, so no constraint was
+    # applied to anything. Reporting conformance here would be the same lie as
+    # reporting it for a constraint that never ran.
+    if focus_nodes == 0 and unmatched_shapes:
+        report["conforms"] = None
+        report["warning"] = (
+            f"no focus node was selected: all {len(unmatched_shapes)} targeted shape(s) "
+            "match nothing in the data, so conformance is undetermined. "
+            "See unmatched_shapes."
+        )
+
+    return report

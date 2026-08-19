@@ -116,7 +116,41 @@ Register it with any MCP client (e.g. Claude):
 | `onto_diff` | Triple-level diff between two ontologies |
 | `onto_kgcl_diff` | KGCL change records between two versions (governance / change logs) |
 | `onto_lint` | Missing labels, domains, ranges |
-| `onto_shacl` | SHACL conformance: violations with focus node, path, value, severity and constraint (needs the `[shacl]` extra) |
+| `onto_shacl` | SHACL conformance: violations with focus node, path, value, severity and constraint, plus `focus_nodes` and `unmatched_shapes` (needs the `[shacl]` extra) |
+| `onto_vocab_check` | Closed-world check: which terms in the data are not declared in the loaded ontology |
+
+### Closed-world checking
+
+RDF is open-world, so a predicate nobody declared is unknown rather than wrong.
+An extractor that invents `ex:hasProteinName` because it sounded plausible
+produces RDF that parses, loads and satisfies SHACL without a murmur. Closing
+that world is the only way to tell an invented term from a real one:
+
+```python
+from open_ontologies_lite import vocab_check
+
+report = vocab_check(ontology_ttl, generated_data_ttl)
+report["undeclared_terms"]   # ['http://example.org/onto#hasProteinName']
+```
+
+Instance IRIs are never policed, because individuals belong to the data rather
+than the vocabulary, and the standard vocabularies are never policed either.
+With no ontology loaded the check reports that nothing was checked and returns
+`conforms: False`, never `True`: a green light from an empty vocabulary is the
+failure this exists to prevent.
+
+### Validation that never passes vacuously
+
+A shapes graph whose targets match nothing validates every constraint against
+the empty set and reports `conforms: True`, byte-identical to a run where every
+constraint was checked and passed. `shacl_validate` reports how many focus nodes
+were actually selected and names the shapes that selected none:
+
+```python
+report["focus_nodes"]        # 0
+report["unmatched_shapes"]   # [{'shape': '...PersonShape', 'target_class': '...Person'}]
+report["conforms"]           # None, because nothing was examined
+```
 
 ## Relationship to the Rust engine
 

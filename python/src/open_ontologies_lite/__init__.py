@@ -5,14 +5,16 @@ Oxigraph RDF/OWL engine. No Rust toolchain, no compilation, prebuilt wheels only
 from .dataframe import rows_from_dataframe, rows_to_turtle
 from .engine import OntologyEngine, ValidationResult, resolve_format
 from .kgcl import ChangeSet, kgcl_diff
+from .vocab_check import vocab_check
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 __all__ = [
     "OntologyEngine",
     "ValidationResult",
     "resolve_format",
     "ChangeSet",
     "kgcl_diff",
+    "vocab_check",
     "rows_from_dataframe",
     "rows_to_turtle",
     "__version__",

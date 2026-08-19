@@ -120,6 +120,29 @@ def onto_shacl(
     )
 
 
+@mcp.tool()
+def onto_vocab_check(
+    data: str, data_format: str = "turtle", extra_namespaces: list[str] | None = None
+) -> dict:
+    """Closed-world check: which terms in `data` are not declared in the loaded ontology.
+
+    RDF is open-world, so an invented predicate is merely unknown and passes both
+    parsing and SHACL untouched. This closes that world against the loaded
+    ontology and names every undeclared term in the namespaces that ontology owns.
+    Instance IRIs and the standard vocabularies are never policed.
+
+    Returns False for `conforms`, never True, when no vocabulary is loaded.
+    """
+    from .vocab_check import vocab_check
+
+    return vocab_check(
+        _engine.dump(),
+        data,
+        data_format=data_format,
+        extra_namespaces=extra_namespaces,
+    )
+
+
 def main() -> None:
     import argparse
 
