@@ -578,7 +578,8 @@ impl Temporal {
                 "UNSOUND CLASSIFICATION: the validity scan hit its row limit, so some pairs \
                  were compared without their periods. A correction can be reported here as a \
                  contradiction, which is the one thing this tool exists to prevent; \
-                 contradiction_count is an upper bound. See truncated."
+                 contradiction_count is an upper bound over the pairs that were examined, and \
+                 says nothing about any pair the candidate scan did not reach. See truncated."
                     .to_string(),
             );
         }
@@ -870,6 +871,36 @@ ex:g_after  { ex:X a ex:Suspension . }
         assert!(
             out.get("warning").is_none(),
             "an unexamined pair is a gap, not a wrong classification: {out}"
+        );
+    }
+
+    /// Both caps at once: every cut scan is listed, and the warning may not
+    /// call the count an upper bound full stop — unexamined pairs can hold
+    /// contradictions the count never saw, so the claim is bounded to the
+    /// pairs that were actually compared.
+    #[test]
+    fn both_conflict_scans_cut_report_both_and_bound_the_claim() {
+        let t = Temporal::with_limits(
+            store(CORRECTION),
+            Limits {
+                validity_scan: 1,
+                conflict_pairs: 0,
+                ..Limits::default()
+            },
+        );
+        let out = json(t.conflicts().unwrap());
+        let scans: Vec<&str> = out["truncated"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|c| c["scan"].as_str().unwrap())
+            .collect();
+        assert_eq!(scans, ["validities", "conflict_pairs"], "{out}");
+        assert_eq!(out["complete"], false);
+        let warning = out["warning"].as_str().unwrap();
+        assert!(
+            warning.contains("over the pairs that were examined"),
+            "with the candidate scan cut too, the count bounds nothing about the store: {out}"
         );
     }
 }

@@ -39,7 +39,7 @@ All notable changes to Open Ontologies are documented here.
   Detection is proof rather than inference: each scan is sent with `LIMIT n+1`
   and the extra row, if it arrives, is evidence that more exist. It is dropped
   before the response is built, so a store holding exactly the cap is reported
-  as complete, and every untruncated response keeps its 1.2.0 values. 9 tests
+  as complete, and every untruncated response keeps its 1.2.0 values. 10 tests
   in `src/temporal.rs`, including one pinning an exactly-full scan as NOT
   truncated and one showing a correction turn into a false contradiction when
   the validity scan is cut.
