@@ -156,10 +156,14 @@ impl Enforcer {
         *total += 1;
         let query = "SELECT DISTINCT ?c WHERE { \
             ?c a <http://www.w3.org/2002/07/owl#Class> . \
+            FILTER(isIRI(?c)) \
             FILTER NOT EXISTS { ?c <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?parent } \
             FILTER NOT EXISTS { ?child <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?c } \
             FILTER NOT EXISTS { ?p <http://www.w3.org/2000/01/rdf-schema#domain> ?c } \
             FILTER NOT EXISTS { ?p <http://www.w3.org/2000/01/rdf-schema#range> ?c } \
+            FILTER NOT EXISTS { ?c <http://www.w3.org/2002/07/owl#equivalentClass> ?eq } \
+            FILTER NOT EXISTS { ?eq2 <http://www.w3.org/2002/07/owl#equivalentClass> ?c } \
+            FILTER NOT EXISTS { ?c <http://www.w3.org/2002/07/owl#disjointWith> ?dj } \
         }";
 
         let orphans = self.query_iris(query, "c");
@@ -182,6 +186,7 @@ impl Enforcer {
         let query = "SELECT DISTINCT ?p WHERE { \
             { ?p a <http://www.w3.org/2002/07/owl#ObjectProperty> } UNION \
             { ?p a <http://www.w3.org/2002/07/owl#DatatypeProperty> } \
+            FILTER(isIRI(?p)) \
             FILTER NOT EXISTS { ?p <http://www.w3.org/2000/01/rdf-schema#domain> ?d } \
         }";
 
@@ -205,6 +210,7 @@ impl Enforcer {
         let query = "SELECT DISTINCT ?p WHERE { \
             { ?p a <http://www.w3.org/2002/07/owl#ObjectProperty> } UNION \
             { ?p a <http://www.w3.org/2002/07/owl#DatatypeProperty> } \
+            FILTER(isIRI(?p)) \
             FILTER NOT EXISTS { ?p <http://www.w3.org/2000/01/rdf-schema#range> ?r } \
         }";
 
@@ -227,6 +233,7 @@ impl Enforcer {
         *total += 1;
         let query = "SELECT DISTINCT ?c WHERE { \
             ?c a <http://www.w3.org/2002/07/owl#Class> . \
+            FILTER(isIRI(?c)) \
             FILTER NOT EXISTS { ?c <http://www.w3.org/2000/01/rdf-schema#label> ?l } \
         }";
 

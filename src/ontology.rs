@@ -106,6 +106,7 @@ impl OntologyService {
                 { ?class a <http://www.w3.org/2002/07/owl#Class> }
                 UNION
                 { ?class a <http://www.w3.org/2000/01/rdf-schema#Class> }
+                FILTER(isIRI(?class))
                 FILTER NOT EXISTS { ?class <http://www.w3.org/2000/01/rdf-schema#label> ?label }
             }
         "#;
@@ -132,6 +133,7 @@ impl OntologyService {
                 { ?class a <http://www.w3.org/2002/07/owl#Class> }
                 UNION
                 { ?class a <http://www.w3.org/2000/01/rdf-schema#Class> }
+                FILTER(isIRI(?class))
                 FILTER NOT EXISTS { ?class <http://www.w3.org/2000/01/rdf-schema#comment> ?comment }
             }
         "#;
@@ -158,6 +160,7 @@ impl OntologyService {
                 { ?prop a <http://www.w3.org/2002/07/owl#ObjectProperty> }
                 UNION
                 { ?prop a <http://www.w3.org/2002/07/owl#DatatypeProperty> }
+                FILTER(isIRI(?prop))
                 FILTER NOT EXISTS { ?prop <http://www.w3.org/2000/01/rdf-schema#domain> ?d }
             }
         "#;
