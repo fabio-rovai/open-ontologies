@@ -296,11 +296,26 @@ impl GraphStore {
     pub fn serialize(&self, format: &str) -> anyhow::Result<String> {
         let store = self.store.lock().unwrap();
         let rdf_format = Self::parse_format(format)?;
+        // Dataset formats carry the graph name; every other format is a single
+        // RDF graph. `serialize_triple` drops the graph name, flattening a quad
+        // from a named graph into the default graph. That is the only thing a
+        // triple format can do, but for the dataset formats it silently
+        // discarded the named-graph structure that temporal assertions live in
+        // (issue #95): a TriG save/reload round trip lost every
+        // `validFrom`/`validTo` binding. `serialize_quad` keeps the graph name,
+        // and for the triple formats we keep flattening. `supports_datasets`
+        // owns the list upstream, so a format added later (JSON-LD is already
+        // in it) is classified correctly rather than silently flattened.
+        let carries_graph_name = rdf_format.supports_datasets();
         let mut buf = Vec::new();
         let mut serializer = RdfSerializer::from_format(rdf_format).for_writer(&mut buf);
         for quad in store.iter() {
             let quad = quad?;
-            serializer.serialize_triple(quad.as_ref())?;
+            if carries_graph_name {
+                serializer.serialize_quad(quad.as_ref())?;
+            } else {
+                serializer.serialize_triple(quad.as_ref())?;
+            }
         }
         // `finish()` writes the final terminator (e.g. the trailing `.` on the
         // last Turtle triple, or `</rdf:RDF>` for RDF/XML). Dropping the
