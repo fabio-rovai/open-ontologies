@@ -136,9 +136,97 @@ fn as_of_hides_a_fact_recorded_after_the_cutoff() {
         "a timeless graph carries no recorded time and stays visible"
     );
 
-    // One day later the record has arrived.
+    // Inclusive at the cutoff: a record entered exactly at the audit instant is
+    // already visible (`recordedAt <= as_of`), so a slip to a strict `<` would
+    // hide it.
+    let at = snapshot(&t, Some("2024-06-01"), Some("2024-01-05"));
+    assert!(
+        graphs(&at, "in_scope").contains("g_adherent"),
+        "recordedAt 2024-01-05 is visible as_of 2024-01-05"
+    );
+
+    // One day later the record has certainly arrived.
     let after = snapshot(&t, Some("2024-06-01"), Some("2024-01-06"));
     assert!(graphs(&after, "in_scope").contains("g_adherent"));
+}
+
+/// A described graph with an open start: no `validFrom`, only a `validTo`.
+const OPEN_START: &str = r#"
+@prefix ex: <http://example.org/> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+
+ex:g_early { ex:Doc ex:status ex:Draft . }
+
+{
+  ex:g_early t:validTo "2024-01-01" .
+}
+"#;
+
+#[test]
+fn open_start_holds_since_always_up_to_its_upper_bound() {
+    let t = temporal(OPEN_START);
+    // No validFrom means "since always": in scope arbitrarily far in the past.
+    // This is a described graph (it carries validTo), so it takes the temporal
+    // branch, not the timeless one — the absent-validFrom case a fully
+    // undescribed graph never reaches.
+    assert!(
+        graphs(&snapshot(&t, Some("1900-01-01"), None), "in_scope").contains("g_early"),
+        "an absent validFrom holds since always"
+    );
+    // The upper bound is still exclusive.
+    assert!(
+        graphs(&snapshot(&t, Some("2024-01-01"), None), "excluded").contains("g_early"),
+        "validTo remains exclusive with an open start"
+    );
+}
+
+#[test]
+fn open_end_still_holds_in_the_far_future() {
+    // g_suspension has a validFrom and no validTo: still true indefinitely.
+    let t = temporal(CELL_LINE);
+    assert!(
+        graphs(&snapshot(&t, Some("2099-01-01"), None), "in_scope").contains("g_suspension"),
+        "an absent validTo holds indefinitely"
+    );
+}
+
+/// The same shape as `CELL_LINE`, but written with the `xsd:date` and
+/// `xsd:dateTime` typed literals the tool documents on disk. `Temporal::plain`
+/// strips the datatype, so these must behave exactly like their lexical forms;
+/// this is the representation a regression in that stripping would break while
+/// the untyped fixtures stayed green.
+const TYPED_LITERALS: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:g_typed { ex:HEK293 a ex:AdherentCellLine . }
+
+{
+  ex:g_typed t:validFrom  "2024-01-01"^^xsd:date ;
+             t:validTo    "2026-05-01"^^xsd:date ;
+             t:recordedAt "2024-01-05T09:30:00"^^xsd:dateTime .
+}
+"#;
+
+#[test]
+fn typed_literals_behave_like_their_lexical_form() {
+    let t = temporal(TYPED_LITERALS);
+    // Inside the valid interval and after the (dateTime) record: in scope.
+    assert!(
+        graphs(&snapshot(&t, Some("2024-06-01"), Some("2024-01-06")), "in_scope")
+            .contains("g_typed"),
+        "typed date/dateTime literals compare like their lexical form"
+    );
+    // The dateTime record is not yet visible one day before it was entered.
+    assert!(
+        graphs(&snapshot(&t, Some("2024-06-01"), Some("2024-01-04")), "excluded")
+            .contains("g_typed")
+    );
+    // Before the typed validFrom: excluded, exactly as an untyped fixture is.
+    assert!(
+        graphs(&snapshot(&t, Some("2023-01-01"), None), "excluded").contains("g_typed")
+    );
 }
 
 #[test]
