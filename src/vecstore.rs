@@ -962,6 +962,13 @@ fn f32_slice_to_bytes(v: &[f32]) -> Vec<u8> {
     v.iter().flat_map(|f| f.to_le_bytes()).collect()
 }
 
+// clippy::chunks_exact_to_as_chunks suggests `as_chunks::<4>()`, but that was
+// only stabilized in Rust 1.88, and this crate advertises a Rust 1.85 minimum
+// (README, edition 2024). `chunks_exact` has been stable since 1.31 and decodes
+// identically — it drops the same trailing remainder — so keep it and silence
+// the lint rather than raise the effective compiler requirement for every
+// embeddings build.
+#[allow(clippy::chunks_exact_to_as_chunks)]
 fn bytes_to_f32_vec(b: &[u8]) -> Vec<f32> {
     b.chunks_exact(4)
         .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))

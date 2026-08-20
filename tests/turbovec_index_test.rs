@@ -526,6 +526,9 @@ fn measure_recall_on_a_real_corpus() {
     // Embed once, cache to disk. The cache is keyed by the labels file and the
     // count, so a different slice does not silently reuse the wrong vectors.
     let cache_path = labels_path.with_extension(format!("{n}.f32"));
+    // Same 1.85-MSRV reasoning as vecstore::bytes_to_f32_vec: clippy suggests
+    // as_chunks, stabilized only in Rust 1.88; chunks_exact is stable since 1.31.
+    #[allow(clippy::chunks_exact_to_as_chunks)]
     let flat: Vec<f32> = if cache_path.exists() {
         let raw = std::fs::read(&cache_path).unwrap();
         raw.chunks_exact(4)
