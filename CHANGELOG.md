@@ -4,6 +4,18 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+- **Named graphs are preserved when exporting to TriG and N-Quads.**
+  `GraphStore::serialize` rendered every format with `serialize_triple`, which
+  flattens a quad from a named graph into the default graph. Import and the
+  persistent store keep graph names, so the loss was export-only — but it meant
+  a TriG save/reload round trip dropped the named-graph structure that
+  bi-temporal assertions live in (issue #95): every `validFrom`/`validTo`
+  binding on `onto_save`/`onto_convert` output was silently gone. The dataset
+  formats now serialize quads; the triple formats (Turtle, N-Triples, RDF/XML)
+  keep flattening, which is the only thing they can represent. TriG and N-Quads
+  round-trip tests in `tests/graph_named_graph_roundtrip_test.rs`.
+
 ### Added
 - **Optional eviction of float32 text vectors from memory**
   (`VecStore::with_text_vectors_evicted`, `turbovec` feature). Without it the
