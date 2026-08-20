@@ -16,6 +16,34 @@ All notable changes to Open Ontologies are documented here.
   keep flattening, which is the only thing they can represent. TriG and N-Quads
   round-trip tests in `tests/graph_named_graph_roundtrip_test.rs`.
 
+- **The bi-temporal tools say when a scan was cut short.** Four queries behind
+  `onto_temporal_snapshot`, `onto_temporal_query` and `onto_temporal_conflicts`
+  are capped — 20,000 validity rows, 20,000 named graphs, 10,000 result rows,
+  5,000 disjointness pairs — and a store that reached one got a confident
+  answer with nothing to say it was partial (issue #95). Every response now
+  carries `complete`, and a cut run also carries `truncated`: one
+  `{scan, limit, consequence}` entry per cap that bit.
+
+  Truncating a result list gives you fewer rows. Truncating the validity scan
+  gives you a WRONG answer, so those responses also carry a `warning`. A graph
+  whose validity rows fell past the cap reads as having no validity at all, and
+  an undescribed graph is timeless and always in scope — the opposite of the
+  truth for a graph whose period had ended. In `onto_temporal_conflicts` the
+  same gap is a false positive rather than a gap: a timeless period overlaps
+  everything, so a superseded correction is republished as a live
+  contradiction, which is the one thing that tool exists to prevent.
+  `onto_temporal_query` inherits the verdict from the scope it ran over,
+  including on the empty-scope path, where "no graphs in scope" may mean
+  nothing among the graphs that were read.
+
+  Detection is proof rather than inference: each scan is sent with `LIMIT n+1`
+  and the extra row, if it arrives, is evidence that more exist. It is dropped
+  before the response is built, so a store holding exactly the cap is reported
+  as complete, and every untruncated response keeps its 1.2.0 values. 9 tests
+  in `src/temporal.rs`, including one pinning an exactly-full scan as NOT
+  truncated and one showing a correction turn into a false contradiction when
+  the validity scan is cut.
+
 ### Added
 - **Optional eviction of float32 text vectors from memory**
   (`VecStore::with_text_vectors_evicted`, `turbovec` feature). Without it the
