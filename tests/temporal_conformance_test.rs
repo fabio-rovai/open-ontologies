@@ -9,9 +9,18 @@
 //! are behavioural anchors, not aspirations: a later change to the temporal
 //! semantics has to move a line here on purpose rather than drift silently.
 //!
-//! Dates are kept in a single lexical form (`YYYY-MM-DD`) on purpose — the
-//! comparison is currently lexical, and mixing `xsd:date` with `xsd:dateTime`
-//! or timezone offsets is a separate, still-open point on #95.
+//! The file has two sections. The first pins semantics that are **intended**;
+//! most of it uses a single lexical date form, since that is the shape those
+//! assertions are about. The second pins what the code does **today** for
+//! mixed-precision and malformed bounds — behaviour that falls out of comparing
+//! datatype-stripped literals lexically rather than being chosen. Each test
+//! there names what the planned parsed-time work (#95, item 4) turns it into,
+//! so that change lands as a diff on assertions that already exist instead of
+//! arriving as new ones the corpus could never have failed on.
+//!
+//! Deliberately not feature-gated: a `#![cfg(feature = ...)]` on a test file
+//! that CI runs without that feature prints `running 0 tests` and reads as
+//! green (this repo lost `tests/schema_test.rs` that way for months).
 
 use open_ontologies::graph::GraphStore;
 use open_ontologies::temporal::Temporal;
@@ -319,5 +328,168 @@ fn boundary_touching_disjoint_assertions_are_superseded_not_contradictory() {
     assert_eq!(
         out["superseded_count"], 1,
         "the earlier assertion is superseded history, not a live conflict"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Section 2 — accidental behaviour, pinned so it can be flipped on purpose
+//
+// Everything above pins semantics that are intended. What follows pins what the
+// code does TODAY for mixed-precision and malformed bounds, which is a side
+// effect of comparing datatype-stripped literals lexically (`plain()` at
+// temporal.rs:92-105, `validities()` at :144-152) rather than a decision.
+//
+// These are the exact inputs the planned parsed-time work (issue #95, item 4)
+// changes: bounds parsed as instants on the UTC timeline accepting xsd:date,
+// xsd:dateTime, xsd:gYearMonth and xsd:gYear; a less precise bound mapping to
+// the first instant of the period it names; timezone-less values read as UTC;
+// any other datatype rejected rather than coerced; and multi-valued bounds
+// marked invalid instead of resolved. Each test below says what it will become,
+// so that work lands as a diff on existing assertions rather than as new ones.
+// ---------------------------------------------------------------------------
+
+/// `xsd:date` lower bound, `xsd:dateTime` upper bound, same axis.
+const MIXED_PRECISION: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:g_mixed { ex:X a ex:A . }
+
+{
+  ex:g_mixed t:validFrom "2024-01-01"^^xsd:date ;
+             t:validTo   "2026-05-01T00:00:00Z"^^xsd:dateTime .
+}
+"#;
+
+#[test]
+fn accidental_mixed_precision_upper_bound_admits_its_own_day() {
+    let t = temporal(MIXED_PRECISION);
+    // ACCIDENTAL: "2026-05-01" is a lexical prefix of "2026-05-01T00:00:00Z",
+    // so the half-open `instant < to` test passes and the day is in scope.
+    // Parsed, the date maps to 2026-05-01T00:00:00Z, which is exactly `to`,
+    // so the same instant is excluded.
+    // AFTER item 4: this graph is EXCLUDED at 2026-05-01.
+    assert!(
+        graphs(&snapshot(&t, Some("2026-05-01"), None), "in_scope").contains("g_mixed"),
+        "today the dateTime upper bound does not exclude its own date-typed instant"
+    );
+    // Unchanged by item 4: a day inside the interval stays in scope.
+    assert!(
+        graphs(&snapshot(&t, Some("2026-04-30"), None), "in_scope").contains("g_mixed")
+    );
+}
+
+/// A lower bound carrying a `+02:00` offset against an instant expressed in Z.
+const OFFSET_BOUND: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:g_off { ex:X a ex:A . }
+
+{
+  ex:g_off t:validFrom "2026-05-01T00:00:00+02:00"^^xsd:dateTime ;
+           t:validTo   "2026-06-01T00:00:00Z"^^xsd:dateTime .
+}
+"#;
+
+#[test]
+fn accidental_offset_bound_compares_as_text_not_as_an_instant() {
+    let t = temporal(OFFSET_BOUND);
+    // 2026-05-01T00:00:00+02:00 is 2026-04-30T22:00:00Z, so 23:00Z that day is
+    // one hour INSIDE the interval.
+    // ACCIDENTAL: compared as text, "2026-05-…" sorts after "2026-04-…", so the
+    // bound reads as later than it is and the instant falls outside.
+    // AFTER item 4: this graph is IN SCOPE at 2026-04-30T23:00:00Z.
+    assert!(
+        graphs(&snapshot(&t, Some("2026-04-30T23:00:00Z"), None), "excluded").contains("g_off"),
+        "today an offset bound is compared lexically, not as an instant"
+    );
+    // Unchanged by item 4: an instant past both readings stays in scope.
+    assert!(
+        graphs(&snapshot(&t, Some("2026-05-01T00:00:00Z"), None), "in_scope").contains("g_off")
+    );
+}
+
+/// A bound whose datatype is `xsd:string`, carrying a non-ISO lexical form.
+const STRING_TYPED_BOUND: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:g_str { ex:X a ex:A . }
+
+{
+  ex:g_str t:validFrom "01/05/2026"^^xsd:string .
+}
+"#;
+
+#[test]
+fn accidental_string_typed_bound_is_coerced_instead_of_rejected() {
+    let t = temporal(STRING_TYPED_BOUND);
+    // ACCIDENTAL: `plain()` throws the datatype away, leaving "01/05/2026",
+    // which sorts before every ISO value in the store. The graph therefore
+    // reads as valid since the beginning of time — including in 1999.
+    // AFTER item 4: the datatype is outside the accepted set, so the graph is
+    // INVALID: excluded from in_scope and reported with a reason, never
+    // silently in scope and never in the timeless bucket.
+    for instant in ["2020-01-01", "1999-01-01"] {
+        assert!(
+            graphs(&snapshot(&t, Some(instant), None), "in_scope").contains("g_str"),
+            "today an xsd:string bound is coerced and sorts before ISO values (at {instant})"
+        );
+    }
+}
+
+/// One graph carrying two distinct `validFrom` values.
+const MULTI_VALUED_BOUND: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:g_multi { ex:X a ex:A . }
+
+{
+  ex:g_multi t:validFrom "2024-01-01"^^xsd:date , "2026-05-01"^^xsd:date .
+}
+"#;
+
+#[test]
+fn accidental_multi_valued_bound_resolves_to_one_row_instead_of_failing() {
+    let t = temporal(MULTI_VALUED_BOUND);
+    // ACCIDENTAL: `validities()` overwrites the field on every row of the
+    // 3-way UNION, so one of the two values wins and the other vanishes. Which
+    // one is whichever the UNION yields last — today that is 2024-01-01, but
+    // nothing in the query contracts that order, which is the defect.
+    // AFTER item 4: the graph is INVALID, both values are listed in the reason,
+    // and it is neither resolved to one of them nor treated as timeless.
+    let snap = snapshot(&t, Some("2026-06-01"), None);
+    // 2026-06-01 is after BOTH candidate lower bounds, so this assertion holds
+    // whichever row wins — it pins "resolved to a single interval and admitted"
+    // without depending on the iteration order.
+    assert!(
+        graphs(&snap, "in_scope").contains("g_multi"),
+        "today a multi-valued bound still yields one usable interval"
+    );
+    // Exactly one of the two values is reported, never both.
+    let described = snap["in_scope"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["graph"].as_str().unwrap().ends_with("g_multi"))
+        .and_then(|r| r["valid"].as_str())
+        .unwrap_or_default()
+        .to_string();
+    let mentions_early = described.contains("2024-01-01");
+    let mentions_late = described.contains("2026-05-01");
+    assert!(
+        mentions_early ^ mentions_late,
+        "exactly one validFrom survives today (last row of the UNION wins): {described}"
+    );
+    // And nothing anywhere says the graph is malformed.
+    assert!(
+        snap.get("invalid").is_none(),
+        "today there is no invalid bucket to report this in: {snap}"
     );
 }
