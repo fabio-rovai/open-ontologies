@@ -528,6 +528,9 @@ fn measure_recall_on_a_real_corpus() {
     let cache_path = labels_path.with_extension(format!("{n}.f32"));
     // Same 1.85-MSRV reasoning as vecstore::bytes_to_f32_vec: clippy suggests
     // as_chunks, stabilized only in Rust 1.88; chunks_exact is stable since 1.31.
+    // `unknown_lints` too: a clippy that has dropped the name warns about the
+    // allow itself, and CI lints this leg with `-D warnings`.
+    #[allow(unknown_lints)]
     #[allow(clippy::chunks_exact_to_as_chunks)]
     let flat: Vec<f32> = if cache_path.exists() {
         let raw = std::fs::read(&cache_path).unwrap();

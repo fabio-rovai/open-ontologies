@@ -968,6 +968,13 @@ fn f32_slice_to_bytes(v: &[f32]) -> Vec<u8> {
 // identically — it drops the same trailing remainder — so keep it and silence
 // the lint rather than raise the effective compiler requirement for every
 // embeddings build.
+// `unknown_lints` alongside it, because the silencing is only inert while the
+// lint exists. clippy 0.1.96 as shipped by Homebrew no longer knows this name,
+// and `unknown_lints` is warn-by-default, so the allow that was added to keep
+// the build quiet became the only thing making noise. CI runs the all-features
+// leg as `clippy --all-targets -- -D warnings`, which would promote that
+// warning to an error and fail a leg over an attribute that does nothing.
+#[allow(unknown_lints)]
 #[allow(clippy::chunks_exact_to_as_chunks)]
 fn bytes_to_f32_vec(b: &[u8]) -> Vec<f32> {
     b.chunks_exact(4)
