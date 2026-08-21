@@ -85,11 +85,71 @@ close in shape to what verification wants: extract, detect conflicts,
 deduplicate, record provenance. Add closed-world checking after extraction
 and the plan/enforce/apply lifecycle around changes.
 
+**With Semantica, worked through.** The section below is that pairing run for
+real, on Semantica 0.6.5 and 0.6.6, with the numbers it produced.
+
 **With TrustGraph.** Knowledge cores are versioned, promotable knowledge
 artifacts. `onto_pack` produces the same kind of artifact from a verified
 graph (ontology, instances, provenance, embedding fingerprint, manifest,
 checksum), so what you promote between environments is a graph that has
 already passed its checks, with the evidence bundled alongside it.
+
+## A worked round trip: Semantica 0.6.5 and 0.6.6
+
+The argument above is that a generation pipeline cannot check its own output.
+Here is what that looked like when the check was actually run. The harness,
+the raw output files, and the issues that came out of it are at
+[semantica-contrib](https://github.com/fabio-rovai/semantica-contrib).
+
+**A strict second reader disagrees with a lenient one, and the disagreement
+is the finding.** `GraphBuilder` defaults an entity's id to its surface text
+and its type to the NER label, so the canonical path produces this Turtle:
+
+```turtle
+<Acme Corp> a <ORG> ;
+    semantica:text "Acme Corp" ;
+    semantica:confidence 0.91 .
+```
+
+rdflib parses it. It resolves `<Acme Corp>` against the current working
+directory, gives you `file:///home/you/project/Acme%20Corp`, and warns. Load
+the same file through `open-ontologies validate` and Oxigraph refuses it:
+`Invalid IRI code point ' '`. The lenient reader hands you a graph whose
+identifiers depend on which directory you were standing in. The strict reader
+tells you there is no graph. Both behaviours are defensible; only one of them
+tells you something is wrong.
+
+**Silent partial reads are the same problem one level up.** Semantica's
+JSON-LD export put a top-level `@id` beside a top-level `@graph`, which makes
+every member of that graph a quad named by the `@id` rather than a triple in
+the default graph. On 0.6.6, a two-entity, one-relationship export parsed as
+**2 triples** through `rdflib.Graph.parse()` and **21 quads** through
+`Dataset()`. No error either way. The 19 missing statements were the whole
+payload. `onto_load` is all-or-nothing for this reason: a partially loaded
+graph that reports success is worse than a refusal, because everything
+downstream then computes over a fraction of the data and looks fine doing it.
+
+**Open-world SHACL passes what closed-world checking catches.** The generated
+shapes minted their targets under `/shapes/` while the generated data used
+`/ns#`. No `sh:targetClass` ever matched a node, so pySHACL returned
+`conforms=True` on data that violated every constraint in the file. A test
+asserting "validation passes" would have gone on passing forever.
+`onto_vocab_check` asks the different question that catches this class of
+defect: not whether the data satisfies the shapes, but which terms in the
+graph were never declared anywhere. A vocabulary that nothing matches shows up
+immediately as terms with no home.
+
+**What the round trip produced.** Seventeen issues, of which the four fixed so
+far are upstream in Semantica: deterministic entity IRIs replacing a per-process
+`hash()`, a declared vocabulary at
+`semantica/ontology/vocabulary/semantica-ns.ttl` where the namespace had
+returned 404, JSON-LD `@id`s minted the same way the RDF serializers mint
+them, and timezone-aware timestamps with `sem:exportedAt` tightened to
+`xsd:dateTimeStamp`. That last one is the clearest single argument for this
+layer. Timestamps were written naive, in two idioms that mean different
+things, and a `FILTER(?t < "...Z"^^xsd:dateTime)` over them in Oxigraph drops
+every affected row through XSD 1.1's indeterminate comparison. The query
+returns an answer. The answer is missing the data it asked about.
 
 ## The MCP-native convention, and why it matters here
 
