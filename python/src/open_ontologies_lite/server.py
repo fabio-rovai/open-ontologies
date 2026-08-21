@@ -8,7 +8,14 @@ Python over the prebuilt pyoxigraph (Oxigraph) wheel. Run with:
 
 from __future__ import annotations
 
-from mcp.server.fastmcp import FastMCP
+try:
+    from mcp.server.fastmcp import FastMCP
+except ModuleNotFoundError as exc:  # pragma: no cover - import-time guard
+    raise ModuleNotFoundError(
+        "The MCP server needs the `server` extra: "
+        "pip install 'open-ontologies-lite[server]'. The library API "
+        "(OntologyEngine, vocab_check, shacl_validate) does not."
+    ) from exc
 
 from . import __version__
 from .engine import OntologyEngine
