@@ -1010,7 +1010,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_temporal_snapshot", description = "Which named graphs are in scope at a point in time, and which are excluded and why. Two independent clocks: valid_at asks what was TRUE then, as_of asks what was KNOWN then. Assertions live in named graphs described in the default graph with temporal:validFrom, validTo and recordedAt; a graph with no description is timeless and always in scope.")]
+    #[tool(name = "onto_temporal_snapshot", description = "Which named graphs are in scope at a point in time, and which are excluded and why. Two independent clocks: valid_at asks what was TRUE then, as_of asks what was KNOWN then. Assertions live in named graphs described in the default graph with temporal:validFrom, validTo and recordedAt; a graph with no description is timeless and always in scope. The scans are capped: `complete` says whether they finished, and a run that was cut short also carries `truncated` and a `warning`, because a truncated validity scan makes this partition wrong rather than merely short.")]
     async fn onto_temporal_snapshot(&self, Parameters(input): Parameters<OntoTemporalSnapshotInput>) -> String {
         use crate::temporal::Temporal;
         match Temporal::new(self.graph.clone()).snapshot(input.valid_at.as_deref(), input.as_of.as_deref()) {
@@ -1019,7 +1019,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_temporal_query", description = "Run a SPARQL graph pattern against only the graphs in temporal scope: what the graph said at a given valid time, as known at a given recorded time. Pass the body of a WHERE clause as `pattern`.")]
+    #[tool(name = "onto_temporal_query", description = "Run a SPARQL graph pattern against only the graphs in temporal scope: what the graph said at a given valid time, as known at a given recorded time. Pass the body of a WHERE clause as `pattern`. `complete` is false when the result list was cut at its cap or when the scope it ran over was, and `truncated` says which; only the second case is a wrong answer, and it carries a `warning`.")]
     async fn onto_temporal_query(&self, Parameters(input): Parameters<OntoTemporalQueryInput>) -> String {
         use crate::temporal::Temporal;
         match Temporal::new(self.graph.clone()).query_at(
@@ -1030,7 +1030,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_temporal_conflicts", description = "Disjointness violations that claim OVERLAPPING validity, separated from those that do not. Without valid time a correction reads as a contradiction: an entity recorded one way until May and another after trips every check. This reports genuine disagreement about the same period as contradictions, and everything else as superseded history.")]
+    #[tool(name = "onto_temporal_conflicts", description = "Disjointness violations that claim OVERLAPPING validity, separated from those that do not. Without valid time a correction reads as a contradiction: an entity recorded one way until May and another after trips every check. This reports genuine disagreement about the same period as contradictions, and everything else as superseded history. The scans are capped: `complete` says whether they finished, and if the validity scan was cut a `warning` marks the classification unsound, because a pair compared without its periods can appear here as a contradiction when it is a correction.")]
     async fn onto_temporal_conflicts(&self) -> String {
         use crate::temporal::Temporal;
         match Temporal::new(self.graph.clone()).conflicts() {
