@@ -7,7 +7,7 @@ from .engine import OntologyEngine, ValidationResult, resolve_format
 from .kgcl import ChangeSet, kgcl_diff
 from .vocab_check import vocab_check
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 __all__ = [
     "OntologyEngine",
     "ValidationResult",

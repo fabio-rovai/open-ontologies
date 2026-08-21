@@ -10,13 +10,20 @@ All notable changes to Open Ontologies are documented here.
   in exactly one module, `server.py`, so every consumer of the library API
   installed a server they had not asked for.
 
-  That was not only weight. `mcp` pulls a starlette major that current fastapi
-  does not accept, so installing the package into a project that uses fastapi
-  removed fastapi. Measured against semantica 0.6.6, whose pyproject declares
-  `fastapi>=0.109.2`: installing 0.4.0 uninstalled it, and every import of that
-  project's web layer then failed with `ModuleNotFoundError`. A package whose
-  job is verifying someone else's graph has no business breaking their web
-  layer to do it.
+  That was not only weight. `mcp` pulls `starlette`, and forcing that upgrade
+  makes a resolver re-solve the whole environment. Measured against a semantica
+  0.6.6 checkout: `pip install open-ontologies-lite==0.4.0` **uninstalled
+  fastapi**, and every import of that project's web layer then failed with
+  `ModuleNotFoundError`. Three of its security-regression tests went from
+  passing to erroring on that alone.
+
+  To be precise about the cause, because the first version of this note was not:
+  a current fastapi does accept the starlette that `mcp` wants, verified as
+  fastapi 0.141.1 beside starlette 1.6.0 in a clean environment. The breakage is
+  what the upgrade does to an environment that already holds a pinned or older
+  fastapi, which is what a real project has. Either way the fix is the same, and
+  a package whose job is verifying someone else's graph has no business
+  re-solving their web layer to do it.
 
   `mcp` moves behind a `server` extra, which the console script and
   `python -m open_ontologies_lite` need and the library API does not.
