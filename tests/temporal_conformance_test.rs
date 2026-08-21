@@ -337,7 +337,7 @@ fn boundary_touching_disjoint_assertions_are_superseded_not_contradictory() {
 // Everything above pins semantics that are intended. What follows pins what the
 // code does TODAY for mixed-precision and malformed bounds, which is a side
 // effect of comparing datatype-stripped literals lexically (`plain()` at
-// temporal.rs:92-105, `validities()` at :144-152) rather than a decision.
+// temporal.rs:229-242, `validities()` at :309-317) rather than a decision.
 //
 // These are the exact inputs the planned parsed-time work (issue #95, item 4)
 // changes: bounds parsed as instants on the UTC timeline accepting xsd:date,
