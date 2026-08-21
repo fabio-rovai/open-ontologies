@@ -12,7 +12,11 @@ All notable changes to Open Ontologies are documented here.
   holds pairs separated by a GAP, which is missing coverage rather than
   history. The results now come back under `non_overlapping` /
   `non_overlapping_count`, and the `note` says what was checked instead of
-  claiming adjacency the code never tested.
+  claiming adjacency the code never tested -- including the comparison that
+  backs it. Bounds are compared as text, so two periods written with different
+  timezone offsets can share an hour and still land in `non_overlapping`; the
+  note says so, and a conformance test pins it so the parsed-time work turns it
+  into a contradiction as a diff rather than a new assertion.
 
   `superseded` / `superseded_count` are still emitted, unconditionally and
   behind no flag, carrying exactly the same rows until 2.0. Deprecated, not

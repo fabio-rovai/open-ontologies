@@ -563,12 +563,14 @@ impl Temporal {
             "superseded_count": non_overlapping.len(),
             "complete": !validity_scan.hit && !scan.capped.hit,
             "note": "contradictions claim overlapping validity and genuinely disagree. \
-                     non_overlapping pairs are never asserted at the same instant, which is \
-                     all that has been checked: it is not evidence that one replaced the \
-                     other, and the bucket also holds pairs separated by a GAP, which is \
-                     missing coverage rather than history. superseded is the same set under \
-                     a name that claimed more than was proven; it is deprecated and will be \
-                     dropped at 2.0.",
+                     non_overlapping pairs have no instant in common UNDER LEXICAL \
+                     COMPARISON of their bounds, which is all that has been checked: it is \
+                     not evidence that one replaced the other, the bucket also holds pairs \
+                     separated by a GAP (missing coverage rather than history), and bounds \
+                     written with different timezone offsets are compared as text, so a \
+                     genuinely overlapping pair can land here until bounds are parsed as \
+                     instants. superseded is the same set under a name that claimed more \
+                     than was proven; it is deprecated and will be dropped at 2.0.",
         });
 
         // A cut validity scan is not a smaller answer here, it is a wrong one:
