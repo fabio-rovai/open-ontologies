@@ -2,7 +2,7 @@ use std::io::Cursor;
 use std::path::Path;
 use std::sync::Mutex;
 
-use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
+use oxigraph::io::{JsonLdProfileSet, RdfFormat, RdfParser, RdfSerializer};
 use oxigraph::model::*;
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
@@ -540,6 +540,10 @@ impl GraphStore {
             RdfFormat::NQuads
         } else if path.ends_with(".trig") {
             RdfFormat::TriG
+        } else if path.ends_with(".jsonld") || path.ends_with(".json") {
+            RdfFormat::JsonLd {
+                profile: JsonLdProfileSet::empty(),
+            }
         } else {
             RdfFormat::Turtle
         }
@@ -577,6 +581,22 @@ impl GraphStore {
             return RdfFormat::Turtle;
         }
 
+        // A JSON body is proof of JSON-LD in a way `{` alone is not: TriG also
+        // opens its default graph block with `{`, and Turtle admits `[` as a
+        // blank-node subject. Requiring a JSON-LD keyword alongside the opening
+        // brace keeps those two out while still rescuing the common case of a
+        // JSON-LD document published under `.owl`, `.rdf` or no extension at
+        // all, which would otherwise reach the Turtle parser and die there.
+        let opens_json = head.starts_with('{') || head.starts_with('[');
+        let has_jsonld_keyword = content.contains("\"@context\"")
+            || content.contains("\"@id\"")
+            || content.contains("\"@graph\"");
+        if opens_json && has_jsonld_keyword {
+            return RdfFormat::JsonLd {
+                profile: JsonLdProfileSet::empty(),
+            };
+        }
+
         ext_format
     }
 
@@ -587,8 +607,14 @@ impl GraphStore {
             "rdfxml" | "rdf" | "xml" | "owl" => Ok(RdfFormat::RdfXml),
             "nquads" | "nq" => Ok(RdfFormat::NQuads),
             "trig" => Ok(RdfFormat::TriG),
+            // "json-ld" is the spelling in the W3C media type registration and
+            // in most other tooling, so rejecting it turns a correct format
+            // name into an error.
+            "jsonld" | "json-ld" | "json" => Ok(RdfFormat::JsonLd {
+                profile: JsonLdProfileSet::empty(),
+            }),
             _ => anyhow::bail!(
-                "Unknown format: {}. Supported: turtle, ntriples, rdfxml, nquads, trig",
+                "Unknown format: {}. Supported: turtle, ntriples, rdfxml, nquads, trig, jsonld",
                 name
             ),
         }

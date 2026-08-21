@@ -27,6 +27,10 @@ _FORMATS = {
     "xml": ox.RdfFormat.RDF_XML,
     "n3": ox.RdfFormat.N3,
     "jsonld": ox.RdfFormat.JSON_LD,
+    # The W3C media-type registration and most other tooling, rdflib included,
+    # spell it with the hyphen. Taking only "jsonld" rejected a correct name.
+    "json-ld": ox.RdfFormat.JSON_LD,
+    "json": ox.RdfFormat.JSON_LD,
 }
 
 OWL_CLASS = "http://www.w3.org/2002/07/owl#Class"

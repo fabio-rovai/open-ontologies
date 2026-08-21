@@ -5,6 +5,22 @@ All notable changes to Open Ontologies are documented here.
 ## [Unreleased]
 
 ### Fixed
+- **JSON-LD is read and written like any other serialisation.** `oxrdfio` has
+  supported it all along, but the engine's format handling did not: `parse_format`
+  had no JSON-LD arm, and `detect_format` fell back to Turtle for any extension it
+  did not recognise, so a `.jsonld` document was handed to the Turtle parser and
+  died on `{ is not a valid predicate` — an error that names the wrong problem and
+  sends you looking at a file that was never broken. `.jsonld` and `.json` now map
+  to JSON-LD, `parse_format` accepts `jsonld`, `json-ld` and `json` (`json-ld` is
+  the W3C media-type spelling and what most other tooling takes, so rejecting it
+  turned a correct format name into an error), and the body sniffer recognises a
+  JSON-LD document published under a misleading extension. The sniff requires an
+  opening `{` or `[` *and* a `"@context"`, `"@id"` or `"@graph"` keyword: a bare
+  brace proves nothing, since TriG opens its default graph block with `{` and
+  Turtle admits `[` as a blank-node subject. `tests/graph_jsonld_test.rs`.
+  The Python package had the mirror defect, accepting `jsonld` while rejecting
+  `json-ld`; both spellings and `json` now resolve.
+
 - **The compile cache no longer flattens named graphs** (issue #112). It was
   written as N-Triples, a format that cannot carry a graph name, so the cached
   artefact was not equivalent to the source it stood for: a dataset went in and
