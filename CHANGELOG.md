@@ -5,6 +5,34 @@ All notable changes to Open Ontologies are documented here.
 ## [Unreleased]
 
 ### Fixed
+- **The compile cache no longer flattens named graphs** (issue #112). It was
+  written as N-Triples, a format that cannot carry a graph name, so the cached
+  artefact was not equivalent to the source it stood for: a dataset went in and
+  a flattened graph came out. The first load parsed the source and answered
+  correctly; every load after it read the cache back and returned a store with
+  no named graphs at all. Measured on an unchanged TriG file, twice through
+  `onto_load`: `origin: "source"` gave two named graphs, `origin: "cache"` gave
+  none, and `onto_temporal_snapshot` reported `{"ok": true, "in_scope": []}` —
+  a clean, confident, empty answer.
+
+  The freshness key `(source_path, mtime, size, sha256)` was never at fault and
+  is unchanged; the cache was correctly judged fresh, and what it held was
+  wrong. A second path needed no second load at all: an idle-evicted ontology
+  reloads through `ensure_loaded`, from that same flattened file, so a
+  long-running `serve-http --idle-ttl-secs` lost its named graphs by being
+  idle.
+
+  Cache files are now N-Quads (`.nq`) — line-based and just as fast to parse,
+  which was the reason N-Triples was chosen, but able to name a graph. The
+  extension doubles as the format marker: an entry pointing at a `.nt` file was
+  written before this fix, holds a flattened dataset, and is recompiled instead
+  of read. That costs one re-parse per ontology, once, and heals warm caches
+  rather than leaving them quietly wrong. Anything whose meaning lives in the
+  graph name is affected — the bi-temporal tools above all, which read
+  `GRAPH ?g` and saw an empty store. Three tests in `tests/registry_test.rs`,
+  each loading TWICE on purpose: a test that loads once passes on the broken
+  code, which is why this went unnoticed.
+
 - **Named graphs are preserved when exporting to TriG and N-Quads.**
   `GraphStore::serialize` rendered every format with `serialize_triple`, which
   flattens a quad from a named graph into the default graph. Import and the

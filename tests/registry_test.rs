@@ -56,6 +56,7 @@ struct Harness {
     _tmp: tempfile::TempDir,
     pub source_path: PathBuf,
     pub cache_dir: PathBuf,
+    pub db_path: PathBuf,
     pub registry: Arc<OntologyRegistry>,
     pub graph: Arc<GraphStore>,
 }
@@ -82,6 +83,7 @@ fn setup(idle_ttl_secs: u64) -> Harness {
         _tmp: tmp,
         source_path,
         cache_dir,
+        db_path,
         registry,
         graph,
     }
@@ -107,7 +109,10 @@ fn first_load_writes_cache_file() {
         std::path::Path::new(&res.cache_path).exists(),
         "cache file should exist on disk"
     );
-    // Cache directory should contain at least one .nt file.
+    // The cache directory should hold a file in the cache format. Asserted
+    // through the constant rather than a literal: the extension IS the format
+    // marker (a file in any other one is treated as stale), so the two must
+    // not be able to drift apart.
     let entries: Vec<_> = std::fs::read_dir(&h.cache_dir)
         .unwrap()
         .filter_map(|e| e.ok())
@@ -115,11 +120,15 @@ fn first_load_writes_cache_file() {
             e.path()
                 .extension()
                 .and_then(|s| s.to_str())
-                .map(|s| s == "nt")
+                .map(|s| s == open_ontologies::cache::CACHE_EXT)
                 .unwrap_or(false)
         })
         .collect();
-    assert!(!entries.is_empty(), "expected an .nt file in cache dir");
+    assert!(
+        !entries.is_empty(),
+        "expected a .{} file in cache dir",
+        open_ontologies::cache::CACHE_EXT
+    );
 }
 
 #[test]
@@ -428,4 +437,137 @@ fn auto_refresh_after_eviction_uses_new_source() {
     h.registry.ensure_loaded().unwrap();
     let v2 = h.graph.triple_count();
     assert!(v2 > v1, "expected refreshed (larger) ontology after change");
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Named graphs survive the cache
+//
+// The cache is only useful if what comes out equals what went in. It was
+// written as N-Triples, which cannot carry a graph name, so a dataset went in
+// and a flattened graph came out — on every load after the first, and on every
+// reload after an idle eviction. The source never changed, so the freshness
+// key was right and nothing anywhere reported a loss.
+//
+// Every test below loads TWICE on purpose. A test that loads once passes on
+// the broken code, which is why this went unnoticed.
+// ────────────────────────────────────────────────────────────────────────────
+
+/// Two named graphs plus a description of them in the default graph — the
+/// shape the bi-temporal tools read (`src/temporal.rs`).
+const SAMPLE_TRIG: &str = r#"
+@prefix ex: <http://example.org/test#> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+
+ex:g_v1 { ex:Doc ex:status ex:Draft . }
+ex:g_v2 { ex:Doc ex:status ex:Published . }
+
+{
+  ex:g_v1 t:validFrom "2024-01-01" ; t:validTo "2026-05-01" .
+  ex:g_v2 t:validFrom "2026-05-01" .
+}
+"#;
+
+fn setup_trig(idle_ttl_secs: u64) -> Harness {
+    let h = setup(idle_ttl_secs);
+    let trig_path = h._tmp.path().join("sample.trig");
+    std::fs::write(&trig_path, SAMPLE_TRIG).unwrap();
+    Harness {
+        source_path: trig_path,
+        ..h
+    }
+}
+
+/// The graph names the store currently holds, as reported by SPARQL rather
+/// than by the loader that just claimed to have loaded them.
+fn named_graphs(h: &Harness) -> Vec<String> {
+    let raw = h
+        .graph
+        .sparql_select("SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } } ORDER BY ?g")
+        .unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    parsed["results"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|row| row["g"].as_str().map(str::to_string))
+        .collect()
+}
+
+#[test]
+fn a_second_load_from_cache_keeps_the_named_graphs() {
+    let h = setup_trig(0);
+    let path = h.source_path.to_str().unwrap();
+
+    let first = h.registry.load_file(path, LoadOptions::default()).unwrap();
+    assert_eq!(first.origin, "source");
+    let from_source = named_graphs(&h);
+    assert_eq!(from_source.len(), 2, "fixture has two named graphs: {from_source:?}");
+
+    // Same file, untouched: the cache is legitimately fresh and IS used. That
+    // is the point — the bug was never in the freshness key.
+    let second = h.registry.load_file(path, LoadOptions::default()).unwrap();
+    assert_eq!(second.origin, "cache", "second load should hit the cache");
+    assert_eq!(
+        named_graphs(&h),
+        from_source,
+        "a cache round trip must return the dataset it was given, graph names included"
+    );
+    assert_eq!(second.triple_count, first.triple_count);
+}
+
+#[test]
+fn a_reload_after_eviction_keeps_the_named_graphs() {
+    // The path that needs no second load and no user action at all: the entry
+    // goes idle, the evictor drops it, and the next read reloads from cache.
+    let h = setup_trig(1);
+    let path = h.source_path.to_str().unwrap();
+    h.registry.load_file(path, LoadOptions::default()).unwrap();
+    let before = named_graphs(&h);
+
+    sleep(Duration::from_millis(1100));
+    assert!(h.registry.evictor_tick().unwrap(), "entry should be evicted");
+    h.registry.ensure_loaded().unwrap();
+
+    assert_eq!(
+        named_graphs(&h),
+        before,
+        "an eviction is a memory event, not a data change"
+    );
+}
+
+#[test]
+fn a_cache_file_left_by_an_older_build_is_recompiled_not_read() {
+    // A `.nt` cache holds a flattened dataset. The source has not changed, so
+    // every other freshness check passes: without the format check it would be
+    // read back as authoritative and the graph names would be gone.
+    let h = setup_trig(0);
+    let path = h.source_path.to_str().unwrap();
+    let first = h.registry.load_file(path, LoadOptions::default()).unwrap();
+    let expected = named_graphs(&h);
+
+    // Rewrite history: flatten the cache to N-Triples under the old name, and
+    // point the metadata at it, exactly as an older build would have left it.
+    let legacy = std::path::Path::new(&first.cache_path).with_extension("nt");
+    let flattened = h.graph.serialize("ntriples").unwrap();
+    std::fs::write(&legacy, &flattened).unwrap();
+    let fp = SourceFingerprint::from_path(std::path::Path::new(path)).unwrap();
+    let cm = CacheManager::new(
+        h.cache_dir.clone(),
+        StateDb::open(&h.db_path).unwrap(),
+    )
+    .unwrap();
+    cm.upsert("sample", path, &fp, &legacy, first.triple_count)
+        .unwrap();
+
+    let second = h.registry.load_file(path, LoadOptions::default()).unwrap();
+    assert_eq!(
+        second.origin, "source",
+        "a legacy cache file must be recompiled, not trusted"
+    );
+    assert_eq!(named_graphs(&h), expected);
+    assert!(
+        second.cache_path.ends_with(".nq"),
+        "the rewritten cache carries the format that can hold graph names: {}",
+        second.cache_path
+    );
 }

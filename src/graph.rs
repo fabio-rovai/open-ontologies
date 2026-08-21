@@ -419,9 +419,23 @@ impl GraphStore {
     }
 
     pub fn load_ntriples(&self, content: &str) -> anyhow::Result<usize> {
+        self.load_lines(content, RdfFormat::NTriples)
+    }
+
+    /// Load N-Quads, keeping every graph name.
+    ///
+    /// The line-based sibling of [`load_ntriples`](Self::load_ntriples), for
+    /// the paths that round-trip a whole dataset rather than one graph — the
+    /// compile cache above all, where N-Triples silently flattened everything
+    /// it was asked to hold.
+    pub fn load_nquads(&self, content: &str) -> anyhow::Result<usize> {
+        self.load_lines(content, RdfFormat::NQuads)
+    }
+
+    fn load_lines(&self, content: &str, format: RdfFormat) -> anyhow::Result<usize> {
         let store = self.store.lock().unwrap();
         let reader = Cursor::new(content.as_bytes());
-        let parser = RdfParser::from_format(RdfFormat::NTriples).for_reader(reader);
+        let parser = RdfParser::from_format(format).for_reader(reader);
         let mut count = 0;
         for quad in parser {
             store.insert(&quad?)?;
