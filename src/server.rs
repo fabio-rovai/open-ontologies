@@ -1010,7 +1010,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_temporal_snapshot", description = "Which named graphs are in scope at a point in time, and which are excluded and why. Two independent clocks: valid_at asks what was TRUE then, as_of asks what was KNOWN then. Assertions live in named graphs described in the default graph with temporal:validFrom, validTo and recordedAt; a graph with no description is timeless and always in scope. The scans are capped: `complete` says whether they finished, and a run that was cut short also carries `truncated` and a `warning`, because a truncated validity scan makes this partition wrong rather than merely short.")]
+    #[tool(name = "onto_temporal_snapshot", description = "Which named graphs are in scope at a point in time, and which are excluded and why. Two independent clocks: valid_at asks what was TRUE then, as_of asks what was KNOWN then. Assertions live in named graphs described in the default graph with temporal:validFrom, validTo, recordedAt and recordedUntil; a graph with no description is timeless and always in scope. Both intervals are half-open, so an assertion whose recordedUntil has passed is excluded as no longer believed instead of being carried forward beside the correction that replaced it. The scans are capped: `complete` says whether they finished, and a run that was cut short also carries `truncated` and a `warning`, because a truncated validity scan makes this partition wrong rather than merely short.")]
     async fn onto_temporal_snapshot(&self, Parameters(input): Parameters<OntoTemporalSnapshotInput>) -> String {
         use crate::temporal::Temporal;
         match Temporal::new(self.graph.clone()).snapshot(input.valid_at.as_deref(), input.as_of.as_deref()) {

@@ -5,6 +5,25 @@ All notable changes to Open Ontologies are documented here.
 ## [Unreleased]
 
 ### Fixed
+- **`temporal:recordedUntil` closes the transaction interval, so `as_of`
+  answers what was believed then.** The recorded axis only ever narrowed
+  forward: with no upper bound, `as_of = now` returned the union of every
+  version ever recorded rather than the current belief, and after the first
+  correction a snapshot showed an assertion beside the one that replaced it.
+  `validities()` now reads the predicate as a fourth UNION branch and
+  `recorded_by` is two-sided, half-open like `[validFrom, validTo)`.
+
+  Exclusions are reported on the side they fall: a graph recorded after the
+  audit instant still says `not yet recorded then`, one whose recorded interval
+  has closed says `no longer recorded then`. Those are opposite facts and a
+  single reason string flattened them.
+
+  Additive. A store that does not write `recordedUntil` is unchanged, including
+  its cap arithmetic — the validity scan counts ROWS, so only a graph that
+  actually carries the fourth predicate costs a fourth row. For stores that do,
+  the 20,000-row cap covers roughly 5,000 fully described graphs where it
+  covered roughly 6,700 with three predicates; there is a test that proves the
+  cost rather than asserting it in a comment.
 - **`open-ontologies-lite` no longer installs an MCP server with the library**
   (released as 0.5.0). `mcp` was a core dependency of a package that imports it
   in exactly one module, `server.py`, so every consumer of the library API

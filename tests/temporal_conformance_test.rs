@@ -55,6 +55,22 @@ fn snapshot(t: &Temporal, valid_at: Option<&str>, as_of: Option<&str>) -> serde_
     serde_json::from_str(&t.snapshot(valid_at, as_of).unwrap()).unwrap()
 }
 
+/// The reason a snapshot gives for excluding one graph, named by its local
+/// part. Panics rather than returning an Option: every caller is asserting on
+/// the reason, so a missing row is a failed test, not an empty string.
+fn reason(snapshot: &serde_json::Value, local: &str) -> String {
+    let row = snapshot["excluded"]
+        .as_array()
+        .unwrap_or_else(|| panic!("snapshot has no array `excluded`: {snapshot}"))
+        .iter()
+        .find(|row| row["graph"].as_str().is_some_and(|g| g.ends_with(local)))
+        .unwrap_or_else(|| panic!("`{local}` is not excluded: {snapshot}"));
+    row["reason"]
+        .as_str()
+        .unwrap_or_else(|| panic!("`{local}` carries no reason: {row}"))
+        .to_string()
+}
+
 fn set(items: &[&str]) -> BTreeSet<String> {
     items.iter().map(|s| s.to_string()).collect()
 }
@@ -157,6 +173,104 @@ fn as_of_hides_a_fact_recorded_after_the_cutoff() {
     // One day later the record has certainly arrived.
     let after = snapshot(&t, Some("2024-06-01"), Some("2024-01-06"));
     assert!(graphs(&after, "in_scope").contains("g_adherent"));
+}
+
+/// A correction on the recorded axis alone: both graphs claim the same valid
+/// period, and the first was believed only until the second replaced it. This
+/// is the shape `as_of` exists for, and it needs a closing bound to work — with
+/// an open transaction interval both graphs answer every later audit.
+const CORRECTED: &str = r#"
+@prefix ex: <http://example.org/> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+
+ex:g_first { ex:HEK293 a ex:AdherentCellLine . }
+ex:g_fix   { ex:HEK293 a ex:SuspensionCellLine . }
+
+{
+  ex:g_first t:validFrom "2024-01-01" ; t:recordedAt "2024-01-05" ; t:recordedUntil "2026-05-02" .
+  ex:g_fix   t:validFrom "2024-01-01" ; t:recordedAt "2026-05-02" .
+}
+"#;
+
+#[test]
+fn as_of_before_a_correction_sees_what_was_believed_then() {
+    let t = temporal(CORRECTED);
+    let snap = snapshot(&t, None, Some("2025-06-01"));
+    assert_eq!(graphs(&snap, "in_scope"), set(&["g_first"]));
+    assert_eq!(graphs(&snap, "excluded"), set(&["g_fix"]));
+    assert_eq!(
+        reason(&snap, "g_fix"),
+        "not yet recorded then",
+        "the successor had not been recorded at that instant"
+    );
+}
+
+#[test]
+fn as_of_after_a_correction_drops_the_assertion_it_replaced() {
+    let t = temporal(CORRECTED);
+    let snap = snapshot(&t, None, Some("2026-06-01"));
+    // Without recordedUntil both graphs answer here, because `as_of` only ever
+    // narrowed forward: the audit would show the corpus asserting two disjoint
+    // types of the same subject and no way to tell which one was believed.
+    assert_eq!(graphs(&snap, "in_scope"), set(&["g_fix"]));
+    assert_eq!(graphs(&snap, "excluded"), set(&["g_first"]));
+    assert_eq!(
+        reason(&snap, "g_first"),
+        "no longer recorded then",
+        "an assertion whose recorded interval has closed is not merely \
+         unrecorded yet — the two exclusions are opposite facts"
+    );
+}
+
+#[test]
+fn recorded_interval_is_half_open_at_the_upper_bound() {
+    let t = temporal(CORRECTED);
+    // Exactly at the bound. Half-open on both axes, so the predecessor is
+    // already out and the successor is already in, and the handover leaves no
+    // instant where both are believed or neither is.
+    let snap = snapshot(&t, None, Some("2026-05-02"));
+    assert_eq!(graphs(&snap, "in_scope"), set(&["g_fix"]));
+    assert_eq!(graphs(&snap, "excluded"), set(&["g_first"]));
+
+    // One instant earlier, the other way round.
+    let before = snapshot(&t, None, Some("2026-05-01"));
+    assert_eq!(graphs(&before, "in_scope"), set(&["g_first"]));
+}
+
+/// The failure this has to catch is not a wrong answer, it is a graph quietly
+/// reclassified as timeless. `validities()` builds its map from the predicates
+/// it queries, and `scope()` puts anything absent from that map into `in_scope`
+/// as "no validity recorded, timeless" — that is, ALWAYS TRUE. So a predicate
+/// added to the vocabulary and not added to the UNION does not merely go
+/// unread: it turns the assertion it describes into an eternal one, which is
+/// the worst available default for a bound that exists to withdraw something.
+///
+/// This test fails on `recordedUntil` before the UNION carries it, and it will
+/// fail the same way for the fifth predicate someone adds without wiring.
+#[test]
+fn every_temporal_predicate_takes_its_graph_out_of_the_timeless_bucket() {
+    for predicate in ["validFrom", "validTo", "recordedAt", "recordedUntil"] {
+        let trig = format!(
+            "@prefix ex: <http://example.org/> .\n\
+             @prefix t:  <https://open-ontologies.org/temporal#> .\n\
+             ex:g_only {{ ex:HEK293 a ex:AdherentCellLine . }}\n\
+             {{ ex:g_only t:{predicate} \"2024-01-01\" . }}\n"
+        );
+        let snap = snapshot(&temporal(&trig), None, None);
+        let row = snap["in_scope"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .chain(snap["excluded"].as_array().unwrap().iter())
+            .find(|row| row["graph"].as_str().is_some_and(|g| g.ends_with("g_only")))
+            .unwrap_or_else(|| panic!("g_only is in neither bucket for `{predicate}`: {snap}"));
+        assert_ne!(
+            row["reason"].as_str(),
+            Some("no validity recorded, timeless"),
+            "`{predicate}` does not populate the validity map, so a graph \
+             described only by it reads as timeless and always in scope"
+        );
+    }
 }
 
 /// A described graph with an open start: no `validFrom`, only a `validTo`.
@@ -459,7 +573,7 @@ ex:g_multi { ex:X a ex:A . }
 fn accidental_multi_valued_bound_resolves_to_one_row_instead_of_failing() {
     let t = temporal(MULTI_VALUED_BOUND);
     // ACCIDENTAL: `validities()` overwrites the field on every row of the
-    // 3-way UNION, so one of the two values wins and the other vanishes. Which
+    // 4-way UNION, so one of the two values wins and the other vanishes. Which
     // one is whichever the UNION yields last — today that is 2024-01-01, but
     // nothing in the query contracts that order, which is the defect.
     // AFTER item 4: the graph is INVALID, both values are listed in the reason,
