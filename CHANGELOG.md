@@ -5,6 +5,27 @@ All notable changes to Open Ontologies are documented here.
 ## [Unreleased]
 
 ### Fixed
+- **`open-ontologies-lite` no longer installs an MCP server with the library**
+  (released as 0.5.0). `mcp` was a core dependency of a package that imports it
+  in exactly one module, `server.py`, so every consumer of the library API
+  installed a server they had not asked for.
+
+  That was not only weight. `mcp` pulls a starlette major that current fastapi
+  does not accept, so installing the package into a project that uses fastapi
+  removed fastapi. Measured against semantica 0.6.6, whose pyproject declares
+  `fastapi>=0.109.2`: installing 0.4.0 uninstalled it, and every import of that
+  project's web layer then failed with `ModuleNotFoundError`. A package whose
+  job is verifying someone else's graph has no business breaking their web
+  layer to do it.
+
+  `mcp` moves behind a `server` extra, which the console script and
+  `python -m open_ontologies_lite` need and the library API does not.
+  `server.py` names the extra when it is missing rather than failing on a bare
+  import line. A test runs the library API in a fresh interpreter with `mcp`
+  forced unavailable. 0.5.0 rather than 0.4.1 because the install line changes
+  for anyone who relied on the bare install giving them the server, even though
+  no API moved.
+
 - **JSON-LD is read and written like any other serialisation.** `oxrdfio` has
   supported it all along, but the engine's format handling did not: `parse_format`
   had no JSON-LD arm, and `detect_format` fell back to Turtle for any extension it
