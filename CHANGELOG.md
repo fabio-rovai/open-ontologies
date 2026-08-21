@@ -5,6 +5,20 @@ All notable changes to Open Ontologies are documented here.
 ## [Unreleased]
 
 ### Fixed
+- **`onto_temporal_conflicts` stops calling every non-overlapping pair a
+  correction.** The check is `!overlaps`, which proves the two periods share no
+  instant and nothing more. It does not establish that one assertion replaced
+  the other -- the data carries no link that would -- and the same bucket also
+  holds pairs separated by a GAP, which is missing coverage rather than
+  history. The results now come back under `non_overlapping` /
+  `non_overlapping_count`, and the `note` says what was checked instead of
+  claiming adjacency the code never tested.
+
+  `superseded` / `superseded_count` are still emitted, unconditionally and
+  behind no flag, carrying exactly the same rows until 2.0. Deprecated, not
+  renamed: when lineage-backed supersession arrives it takes a new key, so no
+  key ever names a different set on either side of a major version.
+
 - **`open-ontologies-lite` no longer installs an MCP server with the library**
   (released as 0.5.0). `mcp` was a core dependency of a package that imports it
   in exactly one module, `server.py`, so every consumer of the library API
