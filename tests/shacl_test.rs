@@ -276,7 +276,9 @@ fn test_sh_not_is_not_silently_ignored() {
     let v: serde_json::Value = serde_json::from_str(&report).unwrap();
     assert!(v["conforms"].is_null(), "must not claim a pass: {v}");
     assert!(
-        v["skipped_constraints"].as_array().map_or(false, |a| !a.is_empty()),
+        v["skipped_constraints"]
+            .as_array()
+            .is_some_and(|a| !a.is_empty()),
         "sh:not must be recorded as skipped: {v}"
     );
 }
