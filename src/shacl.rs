@@ -36,15 +36,47 @@ impl ShaclValidator {
             &shapes_store,
             r#"
             PREFIX sh: <http://www.w3.org/ns/shacl#>
-            SELECT ?shape ?targetClass WHERE {
-                ?shape a sh:NodeShape ;
-                       sh:targetClass ?targetClass .
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
+            SELECT DISTINCT ?shape ?targetClass WHERE {
+                { ?shape a sh:NodeShape ; sh:targetClass ?targetClass . }
+                UNION
+                { ?shape a sh:NodeShape, rdfs:Class . BIND(?shape AS ?targetClass) }
+                UNION
+                { ?shape a sh:NodeShape, owl:Class . BIND(?shape AS ?targetClass) }
             }
             "#,
         )?;
 
         let mut violations: Vec<serde_json::Value> = Vec::new();
         let mut skipped: Vec<serde_json::Value> = Vec::new();
+
+        // Target forms this implementation does not support. Previously a shapes
+        // graph using only these produced no shapes at all, the validation loop
+        // never ran, and the report said `conforms: true` having checked nothing.
+        // Recording them as skipped suppresses the verdict instead.
+        for (pred, label) in [
+            ("sh:targetNode", "sh:targetNode"),
+            ("sh:targetSubjectsOf", "sh:targetSubjectsOf"),
+            ("sh:targetObjectsOf", "sh:targetObjectsOf"),
+        ] {
+            let q = format!(
+                r#"PREFIX sh: <http://www.w3.org/ns/shacl#>
+                   SELECT ?shape WHERE {{ ?shape {} ?t . }}"#,
+                pred
+            );
+            if let Ok(rows) = query_solutions(&shapes_store, &q) {
+                for row in &rows {
+                    skipped.push(serde_json::json!({
+                        "shape": strip_angle_brackets(
+                            row.get("shape").map(|s| s.as_str()).unwrap_or_default()
+                        ),
+                        "constraint": label,
+                        "reason": "target form not implemented; focus nodes could not be selected",
+                    }));
+                }
+            }
+        }
         let mut unmatched: Vec<serde_json::Value> = Vec::new();
         let mut focus_nodes_total: u64 = 0;
 
@@ -97,6 +129,40 @@ impl ShaclValidator {
                     shape_iri
                 ),
             )?;
+
+            // Any constraint predicate on a property shape that this implementation
+            // does not evaluate must be reported, not ignored. Before this check,
+            // `sh:not` was invisible: it was never collected, never evaluated, and
+            // never recorded, so a shape whose only constraint was `sh:not` returned
+            // `conforms: true` over data that violated it.
+            let unknown = query_solutions(
+                &shapes_store,
+                &format!(
+                    r#"
+                    PREFIX sh: <http://www.w3.org/ns/shacl#>
+                    SELECT DISTINCT ?pred WHERE {{
+                        {} sh:property ?prop .
+                        ?prop ?pred ?o .
+                        FILTER(?pred NOT IN (
+                            sh:path, sh:minCount, sh:maxCount, sh:datatype,
+                            sh:pattern, sh:hasValue, sh:message, sh:severity,
+                            sh:name, sh:description, sh:order, sh:group,
+                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
+                        ))
+                    }}
+                    "#,
+                    shape_iri
+                ),
+            )?;
+            for row in &unknown {
+                if let Some(pred) = row.get("pred") {
+                    skipped.push(serde_json::json!({
+                        "shape": strip_angle_brackets(&shape_iri),
+                        "constraint": strip_angle_brackets(pred),
+                        "reason": "constraint not implemented; it was not evaluated",
+                    }));
+                }
+            }
 
             // 4. For each constraint, run SPARQL queries against the main graph
             for prop in &props {
@@ -430,7 +496,18 @@ impl ShaclValidator {
             }
         }
 
-        let nothing_matched = !shapes.is_empty() && focus_nodes_total == 0;
+        // A shapes graph that declared shapes we could not discover must not be
+        // reported as a pass. `shapes.is_empty()` used to fall through to
+        // `conforms: violations.is_empty()`, which is `true` for an empty run.
+        let declared_any_shape = query_solutions(
+            &shapes_store,
+            r#"PREFIX sh: <http://www.w3.org/ns/shacl#>
+               SELECT ?s WHERE { ?s a sh:NodeShape . }"#,
+        )
+        .map(|r| !r.is_empty())
+        .unwrap_or(false);
+        let nothing_matched =
+            (!shapes.is_empty() && focus_nodes_total == 0) || (shapes.is_empty() && declared_any_shape);
 
         let mut report = serde_json::json!({
             "violation_count": violations.len(),
