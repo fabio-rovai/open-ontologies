@@ -1,9 +1,16 @@
 //! Compile cache for ontology files.
 //!
-//! A loaded ontology is serialized as N-Triples (the simplest, fastest-to-parse
-//! RDF format) and written to `<cache_dir>/<sha>.nt`. Metadata is stored in
-//! the `ontology_cache` SQLite table so we can quickly answer "is the cache
-//! still valid for this source file?" without re-parsing.
+//! A loaded ontology is serialized as N-Quads (line-based and just as fast to
+//! parse as N-Triples, but able to name a graph) and written to
+//! `<cache_dir>/<sha>.nq`. Metadata is stored in the `ontology_cache` SQLite
+//! table so we can quickly answer "is the cache still valid for this source
+//! file?" without re-parsing.
+//!
+//! The format is load-bearing, not a detail. N-Triples cannot carry a graph
+//! name, so caching in it made the cached artefact non-equivalent to the
+//! source: a dataset went in and a flattened graph came out, silently, on
+//! every load after the first. Anything whose meaning lives in the graph name
+//! — the bi-temporal layer above all — lost it there.
 //!
 //! Validity key: `(source_path, mtime_secs, size, sha256(prefix))`.
 //! For most workflows the (mtime, size) pair is sufficient and avoids hashing
@@ -17,6 +24,13 @@ use std::time::UNIX_EPOCH;
 use rusqlite::params;
 
 use crate::state::StateDb;
+
+/// Extension of a cache file, and the format it holds.
+///
+/// N-Quads rather than N-Triples: line-based and just as fast to parse, but it
+/// can name a graph. The extension doubles as the format marker — a `.nt` file
+/// left by an older build holds a flattened dataset and must not be read back.
+pub const CACHE_EXT: &str = "nq";
 
 // Number of head-bytes hashed for the cache fingerprint — overridable via
 // `[cache] hash_prefix_bytes` in config.toml. See `crate::runtime`.
@@ -317,6 +331,11 @@ impl CacheManager {
     }
 
     /// Build a cache file path for a given source key.
+    ///
+    /// The extension is part of the cache contract: a file that does not end
+    /// in [`CACHE_EXT`] was written by a version that could not represent
+    /// named graphs, and is treated as stale rather than read back (see
+    /// `OntologyRegistry::load_file`).
     pub fn cache_path_for(&self, name: &str, sha: &str) -> PathBuf {
         // Use both the name and the sha so renames don't collide and we can
         // garbage-collect stale entries by `name`.
@@ -324,7 +343,8 @@ impl CacheManager {
             .chars()
             .map(|c| if c.is_ascii_alphanumeric() || c == '-' || c == '_' { c } else { '_' })
             .collect::<String>();
-        self.cache_dir.join(format!("{}.{}.nt", safe, &sha[..sha.len().min(16)]))
+        self.cache_dir
+            .join(format!("{}.{}.{CACHE_EXT}", safe, &sha[..sha.len().min(16)]))
     }
 
     /// Atomically write `content` to `path` (writes to `<path>.tmp` then renames).
