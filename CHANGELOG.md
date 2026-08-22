@@ -228,6 +228,17 @@ All notable changes to Open Ontologies are documented here.
   the same store answers differently under the two readings and an answer that
   does not say which produced it cannot be replayed or hashed.
 
+  A fractional second is refused only when a digit past the ninth is NONZERO.
+  A zero tail is not extra precision: `.1234567890` is 123,456,789 nanoseconds
+  exactly and names the instant `.123456789` names, so refusing it made two
+  spellings of one instant answer differently — the thing this change resolves
+  everywhere else. Fixed-width formatters pad to a fixed digit count, so the
+  tail arrives from machines rather than from typos, and it reaches both the
+  store bounds and the `valid_at` / `as_of` arguments. Bounds typed
+  `^^xsd:dateTime` were shielded by the store's own canonicalisation; bare and
+  `xsd:string` bounds — the form this module documents as supported, and the
+  form the conformance corpus is written in — were not.
+
   **Same-precision data with four-digit years, no offsets and no sub-nanosecond
   fractions answers exactly as it did.** That is the constraint this was built
   against, and the divergence is narrower than it sounds: for a coarse value

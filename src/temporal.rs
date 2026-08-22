@@ -621,10 +621,18 @@ mod instant {
     }
 
     /// XSD allows unbounded fractional digits; chrono holds nanoseconds. A
-    /// value finer than that is REFUSED rather than truncated. Truncating
-    /// would silently merge two instants a well-formed store distinguishes,
-    /// and these intervals are half-open, so the instants that merge are
-    /// exactly the ones a boundary test is asking about.
+    /// value carrying more PRECISION than that is REFUSED rather than
+    /// truncated. Truncating would silently merge two instants a well-formed
+    /// store distinguishes, and these intervals are half-open, so the instants
+    /// that merge are exactly the ones a boundary test is asking about.
+    ///
+    /// Digits past the ninth are only extra precision when one of them is
+    /// NONZERO. A zero tail adds nothing: `.1234567890` is 123,456,789
+    /// nanoseconds exactly, the same instant `.123456789` names, and refusing
+    /// it would contradict `settle`, which resolves two spellings of one
+    /// instant precisely because they invent no interval. Fixed-width
+    /// formatters pad to a fixed digit count, so the tail is common in stores
+    /// nobody wrote by hand.
     fn fraction(b: &[u8], i: usize) -> Option<(u32, usize)> {
         if b.get(i) != Some(&b'.') {
             return Some((0, i));
@@ -632,10 +640,13 @@ mod instant {
         let (mut j, mut nano, mut scale) = (i + 1, 0u32, 100_000_000u32);
         while let Some(d) = b.get(j).and_then(|&c| char::from(c).to_digit(10)) {
             if scale == 0 {
-                return None; // more precision asserted than can be compared
+                if d != 0 {
+                    return None; // more precision asserted than can be compared
+                }
+            } else {
+                nano += d * scale;
+                scale /= 10;
             }
-            nano += d * scale;
-            scale /= 10;
             j += 1;
         }
         if j == i + 1 {
@@ -806,6 +817,40 @@ mod instant {
             assert_eq!(read("  2024-03-05  "), "2024-03-05T00:00:00Z");
             let padded = "\"  2024-03-05  \"^^<http://www.w3.org/2001/XMLSchema#date>";
             assert!(bound(padded).is_ok());
+        }
+
+        /// A tenth fractional digit is only unrepresentable when it carries a
+        /// value. `.1234567890` is 123,456,789 nanoseconds exactly — the same
+        /// instant `.123456789` names — so refusing it made two spellings of
+        /// one instant answer differently, which is the thing `settle` exists
+        /// to prevent. Fixed-width formatters pad to a fixed digit count, so
+        /// the zero tail arrives from machines, not from typos.
+        #[test]
+        fn a_zero_tail_past_nanoseconds_is_the_same_instant_not_more_precision() {
+            let nine = read("2024-03-05T06:07:08.123456789Z");
+            assert_eq!(read("2024-03-05T06:07:08.1234567890Z"), nine);
+            assert_eq!(read("2024-03-05T06:07:08.12345678900000Z"), nine);
+            // The zero tail must not disturb a value that is entirely zeroes,
+            // nor the `('.' '0'+)?` XSD allows after 24:00:00.
+            assert_eq!(
+                read("2024-03-05T06:07:08.0000000000Z"),
+                read("2024-03-05T06:07:08Z")
+            );
+            assert!(bound("\"2024-03-05T24:00:00.0000000000Z\"").is_ok());
+        }
+
+        /// The negative control for the test above: a NONZERO digit past the
+        /// ninth is real precision this crate cannot compare, and truncating
+        /// it would merge two instants a well-formed store distinguishes.
+        /// Without this case the fix above would read as "accept any tail".
+        #[test]
+        fn a_nonzero_digit_past_nanoseconds_is_still_refused() {
+            assert!(bound("\"2024-03-05T06:07:08.1234567891Z\"").is_err());
+            assert!(bound("\"2024-03-05T06:00:00.0000000001Z\"").is_err());
+            // A nonzero digit further out still counts, however long the tail.
+            assert!(bound("\"2024-03-05T06:07:08.12345678900001Z\"").is_err());
+            // And 24:00:00 still admits only zeroes.
+            assert!(bound("\"2024-03-05T24:00:00.0000000001Z\"").is_err());
         }
     }
 }
