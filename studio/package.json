@@ -8,7 +8,8 @@
     "build": "tsc && vite build && npm run prepare-engine",
     "preview": "vite preview",
     "tauri": "tauri",
-    "prepare-engine": "node ./scripts/prepare-engine.mjs"
+    "prepare-engine": "node ./scripts/prepare-engine.mjs",
+    "test": "vitest run"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",
@@ -36,7 +37,9 @@
     "@types/react-dom": "^19.1.6",
     "@types/three": "^0.183.1",
     "@vitejs/plugin-react": "^4.6.0",
+    "@vitest/coverage-v8": "^2.1.9",
     "typescript": "~5.8.3",
-    "vite": "^7.0.4"
+    "vite": "^7.0.4",
+    "vitest": "^2.1.9"
   }
 }
