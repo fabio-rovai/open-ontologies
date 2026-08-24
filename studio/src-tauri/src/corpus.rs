@@ -76,6 +76,15 @@ pub fn corpus_presets() -> Vec<(String, String, usize)> {
 /// Run the pipeline over `folder`. When `live` is false the cached extraction
 /// is reused, which makes the demo instant; when true it re-runs extraction
 /// against the configured model endpoint.
+///
+/// The `Ok(())` this returns only means the pipeline process was launched; it
+/// says nothing about whether the ingestion succeeded. The pipeline runs on a
+/// background thread, so this command returns before that thread finishes.
+/// The real output is reported asynchronously through events on `app`: each
+/// pipeline stdout/stderr line as `corpus-progress`, and the final outcome as
+/// `corpus-done` carrying a `bool` (true on success). A frontend wiring this
+/// command up must listen for both rather than reading anything off the
+/// resolved promise/return value.
 #[tauri::command]
 pub fn ingest_corpus(
     app: tauri::AppHandle,
