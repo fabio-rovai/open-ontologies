@@ -167,7 +167,11 @@ impl BatchRunner {
             None => return json!({"error": "validate requires a file path"}),
         };
         match GraphStore::validate_file(input) {
-            Ok(count) => json!({"ok": true, "triples": count}),
+            Ok(counts) => json!({
+                "ok": true,
+                "triples": counts.triples,
+                "statements": counts.statements,
+            }),
             Err(e) => json!({"error": e.to_string()}),
         }
     }

@@ -48,6 +48,12 @@ impl ShaclValidator {
             "#,
         )?;
 
+        // sh:targetClass selects SHACL instances, which the specification defines as
+        // reachable by rdf:type followed by zero or more rdfs:subClassOf steps, not by a
+        // direct rdf:type alone. Matching the direct type only made every shape targeting
+        // a superclass silently select nothing: a shapes graph targeting an abstract
+        // Assertion class over data typed with its concrete subclasses reported
+        // `conforms: true` having evaluated no focus nodes at all.
         let mut violations: Vec<serde_json::Value> = Vec::new();
         let mut skipped: Vec<serde_json::Value> = Vec::new();
 
@@ -113,10 +119,11 @@ impl ShaclValidator {
                 &format!(
                     r#"
                     PREFIX sh: <http://www.w3.org/ns/shacl#>
-                    SELECT ?prop ?path ?invPath ?minCount ?maxCount ?datatype ?pattern ?hasValue ?message ?severity WHERE {{
+                    SELECT ?prop ?path ?invPath ?minCount ?maxCount ?datatype ?class ?pattern ?hasValue ?message ?severity WHERE {{
                         {} sh:property ?prop .
                         ?prop sh:path ?path .
                         OPTIONAL {{ ?path sh:inversePath ?invPath }}
+                        OPTIONAL {{ ?prop sh:class ?class }}
                         OPTIONAL {{ ?prop sh:minCount ?minCount }}
                         OPTIONAL {{ ?prop sh:maxCount ?maxCount }}
                         OPTIONAL {{ ?prop sh:datatype ?datatype }}
@@ -145,7 +152,7 @@ impl ShaclValidator {
                         ?prop ?pred ?o .
                         FILTER(?pred NOT IN (
                             sh:path, sh:minCount, sh:maxCount, sh:datatype,
-                            sh:pattern, sh:hasValue, sh:message, sh:severity,
+                            sh:class, sh:pattern, sh:hasValue, sh:message, sh:severity,
                             sh:name, sh:description, sh:order, sh:group,
                             <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
                         ))
@@ -213,7 +220,7 @@ impl ShaclValidator {
                     if min_count > 0 {
                         let query = format!(
                             r#"SELECT ?focus (COUNT(?val) AS ?cnt) WHERE {{
-                                ?focus a <{target_class}> .
+                                ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
                                 OPTIONAL {{ ?focus {path_expr} ?val }}
                             }} GROUP BY ?focus HAVING (COUNT(?val) < {min_count})"#
                         );
@@ -247,7 +254,7 @@ impl ShaclValidator {
                         .unwrap_or(u64::MAX);
                     let query = format!(
                         r#"SELECT ?focus (COUNT(?val) AS ?cnt) WHERE {{
-                            ?focus a <{target_class}> .
+                            ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
                             ?focus {path_expr} ?val .
                         }} GROUP BY ?focus HAVING (COUNT(?val) > {max_count})"#
                     );
@@ -273,12 +280,47 @@ impl ShaclValidator {
                     }
                 }
 
+                // sh:class. Every value node must be a SHACL instance of the class,
+                // which the specification defines as reachable by rdf:type followed by
+                // zero or more rdfs:subClassOf steps. A literal is never a SHACL
+                // instance of anything, and the anti-join below excludes literals for
+                // free because a literal cannot appear in subject position.
+                if let Some(cls_str) = prop.get("class") {
+                    let cls = strip_angle_brackets(cls_str);
+                    let query = format!(
+                        r#"SELECT ?focus ?val WHERE {{
+                            ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
+                            ?focus {path_expr} ?val .
+                            FILTER NOT EXISTS {{
+                                ?val <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{cls}> .
+                            }}
+                        }}"#
+                    );
+                    let results = graph_sparql_select(graph, &query)?;
+                    for row in &results {
+                        if let Some(focus) = row.get("focus") {
+                            let msg = if message.is_empty() {
+                                format!("Value is not a SHACL instance of <{}>", cls)
+                            } else {
+                                message.clone()
+                            };
+                            violations.push(serde_json::json!({
+                                "severity": severity,
+                                "focus_node": strip_angle_brackets(focus),
+                                "path": path,
+                                "constraint": "class",
+                                "message": msg,
+                            }));
+                        }
+                    }
+                }
+
                 // sh:datatype
                 if let Some(dt_str) = prop.get("datatype") {
                     let dt = strip_angle_brackets(dt_str);
                     let query = format!(
                         r#"SELECT ?focus ?val WHERE {{
-                            ?focus a <{target_class}> .
+                            ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
                             ?focus {path_expr} ?val .
                             FILTER(DATATYPE(?val) != <{dt}>)
                         }}"#
@@ -313,7 +355,7 @@ impl ShaclValidator {
                     let escaped = pattern.replace('\\', "\\\\").replace('"', "\\\"");
                     let query = format!(
                         r#"SELECT ?focus ?val WHERE {{
-                            ?focus a <{target_class}> .
+                            ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
                             ?focus {path_expr} ?val .
                             FILTER(!REGEX(STR(?val), "{escaped}"))
                         }}"#
@@ -345,7 +387,7 @@ impl ShaclValidator {
                     let term = has_value_term.trim();
                     let query = format!(
                         r#"SELECT ?focus WHERE {{
-                            ?focus a <{target_class}> .
+                            ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
                             FILTER NOT EXISTS {{ ?focus {path_expr} {term} }}
                         }}"#
                     );
@@ -411,7 +453,7 @@ impl ShaclValidator {
             // rather than assumed harmless.
             let focus_rows = graph_sparql_select(
                 graph,
-                &format!("SELECT ?this WHERE {{ ?this a <{target_class}> }}"),
+                &format!("SELECT ?this WHERE {{ ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> }}"),
             )?;
             let focus_nodes: Vec<String> = focus_rows
                 .iter()
@@ -812,7 +854,7 @@ fn is_recognised_xsd_datatype(iri: &str) -> bool {
 /// target class has no instances passes every constraint vacuously.
 fn count_focus_nodes(graph: &Arc<GraphStore>, target_class: &str) -> anyhow::Result<u64> {
     let query = format!(
-        r#"SELECT (COUNT(DISTINCT ?focus) AS ?cnt) WHERE {{ ?focus a <{target_class}> }}"#
+        r#"SELECT (COUNT(DISTINCT ?focus) AS ?cnt) WHERE {{ ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> }}"#
     );
     let rows = graph_sparql_select(graph, &query)?;
     Ok(rows

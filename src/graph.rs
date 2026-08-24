@@ -7,6 +7,15 @@ use oxigraph::model::*;
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 
+/// What a parse produced. `statements` counts parser events; `triples` counts
+/// distinct triples, which is the size of the resulting graph. They differ
+/// whenever the source repeats a statement.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ValidationCounts {
+    pub statements: usize,
+    pub triples: usize,
+}
+
 /// Optional HTTP authentication for remote SPARQL endpoints.
 ///
 /// Enterprise triple stores gate their SPARQL Protocol endpoints behind auth:
@@ -110,10 +119,14 @@ impl GraphStore {
         let quads: Vec<_> = parser
             .for_reader(reader)
             .collect::<Result<_, _>>()?;
+        // Report triples actually added, not parse events. The store is a set, so
+        // re-inserting a statement it already holds changes nothing and must not be
+        // counted as a load.
+        let before = store.len().unwrap_or(0);
         for quad in &quads {
             store.insert(quad)?;
         }
-        Ok(quads.len())
+        Ok(store.len().unwrap_or(before).saturating_sub(before))
     }
 
     /// Load RDF content in a specified format (Turtle, RDF/XML, etc.)
@@ -133,10 +146,14 @@ impl GraphStore {
         let quads: Vec<_> = parser
             .for_reader(reader)
             .collect::<Result<_, _>>()?;
+        // Report triples actually added, not parse events. The store is a set, so
+        // re-inserting a statement it already holds changes nothing and must not be
+        // counted as a load.
+        let before = store.len().unwrap_or(0);
         for quad in &quads {
             store.insert(quad)?;
         }
-        Ok(quads.len())
+        Ok(store.len().unwrap_or(before).saturating_sub(before))
     }
 
     pub fn load_file(&self, path: &str) -> anyhow::Result<usize> {
@@ -160,10 +177,14 @@ impl GraphStore {
         let quads: Vec<_> = parser
             .for_reader(reader)
             .collect::<Result<_, _>>()?;
+        // Report triples actually added, not parse events. The store is a set, so
+        // re-inserting a statement it already holds changes nothing and must not be
+        // counted as a load.
+        let before = store.len().unwrap_or(0);
         for quad in &quads {
             store.insert(quad)?;
         }
-        Ok(quads.len())
+        Ok(store.len().unwrap_or(before).saturating_sub(before))
     }
 
     pub fn save_file(&self, path: &str, format: &str) -> anyhow::Result<()> {
@@ -172,28 +193,42 @@ impl GraphStore {
         Ok(())
     }
 
-    pub fn validate_turtle(ttl: &str) -> anyhow::Result<usize> {
+    pub fn validate_turtle(ttl: &str) -> anyhow::Result<ValidationCounts> {
         let reader = Cursor::new(ttl.as_bytes());
         let parser = RdfParser::from_format(RdfFormat::Turtle).for_reader(reader);
-        let mut count = 0;
-        for quad in parser {
-            quad?;
-            count += 1;
-        }
-        Ok(count)
+        Self::count_parsed(parser)
     }
 
-    pub fn validate_file(path: &str) -> anyhow::Result<usize> {
+    pub fn validate_file(path: &str) -> anyhow::Result<ValidationCounts> {
         let content = std::fs::read_to_string(path)?;
         let format = Self::detect_format_sniffed(path, &content);
         let reader = Cursor::new(content.as_bytes());
         let parser = RdfParser::from_format(format).for_reader(reader);
-        let mut count = 0;
+        Self::count_parsed(parser)
+    }
+
+    /// Count what a parser produced, distinguishing statements from triples.
+    ///
+    /// An RDF graph is a set, so a statement repeated in the source contributes
+    /// one triple and not two. Reporting the parse-event count as a triple count
+    /// overstates any generated document that repeats a statement, which real
+    /// serialisers do constantly: emitting `?lib a :Library` once per record is
+    /// ordinary practice and inflated one 16.7 MB file by 6.7 per cent.
+    fn count_parsed<I>(parser: I) -> anyhow::Result<ValidationCounts>
+    where
+        I: IntoIterator<Item = Result<Quad, oxigraph::io::RdfParseError>>,
+    {
+        let mut statements = 0usize;
+        let mut seen = std::collections::HashSet::new();
         for quad in parser {
-            quad?;
-            count += 1;
+            let quad = quad?;
+            statements += 1;
+            seen.insert(quad);
         }
-        Ok(count)
+        Ok(ValidationCounts {
+            statements,
+            triples: seen.len(),
+        })
     }
 
     pub fn sparql_select(&self, query: &str) -> anyhow::Result<String> {

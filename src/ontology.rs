@@ -15,9 +15,10 @@ impl OntologyService {
     /// Validate RDF syntax. Returns a JSON report (never errors on bad input).
     pub fn validate_string(content: &str) -> anyhow::Result<String> {
         match GraphStore::validate_turtle(content) {
-            Ok(count) => Ok(serde_json::json!({
+            Ok(counts) => Ok(serde_json::json!({
                 "valid": true,
-                "triple_count": count,
+                "triple_count": counts.triples,
+                "statement_count": counts.statements,
                 "errors": []
             })
             .to_string()),
@@ -33,10 +34,11 @@ impl OntologyService {
     /// Validate an RDF file.
     pub fn validate_file(path: &str) -> anyhow::Result<String> {
         match GraphStore::validate_file(path) {
-            Ok(count) => Ok(serde_json::json!({
+            Ok(counts) => Ok(serde_json::json!({
                 "valid": true,
                 "path": path,
-                "triple_count": count,
+                "triple_count": counts.triples,
+                "statement_count": counts.statements,
                 "errors": []
             })
             .to_string()),

@@ -18,9 +18,10 @@ fn validate_file_reads_a_jsonld_document() {
     let path = dir.path().join("doc.jsonld");
     std::fs::write(&path, JSONLD_DOC).unwrap();
 
-    let count = GraphStore::validate_file(path.to_str().unwrap())
+    let counts = GraphStore::validate_file(path.to_str().unwrap())
         .expect("a .jsonld file must validate as JSON-LD, not as Turtle");
-    assert_eq!(count, 2);
+    assert_eq!(counts.triples, 2);
+    assert_eq!(counts.statements, 2, "this document repeats no statement");
 }
 
 #[test]
@@ -109,7 +110,7 @@ fn a_jsonld_body_in_a_misnamed_file_is_still_read_as_jsonld() {
     let path = dir.path().join("doc.owl");
     std::fs::write(&path, JSONLD_DOC).unwrap();
 
-    let count = GraphStore::validate_file(path.to_str().unwrap())
+    let counts = GraphStore::validate_file(path.to_str().unwrap())
         .expect("a JSON-LD body must be detected from its content");
-    assert_eq!(count, 2);
+    assert_eq!(counts.triples, 2);
 }

@@ -1436,8 +1436,12 @@ async fn async_main() -> anyhow::Result<()> {
                 GraphStore::validate_file(&input)
             };
             match result {
-                Ok(count) => output_json(
-                    &serde_json::json!({"ok": true, "triples": count}),
+                Ok(counts) => output_json(
+                    &serde_json::json!({
+                        "ok": true,
+                        "triples": counts.triples,
+                        "statements": counts.statements,
+                    }),
                     cli.pretty,
                 ),
                 Err(e) => {
