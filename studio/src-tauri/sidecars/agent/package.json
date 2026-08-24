@@ -7,12 +7,14 @@
   "scripts": {
     "build": "tsc --noEmit && npm run bundle",
     "bundle": "esbuild index.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/index.js",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",
     "esbuild": "^0.28.2",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.116.0"
