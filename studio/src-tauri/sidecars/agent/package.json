@@ -5,11 +5,13 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --noEmit && npm run bundle",
+    "bundle": "esbuild index.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/index.js",
     "start": "node dist/index.js"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",
+    "esbuild": "^0.28.2",
     "typescript": "^5.7.0"
   },
   "dependencies": {
