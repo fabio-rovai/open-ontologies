@@ -159,4 +159,40 @@ mod tests {
         // changed away from 8080, but this call site kept the old literal.
         assert_ne!(mcp_endpoint(8137), "http://127.0.0.1:8080/mcp");
     }
+
+    // Rust runs unit tests in parallel threads within one process, so a test
+    // that mutates a process environment variable races every other test
+    // that reads or writes the environment concurrently (std::env::set_var
+    // and remove_var are `unsafe` for exactly this reason). This lock
+    // serializes the one test below that needs to do it, so it never
+    // overlaps another env mutation in this crate.
+    static ENV_LOCK: Mutex<()> = Mutex::new(());
+
+    #[test]
+    fn mcp_call_site_builds_its_url_from_the_configured_port_resolver() {
+        const VAR: &str = "OPEN_ONTOLOGIES_STUDIO_PORT";
+        const DISTINCTIVE_PORT: &str = "48213";
+
+        let _guard = ENV_LOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        let previous = std::env::var(VAR).ok();
+
+        // SAFETY: ENV_LOCK above guarantees no other test in this process is
+        // reading or writing the environment while this section runs.
+        unsafe {
+            std::env::set_var(VAR, DISTINCTIVE_PORT);
+        }
+        let endpoint = mcp_endpoint(engine::engine_port());
+        unsafe {
+            match &previous {
+                Some(value) => std::env::set_var(VAR, value),
+                None => std::env::remove_var(VAR),
+            }
+        }
+
+        // This exercises the actual call site in do_mcp_call
+        // (`.post(mcp_endpoint(engine::engine_port()))`), not just the pure
+        // helper: it proves the URL is built from the real port resolver, so
+        // re-inlining a literal at that call site would fail this test.
+        assert_eq!(endpoint, "http://127.0.0.1:48213/mcp");
+    }
 }

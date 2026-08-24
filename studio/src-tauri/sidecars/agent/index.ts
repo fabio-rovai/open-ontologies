@@ -3,6 +3,11 @@ import { tokeniseInbound } from './tokenise.js';
 import type { Query } from '@anthropic-ai/claude-agent-sdk';
 import * as readline from 'readline';
 
+// Kept in sync by hand with the matching DEFAULT_ENGINE_PORT constant in
+// src/engine.rs. That Rust constant is the actual source of truth: it always
+// sets OPEN_ONTOLOGIES_STUDIO_PORT before spawning this sidecar, so this
+// fallback only matters when the sidecar runs standalone outside that host,
+// and the two constants only need to agree in source, not at runtime.
 const DEFAULT_ENGINE_PORT = 8137;
 
 // Set by chat::spawn_agent_sidecar in the Rust host, which is the single
