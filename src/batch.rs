@@ -28,14 +28,34 @@ impl BatchRunner {
         Self { db, graph, pretty }
     }
 
-    /// Parse input (auto-detect line vs JSON format) and run all commands.
+    /// Parse input (auto-detect line vs JSON format) and run all commands,
+    /// printing each result as it completes.
     /// Returns the process exit code (0 = success, 1 = at least one error).
     pub async fn run(&self, input: &str, bail: bool) -> i32 {
+        self.run_each(input, bail, |line| self.print_json(line)).await
+    }
+
+    /// Run all commands and collect results into a Vec instead of printing.
+    /// Returns (results, exit_code).
+    pub async fn run_collect(&self, input: &str, bail: bool) -> (Vec<Value>, i32) {
+        let mut results = Vec::new();
+        let code = self
+            .run_each(input, bail, |line| results.push(line.clone()))
+            .await;
+        (results, code)
+    }
+
+    /// The one driver behind `run` and `run_collect`. They differ only in what
+    /// they do with each result, so that is the only thing they pass in: keeping
+    /// two copies of the loop meant keeping the envelope, the bail handling and
+    /// the exit code in step by hand. A sink rather than a returned Vec because
+    /// `run` prints as it goes, and a batch of a hundred loads should not go
+    /// silent until the last one finishes.
+    async fn run_each<F: FnMut(&Value)>(&self, input: &str, bail: bool, mut on_result: F) -> i32 {
         let commands = match parse_input(input) {
             Ok(cmds) => cmds,
             Err(e) => {
-                let err = json!({"seq": 0, "command": "parse", "error": e});
-                self.print_json(&err);
+                on_result(&json!({"seq": 0, "command": "parse", "error": e}));
                 return 1;
             }
         };
@@ -44,12 +64,11 @@ impl BatchRunner {
         for (seq, cmd) in commands.iter().enumerate() {
             let result = self.execute(cmd).await;
             let has_error = result.get("error").is_some();
-            let line = json!({
+            on_result(&json!({
                 "seq": seq,
                 "command": cmd.name,
                 "result": result,
-            });
-            self.print_json(&line);
+            }));
 
             if has_error {
                 exit_code = 1;
@@ -59,39 +78,6 @@ impl BatchRunner {
             }
         }
         exit_code
-    }
-
-    /// Run all commands and collect results into a Vec instead of printing.
-    /// Returns (results, exit_code).
-    pub async fn run_collect(&self, input: &str, bail: bool) -> (Vec<Value>, i32) {
-        let commands = match parse_input(input) {
-            Ok(cmds) => cmds,
-            Err(e) => {
-                let err = json!({"seq": 0, "command": "parse", "error": e});
-                return (vec![err], 1);
-            }
-        };
-
-        let mut results = Vec::new();
-        let mut exit_code = 0;
-        for (seq, cmd) in commands.iter().enumerate() {
-            let result = self.execute(cmd).await;
-            let has_error = result.get("error").is_some();
-            let line = json!({
-                "seq": seq,
-                "command": cmd.name,
-                "result": result,
-            });
-            results.push(line);
-
-            if has_error {
-                exit_code = 1;
-                if bail {
-                    break;
-                }
-            }
-        }
-        (results, exit_code)
     }
 
     fn print_json(&self, value: &Value) {
@@ -124,6 +110,7 @@ impl BatchRunner {
             "rollback" => self.exec_rollback(&cmd.args),
             "status" => self.exec_status(),
             "pull" => self.exec_pull(&cmd.args).await,
+            "push" => self.exec_push(&cmd.args).await,
             "ingest" => self.exec_ingest(&cmd.args),
             "drift" => self.exec_drift(&cmd.args),
             "lock" => self.exec_lock(&cmd.args),
@@ -135,6 +122,26 @@ impl BatchRunner {
     }
 
     // ─── Command implementations ─────────────────────────────────────
+
+    /// `push` was serialized by the proxy and had no arm here, so it was the one
+    /// proxy-able command that could not run: it fell through to
+    /// `unknown batch command` and exited 1 whenever a daemon was up. Running it
+    /// locally instead would be worse than an error, because the store holding
+    /// the triples worth pushing is the daemon's.
+    async fn exec_push(&self, args: &[String]) -> Value {
+        let endpoint = match args.first() {
+            Some(e) => e,
+            None => return json!({"error": "push requires an endpoint"}),
+        };
+        let content = match self.graph.serialize("ntriples") {
+            Ok(c) => c,
+            Err(e) => return json!({"error": e.to_string()}),
+        };
+        match GraphStore::push_sparql(endpoint, &content).await {
+            Ok(msg) => json!({"ok": true, "message": msg}),
+            Err(e) => json!({"error": e.to_string()}),
+        }
+    }
 
     fn exec_load(&self, args: &[String]) -> Value {
         let path = match args.first() {
@@ -506,39 +513,33 @@ impl BatchRunner {
         match action {
             "list" => {
                 let domain = Self::flag_value(args, "--domain");
-                let entries = marketplace::list(domain.as_deref());
-                let items: Vec<serde_json::Value> = entries
-                    .iter()
-                    .map(|e| json!({
-                        "id": e.id,
-                        "name": e.name,
-                        "description": e.description,
-                        "domain": e.domain,
-                        "format": marketplace::format_name(e.format),
-                    }))
-                    .collect();
-                json!({"count": items.len(), "ontologies": items})
+                let (items, community_error) = marketplace::cli_list(domain.as_deref()).await;
+                json!({
+                    "count": items.len(),
+                    "ontologies": items,
+                    "community_registry_error": community_error,
+                })
             }
             "install" => {
                 let id = match Self::flag_value(args, "--id") {
                     Some(id) => id,
                     None => return json!({"error": "marketplace install requires --id"}),
                 };
-                let entry = match marketplace::find(&id) {
-                    Some(e) => e,
-                    None => return json!({"error": format!("Unknown ontology ID: '{}'. Run 'marketplace list' to see available IDs.", id)}),
+                let pack = match marketplace::cli_resolve(&id).await {
+                    Ok(p) => p,
+                    Err(e) => return json!({"error": e}),
                 };
-                let content = match crate::graph::GraphStore::fetch_url(entry.url).await {
+                let content = match crate::graph::GraphStore::fetch_url(&pack.url).await {
                     Ok(c) => c,
                     Err(e) => return json!({"error": e.to_string()}),
                 };
-                match self.graph.load_content_with_base(&content, entry.format, Some(entry.url)) {
+                match self.graph.load_content_with_base(&content, pack.format, Some(&pack.url)) {
                     Ok(count) => {
                         let stats = self.graph.get_stats().unwrap_or_default();
                         json!({
                             "ok": true,
-                            "installed": entry.id,
-                            "name": entry.name,
+                            "installed": pack.id,
+                            "name": pack.name,
                             "triples_loaded": count,
                             "stats": serde_json::from_str::<serde_json::Value>(&stats).unwrap_or_default(),
                         })

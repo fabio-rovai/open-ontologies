@@ -2,6 +2,45 @@
 
 use serde_json::Value;
 
+/// Render a result whose producing command is known, dispatching on the command
+/// rather than guessing from which keys the payload happens to carry.
+///
+/// Key-sniffing is what made a successful `daemon start` print "Daemon dead":
+/// `{ok, pid, url}` matched a branch meant for `daemon status`. The batch
+/// envelope names the command that produced each result, so on the proxy path
+/// there is no need to guess at all. `None` falls back to sniffing, which is
+/// still what the local one-shot paths use.
+pub fn render_human_for(command: Option<&str>, value: &Value) -> String {
+    if let Some(msg) = value.get("error").and_then(|v| v.as_str()) {
+        return format!("Error: {}", msg);
+    }
+    match command {
+        Some("query") => {
+            let bindings = value
+                .get("results")
+                .and_then(|r| r.get("bindings"))
+                .and_then(|b| b.as_array());
+            match bindings {
+                Some(b) => {
+                    let vars: Vec<&str> = value
+                        .get("variables")
+                        .and_then(|v| v.as_array())
+                        .map(|a| a.iter().filter_map(|v| v.as_str()).collect())
+                        .unwrap_or_default();
+                    render_sparql_table(&vars, b)
+                }
+                None => render_human(value),
+            }
+        }
+        Some("stats") => render_stats(value),
+        Some("marketplace") => match value.get("ontologies").and_then(|v| v.as_array()) {
+            Some(list) => render_marketplace_list(list),
+            None => render_human(value),
+        },
+        _ => render_human(value),
+    }
+}
+
 /// Render a JSON result value as human-readable text.
 /// Falls back to pretty-printed JSON for shapes that have no specific rendering.
 pub fn render_human(value: &Value) -> String {
@@ -80,9 +119,16 @@ pub fn render_human(value: &Value) -> String {
         return out.trim_end().into();
     }
 
-    // Daemon status
-    if let (Some(pid), Some(url)) = (value.get("pid"), value.get("url")) {
-        let alive = value.get("alive").and_then(|a| a.as_bool()).unwrap_or(false);
+    // Daemon status. Gated on an explicit `alive`, not merely on `pid` + `url`:
+    // a successful `daemon start` answers {ok, pid, url}, which matched this
+    // branch before the `ok` branch below and reported the daemon it had just
+    // started as "Daemon dead". Only `daemon status` computes liveness, so only
+    // `daemon status` should be rendered as liveness.
+    if let (Some(pid), Some(url), Some(alive)) = (
+        value.get("pid"),
+        value.get("url"),
+        value.get("alive").and_then(|a| a.as_bool()),
+    ) {
         let status = if alive { "running" } else { "dead" };
         return format!(
             "Daemon {} — PID {} at {}",
@@ -120,6 +166,14 @@ pub fn render_human(value: &Value) -> String {
             value.get("format").and_then(|v| v.as_str()),
         ) {
             return format!("Saved to {} (format: {}).", path, fmt);
+        }
+
+        // daemon start: {"ok":true, "pid":N, "url":"..."}
+        if let (Some(pid), Some(url)) = (
+            value.get("pid"),
+            value.get("url").and_then(|v| v.as_str()),
+        ) {
+            return format!("Daemon started — PID {} at {}", pid, url);
         }
 
         // message only: {"ok":true, "message":"..."}
@@ -266,4 +320,55 @@ fn render_marketplace_list(ontologies: &[Value]) -> String {
         }
     }
     out.trim_end().into()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn a_started_daemon_is_not_reported_as_dead() {
+        // The regression this exists for: `daemon start` answers {ok, pid, url},
+        // which matched the daemon-status branch — a branch that defaults
+        // liveness to false — and printed "Daemon dead" for a daemon that had
+        // just come up.
+        let started = json!({"ok": true, "pid": 4242, "url": "http://127.0.0.1:8080"});
+        let rendered = render_human(&started);
+        assert!(!rendered.contains("dead"), "got: {rendered}");
+        assert!(rendered.contains("4242"), "got: {rendered}");
+    }
+
+    #[test]
+    fn daemon_status_still_reports_liveness_both_ways() {
+        let alive = json!({"pid": 1, "url": "http://127.0.0.1:8080", "alive": true});
+        assert!(render_human(&alive).contains("running"));
+        let dead = json!({"pid": 1, "url": "http://127.0.0.1:8080", "alive": false});
+        assert!(render_human(&dead).contains("dead"));
+    }
+
+    #[test]
+    fn a_known_command_dispatches_without_sniffing_keys() {
+        // `stats` renders as stats because the envelope said the command was
+        // `stats`, not because the payload happened to carry a `triples` key.
+        let payload = json!({"triples": 12});
+        assert_eq!(
+            render_human_for(Some("stats"), &payload),
+            render_stats(&payload)
+        );
+    }
+
+    #[test]
+    fn an_error_is_an_error_whatever_produced_it() {
+        let payload = json!({"error": "no such file"});
+        assert_eq!(render_human_for(Some("load"), &payload), "Error: no such file");
+        assert_eq!(render_human_for(None, &payload), "Error: no such file");
+    }
+
+    #[test]
+    fn an_unknown_command_falls_back_to_the_shape() {
+        let payload = json!({"ok": true, "triples_loaded": 3, "path": "/tmp/x.ttl"});
+        assert_eq!(render_human_for(None, &payload), render_human(&payload));
+        assert!(render_human_for(Some("load"), &payload).contains("3 triples"));
+    }
 }
