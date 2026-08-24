@@ -154,6 +154,8 @@ All notable changes to Open Ontologies are documented here.
   the validity scan is cut.
 
 ### Added
+- **Studio: Multilingual label filter in Tree view.** `TreeView` gains a language chip bar in its header, listing every BCP-47 tag present in the loaded ontology's `rdfs:label` values and shown only when more than one exists. Labels are loaded with full language-tag preservation (two-pass: collect all variants into a `labelMapRef`, then `pickLabel` to build nodes). Switching language relabels the existing React tree state in-place (`relabelTree` walk) — no SPARQL re-query. `nodeMapRef` is also updated so breadcrumbs and connection chips reflect the selected locale. Fallback chain: preferred language → `en` → untagged literal → first available → URI local name.
+- **Studio: Language badges and filter in Property Inspector.** `PropertyInspector` now parses language tags from both engine-native (`"value"@lang`) and standard SPARQL JSON (`xml:lang`) response formats. Each literal row that carries a language tag displays a small monospace badge (e.g. `en`, `cs`) to the right of the value. A language chip bar above the property list (shown only when ≥1 language tag is detected) lets users filter rows to a single locale; URI values are always shown regardless of the filter. `saveEdit` and `deleteProp` include the original language tag in the SPARQL `DELETE`/`INSERT` pattern so editing one locale does not affect sibling translations. The **+ Add** form gains an optional language tag input with quick-pick chips for languages already present on the node.
 - **Optional eviction of float32 text vectors from memory**
   (`VecStore::with_text_vectors_evicted`, `turbovec` feature). Without it the
   TurboQuant backend's compression is a smaller SQLite blob rather than less
@@ -188,6 +190,7 @@ All notable changes to Open Ontologies are documented here.
   on the exact scan.
 
 ### Fixed
+- **Studio: Tree connector lines — L vs T shape for last children.** The ancestor-continuation-line loop ran `for lvl = 0; lvl < indent`, but `lvl = indent-1` is the same pixel column as the node's own connector (`(indent-1) × INDENT_W + 16`). When the direct parent was not the last child in its group, this drew a full-height vertical at that column, overriding the correct L-shape with a T even for nodes where `isLastChild = true`. Fixed by stopping the ancestor loop at `lvl < indent - 1`; the own connector exclusively owns its column and correctly renders L or T based on `isLastChild`.
 - **`search_cosine` and `search_product` no longer clone the entire corpus per
   query.** Routing them through the new whole-set accessor initially copied
   every float32 vector on every call, which cost 20 ms per query at 20,000 x
