@@ -54,11 +54,12 @@ export class ClaudeCliProvider implements Provider {
 
     // `--system-prompt` REPLACES the CLI's own prompt. Without it the CLI
     // loads its default agent prompt plus the user's and project's CLAUDE.md
-    // files and any session hooks, and those leak into the answer: a demo
-    // question about a cell line came back opening with this machine's agent
-    // routing mode. Replacing the prompt, dropping the per-machine sections
-    // and disabling session persistence makes each call a clean, stateless
-    // completion that depends only on what this sidecar supplies.
+    // files and any session hooks, and those leak into the answer: a question
+    // about a dataset's licence conformance came back opening with this
+    // machine's agent routing mode instead of the answer. Replacing the
+    // prompt, dropping the per-machine sections and disabling session
+    // persistence makes each call a clean, stateless completion that depends
+    // only on what this sidecar supplies.
     const args = [
       '-p',
       '--system-prompt', this.system,
@@ -110,11 +111,12 @@ export class ClaudeCliProvider implements Provider {
  *
  * The `claude` CLI runs inside the operator's own configuration. Session hooks
  * and memory files can prepend a paragraph that has nothing to do with the
- * question: a demo asking about a cell line came back opening with this
- * machine's agent routing mode, and another with a note about which skill
- * applied. `--system-prompt`, `--exclude-dynamic-system-prompt-sections` and
- * `--settings` all failed to suppress it reliably; it appears intermittently,
- * which is the worst kind of defect to carry into a live demonstration.
+ * question: one run answering a question about a dataset's distribution came
+ * back opening with this machine's agent routing mode, and another with a
+ * note about which skill applied. `--system-prompt`,
+ * `--exclude-dynamic-system-prompt-sections` and `--settings` all failed to
+ * suppress it reliably; it appears intermittently, which is the worst kind of
+ * defect to carry into a live demonstration.
  *
  * This strips a LEADING paragraph that is recognisably about the host rather
  * than the question. It is conservative on purpose: it only ever removes the
