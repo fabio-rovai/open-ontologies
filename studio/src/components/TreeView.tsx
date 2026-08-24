@@ -7,8 +7,11 @@ interface TreeViewProps {
 }
 
 interface SparqlBinding {
-  [key: string]: { type: string; value: string };
+  [key: string]: { type: string; value: string; lang?: string };
 }
+
+type LabelEntry = { value: string; lang?: string };
+type LabelMap = Map<string, LabelEntry[]>;
 
 type NodeType = 'Class' | 'ObjectProperty' | 'DatatypeProperty' | 'Individual';
 
@@ -26,16 +29,21 @@ interface TreeNode {
 function parseSparqlResults(text: string): SparqlBinding[] {
   try {
     const parsed = JSON.parse(text);
-    const rows: Record<string, string>[] = parsed?.results ?? [];
+    const rows: Record<string, unknown>[] = parsed?.results ?? [];
     return rows.map(row => {
       const binding: SparqlBinding = {};
       for (const [key, val] of Object.entries(row)) {
-        const s = String(val);
-        if (s.startsWith('<') && s.endsWith('>')) {
-          binding[key] = { type: 'uri', value: s.slice(1, -1) };
+        if (val && typeof val === 'object' && 'value' in val) {
+          const v = val as Record<string, string>;
+          binding[key] = { type: v.type ?? 'literal', value: v.value ?? '', lang: v['xml:lang'] || undefined };
         } else {
-          const unquoted = s.replace(/^"(.*)"(@\w+)?(\^\^.*)?$/, '$1').replace(/\\"/g, '"');
-          binding[key] = { type: 'literal', value: unquoted };
+          const s = String(val);
+          if (s.startsWith('<') && s.endsWith('>')) {
+            binding[key] = { type: 'uri', value: s.slice(1, -1) };
+          } else {
+            const m = s.match(/^"((?:[^"\\]|\\.)*)"(?:@([\w-]+))?(?:\^\^.*)?$/);
+            binding[key] = { type: 'literal', value: m ? m[1].replace(/\\"/g, '"') : s, lang: m?.[2] || undefined };
+          }
         }
       }
       return binding;
@@ -43,6 +51,29 @@ function parseSparqlResults(text: string): SparqlBinding[] {
   } catch {
     return [];
   }
+}
+
+function pickLabel(labels: LabelEntry[], preferred: string, fallbackUri: string): string {
+  if (labels.length === 0) return shortUri(fallbackUri);
+  const find = (tag: string) => labels.find(l => (l.lang ?? '') === tag);
+  return find(preferred)?.value ?? find('en')?.value ?? labels.find(l => !l.lang)?.value ?? labels[0].value ?? shortUri(fallbackUri);
+}
+
+function addLabel(map: LabelMap, uri: string, entry: LabelEntry) {
+  if (!entry.value) return;
+  if (!map.has(uri)) map.set(uri, []);
+  const arr = map.get(uri)!;
+  if (!arr.some(e => e.value === entry.value && e.lang === entry.lang)) arr.push(entry);
+}
+
+function relabelTree(nodes: TreeNode[], lmap: LabelMap, lang: string): TreeNode[] {
+  return nodes.map(n => {
+    const children = relabelTree(n.children, lmap, lang);
+    if (n.id.startsWith('__')) return { ...n, children };
+    const labels = lmap.get(n.uri) ?? [];
+    const label = labels.length > 0 ? pickLabel(labels, lang, n.uri) : n.label;
+    return { ...n, label, children };
+  });
 }
 
 function shortUri(uri: string): string {
@@ -165,6 +196,17 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
   const [connections, setConnections] = useState<{ label: string; targetId: string; targetLabel: string }[]>([]);
   const [versionStack, setVersionStack] = useState<string[]>([]);
   const [undoInProgress, setUndoInProgress] = useState(false);
+  const [langFilter, setLangFilter] = useState<string>('en');
+  // `loadTree` is published as `window.__refreshGraph` and re-runs after every
+  // mutation, so it must not close over `langFilter`: with the value captured in
+  // its dependency array it would rebuild every label at the mount-time locale
+  // while the selected chip stayed highlighted, and the `[langFilter]` relabel
+  // effect would not re-fire because the state had not changed. Reading through
+  // a ref keeps the current locale available without making the reload depend on
+  // it, which is what lets a language switch stay a relabel rather than a
+  // re-query.
+  const langFilterRef = useRef<string>('en');
+  const [availableLangs, setAvailableLangs] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [viewHeight, setViewHeight] = useState(600);
@@ -172,6 +214,7 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
 
   // Node lookup for connections
   const nodeMapRef = useRef<Map<string, { label: string; uri: string; nodeType: NodeType }>>(new Map());
+  const labelMapRef = useRef<LabelMap>(new Map());
 
   const loadTree = useCallback(async () => {
     try {
@@ -183,21 +226,45 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
         mcp.sparqlQuery(QUERIES.individuals),
       ]);
 
+      // Pass 1: collect all label variants for every entity
+      const lmap: LabelMap = new Map();
+      const classBindings = parseSparqlResults(classesText);
+      const objPropBindings = parseSparqlResults(objPropsText);
+      const dataPropBindings = parseSparqlResults(dataPropsText);
+      const individualBindings = parseSparqlResults(individualsText);
+
+      for (const b of classBindings)    { if (b.c?.value && b.label?.value)   addLabel(lmap, b.c.value,   { value: b.label.value,    lang: b.label.lang }); }
+      for (const b of objPropBindings)  { if (b.p?.value && b.label?.value)   addLabel(lmap, b.p.value,   { value: b.label.value,    lang: b.label.lang }); }
+      for (const b of dataPropBindings) { if (b.p?.value && b.label?.value)   addLabel(lmap, b.p.value,   { value: b.label.value,    lang: b.label.lang }); }
+      for (const b of individualBindings) { if (b.ind?.value && b.label?.value) addLabel(lmap, b.ind.value, { value: b.label.value,  lang: b.label.lang }); }
+
+      labelMapRef.current = lmap;
+
+      // Detect available languages
+      const langSet = new Set<string>();
+      for (const labels of lmap.values()) for (const l of labels) if (l.lang) langSet.add(l.lang);
+      setAvailableLangs(Array.from(langSet).sort());
+
+      const currentLang = langFilterRef.current;
+
+      // Pass 2: build nodeMap with picked labels
       const nodeMap = new Map<string, { label: string; uri: string; nodeType: NodeType }>();
       const parentToChildren = new Map<string, Set<string>>();
       const hasParent = new Set<string>();
 
-      for (const b of parseSparqlResults(classesText)) {
+      const seenClasses = new Set<string>();
+      for (const b of classBindings) {
         const uri = b.c?.value; if (!uri) continue;
         const id = shortUri(uri);
-        if (!nodeMap.has(id)) nodeMap.set(id, { label: b.label?.value || id, uri, nodeType: 'Class' });
+        seenClasses.add(uri);
+        if (!nodeMap.has(id)) nodeMap.set(id, { label: pickLabel(lmap.get(uri) ?? [], currentLang, uri), uri, nodeType: 'Class' });
       }
 
       for (const b of parseSparqlResults(subclassText)) {
         const subUri = b.sub?.value, parentUri = b.parent?.value;
         if (!subUri || !parentUri) continue;
         const sid = shortUri(subUri), pid = shortUri(parentUri);
-        if (!nodeMap.has(pid)) nodeMap.set(pid, { label: pid, uri: parentUri, nodeType: 'Class' });
+        if (!nodeMap.has(pid)) nodeMap.set(pid, { label: pickLabel(lmap.get(parentUri) ?? [], currentLang, parentUri), uri: parentUri, nodeType: 'Class' });
         if (!parentToChildren.has(pid)) parentToChildren.set(pid, new Set());
         parentToChildren.get(pid)!.add(sid);
         hasParent.add(sid);
@@ -205,10 +272,10 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
 
       const propParentToChildren = new Map<string, Set<string>>();
       const propHasParent = new Set<string>();
-      for (const b of parseSparqlResults(objPropsText)) {
+      for (const b of objPropBindings) {
         const uri = b.p?.value; if (!uri) continue;
         const id = shortUri(uri);
-        if (!nodeMap.has(id)) nodeMap.set(id, { label: b.label?.value || id, uri, nodeType: 'ObjectProperty' });
+        if (!nodeMap.has(id)) nodeMap.set(id, { label: pickLabel(lmap.get(uri) ?? [], currentLang, uri), uri, nodeType: 'ObjectProperty' });
         if (b.parent?.value) {
           const pid = shortUri(b.parent.value);
           if (!propParentToChildren.has(pid)) propParentToChildren.set(pid, new Set());
@@ -217,18 +284,18 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
         }
       }
 
-      for (const b of parseSparqlResults(dataPropsText)) {
+      for (const b of dataPropBindings) {
         const uri = b.p?.value; if (!uri) continue;
         const id = shortUri(uri);
-        if (!nodeMap.has(id)) nodeMap.set(id, { label: b.label?.value || id, uri, nodeType: 'DatatypeProperty' });
+        if (!nodeMap.has(id)) nodeMap.set(id, { label: pickLabel(lmap.get(uri) ?? [], currentLang, uri), uri, nodeType: 'DatatypeProperty' });
       }
 
       const indsByClass = new Map<string, string[]>();
-      for (const b of parseSparqlResults(individualsText)) {
+      for (const b of individualBindings) {
         const uri = b.ind?.value, typeUri = b.type?.value;
         if (!uri || !typeUri) continue;
         const id = shortUri(uri), tid = shortUri(typeUri);
-        if (!nodeMap.has(id)) nodeMap.set(id, { label: b.label?.value || id, uri, nodeType: 'Individual' });
+        if (!nodeMap.has(id)) nodeMap.set(id, { label: pickLabel(lmap.get(uri) ?? [], currentLang, uri), uri, nodeType: 'Individual' });
         if (!indsByClass.has(tid)) indsByClass.set(tid, []);
         indsByClass.get(tid)!.push(id);
       }
@@ -360,6 +427,21 @@ SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
     (window as unknown as Record<string, unknown>).__refreshGraph = loadTree;
     return () => { delete (window as unknown as Record<string, unknown>).__refreshGraph; };
   }, [loadTree]);
+
+  // Relabel tree when language filter changes — no re-query needed
+  useEffect(() => {
+    // Ahead of the early return: a language picked before the first load must
+    // still be the one `loadTree` reads when it arrives.
+    langFilterRef.current = langFilter;
+    if (labelMapRef.current.size === 0) return;
+    const lmap = labelMapRef.current;
+    setRoots(prev => relabelTree(prev, lmap, langFilter));
+    // Also update nodeMapRef so connection labels and breadcrumbs stay in sync
+    for (const [id, data] of nodeMapRef.current) {
+      const labels = lmap.get(data.uri) ?? [];
+      if (labels.length > 0) nodeMapRef.current.set(id, { ...data, label: pickLabel(labels, langFilter, data.uri) });
+    }
+  }, [langFilter]);
 
   const toggleExpand = useCallback((id: string) => {
     setExpanded(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
@@ -521,6 +603,22 @@ SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
           )}
         </div>
 
+        {/* Language filter */}
+        {availableLangs.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 10, color: '#585b70' }}>Label:</span>
+            {availableLangs.map(lang => (
+              <button key={lang} onClick={() => setLangFilter(lang)} style={{
+                background: langFilter === lang ? '#89b4fa' : '#1e1e2e',
+                border: '1px solid #313244', borderRadius: 4, padding: '1px 6px',
+                fontSize: 10, cursor: 'pointer', fontFamily: 'monospace',
+                color: langFilter === lang ? '#1e1e2e' : '#6c7086',
+                fontWeight: langFilter === lang ? 600 : 400,
+              }}>{lang}</button>
+            ))}
+          </div>
+        )}
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
           {typeOrder.filter(t => (typeCounts.get(t) ?? 0) > 0).map(type => (
             <button key={type} onClick={() => toggleType(type)} style={{
@@ -581,9 +679,16 @@ SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
 
             // Tree connector lines
             const lines: React.ReactNode[] = [];
-            for (let lvl = 0; lvl < indent; lvl++) {
-              // Vertical continuation line for ancestors that are NOT the last child
-              if (lvl < parentIsLast.length && !parentIsLast[lvl]) {
+            // Run up to indent-2: the direct-parent column (lvl = indent-1) is handled
+            // by the own connector below — mixing both draws a phantom T on last children.
+            for (let lvl = 0; lvl < indent - 1; lvl++) {
+              // Vertical continuation line for ancestors that are NOT the last child.
+              // Column `lvl` belongs to the ancestor at indent `lvl + 1`, not `lvl`:
+              // a node at indent k draws its elbow and its sibling line at column
+              // k - 1. Gating on `parentIsLast[lvl]` dropped the vertical joining an
+              // ancestor to its next sibling across that ancestor's whole subtree,
+              // and drew a floating line under an L in the converse case.
+              if (lvl + 1 < parentIsLast.length && !parentIsLast[lvl + 1]) {
                 lines.push(
                   <span key={`v${lvl}`} style={{
                     position: 'absolute', left: lvl * INDENT_W + 16, top: 0, bottom: 0, width: 1,
