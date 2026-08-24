@@ -1291,7 +1291,7 @@ def main():
                 print(f"    {DIM}{why}{OFF}")
         merged_path.write_text(PREFIXES + "\n" + STRUCTURAL + "\n" + "\n\n".join(b for b in good if b))
         ok, why = is_valid_turtle(merged_path.read_text())
-        print(f"  merged {len(good)} fragments, parses: {'yes' if ok else 'NO — ' + why}")
+        print(f"  merged {len(good)} fragments, parses: {'yes' if ok else 'NO: ' + why}")
     else:
         print(f"\n{BOLD}STAGE 3  DERIVE{OFF}  propose the vocabulary the documents imply")
         fragments = []
