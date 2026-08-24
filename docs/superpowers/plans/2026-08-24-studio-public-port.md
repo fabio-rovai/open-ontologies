@@ -2119,3 +2119,73 @@ the highest-variance item and is scheduled for 25 August so that a corpus proble
 with four days left rather than one. Tasks 9, 10 and 11 have no dependency on Task 12, so if
 the interface rebuild slips, the previous panels still render over `DemoSource` and the video
 can be recorded from them.
+
+---
+
+## Task 14 (optional, after submission): evaluate on an external benchmark
+
+Added 24 August from a literature sweep. This is the only item from that sweep placed in the
+plan, because it is the only one that needs no new architecture and produces a maturity claim
+the submission can honestly make. It is explicitly optional and must not be started before the
+29 August submission is in.
+
+**Files:**
+- Create: `demo/bench/wikiconflict_eval.py`
+- Create: `demo/bench/RESULTS.md`
+
+**Interfaces:**
+- Consumes: the contradiction scanner from Task 5
+- Produces: a measured precision and recall for provenance-split contradiction detection against
+  a public reference set
+
+- [ ] **Step 1: Confirm the benchmark is usable**
+
+WikiConflict and TrustFuse (K-CAP 2025, code at `Orange-OpenSource/trustfuse`) supply
+documents that genuinely disagree, with the disagreements labelled. Fetch it and confirm the
+label format can be mapped onto the scanner's `Contradiction` shape. If it cannot be mapped
+without distorting either side, stop and record why. A benchmark bent to fit is worth nothing.
+
+- [ ] **Step 2: Run and report honestly**
+
+Report precision, recall and the count of disagreements the scanner missed entirely, with at
+least three missed cases quoted in full. The misses are the useful part. A results file that
+reports only the score is marketing.
+
+- [ ] **Step 3: Commit**
+
+```bash
+cd /Users/fabio/projects/open-ontologies
+git add demo/bench/wikiconflict_eval.py demo/bench/RESULTS.md
+git commit -m "test(demo): measure contradiction detection against a public reference set"
+```
+
+---
+
+## Backlog from the literature sweep, not scheduled
+
+Recorded so they are not lost. None of these are in scope before 29 August. The full sweep is at
+`.superpowers/sdd/graphrag-sweep.md`.
+
+1. **Ontology-grounded hyperedge retrieval** (OG-RAG, EMNLP 2025, code at `microsoft/ograg2`).
+   Schema-constrained minimal-cover retrieval, genuinely distinct from the existing similarity
+   search and community-based global search.
+2. **A `filter_candidate_context` primitive** combining the existing SHACL validation and
+   closed-world vocabulary check into one pre-model cleaning step (GraphRAG-FI, EMNLP 2025).
+3. **A SHACL violation-explanation cache** keyed on a canonical violation signature (xpSHACL,
+   VLDB LLM and graph workshop 2025, code at `gcpdev/xpshacl`).
+4. **GraphRAG-Bench** (arXiv:2506.05690) to test whether community-based global search earns its
+   place on this system's own data.
+
+**The counterargument, which matters more than any of the above.** Three independent 2025
+results converge on graph-topology retrieval, community-based global search included, losing to
+plain embedding retrieval outside genuine whole-corpus sensemaking questions. One study measured
+plain retrieval at 99.4% top-10 accuracy while the graph method pulled 47,000 tokens of context
+against 3,700, with 63.3% of its top-one failures being same-chapter noise. This is a direct
+challenge to the existing `onto_communities` primitive rather than a general remark about
+retrieval.
+
+It bears on the demonstration, not just the roadmap. The comparison panel from Task 12A shows a
+grounded answer beside an ungrounded one, and on questions where retrieval alone is sufficient
+the ungrounded answer will be just as good. Choosing demonstration questions where the grounded
+answer wins for a stateable reason, and being willing to show one where it does not, is more
+persuasive to this audience than a panel that always favours the home side.
