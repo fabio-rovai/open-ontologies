@@ -1,5 +1,4 @@
-# NAPH — Computation-Ready Digitisation Standard for Aerial Photography Heritage
-
+# NAPH: Computation-Ready Digitisation Standard for Aerial Photography Heritage
 **Version:** 1.0
 **Status:** Draft for partner review
 **Editors:** Kampakis and Co Ltd, trading as The Tesseract Academy
@@ -12,13 +11,13 @@
 
 This document specifies a digitisation standard for **aerial photography heritage collections** that supports computational research, not just human browsing. It defines an extensible, tiered, openly licensed framework that institutions of varying scale, capacity, and resource can adopt incrementally. The standard is operationalised through (a) an OWL ontology, (b) SHACL validation shapes, (c) a transformation pipeline from legacy metadata, and (d) a domain-specific aerial-photography profile.
 
-NAPH is deliberately a **narrow vertical** standard — it covers aerial photography heritage and only aerial photography heritage. This depth-over-breadth choice is documented in [ADR-0001](../06-knowledge-transfer/architecture-decision-records/0001-narrow-vertical.md). Generic GLAM-wide digitisation standards exist; this is the standard for the aerial vertical specifically.
+NAPH is deliberately a **narrow vertical** standard: it covers aerial photography heritage and only aerial photography heritage. This depth-over-breadth choice is documented in [ADR-0001](../06-knowledge-transfer/architecture-decision-records/0001-narrow-vertical.md). Generic GLAM-wide digitisation standards exist; this is the standard for the aerial vertical specifically.
 
-The standard's central premise: most aerial photography heritage data is **digitised but not computable**. Closing that gap is structural rather than technical — the work is consistency in identifiers, dates, rights, packaging, and provenance, not new digitisation.
+The standard's central premise: most aerial photography heritage data is **digitised but not computable**. Closing that gap is structural rather than technical: the work is consistency in identifiers, dates, rights, packaging, and provenance, not new digitisation.
 
 ## Status of this document
 
-This is **v1.0** — the first complete iteration suitable for partner application and refinement under a structured testing programme. It is **not** final. v1.x updates are expected following each round of partner application during partner adoption.
+This is **v1.0**, the first complete iteration suitable for partner application and refinement under a structured testing programme. It is **not** final. v1.x updates are expected following each round of partner application during partner adoption.
 
 A future v2.0 may make breaking changes informed by accumulated partner experience. v1.x changes are guaranteed to be backwards-compatible.
 
@@ -39,9 +38,9 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **
 
 ### Out of scope
 
-- Non-aerial heritage (manuscripts, audio, video, 3D objects, ground-level photography) — these need their own focused standards
+- Non-aerial heritage (manuscripts, audio, video, 3D objects, ground-level photography): these need their own focused standards
 - Mandating specific digitisation hardware, scanning equipment, or imaging workflows
-- Replacing existing archival cataloguing standards (ISAD-G, AACR2, RDA) — NAPH augments these for computational access
+- Replacing existing archival cataloguing standards (ISAD-G, AACR2, RDA): NAPH augments these for computational access
 - Specifying user interfaces, search portals, or presentation systems
 - Curatorial decisions about what to digitise or in what order
 - Long-term digital preservation strategy beyond format and provenance documentation
@@ -62,24 +61,21 @@ Future major versions may add adjacent profiles (e.g. terrestrial photogrammetri
 
 ## 3. The three tiers
 
-NAPH defines three nested compliance tiers. Each is a superset of the previous — a record that conforms to a higher tier also conforms to all lower tiers.
+NAPH defines three nested compliance tiers. Each is a superset of the previous: a record that conforms to a higher tier also conforms to all lower tiers.
 
-### 3.1 Baseline — minimum computation-readiness
-
+### 3.1 Baseline: minimum computation-readiness
 A Baseline-compliant record provides the minimum metadata structure necessary for a computational research workflow to find, identify, locate, and use the record without manual interpretation.
 
 A record claiming Baseline conformance MUST satisfy [Module A](modules/A-capture-imaging.md), [Module B-baseline](modules/B-metadata-data-structures.md), [Module C-baseline](modules/C-rights-licensing-ethics.md), and [Module D-baseline](modules/D-packaging-publication.md).
 
 Baseline tier is the **non-negotiable bar** for any record published as part of a NAPH-compliant collection.
 
-### 3.2 Enhanced — supports research workflows
-
+### 3.2 Enhanced: supports research workflows
 An Enhanced-compliant record provides the additional metadata and provenance documentation needed to support reproducible computational research at scale: documented digitisation provenance, capture context, full transformation chain, and multiple surrogate formats with quality classifications.
 
 A record claiming Enhanced conformance MUST satisfy all Baseline requirements plus the additional requirements in [Module B-enhanced](modules/B-metadata-data-structures.md), [Module D-enhanced](modules/D-packaging-publication.md), and [Module E](modules/E-paradata-workflow.md).
 
-### 3.3 Aspirational — supports semantic discovery
-
+### 3.3 Aspirational: supports semantic discovery
 An Aspirational-compliant record provides semantic enrichment and cross-collection linkage that supports knowledge-graph queries, federated search, and content-based retrieval across institutional boundaries.
 
 A record claiming Aspirational conformance MUST satisfy all Enhanced requirements plus the additional requirements in [Module B-aspirational](modules/B-metadata-data-structures.md) and [Module F](modules/F-qa-validation.md).
@@ -92,7 +88,7 @@ Collections SHOULD report their tier distribution as part of public metadata (us
 
 ## 4. Six functional modules
 
-The standard is decomposed into six modules. Each module has a Baseline / Enhanced / Aspirational specification. Modules are independent but cross-reference each other where alignment is necessary. All modules are interpreted in the aerial-photography vertical context — the [Aerial Photography Profile](profiles/aerial-photography.md) defines the domain-specific application.
+The standard is decomposed into six modules. Each module has a Baseline / Enhanced / Aspirational specification. Modules are independent but cross-reference each other where alignment is necessary. All modules are interpreted in the aerial-photography vertical context: the [Aerial Photography Profile](profiles/aerial-photography.md) defines the domain-specific application.
 
 | Module | Topic | Spec |
 |---|---|---|
@@ -183,9 +179,9 @@ Where institutions have existing identifier schemes (e.g. NCAP's Collection / So
 
 NAPH follows [semantic versioning 2.0.0](https://semver.org/):
 
-- **MAJOR** — backwards-incompatible changes (e.g. removing required properties)
-- **MINOR** — backwards-compatible additions (e.g. new optional properties, new modules)
-- **PATCH** — clarifications, errata, doc fixes
+- **MAJOR**: backwards-incompatible changes (e.g. removing required properties)
+- **MINOR**: backwards-compatible additions (e.g. new optional properties, new modules)
+- **PATCH**: clarifications, errata, doc fixes
 
 A record valid against v1.x will remain valid against any future v1.y. v2.0 will be a deliberate breaking-change point requiring migration tooling.
 
@@ -224,7 +220,7 @@ Standards we build on, in order of architectural significance: **W3C** (PROV-O, 
 
 ## Appendix B: References
 
-- [Towards a National Collection — N-RICH Prototype](https://www.nationalcollection.org.uk/n-rich-prototype)
+- [Towards a National Collection: N-RICH Prototype](https://www.nationalcollection.org.uk/n-rich-prototype)
 - [Towards a National Collection / N-RICH Prototype](https://www.nationalcollection.org.uk/n-rich-prototype)
 - [W3C PROV-O](https://www.w3.org/TR/prov-o/)
 - [W3C DCAT 3](https://www.w3.org/TR/vocab-dcat-3/)

@@ -14,9 +14,14 @@
 <p align="center">
   <a href="https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/fabio-rovai/open-ontologies/ci.yml?branch=main&style=for-the-badge" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT"></a>
-  <a href="https://openmcp.org/servers/open-ontologies"><img src="https://img.shields.io/badge/Open_MCP-open--ontologies-blue?style=for-the-badge" alt="Open MCP"></a>
+  <a href="https://github.com/fabio-rovai/obsidian-open-ontologies"><img src="https://img.shields.io/badge/Obsidian-plugin-7C3AED?style=for-the-badge&logo=obsidian&logoColor=white" alt="Obsidian plugin"></a>
   <a href="https://www.pitchhut.com/project/open-ontologies-mcp"><img src="https://img.shields.io/badge/PitchHut-open--ontologies-orange?style=for-the-badge" alt="PitchHut"></a>
   <a href="https://clawhub.ai/fabio-rovai/open-ontologies"><img src="https://img.shields.io/badge/ClawHub-open--ontologies-7c3aed?style=for-the-badge" alt="ClawHub"></a>
+  <a href="https://github.com/sponsors/fabio-rovai"><img src="https://img.shields.io/github/sponsors/fabio-rovai?style=for-the-badge&label=Sponsor&logo=GitHub%20Sponsors&logoColor=EA4AAA&color=EA4AAA" alt="Sponsor"></a>
+</p>
+
+<p align="center">
+  <strong>English</strong> · <a href="README.zh-CN.md">简体中文</a>
 </p>
 
 <p align="center">
@@ -25,6 +30,7 @@
   <a href="#benchmarks">Benchmarks</a> ·
   <a href="#ies-support">IES</a> ·
   <a href="#tools">Tools</a> ·
+  <a href="#extending-open-ontologies">Extending</a> ·
   <a href="#architecture">Architecture</a> ·
   <a href="#documentation">Docs</a>
 </p>
@@ -192,6 +198,15 @@ Add to `.cursor/mcp.json` or equivalent:
 </details>
 
 <details>
+<summary><strong>Obsidian</strong></summary>
+
+The [Open Ontologies plugin for Obsidian](https://github.com/fabio-rovai/obsidian-open-ontologies) runs this engine as a managed sidecar inside Obsidian: ontology tree, SPARQL console, validation panel, validate-on-save for Turtle files, and a vault-to-RDF mapper so your notes become a graph the reasoners can work on. It also exposes the engine over MCP on a stable authenticated loopback port, so Claude Code or Claude Desktop can query the reasoned vault graph. Desktop only; the plugin auto-downloads the pinned engine release, or point it at an existing binary.
+
+See [docs/obsidian.md](docs/obsidian.md) for the settings reference and the agent-access model.
+
+</details>
+
+<details>
 <summary><strong>HTTP transport (<code>serve-http</code>)</strong></summary>
 
 For clients that speak MCP over HTTP rather than stdio:
@@ -314,6 +329,10 @@ The benchmarks below are not a feature tour. Each one exists to answer a specifi
 | **RQ3** | In ontology alignment, which carries the result: how the similarity signals are weighted, or the constraint that the matching be 1-to-1? | [OAEI Anatomy](#oaei-ontology-alignment--anatomy-track), 5 weight configurations vs stable-matching ablation | **The constraint, overwhelmingly.** Removing stable matching as the only variable drops F1 from 0.829 to 0.728; the five-weight-configuration spread is 0.0033, and even that overstates it (the zero-structural-signal branch bypasses the weights entirely). |
 | **RQ4** | How far does an alignment system get on a biomedical track with **no** domain background knowledge (no UMLS, no BioPortal, no LLM oracle)? | [OAEI Anatomy](#oaei-ontology-alignment--anatomy-track) and [Conference](#oaei-ontology-alignment--conference-track), full 2025 field | **Not far enough.** 9th of 13 on Anatomy, level with the lightweight lexical matcher and +0.063 F1 over a string-equality baseline. Below every system and both baselines on Conference. Precision is competitive; recall is the failure. |
 | **RQ5** | Does a closed-world vocabulary check catch generated terms that open-world SHACL validation silently accepts? | [`onto-correctness-bench`](case-studies/onto-correctness-bench/): 3 vocabularies, 418 fabricated terms, 300 graphs | **Yes, completely.** SHACL returned `conforms=true` on **300/300** graphs containing a fabricated term. The closed-world gate flagged **300/300**, with zero false positives on clean graphs. Open-world semantics treat an undeclared predicate as merely unknown, so SHACL is structurally unable to see it. |
+| **RQ6** | Can the SHACL-SPARQL governance rules an ontology ships actually be executed as written at national scale, or does the reference store force a workaround? | [`investment-fund-ontology`](case-studies/investment-fund-ontology/): 1.29M-triple US fund universe, 4 layer-3 rules, rdflib 7.6.0 A/B | **Store-specific.** rdflib finishes the anti-join (0.1s) and nested aggregate (0.8s) but times out (>300s) on both multi-way self-joins — exactly the cross-source reconciliation rules the ontology exists for. This repo's Oxigraph engine runs load + all four rules, unmodified, in 2.1s, reproducing the reference pipeline's published counts (73 / 0 / 214 / 2,148) exactly. The shapes also forced two validator fixes here: `sh:inversePath` support and `sh:severity` reporting. |
+
+| **RQ7** | When the graph is register-scale (276k triples) rather than fund-universe-scale (1.29M), does the reference store still force the set-based workaround, and do the rule counts survive entity resolution? | [`insurance-register-ontology`](case-studies/insurance-register-ontology/): 276,683-triple EEA insurance register, 6 layer-3 rules, rdflib 7.6.0 A/B | **The workaround becomes speed, not survival.** At this scale rdflib completes all six rules (133.2s total, 97s of it in one double anti-join) against 2s to 9s for the Oxigraph engine; nothing times out. Counts match the reference pipeline exactly on R1-R4 (643 / 4 / 118 / 42). R5 falls from 227 to 20 and R6 rises from 283 to 291 because the graph runs the same rule text after entity resolution, which absorbs the legitimate branch shares and attributes 8 more zombie passports via the LEI join; both differences were verified set-based. The shapes forced two more validator fixes: `sh:pattern` and `sh:hasValue`. |
+| **RQ8** | When a published standard ships a validator but no RDF binding, does a green SHACL result mean the data is valid, or that nothing was checked? | [`dcat-us-binding`](case-studies/dcat-us-binding/): DCAT-US 3.0, the US federal metadata profile, 115 published examples, pySHACL vs this engine | **It means nothing was checked, and the distinction is invisible without reporting reach.** The corpus as published expands to **76 triples, 1 predicate, 0 DCAT**, so the shapes GSA deleted select **0 focus nodes** and return `conforms=True`. Generating a JSON-LD context from the same JSON Schema that already carries the RDF terms (231 of 270 properties) lifts the corpus to **1,510 triples and 228 DCAT statements**, and the *same deleted shapes*, unchanged, then select **228 focus nodes and report 287 violations**. This is why `onto_shacl` reports `focus_nodes` next to the verdict. The run also cost us two defects here: `sh:class` and `sh:nodeKind` are not evaluated at all (287 of pySHACL's 316 findings invisible), and `sh:datatype` rejects `"1024"^^xsd:nonNegativeInteger` against `sh:datatype xsd:nonNegativeInteger`. |
 
 RQ2 and RQ4 are the ones worth reading if you are deciding whether to trust this repo. Both are negative results about work done here.
 
@@ -807,7 +826,8 @@ The same tool, applied to any ontology, produces the same kind of improvement. T
 | **Core** | `validate` `load` `save` `clear` `stats` `query` `diff` `lint` `convert` `status` | RDF/OWL validation, querying, and management |
 | **Repository** | `repo_list` `repo_load` | Browse and load ontologies from configured `[general] ontology_dirs` directories |
 | **Cache** | `cache_status` `cache_list` `cache_remove` `unload` `recompile` | On-disk N-Triples compile cache, idle-TTL eviction, per-name management ([details](docs/cache-and-registry.md)) |
-| **Marketplace** | `marketplace` | Browse and install 33 standard W3C/ISO/industry ontologies |
+| **Marketplace** | `marketplace` | Browse and install 33 curated W3C/ISO/industry ontologies + open [community packs](community/README.md) |
+| **Plugins** | `plugin_list` `plugin_call` | Discover and invoke sandboxed community WASM plugins (`--features plugins`, [details](docs/plugins.md)) |
 | **Remote** | `pull` `push` `import` | Fetch/push ontologies, resolve owl:imports |
 | **Schema** | `import-schema` `sql-ingest` | Postgres + DuckDB → OWL + SQL → RDF ingest |
 | **Data** | `map` `ingest` `shacl` `shacl_check` `vocab_check` `reason` `extend` | Structured data → RDF pipeline; `vocab_check` = closed-world check that generated data uses only ontology-declared terms (catches what open-world SHACL misses) |
@@ -830,6 +850,21 @@ The same tool, applied to any ontology, produces the same kind of improvement. T
 | **Borderline loop** | `borderline_partition` `borderline_record_verdict` | Generalised two-threshold review pattern for any candidate set |
 | **SQL sync** | `sql_sync_state` `sql_sync_reset` `sql_sync_states_list` | CDC watermark tracking for incremental SQL ingest |
 | **Evaluation** | `eval_alignment` `eval_rag` `eval_rag_mmrag` | Alignment P/R/F1 + RAG Hit@k / MRR / faithfulness + dataset adapter |
+
+---
+
+## Extending Open Ontologies
+
+Four extension surfaces, in increasing order of coupling — full map in [ECOSYSTEM.md](ECOSYSTEM.md):
+
+| Surface | Contribution is | How |
+| ------- | --------------- | --- |
+| **[Community packs](community/README.md)** | Data — an ontology manifest in an open registry, installable via `onto_marketplace` the moment the PR merges (no release) | PR to [`community/registry.json`](community/registry.json) |
+| **[Community skills](skills/community/)** | Markdown — workflow recipes teaching agents to chain `onto_*` tools | PR a `SKILL.md` directory |
+| **[Companion servers](docs/companion-servers.md)** | An independent MCP server composing with this one in-session (lineage webhook, pack interchange, SPARQL endpoints) — [OpenCheir](https://github.com/fabio-rovai/opencheir) is the reference | Follow the five-rule contract, PR an [ECOSYSTEM.md](ECOSYSTEM.md) row |
+| **[WASM plugins](docs/plugins.md)** | Code — sandboxed wasm32 tools run in-process with fuel metering, no imports, no IO, per-call capability grants | Implement ABI v1 (reference: [`examples/plugins/`](examples/plugins/)) |
+
+Everything holds the MCP-native convention: extensions provide validation and scaffolding; the connected LLM does the intelligence.
 
 ---
 
@@ -1029,3 +1064,9 @@ Maintained by [The Tesseract Academy](https://gov.tesseract.academy) (Kampakis a
 MIT
 
 <a href="https://glama.ai/mcp/servers/fabio-rovai/open-ontologies"><img width="380" height="200" src="https://glama.ai/mcp/servers/fabio-rovai/open-ontologies/badge" alt="Open Ontologies on Glama"></a>
+
+---
+
+## Sponsor
+
+If this work is useful to you, you can support its continued development through [GitHub Sponsors](https://github.com/sponsors/fabio-rovai).

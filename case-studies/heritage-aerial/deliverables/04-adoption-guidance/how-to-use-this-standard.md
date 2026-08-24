@@ -1,6 +1,6 @@
 # How to Use This Standard
 
-A pragmatic guide for collections managers, digital officers, project managers, and funders. This is **not** a technical reference — for that, read the [Standard](../01-standard/NAPH-STANDARD.md) and [module specifications](../01-standard/modules/). This is the on-ramp.
+A pragmatic guide for collections managers, digital officers, project managers, and funders. This is **not** a technical reference. For that, read the [Standard](../01-standard/NAPH-STANDARD.md) and [module specifications](../01-standard/modules/). This is the on-ramp.
 
 ## Who this guide is for
 
@@ -18,7 +18,7 @@ You do not need to read everything. Start with §1 to confirm relevance, then ju
 NAPH applies to a heritage collection if **all** of the following are true:
 
 - ✅ The collection has been or will be digitised (scanned, photographed, captured)
-- ✅ You expect computational research use (search, aggregation, AI-driven analysis) — not just human browsing
+- ✅ You expect computational research use (search, aggregation, AI-driven analysis), not just human browsing
 - ✅ Your records will be discoverable beyond your institution's primary catalogue
 - ✅ You have at least one person with technical capacity for ontology / RDF / SHACL work, or budget to engage one
 
@@ -30,9 +30,9 @@ If your collection meets the above, continue.
 
 NAPH has three nested compliance tiers:
 
-- **Baseline** — minimum metadata structure for computational find-identify-locate-use
-- **Enhanced** — adds digitisation provenance, capture context, full provenance chain
-- **Aspirational** — adds semantic enrichment, place/event linking, cross-collection links
+- **Baseline**: minimum metadata structure for computational find-identify-locate-use
+- **Enhanced**: adds digitisation provenance, capture context, full provenance chain
+- **Aspirational**: adds semantic enrichment, place/event linking, cross-collection links
 
 Pick a tier based on your goals (§3). Apply the [six modules](../01-standard/modules/) for that tier (§4). Validate via the [validation toolkit](validation-checklists.md). Publish (§5). Maintain (§6).
 
@@ -48,8 +48,7 @@ You don't need to start at the highest tier. **Most collections should start at 
 
 ### What changes at each tier
 
-#### Baseline — what you change
-
+#### Baseline: what you change
 You add structure to existing data:
 
 - ISO 8601 dates (replace free-text)
@@ -60,8 +59,7 @@ You add structure to existing data:
 
 You don't change cataloguing practice substantively. Most fields stay the same; structure becomes standard.
 
-#### Enhanced — what you add
-
+#### Enhanced: what you add
 On top of Baseline:
 
 - Multiple surrogate variants (preservation master + access copy)
@@ -71,8 +69,7 @@ On top of Baseline:
 
 This is where the work increases. Existing internal data is sufficient; the work is exposing and structuring it.
 
-#### Aspirational — what you build
-
+#### Aspirational: what you build
 On top of Enhanced:
 
 - Subject classification (where applicable)
@@ -97,13 +94,12 @@ For each tier you target, ensure each module's requirements are met:
 
 For each module, follow the linked specification.
 
-## 5. Adoption sequence — typical Baseline rollout
-
+## 5. Adoption sequence: typical Baseline rollout
 A realistic 12-week rollout for a 100,000-record collection:
 
 | Week | Phase | Activity | Deliverable |
 |---|---|---|---|
-| 1 | Scoping | Catalogue audit — what fields exist, what's missing, what format | Audit report |
+| 1 | Scoping | Catalogue audit: what fields exist, what's missing, what format | Audit report |
 | 2 | Identifier policy | Decide identifier scheme (existing scheme + URI prefix, or new) | [Identifier policy doc](decision-trees/identifier-policy.md) |
 | 3 | Rights mapping | Map current rights vocabulary to rightsstatements.org URIs | [Rights decision tree](decision-trees/rights-decision-tree.md) |
 | 4-5 | Date normalisation | Build/run date-normalisation pipeline | Normalised dates in source system |
@@ -114,10 +110,9 @@ A realistic 12-week rollout for a 100,000-record collection:
 | 11 | Scale | Apply to full collection | Full collection validated |
 | 12 | Publication | Publish manifest, validation report | Public Baseline conformance |
 
-This isn't a definitive schedule — small institutions may need 6 weeks, large institutions with messy legacy data may need 24. The sequence is the durable insight.
+This isn't a definitive schedule: small institutions may need 6 weeks, large institutions with messy legacy data may need 24. The sequence is the durable insight.
 
-## 6. After Baseline — incremental upgrade
-
+## 6. After Baseline: incremental upgrade
 Once Baseline is achieved, plan Enhanced/Aspirational by **research-value** not by record count.
 
 - Pick a high-research-value subset (e.g. declassified WW2 reconnaissance for an aerial collection)
@@ -163,10 +158,10 @@ For Enhanced/Aspirational, you may benefit from a small consultancy engagement (
 
 For most collections:
 
-- **Discoverability** — external researchers can find your collection via federated search
-- **Funding** — many funders increasingly require open-data compliance; NAPH demonstrates it
-- **Aggregator participation** — Europeana, DPLA, national portals harvest NAPH-compliant data with no extra effort
-- **Internal reuse** — your own staff can build new applications on the data without rebuilding
+- **Discoverability**: external researchers can find your collection via federated search
+- **Funding**: many funders increasingly require open-data compliance; NAPH demonstrates it
+- **Aggregator participation**: Europeana, DPLA, national portals harvest NAPH-compliant data with no extra effort
+- **Internal reuse**: your own staff can build new applications on the data without rebuilding
 
 A typical Baseline lift pays back in <2 years through a combination of these.
 
@@ -175,18 +170,18 @@ A typical Baseline lift pays back in <2 years through a combination of these.
 If this guide convinces you NAPH is relevant:
 
 1. Read the [Standard v1.0](../01-standard/NAPH-STANDARD.md) (~30 minutes)
-2. Read the relevant [profile](../01-standard/profiles/) — Photographic, Manuscripts & Archives, or Integrated Thematic
+2. Read the relevant [profile](../01-standard/profiles/): Photographic, Manuscripts & Archives, or Integrated Thematic
 3. Run a small pilot: 100 records, 1 week, see how the data flows
-4. Estimate full-scale based on pilot — then decide tier and timeline
+4. Estimate full-scale based on pilot, then decide tier and timeline
 
 If you're stuck, reach out via the project's [issue tracker](https://github.com/fabio-rovai/open-ontologies/issues) or the maintainers contact in [governance](../05-governance/governance-proposal.md).
 
 ## Cross-references
 
 - [Standard v1.0](../01-standard/NAPH-STANDARD.md)
-- [Validation checklists](validation-checklists.md) — what to check at each tier
-- [Worked examples](worked-examples.md) — tier-by-tier complete examples
-- [Decision trees](decision-trees/) — rights, identifiers, dates, tier progression
-- [Skills map](../03-cost-capacity-skills/skills-map.md) — what skills the team needs
-- [Cost & effort analysis](../../docs/cost-effort-analysis.md) — what it actually costs
-- [Partner clinic playbook](../05-governance/partner-clinic-playbook.md) — if you want hands-on engagement
+- [Validation checklists](validation-checklists.md): what to check at each tier
+- [Worked examples](worked-examples.md): tier-by-tier complete examples
+- [Decision trees](decision-trees/): rights, identifiers, dates, tier progression
+- [Skills map](../03-cost-capacity-skills/skills-map.md): what skills the team needs
+- [Cost & effort analysis](../../docs/cost-effort-analysis.md): what it actually costs
+- [Partner clinic playbook](../05-governance/partner-clinic-playbook.md): if you want hands-on engagement

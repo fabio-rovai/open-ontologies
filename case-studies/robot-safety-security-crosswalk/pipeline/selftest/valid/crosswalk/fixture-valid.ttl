@@ -1,0 +1,89 @@
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix rssc:    <https://tesseract.academy/ns/rssc#> .
+@prefix band:    <https://tesseract.academy/id/rssc/band/> .
+@prefix fr:      <https://tesseract.academy/id/rssc/foundational-requirement/> .
+@prefix ev:      <https://tesseract.academy/id/rssc/evidence-type/> .
+@prefix conf:    <https://tesseract.academy/id/rssc/confidence/> .
+@prefix gap:     <https://tesseract.academy/id/rssc/gap-kind/> .
+@prefix fx:      <https://tesseract.academy/id/rssc/SELFTEST-FIXTURE/> .
+
+# =============================================================================
+# SELF-TEST FIXTURE. NOT PART OF THE PUBLISHED CROSSWALK.
+#
+# This file exists so that pipeline/validate.py can be shown to PASS on a
+# well-formed graph rather than passing vacuously over an empty one. It is
+# loaded only when RSSC_ROOT points at pipeline/selftest/valid, never by a
+# normal run.
+#
+# Every node here is minted under the SELFTEST-FIXTURE base so that no fixture
+# IRI can ever collide with, or be mistaken for, a published RSSC instance.
+#
+# The facts recorded are nonetheless real and cited, because a fixture built on
+# invented clause numbers would train the pipeline to accept fabrications. The
+# clause identifiers, titles and dates below were read in the official ISO free
+# preview of ISO 10218-1:2025.
+# =============================================================================
+
+fx:standard-iso-10218-1-2025 a rssc:Standard ;
+    rdfs:label "FIXTURE: ISO 10218-1:2025"@en ;
+    rssc:designation "ISO 10218-1:2025" ;
+    rssc:issuingBody "ISO" ;
+    rssc:standardType "international-standard" ;
+    rssc:edition "third" ;
+    rssc:publicationDate "2025-02"^^xsd:gYearMonth ;
+    rssc:paywalled true .
+
+fx:clause-10218-1-5-1-16 a rssc:ClauseReference ;
+    rdfs:label "FIXTURE: ISO 10218-1:2025, 5.1.16 Cybersecurity"@en ;
+    rssc:clauseIdentifier "5.1.16" ;
+    rssc:clauseTitle "Cybersecurity" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard fx:standard-iso-10218-1-2025 .
+
+fx:clause-10218-1-7-5-11 a rssc:ClauseReference ;
+    rdfs:label "FIXTURE: ISO 10218-1:2025, 7.5.11 Cybersecurity"@en ;
+    rssc:clauseIdentifier "7.5.11" ;
+    rssc:clauseTitle "Cybersecurity" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard fx:standard-iso-10218-1-2025 .
+
+fx:source-iso-10218-1-preview a rssc:Source ;
+    rdfs:label "FIXTURE: ISO 10218-1:2025 official free preview"@en ;
+    rssc:sourceUrl "https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf"^^xsd:anyURI ;
+    rssc:retrievedOn "2026-08-08"^^xsd:date ;
+    rssc:paywalled true .
+
+# A well-formed mapping. Analytical inference graded moderate, which is what
+# the confidence ceiling in the shapes permits and what honesty requires.
+fx:mapping-5-1-16-to-fr3 a rssc:CrosswalkAssertion ;
+    rdfs:label "FIXTURE: ISO 10218-1:2025 5.1.16 relates to FR 3 System integrity"@en ;
+    rssc:subjectClause fx:clause-10218-1-5-1-16 ;
+    rssc:targetRequirement fr:FR3 ;
+    rssc:mappingRelation skos:relatedMatch ;
+    rssc:appliesToBand band:A ;
+    rssc:citation "ISO 10218-1:2025, Contents page, clause 5.1.16 Cybersecurity, page 18, read in the official ISO free preview." ;
+    rssc:basis "The clause identifier and title are primary. The link to system integrity is our reading of what a cybersecurity clause sitting under robot design is for, not a link the standard draws, so the relation is weakened to relatedMatch and the evidence type is analytical inference. It is falsified if the clause body turns out to address only, say, access control." ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf> ;
+    prov:wasDerivedFrom fx:source-iso-10218-1-preview .
+
+# A well-formed gap. Argument from silence, so graded low, which is what the
+# SilenceGapCeiling shape permits.
+fx:gap-band-c-learned-policy a rssc:ControlGap ;
+    rdfs:label "FIXTURE: Band C learned policy not reached by ISO 10218-1:2025"@en ;
+    rssc:exposure "A learned control policy shipped as model weights can be replaced or poisoned through the update channel, changing the robot's behaviour without any component failing and without any safety parameter being edited." ;
+    rssc:appliesToBand band:C ;
+    rssc:unaddressedBy fx:clause-10218-1-5-1-16 ;
+    rssc:wouldBeAddressedBy fr:FR3 ;
+    rssc:gapKind gap:not-addressed ;
+    rssc:citation "ISO 10218-1:2025, Contents pages, read in the official ISO free preview: no clause heading addresses learned or adaptive behaviour." ;
+    rssc:basis "An argument from silence about a paywalled document, made from the published contents pages only. The clause bodies were not read, so the confidence is low. It is falsified by any clause body that turns out to place requirements on adaptive behaviour." ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:low ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf> ;
+    prov:wasDerivedFrom fx:source-iso-10218-1-preview .

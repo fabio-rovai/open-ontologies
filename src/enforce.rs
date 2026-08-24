@@ -106,16 +106,64 @@ impl Enforcer {
         self.check_missing_range(violations, total, passed);
         // Rule: missing label
         self.check_missing_label(violations, total, passed);
+        // Rule: competing modelling patterns (issue #94)
+        self.check_competing_patterns(violations, total, passed);
+    }
+
+    /// A subclass partition and an attribute class for the same notion can
+    /// coexist after a merge of independently authored vocabularies:
+    /// `:AdherentX`/`:SuspensionX` under `:X` with disjointness, AND a
+    /// competing `:XType`. Both parse and lint clean, but an extractor
+    /// constrained to the merged vocabulary reliably picks the attribute
+    /// class, the one form disjointness cannot reach, so contradiction
+    /// detection is silently disabled. Status/State suffixes are exempt:
+    /// a status is a property of a thing over time, not a kind of thing.
+    fn check_competing_patterns(&self, violations: &mut Vec<serde_json::Value>, total: &mut u32, passed: &mut u32) {
+        *total += 1;
+        const KIND_SUFFIXES: [&str; 5] = ["Type", "Kind", "Category", "Mode", "Variant"];
+
+        // Parents with two or more subclasses of which at least one pair is
+        // declared disjoint: a real partition, not merely a hierarchy.
+        let query = "SELECT DISTINCT ?parent WHERE {             ?a <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?parent .             ?b <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?parent .             FILTER(?a != ?b)             { ?a <http://www.w3.org/2002/07/owl#disjointWith> ?b } UNION             { ?b <http://www.w3.org/2002/07/owl#disjointWith> ?a }         }";
+        let parents = self.query_iris(query, "parent");
+
+        let class_query = "SELECT DISTINCT ?c WHERE {             { ?c a <http://www.w3.org/2002/07/owl#Class> } UNION             { ?c <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?x }         }";
+        let classes: std::collections::HashSet<String> =
+            self.query_iris(class_query, "c").into_iter().collect();
+
+        let mut found = false;
+        for parent in parents {
+            for suffix in KIND_SUFFIXES {
+                let candidate = format!("{parent}{suffix}");
+                if classes.contains(&candidate) {
+                    found = true;
+                    violations.push(serde_json::json!({
+                        "rule": "competing_modelling_pattern",
+                        "severity": "warning",
+                        "entity": candidate,
+                        "message": format!(
+                            "Attribute class competes with the disjoint subclass partition under <{parent}>:                              extraction will use the attribute class, which disjointness cannot reach,                              silently disabling contradiction detection. Keep the partition; drop or                              merge the attribute class."),
+                    }));
+                }
+            }
+        }
+        if !found {
+            *passed += 1;
+        }
     }
 
     fn check_orphan_classes(&self, violations: &mut Vec<serde_json::Value>, total: &mut u32, passed: &mut u32) {
         *total += 1;
         let query = "SELECT DISTINCT ?c WHERE { \
             ?c a <http://www.w3.org/2002/07/owl#Class> . \
+            FILTER(isIRI(?c)) \
             FILTER NOT EXISTS { ?c <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?parent } \
             FILTER NOT EXISTS { ?child <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?c } \
             FILTER NOT EXISTS { ?p <http://www.w3.org/2000/01/rdf-schema#domain> ?c } \
             FILTER NOT EXISTS { ?p <http://www.w3.org/2000/01/rdf-schema#range> ?c } \
+            FILTER NOT EXISTS { ?c <http://www.w3.org/2002/07/owl#equivalentClass> ?eq } \
+            FILTER NOT EXISTS { ?eq2 <http://www.w3.org/2002/07/owl#equivalentClass> ?c } \
+            FILTER NOT EXISTS { ?c <http://www.w3.org/2002/07/owl#disjointWith> ?dj } \
         }";
 
         let orphans = self.query_iris(query, "c");
@@ -138,6 +186,7 @@ impl Enforcer {
         let query = "SELECT DISTINCT ?p WHERE { \
             { ?p a <http://www.w3.org/2002/07/owl#ObjectProperty> } UNION \
             { ?p a <http://www.w3.org/2002/07/owl#DatatypeProperty> } \
+            FILTER(isIRI(?p)) \
             FILTER NOT EXISTS { ?p <http://www.w3.org/2000/01/rdf-schema#domain> ?d } \
         }";
 
@@ -161,6 +210,7 @@ impl Enforcer {
         let query = "SELECT DISTINCT ?p WHERE { \
             { ?p a <http://www.w3.org/2002/07/owl#ObjectProperty> } UNION \
             { ?p a <http://www.w3.org/2002/07/owl#DatatypeProperty> } \
+            FILTER(isIRI(?p)) \
             FILTER NOT EXISTS { ?p <http://www.w3.org/2000/01/rdf-schema#range> ?r } \
         }";
 
@@ -183,6 +233,7 @@ impl Enforcer {
         *total += 1;
         let query = "SELECT DISTINCT ?c WHERE { \
             ?c a <http://www.w3.org/2002/07/owl#Class> . \
+            FILTER(isIRI(?c)) \
             FILTER NOT EXISTS { ?c <http://www.w3.org/2000/01/rdf-schema#label> ?l } \
         }";
 

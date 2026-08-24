@@ -1,0 +1,768 @@
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix rssc:    <https://tesseract.academy/ns/rssc#> .
+@prefix band:    <https://tesseract.academy/id/rssc/band/> .
+@prefix sl:      <https://tesseract.academy/id/rssc/security-level/> .
+@prefix slt:     <https://tesseract.academy/id/rssc/security-level-type/> .
+@prefix ev:      <https://tesseract.academy/id/rssc/evidence-type/> .
+@prefix conf:    <https://tesseract.academy/id/rssc/confidence/> .
+@prefix gap:     <https://tesseract.academy/id/rssc/gap-kind/> .
+
+# =============================================================================
+# RSSC SHACL shapes, v0.1.0
+# Kampakis and Co Ltd, trading as The Tesseract Academy. CC BY 4.0.
+#
+# These shapes are the falsifiability contract of the Robot Safety and Security
+# Crosswalk. They are not a tidiness pass. They are the mechanism by which an
+# uncited mapping, an over-claimed confidence or a fabricated clause number
+# fails the build instead of shipping.
+#
+# THE FOUR THINGS THEY MAKE IMPOSSIBLE
+#  1. An assertion with no citation, no evidence type and no confidence grade.
+#  2. Our own reasoning presented as high confidence. Analytical inference and
+#     secondary literature are both capped below conf:high, because the
+#     ontology defines conf:high as "established from a primary published
+#     source that was read directly". A ceiling is not a style preference; it
+#     is the definition, enforced.
+#  3. A control gap that names no autonomy band, or that leaves its candidate
+#     security control empty without saying so, which is a complaint rather
+#     than a finding. Note the exception, and that it must be DECLARED: a gap
+#     may name no candidate control where the corpus was searched and nothing
+#     was found, provided the basis says in as many words that the property
+#     was deliberately left unset. Silence stays possible; silent silence does
+#     not. See rssc:ControlGapCandidateControlShape.
+#  4. A clause or requirement identifier in a shape no issuing body uses. The
+#     patterns below were derived from identifiers read in published previews
+#     of the actual documents, never invented. See shapes/README.md for the
+#     derivation of each pattern and the identifiers it was checked against.
+#
+# SEVERITY POLICY
+#  Everything that carries the falsifiability contract is left at the SHACL
+#  default, sh:Violation, so the build fails. sh:Warning is used exactly twice,
+#  both times for documentation completeness of minted terms, where a missing
+#  rdfs:label or rdfs:comment is a defect in the vocabulary and not a false
+#  claim about the world. Run pyshacl with allow_warnings=True so that those
+#  two report without failing the build; every Violation shape is unaffected by
+#  that flag.
+#
+# TARGETING NOTE
+#  Each assertion shape lists rssc:EvidencedAssertion and all four of its
+#  subclasses as sh:targetClass. That is deliberate redundancy: it makes the
+#  shapes behave identically whether the pipeline runs pyshacl with
+#  inference="rdfs" or inference="none". SHACL focus nodes are a set, so a node
+#  matched by two of the listed classes is still validated once.
+#
+# PROSE VERSUS CODES
+#  Human-readable fields (citation, basis, safety consequence, exposure, clause
+#  title, requirement title) accept a plain xsd:string or an @en-tagged
+#  rdf:langString, because prose is written for a reader and may legitimately
+#  be translated. Everything that functions as a code (clause and requirement
+#  identifiers, designations, editions, normative status, standard type,
+#  identifier scheme) stays strictly xsd:string. A language tag on "5.1.16" or
+#  on "informative" would be meaningless, and it would silently defeat the
+#  sh:in matching that enforces the controlled sets.
+#
+# SCOPING NOTE, STATED OPENLY
+#  The confidence ceilings are scoped to rssc:EvidencedAssertion and its
+#  subclasses, NOT to every subject of rssc:evidenceType. The autonomy band
+#  concepts in ontology/rssc.ttl carry ev:AnalyticalInference together with
+#  conf:high, which is definitional metadata on a scheme member rather than a
+#  claim about a document, and it would be caught by a wider target. The
+#  narrower scope is the honest reading of the rule, and the tension is
+#  recorded in shapes/README.md rather than hidden.
+# =============================================================================
+
+
+# =============================================================================
+# SECTION 1: THE FALSIFIABILITY CONTRACT
+# Applies to every assertion this project makes. An assertion you cannot cite
+# cannot enter the graph.
+# =============================================================================
+
+rssc:EvidencedAssertionShape a sh:NodeShape ;
+    sh:targetClass rssc:EvidencedAssertion , rssc:CrosswalkAssertion ,
+                   rssc:SafetyImpactAssertion , rssc:SecurityLevelClaim ,
+                   rssc:ControlGap ;
+    sh:name "Evidenced assertion contract" ;
+    sh:description "MUST have: a human-readable citation, a plain-language basis, exactly one evidence type from the controlled scheme, exactly one confidence level from the controlled scheme, at least one dcterms:source IRI, and at least one prov:wasDerivedFrom link to a cited rssc:Source." ;
+
+    # PROSE LITERAL POLICY, applied to every human-readable field in this file.
+    # Prose may be a plain xsd:string or an @en-tagged rdf:langString, and both
+    # are accepted. Prose is written for a human and may legitimately be
+    # translated. Codes are not: every controlled value, identifier, edition
+    # and designation below stays strictly xsd:string, because a language tag
+    # on "5.1.16" or on "informative" would be meaningless and would silently
+    # break the sh:in matching that enforces the controlled sets.
+    sh:property [
+        sh:path rssc:citation ;
+        sh:minCount 1 ;
+        sh:or ( [ sh:datatype xsd:string ] [ sh:datatype rdf:langString ] ) ;
+        sh:minLength 20 ;
+        sh:message "Every assertion must carry a human-readable citation naming the document and where it was read, long enough for a reader to check it without this graph in front of them."
+    ] ;
+
+    sh:property [
+        sh:path rssc:basis ;
+        sh:minCount 1 ;
+        sh:or ( [ sh:datatype xsd:string ] [ sh:datatype rdf:langString ] ) ;
+        sh:minLength 40 ;
+        sh:message "Every assertion must state, in plain language, why it holds and what would falsify it. A citation says where the evidence is; the basis says what the evidence is taken to show."
+    ] ;
+
+    # Evidence type and confidence are OBJECT properties pointing at concept
+    # IRIs, never literals. The flat string form exists as skos:notation on
+    # each concept and is not accepted here. sh:nodeKind is stated explicitly
+    # because a literal is the commonest way this contract is broken.
+    sh:property [
+        sh:path rssc:evidenceType ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:in ( ev:NormativeReference ev:InformativeReference ev:PublishedPreview
+                ev:PublishedSummary ev:SecondaryLiterature ev:AnalyticalInference ) ;
+        sh:message "Every assertion must carry exactly one evidence type, given as a concept IRI from the RSSC evidence-type scheme (ev:NormativeReference, ev:InformativeReference, ev:PublishedPreview, ev:PublishedSummary, ev:SecondaryLiterature or ev:AnalyticalInference). A bare literal such as \"published-preview\" is not accepted."
+    ] ;
+
+    sh:property [
+        sh:path rssc:confidence ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:in ( conf:high conf:moderate conf:low ) ;
+        sh:message "Every assertion must carry exactly one confidence level, given as a concept IRI from the RSSC confidence scheme (conf:high, conf:moderate or conf:low). A bare literal such as \"low\" is not accepted."
+    ] ;
+
+    sh:property [
+        sh:path dcterms:source ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:message "Every assertion must point at least one dcterms:source at the cited document or page, as an IRI. A citation string alone is not checkable by a machine."
+    ] ;
+
+    sh:property [
+        sh:path prov:wasDerivedFrom ;
+        sh:minCount 1 ;
+        sh:class rssc:Source ;
+        sh:message "Every assertion must be derived from at least one rssc:Source that is present in the graph and carries a resolvable URL and a retrieval date."
+    ] ;
+
+    sh:property [
+        sh:path rssc:appliesToBand ;
+        sh:class rssc:AutonomyBand ;
+        sh:message "Where an assertion names an autonomy band, that band must be one of the three declared bands (band:A, band:B, band:C)."
+    ] ;
+
+    sh:property [
+        sh:path rssc:appliesToRole ;
+        sh:class rssc:SupplyChainRole ;
+        sh:message "Where an assertion names a supply chain role, that role must be one of the four declared roles."
+    ] .
+
+
+# ---------------------------------------------------------------------------
+# THE CORE INTEGRITY RULE OF THE ARTEFACT.
+# Our own reasoning is never high confidence. The ontology defines conf:high as
+# "established from a primary published source that was read directly", which
+# is by construction something ev:AnalyticalInference is not.
+# ---------------------------------------------------------------------------
+
+rssc:AnalyticalInferenceCeilingShape a sh:NodeShape ;
+    sh:targetClass rssc:EvidencedAssertion , rssc:CrosswalkAssertion ,
+                   rssc:SafetyImpactAssertion , rssc:SecurityLevelClaim ,
+                   rssc:ControlGap ;
+    sh:name "Analytical inference confidence ceiling" ;
+    sh:description "An assertion resting on this project's own reasoning must not be graded high confidence." ;
+    sh:not [
+        a sh:NodeShape ;
+        sh:property [ sh:path rssc:evidenceType ; sh:hasValue ev:AnalyticalInference ] ;
+        sh:property [ sh:path rssc:confidence ; sh:hasValue conf:high ]
+    ] ;
+    sh:message "An assertion whose evidence type is analytical inference must not claim high confidence. High confidence is reserved for a primary published source read directly, and our own inference is never that. Set the confidence to moderate or low, or change the evidence type and cite the primary source it now rests on." .
+
+
+# The same ceiling for commentary. Secondary literature is corroborating
+# evidence, not primary evidence, and the ontology's own definition of
+# conf:high excludes it. Stated as a separate shape so the failure message
+# tells the author which rule they hit.
+rssc:SecondaryLiteratureCeilingShape a sh:NodeShape ;
+    sh:targetClass rssc:EvidencedAssertion , rssc:CrosswalkAssertion ,
+                   rssc:SafetyImpactAssertion , rssc:SecurityLevelClaim ,
+                   rssc:ControlGap ;
+    sh:name "Secondary literature confidence ceiling" ;
+    sh:description "An assertion resting on independent commentary must not be graded high confidence." ;
+    sh:not [
+        a sh:NodeShape ;
+        sh:property [ sh:path rssc:evidenceType ; sh:hasValue ev:SecondaryLiterature ] ;
+        sh:property [ sh:path rssc:confidence ; sh:hasValue conf:high ]
+    ] ;
+    sh:message "An assertion whose evidence type is secondary literature must not claim high confidence. Commentary is frequently wrong about clause numbers, so a claim resting on it is moderate at best and low where the sources disagree or a single source stands alone." .
+
+
+# =============================================================================
+# SECTION 2: CROSSWALK ASSERTIONS
+# One safety-side clause, one security-side anchor, one declared relation.
+# A mapping with two subjects is two mappings.
+# =============================================================================
+
+rssc:CrosswalkAssertionShape a sh:NodeShape ;
+    sh:targetClass rssc:CrosswalkAssertion ;
+    sh:name "Crosswalk mapping contract" ;
+    sh:description "MUST have: exactly one subject clause on the safety side, exactly one target anchor on the security side, and exactly one declared SKOS mapping relation. The evidence furniture is enforced separately by rssc:EvidencedAssertionShape." ;
+
+    sh:property [
+        sh:path rssc:subjectClause ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class rssc:ClauseReference ;
+        sh:message "A crosswalk mapping must start from exactly one safety-side clause reference that is present in the graph. A mapping with two subjects is two mappings and must be split."
+    ] ;
+
+    # rssc:targetRequirement is deliberately range-free in the ontology because
+    # its legitimate targets span four classes. The permitted set is enforced
+    # here, in the shapes, so that widening it later is a shapes change rather
+    # than a semantic one.
+    sh:property [
+        sh:path rssc:targetRequirement ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:or (
+            [ sh:class rssc:FoundationalRequirement ]
+            [ sh:class rssc:SecurityRequirement ]
+            [ sh:class rssc:SecurityLevel ]
+            [ sh:class rssc:ClauseReference ]
+        ) ;
+        sh:message "A crosswalk mapping must arrive at exactly one security-side anchor, which must be a foundational requirement, a security requirement, a security level or a clause reference in a security document."
+    ] ;
+
+    sh:property [
+        sh:path rssc:mappingRelation ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:in ( skos:exactMatch skos:closeMatch skos:broadMatch skos:narrowMatch skos:relatedMatch ) ;
+        sh:message "A crosswalk mapping must declare exactly one SKOS mapping relation: skos:exactMatch, skos:closeMatch, skos:broadMatch, skos:narrowMatch or skos:relatedMatch. When in doubt, weaken the relation and say why in rssc:basis."
+    ] .
+
+
+# Match discipline, enforced. Across a safety and security boundary an exact
+# match asserts that two terms denote the same thing with no scope difference,
+# which will be almost never true. Asserting one at less than high confidence
+# is a guess dressed as an identity.
+rssc:ExactMatchDisciplineShape a sh:NodeShape ;
+    sh:targetClass rssc:CrosswalkAssertion ;
+    sh:name "Exact match discipline" ;
+    sh:description "An exact match may only be asserted at high confidence." ;
+    sh:not [
+        a sh:NodeShape ;
+        sh:property [ sh:path rssc:mappingRelation ; sh:hasValue skos:exactMatch ] ;
+        sh:property [ sh:path rssc:confidence ; sh:in ( conf:moderate conf:low ) ]
+    ] ;
+    sh:message "An exact match asserted at less than high confidence is a guess dressed as an identity. Either raise the evidence to a primary source read directly, or weaken the relation to skos:closeMatch and record the scope difference in rssc:basis." .
+
+
+# =============================================================================
+# SECTION 3: SAFETY IMPACT ASSERTIONS
+# The central claim of the case study, made one instance at a time: a security
+# property fails, and a named safety function degrades.
+# =============================================================================
+
+rssc:SafetyImpactAssertionShape a sh:NodeShape ;
+    sh:targetClass rssc:SafetyImpactAssertion ;
+    sh:name "Safety impact contract" ;
+    sh:description "MUST have: the security property whose violation drives the impact, at least one named safety function that degrades, and a concrete statement of what goes wrong at the machine." ;
+
+    sh:property [
+        sh:path rssc:impactingRequirement ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:or (
+            [ sh:class rssc:FoundationalRequirement ]
+            [ sh:class rssc:SecurityRequirement ]
+        ) ;
+        sh:message "A safety impact assertion must name exactly one security property whose absence or violation drives the impact, as a foundational requirement or a security requirement."
+    ] ;
+
+    sh:property [
+        sh:path rssc:impactedSafetyFunction ;
+        sh:minCount 1 ;
+        sh:class rssc:SafetyFunction ;
+        sh:message "A safety impact assertion must name at least one safety function that is degraded, and that function must be present in the graph so its defining clause can be followed."
+    ] ;
+
+    sh:property [
+        sh:path rssc:safetyConsequence ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:or ( [ sh:datatype xsd:string ] [ sh:datatype rdf:langString ] ) ;
+        sh:minLength 40 ;
+        sh:message "A safety impact assertion must say concretely what goes wrong, stated in terms of the machine rather than the network: motion continues after a stop is commanded, a speed limit is silently raised, a separation distance is computed from spoofed perception data. If it cannot be written concretely, the assertion is not ready to be made."
+    ] .
+
+
+# =============================================================================
+# SECTION 4: SECURITY LEVEL CLAIMS
+# A bare security level attached to a product is the commonest error in this
+# field. Without the type, a reader cannot tell whether a requirement, a
+# product capability or a deployed installation is being described.
+# =============================================================================
+
+rssc:SecurityLevelClaimShape a sh:NodeShape ;
+    sh:targetClass rssc:SecurityLevelClaim ;
+    sh:name "Security level claim contract" ;
+    sh:description "MUST have: a subject, exactly one claimed level, and exactly one level type. There is no default level type, because supplying one would hide exactly the error this shape exists to prevent." ;
+
+    sh:property [
+        sh:path rssc:claimSubject ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:message "A security level claim must name exactly one subject: the robotic system, safety-related control system, zone or class of component the level is claimed about."
+    ] ;
+
+    sh:property [
+        sh:path rssc:claimedLevel ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:in ( sl:SL0 sl:SL1 sl:SL2 sl:SL3 sl:SL4 ) ;
+        sh:message "A security level claim must name exactly one level from the controlled scheme (sl:SL0 to sl:SL4)."
+    ] ;
+
+    sh:property [
+        sh:path rssc:securityLevelType ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:in ( slt:target slt:capability slt:achieved ) ;
+        sh:message "A security level claim must state which kind of level is meant: slt:target (required by risk assessment), slt:capability (what a product can deliver as supplied) or slt:achieved (what a real installation attains). A claim that something is SL2, with no type, is unusable."
+    ] .
+
+
+# =============================================================================
+# SECTION 5: CONTROL GAPS
+# The finding the demonstration is built to surface. A gap is an assertion
+# about a document and can be wrong, so it carries the same evidence furniture
+# as a positive mapping, plus a band, a cited clause and a candidate control.
+# =============================================================================
+
+rssc:ControlGapShape a sh:NodeShape ;
+    sh:targetClass rssc:ControlGap ;
+    sh:name "Control gap contract" ;
+    sh:description "MUST have: a concrete exposure, at least one autonomy band, at least one cited safety clause that does not address it, at least one candidate security control that would, and exactly one gap kind." ;
+
+    sh:property [
+        sh:path rssc:exposure ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:or ( [ sh:datatype xsd:string ] [ sh:datatype rdf:langString ] ) ;
+        sh:minLength 40 ;
+        sh:message "A control gap must state the exposure concretely enough to be argued with: which surface, reached how, changing what. A vague exposure produces an unfalsifiable gap."
+    ] ;
+
+    sh:property [
+        sh:path rssc:appliesToBand ;
+        sh:minCount 1 ;
+        sh:class rssc:AutonomyBand ;
+        sh:message "A control gap must name at least one autonomy band. Coverage is counted per band, and a gap with no band cannot be counted, which is how an empty Band C column stops being a measured finding and becomes an omission."
+    ] ;
+
+    sh:property [
+        sh:path rssc:unaddressedBy ;
+        sh:minCount 1 ;
+        sh:class rssc:ClauseReference ;
+        sh:message "A control gap must cite at least one specific safety clause that does not address the exposure. Pointing at a clause identifier rather than at a whole standard is what lets a reader check the scope for themselves in the published contents."
+    ] ;
+
+    # Any candidate control that IS named must be of a permitted kind. The
+    # question of whether one must be named at all is a separate rule, and is
+    # enforced by rssc:ControlGapCandidateControlShape below.
+    sh:property [
+        sh:path rssc:wouldBeAddressedBy ;
+        sh:or (
+            [ sh:class rssc:SecurityRequirement ]
+            [ sh:class rssc:FoundationalRequirement ]
+            [ sh:class rssc:ClauseReference ]
+        ) ;
+        sh:message "A candidate control named on a control gap must be a security requirement, a foundational requirement, or a clause of a security document, and it must be present in the graph."
+    ] ;
+
+    sh:property [
+        sh:path rssc:gapKind ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:in ( gap:excluded-by-scope gap:not-addressed gap:informative-only ) ;
+        sh:message "A control gap must state exactly one gap kind: gap:excluded-by-scope (the Scope clause puts it outside), gap:not-addressed (the standard is silent) or gap:informative-only (reached, but through a bibliography entry, a NOTE or an informative annex, so nothing is required for conformity). The three carry entirely different implications and are not interchangeable."
+    ] .
+
+
+# ---------------------------------------------------------------------------
+# THE CANDIDATE CONTROL RULE, AND THE ONE PRINCIPLED EXCEPTION TO IT.
+#
+# A gap with no named candidate control is normally a complaint rather than a
+# finding, so one must be named. But the ontology is explicit that where
+# nothing in the public corpus would address the exposure, the property should
+# be left unset, because an unfilled gap is a stronger result than a forced
+# one. Both rules are right, and a flat sh:minCount 1 would destroy the two
+# most valuable findings in the artefact by forcing a fabricated answer into
+# them. That would be the shapes causing exactly the failure they exist to
+# prevent.
+#
+# So the rule is a disjunction, and the exception must be DECLARED rather than
+# merely happen. A control gap must satisfy one of two branches:
+#   1. it names at least one candidate control; or
+#   2. it names none, AND its rssc:basis states in as many words that the
+#      property was deliberately left unset, which obliges the author to
+#      record what corpus was searched and found empty.
+# Silence stays possible; silent silence does not. An author who simply forgot
+# to fill the property still fails the build, because forgetting does not
+# write the sentence.
+# ---------------------------------------------------------------------------
+
+rssc:ControlGapCandidateControlShape a sh:NodeShape ;
+    sh:targetClass rssc:ControlGap ;
+    sh:name "Candidate control, named or declared absent" ;
+    sh:description "MUST either name at least one candidate security control, or declare in the basis that the property was deliberately left unset because the public corpus was searched and nothing was found." ;
+    sh:or (
+        [
+            sh:property [
+                sh:path rssc:wouldBeAddressedBy ;
+                sh:minCount 1
+            ]
+        ]
+        [
+            sh:property [
+                sh:path rssc:wouldBeAddressedBy ;
+                sh:maxCount 0
+            ] ;
+            sh:property [
+                sh:path rssc:basis ;
+                sh:minCount 1 ;
+                sh:pattern "deliberately left unset" ;
+                sh:flags "i"
+            ]
+        ]
+    ) ;
+    sh:message "A control gap must either name at least one candidate security control that would address the exposure (a security requirement, a foundational requirement, or a clause of a security document), or, where the public corpus was searched and nothing was found, say so explicitly in rssc:basis using the words \"deliberately left unset\" and record what was searched. An empty candidate control with no such declaration is indistinguishable from an oversight, and a gap a reader cannot check is a complaint rather than a finding." .
+
+
+# An argument from silence is weaker evidence than an explicit exclusion, and
+# an exclusion is read directly from a Scope clause that is published free.
+# So gap:not-addressed cannot be asserted at high confidence.
+rssc:SilenceGapCeilingShape a sh:NodeShape ;
+    sh:targetClass rssc:ControlGap ;
+    sh:name "Argument from silence ceiling" ;
+    sh:description "A gap asserted from a standard's silence must not be graded high confidence." ;
+    sh:not [
+        a sh:NodeShape ;
+        sh:property [ sh:path rssc:gapKind ; sh:hasValue gap:not-addressed ] ;
+        sh:property [ sh:path rssc:confidence ; sh:hasValue conf:high ]
+    ] ;
+    sh:message "A gap of kind gap:not-addressed rests on an argument from silence about a paywalled document, which cannot support high confidence. Grade it moderate or low, and state in rssc:basis exactly what published structure was searched and what was not visible. Where the standard's own Scope clause excludes the system, use gap:excluded-by-scope instead, which can be graded high." .
+
+
+# =============================================================================
+# SECTION 6: THE CITABLE SURFACE
+# Identifiers, titles, editions and dates. Nothing here may be constructed,
+# inferred or upgraded in precision. These shapes are the last line of defence
+# against a fabricated clause number, which would destroy the artefact's
+# credibility on its own.
+# =============================================================================
+
+rssc:StandardShape a sh:NodeShape ;
+    sh:targetClass rssc:Standard ;
+    sh:name "Standard identity" ;
+    sh:description "MUST have: a dated designation, an issuing body, a document type from the controlled set, and an explicit statement of whether its normative text is paywalled." ;
+
+    sh:property [
+        sh:path rssc:designation ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        # Deliberately loose. Designations in this corpus include
+        # "ISO 10218-1:2025", "IEC TS 63074:2023", "IEC TS 62443-1-1:2009",
+        # "ISO/IEC Guide 51:2014" and the regulation form "(EU) 2023/1230".
+        # The one thing they all share, and the one thing that actually
+        # matters, is a four-digit year: an undated designation cannot be
+        # crosswalked because editions differ.
+        sh:pattern "(19|20)[0-9]{2}" ;
+        sh:message "A standard must carry exactly one designation, in the issuing body's own form, including its year (for example \"ISO 10218-1:2025\" or \"IEC TS 63074:2023\"). An undated designation cannot be crosswalked, because editions differ: IEC 63074 moved from Technical Report in 2019 to Technical Specification in 2023."
+    ] ;
+
+    sh:property [
+        sh:path rssc:issuingBody ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 2 ;
+        sh:message "A standard must name exactly one issuing body, for example \"ISO\", \"IEC\", \"ISO/IEC\", \"CENELEC\" or \"European Union\"."
+    ] ;
+
+    sh:property [
+        sh:path rssc:standardType ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:in ( "international-standard" "technical-specification" "technical-report"
+                "publicly-available-specification" "regulation" ) ;
+        sh:message "A standard must declare exactly one document type from the controlled set. The distinction is load-bearing, not cosmetic: a Technical Specification is not an International Standard, and the move from Technical Report to Technical Specification is a rise in formal standing."
+    ] ;
+
+    sh:property [
+        sh:path rssc:paywalled ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:message "A standard must state explicitly whether its normative text is paywalled. This is a first-class fact about the evidence base, not a caveat, and it is what makes the claim that this crosswalk was built from public surfaces alone checkable."
+    ] ;
+
+    # Date-precision policy. ISO cover pages for the 10218:2025 parts state a
+    # month only, while secondary sources disagree on the day. Recording a day
+    # that was never confirmed would be a fabricated fact, so a month-only or
+    # year-only date must stay month-only or year-only.
+    sh:property [
+        sh:path rssc:publicationDate ;
+        sh:maxCount 1 ;
+        sh:or (
+            [ sh:datatype xsd:date ]
+            [ sh:datatype xsd:gYearMonth ]
+            [ sh:datatype xsd:gYear ]
+        ) ;
+        sh:message "A publication date must be a single typed value at the precision actually confirmed: xsd:date only where a day was read in a primary source, otherwise xsd:gYearMonth or xsd:gYear. Free text is not accepted, and a month must never be silently upgraded to a day."
+    ] ;
+
+    sh:property [
+        sh:path rssc:edition ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Where an edition is recorded, it must be a single string as printed on the document, for example \"third\" or \"1.0\"."
+    ] .
+
+
+rssc:ClauseReferenceShape a sh:NodeShape ;
+    sh:targetClass rssc:ClauseReference ;
+    sh:name "Clause reference identity" ;
+    sh:description "MUST have: a published clause identifier in a real ISO or IEC shape, the clause title as printed in the contents page, the standard that publishes it, and its normative status." ;
+
+    # Pattern derived from identifiers read in the published previews of
+    # ISO 10218-1:2025, ISO 10218-2:2025, IEC TS 63074:2023, IEC 62443-3-3:2013,
+    # IEC 62443-3-2:2020, IEC 62443-4-1:2018, IEC 62443-4-2:2019 and
+    # IEC TS 62443-1-1:2009. Two forms exist and only two:
+    #   * a dotted decimal clause number of one to five levels, which may begin
+    #     with 0 (IEC 62443-3-3:2013 clause 0.3 is real), for example
+    #     "4", "5.11.2", "5.1.16", "6.3.7", "7.5.23";
+    #   * an annex reference, a single capital letter with up to three
+    #     numeric sub-levels, for example "Annex C", "Annex L", "Annex C.3".
+    # Nothing else is a clause identifier. Table and figure numbers are not
+    # clause identifiers and must not be recorded here.
+    sh:property [
+        sh:path rssc:clauseIdentifier ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^((0|[1-9][0-9]{0,2})(\\.(0|[1-9][0-9]{0,2})){0,4}|Annex [A-Z](\\.(0|[1-9][0-9]{0,2})){0,3})$" ;
+        sh:message "A clause identifier must be exactly one published identifier in one of the two real forms: a dotted decimal clause number of up to five levels (for example \"5.1.16\", \"7.5.23\", \"6.3.7\" or \"0.3\"), or an annex reference (for example \"Annex C\" or \"Annex C.3\"). Never construct or infer a clause number; where sources disagree, use the number read in a primary contents page, and where no primary reading was possible, omit the clause reference entirely."
+    ] ;
+
+    sh:property [
+        sh:path rssc:clauseTitle ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:or ( [ sh:datatype xsd:string ] [ sh:datatype rdf:langString ] ) ;
+        sh:minLength 3 ;
+        sh:message "A clause reference must carry the clause heading exactly as printed in the document's contents page, for example \"Cybersecurity\" or \"Timely response to events\". Headings are published free in the previews; the clause body is not, and must not be reproduced."
+    ] ;
+
+    sh:property [
+        sh:path rssc:inStandard ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class rssc:Standard ;
+        sh:message "A clause reference must belong to exactly one standard that is present in the graph. An identifier with no document behind it is unattributable and therefore unusable."
+    ] ;
+
+    sh:property [
+        sh:path rssc:normativeStatus ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:in ( "normative" "informative" ) ;
+        sh:message "A clause reference must state whether the clause or annex is \"normative\" or \"informative\". This carries one of the sharpest findings the crosswalk can make, and annex status is not symmetric between the two parts of ISO 10218:2025, so it must be read per clause and never assumed to transfer between parts."
+    ] .
+
+
+rssc:SecurityRequirementShape a sh:NodeShape ;
+    sh:targetClass rssc:SecurityRequirement ;
+    sh:name "Security requirement identity" ;
+    sh:description "MUST have: a requirement identifier in one of the real IEC 62443 grammars, the requirement title as printed, the standard that publishes it, and the identifier scheme that disambiguates it." ;
+
+    # Pattern derived from identifiers read in the published previews of the
+    # IEC 62443 parts. Four grammars, and only four:
+    #   * dotted requirement, optional enhancement: "SR 3.1", "CR 7.2",
+    #     "CR 2.13", "CR 1.1 RE 1", "NDR 1.6 RE 1". The leading digit is the
+    #     foundational requirement number, so it is constrained to 1 to 7.
+    #     Prefixes: SR (IEC 62443-3-3), CR (IEC 62443-4-2) and the
+    #     component-type variants EDR, HDR, NDR, SAR.
+    #   * zone and conduit requirement: "ZCR 1", "ZCR 3.3", "ZCR 5.13"
+    #     (IEC 62443-3-2:2020, seven top-level steps).
+    #   * common component security constraint: "CCSC 1" to "CCSC 4"
+    #     (IEC 62443-4-2:2019 clause 4).
+    #   * hyphenated practice requirement: "SM-1" to "SM-13", "SR-1" to "SR-5",
+    #     "SD-", "SI-", "SVV-", "DM-", "SUM-", "SG-" (IEC 62443-4-1:2018).
+    # BEWARE the collision the last two lines encode: "SR 3.1" in
+    # IEC 62443-3-3 and "SR-1" in IEC 62443-4-1 are entirely different things.
+    # The dot-versus-hyphen distinction is real and is why rssc:identifierScheme
+    # is also mandatory below.
+    sh:property [
+        sh:path rssc:requirementIdentifier ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^((SR|CR|EDR|HDR|NDR|SAR) [1-7]\\.(1[0-9]|[1-9])( RE [1-9])?|ZCR [1-7](\\.(1[0-9]|[1-9]))?|CCSC [1-4]|(SM|SR|SD|SI|SVV|DM|SUM|SG)-(1[0-9]|[1-9]))$" ;
+        sh:message "A requirement identifier must be exactly one published identifier in one of the four real IEC 62443 grammars: a dotted requirement with an optional enhancement (\"SR 3.1\", \"CR 2.13\", \"CR 1.1 RE 1\", \"NDR 1.6 RE 1\"), a zone and conduit requirement (\"ZCR 3.3\"), a common component security constraint (\"CCSC 1\"), or a hyphenated practice requirement (\"SUM-1\", \"SVV-5\"). Record the issuing body's own spacing and punctuation."
+    ] ;
+
+    sh:property [
+        sh:path rssc:requirementTitle ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:or ( [ sh:datatype xsd:string ] [ sh:datatype rdf:langString ] ) ;
+        sh:minLength 3 ;
+        sh:message "A security requirement must carry its heading exactly as printed in the contents page, for example \"Denial of service protection\". The requirement text itself is paywalled and must not be reproduced."
+    ] ;
+
+    sh:property [
+        sh:path rssc:inStandard ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class rssc:Standard ;
+        sh:message "A security requirement must belong to exactly one standard that is present in the graph."
+    ] ;
+
+    sh:property [
+        sh:path rssc:identifierScheme ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:in ( "SR" "CR" "EDR" "HDR" "NDR" "SAR" "ZCR" "CCSC" "practice" ) ;
+        sh:message "A security requirement must declare which IEC 62443 identifier grammar it belongs to. This is what disambiguates \"SR 3.1\", a dotted system requirement of IEC 62443-3-3, from \"SR-1\", a hyphenated practice requirement of IEC 62443-4-1; the two mean entirely different things."
+    ] ;
+
+    sh:property [
+        sh:path rssc:enhancementOf ;
+        sh:maxCount 1 ;
+        sh:class rssc:SecurityRequirement ;
+        sh:message "A requirement enhancement must point at exactly one base requirement that is present in the graph. An enhancement is never a stand-alone requirement, so it is meaningless without its base."
+    ] ;
+
+    sh:property [
+        sh:path rssc:derivedFromFoundationalRequirement ;
+        sh:maxCount 1 ;
+        sh:class rssc:FoundationalRequirement ;
+        sh:message "Where a requirement is bound to a foundational requirement, that must be exactly one of FR 1 to FR 7. For the ZCR and practice grammars there is no mechanical mapping, so leave this unset rather than inferring one."
+    ] .
+
+
+rssc:SourceShape a sh:NodeShape ;
+    sh:targetClass rssc:Source ;
+    sh:name "Source resolvability" ;
+    sh:description "MUST have: exactly one resolvable URL and exactly one retrieval date. A source that cannot be retraced is not a source." ;
+
+    sh:property [
+        sh:path rssc:sourceUrl ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:anyURI ;
+        sh:message "Every source must carry exactly one resolvable URL, typed xsd:anyURI. Where a document was consulted only as a catalogue-listed item, give the issuing body's public catalogue entry and set rssc:paywalled true."
+    ] ;
+
+    sh:property [
+        sh:path rssc:retrievedOn ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date ;
+        sh:message "Every source must carry exactly one retrieval date. Standards catalogues, certification listings and harmonisation statuses change, and a citation without a retrieval date cannot be audited later."
+    ] ;
+
+    sh:property [
+        sh:path rssc:paywalled ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:message "Where a source records a paywall, it must do so once, as a boolean."
+    ] .
+
+
+# =============================================================================
+# SECTION 7: THE SAFETY SIDE
+# A safety function with no clause behind it is an opinion, not a requirement.
+# =============================================================================
+
+rssc:SafetyFunctionShape a sh:NodeShape ;
+    sh:targetClass rssc:SafetyFunction ;
+    sh:name "Safety function grounding" ;
+    sh:description "MUST have: at least one clause reference that names the function in a standard." ;
+
+    sh:property [
+        sh:path rssc:definedByClause ;
+        sh:minCount 1 ;
+        sh:class rssc:ClauseReference ;
+        sh:message "Every safety function must be grounded in at least one clause reference that names it in a standard. A safety function with no clause behind it is an opinion, not a requirement, and it breaks the chain from a security requirement back to a numbered clause."
+    ] ;
+
+    sh:property [
+        sh:path rssc:mitigatesHazard ;
+        sh:class rssc:Hazard ;
+        sh:message "Where a safety function names a hazard it reduces, that hazard must be present in the graph."
+    ] ;
+
+    sh:property [
+        sh:path rssc:implementedBy ;
+        sh:class rssc:SafetyRelatedControlSystem ;
+        sh:message "Where a safety function names the system that realises it, that system must be a safety-related control system present in the graph."
+    ] .
+
+
+rssc:RoboticSystemShape a sh:NodeShape ;
+    sh:targetClass rssc:RoboticSystem ;
+    sh:name "Robotic system placement" ;
+    sh:description "Where a robotic system is placed on the autonomy gradient, it must be placed on a declared band." ;
+
+    sh:property [
+        sh:path rssc:autonomyBand ;
+        sh:class rssc:AutonomyBand ;
+        sh:message "A robotic system may only be placed on one of the three declared autonomy bands. Where a single platform is operated in more than one mode, assert both bands rather than picking the higher one, because the exposures differ."
+    ] ;
+
+    sh:property [
+        sh:path rssc:hasHazard ;
+        sh:class rssc:Hazard ;
+        sh:message "Where a robotic system names a hazard, that hazard must be present in the graph."
+    ] .
+
+
+# =============================================================================
+# SECTION 8: VOCABULARY DOCUMENTATION
+# The only two constraints in this file that do not carry the falsifiability
+# contract, and therefore the only two at sh:Warning. A minted term with no
+# comment is a defect in the vocabulary, not a false claim about the world.
+# Run pyshacl with allow_warnings=True so these report without failing the
+# build.
+# =============================================================================
+
+rssc:MintedTermDocumentationShape a sh:NodeShape ;
+    sh:targetClass owl:Class , owl:ObjectProperty , owl:DatatypeProperty ;
+    sh:name "Minted term documentation" ;
+    sh:description "SHOULD have: a label and a comment on every minted class and property." ;
+
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:severity sh:Warning ;
+        sh:message "Every minted class and property should carry an rdfs:label."
+    ] ;
+
+    sh:property [
+        sh:path rdfs:comment ;
+        sh:minCount 1 ;
+        sh:severity sh:Warning ;
+        sh:message "Every minted class and property should carry an rdfs:comment explaining the non-obvious modelling choice behind it, so that a reader can tell what the term is for without reading the pipeline."
+    ] .

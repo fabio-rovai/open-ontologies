@@ -84,7 +84,7 @@ impl LineageLog {
     }
 }
 
-fn rand_id() -> u64 {
+pub(crate) fn rand_id() -> u64 {
     use std::sync::atomic::{AtomicU64, Ordering};
     use std::time::SystemTime;
     static COUNTER: AtomicU64 = AtomicU64::new(0);

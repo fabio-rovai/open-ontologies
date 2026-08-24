@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "open-ontologies-lite"
-version = "0.2.0"
+version = "0.5.0"
 description = "Lightweight Python bridge to the Oxigraph RDF/OWL engine, MCP server included. No Rust toolchain, no compilation."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -16,12 +16,22 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Topic :: Scientific/Engineering",
 ]
+# The library half needs a triple store and nothing else. `mcp` is imported in
+# exactly one module, server.py, and requiring it here made every consumer of
+# the library install an MCP server stack they had not asked for. That is not
+# only weight: `mcp` pulls a starlette major that current fastapi does not
+# accept, so installing this package into a project that uses fastapi removes
+# fastapi. Measured against semantica 0.6.6, whose pyproject declares
+# `fastapi>=0.109.2`: installing 0.4.0 uninstalled it, and every import of
+# `semantica/explorer` failed afterwards.
 dependencies = [
     "pyoxigraph>=0.5,<0.6",
-    "mcp>=1.2",
 ]
 
 [project.optional-dependencies]
+# The MCP server entry point, `open-ontologies-lite` on the command line and
+# `python -m open_ontologies_lite`. The library API needs none of it.
+server = ["mcp>=1.2,<2"]
 shacl = ["pyshacl>=0.26"]
 align = ["hnswlib>=0.8"]
 dev = ["pytest>=8"]

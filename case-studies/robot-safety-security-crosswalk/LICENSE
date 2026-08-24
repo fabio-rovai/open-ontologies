@@ -1,0 +1,73 @@
+Robot safety and security crosswalk (RSSC): licensing
+
+Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+Copyright (c) 2026 Kampakis and Co Ltd, trading as The Tesseract Academy
+
+This case study combines three layers with different terms, plus a third-party
+rights statement that is not optional. Please respect all four.
+
+1. VOCABULARY, MAPPINGS AND DOCUMENTATION
+   The ontology (ontology/*.ttl), the crosswalk mappings (crosswalk/*.ttl), the
+   SHACL shapes (shapes/*.ttl), the generated coverage outputs
+   (pipeline/coverage-report.md, pipeline/coverage-metrics.json) and the
+   documentation (README.md, BUILD_REPORT.md, CHANGELOG.md, CONTRIBUTING.md,
+   shapes/README.md) are licensed under CC BY 4.0:
+     https://creativecommons.org/licenses/by/4.0/
+   Attribute "The Tesseract Academy: Robot safety and security crosswalk
+   (RSSC)".
+
+2. PIPELINE SCRIPTS AND DEMO
+   The scripts under pipeline/ (including the self-test fixtures under
+   pipeline/selftest/) and the offline browser demo/index.html are licensed
+   under the MIT Licence (see below).
+
+3. THIRD-PARTY STANDARDS: ISO AND IEC
+   No normative text from any ISO or IEC standard is reproduced in this case
+   study. What is recorded is the public surface of those documents: standard
+   designations, part numbers, editions, publication dates, clause identifiers,
+   clause titles, annex letters, annex normative status, scopes and
+   normative-reference lists, all read from freely published front matter,
+   contents pages, previews and catalogue entries, and cited as facts.
+
+   Definitions attached to concepts in this vocabulary are this project's own
+   paraphrase, written so that a reader without the standards can use the
+   vocabulary, and are labelled as paraphrase wherever they restate a paywalled
+   definition.
+
+   ISO and IEC standards remain the copyright of ISO and IEC respectively and
+   must be purchased from the issuing body or its national distributors. Nothing
+   in this licence grants any right in them. The CC BY 4.0 licence in section 1
+   applies to this project's own vocabulary, mappings and prose, and to nothing
+   else.
+
+4. INDEPENDENCE
+   This is independent, self-initiated open research. It is not endorsed by,
+   affiliated with or approved by ISO, IEC, CEN, CENELEC, BSI, ISA, the ISA
+   Security Compliance Institute, IEEE, MITRE, KAN or any other body named
+   within it. It is not a conformity assessment and confers no certification.
+
+------------------------------------------------------------------
+MIT Licence (applies to pipeline scripts and run-demo.sh)
+------------------------------------------------------------------
+
+Copyright (c) 2026 Fabio Rovai / Kampakis and Co Ltd, trading as The Tesseract
+Academy
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

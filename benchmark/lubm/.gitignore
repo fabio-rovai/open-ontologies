@@ -1,0 +1,10 @@
+# Generated data and the generator itself: reproduce with the steps in
+# RESULTS.md rather than committing 115MB of derived files.
+data1/
+data10/
+classes/
+src/
+uba.zip
+*.owl
+*.merged.ttl
+log.txt

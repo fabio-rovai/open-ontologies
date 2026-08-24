@@ -11,7 +11,7 @@ The standard could specify:
 (a) Specific tools, vendors, and workflows that institutions MUST use (prescriptive)
 (b) Outcomes that records MUST demonstrate, regardless of how achieved (outcome-based)
 
-Most existing digitisation guidance is prescriptive — "scan at 600 DPI using a Phase One scanner with X colour profile." This works in some contexts but:
+Most existing digitisation guidance is prescriptive: "scan at 600 DPI using a Phase One scanner with X colour profile." This works in some contexts but:
 
 - Ages poorly as technology evolves
 - Forces institutions to replace working equipment
@@ -36,17 +36,17 @@ The institution chooses how to meet the outcome. Multiple paths to the same outc
 
 ### Positive
 
-- **Long-term durability** — outcomes don't depend on specific tooling that will become obsolete
-- **No vendor lock-in** — institutions choose hardware, software, contractors freely
-- **Accommodates source variation** — a panchromatic 35mm aerial negative requires different handling from a glass plate or born-digital file; outcome specs accommodate both
-- **Reduces resistance to adoption** — institutions don't have to throw away existing equipment or retrain on mandated tools
-- **Easier sector-wide adoption** — institutions with diverse capability levels can all meet the same outcomes via different paths
+- **Long-term durability**: outcomes don't depend on specific tooling that will become obsolete
+- **No vendor lock-in**: institutions choose hardware, software, contractors freely
+- **Accommodates source variation**: a panchromatic 35mm aerial negative requires different handling from a glass plate or born-digital file; outcome specs accommodate both
+- **Reduces resistance to adoption**: institutions don't have to throw away existing equipment or retrain on mandated tools
+- **Easier sector-wide adoption**: institutions with diverse capability levels can all meet the same outcomes via different paths
 
 ### Negative
 
-- **Less prescriptive guidance** — institutions need their own competence to translate outcomes to actual workflows. Some institutions want more direction
-- **Requires more validation discipline** — without a prescribed workflow, the only check is whether the outcome is met. This puts pressure on the validation toolkit
-- **Harder to write** — outcome specifications are harder to draft than workflow specifications. Requires careful thought about what's essential vs. accidental
+- **Less prescriptive guidance**: institutions need their own competence to translate outcomes to actual workflows. Some institutions want more direction
+- **Requires more validation discipline**: without a prescribed workflow, the only check is whether the outcome is met. This puts pressure on the validation toolkit
+- **Harder to write**: outcome specifications are harder to draft than workflow specifications. Requires careful thought about what's essential vs. accidental
 
 ### Neutral
 
@@ -63,12 +63,11 @@ Rejected because:
 - Vendor-locked institutions resist adoption
 - Source-material variation isn't accommodated
 
-### Alternative 2: Hybrid — outcomes for some modules, prescriptive for others
-
+### Alternative 2: Hybrid: outcomes for some modules, prescriptive for others
 Considered for Module A (capture) where one might argue "TIFF 1200 DPI" is universal enough to prescribe. Rejected because:
 
-- Even Module A varies — multispectral satellite imagery needs different handling from monochrome aerial film
-- Hybrid models invite scope creep — "if Module A is prescriptive, why not Module D?"
+- Even Module A varies: multispectral satellite imagery needs different handling from monochrome aerial film
+- Hybrid models invite scope creep: "if Module A is prescriptive, why not Module D?"
 - Easier to be consistent: outcomes throughout
 
 ### Alternative 3: Mandate adherence to existing workflow standards (e.g. FADGI)
@@ -83,9 +82,9 @@ Rejected because:
 
 For each MUST/SHOULD requirement in the modules, the language is:
 
-- "MUST be a [class of outputs]" — outcome
-- "MUST satisfy [property]" — outcome
-- "MUST resolve to [class of representations]" — outcome
+- "MUST be a [class of outputs]": outcome
+- "MUST satisfy [property]": outcome
+- "MUST resolve to [class of representations]": outcome
 - NOT: "MUST use [specific tool]"
 - NOT: "MUST produce by [specific workflow]"
 
@@ -99,7 +98,7 @@ Mitigation: SHACL validation provides automated checking of objectively-verifiab
 
 ### Risk: institutions need more guidance than outcomes provide
 
-Mitigation: provide reference workflows in [adoption guidance](../../04-adoption-guidance/) as informative supplements. The partner clinic ([playbook](../../05-governance/partner-clinic-playbook.md)) explicitly addresses this — institutions can ask "what would this look like for our setup?"
+Mitigation: provide reference workflows in [adoption guidance](../../04-adoption-guidance/) as informative supplements. The partner clinic ([playbook](../../05-governance/partner-clinic-playbook.md)) explicitly addresses this: institutions can ask "what would this look like for our setup?"
 
 ### Risk: outcome specs are too vague to validate
 
@@ -115,7 +114,7 @@ This decision is validated by:
 
 ## Cross-references
 
-- [Module specifications](../../01-standard/modules/) — every module follows this pattern
-- [Adoption guidance](../../04-adoption-guidance/how-to-use-this-standard.md) — reference workflows
+- [Module specifications](../../01-standard/modules/): every module follows this pattern
+- [Adoption guidance](../../04-adoption-guidance/how-to-use-this-standard.md): reference workflows
 - [Validation checklists](../../04-adoption-guidance/validation-checklists.md)
-- [FADGI guidelines](https://www.digitizationguidelines.gov/) — example of an outcome-aligned external standard
+- [FADGI guidelines](https://www.digitizationguidelines.gov/): example of an outcome-aligned external standard

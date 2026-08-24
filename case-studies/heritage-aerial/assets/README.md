@@ -1,8 +1,8 @@
-# Shareable assets — NAPH / real NCAP data
+# Shareable assets: NAPH / real NCAP data
 
 Images generated from the live case study for LinkedIn and the Tesseract site.
 All are real-data-backed (292 frames from the public NCAP Air Photo Finder API,
-harvested 2 Jul 2026). Draft captions below — edit to taste. No em dashes per house style.
+harvested 2 Jul 2026). Draft captions below, edit to taste. No em dashes per house style.
 
 | File | Use | Draft caption |
 |---|---|---|

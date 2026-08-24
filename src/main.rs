@@ -422,6 +422,9 @@ enum Commands {
     Apply {
         #[arg(default_value = "safe")]
         mode: String,
+        /// Plan to apply, as printed by `plan`. Defaults to the most recent plan.
+        #[arg(long)]
+        plan_id: Option<String>,
     },
     /// Lock IRIs to prevent removal
     Lock {
@@ -572,6 +575,19 @@ fn setup(data_dir: &str) -> anyhow::Result<(StateDb, Arc<GraphStore>)> {
         .unwrap_or_default();
     let graph = build_main_graph(&storage_cfg, data_path)?;
     Ok((db, graph))
+}
+
+/// Whether the resolved storage backend keeps the graph in RAM only.
+///
+/// One-shot CLI subcommands each build their own store, so in this mode nothing
+/// a command loads is visible to the next one.
+fn is_memory_storage(data_dir: &str) -> bool {
+    use open_ontologies::config::{resolve_storage_mode, StorageMode};
+    let data_path = std::path::PathBuf::from(expand_tilde(data_dir));
+    let storage_cfg = open_ontologies::config::Config::load(&data_path.join("config.toml"))
+        .map(|c| c.storage)
+        .unwrap_or_default();
+    matches!(resolve_storage_mode(&storage_cfg), StorageMode::Memory)
 }
 
 /// Build the singleton main graph using the configured storage backend.
@@ -1095,9 +1111,13 @@ async fn async_main() -> anyhow::Result<()> {
             // rmcp >=1.4 marks StreamableHttpServerConfig #[non_exhaustive], so it
             // can no longer be built with a struct literal from this crate. Start
             // from Default and set the public fields we care about.
-            let mut http_config = StreamableHttpServerConfig::default();
-            http_config.stateful_mode = cfg.http.stateful_mode;
-            http_config.cancellation_token = ct.clone();
+            #[allow(clippy::field_reassign_with_default)]
+            let http_config = {
+                let mut c = StreamableHttpServerConfig::default();
+                c.stateful_mode = cfg.http.stateful_mode;
+                c.cancellation_token = ct.clone();
+                c
+            };
 
             let shared_graph_for_service = shared_graph.clone();
             let gw_for_service = governance_webhook.clone();
@@ -1416,8 +1436,12 @@ async fn async_main() -> anyhow::Result<()> {
                 GraphStore::validate_file(&input)
             };
             match result {
-                Ok(count) => output_json(
-                    &serde_json::json!({"ok": true, "triples": count}),
+                Ok(counts) => output_json(
+                    &serde_json::json!({
+                        "ok": true,
+                        "triples": counts.triples,
+                        "statements": counts.statements,
+                    }),
                     cli.pretty,
                 ),
                 Err(e) => {
@@ -1429,10 +1453,24 @@ async fn async_main() -> anyhow::Result<()> {
         Commands::Load { path } => {
             let (_db, graph) = setup(&cli.data_dir)?;
             match graph.load_file(&path) {
-                Ok(count) => output_json(
-                    &serde_json::json!({"ok": true, "triples_loaded": count, "path": path}),
-                    cli.pretty,
-                ),
+                Ok(count) => {
+                    let mut report =
+                        serde_json::json!({"ok": true, "triples_loaded": count, "path": path});
+                    // In-memory is the default backend, so a one-shot `load`
+                    // fills a store that dies with the process. Saying only
+                    // "triples_loaded" here reads as durable, and the next
+                    // command reporting zero reads as data loss.
+                    if is_memory_storage(&cli.data_dir) {
+                        report["warning"] = serde_json::Value::String(
+                            "storage mode is 'memory', so this load did not persist: \
+                             a following command starts from an empty store. Set \
+                             [storage] mode = \"persistent\" or OPEN_ONTOLOGIES_STORAGE_MODE=persistent \
+                             to chain CLI commands."
+                                .to_string(),
+                        );
+                    }
+                    output_json(&report, cli.pretty)
+                }
                 Err(e) => {
                     output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
                     std::process::exit(1);
@@ -1552,7 +1590,7 @@ async fn async_main() -> anyhow::Result<()> {
             match action.as_str() {
                 "list" => {
                     let entries = marketplace::list(domain.as_deref());
-                    let items: Vec<serde_json::Value> = entries
+                    let mut items: Vec<serde_json::Value> = entries
                         .iter()
                         .map(|e| {
                             serde_json::json!({
@@ -1561,13 +1599,34 @@ async fn async_main() -> anyhow::Result<()> {
                                 "description": e.description,
                                 "domain": e.domain,
                                 "format": marketplace::format_name(e.format),
+                                "source": "curated",
                             })
                         })
                         .collect();
+                    let mut community_error = None;
+                    match marketplace::load_community_packs().await {
+                        Ok((packs, _shadowed, _source)) => {
+                            for p in packs
+                                .iter()
+                                .filter(|p| domain.as_deref().is_none_or(|d| p.domain == d))
+                            {
+                                items.push(serde_json::json!({
+                                    "id": p.id,
+                                    "name": p.name,
+                                    "description": p.description,
+                                    "domain": p.domain,
+                                    "format": p.format,
+                                    "source": "community",
+                                }));
+                            }
+                        }
+                        Err(e) => community_error = Some(e),
+                    }
                     output_json(
                         &serde_json::json!({
                             "count": items.len(),
                             "ontologies": items,
+                            "community_registry_error": community_error,
                         }),
                         cli.pretty,
                     );
@@ -1577,26 +1636,40 @@ async fn async_main() -> anyhow::Result<()> {
                         eprintln!("Error: --id is required for install");
                         std::process::exit(1);
                     });
-                    let entry = match marketplace::find(id) {
-                        Some(e) => e,
-                        None => {
-                            eprintln!(
-                                "Unknown ontology ID: '{}'. Run 'marketplace list' to see available IDs.",
-                                id
-                            );
-                            std::process::exit(1);
-                        }
-                    };
+                    // Curated first; community packs can never shadow a curated ID.
+                    let (entry_id, entry_name, entry_url, entry_format) =
+                        match marketplace::find(id) {
+                            Some(e) => (e.id.to_string(), e.name.to_string(), e.url.to_string(), e.format),
+                            None => {
+                                let community = match marketplace::load_community_packs().await {
+                                    Ok((packs, _, _)) => packs.into_iter().find(|p| p.id == id),
+                                    Err(_) => None,
+                                };
+                                match community.and_then(|p| {
+                                    marketplace::parse_format(&p.format)
+                                        .map(|f| (p.id, p.name, p.url, f))
+                                }) {
+                                    Some(t) => t,
+                                    None => {
+                                        eprintln!(
+                                            "Unknown ontology ID: '{}'. Run 'marketplace list' to see curated and community IDs.",
+                                            id
+                                        );
+                                        std::process::exit(1);
+                                    }
+                                }
+                            }
+                        };
                     let (_db, graph) = setup(&cli.data_dir)?;
-                    let content = GraphStore::fetch_url(entry.url).await?;
-                    match graph.load_content_with_base(&content, entry.format, Some(entry.url)) {
+                    let content = GraphStore::fetch_url(&entry_url).await?;
+                    match graph.load_content_with_base(&content, entry_format, Some(&entry_url)) {
                         Ok(count) => {
                             let stats = graph.get_stats().unwrap_or_default();
                             output_json(
                                 &serde_json::json!({
                                     "ok": true,
-                                    "installed": entry.id,
-                                    "name": entry.name,
+                                    "installed": entry_id,
+                                    "name": entry_name,
                                     "triples_loaded": count,
                                     "stats": serde_json::from_str::<serde_json::Value>(&stats).unwrap_or_default(),
                                 }),
@@ -1913,11 +1986,11 @@ async fn async_main() -> anyhow::Result<()> {
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result(&result, cli.pretty);
         }
-        Commands::Apply { mode } => {
+        Commands::Apply { mode, plan_id } => {
             let (db, graph) = setup(&cli.data_dir)?;
             let planner = open_ontologies::plan::Planner::new(db, graph);
             let result = planner
-                .apply(&mode)
+                .apply_plan(plan_id.as_deref(), &mode)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result(&result, cli.pretty);
         }

@@ -1,6 +1,6 @@
-# Reasoning & Inference — what the standard gives you for free
+# Reasoning & Inference - what the standard gives you for free
 
-NAPH is built by **subsuming existing standards** rather than reinventing them. The key consequence: applying RDFS reasoning to a NAPH-compliant collection automatically infers membership in PROV-O, DCAT, SKOS, and GeoSPARQL — meaning every NAPH record is simultaneously discoverable through every linked-data tool that speaks those standards.
+NAPH is built by **subsuming existing standards** rather than reinventing them. The key consequence: applying RDFS reasoning to a NAPH-compliant collection automatically infers membership in PROV-O, DCAT, SKOS, and GeoSPARQL, meaning every NAPH record is simultaneously discoverable through every linked-data tool that speaks those standards.
 
 This document shows what reasoning produces, with live numbers from the sample dataset.
 
@@ -15,7 +15,7 @@ reason rdfs
 stats" | open-ontologies batch
 ```
 
-## Results — before and after RDFS reasoning
+## Results - before and after RDFS reasoning
 
 | Metric | Before reasoning | After RDFS reasoning | Inferred |
 |---|---|---|---|
@@ -24,7 +24,7 @@ stats" | open-ontologies batch
 
 The inferred triples come from RDFS subclass propagation: NAPH classes are subclasses of standards classes, so every NAPH instance gains membership in the parent standard.
 
-## What gets inferred — and why it matters
+## What gets inferred - and why it matters
 
 ### NAPH photographs become DCAT Datasets (×11)
 
@@ -34,7 +34,7 @@ SELECT (COUNT(?s) AS ?datasets) WHERE { ?s a dcat:Dataset }
 # → 11 (10 AerialPhotograph + 1 Collection)
 ```
 
-**Why this matters:** every DCAT-aware tool — CKAN portals, data.gov.uk, the European Data Portal, Schema.org/Dataset structured data on the web — can now find these aerial photographs as datasets, without any extra modelling. NAPH publishes once and is discoverable everywhere DCAT is supported.
+**Why this matters:** every DCAT-aware tool (CKAN portals, data.gov.uk, the European Data Portal, Schema.org/Dataset structured data on the web) can now find these aerial photographs as datasets, without any extra modelling. NAPH publishes once and is discoverable everywhere DCAT is supported.
 
 ### Capture events and digitisation events become PROV Activities (×7)
 
@@ -44,7 +44,7 @@ SELECT (COUNT(?s) AS ?activities) WHERE { ?s a prov:Activity }
 # → 7 (CaptureEvents + DigitisationEvents from Enhanced/Aspirational records)
 ```
 
-**Why this matters:** PROV-O is the W3C standard for provenance. Any tool that audits provenance chains, traces data lineage, or visualises data history — Linked Open Data trackers, scholarly publishing pipelines, FAIR-data audit tools — can read the NAPH provenance graph natively.
+**Why this matters:** PROV-O is the W3C standard for provenance. Any tool that audits provenance chains, traces data lineage, or visualises data history (Linked Open Data trackers, scholarly publishing pipelines, FAIR-data audit tools) can read the NAPH provenance graph natively.
 
 ### Places and historic events become SKOS Concepts (×6)
 
@@ -74,7 +74,7 @@ SELECT (COUNT(?s) AS ?bundles) WHERE { ?s a prov:Bundle }
 # → 7 (one per Enhanced/Aspirational provenance chain)
 ```
 
-**Why this matters:** PROV Bundles are reusable provenance documents that can be shared, signed, and published independently. NAPH provenance chains immediately become signable provenance documents conforming to PROV — useful for declassification audit, repatriation evidence, and rights clearance.
+**Why this matters:** PROV Bundles are reusable provenance documents that can be shared, signed, and published independently. NAPH provenance chains immediately become signable provenance documents conforming to PROV, useful for declassification audit, repatriation evidence, and rights clearance.
 
 ## The architectural insight
 
@@ -96,12 +96,12 @@ naph:CustodialInstitution rdfs:subClassOf foaf:Organization .
 
 Eleven `rdfs:subClassOf` declarations. That's the entire integration surface with the existing linked-data heritage ecosystem.
 
-A standard that re-invents these classes would force institutions to dual-publish, maintain crosswalks, and stay in sync as parent standards evolve. NAPH inherits, defers to authority, and benefits from every tool built for the parent standards — for free.
+A standard that re-invents these classes would force institutions to dual-publish, maintain crosswalks, and stay in sync as parent standards evolve. NAPH inherits, defers to authority, and benefits from every tool built for the parent standards, for free.
 
 ## The compounding effect
 
 Every new tool that joins the PROV/DCAT/SKOS/GeoSPARQL ecosystem automatically becomes a tool that works with NAPH-compliant collections. Every Wikidata entity that gets a SKOS exact-match becomes a NAPH-linkable concept. Every CKAN portal that adds DCAT support gains aerial photography records.
 
-This is why the choice of design philosophy — synthesis over invention, FAIR through inheritance, compliance through subclass — matters more than any individual modelling decision in the standard.
+This is why the choice of design philosophy (synthesis over invention, FAIR through inheritance, compliance through subclass) matters more than any individual modelling decision in the standard.
 
 A standard that doesn't subsume existing authorities will become legacy within five years. NAPH is designed to be one extension of an evolving open-standards ecosystem, not a competing centre.

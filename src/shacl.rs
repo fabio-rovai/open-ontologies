@@ -10,7 +10,13 @@ use std::sync::Arc;
 ///
 /// Shapes are parsed from inline Turtle into a temporary Oxigraph store.
 /// Constraints are translated into SPARQL queries run against the main graph.
-/// Supports `sh:minCount`, `sh:maxCount`, and `sh:datatype` constraints.
+/// Supports the core constraints `sh:minCount`, `sh:maxCount`, `sh:datatype`,
+/// `sh:pattern` and `sh:hasValue`, and SPARQL-based constraints via `sh:sparql`.
+///
+/// Any constraint the validator cannot execute is recorded in
+/// `skipped_constraints` and suppresses the conformance verdict: `conforms`
+/// becomes null rather than true. Reporting success for rules that were never
+/// run is the one failure mode this validator must not have.
 pub struct ShaclValidator;
 
 impl ShaclValidator {
@@ -30,20 +36,77 @@ impl ShaclValidator {
             &shapes_store,
             r#"
             PREFIX sh: <http://www.w3.org/ns/shacl#>
-            SELECT ?shape ?targetClass WHERE {
-                ?shape a sh:NodeShape ;
-                       sh:targetClass ?targetClass .
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
+            SELECT DISTINCT ?shape ?targetClass WHERE {
+                { ?shape a sh:NodeShape ; sh:targetClass ?targetClass . }
+                UNION
+                { ?shape a sh:NodeShape, rdfs:Class . BIND(?shape AS ?targetClass) }
+                UNION
+                { ?shape a sh:NodeShape, owl:Class . BIND(?shape AS ?targetClass) }
             }
             "#,
         )?;
 
+        // sh:targetClass selects SHACL instances, which the specification defines as
+        // reachable by rdf:type followed by zero or more rdfs:subClassOf steps, not by a
+        // direct rdf:type alone. Matching the direct type only made every shape targeting
+        // a superclass silently select nothing: a shapes graph targeting an abstract
+        // Assertion class over data typed with its concrete subclasses reported
+        // `conforms: true` having evaluated no focus nodes at all.
         let mut violations: Vec<serde_json::Value> = Vec::new();
+        let mut skipped: Vec<serde_json::Value> = Vec::new();
+
+        // Target forms this implementation does not support. Previously a shapes
+        // graph using only these produced no shapes at all, the validation loop
+        // never ran, and the report said `conforms: true` having checked nothing.
+        // Recording them as skipped suppresses the verdict instead.
+        for (pred, label) in [
+            ("sh:targetNode", "sh:targetNode"),
+            ("sh:targetSubjectsOf", "sh:targetSubjectsOf"),
+            ("sh:targetObjectsOf", "sh:targetObjectsOf"),
+        ] {
+            let q = format!(
+                r#"PREFIX sh: <http://www.w3.org/ns/shacl#>
+                   SELECT ?shape WHERE {{ ?shape {} ?t . }}"#,
+                pred
+            );
+            if let Ok(rows) = query_solutions(&shapes_store, &q) {
+                for row in &rows {
+                    skipped.push(serde_json::json!({
+                        "shape": strip_angle_brackets(
+                            row.get("shape").map(|s| s.as_str()).unwrap_or_default()
+                        ),
+                        "constraint": label,
+                        "reason": "target form not implemented; focus nodes could not be selected",
+                    }));
+                }
+            }
+        }
+        let mut unmatched: Vec<serde_json::Value> = Vec::new();
+        let mut focus_nodes_total: u64 = 0;
 
         for shape in &shapes {
             let target_class = match shape.get("targetClass") {
                 Some(tc) => strip_angle_brackets(tc),
                 None => continue,
             };
+
+            // How many nodes does this shape actually apply to? A shape whose
+            // target class appears nowhere in the data evaluates every one of
+            // its constraints against the empty set and contributes no
+            // violations, which is indistinguishable in the report from a shape
+            // that checked its nodes and found them sound.
+            let focus_count = count_focus_nodes(graph, &target_class)?;
+            focus_nodes_total += focus_count;
+            if focus_count == 0 {
+                unmatched.push(serde_json::json!({
+                    "shape": strip_angle_brackets(
+                        shape.get("shape").map(|s| s.as_str()).unwrap_or_default()
+                    ),
+                    "target_class": target_class,
+                }));
+            }
 
             // 3. Find property constraints for this shape
             let shape_iri = match shape.get("shape") {
@@ -56,30 +119,98 @@ impl ShaclValidator {
                 &format!(
                     r#"
                     PREFIX sh: <http://www.w3.org/ns/shacl#>
-                    SELECT ?prop ?path ?minCount ?maxCount ?datatype ?message WHERE {{
+                    SELECT ?prop ?path ?invPath ?minCount ?maxCount ?datatype ?class ?pattern ?hasValue ?message ?severity WHERE {{
                         {} sh:property ?prop .
                         ?prop sh:path ?path .
+                        OPTIONAL {{ ?path sh:inversePath ?invPath }}
+                        OPTIONAL {{ ?prop sh:class ?class }}
                         OPTIONAL {{ ?prop sh:minCount ?minCount }}
                         OPTIONAL {{ ?prop sh:maxCount ?maxCount }}
                         OPTIONAL {{ ?prop sh:datatype ?datatype }}
+                        OPTIONAL {{ ?prop sh:pattern ?pattern }}
+                        OPTIONAL {{ ?prop sh:hasValue ?hasValue }}
                         OPTIONAL {{ ?prop sh:message ?message }}
+                        OPTIONAL {{ ?prop sh:severity ?severity }}
                     }}
                     "#,
                     shape_iri
                 ),
             )?;
 
+            // Any constraint predicate on a property shape that this implementation
+            // does not evaluate must be reported, not ignored. Before this check,
+            // `sh:not` was invisible: it was never collected, never evaluated, and
+            // never recorded, so a shape whose only constraint was `sh:not` returned
+            // `conforms: true` over data that violated it.
+            let unknown = query_solutions(
+                &shapes_store,
+                &format!(
+                    r#"
+                    PREFIX sh: <http://www.w3.org/ns/shacl#>
+                    SELECT DISTINCT ?pred WHERE {{
+                        {} sh:property ?prop .
+                        ?prop ?pred ?o .
+                        FILTER(?pred NOT IN (
+                            sh:path, sh:minCount, sh:maxCount, sh:datatype,
+                            sh:class, sh:pattern, sh:hasValue, sh:message, sh:severity,
+                            sh:name, sh:description, sh:order, sh:group,
+                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
+                        ))
+                    }}
+                    "#,
+                    shape_iri
+                ),
+            )?;
+            for row in &unknown {
+                if let Some(pred) = row.get("pred") {
+                    skipped.push(serde_json::json!({
+                        "shape": strip_angle_brackets(&shape_iri),
+                        "constraint": strip_angle_brackets(pred),
+                        "reason": "constraint not implemented; it was not evaluated",
+                    }));
+                }
+            }
+
             // 4. For each constraint, run SPARQL queries against the main graph
             for prop in &props {
-                let path = match prop.get("path") {
+                let raw_path = match prop.get("path") {
                     Some(p) => strip_angle_brackets(p),
                     None => continue,
+                };
+
+                // sh:path is either a direct IRI, or a blank node carrying a
+                // property-path expression. sh:inversePath maps onto SPARQL's
+                // `^` operator; any other blank-node path (sequence,
+                // alternative, zero-or-more) is skipped and reported rather
+                // than injected into a query it would break.
+                let (path, path_expr) = match prop.get("invPath") {
+                    Some(inv) => {
+                        let inv = strip_angle_brackets(inv);
+                        (format!("^{}", inv), format!("^<{}>", inv))
+                    }
+                    None if raw_path.starts_with("_:") => {
+                        skipped.push(serde_json::json!({
+                            "shape": strip_angle_brackets(&shape_iri),
+                            "reason": "unsupported property path (only direct IRIs and sh:inversePath are executable)",
+                        }));
+                        continue;
+                    }
+                    None => (raw_path.clone(), format!("<{}>", raw_path)),
                 };
 
                 let message = prop
                     .get("message")
                     .map(|m| strip_quotes(m))
                     .unwrap_or_default();
+
+                // sh:severity, defaulting to sh:Violation per the SHACL spec.
+                let severity = prop
+                    .get("severity")
+                    .map(|s| {
+                        let s = strip_angle_brackets(s);
+                        s.rsplit('#').next().unwrap_or("Violation").to_string()
+                    })
+                    .unwrap_or_else(|| "Violation".to_string());
 
                 // sh:minCount
                 if let Some(min_count_str) = prop.get("minCount") {
@@ -89,8 +220,8 @@ impl ShaclValidator {
                     if min_count > 0 {
                         let query = format!(
                             r#"SELECT ?focus (COUNT(?val) AS ?cnt) WHERE {{
-                                ?focus a <{target_class}> .
-                                OPTIONAL {{ ?focus <{path}> ?val }}
+                                ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
+                                OPTIONAL {{ ?focus {path_expr} ?val }}
                             }} GROUP BY ?focus HAVING (COUNT(?val) < {min_count})"#
                         );
                         let results = graph_sparql_select(graph, &query)?;
@@ -105,7 +236,7 @@ impl ShaclValidator {
                                     message.clone()
                                 };
                                 violations.push(serde_json::json!({
-                                    "severity": "Violation",
+                                    "severity": severity,
                                     "focus_node": strip_angle_brackets(focus),
                                     "path": path,
                                     "constraint": "minCount",
@@ -123,8 +254,8 @@ impl ShaclValidator {
                         .unwrap_or(u64::MAX);
                     let query = format!(
                         r#"SELECT ?focus (COUNT(?val) AS ?cnt) WHERE {{
-                            ?focus a <{target_class}> .
-                            ?focus <{path}> ?val .
+                            ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
+                            ?focus {path_expr} ?val .
                         }} GROUP BY ?focus HAVING (COUNT(?val) > {max_count})"#
                     );
                     let results = graph_sparql_select(graph, &query)?;
@@ -139,10 +270,45 @@ impl ShaclValidator {
                                 message.clone()
                             };
                             violations.push(serde_json::json!({
-                                "severity": "Violation",
+                                "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
                                 "path": path,
                                 "constraint": "maxCount",
+                                "message": msg,
+                            }));
+                        }
+                    }
+                }
+
+                // sh:class. Every value node must be a SHACL instance of the class,
+                // which the specification defines as reachable by rdf:type followed by
+                // zero or more rdfs:subClassOf steps. A literal is never a SHACL
+                // instance of anything, and the anti-join below excludes literals for
+                // free because a literal cannot appear in subject position.
+                if let Some(cls_str) = prop.get("class") {
+                    let cls = strip_angle_brackets(cls_str);
+                    let query = format!(
+                        r#"SELECT ?focus ?val WHERE {{
+                            ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
+                            ?focus {path_expr} ?val .
+                            FILTER NOT EXISTS {{
+                                ?val <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{cls}> .
+                            }}
+                        }}"#
+                    );
+                    let results = graph_sparql_select(graph, &query)?;
+                    for row in &results {
+                        if let Some(focus) = row.get("focus") {
+                            let msg = if message.is_empty() {
+                                format!("Value is not a SHACL instance of <{}>", cls)
+                            } else {
+                                message.clone()
+                            };
+                            violations.push(serde_json::json!({
+                                "severity": severity,
+                                "focus_node": strip_angle_brackets(focus),
+                                "path": path,
+                                "constraint": "class",
                                 "message": msg,
                             }));
                         }
@@ -154,8 +320,8 @@ impl ShaclValidator {
                     let dt = strip_angle_brackets(dt_str);
                     let query = format!(
                         r#"SELECT ?focus ?val WHERE {{
-                            ?focus a <{target_class}> .
-                            ?focus <{path}> ?val .
+                            ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
+                            ?focus {path_expr} ?val .
                             FILTER(DATATYPE(?val) != <{dt}>)
                         }}"#
                     );
@@ -171,7 +337,7 @@ impl ShaclValidator {
                                 message.clone()
                             };
                             violations.push(serde_json::json!({
-                                "severity": "Violation",
+                                "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
                                 "path": path,
                                 "constraint": "datatype",
@@ -180,15 +346,238 @@ impl ShaclValidator {
                         }
                     }
                 }
+
+                // sh:pattern (regex over the string form of each value node,
+                // per SHACL; `sh:flags` is not supported and simply absent
+                // from real-world shapes we have seen so far).
+                if let Some(pattern_raw) = prop.get("pattern") {
+                    let pattern = strip_quotes(pattern_raw);
+                    let escaped = pattern.replace('\\', "\\\\").replace('"', "\\\"");
+                    let query = format!(
+                        r#"SELECT ?focus ?val WHERE {{
+                            ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
+                            ?focus {path_expr} ?val .
+                            FILTER(!REGEX(STR(?val), "{escaped}"))
+                        }}"#
+                    );
+                    let results = graph_sparql_select(graph, &query)?;
+                    for row in &results {
+                        if let Some(focus) = row.get("focus") {
+                            let msg = if message.is_empty() {
+                                format!("Value does not match pattern {}", pattern)
+                            } else {
+                                message.clone()
+                            };
+                            violations.push(serde_json::json!({
+                                "severity": severity,
+                                "focus_node": strip_angle_brackets(focus),
+                                "path": path,
+                                "constraint": "pattern",
+                                "message": msg,
+                            }));
+                        }
+                    }
+                }
+
+                // sh:hasValue: every focus node must carry the exact term at
+                // least once on the path. The term arrives from the shapes
+                // store in N-Triples form (`<iri>` or `"lit"^^<dt>`), which is
+                // valid SPARQL as-is.
+                if let Some(has_value_term) = prop.get("hasValue") {
+                    let term = has_value_term.trim();
+                    let query = format!(
+                        r#"SELECT ?focus WHERE {{
+                            ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
+                            FILTER NOT EXISTS {{ ?focus {path_expr} {term} }}
+                        }}"#
+                    );
+                    let results = graph_sparql_select(graph, &query)?;
+                    for row in &results {
+                        if let Some(focus) = row.get("focus") {
+                            let msg = if message.is_empty() {
+                                format!("Required value {} is not present", term)
+                            } else {
+                                message.clone()
+                            };
+                            violations.push(serde_json::json!({
+                                "severity": severity,
+                                "focus_node": strip_angle_brackets(focus),
+                                "path": path,
+                                "constraint": "hasValue",
+                                "message": msg,
+                            }));
+                        }
+                    }
+                }
             }
         }
 
-        let conforms = violations.is_empty();
-        let report = serde_json::json!({
-            "conforms": conforms,
+        // 5. SPARQL-based constraints (sh:sparql).
+        //
+        // These were previously not read at all, which meant a shapes file built
+        // entirely on sh:sparql returned conforms:true having evaluated nothing.
+        // A validator that reports success on rules it never ran is worse than
+        // one that refuses, so every constraint here is either executed or
+        // recorded in skipped_constraints, and skipping suppresses `conforms`.
+        for shape in &shapes {
+            let target_class = match shape.get("targetClass") {
+                Some(tc) => strip_angle_brackets(tc),
+                None => continue,
+            };
+            let shape_iri = match shape.get("shape") {
+                Some(s) => s.clone(),
+                None => continue,
+            };
+
+            let constraints = query_solutions(
+                &shapes_store,
+                &format!(
+                    r#"
+                    PREFIX sh: <http://www.w3.org/ns/shacl#>
+                    SELECT ?select ?message ?severity WHERE {{
+                        {} sh:sparql ?c .
+                        ?c sh:select ?select .
+                        OPTIONAL {{ ?c sh:message ?message }}
+                        OPTIONAL {{ ?c sh:severity ?severity }}
+                    }}
+                    "#,
+                    shape_iri
+                ),
+            )?;
+            if constraints.is_empty() {
+                continue;
+            }
+
+            // Focus nodes for this shape. Blank nodes are excluded because they
+            // cannot be named in a VALUES clause; excluding them is recorded
+            // rather than assumed harmless.
+            let focus_rows = graph_sparql_select(
+                graph,
+                &format!("SELECT ?this WHERE {{ ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> }}"),
+            )?;
+            let focus_nodes: Vec<String> = focus_rows
+                .iter()
+                .filter_map(|r| r.get("this"))
+                .filter(|t| t.starts_with('<'))
+                .cloned()
+                .collect();
+            let blank_focus = focus_rows.len() - focus_nodes.len();
+            if blank_focus > 0 {
+                skipped.push(serde_json::json!({
+                    "shape": strip_angle_brackets(&shape_iri),
+                    "reason": format!(
+                        "{} blank-node focus nodes excluded from sh:sparql evaluation (blank nodes cannot be bound in a VALUES clause)",
+                        blank_focus
+                    ),
+                }));
+            }
+            if focus_nodes.is_empty() {
+                continue;
+            }
+
+            let prefix_block = sparql_prefix_block(&shapes_store)?;
+
+            for constraint in &constraints {
+                let select_raw = match constraint.get("select") {
+                    Some(s) => strip_quotes(s),
+                    None => continue,
+                };
+                let message = constraint
+                    .get("message")
+                    .map(|m| strip_quotes(m))
+                    .unwrap_or_default();
+                let severity = constraint
+                    .get("severity")
+                    .map(|s| {
+                        strip_angle_brackets(s)
+                            .rsplit('#')
+                            .next()
+                            .unwrap_or("Violation")
+                            .to_string()
+                    })
+                    .unwrap_or_else(|| "Violation".to_string());
+
+                // SHACL pre-binds $this to the focus node. Rewrite it to the
+                // ordinary variable ?this and bind it through a VALUES clause,
+                // wrapping the author's SELECT as a subquery so that nothing is
+                // spliced into the middle of their query text.
+                let inner = select_raw.replace("$this", "?this");
+                let values = focus_nodes.join(" ");
+                let wrapped = format!(
+                    "{prefix_block}SELECT ?this WHERE {{ VALUES ?this {{ {values} }} {{ {inner} }} }}"
+                );
+
+                match graph_sparql_select(graph, &wrapped) {
+                    Ok(rows) => {
+                        for row in &rows {
+                            if let Some(focus) = row.get("this") {
+                                let msg = if message.is_empty() {
+                                    "SPARQL constraint violated".to_string()
+                                } else {
+                                    message.clone()
+                                };
+                                violations.push(serde_json::json!({
+                                    "severity": severity,
+                                    "focus_node": strip_angle_brackets(focus),
+                                    "constraint": "sparql",
+                                    "message": msg,
+                                }));
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        // Most often an undeclared prefix inside the author's
+                        // SELECT. Report it; never let it read as conformance.
+                        skipped.push(serde_json::json!({
+                            "shape": strip_angle_brackets(&shape_iri),
+                            "constraint": "sparql",
+                            "reason": format!("sh:sparql constraint could not be executed: {}", e),
+                        }));
+                    }
+                }
+            }
+        }
+
+        // A shapes graph that declared shapes we could not discover must not be
+        // reported as a pass. `shapes.is_empty()` used to fall through to
+        // `conforms: violations.is_empty()`, which is `true` for an empty run.
+        let declared_any_shape = query_solutions(
+            &shapes_store,
+            r#"PREFIX sh: <http://www.w3.org/ns/shacl#>
+               SELECT ?s WHERE { ?s a sh:NodeShape . }"#,
+        )
+        .map(|r| !r.is_empty())
+        .unwrap_or(false);
+        let nothing_matched =
+            (!shapes.is_empty() && focus_nodes_total == 0) || (shapes.is_empty() && declared_any_shape);
+
+        let mut report = serde_json::json!({
             "violation_count": violations.len(),
             "violations": violations,
+            "focus_nodes": focus_nodes_total,
+            "unmatched_shapes": unmatched,
         });
+        if nothing_matched && skipped.is_empty() {
+            // Every shape targeted a class with no instances in the data, so
+            // nothing was checked. Reporting `conforms: true` here would be the
+            // same lie as reporting it for a constraint that never ran.
+            report["conforms"] = serde_json::Value::Null;
+            report["warning"] = serde_json::Value::String(format!(
+                "no focus nodes matched: all {} shape(s) target classes absent from the data, so conformance is undetermined. See unmatched_shapes.",
+                shapes.len()
+            ));
+        } else if skipped.is_empty() {
+            report["conforms"] = serde_json::Value::Bool(violations.is_empty());
+        } else {
+            // Some constraints in this shapes graph were not evaluated, so no
+            // conformance verdict can honestly be given. Null rather than true.
+            report["conforms"] = serde_json::Value::Null;
+            report["warning"] = serde_json::Value::String(format!(
+                "{} constraint(s) were not evaluated, so conformance is undetermined. See skipped_constraints.",
+                skipped.len()
+            ));
+            report["skipped_constraints"] = serde_json::Value::Array(skipped);
+        }
 
         Ok(report.to_string())
     }
@@ -459,6 +848,23 @@ fn is_recognised_xsd_datatype(iri: &str) -> bool {
 }
 
 /// Trim angle brackets from IRI strings like `<http://example.org/foo>`.
+/// Count the distinct nodes a `sh:targetClass` shape applies to.
+///
+/// Used to tell "checked and clean" apart from "checked nothing": a shape whose
+/// target class has no instances passes every constraint vacuously.
+fn count_focus_nodes(graph: &Arc<GraphStore>, target_class: &str) -> anyhow::Result<u64> {
+    let query = format!(
+        r#"SELECT (COUNT(DISTINCT ?focus) AS ?cnt) WHERE {{ ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> }}"#
+    );
+    let rows = graph_sparql_select(graph, &query)?;
+    Ok(rows
+        .first()
+        .and_then(|row| row.get("cnt"))
+        .map(|c| strip_quotes(c))
+        .and_then(|c| c.parse::<u64>().ok())
+        .unwrap_or(0))
+}
+
 fn strip_angle_brackets(s: &str) -> String {
     let s = s.trim();
     if s.starts_with('<') && s.ends_with('>') {
@@ -483,7 +889,80 @@ fn strip_quotes(s: &str) -> String {
     } else {
         s
     };
-    // Strip surrounding quotes
     let s = s.trim_matches('"');
-    s.to_string()
+    unescape_literal(s)
+}
+
+/// Undo the N-Triples escaping that Oxigraph applies when rendering a literal
+/// through `Term::to_string()`.
+///
+/// This matters well beyond cosmetics. A multi-line `sh:select` string arrives
+/// here carrying the two characters backslash and n where the author wrote a
+/// newline, and a SPARQL parser rejects that outright. Before this was fixed,
+/// every multi-line SPARQL constraint failed to parse.
+fn unescape_literal(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut chars = s.chars();
+    while let Some(c) = chars.next() {
+        if c != '\\' {
+            out.push(c);
+            continue;
+        }
+        match chars.next() {
+            Some('n') => out.push('\n'),
+            Some('t') => out.push('\t'),
+            Some('r') => out.push('\r'),
+            Some('b') => out.push('\u{8}'),
+            Some('f') => out.push('\u{c}'),
+            Some('"') => out.push('"'),
+            Some('\'') => out.push('\''),
+            Some('\\') => out.push('\\'),
+            Some('u') => {
+                let hex: String = chars.by_ref().take(4).collect();
+                match u32::from_str_radix(&hex, 16).ok().and_then(char::from_u32) {
+                    Some(decoded) => out.push(decoded),
+                    None => {
+                        out.push_str("\\u");
+                        out.push_str(&hex);
+                    }
+                }
+            }
+            Some(other) => {
+                out.push('\\');
+                out.push(other);
+            }
+            None => out.push('\\'),
+        }
+    }
+    out
+}
+
+/// Build a SPARQL PREFIX block from any `sh:declare` blocks in the shapes graph.
+///
+/// SHACL lets a `sh:sparql` constraint reference prefixed names and point at its
+/// prefix declarations with `sh:prefixes`. Rather than resolve that pointer
+/// strictly, every declaration present in the shapes graph is collected, which is
+/// permissive but never wrong: an unused PREFIX line changes no result, whereas a
+/// missing one turns an executable constraint into an unevaluated one.
+fn sparql_prefix_block(shapes_store: &Store) -> anyhow::Result<String> {
+    let rows = query_solutions(
+        shapes_store,
+        r#"
+        PREFIX sh: <http://www.w3.org/ns/shacl#>
+        SELECT ?prefix ?namespace WHERE {
+            ?decl sh:prefix ?prefix ; sh:namespace ?namespace .
+        }
+        "#,
+    )?;
+    let mut block = String::new();
+    for row in &rows {
+        if let (Some(prefix), Some(namespace)) = (row.get("prefix"), row.get("namespace")) {
+            block.push_str(&format!(
+                "PREFIX {}: <{}>\n",
+                strip_quotes(prefix),
+                strip_angle_brackets(&strip_quotes(namespace))
+            ));
+        }
+    }
+    Ok(block)
 }

@@ -1,19 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
 import { useEngine } from '../hooks/useEngine';
 import { TreeView } from './TreeView';
-import { GraphCanvas } from './GraphCanvas';
+import { Graph3D } from './Graph3D';
 import { ChatPanel } from './ChatPanel';
 import { PropertyInspector } from './PropertyInspector';
 import { LineagePanel } from './LineagePanel';
 import * as mcp from '../lib/mcp-client';
 
-type ViewMode = 'tree' | 'graph';
+type ViewMode = 'tree';
 
 export function Layout() {
   const [showChat, setShowChat] = useState(true);
+  const [graphMode, setGraphMode] = useState<'2d' | '3d'>('2d');
   const [showInspector, setShowInspector] = useState(false);
   const [showLineage, setShowLineage] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('tree');
+  const [_viewMode, _setViewMode] = useState<ViewMode>('tree');
   const [selectedNode, setSelectedNode] = useState<{ id: string; label: string; uri: string } | null>(null);
   const [projectName, setProjectName] = useState('studio-live');
   const [savingAs, setSavingAs] = useState(false);
@@ -122,21 +123,18 @@ export function Layout() {
 
         <div className="ml-auto flex gap-2">
           {/* View mode toggle */}
-          <div className="flex rounded overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
-            <button onClick={() => setViewMode('tree')}
-                    className="text-xs px-2 py-1"
-                    style={{ background: viewMode === 'tree' ? 'var(--accent)' : 'var(--bg-panel)',
-                             color: viewMode === 'tree' ? 'var(--bg-primary)' : 'var(--text-secondary)' }}>
-              Tree
-            </button>
-            <button onClick={() => setViewMode('graph')}
-                    className="text-xs px-2 py-1"
-                    style={{ background: viewMode === 'graph' ? 'var(--accent)' : 'var(--bg-panel)',
-                             color: viewMode === 'graph' ? 'var(--bg-primary)' : 'var(--text-secondary)' }}>
-              Graph
-            </button>
-          </div>
           <div className="w-px mx-1" style={{ background: 'var(--border)' }} />
+          <div className="flex items-center rounded text-xs overflow-hidden"
+               style={{ border: '1px solid var(--border)' }}>
+            {(['2d', '3d'] as const).map(m => (
+              <button key={m} onClick={() => setGraphMode(m)}
+                      className="px-2 py-1 uppercase"
+                      style={{ background: graphMode === m ? 'var(--accent)' : 'var(--bg-panel)',
+                               color: graphMode === m ? 'var(--bg-primary)' : 'var(--text-secondary)' }}>
+                {m}
+              </button>
+            ))}
+          </div>
           <button onClick={() => setShowChat(!showChat)}
                   className="text-xs px-2 py-1 rounded"
                   style={{ background: showChat ? 'var(--accent)' : 'var(--bg-panel)',
@@ -160,11 +158,11 @@ export function Layout() {
 
       {/* Main area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Main canvas */}
+        {/* Graph canvas */}
         <div className="flex-1 relative">
-          {viewMode === 'tree'
+          {graphMode === '2d'
             ? <TreeView onNodeSelect={setSelectedNode} />
-            : <GraphCanvas onNodeSelect={setSelectedNode} />}
+            : <Graph3D onNodeSelect={setSelectedNode} />}
         </div>
 
         {/* Inspector panel */}

@@ -1,0 +1,377 @@
+@prefix ifo:     <https://gov.tesseract.academy/def/fund#> .
+@prefix ifosch:  <https://gov.tesseract.academy/def/fund/scheme#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+# IFO identifier-scheme registry (SKOS)
+#
+# Every identifier scheme relevant to registered fund products in
+# the US, UK, Ireland, Australia, Canada and Mexico, as a SKOS
+# concept carrying: registration authority, governing standard,
+# syntax pattern, check-digit algorithm, and scope level (entity,
+# issue, or venue). The scope level is the load-bearing fact: it
+# decides where in the Fund > ShareClass > Listing hierarchy an
+# identifier may legally attach, and the SHACL shapes enforce it.
+#
+# Honesty notes are inline. Where a format is conventional rather
+# than published in an open standard, the note says so.
+#################################################################
+
+ifosch:schemes a skos:ConceptScheme ;
+    skos:prefLabel "IFO identifier schemes"@en ;
+    dcterms:creator "Fabio Rovai" ;
+    dcterms:created "2026-08-14"^^xsd:date .
+
+# --- supporting properties -------------------------------------
+
+ifo:syntaxPattern a owl:DatatypeProperty ;
+    rdfs:label "syntax pattern"@en ;
+    rdfs:comment "Anchored regular expression an identifier value in this scheme must match."@en .
+
+ifo:checkAlgorithm a owl:DatatypeProperty ;
+    rdfs:label "check algorithm"@en .
+
+ifo:registrationAuthority a owl:DatatypeProperty ;
+    rdfs:label "registration authority"@en .
+
+ifo:identifierScope a owl:ObjectProperty ;
+    rdfs:label "identifier scope"@en ;
+    rdfs:comment "Whether identifiers in this scheme name a legal entity, an issued security, or a venue-specific listing."@en .
+
+ifo:usedInMarket a owl:DatatypeProperty ;
+    rdfs:label "used in market"@en ;
+    rdfs:comment "ISO 3166-1 alpha-2 code of a market where this scheme is operationally significant for fund products."@en .
+
+# --- scope level concepts --------------------------------------
+
+ifosch:EntityScoped a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:prefLabel "entity-scoped"@en ;
+    skos:definition "Identifies a legal entity (registrant, fund as legal vehicle, manager). Attaches to FundRegistrant or Fund."@en .
+
+ifosch:IssueScoped a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:prefLabel "issue-scoped"@en ;
+    skos:definition "Identifies an issued fungible security independently of where it trades. Attaches to ShareClass."@en .
+
+ifosch:VenueScoped a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:prefLabel "venue-scoped"@en ;
+    skos:definition "Identifies a security as admitted to a specific venue or distribution network. Attaches to Listing."@en .
+
+# --- top groupings ---------------------------------------------
+
+ifosch:InternationalStandard a skos:Concept ;
+    skos:inScheme ifosch:schemes ; skos:topConceptOf ifosch:schemes ;
+    skos:prefLabel "international standard schemes"@en .
+
+ifosch:NationalNumbering a skos:Concept ;
+    skos:inScheme ifosch:schemes ; skos:topConceptOf ifosch:schemes ;
+    skos:prefLabel "national numbering schemes"@en .
+
+ifosch:RegulatorRegistry a skos:Concept ;
+    skos:inScheme ifosch:schemes ; skos:topConceptOf ifosch:schemes ;
+    skos:prefLabel "regulator registry schemes"@en .
+
+ifosch:VendorProprietary a skos:Concept ;
+    skos:inScheme ifosch:schemes ; skos:topConceptOf ifosch:schemes ;
+    skos:prefLabel "vendor and network schemes"@en ;
+    skos:note "Licensing terms are a governance constraint of the same rank as syntax: a pipeline that redistributes a licensed identifier can be in breach even when every checksum passes."@en .
+
+# --- international standards -----------------------------------
+
+ifosch:ISIN a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:InternationalStandard ;
+    skos:prefLabel "ISIN"@en ;
+    skos:altLabel "International Securities Identification Number"@en ;
+    skos:definition "12-character issue identifier defined by ISO 6166: a 2-letter ISO 3166-1 prefix (plus XS for international central-depository issues), a 9-character national securities identifying number, and one check digit."@en ;
+    ifo:registrationAuthority "Association of National Numbering Agencies (ANNA); assigned by national numbering agencies" ;
+    dcterms:references "ISO 6166" ;
+    ifo:syntaxPattern "^[A-Z]{2}[A-Z0-9]{9}[0-9]$" ;
+    ifo:checkAlgorithm "Modulus 10 double-add-double (Luhn) over the digitised string, letters converted A=10..Z=35" ;
+    ifo:identifierScope ifosch:IssueScoped ;
+    ifo:usedInMarket "US", "GB", "IE", "AU", "CA", "MX" .
+
+ifosch:LEI a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:InternationalStandard ;
+    skos:prefLabel "LEI"@en ;
+    skos:altLabel "Legal Entity Identifier"@en ;
+    skos:definition "20-character legal entity identifier defined by ISO 17442: a 4-character prefix identifying the issuing Local Operating Unit, 2 reserved characters, 12 entity-specific characters, and 2 check digits."@en ;
+    ifo:registrationAuthority "Global Legal Entity Identifier Foundation (GLEIF), via accredited Local Operating Units" ;
+    dcterms:references "ISO 17442" ;
+    ifo:syntaxPattern "^[A-Z0-9]{18}[0-9]{2}$" ;
+    ifo:checkAlgorithm "ISO 7064 MOD 97-10 over the digitised string; valid identifiers leave remainder 1" ;
+    ifo:identifierScope ifosch:EntityScoped ;
+    ifo:usedInMarket "US", "GB", "IE", "AU", "CA", "MX" .
+
+ifosch:FIGI a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:InternationalStandard ;
+    skos:prefLabel "FIGI"@en ;
+    skos:altLabel "Financial Instrument Global Identifier"@en ;
+    skos:definition "12-character open-standard instrument identifier specified by the Object Management Group, with Bloomberg acting as registration authority and certified provider; the third character is always G and the final character is a check digit."@en ;
+    ifo:registrationAuthority "Object Management Group (standard); Bloomberg L.P. (registration authority)" ;
+    dcterms:references "OMG FIGI specification" ;
+    ifo:syntaxPattern "^[A-Z0-9]{2}G[A-Z0-9]{8}[0-9]$" ;
+    ifo:identifierScope ifosch:IssueScoped ;
+    skos:note "FIGI is issued at multiple granularities (share-class level and venue level); the venue-level FIGI is venue-scoped. This registry records the share-class-level use."@en ;
+    ifo:usedInMarket "US", "GB", "IE", "AU", "CA", "MX" .
+
+ifosch:MIC a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:InternationalStandard ;
+    skos:prefLabel "MIC"@en ;
+    skos:altLabel "Market Identifier Code"@en ;
+    skos:definition "4-character code for exchanges and trading venues defined by ISO 10383."@en ;
+    ifo:registrationAuthority "ISO 10383 registration authority (SWIFT)" ;
+    dcterms:references "ISO 10383" ;
+    ifo:syntaxPattern "^[A-Z0-9]{4}$" ;
+    ifo:identifierScope ifosch:VenueScoped ;
+    ifo:usedInMarket "US", "GB", "IE", "AU", "CA", "MX" .
+
+# --- national numbering ----------------------------------------
+
+ifosch:CUSIP a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:NationalNumbering ;
+    skos:prefLabel "CUSIP"@en ;
+    skos:definition "9-character security identifier for the United States and Canada: 6-character issuer code, 2-character issue code, 1 check digit. Operated by CUSIP Global Services for the American Bankers Association."@en ;
+    ifo:registrationAuthority "CUSIP Global Services (American Bankers Association)" ;
+    dcterms:references "ANSI X9.6" ;
+    ifo:syntaxPattern "^[A-Z0-9]{8}[0-9]$" ;
+    ifo:checkAlgorithm "Modulus 10 double-add-double, letters A=10..Z=35, plus values for *, @, #" ;
+    ifo:identifierScope ifosch:IssueScoped ;
+    skos:note "A US ISIN embeds the CUSIP in positions 3 to 11, so an asserted US ISIN implies a checkable CUSIP; the pipeline validates both digits independently."@en ;
+    ifo:usedInMarket "US", "CA" .
+
+ifosch:SEDOL a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:NationalNumbering ;
+    skos:prefLabel "SEDOL"@en ;
+    skos:definition "7-character security identifier issued by the London Stock Exchange: 6 alphanumeric characters (vowels excluded) plus a weighted check digit."@en ;
+    ifo:registrationAuthority "London Stock Exchange" ;
+    ifo:syntaxPattern "^[B-DF-HJ-NP-TV-Z0-9]{6}[0-9]$" ;
+    ifo:checkAlgorithm "Weighted sum modulus 10 with weights 1,3,1,7,3,9 over the first six characters, letters A=10..Z=35" ;
+    ifo:identifierScope ifosch:VenueScoped ;
+    skos:note "SEDOLs are allocated per market of listing, which is why they sit on the Listing, not the ShareClass. Licensed data: redistribution is contractually constrained."@en ;
+    ifo:usedInMarket "GB", "IE" .
+
+ifosch:WKN a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:NationalNumbering ;
+    skos:prefLabel "WKN"@en ;
+    skos:altLabel "Wertpapierkennnummer"@en ;
+    skos:definition "6-character German securities identification number issued by WM Datenservice; no check digit."@en ;
+    ifo:registrationAuthority "WM Datenservice" ;
+    ifo:syntaxPattern "^[A-Z0-9]{6}$" ;
+    ifo:identifierScope ifosch:IssueScoped ;
+    ifo:usedInMarket "DE" .
+
+ifosch:Valoren a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:NationalNumbering ;
+    skos:prefLabel "Valor number"@en ;
+    skos:definition "Swiss securities identifier issued by SIX Financial Information; numeric, up to 9 digits, no check digit."@en ;
+    ifo:registrationAuthority "SIX Financial Information" ;
+    ifo:syntaxPattern "^[0-9]{1,9}$" ;
+    ifo:identifierScope ifosch:IssueScoped ;
+    ifo:usedInMarket "CH" .
+
+ifosch:APIR a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:NationalNumbering ;
+    skos:prefLabel "APIR code"@en ;
+    skos:definition "Product identifier for Australian managed funds and superannuation products issued by APIR Systems: conventionally a 3-character issuer prefix, a product code, and the suffix AU, 9 characters in total."@en ;
+    ifo:registrationAuthority "APIR Systems Limited" ;
+    ifo:syntaxPattern "^[A-Z]{3}[A-Z0-9]{4}AU$" ;
+    ifo:identifierScope ifosch:IssueScoped ;
+    skos:note "Format is the operator's published convention rather than an ISO standard; the pattern encodes the dominant 9-character form."@en ;
+    ifo:usedInMarket "AU" .
+
+ifosch:FundSERV a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:VendorProprietary ;
+    skos:prefLabel "FundSERV code"@en ;
+    skos:definition "Order-routing code for Canadian investment funds on the FundSERV network: a manufacturer prefix followed by a numeric product code, conventionally three letters plus three or four digits."@en ;
+    ifo:registrationAuthority "FundSERV Inc." ;
+    ifo:syntaxPattern "^[A-Z]{3}[0-9]{3,4}$" ;
+    ifo:identifierScope ifosch:VenueScoped ;
+    skos:note "Network-scoped rather than exchange-scoped: it identifies the product as distributable through a settlement network, which this registry treats as a venue in the general sense. Format is network convention, not an open standard."@en ;
+    ifo:usedInMarket "CA" .
+
+# --- regulator registries --------------------------------------
+
+ifosch:CIK a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:RegulatorRegistry ;
+    skos:prefLabel "CIK"@en ;
+    skos:altLabel "SEC Central Index Key"@en ;
+    skos:definition "Numeric key of up to 10 digits assigned by the US Securities and Exchange Commission to every EDGAR filer; no check digit."@en ;
+    ifo:registrationAuthority "US Securities and Exchange Commission" ;
+    ifo:syntaxPattern "^[0-9]{1,10}$" ;
+    ifo:identifierScope ifosch:EntityScoped ;
+    ifo:usedInMarket "US" .
+
+ifosch:SECSeriesId a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:RegulatorRegistry ;
+    skos:prefLabel "SEC series identifier"@en ;
+    skos:definition "EDGAR identifier for an investment company series: the letter S followed by 9 digits."@en ;
+    ifo:registrationAuthority "US Securities and Exchange Commission" ;
+    ifo:syntaxPattern "^S[0-9]{9}$" ;
+    ifo:identifierScope ifosch:EntityScoped ;
+    ifo:usedInMarket "US" .
+
+ifosch:SECClassId a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:RegulatorRegistry ;
+    skos:prefLabel "SEC class identifier"@en ;
+    skos:definition "EDGAR identifier for an investment company share class: the letter C followed by 9 digits."@en ;
+    ifo:registrationAuthority "US Securities and Exchange Commission" ;
+    ifo:syntaxPattern "^C[0-9]{9}$" ;
+    ifo:identifierScope ifosch:IssueScoped ;
+    ifo:usedInMarket "US" .
+
+ifosch:SECFileNumber a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:RegulatorRegistry ;
+    skos:prefLabel "SEC file number"@en ;
+    skos:definition "Registration file number under the Investment Company Act of 1940; registered investment companies carry the 811- prefix (business development companies 814-)."@en ;
+    ifo:registrationAuthority "US Securities and Exchange Commission" ;
+    ifo:syntaxPattern "^81[14]-[0-9]{1,6}$" ;
+    ifo:identifierScope ifosch:EntityScoped ;
+    ifo:usedInMarket "US" .
+
+ifosch:FCAPRN a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:RegulatorRegistry ;
+    skos:prefLabel "FCA product reference number"@en ;
+    skos:definition "Numeric product reference number under which UK-recognised funds and sub-funds appear on the Financial Conduct Authority register."@en ;
+    ifo:registrationAuthority "UK Financial Conduct Authority" ;
+    ifo:identifierScope ifosch:EntityScoped ;
+    skos:note "No public syntax standard is asserted here; the register exposes numeric references. Recorded for completeness of the UK market view."@en ;
+    ifo:usedInMarket "GB" .
+
+ifosch:CBIFundCode a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:RegulatorRegistry ;
+    skos:prefLabel "Central Bank of Ireland fund registration"@en ;
+    skos:definition "Registration reference under which Irish-authorised funds (UCITS and AIFs) appear in the Central Bank of Ireland registers."@en ;
+    ifo:registrationAuthority "Central Bank of Ireland" ;
+    ifo:identifierScope ifosch:EntityScoped ;
+    skos:note "No public syntax standard is asserted here. Irish fund share classes are in practice identified by IE-prefixed ISINs; the register reference is entity-scoped."@en ;
+    ifo:usedInMarket "IE" .
+
+ifosch:CNBVRegistry a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:RegulatorRegistry ;
+    skos:prefLabel "CNBV securities registry entry"@en ;
+    skos:definition "Entry in the Mexican National Securities Registry (RNV) maintained by the Comision Nacional Bancaria y de Valores, under which Mexican funds and their series are authorised."@en ;
+    ifo:registrationAuthority "Comision Nacional Bancaria y de Valores (Mexico)" ;
+    ifo:identifierScope ifosch:EntityScoped ;
+    skos:note "No public syntax standard is asserted here. Mexican fund securities are identified in practice by MX-prefixed ISINs issued via the national numbering agency."@en ;
+    ifo:usedInMarket "MX" .
+
+# --- vendor / network schemes ----------------------------------
+
+ifosch:TickerSymbol a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:VendorProprietary ;
+    skos:prefLabel "ticker symbol"@en ;
+    skos:definition "Exchange-assigned short trading symbol. Venue-scoped and reusable across venues; carries no check digit and no global uniqueness guarantee, which is precisely why it must never serve as a primary key."@en ;
+    ifo:syntaxPattern "^[A-Z][A-Z0-9.]{0,9}$" ;
+    ifo:identifierScope ifosch:VenueScoped ;
+    ifo:usedInMarket "US", "GB", "IE", "AU", "CA", "MX" .
+
+ifosch:RIC a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:VendorProprietary ;
+    skos:prefLabel "RIC"@en ;
+    skos:altLabel "Refinitiv Instrument Code"@en ;
+    skos:definition "Proprietary venue-scoped instrument code of Refinitiv (LSEG), conventionally a root symbol plus a dot-suffixed exchange code."@en ;
+    ifo:registrationAuthority "LSEG (Refinitiv)" ;
+    ifo:identifierScope ifosch:VenueScoped ;
+    skos:note "Licensed identifier: storage and redistribution are contractually constrained, which a governance model must record as a property of the scheme."@en ;
+    ifo:usedInMarket "US", "GB", "IE", "AU", "CA", "MX" .
+
+ifosch:BloombergTicker a skos:Concept ;
+    skos:inScheme ifosch:schemes ;
+    skos:broader ifosch:VendorProprietary ;
+    skos:prefLabel "Bloomberg ticker"@en ;
+    skos:definition "Proprietary Bloomberg symbology combining a root symbol, a market sector qualifier, and optionally an exchange qualifier. The open successor at instrument level is FIGI."@en ;
+    ifo:registrationAuthority "Bloomberg L.P." ;
+    ifo:identifierScope ifosch:VenueScoped ;
+    ifo:usedInMarket "US", "GB", "IE", "AU", "CA", "MX" .
+
+#################################################################
+# Source-system registry
+#################################################################
+
+ifosch:sources a skos:ConceptScheme ;
+    skos:prefLabel "IFO source systems"@en .
+
+ifosch:SEC-SCI a skos:Concept ;
+    skos:inScheme ifosch:sources ;
+    skos:prefLabel "SEC Investment Company Series and Class dataset"@en ;
+    skos:definition "Annual SEC open dataset listing every active registered investment company series and class with CIK, series id, class id, and ticker."@en .
+
+ifosch:SEC-NCEN a skos:Concept ;
+    skos:inScheme ifosch:sources ;
+    skos:prefLabel "SEC Form N-CEN structured data"@en ;
+    skos:definition "Structured extracts of Form N-CEN annual reports, carrying registrant and per-series LEIs, fund classification flags, and ETF listing exchanges."@en .
+
+ifosch:GLEIF-ISIN-LEI a skos:Concept ;
+    skos:inScheme ifosch:sources ;
+    skos:prefLabel "GLEIF ISIN-to-LEI relationship file"@en ;
+    skos:definition "Open mapping file linking ISINs to the LEI of the issuing entity, published by GLEIF."@en .
+
+ifosch:OpenFIGI a skos:Concept ;
+    skos:inScheme ifosch:sources ;
+    skos:prefLabel "OpenFIGI mapping API"@en ;
+    skos:definition "Bloomberg's free mapping service over the OMG FIGI open standard; FIGIs are explicitly free to store and redistribute. Used to resolve ISINs to tickers and share-class FIGIs without licensed identifier data."@en .
+
+ifosch:SEC-NPORT a skos:Concept ;
+    skos:inScheme ifosch:sources ;
+    skos:prefLabel "SEC Form N-PORT structured data"@en ;
+    skos:definition "Structured extracts of Form N-PORT monthly portfolio filings. Holdings rows carry the issuer LEI and, per identifier row, the holding's ISIN and ticker, making public regulatory filings a lawful open source of identifier pairs."@en .
+
+#################################################################
+# Fund-feature registry (from N-CEN Part C flags)
+#################################################################
+
+ifosch:features a skos:ConceptScheme ;
+    skos:prefLabel "IFO fund features"@en .
+
+ifosch:ExchangeTradedFund a skos:Concept ;
+    skos:inScheme ifosch:features ;
+    skos:prefLabel "exchange-traded fund"@en .
+
+ifosch:IndexFund a skos:Concept ;
+    skos:inScheme ifosch:features ;
+    skos:prefLabel "index fund"@en .
+
+ifosch:MoneyMarketFund a skos:Concept ;
+    skos:inScheme ifosch:features ;
+    skos:prefLabel "money market fund"@en .
+
+ifosch:TargetDateFund a skos:Concept ;
+    skos:inScheme ifosch:features ;
+    skos:prefLabel "target date fund"@en .
+
+ifosch:FundOfFunds a skos:Concept ;
+    skos:inScheme ifosch:features ;
+    skos:prefLabel "fund of funds"@en .
+
+ifosch:MasterFeeder a skos:Concept ;
+    skos:inScheme ifosch:features ;
+    skos:prefLabel "master-feeder participant"@en .
+
+ifosch:IntervalFund a skos:Concept ;
+    skos:inScheme ifosch:features ;
+    skos:prefLabel "interval fund"@en .

@@ -166,7 +166,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className="max-w-[85%] px-3 py-2 rounded-lg text-sm"
+      <div className="max-w-[85%] min-w-0 px-3 py-2 rounded-lg text-sm break-words overflow-hidden"
         style={{
           background: isUser ? 'var(--accent)' : 'var(--bg-panel)',
           color: isUser ? 'var(--bg-primary)' : 'var(--text-primary)',
@@ -174,7 +174,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
         }}>
         {isUser || isSystem
           ? <div className="whitespace-pre-wrap">{message.content}</div>
-          : <div className="prose prose-sm max-w-none markdown-body">
+          : <div className="prose prose-sm max-w-none markdown-body break-words [&_code]:break-all [&_pre]:overflow-x-auto">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
             </div>
         }

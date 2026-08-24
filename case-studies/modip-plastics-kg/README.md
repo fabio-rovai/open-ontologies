@@ -1,8 +1,8 @@
 # MoDiP Plastics Knowledge Graph
 
 **A worked example of turning a small museum's raw collection records into a
-standards-based knowledge graph — taxonomy, ontology mapping, and a variant
-graph — using only open standards and the museum's own open data.**
+standards-based knowledge graph (taxonomy, ontology mapping, and a variant
+graph) using only open standards and the museum's own open data.**
 
 The [Museum of Design in Plastics](https://www.modip.ac.uk/) (MoDiP, Arts
 University Bournemouth) publishes **11,865** object records through the
@@ -11,7 +11,7 @@ data, they are published as *raw material*: flat, free-text, un-linked. The same
 polymer appears as `PP`, `polypropylene`, `polythene` and `Perspex - trade name`
 as unrelated strings; relationships between objects sit unread inside description
 prose. This repository shows, end to end, what it takes to make that data
-computable — and does it against the real records, not a toy sample.
+computable, and does it against the real records, not a toy sample.
 
 Nothing here is bespoke where a standard exists. The instance graph is
 **CIDOC-CRM** (ISO 21127, Linked Art compatible); the vocabularies are **SKOS**,
@@ -26,7 +26,7 @@ minted locally are the concept and instance identifiers.
 | Materials taxonomy | [`ontology/materials.ttl`](ontology/materials.ttl) | 137 SKOS concepts (thermoplastic / thermoset / elastomer / biopolymer), abbreviations + trade names as `altLabel`, 55 Getty AAT `exactMatch` |
 | Process taxonomy | [`ontology/processes.ttl`](ontology/processes.ttl) | 65 concepts (moulding, extrusion, forming, machining, textile processes) |
 | Domain taxonomy | [`ontology/domains.ttl`](ontology/domains.ttl) | 29 concepts (MoDiP's own use-domain facet, made hierarchical) |
-| Instance graph | [`build/modip-crm.ttl`](build/modip-crm.ttl) | 485,013 triples, 11,865 `crm:E22_Human-Made_Object`s |
+| Instance graph | [`build/modip-crm.ttl.gz`](build/modip-crm.ttl.gz) (gzipped Turtle) | 485,013 triples, 11,865 `crm:E22_Human-Made_Object`s |
 | Variant DAG | [`build/dag_variants.ttl`](build/dag_variants.ttl) · [`.csv`](build/dag_variants.csv) | 289 same-mould / cross-reference edges recovered from description prose |
 | Spectrum→CRM crosswalk | [`docs/spectrum-crm-mapping.md`](docs/spectrum-crm-mapping.md) | the reusable mapping, field by field |
 | Honesty log | [`BUILD_REPORT.md`](BUILD_REPORT.md) | exactly what was fetched, computed, and could not be obtained |
@@ -55,7 +55,7 @@ mat:pvc a skos:Concept, crm:E57_Material ;
 ```
 (`aat:300014513` is the verified Getty AAT concept for polyvinyl chloride; the
 `pmma` concept carries the abbreviations and trade names too, but is left without
-an AAT link because no exact-label AAT match was found — see `BUILD_REPORT.md`.)
+an AAT link because no exact-label AAT match was found; see `BUILD_REPORT.md`.)
 
 ## Reproduce
 
@@ -77,7 +77,7 @@ form on any [MDS object-search page](https://museumdata.uk/object-search/) and r
   [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Per-record rights are
   retained in the graph (`dct:license`, `dct:rightsHolder`).
 - **This transformation** (taxonomies, mappings, code) is released under
-  [CC BY 4.0](LICENSE) (data/vocabularies) and MIT (code) — see [`LICENSE`](LICENSE).
+  [CC BY 4.0](LICENSE) (data/vocabularies) and MIT (code); see [`LICENSE`](LICENSE).
 - **Getty AAT** alignments © J. Paul Getty Trust, under
   [ODC-By 1.0](https://opendatacommons.org/licenses/by/1-0/).
 
@@ -88,7 +88,7 @@ form on any [MDS object-search page](https://museumdata.uk/object-search/) and r
 Built by **[The Tesseract Academy](https://tesseract.academy)** as an open
 demonstration for the GLAM (galleries, libraries, archives, museums) sector: this
 is the pipeline that takes *any* museum's Spectrum/CSV export to a validated,
-standards-based knowledge graph. If you run a collection — or fund one — and want
+standards-based knowledge graph. If you run a collection, or fund one, and want
 your data made this queryable (or want the method applied to your own catalogue),
 we'd genuinely like to hear from you: **fabio@thetesseractacademy.com**.
 

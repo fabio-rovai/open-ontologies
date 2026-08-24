@@ -24,18 +24,18 @@ NAPH uses **w3id.org** as the canonical URI provider:
 
 ### Positive
 
-- **URI stability independent of any website** — w3id.org has been operating since 2014, with redundancy and community governance
-- **Free** — no licensing fees, no ongoing operational cost beyond making PRs
-- **Community-trusted** — used by W3C, Schema.org, Bioschemas, RO-Crate, and many other standards
-- **Easy migration** — when the canonical TTL location changes, update the redirect via PR; existing users see no change
-- **Multi-stakeholder maintained** — the redirect itself is governed by community PRs, not by a single institution
-- **Aligned with linked-data community norms** — most widely-used linked-data standards use w3id.org or purl.org
+- **URI stability independent of any website**: w3id.org has been operating since 2014, with redundancy and community governance
+- **Free**: no licensing fees, no ongoing operational cost beyond making PRs
+- **Community-trusted**: used by W3C, Schema.org, Bioschemas, RO-Crate, and many other standards
+- **Easy migration**: when the canonical TTL location changes, update the redirect via PR; existing users see no change
+- **Multi-stakeholder maintained**: the redirect itself is governed by community PRs, not by a single institution
+- **Aligned with linked-data community norms**: most widely-used linked-data standards use w3id.org or purl.org
 
 ### Negative
 
-- **Requires ongoing engagement with w3id.org governance** — PRs to update redirects need to be submitted and reviewed. Low-effort but not zero.
-- **Slight indirection** — URI resolution goes through w3id.org's redirect service, adding one HTTP hop
-- **Trust dependency** — NAPH's URI persistence depends on w3id.org continuing to operate. Mitigated by the service's track record and community ownership.
+- **Requires ongoing engagement with w3id.org governance**: PRs to update redirects need to be submitted and reviewed. Low-effort but not zero.
+- **Slight indirection**: URI resolution goes through w3id.org's redirect service, adding one HTTP hop
+- **Trust dependency**: NAPH's URI persistence depends on w3id.org continuing to operate. Mitigated by the service's track record and community ownership.
 
 ### Neutral
 
@@ -61,7 +61,7 @@ Rejected (slight preference) because:
 
 - purl.org is operated by a single (commercial-but-non-profit) institution; w3id.org is community-governed
 - w3id.org has stronger linked-data community presence
-- Migration cost between the two is similar — choice is not strongly load-bearing
+- Migration cost between the two is similar: choice is not strongly load-bearing
 
 If a future Standards Council prefers purl.org, the migration is feasible.
 
@@ -98,8 +98,7 @@ w3id.org configuration:
 ```apache
 # In w3id.org/naph/.htaccess
 
-# Default — redirect to canonical TTL
-RewriteEngine On
+# Default: redirect to canonical TTLRewriteEngine On
 
 # Redirect /naph to documentation
 RewriteRule ^/?$ https://github.com/<org>/naph/blob/main/README.md [R=302,L]
@@ -135,7 +134,7 @@ The chosen approach is validated by:
 
 - Multiple comparable standards using w3id.org successfully (RO-Crate, IIIF, Schema.org partner standards)
 - Track record of >10 years of w3id.org operation
-- Low operational burden in practice — redirects rarely need updating
+- Low operational burden in practice: redirects rarely need updating
 
 ## Migration plan
 
@@ -153,5 +152,5 @@ This migration would be the same regardless of starting URI. There's no lock-in 
 
 - [w3id.org service](https://w3id.org/)
 - [perma-id/w3id.org GitHub](https://github.com/perma-id/w3id.org)
-- [NAPH-STANDARD §7 — Naming and namespaces](../../01-standard/NAPH-STANDARD.md#7-naming-namespaces-and-identifiers)
-- [Maintenance runbook §6 — Permanent URI maintenance](../maintenance-runbook.md#6-permanent-uri-maintenance)
+- [NAPH-STANDARD §7: Naming and namespaces](../../01-standard/NAPH-STANDARD.md#7-naming-namespaces-and-identifiers)
+- [Maintenance runbook §6: Permanent URI maintenance](../maintenance-runbook.md#6-permanent-uri-maintenance)

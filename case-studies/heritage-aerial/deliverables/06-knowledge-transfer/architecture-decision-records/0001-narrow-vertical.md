@@ -1,5 +1,4 @@
-# ADR-0001: Narrow vertical scope — aerial photography heritage only
-
+# ADR-0001: Narrow vertical scope: aerial photography heritage only
 **Status:** Accepted
 **Date:** 2026-04-30
 **Decider:** Editorial team (initial), expected Standards Council ratification at v1.x
@@ -26,23 +25,23 @@ Manuscripts/archives and integrated thematic collections are explicitly out of s
 
 ### Positive
 
-- **Clearer adoption story** — a UK aerial archive can read the standard and immediately recognise it as describing their world. Generic GLAM standards leave readers wondering "but how does this apply to me?"
-- **Deeper domain treatment** — stereo pair modelling, GSD derivation, declassification provenance, sortie metadata can all be normatively defined without inflating the standard's scope
-- **Higher likelihood of host institution adoption** — HES via NCAP has existential interest in aerial-specific computational capability; less interest in being the host for a generic GLAM standard
-- **Cleaner standards collaboration** — adjacent standards bodies (W3C, OGC, IIIF) prefer specific use cases to generic claims
-- **Smaller surface area to maintain** — fewer classes, fewer shapes, fewer profile-specific complications
-- **Easier to test** — partner clinics can be aerial-photography-only, with consistent expectations
+- **Clearer adoption story**: a UK aerial archive can read the standard and immediately recognise it as describing their world. Generic GLAM standards leave readers wondering "but how does this apply to me?"
+- **Deeper domain treatment**: stereo pair modelling, GSD derivation, declassification provenance, sortie metadata can all be normatively defined without inflating the standard's scope
+- **Higher likelihood of host institution adoption**: HES via NCAP has existential interest in aerial-specific computational capability; less interest in being the host for a generic GLAM standard
+- **Cleaner standards collaboration**: adjacent standards bodies (W3C, OGC, IIIF) prefer specific use cases to generic claims
+- **Smaller surface area to maintain**: fewer classes, fewer shapes, fewer profile-specific complications
+- **Easier to test**: partner clinics can be aerial-photography-only, with consistent expectations
 
 ### Negative
 
-- **Smaller market** — NAPH only addresses one vertical; institutions with manuscripts or thematic collections are not direct beneficiaries
-- **Apparent narrowness** — funders looking for sector-wide impact may prefer broader standards
-- **Narrower scope than the broader programme** — TaNC mentions three collection types; NAPH covers one. Adjacent verticals are scoped for separate standards under shared governance.
+- **Smaller market**: NAPH only addresses one vertical; institutions with manuscripts or thematic collections are not direct beneficiaries
+- **Apparent narrowness**: funders looking for sector-wide impact may prefer broader standards
+- **Narrower scope than the broader programme**: TaNC mentions three collection types; NAPH covers one. Adjacent verticals are scoped for separate standards under shared governance.
 
 ### Neutral
 
-- **Potential for adjacent standards** — manuscripts and thematic collections may eventually need their own focused standards; NAPH as a model could be replicated
-- **Potential merge** — if multiple vertical standards emerge, a future v2 or v3 of NAPH (or a successor) could federate them under common governance
+- **Potential for adjacent standards**: manuscripts and thematic collections may eventually need their own focused standards; NAPH as a model could be replicated
+- **Potential merge**: if multiple vertical standards emerge, a future v2 or v3 of NAPH (or a successor) could federate them under common governance
 
 ## Alternatives considered
 
@@ -55,12 +54,11 @@ The original approach. Rejected because:
 - Adoption is harder when the standard is one of many
 - A focused initial release timeline is insufficient to deliver three profiles to production quality
 
-### Alternative 2: Two profiles — photographic (broad) and everything-else
-
+### Alternative 2: Two profiles: photographic (broad) and everything-else
 Rejected because:
 
 - "Photographic" still spans aerial, studio, documentary, fine-art with very different conventions
-- A photograph in an aerial reconnaissance archive is a fundamentally different artefact (computationally) from a fine-art photograph in a museum collection — same media, different research use cases
+- A photograph in an aerial reconnaissance archive is a fundamentally different artefact (computationally) from a fine-art photograph in a museum collection: same media, different research use cases
 - The "everything-else" profile would still suffer from the genericness problem
 
 ### Alternative 3: Aerial photography only (chosen)
@@ -77,11 +75,11 @@ Selected because:
 
 Considered but rejected:
 
-- Excludes satellite imagery and UAV imagery — both are growing parts of the aerial heritage corpus
+- Excludes satellite imagery and UAV imagery: both are growing parts of the aerial heritage corpus
 - Would force institutions with mixed aerial-source collections (e.g. modern UAV survey alongside historic reconnaissance) to use multiple standards
 - The unifying technical characteristics (orientation, GSD, footprint geometry) apply across reconnaissance, satellite, and UAV
 
-The chosen scope — all aerial-platform photographic heritage — is the right granularity.
+The chosen scope (all aerial-platform photographic heritage) is the right granularity.
 
 ## Validation
 

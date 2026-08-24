@@ -435,7 +435,7 @@ impl AlignmentEngine {
                     std::collections::HashMap::new();
                 let mut any_used = false;
                 for sc in &source_classes {
-                    if let Some(src_vec) = vs.get_text_vec(&sc.iri).map(|v| v.to_vec()) {
+                    if let Some(src_vec) = vs.load_text_vec(&sc.iri) {
                         let shortlist = vs.search_cosine_hnsw(&src_vec, HNSW_TOP_K);
                         if !shortlist.is_empty() {
                             let filtered: std::collections::HashSet<String> = shortlist
@@ -491,8 +491,11 @@ impl AlignmentEngine {
                 let embedding_sim = {
                     if let Some(ref vs) = self.vecstore {
                         let vs = vs.lock().unwrap();
-                        match (vs.get_text_vec(&sc.iri), vs.get_text_vec(&tc.iri)) {
-                            (Some(a), Some(b)) => Self::embedding_similarity_score(a, b),
+                        // `load_text_vec`, not `get_text_vec`: the latter can
+                        // only answer for a resident store, and would silently
+                        // score every pair at 0.0 under text-vector eviction.
+                        match (vs.load_text_vec(&sc.iri), vs.load_text_vec(&tc.iri)) {
+                            (Some(a), Some(b)) => Self::embedding_similarity_score(&a, &b),
                             _ => 0.0,
                         }
                     } else {
@@ -784,14 +787,17 @@ impl AlignmentEngine {
 
     /// Classify the relation type based on signal strengths.
     fn classify_relation(label_sim: f64, prop_overlap: f64, parent_overlap: f64) -> &'static str {
+        // The strength of the claim must track the strength of the evidence.
+        // Handing exactMatch to every mid-similarity pair produces a wall of
+        // identical proposals and overstates what a bare name resemblance
+        // justifies: names alone at mid similarity warrant closeMatch, and
+        // only structural agreement upgrades the claim.
         if label_sim > 0.8 && prop_overlap > 0.5 {
             "owl:equivalentClass"
         } else if label_sim > 0.8 {
             "skos:exactMatch"
         } else if parent_overlap > 0.5 {
             "rdfs:subClassOf"
-        } else if label_sim > 0.6 {
-            "skos:exactMatch"
         } else {
             "skos:closeMatch"
         }

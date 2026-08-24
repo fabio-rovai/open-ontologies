@@ -54,13 +54,13 @@ Environment Act 2021 s.104. Each of those is carried in the relationship's
 
 ## Files
 
-- `data/entities.json` — the sourced source-of-truth (actors + relationships)
-- `ontology/ngg.ttl` — the NGG vocabulary (reuses W3C ORG, PROV-O, SKOS, Dublin Core)
-- `shapes/ngg-shapes.ttl` — SHACL shapes (labelling, controlled vocab, sourcing, referential integrity)
-- `graph.ttl` / `graph.jsonld` — the built graph
-- `queries/competency.rq` — the competency questions the graph answers
-- `pipeline/build_and_validate.py` — reproducible build + validation
-- `metrics.json` — machine-readable build metrics
+- `data/entities.json`: the sourced source-of-truth (actors + relationships)
+- `ontology/ngg.ttl`: the NGG vocabulary (reuses W3C ORG, PROV-O, SKOS, Dublin Core)
+- `shapes/ngg-shapes.ttl`: SHACL shapes (labelling, controlled vocab, sourcing, referential integrity)
+- `graph.ttl` / `graph.jsonld`: the built graph
+- `queries/competency.rq`: the competency questions the graph answers
+- `pipeline/build_and_validate.py`: reproducible build + validation
+- `metrics.json`: machine-readable build metrics
 
 ## Reproduce
 

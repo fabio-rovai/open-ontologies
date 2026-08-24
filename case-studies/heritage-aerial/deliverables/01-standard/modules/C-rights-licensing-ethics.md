@@ -1,5 +1,4 @@
-# Module C — Rights, Licensing & Ethics
-
+# Module C: Rights, Licensing & Ethics
 **Status:** Normative · v1.0
 **Applies to:** All NAPH-compliant records, all tiers
 **Defines:** machine-readable rights statements and the ethical framework for sensitive material
@@ -33,7 +32,7 @@ A Baseline-compliant record SHOULD have:
 An Enhanced-compliant record MUST additionally have:
 
 - **C.E.1** A documented basis for the rights determination (legal review, default policy, donor agreement)
-- **C.E.2** A review date (`naph:rightsReviewedOn`) — rights determinations are not permanent; copyright laws and donor agreements change
+- **C.E.2** A review date (`naph:rightsReviewedOn`): rights determinations are not permanent; copyright laws and donor agreements change
 
 An Enhanced-compliant record SHOULD additionally have:
 
@@ -55,12 +54,12 @@ The primary vocabulary for rights statements on heritage material. NAPH uses can
 | Statement | Canonical URI | Use when |
 |---|---|---|
 | In Copyright | `http://rightsstatements.org/vocab/InC/1.0/` | The institution has determined the item is under copyright |
-| In Copyright — EU Out of Copyright | `http://rightsstatements.org/vocab/InC-OW-EU/1.0/` | Public domain in EU but possibly under copyright elsewhere |
-| In Copyright — Educational Use Permitted | `http://rightsstatements.org/vocab/InC-EDU/1.0/` | Copyright but with educational use permission |
-| No Copyright — Other Known Legal Restrictions | `http://rightsstatements.org/vocab/NoC-OKLR/1.0/` | Out of copyright but other legal restrictions apply |
-| No Copyright — Non-Commercial Use Only | `http://rightsstatements.org/vocab/NoC-NC/1.0/` | Public domain but reuse restricted to non-commercial |
-| No Copyright — United States | `http://rightsstatements.org/vocab/NoC-US/1.0/` | Public domain in US, status elsewhere unverified |
-| Copyright Undetermined | `http://rightsstatements.org/vocab/CNE/1.0/` | Status not yet evaluated — temporary use only |
+| In Copyright - EU Out of Copyright | `http://rightsstatements.org/vocab/InC-OW-EU/1.0/` | Public domain in EU but possibly under copyright elsewhere |
+| In Copyright - Educational Use Permitted | `http://rightsstatements.org/vocab/InC-EDU/1.0/` | Copyright but with educational use permission |
+| No Copyright - Other Known Legal Restrictions | `http://rightsstatements.org/vocab/NoC-OKLR/1.0/` | Out of copyright but other legal restrictions apply |
+| No Copyright - Non-Commercial Use Only | `http://rightsstatements.org/vocab/NoC-NC/1.0/` | Public domain but reuse restricted to non-commercial |
+| No Copyright - United States | `http://rightsstatements.org/vocab/NoC-US/1.0/` | Public domain in US, status elsewhere unverified |
+| Copyright Undetermined | `http://rightsstatements.org/vocab/CNE/1.0/` | Status not yet evaluated; temporary use only |
 
 ### C.3.2 Creative Commons
 
@@ -93,8 +92,7 @@ For each record, determine the rights statement using [`decision-trees/rights-de
 
 ## C.5 Worked examples
 
-### C.5.1 Baseline — Crown Copyright (UK government source)
-
+### C.5.1 Baseline: Crown Copyright (UK government source)
 ```turtle
 ex:crownRights a naph:RightsStatement ;
     naph:rightsURI <https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/> ;
@@ -103,29 +101,26 @@ ex:crownRights a naph:RightsStatement ;
 ex:photo-001 naph:hasRightsStatement ex:crownRights .
 ```
 
-### C.5.2 Baseline — Out-of-copyright UK material
-
+### C.5.2 Baseline: Out-of-copyright UK material
 ```turtle
 ex:expiredCrown a naph:RightsStatement ;
     naph:rightsURI <http://rightsstatements.org/vocab/NoC-OKLR/1.0/> ;
-    naph:rightsLabel "No Copyright — Other Known Legal Restrictions" ;
+    naph:rightsLabel "No Copyright - Other Known Legal Restrictions" ;
     naph:rightsNote "Crown Copyright expired (50 years post-creation for unpublished Crown works pre-1957)" .
 ```
 
-### C.5.3 Enhanced — full review documentation
-
+### C.5.3 Enhanced: full review documentation
 ```turtle
 ex:expiredCrown a naph:RightsStatement ;
     naph:rightsURI <http://rightsstatements.org/vocab/NoC-OKLR/1.0/> ;
-    naph:rightsLabel "No Copyright — Other Known Legal Restrictions" ;
+    naph:rightsLabel "No Copyright - Other Known Legal Restrictions" ;
     naph:rightsHolder ex:HMG ;
     naph:rightsReviewedOn "2024-01-15"^^xsd:date ;
     naph:rightsReviewedBy ex:reviewer-A ;
-    naph:rightsReviewBasis "Crown Copyright expiry — 50 years post-creation per CDPA 1988 s.163(3) for material created pre-1989 unpublished" .
+    naph:rightsReviewBasis "Crown Copyright expiry: 50 years post-creation per CDPA 1988 s.163(3) for material created pre-1989 unpublished" .
 ```
 
-### C.5.4 Enhanced + Ethics — sensitive material
-
+### C.5.4 Enhanced + Ethics: sensitive material
 ```turtle
 ex:photo-Hiroshima naph:hasRightsStatement ex:naraPublicDomain ;
     naph:ethicsStatement [
@@ -135,8 +130,7 @@ ex:photo-Hiroshima naph:hasRightsStatement ex:naraPublicDomain ;
     ] .
 ```
 
-### C.5.5 Aspirational — TK Labels alongside legal rights
-
+### C.5.5 Aspirational: TK Labels alongside legal rights
 ```turtle
 ex:photo-Indigenous-X naph:hasRightsStatement ex:crownExpired ;
     naph:culturalRights [
@@ -177,7 +171,7 @@ A SHACL shape (`naph:RightsStatementShape`) checks:
 
 ## C.9 Cross-references
 
-- [Module B — Metadata & Data Structures](B-metadata-data-structures.md)
+- [Module B: Metadata & Data Structures](B-metadata-data-structures.md)
 - [Rights decision tree](../../04-adoption-guidance/decision-trees/rights-decision-tree.md)
 - [rightsstatements.org documentation](https://rightsstatements.org/page/1.0/)
 - [Local Contexts](https://localcontexts.org/)

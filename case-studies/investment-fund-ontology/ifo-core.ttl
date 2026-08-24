@@ -1,0 +1,252 @@
+@prefix ifo:     <https://gov.tesseract.academy/def/fund#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+#################################################################
+# Investment Fund Ontology (IFO) - core module
+#
+# Models the registered investment fund product hierarchy
+#   FundRegistrant > Fund (series) > ShareClass > Listing
+# together with a reified identifier model that treats every
+# identifier (ISIN, LEI, CUSIP, SEDOL, ticker, SEC ids, ...) as
+# a first-class node carrying its scheme, its source system, and
+# its computed checksum status.
+#
+# Design positions (documented, deliberate):
+#  1. Identifiers are nodes, not literals. Fund data governance
+#     is about identifiers as managed objects with lifecycle,
+#     authority, and validation state; a bare literal cannot
+#     carry any of that.
+#  2. Every asserted identifier records the source system it came
+#     from (SEC series/class file, SEC Form N-CEN, GLEIF), so
+#     cross-system inconsistency is queryable rather than silent.
+#  3. A ShareClass is a Security. A Listing is the admission of
+#     that security to a venue; venue-scoped identifiers (ticker,
+#     SEDOL) attach to the Listing, issue-scoped identifiers
+#     (ISIN, CUSIP) attach to the ShareClass, entity-scoped
+#     identifiers (LEI, CIK) attach to Fund or FundRegistrant.
+#     Putting each identifier at its correct level of the
+#     hierarchy is most of what "identifier governance" means.
+#################################################################
+
+<https://gov.tesseract.academy/def/fund>
+    a owl:Ontology ;
+    dcterms:title "Investment Fund Ontology (IFO) - core"@en ;
+    dcterms:creator "Fabio Rovai" ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    dcterms:created "2026-08-14"^^xsd:date ;
+    owl:versionInfo "0.1.0" ;
+    rdfs:comment "Core product-hierarchy and identifier model for registered investment funds. Populated and validated against three public authoritative sources: the SEC Investment Company Series and Class dataset, SEC Form N-CEN structured filings, and the GLEIF ISIN-to-LEI relationship file."@en .
+
+#################################################################
+# Product hierarchy
+#################################################################
+
+ifo:FundRegistrant a owl:Class ;
+    rdfs:label "Fund registrant"@en ;
+    rdfs:comment "A registered investment company as it registers with a securities regulator: the legal umbrella (trust, SICAV, OEIC, corporation) under which one or more fund series are organised. Carries entity-level identifiers such as LEI and, in the US, CIK and 811-/814- file numbers."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:Fund a owl:Class ;
+    rdfs:label "Fund"@en ;
+    rdfs:comment "A pooled investment vehicle with its own investment objective and portfolio, organised under a registrant. Corresponds to an SEC 'series' (S-prefixed series id) and to the reporting unit of Form N-CEN Part C. Funds may hold their own LEI, distinct from the registrant's."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:Security a owl:Class ;
+    rdfs:label "Security"@en ;
+    rdfs:comment "A fungible, transferable financial instrument. In the fund hierarchy the issued instrument is the share class; ShareClass is therefore modelled as a subclass of Security rather than as a separate leaf, and issue-scoped identifiers (ISIN, CUSIP) attach here."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:ShareClass a owl:Class ;
+    rdfs:subClassOf ifo:Security ;
+    rdfs:label "Share class"@en ;
+    rdfs:comment "A class of shares issued by a fund, differing from sibling classes in fee structure, distribution channel, or currency, while representing the same underlying portfolio. Corresponds to an SEC 'class' (C-prefixed class id). The share class is the unit that receives issue-scoped security identifiers."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:Listing a owl:Class ;
+    rdfs:label "Listing"@en ;
+    rdfs:comment "The admission or quotation of a share class on a specific trading venue. Venue-scoped identifiers (ticker symbol, SEDOL) and venue-specific trading status belong here, not on the share class: the same class listed on two venues has two listings, two tickers, and potentially two SEDOLs, but one ISIN."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:TradingVenue a owl:Class ;
+    rdfs:label "Trading venue"@en ;
+    rdfs:comment "An exchange or trading system identified by an ISO 10383 Market Identifier Code (MIC)."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+#################################################################
+# Identifier model (reified)
+#################################################################
+
+ifo:Identifier a owl:Class ;
+    rdfs:label "Identifier"@en ;
+    rdfs:comment "A managed identifier assertion: the identifier string, the scheme it belongs to, the source system that asserted it, and its computed validation state. One real-world identifier asserted by two source systems yields two Identifier nodes bridged by ifo:sameIdentifierAs, which is exactly what makes cross-system reconciliation queryable."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:identifies a owl:ObjectProperty ;
+    rdfs:label "identifies"@en ;
+    rdfs:domain ifo:Identifier ;
+    rdfs:comment "Links an identifier node to the entity it identifies."@en ;
+    owl:inverseOf ifo:identifiedBy ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:identifiedBy a owl:ObjectProperty ;
+    rdfs:label "identified by"@en ;
+    rdfs:range ifo:Identifier ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:identifierValue a owl:DatatypeProperty ;
+    rdfs:label "identifier value"@en ;
+    rdfs:domain ifo:Identifier ;
+    rdfs:range xsd:string ;
+    rdfs:comment "The identifier string exactly as asserted by the source system, unnormalised. Normalisation happens in derived views, never on the asserted value: governance needs to see what the source actually said."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:identifierScheme a owl:ObjectProperty ;
+    rdfs:label "identifier scheme"@en ;
+    rdfs:domain ifo:Identifier ;
+    rdfs:range skos:Concept ;
+    rdfs:comment "The identification scheme (a concept in the IFO identifier-scheme registry: ISIN, LEI, CUSIP, SEDOL, APIR, FundSERV, ...)."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:sourceSystem a owl:ObjectProperty ;
+    rdfs:label "source system"@en ;
+    rdfs:range skos:Concept ;
+    rdfs:comment "The source-of-record system that asserted this triple's subject (a concept in the IFO source-system registry). Applied to Identifier nodes and to entity nodes."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:checksumValid a owl:DatatypeProperty ;
+    rdfs:label "checksum valid"@en ;
+    rdfs:domain ifo:Identifier ;
+    rdfs:range xsd:boolean ;
+    rdfs:comment "Result of the scheme-specific check-digit algorithm (ISO 7064 MOD 97-10 for LEI, the ISIN Luhn variant for ISIN, CUSIP modulus 10 double-add-double, SEDOL weighted modulus 10), computed by the pipeline and asserted into the graph so that SHACL shapes can require it. Division of labour is deliberate: arithmetic in code, policy in shapes."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:sameIdentifierAs a owl:ObjectProperty ;
+    a owl:SymmetricProperty ;
+    rdfs:label "same identifier as"@en ;
+    rdfs:domain ifo:Identifier ;
+    rdfs:range ifo:Identifier ;
+    rdfs:comment "Bridges two Identifier nodes asserted by different source systems that carry the same scheme and value. Deliberately NOT owl:sameAs: the assertions remain distinct so that disagreement between systems stays visible."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+#################################################################
+# Identifier subclasses (one per scheme, for shape targeting)
+#
+# Instance data types every identifier node with ifo:Identifier
+# AND its scheme subclass, so SHACL shapes can target schemes with
+# core sh:targetClass instead of SPARQL targets.
+#################################################################
+
+ifo:ISIN a owl:Class ; rdfs:subClassOf ifo:Identifier ; rdfs:label "ISIN identifier"@en .
+ifo:LEI a owl:Class ; rdfs:subClassOf ifo:Identifier ; rdfs:label "LEI identifier"@en .
+ifo:CUSIP a owl:Class ; rdfs:subClassOf ifo:Identifier ; rdfs:label "CUSIP identifier"@en .
+ifo:SEDOL a owl:Class ; rdfs:subClassOf ifo:Identifier ; rdfs:label "SEDOL identifier"@en .
+ifo:TickerSymbol a owl:Class ; rdfs:subClassOf ifo:Identifier ; rdfs:label "Ticker symbol identifier"@en .
+ifo:CIK a owl:Class ; rdfs:subClassOf ifo:Identifier ; rdfs:label "SEC CIK identifier"@en .
+ifo:SECSeriesId a owl:Class ; rdfs:subClassOf ifo:Identifier ; rdfs:label "SEC series identifier"@en .
+ifo:SECClassId a owl:Class ; rdfs:subClassOf ifo:Identifier ; rdfs:label "SEC class identifier"@en .
+ifo:SECFileNumber a owl:Class ; rdfs:subClassOf ifo:Identifier ; rdfs:label "SEC file number identifier"@en .
+ifo:MICIdentifier a owl:Class ; rdfs:subClassOf ifo:Identifier ; rdfs:label "MIC identifier"@en .
+ifo:FIGI a owl:Class ; rdfs:subClassOf ifo:Identifier ; rdfs:label "FIGI identifier"@en .
+
+ifo:hasIssuedSecurityIdentifier a owl:ObjectProperty ;
+    rdfs:label "has issued security identifier"@en ;
+    rdfs:domain ifo:Fund ;
+    rdfs:range ifo:Identifier ;
+    rdfs:comment "Attaches an issue-scoped identifier (ISIN) at fund level when the source system (the GLEIF ISIN-to-LEI file) asserts only that the fund's legal entity issued the security, without saying which share class it is. This is a deliberately honest holding position: the public identifier fabric maps LEI to ISIN set, but resolving an ISIN to a specific share class requires licensed identifier data (CUSIP-to-class). Where resolution is possible without licensed data (a fund with exactly one class and exactly one mapped ISIN), the pipeline promotes the assertion to ifo:identifies with ifo:resolutionMethod recorded."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:resolutionMethod a owl:DatatypeProperty ;
+    rdfs:label "resolution method"@en ;
+    rdfs:domain ifo:Identifier ;
+    rdfs:range xsd:string ;
+    rdfs:comment "How a fund-level identifier assertion was resolved to a share class (e.g. 'unique-pairing': the fund has exactly one share class and exactly one mapped ISIN)."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+#################################################################
+# Hierarchy properties
+#################################################################
+
+ifo:hasFund a owl:ObjectProperty ;
+    rdfs:label "has fund"@en ;
+    rdfs:domain ifo:FundRegistrant ;
+    rdfs:range ifo:Fund ;
+    owl:inverseOf ifo:fundOf ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:fundOf a owl:ObjectProperty ;
+    rdfs:label "fund of"@en ;
+    rdfs:domain ifo:Fund ;
+    rdfs:range ifo:FundRegistrant ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:hasShareClass a owl:ObjectProperty ;
+    rdfs:label "has share class"@en ;
+    rdfs:domain ifo:Fund ;
+    rdfs:range ifo:ShareClass ;
+    owl:inverseOf ifo:shareClassOf ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:shareClassOf a owl:ObjectProperty ;
+    rdfs:label "share class of"@en ;
+    rdfs:domain ifo:ShareClass ;
+    rdfs:range ifo:Fund ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:hasListing a owl:ObjectProperty ;
+    rdfs:label "has listing"@en ;
+    rdfs:domain ifo:ShareClass ;
+    rdfs:range ifo:Listing ;
+    owl:inverseOf ifo:listingOf ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:listingOf a owl:ObjectProperty ;
+    rdfs:label "listing of"@en ;
+    rdfs:domain ifo:Listing ;
+    rdfs:range ifo:ShareClass ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:listedOn a owl:ObjectProperty ;
+    rdfs:label "listed on"@en ;
+    rdfs:domain ifo:Listing ;
+    rdfs:range ifo:TradingVenue ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+#################################################################
+# Descriptive properties
+#################################################################
+
+ifo:legalName a owl:DatatypeProperty ;
+    rdfs:label "legal name"@en ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:domicileCountry a owl:DatatypeProperty ;
+    rdfs:label "domicile country"@en ;
+    rdfs:range xsd:string ;
+    rdfs:comment "ISO 3166-1 alpha-2 code of the jurisdiction of organisation."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:hasFeature a owl:ObjectProperty ;
+    rdfs:label "has feature"@en ;
+    rdfs:domain ifo:Fund ;
+    rdfs:range skos:Concept ;
+    rdfs:comment "Structural or regulatory feature of the fund drawn from the IFO fund-feature registry (exchange-traded fund, index fund, money market fund, fund of funds, master-feeder participant, target date fund, interval fund). Populated from the Form N-CEN Part C classification flags."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:reportedShareClassCount a owl:DatatypeProperty ;
+    rdfs:label "reported share class count"@en ;
+    rdfs:domain ifo:Fund ;
+    rdfs:range xsd:integer ;
+    rdfs:comment "Number of authorised share classes the fund reported on Form N-CEN, recorded so that shapes can compare it with the number of classes actually present in the SEC series/class file. Reported-versus-observed cardinality disagreement is a governance signal, not a modelling error."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .
+
+ifo:asOf a owl:DatatypeProperty ;
+    rdfs:label "as of"@en ;
+    rdfs:range xsd:date ;
+    rdfs:comment "Date of the source snapshot from which the subject was asserted."@en ;
+    rdfs:isDefinedBy <https://gov.tesseract.academy/def/fund> .

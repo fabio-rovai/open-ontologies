@@ -286,6 +286,7 @@ impl OwlParser {
         let mut object_properties: HashSet<u32> = HashSet::new();
         let mut individual_types: HashMap<u32, HashSet<u32>> = HashMap::new();
         let mut role_assertions: Vec<(u32, u32, u32)> = Vec::new();
+        let mut data_assertions: Vec<(u32, u32, u32)> = Vec::new();
 
         // Collect all subjects with their types for classification
         let mut subject_types: HashMap<String, Vec<String>> = HashMap::new();
@@ -415,6 +416,7 @@ impl OwlParser {
         }
 
         // Collect EquivalentClass axioms (→ bidirectional SubClassOf)
+        let mut definitions: HashMap<u32, Concept> = HashMap::new();
         let equiv_pairs: Vec<(String, String)> = self
             .index
             .by_subject
@@ -431,6 +433,14 @@ impl OwlParser {
             let b = self.parse_class_expr(&b_str);
             let a_nnf = a.to_nnf();
             let b_nnf = b.to_nnf();
+            // Keep the definition in structural form. Realization needs to know that a
+            // named class IS a particular conjunction, which cannot be recovered from the
+            // GCI encoding once negation has been pushed through it.
+            if let Concept::Atom(id) = a_nnf {
+                definitions.insert(id, b_nnf.clone());
+            } else if let Concept::Atom(id) = b_nnf {
+                definitions.insert(id, a_nnf.clone());
+            }
             axioms.push((a_nnf.clone(), b_nnf.clone()));
             axioms.push((b_nnf, a_nnf));
         }
@@ -478,6 +488,14 @@ impl OwlParser {
                     if object_properties.contains(&p_id) {
                         let o_id = self.interner.intern(o);
                         role_assertions.push((ind_id, p_id, o_id));
+                    } else {
+                        // Datatype assertions are kept apart from role assertions on purpose.
+                        // They must not become tableau edges, since a literal is not a node,
+                        // but realization needs them: owl:hasValue on a datatype property is
+                        // how a defined class picks out individuals by a flag, and dropping
+                        // these made every such class permanently empty.
+                        let o_id = self.interner.intern(o);
+                        data_assertions.push((ind_id, p_id, o_id));
                     }
                 }
             }
@@ -502,6 +520,8 @@ impl OwlParser {
             inv_functional_roles,
             individual_types,
             role_assertions,
+            data_assertions,
+            definitions,
         }
     }
 
@@ -641,6 +661,10 @@ struct ParseResult {
     inv_functional_roles: HashSet<u32>,
     individual_types: HashMap<u32, HashSet<u32>>,
     role_assertions: Vec<(u32, u32, u32)>,
+    /// Datatype-property assertions, for realization only; never tableau edges.
+    data_assertions: Vec<(u32, u32, u32)>,
+    /// Named class → the concept it is defined as being equivalent to.
+    definitions: HashMap<u32, Concept>,
 }
 
 // ── Processed TBox ──────────────────────────────────────────────────────
@@ -1482,6 +1506,10 @@ pub struct DlReasoner {
     nothing_id: u32,
     individual_types: HashMap<u32, HashSet<u32>>,
     role_assertions: Vec<(u32, u32, u32)>,
+    data_assertions: Vec<(u32, u32, u32)>,
+    definitions: HashMap<u32, Concept>,
+    /// Sub-class closure over asserted rdfs:subClassOf, used by realization.
+    subclass_closure: HashMap<u32, HashSet<u32>>,
     /// Wall-clock cut-off applied to each individual satisfiability test.
     /// `None` means no time limit (the node/depth budgets still apply).
     deadline: Option<Instant>,
@@ -1492,6 +1520,32 @@ impl DlReasoner {
         let triples = graph.all_triples()?;
         let parser = OwlParser::new(triples);
         let result = parser.parse();
+
+        // Transitive closure of asserted CLASS subsumption, so an individual typed
+        // EnumerationTerm satisfies a conjunct requiring ClassTerm.
+        //
+        // Built from the axiom list, not from `sub_to_super`: that map is the ROLE hierarchy
+        // (rdfs:subPropertyOf). Using it here silently produced an empty class closure and
+        // no individual ever matched a definition naming a superclass.
+        let mut direct: HashMap<u32, HashSet<u32>> = HashMap::new();
+        for (sub, sup) in &result.axioms {
+            if let (Concept::Atom(a), Concept::Atom(b)) = (sub, sup)
+                && a != b {
+                    direct.entry(*a).or_default().insert(*b);
+                }
+        }
+        let mut closure: HashMap<u32, HashSet<u32>> = HashMap::new();
+        for sub in direct.keys().copied().collect::<Vec<_>>() {
+            let mut seen: HashSet<u32> = HashSet::new();
+            let mut stack: Vec<u32> = direct.get(&sub).map(|v| v.iter().copied().collect()).unwrap_or_default();
+            while let Some(x) = stack.pop() {
+                if seen.insert(x)
+                    && let Some(next) = direct.get(&x) {
+                        stack.extend(next.iter().copied());
+                    }
+            }
+            closure.insert(sub, seen);
+        }
 
         let tbox = Arc::new(ProcessedTBox::new(
             &result.axioms,
@@ -1511,6 +1565,9 @@ impl DlReasoner {
             nothing_id: result.nothing_id,
             individual_types: result.individual_types,
             role_assertions: result.role_assertions,
+            data_assertions: result.data_assertions,
+            definitions: result.definitions,
+            subclass_closure: closure,
             deadline: crate::runtime::tableaux_test_timeout_ms()
                 .map(|ms| Instant::now() + std::time::Duration::from_millis(ms)),
         })
@@ -1767,6 +1824,120 @@ impl DlReasoner {
     }
 
     /// ABox Agent: check individual consistency and infer types.
+    /// Realize individuals into classes that are DEFINED by an owl:equivalentClass axiom.
+    ///
+    /// `check_abox` reads concept labels off one completed tableau. That is sound for
+    /// detecting inconsistency but it is not realization: a concept satisfied in the single
+    /// model the expansion happened to find is not thereby entailed, and the branch that
+    /// would have added a defined class is usually not the branch recorded. The practical
+    /// consequence was that a class defined by owl:equivalentClass stayed permanently empty,
+    /// so the whole idiom of defining a class and letting the reasoner find its members did
+    /// not work at all.
+    ///
+    /// Full realization would test, for every individual and every class, whether asserting
+    /// the negated class makes the ABox inconsistent. That is one tableau expansion over the
+    /// entire ABox per pair, which is not affordable: a few thousand individuals against a
+    /// few dozen classes is tens of thousands of full expansions.
+    ///
+    /// This instead matches definitions structurally against asserted facts, which is linear
+    /// in individuals and is complete for the fragment it accepts: a conjunction whose
+    /// conjuncts are named classes and existential restrictions whose filler is a named class
+    /// or a nominal. That covers `owl:hasValue` and `owl:someValuesFrom` inside an
+    /// `owl:intersectionOf`, which is how defined classes are written in practice. Anything
+    /// outside the fragment is declined rather than guessed at, so a definition using
+    /// negation, cardinality or a nested anonymous class yields no members here rather than
+    /// wrong ones. Cardinality-based definitions in particular are closed-world questions and
+    /// belong in SHACL.
+    fn realize_definitions(&self) -> HashMap<u32, HashSet<u32>> {
+        let mut out: HashMap<u32, HashSet<u32>> = HashMap::new();
+        if std::env::var("OO_DEBUG_REALIZE").is_ok() {
+            eprintln!("[realize] definitions={} individuals={} roles={}",
+                self.definitions.len(), self.individual_types.len(), self.role_assertions.len());
+            for (c, d) in &self.definitions {
+                eprintln!("[realize]   {} := {:?}", self.interner.resolve(*c), d);
+            }
+        }
+        if self.definitions.is_empty() {
+            return out;
+        }
+
+        // role assertions indexed by subject for a linear scan per individual
+        let mut by_subject: HashMap<u32, Vec<(u32, u32)>> = HashMap::new();
+        for &(a, r, b) in &self.role_assertions {
+            by_subject.entry(a).or_default().push((r, b));
+        }
+        for &(a, r, b) in &self.data_assertions {
+            by_subject.entry(a).or_default().push((r, b));
+        }
+
+        for (&ind, types) in &self.individual_types {
+            for (&cls, def) in &self.definitions {
+                if types.contains(&cls) {
+                    continue;
+                }
+                if self.satisfies(ind, types, def, &by_subject) {
+                    out.entry(ind).or_default().insert(cls);
+                }
+            }
+        }
+        out
+    }
+
+    /// True when the asserted facts about `ind` entail `concept`, for the accepted fragment.
+    /// Returns false for anything outside it, which keeps unsupported definitions empty
+    /// rather than unsound.
+    fn satisfies(
+        &self,
+        ind: u32,
+        types: &HashSet<u32>,
+        concept: &Concept,
+        by_subject: &HashMap<u32, Vec<(u32, u32)>>,
+    ) -> bool {
+        match concept {
+            Concept::Top => true,
+            Concept::Atom(c) => self.has_type(types, *c),
+            Concept::And(parts) => parts.iter().all(|p| self.satisfies(ind, types, p, by_subject)),
+            Concept::Exists(role, filler) => {
+                let Concept::Atom(target) = **filler else {
+                    return false;
+                };
+                by_subject.get(&ind).is_some_and(|edges| {
+                    edges.iter().any(|&(r, o)| {
+                        if !self.role_matches(r, *role) {
+                            return false;
+                        }
+                        // nominal: the filler names the object itself
+                        // class filler: the object is typed by it
+                        o == target
+                            || self
+                                .individual_types
+                                .get(&o)
+                                .is_some_and(|ot| self.has_type(ot, target))
+                    })
+                })
+            }
+            _ => false,
+        }
+    }
+
+    fn has_type(&self, types: &HashSet<u32>, target: u32) -> bool {
+        types.contains(&target)
+            || types.iter().any(|t| {
+                self.subclass_closure
+                    .get(t)
+                    .is_some_and(|sups| sups.contains(&target))
+            })
+    }
+
+    fn role_matches(&self, asserted: u32, required: u32) -> bool {
+        asserted == required
+            || self
+                .tbox
+                .super_to_sub
+                .get(&required)
+                .is_some_and(|subs| subs.contains(&asserted))
+    }
+
     pub fn check_abox(&self) -> ABoxResult {
         if self.individual_types.is_empty() {
             return ABoxResult {
@@ -1791,10 +1962,35 @@ impl DlReasoner {
             for &cls in types {
                 tableau.add_label(node_id, Concept::Atom(cls));
             }
+            // The nominal {a} is approximated as the atomic concept named by a's own IRI
+            // (see RawConcept::Named). That approximation only works if a's node actually
+            // carries that atom: without it an owl:hasValue restriction can never be
+            // satisfied, so every class DEFINED by one stays empty and no individual is
+            // ever realized into it.
+            tableau.add_label(node_id, Concept::Atom(ind));
             // Add GCIs
             for gci in tableau.tbox.gcis.clone() {
                 tableau.add_label(node_id, gci);
             }
+        }
+
+        // An individual may be named only as the object of a role assertion, typed by a
+        // vocabulary this reasoner does not treat as a class (a skos:Concept, say) and never
+        // declared owl:NamedIndividual. It still has to exist as a node, or the edge that
+        // points at it leads nowhere and the restriction that depends on it silently fails.
+        let referenced: Vec<u32> = self
+            .role_assertions
+            .iter()
+            .map(|&(_, _, b)| b)
+            .filter(|b| !ind_to_node.contains_key(b))
+            .collect();
+        for b in referenced {
+            if ind_to_node.contains_key(&b) {
+                continue;
+            }
+            let node_id = tableau.fresh_node(None, None);
+            ind_to_node.insert(b, node_id);
+            tableau.add_label(node_id, Concept::Atom(b));
         }
 
         // Add role assertions as edges
@@ -1827,12 +2023,19 @@ impl DlReasoner {
                 if let Some(node) = tableau.nodes.get(&node_id) {
                     for label in &node.labels {
                         if let Concept::Atom(cls) = label
-                            && !self.individual_types[&ind].contains(cls) {
+                            && *cls != ind
+                            && !self.individual_types.get(&ind).is_some_and(|t| t.contains(cls)) {
                                 inferred.entry(ind).or_default().insert(*cls);
                             }
                     }
                 }
             }
+        }
+
+        // Structural realization runs regardless of which model the expansion found, and is
+        // what actually populates classes defined by owl:equivalentClass.
+        for (ind, classes) in self.realize_definitions() {
+            inferred.entry(ind).or_default().extend(classes);
         }
 
         ABoxResult {

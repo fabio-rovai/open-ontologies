@@ -15,8 +15,7 @@
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# UK Crown Copyright — currently active
-# Use for: post-1957 unpublished UK government works still under copyright
+# UK Crown Copyright: currently active# Use for: post-1957 unpublished UK government works still under copyright
 # Use for: published UK government works not yet at expiry
 # -----------------------------------------------------------------------------
 yourns:rights-CrownCopyright a naph:RightsStatement ;
@@ -28,15 +27,14 @@ yourns:rights-CrownCopyright a naph:RightsStatement ;
     rdfs:comment "Crown Copyright UK government work. OGL v3.0 covers most reuse cases." .
 
 # -----------------------------------------------------------------------------
-# UK Crown Copyright — expired
-# Use for: pre-1957 unpublished works after 125 years post-creation
+# UK Crown Copyright: expired# Use for: pre-1957 unpublished works after 125 years post-creation
 # Use for: published Crown works after 50 years post-publication
 # -----------------------------------------------------------------------------
 yourns:rights-CrownCopyrightExpired a naph:RightsStatement ;
     naph:rightsURI <http://rightsstatements.org/vocab/NoC-OKLR/1.0/> ;
-    naph:rightsLabel "No Copyright — Other Known Legal Restrictions" ;
+    naph:rightsLabel "No Copyright - Other Known Legal Restrictions" ;
     naph:rightsReviewedOn "2024-01-15"^^xsd:date ;
-    naph:rightsReviewBasis "Crown Copyright expired per CDPA 1988 s.163(3) — 125 years post-creation rule for unpublished works" ;
+    naph:rightsReviewBasis "Crown Copyright expired per CDPA 1988 s.163(3), 125 years post-creation rule for unpublished works" ;
     rdfs:comment "Out-of-copyright UK Crown work. Some legal restrictions may apply (e.g. data protection if material identifies individuals)." .
 
 # -----------------------------------------------------------------------------
@@ -45,8 +43,8 @@ yourns:rights-CrownCopyrightExpired a naph:RightsStatement ;
 # -----------------------------------------------------------------------------
 yourns:rights-NARAPublicDomain a naph:RightsStatement ;
     naph:rightsURI <http://rightsstatements.org/vocab/NoC-US/1.0/> ;
-    naph:rightsLabel "No Copyright — United States" ;
-    naph:rightsReviewBasis "Federal employee work doctrine — public domain in US per 17 U.S.C. § 105" ;
+    naph:rightsLabel "No Copyright - United States" ;
+    naph:rightsReviewBasis "Federal employee work doctrine: public domain in US per 17 U.S.C. § 105" ;
     rdfs:comment "US federal government work. Public domain in US; status outside US not asserted." .
 
 # -----------------------------------------------------------------------------
@@ -85,7 +83,7 @@ yourns:rights-CCBYNC40 a naph:RightsStatement ;
 yourns:rights-CC0 a naph:RightsStatement ;
     naph:rightsURI <https://creativecommons.org/publicdomain/zero/1.0/> ;
     naph:rightsLabel "CC0 Public Domain Dedication" ;
-    rdfs:comment "Released under CC0 — no rights reserved. Fully open reuse." .
+    rdfs:comment "Released under CC0, no rights reserved. Fully open reuse." .
 
 # -----------------------------------------------------------------------------
 # In Copyright (no public reuse permission)
@@ -114,7 +112,7 @@ yourns:rights-CNE a naph:RightsStatement ;
 # -----------------------------------------------------------------------------
 yourns:rights-SeizedMaterial a naph:RightsStatement ;
     naph:rightsURI <http://rightsstatements.org/vocab/InC-OW-EU/1.0/> ;
-    naph:rightsLabel "In Copyright — Orphan Works (EU)" ;
+    naph:rightsLabel "In Copyright - Orphan Works (EU)" ;
     naph:rightsReviewedOn "2024-01-15"^^xsd:date ;
     naph:rightsReviewBasis "Material seized 1945; original creator's successors not identifiable. Treated as orphan work pending Orphan Works Licensing Scheme application." ;
     rdfs:comment "Seized enemy material. Rights regime complex; treat as orphan work pending formal licensing." .

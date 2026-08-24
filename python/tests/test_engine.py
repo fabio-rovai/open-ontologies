@@ -80,3 +80,25 @@ def test_diff():
     b = "<http://x/A> <http://x/p> <http://x/C> ."
     d = OntologyEngine.diff(a, b, "ntriples")
     assert d["added_count"] == 1 and d["removed_count"] == 1
+
+
+def test_json_ld_spelling_is_accepted():
+    """"json-ld" is the W3C media-type spelling and what rdflib itself takes.
+
+    Accepting only "jsonld" turns a correct format name into a ValueError, and
+    the error message did not even hint that the hyphenless spelling was the
+    one on offer.
+    """
+    from open_ontologies_lite import resolve_format
+
+    assert resolve_format("json-ld") is resolve_format("jsonld")
+
+
+def test_json_ld_spelling_round_trips_through_the_engine():
+    from open_ontologies_lite import OntologyEngine
+
+    ttl = "@prefix ex: <http://example.org/> . ex:Alice a ex:Person ."
+    engine = OntologyEngine()
+    engine.load(ttl, "turtle")
+    doc = engine.convert(ttl, "turtle", "json-ld")
+    assert OntologyEngine.validate(doc, "json-ld").ok

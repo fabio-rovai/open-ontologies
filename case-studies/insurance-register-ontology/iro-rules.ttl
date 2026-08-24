@@ -1,0 +1,153 @@
+@prefix iro:    <https://gov.tesseract.academy/def/insurance#> .
+@prefix irosch: <https://gov.tesseract.academy/def/insurance/scheme#> .
+@prefix sh:     <http://www.w3.org/ns/shacl#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+# IRO layer-3 rules: cross-source business rules over the
+# EIOPA register joined with GLEIF.
+#
+# Shipped as standard SHACL-SPARQL for platforms that execute it
+# natively. The reference pipeline executes the identical SPARQL
+# set-based (pipeline/governance_report.py), and the same rules
+# run as written on an Oxigraph-backed engine; see the rdflib
+# measurement in the Investment Fund Ontology case study at
+# github.com/fabio-rovai/open-ontologies (multi-way self-joins
+# are the rdflib failure mode, not anti-joins).
+#################################################################
+
+# R1: an active domestic undertaking with no LEI assertion.
+# EIOPA's Guidelines on the use of the Legal Entity Identifier
+# (EIOPA-BoS-14-026) ask NCAs to ensure that undertakings within
+# the scope of Solvency II hold an LEI. Warning, not Violation:
+# the guideline binds comply-or-explain at NCA level.
+iro:ActiveUndertakingNoLEIShape a sh:NodeShape ;
+    sh:targetClass iro:InsuranceUndertaking ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Active undertaking carries no LEI assertion from any source system: a coverage gap in the identifier fabric the EIOPA LEI guidelines exist to close." ;
+        sh:prefixes <https://gov.tesseract.academy/def/insurance> ;
+        sh:select """
+            PREFIX iro: <https://gov.tesseract.academy/def/insurance#>
+            SELECT $this WHERE {
+                ?reg iro:registrationOf $this .
+                FILTER NOT EXISTS { ?reg iro:registrationEnd ?end . }
+                FILTER NOT EXISTS {
+                    $this iro:identifiedBy ?id .
+                    ?id a iro:LEI .
+                }
+            }
+        """ ;
+    ] .
+
+# R2: checksum-invalid LEI. Violation: the value cannot exist in
+# the global LEI system, so every downstream join built on it is
+# dead on arrival.
+iro:InvalidLEIShape a sh:NodeShape ;
+    sh:targetClass iro:LEI ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "LEI value fails ISO 7064 check digits: not a possible LEI. Filed in an official register, it silently severs the undertaking from GLEIF." ;
+        sh:prefixes <https://gov.tesseract.academy/def/insurance> ;
+        sh:select """
+            PREFIX iro: <https://gov.tesseract.academy/def/insurance#>
+            SELECT $this ?value WHERE {
+                $this iro:identifierValue ?value ;
+                      iro:checksumValid false .
+            }
+        """ ;
+    ] .
+
+# R3: active undertaking whose LEI registration has LAPSED in
+# GLEIF. The identifier still denotes the right entity; its
+# annual renewal was not made. A staleness signal, not an error.
+iro:ActiveUndertakingLapsedLEIShape a sh:NodeShape ;
+    sh:targetClass iro:InsuranceUndertaking ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Active undertaking's LEI is LAPSED in GLEIF: the entity is authorised to write business but is not maintaining its global identifier." ;
+        sh:prefixes <https://gov.tesseract.academy/def/insurance> ;
+        sh:select """
+            PREFIX iro: <https://gov.tesseract.academy/def/insurance#>
+            SELECT $this ?value WHERE {
+                ?reg iro:registrationOf $this .
+                FILTER NOT EXISTS { ?reg iro:registrationEnd ?end . }
+                $this iro:identifiedBy ?id .
+                ?id a iro:LEI ;
+                    iro:identifierValue ?value ;
+                    iro:gleifRegistrationStatus "LAPSED" .
+            }
+        """ ;
+    ] .
+
+# R4: active undertaking whose LEI's ENTITY is INACTIVE per GLEIF.
+# The register says authorised, GLEIF says the legal entity has
+# ceased. One of the two systems is wrong about a live insurer.
+iro:ActiveUndertakingGleifInactiveShape a sh:NodeShape ;
+    sh:targetClass iro:InsuranceUndertaking ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Undertaking is register-active but its LEI's entity status is INACTIVE in GLEIF: cross-source contradiction about whether the insurer exists." ;
+        sh:prefixes <https://gov.tesseract.academy/def/insurance> ;
+        sh:select """
+            PREFIX iro: <https://gov.tesseract.academy/def/insurance#>
+            SELECT $this ?value WHERE {
+                ?reg iro:registrationOf $this .
+                FILTER NOT EXISTS { ?reg iro:registrationEnd ?end . }
+                $this iro:identifiedBy ?id .
+                ?id a iro:LEI ;
+                    iro:identifierValue ?value ;
+                    iro:gleifEntityStatus "INACTIVE" .
+            }
+        """ ;
+    ] .
+
+# R5: one LEI identifying more than one distinct undertaking.
+# Sometimes legitimate (branch structures), sometimes two
+# different companies on one identifier. Warning: a prompt to
+# check entity structure.
+iro:SharedLEIShape a sh:NodeShape ;
+    sh:targetClass iro:LEI ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "LEI identifies more than one distinct undertaking in the register: entity collapse or a mis-filed identifier." ;
+        sh:prefixes <https://gov.tesseract.academy/def/insurance> ;
+        sh:select """
+            PREFIX iro: <https://gov.tesseract.academy/def/insurance#>
+            SELECT $this ?value WHERE {
+                $this iro:identifies ?u1, ?u2 .
+                FILTER (STR(?u1) < STR(?u2))
+                $this iro:identifierValue ?value .
+            }
+        """ ;
+    ] .
+
+# R6: an operation with no end date belonging to an undertaking
+# whose home registration HAS ended: a passport outliving its
+# authorization. Violation.
+iro:ZombiePassportShape a sh:NodeShape ;
+    sh:targetClass iro:CrossBorderOperation ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Open cross-border operation for an undertaking whose home registration has ended: the passport outlives the authorization it derives from." ;
+        sh:prefixes <https://gov.tesseract.academy/def/insurance> ;
+        sh:select """
+            PREFIX iro: <https://gov.tesseract.academy/def/insurance#>
+            SELECT $this WHERE {
+                $this iro:operationOf ?u .
+                FILTER NOT EXISTS { $this iro:operationEnd ?oe . }
+                ?reg iro:registrationOf ?u ;
+                     iro:registrationEnd ?re .
+            }
+        """ ;
+    ] .
+
+<https://gov.tesseract.academy/def/insurance>
+    sh:declare [
+        sh:prefix "iro" ;
+        sh:namespace "https://gov.tesseract.academy/def/insurance#"^^xsd:anyURI ;
+    ] .

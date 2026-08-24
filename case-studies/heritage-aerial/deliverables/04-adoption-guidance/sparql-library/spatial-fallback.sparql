@@ -1,5 +1,4 @@
-# NAPH SPARQL Library — Spatial fallback queries (no GeoSPARQL required)
-#
+# NAPH SPARQL Library: Spatial fallback queries (no GeoSPARQL required)#
 # These queries replicate the most common GeoSPARQL spatial operations using
 # only standard SPARQL string and arithmetic functions. They work in any
 # SPARQL 1.1 engine including Oxigraph (which lacks geof:* functions).
@@ -11,8 +10,7 @@
 # - Performance is comparable for collections <1M records
 
 # =============================================================================
-# Q-FALLBACK-1 — Photographs covering a bounding box
-# =============================================================================
+# Q-FALLBACK-1: Photographs covering a bounding box# =============================================================================
 # Use case: equivalent of geof:sfIntersects when GeoSPARQL is unavailable.
 # Strategy: parse polygon coordinates from WKT string and compare against
 # bounding box numerically.
@@ -30,18 +28,17 @@ WHERE {
     # Polygon format: POLYGON((lon1 lat1, lon2 lat2, ...))
     BIND (REPLACE(STR(?wkt), "POLYGON\\(\\(([^)]+)\\)\\).*", "$1") AS ?coords)
 
-    # Get first lon, first lat as anchor — assumes axis-aligned bbox-shaped polygon
+    # Get first lon, first lat as anchor (assumes axis-aligned bbox-shaped polygon)
     BIND (xsd:decimal(STRBEFORE(?coords, " ")) AS ?lon1)
     BIND (xsd:decimal(STRBEFORE(SUBSTR(?coords, STRLEN(STRBEFORE(?coords, " ")) + 2), ",")) AS ?lat1)
 
-    # Filter — replace these with your target bbox
+    # Filter: replace these with your target bbox
     FILTER (?lon1 >= -3.5 && ?lon1 <= -3.0)
     FILTER (?lat1 >= 55.5 && ?lat1 <= 56.5)
 }
 
 # =============================================================================
-# Q-FALLBACK-2 — Use a separate point-anchor per record (recommended pattern)
-# =============================================================================
+# Q-FALLBACK-2: Use a separate point-anchor per record (recommended pattern)# =============================================================================
 # When ingesting, store the centroid lat/lon as separate properties for fast
 # bounding-box queries. The polygon WKT is for GeoSPARQL-aware downstream;
 # the lat/lon properties are for Oxigraph-compatible filtering.
@@ -62,8 +59,7 @@ WHERE {
 # that's also in the geo:wktLiteral but make filtering trivial.
 
 # =============================================================================
-# Q-FALLBACK-3 — Distance to a point (haversine in SPARQL)
-# =============================================================================
+# Q-FALLBACK-3: Distance to a point (haversine in SPARQL)# =============================================================================
 # Approximate distance using flat-earth geometry. Acceptable for distances
 # up to ~200km; for greater accuracy use a proper haversine implementation
 # in your application code.
@@ -85,12 +81,10 @@ WHERE {
 ORDER BY ?dist_km
 
 # =============================================================================
-# Q-FALLBACK-4 — Polygon intersection (full WKT parsing)
-# =============================================================================
+# Q-FALLBACK-4: Polygon intersection (full WKT parsing)# =============================================================================
 # For accurate polygon intersection in Oxigraph, parse all polygon corners
 # and run a point-in-polygon test in application code. SPARQL alone cannot
-# robustly do this — recommend Python/JS post-processing.
-
+# robustly do this: recommend Python/JS post-processing.
 # Strategy:
 # 1. SPARQL query: SELECT all photos with their WKT
 # 2. Application code: parse WKT, run intersection test, filter

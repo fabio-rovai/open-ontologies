@@ -1,6 +1,6 @@
-# Competency Questions — what the standard lets you answer
+# Competency Questions - what the standard lets you answer
 
-A standard is only valuable if it lets researchers answer questions the previous representation couldn't. This document defines a set of **competency questions** — research questions that should be answerable via SPARQL against any NAPH-compliant dataset — and demonstrates each one against the sample dataset.
+A standard is only valuable if it lets researchers answer questions the previous representation couldn't. This document defines a set of **competency questions** (research questions that should be answerable via SPARQL against any NAPH-compliant dataset) and demonstrates each one against the sample dataset.
 
 Run via:
 
@@ -9,7 +9,7 @@ cd /Users/fabio/projects/open-ontologies/case-studies/heritage-aerial
 open-ontologies batch --pretty docs/competency-queries.batch.txt
 ```
 
-## CQ1 — Temporal range
+## CQ1 - Temporal range
 
 > "Which photographs were captured during the Second World War, with their dates?"
 
@@ -27,9 +27,9 @@ WHERE {
 ORDER BY ?date
 ```
 
-**Why this matters:** the current Air Photo Finder lets you filter by date but not aggregate across the collection. A researcher writing a grant proposal needs to know how much material exists per year, by collection, with what rights status — without browsing 30 million records.
+**Why this matters:** the current Air Photo Finder lets you filter by date but not aggregate across the collection. A researcher writing a grant proposal needs to know how much material exists per year, by collection, with what rights status, without browsing 30 million records.
 
-## CQ2 — Spatial coverage
+## CQ2 - Spatial coverage
 
 > "Which photographs cover central Edinburgh?"
 
@@ -47,9 +47,9 @@ SELECT ?photo ?label ?date WHERE {
 ORDER BY ?date
 ```
 
-**Why this matters:** computational change detection over fixed locations across decades — a foundational use case for aerial photography research — requires bulk spatial query, not hand-clicking a map.
+**Why this matters:** computational change detection over fixed locations across decades (a foundational use case for aerial photography research) requires bulk spatial query, not hand-clicking a map.
 
-## CQ3 — Rights-aware access
+## CQ3 - Rights-aware access
 
 > "Which photographs can I include in an open-access publication today?"
 
@@ -67,7 +67,7 @@ SELECT ?photo ?label ?rightsLabel WHERE {
 
 **Why this matters:** today, rights status is implicit, requiring case-by-case clearance. With machine-readable rights statements, the entire collection becomes filterable for downstream uses.
 
-## CQ4 — Cross-collection linking
+## CQ4 - Cross-collection linking
 
 > "Which photographs are linked to Wikidata historical event records?"
 
@@ -86,7 +86,7 @@ SELECT ?photo ?label ?event ?wikidata WHERE {
 
 **Why this matters:** linking photographs to Wikidata events makes them discoverable through every Wikidata-based research workflow, dramatically extending audience reach without any new digitisation.
 
-## CQ5 — Provenance audit
+## CQ5 - Provenance audit
 
 > "Which photographs in the collection came via the NARA partnership?"
 
@@ -103,7 +103,7 @@ SELECT ?photo ?label ?chainLabel WHERE {
 
 **Why this matters:** provenance audit is critical for repatriation requests, attribution accuracy, and rights clearance. Today this requires manual finding-aid review.
 
-## CQ6 — Tier compliance distribution
+## CQ6 - Tier compliance distribution
 
 > "How is the collection distributed across the three compliance tiers?"
 
@@ -119,7 +119,7 @@ ORDER BY DESC(?count)
 
 **Why this matters:** institutions need to know their starting position before they can plan upgrades. This query becomes the dashboard view for any institution adopting the standard.
 
-## CQ7 — High-research-value subset
+## CQ7 - High-research-value subset
 
 > "Which photographs have all three: post-1944 capture, urban subject linkage, and rights cleared for open use?"
 
@@ -139,9 +139,9 @@ SELECT DISTINCT ?photo ?label WHERE {
 }
 ```
 
-**Why this matters:** combining temporal, semantic, and rights filters in a single query is impossible against current archive systems. With NAPH compliance, this becomes routine — a 5-line SPARQL query.
+**Why this matters:** combining temporal, semantic, and rights filters in a single query is impossible against current archive systems. With NAPH compliance, this becomes routine: a 5-line SPARQL query.
 
-## CQ8 — Capture-context filtering
+## CQ8 - Capture-context filtering
 
 > "Which photographs were captured by a Spitfire above 6000m altitude?"
 

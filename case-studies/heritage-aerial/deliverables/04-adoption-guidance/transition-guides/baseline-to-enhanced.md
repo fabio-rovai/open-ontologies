@@ -6,9 +6,9 @@ You have a NAPH Baseline-compliant collection. This guide walks through what's n
 
 Three categories of metadata not required at Baseline:
 
-1. **Digital surrogate variants** — preservation master + access copy (per record)
-2. **Capture context** — altitude, camera type, sortie metadata (per record)
-3. **Provenance chain** — documented lineage from creation to current holding (per record)
+1. **Digital surrogate variants**: preservation master + access copy (per record)
+2. **Capture context**: altitude, camera type, sortie metadata (per record)
+3. **Provenance chain**: documented lineage from creation to current holding (per record)
 
 ## Effort at scale
 
@@ -24,12 +24,11 @@ For a 100,000-record collection (notional figures):
 
 At a notional £700/day senior-developer rate, the upgrade for 100k records is roughly **£110,000** in capital cost.
 
-The largest cost driver is provenance documentation — domain-expert work that doesn't scale automatically.
+The largest cost driver is provenance documentation, domain-expert work that doesn't scale automatically.
 
 ## Sequencing
 
-### Phase 1 — Surrogate variants (week 1-2)
-
+### Phase 1: Surrogate variants (week 1-2)
 If your existing preservation masters are 600+ DPI TIFFs:
 
 1. Generate access copies (typically 600 DPI JP2 or smaller)
@@ -39,12 +38,11 @@ If your existing preservation masters are 600+ DPI TIFFs:
 
 Tooling: ImageMagick, Vips, KDU (KDU JPEG2000) for batch generation.
 
-### Phase 2 — Capture context (weeks 3-6)
-
+### Phase 2: Capture context (weeks 3-6)
 Extract from existing internal data:
 
-- Sortie metadata (squadron, aircraft, mission type) — typically in the sortie log
-- Altitude and camera type — typically in the same log or photographer's notes
+- Sortie metadata (squadron, aircraft, mission type), typically in the sortie log
+- Altitude and camera type, typically in the same log or photographer's notes
 - Geographic context for the sortie as a whole
 
 Bulk-update via SPARQL `INSERT DATA` or by re-ingesting from updated CSV.
@@ -54,12 +52,11 @@ Where capture context isn't available in source records, document the gap explic
 ```turtle
 ex:photo-X naph:hasCaptureEvent ex:capture-X .
 ex:capture-X a naph:CaptureEvent ;
-    naph:flightAltitude 0.0 ;  # placeholder — flag as unknown
+    naph:flightAltitude 0.0 ;  # placeholder: flag as unknown
     rdfs:comment "Altitude not recorded; collection-level estimate ~9000m for 1943-1944 RAF reconnaissance." .
 ```
 
-### Phase 3 — Provenance chains (weeks 7-12)
-
+### Phase 3: Provenance chains (weeks 7-12)
 This is the heaviest lift. Per sortie, document:
 
 - Original capture event (date, operator, equipment)
@@ -84,8 +81,7 @@ USAAF capture → US Strategic Bombing Survey → NARA accession
 
 Document at the sortie level where possible; record-level provenance is rarely necessary.
 
-### Phase 4 — QA + validation (week 13)
-
+### Phase 4: QA + validation (week 13)
 For each upgraded record:
 
 1. Run SHACL validation against the Enhanced shape
@@ -104,7 +100,7 @@ If your sortie logs are scanned PDFs, not databases:
 3. Transcribe relevant fields to CSV
 4. Ingest
 
-Plan extra time — OCR of historic typescript is rarely > 95% accurate without manual correction.
+Plan extra time: OCR of historic typescript is rarely > 95% accurate without manual correction.
 
 ### Provenance chains differ across sub-collections
 
@@ -130,7 +126,7 @@ If different sources disagree on the provenance chain (e.g. transfer date discre
 
 1. Document the more authoritative source as the primary chain
 2. Note the discrepancy in `rdfs:comment`
-3. Don't fabricate a single confident answer — note the uncertainty
+3. Don't fabricate a single confident answer, note the uncertainty
 
 ## Validation checklist
 
@@ -179,7 +175,7 @@ See [Tier Transition Guide: Enhanced → Aspirational](enhanced-to-aspirational.
 
 ## Cross-references
 
-- [Tutorial 2 — Upgrading to Enhanced](../tutorials/02-upgrading-to-enhanced.md) — single-record walkthrough
-- [Module E — Paradata & Workflow](../../01-standard/modules/E-paradata-workflow.md) — provenance specification
-- [Cost & effort analysis](../../docs/cost-effort-analysis.md) — full cost breakdown
+- [Tutorial 2: Upgrading to Enhanced](../tutorials/02-upgrading-to-enhanced.md): single-record walkthrough
+- [Module E: Paradata & Workflow](../../01-standard/modules/E-paradata-workflow.md): provenance specification
+- [Cost & effort analysis](../../docs/cost-effort-analysis.md): full cost breakdown
 - [Validation checklist](../validation-checklists.md)

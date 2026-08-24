@@ -1,5 +1,4 @@
-# Tutorial 1 — Your First NAPH Record
-
+# Tutorial 1: Your First NAPH Record
 A step-by-step walkthrough for creating a single NAPH-compliant aerial photograph record from scratch. By the end of this tutorial you will have:
 
 - A valid Turtle file containing one Baseline-tier compliant aerial photograph record
@@ -10,8 +9,7 @@ A step-by-step walkthrough for creating a single NAPH-compliant aerial photograp
 **Estimated time:** 30-45 minutes
 **Prerequisites:** A text editor; Open Ontologies CLI installed; Python 3.10+
 
-## Step 0 — Set up
-
+## Step 0: Set up
 Install the Open Ontologies CLI if you haven't already:
 
 ```bash
@@ -35,8 +33,7 @@ Terraform for Knowledge Graphs — AI-native ontology engine
 Usage: open-ontologies [OPTIONS] <COMMAND>
 ```
 
-## Step 1 — Pick a record to model
-
+## Step 1: Pick a record to model
 Use one of your real records or follow this worked example. We'll model a hypothetical aerial photograph:
 
 - **What:** Single frame from RAF reconnaissance over Edinburgh
@@ -47,8 +44,7 @@ Use one of your real records or follow this worked example. We'll model a hypoth
 - **Frame number:** 2287
 - **Rights:** Crown Copyright Expired (now public domain)
 
-## Step 2 — Create the Turtle file
-
+## Step 2: Create the Turtle file
 Create a new file `my-first-record.ttl`:
 
 ```turtle
@@ -73,7 +69,7 @@ ex:NCAPCollection a naph:Collection ;
 # Rights statement (reusable across records with the same rights)
 ex:CrownCopyrightExpired a naph:RightsStatement ;
     naph:rightsURI <http://rightsstatements.org/vocab/NoC-OKLR/1.0/> ;
-    naph:rightsLabel "No Copyright — Other Known Legal Restrictions" .
+    naph:rightsLabel "No Copyright - Other Known Legal Restrictions" .
 
 # Sortie
 ex:sortie-RAF-541-EDI-1946-08 a naph:Sortie ;
@@ -99,8 +95,7 @@ ex:footprint-001 a naph:GeographicFootprint ;
     naph:asWKT "POLYGON((-3.205 55.946, -3.185 55.946, -3.185 55.952, -3.205 55.952, -3.205 55.946))"^^geo:wktLiteral .
 ```
 
-## Step 3 — Validate Turtle syntax
-
+## Step 3: Validate Turtle syntax
 ```bash
 open-ontologies validate my-first-record.ttl
 ```
@@ -118,8 +113,7 @@ Where N is the number of RDF triples in your file (should be ~20). If you see sy
 - Strings use double quotes
 - Class IRIs are namespaced (e.g. `naph:AerialPhotograph`, not `AerialPhotograph`)
 
-## Step 4 — Validate against NAPH SHACL shapes
-
+## Step 4: Validate against NAPH SHACL shapes
 For SHACL validation you need:
 
 1. The NAPH ontology (`naph-core.ttl`)
@@ -141,13 +135,12 @@ Expected output:
 
 If you see violations, common causes:
 
-- "Photograph must have exactly one stable identifier" — missing `naph:hasIdentifier`
-- "Capture date must be a single ISO 8601 date" — wrong date format or datatype
-- "Photograph must reference a GeographicFootprint" — missing `naph:coversArea`
-- "Photograph must have a machine-readable rights statement" — missing `naph:hasRightsStatement`
+- "Photograph must have exactly one stable identifier": missing `naph:hasIdentifier`
+- "Capture date must be a single ISO 8601 date": wrong date format or datatype
+- "Photograph must reference a GeographicFootprint": missing `naph:coversArea`
+- "Photograph must have a machine-readable rights statement": missing `naph:hasRightsStatement`
 
-## Step 5 — Run self-assessment
-
+## Step 5: Run self-assessment
 ```bash
 python3 /path/to/pipeline/self-assessment.py my-first-record.ttl
 ```
@@ -174,8 +167,7 @@ SHACL conformance: CONFORMS (0 violations)
 ======================================================================
 ```
 
-## Step 6 — Run a SPARQL query
-
+## Step 6: Run a SPARQL query
 Confirm the record is queryable:
 
 ```bash
@@ -213,22 +205,22 @@ A researcher with access to your collection's SPARQL endpoint can now query this
 
 GeoSPARQL WKT uses **longitude first, latitude second**:
 
-✅ `POLYGON((-3.205 55.946, ...))` — longitude -3.205, latitude 55.946 (Edinburgh)
-❌ `POLYGON((55.946 -3.205, ...))` — would place the record in the South Atlantic Ocean
+✅ `POLYGON((-3.205 55.946, ...))`: longitude -3.205, latitude 55.946 (Edinburgh)
+❌ `POLYGON((55.946 -3.205, ...))`: would place the record in the South Atlantic Ocean
 
 ### Polygon doesn't close
 
 A WKT polygon's first and last coordinates must be identical:
 
 ✅ `POLYGON((-3.205 55.946, -3.185 55.946, -3.185 55.952, -3.205 55.952, -3.205 55.946))`
-❌ `POLYGON((-3.205 55.946, -3.185 55.946, -3.185 55.952, -3.205 55.952))` — open polygon, validation may fail
+❌ `POLYGON((-3.205 55.946, -3.185 55.946, -3.185 55.952, -3.205 55.952))`: open polygon, validation may fail
 
 ### Date as plain string
 
 Dates must have an XSD type annotation:
 
 ✅ `naph:capturedOn "1946-08-04"^^xsd:date`
-❌ `naph:capturedOn "1946-08-04"` — plain string, won't be filterable as a date
+❌ `naph:capturedOn "1946-08-04"`: plain string, won't be filterable as a date
 
 ### Free-text date
 
@@ -236,7 +228,7 @@ Even partial dates must use XSD types:
 
 ✅ `naph:capturedOn "1946"^^xsd:gYear`
 ✅ `naph:capturedOn "1946-08"^^xsd:gYearMonth`
-❌ `naph:capturedOn "Summer 1946"` — free-text, not allowed
+❌ `naph:capturedOn "Summer 1946"`: free-text, not allowed
 
 ### Missing collection link
 
@@ -250,17 +242,17 @@ Every record must link to a collection:
 Use the canonical `vocab/` form, not the human-readable `page/` form:
 
 ✅ `naph:rightsURI <http://rightsstatements.org/vocab/NoC-OKLR/1.0/>`
-❌ `naph:rightsURI <https://rightsstatements.org/page/NoC-OKLR/1.0/>` — human page, not RDF canonical
+❌ `naph:rightsURI <https://rightsstatements.org/page/NoC-OKLR/1.0/>`: human page, not RDF canonical
 
 ## Next steps
 
-- **Tutorial 2** — Upgrade your record to Enhanced tier (digitisation provenance, capture context, provenance chain)
-- **Tutorial 3** — Reach Aspirational tier (subject classification, place authorities, cross-collection links)
-- **Tutorial 4** — Bulk ingest from CSV — applying the same transformation to thousands of records
+- **Tutorial 2**: Upgrade your record to Enhanced tier (digitisation provenance, capture context, provenance chain)
+- **Tutorial 3**: Reach Aspirational tier (subject classification, place authorities, cross-collection links)
+- **Tutorial 4**: Bulk ingest from CSV, applying the same transformation to thousands of records
 
 ## Cross-references
 
 - [How to use this standard](../how-to-use-this-standard.md)
 - [Validation checklists](../validation-checklists.md)
-- [Module B — Metadata & Data Structures](../../01-standard/modules/B-metadata-data-structures.md)
-- [Sample data](../../../data/sample-photographs.ttl) — 10 worked records, all 3 tiers
+- [Module B: Metadata & Data Structures](../../01-standard/modules/B-metadata-data-structures.md)
+- [Sample data](../../../data/sample-photographs.ttl): 10 worked records, all 3 tiers

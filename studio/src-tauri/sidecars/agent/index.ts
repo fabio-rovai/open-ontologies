@@ -1,4 +1,5 @@
 import { query } from '@anthropic-ai/claude-agent-sdk';
+import { tokeniseInbound } from './tokenise.js';
 import type { Query } from '@anthropic-ai/claude-agent-sdk';
 import * as readline from 'readline';
 
@@ -385,6 +386,17 @@ Call onto_stats after. Do NOT save yet.`,
 // --- Handle a chat message ---
 
 async function handleMessage(userMessage: string, mode: 'sketch' | 'build' = 'sketch'): Promise<void> {
+  // Same protection at the chat entrance as at ingestion: detect and
+  // tokenise sensitive values before ANY provider sees the text. The keyed
+  // scheme matches examples/document-privacy/tokenisation.py, so a value
+  // mentioned in a question still joins to its graph node.
+  const tok = tokeniseInbound(userMessage);
+  if (tok.count > 0) {
+    userMessage = tok.text;
+    send({ type: 'text',
+           content: `_${tok.count} sensitive value(s) tokenised before the model saw your question._\n` });
+  }
+
   try {
     const isBuildLike = isBuildRequest(userMessage) || isSketchRequest(userMessage);
     if (isBuildLike) {

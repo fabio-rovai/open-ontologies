@@ -1,0 +1,146 @@
+@prefix ifo:    <https://gov.tesseract.academy/def/fund#> .
+@prefix ifosch: <https://gov.tesseract.academy/def/fund/scheme#> .
+@prefix sh:     <http://www.w3.org/ns/shacl#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+
+#################################################################
+# IFO layer-3 rules: cross-source and conditional business rules.
+#
+# Shipped as standard SHACL-SPARQL for use on platforms that
+# execute them natively (TopBraid EDG, GraphDB). The reference
+# pipeline executes the identical SPARQL set-based (one query per
+# rule over the whole graph) rather than per focus node, because
+# per-node invocation of N SPARQL constraints over a 1.3M-triple
+# graph multiplies query count by focus-node count for no
+# semantic gain. Same constraints, same results, tractable time.
+#################################################################
+
+# The JD-shaped rule, grounded in what US public data can enforce:
+# an exchange-traded fund's share classes must each be listed, and
+# each listing must carry a ticker. (The ISIN variant of this rule
+# lives at fund level because class-level ISIN resolution requires
+# licensed CUSIP data; see ifo:hasIssuedSecurityIdentifier.)
+ifo:ETFMustBeListedShape a sh:NodeShape ;
+    sh:targetClass ifo:Fund ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Fund is flagged as an exchange-traded fund but has a share class with no listing: an ETF class that cannot be traded is a data defect at fund launch." ;
+        sh:prefixes <https://gov.tesseract.academy/def/fund> ;
+        sh:select """
+            PREFIX ifo:    <https://gov.tesseract.academy/def/fund#>
+            PREFIX ifosch: <https://gov.tesseract.academy/def/fund/scheme#>
+            SELECT $this ?value WHERE {
+                $this ifo:hasFeature ifosch:ExchangeTradedFund .
+                $this ifo:hasShareClass ?value .
+                FILTER NOT EXISTS { ?value ifo:hasListing ?l . }
+            }
+        """ ;
+    ] .
+
+# Cross-source LEI conflict: the same fund carrying two different
+# LEI values from different assertions.
+ifo:FundLEIConflictShape a sh:NodeShape ;
+    sh:targetClass ifo:Fund ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Fund carries conflicting LEI values from different source assertions." ;
+        sh:prefixes <https://gov.tesseract.academy/def/fund> ;
+        sh:select """
+            PREFIX ifo: <https://gov.tesseract.academy/def/fund#>
+            SELECT $this ?value WHERE {
+                $this ifo:identifiedBy ?id1, ?id2 .
+                ?id1 a ifo:LEI ; ifo:identifierValue ?value .
+                ?id2 a ifo:LEI ; ifo:identifierValue ?v2 .
+                FILTER (STR(?value) < STR(?v2))
+            }
+        """ ;
+    ] .
+
+# A fund reporting its registrant's LEI as its own: legal-entity
+# collapse between umbrella and series. Common enough in filings
+# to deserve its own rule; a warning because some structures are
+# genuinely single-entity.
+ifo:FundReusesRegistrantLEIShape a sh:NodeShape ;
+    sh:targetClass ifo:Fund ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Fund reports the same LEI as its registrant: series and umbrella are identifier-collapsed. Verify whether the series is a separate legal entity." ;
+        sh:prefixes <https://gov.tesseract.academy/def/fund> ;
+        sh:select """
+            PREFIX ifo: <https://gov.tesseract.academy/def/fund#>
+            SELECT $this ?value WHERE {
+                $this ifo:fundOf ?reg .
+                $this ifo:identifiedBy ?fid .
+                ?reg  ifo:identifiedBy ?rid .
+                ?fid a ifo:LEI ; ifo:identifierValue ?value .
+                ?rid a ifo:LEI ; ifo:identifierValue ?value .
+            }
+        """ ;
+    ] .
+
+# Scope enforcement: issue-scoped identifiers must not identify
+# entities, venue-scoped identifiers must not identify share
+# classes. The registry declares each scheme's scope; these rules
+# make scope violations visible instead of conventional.
+ifo:ScopeViolationShape a sh:NodeShape ;
+    sh:targetClass ifo:Identifier ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Identifier attached at the wrong level of the hierarchy for its scheme's declared scope (issue-scoped on an entity, or venue-scoped on a share class)." ;
+        sh:prefixes <https://gov.tesseract.academy/def/fund> ;
+        sh:select """
+            PREFIX ifo:    <https://gov.tesseract.academy/def/fund#>
+            PREFIX ifosch: <https://gov.tesseract.academy/def/fund/scheme#>
+            SELECT $this ?value WHERE {
+                {
+                    $this ifo:identifierScheme ?s .
+                    ?s ifo:identifierScope ifosch:IssueScoped .
+                    $this ifo:identifies ?value .
+                    { ?value a ifo:Fund } UNION { ?value a ifo:FundRegistrant }
+                } UNION {
+                    $this ifo:identifierScheme ?s .
+                    ?s ifo:identifierScope ifosch:VenueScoped .
+                    $this ifo:identifies ?value .
+                    ?value a ifo:ShareClass .
+                }
+            }
+        """ ;
+    ] .
+
+# Reported-versus-observed cardinality: N-CEN says how many share
+# classes the fund has authorised; the series/class register says
+# how many exist. Divergence is a governance signal.
+ifo:ClassCountDivergenceShape a sh:NodeShape ;
+    sh:targetClass ifo:Fund ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Share classes observed in the SEC register exceed the count the fund reported on Form N-CEN." ;
+        sh:prefixes <https://gov.tesseract.academy/def/fund> ;
+        sh:select """
+            PREFIX ifo: <https://gov.tesseract.academy/def/fund#>
+            SELECT $this ?value WHERE {
+                $this ifo:reportedShareClassCount ?value .
+                {
+                    SELECT $this (COUNT(?c) AS ?observed) WHERE {
+                        $this ifo:hasShareClass ?c .
+                    } GROUP BY $this
+                }
+                FILTER (?observed > ?value)
+            }
+        """ ;
+    ] .
+
+# SHACL prefix declarations for the SPARQL constraints above.
+<https://gov.tesseract.academy/def/fund>
+    sh:declare [
+        sh:prefix "ifo" ;
+        sh:namespace "https://gov.tesseract.academy/def/fund#"^^xsd:anyURI ;
+    ] ;
+    sh:declare [
+        sh:prefix "ifosch" ;
+        sh:namespace "https://gov.tesseract.academy/def/fund/scheme#"^^xsd:anyURI ;
+    ] .

@@ -13,7 +13,7 @@ CSV-W provides **a JSON-LD descriptor** that accompanies a CSV file and declares
 - Identifier minting rules
 - Required vs optional fields
 
-With a CSV-W descriptor, an institution's existing CSV can be ingested into NAPH without writing custom code — the descriptor IS the configuration.
+With a CSV-W descriptor, an institution's existing CSV can be ingested into NAPH without writing custom code: the descriptor IS the configuration.
 
 ## Minimal NAPH CSV-W descriptor
 
@@ -195,7 +195,7 @@ Two institutions with different CSV column conventions can both adopt NAPH by:
 
 1. Each maintaining their own CSV-W descriptor
 2. Both producing NAPH-compliant Turtle output
-3. Federation queries work across both — the source CSV format is invisible at the RDF layer
+3. Federation queries work across both: the source CSV format is invisible at the RDF layer
 
 ### Aggregator-friendly publishing
 
@@ -216,6 +216,6 @@ For a one-off ingest, CSV-W adds overhead. For institutions doing repeated perio
 
 - [W3C CSV-W Primer](https://www.w3.org/TR/tabular-data-primer/)
 - [W3C CSV-W Spec](https://www.w3.org/TR/tabular-metadata/)
-- [`pipeline/ingest.py`](../../pipeline/ingest.py) — current fixed-schema ingest
-- [Module B — Metadata](../01-standard/modules/B-metadata-data-structures.md)
+- [`pipeline/ingest.py`](../../pipeline/ingest.py): current fixed-schema ingest
+- [Module B: Metadata](../01-standard/modules/B-metadata-data-structures.md)
 - [Identifier Policy decision tree](decision-trees/identifier-policy.md)

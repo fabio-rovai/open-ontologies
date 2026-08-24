@@ -80,6 +80,70 @@ fn introspect_duckdb_extracts_tables_and_constraints() {
 }
 
 #[test]
+fn introspect_duckdb_reads_fenic_catalogs() {
+    // fenic (typedef-ai) keeps its local catalog in `<app_name>.duckdb`:
+    // user tables in the `typedef_default` schema, internals in
+    // `__fenic_system` (metadata) and `fenic_system` (query metrics).
+    // Introspection must surface the user tables and skip the internals.
+    let tmp = tempfile::tempdir().unwrap();
+    let path = tmp.path().join("fenic_app.duckdb");
+    let path_str = path.to_string_lossy().to_string();
+
+    {
+        let conn = duckdb::Connection::open(&path).unwrap();
+        conn.execute_batch(
+            r#"
+            CREATE SCHEMA typedef_default;
+            CREATE TABLE typedef_default.product_category (
+                id INTEGER PRIMARY KEY,
+                name VARCHAR NOT NULL,
+                parent VARCHAR
+            );
+            CREATE SCHEMA "__fenic_system";
+            CREATE TABLE "__fenic_system".table_schemas (schema_name VARCHAR, blob VARCHAR);
+            CREATE SCHEMA fenic_system;
+            CREATE TABLE fenic_system.query_metrics (execution_id VARCHAR, cost DOUBLE);
+            "#,
+        )
+        .unwrap();
+    }
+
+    let tables = SchemaIntrospector::introspect_duckdb(&path_str).unwrap();
+    let names: Vec<&str> = tables.iter().map(|t| t.name.as_str()).collect();
+    assert_eq!(names, vec!["product_category"], "user table only, internals excluded");
+
+    let cat = &tables[0];
+    assert!(cat.columns.iter().any(|c| c.name == "id" && c.is_primary_key));
+
+    let turtle = SchemaIntrospector::generate_turtle(&tables, "http://example.org/db/");
+    assert!(turtle.contains("db:ProductCategory a owl:Class"));
+}
+
+#[test]
+fn introspect_duckdb_qualifies_cross_schema_name_collisions() {
+    let tmp = tempfile::tempdir().unwrap();
+    let path = tmp.path().join("collision.duckdb");
+    let path_str = path.to_string_lossy().to_string();
+
+    {
+        let conn = duckdb::Connection::open(&path).unwrap();
+        conn.execute_batch(
+            r#"
+            CREATE TABLE item (id INTEGER PRIMARY KEY);
+            CREATE SCHEMA staging;
+            CREATE TABLE staging.item (id INTEGER PRIMARY KEY, note VARCHAR);
+            "#,
+        )
+        .unwrap();
+    }
+
+    let mut names: Vec<String> =
+        SchemaIntrospector::introspect_duckdb(&path_str).unwrap().into_iter().map(|t| t.name).collect();
+    names.sort();
+    assert_eq!(names, vec!["item".to_string(), "staging_item".to_string()]);
+}
+
+#[test]
 fn query_rows_returns_tabular_data_from_duckdb() {
     let tmp = tempfile::tempdir().unwrap();
     let path = tmp.path().join("query_test.duckdb");

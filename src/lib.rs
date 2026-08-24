@@ -2,6 +2,7 @@ pub mod align;
 pub mod align_fuzzy;
 pub mod batch;
 pub mod borderline_loop;
+pub mod buffer;
 pub mod cache;
 /// Compiled claim verification (Tardygrada Layer 3 hot path).
 pub mod claimcheck;
@@ -11,6 +12,7 @@ pub mod civex_pywhy;
 pub mod classify_el;
 pub mod clinical;
 pub mod coevolve;
+pub mod communities;
 pub mod config;
 pub mod cq;
 pub mod drift;
@@ -21,12 +23,17 @@ pub mod eval_alignment;
 pub mod eval_rag;
 pub mod extract_scaffold;
 pub mod flora_pipeline;
+pub mod pack;
+pub mod support;
+pub mod temporal;
 pub mod policy;
 pub mod projection_check;
 pub mod shape_combinatorics;
 // (re-exports keep the alphabetical ordering of the surrounding modules manageable)
 #[cfg(feature = "embeddings")]
 pub mod embed;
+#[cfg(feature = "embeddings")]
+pub mod embed_fingerprint;
 #[cfg(feature = "embeddings")]
 pub mod embed_remote;
 pub mod enforce;
@@ -43,13 +50,17 @@ pub mod mapping;
 pub mod marketplace;
 pub mod monitor;
 pub mod ontology;
+pub mod ossie;
 pub mod plan;
 pub mod plan_classical;
 pub mod plan_pddl;
 pub mod plan_validate;
+#[cfg(feature = "plugins")]
+pub mod plugins;
 #[cfg(feature = "embeddings")]
 pub mod poincare;
 pub mod reason;
+pub mod reason_incremental;
 pub mod registry;
 pub mod repo;
 pub mod runtime;
@@ -70,6 +81,8 @@ pub mod state;
 pub mod structembed;
 pub mod tableaux;
 pub mod toolfilter;
+#[cfg(feature = "turbovec")]
+pub mod turbo_index;
 #[cfg(feature = "embeddings")]
 pub mod vecstore;
 pub mod webhook;

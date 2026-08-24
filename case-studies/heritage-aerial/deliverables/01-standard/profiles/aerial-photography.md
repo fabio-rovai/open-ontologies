@@ -1,14 +1,14 @@
 # Photographic Profile
 
 **Status:** Normative · v1.0
-**Applies to:** photographic heritage collections — aerial, documentary, fine-art, family
+**Applies to:** photographic heritage collections (aerial, documentary, fine-art, family)
 **Implements:** the NAPH standard for image-as-record collections
 
 ## P.1 Profile scope
 
 The Photographic Profile specialises NAPH for collections where the primary unit is a discrete photographic image. This includes:
 
-- Aerial reconnaissance photography (the case study domain — NCAP, IWM, NARA archives)
+- Aerial reconnaissance photography (the case study domain: NCAP, IWM, NARA archives)
 - Studio and commercial photography archives
 - News photography and photojournalism archives
 - Fine-art photography
@@ -17,8 +17,8 @@ The Photographic Profile specialises NAPH for collections where the primary unit
 
 It does NOT cover:
 
-- Manuscripts and archives — see [manuscripts-archives.md](manuscripts-archives.md)
-- Heterogeneous thematic collections — see [integrated-thematic.md](integrated-thematic.md)
+- Manuscripts and archives, see [manuscripts-archives.md](manuscripts-archives.md)
+- Heterogeneous thematic collections, see [integrated-thematic.md](integrated-thematic.md)
 
 ## P.2 Profile-specific class
 
@@ -122,9 +122,9 @@ The reference pipeline ([`pipeline/ingest.py`](../../../pipeline/ingest.py)) cur
 
 NCAP records have three identifying components:
 
-- **Collection** — `RAF`, `NARA`, `DOS`, `JARIC`, `USAF`, etc.
-- **Sortie** — flight mission reference (e.g. `106G/UK/1655`)
-- **Frame** — sequential frame number (e.g. `4023`)
+- **Collection**: `RAF`, `NARA`, `DOS`, `JARIC`, `USAF`, etc.
+- **Sortie**: flight mission reference (e.g. `106G/UK/1655`)
+- **Frame**: sequential frame number (e.g. `4023`)
 
 NAPH supports this with three properties:
 
@@ -152,8 +152,7 @@ For institutions without sortie-based scheme:
 
 Module B's identifier requirements (persistence, resolvability, uniqueness) apply universally.
 
-## P.6 Module application — Photographic profile specifics
-
+## P.6 Module application: Photographic profile specifics
 ### P.6.1 Module A (Capture & Imaging)
 
 For photographic profile:
@@ -187,8 +186,7 @@ For photographic profile, document:
 - Any retouching or restoration applied
 - Optical density measurements where significant
 
-## P.7 Worked example — NCAP-style aerial photograph
-
+## P.7 Worked example: NCAP-style aerial photograph
 ```turtle
 @prefix naph: <https://w3id.org/naph/ontology#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -197,7 +195,7 @@ For photographic profile, document:
 
 ex:photo-001 a naph:AerialPhotograph ;
     dcterms:type dctype:StillImage ;
-    rdfs:label "Berlin reconnaissance — 540 Squadron, 1944-03-28" ;
+    rdfs:label "Berlin reconnaissance - 540 Squadron, 1944-03-28" ;
     naph:hasIdentifier "https://w3id.org/naph/photo/RAF-106G-UK-1655-4023" ;
     naph:partOfSortie ex:sortie-RAF-106G-UK-1655 ;
     naph:belongsToCollection ex:NCAP-RAF-collection ;
@@ -230,7 +228,7 @@ The Photographic Profile uses the standard NAPH SHACL shapes plus profile-specif
 ## P.9 Cross-references
 
 - [NAPH Standard v1.0](../NAPH-STANDARD.md)
-- [Module A](../modules/A-capture-imaging.md) — capture
-- [Module B](../modules/B-metadata-data-structures.md) — metadata
-- [Module C](../modules/C-rights-licensing-ethics.md) — rights
-- [Sample data](../../../data/sample-photographs.ttl) — reference implementation
+- [Module A](../modules/A-capture-imaging.md): capture
+- [Module B](../modules/B-metadata-data-structures.md): metadata
+- [Module C](../modules/C-rights-licensing-ethics.md): rights
+- [Sample data](../../../data/sample-photographs.ttl): reference implementation

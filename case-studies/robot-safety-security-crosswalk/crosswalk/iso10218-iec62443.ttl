@@ -1,0 +1,1860 @@
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+
+# The RSSC vocabulary and its controlled schemes. Defined in ontology/rssc.ttl.
+@prefix rssc:    <https://tesseract.academy/ns/rssc#> .
+@prefix band:    <https://tesseract.academy/id/rssc/band/> .
+@prefix role:    <https://tesseract.academy/id/rssc/role/> .
+@prefix sl:      <https://tesseract.academy/id/rssc/security-level/> .
+@prefix slt:     <https://tesseract.academy/id/rssc/security-level-type/> .
+@prefix fr:      <https://tesseract.academy/id/rssc/foundational-requirement/> .
+@prefix ev:      <https://tesseract.academy/id/rssc/evidence-type/> .
+@prefix conf:    <https://tesseract.academy/id/rssc/confidence/> .
+@prefix gap:     <https://tesseract.academy/id/rssc/gap-kind/> .
+
+# Instance bases minted by this project. ISO and IEC issue no dereferenceable
+# IRIs for their standards, clauses or requirements. Every anchor below is
+# minted under our own base and carries the real published identifier as a
+# literal, so that no reader can mistake our IRI for the issuing body's.
+@prefix std:     <https://tesseract.academy/id/rssc/standard/> .
+@prefix clause:  <https://tesseract.academy/id/rssc/clause/> .
+@prefix req:     <https://tesseract.academy/id/rssc/requirement/> .
+@prefix sf:      <https://tesseract.academy/id/rssc/safety-function/> .
+@prefix hz:      <https://tesseract.academy/id/rssc/hazard/> .
+@prefix xw:      <https://tesseract.academy/id/rssc/assertion/> .
+@prefix sia:     <https://tesseract.academy/id/rssc/safety-impact/> .
+@prefix slc:     <https://tesseract.academy/id/rssc/security-level-claim/> .
+@prefix cg:      <https://tesseract.academy/id/rssc/control-gap/> .
+@prefix src:     <https://tesseract.academy/id/rssc/source/> .
+
+# =============================================================================
+# ISO 10218:2025 to IEC 62443 CROSSWALK, v0.1.0
+# Kampakis and Co Ltd, trading as The Tesseract Academy. CC BY 4.0.
+#
+# Instance data for the RSSC vocabulary. Asserts the mappings between the two
+# parts of ISO 10218:2025, the machinery security bridge IEC TS 63074:2023,
+# and the IEC 62443 series, organised so that they can be filtered by the
+# three-band autonomy gradient.
+#
+# MATCH DISCIPLINE
+#   skos:exactMatch    = the two terms denote the same thing with no scope
+#                        difference. NOT USED ANYWHERE IN THIS FILE. Across a
+#                        safety and security boundary the scopes always differ
+#                        at least in the party addressed, so asserting exact
+#                        identity would be false precision.
+#   skos:closeMatch    = a strong correspondence: the two clauses are about the
+#                        same property of the same object, differing in the
+#                        party addressed or in generality.
+#   skos:relatedMatch  = the connection is real but the scopes cross rather
+#                        than nest. Used wherever one side is a machinery
+#                        requirement and the other a control-system property
+#                        that the machinery requirement depends on.
+#   skos:broadMatch /  = not used. No pair below stands in a clean genus and
+#   skos:narrowMatch     species relation.
+#
+# EVIDENCE DISCIPLINE, AND THE POINT OF THE ARTEFACT
+#   This file is AUDITABLE, NOT AUTHORITATIVE. Two kinds of assertion are kept
+#   strictly apart:
+#     * Assertions carrying ev:PublishedPreview record a correspondence that a
+#       standards body itself lays out in structure that is published free.
+#       Only the seven-row IEC TS 63074 clause 5.2 spine qualifies.
+#     * Assertions carrying ev:AnalyticalInference are OURS. No standards body
+#       asserts them. They are the reasoned join between a safety clause and a
+#       security requirement, and a reader who disagrees can discard them
+#       without discarding the cited facts underneath.
+#   ev:NormativeReference is used NOWHERE in this file, deliberately. See the
+#   REJECTED MAPPINGS block at the foot: the published normative-reference
+#   lists of both parts of ISO 10218:2025 were read in full and neither
+#   IEC TS 63074 nor any part of IEC 62443 appears in either of them.
+#
+# PAYWALL CONSTRAINT, TREATED AS A DESIGN FEATURE
+#   No normative text from any ISO or IEC standard is reproduced here. Every
+#   clause identifier, clause title, requirement identifier, requirement title,
+#   edition and cover date below was read in the issuing body's own free
+#   preview (cover page, contents, foreword, scope, normative references) and
+#   is cited as a fact. Titles are published free. Requirement bodies are not,
+#   and are not reproduced. A reader can therefore check every identifier in
+#   this file without buying anything.
+#
+# SEPARATOR SUBSTITUTION
+#   Official ISO and IEC titles separate title elements with U+2014 (ISO) or
+#   U+2013 (IEC). House style forbids both characters. Titles appear here in
+#   the BSI and EN full-stop rendering. The separator is the only alteration
+#   made to any official title.
+#
+# INDEPENDENCE
+#   Independent, self-initiated open research. Not endorsed by, affiliated
+#   with or approved by ISO, IEC, CEN, CENELEC, BSI, ISA, the ISA Security
+#   Compliance Institute, KAN, SGS or any other body named within it.
+# =============================================================================
+
+<https://tesseract.academy/id/rssc/crosswalk/iso10218-iec62443> a owl:Ontology ;
+    dcterms:title "ISO 10218:2025 to IEC 62443 crosswalk" ;
+    dcterms:description "Reified, cited mappings binding the cybersecurity and safety-function clauses of ISO 10218-1:2025 and ISO 10218-2:2025 to the machinery security bridge IEC TS 63074:2023 and to the requirements of the IEC 62443 series, filtered by a three-band autonomy gradient, with per-band control gaps." ;
+    dcterms:creator "Fabio Rovai" ;
+    dcterms:creator "Kampakis and Co Ltd, trading as The Tesseract Academy" ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    dcterms:created "2026-08-08"^^xsd:date ;
+    owl:imports <https://tesseract.academy/ns/rssc> ;
+    rdfs:seeAlso <https://tesseract.academy/ns/rssc> ;
+    owl:versionInfo "0.1.0" .
+
+# =============================================================================
+# SECTION 1: SOURCES
+# Every source below was retrieved on 2026-08-08. The ISO and IEC entries are
+# the issuing bodies' own free previews of paywalled documents: front matter,
+# full contents, foreword, scope and normative references, and nothing more.
+# =============================================================================
+
+src:iso-10218-1-2025-preview a rssc:Source ;
+    rdfs:label "ISO 10218-1:2025 official free preview"@en ;
+    rssc:sourceUrl "https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf"^^xsd:anyURI ;
+    rssc:retrievedOn "2026-08-08"^^xsd:date ;
+    rssc:paywalled true ;
+    rssc:citation "ISO 10218-1:2025 preview, 14 pages: cover page, complete Contents, Foreword, Introduction, Scope and complete Normative references." .
+
+src:iso-10218-2-2025-preview a rssc:Source ;
+    rdfs:label "ISO 10218-2:2025 official free preview"@en ;
+    rssc:sourceUrl "https://cdn.standards.iteh.ai/samples/73934/3578b7f9a402489fb9af1cf1ca03ea68/ISO-10218-2-2025.pdf"^^xsd:anyURI ;
+    rssc:retrievedOn "2026-08-08"^^xsd:date ;
+    rssc:paywalled true ;
+    rssc:citation "ISO 10218-2:2025 preview, 14 pages: cover page, complete Contents, Foreword, Introduction, Scope and complete Normative references." .
+
+src:iec-ts-63074-2023-preview a rssc:Source ;
+    rdfs:label "IEC TS 63074:2023 official free preview"@en ;
+    rssc:sourceUrl "https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf"^^xsd:anyURI ;
+    rssc:retrievedOn "2026-08-08"^^xsd:date ;
+    rssc:paywalled true ;
+    rssc:citation "IEC TS 63074:2023 preview, 12 pages: cover page, complete Contents, Foreword, Introduction, Scope, complete Normative references and the opening of clause 3." .
+
+src:iec-62443-3-3-2013-preview a rssc:Source ;
+    rdfs:label "IEC 62443-3-3:2013 official free preview"@en ;
+    rssc:sourceUrl "https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf"^^xsd:anyURI ;
+    rssc:retrievedOn "2026-08-08"^^xsd:date ;
+    rssc:paywalled true ;
+    rssc:citation "IEC 62443-3-3:2013 preview: cover page, complete Contents listing all 51 SR identifiers and titles under clauses 5 to 11, and clause 0.3 on usage within other parts of the series." .
+
+src:iec-62443-4-2-2019-preview a rssc:Source ;
+    rdfs:label "IEC 62443-4-2:2019 official free preview"@en ;
+    rssc:sourceUrl "https://cdn.standards.iteh.ai/samples/21919/fe56b59fa6f04b849d88a2311aa5ec15/IEC-62443-4-2-2019.pdf"^^xsd:anyURI ;
+    rssc:retrievedOn "2026-08-08"^^xsd:date ;
+    rssc:paywalled true ;
+    rssc:citation "IEC 62443-4-2:2019 preview: cover page and complete Contents listing the CR, EDR, HDR, NDR and SAR identifiers and titles, and the four Common Component Security Constraints at clauses 4.2 to 4.5." .
+
+src:iec-62443-3-2-2020-preview a rssc:Source ;
+    rdfs:label "IEC 62443-3-2:2020 official free preview"@en ;
+    rssc:sourceUrl "https://cdn.standards.iteh.ai/samples/19487/bea4b5b38c1f4f7a99733044ccf82500/IEC-62443-3-2-2020.pdf"^^xsd:anyURI ;
+    rssc:retrievedOn "2026-08-08"^^xsd:date ;
+    rssc:paywalled true ;
+    rssc:citation "IEC 62443-3-2:2020 preview: cover page and complete Contents listing the ZCR 1 to ZCR 7 workflow identifiers and titles." .
+
+src:iec-62443-4-1-2018-preview a rssc:Source ;
+    rdfs:label "IEC 62443-4-1:2018 official free preview"@en ;
+    rssc:sourceUrl "https://cdn.standards.iteh.ai/samples/21445/8dc7299ef50a47d0a95d73fae2b453b6/IEC-62443-4-1-2018.pdf"^^xsd:anyURI ;
+    rssc:retrievedOn "2026-08-08"^^xsd:date ;
+    rssc:paywalled true ;
+    rssc:citation "IEC 62443-4-1:2018 preview: cover page and complete Contents listing the eight practices and their SM, SR, SD, SI, SVV, DM, SUM and SG requirement identifiers and titles." .
+
+src:iec-ts-62443-1-1-2009-preview a rssc:Source ;
+    rdfs:label "IEC TS 62443-1-1:2009 official free preview"@en ;
+    rssc:sourceUrl "https://cdn.standards.iteh.ai/samples/14693/975f6f7ab8714dd5a2bc524726eee324/IEC-TS-62443-1-1-2009.pdf"^^xsd:anyURI ;
+    rssc:retrievedOn "2026-08-08"^^xsd:date ;
+    rssc:paywalled true ;
+    rssc:citation "IEC TS 62443-1-1:2009 preview: cover page and complete Contents showing clause 5.3 Foundational requirements and clause 5.11 Security levels with sub-clause 5.11.2 Types of security levels and Table 8." .
+
+src:kan-brief-2-2023 a rssc:Source ;
+    rdfs:label "KANBrief 2/2023, revision of EN ISO 10218"@en ;
+    rssc:sourceUrl "https://www.kan.de/en/publications/kanbrief/2023/2-23/revision-of-en-iso-10218-safety-requirements-for-industrial-robots/"^^xsd:anyURI ;
+    rssc:retrievedOn "2026-08-08"^^xsd:date ;
+    rssc:paywalled false ;
+    rssc:citation "Otto Goernemann, expert for machine safety, standards and guidelines, SICK AG Waldkirch, writing for KAN (Kommission Arbeitsschutz und Normung). Describes the final drafts submitted to the HAS Consultant in March 2022, roughly three years before the standards were actually published." .
+
+src:isasecure-sl2-minimum a rssc:Source ;
+    rdfs:label "ISASecure, the case for ISA/IEC 62443 Security Level 2 as a minimum"@en ;
+    rssc:sourceUrl "https://www.isasecure.org/hubfs/The-Case-for-ISA-IEC-62443-Security-Level-2-as-a-Minimum-FINAL.pdf"^^xsd:anyURI ;
+    rssc:retrievedOn "2026-08-08"^^xsd:date ;
+    rssc:paywalled false ;
+    rssc:citation "White paper of the ISA Security Compliance Institute, the body that operates the ISASecure certification scheme against IEC 62443." .
+
+# =============================================================================
+# SECTION 2: STANDARDS
+# Public surface only: designation, issuing body, document type, edition,
+# cover date and title. All read on the cover pages of the previews above.
+# =============================================================================
+
+std:iso-10218-1-2025 a rssc:Standard ;
+    rdfs:label "ISO 10218-1:2025"@en ;
+    rssc:designation "ISO 10218-1:2025" ;
+    rssc:issuingBody "ISO" ;
+    rssc:standardType "international-standard" ;
+    rssc:edition "third" ;
+    rssc:publicationDate "2025-02"^^xsd:gYearMonth ;
+    rssc:paywalled true ;
+    dcterms:title "Robotics. Safety requirements. Part 1: Industrial robots" ;
+    dcterms:replaces "ISO 10218-1:2011" ;
+    rssc:citation "Cover page of the ISO 10218-1:2025 free preview: third edition, 2025-02. Foreword: cancels and replaces the second edition, ISO 10218-1:2011." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf> .
+
+std:iso-10218-2-2025 a rssc:Standard ;
+    rdfs:label "ISO 10218-2:2025"@en ;
+    rssc:designation "ISO 10218-2:2025" ;
+    rssc:issuingBody "ISO" ;
+    rssc:standardType "international-standard" ;
+    rssc:edition "second" ;
+    rssc:publicationDate "2025-02"^^xsd:gYearMonth ;
+    rssc:paywalled true ;
+    dcterms:title "Robotics. Safety requirements. Part 2: Industrial robot applications and robot cells" ;
+    dcterms:replaces "ISO 10218-2:2011" ;
+    rssc:citation "Cover page of the ISO 10218-2:2025 free preview: second edition, 2025-02. Foreword: cancels and replaces the first edition, ISO 10218-2:2011." ;
+    prov:wasDerivedFrom src:iso-10218-2-2025-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/73934/3578b7f9a402489fb9af1cf1ca03ea68/ISO-10218-2-2025.pdf> .
+
+std:iec-ts-63074-2023 a rssc:Standard ;
+    rdfs:label "IEC TS 63074:2023"@en ;
+    rssc:designation "IEC TS 63074:2023" ;
+    rssc:issuingBody "IEC" ;
+    rssc:standardType "technical-specification" ;
+    rssc:edition "1.0" ;
+    rssc:publicationDate "2023-02"^^xsd:gYearMonth ;
+    rssc:paywalled true ;
+    dcterms:title "Safety of machinery. Security aspects related to functional safety of safety-related control systems" ;
+    dcterms:replaces "IEC TR 63074:2019" ;
+    rssc:citation "Cover page of the IEC TS 63074:2023 free preview: Edition 1.0, 2023-02, TECHNICAL SPECIFICATION, IEC TC 44. Foreword: cancels and replaces the first edition of IEC TR 63074 published in 2019, a technical revision that added new Clause 6 Cybersecurity and functional safety of machinery, new Figure A.1 and new C.3. Note the document-type change from Technical Report to Technical Specification, which is a rise in formal standing." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+std:iec-62443-3-3-2013 a rssc:Standard ;
+    rdfs:label "IEC 62443-3-3:2013"@en ;
+    rssc:designation "IEC 62443-3-3:2013" ;
+    rssc:issuingBody "IEC" ;
+    rssc:standardType "international-standard" ;
+    rssc:edition "1.0" ;
+    rssc:publicationDate "2013-08"^^xsd:gYearMonth ;
+    rssc:paywalled true ;
+    dcterms:title "Industrial communication networks. Network and system security. Part 3-3: System security requirements and security levels" ;
+    rssc:citation "Cover page of the IEC 62443-3-3:2013 free preview: Edition 1.0, 2013-08. This part still carries the legacy series title 'Industrial communication networks. Network and system security', whereas the later parts carry 'Security for industrial automation and control systems'. The difference is a fact about the series, not a transcription error." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf> .
+
+std:iec-62443-4-2-2019 a rssc:Standard ;
+    rdfs:label "IEC 62443-4-2:2019"@en ;
+    rssc:designation "IEC 62443-4-2:2019" ;
+    rssc:issuingBody "IEC" ;
+    rssc:standardType "international-standard" ;
+    rssc:edition "1.0" ;
+    rssc:publicationDate "2019-02"^^xsd:gYearMonth ;
+    rssc:paywalled true ;
+    dcterms:title "Security for industrial automation and control systems. Part 4-2: Technical security requirements for IACS components" ;
+    rssc:citation "Cover page of the IEC 62443-4-2:2019 free preview: Edition 1.0, 2019-02." ;
+    prov:wasDerivedFrom src:iec-62443-4-2-2019-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/21919/fe56b59fa6f04b849d88a2311aa5ec15/IEC-62443-4-2-2019.pdf> .
+
+std:iec-62443-3-2-2020 a rssc:Standard ;
+    rdfs:label "IEC 62443-3-2:2020"@en ;
+    rssc:designation "IEC 62443-3-2:2020" ;
+    rssc:issuingBody "IEC" ;
+    rssc:standardType "international-standard" ;
+    rssc:edition "1.0" ;
+    rssc:publicationDate "2020-06"^^xsd:gYearMonth ;
+    rssc:paywalled true ;
+    dcterms:title "Security for industrial automation and control systems. Part 3-2: Security risk assessment for system design" ;
+    rssc:citation "Cover page of the IEC 62443-3-2:2020 free preview: Edition 1.0, 2020-06." ;
+    prov:wasDerivedFrom src:iec-62443-3-2-2020-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19487/bea4b5b38c1f4f7a99733044ccf82500/IEC-62443-3-2-2020.pdf> .
+
+std:iec-62443-4-1-2018 a rssc:Standard ;
+    rdfs:label "IEC 62443-4-1:2018"@en ;
+    rssc:designation "IEC 62443-4-1:2018" ;
+    rssc:issuingBody "IEC" ;
+    rssc:standardType "international-standard" ;
+    rssc:edition "1.0" ;
+    rssc:publicationDate "2018-01"^^xsd:gYearMonth ;
+    rssc:paywalled true ;
+    dcterms:title "Security for industrial automation and control systems. Part 4-1: Secure product development lifecycle requirements" ;
+    rssc:citation "Cover page of the IEC 62443-4-1:2018 free preview: Edition 1.0, 2018-01." ;
+    prov:wasDerivedFrom src:iec-62443-4-1-2018-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/21445/8dc7299ef50a47d0a95d73fae2b453b6/IEC-62443-4-1-2018.pdf> .
+
+std:iec-ts-62443-1-1-2009 a rssc:Standard ;
+    rdfs:label "IEC TS 62443-1-1:2009"@en ;
+    rssc:designation "IEC TS 62443-1-1:2009" ;
+    rssc:issuingBody "IEC" ;
+    rssc:standardType "technical-specification" ;
+    rssc:edition "1.0" ;
+    rssc:publicationDate "2009-07"^^xsd:gYearMonth ;
+    rssc:paywalled true ;
+    dcterms:title "Industrial communication networks. Network and system security. Part 1-1: Terminology, concepts and models" ;
+    rssc:citation "Cover page of the IEC TS 62443-1-1:2009 free preview: Edition 1.0, 2009-07. Source of the seven foundational requirements (clause 5.3) and of the security level definitions (clause 5.11, sub-clause 5.11.2, Table 8, page 53)." ;
+    prov:wasDerivedFrom src:iec-ts-62443-1-1-2009-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/14693/975f6f7ab8714dd5a2bc524726eee324/IEC-TS-62443-1-1-2009.pdf> .
+
+# =============================================================================
+# SECTION 3: CLAUSE REFERENCES, SAFETY SIDE
+# ISO 10218-1:2025 and ISO 10218-2:2025. Every identifier and title below was
+# read in the Contents pages of the official ISO previews. Page numbers are
+# printed in those Contents and are recorded in the citation.
+# =============================================================================
+
+# --- ISO 10218-1:2025 -------------------------------------------------------
+
+clause:iso-10218-1-2025-1 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-1:2025 clause 1 Scope"@en ;
+    rssc:clauseIdentifier "1" ;
+    rssc:clauseTitle "Scope" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-1-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-1:2025 free preview, clause 1 Scope, page 1. The exclusion list is published in full in the preview and includes, verbatim in the ISO list style, mobility when robots or manipulators are fixed to or part of driverless industrial trucks; mobility when robots or manipulators are fixed to or part of mobile platforms; and use when the public, all ages or non-working adults have access." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview .
+
+clause:iso-10218-1-2025-5-1-16 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-1:2025 clause 5.1.16 Cybersecurity"@en ;
+    rssc:clauseIdentifier "5.1.16" ;
+    rssc:clauseTitle "Cybersecurity" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-1-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents, clause 5.1.16 Cybersecurity, page 18, under 5.1 Robot design. Read directly. Note that at least one widely circulated secondary source misnumbers the Part 2 counterpart of this clause; both were checked against the primary Contents." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview .
+
+clause:iso-10218-1-2025-5-2-8 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-1:2025 clause 5.2.8 Means of controlling the robot"@en ;
+    rssc:clauseIdentifier "5.2.8" ;
+    rssc:clauseTitle "Means of controlling the robot" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-1-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents, clause 5.2.8 Means of controlling the robot, page 23, under 5.2 Controls." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview .
+
+clause:iso-10218-1-2025-5-3-1 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-1:2025 clause 5.3.1 General (safety functions)"@en ;
+    rssc:clauseIdentifier "5.3.1" ;
+    rssc:clauseTitle "General" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-1-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents, clause 5.3.1 General, page 25, the opening sub-clause of 5.3 Safety functions." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview .
+
+clause:iso-10218-1-2025-5-3-5 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-1:2025 clause 5.3.5 Parameterization of safety functions"@en ;
+    rssc:clauseIdentifier "5.3.5" ;
+    rssc:clauseTitle "Parameterization of safety functions" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-1-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents, clause 5.3.5 Parameterization of safety functions, page 26, under 5.3 Safety functions." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview .
+
+clause:iso-10218-1-2025-5-3-6 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-1:2025 clause 5.3.6 Communications"@en ;
+    rssc:clauseIdentifier "5.3.6" ;
+    rssc:clauseTitle "Communications" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-1-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents, clause 5.3.6 Communications, page 26, under 5.3 Safety functions." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview .
+
+clause:iso-10218-1-2025-5-4-2 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-1:2025 clause 5.4.2 Emergency stop"@en ;
+    rssc:clauseIdentifier "5.4.2" ;
+    rssc:clauseTitle "Emergency stop" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-1-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents, clause 5.4.2 Emergency stop, page 28, under 5.4 Stopping functions." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview .
+
+clause:iso-10218-1-2025-5-5-1 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-1:2025 clause 5.5.1 Single-point-of-control"@en ;
+    rssc:clauseIdentifier "5.5.1" ;
+    rssc:clauseTitle "Single-point-of-control" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-1-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents, clause 5.5.1 Single-point-of-control, page 30, under 5.5 Other safety functions." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview .
+
+clause:iso-10218-1-2025-5-5-3 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-1:2025 clause 5.5.3 Speed limit(s) monitoring"@en ;
+    rssc:clauseIdentifier "5.5.3" ;
+    rssc:clauseTitle "Speed limit(s) monitoring" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-1-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents, clause 5.5.3 Speed limit(s) monitoring, page 31, under 5.5 Other safety functions." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview .
+
+clause:iso-10218-1-2025-5-5-6 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-1:2025 clause 5.5.6 Stopping time limiting"@en ;
+    rssc:clauseIdentifier "5.5.6" ;
+    rssc:clauseTitle "Stopping time limiting" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-1-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents, clause 5.5.6 Stopping time limiting, page 33, under 5.5 Other safety functions." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview .
+
+clause:iso-10218-1-2025-5-10-3 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-1:2025 clause 5.10.3 Speed and separation monitoring (SSM)"@en ;
+    rssc:clauseIdentifier "5.10.3" ;
+    rssc:clauseTitle "Speed and separation monitoring (SSM)" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-1-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents, clause 5.10.3 Speed and separation monitoring (SSM), page 37, under 5.10 Capabilities for collaborative applications. This sub-clause carries content absorbed from ISO/TS 15066:2016, per the Introduction." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview .
+
+clause:iso-10218-1-2025-7-5-11 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-1:2025 clause 7.5.11 Cybersecurity"@en ;
+    rssc:clauseIdentifier "7.5.11" ;
+    rssc:clauseTitle "Cybersecurity" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-1-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents, clause 7.5.11 Cybersecurity, page 42, under 7.5 Instruction handbook. This second cybersecurity touchpoint is under-reported in the secondary literature: it places security information in the instruction handbook, which is the mechanism by which a downstream party inherits a security obligation it never negotiated." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview .
+
+clause:iso-10218-1-2025-annex-a a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-1:2025 Annex A List of significant hazards"@en ;
+    rssc:clauseIdentifier "Annex A" ;
+    rssc:clauseTitle "List of significant hazards" ;
+    rssc:normativeStatus "informative" ;
+    rssc:inStandard std:iso-10218-1-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents: Annex A (informative) List of significant hazards. Annex status is printed in the Contents and is NOT symmetric between the two parts: Part 1 Annex H is normative, Part 2 Annex H is informative." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview .
+
+# --- ISO 10218-2:2025 -------------------------------------------------------
+
+clause:iso-10218-2-2025-1 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-2:2025 clause 1 Scope"@en ;
+    rssc:clauseIdentifier "1" ;
+    rssc:clauseTitle "Scope" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-2-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-2:2025 free preview, clause 1 Scope, page 1. The exclusion list is published in full and includes mobility when robots or manipulators are integrated with driverless industrial trucks; mobility when robots or manipulators are integrated with mobile platforms; service robots, which provide a service to a person and as such the public can have access; and use when the public or non-working adults have access." ;
+    prov:wasDerivedFrom src:iso-10218-2-2025-preview .
+
+clause:iso-10218-2-2025-5-2-16 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-2:2025 clause 5.2.16 Cybersecurity"@en ;
+    rssc:clauseIdentifier "5.2.16" ;
+    rssc:clauseTitle "Cybersecurity" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-2-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents, clause 5.2.16 Cybersecurity, page 28, under 5.2 Design. Read directly in the official ISO preview. This corrects two things in the public literature: a widely cited source gives this clause as 5.2.26, which is wrong, and several commentaries treat the number as secondary-sourced when it is in fact published free by ISO." ;
+    prov:wasDerivedFrom src:iso-10218-2-2025-preview .
+
+clause:iso-10218-2-2025-5-3-4 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-2:2025 clause 5.3.4 Operational modes with multi-robot applications or robot cells"@en ;
+    rssc:clauseIdentifier "5.3.4" ;
+    rssc:clauseTitle "Operational modes with multi-robot applications or robot cells" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-2-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents, clause 5.3.4 Operational modes with multi-robot applications or robot cells, page 29, under 5.3 Robot cell integration." ;
+    prov:wasDerivedFrom src:iso-10218-2-2025-preview .
+
+clause:iso-10218-2-2025-5-3-5 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-2:2025 clause 5.3.5 Local control, remote control and single-point-of-control"@en ;
+    rssc:clauseIdentifier "5.3.5" ;
+    rssc:clauseTitle "Local control, remote control and single-point-of-control" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-2-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents, clause 5.3.5 Local control, remote control and single-point-of-control, page 29, under 5.3 Robot cell integration." ;
+    prov:wasDerivedFrom src:iso-10218-2-2025-preview .
+
+clause:iso-10218-2-2025-5-5-1 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-2:2025 clause 5.5.1 General (safety functions)"@en ;
+    rssc:clauseIdentifier "5.5.1" ;
+    rssc:clauseTitle "General" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-2-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents, clause 5.5.1 General, the opening sub-clause of 5.5 Safety functions." ;
+    prov:wasDerivedFrom src:iso-10218-2-2025-preview .
+
+clause:iso-10218-2-2025-5-7-6 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-2:2025 clause 5.7.6 Local and remote control"@en ;
+    rssc:clauseIdentifier "5.7.6" ;
+    rssc:clauseTitle "Local and remote control" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-2-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents, clause 5.7.6 Local and remote control, page 45, under 5.7 Control functions." ;
+    prov:wasDerivedFrom src:iso-10218-2-2025-preview .
+
+clause:iso-10218-2-2025-7-5-11 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-2:2025 clause 7.5.11 Remote interventions"@en ;
+    rssc:clauseIdentifier "7.5.11" ;
+    rssc:clauseTitle "Remote interventions" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-2-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents, clause 7.5.11 Remote interventions, page 78, under 7.5 Instruction handbook. Note the collision of numbering across the parts: 7.5.11 in Part 1 is Cybersecurity, 7.5.11 in Part 2 is Remote interventions. Any crosswalk that assumes clause numbers carry across the parts will be wrong." ;
+    prov:wasDerivedFrom src:iso-10218-2-2025-preview .
+
+clause:iso-10218-2-2025-7-5-23 a rssc:ClauseReference ;
+    rdfs:label "ISO 10218-2:2025 clause 7.5.23 Cybersecurity"@en ;
+    rssc:clauseIdentifier "7.5.23" ;
+    rssc:clauseTitle "Cybersecurity" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iso-10218-2-2025 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents, clause 7.5.23 Cybersecurity, page 82, under 7.5 Instruction handbook. Read directly in the official ISO preview." ;
+    prov:wasDerivedFrom src:iso-10218-2-2025-preview .
+
+# =============================================================================
+# SECTION 4: CLAUSE REFERENCES, SECURITY SIDE
+# IEC TS 63074:2023 is the machinery security bridge. Its clause 5.2 restates
+# the seven IEC 62443 foundational requirements against the safety-related
+# control system, in the same order, and its clause 6.3 lists concrete
+# countermeasures against corruption. Both are read from the official IEC
+# preview Contents.
+# =============================================================================
+
+clause:iec-ts-63074-2023-5-1-1 a rssc:ClauseReference ;
+    rdfs:label "IEC TS 63074:2023 clause 5.1.1 Security risk assessment"@en ;
+    rssc:clauseIdentifier "5.1.1" ;
+    rssc:clauseTitle "Security risk assessment" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-ts-63074-2023 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC TS 63074:2023 free preview, Contents, clause 5.1.1 Security risk assessment, page 15, under 5.1 General within clause 5 Security aspects related to functional safety." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview .
+
+clause:iec-ts-63074-2023-5-2-2 a rssc:ClauseReference ;
+    rdfs:label "IEC TS 63074:2023 clause 5.2.2 Identification and authentication"@en ;
+    rssc:clauseIdentifier "5.2.2" ;
+    rssc:clauseTitle "Identification and authentication" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-ts-63074-2023 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC TS 63074:2023 free preview, Contents, clause 5.2.2 Identification and authentication, page 18, under 5.2 Security countermeasures." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview .
+
+clause:iec-ts-63074-2023-5-2-3 a rssc:ClauseReference ;
+    rdfs:label "IEC TS 63074:2023 clause 5.2.3 Use control"@en ;
+    rssc:clauseIdentifier "5.2.3" ;
+    rssc:clauseTitle "Use control" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-ts-63074-2023 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC TS 63074:2023 free preview, Contents, clause 5.2.3 Use control, page 18, under 5.2 Security countermeasures." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview .
+
+clause:iec-ts-63074-2023-5-2-4 a rssc:ClauseReference ;
+    rdfs:label "IEC TS 63074:2023 clause 5.2.4 System integrity"@en ;
+    rssc:clauseIdentifier "5.2.4" ;
+    rssc:clauseTitle "System integrity" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-ts-63074-2023 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC TS 63074:2023 free preview, Contents, clause 5.2.4 System integrity, page 18, under 5.2 Security countermeasures." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview .
+
+clause:iec-ts-63074-2023-5-2-5 a rssc:ClauseReference ;
+    rdfs:label "IEC TS 63074:2023 clause 5.2.5 Data confidentiality"@en ;
+    rssc:clauseIdentifier "5.2.5" ;
+    rssc:clauseTitle "Data confidentiality" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-ts-63074-2023 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC TS 63074:2023 free preview, Contents, clause 5.2.5 Data confidentiality, page 18, under 5.2 Security countermeasures." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview .
+
+clause:iec-ts-63074-2023-5-2-6 a rssc:ClauseReference ;
+    rdfs:label "IEC TS 63074:2023 clause 5.2.6 Restricted data flow"@en ;
+    rssc:clauseIdentifier "5.2.6" ;
+    rssc:clauseTitle "Restricted data flow" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-ts-63074-2023 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC TS 63074:2023 free preview, Contents, clause 5.2.6 Restricted data flow, page 19, under 5.2 Security countermeasures." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview .
+
+clause:iec-ts-63074-2023-5-2-7 a rssc:ClauseReference ;
+    rdfs:label "IEC TS 63074:2023 clause 5.2.7 Timely response to events"@en ;
+    rssc:clauseIdentifier "5.2.7" ;
+    rssc:clauseTitle "Timely response to events" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-ts-63074-2023 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC TS 63074:2023 free preview, Contents, clause 5.2.7 Timely response to events, page 19, under 5.2 Security countermeasures. Note the plural 'events', which matches the IEC 62443-3-3 clause 10 heading; secondary sources routinely render it in the singular." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview .
+
+clause:iec-ts-63074-2023-5-2-8 a rssc:ClauseReference ;
+    rdfs:label "IEC TS 63074:2023 clause 5.2.8 Resource availability"@en ;
+    rssc:clauseIdentifier "5.2.8" ;
+    rssc:clauseTitle "Resource availability" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-ts-63074-2023 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC TS 63074:2023 free preview, Contents, clause 5.2.8 Resource availability, page 19, under 5.2 Security countermeasures." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview .
+
+clause:iec-ts-63074-2023-6-3-3 a rssc:ClauseReference ;
+    rdfs:label "IEC TS 63074:2023 clause 6.3.3 Multi-factor authentication"@en ;
+    rssc:clauseIdentifier "6.3.3" ;
+    rssc:clauseTitle "Multi-factor authentication" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-ts-63074-2023 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC TS 63074:2023 free preview, Contents, clause 6.3.3 Multi-factor authentication, page 20, under 6.3 Security countermeasures against corruption. Clause 6 in its entirety is new in the 2023 Technical Specification and did not exist in the 2019 Technical Report." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview .
+
+clause:iec-ts-63074-2023-6-3-4 a rssc:ClauseReference ;
+    rdfs:label "IEC TS 63074:2023 clause 6.3.4 Network architecture"@en ;
+    rssc:clauseIdentifier "6.3.4" ;
+    rssc:clauseTitle "Network architecture" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-ts-63074-2023 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC TS 63074:2023 free preview, Contents, clause 6.3.4 Network architecture, page 20, under 6.3 Security countermeasures against corruption." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview .
+
+clause:iec-ts-63074-2023-6-3-5 a rssc:ClauseReference ;
+    rdfs:label "IEC TS 63074:2023 clause 6.3.5 Portable devices"@en ;
+    rssc:clauseIdentifier "6.3.5" ;
+    rssc:clauseTitle "Portable devices" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-ts-63074-2023 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC TS 63074:2023 free preview, Contents, clause 6.3.5 Portable devices, page 21, under 6.3 Security countermeasures against corruption." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview .
+
+clause:iec-ts-63074-2023-6-3-6 a rssc:ClauseReference ;
+    rdfs:label "IEC TS 63074:2023 clause 6.3.6 Wireless communication"@en ;
+    rssc:clauseIdentifier "6.3.6" ;
+    rssc:clauseTitle "Wireless communication" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-ts-63074-2023 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC TS 63074:2023 free preview, Contents, clause 6.3.6 Wireless communication, page 21, under 6.3 Security countermeasures against corruption." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview .
+
+clause:iec-ts-63074-2023-6-3-7 a rssc:ClauseReference ;
+    rdfs:label "IEC TS 63074:2023 clause 6.3.7 Remote access"@en ;
+    rssc:clauseIdentifier "6.3.7" ;
+    rssc:clauseTitle "Remote access" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-ts-63074-2023 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC TS 63074:2023 free preview, Contents, clause 6.3.7 Remote access, page 21, under 6.3 Security countermeasures against corruption. This is the clause a remote-access claim should be anchored to, in preference to unretrievable blog commentary about security levels for remotely accessible robots." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview .
+
+clause:iec-ts-63074-2023-6-3-8 a rssc:ClauseReference ;
+    rdfs:label "IEC TS 63074:2023 clause 6.3.8 Attack through direct physical connection"@en ;
+    rssc:clauseIdentifier "6.3.8" ;
+    rssc:clauseTitle "Attack through direct physical connection" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-ts-63074-2023 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC TS 63074:2023 free preview, Contents, clause 6.3.8 Attack through direct physical connection, page 22, under 6.3 Security countermeasures against corruption." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview .
+
+clause:iec-ts-63074-2023-8 a rssc:ClauseReference ;
+    rdfs:label "IEC TS 63074:2023 clause 8 Information for the user of the machine(s)"@en ;
+    rssc:clauseIdentifier "8" ;
+    rssc:clauseTitle "Information for the user of the machine(s)" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-ts-63074-2023 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC TS 63074:2023 free preview, Contents, clause 8 Information for the user of the machine(s), page 22." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview .
+
+clause:iec-62443-3-3-2013-4-2 a rssc:ClauseReference ;
+    rdfs:label "IEC 62443-3-3:2013 clause 4.2 Support of essential functions"@en ;
+    rssc:clauseIdentifier "4.2" ;
+    rssc:clauseTitle "Support of essential functions" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-62443-3-3-2013 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC 62443-3-3:2013 free preview, Contents, clause 4.2 Support of essential functions, page 23, under clause 4 Common control system security constraints, alongside 4.3 Compensating countermeasures and 4.4 Least privilege. This is the clause in which a security standard concedes that security controls must not break the functions they protect, and it is the natural reverse-direction anchor for a safety crosswalk." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview .
+
+clause:iec-62443-4-2-2019-4-2 a rssc:ClauseReference ;
+    rdfs:label "IEC 62443-4-2:2019 clause 4.2 CCSC 1: Support of essential functions"@en ;
+    rssc:clauseIdentifier "4.2" ;
+    rssc:clauseTitle "CCSC 1: Support of essential functions" ;
+    rssc:normativeStatus "normative" ;
+    rssc:inStandard std:iec-62443-4-2-2019 ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "IEC 62443-4-2:2019 free preview, Contents, clause 4.2 CCSC 1: Support of essential functions, page 27, the first of four Common Component Security Constraints (CCSC 1 to CCSC 4)." ;
+    prov:wasDerivedFrom src:iec-62443-4-2-2019-preview .
+
+# =============================================================================
+# SECTION 5: SECURITY REQUIREMENTS
+# Identifiers and titles read in the official IEC preview Contents pages.
+# Requirement bodies are paywalled and are not reproduced.
+# =============================================================================
+
+req:sr-1-1 a rssc:SecurityRequirement ;
+    rdfs:label "SR 1.1 Human user identification and authentication"@en ;
+    rssc:requirementIdentifier "SR 1.1" ;
+    rssc:requirementTitle "Human user identification and authentication" ;
+    rssc:identifierScheme "SR" ;
+    rssc:inStandard std:iec-62443-3-3-2013 ;
+    rssc:derivedFromFoundationalRequirement fr:FR1 ;
+    rssc:citation "IEC 62443-3-3:2013 free preview, Contents, clause 5.3, page 24." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview .
+
+req:sr-1-6 a rssc:SecurityRequirement ;
+    rdfs:label "SR 1.6 Wireless access management"@en ;
+    rssc:requirementIdentifier "SR 1.6" ;
+    rssc:requirementTitle "Wireless access management" ;
+    rssc:identifierScheme "SR" ;
+    rssc:inStandard std:iec-62443-3-3-2013 ;
+    rssc:derivedFromFoundationalRequirement fr:FR1 ;
+    rssc:citation "IEC 62443-3-3:2013 free preview, Contents, clause 5.8, page 30." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview .
+
+req:sr-1-13 a rssc:SecurityRequirement ;
+    rdfs:label "SR 1.13 Access via untrusted networks"@en ;
+    rssc:requirementIdentifier "SR 1.13" ;
+    rssc:requirementTitle "Access via untrusted networks" ;
+    rssc:identifierScheme "SR" ;
+    rssc:inStandard std:iec-62443-3-3-2013 ;
+    rssc:derivedFromFoundationalRequirement fr:FR1 ;
+    rssc:citation "IEC 62443-3-3:2013 free preview, Contents, clause 5.15, page 35." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview .
+
+req:sr-2-1 a rssc:SecurityRequirement ;
+    rdfs:label "SR 2.1 Authorization enforcement"@en ;
+    rssc:requirementIdentifier "SR 2.1" ;
+    rssc:requirementTitle "Authorization enforcement" ;
+    rssc:identifierScheme "SR" ;
+    rssc:inStandard std:iec-62443-3-3-2013 ;
+    rssc:derivedFromFoundationalRequirement fr:FR2 ;
+    rssc:citation "IEC 62443-3-3:2013 free preview, Contents, clause 6.3, page 36. Title retains the IEC's American spelling." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview .
+
+req:sr-2-2 a rssc:SecurityRequirement ;
+    rdfs:label "SR 2.2 Wireless use control"@en ;
+    rssc:requirementIdentifier "SR 2.2" ;
+    rssc:requirementTitle "Wireless use control" ;
+    rssc:identifierScheme "SR" ;
+    rssc:inStandard std:iec-62443-3-3-2013 ;
+    rssc:derivedFromFoundationalRequirement fr:FR2 ;
+    rssc:citation "IEC 62443-3-3:2013 free preview, Contents, clause 6.4, page 37." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview .
+
+req:sr-2-3 a rssc:SecurityRequirement ;
+    rdfs:label "SR 2.3 Use control for portable and mobile devices"@en ;
+    rssc:requirementIdentifier "SR 2.3" ;
+    rssc:requirementTitle "Use control for portable and mobile devices" ;
+    rssc:identifierScheme "SR" ;
+    rssc:inStandard std:iec-62443-3-3-2013 ;
+    rssc:derivedFromFoundationalRequirement fr:FR2 ;
+    rssc:citation "IEC 62443-3-3:2013 free preview, Contents, clause 6.5, page 38." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview .
+
+req:sr-2-6 a rssc:SecurityRequirement ;
+    rdfs:label "SR 2.6 Remote session termination"@en ;
+    rssc:requirementIdentifier "SR 2.6" ;
+    rssc:requirementTitle "Remote session termination" ;
+    rssc:identifierScheme "SR" ;
+    rssc:inStandard std:iec-62443-3-3-2013 ;
+    rssc:derivedFromFoundationalRequirement fr:FR2 ;
+    rssc:citation "IEC 62443-3-3:2013 free preview, Contents, clause 6.8, page 40." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview .
+
+req:sr-3-1 a rssc:SecurityRequirement ;
+    rdfs:label "SR 3.1 Communication integrity"@en ;
+    rssc:requirementIdentifier "SR 3.1" ;
+    rssc:requirementTitle "Communication integrity" ;
+    rssc:identifierScheme "SR" ;
+    rssc:inStandard std:iec-62443-3-3-2013 ;
+    rssc:derivedFromFoundationalRequirement fr:FR3 ;
+    rssc:citation "IEC 62443-3-3:2013 free preview, Contents, clause 7.3, page 45." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview .
+
+req:sr-3-5 a rssc:SecurityRequirement ;
+    rdfs:label "SR 3.5 Input validation"@en ;
+    rssc:requirementIdentifier "SR 3.5" ;
+    rssc:requirementTitle "Input validation" ;
+    rssc:identifierScheme "SR" ;
+    rssc:inStandard std:iec-62443-3-3-2013 ;
+    rssc:derivedFromFoundationalRequirement fr:FR3 ;
+    rssc:citation "IEC 62443-3-3:2013 free preview, Contents, clause 7.7, page 49." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview .
+
+req:sr-3-6 a rssc:SecurityRequirement ;
+    rdfs:label "SR 3.6 Deterministic output"@en ;
+    rssc:requirementIdentifier "SR 3.6" ;
+    rssc:requirementTitle "Deterministic output" ;
+    rssc:identifierScheme "SR" ;
+    rssc:inStandard std:iec-62443-3-3-2013 ;
+    rssc:derivedFromFoundationalRequirement fr:FR3 ;
+    rssc:citation "IEC 62443-3-3:2013 free preview, Contents, clause 7.8, page 50. Of the 51 system requirements this is the one whose name most directly names a functional safety property." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview .
+
+req:sr-5-1 a rssc:SecurityRequirement ;
+    rdfs:label "SR 5.1 Network segmentation"@en ;
+    rssc:requirementIdentifier "SR 5.1" ;
+    rssc:requirementTitle "Network segmentation" ;
+    rssc:identifierScheme "SR" ;
+    rssc:inStandard std:iec-62443-3-3-2013 ;
+    rssc:derivedFromFoundationalRequirement fr:FR5 ;
+    rssc:citation "IEC 62443-3-3:2013 free preview, Contents, clause 9.3, page 56." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview .
+
+req:sr-7-1 a rssc:SecurityRequirement ;
+    rdfs:label "SR 7.1 Denial of service protection"@en ;
+    rssc:requirementIdentifier "SR 7.1" ;
+    rssc:requirementTitle "Denial of service protection" ;
+    rssc:identifierScheme "SR" ;
+    rssc:inStandard std:iec-62443-3-3-2013 ;
+    rssc:derivedFromFoundationalRequirement fr:FR7 ;
+    rssc:citation "IEC 62443-3-3:2013 free preview, Contents, clause 11.3, page 62." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview .
+
+req:cr-2-13 a rssc:SecurityRequirement ;
+    rdfs:label "CR 2.13 Use of physical diagnostic and test interfaces"@en ;
+    rssc:requirementIdentifier "CR 2.13" ;
+    rssc:requirementTitle "Use of physical diagnostic and test interfaces" ;
+    rssc:identifierScheme "CR" ;
+    rssc:inStandard std:iec-62443-4-2-2019 ;
+    rssc:derivedFromFoundationalRequirement fr:FR2 ;
+    rssc:citation "IEC 62443-4-2:2019 free preview, Contents, clause 6.15, page 45. This component requirement has no numbered counterpart in IEC 62443-3-3, whose FR2 stops at SR 2.12: the component standard adds it." ;
+    prov:wasDerivedFrom src:iec-62443-4-2-2019-preview .
+
+req:cr-3-4 a rssc:SecurityRequirement ;
+    rdfs:label "CR 3.4 Software and information integrity"@en ;
+    rssc:requirementIdentifier "CR 3.4" ;
+    rssc:requirementTitle "Software and information integrity" ;
+    rssc:identifierScheme "CR" ;
+    rssc:inStandard std:iec-62443-4-2-2019 ;
+    rssc:derivedFromFoundationalRequirement fr:FR3 ;
+    rssc:citation "IEC 62443-4-2:2019 free preview, Contents, clause 7.6, page 48. The component derivation of SR 3.4 in IEC 62443-3-3:2013, clause 7.6." ;
+    prov:wasDerivedFrom src:iec-62443-4-2-2019-preview .
+
+req:cr-3-14 a rssc:SecurityRequirement ;
+    rdfs:label "CR 3.14 Integrity of the boot process"@en ;
+    rssc:requirementIdentifier "CR 3.14" ;
+    rssc:requirementTitle "Integrity of the boot process" ;
+    rssc:identifierScheme "CR" ;
+    rssc:inStandard std:iec-62443-4-2-2019 ;
+    rssc:derivedFromFoundationalRequirement fr:FR3 ;
+    rssc:citation "IEC 62443-4-2:2019 free preview, Contents, clause 7.16, page 52. One of the component requirements with no IEC 62443-3-3 counterpart, FR3 there stopping at SR 3.9." ;
+    prov:wasDerivedFrom src:iec-62443-4-2-2019-preview .
+
+req:zcr-3-3 a rssc:SecurityRequirement ;
+    rdfs:label "ZCR 3.3 Separate safety related assets"@en ;
+    rssc:requirementIdentifier "ZCR 3.3" ;
+    rssc:requirementTitle "Separate safety related assets" ;
+    rssc:identifierScheme "ZCR" ;
+    rssc:inStandard std:iec-62443-3-2-2020 ;
+    rssc:citation "IEC 62443-3-2:2020 free preview, Contents, clause 4.4.4, ZCR 3.3: Separate safety related assets, page 14, under ZCR 3 Partition the SUC into zones and conduits. This is the single most load-bearing requirement in the whole IEC 62443 series for a safety crosswalk: it is the point at which a security standard makes an explicit demand about safety assets. No foundational requirement is asserted for it, because the ZCR grammar carries no leading FR digit and inferring one would be a guess." ;
+    prov:wasDerivedFrom src:iec-62443-3-2-2020-preview .
+
+req:zcr-5-6 a rssc:SecurityRequirement ;
+    rdfs:label "ZCR 5.6 Determine SL-T"@en ;
+    rssc:requirementIdentifier "ZCR 5.6" ;
+    rssc:requirementTitle "Determine SL-T" ;
+    rssc:identifierScheme "ZCR" ;
+    rssc:inStandard std:iec-62443-3-2-2020 ;
+    rssc:citation "IEC 62443-3-2:2020 free preview, Contents, clause 4.6.7, ZCR 5.6: Determine SL-T, page 19, under ZCR 5 Perform a detailed cyber security risk assessment." ;
+    prov:wasDerivedFrom src:iec-62443-3-2-2020-preview .
+
+req:sd-4 a rssc:SecurityRequirement ;
+    rdfs:label "SD-4 Secure design best practices"@en ;
+    rssc:requirementIdentifier "SD-4" ;
+    rssc:requirementTitle "Secure design best practices" ;
+    rssc:identifierScheme "practice" ;
+    rssc:inStandard std:iec-62443-4-1-2018 ;
+    rssc:citation "IEC 62443-4-1:2018 free preview, Contents, clause 7.5, SD-4: Secure design best practices, page 32, under Practice 3 Secure by design. Note the identifier-grammar collision this scheme value exists to resolve: 'SR-1' in IEC 62443-4-1 is a hyphenated practice requirement under Practice 2, while 'SR 1.1' in IEC 62443-3-3 is a dotted system requirement. They are different things." ;
+    prov:wasDerivedFrom src:iec-62443-4-1-2018-preview .
+
+req:sg-3 a rssc:SecurityRequirement ;
+    rdfs:label "SG-3 Security hardening guidelines"@en ;
+    rssc:requirementIdentifier "SG-3" ;
+    rssc:requirementTitle "Security hardening guidelines" ;
+    rssc:identifierScheme "practice" ;
+    rssc:inStandard std:iec-62443-4-1-2018 ;
+    rssc:citation "IEC 62443-4-1:2018 free preview, Contents, clause 12.4, SG-3: Security hardening guidelines, page 45, under Practice 8 Security guidelines." ;
+    prov:wasDerivedFrom src:iec-62443-4-1-2018-preview .
+
+req:sum-1 a rssc:SecurityRequirement ;
+    rdfs:label "SUM-1 Security update qualification"@en ;
+    rssc:requirementIdentifier "SUM-1" ;
+    rssc:requirementTitle "Security update qualification" ;
+    rssc:identifierScheme "practice" ;
+    rssc:inStandard std:iec-62443-4-1-2018 ;
+    rssc:citation "IEC 62443-4-1:2018 free preview, Contents, clause 11.2, SUM-1: Security update qualification, page 42, under Practice 7 Security update management." ;
+    prov:wasDerivedFrom src:iec-62443-4-1-2018-preview .
+
+# =============================================================================
+# SECTION 6: HAZARDS AND SAFETY FUNCTIONS
+# Every safety function is anchored to the clause of ISO 10218-1:2025 that
+# names it. Hazards are anchored to Annex A, the published list of significant
+# hazards, which is informative in both parts.
+# =============================================================================
+
+hz:unexpected-motion a rssc:Hazard ;
+    rdfs:label "Unexpected or unintended motion"@en ;
+    rdfs:comment "Motion that starts, continues or changes when the operator has no reason to expect it. In this crosswalk it is the hazard that stopping functions and single point of control exist to prevent."@en ;
+    rssc:definedByClause clause:iso-10218-1-2025-annex-a .
+
+hz:excessive-speed a rssc:Hazard ;
+    rdfs:label "Motion above a permitted speed"@en ;
+    rdfs:comment "The robot moves faster than the limit the risk assessment relied on, so the stopping distance and the safeguarded space calculated from that limit are both too small."@en ;
+    rssc:definedByClause clause:iso-10218-1-2025-annex-a .
+
+hz:contact-with-person a rssc:Hazard ;
+    rdfs:label "Contact between the robot and a person"@en ;
+    rdfs:comment "Quasi-static or transient contact between a moving part of the robot application and an operator. The hazard that speed and separation monitoring, and power and force limiting, are used to control in a collaborative application."@en ;
+    rssc:definedByClause clause:iso-10218-1-2025-annex-a .
+
+hz:stop-not-executed a rssc:Hazard ;
+    rdfs:label "Commanded stop not executed within its validated time"@en ;
+    rdfs:comment "A stop is commanded and either does not arrive, or arrives and is not acted on within the stopping time the safeguarding distances were derived from. Distinguished from unexpected motion because the operator here has done everything right."@en ;
+    rssc:definedByClause clause:iso-10218-1-2025-annex-a .
+
+sf:emergency-stop a rssc:StoppingFunction ;
+    rdfs:label "Emergency stop (ISO 10218-1:2025, 5.4.2)"@en ;
+    rssc:definedByClause clause:iso-10218-1-2025-5-4-2 ;
+    rssc:mitigatesHazard hz:unexpected-motion , hz:stop-not-executed .
+
+sf:speed-limit-monitoring a rssc:SafetyFunction ;
+    rdfs:label "Speed limit(s) monitoring (ISO 10218-1:2025, 5.5.3)"@en ;
+    rssc:definedByClause clause:iso-10218-1-2025-5-5-3 ;
+    rssc:mitigatesHazard hz:excessive-speed .
+
+sf:stopping-time-limiting a rssc:SafetyFunction ;
+    rdfs:label "Stopping time limiting (ISO 10218-1:2025, 5.5.6)"@en ;
+    rssc:definedByClause clause:iso-10218-1-2025-5-5-6 ;
+    rssc:mitigatesHazard hz:stop-not-executed .
+
+sf:single-point-of-control a rssc:SafetyFunction ;
+    rdfs:label "Single-point-of-control (ISO 10218-1:2025, 5.5.1)"@en ;
+    rssc:definedByClause clause:iso-10218-1-2025-5-5-1 ;
+    rssc:mitigatesHazard hz:unexpected-motion .
+
+sf:parameterization a rssc:SafetyFunction ;
+    rdfs:label "Parameterization of safety functions (ISO 10218-1:2025, 5.3.5)"@en ;
+    rssc:definedByClause clause:iso-10218-1-2025-5-3-5 ;
+    rssc:mitigatesHazard hz:excessive-speed , hz:contact-with-person .
+
+sf:speed-and-separation-monitoring a rssc:CollaborativeCapability ;
+    rdfs:label "Speed and separation monitoring, SSM (ISO 10218-1:2025, 5.10.3)"@en ;
+    rssc:definedByClause clause:iso-10218-1-2025-5-10-3 ;
+    rssc:mitigatesHazard hz:contact-with-person .
+
+# =============================================================================
+# SECTION 7: CROSSWALK ASSERTIONS
+#
+# GROUP A. The IEC TS 63074:2023 clause 5.2 spine.
+#
+# This is the only group in the file whose correspondence is laid out by a
+# standards body rather than by us. IEC TS 63074:2023 clause 5.2 restates the
+# seven IEC 62443 foundational requirements against the safety-related control
+# system, as sub-clauses 5.2.2 to 5.2.8, in the same order as IEC 62443-3-3
+# clauses 5 to 11, and its Table 1 is titled "Overview of foundational
+# requirements and possible influence(s) on an SCS". Both the sub-clause
+# titles and the table title are published free in the IEC preview Contents.
+# The content of Table 1 is paywalled and is NOT reproduced: what is asserted
+# here is only that the structural correspondence exists.
+#
+# Relation is skos:closeMatch, not skos:exactMatch, in all seven cases. The
+# 63074 clause is scoped to the safety-related control system; the 62443
+# foundational requirement is scoped to any industrial automation and control
+# system. Same property, different object, therefore not identity.
+# =============================================================================
+
+xw:ts63074-5-2-2-fr1 a rssc:CrosswalkAssertion ;
+    rdfs:label "IEC TS 63074:2023 5.2.2 to FR 1"@en ;
+    rssc:subjectClause clause:iec-ts-63074-2023-5-2-2 ;
+    rssc:targetRequirement fr:FR1 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "IEC TS 63074:2023 organises its security countermeasures for a safety-related control system as sub-clauses 5.2.2 to 5.2.8, whose titles are the seven IEC 62443 foundational requirements in the order in which IEC 62443-3-3:2013 presents them in clauses 5 to 11. 5.2.2 Identification and authentication corresponds to FR 1 Identification and authentication control. The correspondence would be falsified by a preview Contents showing a different ordering or different titles." ;
+    rssc:citation "IEC TS 63074:2023 free preview Contents, clause 5.2.2, page 18; IEC 62443-3-3:2013 free preview Contents, clause 5, page 24." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+xw:ts63074-5-2-3-fr2 a rssc:CrosswalkAssertion ;
+    rdfs:label "IEC TS 63074:2023 5.2.3 to FR 2"@en ;
+    rssc:subjectClause clause:iec-ts-63074-2023-5-2-3 ;
+    rssc:targetRequirement fr:FR2 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "5.2.3 Use control carries the same title as FR 2 Use control. Same position in the sequence, identical heading." ;
+    rssc:citation "IEC TS 63074:2023 free preview Contents, clause 5.2.3, page 18; IEC 62443-3-3:2013 free preview Contents, clause 6, page 36." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+xw:ts63074-5-2-4-fr3 a rssc:CrosswalkAssertion ;
+    rdfs:label "IEC TS 63074:2023 5.2.4 to FR 3"@en ;
+    rssc:subjectClause clause:iec-ts-63074-2023-5-2-4 ;
+    rssc:targetRequirement fr:FR3 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "5.2.4 System integrity carries the same title as FR 3 System integrity. This is the pairing that matters most for a functional safety argument, because integrity of software and of configuration is the security counterpart of a validated safety function." ;
+    rssc:citation "IEC TS 63074:2023 free preview Contents, clause 5.2.4, page 18; IEC 62443-3-3:2013 free preview Contents, clause 7, page 45." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+xw:ts63074-5-2-5-fr4 a rssc:CrosswalkAssertion ;
+    rdfs:label "IEC TS 63074:2023 5.2.5 to FR 4"@en ;
+    rssc:subjectClause clause:iec-ts-63074-2023-5-2-5 ;
+    rssc:targetRequirement fr:FR4 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "5.2.5 Data confidentiality carries the same title as FR 4 Data confidentiality. Recorded for completeness of the spine and NOT because a strong safety argument runs through it: of the seven, this is the one whose safety relevance is only indirect, through reconnaissance. Saying so is more useful than manufacturing a link." ;
+    rssc:citation "IEC TS 63074:2023 free preview Contents, clause 5.2.5, page 18; IEC 62443-3-3:2013 free preview Contents, clause 8, page 52." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+xw:ts63074-5-2-6-fr5 a rssc:CrosswalkAssertion ;
+    rdfs:label "IEC TS 63074:2023 5.2.6 to FR 5"@en ;
+    rssc:subjectClause clause:iec-ts-63074-2023-5-2-6 ;
+    rssc:targetRequirement fr:FR5 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:system-integrator ;
+    rssc:basis "5.2.6 Restricted data flow carries the same title as FR 5 Restricted data flow. Together with ZCR 3.3 Separate safety related assets this is the cleanest single point of contact between the security corpus and a safety case, because both say in plain terms that safety assets should be separated from everything else." ;
+    rssc:citation "IEC TS 63074:2023 free preview Contents, clause 5.2.6, page 19; IEC 62443-3-3:2013 free preview Contents, clause 9, page 55." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+xw:ts63074-5-2-7-fr6 a rssc:CrosswalkAssertion ;
+    rdfs:label "IEC TS 63074:2023 5.2.7 to FR 6"@en ;
+    rssc:subjectClause clause:iec-ts-63074-2023-5-2-7 ;
+    rssc:targetRequirement fr:FR6 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:asset-owner , role:service-provider ;
+    rssc:basis "5.2.7 Timely response to events carries the same title as FR 6 Timely response to events, plural in both. This pairing has no counterpart at all in the machinery safety canon: there is no continuous security monitoring requirement in ISO 10218:2025, so on this row the security side is simply ahead." ;
+    rssc:citation "IEC TS 63074:2023 free preview Contents, clause 5.2.7, page 19; IEC 62443-3-3:2013 free preview Contents, clause 10, page 59." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+xw:ts63074-5-2-8-fr7 a rssc:CrosswalkAssertion ;
+    rdfs:label "IEC TS 63074:2023 5.2.8 to FR 7"@en ;
+    rssc:subjectClause clause:iec-ts-63074-2023-5-2-8 ;
+    rssc:targetRequirement fr:FR7 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "5.2.8 Resource availability carries the same title as FR 7 Resource availability. The most under-appreciated row for safety: a safety function that cannot execute is not fail-safe by default, and starving a controller of resources is a cheaper attack than corrupting it." ;
+    rssc:citation "IEC TS 63074:2023 free preview Contents, clause 5.2.8, page 19; IEC 62443-3-3:2013 free preview Contents, clause 11, page 61." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+# =============================================================================
+# GROUP B. IEC TS 63074:2023 clause 6.3 countermeasures to specific
+# IEC 62443 requirements.
+#
+# Clause 6 is entirely new in the 2023 Technical Specification. Its
+# sub-clauses name concrete countermeasures. IEC TS 63074 does not publish
+# requirement-level pointers into IEC 62443 in any free surface, so each
+# pairing below is OUR reading of two published clause titles, not a link the
+# standard makes. Hence ev:AnalyticalInference throughout.
+# =============================================================================
+
+xw:ts63074-6-3-3-sr-1-1 a rssc:CrosswalkAssertion ;
+    rdfs:label "IEC TS 63074:2023 6.3.3 to SR 1.1"@en ;
+    rssc:subjectClause clause:iec-ts-63074-2023-6-3-3 ;
+    rssc:targetRequirement req:sr-1-1 ;
+    rssc:mappingRelation skos:relatedMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:system-integrator , role:asset-owner ;
+    rssc:basis "Multi-factor authentication is a strengthening of human user identification and authentication, not a synonym for it, so the relation is relatedMatch and not closeMatch. In a robot cell the identities that matter are the teach pendant, the engineering laptop and the safety-configuration tool, because whoever holds one can change a safety limit. Ours, not the standard's." ;
+    rssc:citation "IEC TS 63074:2023 free preview Contents, clause 6.3.3, page 20; IEC 62443-3-3:2013 free preview Contents, clause 5.3, page 24." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+xw:ts63074-6-3-4-sr-5-1 a rssc:CrosswalkAssertion ;
+    rdfs:label "IEC TS 63074:2023 6.3.4 to SR 5.1"@en ;
+    rssc:subjectClause clause:iec-ts-63074-2023-6-3-4 ;
+    rssc:targetRequirement req:sr-5-1 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:system-integrator ;
+    rssc:basis "Network architecture as a countermeasure against corruption of a safety-related control system is, in IEC 62443 terms, network segmentation. Ours, not the standard's, though it is a short step: the two clause titles describe the same control at different levels of abstraction." ;
+    rssc:citation "IEC TS 63074:2023 free preview Contents, clause 6.3.4, page 20; IEC 62443-3-3:2013 free preview Contents, clause 9.3, page 56." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+xw:ts63074-6-3-5-sr-2-3 a rssc:CrosswalkAssertion ;
+    rdfs:label "IEC TS 63074:2023 6.3.5 to SR 2.3"@en ;
+    rssc:subjectClause clause:iec-ts-63074-2023-6-3-5 ;
+    rssc:targetRequirement req:sr-2-3 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:asset-owner , role:service-provider ;
+    rssc:basis "Portable devices in a machinery context are the maintenance laptop, the USB stick and the removable teach pendant. SR 2.3 Use control for portable and mobile devices is the requirement that governs them. Ours, not the standard's." ;
+    rssc:citation "IEC TS 63074:2023 free preview Contents, clause 6.3.5, page 21; IEC 62443-3-3:2013 free preview Contents, clause 6.5, page 38." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+xw:ts63074-6-3-6-sr-1-6 a rssc:CrosswalkAssertion ;
+    rdfs:label "IEC TS 63074:2023 6.3.6 to SR 1.6"@en ;
+    rssc:subjectClause clause:iec-ts-63074-2023-6-3-6 ;
+    rssc:targetRequirement req:sr-1-6 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:B , band:C ;
+    rssc:appliesToRole role:system-integrator ;
+    rssc:basis "Wireless communication as a countermeasure topic splits in IEC 62443 into an access side and a use side. This assertion takes the access side: SR 1.6 Wireless access management. The use side is asserted separately rather than folded in here, because they are two distinct requirements and collapsing them would hide one of them." ;
+    rssc:citation "IEC TS 63074:2023 free preview Contents, clause 6.3.6, page 21; IEC 62443-3-3:2013 free preview Contents, clause 5.8, page 30." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+xw:ts63074-6-3-6-sr-2-2 a rssc:CrosswalkAssertion ;
+    rdfs:label "IEC TS 63074:2023 6.3.6 to SR 2.2"@en ;
+    rssc:subjectClause clause:iec-ts-63074-2023-6-3-6 ;
+    rssc:targetRequirement req:sr-2-2 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:B , band:C ;
+    rssc:appliesToRole role:system-integrator ;
+    rssc:basis "The use side of the same countermeasure topic: SR 2.2 Wireless use control. Band B and Band C are named rather than Band A because a fixed guarded cell can be built with no wireless path at all, whereas a mobile platform or a fleet cannot." ;
+    rssc:citation "IEC TS 63074:2023 free preview Contents, clause 6.3.6, page 21; IEC 62443-3-3:2013 free preview Contents, clause 6.4, page 37." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+xw:ts63074-6-3-7-sr-1-13 a rssc:CrosswalkAssertion ;
+    rdfs:label "IEC TS 63074:2023 6.3.7 to SR 1.13"@en ;
+    rssc:subjectClause clause:iec-ts-63074-2023-6-3-7 ;
+    rssc:targetRequirement req:sr-1-13 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:service-provider , role:asset-owner ;
+    rssc:basis "Remote access to a safety-related control system is, in IEC 62443 terms, access via an untrusted network. This is the route by which a remote diagnostics or remote support path into a safety-related control system comes to exist, and it is normally created years after handover by a maintenance contract nobody read as a safety decision. Ours, not the standard's." ;
+    rssc:citation "IEC TS 63074:2023 free preview Contents, clause 6.3.7, page 21; IEC 62443-3-3:2013 free preview Contents, clause 5.15, page 35." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+xw:ts63074-6-3-8-cr-2-13 a rssc:CrosswalkAssertion ;
+    rdfs:label "IEC TS 63074:2023 6.3.8 to CR 2.13"@en ;
+    rssc:subjectClause clause:iec-ts-63074-2023-6-3-8 ;
+    rssc:targetRequirement req:cr-2-13 ;
+    rssc:mappingRelation skos:relatedMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:product-supplier ;
+    rssc:basis "Attack through direct physical connection is broader than any single IEC 62443 requirement, but the component requirement that most directly addresses it is CR 2.13 Use of physical diagnostic and test interfaces, which has no numbered counterpart in IEC 62443-3-3. Relation is relatedMatch rather than closeMatch precisely because the 63074 clause is wider than the CR. Ours, not the standard's." ;
+    rssc:citation "IEC TS 63074:2023 free preview Contents, clause 6.3.8, page 22; IEC 62443-4-2:2019 free preview Contents, clause 6.15, page 45." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+# =============================================================================
+# GROUP C. The ISO 10218:2025 cybersecurity clauses to the machinery security
+# bridge.
+#
+# READ THE BASIS TEXT ON THESE TWO. The published normative-reference lists of
+# BOTH parts of ISO 10218:2025 were read in full in the official ISO previews.
+# Neither IEC TS 63074 nor any part of IEC 62443 appears in either list. The
+# assertions below are therefore conceptual correspondences of our own, and
+# carry ev:AnalyticalInference. They are NOT a claim that ISO 10218 requires
+# conformity with anything in IEC 62443. See cg:informative-chain.
+# =============================================================================
+
+xw:iso1-5-1-16-ts63074-5-1-1 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-1:2025 5.1.16 to IEC TS 63074:2023 5.1.1"@en ;
+    rssc:subjectClause clause:iso-10218-1-2025-5-1-16 ;
+    rssc:targetRequirement clause:iec-ts-63074-2023-5-1-1 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A ;
+    rssc:appliesToRole role:product-supplier ;
+    rssc:basis "Both clauses require a security risk assessment for a machine, and both are placed so that protective measures follow from the assessment rather than from a fixed list. That is the correspondence asserted. It is OURS. Two things are deliberately NOT asserted: first, that ISO 10218-1:2025 normatively references IEC TS 63074, which was checked in the published normative-reference list of Part 1 and is false, the list running from ISO 3864-1:2011 to IEC 62745:2017 with no IEC TS 63074 and no IEC 62443 part in it; second, which edition of 63074 the Part 1 bibliography cites, since one search result rendered it as the superseded IEC TR 63074:2019 and the bibliography sits outside the free preview. Falsified by a reading of clause 5.1.16 showing it requires something other than an assessment." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 5.1.16 page 18, and clause 2 Normative references read in full; IEC TS 63074:2023 free preview, Contents clause 5.1.1 page 15." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf> .
+
+xw:iso2-5-2-16-ts63074-5-1-1 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-2:2025 5.2.16 to IEC TS 63074:2023 5.1.1"@en ;
+    rssc:subjectClause clause:iso-10218-2-2025-5-2-16 ;
+    rssc:targetRequirement clause:iec-ts-63074-2023-5-1-1 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A ;
+    rssc:appliesToRole role:system-integrator ;
+    rssc:basis "The Part 2 counterpart of the assertion above, placed on the integrator rather than the robot manufacturer. The same negative check was run and returned the same answer: the complete normative-reference list of ISO 10218-2:2025 was read in the official preview and contains no IEC TS 63074 and no IEC 62443 part. Ours, not the standard's." ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents clause 5.2.16 page 28, and clause 2 Normative references read in full; IEC TS 63074:2023 free preview, Contents clause 5.1.1 page 15." ;
+    prov:wasDerivedFrom src:iso-10218-2-2025-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/73934/3578b7f9a402489fb9af1cf1ca03ea68/ISO-10218-2-2025.pdf> .
+
+# =============================================================================
+# GROUP D. The ISO 10218:2025 cybersecurity clauses to IEC 62443 role anchors.
+# =============================================================================
+
+xw:iso2-5-2-16-zcr-3-3 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-2:2025 5.2.16 to ZCR 3.3"@en ;
+    rssc:subjectClause clause:iso-10218-2-2025-5-2-16 ;
+    rssc:targetRequirement req:zcr-3-3 ;
+    rssc:mappingRelation skos:relatedMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:system-integrator ;
+    rssc:basis "The strongest single pairing in the file after the 63074 spine, and the one a cell builder can act on tomorrow. ISO 10218-2:2025 places a cybersecurity requirement on the integrator at 5.2.16; IEC 62443-3-2:2020 requires that same integrator to separate safety related assets into their own zone at ZCR 3.3. The two documents are addressing the same party about the same assets from opposite directions. Relation is relatedMatch, not closeMatch: 5.2.16 is an assessment obligation and ZCR 3.3 is a partitioning obligation, so the scopes cross rather than nest. Ours, not either standard's." ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents clause 5.2.16 page 28; IEC 62443-3-2:2020 free preview, Contents clause 4.4.4 ZCR 3.3 Separate safety related assets, page 14." ;
+    prov:wasDerivedFrom src:iec-62443-3-2-2020-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19487/bea4b5b38c1f4f7a99733044ccf82500/IEC-62443-3-2-2020.pdf> .
+
+xw:iso2-5-2-16-zcr-5-6 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-2:2025 5.2.16 to ZCR 5.6"@en ;
+    rssc:subjectClause clause:iso-10218-2-2025-5-2-16 ;
+    rssc:targetRequirement req:zcr-5-6 ;
+    rssc:mappingRelation skos:relatedMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:low ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:system-integrator , role:asset-owner ;
+    rssc:basis "Confidence is deliberately LOW. The pairing is only useful if ISO 10218-2:2025 5.2.16 expects a graded outcome from its cybersecurity assessment, and nothing in any free surface of the standard says that it does. ISO 10218:2025 names no security level anywhere that could be checked. What is asserted is the weaker and defensible claim that an integrator who has performed the 5.2.16 assessment has done most of the work that ZCR 5.6 Determine SL-T asks for, and would be foolish not to record the result in the form the security corpus can consume. Falsified by a reading of 5.2.16 showing a prescribed outcome format." ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents clause 5.2.16 page 28; IEC 62443-3-2:2020 free preview, Contents clause 4.6.7 ZCR 5.6 Determine SL-T, page 19." ;
+    prov:wasDerivedFrom src:iec-62443-3-2-2020-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19487/bea4b5b38c1f4f7a99733044ccf82500/IEC-62443-3-2-2020.pdf> .
+
+xw:iso1-5-1-16-sd-4 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-1:2025 5.1.16 to SD-4"@en ;
+    rssc:subjectClause clause:iso-10218-1-2025-5-1-16 ;
+    rssc:targetRequirement req:sd-4 ;
+    rssc:mappingRelation skos:relatedMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A ;
+    rssc:appliesToRole role:product-supplier ;
+    rssc:basis "ISO 10218-1:2025 places its cybersecurity requirement at 5.1.16, inside clause 5.1 Robot design, and so addresses the robot manufacturer as a designer. IEC 62443-4-1:2018 addresses the same party as a product supplier, and SD-4 Secure design best practices is its design-stage requirement. The two are aimed at one company at one moment in the lifecycle. Relation is relatedMatch because 5.1.16 requires an assessment and SD-4 requires a design practice. Ours, not either standard's." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 5.1.16 page 18; IEC 62443-4-1:2018 free preview, Contents clause 7.5 SD-4 Secure design best practices, page 32." ;
+    prov:wasDerivedFrom src:iec-62443-4-1-2018-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/21445/8dc7299ef50a47d0a95d73fae2b453b6/IEC-62443-4-1-2018.pdf> .
+
+xw:iso1-7-5-11-sg-3 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-1:2025 7.5.11 to SG-3"@en ;
+    rssc:subjectClause clause:iso-10218-1-2025-7-5-11 ;
+    rssc:targetRequirement req:sg-3 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A ;
+    rssc:appliesToRole role:product-supplier ;
+    rssc:basis "Both clauses require a product supplier to hand security information downstream in documentation: ISO 10218-1:2025 7.5.11 Cybersecurity sits in the instruction handbook, and IEC 62443-4-1:2018 SG-3 Security hardening guidelines sits in Practice 8 Security guidelines. This pairing is the mechanism by which a robot buyer inherits a security obligation through a document rather than through a contract, and it is the most under-reported of the four ISO 10218 cybersecurity touchpoints. Ours, not either standard's." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 7.5.11 Cybersecurity, page 42; IEC 62443-4-1:2018 free preview, Contents clause 12.4 SG-3 Security hardening guidelines, page 45." ;
+    prov:wasDerivedFrom src:iec-62443-4-1-2018-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/21445/8dc7299ef50a47d0a95d73fae2b453b6/IEC-62443-4-1-2018.pdf> .
+
+xw:iso2-7-5-23-ts63074-8 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-2:2025 7.5.23 to IEC TS 63074:2023 clause 8"@en ;
+    rssc:subjectClause clause:iso-10218-2-2025-7-5-23 ;
+    rssc:targetRequirement clause:iec-ts-63074-2023-8 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A ;
+    rssc:appliesToRole role:system-integrator , role:asset-owner ;
+    rssc:basis "The Part 2 counterpart of the pairing above, one step further down the supply chain. ISO 10218-2:2025 7.5.23 Cybersecurity is in the integrator's instruction handbook; IEC TS 63074:2023 clause 8 is titled Information for the user of the machine(s). Both name the same handover: the integrator tells the operator what security assumptions the safety case rests on. Ours, not either standard's." ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents clause 7.5.23 Cybersecurity, page 82; IEC TS 63074:2023 free preview, Contents clause 8 Information for the user of the machine(s), page 22." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+# =============================================================================
+# GROUP E. Safety-function clauses to security requirements.
+#
+# Every assertion in this group is OURS. No standards body maps an ISO 10218
+# safety function to an IEC 62443 requirement identifier. The value of the
+# group is that it makes the central claim of the case study checkable one row
+# at a time: if the security requirement is unmet, the named safety function
+# degrades. The mechanism for each is spelled out in the paired
+# rssc:SafetyImpactAssertion in Section 8.
+# =============================================================================
+
+xw:iso1-5-3-6-sr-3-1 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-1:2025 5.3.6 to SR 3.1"@en ;
+    rssc:subjectClause clause:iso-10218-1-2025-5-3-6 ;
+    rssc:targetRequirement req:sr-3-1 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "ISO 10218-1:2025 5.3.6 Communications sits inside clause 5.3 Safety functions, so the communications it governs are the ones that carry safety data. SR 3.1 Communication integrity is the security requirement for exactly that property on exactly that channel. Of all the pairings in this group this is the closest, because both clauses are about the integrity of a safety-relevant message in transit. Ours, not either standard's." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 5.3.6 Communications, page 26; IEC 62443-3-3:2013 free preview, Contents clause 7.3 SR 3.1 Communication integrity, page 45." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf> .
+
+xw:iso1-5-3-5-cr-3-4 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-1:2025 5.3.5 to CR 3.4"@en ;
+    rssc:subjectClause clause:iso-10218-1-2025-5-3-5 ;
+    rssc:targetRequirement req:cr-3-4 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "Parameterization of safety functions is new in the 2025 edition and is the clause that governs how speed limits, separation distances and force limits are set and protected. In IEC 62443 terms those parameters are configuration information, and CR 3.4 Software and information integrity is the component requirement that protects them. This pairing is the sharpest illustration of the central claim, because nothing has to fail for the harm to occur: the safety function keeps working perfectly, on an attacker's numbers. Ours, not either standard's." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 5.3.5 Parameterization of safety functions, page 26; IEC 62443-4-2:2019 free preview, Contents clause 7.6 CR 3.4 Software and information integrity, page 48." ;
+    prov:wasDerivedFrom src:iec-62443-4-2-2019-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/21919/fe56b59fa6f04b849d88a2311aa5ec15/IEC-62443-4-2-2019.pdf> .
+
+xw:iso1-5-5-3-sr-3-6 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-1:2025 5.5.3 to SR 3.6"@en ;
+    rssc:subjectClause clause:iso-10218-1-2025-5-5-3 ;
+    rssc:targetRequirement req:sr-3-6 ;
+    rssc:mappingRelation skos:relatedMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:product-supplier ;
+    rssc:basis "Speed limit(s) monitoring is a safety function whose whole value lies in producing the right output at the right time. SR 3.6 Deterministic output is the only one of the 51 system requirements whose title names that property directly. Relation is relatedMatch rather than closeMatch because SR 3.6 is about control-system outputs generally and 5.5.3 is about one specific monitored quantity. Ours, not either standard's." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 5.5.3 Speed limit(s) monitoring, page 31; IEC 62443-3-3:2013 free preview, Contents clause 7.8 SR 3.6 Deterministic output, page 50." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf> .
+
+xw:iso1-5-4-2-sr-7-1 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-1:2025 5.4.2 to SR 7.1"@en ;
+    rssc:subjectClause clause:iso-10218-1-2025-5-4-2 ;
+    rssc:targetRequirement req:sr-7-1 ;
+    rssc:mappingRelation skos:relatedMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "An emergency stop is a function whose safety property is that it always executes, and executes within a bounded time. SR 7.1 Denial of service protection is the security requirement that preserves the ability to execute under load or attack. A safety function that is unavailable is not fail-safe by default, and this row is where that becomes concrete. Relation is relatedMatch: the scopes cross, one being a machinery function and the other a control-system property it depends on. Ours, not either standard's." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 5.4.2 Emergency stop, page 28; IEC 62443-3-3:2013 free preview, Contents clause 11.3 SR 7.1 Denial of service protection, page 62." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf> .
+
+xw:iso1-5-5-1-sr-2-1 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-1:2025 5.5.1 to SR 2.1"@en ;
+    rssc:subjectClause clause:iso-10218-1-2025-5-5-1 ;
+    rssc:targetRequirement req:sr-2-1 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "Single-point-of-control is an authorisation rule expressed as a safety function: exactly one control station may command motion at a time, and it must be the one the person in the cell is holding. SR 2.1 Authorization enforcement is the security requirement that constrains what an authenticated identity may do. Authentication alone does not deliver this; without authorisation that is aware of mode and location, the safety case is intact on paper and broken in practice. Ours, not either standard's." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 5.5.1 Single-point-of-control, page 30; IEC 62443-3-3:2013 free preview, Contents clause 6.3 SR 2.1 Authorization enforcement, page 36." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf> .
+
+xw:iso1-5-10-3-sr-3-5 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-1:2025 5.10.3 to SR 3.5"@en ;
+    rssc:subjectClause clause:iso-10218-1-2025-5-10-3 ;
+    rssc:targetRequirement req:sr-3-5 ;
+    rssc:mappingRelation skos:relatedMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "Speed and separation monitoring computes a separation distance from run-time perception data and slows or stops the robot on the result. That makes perception data a safety input, and SR 3.5 Input validation the security requirement that governs it. This is the point at which the Band B perception-integrity problem already appears inside Band A: a fixed collaborative cell built to ISO 10218 has the same dependency on trustworthy sensing that an autonomous mobile robot has, just in a smaller volume. Ours, not either standard's." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 5.10.3 Speed and separation monitoring (SSM), page 37; IEC 62443-3-3:2013 free preview, Contents clause 7.7 SR 3.5 Input validation, page 49." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf> .
+
+xw:iso2-5-3-5-sr-1-13 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-2:2025 5.3.5 to SR 1.13"@en ;
+    rssc:subjectClause clause:iso-10218-2-2025-5-3-5 ;
+    rssc:targetRequirement req:sr-1-13 ;
+    rssc:mappingRelation skos:relatedMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:system-integrator , role:service-provider ;
+    rssc:basis "ISO 10218-2:2025 5.3.5 governs local control, remote control and single point of control together, which means the standard already treats a remote control path as something that can defeat a safety property. SR 1.13 Access via untrusted networks is the requirement that governs that path from the security side. Ours, not either standard's." ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents clause 5.3.5 Local control, remote control and single-point-of-control, page 29; IEC 62443-3-3:2013 free preview, Contents clause 5.15 SR 1.13 Access via untrusted networks, page 35." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf> .
+
+xw:iso2-5-7-6-ts63074-6-3-7 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-2:2025 5.7.6 to IEC TS 63074:2023 6.3.7"@en ;
+    rssc:subjectClause clause:iso-10218-2-2025-5-7-6 ;
+    rssc:targetRequirement clause:iec-ts-63074-2023-6-3-7 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:system-integrator , role:service-provider ;
+    rssc:basis "Two clauses about the same thing, written by two different committees. ISO 10218-2:2025 5.7.6 Local and remote control is a machinery control-function requirement written by ISO/TC 299; IEC TS 63074:2023 6.3.7 Remote access is a security countermeasure written by IEC TC 44. Neither cites the other. This is one of the cleanest demonstrations available that the two canons are converging on the same surface without a normative link between them. Ours, not either standard's." ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents clause 5.7.6 Local and remote control, page 45; IEC TS 63074:2023 free preview, Contents clause 6.3.7 Remote access, page 21." ;
+    prov:wasDerivedFrom src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf> .
+
+xw:iso2-7-5-11-sr-2-6 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-2:2025 7.5.11 to SR 2.6"@en ;
+    rssc:subjectClause clause:iso-10218-2-2025-7-5-11 ;
+    rssc:targetRequirement req:sr-2-6 ;
+    rssc:mappingRelation skos:relatedMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:service-provider , role:asset-owner ;
+    rssc:basis "ISO 10218-2:2025 7.5.11 Remote interventions requires the integrator to document remote intervention in the instruction handbook. SR 2.6 Remote session termination is the security requirement that gives the operator the ability to end such a session. The pairing matters because a remote session that cannot be terminated locally is a second point of control, which is the thing single point of control exists to forbid. Ours, not either standard's." ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents clause 7.5.11 Remote interventions, page 78; IEC 62443-3-3:2013 free preview, Contents clause 6.8 SR 2.6 Remote session termination, page 40." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf> .
+
+# =============================================================================
+# GROUP F. The reverse direction: where IEC 62443 concedes safety.
+#
+# Both assertions in this group run from a machinery safety-function clause to
+# the IEC 62443 clause in which the security corpus accepts that its own
+# controls must not break the functions they protect. It is the only place
+# where the security side speaks about safety without being asked to.
+# =============================================================================
+
+xw:iso1-5-3-1-62443-3-3-4-2 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-1:2025 5.3.1 to IEC 62443-3-3:2013 4.2"@en ;
+    rssc:subjectClause clause:iso-10218-1-2025-5-3-1 ;
+    rssc:targetRequirement clause:iec-62443-3-3-2013-4-2 ;
+    rssc:mappingRelation skos:relatedMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:system-integrator , role:asset-owner ;
+    rssc:basis "IEC 62443-3-3:2013 clause 4.2 Support of essential functions is a constraint on the security requirements themselves: they may not be applied in a way that prevents the system doing its job. Read against ISO 10218-1:2025 5.3.1, the general clause of Safety functions, it is the security corpus conceding the safety corpus's priority. Anyone who has watched an account-lockout policy applied to a safety controller knows why this clause exists. Relation is relatedMatch: a constraint on requirements is not the same kind of thing as a requirement. Ours, not either standard's." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 5.3.1 General, page 25; IEC 62443-3-3:2013 free preview, Contents clause 4.2 Support of essential functions, page 23." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf> .
+
+xw:iso2-5-5-1-62443-4-2-4-2 a rssc:CrosswalkAssertion ;
+    rdfs:label "ISO 10218-2:2025 5.5.1 to IEC 62443-4-2:2019 4.2"@en ;
+    rssc:subjectClause clause:iso-10218-2-2025-5-5-1 ;
+    rssc:targetRequirement clause:iec-62443-4-2-2019-4-2 ;
+    rssc:mappingRelation skos:relatedMatch ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:product-supplier ;
+    rssc:basis "The component-level counterpart of the assertion above. IEC 62443-4-2:2019 restates the same constraint as CCSC 1: Support of essential functions, the first of its four Common Component Security Constraints, and it binds the component supplier rather than the system designer. Read against ISO 10218-2:2025 5.5.1, the general clause of Safety functions in the application standard. Ours, not either standard's." ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents clause 5.5.1 General; IEC 62443-4-2:2019 free preview, Contents clause 4.2 CCSC 1: Support of essential functions, page 27." ;
+    prov:wasDerivedFrom src:iec-62443-4-2-2019-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/21919/fe56b59fa6f04b849d88a2311aa5ec15/IEC-62443-4-2-2019.pdf> .
+
+# =============================================================================
+# SECTION 8: SAFETY IMPACT ASSERTIONS
+# The central claim of the case study, made one instance at a time: an unmet
+# security property degrades a named safety function, so a cyber compromise
+# produces a safety consequence. All six are ours, and all six are written so
+# that the consequence is stated in terms of the machine rather than the
+# network. If a consequence cannot be written that concretely, the assertion
+# is not ready to be made.
+# =============================================================================
+
+sia:comms-integrity-emergency-stop a rssc:SafetyImpactAssertion ;
+    rdfs:label "Loss of communication integrity degrades emergency stop"@en ;
+    rssc:impactingRequirement req:sr-3-1 ;
+    rssc:impactedSafetyFunction sf:emergency-stop ;
+    rssc:safetyConsequence "A stop command is altered, delayed or dropped in transit between the control station and the drives. Motion continues after the stop has been commanded, and the operator sees a machine that is ignoring the button in their hand." ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "Follows from the crosswalk assertion binding ISO 10218-1:2025 5.3.6 Communications to SR 3.1 Communication integrity. The claim is ours. It is falsified for any given installation by showing the stop path is hard-wired end to end and carries no data over a network at all, which is why the assertion is scoped to Bands A and B rather than asserted universally." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clauses 5.3.6 and 5.4.2; IEC 62443-3-3:2013 free preview, Contents clause 7.3." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf> .
+
+sia:deterministic-output-speed-limit a rssc:SafetyImpactAssertion ;
+    rdfs:label "Loss of deterministic output degrades speed limit monitoring"@en ;
+    rssc:impactingRequirement req:sr-3-6 ;
+    rssc:impactedSafetyFunction sf:speed-limit-monitoring ;
+    rssc:safetyConsequence "The monitored speed output is delayed or made non-deterministic, so the robot exceeds the limit the risk assessment relied on before the monitor reacts. Every safeguarding distance derived from that limit is now too short." ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:product-supplier ;
+    rssc:basis "Follows from the crosswalk assertion binding ISO 10218-1:2025 5.5.3 to SR 3.6. The claim is ours." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 5.5.3; IEC 62443-3-3:2013 free preview, Contents clause 7.8." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf> .
+
+sia:resource-starvation-stopping-time a rssc:SafetyImpactAssertion ;
+    rdfs:label "Denial of service degrades stopping time limiting"@en ;
+    rssc:impactingRequirement req:sr-7-1 ;
+    rssc:impactedSafetyFunction sf:stopping-time-limiting ;
+    rssc:safetyConsequence "Resource starvation of the safety-related control system pushes actual stopping time beyond the validated limit. The safeguarded space and the minimum distances that were calculated from that stopping time no longer contain the robot, and a person standing at a distance the standard says is safe is not." ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "Follows from the crosswalk assertion binding ISO 10218-1:2025 5.4.2 to SR 7.1, and from the presence of stopping time limiting as a named safety function at 5.5.6. The claim is ours. It is the clearest counter-example to the assumption that an availability attack on a machine is merely a productivity problem." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clauses 5.5.6 and 5.4.2; IEC 62443-3-3:2013 free preview, Contents clause 11.3." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf> .
+
+sia:parameter-integrity-safety-limits a rssc:SafetyImpactAssertion ;
+    rdfs:label "Loss of information integrity degrades parameterization of safety functions"@en ;
+    rssc:impactingRequirement req:cr-3-4 ;
+    rssc:impactedSafetyFunction sf:parameterization ;
+    rssc:safetyConsequence "Safety function parameters, the speed limits, separation distances and force limits, are modified without detection. Every safety function continues to operate correctly and to report itself healthy, while enforcing an envelope nobody validated." ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "Follows from the crosswalk assertion binding ISO 10218-1:2025 5.3.5 to CR 3.4. The claim is ours. This is the case that most sharply separates a safety failure from a security failure: no component fails, no diagnostic fires, and the functional safety argument remains formally valid against the wrong numbers." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 5.3.5; IEC 62443-4-2:2019 free preview, Contents clause 7.6." ;
+    prov:wasDerivedFrom src:iec-62443-4-2-2019-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/21919/fe56b59fa6f04b849d88a2311aa5ec15/IEC-62443-4-2-2019.pdf> .
+
+sia:input-validation-ssm a rssc:SafetyImpactAssertion ;
+    rdfs:label "Loss of input validation degrades speed and separation monitoring"@en ;
+    rssc:impactingRequirement req:sr-3-5 ;
+    rssc:impactedSafetyFunction sf:speed-and-separation-monitoring ;
+    rssc:safetyConsequence "Perception input to the separation calculation is spoofed or replayed, so the computed separation distance is larger than the true distance. The robot does not slow and does not stop while a person is within reach of it." ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "Follows from the crosswalk assertion binding ISO 10218-1:2025 5.10.3 to SR 3.5. The claim is ours. It is deliberately scoped to Band A as well as Band B, because a collaborative cell inside the scope of ISO 10218 already has the run-time perception dependency that is usually presented as a problem unique to autonomous mobile robots." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 5.10.3; IEC 62443-3-3:2013 free preview, Contents clause 7.7." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf> .
+
+sia:authorization-single-point-of-control a rssc:SafetyImpactAssertion ;
+    rdfs:label "Loss of authorization enforcement degrades single point of control"@en ;
+    rssc:impactingRequirement req:sr-2-1 ;
+    rssc:impactedSafetyFunction sf:single-point-of-control ;
+    rssc:safetyConsequence "A second control station, or a remote session, takes command while an operator is inside the safeguarded space holding what they believe is the only live pendant. The robot moves on someone else's command." ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:system-integrator , role:asset-owner ;
+    rssc:basis "Follows from the crosswalk assertion binding ISO 10218-1:2025 5.5.1 to SR 2.1, and is reinforced by ISO 10218-2:2025 treating local control, remote control and single point of control in one clause at 5.3.5. The claim is ours." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 5.5.1; ISO 10218-2:2025 free preview, Contents clause 5.3.5; IEC 62443-3-3:2013 free preview, Contents clause 6.3." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf> .
+
+# =============================================================================
+# SECTION 9: SECURITY LEVEL CLAIMS
+#
+# The widely repeated proposition that ISO 10218:2025 maps safety-related
+# components to security level SL2 could NOT be confirmed in any primary
+# source. It is recorded here, once, at conf:low, with its actual provenance
+# attached, because recording it accurately is more useful than either
+# repeating it or silently dropping it. The two-tier form of the original
+# statement is preserved: the same expert who says SL2 for safety-affecting
+# parts says SL1 for the rest, and almost every downstream retelling drops the
+# second half.
+# =============================================================================
+
+slc:kan-2023-sl2-safety-affecting a rssc:SecurityLevelClaim ;
+    rdfs:label "SL2 generally assumed adequate for safety-affecting control system parts (KAN 2023)"@en ;
+    rssc:claimSubject rssc:SafetyRelatedControlSystem ;
+    rssc:claimedLevel sl:SL2 ;
+    rssc:securityLevelType slt:capability ;
+    rssc:evidenceType ev:SecondaryLiterature ;
+    rssc:confidence conf:low ;
+    rssc:appliesToBand band:A ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "Three caveats travel with this claim and none may be dropped. First, the wording is that SL2 is generally ASSUMED ADEQUATE, which is an expert expectation and not a requirement of any standard. Second, the statement is two-tier and its other half is recorded separately below. Third, the source describes the final drafts submitted to the HAS Consultant in March 2022 and anticipates publication in 2023, so it predates the actual February 2025 publication by roughly three years. Neither ISO 10218-1:2025 nor ISO 10218-2:2025 names any security level in any surface that can be read free, and no primary source for the claim was found. It must not be presented as a finding of this case study." ;
+    rssc:citation "Otto Goernemann, SICK AG Waldkirch, KANBrief 2/2023: 'Security Level 2 to IEC 62443 is generally assumed adequate for parts of the control system that may affect safety (start, stop, change of safety settings, etc.), Security Level 1 for other parts.'" ;
+    prov:wasDerivedFrom src:kan-brief-2-2023 ;
+    dcterms:source <https://www.kan.de/en/publications/kanbrief/2023/2-23/revision-of-en-iso-10218-safety-requirements-for-industrial-robots/> .
+
+slc:kan-2023-sl1-other-parts a rssc:SecurityLevelClaim ;
+    rdfs:label "SL1 assumed adequate for control system parts that do not affect safety (KAN 2023)"@en ;
+    rssc:claimSubject rssc:RobotApplication ;
+    rssc:claimedLevel sl:SL1 ;
+    rssc:securityLevelType slt:capability ;
+    rssc:evidenceType ev:SecondaryLiterature ;
+    rssc:confidence conf:low ;
+    rssc:appliesToBand band:A ;
+    rssc:appliesToRole role:product-supplier , role:system-integrator ;
+    rssc:basis "The second half of the same sentence, recorded separately so that it cannot be lost. Reproducing only the SL2 half misrepresents the source, and that is exactly what has happened across the downstream commentary. Same provenance and the same three caveats as the claim above." ;
+    rssc:citation "Otto Goernemann, SICK AG Waldkirch, KANBrief 2/2023, same sentence: 'Security Level 1 for other parts.'" ;
+    prov:wasDerivedFrom src:kan-brief-2-2023 ;
+    dcterms:source <https://www.kan.de/en/publications/kanbrief/2023/2-23/revision-of-en-iso-10218-safety-requirements-for-industrial-robots/> .
+
+slc:isasecure-sl2-minimum a rssc:SecurityLevelClaim ;
+    rdfs:label "SL2 as a minimum capability level for IACS components (ISASecure)"@en ;
+    rssc:claimSubject rssc:Robot ;
+    rssc:claimedLevel sl:SL2 ;
+    rssc:securityLevelType slt:capability ;
+    rssc:evidenceType ev:PublishedSummary ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:product-supplier ;
+    rssc:basis "A different and better-sourced claim, and it must not be conflated with the robot-specific one above. The ISA Security Compliance Institute, which operates the ISASecure certification scheme against IEC 62443, argues that SL2 should be the minimum capability level for industrial automation and control system components generally. A robot controller is such a component, so the argument reaches robotics by inclusion rather than by anyone having reasoned about robots. Applies to all three bands for the same reason." ;
+    rssc:citation "ISA Security Compliance Institute white paper, 'The Case for ISA/IEC 62443 Security Level 2 as a Minimum'. The document states that SL2 prescribes capabilities to protect components from intentional cybersecurity attacks by an attacker with low resources, generic skills and low motivation." ;
+    prov:wasDerivedFrom src:isasecure-sl2-minimum ;
+    dcterms:source <https://www.isasecure.org/hubfs/The-Case-for-ISA-IEC-62443-Security-Level-2-as-a-Minimum-FINAL.pdf> .
+
+# =============================================================================
+# SECTION 10: CONTROL GAPS BY AUTONOMY BAND
+#
+# The gaps are the finding. Band C in particular has empty cells in the
+# crosswalk above, and those empty cells are reported rather than filled: no
+# ISO 10218 clause has been forced onto a Band C row. Note the gap kinds. An
+# exclusion written into a Scope clause is a decision a committee took and is
+# the strongest kind of gap to assert; silence is an absence and carries lower
+# confidence; coverage that exists only through an informative route is
+# coverage a reader will mistake for an obligation.
+# =============================================================================
+
+cg:informative-chain a rssc:ControlGap ;
+    rdfs:label "Band A. The safety to security chain is informative at every hop"@en ;
+    rssc:exposure "A robot manufacturer or integrator can conform fully to ISO 10218:2025 while conforming to nothing at all in the IEC 62443 series. The cybersecurity clauses require an assessment; what follows from the assessment is reached only through routes that carry no obligation. A purchaser reading the widely marketed claim that ISO 10218:2025 mandates IEC 62443 compliance will believe they have bought a guarantee they have not bought." ;
+    rssc:unaddressedBy clause:iso-10218-1-2025-5-1-16 , clause:iso-10218-2-2025-5-2-16 ;
+    rssc:wouldBeAddressedBy req:zcr-3-3 ;
+    rssc:gapKind gap:informative-only ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:appliesToBand band:A , band:B , band:C ;
+    rssc:appliesToRole role:asset-owner , role:system-integrator ;
+    rssc:basis "This gap is asserted from primary evidence and is the most checkable claim in the artefact. The complete clause 2 Normative references of ISO 10218-1:2025 was read in the official ISO preview: it runs from ISO 3864-1:2011 to IEC 62745:2017, includes ISO 13849-1:2023 and IEC 62061:2021, and contains no IEC TS 63074 and no IEC 62443 part. The complete clause 2 of ISO 10218-2:2025 was read in the same way and contains neither either. At the second hop, the complete clause 2 of IEC TS 63074:2023 contains exactly one entry, IEC 62061:2021, so the IEC 62443 series is not normatively referenced there either and appears instead in the Introduction, in bracketed SOURCE attributions for defined terms, and in the Bibliography. Anyone can repeat all three checks in the free previews in about ten minutes. READ rssc:wouldBeAddressedBy ON THIS GAP NARROWLY. Nothing in the public corpus makes this chain normative, and ZCR 3.3 Separate safety related assets is NOT named as a fix for that: no requirement can make one standards body cite another. It is named because it is the one requirement in the IEC 62443 series that bears directly on safety assets, so it is what an asset owner can specify in a contract, or an integrator adopt voluntarily, to obtain the protection the informative chain fails to compel. The normative gap itself remains open and is not closed by anything in this graph." ;
+    rssc:citation "ISO 10218-1:2025 free preview, clause 2 Normative references read in full; ISO 10218-2:2025 free preview, clause 2 read in full; IEC TS 63074:2023 free preview, clause 2 read in full, single entry IEC 62061:2021." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview , src:iso-10218-2-2025-preview , src:iec-ts-63074-2023-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf> .
+
+cg:no-security-level-named a rssc:ControlGap ;
+    rdfs:label "Band A. No security level is named anywhere in ISO 10218:2025"@en ;
+    rssc:exposure "An integrator who performs the cybersecurity assessment required by ISO 10218-2:2025 5.2.16 has no graded target to assess against and no way to state the result in a form the security corpus can consume. Two cells built to the same standard by two integrators can differ by orders of magnitude in the attacker they will withstand, and both conform." ;
+    rssc:unaddressedBy clause:iso-10218-2-2025-5-2-16 , clause:iso-10218-1-2025-5-1-16 ;
+    rssc:wouldBeAddressedBy req:zcr-5-6 ;
+    rssc:gapKind gap:not-addressed ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:A , band:B ;
+    rssc:appliesToRole role:system-integrator , role:asset-owner ;
+    rssc:basis "An argument from silence about a paywalled document, and it is graded accordingly. What was searched: the complete Contents of both parts in the official ISO previews, in which no clause or annex title mentions security levels, and the free front matter, scope and normative references of both. What was NOT visible: the bodies of clauses 5.1.16 and 5.2.16 themselves. The claim would be falsified by a reading of either clause body naming an SL. It is corroborated indirectly by the fact that the only public statements associating ISO 10218 with SL2 are expert commentary rather than clause citations, which is what one would expect if the standard named none. Confidence is moderate, not high, precisely because a clause body could not be read." ;
+    rssc:citation "ISO 10218-1:2025 and ISO 10218-2:2025 free previews, complete Contents pages searched for any security level reference; IEC 62443-3-2:2020 free preview, Contents clause 4.6.7 ZCR 5.6 Determine SL-T, page 19." ;
+    prov:wasDerivedFrom src:iso-10218-2-2025-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/73934/3578b7f9a402489fb9af1cf1ca03ea68/ISO-10218-2-2025.pdf> .
+
+cg:band-b-mobile-excluded a rssc:ControlGap ;
+    rdfs:label "Band B. Mobile platforms are excluded from the scope of both parts"@en ;
+    rssc:exposure "An autonomous mobile robot in a warehouse or a hospital derives its safety envelope from run-time perception and navigation: laser scanner returns, localisation, a map, a fleet manager's traffic instructions. Every one of those is a data path, and spoofing or corrupting any of them moves the robot into a space it believes is clear. No industrial robot safety standard reaches the platform, because both parts of ISO 10218:2025 exclude it by name in their Scope clauses." ;
+    rssc:unaddressedBy clause:iso-10218-1-2025-1 , clause:iso-10218-2-2025-1 ;
+    rssc:wouldBeAddressedBy req:sr-3-5 , req:sr-3-1 ;
+    rssc:gapKind gap:excluded-by-scope ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:appliesToBand band:B ;
+    rssc:appliesToRole role:system-integrator , role:asset-owner ;
+    rssc:basis "The strongest kind of gap: not silence but a decision, written into a Scope clause that is published free. ISO 10218-1:2025 clause 1 excludes mobility when robots or manipulators are fixed to or part of driverless industrial trucks, and mobility when robots or manipulators are fixed to or part of mobile platforms. ISO 10218-2:2025 clause 1 excludes the same two cases in the integration wording, and additionally excludes service robots on the ground that the public can have access. The exposure statement itself, that perception and navigation data are the safety envelope in this band, is ours. Other standards govern parts of this territory, and this gap is a statement about ISO 10218 only, not a claim that the territory is ungoverned." ;
+    rssc:citation "ISO 10218-1:2025 free preview, clause 1 Scope, page 1, exclusion list read in full; ISO 10218-2:2025 free preview, clause 1 Scope, page 1, exclusion list read in full." ;
+    prov:wasDerivedFrom src:iso-10218-1-2025-preview , src:iso-10218-2-2025-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/73934/3578b7f9a402489fb9af1cf1ca03ea68/ISO-10218-2-2025.pdf> .
+
+cg:band-b-fleet-update-channel a rssc:ControlGap ;
+    rdfs:label "Band B. Fleet-wide remote management and update has no machinery-safety treatment"@en ;
+    rssc:exposure "Band B systems are managed as fleets and updated over the air, not serviced one at a time. A single compromised update or fleet-management channel changes the behaviour of every unit at once, including units currently moving among people. The machinery treatment of remote work assumes a named engineer intervening in one cell." ;
+    rssc:unaddressedBy clause:iso-10218-2-2025-7-5-11 ;
+    rssc:wouldBeAddressedBy req:sum-1 , clause:iec-ts-63074-2023-6-3-7 ;
+    rssc:gapKind gap:not-addressed ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:B , band:C ;
+    rssc:appliesToRole role:service-provider , role:asset-owner ;
+    rssc:basis "ISO 10218-2:2025 does address remote work, at 7.5.11 Remote interventions and 5.7.6 Local and remote control, and this gap is not a claim that it ignores the subject. The claim is narrower and is ours: the unit of concern in those clauses is one intervention in one cell, whereas the Band B failure mode is one action affecting a whole population simultaneously, and nothing in the published structure of either part addresses a population. Confidence is moderate because it rests on clause titles rather than clause bodies. What was searched: the complete Contents of ISO 10218-2:2025." ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents clause 7.5.11 Remote interventions page 78 and clause 5.7.6 Local and remote control page 45; IEC 62443-4-1:2018 free preview, Contents clause 11.2 SUM-1 Security update qualification page 42." ;
+    prov:wasDerivedFrom src:iec-62443-4-1-2018-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/21445/8dc7299ef50a47d0a95d73fae2b453b6/IEC-62443-4-1-2018.pdf> .
+
+cg:band-c-model-supply-chain a rssc:ControlGap ;
+    rdfs:label "Band C. Model weights and the data supply chain are unaddressed safety-relevant artefacts"@en ;
+    rssc:exposure "In a learning-enabled system the behaviour that determines whether a person is struck is carried in trained model weights and in the data and update channel that produced them. Those artefacts are safety-determining and are not configuration parameters, not software in the sense a machinery standard means, and not verifiable by the methods a machinery standard prescribes. A poisoned training set or a substituted checkpoint changes what the robot does with no component failing and no diagnostic firing." ;
+    rssc:unaddressedBy clause:iso-10218-1-2025-5-3-5 ;
+    rssc:wouldBeAddressedBy req:cr-3-4 , req:cr-3-14 ;
+    rssc:gapKind gap:not-addressed ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:C ;
+    rssc:appliesToRole role:product-supplier , role:service-provider ;
+    rssc:basis "ISO 10218-1:2025 5.3.5 Parameterization of safety functions is the nearest clause in the machinery corpus, and it is named here as the thing that does not reach: it governs the setting of declared parameters, not learned weights. The security requirements offered as a partial answer, CR 3.4 Software and information integrity and CR 3.14 Integrity of the boot process, protect the artefact in place but say nothing about whether the training data was sound, so they are an incomplete answer and are offered as such. Independent support for the gap comes from the drafting process itself, where a working group expert records that the drafts do not support requirements concerning the application of self-developing AI in safety functions. Ours, and stated as an inference." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 5.3.5 page 26; IEC 62443-4-2:2019 free preview, Contents clauses 7.6 and 7.16, pages 48 and 52; KANBrief 2/2023 on the scope of the final drafts." ;
+    prov:wasDerivedFrom src:kan-brief-2-2023 , src:iec-62443-4-2-2019-preview ;
+    dcterms:source <https://www.kan.de/en/publications/kanbrief/2023/2-23/revision-of-en-iso-10218-safety-requirements-for-industrial-robots/> .
+
+cg:band-c-goal-channel a rssc:ControlGap ;
+    rdfs:label "Band C. The goal or prompt channel is an unrecognised control input"@en ;
+    rssc:exposure "A foundation-model-driven manipulator takes instructions in natural language or as a goal specification. That channel selects behaviour as surely as a teach pendant does, but it is not a means of controlling the robot in the sense any machinery standard recognises, so nothing requires it to be authenticated, bounded, or subject to single point of control. An instruction injected through it produces motion that is correct with respect to the model and wrong with respect to the person standing there." ;
+    rssc:unaddressedBy clause:iso-10218-1-2025-5-2-8 ;
+    rssc:wouldBeAddressedBy fr:FR2 ;
+    rssc:gapKind gap:not-addressed ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:C ;
+    rssc:appliesToRole role:product-supplier ;
+    rssc:basis "NO SPECIFIC REQUIREMENT ADDRESSES THIS, AND THAT IS THE FINDING. The IEC 62443 series was searched for a requirement that governs a semantic instruction channel into a control system and none was found: SR 3.5 Input validation is about malformed data rather than well-formed instructions with an unintended effect, and the identification and authentication requirements of FR 1 govern who is speaking rather than what may be said. What was searched: the complete Contents of IEC 62443-3-3:2013 with all 51 SR titles, and of IEC 62443-4-2:2019 with all CR, EDR, HDR, NDR and SAR titles. What is named in rssc:wouldBeAddressedBy is therefore only the foundational requirement whose SCOPE the exposure falls under, FR 2 Use control, which is about constraining what an authenticated identity may do. No requirement under FR 2 reaches a natural-language goal channel, because the series does not treat such a channel as a means of control at all. FR 2 is named to keep the gap checkable against a published scope, not because the series answers it. This is an inference, and a reader who knows of a specific requirement that fits should discard it." ;
+    rssc:citation "ISO 10218-1:2025 free preview, Contents clause 5.2.8 Means of controlling the robot, page 23; IEC 62443-3-3:2013 and IEC 62443-4-2:2019 free preview Contents searched in full for an applicable requirement, with a negative result." ;
+    prov:wasDerivedFrom src:iec-62443-3-3-2013-preview , src:iso-10218-1-2025-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf> .
+
+cg:band-c-swarm-coordination a rssc:ControlGap ;
+    rdfs:label "Band C. Multi-robot coordination is treated only within a single cell"@en ;
+    rssc:exposure "In a swarm the safety-relevant behaviour is emergent from coordination messages between units that share no controller and no cell boundary. Corrupting the coordination channel does not disable any robot; it makes a set of individually correct robots collectively dangerous. The span of control that a machinery standard uses to bound responsibility does not exist." ;
+    rssc:unaddressedBy clause:iso-10218-2-2025-5-3-4 ;
+    rssc:wouldBeAddressedBy req:sr-5-1 , req:sr-3-1 ;
+    rssc:gapKind gap:not-addressed ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:moderate ;
+    rssc:appliesToBand band:C ;
+    rssc:appliesToRole role:system-integrator ;
+    rssc:basis "ISO 10218-2:2025 does treat multiple robots, at 5.3.4 Operational modes with multi-robot applications or robot cells, and this gap names that clause precisely so a reader can check the scope for themselves. The clause sits under 5.3 Robot cell integration and is bounded by the cell and by span of control, which clauses 5.3.2 and 5.3.3 establish. A swarm has neither. The security requirements offered are a partial answer about the channel, not an answer about emergent behaviour, and are offered as such. Ours, and stated as an inference." ;
+    rssc:citation "ISO 10218-2:2025 free preview, Contents clause 5.3.4 page 29, with clauses 5.3.2 Span-of-control and 5.3.3 Span-of-control of emergency stop function, page 29; IEC 62443-3-3:2013 free preview, Contents clauses 9.3 and 7.3." ;
+    prov:wasDerivedFrom src:iso-10218-2-2025-preview ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/73934/3578b7f9a402489fb9af1cf1ca03ea68/ISO-10218-2-2025.pdf> .
+
+# =============================================================================
+# UNVERIFIED TERMS AND MAPPINGS: WHAT WAS REJECTED RATHER THAN GUESSED
+#
+# No clause identifier, requirement identifier, standard designation, edition
+# or date appears anywhere in this file unless it was read in a published
+# source. The following mappings were considered and REMOVED. They are listed
+# because a rejected mapping is evidence about the corpus, exactly as a kept
+# one is.
+#
+#  1. ISO 10218-1:2025 5.1.16 and ISO 10218-2:2025 5.2.16 as NORMATIVE
+#     references to IEC TS 63074 or to the IEC 62443 series. REJECTED. The
+#     complete clause 2 of both parts was read in the official ISO previews.
+#     Part 1's list runs from ISO 3864-1:2011 to IEC 62745:2017; Part 2's ends
+#     at IEC 62061:2021. Neither IEC TS 63074 nor any IEC 62443 part appears
+#     in either. ev:NormativeReference is therefore used NOWHERE in this file.
+#
+#  2. Any assertion identifying WHICH edition of 63074 the ISO 10218
+#     bibliographies cite. REJECTED. One search result rendered the citation
+#     as the superseded IEC TR 63074:2019 rather than IEC TS 63074:2023, and
+#     the bibliography of both parts sits outside the free preview. Since the
+#     standards were drafted from roughly 2018 to 2022 and the Technical
+#     Specification only appeared in February 2023, a stale Technical Report
+#     citation is entirely plausible and cannot be ruled out.
+#
+#  3. Any mapping from an ISO 10218 clause to a requirement identifier in
+#     IEC 62443-2-4:2023. REJECTED. The requirements live in Annex A
+#     (normative), Table A.1, which the free preview does not reach. The Req
+#     ID format is commonly reported as SP.xx.xx and that could not be
+#     confirmed, so no identifier from that part is used anywhere.
+#
+#  4. Any mapping of a requirement to a security level. REJECTED, and no
+#     property for it exists in the vocabulary. The mappings live in
+#     IEC 62443-3-3:2013 Annex B Table B.1 and IEC 62443-4-2:2019 Annex B
+#     Table B.1. Both annexes are INFORMATIVE, which is worth knowing in
+#     itself, and both are paywalled. Only the table identifiers are cited.
+#
+#  5. Any mapping involving the ISO 10218-1:2025 Class I and Class II robot
+#     classes, including any numeric threshold. REJECTED. Clause 5.1.17 Robot
+#     class and Annex E (normative) are real and were read in the Contents,
+#     but sources disagree on the threshold values and even on whether the
+#     labels use Roman or Arabic numerals. No class individual is minted.
+#
+#  6. Any mapping resting on the reported minimum functional safety
+#     alternatives for the 2025 editions, including the PFHd figure that three
+#     independent secondary sources agree on. REJECTED as a crosswalk anchor.
+#     Three sources agreeing on an unusual figure is suggestive, but it was
+#     not read in primary text and a fabricated quantity would discredit
+#     everything around it.
+#
+#  7. Any mapping citing the claim that the SL 'sweet spot' for robots is SL2
+#     with SL3 where the robot is remotely accessible. REJECTED. The apparent
+#     origin could not be retrieved. Where a remote-access anchor is needed,
+#     IEC TS 63074:2023 clause 6.3.7 Remote access is cited instead, because
+#     it is real, primary and free.
+#
+#  8. Any mapping resting on an AI-generated news aggregator's assertion that
+#     ISO 10218:2025 maps safety components to SL2. REJECTED outright. That
+#     source carries no clause citation. The related and traceable KAN
+#     statement is recorded instead, at conf:low, with all three of its
+#     caveats attached and both halves of its two-tier form preserved.
+#
+#  9. Any mapping from ISO 10218-2:2025 clause 6.4 Complementary protective
+#     measures. REJECTED. The clause exists but its number was mangled by the
+#     preview's PDF layout and 6.4 is an inference. A clause identifier that
+#     was not read cleanly is not used.
+#
+# 10. Any assertion about the OJEU harmonisation status of EN ISO 10218-1 and
+#     EN ISO 10218-2, or about transition periods under the EU Machinery
+#     Regulation. REJECTED. Not verified against the Official Journal itself.
+#
+# 11. Any equivalence to a term in IEEE 1872 CORA, UCO or D3FEND. REJECTED for
+#     this release. Those vocabularies are pointed at with rdfs:seeAlso at the
+#     ontology level only. An equivalence is a mapping, and a mapping in this
+#     project must carry its own citation and evidence type; none was
+#     established for any specific term.
+#
+# 12. skos:exactMatch on any row. REJECTED as a category error. Across the
+#     safety and security boundary the two sides always differ at least in
+#     the party addressed, so no pair in this file is asserted as identity.
+#
+# Confirmed identifier families used in this file, all read in official free
+# previews: ISO 10218-1:2025 and ISO 10218-2:2025 clause and annex numbering;
+# IEC TS 63074:2023 clause numbering; IEC 62443-3-3:2013 clauses 4 to 11 and
+# the SR x.y grammar; IEC 62443-4-2:2019 clause 4 and the CR x.y grammar;
+# IEC 62443-3-2:2020 ZCR n.m; IEC 62443-4-1:2018 practice identifiers.
+# =============================================================================

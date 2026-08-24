@@ -15,9 +15,10 @@ impl OntologyService {
     /// Validate RDF syntax. Returns a JSON report (never errors on bad input).
     pub fn validate_string(content: &str) -> anyhow::Result<String> {
         match GraphStore::validate_turtle(content) {
-            Ok(count) => Ok(serde_json::json!({
+            Ok(counts) => Ok(serde_json::json!({
                 "valid": true,
-                "triple_count": count,
+                "triple_count": counts.triples,
+                "statement_count": counts.statements,
                 "errors": []
             })
             .to_string()),
@@ -33,10 +34,11 @@ impl OntologyService {
     /// Validate an RDF file.
     pub fn validate_file(path: &str) -> anyhow::Result<String> {
         match GraphStore::validate_file(path) {
-            Ok(count) => Ok(serde_json::json!({
+            Ok(counts) => Ok(serde_json::json!({
                 "valid": true,
                 "path": path,
-                "triple_count": count,
+                "triple_count": counts.triples,
+                "statement_count": counts.statements,
                 "errors": []
             })
             .to_string()),
@@ -106,6 +108,7 @@ impl OntologyService {
                 { ?class a <http://www.w3.org/2002/07/owl#Class> }
                 UNION
                 { ?class a <http://www.w3.org/2000/01/rdf-schema#Class> }
+                FILTER(isIRI(?class))
                 FILTER NOT EXISTS { ?class <http://www.w3.org/2000/01/rdf-schema#label> ?label }
             }
         "#;
@@ -132,6 +135,7 @@ impl OntologyService {
                 { ?class a <http://www.w3.org/2002/07/owl#Class> }
                 UNION
                 { ?class a <http://www.w3.org/2000/01/rdf-schema#Class> }
+                FILTER(isIRI(?class))
                 FILTER NOT EXISTS { ?class <http://www.w3.org/2000/01/rdf-schema#comment> ?comment }
             }
         "#;
@@ -158,6 +162,7 @@ impl OntologyService {
                 { ?prop a <http://www.w3.org/2002/07/owl#ObjectProperty> }
                 UNION
                 { ?prop a <http://www.w3.org/2002/07/owl#DatatypeProperty> }
+                FILTER(isIRI(?prop))
                 FILTER NOT EXISTS { ?prop <http://www.w3.org/2000/01/rdf-schema#domain> ?d }
             }
         "#;

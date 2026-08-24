@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RSSC: robot safety and security crosswalk, by autonomy band</title>
+<meta name="description" content="An offline, self-contained browser for the Robot Safety and Security Crosswalk: exposures by autonomy band, with the safety clause and the security requirement that address each, and the evidence type and confidence on every row.">
+<meta name="author" content="Kampakis and Co Ltd, trading as The Tesseract Academy">
+<meta name="robots" content="noindex">
+<style>
+/* ===========================================================================
+   RSSC demo stylesheet. No external resources of any kind: no web fonts,
+   no CDN, no remote images. System font stacks only. Light and dark themes.
+   =========================================================================== */
+
+:root {
+  color-scheme: light dark;
+
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Liberation Mono", monospace;
+
+  --bg:        #fbfbfa;
+  --bg-raise:  #ffffff;
+  --bg-sink:   #f2f2f0;
+  --ink:       #17181a;
+  --ink-mute:  #5b5f66;
+  --ink-faint: #83888f;
+  --rule:      #dcdcd8;
+  --rule-hard: #bfbfb9;
+  --accent:    #2f4d6e;
+  --accent-bg: #e8eef5;
+
+  --norm:      #14532d;   /* normative reference   */
+  --norm-bg:   #dcf0e2;
+  --info:      #7a4a06;   /* informative reference */
+  --info-bg:   #fbeed4;
+  --prev:      #123f4d;   /* published preview     */
+  --prev-bg:   #d9edf2;
+  --summ:      #3d3a6b;   /* published summary     */
+  --summ-bg:   #e4e2f4;
+  --secl:      #7a2d16;   /* secondary literature  */
+  --secl-bg:   #fadfd4;
+  --infr:      #4a4a4a;   /* analytical inference  */
+  --infr-bg:   #ececea;
+
+  --warn:      #8a1f0f;
+  --warn-bg:   #fbe2dc;
+
+  --radius: 6px;
+  --maxw: 1180px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:        #131416;
+    --bg-raise:  #1b1d20;
+    --bg-sink:   #0e0f11;
+    --ink:       #e8e9ea;
+    --ink-mute:  #a4a9b0;
+    --ink-faint: #7d838b;
+    --rule:      #2c2f34;
+    --rule-hard: #43474d;
+    --accent:    #9dc0e6;
+    --accent-bg: #1d2733;
+
+    --norm:      #8ddba6;
+    --norm-bg:   #17301f;
+    --info:      #e8c377;
+    --info-bg:   #33270f;
+    --prev:      #8fcfdf;
+    --prev-bg:   #10292f;
+    --summ:      #b3aef0;
+    --summ-bg:   #22203a;
+    --secl:      #f0a487;
+    --secl-bg:   #341a11;
+    --infr:      #b6bbc2;
+    --infr-bg:   #232629;
+
+    --warn:      #f19a86;
+    --warn-bg:   #35150f;
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg:#fbfbfa; --bg-raise:#ffffff; --bg-sink:#f2f2f0;
+  --ink:#17181a; --ink-mute:#5b5f66; --ink-faint:#83888f;
+  --rule:#dcdcd8; --rule-hard:#bfbfb9; --accent:#2f4d6e; --accent-bg:#e8eef5;
+  --norm:#14532d; --norm-bg:#dcf0e2; --info:#7a4a06; --info-bg:#fbeed4;
+  --prev:#123f4d; --prev-bg:#d9edf2; --summ:#3d3a6b; --summ-bg:#e4e2f4;
+  --secl:#7a2d16; --secl-bg:#fadfd4; --infr:#4a4a4a; --infr-bg:#ececea;
+  --warn:#8a1f0f; --warn-bg:#fbe2dc;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg:#131416; --bg-raise:#1b1d20; --bg-sink:#0e0f11;
+  --ink:#e8e9ea; --ink-mute:#a4a9b0; --ink-faint:#7d838b;
+  --rule:#2c2f34; --rule-hard:#43474d; --accent:#9dc0e6; --accent-bg:#1d2733;
+  --norm:#8ddba6; --norm-bg:#17301f; --info:#e8c377; --info-bg:#33270f;
+  --prev:#8fcfdf; --prev-bg:#10292f; --summ:#b3aef0; --summ-bg:#22203a;
+  --secl:#f0a487; --secl-bg:#341a11; --infr:#b6bbc2; --infr-bg:#232629;
+  --warn:#f19a86; --warn-bg:#35150f;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  overflow-x: hidden;
+}
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+
+a { color: var(--accent); text-underline-offset: 2px; }
+a:hover { text-decoration-thickness: 2px; }
+code, .mono { font-family: var(--font-mono); font-size: 0.875em; }
+
+/* ---------- header ---------- */
+header.top {
+  border-bottom: 1px solid var(--rule);
+  background: var(--bg-raise);
+  padding: 26px 0 20px;
+}
+.top-row { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+h1 { font-size: 1.5rem; line-height: 1.25; margin: 0 0 6px; font-weight: 620; letter-spacing: -0.01em; }
+.kicker {
+  font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--ink-faint); margin: 0 0 10px;
+}
+.lede { margin: 10px 0 0; max-width: 74ch; color: var(--ink-mute); font-size: 0.95rem; }
+.meta { margin: 12px 0 0; font-size: 0.8rem; color: var(--ink-faint); }
+.meta span::after { content: " \00B7 "; }
+.meta span:last-child::after { content: ""; }
+
+button.theme {
+  font: inherit; font-size: 0.78rem; padding: 6px 11px; cursor: pointer;
+  background: var(--bg-sink); color: var(--ink-mute);
+  border: 1px solid var(--rule-hard); border-radius: var(--radius);
+  white-space: nowrap;
+}
+button.theme:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+/* ---------- generic section ---------- */
+section { padding: 30px 0; border-bottom: 1px solid var(--rule); }
+section:last-of-type { border-bottom: 0; }
+h2 {
+  font-size: 0.78rem; font-family: var(--font-mono); letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ink-faint);
+  margin: 0 0 16px; font-weight: 600;
+}
+h3 { font-size: 1.02rem; margin: 0 0 8px; font-weight: 600; }
+p.note { font-size: 0.88rem; color: var(--ink-mute); max-width: 82ch; margin: 0 0 14px; }
+
+/* ---------- provisional banner ---------- */
+.banner {
+  border: 1px solid var(--rule-hard); border-left: 5px solid var(--warn);
+  background: var(--warn-bg); border-radius: var(--radius);
+  padding: 14px 16px; margin: 22px 0 0; font-size: 0.88rem;
+}
+.banner strong { color: var(--warn); }
+.banner p { margin: 0 0 8px; }
+.banner p:last-child { margin: 0; }
+
+/* ---------- chain audit ---------- */
+.chain { display: grid; gap: 10px; }
+.hop {
+  display: grid; grid-template-columns: minmax(0,1.15fr) auto minmax(0,1.6fr);
+  gap: 14px; align-items: start;
+  border: 1px solid var(--rule); border-radius: var(--radius);
+  background: var(--bg-raise); padding: 12px 14px;
+}
+.hop-from { font-size: 0.9rem; font-weight: 560; }
+.hop-note { font-size: 0.83rem; color: var(--ink-mute); }
+.hop.k-normative { border-left: 5px solid var(--norm); }
+.hop.k-informative { border-left: 5px solid var(--info); }
+.hop.k-structural { border-left: 5px solid var(--prev); }
+.tally {
+  margin-top: 14px; padding: 12px 14px; border: 1px dashed var(--rule-hard);
+  border-radius: var(--radius); background: var(--bg-sink); font-size: 0.88rem;
+}
+.tally b { font-family: var(--font-mono); }
+
+/* ---------- band selector ---------- */
+.bands { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 16px; }
+.band-btn {
+  font: inherit; cursor: pointer; text-align: left;
+  border: 1px solid var(--rule-hard); border-radius: var(--radius);
+  background: var(--bg-raise); color: var(--ink);
+  padding: 10px 14px; min-width: 150px; flex: 1 1 190px;
+}
+.band-btn .bl { display: block; font-family: var(--font-mono); font-size: 0.72rem;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); }
+.band-btn .bn { display: block; font-size: 0.9rem; font-weight: 560; margin-top: 2px; }
+.band-btn .bc { display: block; font-size: 0.76rem; color: var(--ink-faint); margin-top: 3px; }
+.band-btn[aria-pressed="true"] {
+  background: var(--accent-bg); border-color: var(--accent); color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.band-blurb {
+  border: 1px solid var(--rule); border-left: 5px solid var(--accent);
+  background: var(--bg-raise); border-radius: var(--radius);
+  padding: 14px 16px; margin: 0 0 20px; font-size: 0.9rem;
+}
+.band-blurb p { margin: 0 0 8px; }
+.band-blurb p:last-child { margin: 0; }
+.band-blurb .scope { color: var(--ink-mute); font-size: 0.86rem; }
+
+/* ---------- filters ---------- */
+.filters {
+  display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+  padding: 12px 14px; border: 1px solid var(--rule); border-radius: var(--radius);
+  background: var(--bg-sink); margin: 0 0 18px; font-size: 0.85rem;
+}
+.filters label { color: var(--ink-mute); display: inline-flex; align-items: center; gap: 6px; }
+.filters select, .filters input[type="search"] {
+  font: inherit; font-size: 0.85rem; padding: 5px 8px;
+  background: var(--bg-raise); color: var(--ink);
+  border: 1px solid var(--rule-hard); border-radius: 4px;
+}
+.filters input[type="search"] { min-width: 190px; }
+.count-live { margin-left: auto; font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-faint); }
+
+/* ---------- rows ---------- */
+.rows { display: grid; gap: 14px; }
+.row {
+  border: 1px solid var(--rule); border-left: 5px solid var(--rule-hard);
+  border-radius: var(--radius); background: var(--bg-raise); padding: 15px 17px;
+}
+.row.is-inference {
+  border-left-style: dashed; border-left-color: var(--infr);
+  background: linear-gradient(0deg, var(--infr-bg), var(--infr-bg)) padding-box, var(--bg-raise);
+}
+.row.is-cited { border-left-color: var(--norm); }
+.row.is-low { border-left-color: var(--warn); border-left-style: dashed; }
+.row.is-low::before {
+  content: "Low confidence. Single or contradictory secondary sourcing. Not a finding.";
+  display: block; font-size: 0.76rem; font-weight: 600; color: var(--warn);
+  background: var(--warn-bg); border: 1px solid var(--warn);
+  border-radius: 4px; padding: 5px 9px; margin: 0 0 11px;
+}
+.row.is-inference:not(.is-low)::before {
+  content: "Our reasoning, not a standards body's.";
+  display: block; font-size: 0.74rem; font-weight: 600; color: var(--infr);
+  letter-spacing: 0.03em; text-transform: uppercase;
+  margin: 0 0 9px;
+}
+
+.row-head { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; margin: 0 0 4px; }
+.row-id { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-faint); }
+.row-title { font-size: 1rem; font-weight: 600; margin: 0; flex: 1 1 auto; min-width: 220px; }
+.row-conseq { font-size: 0.87rem; color: var(--ink-mute); margin: 0 0 12px; max-width: 88ch; }
+
+.badges { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 12px; }
+.badge {
+  font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.04em;
+  padding: 3px 8px; border-radius: 3px; border: 1px solid currentColor;
+  white-space: nowrap; font-weight: 600;
+}
+.badge.ev-normative-reference  { color: var(--norm); background: var(--norm-bg); }
+.badge.ev-informative-reference{ color: var(--info); background: var(--info-bg); }
+.badge.ev-published-preview    { color: var(--prev); background: var(--prev-bg); }
+.badge.ev-published-summary    { color: var(--summ); background: var(--summ-bg); }
+.badge.ev-secondary-literature { color: var(--secl); background: var(--secl-bg); }
+.badge.ev-analytical-inference { color: var(--infr); background: var(--infr-bg); border-style: dashed; }
+.badge.cf-high     { color: var(--norm); background: transparent; }
+.badge.cf-moderate { color: var(--ink-mute); background: transparent; border-style: dotted; }
+.badge.cf-low      { color: var(--warn); background: var(--warn-bg); border-style: dashed; }
+.badge.gk          { color: var(--secl); background: var(--secl-bg); }
+.badge.rel         { color: var(--ink-faint); background: transparent; font-weight: 500; }
+.badge.role        { color: var(--accent); background: var(--accent-bg); font-weight: 500; }
+
+/* the three-column crosswalk grid */
+.leg-grid { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0,1fr)); margin: 0 0 12px; }
+.leg {
+  border: 1px solid var(--rule); border-radius: 4px;
+  background: var(--bg-sink); padding: 10px 11px; min-width: 0;
+}
+.leg h4 {
+  font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--ink-faint); margin: 0 0 8px; font-weight: 600;
+}
+.leg.empty { border-style: dashed; }
+.leg.empty .none { font-size: 0.83rem; color: var(--warn); font-style: italic; }
+.chip { margin: 0 0 9px; }
+.chip:last-child { margin: 0; }
+.chip .cid { font-family: var(--font-mono); font-size: 0.79rem; font-weight: 600; color: var(--ink); }
+.chip .cstd { display: block; font-family: var(--font-mono); font-size: 0.68rem; color: var(--ink-faint); }
+.chip .ctitle { display: block; font-size: 0.82rem; color: var(--ink-mute); }
+.chip .cstat {
+  display: inline-block; font-family: var(--font-mono); font-size: 0.63rem;
+  letter-spacing: 0.05em; text-transform: uppercase; padding: 1px 5px;
+  border-radius: 3px; border: 1px solid currentColor; margin-left: 6px; vertical-align: 1px;
+}
+.cstat.s-normative { color: var(--norm); background: var(--norm-bg); }
+.cstat.s-informative { color: var(--info); background: var(--info-bg); }
+.cstat.s-scope { color: var(--prev); background: var(--prev-bg); }
+.cstat.s-fr { color: var(--accent); background: var(--accent-bg); border-style: dotted; }
+
+details.evid { border-top: 1px solid var(--rule); padding-top: 9px; }
+details.evid summary {
+  cursor: pointer; font-size: 0.8rem; color: var(--accent);
+  font-family: var(--font-mono); letter-spacing: 0.03em; list-style: revert;
+}
+details.evid[open] summary { margin-bottom: 9px; }
+.evid-body { font-size: 0.85rem; color: var(--ink-mute); }
+.evid-body dt {
+  font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--ink-faint); margin: 9px 0 3px;
+}
+.evid-body dt:first-child { margin-top: 0; }
+.evid-body dd { margin: 0; }
+.evid-body ul { margin: 4px 0 0; padding-left: 18px; }
+.evid-body li { word-break: break-word; }
+.evid-body a { font-family: var(--font-mono); font-size: 0.76rem; }
+
+.no-rows {
+  border: 1px dashed var(--rule-hard); border-radius: var(--radius);
+  padding: 22px; text-align: center; color: var(--ink-mute); font-size: 0.9rem;
+}
+
+/* ---------- coverage ---------- */
+.cov-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.cov {
+  border: 1px solid var(--rule); border-radius: var(--radius);
+  background: var(--bg-raise); padding: 14px 16px;
+}
+.cov h3 { font-size: 0.78rem; font-family: var(--font-mono); letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink-faint); margin: 0 0 10px; }
+table.tot { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+table.tot th, table.tot td { text-align: left; padding: 4px 0; border-bottom: 1px solid var(--rule); }
+table.tot td.n { text-align: right; font-family: var(--font-mono); font-weight: 600; white-space: nowrap; }
+table.tot tr:last-child th, table.tot tr:last-child td { border-bottom: 0; }
+.bar { height: 5px; background: var(--bg-sink); border-radius: 3px; overflow: hidden; margin-top: 3px; }
+.bar > i { display: block; height: 100%; background: var(--accent); }
+
+.scroller { overflow-x: auto; }
+
+/* ---------- contested claim ---------- */
+.contested {
+  border: 1px solid var(--warn); border-left: 5px solid var(--warn);
+  border-radius: var(--radius); background: var(--warn-bg); padding: 16px 18px;
+}
+.contested blockquote {
+  margin: 12px 0; padding: 10px 14px; border-left: 3px solid var(--rule-hard);
+  background: var(--bg-raise); font-size: 0.88rem; color: var(--ink);
+}
+.contested ol { margin: 10px 0 0; padding-left: 20px; font-size: 0.87rem; }
+.contested li { margin: 0 0 6px; }
+
+/* ---------- lists ---------- */
+ul.plain { margin: 0; padding-left: 20px; font-size: 0.88rem; color: var(--ink-mute); }
+ul.plain li { margin: 0 0 8px; }
+ul.plain b { color: var(--ink); font-weight: 600; }
+
+/* ---------- legend ---------- */
+.legend-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.legend-item {
+  border: 1px solid var(--rule); border-radius: 4px; background: var(--bg-raise);
+  padding: 10px 12px; font-size: 0.83rem; color: var(--ink-mute);
+}
+.legend-item .badge { margin-bottom: 6px; display: inline-block; }
+
+/* ---------- footer ---------- */
+footer {
+  border-top: 1px solid var(--rule); background: var(--bg-sink);
+  padding: 26px 0 40px; font-size: 0.84rem; color: var(--ink-mute);
+}
+footer h3 { font-size: 0.95rem; color: var(--ink); }
+footer p { margin: 0 0 9px; max-width: 84ch; }
+footer .sep::after { content: " \00B7 "; }
+
+@media (max-width: 860px) {
+  .leg-grid { grid-template-columns: 1fr; }
+  .hop { grid-template-columns: 1fr; gap: 8px; }
+}
+@media print {
+  .filters, .bands, button.theme { display: none; }
+  .row, .cov, .hop { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-row">
+    <div>
+      <p class="kicker">Open Ontologies &middot; case study demo &middot; offline</p>
+      <h1>Robot safety and security crosswalk, by autonomy band</h1>
+      <p class="lede">
+        A cyber compromise of a robot is a safety event. This page lets you pick a band of the
+        autonomy gradient, see the exposures that band creates, and see, for each exposure, the
+        safety clause and the security requirement that address it. Every row carries the kind of
+        evidence behind it and how strongly it is held. Rows that are our own reasoning are marked
+        as ours and look different from rows carried by a cited normative reference.
+      </p>
+      <p class="meta">
+        <span>RSSC v0.1.0</span><span>CC BY 4.0</span><span>Kampakis and Co Ltd, trading as The Tesseract Academy</span><span>No network requests</span>
+      </p>
+    </div>
+    <button class="theme" id="themeBtn" type="button" aria-live="polite">Theme: system</button>
+  </div>
+  <div class="wrap">
+    <div class="banner" role="note">
+      <p><strong>Provisional data.</strong> The crosswalk Turtle (<code>ontology/rssc-crosswalk.ttl</code>)
+      and the pipeline that counts it were not present when this page was built, so the rows below are
+      <strong>not</strong> generated from the graph. They are hand-assembled from the same two verified
+      research briefs the crosswalk is being built from, and every clause identifier here was read in an
+      official ISO or IEC free preview.</p>
+      <p>Treat the counts as a preview of the method, not as the artefact's measured result. When the
+      pipeline exists, this file's JSON block is to be regenerated from <code>graph.ttl</code> and the
+      counts reconciled against <code>metrics.json</code>. Until then, do not quote a number from this
+      page as a finding.</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ==================================================================== -->
+<section id="chain">
+  <h2>The chain, hop by hop</h2>
+  <p class="note">
+    The widely marketed claim is that ISO 10218:2025 mandates IEC 62443. That is false as stated, and
+    the falsification is free: the complete <em>Normative references</em> clause of every document in
+    the chain is published in the official preview. What ISO 10218:2025 mandates is a cyber security
+    threat assessment. Everything downstream of that is guidance. Here is each hop, with its status
+    established by reading the reference list itself.
+  </p>
+  <div class="chain" id="chainList"></div>
+  <div class="tally" id="chainTally"></div>
+</section>
+
+<!-- ==================================================================== -->
+<section id="explore">
+  <h2>1. Pick an autonomy band</h2>
+  <div class="bands" id="bandBtns" role="group" aria-label="Autonomy band"></div>
+  <div class="band-blurb" id="bandBlurb"></div>
+
+  <h2>2. Exposures, and what addresses them</h2>
+  <div class="filters">
+    <label>Evidence
+      <select id="fEvidence">
+        <option value="">any</option>
+        <option value="normative-reference">normative reference</option>
+        <option value="informative-reference">informative reference</option>
+        <option value="published-preview">published preview</option>
+        <option value="published-summary">published summary</option>
+        <option value="secondary-literature">secondary literature</option>
+        <option value="analytical-inference">analytical inference</option>
+      </select>
+    </label>
+    <label>Confidence
+      <select id="fConfidence">
+        <option value="">any</option>
+        <option value="high">high</option>
+        <option value="moderate">moderate</option>
+        <option value="low">low</option>
+      </select>
+    </label>
+    <label><input type="checkbox" id="fGaps"> gaps only</label>
+    <label><input type="checkbox" id="fInfer"> our reasoning only</label>
+    <label><input type="search" id="fText" placeholder="search clause, requirement, text" aria-label="Search"></label>
+    <span class="count-live" id="countLive"></span>
+  </div>
+  <div class="rows" id="rowList"></div>
+</section>
+
+<!-- ==================================================================== -->
+<section id="coverage">
+  <h2>3. The honest coverage position, counted</h2>
+  <p class="note">
+    Everything below is counted from the rows on this page by the script in this file, not asserted in
+    prose. The empty cells are the point. Where a band has no safety clause, that is a measured
+    result about the standards, not an omission in the crosswalk, and forcing a clause onto a row it
+    does not cover would destroy the only thing this artefact is for.
+  </p>
+  <div class="cov-grid" id="covGrid"></div>
+
+  <div style="margin-top:22px" class="cov">
+    <h3>What is not mapped, and why</h3>
+    <ul class="plain" id="unmapped"></ul>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section id="contested">
+  <h2>4. The contested claim, kept separate on purpose</h2>
+  <div class="contested" id="contestedBox"></div>
+</section>
+
+<!-- ==================================================================== -->
+<section id="legend">
+  <h2>5. How to read a row</h2>
+  <p class="note">
+    Two badges appear on every row. The first says what <em>kind</em> of evidence supports the
+    mapping, ordered below from strongest to weakest. The second says how strongly it is held, which
+    is a judgement about the evidence trail and not about how sure anyone feels. Clause identifiers
+    themselves were all read in an official free preview unless a row says otherwise; the badge grades
+    the <em>join</em> between the safety side and the security side, which is the part that can be
+    wrong.
+  </p>
+  <div class="legend-grid" id="legendGrid"></div>
+  <p class="note" style="margin-top:16px">
+    Body clauses of an ISO or IEC deliverable are normative by the ISO/IEC Directives, and annex status
+    is printed on the annex heading, so it is recorded per annex here. Do not assume annex letters mean
+    the same thing across the two parts of ISO 10218:2025: Part 1 Annex H is normative (stopping time
+    and distance measurement), Part 2 Annex H is informative (means of verification and validation).
+    Note also that IEC TS 63074:2023 is a Technical Specification, not an International Standard, and
+    that nothing obliges anyone to conform to it unless a contract or another document invokes it.
+  </p>
+</section>
+
+<!-- ==================================================================== -->
+<section id="scope">
+  <h2>6. Honest scope, and what could not be confirmed</h2>
+  <p class="note">
+    ISO and IEC standards are paywalled. No normative text from any ISO or IEC standard is reproduced
+    on this page. What is recorded here is the public surface: designations, part numbers, editions,
+    publication dates, clause identifiers, clause titles, annex letters and annex normative status,
+    all of which the issuing bodies and their distributors publish free in cover pages, contents
+    pages, forewords, scopes and normative-reference lists. That is a design feature: a crosswalk
+    built from public surfaces alone is reproducible by any reader without buying anything.
+  </p>
+  <p class="note">
+    Two mapping annexes were deliberately not retrieved: IEC 62443-3-3:2013 Annex B Table B.1 and
+    IEC 62443-4-2:2019 Annex B Table B.1, which map requirements to security levels. Both are
+    informative and both are paywalled. The table identifiers are cited; no cell content is.
+  </p>
+  <ul class="plain" id="unconfirmed"></ul>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <h3>Built by Tesseract Academy</h3>
+    <p>
+      Independent, self-initiated open research. Not endorsed by, affiliated with or approved by ISO,
+      IEC, CEN, CENELEC, BSI, ISA, the ISA Security Compliance Institute, KAN, IEEE, MITRE or any other
+      body named on this page. ISO and IEC standards remain the copyright of ISO and IEC and must be
+      purchased from the issuing body.
+    </p>
+    <p>
+      Official ISO and IEC titles separate title elements with a long dash. House style forbids that
+      character, so titles appear here in the BSI and EN full-stop rendering. The separator is the only
+      alteration to any official title.
+    </p>
+    <p>
+      This page makes no network requests. All styling, scripting and data are inline. Citation URLs
+      are printed as links for the reader to follow deliberately; nothing is fetched when the page
+      loads.
+    </p>
+    <p>
+      <span class="sep">Part of Open Ontologies</span><span class="sep">CC BY 4.0</span><span>gov.tesseract.academy</span>
+    </p>
+  </div>
+</footer>
+
+<!-- ====================================================================
+     DATA. Derived from the two verified research briefs behind this case
+     study. Controlled values match the notations minted in ontology/rssc.ttl:
+       evidence   : normative-reference | informative-reference |
+                    published-preview | published-summary |
+                    secondary-literature | analytical-inference
+       confidence : high | moderate | low
+       gapKind    : excluded-by-scope | not-addressed | informative-only
+       roles      : product-supplier | system-integrator | asset-owner |
+                    service-provider
+     ==================================================================== -->
+<script type="application/json" id="rssc-data">
+{
+  "bands": [
+    {
+      "id": "A",
+      "label": "Band A. Teleoperated and pre-programmed",
+      "definition": "Robotic systems whose motion is either commanded in real time by a human operator or replayed from a program fixed before operation. The safety envelope is established at design and commissioning time and does not change while the system runs. Typical members: fixed industrial robot cells, teleoperated inspection and maintenance manipulators.",
+      "scope": "This is the band the machinery safety canon was written for, and the only band a type-C industrial robot safety standard reaches without qualification."
+    },
+    {
+      "id": "B",
+      "label": "Band B. Conditionally autonomous",
+      "definition": "Robotic systems that plan and execute their own motion within an operating envelope set by a human, in environments that are not fully enclosed and that contain people who have not been trained as operators. The safety envelope depends on run-time perception. Typical members: autonomous mobile robots in warehouses and hospitals, agricultural platforms, uncrewed aircraft flown beyond visual line of sight.",
+      "scope": "Sensing is the safety envelope in this band, so any security property that protects the integrity or availability of perception data becomes a safety property. ISO 10218:2025 explicitly excludes robots fixed to or part of driverless industrial trucks and mobile platforms, so it reaches only the caged, fixed-installation end of this band."
+    },
+    {
+      "id": "C",
+      "label": "Band C. Highly autonomous and learning-enabled",
+      "definition": "Robotic systems whose behaviour is generated by learned policies or foundation models, and which may adapt after deployment. Neither the motion nor, in the general case, the set of reachable states is enumerable before operation. Typical members: foundation-model-driven manipulation, humanoid platforms, multi-robot swarms.",
+      "scope": "In this band the trained model, its weights, its update channel and its goal channel are all attack surfaces whose compromise changes behaviour without any component failing. No machinery type-C standard currently addresses this. The empty cells below are the finding, counted, not filled by forcing clauses onto rows they do not cover."
+    }
+  ],
+
+  "chain": [
+    {
+      "from": "ISO 10218-1:2025",
+      "to": "ISO 13849-1:2023 and IEC 62061:2021",
+      "kind": "normative",
+      "evidence": "normative-reference",
+      "confidence": "high",
+      "note": "Clause 2 Normative references of ISO 10218-1:2025 was read in full in the official ISO preview. The list runs from ISO 3864-1:2011 to IEC 62745:2017 and includes both ISO 13849-1:2023 and IEC 62061:2021. The functional safety leg of the chain is a genuine normative dependency: conformity with ISO 10218-1:2025 requires it."
+    },
+    {
+      "from": "ISO 10218-1:2025 and ISO 10218-2:2025",
+      "to": "IEC TS 63074 and the IEC 62443 series",
+      "kind": "informative",
+      "evidence": "informative-reference",
+      "confidence": "high",
+      "note": "The complete Clause 2 of both parts was read in the official ISO previews. Neither IEC TS 63074 nor any part of IEC 62443 appears in either list. Part 1's list ends at IEC 62745:2017, Part 2's at IEC 62061:2021. Any reference to them therefore sits in a NOTE or the Bibliography, both informative, both outside the free preview. Which edition is cited (IEC TR 63074:2019 or IEC TS 63074:2023) could not be resolved."
+    },
+    {
+      "from": "IEC TS 63074:2023",
+      "to": "IEC 62061:2021",
+      "kind": "normative",
+      "evidence": "normative-reference",
+      "confidence": "high",
+      "note": "Clause 2 Normative references of IEC TS 63074:2023 contains exactly one entry, IEC 62061:2021. That is the whole list, read in the official IEC preview. The bridge document's only normative dependency is a functional safety standard."
+    },
+    {
+      "from": "IEC TS 63074:2023",
+      "to": "the IEC 62443 series",
+      "kind": "informative",
+      "evidence": "informative-reference",
+      "confidence": "high",
+      "note": "IEC 62443 parts appear in the Introduction of IEC TS 63074:2023, in the bracketed SOURCE attributions for defined terms, and in the Bibliography, but not in Clause 2. The adoption is structural and terminological, not a normative dependency. Saying that ISO 10218 reaches IEC 62443 through IEC TS 63074 overstates both hops."
+    },
+    {
+      "from": "IEC TS 63074:2023 clauses 5.2.2 to 5.2.8",
+      "to": "IEC 62443 foundational requirements FR 1 to FR 7",
+      "kind": "structural",
+      "evidence": "published-preview",
+      "confidence": "high",
+      "note": "The seven sub-clauses of IEC TS 63074:2023 clause 5.2 Security countermeasures carry the seven foundational requirement titles in the exact IEC 62443 order: identification and authentication, use control, system integrity, data confidentiality, restricted data flow, timely response to events, resource availability. Table 1 of the same document is titled Overview of foundational requirements and possible influence(s) on an SCS. Both facts are read directly in the official IEC preview contents. This is the real bridge, and it is a structural adoption rather than a citation."
+    }
+  ],
+
+  "rows": [
+    {
+      "id": "A-01",
+      "bands": ["A"],
+      "exposure": "Safety-function parameters altered through the configuration tool or teach pendant",
+      "consequence": "A speed limit, a separation distance or a stopping limit is silently raised. Nothing fails. The safety function still runs, and still reports that it is running, against a set point that no longer protects anyone.",
+      "safety": [
+        {"std": "ISO 10218-1:2025", "clause": "5.3.5", "title": "Parameterization of safety functions", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.5.5", "title": "Parameterization of safety functions", "status": "normative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "5.2.2", "title": "Identification and authentication", "status": "normative"},
+        {"std": "IEC TS 63074:2023", "clause": "6.3.3", "title": "Multi-factor authentication", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-3:2013", "id": "SR 1.1", "title": "Human user identification and authentication"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 2.1", "title": "Authorization enforcement"},
+        {"std": "IEC 62443-4-2:2019", "id": "CR 1.1", "title": "Human user identification and authentication"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "analytical-inference",
+      "confidence": "moderate",
+      "gapKind": null,
+      "roles": ["product-supplier", "system-integrator"],
+      "basis": "The clause identifiers on both sides were read in official previews, and the IEC TS 63074 leg to FR 1 and FR 2 is a direct structural read. The join between them is ours: no standards body states that the parameterization clause of ISO 10218 is addressed by SR 1.1 and SR 2.1. It would be falsified by a published mapping that pairs the clause differently, or by the parameterization clause turning out to require authentication in its own text.",
+      "citation": "ISO 10218-1:2025 and ISO 10218-2:2025 contents pages, official ISO previews. IEC TS 63074:2023 contents page and IEC 62443-3-3:2013 contents page, official IEC previews.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf",
+        "https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf",
+        "https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf"
+      ]
+    },
+    {
+      "id": "A-02",
+      "bands": ["A"],
+      "exposure": "Loss of single point of control: a second command source takes the robot while an operator holds it",
+      "consequence": "Motion is commanded from a station the person inside the cell cannot see and did not authorise. Single point of control is the safety property that a robot obeys exactly one source at a time, and a concurrent session breaks it without breaking anything.",
+      "safety": [
+        {"std": "ISO 10218-1:2025", "clause": "5.5.1", "title": "Single-point-of-control", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.7.5", "title": "Single-point-of-control", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.3.5", "title": "Local control, remote control and single-point-of-control", "status": "normative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "5.2.3", "title": "Use control", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-3:2013", "id": "SR 2.7", "title": "Concurrent session control"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 2.6", "title": "Remote session termination"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 2.5", "title": "Session lock"}
+      ],
+      "relation": "skos:closeMatch",
+      "evidence": "analytical-inference",
+      "confidence": "moderate",
+      "gapKind": null,
+      "roles": ["product-supplier", "system-integrator"],
+      "basis": "This is the tightest correspondence in the whole crosswalk: single point of control and concurrent session control are the same intent expressed in two vocabularies, one about a machine and one about a network. It is still our join. We record it as closeMatch and not exactMatch because the safety clause is about command authority over motion while the security requirement is about session count, and the scopes are not identical.",
+      "citation": "ISO 10218-1:2025 clause 5.5.1 and ISO 10218-2:2025 clauses 5.7.5 and 5.3.5, contents pages, official ISO previews. IEC 62443-3-3:2013 clause 6, contents page, official IEC preview.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/73934/3578b7f9a402489fb9af1cf1ca03ea68/ISO-10218-2-2025.pdf",
+        "https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf"
+      ]
+    },
+    {
+      "id": "A-03",
+      "bands": ["A"],
+      "exposure": "Stop command not delivered within the stopping time because the control network is starved",
+      "consequence": "Motion continues after a stop is commanded. The stopping function has not failed, it has been made late, and a stopping time that is exceeded is a hazard exactly as a failed stop is. Starving a controller of resources is a cheaper attack than corrupting it.",
+      "safety": [
+        {"std": "ISO 10218-1:2025", "clause": "5.4.2", "title": "Emergency stop", "status": "normative"},
+        {"std": "ISO 10218-1:2025", "clause": "5.4.3", "title": "Protective stop", "status": "normative"},
+        {"std": "ISO 10218-1:2025", "clause": "5.5.6", "title": "Stopping time limiting", "status": "normative"},
+        {"std": "ISO 10218-1:2025", "clause": "Annex H", "title": "Stopping time and distance measurement", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.6.5", "title": "Associated equipment stopping", "status": "normative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "5.2.8", "title": "Resource availability", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-3:2013", "id": "SR 7.1", "title": "Denial of service protection"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 7.2", "title": "Resource management"},
+        {"std": "IEC 62443-4-2:2019", "id": "CR 7.1", "title": "Denial of service protection"},
+        {"std": "IEC 62443-4-2:2019", "id": "CR 7.2", "title": "Resource management"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "analytical-inference",
+      "confidence": "moderate",
+      "gapKind": null,
+      "roles": ["product-supplier", "system-integrator"],
+      "basis": "The FR 7 leg is a direct structural read: IEC TS 63074:2023 clause 5.2.8 is titled Resource availability and IEC 62443-3-3:2013 clause 11 carries the same title. The claim that a stopping function starved of resources is a safety consequence rather than an availability consequence is ours. Resource availability is the most under-appreciated of the seven foundational requirements for safety, because a safety function that is unavailable is not fail-safe by default.",
+      "citation": "ISO 10218-1:2025 clauses 5.4.2, 5.4.3, 5.5.6 and Annex H, contents page, official ISO preview. IEC TS 63074:2023 clause 5.2.8 and IEC 62443-3-3:2013 clause 11, contents pages, official IEC previews.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf",
+        "https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf"
+      ]
+    },
+    {
+      "id": "A-04",
+      "bands": ["A"],
+      "exposure": "Safety-related communications corrupted or replayed between controller and safety device",
+      "consequence": "The safety-related control system acts on a message that was not sent, or acts twice on one that was. Determinism of output is a functional safety property and an integrity property at the same time, and this is the point where the two vocabularies describe one object.",
+      "safety": [
+        {"std": "ISO 10218-1:2025", "clause": "5.3.6", "title": "Communications", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.5.9", "title": "Communications", "status": "normative"},
+        {"std": "ISO 10218-1:2025", "clause": "5.3.4", "title": "Failure or fault detection", "status": "normative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "5.2.4", "title": "System integrity", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-3:2013", "id": "SR 3.1", "title": "Communication integrity"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 3.6", "title": "Deterministic output"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 3.8", "title": "Session integrity"},
+        {"std": "IEC 62443-4-2:2019", "id": "CR 3.6", "title": "Deterministic output"}
+      ],
+      "relation": "skos:closeMatch",
+      "evidence": "analytical-inference",
+      "confidence": "moderate",
+      "gapKind": null,
+      "roles": ["product-supplier", "system-integrator"],
+      "basis": "SR 3.6 and CR 3.6, both titled Deterministic output, are the security requirements whose violation most directly degrades a functional safety argument. The clause titles on both sides are primary. Pairing them is ours. This row is the cleanest single instance of the case study's central claim: one object, two vocabularies, one consequence.",
+      "citation": "ISO 10218-1:2025 clause 5.3.6 and ISO 10218-2:2025 clause 5.5.9, contents pages, official ISO previews. IEC 62443-3-3:2013 clause 7 and IEC 62443-4-2:2019 clause 7, contents pages, official IEC previews.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf",
+        "https://cdn.standards.iteh.ai/samples/21919/fe56b59fa6f04b849d88a2311aa5ec15/IEC-62443-4-2-2019.pdf"
+      ]
+    },
+    {
+      "id": "A-05",
+      "bands": ["A"],
+      "exposure": "Start or restart interlock defeated from the control system",
+      "consequence": "The robot restarts while a person is inside the safeguarded space. The interlock is the mechanism that makes clearing a cell safe, and an authorisation failure removes it without touching a guard, a light curtain or a switch.",
+      "safety": [
+        {"std": "ISO 10218-1:2025", "clause": "5.5.2", "title": "Start/restart interlock, reset", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.5.7", "title": "Start / restart interlock and reset", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.8.10", "title": "Safeguarding to protect from unexpected restart", "status": "normative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "5.2.3", "title": "Use control", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-3:2013", "id": "SR 2.1", "title": "Authorization enforcement"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 1.1", "title": "Human user identification and authentication"},
+        {"std": "IEC 62443-4-2:2019", "id": "CR 2.1", "title": "Authorization enforcement"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "analytical-inference",
+      "confidence": "moderate",
+      "gapKind": null,
+      "roles": ["system-integrator", "asset-owner"],
+      "basis": "Authentication that does not constrain which commands a given identity may issue leaves the safety case intact on paper and broken in practice. The clause identifiers are primary on both sides; the join is ours.",
+      "citation": "ISO 10218-1:2025 clause 5.5.2, ISO 10218-2:2025 clauses 5.5.7 and 5.8.10, contents pages, official ISO previews. IEC 62443-3-3:2013 clause 6, contents page, official IEC preview.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/73934/3578b7f9a402489fb9af1cf1ca03ea68/ISO-10218-2-2025.pdf"
+      ]
+    },
+    {
+      "id": "A-06",
+      "bands": ["A", "B"],
+      "exposure": "The cyber security requirement the robot standards actually impose",
+      "consequence": "This row is the obligation itself rather than an attack. ISO 10218:2025 requires a cyber security threat assessment, analogous to an ISO 12100 risk assessment. Protective measures become obligatory only where the assessment shows that unauthorised access creates a safety-related risk.",
+      "safety": [
+        {"std": "ISO 10218-1:2025", "clause": "5.1.16", "title": "Cybersecurity", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.2.16", "title": "Cybersecurity", "status": "normative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "5.1.1", "title": "Security risk assessment", "status": "normative"},
+        {"std": "IEC TS 63074:2023", "clause": "5.1.2", "title": "Security risk response strategy", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-2:2020", "id": "ZCR 2", "title": "Initial cyber security risk assessment"},
+        {"std": "IEC 62443-3-2:2020", "id": "ZCR 5", "title": "Perform a detailed cyber security risk assessment"},
+        {"std": "IEC 62443-3-2:2020", "id": "ZCR 5.6", "title": "Determine SL-T"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "published-summary",
+      "confidence": "moderate",
+      "gapKind": null,
+      "roles": ["product-supplier", "system-integrator"],
+      "basis": "The clause identifiers 5.1.16 and 5.2.16 were read in the official ISO previews and are high confidence. What the clause requires is not in the preview, so the description of the requirement as a conditional threat assessment rests on three independent public summaries that agree: KAN (whose author sat on the working group), Safetics and robot-safety.net. Note that one of those sources gives the Part 2 clause as 5.2.26, which the primary contents page shows to be wrong. The word only, in the phrase only mandatory measure, is the weakest part of this row.",
+      "citation": "ISO 10218-1:2025 clause 5.1.16 (page 18) and ISO 10218-2:2025 clause 5.2.16 (page 28), contents pages, official ISO previews. Content of the requirement summarised from KAN KANBrief 2/2023, Safetics and robot-safety.net.",
+      "sources": [
+        "https://www.kan.de/en/publications/kanbrief/2023/2-23/revision-of-en-iso-10218-safety-requirements-for-industrial-robots/",
+        "https://en.doc.safetics.io/insight-10218-2/",
+        "https://cdn.standards.iteh.ai/samples/19487/bea4b5b38c1f4f7a99733044ccf82500/IEC-62443-3-2-2020.pdf"
+      ]
+    },
+    {
+      "id": "A-07",
+      "bands": ["A", "B", "C"],
+      "exposure": "Security obligations handed down the supply chain in the instruction handbook",
+      "consequence": "This is the mechanism by which a cell operator who negotiated no security contract still inherits a security obligation. It is the most under-reported part of the 2025 revision, and it is the reason the asset owner is inside the crosswalk at all.",
+      "safety": [
+        {"std": "ISO 10218-1:2025", "clause": "7.5.11", "title": "Cybersecurity", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "7.5.23", "title": "Cybersecurity", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "7.5.11", "title": "Remote interventions", "status": "normative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "8", "title": "Information for the user of the machine(s)", "status": "normative"},
+        {"std": "IEC TS 63074:2023", "clause": "Annex C", "title": "Example of information flow between device supplier, manufacturer of machine, integrator and user of machine", "status": "informative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-2-4:2023", "id": "Annex A, Table A.1", "title": "Security program requirements (service providers)"},
+        {"std": "IEC 62443-2-1:2024", "id": "Ed 2.0", "title": "Security program requirements for IACS asset owners"},
+        {"std": "IEC 62443-4-1:2018", "id": "Practice 8", "title": "Security guidelines (SG-1 to SG-7)"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "published-preview",
+      "confidence": "high",
+      "gapKind": null,
+      "roles": ["product-supplier", "system-integrator", "service-provider", "asset-owner"],
+      "basis": "Both ISO clauses sit under 7 Information for use, 7.5 Instruction handbook, and both are titled Cybersecurity. That structure alone establishes that security information is required to be handed over, without reading a word of the requirement. IEC TS 63074:2023 mirrors it with clause 8 and Annex C, whose Figure C.3 is titled Example of information flow during use phase in context of IEC 62443-2-4. The naming of specific IEC 62443 parts as the receiving obligations is our join.",
+      "citation": "ISO 10218-1:2025 clause 7.5.11 (page 42) and ISO 10218-2:2025 clauses 7.5.11 and 7.5.23 (page 82), contents pages, official ISO previews. IEC TS 63074:2023 clause 8 and Annex C, contents page, official IEC preview.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf",
+        "https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf",
+        "https://cdn.standards.iteh.ai/samples/104600/c94db344b745434aaca31b5ad12f376a/IEC-62443-2-4-2023.pdf"
+      ]
+    },
+    {
+      "id": "A-08",
+      "bands": ["A", "B"],
+      "exposure": "Direct physical connection to the controller through a diagnostic or test interface",
+      "consequence": "An unattended service port on a controller inside a cell is a bypass of every network control that was designed around it. This is the attack that a security architecture drawn on a network diagram does not see.",
+      "safety": [
+        {"std": "ISO 10218-1:2025", "clause": "5.1.16", "title": "Cybersecurity", "status": "normative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "6.3.8", "title": "Attack through direct physical connection", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-4-2:2019", "id": "CR 2.13", "title": "Use of physical diagnostic and test interfaces"},
+        {"std": "IEC 62443-4-2:2019", "id": "CR 3.11", "title": "Physical tamper resistance and detection"}
+      ],
+      "relation": "skos:closeMatch",
+      "evidence": "analytical-inference",
+      "confidence": "moderate",
+      "gapKind": null,
+      "roles": ["product-supplier"],
+      "basis": "The two titles align almost word for word, and both were read in official previews. The join is still ours, because IEC TS 63074:2023 does not cite CR 2.13 and IEC 62443-4-2:2019 does not mention machinery. IEC TS 63074:2023 explicitly excludes intentional hardware manipulation and foreseeable misuse by physical manipulation, so this row sits on the edge of its scope.",
+      "citation": "IEC TS 63074:2023 clause 6.3.8 and IEC 62443-4-2:2019 clauses 2.13 and 3.11 identifier lists, contents pages, official IEC previews. Scope exclusion read verbatim from the IEC TS 63074:2023 Scope clause.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf",
+        "https://cdn.standards.iteh.ai/samples/21919/fe56b59fa6f04b849d88a2311aa5ec15/IEC-62443-4-2-2019.pdf"
+      ]
+    },
+    {
+      "id": "A-09",
+      "bands": ["A"],
+      "exposure": "The teach pendant and the engineering laptop as portable devices carrying safety authority",
+      "consequence": "Whoever holds the pendant can select a mode, hold the enabling device and move the robot with a person inside the cell. It is a portable device with the highest authority in the installation and it lives on a hook by the door.",
+      "safety": [
+        {"std": "ISO 10218-1:2025", "clause": "5.5.4", "title": "Enabling function", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.7.7", "title": "Enabling devices", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.7.8", "title": "Control stations", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.7.2", "title": "Modes", "status": "normative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "6.3.5", "title": "Portable devices", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-3:2013", "id": "SR 2.3", "title": "Use control for portable and mobile devices"},
+        {"std": "IEC 62443-4-2:2019", "id": "CR 2.3", "title": "Use control for portable and mobile devices"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 2.5", "title": "Session lock"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "analytical-inference",
+      "confidence": "moderate",
+      "gapKind": null,
+      "roles": ["product-supplier", "asset-owner"],
+      "basis": "Mode selection and the enabling device sit under use control, not authentication, because the question is not who you are but what you may do once you are in. The clause identifiers on both sides are primary; the join is ours.",
+      "citation": "ISO 10218-1:2025 clause 5.5.4 and ISO 10218-2:2025 clauses 5.7.2, 5.7.7 and 5.7.8, contents pages, official ISO previews. IEC TS 63074:2023 clause 6.3.5, contents page, official IEC preview.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/73934/3578b7f9a402489fb9af1cf1ca03ea68/ISO-10218-2-2025.pdf"
+      ]
+    },
+    {
+      "id": "A-10",
+      "bands": ["A", "B", "C"],
+      "exposure": "A security control that breaks the safety function it was added to protect",
+      "consequence": "Session lock on a safety human machine interface, or rate limiting on a safety fieldbus, can remove the availability the safety function depends on. The crosswalk runs in both directions and this is the direction people forget.",
+      "safety": [
+        {"std": "ISO 10218-1:2025", "clause": "Annex C", "title": "Safety functions", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "Annex C", "title": "Safety function performance requirements", "status": "normative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "4.2", "title": "Safety objectives", "status": "normative"},
+        {"std": "IEC TS 63074:2023", "clause": "4.3", "title": "Security objectives", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-3:2013", "id": "4.2", "title": "Support of essential functions"},
+        {"std": "IEC 62443-3-3:2013", "id": "4.3", "title": "Compensating countermeasures"},
+        {"std": "IEC 62443-4-2:2019", "id": "CCSC 1", "title": "Support of essential functions"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "published-preview",
+      "confidence": "high",
+      "gapKind": null,
+      "roles": ["system-integrator", "product-supplier"],
+      "basis": "Support of essential functions is a real clause title in the common constraints clause of both IEC 62443-3-3:2013 and IEC 62443-4-2:2019, read directly in the official previews. It is the clause where the security series concedes that a security control must not break the function it protects. Applying it specifically to robot safety functions is our step, but the concession itself is a published fact and does not rest on inference.",
+      "citation": "IEC 62443-3-3:2013 clause 4 Common control system security constraints (4.2 Support of essential functions, 4.3 Compensating countermeasures, 4.4 Least privilege) and IEC 62443-4-2:2019 clause 4 Common component security constraints (CCSC 1 to CCSC 4), contents pages, official IEC previews.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf",
+        "https://cdn.standards.iteh.ai/samples/21919/fe56b59fa6f04b849d88a2311aa5ec15/IEC-62443-4-2-2019.pdf"
+      ]
+    },
+    {
+      "id": "A-11",
+      "bands": ["A", "B", "C"],
+      "exposure": "The safety-related control system is a control system, and is therefore exposed",
+      "consequence": "The whole case study in one sentence, and it is not ours: a standards body wrote it. The safety-related control system is part of the machine control system, so it can be subject to security threats that result in a loss of the ability to maintain safe operation.",
+      "safety": [
+        {"std": "IEC TS 63074:2023", "clause": "1", "title": "Scope", "status": "scope"},
+        {"std": "IEC TS 63074:2023", "clause": "Introduction", "title": "Introduction", "status": "informative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "5.2", "title": "Security countermeasures", "status": "normative"},
+        {"std": "IEC TS 63074:2023", "clause": "Table 1", "title": "Overview of foundational requirements and possible influence(s) on an SCS", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-3:2013", "id": "FR 1 to FR 7", "title": "The seven foundational requirements"}
+      ],
+      "relation": "skos:closeMatch",
+      "evidence": "published-preview",
+      "confidence": "high",
+      "gapKind": null,
+      "roles": ["product-supplier", "system-integrator", "asset-owner", "service-provider"],
+      "basis": "The Scope clause of IEC TS 63074:2023 states that the document identifies the relevant aspects of the IEC 62443 series related to security threats and vulnerabilities that are considered for the design and implementation of safety-related control systems which can lead to the loss of the ability to maintain safe operation of a machine. The seven sub-clauses of clause 5.2 carry the seven foundational requirement titles in IEC 62443 order, and Table 1 is titled as shown. All read in the official preview. Nothing here is inferred.",
+      "citation": "IEC TS 63074:2023, Scope clause, Introduction, clause 5.2 sub-clauses and Table 1 (page 17), official IEC preview. IEC 62443-3-3:2013 clauses 5 to 11, contents page, official IEC preview.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf",
+        "https://webstore.iec.ch/en/publication/69228"
+      ]
+    },
+    {
+      "id": "A-12",
+      "bands": ["A", "B", "C"],
+      "exposure": "Security level asserted for a robot without saying which kind of level it is",
+      "consequence": "A controller certified to a capability level, dropped into a flat unsegmented network, attains far less than it could. A claim that a robot is SL2 is not false, it is incomplete to the point of being unusable, because it does not say whether a target, a capability or an achieved level is meant.",
+      "safety": [],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "5.1.1", "title": "Security risk assessment", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-2:2020", "id": "ZCR 5.6", "title": "Determine SL-T (target)"},
+        {"std": "IEC 62443-3-3:2013", "id": "clause 0.3, Annex A", "title": "Discussion of the SL vector (capability and achieved)"},
+        {"std": "IEC 62443-4-2:2019", "id": "clause 5.1", "title": "Purpose and SL-C descriptions"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "published-preview",
+      "confidence": "high",
+      "gapKind": "not-addressed",
+      "roles": ["system-integrator", "asset-owner"],
+      "basis": "The three level types and their homes are established from primary contents pages: ZCR 5.6 Determine SL-T in IEC 62443-3-2:2020, clause 0.3 and Annex A Discussion of the SL vector with Figure A.3 in IEC 62443-3-3:2013, and clause 5.1 Purpose and SL-C descriptions in IEC 62443-4-2:2019. No ISO 10218 clause addresses security levels at all, which is why the safety column is empty rather than populated with a near-miss.",
+      "citation": "IEC 62443-3-2:2020 ZCR 5.6, IEC 62443-3-3:2013 clause 0.3 and Annex A, IEC 62443-4-2:2019 clause 5.1, contents pages, official IEC previews. Canonical level wording sits in IEC TS 62443-1-1:2009 clause 5.11.2 and Table 8 (page 53) and is not reproduced.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/19487/bea4b5b38c1f4f7a99733044ccf82500/IEC-62443-3-2-2020.pdf",
+        "https://cdn.standards.iteh.ai/samples/14693/975f6f7ab8714dd5a2bc524726eee324/IEC-TS-62443-1-1-2009.pdf"
+      ]
+    },
+
+    {
+      "id": "B-01",
+      "bands": ["B"],
+      "exposure": "Separation distance computed from spoofed or degraded perception data",
+      "consequence": "The robot believes the person is further away than they are and does not slow or stop. Nothing in the safety function has failed. Its input has been made wrong, and in this band the input is the safety envelope.",
+      "safety": [
+        {"std": "ISO 10218-1:2025", "clause": "5.10.3", "title": "Speed and separation monitoring (SSM)", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.14.5", "title": "Speed and separation monitoring (SSM)", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "Annex L", "title": "Speed and separation monitoring (SSM). Separation distance", "status": "normative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "5.2.4", "title": "System integrity", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-3:2013", "id": "SR 3.5", "title": "Input validation"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 3.1", "title": "Communication integrity"},
+        {"std": "IEC 62443-4-2:2019", "id": "CR 3.5", "title": "Input validation"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "analytical-inference",
+      "confidence": "moderate",
+      "gapKind": null,
+      "roles": ["system-integrator", "product-supplier"],
+      "basis": "The safety clauses here apply only where the Band B system is an industrial robot application inside the scope of ISO 10218:2025. For a free-roaming autonomous mobile robot the safety column is empty, because ISO 10218:2025 excludes robots fixed to or part of driverless industrial trucks and mobile platforms. The join between perception integrity and input validation is ours.",
+      "citation": "ISO 10218-1:2025 clause 5.10.3, ISO 10218-2:2025 clause 5.14.5 and Annex L, contents pages, official ISO previews. Scope exclusions read in clause 1 of both parts. IEC 62443-3-3:2013 clause 7, contents page, official IEC preview.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/73934/3578b7f9a402489fb9af1cf1ca03ea68/ISO-10218-2-2025.pdf",
+        "https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf"
+      ]
+    },
+    {
+      "id": "B-02",
+      "bands": ["B"],
+      "exposure": "Remote access path into the safety-related control system, created by maintenance and never removed",
+      "consequence": "Remote support is how a diagnostic tunnel into a safety controller comes to exist, and it usually outlives the person who opened it. The 2025 revision put remote interventions in the instruction handbook, which means the obligation is now written down and travels with the machine.",
+      "safety": [
+        {"std": "ISO 10218-2:2025", "clause": "7.5.11", "title": "Remote interventions", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.7.6", "title": "Local and remote control", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.3.5", "title": "Local control, remote control and single-point-of-control", "status": "normative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "6.3.7", "title": "Remote access", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-3:2013", "id": "SR 1.13", "title": "Access via untrusted networks"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 2.6", "title": "Remote session termination"},
+        {"std": "IEC 62443-4-2:2019", "id": "NDR 1.13", "title": "Access via untrusted networks (network device)"},
+        {"std": "IEC 62443-3-2:2020", "id": "ZCR 3.6", "title": "Separate devices connected via external networks"}
+      ],
+      "relation": "skos:closeMatch",
+      "evidence": "analytical-inference",
+      "confidence": "moderate",
+      "gapKind": null,
+      "roles": ["service-provider", "asset-owner", "system-integrator"],
+      "basis": "Every identifier here is primary. The correspondence between a machinery clause titled Remote interventions and a security requirement titled Access via untrusted networks is close but it is our join, and neither document cites the other.",
+      "citation": "ISO 10218-2:2025 clauses 7.5.11, 5.7.6 and 5.3.5, contents page, official ISO preview. IEC TS 63074:2023 clause 6.3.7, IEC 62443-3-3:2013 clause 5, IEC 62443-3-2:2020 ZCR 3.6, contents pages, official IEC previews.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/73934/3578b7f9a402489fb9af1cf1ca03ea68/ISO-10218-2-2025.pdf",
+        "https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf",
+        "https://cdn.standards.iteh.ai/samples/19487/bea4b5b38c1f4f7a99733044ccf82500/IEC-62443-3-2-2020.pdf"
+      ]
+    },
+    {
+      "id": "B-03",
+      "bands": ["B"],
+      "exposure": "Wireless command and telemetry link to a mobile platform",
+      "consequence": "The link that carries the stop command and the position report is a radio, in a building full of other radios, reachable from the car park. No industrial robot safety standard reaches it, because the platform it is attached to is outside their scope.",
+      "safety": [],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "6.3.6", "title": "Wireless communication", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-3:2013", "id": "SR 1.6", "title": "Wireless access management"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 2.2", "title": "Wireless use control"},
+        {"std": "IEC 62443-4-2:2019", "id": "NDR 1.6 RE 1", "title": "Unique identification and authentication of wireless users and devices"},
+        {"std": "IEC 62443-3-2:2020", "id": "ZCR 3.5", "title": "Separate wireless devices"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "published-preview",
+      "confidence": "high",
+      "gapKind": "excluded-by-scope",
+      "roles": ["product-supplier", "system-integrator", "asset-owner"],
+      "basis": "The gap is established from a Scope clause, which is the strongest kind of gap available and is published free. ISO 10218-1:2025 excludes mobility where the robot is fixed to or part of driverless industrial trucks or mobile platforms; ISO 10218-2:2025 excludes the same where integrated with them. This is a committee decision, not an oversight. No substitute type-C standard is asserted here, because none was verified against a primary source in this build.",
+      "citation": "ISO 10218-1:2025 and ISO 10218-2:2025 clause 1 Scope, official ISO previews. IEC TS 63074:2023 clause 6.3.6, IEC 62443-3-3:2013 clauses 5 and 6, IEC 62443-3-2:2020 ZCR 3.5, contents pages, official IEC previews.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf",
+        "https://cdn.standards.iteh.ai/samples/73934/3578b7f9a402489fb9af1cf1ca03ea68/ISO-10218-2-2025.pdf"
+      ]
+    },
+    {
+      "id": "B-04",
+      "bands": ["B", "C"],
+      "exposure": "Fleet-wide software update channel: one compromised update reaches every unit at once",
+      "consequence": "A fleet is updated, not serviced. The property that makes a fleet economic is the property that makes a single compromised artefact a fleet-wide hazard, and there is no machinery standard for it.",
+      "safety": [],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "7", "title": "Verification and maintenance of security countermeasures", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-4-1:2018", "id": "Practice 7", "title": "Security update management (SUM-1 to SUM-5)"},
+        {"std": "IEC 62443-4-2:2019", "id": "CR 3.10", "title": "Support for updates"},
+        {"std": "IEC 62443-4-2:2019", "id": "CR 3.4", "title": "Software and information integrity"},
+        {"std": "IEC 62443-4-2:2019", "id": "CR 3.14", "title": "Integrity of the boot process"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "analytical-inference",
+      "confidence": "moderate",
+      "gapKind": "not-addressed",
+      "roles": ["product-supplier", "service-provider", "asset-owner"],
+      "basis": "This is an argument from silence about a paywalled document, so it is weaker than a scope exclusion and carries lower confidence deliberately. What was searched: the complete published contents pages of ISO 10218-1:2025 and ISO 10218-2:2025. Nothing in either structure covers a fleet update channel. The security identifiers on the other side are all primary.",
+      "citation": "Contents pages of ISO 10218-1:2025 and ISO 10218-2:2025, official ISO previews, searched in full. IEC 62443-4-1:2018 Practice 7 and IEC 62443-4-2:2019 identifier list, contents pages, official IEC previews.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/21445/8dc7299ef50a47d0a95d73fae2b453b6/IEC-62443-4-1-2018.pdf",
+        "https://cdn.standards.iteh.ai/samples/21919/fe56b59fa6f04b849d88a2311aa5ec15/IEC-62443-4-2-2019.pdf"
+      ]
+    },
+    {
+      "id": "B-05",
+      "bands": ["B", "C"],
+      "exposure": "A fleet crosses the boundary the safety case was drawn around",
+      "consequence": "Span of control and adjacent cells are the machinery vocabulary for a boundary. They stop at the cell wall. A mobile fleet does not, and the only vocabulary that follows it across the facility is zones and conduits.",
+      "safety": [
+        {"std": "ISO 10218-2:2025", "clause": "5.3.2", "title": "Span-of-control", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.3.3", "title": "Span-of-control of emergency stop function", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.13", "title": "Adjacent robot cells", "status": "normative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "6.3.4", "title": "Network architecture", "status": "normative"},
+        {"std": "IEC TS 63074:2023", "clause": "5.2.6", "title": "Restricted data flow", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-2:2020", "id": "ZCR 3.1", "title": "Establish zones and conduits"},
+        {"std": "IEC 62443-3-2:2020", "id": "ZCR 3.3", "title": "Separate safety related assets"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 5.1", "title": "Network segmentation"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 5.2", "title": "Zone boundary protection"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "analytical-inference",
+      "confidence": "moderate",
+      "gapKind": null,
+      "roles": ["system-integrator", "asset-owner"],
+      "basis": "ZCR 3.3 Separate safety related assets is the single point in the whole IEC 62443 series where a security standard makes an explicit demand about safety assets, and its identifier and title are primary. Pairing it with span of control is ours, and it is a broadMatch in substance: the security requirement is wider than the safety clause, because it covers assets the safety clause never sees.",
+      "citation": "ISO 10218-2:2025 clauses 5.3.2, 5.3.3 and 5.13, contents page, official ISO preview. IEC 62443-3-2:2020 ZCR 3.1 and ZCR 3.3, IEC 62443-3-3:2013 clause 9, IEC TS 63074:2023 clauses 5.2.6 and 6.3.4, contents pages, official IEC previews.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/19487/bea4b5b38c1f4f7a99733044ccf82500/IEC-62443-3-2-2020.pdf",
+        "https://cdn.standards.iteh.ai/samples/73934/3578b7f9a402489fb9af1cf1ca03ea68/ISO-10218-2-2025.pdf"
+      ]
+    },
+    {
+      "id": "B-06",
+      "bands": ["B"],
+      "exposure": "The platform is outside ISO 10218:2025 altogether",
+      "consequence": "For an autonomous mobile robot, an agricultural platform or an uncrewed aircraft flown beyond visual line of sight, there is a cyber security exposure with a safety consequence and no industrial robot type-C standard behind it. The exposure does not disappear because the standard's scope does.",
+      "safety": [
+        {"std": "ISO 10218-1:2025", "clause": "1", "title": "Scope", "status": "scope"},
+        {"std": "ISO 10218-2:2025", "clause": "1", "title": "Scope", "status": "scope"}
+      ],
+      "bridge": [],
+      "security": [],
+      "relation": null,
+      "evidence": "published-preview",
+      "confidence": "high",
+      "gapKind": "excluded-by-scope",
+      "roles": ["asset-owner", "system-integrator"],
+      "basis": "Read directly in clause 1 of both official previews. Explicitly out of scope in both parts: underwater, law enforcement, military and defence, airborne and space, medical, healthcare, prosthetics, service robots, consumer products, and lifting or transporting people. Part 1 additionally excludes mobility where the robot is fixed to or part of driverless industrial trucks or mobile platforms; Part 2 excludes the same where integrated with them. This exclusion list is load-bearing and is not papered over here.",
+      "citation": "ISO 10218-1:2025 clause 1 Scope and ISO 10218-2:2025 clause 1 Scope, official ISO previews.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf",
+        "https://cdn.standards.iteh.ai/samples/73934/3578b7f9a402489fb9af1cf1ca03ea68/ISO-10218-2-2025.pdf"
+      ]
+    },
+    {
+      "id": "B-07",
+      "bands": ["B", "C"],
+      "exposure": "Nobody notices the attack while it is happening",
+      "consequence": "The machinery world has no equivalent of continuous security monitoring. A safety case is verified at commissioning and revalidated on change; it has no notion of an adversary acting now. This is a place where the security side is simply ahead.",
+      "safety": [],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "5.2.7", "title": "Timely response to events", "status": "normative"},
+        {"std": "IEC TS 63074:2023", "clause": "Annex B", "title": "Security risk assessment triggers", "status": "informative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-3:2013", "id": "SR 6.1", "title": "Audit log accessibility"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 6.2", "title": "Continuous monitoring"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 2.8", "title": "Auditable events"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "analytical-inference",
+      "confidence": "moderate",
+      "gapKind": "not-addressed",
+      "roles": ["asset-owner", "service-provider"],
+      "basis": "Argument from silence, made from the published contents pages of both ISO 10218:2025 parts, which contain no monitoring or detection clause of this kind. Note the plural in the foundational requirement title: it is Timely response to events, not event, and secondary sources routinely get this wrong.",
+      "citation": "Contents pages of ISO 10218-1:2025 and ISO 10218-2:2025, official ISO previews, searched in full. IEC 62443-3-3:2013 clause 10 (two system requirements published under this heading) and IEC TS 63074:2023 clause 5.2.7, contents pages, official IEC previews.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf",
+        "https://cdn.standards.iteh.ai/samples/105570/ef133a3f5caa4bad9505d3ff14ec6e7c/IEC-TS-63074-2023.pdf"
+      ]
+    },
+
+    {
+      "id": "C-01",
+      "bands": ["C"],
+      "exposure": "The trained model, its weights and its provenance are an attack surface",
+      "consequence": "Behaviour changes and no component has failed. Functional safety detects failure; a substituted or poisoned policy is not a failure, it is a correctly functioning system doing something else. Every safety argument in the machinery canon assumes the first case.",
+      "safety": [],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "5.2.4", "title": "System integrity", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-4-2:2019", "id": "CR 3.4", "title": "Software and information integrity"},
+        {"std": "IEC 62443-4-2:2019", "id": "CR 3.14", "title": "Integrity of the boot process"},
+        {"std": "IEC 62443-4-2:2019", "id": "CR 3.12", "title": "Provisioning product supplier roots of trust"},
+        {"std": "IEC 62443-4-2:2019", "id": "CR 3.13", "title": "Provisioning asset owner roots of trust"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "published-summary",
+      "confidence": "moderate",
+      "gapKind": "not-addressed",
+      "roles": ["product-supplier", "service-provider"],
+      "basis": "The absence on the safety side is corroborated by a working-group expert writing for KAN, who records that the final drafts of the standard do not support requirements concerning the application of self-developing AI in safety functions, or certain requirements concerning mobile autonomous machinery and the cyber security of hardware. That is attributed opinion about the drafts, published in 2023, roughly two years before the standards appeared. The security requirements offered on the other side are the nearest available anchors; none was written with learned policies in mind, and treating them as a solution would be a stretch.",
+      "citation": "KAN, KANBrief 2/2023, Otto Goernemann of SICK AG, on the revision of EN ISO 10218. IEC 62443-4-2:2019 identifier list, contents page, official IEC preview.",
+      "sources": [
+        "https://www.kan.de/en/publications/kanbrief/2023/2-23/revision-of-en-iso-10218-safety-requirements-for-industrial-robots/",
+        "https://cdn.standards.iteh.ai/samples/21919/fe56b59fa6f04b849d88a2311aa5ec15/IEC-62443-4-2-2019.pdf"
+      ]
+    },
+    {
+      "id": "C-02",
+      "bands": ["C"],
+      "exposure": "The goal channel is a command channel",
+      "consequence": "Where behaviour is driven by a natural-language goal or a prompt, whatever writes that goal commands the robot. The distinction between data and command, which the whole of industrial security architecture rests on, does not hold.",
+      "safety": [],
+      "bridge": [],
+      "security": [
+        {"std": "IEC 62443-3-3:2013", "id": "SR 3.5", "title": "Input validation"},
+        {"std": "IEC 62443-4-2:2019", "id": "CR 3.5", "title": "Input validation"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 2.1", "title": "Authorization enforcement"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "analytical-inference",
+      "confidence": "low",
+      "gapKind": "not-addressed",
+      "roles": ["product-supplier"],
+      "basis": "This is the weakest row on the page and is marked as such. The security requirements named were written for field data and protocol messages, not for a goal expressed in natural language, and pointing at input validation here is closer to an analogy than to a mapping. No standards body asserts it. It is included because leaving the row out would understate the exposure, and forcing a stronger badge on it would be dishonest. It should not be quoted as a finding.",
+      "citation": "Identifier and title of SR 3.5 and CR 3.5 read from the contents pages of IEC 62443-3-3:2013 and IEC 62443-4-2:2019, official IEC previews. The application to a goal channel is ours alone, with no corroborating source.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf"
+      ]
+    },
+    {
+      "id": "C-03",
+      "bands": ["C"],
+      "exposure": "Behaviour drifts after deployment without any component failing",
+      "consequence": "Fault detection catches faults. A policy that has adapted is not faulty. The verification and validation clauses assume a system whose reachable states were enumerable at commissioning, which is precisely what this band gives up.",
+      "safety": [
+        {"std": "ISO 10218-1:2025", "clause": "5.3.4", "title": "Failure or fault detection", "status": "normative"},
+        {"std": "ISO 10218-1:2025", "clause": "6", "title": "Verification and validation", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "6", "title": "Verification and validation", "status": "normative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "7", "title": "Verification and maintenance of security countermeasures", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-3:2013", "id": "SR 3.3", "title": "Security functionality verification"},
+        {"std": "IEC 62443-4-1:2018", "id": "Practice 5", "title": "Security verification and validation testing (SVV-1 to SVV-5)"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "analytical-inference",
+      "confidence": "moderate",
+      "gapKind": "not-addressed",
+      "roles": ["product-supplier", "system-integrator"],
+      "basis": "The clause identifiers are primary on both sides. The claim is about a frame mismatch rather than about a missing clause: the safety clauses exist and are perfectly good, they simply presuppose a failure model that a learning-enabled system does not satisfy. That reasoning is ours. It would be falsified by a clause in either part that addresses post-deployment adaptation, and none appears in the published contents.",
+      "citation": "ISO 10218-1:2025 clauses 5.3.4 and 6, ISO 10218-2:2025 clause 6, contents pages, official ISO previews. IEC 62443-3-3:2013 clause 7 and IEC 62443-4-1:2018 Practice 5, contents pages, official IEC previews.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf",
+        "https://cdn.standards.iteh.ai/samples/21445/8dc7299ef50a47d0a95d73fae2b453b6/IEC-62443-4-1-2018.pdf"
+      ]
+    },
+    {
+      "id": "C-04",
+      "bands": ["C"],
+      "exposure": "A swarm has no single span of control",
+      "consequence": "Span of control assumes an enumerable set of robots inside a cell with one authority over their stop function. A swarm whose membership changes at run time does not have one, and the emergency stop question becomes: stop what, exactly.",
+      "safety": [
+        {"std": "ISO 10218-2:2025", "clause": "5.3.2", "title": "Span-of-control", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.3.3", "title": "Span-of-control of emergency stop function", "status": "normative"},
+        {"std": "ISO 10218-2:2025", "clause": "5.3.4", "title": "Operational modes with multi-robot applications or robot cells", "status": "normative"}
+      ],
+      "bridge": [
+        {"std": "IEC TS 63074:2023", "clause": "6.3.4", "title": "Network architecture", "status": "normative"}
+      ],
+      "security": [
+        {"std": "IEC 62443-3-2:2020", "id": "ZCR 3.1", "title": "Establish zones and conduits"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 5.1", "title": "Network segmentation"},
+        {"std": "IEC 62443-3-3:2013", "id": "SR 7.8", "title": "Control system component inventory"}
+      ],
+      "relation": "skos:relatedMatch",
+      "evidence": "analytical-inference",
+      "confidence": "moderate",
+      "gapKind": "informative-only",
+      "roles": ["system-integrator", "asset-owner"],
+      "basis": "The safety clauses exist and are primary, so this is not silence. It is partial coverage: the concepts are there and they assume a fixed, enumerable, cell-bounded set. SR 7.8 Control system component inventory is the closest security analogue of knowing what is in your swarm right now, and pairing it with span of control is ours.",
+      "citation": "ISO 10218-2:2025 clauses 5.3.2, 5.3.3 and 5.3.4, contents page, official ISO preview. IEC 62443-3-3:2013 clauses 9 and 11, IEC 62443-3-2:2020 ZCR 3.1, contents pages, official IEC previews.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/73934/3578b7f9a402489fb9af1cf1ca03ea68/ISO-10218-2-2025.pdf",
+        "https://cdn.standards.iteh.ai/samples/19488/79684f0328b2434caaa0b8cc9bcfa444/IEC-62443-3-3-2013.pdf"
+      ]
+    },
+    {
+      "id": "C-05",
+      "bands": ["C"],
+      "exposure": "No type-C standard covers this band at all",
+      "consequence": "A learning-enabled humanoid or a foundation-model-driven manipulator has a cyber security exposure with a direct safety consequence and no machinery type-C standard behind it. That is the headline finding of the whole crosswalk, and it is a negative one.",
+      "safety": [
+        {"std": "ISO 10218-1:2025", "clause": "1", "title": "Scope", "status": "scope"},
+        {"std": "ISO 10218-2:2025", "clause": "1", "title": "Scope", "status": "scope"}
+      ],
+      "bridge": [],
+      "security": [],
+      "relation": null,
+      "evidence": "analytical-inference",
+      "confidence": "moderate",
+      "gapKind": "not-addressed",
+      "roles": ["product-supplier", "system-integrator", "asset-owner"],
+      "basis": "Two facts underpin this, one primary and one attributed. Primary: the scope exclusions of both parts, read directly. Attributed: a working-group expert writing for KAN records that the drafts deliberately do not support requirements concerning self-developing AI in safety functions. The broader claim, that no type-C standard anywhere covers this band, is ours and rests on not having found one, which is the weakest kind of evidence there is. It is recorded at moderate confidence for that reason and should be read as an invitation to falsify.",
+      "citation": "ISO 10218-1:2025 and ISO 10218-2:2025 clause 1 Scope, official ISO previews. KAN, KANBrief 2/2023.",
+      "sources": [
+        "https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf",
+        "https://www.kan.de/en/publications/kanbrief/2023/2-23/revision-of-en-iso-10218-safety-requirements-for-industrial-robots/"
+      ]
+    }
+  ],
+
+  "contested": {
+    "claim": "Safety-related parts of a robot control system map to IEC 62443 Security Level 2.",
+    "status": "Not confirmed in any primary source. Do not repeat it as a finding.",
+    "evidence": "secondary-literature",
+    "confidence": "low",
+    "quote": "Security Level 2 to IEC 62443 is generally assumed adequate for parts of the control system that may affect safety (start, stop, change of safety settings, etc.), Security Level 1 for other parts.",
+    "attribution": "Otto Goernemann, Expert for machine safety, standards and guidelines, SICK AG Waldkirch, writing in KANBrief 2/2023 for KAN, the German Commission for Occupational Health and Safety and Standardization.",
+    "source": "https://www.kan.de/en/publications/kanbrief/2023/2-23/revision-of-en-iso-10218-safety-requirements-for-industrial-robots/",
+    "caveats": [
+      "The wording is generally assumed adequate, not mandated. It is an expert expectation, not a requirement of any standard.",
+      "It is a two-tier statement. Almost every downstream source drops the second half. Security Level 1 for other parts is as much a part of the claim as Security Level 2, and reproducing only the SL2 half misrepresents the source.",
+      "KANBrief 2/2023 describes the final drafts submitted to the HAS Consultant in March 2022 and anticipates publication in 2023. The standards were published in February 2025, roughly two years later. It is an account of a draft, not of the published text.",
+      "The claim states no security level type. It does not say whether a target, a capability or an achieved level is meant, which is the single most common error in public writing about security levels and is the error the vocabulary behind this page exists to prevent.",
+      "An independent clause-by-clause revision guide for ISO 10218-2:2025 states plainly that the standard does not mention SL1, SL2 or SL3. The only other traceable origin for the SL2 claim is an AI-generated news aggregator with no clause citation, which is excluded here.",
+      "A separate and better-sourced claim exists and should not be conflated with this one: the ISA Security Compliance Institute argues that Security Level 2 is a sensible minimum capability level for industrial control system components generally, not for robot safety components specifically."
+    ]
+  },
+
+  "unconfirmed": [
+    {"item": "The SL2 mapping for robot safety components", "why": "Traced to one working-group expert describing a 2022 draft, plus an AI-generated aggregator with no citation. Carried on this page at low confidence and quarantined in its own section, never as a row finding."},
+    {"item": "Which edition of IEC 63074 the ISO 10218:2025 bibliography cites", "why": "Sources conflict between IEC TR 63074:2019, the superseded Technical Report, and IEC TS 63074:2023. The bibliography sits outside the free preview. Given the drafting timeline, a stale TR:2019 citation is entirely plausible."},
+    {"item": "Whether IEC 62443 is named in the body of ISO 10218-1:2025 clause 5.1.16 and ISO 10218-2:2025 clause 5.2.16, or only in the bibliography", "why": "The clause bodies are paywalled. What is established is the negative: neither document appears in either part's normative references."},
+    {"item": "The Class I and Class II numeric thresholds in ISO 10218-1:2025 clause 5.1.17", "why": "One draft-era source gives 10 kg, 50 N and 250 mm/s; another characterises the classes differently. Sources also split on whether the labels are Roman or Arabic numerals. No threshold and no class individual is asserted anywhere in this artefact."},
+    {"item": "The literal requirement identifier format in IEC 62443-2-4:2023 Annex A Table A.1", "why": "The preview stops before Annex A. The table is cited by its identifier only; no requirement format is asserted."},
+    {"item": "The clause number of Complementary protective measures in ISO 10218-2:2025 clause 6", "why": "The preview PDF layout mangled it. Almost certainly 6.4, at moderate confidence, and therefore not used on any row here."},
+    {"item": "The harmonisation status of EN ISO 10218-1:2025 and EN ISO 10218-2:2025 in the Official Journal", "why": "Secondary sources report objections resolved and a transition period requested, tied to the EU Machinery Regulation applying from January 2027. Not verified against the Official Journal itself, and therefore not used."},
+    {"item": "The contents of IEC 62443-3-3:2013 Annex B Table B.1 and IEC 62443-4-2:2019 Annex B Table B.1", "why": "Deliberately not retrieved. Both map requirements to security levels, both are informative, and both are paywalled. The table identifiers are cited; no cell content is, and the vocabulary behind this page provides no property that would invite reproducing them."}
+  ]
+}
+</script>
+
+<script>
+(function () {
+  "use strict";
+
+  var DATA = JSON.parse(document.getElementById("rssc-data").textContent);
+
+  /* ---------------- theme ---------------- */
+  var root = document.documentElement;
+  var tbtn = document.getElementById("themeBtn");
+  var modes = ["system", "light", "dark"];
+  var mi = 0;
+  function applyTheme() {
+    var m = modes[mi];
+    if (m === "system") { root.removeAttribute("data-theme"); }
+    else { root.setAttribute("data-theme", m); }
+    tbtn.textContent = "Theme: " + m;
+  }
+  tbtn.addEventListener("click", function () { mi = (mi + 1) % modes.length; applyTheme(); });
+  applyTheme();
+
+  /* ---------------- helpers ---------------- */
+  function el(tag, cls, txt) {
+    var n = document.createElement(tag);
+    if (cls) { n.className = cls; }
+    if (txt !== undefined && txt !== null) { n.textContent = txt; }
+    return n;
+  }
+  function evLabel(e) { return e.replace(/-/g, " "); }
+  function frOf(id) {
+    var m = /^(?:SR|CR|EDR|HDR|NDR|SAR)\s+(\d)\./.exec(id || "");
+    return m ? ("FR " + m[1]) : null;
+  }
+  var EV_ORDER = ["normative-reference", "informative-reference", "published-preview",
+                  "published-summary", "secondary-literature", "analytical-inference"];
+  var CF_ORDER = ["high", "moderate", "low"];
+  var GK_LABEL = {
+    "excluded-by-scope": "gap: excluded by scope",
+    "not-addressed": "gap: not addressed",
+    "informative-only": "gap: informative only"
+  };
+
+  /* ---------------- chain audit ---------------- */
+  (function renderChain() {
+    var host = document.getElementById("chainList");
+    DATA.chain.forEach(function (h) {
+      var d = el("div", "hop k-" + h.kind);
+      var a = el("div");
+      a.appendChild(el("div", "hop-from", h.from));
+      a.appendChild(el("div", "hop-note", "points at " + h.to));
+      var b = el("div", "badges");
+      b.style.margin = "0";
+      b.appendChild(el("span", "badge ev-" + h.evidence, evLabel(h.evidence)));
+      b.appendChild(el("span", "badge cf-" + h.confidence, "confidence: " + h.confidence));
+      d.appendChild(a);
+      d.appendChild(b);
+      d.appendChild(el("div", "hop-note", h.note));
+      host.appendChild(d);
+    });
+
+    var norm = 0, info = 0, struct = 0;
+    DATA.chain.forEach(function (h) {
+      if (h.kind === "normative") { norm++; }
+      else if (h.kind === "informative") { info++; }
+      else { struct++; }
+    });
+    var t = document.getElementById("chainTally");
+    t.innerHTML = "";
+    t.appendChild(document.createTextNode("Counted from the reference lists above: "));
+    var b1 = el("b", null, String(norm)); t.appendChild(b1);
+    t.appendChild(document.createTextNode(" normative hops, all of them on the functional safety leg. "));
+    var b2 = el("b", null, String(info)); t.appendChild(b2);
+    t.appendChild(document.createTextNode(" informative hops, all of them on the security leg. "));
+    var b3 = el("b", null, String(struct)); t.appendChild(b3);
+    t.appendChild(document.createTextNode(" structural adoption, which is the only load-bearing bridge and is not a citation. "));
+    var b4 = el("b", null, "0");
+    t.appendChild(b4);
+    t.appendChild(document.createTextNode(" normative hops from a robot safety standard to a security standard. That is the finding, and any reader with the two free previews can falsify it in ten minutes."));
+  })();
+
+  /* ---------------- band selector ---------------- */
+  var current = "A";
+  var bandHost = document.getElementById("bandBtns");
+  var blurb = document.getElementById("bandBlurb");
+
+  function bandCount(id) {
+    return DATA.rows.filter(function (r) { return r.bands.indexOf(id) !== -1; }).length;
+  }
+
+  DATA.bands.forEach(function (b) {
+    var btn = el("button", "band-btn");
+    btn.type = "button";
+    btn.setAttribute("aria-pressed", b.id === current ? "true" : "false");
+    btn.dataset.band = b.id;
+    btn.appendChild(el("span", "bl", "Band " + b.id));
+    btn.appendChild(el("span", "bn", b.label.replace(/^Band [ABC]\.\s*/, "")));
+    btn.appendChild(el("span", "bc", bandCount(b.id) + " rows"));
+    btn.addEventListener("click", function () { current = b.id; syncBands(); render(); });
+    bandHost.appendChild(btn);
+  });
+  var allBtn = el("button", "band-btn");
+  allBtn.type = "button";
+  allBtn.dataset.band = "*";
+  allBtn.setAttribute("aria-pressed", "false");
+  allBtn.appendChild(el("span", "bl", "All bands"));
+  allBtn.appendChild(el("span", "bn", "Every row on one page"));
+  allBtn.appendChild(el("span", "bc", DATA.rows.length + " rows"));
+  allBtn.addEventListener("click", function () { current = "*"; syncBands(); render(); });
+  bandHost.appendChild(allBtn);
+
+  function syncBands() {
+    Array.prototype.forEach.call(bandHost.children, function (n) {
+      n.setAttribute("aria-pressed", n.dataset.band === current ? "true" : "false");
+    });
+    blurb.innerHTML = "";
+    if (current === "*") {
+      blurb.appendChild(el("p", null,
+        "All rows, every band. The gradient is an analytical device of this project and is not a classification issued by any standards body. It sorts robotic systems by how much of the safety envelope is computed at run time rather than fixed at design time, because that is what determines whether a machinery type-C standard can reach the system at all."));
+      blurb.appendChild(el("p", "scope",
+        "These bands are not the SAE J3016 driving-automation levels, and no mapping to them is asserted. They are also not the ISO 10218:2025 robot classes, which are a functional safety classification of the robot's own force and motion capability, not of its autonomy."));
+      return;
+    }
+    var b = DATA.bands.filter(function (x) { return x.id === current; })[0];
+    blurb.appendChild(el("h3", null, b.label));
+    blurb.appendChild(el("p", null, b.definition));
+    blurb.appendChild(el("p", "scope", b.scope));
+  }
+
+  /* ---------------- filters ---------------- */
+  var fEv = document.getElementById("fEvidence");
+  var fCf = document.getElementById("fConfidence");
+  var fGa = document.getElementById("fGaps");
+  var fIn = document.getElementById("fInfer");
+  var fTx = document.getElementById("fText");
+  [fEv, fCf, fGa, fIn].forEach(function (n) { n.addEventListener("change", render); });
+  fTx.addEventListener("input", render);
+
+  function rowText(r) {
+    var parts = [r.id, r.exposure, r.consequence, r.basis, r.citation, r.gapKind || "",
+                 r.evidence, r.confidence, r.relation || ""];
+    ["safety", "bridge", "security"].forEach(function (k) {
+      (r[k] || []).forEach(function (c) {
+        parts.push(c.std, c.clause || c.id || "", c.title || "");
+      });
+    });
+    return parts.join(" ").toLowerCase();
+  }
+
+  function visibleRows() {
+    var q = fTx.value.trim().toLowerCase();
+    return DATA.rows.filter(function (r) {
+      if (current !== "*" && r.bands.indexOf(current) === -1) { return false; }
+      if (fEv.value && r.evidence !== fEv.value) { return false; }
+      if (fCf.value && r.confidence !== fCf.value) { return false; }
+      if (fGa.checked && !r.gapKind) { return false; }
+      if (fIn.checked && r.evidence !== "analytical-inference") { return false; }
+      if (q && rowText(r).indexOf(q) === -1) { return false; }
+      return true;
+    });
+  }
+
+  /* ---------------- row rendering ---------------- */
+  function legBlock(title, items, kind) {
+    var d = el("div", "leg");
+    d.appendChild(el("h4", null, title));
+    if (!items || items.length === 0) {
+      d.className = "leg empty";
+      d.appendChild(el("p", "none",
+        kind === "safety" ? "No safety clause reaches this."
+        : kind === "bridge" ? "No bridge clause."
+        : "No security requirement offered."));
+      return d;
+    }
+    items.forEach(function (c) {
+      var chip = el("div", "chip");
+      var idline = el("div");
+      idline.appendChild(el("span", "cid", c.clause ? ("Clause " + c.clause) : c.id));
+      if (c.status) {
+        var s = el("span", "cstat s-" + c.status, c.status);
+        idline.appendChild(s);
+      }
+      var fr = frOf(c.id);
+      if (fr) { idline.appendChild(el("span", "cstat s-fr", fr)); }
+      chip.appendChild(idline);
+      chip.appendChild(el("span", "cstd", c.std));
+      if (c.title) { chip.appendChild(el("span", "ctitle", c.title)); }
+      d.appendChild(chip);
+    });
+    return d;
+  }
+
+  function renderRow(r) {
+    var cls = "row";
+    if (r.evidence === "analytical-inference") { cls += " is-inference"; }
+    if (r.evidence === "normative-reference" || r.evidence === "published-preview") { cls += " is-cited"; }
+    if (r.confidence === "low") { cls += " is-low"; }
+    var d = el("div", cls);
+
+    var head = el("div", "row-head");
+    head.appendChild(el("span", "row-id", r.id + "  bands " + r.bands.join(", ")));
+    head.appendChild(el("h3", "row-title", r.exposure));
+    d.appendChild(head);
+
+    if (r.consequence) { d.appendChild(el("p", "row-conseq", r.consequence)); }
+
+    var bg = el("div", "badges");
+    bg.appendChild(el("span", "badge ev-" + r.evidence, "evidence: " + evLabel(r.evidence)));
+    bg.appendChild(el("span", "badge cf-" + r.confidence, "confidence: " + r.confidence));
+    if (r.gapKind) { bg.appendChild(el("span", "badge gk", GK_LABEL[r.gapKind] || r.gapKind)); }
+    if (r.relation) { bg.appendChild(el("span", "badge rel", r.relation)); }
+    (r.roles || []).forEach(function (ro) { bg.appendChild(el("span", "badge role", ro)); });
+    d.appendChild(bg);
+
+    var grid = el("div", "leg-grid");
+    grid.appendChild(legBlock("Safety clause", r.safety, "safety"));
+    grid.appendChild(legBlock("Bridge clause", r.bridge, "bridge"));
+    grid.appendChild(legBlock("Security requirement", r.security, "security"));
+    d.appendChild(grid);
+
+    var det = el("details", "evid");
+    det.appendChild(el("summary", null, "Basis, citation and sources"));
+    var body = el("div", "evid-body");
+    var dl = el("dl");
+    dl.appendChild(el("dt", null, "Basis, and what would falsify it"));
+    dl.appendChild(el("dd", null, r.basis));
+    dl.appendChild(el("dt", null, "Citation"));
+    dl.appendChild(el("dd", null, r.citation));
+    if (r.sources && r.sources.length) {
+      dl.appendChild(el("dt", null, "Sources consulted (links, not loaded by this page)"));
+      var dd = el("dd");
+      var ul = el("ul");
+      r.sources.forEach(function (u) {
+        var li = el("li");
+        var a = el("a", null, u);
+        a.href = u; a.target = "_blank"; a.rel = "noopener noreferrer";
+        li.appendChild(a);
+        ul.appendChild(li);
+      });
+      dd.appendChild(ul);
+      dl.appendChild(dd);
+    }
+    body.appendChild(dl);
+    det.appendChild(body);
+    d.appendChild(det);
+
+    return d;
+  }
+
+  /* ---------------- coverage ---------------- */
+  function tallyCard(title, pairs, total, footnote) {
+    var c = el("div", "cov");
+    c.appendChild(el("h3", null, title));
+    var sc = el("div", "scroller");
+    var t = el("table", "tot");
+    pairs.forEach(function (p) {
+      var tr = el("tr");
+      var th = el("th", null, p[0]);
+      var td = el("td", "n", String(p[1]));
+      tr.appendChild(th); tr.appendChild(td);
+      t.appendChild(tr);
+      if (total > 0) {
+        var tr2 = el("tr");
+        var td2 = el("td");
+        td2.colSpan = 2;
+        td2.style.borderBottom = "0";
+        td2.style.padding = "0 0 6px";
+        var bar = el("div", "bar");
+        var i = el("i");
+        i.style.width = Math.round((p[1] / total) * 100) + "%";
+        bar.appendChild(i);
+        td2.appendChild(bar);
+        tr2.appendChild(td2);
+        t.appendChild(tr2);
+      }
+    });
+    sc.appendChild(t);
+    c.appendChild(sc);
+    if (footnote) {
+      var f = el("p", null, footnote);
+      f.style.fontSize = "0.8rem";
+      f.style.color = "var(--ink-faint)";
+      f.style.margin = "10px 0 0";
+      c.appendChild(f);
+    }
+    return c;
+  }
+
+  function renderCoverage(rows) {
+    var host = document.getElementById("covGrid");
+    host.innerHTML = "";
+    var n = rows.length;
+
+    var mapped = rows.filter(function (r) { return !r.gapKind; }).length;
+    var gaps = n - mapped;
+    var noSafety = rows.filter(function (r) { return !r.safety || r.safety.length === 0; }).length;
+    var noSecurity = rows.filter(function (r) { return !r.security || r.security.length === 0; }).length;
+    var withBridge = rows.filter(function (r) { return r.bridge && r.bridge.length > 0; }).length;
+
+    host.appendChild(tallyCard("Rows in view", [
+      ["Total rows", n],
+      ["Mapped, no gap recorded", mapped],
+      ["Recorded as a gap", gaps],
+      ["No safety clause reaches it", noSafety],
+      ["No security requirement offered", noSecurity],
+      ["Reached through the IEC TS 63074 bridge", withBridge]
+    ], n, "A row with no safety clause is not a hole in this crosswalk. It is a measured statement that the machinery canon does not reach that exposure."));
+
+    var byBand = DATA.bands.map(function (b) {
+      return ["Band " + b.id, DATA.rows.filter(function (r) { return r.bands.indexOf(b.id) !== -1; }).length];
+    });
+    var gapByBand = DATA.bands.map(function (b) {
+      return ["Band " + b.id + " gaps", DATA.rows.filter(function (r) {
+        return r.bands.indexOf(b.id) !== -1 && r.gapKind;
+      }).length];
+    });
+    var safetyByBand = DATA.bands.map(function (b) {
+      return ["Band " + b.id + ", rows with a safety clause", DATA.rows.filter(function (r) {
+        return r.bands.indexOf(b.id) !== -1 && r.safety && r.safety.length > 0;
+      }).length];
+    });
+    host.appendChild(tallyCard("Whole crosswalk, by band", byBand.concat(gapByBand).concat(safetyByBand),
+      DATA.rows.length,
+      "Counted across every row, not only the ones in view. Coverage falls and gaps rise as the band rises. That is the gradient doing its job."));
+
+    var evPairs = EV_ORDER.map(function (e) {
+      return [evLabel(e), rows.filter(function (r) { return r.evidence === e; }).length];
+    });
+    host.appendChild(tallyCard("Evidence type, rows in view", evPairs, n,
+      "Ordered strongest to weakest. A crosswalk whose rows are mostly analytical inference is a crosswalk of opinions, and saying so is more useful than hiding it."));
+
+    var cfPairs = CF_ORDER.map(function (c) {
+      return [c, rows.filter(function (r) { return r.confidence === c; }).length];
+    });
+    host.appendChild(tallyCard("Confidence, rows in view", cfPairs, n,
+      "Confidence grades the evidence trail, not conviction. Anything at low confidence is flagged in prose as well as in the data and is never presented as a finding."));
+
+    var gkPairs = Object.keys(GK_LABEL).map(function (k) {
+      return [GK_LABEL[k], rows.filter(function (r) { return r.gapKind === k; }).length];
+    });
+    host.appendChild(tallyCard("Kind of gap, rows in view", gkPairs, n,
+      "The three are not interchangeable. An explicit scope exclusion is a committee decision recorded in a clause published free. Silence is an absence and is weaker. Informative-only coverage is coverage a reader may mistake for an obligation."));
+
+    /* unmapped list */
+    var ul = document.getElementById("unmapped");
+    ul.innerHTML = "";
+    var unmapped = DATA.rows.filter(function (r) {
+      return (!r.safety || r.safety.length === 0) || r.gapKind;
+    });
+    unmapped.forEach(function (r) {
+      var li = el("li");
+      var b = el("b", null, r.id + ". " + r.exposure);
+      li.appendChild(b);
+      li.appendChild(document.createTextNode(" "));
+      var reason = r.gapKind ? (GK_LABEL[r.gapKind] + ". ") : "No safety clause reaches it. ";
+      li.appendChild(document.createTextNode(reason + r.basis));
+      ul.appendChild(li);
+    });
+    if (unmapped.length === 0) {
+      ul.appendChild(el("li", null, "Nothing unmapped in the current data set."));
+    }
+  }
+
+  /* ---------------- contested claim ---------------- */
+  (function renderContested() {
+    var c = DATA.contested;
+    var box = document.getElementById("contestedBox");
+    box.appendChild(el("h3", null, c.claim));
+    var bg = el("div", "badges");
+    bg.appendChild(el("span", "badge ev-" + c.evidence, "evidence: " + evLabel(c.evidence)));
+    bg.appendChild(el("span", "badge cf-" + c.confidence, "confidence: " + c.confidence));
+    box.appendChild(bg);
+    box.appendChild(el("p", null, c.status +
+      " It is kept out of the rows above on purpose, so that no count on this page rests on it."));
+    var bq = el("blockquote");
+    bq.appendChild(el("p", null, c.quote));
+    var cite = el("p", null, c.attribution);
+    cite.style.fontSize = "0.82rem";
+    cite.style.color = "var(--ink-mute)";
+    cite.style.margin = "8px 0 0";
+    bq.appendChild(cite);
+    box.appendChild(bq);
+    var ol = el("ol");
+    c.caveats.forEach(function (x) { ol.appendChild(el("li", null, x)); });
+    box.appendChild(ol);
+    var p = el("p");
+    p.style.margin = "12px 0 0";
+    p.style.fontSize = "0.82rem";
+    var a = el("a", "mono", c.source);
+    a.href = c.source; a.target = "_blank"; a.rel = "noopener noreferrer";
+    p.appendChild(document.createTextNode("Source: "));
+    p.appendChild(a);
+    box.appendChild(p);
+  })();
+
+  /* ---------------- legend ---------------- */
+  (function renderLegend() {
+    var host = document.getElementById("legendGrid");
+    var defs = [
+      ["normative-reference", "The link is carried by requirement text or by an entry in the standard's own list of normative references, so conformity with the citing standard requires it. Normative-reference lists are published free in every preview, so this is checkable at zero cost."],
+      ["informative-reference", "The link is real but is carried by a bibliography entry, a NOTE or an informative annex, so it is guidance and not an obligation. A chain of documents can be entirely real and entirely informative."],
+      ["published-preview", "Read from the free preview the issuing body or its distributor publishes: cover page, contents, foreword, introduction, scope and normative references. Primary evidence about a document's structure, obtained without buying it. It is not evidence for what a clause requires."],
+      ["published-summary", "A public, non-normative summary published by the issuing body, a national committee, a certification body or a supplier. Reliable about intent and structure, not authoritative about wording."],
+      ["secondary-literature", "Independent commentary: papers, trade press, consultancy explainers, vendor blogs. Useful, frequently wrong about clause numbers, corroborated across independent sources before it is relied on."],
+      ["analytical-inference", "Our own reasoning. No standards body asserts it. Rows carrying this badge have a dashed edge and say so above the title. A reader who disagrees can discard the inference without discarding the cited facts underneath it."]
+    ];
+    defs.forEach(function (d) {
+      var c = el("div", "legend-item");
+      c.appendChild(el("span", "badge ev-" + d[0], evLabel(d[0])));
+      c.appendChild(el("p", null, d[1]));
+      c.lastChild.style.margin = "0";
+      host.appendChild(c);
+    });
+    var cf = [
+      ["high", "Established from a primary published source read directly: a standard's free preview front matter, an issuing body's catalogue entry or guidance page, or the official text of a regulation."],
+      ["moderate", "Supported by more than one independent secondary source in agreement, or by a single clearly authoritative secondary source, but not read in a primary document."],
+      ["low", "Resting on a single secondary source, on sources that contradict each other, or on material read only through a search index. Flagged in prose as well as in the data, and never presented as a finding."]
+    ];
+    cf.forEach(function (d) {
+      var c = el("div", "legend-item");
+      c.appendChild(el("span", "badge cf-" + d[0], "confidence: " + d[0]));
+      c.appendChild(el("p", null, d[1]));
+      c.lastChild.style.margin = "0";
+      host.appendChild(c);
+    });
+  })();
+
+  /* ---------------- unconfirmed ---------------- */
+  (function renderUnconfirmed() {
+    var ul = document.getElementById("unconfirmed");
+    DATA.unconfirmed.forEach(function (u) {
+      var li = el("li");
+      li.appendChild(el("b", null, u.item + ". "));
+      li.appendChild(document.createTextNode(u.why));
+      ul.appendChild(li);
+    });
+  })();
+
+  /* ---------------- main render ---------------- */
+  function render() {
+    var rows = visibleRows();
+    var host = document.getElementById("rowList");
+    host.innerHTML = "";
+    if (rows.length === 0) {
+      host.appendChild(el("div", "no-rows", "No rows match these filters. An empty result here is a filter artefact, not a finding about the standards."));
+    } else {
+      rows.forEach(function (r) { host.appendChild(renderRow(r)); });
+    }
+    document.getElementById("countLive").textContent =
+      rows.length + " of " + DATA.rows.length + " rows";
+    renderCoverage(rows);
+  }
+
+  syncBands();
+  render();
+})();
+</script>
+
+</body>
+</html>

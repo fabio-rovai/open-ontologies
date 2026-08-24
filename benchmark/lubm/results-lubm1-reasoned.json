@@ -1,0 +1,96 @@
+{
+  "dataset": "data1",
+  "files": 15,
+  "triples": 100866,
+  "load_seconds": 0.16,
+  "reasoned": true,
+  "reason_seconds": 0.21,
+  "inferred_triples": 37942,
+  "runs_per_query": 1,
+  "queries": [
+    {
+      "query": "Q1",
+      "results": 4,
+      "ms": 198.3,
+      "needs_inference": false
+    },
+    {
+      "query": "Q2",
+      "results": 0,
+      "ms": 207.8,
+      "needs_inference": true
+    },
+    {
+      "query": "Q3",
+      "results": 6,
+      "ms": 186.2,
+      "needs_inference": false
+    },
+    {
+      "query": "Q4",
+      "results": 34,
+      "ms": 188.0,
+      "needs_inference": true
+    },
+    {
+      "query": "Q5",
+      "results": 719,
+      "ms": 195.6,
+      "needs_inference": true
+    },
+    {
+      "query": "Q6",
+      "results": 5916,
+      "ms": 197.8,
+      "needs_inference": true
+    },
+    {
+      "query": "Q7",
+      "results": 59,
+      "ms": 187.9,
+      "needs_inference": true
+    },
+    {
+      "query": "Q8",
+      "results": 5916,
+      "ms": 245.5,
+      "needs_inference": true
+    },
+    {
+      "query": "Q9",
+      "results": 103,
+      "ms": 210.3,
+      "needs_inference": true
+    },
+    {
+      "query": "Q10",
+      "results": 0,
+      "ms": 198.5,
+      "needs_inference": true
+    },
+    {
+      "query": "Q11",
+      "results": 224,
+      "ms": 194.2,
+      "needs_inference": true
+    },
+    {
+      "query": "Q12",
+      "results": 0,
+      "ms": 195.0,
+      "needs_inference": true
+    },
+    {
+      "query": "Q13",
+      "results": 1,
+      "ms": 194.8,
+      "needs_inference": true
+    },
+    {
+      "query": "Q14",
+      "results": 5916,
+      "ms": 197.9,
+      "needs_inference": false
+    }
+  ]
+}
