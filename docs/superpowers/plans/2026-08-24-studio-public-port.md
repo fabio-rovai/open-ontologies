@@ -637,11 +637,11 @@ def _graph(pairs):
 
 
 def test_attribute_class_is_removed_when_a_partition_exists():
-    g = _graph([(EX.AdherentCellLine, EX.CellLine), (EX.SuspensionCellLine, EX.CellLine)])
-    g.add((EX.CellLineType, RDF.type, OWL.Class))
+    g = _graph([(EX.PublishedDataset, EX.Dataset), (EX.DraftDataset, EX.Dataset)])
+    g.add((EX.DatasetType, RDF.type, OWL.Class))
     out = reconcile(g)
-    assert (EX.CellLineType, RDF.type, OWL.Class) not in out
-    assert (EX.AdherentCellLine, RDFS.subClassOf, EX.CellLine) in out
+    assert (EX.DatasetType, RDF.type, OWL.Class) not in out
+    assert (EX.PublishedDataset, RDFS.subClassOf, EX.Dataset) in out
 
 
 def test_status_is_spared_because_states_are_attributes():
