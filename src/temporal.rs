@@ -25,20 +25,30 @@
 //! {
 //!   :g1 t:validFrom "2024-01-01"^^xsd:date ;
 //!       t:validTo   "2026-05-01"^^xsd:date ;
-//!       t:recordedAt "2024-01-05"^^xsd:dateTime .
+//!       t:recordedAt "2024-01-05"^^xsd:dateTime ;
+//!       t:recordedUntil "2026-05-02"^^xsd:dateTime .
 //!   :g2 t:validFrom "2026-05-01"^^xsd:date ;
 //!       t:recordedAt "2026-05-02"^^xsd:dateTime .
 //! }
 //! ```
 //!
 //! An absent `validFrom` means "since always", an absent `validTo` means
-//! "still true", and a graph with no temporal description at all is timeless:
-//! it is in scope for every snapshot, so adding this vocabulary to an
-//! existing store changes nothing until it is used.
+//! "still true", an absent `recordedUntil` means "still believed", and a graph
+//! with no temporal description at all is timeless: it is in scope for every
+//! snapshot, so adding this vocabulary to an existing store changes nothing
+//! until it is used.
 //!
-//! Intervals are half-open, `[validFrom, validTo)`. Two facts that meet at a
-//! boundary do not overlap, which is what makes "adherent until May,
-//! suspension from May" a correction rather than a contradiction.
+//! Intervals are half-open on both axes, `[validFrom, validTo)` and
+//! `[recordedAt, recordedUntil)`. Two facts that meet at a boundary do not
+//! overlap, which is what makes "adherent until May, suspension from May" a
+//! correction rather than a contradiction.
+//!
+//! Closing the recorded interval is what lets `as_of` answer "what did we
+//! believe THEN" instead of "everything we had ever recorded by then". With no
+//! upper bound the transaction axis only narrows forward, so a corrected
+//! assertion keeps turning up in every later snapshot beside the correction
+//! that replaced it, and the audit question this module exists to answer stops
+//! being answerable after the first correction.
 //!
 //! ## Bounded scans
 //!
@@ -64,9 +74,11 @@ pub struct Temporal {
     limits: Limits,
 }
 
-/// Validity ROWS, not graphs. The query is a three-way UNION, so a graph
-/// carrying validFrom, validTo and recordedAt costs three rows: the cap is
-/// reached at roughly 6,700 fully described graphs.
+/// Validity ROWS, not graphs. The query is a four-way UNION, so a graph
+/// carrying validFrom, validTo, recordedAt and recordedUntil costs four rows:
+/// the cap is reached at roughly 5,000 fully described graphs, where a
+/// three-predicate store still reaches it at roughly 6,700. A store that never
+/// writes recordedUntil pays nothing for it — the cap counts rows, not graphs.
 const VALIDITY_SCAN_LIMIT: usize = 20_000;
 /// Distinct named graphs holding assertions.
 const GRAPH_SCAN_LIMIT: usize = 20_000;
@@ -193,6 +205,7 @@ pub struct Validity {
     pub valid_from: Option<String>,
     pub valid_to: Option<String>,
     pub recorded_at: Option<String>,
+    pub recorded_until: Option<String>,
 }
 
 impl Validity {
@@ -202,9 +215,22 @@ impl Validity {
             && self.valid_to.as_deref().is_none_or(|t| instant < t)
     }
 
-    /// Had we recorded it by `instant`.
-    fn recorded_by(&self, instant: &str) -> bool {
-        self.recorded_at.as_deref().is_none_or(|r| r <= instant)
+    /// Was this believed at `instant`, on the half-open recorded interval
+    /// `[recordedAt, recordedUntil)` — and if not, on which side it fell.
+    ///
+    /// This is the two-sided form of what used to be `recorded_by`. Adding the
+    /// closing bound gives the predicate a second way to fail, and the two are
+    /// opposite facts about the assertion: one has not been recorded yet, the
+    /// other is no longer believed. A bool would flatten them back together at
+    /// the only place that has to tell them apart, so it returns the reason.
+    fn not_recorded_at(&self, instant: &str) -> Option<&'static str> {
+        if self.recorded_at.as_deref().is_some_and(|r| instant < r) {
+            return Some("not yet recorded then");
+        }
+        if self.recorded_until.as_deref().is_some_and(|u| u <= instant) {
+            return Some("no longer recorded then");
+        }
+        None
     }
 
     /// Do two validity periods share any instant. Half-open, so touching
@@ -290,9 +316,10 @@ impl Temporal {
     /// found them was complete.
     fn validities(&self) -> anyhow::Result<(BTreeMap<String, Validity>, Capped)> {
         let query = format!(
-            "SELECT ?g ?from ?to ?rec WHERE {{ \
+            "SELECT ?g ?from ?to ?rec ?until WHERE {{ \
              {{ ?g <{NS}validFrom> ?from }} UNION {{ ?g <{NS}validTo> ?to }} \
-             UNION {{ ?g <{NS}recordedAt> ?rec }} }}"
+             UNION {{ ?g <{NS}recordedAt> ?rec }} \
+             UNION {{ ?g <{NS}recordedUntil> ?until }} }}"
         );
         let scan = self.rows(&query, self.limits.validity_scan)?;
         let mut out: BTreeMap<String, Validity> = BTreeMap::new();
@@ -305,6 +332,7 @@ impl Temporal {
                 valid_from: None,
                 valid_to: None,
                 recorded_at: None,
+                recorded_until: None,
             });
             if let Some(v) = row.get("from").and_then(|v| v.as_str()) {
                 entry.valid_from = Some(plain(v));
@@ -314,6 +342,9 @@ impl Temporal {
             }
             if let Some(v) = row.get("rec").and_then(|v| v.as_str()) {
                 entry.recorded_at = Some(plain(v));
+            }
+            if let Some(v) = row.get("until").and_then(|v| v.as_str()) {
+                entry.recorded_until = Some(plain(v));
             }
         }
         Ok((out, scan.capped))
@@ -357,15 +388,22 @@ impl Temporal {
                 }
                 Some(v) => {
                     let valid_ok = valid_at.is_none_or(|t| v.valid_at(t));
-                    let recorded_ok = as_of.is_none_or(|t| v.recorded_by(t));
-                    if valid_ok && recorded_ok {
+                    // Which side of the recorded interval `as_of` fell on, not
+                    // merely that it fell outside: "recorded later" and "no
+                    // longer believed" are opposite facts about the assertion.
+                    let recorded_miss = as_of.and_then(|t| v.not_recorded_at(t));
+                    if valid_ok && recorded_miss.is_none() {
                         in_scope.push(serde_json::json!({"graph": g, "valid": v.describe()}));
                         names.push(g.clone());
                     } else {
                         excluded.push(serde_json::json!({
                             "graph": g,
                             "valid": v.describe(),
-                            "reason": if !valid_ok { "not true at that instant" } else { "not yet recorded then" },
+                            "reason": if !valid_ok {
+                                "not true at that instant"
+                            } else {
+                                recorded_miss.unwrap_or("not yet recorded then")
+                            },
                         }));
                     }
                 }
@@ -519,6 +557,7 @@ impl Temporal {
                 valid_from: None,
                 valid_to: None,
                 recorded_at: None,
+                recorded_until: None,
             };
             let va = validities.get(&ga).unwrap_or(&timeless);
             let vb = validities.get(&gb).unwrap_or(&timeless);
@@ -609,6 +648,20 @@ ex:g3 { ex:X ex:p ex:three . }
 }
 "#;
 
+    /// One graph carrying all four predicates. The scan cap is denominated in
+    /// ROWS, so this is what a fully described graph costs.
+    const FULLY_DESCRIBED: &str = r#"
+@prefix ex: <http://example.org/> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+
+ex:g1 { ex:X ex:p ex:one . }
+
+{
+  ex:g1 t:validFrom "2024-01-01" ; t:validTo "2026-01-01" ;
+        t:recordedAt "2024-01-05" ; t:recordedUntil "2026-01-06" .
+}
+"#;
+
     /// A correction: one type up to a boundary, a disjoint one from it.
     /// Half-open, so this is superseded history and not a contradiction.
     const CORRECTION: &str = r#"
@@ -695,6 +748,37 @@ ex:g_after  { ex:X a ex:Suspension . }
             "a full page is not a cut one: {snap}"
         );
         assert!(snap.get("truncated").is_none(), "{snap}");
+    }
+
+    /// The row cost of the fourth predicate, proved rather than documented.
+    /// A fully described graph used to fit in three rows and now needs four,
+    /// which is the whole of what `recordedUntil` does to the cap: 20,000 rows
+    /// covers roughly 5,000 such graphs instead of roughly 6,700. A store that
+    /// never writes the predicate is untouched — nothing here counts graphs.
+    #[test]
+    fn a_fully_described_graph_costs_four_validity_rows() {
+        let cut = Temporal::with_limits(
+            store(FULLY_DESCRIBED),
+            Limits {
+                validity_scan: 3,
+                ..Limits::default()
+            },
+        );
+        let snap = json(cut.snapshot(None, None).unwrap());
+        assert_eq!(
+            snap["complete"], false,
+            "three rows no longer cover one four-predicate graph: {snap}"
+        );
+
+        let whole = Temporal::with_limits(
+            store(FULLY_DESCRIBED),
+            Limits {
+                validity_scan: 4,
+                ..Limits::default()
+            },
+        );
+        let snap = json(whole.snapshot(None, None).unwrap());
+        assert_eq!(snap["complete"], true, "four rows do: {snap}");
     }
 
     /// The case that has to be loud. Every graph in the fixture is described,
