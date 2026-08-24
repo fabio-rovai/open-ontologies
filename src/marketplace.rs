@@ -459,6 +459,100 @@ pub fn parse_community_registry(json: &str) -> Result<(Vec<CommunityEntry>, Vec<
     Ok((packs, shadowed))
 }
 
+// ─── Shared CLI surface ──────────────────────────────────────────────
+//
+// `marketplace list` and `marketplace install` are one user-facing command with
+// two implementations behind it: the local one in `main.rs` and the batch one in
+// `batch.rs` that serves it whenever a daemon is running. The two had drifted —
+// the batch copy consulted only the curated catalogue and never loaded community
+// packs — so the same command answered with a different catalogue depending on
+// whether a daemon happened to be up, and said nothing about the difference.
+// Both now go through the functions below.
+//
+// The MCP tool in `server.rs` deliberately reports a richer shape (urls,
+// maintainer, shadowing warnings) and is left as its own surface.
+
+/// One pack resolved for installation, from either tier.
+pub struct ResolvedPack {
+    pub id: String,
+    pub name: String,
+    pub url: String,
+    pub format: RdfFormat,
+}
+
+/// The catalogue as the CLI reports it: curated entries first, then community
+/// packs, which can never shadow a curated id. The second element is a message
+/// about the community registry when it could not be loaded, which is reported
+/// rather than being allowed to fail the listing.
+pub async fn cli_list(domain: Option<&str>) -> (Vec<serde_json::Value>, Option<String>) {
+    let mut items: Vec<serde_json::Value> = list(domain)
+        .iter()
+        .map(|e| {
+            serde_json::json!({
+                "id": e.id,
+                "name": e.name,
+                "description": e.description,
+                "domain": e.domain,
+                "format": format_name(e.format),
+                "source": "curated",
+            })
+        })
+        .collect();
+
+    let mut community_error = None;
+    match load_community_packs().await {
+        Ok((packs, _shadowed, _source)) => {
+            for p in packs
+                .iter()
+                .filter(|p| domain.is_none_or(|d| p.domain == d))
+            {
+                items.push(serde_json::json!({
+                    "id": p.id,
+                    "name": p.name,
+                    "description": p.description,
+                    "domain": p.domain,
+                    "format": p.format,
+                    "source": "community",
+                }));
+            }
+        }
+        Err(e) => community_error = Some(e),
+    }
+    (items, community_error)
+}
+
+/// Resolve an install id across both tiers, curated first. The error is the
+/// message to show the user.
+pub async fn cli_resolve(id: &str) -> Result<ResolvedPack, String> {
+    if let Some(e) = find(id) {
+        return Ok(ResolvedPack {
+            id: e.id.to_string(),
+            name: e.name.to_string(),
+            url: e.url.to_string(),
+            format: e.format,
+        });
+    }
+    let community = match load_community_packs().await {
+        Ok((packs, _, _)) => packs.into_iter().find(|p| p.id == id),
+        Err(_) => None,
+    };
+    match community.and_then(|p| {
+        parse_format(&p.format).map(|f| ResolvedPack {
+            id: p.id,
+            name: p.name,
+            url: p.url,
+            format: f,
+        })
+    }) {
+        Some(r) => Ok(r),
+        None => Err(format!(
+            "Unknown ontology ID: '{}'. Run 'marketplace list' to see curated and community IDs.",
+            id
+        )),
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -2809,6 +2809,7 @@ dependencies = [
  "dirs",
  "duckdb",
  "instant-distance",
+ "libc",
  "oxigraph",
  "parquet",
  "quick-xml",

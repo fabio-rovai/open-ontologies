@@ -152,6 +152,10 @@ data_dir = "~/.open-ontologies"
 # # file = "/var/log/open-ontologies.log"
 "#;
 
+/// The default for `--data-dir`, named so the server arms can tell an explicit
+/// `--data-dir` from an unset one and give the flag precedence over config.
+const DEFAULT_DATA_DIR: &str = "~/.open-ontologies";
+
 #[derive(Parser)]
 #[command(
     name = "open-ontologies",
@@ -161,13 +165,27 @@ struct Cli {
     #[command(subcommand)]
     command: Commands,
 
-    /// Pretty-print JSON output
+    /// Output results as JSON. This is the default; the flag is accepted so
+    /// that scripts can state the format they depend on rather than assume it.
+    #[arg(long, global = true)]
+    json: bool,
+
+    /// Render results as human-readable text instead of JSON. Overridden by
+    /// --json or --pretty when both are given.
+    #[arg(long, global = true)]
+    human: bool,
+
+    /// Pretty-print JSON output (implies --json)
     #[arg(long, global = true)]
     pretty: bool,
 
     /// Data directory (default: ~/.open-ontologies)
-    #[arg(long, global = true, default_value = "~/.open-ontologies")]
+    #[arg(long, global = true, default_value = DEFAULT_DATA_DIR)]
     data_dir: String,
+
+    /// Force local execution — ignore a running daemon even if one is detected
+    #[arg(long, global = true)]
+    no_connect: bool,
 }
 
 #[derive(Subcommand)]
@@ -300,6 +318,13 @@ enum Commands {
         /// Stop on first error
         #[arg(long)]
         bail: bool,
+    },
+
+    // ─── Daemon ───────────────────────────────────────────────────
+    /// Manage background daemon (persistent in-memory store via serve-http)
+    Daemon {
+        #[command(subcommand)]
+        action: DaemonAction,
     },
 
     // ─── Core ontology ────────────────────────────────────────────
@@ -559,6 +584,195 @@ enum Commands {
     },
 }
 
+impl Commands {
+    /// Serialize a proxy-able command into the structured form of `/api/batch`:
+    /// `{"command": name, "args": [..]}`, where every argument is its own array
+    /// element and reaches the daemon exactly as clap parsed it.
+    ///
+    /// The previous shape of this was a shell-ish line that the daemon
+    /// re-tokenized, and the round trip lost things. `parse_lines` splits on
+    /// newlines before it looks at quotes, so a multi-line SPARQL query — the
+    /// normal kind — arrived torn across lines and failed as an unterminated
+    /// quote, while the identical command run locally succeeded. The
+    /// double-quote fallback in the quoting helper did not escape backslashes,
+    /// so an argument holding both quote styles came out mangled. Neither can
+    /// happen to an array element.
+    ///
+    /// Returns None for commands that must always run locally (server modes,
+    /// daemon management, static file operations), and for any invocation
+    /// carrying a flag the batch handler cannot honour, which is safer than
+    /// proxying it and dropping the flag in silence.
+    fn to_batch_command(&self) -> Option<serde_json::Value> {
+        fn cmd(name: &str, args: Vec<String>) -> Option<serde_json::Value> {
+            Some(serde_json::json!({"command": name, "args": args}))
+        }
+        match self {
+            Commands::Load { path } => cmd("load", vec![absolutize(path)]),
+            Commands::Save { path, format } => cmd(
+                "save",
+                vec![absolutize(path), "--format".into(), format.clone()],
+            ),
+            Commands::Clear => cmd("clear", vec![]),
+            Commands::Stats => cmd("stats", vec![]),
+            Commands::Query { query } => cmd("query", vec![query.clone()]),
+            Commands::Lint { input } => cmd("lint", vec![absolutize(input)]),
+            Commands::Reason { profile } => {
+                cmd("reason", vec!["--profile".into(), profile.clone()])
+            }
+            Commands::Shacl { shapes } => cmd("shacl", vec![absolutize(shapes)]),
+            Commands::Status => cmd("status", vec![]),
+            Commands::Pull { url, sparql, query } => {
+                let mut a = vec![url.clone()];
+                if *sparql {
+                    a.push("--sparql".into());
+                }
+                if let Some(q) = query {
+                    a.push("--query".into());
+                    a.push(q.clone());
+                }
+                cmd("pull", a)
+            }
+            Commands::Push { endpoint, graph } => {
+                let mut a = vec![endpoint.clone()];
+                if let Some(g) = graph {
+                    a.push("--graph".into());
+                    a.push(g.clone());
+                }
+                cmd("push", a)
+            }
+            Commands::Version { label } => cmd("version", vec![label.clone()]),
+            Commands::History => cmd("history", vec![]),
+            Commands::Rollback { label } => cmd("rollback", vec![label.clone()]),
+            // `--format` has no arm in the batch ingester, so an invocation
+            // carrying it runs locally rather than being proxied without it.
+            Commands::Ingest { path, format, mapping, base_iri } => {
+                if format.is_some() {
+                    return None;
+                }
+                let mut a = vec![absolutize(path)];
+                if let Some(m) = mapping {
+                    a.push("--mapping".into());
+                    a.push(absolutize(m));
+                }
+                if let Some(b) = base_iri {
+                    a.push("--base-iri".into());
+                    a.push(b.clone());
+                }
+                cmd("ingest", a)
+            }
+            Commands::Plan { file } => cmd("plan", vec![absolutize(file)]),
+            Commands::Apply { mode, plan_id } => {
+                let mut a = vec![mode.clone()];
+                if let Some(p) = plan_id {
+                    a.push("--plan-id".into());
+                    a.push(p.clone());
+                }
+                cmd("apply", a)
+            }
+            Commands::Enforce { pack } => cmd("enforce", vec![pack.clone()]),
+            Commands::Monitor => cmd("monitor", vec![]),
+            Commands::MonitorClear => cmd("monitor-clear", vec![]),
+            Commands::Drift { file_a, file_b } => {
+                cmd("drift", vec![absolutize(file_a), absolutize(file_b)])
+            }
+            Commands::Lock { iris, reason } => {
+                let mut a: Vec<String> = iris.clone();
+                if let Some(r) = reason {
+                    a.push("--reason".into());
+                    a.push(r.clone());
+                }
+                cmd("lock", a)
+            }
+            Commands::Marketplace { action, id, domain } => {
+                let mut a = vec![action.clone()];
+                if let Some(i) = id {
+                    a.push("--id".into());
+                    a.push(i.clone());
+                }
+                if let Some(d) = domain {
+                    a.push("--domain".into());
+                    a.push(d.clone());
+                }
+                cmd("marketplace", a)
+            }
+            // Never proxied: server modes, daemon, init, validate, diff, convert,
+            // import-owl, map, extend, align, feedback, lineage, clinical, schema ops.
+            _ => None,
+        }
+    }
+}
+
+/// Make a path argument absolute against the caller's working directory before
+/// it is proxied.
+///
+/// The daemon inherits whatever directory `daemon start` ran in and never learns
+/// the caller's, so a relative path forwarded verbatim resolved against the wrong
+/// place: `cd /data && onto load ./x.ttl` either failed or loaded a different
+/// file, and `save ./out.ttl` wrote somewhere the caller was not looking. Not
+/// `canonicalize`, which requires the path to exist and so cannot be used for an
+/// output path that is about to be created.
+/// Hand `input` to a running daemon, or report that there is none to hand it to.
+///
+/// `Some(exit_code)` means the daemon ran it and the caller should exit with
+/// that code; `None` means run locally. Both proxy sites went through their own
+/// copy of this and the copies had already drifted — one hardcoded `bail` to
+/// false — so there is one copy now, and one place where the decision to proxy
+/// is made.
+async fn proxy_if_daemon(ctx: &ProxyCtx, input: &str, bail: bool) -> anyhow::Result<Option<i32>> {
+    if ctx.no_connect {
+        return Ok(None);
+    }
+    let Some(info) = open_ontologies::daemon::read_daemon_info(&ctx.data_dir) else {
+        return Ok(None);
+    };
+    if !open_ontologies::daemon::is_daemon_alive(info.pid) {
+        // Stale daemon.json — clean up silently and fall through to local.
+        open_ontologies::daemon::remove_daemon_info(&ctx.data_dir);
+        return Ok(None);
+    }
+    open_ontologies::connect::proxy_batch(&info, input, bail, json_mode(), ctx.pretty).await
+}
+
+/// The parts of `Cli` the proxy needs, taken before `cli.command` is matched by
+/// value and its fields move out.
+struct ProxyCtx {
+    no_connect: bool,
+    data_dir: String,
+    pretty: bool,
+}
+
+fn absolutize(path: &str) -> String {
+    let expanded = expand_tilde(path);
+    let p = std::path::Path::new(&expanded);
+    if p.is_absolute() {
+        return expanded;
+    }
+    match std::env::current_dir() {
+        Ok(cwd) => cwd.join(p).to_string_lossy().into_owned(),
+        Err(_) => expanded,
+    }
+}
+
+#[derive(Subcommand)]
+enum DaemonAction {
+    /// Start the daemon (serve-http in background, persistent in-memory store)
+    Start {
+        /// Host to bind to (default: 127.0.0.1)
+        #[arg(long, default_value = "127.0.0.1")]
+        host: String,
+        /// Port to bind to (default: 8080)
+        #[arg(long, default_value = "8080")]
+        port: u16,
+        /// Optional bearer token for authentication
+        #[arg(long, env = "OPEN_ONTOLOGIES_TOKEN")]
+        token: Option<String>,
+    },
+    /// Stop the running daemon
+    Stop,
+    /// Show daemon status (pid, url, alive/dead)
+    Status,
+}
+
 fn setup(data_dir: &str) -> anyhow::Result<(StateDb, Arc<GraphStore>)> {
     let data_dir = expand_tilde(data_dir);
     let data_path = std::path::Path::new(&data_dir);
@@ -577,6 +791,16 @@ fn setup(data_dir: &str) -> anyhow::Result<(StateDb, Arc<GraphStore>)> {
     Ok((db, graph))
 }
 
+/// False only when --human is passed without --json or --pretty; checked by
+/// output_json/output_result.
+static JSON_MODE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+
+/// The resolved output format. Defaults to JSON on the paths that read it
+/// before `async_main` has set it, so no caller can fall into human-readable
+/// output by accident.
+fn json_mode() -> bool {
+    JSON_MODE.get().copied().unwrap_or(true)
+}
 /// Whether the resolved storage backend keeps the graph in RAM only.
 ///
 /// One-shot CLI subcommands each build their own store, so in this mode nothing
@@ -616,24 +840,36 @@ fn build_main_graph(
 }
 
 fn output_json(value: &serde_json::Value, pretty: bool) {
-    if pretty {
-        println!("{}", serde_json::to_string_pretty(value).unwrap());
+    if json_mode() || pretty {
+        if pretty {
+            println!("{}", serde_json::to_string_pretty(value).unwrap());
+        } else {
+            println!("{}", value);
+        }
     } else {
-        println!("{}", value);
+        println!("{}", open_ontologies::output::render_human(value));
     }
 }
 
 /// Print a JSON string result, with optional pretty-printing.
 /// Handles the common pattern of domain functions returning String results.
 fn output_result(result: &str, pretty: bool) {
-    if pretty {
-        if let Ok(v) = serde_json::from_str::<serde_json::Value>(result) {
-            println!("{}", serde_json::to_string_pretty(&v).unwrap());
+    if json_mode() || pretty {
+        if pretty {
+            if let Ok(v) = serde_json::from_str::<serde_json::Value>(result) {
+                println!("{}", serde_json::to_string_pretty(&v).unwrap());
+            } else {
+                println!("{}", result);
+            }
         } else {
             println!("{}", result);
         }
     } else {
-        println!("{}", result);
+        if let Ok(v) = serde_json::from_str::<serde_json::Value>(result) {
+            println!("{}", open_ontologies::output::render_human(&v));
+        } else {
+            println!("{}", result);
+        }
     }
 }
 
@@ -817,6 +1053,23 @@ fn main() -> anyhow::Result<()> {
 async fn async_main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
+    // Activate JSON mode when --json or --pretty is passed.
+    JSON_MODE.set(cli.json || cli.pretty || !cli.human).ok();
+
+    let proxy_ctx = ProxyCtx {
+        no_connect: cli.no_connect,
+        data_dir: cli.data_dir.clone(),
+        pretty: cli.pretty,
+    };
+
+    // If a daemon is running and this command is proxy-able, route to it.
+    if let Some(batch) = cli.command.to_batch_command() {
+        let payload = serde_json::to_string(&vec![batch])?;
+        if let Some(code) = proxy_if_daemon(&proxy_ctx, &payload, false).await? {
+            std::process::exit(code);
+        }
+    }
+
     match cli.command {
         Commands::Init {
             data_dir,
@@ -945,7 +1198,13 @@ async fn async_main() -> anyhow::Result<()> {
             // prefix, feedback thresholds, repo / imports / webhook).
             open_ontologies::runtime::init_from_config(&cfg);
 
-            let data_dir = expand_tilde(&cfg.general.data_dir);
+            // Same precedence as the HTTP arm: an explicit --data-dir wins over
+            // config rather than being ignored.
+            let data_dir = if cli.data_dir != DEFAULT_DATA_DIR {
+                expand_tilde(&cli.data_dir)
+            } else {
+                expand_tilde(&cfg.general.data_dir)
+            };
             let data_path = std::path::Path::new(&data_dir);
             let db_path = data_path.join("open-ontologies.db");
 
@@ -1050,7 +1309,17 @@ async fn async_main() -> anyhow::Result<()> {
             // neither is set.
             let token = token.or_else(|| open_ontologies::config::resolve_http_token(&cfg.http));
 
-            let data_dir = expand_tilde(&cfg.general.data_dir);
+            // `--data-dir` used to be dropped here, so `--data-dir /custom daemon
+            // start` wrote daemon.json into /custom while the daemon it started
+            // served ~/.open-ontologies: proxied and local commands then saw
+            // different stores and nothing said so. Invisible whenever both
+            // resolve to the same directory, which is why it survived testing.
+            // Precedence matches host/port/token above: CLI over config.
+            let data_dir = if cli.data_dir != DEFAULT_DATA_DIR {
+                expand_tilde(&cli.data_dir)
+            } else {
+                expand_tilde(&cfg.general.data_dir)
+            };
             let data_path_owned = std::path::PathBuf::from(&data_dir);
             let db_path_owned = data_path_owned.join("open-ontologies.db");
 
@@ -1174,6 +1443,8 @@ async fn async_main() -> anyhow::Result<()> {
             let sg_load = shared_graph.clone();
             let sg_save = shared_graph.clone();
             let sg_load_turtle = shared_graph.clone();
+            let sg_batch = shared_graph.clone();
+            let db_for_batch = shared_db.clone();
             let api = axum::Router::new()
                 .route("/stats", axum::routing::get(move || {
                     let g = sg_stats.clone();
@@ -1242,6 +1513,26 @@ async fn async_main() -> anyhow::Result<()> {
                                 Err(e) => format!(r#"{{"error":"{}"}}"#, e),
                             }
                         ).unwrap_or_default())
+                    }
+                }))
+                .route("/batch", axum::routing::post(move |req: axum::extract::Request| {
+                    let g = sg_batch.clone();
+                    let db = db_for_batch.clone();
+                    async move {
+                        let bail = req.uri().query()
+                            .map(|q| q.contains("bail=true"))
+                            .unwrap_or(false);
+                        let body = axum::body::to_bytes(req.into_body(), usize::MAX).await
+                            .unwrap_or_default();
+                        let input = String::from_utf8_lossy(&body).to_string();
+                        // The handle opened at startup, not a fresh
+                        // `StateDb::open` per request: this is the hot path the
+                        // daemon exists to make fast, and it was paying a SQLite
+                        // open on every call while the adjacent /lineage route
+                        // already cloned the shared one.
+                        let runner = open_ontologies::batch::BatchRunner::new(db, g, false);
+                        let (results, _) = runner.run_collect(&input, bail).await;
+                        (axum::http::StatusCode::OK, axum::Json(serde_json::json!(results)))
                     }
                 }))
                 .route("/lineage", axum::routing::get(move || {
@@ -1413,7 +1704,6 @@ async fn async_main() -> anyhow::Result<()> {
 
         // ─── Batch ──────────────────────────────────────────────────
         Commands::Batch { input, bail } => {
-            let (db, graph) = setup(&cli.data_dir)?;
             let batch_input = if input == "-" {
                 let mut buf = String::new();
                 std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
@@ -1421,9 +1711,64 @@ async fn async_main() -> anyhow::Result<()> {
             } else {
                 std::fs::read_to_string(&input)?
             };
+            // Route to daemon if running.
+            if let Some(code) = proxy_if_daemon(&proxy_ctx, &batch_input, bail).await? {
+                std::process::exit(code);
+            }
+            let (db, graph) = setup(&cli.data_dir)?;
             let runner = open_ontologies::batch::BatchRunner::new(db, graph, cli.pretty);
             let exit_code = runner.run(&batch_input, bail).await;
             std::process::exit(exit_code);
+        }
+
+        // ─── Daemon ─────────────────────────────────────────────────
+        Commands::Daemon { action } => {
+            match action {
+                DaemonAction::Start { host, port, token } => {
+                    // Check if already running.
+                    if let Some(info) = open_ontologies::daemon::read_daemon_info(&cli.data_dir)
+                        && open_ontologies::daemon::is_daemon_alive(info.pid) {
+                            output_json(&serde_json::json!({
+                                "error": format!("daemon already running (pid {})", info.pid),
+                                "url": info.url,
+                            }), cli.pretty);
+                            std::process::exit(1);
+                        }
+                    match open_ontologies::daemon::start_daemon(&cli.data_dir, &host, port, token) {
+                        Ok(info) => output_json(&serde_json::json!({
+                            "ok": true,
+                            "pid": info.pid,
+                            "url": info.url,
+                        }), cli.pretty),
+                        Err(e) => {
+                            output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                            std::process::exit(1);
+                        }
+                    }
+                }
+                DaemonAction::Stop => {
+                    match open_ontologies::daemon::stop_daemon(&cli.data_dir) {
+                        Ok(()) => output_json(&serde_json::json!({"ok": true, "message": "daemon stopped"}), cli.pretty),
+                        Err(e) => {
+                            output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                            std::process::exit(1);
+                        }
+                    }
+                }
+                DaemonAction::Status => {
+                    match open_ontologies::daemon::read_daemon_info(&cli.data_dir) {
+                        None => output_json(&serde_json::json!({"alive": false, "message": "no daemon.json found"}), cli.pretty),
+                        Some(info) => {
+                            let alive = open_ontologies::daemon::is_daemon_alive(info.pid);
+                            output_json(&serde_json::json!({
+                                "alive": alive,
+                                "pid": info.pid,
+                                "url": info.url,
+                            }), cli.pretty);
+                        }
+                    }
+                }
+            }
         }
 
         // ─── Core ontology ─────────────────────────────────────────
@@ -1589,39 +1934,8 @@ async fn async_main() -> anyhow::Result<()> {
             use open_ontologies::marketplace;
             match action.as_str() {
                 "list" => {
-                    let entries = marketplace::list(domain.as_deref());
-                    let mut items: Vec<serde_json::Value> = entries
-                        .iter()
-                        .map(|e| {
-                            serde_json::json!({
-                                "id": e.id,
-                                "name": e.name,
-                                "description": e.description,
-                                "domain": e.domain,
-                                "format": marketplace::format_name(e.format),
-                                "source": "curated",
-                            })
-                        })
-                        .collect();
-                    let mut community_error = None;
-                    match marketplace::load_community_packs().await {
-                        Ok((packs, _shadowed, _source)) => {
-                            for p in packs
-                                .iter()
-                                .filter(|p| domain.as_deref().is_none_or(|d| p.domain == d))
-                            {
-                                items.push(serde_json::json!({
-                                    "id": p.id,
-                                    "name": p.name,
-                                    "description": p.description,
-                                    "domain": p.domain,
-                                    "format": p.format,
-                                    "source": "community",
-                                }));
-                            }
-                        }
-                        Err(e) => community_error = Some(e),
-                    }
+                    let (items, community_error) =
+                        marketplace::cli_list(domain.as_deref()).await;
                     output_json(
                         &serde_json::json!({
                             "count": items.len(),
@@ -1637,29 +1951,15 @@ async fn async_main() -> anyhow::Result<()> {
                         std::process::exit(1);
                     });
                     // Curated first; community packs can never shadow a curated ID.
+                    let pack = match marketplace::cli_resolve(id).await {
+                        Ok(p) => p,
+                        Err(e) => {
+                            eprintln!("{}", e);
+                            std::process::exit(1);
+                        }
+                    };
                     let (entry_id, entry_name, entry_url, entry_format) =
-                        match marketplace::find(id) {
-                            Some(e) => (e.id.to_string(), e.name.to_string(), e.url.to_string(), e.format),
-                            None => {
-                                let community = match marketplace::load_community_packs().await {
-                                    Ok((packs, _, _)) => packs.into_iter().find(|p| p.id == id),
-                                    Err(_) => None,
-                                };
-                                match community.and_then(|p| {
-                                    marketplace::parse_format(&p.format)
-                                        .map(|f| (p.id, p.name, p.url, f))
-                                }) {
-                                    Some(t) => t,
-                                    None => {
-                                        eprintln!(
-                                            "Unknown ontology ID: '{}'. Run 'marketplace list' to see curated and community IDs.",
-                                            id
-                                        );
-                                        std::process::exit(1);
-                                    }
-                                }
-                            }
-                        };
+                        (pack.id, pack.name, pack.url, pack.format);
                     let (_db, graph) = setup(&cli.data_dir)?;
                     let content = GraphStore::fetch_url(&entry_url).await?;
                     match graph.load_content_with_base(&content, entry_format, Some(&entry_url)) {
@@ -2329,4 +2629,170 @@ async fn async_main() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod proxy_serialization_tests {
+    use super::*;
+
+    fn args_of(cmd: &Commands) -> (String, Vec<String>) {
+        let v = cmd.to_batch_command().expect("command is proxy-able");
+        let name = v["command"].as_str().unwrap().to_string();
+        let args = v["args"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|a| a.as_str().unwrap().to_string())
+            .collect();
+        (name, args)
+    }
+
+    #[test]
+    fn a_multi_line_query_stays_one_argument() {
+        // The bug this replaced: the query was rendered into a command line and
+        // the daemon re-tokenized it, but `parse_lines` splits on newlines before
+        // it looks at quotes, so a multi-line query — the normal kind — arrived
+        // torn across lines and failed as an unterminated quote, while the same
+        // query run locally succeeded.
+        let query = "SELECT ?s ?o\nWHERE {\n  ?s <http://example.org/p> ?o .\n}";
+        let (name, args) = args_of(&Commands::Query { query: query.to_string() });
+        assert_eq!(name, "query");
+        assert_eq!(args, vec![query.to_string()]);
+    }
+
+    #[test]
+    fn an_argument_carrying_both_quote_styles_survives_verbatim() {
+        // The old double-quote fallback did not escape backslashes, so an
+        // argument holding both quote styles came out mangled.
+        let query = r#"SELECT ?s WHERE { ?s ?p "it's \"quoted\"" }"#;
+        let (_, args) = args_of(&Commands::Query { query: query.to_string() });
+        assert_eq!(args, vec![query.to_string()]);
+    }
+
+    #[test]
+    fn a_relative_path_is_resolved_before_it_leaves_the_caller() {
+        // The daemon inherits whatever directory `daemon start` ran in, so a
+        // relative path forwarded verbatim resolved against the wrong place.
+        let (name, args) = args_of(&Commands::Load { path: "./data/x.ttl".into() });
+        assert_eq!(name, "load");
+        let sent = std::path::Path::new(&args[0]);
+        assert!(sent.is_absolute(), "sent: {}", args[0]);
+        assert!(args[0].ends_with("x.ttl"), "sent: {}", args[0]);
+        assert!(sent.starts_with(std::env::current_dir().unwrap()));
+    }
+
+    #[test]
+    fn an_absolute_path_is_left_alone() {
+        let abs = if cfg!(windows) { r"C:\onto\proposed.ttl" } else { "/onto/proposed.ttl" };
+        let (_, args) = args_of(&Commands::Plan { file: abs.into() });
+        assert_eq!(args, vec![abs.to_string()]);
+    }
+
+    #[test]
+    fn push_serializes_under_the_name_the_batch_runner_answers_to() {
+        // `push` was serialized by the proxy with no arm on the other side, so it
+        // was the one proxy-able command that could not run while a daemon was up.
+        let (name, args) = args_of(&Commands::Push {
+            endpoint: "http://example.org/sparql".into(),
+            graph: Some("g1".into()),
+        });
+        assert_eq!(name, "push");
+        assert_eq!(args, vec!["http://example.org/sparql", "--graph", "g1"]);
+    }
+
+    #[test]
+    fn a_flag_the_batch_handler_cannot_honour_keeps_the_command_local() {
+        // The batch ingester has no `--format`, so proxying would have dropped it
+        // in silence. Running locally honours it.
+        let with_format = Commands::Ingest {
+            path: "x.csv".into(),
+            format: Some("csv".into()),
+            mapping: None,
+            base_iri: None,
+        };
+        assert!(with_format.to_batch_command().is_none());
+
+        let without = Commands::Ingest {
+            path: "x.csv".into(),
+            format: None,
+            mapping: None,
+            base_iri: None,
+        };
+        assert!(without.to_batch_command().is_some());
+    }
+
+    /// One instance of every variant `to_batch_command` will proxy. If a new
+    /// proxy-able command is added and not listed here it simply goes uncovered;
+    /// nothing here passes falsely because of it.
+    fn every_proxy_able_command() -> Vec<Commands> {
+        vec![
+            Commands::Load { path: "x.ttl".into() },
+            Commands::Save { path: "x.ttl".into(), format: "turtle".into() },
+            Commands::Clear,
+            Commands::Stats,
+            Commands::Query { query: "SELECT ?s WHERE { ?s ?p ?o }".into() },
+            Commands::Lint { input: "x.ttl".into() },
+            Commands::Reason { profile: "rdfs".into() },
+            Commands::Shacl { shapes: "s.ttl".into() },
+            Commands::Status,
+            Commands::Pull { url: "http://example.org".into(), sparql: false, query: None },
+            Commands::Push { endpoint: "http://example.org".into(), graph: None },
+            Commands::Version { label: "v1".into() },
+            Commands::History,
+            Commands::Rollback { label: "v1".into() },
+            Commands::Ingest { path: "x.csv".into(), format: None, mapping: None, base_iri: None },
+            Commands::Plan { file: "p.ttl".into() },
+            Commands::Apply { mode: "safe".into(), plan_id: None },
+            Commands::Enforce { pack: "generic".into() },
+            Commands::Monitor,
+            Commands::MonitorClear,
+            Commands::Drift { file_a: "a.ttl".into(), file_b: "b.ttl".into() },
+            Commands::Lock { iris: vec!["http://example.org/A".into()], reason: None },
+            Commands::Marketplace { action: "list".into(), id: None, domain: None },
+        ]
+    }
+
+    /// The names on the two sides of the proxy are matched by string across an
+    /// HTTP boundary, and nothing but this checks that they agree. `push` was
+    /// serialized here with no arm in the batch runner, so it was the one
+    /// proxy-able command that could not run while a daemon was up: it fell
+    /// through to `unknown batch command` and exited 1.
+    ///
+    /// Every command is invoked with no arguments, which each arm rejects before
+    /// doing anything — the network ones included — so what this asserts is that
+    /// the arm exists, not what it does.
+    #[tokio::test]
+    async fn every_proxy_able_command_has_an_arm_in_the_batch_runner() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = StateDb::open(&dir.path().join("state.db")).unwrap();
+        let runner = open_ontologies::batch::BatchRunner::new(
+            db,
+            Arc::new(GraphStore::new()),
+            false,
+        );
+
+        for cmd in every_proxy_able_command() {
+            let Some(v) = cmd.to_batch_command() else {
+                panic!("expected a proxy-able command");
+            };
+            let name = v["command"].as_str().unwrap().to_string();
+            let payload = serde_json::to_string(&vec![
+                serde_json::json!({"command": name, "args": []}),
+            ])
+            .unwrap();
+            let (results, _) = runner.run_collect(&payload, false).await;
+            let err = results[0]["result"]["error"].as_str().unwrap_or("");
+            assert!(
+                !err.contains("unknown batch command"),
+                "`{name}` is proxied but the batch runner has no arm for it"
+            );
+        }
+    }
+
+    #[test]
+    fn commands_that_must_run_locally_are_not_proxied() {
+        assert!(Commands::Diff { old_path: "a.ttl".into(), new_path: "b.ttl".into() }
+            .to_batch_command()
+            .is_none());
+    }
 }

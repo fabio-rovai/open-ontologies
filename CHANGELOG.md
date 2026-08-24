@@ -5,6 +5,67 @@ All notable changes to Open Ontologies are documented here.
 ## [Unreleased]
 
 ### Fixed
+- **A daemon started with `[http] token` in config rejected every command it was
+  meant to serve.** `serve-http` falls back to the config token and then enforces
+  bearer auth, but `daemon start` recorded `token: null` in `daemon.json`
+  whenever no `--token` flag or env var was given. Every proxied command then
+  sent no `Authorization` header to a daemon demanding one, got 401, and the
+  client treated that as fatal, so a single `daemon start` turned the whole CLI
+  into an error until `daemon stop`. The token is now resolved the way the child
+  will resolve it, from a config path both sides are given explicitly, and a
+  daemon that still rejects the client is announced on stderr and fallen back
+  from rather than being fatal.
+- **`--data-dir` was ignored by the server arms, so a daemon could serve a
+  different store than the one its caller was using.** Both `serve` and
+  `serve-http` derived their data directory from `[general] data_dir` in config
+  and dropped the flag, so `--data-dir /custom daemon start` wrote `daemon.json`
+  into `/custom` while the daemon it started served `~/.open-ontologies`. Proxied
+  and local commands then saw different data with nothing to indicate it, and
+  only when the two paths differed, which is why it survived casual use. The flag
+  now takes precedence over config, matching how host, port and token already
+  resolved.
+- **`push` could not run at all while a daemon was up.** It was serialized for
+  proxying but had no arm in `BatchRunner::execute`, so it fell through to
+  `unknown batch command` and exited 1 — the only proxy-able command with no
+  handler. Running it locally instead would have been worse than the error, since
+  the store holding the triples worth pushing is the daemon's. A test now asserts
+  that every command the CLI proxies is one the batch runner answers to, because
+  the two sides are matched by string across an HTTP boundary and nothing else
+  checked that they agreed.
+- **Relative paths resolved against the daemon's working directory rather than
+  the caller's.** The daemon inherits wherever `daemon start` ran and never
+  learns where its caller is, so `cd /data && open-ontologies load ./x.ttl`
+  either failed or loaded a different file, and `save ./out.ttl` wrote somewhere
+  the caller was not looking. Path arguments are made absolute before they are
+  sent.
+- **A multi-line or awkwardly quoted argument was destroyed in transit to the
+  daemon.** Commands were proxied as a command line that the daemon
+  re-tokenized, and `parse_lines` splits on newlines before it looks at quotes,
+  so a multi-line SPARQL query — the normal kind — arrived torn across lines and
+  failed as an unterminated quote while the identical command succeeded locally.
+  The double-quote fallback in the quoting helper also failed to escape
+  backslashes, mangling any argument carrying both quote styles. Commands are now
+  proxied in the structured form, one argument per array element, where neither
+  is possible.
+- **A successful `daemon start` reported the daemon it had just started as
+  dead.** The human renderer guessed which command produced a payload by
+  sniffing its keys, and `{ok, pid, url}` matched a branch written for
+  `daemon status` — a branch that defaults liveness to false. That branch now
+  requires an explicit `alive`, and on the proxy path the renderer dispatches on
+  the command name the batch envelope already carries instead of guessing.
+- **`marketplace` answered with a different catalogue depending on whether a
+  daemon was running.** The command has two implementations behind it, the local
+  one and the batch one that serves it when a daemon is up, and they had drifted:
+  the batch copy consulted only the curated catalogue and never loaded community
+  packs, so `marketplace list` lost the community tier and `marketplace install`
+  refused a community id, with nothing to indicate why. Both now go through
+  `marketplace::cli_list` and `marketplace::cli_resolve`. The MCP tool keeps its
+  own richer shape, which reports urls, maintainers and shadowing warnings, and
+  is documented as a separate surface rather than a third copy of this one.
+- **`/api/batch` opened the state database on every request.** The route built a
+  fresh `StateDb` per call, on the exact hot path the daemon exists to
+  accelerate, while the adjacent `/lineage` route already cloned the handle
+  opened at startup. It now clones the same one.
 - **`temporal:recordedUntil` closes the transaction interval, so `as_of`
   answers what was believed then.** The recorded axis only ever narrowed
   forward: with no upper bound, `as_of = now` returned the union of every
@@ -154,6 +215,11 @@ All notable changes to Open Ontologies are documented here.
   the validity scan is cut.
 
 ### Added
+- **CLI: Daemon mode — persistent in-memory store across processes.** New `daemon start / stop / status` subcommand launches `serve-http` as a detached background process and writes its PID + URL to `~/.open-ontologies/daemon.json`. All 24 CLI commands that touch the `Arc<GraphStore>` (load, save, clear, stats, query, lint, reason, shacl, enforce, plan, apply, version, history, rollback, pull, push, ingest, drift, lock, monitor, monitor-clear, marketplace, and `batch`) automatically detect a live daemon and route their request to it via the new `/api/batch` HTTP endpoint — no flags, no code changes per-command. Use `--no-connect` to force local execution. Daemon liveness is checked with a bare `kill(pid, 0)` (Unix) / `tasklist` (Windows), rather than forking `/bin/kill` on the path the daemon exists to make fast; stale `daemon.json` files are removed automatically on the next command. New modules `src/daemon.rs` (PID file management + process control) and `src/connect.rs` (HTTP proxy client), and `libc` as a dependency for the liveness check.
+
+  Commands are proxied in the structured form of `/api/batch` — `{"command": name, "args": [..]}`, one argument per array element — rather than as a command line the daemon re-tokenizes. The lossy round trip was the source of most of what is fixed below: an argument cannot be torn on a newline, mangled by a quoting rule, or resolved against the wrong directory once it is an array element that reaches the daemon exactly as clap parsed it. Path arguments are made absolute before they are sent, and an invocation carrying a flag the batch handler has no arm for is run locally rather than proxied without it. `daemon start` waits for the port to accept a connection instead of sleeping a fixed 600ms, so it neither burns the wait when the bind is fast nor reports success for a child that never bound.
+- **CLI: `marketplace` command works via daemon.** `marketplace list [--domain <d>]` and `marketplace install --id <id>` are now proxy-able through the daemon's `/api/batch` endpoint. Installing an ontology from the marketplace with a daemon running loads it into the daemon's persistent store so subsequent `stats`, `query`, and `reason` calls in any other process see the installed triples. Implemented via a new `exec_marketplace` async handler in `BatchRunner`.
+- **CLI: Human-readable output behind `--human`.** Passing `--human` renders results as text rather than JSON (e.g. `stats` prints a plain key/value block; `load` prints "Loaded N triples from path"; errors print "Error: message"). JSON remains what every command prints when no format is asked for, so existing scripts and any consumer reading the CLI's stdout are unaffected; `--json` is accepted as an explicit statement of that default, and `--pretty` still gives indented JSON. The branch originally made text the default and JSON opt-in, which `tests/cli_load_ephemeral_test.rs` catches: it runs `load` with no flags and parses stdout, so the flip would have broken every unflagged caller silently, a prose response being detectable as wrong only at the consumer. A `OnceLock<bool>` global (`JSON_MODE`) is resolved once at startup and read through `json_mode()`, which defaults to JSON on any path that runs before startup has set it; `output_json`, `output_result` and both daemon-proxy call sites consult it, so local and proxied commands cannot disagree about the format. Daemon proxy output now matches local output exactly: the `seq`/`command` batch envelope is stripped and only the `result` value is rendered. Human-readable rendering lives in the new `src/output.rs` module (`render_human`), which handles stats tables, SPARQL result tables, marketplace lists, load/save/install confirmation lines, lint/enforce issue lists, version history, SPARQL bindings, and a pretty-JSON fallback for unknown shapes.
 - **Studio: Multilingual label filter in Tree view.** `TreeView` gains a language chip bar in its header, listing every BCP-47 tag present in the loaded ontology's `rdfs:label` values and shown only when more than one exists. Labels are loaded with full language-tag preservation (two-pass: collect all variants into a `labelMapRef`, then `pickLabel` to build nodes). Switching language relabels the existing React tree state in-place (`relabelTree` walk) — no SPARQL re-query. `nodeMapRef` is also updated so breadcrumbs and connection chips reflect the selected locale. Fallback chain: preferred language → `en` → untagged literal → first available → URI local name.
 - **Studio: Language badges and filter in Property Inspector.** `PropertyInspector` now parses language tags from both engine-native (`"value"@lang`) and standard SPARQL JSON (`xml:lang`) response formats. Each literal row that carries a language tag displays a small monospace badge (e.g. `en`, `cs`) to the right of the value. A language chip bar above the property list (shown only when ≥1 language tag is detected) lets users filter rows to a single locale; URI values are always shown regardless of the filter. `saveEdit` and `deleteProp` include the original language tag in the SPARQL `DELETE`/`INSERT` pattern so editing one locale does not affect sibling translations. The **+ Add** form gains an optional language tag input with quick-pick chips for languages already present on the node.
 - **Optional eviction of float32 text vectors from memory**
