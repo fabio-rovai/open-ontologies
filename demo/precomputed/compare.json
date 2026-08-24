@@ -1,0 +1,84 @@
+{
+  "Does the DCAT-US profile conform to the W3C DCAT vocabulary standard?": {
+    "baseline": {
+      "answer": "The excerpts provided describe various DCAT-US profile shapes such as Dataset, Distribution, DataService, Catalog, Document, and Standard, but they do not explicitly state whether the DCAT-US profile conforms to the W3C DCAT vocabulary standard. While the shapes reference properties and classes that are consistent with DCAT, there is no direct statement or evidence in the excerpts to confirm full conformance to the W3C DCAT standard. Therefore, based on the information given, it is not possible to definitively answer the question. (No excerpt explicitly addresses the relationship between DCAT-US and W3C DCAT conformance.)",
+      "citations": [
+        "recovered-shapes"
+      ]
+    },
+    "divergence": "Both paths decline to confirm conformance and reach the same qualitative conclusion, but neither retrieval surfaced the corpus's actual central claim. The grounded path's retrieval for this question was dominated by trivial numbered-section stubs under the W3C conformance document (labelled '4.1' through '4.5'), which crowded out the individuals that carry profile-readme's real content; the model correctly reports it has nothing to go on. The baseline's keyword ranking pulled all six of its chunks from the 139KB recovered-shapes.ttl (which mentions 'DCAT' and 'standard' in nearly every SHACL shape) and never surfaced profile-readme.md's own sentence -- verified separately in Task 7's report -- that DCAT-US 'is an implementation of... the W3C DCAT standard.' Both answers are honest non-answers, but for different, correctable reasons: one is a graph-anchoring failure, the other is a chunk-scoring failure that lets one large document dominate.",
+    "grounded": {
+      "answer": "The context provided outlines components of a profile, such as sections (e.g., 4.1, 4.2, etc.) and entities like \"Agent\" and \"Catalog,\" but it does not explicitly state whether the DCAT-US profile conforms to the W3C DCAT vocabulary standard. Conformance to the W3C DCAT standard would require a direct statement or implication of alignment with that standard, which is not present in the given context (profile-readme). Therefore, based on the information provided, it is not possible to confirm the conformance of the DCAT-US profile to the W3C DCAT vocabulary standard. (profile-readme)",
+      "citations": [
+        "profile-readme"
+      ]
+    },
+    "question": "Does the DCAT-US profile conform to the W3C DCAT vocabulary standard?"
+  },
+  "What is DCAT-US 3.0?": {
+    "baseline": {
+      "answer": "DCAT-US 3.0 appears to be a vocabulary or framework for describing datasets, data services, distributions, and related resources, as indicated by the presence of shapes such as `Dataset_Shape`, `Distribution_Shape`, `DataService_Shape`, and others in the excerpts (e.g., recovered-shapes#15, recovered-shapes#16, recovered-shapes#13). These shapes define properties and structures for describing different types of data resources, suggesting that DCAT-US 3.0 is a standardized approach to publishing and sharing dataset metadata (recovered-shapes#15). However, the provided excerpts do not explicitly define what DCAT-US 3.0 is beyond its structural components, so further context would be needed to fully define it (recovered-shapes#15). \n\nThe excerpts show that it includes elements like `accessRights`, `description`, `identifier`, and `publisher`, which are typical of metadata standards (e.g., recovered-shapes#16, recovered-shapes#13). Therefore, based on the excerpts alone, DCAT-US 3.0 seems to be a metadata standard or schema for describing datasets and related resources, but the exact scope or purpose remains partially unspecified.",
+      "citations": [
+        "recovered-shapes"
+      ]
+    },
+    "divergence": "The two paths converge on a similarly vague, generic characterisation (a schema or framework for cataloguing and publishing data) from different evidence, and neither is wrong so much as underspecified. Neither retrieval surfaced the individual in the corpus explicitly labelled 'DCAT-US 3.0' (extracted from examples-sample.json, itself typed as a Standard) -- the grounded path's anchor ranking missed it for the same section-stub-crowding reason as questions 1-2, and the baseline's keyword scoring favoured recovered-shapes.ttl's SHACL shape names over the more direct label match in examples-sample.json. Rough agreement, but both are working from secondary evidence rather than the corpus's clearest answer to the question.",
+    "grounded": {
+      "answer": "DCAT-US 3.0 is a schema or framework related to cataloging and data publishing, as indicated by its association with the Agent class and its derivation from documents such as \"catalog-schema\" and \"profile-readme\" (profile-readme). It is connected to the Agent class, which represents a person or organization responsible for creating or publishing the catalog (profile-readme). The schema also has connections to other components like Controlled vocabularies and is derived from previous versions such as DCAT-US Schema v3.0 and DCAT-US 3 Catalog (profile-readme). However, the provided context does not explicitly define what DCAT-US 3.0 is in terms of its structure or purpose beyond these associations (profile-readme).",
+      "citations": [
+        "catalog-schema",
+        "profile-readme"
+      ]
+    },
+    "question": "What is DCAT-US 3.0?"
+  },
+  "What kinds of things is a Catalog necessarily different from in the DCAT-US ontology?": {
+    "baseline": {
+      "answer": "A Catalog in the DCAT-US ontology is necessarily different from other entities like Datasets, Distributions, Data Services, and Catalog Records, as each has distinct properties and shapes defined for them. For example, a Catalog is defined by a specific set of properties such as `accessRights`, `publisher`, and `dataset`, which are not necessarily shared or applicable to other entities like a Dataset or Distribution [recovered-shapes#9]. While a Dataset has its own set of properties including `description`, `creator`, and `distribution`, and a Distribution includes properties like `accessURL` and `format`, a Catalog's shape emphasizes its role as a top-level entity that describes collections of Datasets and Services [recovered-shapes#15]. Therefore, the structure and properties of a Catalog distinguish it from these related but distinct components [recovered-shapes#16].",
+      "citations": [
+        "recovered-shapes"
+      ]
+    },
+    "divergence": "This is the one question where the two paths differ in kind, not just in coverage. The grounded answer's claim that Catalog is disjoint from Agent is backed by an actual owl:disjointWith axiom the derived ontology declares (Catalog is in fact declared disjoint from ten classes -- Dataset, DataService, DatasetSeries, CatalogRecord, Concept, ConceptScheme, Standard, Agent, Identifier and ContactPoint; the model picked one example rather than enumerating them). The baseline's answer names more classes (Dataset, Distribution, DataService, Catalog Record) and reads as more complete, but its evidence is that separate SHACL shapes exist for each class -- that is suggestive, not a formal distinctness claim: SHACL shapes existing separately does not by itself prove the classes are mutually exclusive. The grounded answer says less but what it says is reasoner-checkable; the baseline says more but is inferring exclusivity where its source only shows separate definitions.",
+    "grounded": {
+      "answer": "A Catalog, in the DCAT-US ontology, is necessarily different from an Agent or The FAIRness Project, as these are distinct classes (Catalog --[disjointWith]--> Agent) (profile-readme). The Catalog is a distinct entity used to describe datasets and their relationships, whereas an Agent represents a person or organization responsible for creating or publishing the catalog (Agent --[comment]--> Person or organization responsible for creating or publishing the catalog) (profile-readme). The FAIRness Project is also distinct, being both an Agent type and a project name, but not a Catalog itself (Agent --[label]--> The FAIRness Project) (profile-readme). Therefore, a Catalog is necessarily different from these in that it is a specific type of entity for organizing and describing datasets, not a participant in the act of publishing or creating them. (profile-readme)",
+      "citations": [
+        "profile-readme"
+      ]
+    },
+    "question": "What kinds of things is a Catalog necessarily different from in the DCAT-US ontology?"
+  },
+  "What pull request changed the DCAT-US GitHub repository, and what happened to the SHACL shapes file as a result?": {
+    "baseline": {
+      "answer": "The provided excerpts outline various SHACL shapes for different DCAT-US resource types such as Dataset, Distribution, DataService, Catalog, Document, and DatasetSeries (recovered-shapes#15, recovered-shapes#16, recovered-shapes#13, recovered-shapes#9, recovered-shapes#17, recovered-shapes#14). However, the excerpts do not specify any pull request that changed the DCAT-US GitHub repository or describe changes to a SHACL shapes file resulting from such a pull request. Therefore, the information required to answer the question is not present in the excerpts.",
+      "citations": [
+        "recovered-shapes"
+      ]
+    },
+    "divergence": "Both paths correctly decline to answer rather than guess, which is the right behaviour given what each retrieved. But the grounded citation ('profile-readme') is not genuine grounding: the retrieved graph context for this question, like question 1, was dominated by section-number stubs and contained no facts about pull requests at all, so the model's parenthetical '(profile-readme)' looks copied from this prompt's own citation example rather than a real reference -- a citation artifact worth flagging on its own. Neither path retrieved pr-120-record.md, the one document in the corpus that actually describes PR #120 and the SHACL file's removal; the baseline's keyword scoring again let recovered-shapes.ttl's sheer bulk dominate over the much shorter, more directly relevant pr-120-record.md.",
+    "grounded": {
+      "answer": "The context provided does not contain information about any specific pull request that changed the DCAT-US GitHub repository or details about changes to a SHACL shapes file (profile-readme). Therefore, it is not possible to answer the question with the given context. \n\nThe information available focuses on the structure of conformance sections, the role of Agents, and disjointness relationships, but nothing regarding pull requests or SHACL files. \n\nAnswer: The context does not provide information about the pull request that changed the DCAT-US GitHub repository or the changes made to the SHACL shapes file. (profile-readme)",
+      "citations": [
+        "profile-readme"
+      ]
+    },
+    "question": "What pull request changed the DCAT-US GitHub repository, and what happened to the SHACL shapes file as a result?"
+  },
+  "Who publishes the Federal Data Catalog, and what contact points does it list?": {
+    "baseline": {
+      "answer": "The Federal Data Catalog is published by the \"Federal Data Management Office\" (examples-sample#0). The contact points listed for the catalog include a \"Data Governance Team\" with a name and a general email address (examples-sample#0). The catalog also lists a \"publisher\" and a \"creator\" (examples-sample#0). These elements are part of the catalog's metadata structure, which is defined in the shape definitions (recovered-shapes#9). However, the specific contact point details for the catalog itself are not fully detailed beyond the team name and email in the example provided (examples-sample#0). \n\nThe excerpt from the examples-sample#0 shows the publisher and creator information but does not provide a comprehensive list of contact points for the catalog itself. The recovered-shapes#9 excerpt lists properties for a Catalog shape, including contactPoint, but does not specify the contact points for the Federal Data Catalog. Therefore, while we can identify the publisher and a general contact team, the full range of contact points for the catalog is not explicitly detailed in the provided excerpts. \n\nTo fully answer the question about all contact points, more specific information from the examples or additional excerpts would be needed. Based on the current excerpts, the publisher is the Federal Data Management Office, and a contact point is the Data Governance Team (examples-sample#0). \n\nThe excerpts do not provide sufficient detail to list all contact points for the catalog. \n\nAnswer: The Federal Data Catalog is published by the Federal Data Management Office (examples-sample#0). A contact point listed is the Data Governance Team (examples-sample#0). The excerpts do not provide a complete list of all contact points for the catalog. \n\nNote: The original request asked for 2-5 sentences, but the provided excerpts do not contain sufficient information to fully answer the question about all contact points. The answer is limited to what can be directly inferred from the excerpts. \n\nThe excerpts do not contain enough information to provide a complete list of contact points for the catalog. \n\nThe excerpts do not contain sufficient information to list all contact points for the catalog.",
+      "citations": [
+        "examples-sample",
+        "recovered-shapes"
+      ]
+    },
+    "divergence": "The baseline is straightforwardly more accurate here, and this is a real baseline win, not a manufactured one. Checked directly against demo/corpus/dcat-us/examples-sample.json: the Federal Data Catalog's publisher is 'Federal Data Management Office' (the top-level 'publisher' field on the Catalog example). The grounded answer names 'HR Data Team' as the publisher, which is wrong -- HR Data Team is the contactPoint of an unrelated nested dataset ('Employment Statistics') several levels down in the same file; the graph extraction flattened the JSON hierarchy so that nested contact and publisher facts lost their attachment to the correct parent entity, and thin, pollution-prone anchor retrieval surfaced the wrong one. The baseline correctly names 'Federal Data Management Office' as publisher (grounded in examples-sample), but is not fully accurate either: it calls 'Data Governance Team' the contact point, when the source lists that name under 'creator' -- the catalog's actual contactPoint is 'Federal Data Support Center', which the baseline's retrieved chunks did not surface. Net: baseline right on the more important fact (publisher), wrong on a secondary one (creator/contactPoint conflation); grounded wrong on the primary fact.",
+    "grounded": {
+      "answer": "The Federal Data Catalog is published by the HR Data Team (profile-readme). The context provided does not list specific contact points associated with the catalog, so further information would be needed to identify the contact points it lists. The catalog includes various dataset sections, such as SEC_dataset_schema_111 through SEC_dataset_schema_150, but no explicit contact point details are given (profile-readme). Therefore, while we know the publisher, the specific contact points listed in the catalog cannot be determined from the available information.",
+      "citations": [
+        "profile-readme"
+      ]
+    },
+    "question": "Who publishes the Federal Data Catalog, and what contact points does it list?"
+  }
+}

@@ -38,10 +38,26 @@ def docx_text(path: pathlib.Path) -> str:
     return "\n".join(ln for ln in lines if ln)
 
 
+def plain_text(path: pathlib.Path) -> str:
+    """Non-.docx corpus members are already text; read them as-is.
+
+    Task 7's DCAT-US corpus is markdown, JSON Schema and SHACL Turtle, not
+    .docx, so the .docx-only glob below previously matched nothing at all
+    and the baseline had zero documents to retrieve over.
+    """
+    if path.suffix == ".docx":
+        return docx_text(path)
+    return path.read_text(encoding="utf-8", errors="ignore")
+
+
 def main() -> None:
     docs: dict[str, dict[str, str]] = {}
-    for path in sorted(CORPUS.glob("*.docx")):
-        text = docx_text(path)
+    members = sorted(CORPUS.glob("*.docx")) or sorted(
+        p for p in CORPUS.iterdir()
+        if p.is_file() and p.name != "MANIFEST.json"
+        and p.suffix in (".md", ".json", ".ttl"))
+    for path in members:
+        text = plain_text(path)
         m = re.search(r"Doc Id ([A-Z]+-\d+)", text.replace("\n", " "))
         doc_id = m.group(1) if m else path.stem
         title = ""

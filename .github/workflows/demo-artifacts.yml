@@ -1,0 +1,9 @@
+name: demo artifacts
+on: [push, pull_request]
+jobs:
+  manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify committed artifacts match their manifest
+        run: cd demo/precomputed && shasum -a 256 -c MANIFEST.sha256

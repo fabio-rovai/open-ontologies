@@ -306,10 +306,14 @@ def normalise(text: str) -> str:
 
 
 def docx_text(path: pathlib.Path) -> str:
-    if path.suffix == ".md":
-        return path.read_text()
-    return subprocess.run(["pandoc", str(path), "-t", "plain", "--wrap=none"],
-                          capture_output=True, text=True).stdout
+    if path.suffix == ".docx":
+        return subprocess.run(["pandoc", str(path), "-t", "plain", "--wrap=none"],
+                              capture_output=True, text=True).stdout
+    # .md, .json, .ttl (and anything else pandoc has no business touching)
+    # are already text; reading them directly is what lets a real corpus of
+    # mixed document types (Task 7's DCAT-US corpus is markdown + JSON
+    # Schema + SHACL Turtle) reach the model at all.
+    return path.read_text()
 
 
 # --------------------------------------------------------------------------
@@ -1207,7 +1211,15 @@ def main():
     corpus = pathlib.Path(args.corpus)
     out = ROOT / "demo" / "derived"
     out.mkdir(exist_ok=True)
-    docs = sorted(corpus.glob("*.docx")) or sorted(corpus.glob("*.md"))
+    # A real corpus is not one file type. Task 7's DCAT-US corpus is
+    # markdown, JSON Schema and SHACL Turtle side by side (a schema-only
+    # profile, its recovered RDF binding, and the W3C text that defines what
+    # binding it would need); a glob for .docx-or-.md alone silently drops
+    # four of the seven documents and, with them, the corpus's central
+    # disagreement. MANIFEST.json is provenance metadata, not a document.
+    docs = sorted(p for p in corpus.iterdir()
+                  if p.is_file() and p.name != "MANIFEST.json"
+                  and p.suffix in (".docx", ".md", ".json", ".ttl"))
     if not docs:
         sys.exit(f"no documents in {corpus}")
 
@@ -1529,7 +1541,11 @@ def main():
                 f"    :aboutEntity :{subj} ;\n"
                 f"    :statedIn :DOC_{doc.replace('-', '_')} .\n"
                 f":{subj} <http://www.w3.org/ns/prov#wasDerivedFrom> :DOC_{doc.replace('-', '_')} .\n"
-                f":DOC_{doc.replace('-', '_')} rdfs:label \"{doc}\" .")
+                # graphrag.ts's claim query resolves a document-shaped statedIn
+                # target via `?target dcus:docId ?doc`, not its label. Without
+                # this triple every claim in the live store retrieves with
+                # doc == 'unattributed' and the chat cannot cite anything.
+                f":DOC_{doc.replace('-', '_')} rdfs:label \"{doc}\" ; :docId \"{doc}\" .")
     store.write_text(pruned + "\n" + data + "\n" + "\n".join(claims))
     store_ok, why = is_valid_turtle(store.read_text())
     if not store_ok:
