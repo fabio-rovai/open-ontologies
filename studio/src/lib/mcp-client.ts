@@ -1,7 +1,9 @@
 import { invoke } from '@tauri-apps/api/core';
 
-// All MCP calls go through the Tauri backend (Rust → localhost:8080)
+// All MCP calls go through the Tauri backend (Rust → localhost, configurable port)
 // This avoids webview fetch restrictions and handles SSE parsing in Rust
+
+const ENGINE_PORT = import.meta.env.VITE_ENGINE_PORT ?? '8137';
 
 async function mcpCall(method: string, params: Record<string, unknown> = {}): Promise<unknown> {
   try {
@@ -27,7 +29,7 @@ async function mcpCall(method: string, params: Record<string, unknown> = {}): Pr
 }
 
 // Sessionless REST API — direct access to shared graph store, no MCP session required
-const API = 'http://127.0.0.1:8080/api';
+const API = `http://127.0.0.1:${ENGINE_PORT}/api`;
 
 async function apiGet(path: string): Promise<unknown> {
   const resp = await fetch(`${API}${path}`);
