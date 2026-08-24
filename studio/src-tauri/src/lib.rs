@@ -1,8 +1,10 @@
 mod chat;
+mod corpus;
 mod engine;
 mod mcp;
 
 use chat::ChatState;
+use corpus::CorpusState;
 use engine::EngineState;
 use mcp::McpState;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -29,6 +31,9 @@ pub fn run() {
             session_id: Mutex::new(None),
             client: reqwest::Client::new(),
         })
+        .manage(CorpusState {
+            running: Arc::new(Mutex::new(false)),
+        })
         .setup(|app| {
             let handle = app.handle().clone();
             if let Err(e) = engine::spawn_engine(&handle) {
@@ -54,7 +59,15 @@ pub fn run() {
             mcp::mcp_call,
             mcp::set_mcp_session,
             chat::send_chat_message,
-            chat::reset_chat
+            chat::reset_chat,
+            corpus::corpus_presets,
+            corpus::ingest_corpus,
+            corpus::read_store,
+            corpus::list_graphs,
+            corpus::read_decisions,
+            corpus::revert_type,
+            corpus::list_saved,
+            corpus::pick_ontology_file
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
