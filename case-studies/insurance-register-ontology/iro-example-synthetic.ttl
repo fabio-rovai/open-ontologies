@@ -1,0 +1,366 @@
+@prefix iro:    <https://gov.tesseract.academy/def/insurance#> .
+@prefix irosch: <https://gov.tesseract.academy/def/insurance/scheme#> .
+@prefix exd:    <https://gov.tesseract.academy/id/insurance-example#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+# SYNTHETIC example subgraph for the Insurance Register Ontology
+# (IRO) case study. Every undertaking, authority, registration,
+# operation, and identifier value in this file is INVENTED. This
+# is NOT EIOPA data and NOT GLEIF data; no row of any real
+# register appears here. The EIOPA register export is not
+# redistributed by this repository.
+#
+# The file is engineered so that each of IRO's six layer-3 rules
+# (R1-R6 in iro-rules.ttl) fires a known number of times, and the
+# layer-1/2 shapes (iro-shapes.ttl) find a known set of defects.
+# Each defect reproduces, in miniature, a defect class the real
+# 14 Aug 2026 EIOPA/GLEIF build actually surfaced (letter-O
+# transposition, 19-character truncation, shared LEI, zombie
+# passport...).
+#
+# All "valid" LEI values below use the reserved-looking synthetic
+# prefix 9999.. and carry REAL ISO 7064 MOD 97-10 check digits,
+# verified against the source repository's pipeline/checksums.py.
+# The two "impossible" values fail the same arithmetic on purpose.
+#################################################################
+
+#################################################################
+# Countries and (synthetic) supervisory authorities
+#################################################################
+
+exd:country-DE a iro:Country ; rdfs:label "Germany" .
+exd:country-GR a iro:Country ; rdfs:label "Greece" .
+exd:country-IE a iro:Country ; rdfs:label "Ireland" .
+exd:country-AT a iro:Country ; rdfs:label "Austria" .
+exd:country-FR a iro:Country ; rdfs:label "France" .
+exd:country-SE a iro:Country ; rdfs:label "Sweden" .
+exd:country-FI a iro:Country ; rdfs:label "Finland" .
+exd:country-IT a iro:Country ; rdfs:label "Italy" .
+exd:country-ES a iro:Country ; rdfs:label "Spain" .
+exd:country-IS a iro:Country ; rdfs:label "Iceland" .
+
+exd:nca-DE a iro:SupervisoryAuthority ; iro:legalName "Example Prudential Supervisory Authority (DE)" .
+exd:nca-GR a iro:SupervisoryAuthority ; iro:legalName "Example Insurance Supervisory Authority (GR)" .
+exd:nca-IE a iro:SupervisoryAuthority ; iro:legalName "Example Central Authority (IE)" .
+exd:nca-AT a iro:SupervisoryAuthority ; iro:legalName "Example Financial Market Authority (AT)" .
+exd:nca-FR a iro:SupervisoryAuthority ; iro:legalName "Example Prudential Authority (FR)" .
+exd:nca-SE a iro:SupervisoryAuthority ; iro:legalName "Example Financial Inspectorate (SE)" .
+
+# Synthetic source systems, declared as such so that the
+# provenance queries have honest answers. These stand in for the
+# roles EIOPA-DATINS and GLEIF-API play in the real build.
+exd:ExampleRegister a skos:Concept ;
+    skos:prefLabel "synthetic example register (not EIOPA data)"@en .
+exd:ExampleLEICheck a skos:Concept ;
+    skos:prefLabel "synthetic LEI reconciliation source (not GLEIF data)"@en .
+
+#################################################################
+# U1 Aquila Insurance SE (DE): the clean record. Active home
+# registration, one valid LEI, reconciliation source agrees,
+# two open freedom-of-services passports.
+#################################################################
+
+exd:u-aquila a iro:InsuranceUndertaking ;
+    iro:legalName "Aquila Insurance SE" ;
+    iro:homeCountry exd:country-DE ;
+    iro:identifiedBy exd:lei-aquila , exd:nat-aquila .
+
+exd:reg-aquila a iro:Registration ;
+    iro:registrationOf exd:u-aquila ;
+    iro:registeredBy exd:nca-DE ;
+    iro:registrationStart "2001-03-15"^^xsd:date .
+
+exd:lei-aquila a iro:Identifier , iro:LEI ;
+    iro:identifierValue "999900AQUILAINSDE008" ;
+    iro:identifierScheme irosch:LEI ;
+    iro:sourceSystem exd:ExampleRegister ;
+    iro:checksumValid true ;
+    iro:inGleif true ;
+    iro:gleifRegistrationStatus "ISSUED" ;
+    iro:gleifEntityStatus "ACTIVE" ;
+    iro:gleifLegalName "Aquila Insurance SE" ;
+    iro:identifies exd:u-aquila .
+
+exd:nat-aquila a iro:Identifier , iro:NationalIdentificationCode ;
+    iro:identifierValue "DE-EX-1001" ;
+    iro:identifierScheme irosch:NationalIdentificationCode ;
+    iro:sourceSystem exd:ExampleRegister ;
+    iro:identifies exd:u-aquila .
+
+exd:op-aquila-fr a iro:CrossBorderOperation ;
+    iro:operationOf exd:u-aquila ;
+    iro:hostCountry exd:country-FR ;
+    iro:operationMode irosch:EEAFreedomOfServices ;
+    iro:operationStart "2015-01-01"^^xsd:date .
+
+exd:op-aquila-it a iro:CrossBorderOperation ;
+    iro:operationOf exd:u-aquila ;
+    iro:hostCountry exd:country-IT ;
+    iro:operationMode irosch:EEAFreedomOfServices ;
+    iro:operationStart "2016-07-01"^^xsd:date .
+
+#################################################################
+# U2 Boreas Re AG (DE): active registration, NO LEI assertion
+# from any source system. Fires R1 (the 19.5% finding class).
+#################################################################
+
+exd:u-boreas a iro:InsuranceUndertaking ;
+    iro:legalName "Boreas Re AG" ;
+    iro:homeCountry exd:country-DE ;
+    iro:identifiedBy exd:nat-boreas .
+
+exd:reg-boreas a iro:Registration ;
+    iro:registrationOf exd:u-boreas ;
+    iro:registeredBy exd:nca-DE ;
+    iro:registrationStart "1998-11-02"^^xsd:date .
+
+exd:nat-boreas a iro:Identifier , iro:NationalIdentificationCode ;
+    iro:identifierValue "DE-EX-1002" ;
+    iro:identifierScheme irosch:NationalIdentificationCode ;
+    iro:sourceSystem exd:ExampleRegister ;
+    iro:identifies exd:u-boreas .
+
+#################################################################
+# U3 Cyclades Insurance A.E. (GR): the letter-O transposition.
+# The filed value has a letter O where the checksum-valid form
+# 9999000CYCLADESGR047 has a zero, so ISO 7064 fails and the
+# recorded checksum state is false. Fires R2 and the layer-2
+# hasValue policy; the SYNTAX pattern still passes, because a
+# letter O is alphanumeric, which is exactly why checksum
+# arithmetic exists. Mirrors LEI 5493O00MN7XN3BBKCE67 filed in
+# the real register.
+#################################################################
+
+exd:u-cyclades a iro:InsuranceUndertaking ;
+    iro:legalName "Cyclades Insurance A.E." ;
+    iro:homeCountry exd:country-GR ;
+    iro:identifiedBy exd:lei-cyclades , exd:nat-cyclades .
+
+exd:reg-cyclades a iro:Registration ;
+    iro:registrationOf exd:u-cyclades ;
+    iro:registeredBy exd:nca-GR ;
+    iro:registrationStart "2005-04-20"^^xsd:date .
+
+exd:lei-cyclades a iro:Identifier , iro:LEI ;
+    iro:identifierValue "9999O00CYCLADESGR047" ;
+    iro:identifierScheme irosch:LEI ;
+    iro:sourceSystem exd:ExampleRegister ;
+    iro:checksumValid false ;
+    iro:inGleif false ;
+    iro:identifies exd:u-cyclades .
+
+exd:nat-cyclades a iro:Identifier , iro:NationalIdentificationCode ;
+    iro:identifierValue "GR-EX-2001" ;
+    iro:identifierScheme irosch:NationalIdentificationCode ;
+    iro:sourceSystem exd:ExampleRegister ;
+    iro:identifies exd:u-cyclades .
+
+#################################################################
+# U4 Danu Life dac (IE): authorised and writing business, but the
+# LEI's annual renewal was not made, so the reconciliation source
+# reports LAPSED. Fires R3.
+#################################################################
+
+exd:u-danu a iro:InsuranceUndertaking ;
+    iro:legalName "Danu Life dac" ;
+    iro:homeCountry exd:country-IE ;
+    iro:identifiedBy exd:lei-danu .
+
+exd:reg-danu a iro:Registration ;
+    iro:registrationOf exd:u-danu ;
+    iro:registeredBy exd:nca-IE ;
+    iro:registrationStart "2010-09-01"^^xsd:date .
+
+exd:lei-danu a iro:Identifier , iro:LEI ;
+    iro:identifierValue "999900DANULIFEIE0094" ;
+    iro:identifierScheme irosch:LEI ;
+    iro:sourceSystem exd:ExampleRegister ;
+    iro:checksumValid true ;
+    iro:inGleif true ;
+    iro:gleifRegistrationStatus "LAPSED" ;
+    iro:gleifEntityStatus "ACTIVE" ;
+    iro:gleifLegalName "Danu Life Designated Activity Company" ;
+    iro:identifies exd:u-danu .
+
+exd:op-danu-de a iro:CrossBorderOperation ;
+    iro:operationOf exd:u-danu ;
+    iro:hostCountry exd:country-DE ;
+    iro:operationMode irosch:EEAFreedomOfServices ;
+    iro:operationStart "2018-05-01"^^xsd:date .
+
+#################################################################
+# U5 Eir Versicherung AG (AT): the register says authorised, the
+# reconciliation source says the legal entity is INACTIVE. One of
+# the two systems is wrong about a live insurer. Fires R4.
+#################################################################
+
+exd:u-eir a iro:InsuranceUndertaking ;
+    iro:legalName "Eir Versicherung AG" ;
+    iro:homeCountry exd:country-AT ;
+    iro:identifiedBy exd:lei-eir .
+
+exd:reg-eir a iro:Registration ;
+    iro:registrationOf exd:u-eir ;
+    iro:registeredBy exd:nca-AT ;
+    iro:registrationStart "1995-06-30"^^xsd:date .
+
+exd:lei-eir a iro:Identifier , iro:LEI ;
+    iro:identifierValue "999900EIRVERSAT00055" ;
+    iro:identifierScheme irosch:LEI ;
+    iro:sourceSystem exd:ExampleRegister ;
+    iro:checksumValid true ;
+    iro:inGleif true ;
+    iro:gleifRegistrationStatus "ISSUED" ;
+    iro:gleifEntityStatus "INACTIVE" ;
+    iro:gleifLegalName "Eir Versicherung AG in Abwicklung" ;
+    iro:identifies exd:u-eir .
+
+exd:op-eir-it a iro:CrossBorderOperation ;
+    iro:operationOf exd:u-eir ;
+    iro:hostCountry exd:country-IT ;
+    iro:operationMode irosch:EEABranch ;
+    iro:operationStart "2003-02-01"^^xsd:date .
+
+#################################################################
+# U6/U7 Fjord Re France SA and Fjord Re Ireland dac: two distinct
+# reinsurance legal entities filed under ONE LEI value. Fires R5.
+# Mirrors the SCOR France / SCOR Ireland collapse in the real
+# register.
+#################################################################
+
+exd:u-fjord-fr a iro:InsuranceUndertaking ;
+    iro:legalName "Fjord Re France SA" ;
+    iro:homeCountry exd:country-FR ;
+    iro:identifiedBy exd:lei-fjord .
+
+exd:reg-fjord-fr a iro:Registration ;
+    iro:registrationOf exd:u-fjord-fr ;
+    iro:registeredBy exd:nca-FR ;
+    iro:registrationStart "2007-01-15"^^xsd:date .
+
+exd:u-fjord-ie a iro:InsuranceUndertaking ;
+    iro:legalName "Fjord Re Ireland dac" ;
+    iro:homeCountry exd:country-IE ;
+    iro:identifiedBy exd:lei-fjord .
+
+exd:reg-fjord-ie a iro:Registration ;
+    iro:registrationOf exd:u-fjord-ie ;
+    iro:registeredBy exd:nca-IE ;
+    iro:registrationStart "2012-03-01"^^xsd:date .
+
+exd:lei-fjord a iro:Identifier , iro:LEI ;
+    iro:identifierValue "999900FJORDREFRIE062" ;
+    iro:identifierScheme irosch:LEI ;
+    iro:sourceSystem exd:ExampleRegister ;
+    iro:checksumValid true ;
+    iro:inGleif true ;
+    iro:gleifRegistrationStatus "ISSUED" ;
+    iro:gleifEntityStatus "ACTIVE" ;
+    iro:gleifLegalName "Fjord Re France SA" ;
+    iro:identifies exd:u-fjord-fr , exd:u-fjord-ie .
+
+exd:op-fjord-es a iro:CrossBorderOperation ;
+    iro:operationOf exd:u-fjord-fr ;
+    iro:hostCountry exd:country-ES ;
+    iro:operationMode irosch:EEAFreedomOfServices ;
+    iro:operationStart "2019-11-01"^^xsd:date .
+
+#################################################################
+# U8 Hestia Mutual Insurance Association (AT): a 19-character LEI,
+# a truncation, not a typo. Fails the layer-2 syntax pattern AND
+# ISO 7064, so it also fires R2. Mirrors the three 19-character
+# values found in BaFin's own register file.
+#################################################################
+
+exd:u-hestia a iro:InsuranceUndertaking ;
+    iro:legalName "Hestia Mutual Insurance Association" ;
+    iro:homeCountry exd:country-AT ;
+    iro:identifiedBy exd:lei-hestia .
+
+exd:reg-hestia a iro:Registration ;
+    iro:registrationOf exd:u-hestia ;
+    iro:registeredBy exd:nca-AT ;
+    iro:registrationStart "1989-01-01"^^xsd:date .
+
+exd:lei-hestia a iro:Identifier , iro:LEI ;
+    iro:identifierValue "999900HESTIAMUTAT04" ;
+    iro:identifierScheme irosch:LEI ;
+    iro:sourceSystem exd:ExampleRegister ;
+    iro:checksumValid false ;
+    iro:inGleif false ;
+    iro:identifies exd:u-hestia .
+
+#################################################################
+# U9 Grimma Assurans AB (SE): home registration ENDED 2024-06-30,
+# but one freedom-of-services operation into Finland is still
+# open. The passport outlives the authorization it derives from.
+# Fires R6. Its national-code assertion also carries no source
+# system, which the layer-1 provenance shape must catch.
+#################################################################
+
+exd:u-grimma a iro:InsuranceUndertaking ;
+    iro:legalName "Grimma Assurans AB" ;
+    iro:homeCountry exd:country-SE ;
+    iro:identifiedBy exd:nat-grimma .
+
+exd:reg-grimma a iro:Registration ;
+    iro:registrationOf exd:u-grimma ;
+    iro:registeredBy exd:nca-SE ;
+    iro:registrationStart "2002-08-01"^^xsd:date ;
+    iro:registrationEnd "2024-06-30"^^xsd:date .
+
+exd:nat-grimma a iro:Identifier , iro:NationalIdentificationCode ;
+    iro:identifierValue "SE-EX-9001" ;
+    iro:identifierScheme irosch:NationalIdentificationCode ;
+    iro:identifies exd:u-grimma .
+
+exd:op-grimma-fi a iro:CrossBorderOperation ;
+    iro:operationOf exd:u-grimma ;
+    iro:hostCountry exd:country-FI ;
+    iro:operationMode irosch:EEAFreedomOfServices ;
+    iro:operationStart "2011-04-01"^^xsd:date .
+
+#################################################################
+# U10 Halcyon Insurance hf. (IS): an undertaking node with no
+# registration attached at all, either an export gap or a join
+# failure. The layer-2 inverse-path shape reports it as a
+# Warning, and because R1 requires a live registration to reason
+# from, R1 deliberately does NOT fire here.
+#################################################################
+
+exd:u-halcyon a iro:InsuranceUndertaking ;
+    iro:legalName "Halcyon Insurance hf." ;
+    iro:homeCountry exd:country-IS .
+
+#################################################################
+# P1 Zephyr Insurance Company Ltd: a third-country branch with no
+# home registration row in the register, kept as a
+# RegisteredPresence rather than silently merged. Its open
+# third-country-branch operation does NOT fire R6, because there
+# is no ended home registration to contradict.
+#################################################################
+
+exd:p-zephyr a iro:RegisteredPresence ;
+    iro:legalName "Zephyr Insurance Company Ltd (German branch)" ;
+    iro:homeCountry exd:country-DE ;
+    iro:identifiedBy exd:lei-zephyr .
+
+exd:lei-zephyr a iro:Identifier , iro:LEI ;
+    iro:identifierValue "999900ZEPHYRJP000037" ;
+    iro:identifierScheme irosch:LEI ;
+    iro:sourceSystem exd:ExampleRegister ;
+    iro:checksumValid true ;
+    iro:inGleif true ;
+    iro:gleifRegistrationStatus "ISSUED" ;
+    iro:gleifEntityStatus "ACTIVE" ;
+    iro:gleifLegalName "Zephyr Insurance Company Ltd" ;
+    iro:identifies exd:p-zephyr .
+
+exd:op-zephyr-de a iro:CrossBorderOperation ;
+    iro:operationOf exd:p-zephyr ;
+    iro:hostCountry exd:country-DE ;
+    iro:operationMode irosch:ThirdCountryBranch ;
+    iro:operationStart "2014-10-01"^^xsd:date .

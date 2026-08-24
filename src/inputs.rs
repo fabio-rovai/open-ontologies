@@ -199,6 +199,11 @@ pub struct OntoIngestInput {
     pub inline_mapping: Option<bool>,
     /// Base IRI for generated instances (default: http://example.org/data/)
     pub base_iri: Option<String>,
+    /// Emit PROV-O provenance: each generated subject gets
+    /// prov:wasDerivedFrom the source file, with a prov:Entity for the file
+    /// carrying its path and ingestion timestamp. Interoperates with
+    /// platforms that expect PROV-O (Semantica, TrustGraph). Default false.
+    pub provenance: Option<bool>,
 }
 
 #[derive(Deserialize, JsonSchema)]
@@ -229,6 +234,20 @@ pub struct OntoShaclCheckInput {
     pub shapes: String,
     /// If true, treat shapes as inline Turtle content (default false = file path).
     pub inline: Option<bool>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoVocabCheckInput {
+    /// Path to a Turtle DATA file OR inline Turtle content to check against the
+    /// currently loaded ontology. Every predicate and every `rdf:type` class used
+    /// in the data, whose namespace belongs to the ontology, must be DECLARED in
+    /// the ontology — otherwise it is reported as a hallucinated/undeclared term.
+    pub data: String,
+    /// If true, treat `data` as inline Turtle content (default false = file path).
+    pub inline: Option<bool>,
+    /// Optional extra namespaces to police, beyond the ontology's own namespaces
+    /// (e.g. an imported vocabulary you also want closed-world-checked).
+    pub namespaces: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, JsonSchema)]
@@ -287,6 +306,8 @@ pub struct OntoPlanInput {
 pub struct OntoApplyInput {
     /// Apply mode: "safe" (default), "force" (ignores monitor), "migrate" (adds bridges)
     pub mode: Option<String>,
+    /// Plan to apply, as returned by `onto_plan`. Defaults to the most recent plan.
+    pub plan_id: Option<String>,
 }
 
 #[derive(Deserialize, JsonSchema)]
@@ -541,6 +562,20 @@ pub struct OntoMarketplaceInput {
     pub id: Option<String>,
     /// Filter list by domain (e.g. "foundational", "metadata", "iot", "geospatial")
     pub domain: Option<String>,
+    /// Include community packs from the open registry (default true). Set false for the curated catalogue only / offline use.
+    pub community: Option<bool>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoPluginCallInput {
+    /// Plugin name (as reported by onto_plugin_list)
+    pub plugin: String,
+    /// Tool name within the plugin (as reported by onto_plugin_list)
+    pub tool: String,
+    /// JSON input passed to the plugin tool
+    pub input: Option<serde_json::Value>,
+    /// Optional SPARQL SELECT run against the loaded store first; its result bindings are injected into the plugin's input as "bindings". This is the only way a plugin sees graph data — plugins have no direct store access.
+    pub sparql: Option<String>,
 }
 
 // ─── Prompt input structs ───────────────────────────────────────────────────
@@ -1043,4 +1078,109 @@ mod tests {
         assert!(parsed.descriptions.is_none());
         assert!(parsed.struct_dim.is_none());
     }
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoOssieImportInput {
+    /// Path to an Apache Ossie ontology document (YAML or JSON) OR the document
+    /// content itself when `inline` is true.
+    pub source: String,
+    /// If true, treat `source` as inline document content rather than a file path.
+    pub inline: Option<bool>,
+    /// Base IRI to mint terms under. Defaults to
+    /// `https://ossie.apache.org/ontology/{document name}#`.
+    pub base_iri: Option<String>,
+    /// If true (the default), emit SHACL shapes alongside the OWL. The shapes
+    /// carry the constraints OWL 2 DL cannot state, so turning this off loses
+    /// every OneToOne identifier and every n-ary multiplicity in the source.
+    pub emit_shacl: Option<bool>,
+    /// If true, load the compiled graph into the active ontology store so the
+    /// other tools (`onto_reason`, `onto_shacl`, `onto_tableaux`, `onto_query`)
+    /// can work on it. Defaults to false.
+    pub load: Option<bool>,
+    /// If true, return the full Turtle in the response. Defaults to false, which
+    /// returns only the statistics and the unenforceable-construct report.
+    pub include_turtle: Option<bool>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoCommunitiesInput {
+    /// Ignore communities smaller than this (default 3)
+    pub min_size: Option<usize>,
+    /// How many members, relations and bridges to describe per community (default 8)
+    pub top_members: Option<usize>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoPackInput {
+    /// Where to write the pack
+    pub path: String,
+    /// Pack name (default: the file stem)
+    pub name: Option<String>,
+    /// Version string (default: "1.0.0")
+    pub version: Option<String>,
+    /// Record lint and enforce results in the manifest as evidence (default true)
+    pub include_evidence: Option<bool>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoUnpackInput {
+    /// Pack to read
+    pub path: String,
+    /// Verify the checksum and report the manifest without loading (default false)
+    pub verify_only: Option<bool>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoSupportCheckInput {
+    /// Provenance predicate linking a claim to its source
+    /// (default: prov:wasDerivedFrom)
+    pub prov_predicate: Option<String>,
+    /// Maximum tasks and unsourced examples to return (default 25)
+    pub limit: Option<usize>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoSupportVerdictInput {
+    /// claim_id from onto_support_check
+    pub claim_id: String,
+    /// supported | refuted | unrelated
+    pub verdict: String,
+    /// Optional note: which passage decided it
+    pub note: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoSupportReportInput {
+    /// Provenance predicate (default: prov:wasDerivedFrom)
+    pub prov_predicate: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoReasonIncrementalInput {
+    /// The added triples as N-Triples: what to derive consequences of
+    pub delta: String,
+    /// Write the inferences into the store (default true)
+    pub materialize: Option<bool>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoTemporalSnapshotInput {
+    /// Instant to evaluate validity at, e.g. "2026-03-01". Omit for any time.
+    pub valid_at: Option<String>,
+    /// Only consider what was BELIEVED at this instant: recorded by then and not
+    /// retired by then. An assertion whose temporal:recordedUntil has passed is
+    /// excluded rather than carried forward. Omit for everything known.
+    pub as_of: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoTemporalQueryInput {
+    /// SPARQL graph pattern, the body of a WHERE clause
+    pub pattern: String,
+    /// Instant to evaluate validity at
+    pub valid_at: Option<String>,
+    /// Only consider what was BELIEVED at this instant: recorded by then and not
+    /// retired by then (temporal:recordedUntil closes the interval)
+    pub as_of: Option<String>,
 }

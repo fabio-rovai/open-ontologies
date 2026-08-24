@@ -48,6 +48,23 @@ print(cs.to_kgcl())    # KGCL change records, one per line
 (node created/deleted, renamed, annotation changed, edge created/deleted). Pure
 structural comparison, no model. Also exposed as the `onto_kgcl_diff` MCP tool.
 
+### Dataframe ingestion (fenic, polars, pandas, pyarrow)
+
+```python
+engine.load_rows(df, base_iri="http://x.org/", class_iri="http://x.org/Thing", id_column="id")
+```
+
+`load_rows` duck-types against the common export methods — `to_pylist()`
+(fenic DataFrame, pyarrow Table), `to_dicts()` (polars), `to_dict("records")`
+(pandas) — or takes a plain list of dicts. Values become typed literals
+(int/float/bool → XSD), `None` is skipped, and the output is deterministic.
+The primary consumer is [fenic](https://github.com/typedef-ai/fenic): its
+semantic operators do the LLM extraction, this bridge just loads and lets
+SHACL/lint/SPARQL govern the result. See
+[examples/fenic_pipeline.py](examples/fenic_pipeline.py) for the end-to-end
+shape, and `docs/data-pipeline.md` for ingesting a fenic DuckDB catalog with
+the full Rust engine.
+
 ### Alignment candidate generation with HNSW (optional `[align]` extra)
 
 ```bash
@@ -99,6 +116,41 @@ Register it with any MCP client (e.g. Claude):
 | `onto_diff` | Triple-level diff between two ontologies |
 | `onto_kgcl_diff` | KGCL change records between two versions (governance / change logs) |
 | `onto_lint` | Missing labels, domains, ranges |
+| `onto_shacl` | SHACL conformance: violations with focus node, path, value, severity and constraint, plus `focus_nodes` and `unmatched_shapes` (needs the `[shacl]` extra) |
+| `onto_vocab_check` | Closed-world check: which terms in the data are not declared in the loaded ontology |
+
+### Closed-world checking
+
+RDF is open-world, so a predicate nobody declared is unknown rather than wrong.
+An extractor that invents `ex:hasProteinName` because it sounded plausible
+produces RDF that parses, loads and satisfies SHACL without a murmur. Closing
+that world is the only way to tell an invented term from a real one:
+
+```python
+from open_ontologies_lite import vocab_check
+
+report = vocab_check(ontology_ttl, generated_data_ttl)
+report["undeclared_terms"]   # ['http://example.org/onto#hasProteinName']
+```
+
+Instance IRIs are never policed, because individuals belong to the data rather
+than the vocabulary, and the standard vocabularies are never policed either.
+With no ontology loaded the check reports that nothing was checked and returns
+`conforms: False`, never `True`: a green light from an empty vocabulary is the
+failure this exists to prevent.
+
+### Validation that never passes vacuously
+
+A shapes graph whose targets match nothing validates every constraint against
+the empty set and reports `conforms: True`, byte-identical to a run where every
+constraint was checked and passed. `shacl_validate` reports how many focus nodes
+were actually selected and names the shapes that selected none:
+
+```python
+report["focus_nodes"]        # 0
+report["unmatched_shapes"]   # [{'shape': '...PersonShape', 'target_class': '...Person'}]
+report["conforms"]           # None, because nothing was examined
+```
 
 ## Relationship to the Rust engine
 

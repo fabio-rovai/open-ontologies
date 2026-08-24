@@ -3,15 +3,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import * as mcp from '../lib/mcp-client';
 
-// Sync agent MCP session ID to Rust backend so graph queries use the same store
-async function syncSessionId(sessionId: string) {
-  try {
-    await invoke('set_mcp_session', { sessionId });
-  } catch (e) {
-    console.error('Failed to sync session ID:', e);
-  }
-}
-
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -60,6 +51,9 @@ export const useChat = create<ChatStore>((set) => ({
       timestamp: new Date(),
     };
     set(s => ({ messages: [...s.messages, userMsg], isTyping: true }));
+    // A question sent while the previous answer is still streaming must not
+    // append into the old bubble above it: start a fresh assistant message.
+    currentAssistantMsg = null;
     try {
       const { mode } = useChat.getState();
       await invoke('send_chat_message', { message: text, mode });
@@ -94,8 +88,12 @@ listen<string>('agent-message', (event) => {
   try {
     const data = JSON.parse(event.payload);
 
+    // The agent's session id is a Claude SDK session, not an MCP session,
+    // and the graph store is shared across MCP sessions anyway. Adopting it
+    // as the proxy's MCP session poisoned every panel call after the first
+    // chat turn ("Session not found").
     if (data.type === 'session') {
-      syncSessionId(data.sessionId);
+      // intentionally ignored
     }
 
     if (data.type === 'text') {

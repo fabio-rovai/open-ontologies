@@ -1,0 +1,566 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix zef: <https://tesseract.academy/ns/zef#> .
+
+<https://tesseract.academy/id/zef/air/heathrow> a zef:Airport,
+        zef:Entity ;
+    rdfs:label "Heathrow Airport"^^xsd:string ;
+    dcterms:source "https://www.heathrow.com"^^xsd:string ;
+    rdfs:comment "Project NAPKIN lead." ;
+    zef:leads <https://tesseract.academy/id/zef/proj/napkin> .
+
+<https://tesseract.academy/id/zef/air/london-city> a zef:Airport,
+        zef:Entity ;
+    rdfs:label "London City Airport"^^xsd:string ;
+    dcterms:source "https://www.londoncityairport.com"^^xsd:string ;
+    rdfs:comment "NAPKIN partner." ;
+    zef:partnerOf <https://tesseract.academy/id/zef/proj/napkin> .
+
+<https://tesseract.academy/id/zef/body/caa> a zef:Body,
+        zef:Entity ;
+    rdfs:label "Civil Aviation Authority"^^xsd:string ;
+    dcterms:source "https://www.caa.co.uk"^^xsd:string ;
+    rdfs:comment "UK aviation regulator; hydrogen aerodrome safety." ;
+    zef:regulates <https://tesseract.academy/id/zef/tech/lh2-refuelling> .
+
+<https://tesseract.academy/id/zef/body/cpc> a zef:Body,
+        zef:Entity ;
+    rdfs:label "Connected Places Catapult"^^xsd:string ;
+    dcterms:source "https://cp.catapult.org.uk"^^xsd:string ;
+    rdfs:comment "Runs the Zero Emission Flight Infrastructure (ZEFI) programme." ;
+    zef:leads <https://tesseract.academy/id/zef/prog/zefi> .
+
+<https://tesseract.academy/id/zef/body/jetzero> a zef:Body,
+        zef:Entity ;
+    rdfs:label "Jet Zero Council"^^xsd:string ;
+    dcterms:source "https://www.gov.uk/government/groups/jet-zero-council"^^xsd:string ;
+    rdfs:comment "Government-industry partnership on UK aviation decarbonisation." ;
+    zef:coordinates <https://tesseract.academy/id/zef/prog/jetzero-strategy> .
+
+<https://tesseract.academy/id/zef/fund/ati> a zef:Entity,
+        zef:Funder ;
+    rdfs:label "Aerospace Technology Institute"^^xsd:string ;
+    dcterms:source "https://www.ati.org.uk"^^xsd:string ;
+    rdfs:comment "Funds aerospace propulsion R&D including FlyZero and hydrogen programmes." ;
+    zef:funds <https://tesseract.academy/id/zef/prog/flyzero>,
+        <https://tesseract.academy/id/zef/proj/h2flyght>,
+        <https://tesseract.academy/id/zef/proj/h2gear>,
+        <https://tesseract.academy/id/zef/proj/hyflyer2> ;
+    zef:hasQuantity <https://tesseract.academy/id/zef/q/pkg2021> .
+
+<https://tesseract.academy/id/zef/fund/dft> a zef:Entity,
+        zef:Funder ;
+    rdfs:label "Department for Transport"^^xsd:string ;
+    dcterms:source "https://www.gov.uk/government/organisations/department-for-transport"^^xsd:string ;
+    rdfs:comment "Jet Zero Strategy; funds ZEFI and the Jet Zero programme." ;
+    zef:funds <https://tesseract.academy/id/zef/prog/jetzero-strategy>,
+        <https://tesseract.academy/id/zef/prog/zefi> .
+
+<https://tesseract.academy/id/zef/fund/ukri-ffc> a zef:Entity,
+        zef:Funder ;
+    rdfs:label "UKRI Future Flight Challenge"^^xsd:string ;
+    dcterms:source "https://www.ukri.org/what-we-offer/our-main-funds/industrial-strategy-challenge-fund/future-flight/"^^xsd:string ;
+    rdfs:comment "Innovate UK / UKRI programme funding new aviation systems including NAPKIN and Fresson." ;
+    zef:funds <https://tesseract.academy/id/zef/proj/fresson>,
+        <https://tesseract.academy/id/zef/proj/napkin> .
+
+<https://tesseract.academy/id/zef/org/airbus> a zef:Entity,
+        zef:Organisation ;
+    rdfs:label "Airbus"^^xsd:string ;
+    dcterms:source "https://www.airbus.com/en/innovation/energy-transition/hydrogen/zeroe"^^xsd:string ;
+    rdfs:comment "ZEROe hydrogen concept; timeline revised in 2025 to the later 2030s." ;
+    zef:develops <https://tesseract.academy/id/zef/tech/lh2-storage> ;
+    zef:memberOf <https://tesseract.academy/id/zef/alliance/hia> .
+
+<https://tesseract.academy/id/zef/org/britten-norman> a zef:Entity,
+        zef:Organisation ;
+    rdfs:label "Britten-Norman"^^xsd:string ;
+    dcterms:source "https://www.britten-norman.com"^^xsd:string ;
+    rdfs:comment "BN-2 Islander airframe used in Project Fresson." ;
+    zef:partnerOf <https://tesseract.academy/id/zef/proj/fresson> .
+
+<https://tesseract.academy/id/zef/org/caes> a zef:Entity,
+        zef:Organisation ;
+    rdfs:label "Cranfield Aerospace Solutions"^^xsd:string ;
+    dcterms:source "https://cranfieldaerospace.com"^^xsd:string ;
+    rdfs:comment "Hydrogen-electric propulsion; Britten-Norman Islander conversion." ;
+    zef:develops <https://tesseract.academy/id/zef/proj/fresson>,
+        <https://tesseract.academy/id/zef/tech/fuelcell-powertrain> ;
+    zef:partnerOf <https://tesseract.academy/id/zef/proj/napkin> .
+
+<https://tesseract.academy/id/zef/org/cranfield-uni> a zef:Entity,
+        zef:Organisation ;
+    rdfs:label "Cranfield University"^^xsd:string ;
+    dcterms:source "https://www.cranfield.ac.uk"^^xsd:string ;
+    rdfs:comment "Aerospace research; hydrogen integration (CH2i)." ;
+    zef:partnerOf <https://tesseract.academy/id/zef/proj/napkin> .
+
+<https://tesseract.academy/id/zef/org/deloitte> a zef:Entity,
+        zef:Organisation ;
+    rdfs:label "Deloitte"^^xsd:string ;
+    dcterms:source "https://www2.deloitte.com/uk"^^xsd:string ;
+    rdfs:comment "Commercial and blueprint lead on Project NAPKIN." ;
+    zef:partnerOf <https://tesseract.academy/id/zef/proj/napkin> .
+
+<https://tesseract.academy/id/zef/org/easyjet> a zef:Entity,
+        zef:Organisation ;
+    rdfs:label "easyJet"^^xsd:string ;
+    dcterms:source "https://www.easyjet.com"^^xsd:string ;
+    rdfs:comment "Airline; Hydrogen in Aviation member; hydrogen ground-test partner." ;
+    zef:leads <https://tesseract.academy/id/zef/proj/acorn> ;
+    zef:memberOf <https://tesseract.academy/id/zef/alliance/hia> .
+
+<https://tesseract.academy/id/zef/org/gkn> a zef:Entity,
+        zef:Organisation ;
+    rdfs:label "GKN Aerospace"^^xsd:string ;
+    dcterms:source "https://www.gknaerospace.com"^^xsd:string ;
+    rdfs:comment "Hydrogen propulsion programmes H2GEAR and H2FlyGHT." ;
+    zef:develops <https://tesseract.academy/id/zef/proj/h2flyght>,
+        <https://tesseract.academy/id/zef/proj/h2gear>,
+        <https://tesseract.academy/id/zef/tech/fuelcell-powertrain> ;
+    zef:memberOf <https://tesseract.academy/id/zef/alliance/hia> ;
+    zef:partnerOf <https://tesseract.academy/id/zef/proj/napkin> .
+
+<https://tesseract.academy/id/zef/org/hial> a zef:Entity,
+        zef:Organisation ;
+    rdfs:label "Highlands and Islands Airports"^^xsd:string ;
+    dcterms:source "https://www.hial.co.uk"^^xsd:string ;
+    rdfs:comment "Sub-regional airport operator; NAPKIN partner." ;
+    zef:partnerOf <https://tesseract.academy/id/zef/proj/napkin> .
+
+<https://tesseract.academy/id/zef/org/intelligent-energy> a zef:Entity,
+        zef:Organisation ;
+    rdfs:label "Intelligent Energy"^^xsd:string ;
+    dcterms:source "https://www.intelligent-energy.com"^^xsd:string ;
+    rdfs:comment "Hydrogen fuel-cell systems." ;
+    zef:develops <https://tesseract.academy/id/zef/tech/fuelcell-powertrain> .
+
+<https://tesseract.academy/id/zef/org/loganair> a zef:Entity,
+        zef:Organisation ;
+    rdfs:label "Loganair"^^xsd:string ;
+    dcterms:source "https://www.loganair.co.uk"^^xsd:string ;
+    rdfs:comment "UK regional operator; regional decarbonisation partner." ;
+    zef:partnerOf <https://tesseract.academy/id/zef/proj/fresson> .
+
+<https://tesseract.academy/id/zef/org/orsted> a zef:Entity,
+        zef:Organisation ;
+    rdfs:label "Orsted"^^xsd:string ;
+    dcterms:source "https://orsted.co.uk"^^xsd:string ;
+    rdfs:comment "Energy company; Hydrogen in Aviation member (green hydrogen supply)." ;
+    zef:develops <https://tesseract.academy/id/zef/tech/electrolysis> ;
+    zef:memberOf <https://tesseract.academy/id/zef/alliance/hia> .
+
+<https://tesseract.academy/id/zef/org/rolls-royce> a zef:Entity,
+        zef:Organisation ;
+    rdfs:label "Rolls-Royce"^^xsd:string ;
+    dcterms:source "https://www.rolls-royce.com"^^xsd:string ;
+    rdfs:comment "Hydrogen combustion gas-turbine testing." ;
+    zef:develops <https://tesseract.academy/id/zef/tech/h2-combustion> ;
+    zef:memberOf <https://tesseract.academy/id/zef/alliance/hia> ;
+    zef:partnerOf <https://tesseract.academy/id/zef/proj/acorn>,
+        <https://tesseract.academy/id/zef/proj/napkin> .
+
+<https://tesseract.academy/id/zef/org/southampton> a zef:Entity,
+        zef:Organisation ;
+    rdfs:label "University of Southampton"^^xsd:string ;
+    dcterms:source "https://www.southampton.ac.uk"^^xsd:string ;
+    rdfs:comment "NAPKIN research partner." ;
+    zef:partnerOf <https://tesseract.academy/id/zef/proj/napkin> .
+
+<https://tesseract.academy/id/zef/org/ucl-ats> a zef:Entity,
+        zef:Organisation ;
+    rdfs:label "UCL Air Transportation Systems Lab"^^xsd:string ;
+    dcterms:source "https://www.ucl.ac.uk/bartlett/energy"^^xsd:string ;
+    rdfs:comment "Airline Behaviour Model; route/demand modelling on NAPKIN." ;
+    zef:partnerOf <https://tesseract.academy/id/zef/proj/napkin> .
+
+<https://tesseract.academy/id/zef/org/zeroavia> a zef:Entity,
+        zef:Organisation ;
+    rdfs:label "ZeroAvia"^^xsd:string ;
+    dcterms:source "https://zeroavia.com"^^xsd:string ;
+    rdfs:comment "Hydrogen-electric powertrains (ZA600, ZA2000)." ;
+    zef:basedAt <https://tesseract.academy/id/zef/air/glasgow> ;
+    zef:develops <https://tesseract.academy/id/zef/proj/hyflyer2>,
+        <https://tesseract.academy/id/zef/tech/fuelcell-powertrain> .
+
+<https://tesseract.academy/id/zef/sc/flyzero> a zef:Scenario ;
+    rdfs:label "ATI FlyZero high-ambition scenario"^^xsd:string .
+
+<https://tesseract.academy/id/zef/sc/zefi> a zef:Scenario ;
+    rdfs:label "CPC Zero Emission Flight Infrastructure demand outlook"^^xsd:string .
+
+<https://tesseract.academy/id/zef/src/caa-h2> a prov:Entity,
+        zef:Source ;
+    dcterms:creator "UK Civil Aviation Authority" ;
+    dcterms:date "2024" ;
+    dcterms:source "https://www.caa.co.uk"^^xsd:string ;
+    dcterms:title "CAA hydrogen and zero-emission aviation guidance"^^xsd:string .
+
+<https://tesseract.academy/id/zef/src/cpc-e2e> a prov:Entity,
+        zef:Source ;
+    dcterms:creator "Connected Places Catapult" ;
+    dcterms:date "2024" ;
+    dcterms:source "https://cp.catapult.org.uk/report/hydrogen-e2e-pathways/"^^xsd:string ;
+    dcterms:title "Hydrogen End-to-End Pathways"^^xsd:string .
+
+<https://tesseract.academy/id/zef/src/cpc-zefi> a prov:Entity,
+        zef:Source ;
+    dcterms:creator "Connected Places Catapult" ;
+    dcterms:date "2024" ;
+    dcterms:source "https://cp.catapult.org.uk/programme/preparing-uk-airports-for-zero-emission-aircraft/"^^xsd:string ;
+    dcterms:title "Preparing UK Airports for Zero-Emission Aircraft (ZEFI)"^^xsd:string .
+
+<https://tesseract.academy/id/zef/src/flyzero> a prov:Entity,
+        zef:Source ;
+    dcterms:creator "Aerospace Technology Institute" ;
+    dcterms:date "2022" ;
+    dcterms:source "https://www.ati.org.uk/flyzero/"^^xsd:string ;
+    dcterms:title "FlyZero: Our Vision for Zero-Carbon Emission Air Travel"^^xsd:string .
+
+<https://tesseract.academy/id/zef/src/holy> a prov:Entity,
+        zef:Source ;
+    dcterms:creator "Ascencion Arevalo K M, Neunsinger C" ;
+    dcterms:date "2023" ;
+    dcterms:source "https://doi.org/10.1007/978-3-031-47243-5_1"^^xsd:string ;
+    dcterms:title "HOLY: An Ontology Covering the Hydrogen Market (ISWC 2023)"^^xsd:string .
+
+<https://tesseract.academy/id/zef/src/iso13985> a prov:Entity,
+        zef:Source ;
+    dcterms:creator "ISO" ;
+    dcterms:date "2006" ;
+    dcterms:source "https://www.iso.org/standard/39892.html"^^xsd:string ;
+    dcterms:title "ISO 13985 Liquid hydrogen - Land vehicle fuel tanks"^^xsd:string .
+
+<https://tesseract.academy/id/zef/src/iso19880> a prov:Entity,
+        zef:Source ;
+    dcterms:creator "ISO" ;
+    dcterms:date "2020" ;
+    dcterms:source "https://www.iso.org/standard/71940.html"^^xsd:string ;
+    dcterms:title "ISO 19880-1 Gaseous hydrogen fuelling stations"^^xsd:string .
+
+<https://tesseract.academy/id/zef/src/jetzero> a prov:Entity,
+        zef:Source ;
+    dcterms:creator "Department for Transport" ;
+    dcterms:date "2022" ;
+    dcterms:source "https://www.gov.uk/government/publications/jet-zero-strategy-delivering-net-zero-aviation-by-2050"^^xsd:string ;
+    dcterms:title "Jet Zero Strategy: delivering net zero aviation by 2050"^^xsd:string .
+
+<https://tesseract.academy/id/zef/src/napkin> a prov:Entity,
+        zef:Source ;
+    dcterms:creator "Heathrow / Future Flight Challenge" ;
+    dcterms:date "2023" ;
+    dcterms:source "https://www.heathrow.com/company/about-heathrow/future-flight-challenge/napkin"^^xsd:string ;
+    dcterms:title "Project NAPKIN (New Aviation Propulsion Knowledge and Innovation Network)"^^xsd:string .
+
+<https://tesseract.academy/id/zef/src/peco> a prov:Entity,
+        zef:Source ;
+    dcterms:creator "Markovic M, Garijo D, Germano S, Naja I" ;
+    dcterms:date "2023" ;
+    dcterms:source "https://w3id.org/peco"^^xsd:string ;
+    dcterms:title "PECO: The Provenance of Emission Calculations Ontology"^^xsd:string .
+
+<https://tesseract.academy/id/zef/air/bristol> a zef:Airport,
+        zef:Entity ;
+    rdfs:label "Bristol Airport"^^xsd:string ;
+    dcterms:source "https://www.bristolairport.co.uk"^^xsd:string ;
+    rdfs:comment "Airside hydrogen refuelling trial (Project Acorn); Hydrogen in Aviation member." ;
+    zef:memberOf <https://tesseract.academy/id/zef/alliance/hia> .
+
+<https://tesseract.academy/id/zef/air/glasgow> a zef:Airport,
+        zef:Entity ;
+    rdfs:label "Glasgow Airport"^^xsd:string ;
+    dcterms:source "https://www.glasgowairport.com"^^xsd:string ;
+    rdfs:comment "CPC Connected Airport Living Lab." .
+
+<https://tesseract.academy/id/zef/prog/flyzero> a zef:Entity,
+        zef:Programme ;
+    rdfs:label "ATI FlyZero"^^xsd:string ;
+    dcterms:source "https://www.ati.org.uk/flyzero/"^^xsd:string ;
+    rdfs:comment "2021-2022 ATI study; concluded liquid hydrogen is the primary long-term zero-carbon aviation fuel." .
+
+<https://tesseract.academy/id/zef/q/h2flyght-power> a prov:Entity,
+        zef:Quantity ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/zef/src/h2flyght> ;
+    zef:aboutMetric "propulsion system power rating"^^xsd:string ;
+    zef:forYear "2024"^^xsd:gYear ;
+    zef:numericValue 2.0 ;
+    zef:unit "MW"^^xsd:string .
+
+<https://tesseract.academy/id/zef/q/h2flyght-total> a prov:Entity,
+        zef:Quantity ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/zef/src/h2flyght> ;
+    zef:aboutMetric "project funding (total)"^^xsd:string ;
+    zef:forYear "2024"^^xsd:gYear ;
+    zef:numericValue 44.0 ;
+    zef:unit "GBP million"^^xsd:string .
+
+<https://tesseract.academy/id/zef/q/h2gear-ati> a prov:Entity,
+        zef:Quantity ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/zef/src/govuk-84m> ;
+    zef:aboutMetric "project funding (ATI government grant)"^^xsd:string ;
+    zef:forYear "2021"^^xsd:gYear ;
+    zef:numericValue 27.2 ;
+    zef:unit "GBP million"^^xsd:string .
+
+<https://tesseract.academy/id/zef/q/h2gear-total> a prov:Entity,
+        zef:Quantity ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/zef/src/govuk-84m> ;
+    zef:aboutMetric "project funding (total)"^^xsd:string ;
+    zef:forYear "2021"^^xsd:gYear ;
+    zef:numericValue 54.4 ;
+    zef:unit "GBP million"^^xsd:string .
+
+<https://tesseract.academy/id/zef/q/hia-benefit> a prov:Entity,
+        zef:Quantity ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/zef/src/hia-2023> ;
+    zef:aboutMetric "projected annual UK economic benefit of hydrogen aviation by 2050"^^xsd:string ;
+    zef:forYear "2050"^^xsd:gYear ;
+    zef:numericValue 34.0 ;
+    zef:unit "GBP billion per year"^^xsd:string .
+
+<https://tesseract.academy/id/zef/q/hyflyer2-ati> a prov:Entity,
+        zef:Quantity ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/zef/src/govuk-84m> ;
+    zef:aboutMetric "project funding (ATI government grant)"^^xsd:string ;
+    zef:forYear "2021"^^xsd:gYear ;
+    zef:numericValue 12.3 ;
+    zef:unit "GBP million"^^xsd:string .
+
+<https://tesseract.academy/id/zef/q/hyflyer2-total> a prov:Entity,
+        zef:Quantity ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/zef/src/govuk-84m> ;
+    zef:aboutMetric "project funding (total)"^^xsd:string ;
+    zef:forYear "2021"^^xsd:gYear ;
+    zef:numericValue 24.6 ;
+    zef:unit "GBP million"^^xsd:string .
+
+<https://tesseract.academy/id/zef/q/pkg2021> a prov:Entity,
+        zef:Quantity ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/zef/src/govuk-84m> ;
+    zef:aboutMetric "public and industry funding, January 2021 green aviation package"^^xsd:string ;
+    zef:forYear "2021"^^xsd:gYear ;
+    zef:numericValue 84.6 ;
+    zef:unit "GBP million"^^xsd:string .
+
+<https://tesseract.academy/id/zef/src/flyzero-cryo> a prov:Entity,
+        zef:Source ;
+    dcterms:creator "Aerospace Technology Institute" ;
+    dcterms:date "2022" ;
+    dcterms:source "https://www.ati.org.uk/wp-content/uploads/2022/03/FZO-PPN-MAP-0026-Cryogenic-Hydrogen-Fuel-System-and-Storage-Roadmap.pdf"^^xsd:string ;
+    dcterms:title "FlyZero Cryogenic Hydrogen Fuel System and Storage Roadmap (FZO-PPN-MAP-0026)"^^xsd:string .
+
+<https://tesseract.academy/id/zef/src/hia-2023> a prov:Entity,
+        zef:Source ;
+    dcterms:creator "Hydrogen in Aviation (via Rolls-Royce)" ;
+    dcterms:date "2023-09" ;
+    dcterms:source "https://www.rolls-royce.com/media/our-stories/discover/2023/uk-hydrogen-alliance-established-to-accelerate-zero-carbon-aviation.aspx"^^xsd:string ;
+    dcterms:title "UK hydrogen alliance established to accelerate zero-carbon aviation"^^xsd:string .
+
+<https://tesseract.academy/id/zef/stage/liquefaction> a zef:ChainStage ;
+    rdfs:label "Liquefaction and distribution"^^xsd:string ;
+    zef:hasInput <https://tesseract.academy/id/zef/form/gh2> ;
+    zef:hasOutput <https://tesseract.academy/id/zef/form/lh2> ;
+    zef:stageOrder 2 .
+
+<https://tesseract.academy/id/zef/stage/production> a zef:ChainStage ;
+    rdfs:label "Production (electrolysis)"^^xsd:string ;
+    zef:hasInput <https://tesseract.academy/id/zef/form/electricity> ;
+    zef:hasOutput <https://tesseract.academy/id/zef/form/gh2> ;
+    zef:stageOrder 1 .
+
+<https://tesseract.academy/id/zef/stage/refuelling> a zef:ChainStage ;
+    rdfs:label "Aircraft refuelling"^^xsd:string ;
+    zef:hasInput <https://tesseract.academy/id/zef/form/lh2> ;
+    zef:hasOutput <https://tesseract.academy/id/zef/form/lh2> ;
+    zef:stageOrder 4 .
+
+<https://tesseract.academy/id/zef/std/caa-safety> a zef:Entity,
+        zef:Standard ;
+    rdfs:label "CAA aerodrome hydrogen safety guidance"^^xsd:string ;
+    dcterms:source "https://www.caa.co.uk"^^xsd:string ;
+    rdfs:comment "UK regulatory guidance for hydrogen at aerodromes." .
+
+<https://tesseract.academy/id/zef/std/iso19880> a zef:Entity,
+        zef:Standard ;
+    rdfs:label "ISO 19880-1 (gaseous hydrogen fuelling)"^^xsd:string ;
+    dcterms:source "https://www.iso.org/standard/71940.html"^^xsd:string ;
+    rdfs:comment "Gaseous hydrogen fuelling station requirements." .
+
+<https://tesseract.academy/id/zef/tech/electrolysis> a zef:Entity,
+        zef:Technology ;
+    rdfs:label "Green hydrogen electrolysis"^^xsd:string ;
+    rdfs:comment "PEM and alkaline commercial; SOEC emerging." ;
+    zef:feedsInto <https://tesseract.academy/id/zef/tech/liquefaction> ;
+    zef:maturityBand "Commercial" ;
+    zef:realisesStage <https://tesseract.academy/id/zef/stage/production> .
+
+<https://tesseract.academy/id/zef/tech/gh2-storage> a zef:Entity,
+        zef:Technology ;
+    rdfs:label "Gaseous hydrogen storage"^^xsd:string ;
+    rdfs:comment "In use on sub-regional demonstrators." ;
+    zef:feedsInto <https://tesseract.academy/id/zef/tech/fuelcell-powertrain> ;
+    zef:governedBy <https://tesseract.academy/id/zef/std/iso19880> ;
+    zef:maturityBand "Pilot" ;
+    zef:realisesStage <https://tesseract.academy/id/zef/stage/storage> .
+
+<https://tesseract.academy/id/zef/tech/liquefaction> a zef:Entity,
+        zef:Technology ;
+    rdfs:label "Hydrogen liquefaction and distribution"^^xsd:string ;
+    rdfs:comment "Industrial-scale exists; airport-scale distribution developing." ;
+    zef:feedsInto <https://tesseract.academy/id/zef/tech/lh2-storage> ;
+    zef:maturityBand "Commercial" ;
+    zef:realisesStage <https://tesseract.academy/id/zef/stage/liquefaction> .
+
+<https://tesseract.academy/id/zef/trl/lh2store> a prov:Entity,
+        zef:TRLAssessment ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/zef/src/flyzero-cryo> ;
+    zef:assessedOn "2022-03-01"^^xsd:date ;
+    zef:trlScale "EU/NASA TRL 1-9"^^xsd:string ;
+    zef:trlValue 3 .
+
+<https://tesseract.academy/id/zef/form/electricity> a zef:HydrogenForm ;
+    rdfs:label "Renewable electricity"^^xsd:string .
+
+<https://tesseract.academy/id/zef/form/gh2> a zef:HydrogenForm ;
+    rdfs:label "Gaseous hydrogen (GH2)"^^xsd:string .
+
+<https://tesseract.academy/id/zef/prog/jetzero-strategy> a zef:Entity,
+        zef:Programme ;
+    rdfs:label "Jet Zero Strategy"^^xsd:string ;
+    dcterms:source "https://www.gov.uk/government/publications/jet-zero-strategy-delivering-net-zero-aviation-by-2050"^^xsd:string ;
+    rdfs:comment "DfT 2022 strategy for net-zero UK aviation by 2050." .
+
+<https://tesseract.academy/id/zef/prog/zefi> a zef:Entity,
+        zef:Programme ;
+    rdfs:label "Zero Emission Flight Infrastructure (ZEFI)"^^xsd:string ;
+    dcterms:source "https://cp.catapult.org.uk/programme/preparing-uk-airports-for-zero-emission-aircraft/"^^xsd:string ;
+    rdfs:comment "DfT-funded, CPC-led programme on airport hydrogen and electric infrastructure." .
+
+<https://tesseract.academy/id/zef/proj/acorn> a zef:Entity,
+        zef:Project ;
+    rdfs:label "Project Acorn"^^xsd:string ;
+    dcterms:source "https://hydrogeninaviation.co.uk"^^xsd:string ;
+    rdfs:comment "easyJet-led airside hydrogen refuelling trial at Bristol Airport." ;
+    zef:demonstratesAt <https://tesseract.academy/id/zef/air/bristol> ;
+    zef:usesTechnology <https://tesseract.academy/id/zef/tech/lh2-refuelling> .
+
+<https://tesseract.academy/id/zef/proj/h2flyght> a zef:Entity,
+        zef:Project ;
+    rdfs:label "H2FlyGHT"^^xsd:string ;
+    dcterms:source "https://www.gknaerospace.com"^^xsd:string ;
+    rdfs:comment "GKN Aerospace cryogenic hydrogen and electric propulsion programme." ;
+    zef:hasQuantity <https://tesseract.academy/id/zef/q/h2flyght-power>,
+        <https://tesseract.academy/id/zef/q/h2flyght-total> ;
+    zef:usesTechnology <https://tesseract.academy/id/zef/tech/lh2-storage> .
+
+<https://tesseract.academy/id/zef/proj/h2gear> a zef:Entity,
+        zef:Project ;
+    rdfs:label "H2GEAR"^^xsd:string ;
+    dcterms:source "https://www.gknaerospace.com"^^xsd:string ;
+    rdfs:comment "GKN Aerospace hydrogen fuel-cell propulsion programme." ;
+    zef:hasQuantity <https://tesseract.academy/id/zef/q/h2gear-ati>,
+        <https://tesseract.academy/id/zef/q/h2gear-total> ;
+    zef:usesTechnology <https://tesseract.academy/id/zef/tech/fuelcell-powertrain> .
+
+<https://tesseract.academy/id/zef/proj/hyflyer2> a zef:Entity,
+        zef:Project ;
+    rdfs:label "HyFlyer II"^^xsd:string ;
+    dcterms:source "https://zeroavia.com"^^xsd:string ;
+    rdfs:comment "ZeroAvia hydrogen-electric flight demonstration project." ;
+    zef:hasQuantity <https://tesseract.academy/id/zef/q/hyflyer2-ati>,
+        <https://tesseract.academy/id/zef/q/hyflyer2-total> ;
+    zef:usesTechnology <https://tesseract.academy/id/zef/tech/fuelcell-powertrain> .
+
+<https://tesseract.academy/id/zef/src/h2flyght> a prov:Entity,
+        zef:Source ;
+    dcterms:creator "GKN Aerospace" ;
+    dcterms:date "2024-07" ;
+    dcterms:source "https://www.gknaerospace.com/news-insights/news/gkn-aerospace-launches-h2flyght-pioneering-44m-project-for-2-mw-cryogenic-hydrogen-electric-propulsion/"^^xsd:string ;
+    dcterms:title "GKN Aerospace launches H2FlyGHT, a 44m project for 2 MW cryogenic hydrogen-electric propulsion"^^xsd:string .
+
+<https://tesseract.academy/id/zef/stage/propulsion> a zef:ChainStage ;
+    rdfs:label "Propulsion (fuel cell or turbine)"^^xsd:string ;
+    zef:hasInput <https://tesseract.academy/id/zef/form/lh2> ;
+    zef:hasOutput <https://tesseract.academy/id/zef/form/electricity> ;
+    zef:stageOrder 5 .
+
+<https://tesseract.academy/id/zef/stage/storage> a zef:ChainStage ;
+    rdfs:label "On-airport cryogenic storage"^^xsd:string ;
+    zef:hasInput <https://tesseract.academy/id/zef/form/lh2> ;
+    zef:hasOutput <https://tesseract.academy/id/zef/form/lh2> ;
+    zef:stageOrder 3 .
+
+<https://tesseract.academy/id/zef/std/iso13985> a zef:Entity,
+        zef:Standard ;
+    rdfs:label "ISO 13985 (liquid hydrogen fuel tanks)"^^xsd:string ;
+    dcterms:source "https://www.iso.org/standard/39892.html"^^xsd:string ;
+    rdfs:comment "Liquid hydrogen land-vehicle fuel tanks; reference for cryogenic LH2 handling." .
+
+<https://tesseract.academy/id/zef/tech/h2-combustion> a zef:Entity,
+        zef:Technology ;
+    rdfs:label "Hydrogen combustion gas turbine"^^xsd:string ;
+    rdfs:comment "Ground tests completed by engine makers." ;
+    zef:maturityBand "Demonstration" ;
+    zef:realisesStage <https://tesseract.academy/id/zef/stage/propulsion> .
+
+<https://tesseract.academy/id/zef/tech/lh2-refuelling> a zef:Entity,
+        zef:Technology ;
+    rdfs:label "Airside liquid hydrogen refuelling"^^xsd:string ;
+    rdfs:comment "First airside trials underway." ;
+    zef:feedsInto <https://tesseract.academy/id/zef/tech/fuelcell-powertrain> ;
+    zef:governedBy <https://tesseract.academy/id/zef/std/caa-safety>,
+        <https://tesseract.academy/id/zef/std/iso13985> ;
+    zef:maturityBand "Pilot" ;
+    zef:realisesStage <https://tesseract.academy/id/zef/stage/refuelling> .
+
+<https://tesseract.academy/id/zef/tech/lh2-storage> a zef:Entity,
+        zef:Technology ;
+    rdfs:label "Liquid hydrogen cryogenic storage"^^xsd:string ;
+    rdfs:comment "Airframe and airport cryogenic integration in development." ;
+    zef:feedsInto <https://tesseract.academy/id/zef/tech/h2-combustion>,
+        <https://tesseract.academy/id/zef/tech/lh2-refuelling> ;
+    zef:governedBy <https://tesseract.academy/id/zef/std/iso13985> ;
+    zef:hasTRLAssessment <https://tesseract.academy/id/zef/trl/lh2store> ;
+    zef:maturityBand "Development" ;
+    zef:realisesStage <https://tesseract.academy/id/zef/stage/storage> .
+
+<https://tesseract.academy/id/zef/proj/fresson> a zef:Entity,
+        zef:Project ;
+    rdfs:label "Project Fresson"^^xsd:string ;
+    dcterms:source "https://cranfieldaerospace.com"^^xsd:string ;
+    rdfs:comment "Cranfield Aerospace Solutions hydrogen fuel-cell Islander conversion." ;
+    zef:usesTechnology <https://tesseract.academy/id/zef/tech/fuelcell-powertrain>,
+        <https://tesseract.academy/id/zef/tech/gh2-storage> .
+
+<https://tesseract.academy/id/zef/src/govuk-84m> a prov:Entity,
+        zef:Source ;
+    dcterms:creator "UK Government / Department for Business, Energy and Industrial Strategy" ;
+    dcterms:date "2021-01-27" ;
+    dcterms:source "https://www.gov.uk/government/news/84-million-boost-for-technology-to-power-a-green-aviation-revolution"^^xsd:string ;
+    dcterms:title "84 million boost for technology to power a green aviation revolution"^^xsd:string .
+
+<https://tesseract.academy/id/zef/alliance/hia> a zef:Alliance,
+        zef:Entity ;
+    rdfs:label "Hydrogen in Aviation (HIA)"^^xsd:string ;
+    dcterms:source "https://hydrogeninaviation.co.uk"^^xsd:string ;
+    rdfs:comment "Industry alliance for hydrogen-powered aviation." ;
+    zef:hasQuantity <https://tesseract.academy/id/zef/q/hia-benefit> .
+
+<https://tesseract.academy/id/zef/form/lh2> a zef:HydrogenForm ;
+    rdfs:label "Liquid hydrogen (LH2)"^^xsd:string .
+
+<https://tesseract.academy/id/zef/tech/fuelcell-powertrain> a zef:Entity,
+        zef:Technology ;
+    rdfs:label "Hydrogen fuel-cell powertrain"^^xsd:string ;
+    rdfs:comment "Sub-regional demonstrators flying and ground-testing." ;
+    zef:maturityBand "Demonstration" ;
+    zef:realisesStage <https://tesseract.academy/id/zef/stage/propulsion> .
+
+<https://tesseract.academy/id/zef/proj/napkin> a zef:Entity,
+        zef:Project ;
+    rdfs:label "Project NAPKIN"^^xsd:string ;
+    dcterms:source "https://www.heathrow.com/company/about-heathrow/future-flight-challenge/napkin"^^xsd:string ;
+    rdfs:comment "Future Flight Challenge project; sub-regional zero-emission flight blueprint; Heathrow-led." .
+

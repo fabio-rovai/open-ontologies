@@ -1,0 +1,43 @@
+MoDiP Plastics Knowledge Graph — licensing
+
+This repository combines three layers with different licences. Please respect all
+three.
+
+1. SOURCE DATA
+   The object records under data/raw/ and any values reproduced from them are
+   © the Museum of Design in Plastics (MoDiP) / Arts University Bournemouth,
+   published via the Museum Data Service under the Creative Commons Attribution
+   4.0 International licence (CC BY 4.0):
+     https://creativecommons.org/licenses/by/4.0/
+   Per-record rights are retained in the graph (dct:license, dct:rightsHolder).
+
+2. VOCABULARIES & DATA PRODUCED HERE
+   The taxonomies (ontology/*.ttl), the derived instance graph (build/*.ttl),
+   mappings and documentation produced by this project are released under
+   CC BY 4.0. Attribute "The Tesseract Academy — MoDiP Plastics Knowledge Graph".
+
+3. CODE
+   The scripts under src/ are released under the MIT Licence:
+
+   Copyright (c) 2026 Fabio Rovai / The Tesseract Academy
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+Getty AAT alignments referenced in the vocabularies are © J. Paul Getty Trust,
+under the Open Data Commons Attribution License (ODC-By 1.0).

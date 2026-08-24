@@ -1,0 +1,222 @@
+{
+  "polymer": {
+    "aat": "http://vocab.getty.edu/aat/300218300",
+    "matched_on": "polymer"
+  },
+  "biopolymer": {
+    "aat": "http://vocab.getty.edu/aat/300380488",
+    "matched_on": "biopolymer"
+  },
+  "polyolefin": {
+    "aat": "http://vocab.getty.edu/aat/300380062",
+    "matched_on": "polyolefin"
+  },
+  "pp": {
+    "aat": "http://vocab.getty.edu/aat/300014489",
+    "matched_on": "polypropylene"
+  },
+  "ps": {
+    "aat": "http://vocab.getty.edu/aat/300014492",
+    "matched_on": "polystyrene"
+  },
+  "abs": {
+    "aat": "http://vocab.getty.edu/aat/300014418",
+    "matched_on": "acrylonitrile butadiene styrene"
+  },
+  "vinyl": {
+    "aat": "http://vocab.getty.edu/aat/300266731",
+    "matched_on": "vinyl polymer"
+  },
+  "pvc": {
+    "aat": "http://vocab.getty.edu/aat/300014513",
+    "matched_on": "polyvinyl chloride"
+  },
+  "pvdc": {
+    "aat": "http://vocab.getty.edu/aat/300014551",
+    "matched_on": "polyvinylidene chloride"
+  },
+  "pvoh": {
+    "aat": "http://vocab.getty.edu/aat/300014509",
+    "matched_on": "polyvinyl alcohol"
+  },
+  "pvb": {
+    "aat": "http://vocab.getty.edu/aat/300014511",
+    "matched_on": "polyvinyl butyral"
+  },
+  "eva": {
+    "aat": "http://vocab.getty.edu/aat/300251539",
+    "matched_on": "ethylene vinyl acetate"
+  },
+  "pan": {
+    "aat": "http://vocab.getty.edu/aat/300250693",
+    "matched_on": "polyacrylonitrile"
+  },
+  "polyamide": {
+    "aat": "http://vocab.getty.edu/aat/300014469",
+    "matched_on": "polyamide"
+  },
+  "aramid": {
+    "aat": "http://vocab.getty.edu/aat/300254874",
+    "matched_on": "aramid"
+  },
+  "tp_polyester": {
+    "aat": "http://vocab.getty.edu/aat/300167631",
+    "matched_on": "thermoplastic polyester"
+  },
+  "pet": {
+    "aat": "http://vocab.getty.edu/aat/300380208",
+    "matched_on": "polyethylene terephthalate"
+  },
+  "pbt": {
+    "aat": "http://vocab.getty.edu/aat/300389072",
+    "matched_on": "pbt"
+  },
+  "pc": {
+    "aat": "http://vocab.getty.edu/aat/300014473",
+    "matched_on": "polycarbonate"
+  },
+  "ppo": {
+    "aat": "http://vocab.getty.edu/aat/300379611",
+    "matched_on": "ppe"
+  },
+  "fluoropolymer": {
+    "aat": "http://vocab.getty.edu/aat/300014449",
+    "matched_on": "fluoropolymer"
+  },
+  "ptfe": {
+    "aat": "http://vocab.getty.edu/aat/300389728",
+    "matched_on": "polytetrafluoroethylene"
+  },
+  "pu": {
+    "aat": "http://vocab.getty.edu/aat/300014495",
+    "matched_on": "polyurethane"
+  },
+  "pufoam": {
+    "aat": "http://vocab.getty.edu/aat/300380436",
+    "matched_on": "polyurethane foam"
+  },
+  "phenolic": {
+    "aat": "http://vocab.getty.edu/aat/300014540",
+    "matched_on": "phenolic resin"
+  },
+  "uf": {
+    "aat": "http://vocab.getty.edu/aat/300014529",
+    "matched_on": "urea formaldehyde"
+  },
+  "mf": {
+    "aat": "http://vocab.getty.edu/aat/300014525",
+    "matched_on": "melamine"
+  },
+  "epoxy": {
+    "aat": "http://vocab.getty.edu/aat/300014533",
+    "matched_on": "epoxy resin"
+  },
+  "boisdurci": {
+    "aat": "http://vocab.getty.edu/aat/300404195",
+    "matched_on": "bois durci"
+  },
+  "cellulosic": {
+    "aat": "http://vocab.getty.edu/aat/300014437",
+    "matched_on": "cellulosic plastic"
+  },
+  "cn": {
+    "aat": "http://vocab.getty.edu/aat/300014444",
+    "matched_on": "cellulose nitrate"
+  },
+  "ca": {
+    "aat": "http://vocab.getty.edu/aat/300014439",
+    "matched_on": "cellulose acetate"
+  },
+  "cta": {
+    "aat": "http://vocab.getty.edu/aat/300130950",
+    "matched_on": "cellulose triacetate"
+  },
+  "rayon": {
+    "aat": "http://vocab.getty.edu/aat/300391502",
+    "matched_on": "rayon"
+  },
+  "cellophane": {
+    "aat": "http://vocab.getty.edu/aat/300248126",
+    "matched_on": "cellophane"
+  },
+  "casein": {
+    "aat": "http://vocab.getty.edu/aat/300380331",
+    "matched_on": "cf"
+  },
+  "elastomer": {
+    "aat": "http://vocab.getty.edu/aat/300014379",
+    "matched_on": "elastomer"
+  },
+  "naturalrubber": {
+    "aat": "http://vocab.getty.edu/aat/300012941",
+    "matched_on": "natural rubber"
+  },
+  "guttapercha": {
+    "aat": "http://vocab.getty.edu/aat/300211567",
+    "matched_on": "gutta percha"
+  },
+  "hardrubber": {
+    "aat": "http://vocab.getty.edu/aat/300380359",
+    "matched_on": "ebonite"
+  },
+  "polychloroprene": {
+    "aat": "http://vocab.getty.edu/aat/300014387",
+    "matched_on": "neoprene"
+  },
+  "sbr": {
+    "aat": "http://vocab.getty.edu/aat/300014408",
+    "matched_on": "sbr"
+  },
+  "silicone": {
+    "aat": "http://vocab.getty.edu/aat/300014558",
+    "matched_on": "silicone"
+  },
+  "elastane": {
+    "aat": "http://vocab.getty.edu/aat/300310125",
+    "matched_on": "elastane"
+  },
+  "pla": {
+    "aat": "http://vocab.getty.edu/aat/300389999",
+    "matched_on": "pla"
+  },
+  "shellac": {
+    "aat": "http://vocab.getty.edu/aat/300014918",
+    "matched_on": "shellac"
+  },
+  "tortoiseshell": {
+    "aat": "http://vocab.getty.edu/aat/300011837",
+    "matched_on": "tortoiseshell"
+  },
+  "wax": {
+    "aat": "http://vocab.getty.edu/aat/300014585",
+    "matched_on": "wax"
+  },
+  "composite_generic": {
+    "aat": "http://vocab.getty.edu/aat/300460203",
+    "matched_on": "frp"
+  },
+  "stainlesssteel": {
+    "aat": "http://vocab.getty.edu/aat/300010920",
+    "matched_on": "stainless steel"
+  },
+  "tin": {
+    "aat": "http://vocab.getty.edu/aat/300389416",
+    "matched_on": "tin"
+  },
+  "chrome": {
+    "aat": "http://vocab.getty.edu/aat/300011019",
+    "matched_on": "chrome"
+  },
+  "zinc": {
+    "aat": "http://vocab.getty.edu/aat/300011000",
+    "matched_on": "zinc alloy"
+  },
+  "titanium": {
+    "aat": "http://vocab.getty.edu/aat/300011033",
+    "matched_on": "titanium"
+  },
+  "wire": {
+    "aat": "http://vocab.getty.edu/aat/300011063",
+    "matched_on": "wire"
+  }
+}

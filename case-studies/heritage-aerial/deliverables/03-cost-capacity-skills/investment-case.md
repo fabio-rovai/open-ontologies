@@ -1,5 +1,4 @@
-# Investment Case — NAPH Adoption for Aerial Photography Heritage
-
+# Investment Case: NAPH Adoption for Aerial Photography Heritage
 The case for investment in NAPH adoption from three perspectives: institutional, sector-wide, and funder.
 
 This document is **paired** with [`cost-effort-analysis.md`](../../docs/cost-effort-analysis.md) (modelled costs) and [`skills-map.md`](skills-map.md) (capability requirements).
@@ -34,7 +33,7 @@ Aerial photography heritage supports research across multiple disciplines:
 | Environmental policy | Land-use change, deforestation, pollution events |
 | Genealogy and local history | Family-property research, village reconstruction |
 
-Each field produces published research that cites specific records. Currently, citation is manual (image numbers in footnotes) and irreproducible. NAPH-compliant collections enable persistent, citable, queryable records — making aerial-photography research first-class in the digital scholarly record.
+Each field produces published research that cites specific records. Currently, citation is manual (image numbers in footnotes) and irreproducible. NAPH-compliant collections enable persistent, citable, queryable records, making aerial-photography research first-class in the digital scholarly record.
 
 ## 3. The institutional case
 
@@ -42,23 +41,23 @@ Each field produces published research that cites specific records. Currently, c
 
 For an institution adopting NAPH Baseline:
 
-- **External research enquiries** — researchers can find collections via federated search rather than knowing which institution holds what
-- **Aggregator participation** — Europeana, DPLA, national portals harvest with no extra effort
-- **Funder reporting** — open-data, FAIR alignment, capability building all evidenced via SHACL conformance
-- **Internal reuse** — institutional staff can build new applications on the data without rebuilding
+- **External research enquiries**: researchers can find collections via federated search rather than knowing which institution holds what
+- **Aggregator participation**: Europeana, DPLA, national portals harvest with no extra effort
+- **Funder reporting**: open-data, FAIR alignment, capability building all evidenced via SHACL conformance
+- **Internal reuse**: institutional staff can build new applications on the data without rebuilding
 
 ### 3.2 Strategic returns from Enhanced adoption
 
-- **Reproducible computational research** — papers cite specific records; results replicable
-- **Cross-institutional federated discovery** — partnerships with NARA, IGN, Bundesarchiv become technically simple
-- **Specialist tooling** — stereo-pair detection, change-detection, GSD-aware retrieval all become standardisable
-- **National-programme participation** — N-RICH, RICHeS, future heritage research infrastructure investment relies on standards-compliant collections
+- **Reproducible computational research**: papers cite specific records; results replicable
+- **Cross-institutional federated discovery**: partnerships with NARA, IGN, Bundesarchiv become technically simple
+- **Specialist tooling**: stereo-pair detection, change-detection, GSD-aware retrieval all become standardisable
+- **National-programme participation**: N-RICH, RICHeS, future heritage research infrastructure investment relies on standards-compliant collections
 
 ### 3.3 Aspirational returns
 
-- **Knowledge-graph queries** — "show me all aerial coverage of [location] linked to [historic event]" works as a single query
-- **Vision-language model use** — content-based retrieval, automatic subject classification at sample-validated accuracy
-- **AI-driven curation** — research-priority subsets surfaced automatically rather than manually
+- **Knowledge-graph queries**: "show me all aerial coverage of [location] linked to [historic event]" works as a single query
+- **Vision-language model use**: content-based retrieval, automatic subject classification at sample-validated accuracy
+- **AI-driven curation**: research-priority subsets surfaced automatically rather than manually
 
 ### 3.4 Concrete cost example
 
@@ -72,7 +71,7 @@ For an institution with 100,000 records (representative mid-sized aerial photogr
 
 Total to reach Aspirational from nothing: ~£206,000 capital + ~£16,000/year ongoing.
 
-By comparison, the current annual cost of *not* having computation-ready data — measured in lost research enquiries, manual customer-service overhead, missed funding compliance, missed aggregator inclusion — is plausibly £30,000-£100,000/year for an institution of this size, but is rarely tracked.
+By comparison, the current annual cost of *not* having computation-ready data (measured in lost research enquiries, manual customer-service overhead, missed funding compliance, missed aggregator inclusion) is plausibly £30,000-£100,000/year for an institution of this size, but is rarely tracked.
 
 ## 4. The sector case
 
@@ -97,7 +96,7 @@ NAPH adoption unlocks investments that don't make sense for individual instituti
 | Stereo-pair and change-detection tooling | £600k | £150k | Research-active institutions |
 | OCR / mission-log parsing service | £300k | £120k | All institutions with paper sortie logs |
 
-Total sector-shared investment: ~£1.65M one-time + ~£650k/year. This is at the same scale as a single Discovery Project under TaNC — but unlocks capability for the entire vertical, not one academic project.
+Total sector-shared investment: ~£1.65M one-time + ~£650k/year. This is at the same scale as a single Discovery Project under TaNC, but unlocks capability for the entire vertical, not one academic project.
 
 ## 5. The funder case
 
@@ -107,7 +106,7 @@ For UKRI / AHRC / Research England:
 
 NAPH adoption builds durable capability:
 
-- Linked-data engineering skills — currently a sector-wide gap
+- Linked-data engineering skills: currently a sector-wide gap
 - Domain-specific (aerial-photography) computational research methods
 - Cross-institutional working practices via shared standards
 
@@ -115,11 +114,11 @@ These skills are reusable across heritage research infrastructure, not just N-RI
 
 ### 5.2 Open data return
 
-Public investment in heritage collections produces public-good open data. NAPH compliance makes this open-data investment legible — funders can demand and verify FAIR / CARE alignment via SHACL conformance reports rather than aspirational language.
+Public investment in heritage collections produces public-good open data. NAPH compliance makes this open-data investment legible: funders can demand and verify FAIR / CARE alignment via SHACL conformance reports rather than aspirational language.
 
 ### 5.3 International leverage
 
-The UK has the largest aerial photography heritage holdings of any single country (NCAP alone is the largest in Europe). A UK-led NAPH standard, if adopted internationally, positions the UK as the convening authority for aerial-heritage standards globally — analogous to the British Library's role in bibliographic standards (MARC, RDA).
+The UK has the largest aerial photography heritage holdings of any single country (NCAP alone is the largest in Europe). A UK-led NAPH standard, if adopted internationally, positions the UK as the convening authority for aerial-heritage standards globally, analogous to the British Library's role in bibliographic standards (MARC, RDA).
 
 ### 5.4 Research impact
 
@@ -137,9 +136,9 @@ These are direct REF-eligible impact metrics for HEI partners.
 
 Lower than average for sector standards:
 
-- **Voluntary, incremental adoption** — Baseline tier is low-cost, no rebuild required
-- **Built on existing standards** (PROV, SKOS, DCAT, GeoSPARQL, IIIF) — no novel technical risk
-- **Governance designed for sustainability** — see [Governance Proposal](../05-governance/governance-proposal.md)
+- **Voluntary, incremental adoption**: Baseline tier is low-cost, no rebuild required
+- **Built on existing standards** (PROV, SKOS, DCAT, GeoSPARQL, IIIF), no novel technical risk
+- **Governance designed for sustainability**: see [Governance Proposal](../05-governance/governance-proposal.md)
 
 ### 6.2 Maintenance risk
 
@@ -189,7 +188,7 @@ Total programme investment over 5 years: ~£10M-£20M depending on shared-servic
 
 If NAPH does not get adopted:
 
-- The UK aerial photography vertical remains in its current state — digitised but not computable
+- The UK aerial photography vertical remains in its current state: digitised but not computable
 - Cross-institutional research remains manually federated, expensive, slow
 - The opportunity for international standards leadership passes to another country (likely France IGN or Germany Bundesarchiv)
 - Research investment in aerial photography heritage continues to produce one-off applications rather than reusable infrastructure

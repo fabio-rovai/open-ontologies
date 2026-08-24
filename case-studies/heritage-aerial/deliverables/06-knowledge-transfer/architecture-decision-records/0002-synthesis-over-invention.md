@@ -1,5 +1,4 @@
-# ADR-0002: Synthesis over invention — subclass alignment to existing standards
-
+# ADR-0002: Synthesis over invention: subclass alignment to existing standards
 **Status:** Accepted
 **Date:** 2026-04-30
 **Decider:** Editorial team
@@ -50,7 +49,7 @@ Eleven subclass declarations cover the integration surface.
 
 - **Constrained design freedom:** when parent standards have constraints we'd prefer to relax, we must accept them or break the alignment.
 - **Vulnerability to parent-standard breaking changes:** if W3C deprecates DCAT, NAPH must respond. (Realistic risk: low. W3C standards rarely break.)
-- **Potential for misalignment errors:** picking the wrong parent class (initial draft used `dcat:Dataset` instead of `dcat:Resource` for individual photographs — see [ADR-0003](0003-aerial-photograph-as-dcat-resource.md)) propagates broadly. The red-team review caught one such error before publication.
+- **Potential for misalignment errors:** picking the wrong parent class (initial draft used `dcat:Dataset` instead of `dcat:Resource` for individual photographs, see [ADR-0003](0003-aerial-photograph-as-dcat-resource.md)) propagates broadly. The red-team review caught one such error before publication.
 
 ### Neutral
 
@@ -66,8 +65,7 @@ Rejected because:
 - Records modelled in a NAPH-only ontology don't participate in the wider linked-data ecosystem without bespoke crosswalks
 - Each crosswalk is additional ongoing maintenance
 
-### Alternative 2: Hybrid — subclass for some classes, originate others
-
+### Alternative 2: Hybrid: subclass for some classes, originate others
 Considered briefly. Rejected because:
 
 - The choice of which classes to subsume vs. originate would itself be a new modelling problem
@@ -84,7 +82,7 @@ Rejected because:
 
 ## Implementation
 
-Each NAPH class declaration includes its parent class. Parent classes are referenced via canonical prefixes (DCAT, PROV, etc.). The ontology imports nothing — relies on RDFS inference at query time to materialise parent-class membership.
+Each NAPH class declaration includes its parent class. Parent classes are referenced via canonical prefixes (DCAT, PROV, etc.). The ontology imports nothing. It relies on RDFS inference at query time to materialise parent-class membership.
 
 ```turtle
 @prefix dcat: <http://www.w3.org/ns/dcat#> .

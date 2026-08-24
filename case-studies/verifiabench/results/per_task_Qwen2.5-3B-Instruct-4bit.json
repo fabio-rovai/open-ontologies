@@ -1,0 +1,552 @@
+[
+  {
+    "parsed_turtle": false,
+    "n_terms": 34,
+    "n_real": 3,
+    "n_fake": 31,
+    "term_existence_rate": 0.08823529411764706,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "activating_role",
+      "association_type",
+      "conjunctional_mutation",
+      "copy_number_change",
+      "copy_number_gain",
+      "copy_number_loss"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/BRAF> a bio:Gene;\n    bio:has_association [\n        a bio:Association;\n        bio:association_type bio:genetic_association;\n        bio:target <http://example.org/BRAF>;\n        bio:target_type bio:gene;\n        bio:target_role bio:activating_role;\n        bio:target_mechanism bio:mutation;\n        bio:target_mechanism_type bio:genetic_mutation;\n        bio:target_mechanism_subtype bio:missense_mutation;\n        bio:target_mechanism_subtype bio:germline_mutation;\n        bio:target_mechanism_subtype bio:sporadic_m",
+    "gene": "BRAF",
+    "disease": "cardiofaciocutaneous syndrome"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/gene/TP53> a bio:Gene;\n    bio:has_associated_disease <http://example.org/disease/Li-Fraumeni-syndrome>.\n```",
+    "gene": "TP53",
+    "disease": "Li-Fraumeni syndrome"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/PTEN> a bio:Gene;\n    bio:has_associated_disease <http://example.org/CowdenSyndrome>.\n```",
+    "gene": "PTEN",
+    "disease": "Cowden syndrome"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 5,
+    "n_real": 3,
+    "n_fake": 2,
+    "term_existence_rate": 0.6,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_association",
+      "has_role"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/EGFR> a bio:Gene;\n    bio:has_association [\n        a bio:Association;\n        bio:has_role bio:has_association_role;\n        bio:has_member <http://example.org/non-small-cell-lung-carcinoma>;\n        bio:has_member bio:Gene;\n        bio:has_role bio:has_association_role;\n    ].\n```",
+    "gene": "EGFR",
+    "disease": "non-small cell lung carcinoma"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_association"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/BRCA1> a bio:Gene ;\n    bio:has_association [\n        a bio:Association ;\n        bio:has_member <http://example.org/BRCA1> ;\n        bio:has_member <http://example.org/breastCancer> .\n    ] .\n<http://example.org/breastCancer> a bio:Disease .\n```",
+    "gene": "BRCA1",
+    "disease": "breast cancer"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/BRCA2> a bio:Gene ;\n    bio:has_associated_disease <http://example.org/breast_cancer> .\n```",
+    "gene": "BRCA2",
+    "disease": "breast cancer"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/KRAS> a bio:Gene ;\n    bio:has_associated_disease <http://example.org/PancreaticCarcinoma>.\n```",
+    "gene": "KRAS",
+    "disease": "pancreatic carcinoma"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/APC> a bio:Gene;\n    bio:has_associated_disease <http://example.org/familial_adenomatous_polyposis>.\n```",
+    "gene": "APC",
+    "disease": "familial adenomatous polyposis"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/RB1> a bio:Gene;\n    bio:has_associated_disease bio:Retinoblastoma.\n```",
+    "gene": "RB1",
+    "disease": "retinoblastoma"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/VHL> a bio:Gene;\n    bio:has_associated_disease <http://example.org/vonHippelLindauDisease>.\n```",
+    "gene": "VHL",
+    "disease": "von Hippel-Lindau disease"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 3,
+    "n_real": 1,
+    "n_fake": 2,
+    "term_existence_rate": 0.3333333333333333,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "association",
+      "has_association"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/gene/CFTR> a bio:Gene;\n    bio:has_association <http://example.org/disease/cystic-fibrosis>;\n    bio:association bio:genomic_association_of_disease.\n```",
+    "gene": "CFTR",
+    "disease": "cystic fibrosis"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/HTT> a bio:Gene;\n    bio:has_associated_disease <http://example.org/HuntingtonDisease>.\n```",
+    "gene": "HTT",
+    "disease": "Huntington disease"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/FMR1> a bio:Gene;\n    bio:has_associated_disease bio:FragileXSyndrome.\n```",
+    "gene": "FMR1",
+    "disease": "fragile X syndrome"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/DMD> a bio:Gene ;\n    bio:has_associated_disease <http://example.org/DuchenneMuscularDystrophy> .\n```",
+    "gene": "DMD",
+    "disease": "Duchenne muscular dystrophy"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 4,
+    "n_real": 2,
+    "n_fake": 2,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_association",
+      "has_association_type"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/HBB> a bio:Gene ;\n    bio:has_association <http://example.org/betaThalassemia> ;\n    bio:has_association_type bio:genetically_associated_with .\n<http://example.org/betaThalassemia> a bio:Disease .\n```",
+    "gene": "HBB",
+    "disease": "beta thalassemia"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/F8> a bio:Gene ;\n    bio:has_associated_disease bio:Disease<http://example.org/hemophiliaA> .\n```",
+    "gene": "F8",
+    "disease": "hemophilia A"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 5,
+    "n_real": 3,
+    "n_fake": 2,
+    "term_existence_rate": 0.6,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_association",
+      "is_associated_with"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/LDLR> bio:has_association bio:Association<http://example.org/familial_hypercholesterolemia>.\n<http://example.org/familial_hypercholesterolemia> a bio:Disease.\n<http://example.org/LDLR> a bio:Gene.\n<http://example.org/LDLR> bio:is_associated_with <http://example.org/familial_hypercholesterolemia>.\n```",
+    "gene": "LDLR",
+    "disease": "familial hypercholesterolemia"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 4,
+    "n_real": 3,
+    "n_fake": 1,
+    "term_existence_rate": 0.75,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/MLH1> a bio:Gene ;\n    bio:has_associated_disease [ a bio:Disease ;\n        bio:name \"Lynch syndrome\" ] .\n```",
+    "gene": "MLH1",
+    "disease": "Lynch syndrome"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/gene/NF1> a bio:Gene ;\n    bio:has_associated_disease <http://example.org/disease/neurofibromatosis_type_1>.\n```",
+    "gene": "NF1",
+    "disease": "neurofibromatosis type 1"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/gene/SMN1> a bio:Gene;\n    bio:has_associated_disease <http://example.org/disease/spinal-muscular-atrophy>.\n```",
+    "gene": "SMN1",
+    "disease": "spinal muscular atrophy"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_association"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/gene/PAH> a bio:Gene ;\n    bio:has_association <http://example.org/disease/Phenylketonuria> .\n```",
+    "gene": "PAH",
+    "disease": "phenylketonuria"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/G6PD> a bio:Gene ;\n    bio:has_associated_disease <http://example.org/G6PD_deficiency>.\n```",
+    "gene": "G6PD",
+    "disease": "G6PD deficiency"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 1,
+    "n_real": 0,
+    "n_fake": 1,
+    "term_existence_rate": 0.0,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": false,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/gene/ATM> bio:has_associated_disease bio:AtaxiaTelangiectasia .\n```",
+    "gene": "ATM",
+    "disease": "ataxia telangiectasia"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/TSC1> a bio:Gene ;\n    bio:has_associated_disease <http://example.org/tuberous_sclerosis> .\n```",
+    "gene": "TSC1",
+    "disease": "tuberous sclerosis"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/gene/MECP2> a bio:Gene;\n    bio:has_associated_disease <http://example.org/disease/RettSyndrome>.\n```",
+    "gene": "MECP2",
+    "disease": "Rett syndrome"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/SCN1A> a bio:Gene;\n    bio:has_associated_disease <http://example.org/DravetSyndrome>.\n```",
+    "gene": "SCN1A",
+    "disease": "Dravet syndrome"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 4,
+    "n_real": 2,
+    "n_fake": 2,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "association_target",
+      "has_association"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/COL1A1> a bio:Gene;\n    bio:has_association bio:Association;\n    bio:association_target <http://example.org/OsteogenesisImperfecta>.\n\n<http://example.org/OsteogenesisImperfecta> a bio:Disease.\n```",
+    "gene": "COL1A1",
+    "disease": "osteogenesis imperfecta"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": false,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/GBA> a bio:Gene;\n    bio:has_associated_disease <http://example.org/Gaucher_disease>.\n```",
+    "gene": "GBA",
+    "disease": "Gaucher disease"
+  },
+  {
+    "parsed_turtle": false,
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/HFE> a bio:Gene ;\n    bio:has_associated_disease bio:Disease<http://example.org/hereditary_hemochromatosis>.\n```",
+    "gene": "HFE",
+    "disease": "hereditary hemochromatosis"
+  },
+  {
+    "parsed_turtle": true,
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "has_gene": true,
+    "has_disease": true,
+    "has_assoc": false,
+    "fake_terms": [
+      "has_associated_disease"
+    ],
+    "output": "```turtle\n@prefix bio: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/PKD1> a bio:Gene;\n    bio:has_associated_disease <http://example.org/polycystic_kidney_disease>.\n<http://example.org/polycystic_kidney_disease> a bio:Disease.\n```",
+    "gene": "PKD1",
+    "disease": "polycystic kidney disease"
+  }
+]

@@ -37,6 +37,14 @@ data_dir = "~/.open-ontologies"
 # # cache fingerprint tie-breaker. Increase for very large dumps.
 # hash_prefix_bytes = 65536
 
+# [storage]
+# Backend for the main triple store.
+#   mode = "memory"      # in-memory (default; lost on restart)
+#   mode = "persistent"  # RocksDB at <data_dir>/triplestore; survives restarts
+# Override at runtime with OPEN_ONTOLOGIES_STORAGE_MODE or `--storage-mode`.
+# Note: only one server process can hold the persistent store open at a time.
+# mode = "memory"
+
 # [tools]
 # Restrict which MCP tools are exposed by this server.
 # mode = "all" | "allow" | "deny"
@@ -153,9 +161,15 @@ struct Cli {
     #[command(subcommand)]
     command: Commands,
 
-    /// Output results as JSON (default: human-readable text)
+    /// Output results as JSON. This is the default; the flag is accepted so
+    /// that scripts can state the format they depend on rather than assume it.
     #[arg(long, global = true)]
     json: bool,
+
+    /// Render results as human-readable text instead of JSON. Overridden by
+    /// --json or --pretty when both are given.
+    #[arg(long, global = true)]
+    human: bool,
 
     /// Pretty-print JSON output (implies --json)
     #[arg(long, global = true)]
@@ -214,6 +228,11 @@ enum Commands {
         /// When set, every read tool checks the source file for changes and recompiles.
         #[arg(long)]
         auto_refresh: bool,
+        /// Storage backend for the main triple store: `memory` (default,
+        /// in-memory) or `persistent` (RocksDB at `<data_dir>/triplestore`).
+        /// CLI > `OPEN_ONTOLOGIES_STORAGE_MODE` env > `[storage] mode`.
+        #[arg(long)]
+        storage_mode: Option<String>,
     },
     /// Start the MCP server (Streamable HTTP transport)
     ServeHttp {
@@ -254,6 +273,11 @@ enum Commands {
         /// When set, every read tool checks the source file for changes and recompiles.
         #[arg(long)]
         auto_refresh: bool,
+        /// Storage backend for the main triple store: `memory` (default,
+        /// in-memory) or `persistent` (RocksDB at `<data_dir>/triplestore`).
+        /// CLI > `OPEN_ONTOLOGIES_STORAGE_MODE` env > `[storage] mode`.
+        #[arg(long)]
+        storage_mode: Option<String>,
     },
 
     /// Start unix socket server for Tardygrada fact grounding
@@ -392,6 +416,8 @@ enum Commands {
     },
     /// Validate against SHACL shapes
     Shacl { shapes: String },
+    /// Closed-world vocab check: flag data terms not declared in the loaded ontology
+    VocabCheck { data: String },
     /// Run inference (rdfs, owl-rl, owl-rl-ext, owl-dl)
     Reason {
         #[arg(long, default_value = "rdfs")]
@@ -417,6 +443,9 @@ enum Commands {
     Apply {
         #[arg(default_value = "safe")]
         mode: String,
+        /// Plan to apply, as printed by `plan`. Defaults to the most recent plan.
+        #[arg(long)]
+        plan_id: Option<String>,
     },
     /// Lock IRIs to prevent removal
     Lock {
@@ -587,7 +616,11 @@ impl Commands {
                 Some(s)
             }
             Commands::Plan { file } => Some(format!("plan {}", shell_quote(file))),
-            Commands::Apply { mode } => Some(format!("apply {}", mode)),
+            Commands::Apply { mode, plan_id } => {
+                let mut s = format!("apply {}", mode);
+                if let Some(p) = plan_id { s.push_str(&format!(" --plan-id {}", shell_quote(p))); }
+                Some(s)
+            }
             Commands::Enforce { pack } => Some(format!("enforce {}", pack)),
             Commands::Monitor => Some("monitor".into()),
             Commands::MonitorClear => Some("monitor-clear".into()),
@@ -647,15 +680,68 @@ fn setup(data_dir: &str) -> anyhow::Result<(StateDb, Arc<GraphStore>)> {
     std::fs::create_dir_all(data_path)?;
     let db_path = data_path.join("open-ontologies.db");
     let db = StateDb::open(&db_path)?;
-    let graph = Arc::new(GraphStore::new());
+    // One-shot CLI subcommands respect the same [storage] setting as the
+    // server modes (loaded from `<data_dir>/config.toml` if present). This is
+    // what makes `open-ontologies load foo.ttl` + `open-ontologies query ...`
+    // share state when persistence is enabled.
+    let cfg_path = data_path.join("config.toml");
+    let storage_cfg = open_ontologies::config::Config::load(&cfg_path)
+        .map(|c| c.storage)
+        .unwrap_or_default();
+    let graph = build_main_graph(&storage_cfg, data_path)?;
     Ok((db, graph))
 }
 
-/// Set to true when --json or --pretty is passed; checked by output_json/output_result.
+/// False only when --human is passed without --json or --pretty; checked by
+/// output_json/output_result.
 static JSON_MODE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
 
+/// The resolved output format. Defaults to JSON on the paths that read it
+/// before `async_main` has set it, so no caller can fall into human-readable
+/// output by accident.
+fn json_mode() -> bool {
+    JSON_MODE.get().copied().unwrap_or(true)
+}
+/// Whether the resolved storage backend keeps the graph in RAM only.
+///
+/// One-shot CLI subcommands each build their own store, so in this mode nothing
+/// a command loads is visible to the next one.
+fn is_memory_storage(data_dir: &str) -> bool {
+    use open_ontologies::config::{resolve_storage_mode, StorageMode};
+    let data_path = std::path::PathBuf::from(expand_tilde(data_dir));
+    let storage_cfg = open_ontologies::config::Config::load(&data_path.join("config.toml"))
+        .map(|c| c.storage)
+        .unwrap_or_default();
+    matches!(resolve_storage_mode(&storage_cfg), StorageMode::Memory)
+}
+
+/// Build the singleton main graph using the configured storage backend.
+///
+/// In-memory: returns an empty `GraphStore`.
+/// Persistent: opens (or creates) a RocksDB-backed store at
+/// `<data_dir>/triplestore`.
+fn build_main_graph(
+    cfg: &open_ontologies::config::StorageConfig,
+    data_dir: &std::path::Path,
+) -> anyhow::Result<Arc<GraphStore>> {
+    use open_ontologies::config::{resolve_storage_mode, StorageMode};
+    match resolve_storage_mode(cfg) {
+        StorageMode::Memory => Ok(Arc::new(GraphStore::new())),
+        StorageMode::Persistent => {
+            let path = data_dir.join("triplestore");
+            let store = GraphStore::open_persistent(&path)?;
+            tracing::info!(
+                "opened persistent triple store at {} ({} triples)",
+                path.display(),
+                store.triple_count()
+            );
+            Ok(Arc::new(store))
+        }
+    }
+}
+
 fn output_json(value: &serde_json::Value, pretty: bool) {
-    if JSON_MODE.get().copied().unwrap_or(false) || pretty {
+    if json_mode() || pretty {
         if pretty {
             println!("{}", serde_json::to_string_pretty(value).unwrap());
         } else {
@@ -669,7 +755,7 @@ fn output_json(value: &serde_json::Value, pretty: bool) {
 /// Print a JSON string result, with optional pretty-printing.
 /// Handles the common pattern of domain functions returning String results.
 fn output_result(result: &str, pretty: bool) {
-    if JSON_MODE.get().copied().unwrap_or(false) || pretty {
+    if json_mode() || pretty {
         if pretty {
             if let Ok(v) = serde_json::from_str::<serde_json::Value>(result) {
                 println!("{}", serde_json::to_string_pretty(&v).unwrap());
@@ -805,6 +891,54 @@ fn build_tool_filter(
     })
 }
 
+/// Resolves when the process is asked to terminate, naming the signal.
+///
+/// Listens for ctrl-c on every platform and, on unix, for `SIGTERM` as well —
+/// the latter is what `docker stop`, systemd and Kubernetes actually send, so
+/// handling only ctrl-c would leave container shutdown unhandled. The unix arm
+/// is behind `#[cfg(unix)]` so the `x86_64-pc-windows-msvc` target in the
+/// release matrix still builds; there the future simply never resolves.
+async fn shutdown_signal() -> &'static str {
+    let ctrl_c = async {
+        if let Err(e) = tokio::signal::ctrl_c().await {
+            eprintln!("Failed to install ctrl-c handler: {e}");
+            // Never resolve: a broken handler must not look like a shutdown request.
+            std::future::pending::<()>().await
+        }
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+            Ok(mut sig) => {
+                sig.recv().await;
+            }
+            Err(e) => {
+                eprintln!("Failed to install SIGTERM handler: {e}");
+                std::future::pending::<()>().await
+            }
+        }
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => "ctrl-c",
+        _ = terminate => "SIGTERM",
+    }
+}
+
+/// Exit code conventionally reported for a process ended by `sig`.
+fn signal_exit_code(sig: &str) -> i32 {
+    // 128 + signal number: SIGINT = 2, SIGTERM = 15.
+    if sig == "ctrl-c" {
+        130
+    } else {
+        143
+    }
+}
+
 fn main() -> anyhow::Result<()> {
     // The root async future is polled on the calling thread. Windows gives
     // the main thread 1 MiB of stack (vs 8 MiB on Linux/macOS), which
@@ -821,22 +955,20 @@ async fn async_main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     // Activate JSON mode when --json or --pretty is passed.
-    JSON_MODE.set(cli.json || cli.pretty).ok();
+    JSON_MODE.set(cli.json || cli.pretty || !cli.human).ok();
 
     // If a daemon is running and this command is proxy-able, route to it.
-    if !cli.no_connect {
-        if let Some(batch_str) = cli.command.to_batch_string() {
-            if let Some(info) = open_ontologies::daemon::read_daemon_info(&cli.data_dir) {
+    if !cli.no_connect
+        && let Some(batch_str) = cli.command.to_batch_string()
+            && let Some(info) = open_ontologies::daemon::read_daemon_info(&cli.data_dir) {
                 if open_ontologies::daemon::is_daemon_alive(info.pid) {
-                    let code = open_ontologies::connect::proxy_batch(&info, &batch_str, false, cli.json, cli.pretty).await?;
+                    let code = open_ontologies::connect::proxy_batch(&info, &batch_str, false, json_mode(), cli.pretty).await?;
                     std::process::exit(code);
                 } else {
                     // Stale daemon.json — clean up silently and fall through to local.
                     open_ontologies::daemon::remove_daemon_info(&cli.data_dir);
                 }
             }
-        }
-    }
 
     match cli.command {
         Commands::Init {
@@ -946,6 +1078,7 @@ async fn async_main() -> anyhow::Result<()> {
             tools_deny,
             idle_ttl_secs,
             auto_refresh,
+            storage_mode,
         } => {
             let config_path = expand_tilde(&config_path);
             let cfg = match Config::load(std::path::Path::new(&config_path)) {
@@ -966,12 +1099,17 @@ async fn async_main() -> anyhow::Result<()> {
             open_ontologies::runtime::init_from_config(&cfg);
 
             let data_dir = expand_tilde(&cfg.general.data_dir);
-            let db_path = std::path::Path::new(&data_dir).join("open-ontologies.db");
+            let data_path = std::path::Path::new(&data_dir);
+            let db_path = data_path.join("open-ontologies.db");
 
-            std::fs::create_dir_all(&data_dir)?;
+            std::fs::create_dir_all(data_path)?;
             let db = StateDb::open(&db_path)?;
 
-            let graph = Arc::new(GraphStore::new());
+            let mut storage_cfg = cfg.storage.clone();
+            if let Some(m) = storage_mode.as_deref() {
+                storage_cfg.mode = m.to_string();
+            }
+            let graph = build_main_graph(&storage_cfg, data_path)?;
 
             // Monitor: CLI `--watch` forces enabled; otherwise fall back to
             // `[monitor] enabled`. CLI `--watch-interval` > env > `[monitor]
@@ -1030,6 +1168,7 @@ async fn async_main() -> anyhow::Result<()> {
             tools_deny,
             idle_ttl_secs,
             auto_refresh,
+            storage_mode,
         } => {
             use rmcp::transport::streamable_http_server::{
                 StreamableHttpServerConfig, StreamableHttpService,
@@ -1065,12 +1204,17 @@ async fn async_main() -> anyhow::Result<()> {
             let token = token.or_else(|| open_ontologies::config::resolve_http_token(&cfg.http));
 
             let data_dir = expand_tilde(&cfg.general.data_dir);
-            let db_path_owned = std::path::Path::new(&data_dir).join("open-ontologies.db");
+            let data_path_owned = std::path::PathBuf::from(&data_dir);
+            let db_path_owned = data_path_owned.join("open-ontologies.db");
 
-            std::fs::create_dir_all(&data_dir)?;
+            std::fs::create_dir_all(&data_path_owned)?;
 
             // Shared graph store — all MCP sessions (agent + frontend) see the same triples
-            let shared_graph = Arc::new(GraphStore::new());
+            let mut storage_cfg = cfg.storage.clone();
+            if let Some(m) = storage_mode.as_deref() {
+                storage_cfg.mode = m.to_string();
+            }
+            let shared_graph = build_main_graph(&storage_cfg, &data_path_owned)?;
 
             // Shared StateDb for lineage REST endpoint
             let shared_db = StateDb::open(&db_path_owned)?;
@@ -1092,12 +1236,41 @@ async fn async_main() -> anyhow::Result<()> {
             };
 
             let ct = CancellationToken::new();
+            // This token is the SOLE shutdown trigger for the HTTP transport: it
+            // is handed to StreamableHttpServerConfig just below and awaited by
+            // `axum::serve(..).with_graceful_shutdown(..)` at the end of this arm.
+            // Nothing else cancels it, so the task spawned here is what makes that
+            // path reachable at all — without it the shutdown future pends forever
+            // and the process is killed outright, with the state DB never flushed.
+            tokio::spawn({
+                let ct = ct.clone();
+                async move {
+                    let sig = shutdown_signal().await;
+                    eprintln!("{sig} received — stopping HTTP server");
+                    ct.cancel();
+                    // Tokio installs its signal handlers process-wide and never
+                    // removes them, so from here the default terminate
+                    // disposition is gone for good. If graceful shutdown then
+                    // stalls — a long synchronous /api/query or /api/load holds
+                    // its connection open, and axum waits for in-flight
+                    // requests — a second signal would be swallowed and only
+                    // SIGKILL would end the process. Stay listening so the
+                    // second one is decisive.
+                    let sig = shutdown_signal().await;
+                    eprintln!("Second {sig} while shutting down — forcing exit");
+                    std::process::exit(signal_exit_code(sig));
+                }
+            });
             // rmcp >=1.4 marks StreamableHttpServerConfig #[non_exhaustive], so it
             // can no longer be built with a struct literal from this crate. Start
             // from Default and set the public fields we care about.
-            let mut http_config = StreamableHttpServerConfig::default();
-            http_config.stateful_mode = cfg.http.stateful_mode;
-            http_config.cancellation_token = ct.clone();
+            #[allow(clippy::field_reassign_with_default)]
+            let http_config = {
+                let mut c = StreamableHttpServerConfig::default();
+                c.stateful_mode = cfg.http.stateful_mode;
+                c.cancellation_token = ct.clone();
+                c
+            };
 
             let shared_graph_for_service = shared_graph.clone();
             let gw_for_service = governance_webhook.clone();
@@ -1304,6 +1477,25 @@ async fn async_main() -> anyhow::Result<()> {
             } else {
                 router
             };
+            // Liveness probe. Registered AFTER the bearer layer on purpose:
+            // `Router::layer` only wraps the routes already present, so adding
+            // /health here leaves it outside the auth middleware while /api and
+            // /mcp stay behind it. Putting it inside the `if let` branch above,
+            // or before the layer call, would make it require credentials in the
+            // one deployment where an unauthenticated probe is the point.
+            //
+            // The body is deliberately limited to status and version: an
+            // unauthenticated endpoint should not describe loaded state, which is
+            // exactly why /api/stats is not the right thing to probe.
+            let router = router.route(
+                "/health",
+                axum::routing::get(|| async {
+                    axum::Json(serde_json::json!({
+                        "status": "ok",
+                        "version": env!("CARGO_PKG_VERSION"),
+                    }))
+                }),
+            );
             let router = router.layer(tower_http::cors::CorsLayer::permissive());
             let addr = format!("{host}:{port}");
             let listener = tokio::net::TcpListener::bind(&addr).await?;
@@ -1362,7 +1554,32 @@ async fn async_main() -> anyhow::Result<()> {
                 }
             }
             eprintln!("Graph has {} triples total", graph.triple_count());
-            open_ontologies::socket::serve(&socket_path, graph).await?;
+
+            use tokio_util::sync::CancellationToken;
+            // Same rationale as the ServeHttp arm: this token is the sole
+            // shutdown trigger. Without the task below, the accept loop in
+            // socket::serve_with_shutdown never exits, the process can only be
+            // killed, and the socket file stays on disk after it is gone.
+            let ct = CancellationToken::new();
+            tokio::spawn({
+                let ct = ct.clone();
+                let socket_path = socket_path.clone();
+                async move {
+                    let sig = shutdown_signal().await;
+                    eprintln!("{sig} received — closing socket");
+                    ct.cancel();
+                    // Same reasoning as the ServeHttp arm: tokio's handlers are
+                    // installed for the process lifetime, so a second signal
+                    // would be swallowed if the accept loop were slow to unwind.
+                    // Unlink on the forced path too, so the escape hatch does
+                    // not reintroduce the leaked socket this commit removes.
+                    let sig = shutdown_signal().await;
+                    eprintln!("Second {sig} while shutting down — forcing exit");
+                    let _ = std::fs::remove_file(&socket_path);
+                    std::process::exit(signal_exit_code(sig));
+                }
+            });
+            open_ontologies::socket::serve_with_shutdown(&socket_path, graph, ct).await?;
         }
         #[cfg(windows)]
         Commands::ServeUnix { .. } => {
@@ -1382,16 +1599,15 @@ async fn async_main() -> anyhow::Result<()> {
                 std::fs::read_to_string(&input)?
             };
             // Route to daemon if running.
-            if !cli.no_connect {
-                if let Some(info) = open_ontologies::daemon::read_daemon_info(&cli.data_dir) {
+            if !cli.no_connect
+                && let Some(info) = open_ontologies::daemon::read_daemon_info(&cli.data_dir) {
                     if open_ontologies::daemon::is_daemon_alive(info.pid) {
-                        let code = open_ontologies::connect::proxy_batch(&info, &batch_input, bail, cli.json, cli.pretty).await?;
+                        let code = open_ontologies::connect::proxy_batch(&info, &batch_input, bail, json_mode(), cli.pretty).await?;
                         std::process::exit(code);
                     } else {
                         open_ontologies::daemon::remove_daemon_info(&cli.data_dir);
                     }
                 }
-            }
             let (db, graph) = setup(&cli.data_dir)?;
             let runner = open_ontologies::batch::BatchRunner::new(db, graph, cli.pretty);
             let exit_code = runner.run(&batch_input, bail).await;
@@ -1403,15 +1619,14 @@ async fn async_main() -> anyhow::Result<()> {
             match action {
                 DaemonAction::Start { host, port, token } => {
                     // Check if already running.
-                    if let Some(info) = open_ontologies::daemon::read_daemon_info(&cli.data_dir) {
-                        if open_ontologies::daemon::is_daemon_alive(info.pid) {
+                    if let Some(info) = open_ontologies::daemon::read_daemon_info(&cli.data_dir)
+                        && open_ontologies::daemon::is_daemon_alive(info.pid) {
                             output_json(&serde_json::json!({
                                 "error": format!("daemon already running (pid {})", info.pid),
                                 "url": info.url,
                             }), cli.pretty);
                             std::process::exit(1);
                         }
-                    }
                     match open_ontologies::daemon::start_daemon(&cli.data_dir, &host, port, token) {
                         Ok(info) => output_json(&serde_json::json!({
                             "ok": true,
@@ -1459,8 +1674,12 @@ async fn async_main() -> anyhow::Result<()> {
                 GraphStore::validate_file(&input)
             };
             match result {
-                Ok(count) => output_json(
-                    &serde_json::json!({"ok": true, "triples": count}),
+                Ok(counts) => output_json(
+                    &serde_json::json!({
+                        "ok": true,
+                        "triples": counts.triples,
+                        "statements": counts.statements,
+                    }),
                     cli.pretty,
                 ),
                 Err(e) => {
@@ -1472,10 +1691,24 @@ async fn async_main() -> anyhow::Result<()> {
         Commands::Load { path } => {
             let (_db, graph) = setup(&cli.data_dir)?;
             match graph.load_file(&path) {
-                Ok(count) => output_json(
-                    &serde_json::json!({"ok": true, "triples_loaded": count, "path": path}),
-                    cli.pretty,
-                ),
+                Ok(count) => {
+                    let mut report =
+                        serde_json::json!({"ok": true, "triples_loaded": count, "path": path});
+                    // In-memory is the default backend, so a one-shot `load`
+                    // fills a store that dies with the process. Saying only
+                    // "triples_loaded" here reads as durable, and the next
+                    // command reporting zero reads as data loss.
+                    if is_memory_storage(&cli.data_dir) {
+                        report["warning"] = serde_json::Value::String(
+                            "storage mode is 'memory', so this load did not persist: \
+                             a following command starts from an empty store. Set \
+                             [storage] mode = \"persistent\" or OPEN_ONTOLOGIES_STORAGE_MODE=persistent \
+                             to chain CLI commands."
+                                .to_string(),
+                        );
+                    }
+                    output_json(&report, cli.pretty)
+                }
                 Err(e) => {
                     output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
                     std::process::exit(1);
@@ -1595,7 +1828,7 @@ async fn async_main() -> anyhow::Result<()> {
             match action.as_str() {
                 "list" => {
                     let entries = marketplace::list(domain.as_deref());
-                    let items: Vec<serde_json::Value> = entries
+                    let mut items: Vec<serde_json::Value> = entries
                         .iter()
                         .map(|e| {
                             serde_json::json!({
@@ -1604,13 +1837,34 @@ async fn async_main() -> anyhow::Result<()> {
                                 "description": e.description,
                                 "domain": e.domain,
                                 "format": marketplace::format_name(e.format),
+                                "source": "curated",
                             })
                         })
                         .collect();
+                    let mut community_error = None;
+                    match marketplace::load_community_packs().await {
+                        Ok((packs, _shadowed, _source)) => {
+                            for p in packs
+                                .iter()
+                                .filter(|p| domain.as_deref().is_none_or(|d| p.domain == d))
+                            {
+                                items.push(serde_json::json!({
+                                    "id": p.id,
+                                    "name": p.name,
+                                    "description": p.description,
+                                    "domain": p.domain,
+                                    "format": p.format,
+                                    "source": "community",
+                                }));
+                            }
+                        }
+                        Err(e) => community_error = Some(e),
+                    }
                     output_json(
                         &serde_json::json!({
                             "count": items.len(),
                             "ontologies": items,
+                            "community_registry_error": community_error,
                         }),
                         cli.pretty,
                     );
@@ -1620,26 +1874,40 @@ async fn async_main() -> anyhow::Result<()> {
                         eprintln!("Error: --id is required for install");
                         std::process::exit(1);
                     });
-                    let entry = match marketplace::find(id) {
-                        Some(e) => e,
-                        None => {
-                            eprintln!(
-                                "Unknown ontology ID: '{}'. Run 'marketplace list' to see available IDs.",
-                                id
-                            );
-                            std::process::exit(1);
-                        }
-                    };
+                    // Curated first; community packs can never shadow a curated ID.
+                    let (entry_id, entry_name, entry_url, entry_format) =
+                        match marketplace::find(id) {
+                            Some(e) => (e.id.to_string(), e.name.to_string(), e.url.to_string(), e.format),
+                            None => {
+                                let community = match marketplace::load_community_packs().await {
+                                    Ok((packs, _, _)) => packs.into_iter().find(|p| p.id == id),
+                                    Err(_) => None,
+                                };
+                                match community.and_then(|p| {
+                                    marketplace::parse_format(&p.format)
+                                        .map(|f| (p.id, p.name, p.url, f))
+                                }) {
+                                    Some(t) => t,
+                                    None => {
+                                        eprintln!(
+                                            "Unknown ontology ID: '{}'. Run 'marketplace list' to see curated and community IDs.",
+                                            id
+                                        );
+                                        std::process::exit(1);
+                                    }
+                                }
+                            }
+                        };
                     let (_db, graph) = setup(&cli.data_dir)?;
-                    let content = GraphStore::fetch_url(entry.url).await?;
-                    match graph.load_content_with_base(&content, entry.format, Some(entry.url)) {
+                    let content = GraphStore::fetch_url(&entry_url).await?;
+                    match graph.load_content_with_base(&content, entry_format, Some(&entry_url)) {
                         Ok(count) => {
                             let stats = graph.get_stats().unwrap_or_default();
                             output_json(
                                 &serde_json::json!({
                                     "ok": true,
-                                    "installed": entry.id,
-                                    "name": entry.name,
+                                    "installed": entry_id,
+                                    "name": entry_name,
                                     "triples_loaded": count,
                                     "stats": serde_json::from_str::<serde_json::Value>(&stats).unwrap_or_default(),
                                 }),
@@ -1875,6 +2143,13 @@ async fn async_main() -> anyhow::Result<()> {
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result(&result, cli.pretty);
         }
+        Commands::VocabCheck { data } => {
+            let (_db, graph) = setup(&cli.data_dir)?;
+            let data_content = std::fs::read_to_string(&data)?;
+            let result = open_ontologies::vocab_check::check_data_vocab(&graph, &data_content, &[])
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            output_result(&result, cli.pretty);
+        }
         Commands::Reason { profile } => {
             use open_ontologies::reason::Reasoner;
             let (_db, graph) = setup(&cli.data_dir)?;
@@ -1949,11 +2224,11 @@ async fn async_main() -> anyhow::Result<()> {
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result(&result, cli.pretty);
         }
-        Commands::Apply { mode } => {
+        Commands::Apply { mode, plan_id } => {
             let (db, graph) = setup(&cli.data_dir)?;
             let planner = open_ontologies::plan::Planner::new(db, graph);
             let result = planner
-                .apply(&mode)
+                .apply_plan(plan_id.as_deref(), &mode)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result(&result, cli.pretty);
         }

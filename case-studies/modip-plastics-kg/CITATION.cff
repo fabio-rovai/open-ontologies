@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+title: "MoDiP Plastics Knowledge Graph"
+message: "If you use this artifact, please cite it and credit the Museum of Design in Plastics (data, CC BY 4.0)."
+authors:
+  - family-names: Rovai
+    given-names: Fabio
+  - name: "The Tesseract Academy"
+license: CC-BY-4.0
+repository-code: "https://github.com/fabio-rovai/open-ontologies"
+keywords: [CIDOC-CRM, SKOS, Getty AAT, plastics, museum, collections-as-data, knowledge-graph, GLAM]

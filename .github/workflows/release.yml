@@ -5,6 +5,7 @@ on:
 
 jobs:
   build:
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -29,7 +30,26 @@ jobs:
           targets: ${{ matrix.target }}
       - name: Install Linux build deps (OpenSSL/libpq)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y pkg-config libssl-dev libpq-dev
+        # Same guard as ci.yml. An unbounded `apt-get update` hung CI for the
+        # full 6 hour job ceiling when the Azure mirror went dark; on the
+        # release path that would stall a tagged build just as silently.
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          missing=()
+          for p in pkg-config libssl-dev libpq-dev; do
+            dpkg -s "$p" >/dev/null 2>&1 || missing+=("$p")
+          done
+          if [ ${#missing[@]} -eq 0 ]; then
+            echo "Build deps already present on the image; skipping apt."
+            exit 0
+          fi
+          echo "Missing build deps: ${missing[*]}"
+          sudo apt-get -o Acquire::Retries=3 \
+                       -o Acquire::http::Timeout=30 \
+                       -o Acquire::https::Timeout=30 update
+          sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
+                       --no-install-recommends "${missing[@]}"
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
       - name: Upload binary
@@ -39,11 +59,18 @@ jobs:
           path: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
 
   release:
+    timeout-minutes: 20
     needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # attest-build-provenance signs through Sigstore with the workflow's OIDC
+      # identity and writes the attestation back to the repository, so it needs
+      # both on top of the existing contents: write.
+      id-token: write
+      attestations: write
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
       - name: Rename binaries
         run: |
@@ -56,7 +83,30 @@ jobs:
               mv "${dir}open-ontologies" "${dir}open-ontologies-${target}"
             fi
           done
+      - name: Generate SHASUMS.txt
+        run: |
+          # Strip the artifact directory so the listed names match the asset
+          # names as downloaded, and keep sha256sum's two-space separator so
+          # `sha256sum -c SHASUMS.txt` works as-is next to the binaries.
+          sha256sum open-ontologies-*/open-ontologies-* | sed 's|  .*/|  |' > SHASUMS.txt
+          cat SHASUMS.txt
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v4
+        with:
+          # Runs after the rename so each attested subject name is the name the
+          # asset is published under.
+          subject-path: 'open-ontologies-*/open-ontologies-*'
+      - name: Extract release notes from CHANGELOG
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if ! bash scripts/extract-changelog.sh "$version" > release-notes.md; then
+            echo "::warning::No CHANGELOG section found for ${version}; publishing with an empty body"
+            : > release-notes.md
+          fi
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: open-ontologies-*/open-ontologies-*
+          body_path: release-notes.md
+          files: |
+            open-ontologies-*/open-ontologies-*
+            SHASUMS.txt

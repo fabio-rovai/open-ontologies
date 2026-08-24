@@ -1,0 +1,91 @@
+@prefix iro:    <https://gov.tesseract.academy/def/insurance#> .
+@prefix irosch: <https://gov.tesseract.academy/def/insurance/scheme#> .
+@prefix sh:     <http://www.w3.org/ns/shacl#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+# IRO layers 1-2: syntax, checksum policy, structure.
+# Arithmetic lives in pipeline/checksums.py; shapes require the
+# recorded result.
+#################################################################
+
+iro:IdentifierShape a sh:NodeShape ;
+    sh:targetClass iro:Identifier ;
+    sh:property [
+        sh:path iro:identifierValue ;
+        sh:minCount 1 ;
+        sh:message "Identifier assertion without a value." ;
+    ] ;
+    sh:property [
+        sh:path iro:identifierScheme ;
+        sh:minCount 1 ;
+        sh:message "Identifier assertion without a scheme: an identifier with no scheme is a string, not an identifier." ;
+    ] ;
+    sh:property [
+        sh:path iro:sourceSystem ;
+        sh:minCount 1 ;
+        sh:message "Identifier assertion without a source system: an identifier with no provenance cannot be reconciled."
+    ] .
+
+iro:LEIShape a sh:NodeShape ;
+    sh:targetClass iro:LEI ;
+    sh:property [
+        sh:path iro:identifierValue ;
+        sh:pattern "^[A-Z0-9]{18}[0-9]{2}$" ;
+        sh:message "LEI must be 20 characters: 18 alphanumerics plus 2 decimal check digits (ISO 17442)." ;
+    ] ;
+    sh:property [
+        sh:path iro:checksumValid ;
+        sh:hasValue true ;
+        sh:message "LEI check digits fail ISO 7064 MOD 97-10: this value cannot be a real LEI." ;
+    ] .
+
+iro:UndertakingShape a sh:NodeShape ;
+    sh:targetClass iro:InsuranceUndertaking ;
+    sh:property [
+        sh:path iro:legalName ;
+        sh:minCount 1 ;
+        sh:message "Undertaking without a legal name." ;
+    ] ;
+    sh:property [
+        sh:path iro:homeCountry ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Undertaking must have exactly one home country." ;
+    ] ;
+    sh:property [
+        sh:path [ sh:inversePath iro:registrationOf ] ;
+        sh:minCount 1 ;
+        sh:severity sh:Warning ;
+        sh:message "Undertaking with no home registration attached: either a register export gap or a join failure." ;
+    ] .
+
+iro:RegistrationShape a sh:NodeShape ;
+    sh:targetClass iro:Registration ;
+    sh:property [
+        sh:path iro:registrationOf ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Registration must be of exactly one undertaking." ;
+    ] ;
+    sh:property [
+        sh:path iro:registeredBy ;
+        sh:minCount 1 ;
+        sh:message "Registration must name the authorising NCA." ;
+    ] .
+
+iro:OperationShape a sh:NodeShape ;
+    sh:targetClass iro:CrossBorderOperation ;
+    sh:property [
+        sh:path iro:operationOf ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Cross-border operation must be of exactly one undertaking." ;
+    ] ;
+    sh:property [
+        sh:path iro:hostCountry ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Cross-border operation must have exactly one host country." ;
+    ] ;
+    sh:property [
+        sh:path iro:operationMode ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Cross-border operation must carry exactly one operation mode from the SKOS registry." ;
+    ] .

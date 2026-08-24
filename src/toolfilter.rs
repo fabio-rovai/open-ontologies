@@ -157,6 +157,7 @@ pub fn expand_group(name: &str) -> &'static [&'static str] {
             "onto_sql_ingest",
             "onto_map",
             "onto_shacl",
+            "onto_vocab_check",
             "onto_reason",
             "onto_extend",
             "onto_unload",

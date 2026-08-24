@@ -1,0 +1,183 @@
+{
+  "authorities": [
+    "Biolink Model",
+    "Gene Ontology"
+  ],
+  "task_families": [
+    "biolink_gene_disease",
+    "go_annotation",
+    "multihop"
+  ],
+  "n_tasks": 65,
+  "oracle": "closed-world term existence across both authorities + structure (deterministic, no LLM judge)",
+  "leaderboard": [
+    {
+      "model": "Claude Opus",
+      "n_tasks": 65,
+      "raw_capability": 1.0,
+      "verified_capability": 1.0,
+      "mean_term_existence": 1.0,
+      "total_fabricated_terms": 0,
+      "by_family": {
+        "biolink_gene_disease": {
+          "n": 30,
+          "raw": 1.0,
+          "verified": 1.0,
+          "mean_term_existence": 1.0
+        },
+        "go_annotation": {
+          "n": 20,
+          "raw": 1.0,
+          "verified": 1.0,
+          "mean_term_existence": 1.0
+        },
+        "multihop": {
+          "n": 15,
+          "raw": 1.0,
+          "verified": 1.0,
+          "mean_term_existence": 1.0
+        }
+      }
+    },
+    {
+      "model": "Claude Sonnet",
+      "n_tasks": 65,
+      "raw_capability": 0.985,
+      "verified_capability": 0.754,
+      "mean_term_existence": 0.971,
+      "total_fabricated_terms": 3,
+      "by_family": {
+        "biolink_gene_disease": {
+          "n": 30,
+          "raw": 1.0,
+          "verified": 0.6,
+          "mean_term_existence": 1.0
+        },
+        "go_annotation": {
+          "n": 20,
+          "raw": 1.0,
+          "verified": 0.85,
+          "mean_term_existence": 0.954
+        },
+        "multihop": {
+          "n": 15,
+          "raw": 0.933,
+          "verified": 0.933,
+          "mean_term_existence": 0.933
+        }
+      }
+    },
+    {
+      "model": "Qwen3-Coder-30B-A3B-Instruct-8bit",
+      "n_tasks": 65,
+      "raw_capability": 1.0,
+      "verified_capability": 0.477,
+      "mean_term_existence": 0.827,
+      "total_fabricated_terms": 34,
+      "by_family": {
+        "biolink_gene_disease": {
+          "n": 30,
+          "raw": 1.0,
+          "verified": 1.0,
+          "mean_term_existence": 1.0
+        },
+        "go_annotation": {
+          "n": 20,
+          "raw": 1.0,
+          "verified": 0.0,
+          "mean_term_existence": 0.567
+        },
+        "multihop": {
+          "n": 15,
+          "raw": 1.0,
+          "verified": 0.067,
+          "mean_term_existence": 0.829
+        }
+      }
+    },
+    {
+      "model": "Claude Haiku",
+      "n_tasks": 65,
+      "raw_capability": 1.0,
+      "verified_capability": 0.431,
+      "mean_term_existence": 0.9,
+      "total_fabricated_terms": 28,
+      "by_family": {
+        "biolink_gene_disease": {
+          "n": 30,
+          "raw": 1.0,
+          "verified": 0.767,
+          "mean_term_existence": 0.992
+        },
+        "go_annotation": {
+          "n": 20,
+          "raw": 1.0,
+          "verified": 0.2,
+          "mean_term_existence": 0.783
+        },
+        "multihop": {
+          "n": 15,
+          "raw": 1.0,
+          "verified": 0.067,
+          "mean_term_existence": 0.87
+        }
+      }
+    },
+    {
+      "model": "Llama-3.2-3B-Instruct-4bit",
+      "n_tasks": 65,
+      "raw_capability": 1.0,
+      "verified_capability": 0.0,
+      "mean_term_existence": 0.522,
+      "total_fabricated_terms": 110,
+      "by_family": {
+        "biolink_gene_disease": {
+          "n": 30,
+          "raw": 1.0,
+          "verified": 0.0,
+          "mean_term_existence": 0.509
+        },
+        "go_annotation": {
+          "n": 20,
+          "raw": 1.0,
+          "verified": 0.0,
+          "mean_term_existence": 0.564
+        },
+        "multihop": {
+          "n": 15,
+          "raw": 1.0,
+          "verified": 0.0,
+          "mean_term_existence": 0.49
+        }
+      }
+    },
+    {
+      "model": "Qwen2.5-3B-Instruct-4bit",
+      "n_tasks": 65,
+      "raw_capability": 0.831,
+      "verified_capability": 0.0,
+      "mean_term_existence": 0.391,
+      "total_fabricated_terms": 167,
+      "by_family": {
+        "biolink_gene_disease": {
+          "n": 30,
+          "raw": 1.0,
+          "verified": 0.0,
+          "mean_term_existence": 0.506
+        },
+        "go_annotation": {
+          "n": 20,
+          "raw": 0.5,
+          "verified": 0.0,
+          "mean_term_existence": 0.333
+        },
+        "multihop": {
+          "n": 15,
+          "raw": 0.933,
+          "verified": 0.0,
+          "mean_term_existence": 0.24
+        }
+      }
+    }
+  ]
+}

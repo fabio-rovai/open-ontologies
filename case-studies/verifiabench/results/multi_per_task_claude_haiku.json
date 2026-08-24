@@ -1,0 +1,771 @@
+[
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 3,
+    "n_real": 3,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbigene: <http://identifiers.org/ncbigene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n\nncbigene:673 a biolink:Gene ;\n    biolink:associated_with mondo:0007531 .\n\nmondo:0007531 a biolink:Disease .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 3,
+    "n_real": 3,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ex: <http://example.org/> .\n\nex:TP53 a biolink:Gene ;\n    biolink:associated_with ex:LiFraumeniSyndrome .\n\nex:LiFraumeniSyndrome a biolink:Disease .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 3,
+    "n_real": 3,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\nbiolink:PTEN \n    rdf:type biolink:Gene ;\n    biolink:associated_with biolink:CowdenSyndrome .\n\nbiolink:CowdenSyndrome \n    rdf:type biolink:Disease .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 3,
+    "n_real": 3,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbigene: <http://identifiers.org/ncbigene/> .\n@prefix doid: <http://purl.obolibrary.org/obo/DOID_> .\n\nncbigene:1956 a biolink:Gene ;\n    biolink:associated_with doid:3908 .\n\ndoid:3908 a biolink:Disease .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 3,
+    "n_real": 3,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/BRCA1> a biolink:Gene ;\n    biolink:associated_with <http://example.org/breast_cancer> .\n\n<http://example.org/breast_cancer> a biolink:Disease .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix HGNC: <http://identifiers.org/hgnc/> .\n@prefix MONDO: <http://purl.obolibrary.org/obo/MONDO_> .\n\nHGNC:1101 a biolink:Gene ;\n    biolink:name \"BRCA2\" .\n\nMONDO:0007254 a biolink:Disease ;\n    biolink:name \"breast cancer\" .\n\nHGNC:1101 biolink:associated_with MONDO:0007254 .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 3,
+    "n_real": 3,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbigene: <https://www.ncbi.nlm.nih.gov/gene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n\nncbigene:3845 a biolink:Gene ;\n  biolink:associated_with mondo:0007254 .\n\nmondo:0007254 a biolink:Disease .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 3,
+    "n_real": 3,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbi: <http://identifiers.org/ncbi-gene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n\nncbi:324 a biolink:Gene ;\n    biolink:associated_with mondo:0008758 .\n\nmondo:0008758 a biolink:Disease .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbigene: <http://identifiers.org/ncbigene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n\nncbigene:5925 a biolink:Gene ;\n    biolink:name \"RB1\" .\n\nmondo:0005148 a biolink:Disease ;\n    biolink:name \"retinoblastoma\" .\n\nncbigene:5925 biolink:associated_with mondo:0005148 .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n\n<http://purl.obolibrary.org/obo/NCBIGENE_7428> a biolink:Gene ;\n    biolink:name \"VHL\" .\n\n<http://purl.obolibrary.org/obo/MONDO_0005026> a biolink:Disease ;\n    biolink:name \"von Hippel-Lindau disease\" .\n\n<http://purl.obolibrary.org/obo/NCBIGENE_7428> biolink:associated_with <http://purl.obolibrary.org/obo/MONDO_0005026> .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n\n<http://identifiers.org/hgnc/HGNC:1961> a biolink:Gene ;\n    biolink:name \"CFTR\" .\n\n<http://purl.obolibrary.org/obo/MONDO_0007375> a biolink:Disease ;\n    biolink:name \"cystic fibrosis\" .\n\n<http://identifiers.org/hgnc/HGNC:1961> biolink:gene_associated_with_condition <http://purl.obolibrary.org/obo/MONDO_0007375> .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 1,
+    "n_real": 1,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbigene: <http://identifiers.org/ncbigene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/> .\n\nncbigene:3064 biolink:associated_with mondo:MONDO_0006020 .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 7,
+    "n_real": 7,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbigene: <http://identifiers.org/ncbigene/> .\n@prefix doid: <http://purl.obolibrary.org/obo/DOID_> .\n\nncbigene:2332 a biolink:Gene ;\n    biolink:name \"FMR1\" .\n\ndoid:9736 a biolink:Disease ;\n    biolink:name \"Fragile X syndrome\" .\n\n[] a biolink:GeneToDiseaseAssociation ;\n    biolink:subject ncbigene:2332 ;\n    biolink:predicate biolink:associated_with ;\n    biolink:object doid:9736 .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 7,
+    "n_real": 7,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n\n<https://identifiers.org/hgnc/HGNC:2671> a biolink:Gene ;\n    biolink:name \"DMD\" .\n\n<https://identifiers.org/mondo/MONDO:0003812> a biolink:Disease ;\n    biolink:name \"Duchenne muscular dystrophy\" .\n\n[] a biolink:GeneToDiseaseAssociation ;\n    biolink:subject <https://identifiers.org/hgnc/HGNC:2671> ;\n    biolink:object <https://identifiers.org/mondo/MONDO:0003812> ;\n    biolink:predicate biolink:gene_associated_with_condition .\n```"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ex: <http://example.org/> .\n\nex:HBB a biolink:Gene ;\n    biolink:name \"HBB\" ;\n    biolink:associated_with ex:BetaThalassemia .\n\nex:BetaThalassemia a biolink:Disease ;\n    biolink:name \"beta thalassemia\" .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix example: <http://example.org/> .\n\nexample:F8 a biolink:Gene ;\n  biolink:name \"F8\" ;\n  biolink:associated_with example:hemophilia_A .\n\nexample:hemophilia_A a biolink:Disease ;\n  biolink:name \"hemophilia A\" .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix HGNC: <http://identifiers.org/hgnc/> .\n@prefix DOID: <http://purl.obolibrary.org/obo/DOID_> .\n\nHGNC:6160 a biolink:Gene ;\n    biolink:name \"LDLR\" ;\n    biolink:gene_associated_with_condition DOID:1816 .\n\nDOID:1816 a biolink:Disease ;\n    biolink:name \"familial hypercholesterolemia\" .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbigene: <http://identifiers.org/ncbigene/> .\n@prefix omim: <http://identifiers.org/omim/> .\n\nncbigene:4292 a biolink:Gene ;\n  biolink:name \"MLH1\" ;\n  biolink:genetically_associated_with omim:120365 .\n\nomim:120365 a biolink:Disease ;\n  biolink:name \"Lynch Syndrome\" .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbi: <http://identifiers.org/ncbi-gene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n\nncbi:4763 a biolink:Gene ;\n    biolink:name \"NF1\" ;\n    biolink:associated_with mondo:0020597 .\n\nmondo:0020597 a biolink:Disease ;\n    biolink:name \"neurofibromatosis type 1\" .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 3,
+    "n_real": 3,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/SMN1> a biolink:Gene ;\n    biolink:associated_with <http://example.org/spinal_muscular_atrophy> .\n\n<http://example.org/spinal_muscular_atrophy> a biolink:Disease .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 3,
+    "n_real": 3,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix hgnc: <http://identifiers.org/hgnc/> .\n@prefix omim: <http://identifiers.org/omim/> .\n\nhgnc:PAH a biolink:Gene .\nomim:261600 a biolink:Disease .\nhgnc:PAH biolink:associated_with omim:261600 .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix NCBI: <http://identifiers.org/ncbi-gene/> .\n@prefix MONDO: <http://purl.obolibrary.org/obo/> .\n\nNCBI:2539 a biolink:Gene ;\n  biolink:name \"G6PD\" ;\n  biolink:associated_with MONDO:MONDO_0009061 .\n\nMONDO:MONDO_0009061 a biolink:Disease ;\n  biolink:name \"G6PD deficiency\" .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 7,
+    "n_real": 7,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n\n<http://example.org/ATM>\n    a biolink:Gene ;\n    biolink:name \"ATM\" .\n\n<http://example.org/ataxia_telangiectasia>\n    a biolink:Disease ;\n    biolink:name \"ataxia telangiectasia\" .\n\n<http://example.org/atm_ataxia_association>\n    a biolink:GeneToDiseaseAssociation ;\n    biolink:subject <http://example.org/ATM> ;\n    biolink:object <http://example.org/ataxia_telangiectasia> ;\n    biolink:predicate biolink:associated_with .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbigene: <https://www.ncbi.nlm.nih.gov/gene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n\nncbigene:7248 a biolink:Gene ;\n    biolink:name \"TSC1\" ;\n    biolink:associated_with mondo:0007091 .\n\nmondo:0007091 a biolink:Disease ;\n    biolink:name \"tuberous sclerosis\" .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix example: <http://example.org/> .\n\nexample:MECP2 a biolink:Gene ;\n    biolink:name \"MECP2\" .\n\nexample:RettSyndrome a biolink:Disease ;\n    biolink:name \"Rett syndrome\" .\n\nexample:MECP2 biolink:gene_associated_with_condition example:RettSyndrome .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 5,
+    "n_real": 5,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix example: <http://example.org/> .\n\nexample:scn1a_dravet_association a biolink:GeneToDiseaseAssociation ;\n    biolink:subject example:SCN1A ;\n    biolink:object example:DravetSyndrome .\n\nexample:SCN1A a biolink:Gene .\n\nexample:DravetSyndrome a biolink:Disease .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix NCBIGENE: <http://identifiers.org/ncbigene/> .\n@prefix OMIM: <http://purl.obolibrary.org/obo/OMIM_> .\n\nNCBIGENE:1277 a biolink:Gene ;\n    biolink:name \"COL1A1\" .\n\nOMIM:166200 a biolink:Disease ;\n    biolink:name \"Osteogenesis Imperfecta\" .\n\nNCBIGENE:1277 biolink:associated_with OMIM:166200 .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix HGNC: <http://identifiers.org/hgnc/> .\n@prefix MONDO: <http://purl.obolibrary.org/obo/MONDO_> .\n\nHGNC:4669 a biolink:Gene ;\n    biolink:name \"GBA\" .\n\nMONDO:0003392 a biolink:Disease ;\n    biolink:name \"Gaucher disease\" .\n\nHGNC:4669 biolink:associated_with MONDO:0003392 .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 3,
+    "n_fake": 1,
+    "term_existence_rate": 0.75,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "associated_with_condition"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix example: <http://example.org/> .\n\nexample:HFE a biolink:Gene ;\n    biolink:name \"HFE\" ;\n    biolink:associated_with_condition example:HereditaryHemochromatosis .\n\nexample:HereditaryHemochromatosis a biolink:Disease ;\n    biolink:name \"hereditary hemochromatosis\" .\n```\n"
+  },
+  {
+    "family": "biolink_gene_disease",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbi: <http://ncbi.nlm.nih.gov/gene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n\nncbi:5310 a biolink:Gene ;\n    biolink:name \"PKD1\" ;\n    biolink:associated_with mondo:0005227 .\n\nmondo:0005227 a biolink:Disease ;\n    biolink:name \"polycystic kidney disease\" .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 4,
+    "n_real": 3,
+    "n_fake": 1,
+    "term_existence_rate": 0.75,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix obo: <http://purl.obolibrary.org/obo/> .\n@prefix ncbigene: <http://identifiers.org/ncbigene/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nncbigene:7157 a biolink:Gene ;\n    biolink:involved_in obo:GO_0006915 .\n\nobo:GO_0006915 a biolink:BiologicalProcess ;\n    rdfs:label \"apoptotic process\" .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<http://example.org/EGFR>\n    a biolink:Gene ;\n    biolink:name \"EGFR\" ;\n    biolink:involved_in GO:0007165 .\n\nGO:0007165\n    a biolink:BiologicalProcess ;\n    rdfs:label \"signal transduction\" .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 4,
+    "n_real": 3,
+    "n_fake": 1,
+    "term_existence_rate": 0.75,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n<http://identifiers.org/hgnc/BRCA1> a biolink:Gene ;\n  biolink:involved_in GO:0006281 .\n\nGO:0006281 a biolink:BiologicalProcess ;\n  rdfs:label \"DNA repair\" .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix NCBI: <http://identifiers.org/ncbigene/> .\n\nNCBI:3845 a biolink:Gene ;\n    biolink:name \"KRAS\" ;\n    biolink:involved_in GO:0007265 .\n\nGO:0007265 a biolink:BiologicalProcess ;\n    biolink:name \"signal transduction\" .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n\n<http://example.org/gene/MYC> a biolink:Gene ;\n                               biolink:involved_in GO:0008283 .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix : <http://example.org/genes/> .\n\n:CFTR \n    a biolink:Gene ;\n    biolink:involved_in GO:0031581 .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix NCBIGene: <http://identifiers.org/ncbigene/> .\n\nNCBIGene:4292 a biolink:Gene ;\n    biolink:name \"MLH1\" ;\n    biolink:involved_in GO:0006298 .\n\nGO:0006298 a biolink:BiologicalProcess ;\n    biolink:name \"mismatch repair\" .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 3,
+    "n_real": 3,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\n<http://identifiers.org/ncbigene/11451> rdf:type biolink:Gene ;\n    biolink:participates_in GO:0006281 .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n\n<http://identifiers.org/ncbigene/7422> \n    a biolink:Gene ;\n    biolink:name \"VEGFA\" ;\n    biolink:involved_in GO:0001525 .\n\nGO:0001525 \n    a biolink:BiologicalProcess ;\n    biolink:name \"angiogenesis\" .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 4,
+    "n_real": 3,
+    "n_fake": 1,
+    "term_existence_rate": 0.75,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n\n<http://identifiers.org/ncbi-gene/7124> a biolink:Gene ;\n    biolink:involved_in GO:0006954 .\n\nGO:0006954 a biolink:BiologicalProcess .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 4,
+    "n_real": 3,
+    "n_fake": 1,
+    "term_existence_rate": 0.75,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix : <http://example.org/> .\n\n:INS a biolink:Gene ;\n    biolink:involved_in GO:0042593 .\n\nGO:0042593 a biolink:BiologicalProcess .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 3,
+    "n_real": 3,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n\n<https://www.ncbi.nlm.nih.gov/gene/6647> a biolink:Gene ;\n  biolink:participates_in GO:0006979 .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n\nbiolink:HMGCR a biolink:Gene ;\n    biolink:involved_in GO:0006695 .\n\nGO:0006695 a biolink:BiologicalProcess ;\n    biolink:name \"cholesterol biosynthetic process\" .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 4,
+    "n_real": 4,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix ncbigene: <http://identifiers.org/ncbigene/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nncbigene:1018 a biolink:Gene ;\n    rdfs:label \"CDK1\" ;\n    biolink:actively_involved_in GO:0007049 .\n\nGO:0007049 a biolink:BiologicalProcess ;\n    rdfs:label \"cell cycle\" .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 4,
+    "n_real": 3,
+    "n_fake": 1,
+    "term_existence_rate": 0.75,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nbiolink:CASP3 a biolink:Gene ;\n    biolink:involved_in GO:0006915 .\n\nGO:0006915 a biolink:BiologicalProcess ;\n    rdfs:label \"apoptotic process\" .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 3,
+    "n_real": 3,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix RO: <http://purl.obolibrary.org/obo/RO_> .\n\n<http://example.org/IL6> a biolink:Gene ;\n    RO:0002331 GO:0006954 .\n\nGO:0006954 a biolink:BiologicalProcess .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 2,
+    "n_real": 1,
+    "n_fake": 1,
+    "term_existence_rate": 0.5,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix go: <http://purl.obolibrary.org/obo/GO_> .\n\n<http://identifiers.org/ncbigene/4581> a biolink:Gene ;\n  biolink:involved_in go:0016049 .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 4,
+    "n_real": 3,
+    "n_fake": 1,
+    "term_existence_rate": 0.75,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "label"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbigene: <http://identifiers.org/ncbigene/> .\n@prefix go: <http://purl.obolibrary.org/obo/GO_> .\n@prefix ro: <http://purl.obolibrary.org/obo/RO_> .\n\nncbigene:2625 a biolink:Gene ;\n    biolink:symbol \"PARP1\" ;\n    ro:0002331 go:0006281 .\n\ngo:0006281 a biolink:BiologicalProcess ;\n    biolink:label \"DNA repair\" .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n\n<http://identifiers.org/ncbigene/2099> a biolink:Gene ;\n    biolink:involved_in GO:0007165 .\n```\n"
+  },
+  {
+    "family": "go_annotation",
+    "n_terms": 3,
+    "n_real": 2,
+    "n_fake": 1,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n\n<http://example.org/gene/HIF1A> a biolink:Gene ;\n  biolink:involved_in GO:0001666 .\n```\n"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 5,
+    "n_real": 3,
+    "n_fake": 2,
+    "term_existence_rate": 0.6,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "associated_with_increased_risk_of",
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix go: <http://purl.obolibrary.org/obo/GO_> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n@prefix ncbigene: <http://identifiers.org/ncbi-gene/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nncbigene:7157 a biolink:Gene ;\n    rdfs:label \"TP53\" ;\n    biolink:associated_with_increased_risk_of mondo:0007300 ;\n    biolink:involved_in go:0006915 .\n\nmondo:0007300 a biolink:Disease ;\n    rdfs:label \"Li-Fraumeni"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix go: <http://purl.obolibrary.org/obo/GO_> .\n@prefix ncbi: <http://identifiers.org/ncbi-gene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nncbi:672 a biolink:Gene ;\n    rdfs:label \"BRCA1\" ;\n    biolink:associated_with mondo:0007254 ;\n    biolink:involved_in go:0006281 .\n\nmondo:0007254 a biolink:Disease ;\n    rdfs:label \"breast cancer\" .\n\ngo:0006281 a biolin"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 7,
+    "n_real": 6,
+    "n_fake": 1,
+    "term_existence_rate": 0.8571428571428571,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix NCBI: <http://purl.obolibrary.org/obo/NCBIGene:> .\n@prefix DOID: <http://purl.obolibrary.org/obo/DOID_> .\n\nNCBI:1956 a biolink:Gene ;\n    biolink:name \"EGFR\" ;\n    biolink:associated_with DOID:3908 ;\n    biolink:involved_in GO:0007165 .\n\nDOID:3908 a biolink:Disease ;\n    biolink:name \"non-small cell lung carcinoma\" .\n\nGO:0007165 a biolink:BiologicalProcess ;\n    biolink:name "
+  },
+  {
+    "family": "multihop",
+    "n_terms": 6,
+    "n_real": 6,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix go: <http://purl.obolibrary.org/obo/GO_> .\n@prefix ncbi: <http://identifiers.org/ncbi-gene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n\nncbi:3236 a biolink:Gene ;\n    biolink:name \"KRAS\" ;\n    biolink:associated_with mondo:0005192 ;\n    biolink:participates_in go:0007265 .\n\nmondo:0005192 a biolink:Disease ;\n    biolink:name \"pancreatic carcinoma\" .\n\ngo:0007265 a biolink:BiologicalProcess ;\n    biolink:name \"R"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 6,
+    "n_real": 6,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbigene: <http://identifiers.org/ncbigene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n@prefix go: <http://purl.obolibrary.org/obo/GO_> .\n\nncbigene:1080 a biolink:Gene ;\n    biolink:name \"CFTR\" ;\n    biolink:associated_with mondo:0006142 ;\n    biolink:actively_involved_in go:0006821 .\n\nmondo:0006142 a biolink:Disease ;\n    biolink:name \"cystic fibrosis\" .\n\ngo:0006821 a biolink:BiologicalProcess ;\n    biolink:"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 6,
+    "n_real": 5,
+    "n_fake": 1,
+    "term_existence_rate": 0.8333333333333334,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix go: <http://purl.obolibrary.org/obo/GO_> .\n@prefix ncbi: <http://identifiers.org/ncbi-gene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n\nncbi:4292 a biolink:Gene ;\n    biolink:name \"MLH1\" ;\n    biolink:associated_with mondo:0008758 ;\n    biolink:involved_in go:0006298 .\n\nmondo:0008758 a biolink:Disease ;\n    biolink:name \"Lynch syndrome\" .\n\ngo:0006298 a biolink:BiologicalProcess ;\n    biolink:name \"mismatch re"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 6,
+    "n_real": 4,
+    "n_fake": 2,
+    "term_existence_rate": 0.6666666666666666,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "associated_with_condition",
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix go: <http://purl.obolibrary.org/obo/GO_> .\n@prefix ncbigene: <http://identifiers.org/ncbigene/> .\n@prefix omim: <http://purl.obolibrary.org/obo/OMIM_> .\n\nncbigene:207 a biolink:Gene ;\n    biolink:name \"ATM\" ;\n    biolink:associated_with_condition omim:208900 ;\n    biolink:involved_in go:0006974 .\n\nomim:208900 a biolink:Disease ;\n    biolink:name \"Ataxia Telangiectasia\" .\n\ngo:0006974 a biolink:BiologicalProcess ;\n    biolink:n"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 5,
+    "n_real": 4,
+    "n_fake": 1,
+    "term_existence_rate": 0.8,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix go: <http://purl.obolibrary.org/obo/GO_> .\n@prefix ncbigene: <http://identifiers.org/ncbigene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n\nncbigene:3064 a biolink:Gene ;\n    biolink:associated_with mondo:0007739 ;\n    biolink:involved_in go:0051798 .\n\nmondo:0007739 a biolink:Disease .\n\ngo:0051798 a biolink:BiologicalProcess .\n```\n"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 6,
+    "n_real": 5,
+    "n_fake": 1,
+    "term_existence_rate": 0.8333333333333334,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbigene: <http://identifiers.org/ncbigene/> .\n@prefix doid: <http://purl.obolibrary.org/obo/DOID_> .\n@prefix go: <http://purl.obolibrary.org/obo/GO_> .\n\nncbigene:4609 a biolink:Gene ;\n    biolink:name \"MYC\" .\n\ndoid:0005847 a biolink:Disease ;\n    biolink:name \"Burkitt lymphoma\" .\n\ngo:0008283 a biolink:BiologicalProcess ;\n    biolink:name \"cell proliferation\" .\n\nncbigene:4609 biolink:associated_with doid:0005847 .\n\nncbigene:4"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 5,
+    "n_real": 5,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbi-gene: <http://identifiers.org/ncbi-gene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n@prefix go: <http://purl.obolibrary.org/obo/GO_> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nncbi-gene:7428 a biolink:Gene ;\n    rdfs:label \"VHL\" ;\n    biolink:associated_with mondo:0006530 ;\n    biolink:participates_in go:0001666 .\n\nmondo:0006530 a biolink:Disease ;\n    rdfs:label \"von Hippel-Lindau diseas"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 6,
+    "n_real": 6,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbigene: <http://identifiers.org/ncbigene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n@prefix go: <http://purl.obolibrary.org/obo/GO_> .\n\nncbigene:5728 a biolink:Gene ;\n    biolink:name \"PTEN\" ;\n    biolink:gene_associated_with_condition mondo:0018065 ;\n    biolink:actively_involved_in go:0001558 .\n\nmondo:0018065 a biolink:Disease ;\n    biolink:name \"Cowden syndrome\" .\n\ngo:0001558 a biolink:BiologicalProcess"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 6,
+    "n_real": 6,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": true,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix GO: <http://purl.obolibrary.org/obo/GO_> .\n@prefix NCBIGENE: <http://identifiers.org/ncbigene/> .\n@prefix MONDO: <http://purl.obolibrary.org/obo/MONDO_> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nNCBIGENE:6647 a biolink:Gene ;\n    rdfs:label \"SOD1\" ;\n    biolink:gene_associated_with_condition MONDO:0004976 ;\n    biolink:participates_in GO:0006979 .\n\nMONDO:0004976 a biolink:Disease ;\n    rdfs:label \"amyotrophic"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 6,
+    "n_real": 5,
+    "n_fake": 1,
+    "term_existence_rate": 0.8333333333333334,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix ncbigene: <http://identifiers.org/ncbigene/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n@prefix go: <http://purl.obolibrary.org/obo/GO_> .\n\nncbigene:207 a biolink:Gene ;\n  biolink:name \"APC\" ;\n  biolink:associated_with mondo:0005138 ;\n  biolink:involved_in go:0016055 .\n\nmondo:0005138 a biolink:Disease ;\n  biolink:name \"familial adenomatous polyposis\" .\n\ngo:0016055 a biolink:BiologicalProcess ;\n  biolink:name \""
+  },
+  {
+    "family": "multihop",
+    "n_terms": 9,
+    "n_real": 9,
+    "n_fake": 0,
+    "term_existence_rate": 1.0,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix hgnc: <http://identifiers.org/hgnc/> .\n@prefix mondo: <http://purl.obolibrary.org/obo/MONDO_> .\n@prefix go: <http://purl.obolibrary.org/obo/GO_> .\n\nhgnc:RB1 a biolink:Gene ;\n    biolink:name \"RB1\" .\n\nmondo:0005148 a biolink:Disease ;\n    biolink:name \"retinoblastoma\" .\n\ngo:0007049 a biolink:BiologicalProcess ;\n    biolink:name \"cell cycle\" .\n\n[] a biolink:GeneToDiseaseAssociation ;\n    biolink:subject hgnc:RB1 ;\n    biolink:o"
+  },
+  {
+    "family": "multihop",
+    "n_terms": 6,
+    "n_real": 5,
+    "n_fake": 1,
+    "term_existence_rate": 0.8333333333333334,
+    "raw_ok": true,
+    "verified_ok": false,
+    "fake_terms": [
+      "involved_in"
+    ],
+    "output": "```turtle\n@prefix biolink: <https://w3id.org/biolink/vocab/> .\n@prefix go: <http://purl.obolibrary.org/obo/GO_> .\n@prefix ncbi: <https://www.ncbi.nlm.nih.gov/gene/> .\n@prefix doid: <http://purl.obolibrary.org/obo/DOID_> .\n\nncbi:836 a biolink:Gene ;\n  biolink:name \"CASP3\" ;\n  biolink:associated_with doid:1612 ;\n  biolink:involved_in go:0006915 .\n\ndoid:1612 a biolink:Disease ;\n  biolink:name \"cancer\" .\n\ngo:0006915 a biolink:BiologicalProcess ;\n  biolink:name \"apoptotic process\" .\n```\n"
+  }
+]

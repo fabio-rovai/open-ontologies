@@ -63,6 +63,31 @@ fn test_sql_type_to_xsd() {
     assert_eq!(SchemaIntrospector::sql_to_xsd("unknown_type"), "xsd:string");
 }
 
+/// IEEE 754 columns must not map to xsd:decimal, whose value space excludes
+/// NaN and the infinities and implies an exactness binary floats do not have.
+#[test]
+fn test_sql_float_types_map_to_binary_xsd_types() {
+    // Exact decimal types keep xsd:decimal.
+    assert_eq!(SchemaIntrospector::sql_to_xsd("numeric"), "xsd:decimal");
+    assert_eq!(SchemaIntrospector::sql_to_xsd("decimal"), "xsd:decimal");
+    assert_eq!(SchemaIntrospector::sql_to_xsd("DECIMAL(18,2)"), "xsd:decimal");
+
+    // Single precision.
+    assert_eq!(SchemaIntrospector::sql_to_xsd("real"), "xsd:float");
+    assert_eq!(SchemaIntrospector::sql_to_xsd("float4"), "xsd:float");
+
+    // Double precision.
+    assert_eq!(SchemaIntrospector::sql_to_xsd("double precision"), "xsd:double");
+    assert_eq!(SchemaIntrospector::sql_to_xsd("double"), "xsd:double");
+    assert_eq!(SchemaIntrospector::sql_to_xsd("float8"), "xsd:double");
+
+    // Bare `float` is ambiguous across dialects (Postgres float8, DuckDB
+    // float4). It widens to xsd:double, including when parameterised.
+    assert_eq!(SchemaIntrospector::sql_to_xsd("float"), "xsd:double");
+    assert_eq!(SchemaIntrospector::sql_to_xsd("FLOAT(24)"), "xsd:double");
+    assert_eq!(SchemaIntrospector::sql_to_xsd("float(53)"), "xsd:double");
+}
+
 #[test]
 fn test_generate_turtle_not_null_cardinality() {
     let tables = vec![TableInfo {

@@ -21,7 +21,7 @@ An RFC is **not** required for:
 - Bug fixes in pipeline scripts that don't change behaviour
 - Operational documentation updates
 
-If unsure, open an issue first — the Editor will indicate whether an RFC is needed.
+If unsure, open an issue first: the Editor will indicate whether an RFC is needed.
 
 ## 2. RFC lifecycle
 
@@ -100,7 +100,7 @@ The Standards Council and Steward consider:
 | Standards alignment | Medium-high | Does the change move toward or away from W3C/OGC/IIIF standards? |
 | Implementation cost | Medium | What does the change cost adopting institutions? |
 | Maintenance cost | Medium | What does the change cost the Steward and tooling maintainers? |
-| Domain authenticity | High | For aerial-specific changes — does it match real archival practice? |
+| Domain authenticity | High | For aerial-specific changes: does it match real archival practice? |
 | Author commitment | Low-medium | Is the author committed to implementing the change? |
 
 A change that scores high on Necessity, Backwards Compatibility, and Standards Alignment is normally accepted. A change that scores poorly on Backwards Compatibility requires strong Necessity.
@@ -211,20 +211,16 @@ For each RFC in Council Review:
 
 Council meetings are open to public observation; minutes are published.
 
-## 8. Worked example — a hypothetical RFC walkthrough
-
+## 8. Worked example: a hypothetical RFC walkthrough
 To illustrate, here's how an RFC for adding a `naph:declassificationEvent` property would typically flow:
 
-### Day 1 — Draft
-
+### Day 1: Draft
 Author opens PR with `rfcs/0007-declassification-event.md`. Editor triages, confirms it's substantive, assigns RFC #7, asks author to clarify how this relates to existing `prov:Activity` declassification modelling.
 
-### Day 1-7 — Pre-comment iteration
-
+### Day 1-7: Pre-comment iteration
 Author revises to clarify `naph:declassificationEvent` is a typed shortcut for the common case while remaining `prov:Activity`-compatible. Editor marks "Public Comment".
 
-### Day 7-37 — Public comment
-
+### Day 7-37: Public comment
 Comments from:
 
 - IWM cataloguer: supports, gives example records this would simplify
@@ -233,12 +229,10 @@ Comments from:
 
 Author responds, revises proposal slightly. Comment period extended 14 days due to revision (Day 51).
 
-### Day 51 — Council review
-
+### Day 51: Council review
 Council meets, reviews. Recommendation: **accept**, with note that the property should be a sub-class of `prov:Activity` (not replace it).
 
-### Day 65 — Decision
-
+### Day 65: Decision
 Steward accepts with the Council-recommended revision. Author merges PR.
 
 ### Subsequent
@@ -265,18 +259,18 @@ If domain experts (typically aerial archivists) raise a substantive challenge to
 
 The RFC process is intended to be lightweight. Avoid:
 
-- **Bureaucratic creep** — RFCs that add procedural overhead without substance
-- **Premature abstraction** — RFCs that add capability for hypothetical future use
-- **Standards collision** — RFCs that override or contradict W3C/OGC/IIIF standards (these will normally be rejected)
-- **Vendor lock-in** — RFCs that mandate specific vendor tooling
+- **Bureaucratic creep**: RFCs that add procedural overhead without substance
+- **Premature abstraction**: RFCs that add capability for hypothetical future use
+- **Standards collision**: RFCs that override or contradict W3C/OGC/IIIF standards (these will normally be rejected)
+- **Vendor lock-in**: RFCs that mandate specific vendor tooling
 
 ## 11. Annual RFC review
 
 Each year, the Standards Council reviews:
 
-- All RFCs accepted in the past year — implemented as expected? Adopted?
-- All RFCs declined — has new evidence emerged that should re-open them?
-- All RFCs postponed — should they be revisited or closed?
+- All RFCs accepted in the past year: implemented as expected? Adopted?
+- All RFCs declined: has new evidence emerged that should re-open them?
+- All RFCs postponed: should they be revisited or closed?
 
 This review is published as part of the [annual adoption report](governance-proposal.md#8-adoption-metrics-and-transparency).
 

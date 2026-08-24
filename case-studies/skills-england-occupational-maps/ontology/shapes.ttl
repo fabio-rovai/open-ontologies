@@ -1,0 +1,51 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix seom: <https://gov.tesseract.academy/ns/seom#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+# SHACL shapes for the Skills England Occupational Maps Ontology (SEOM).
+# Every occupational standard must be fully placed in the map (route, pathway,
+# cluster, technical level), have a status, a level and a standard code, and its
+# progression / SOC / product references must point at typed resources.
+
+seom:OccupationShape a sh:NodeShape ;
+  sh:targetClass seom:Occupation ;
+  sh:property [ sh:path seom:stdCode ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ] ;
+  sh:property [ sh:path rdfs:label ; sh:minCount 1 ] ;
+  sh:property [ sh:path seom:level ; sh:datatype xsd:integer ; sh:minCount 1 ; sh:maxCount 1 ] ;
+  sh:property [ sh:path seom:inRoute ; sh:class seom:Route ; sh:minCount 1 ; sh:maxCount 1 ] ;
+  sh:property [ sh:path seom:inPathway ; sh:class seom:Pathway ; sh:minCount 1 ; sh:maxCount 1 ] ;
+  sh:property [ sh:path seom:inCluster ; sh:class seom:Cluster ; sh:minCount 1 ; sh:maxCount 1 ] ;
+  sh:property [ sh:path seom:atTechnicalLevel ; sh:class seom:TechnicalLevel ; sh:minCount 1 ; sh:maxCount 1 ] ;
+  sh:property [ sh:path seom:hasStatus ; sh:class seom:OccupationStatus ; sh:minCount 1 ; sh:maxCount 1 ] ;
+  sh:property [ sh:path seom:socMapping2020 ; sh:class seom:SOCConcept ; sh:maxCount 1 ] ;
+  sh:property [ sh:path seom:socMapping2010 ; sh:class seom:SOCConcept ; sh:maxCount 1 ] ;
+  sh:property [ sh:path seom:progressesTo ; sh:class seom:Occupation ] ;
+  sh:property [ sh:path seom:deliveredThrough ; sh:class seom:Product ] ;
+  sh:property [ sh:path seom:inGreenTheme ; sh:class seom:GreenTheme ] .
+
+seom:ProductShape a sh:NodeShape ;
+  sh:targetClass seom:Product ;
+  sh:property [ sh:path seom:productCode ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ] ;
+  sh:property [ sh:path rdfs:label ; sh:minCount 1 ] ;
+  sh:property [ sh:path seom:hasProductType ; sh:class seom:ProductType ; sh:maxCount 1 ] .
+
+seom:SOCConceptShape a sh:NodeShape ;
+  sh:targetClass seom:SOCConcept ;
+  sh:property [ sh:path skos:notation ; sh:minCount 1 ; sh:maxCount 1 ] ;
+  sh:property [ sh:path seom:socVersion ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+seom:RouteShape a sh:NodeShape ;
+  sh:targetClass seom:Route ;
+  sh:property [ sh:path skos:prefLabel ; sh:minCount 1 ] .
+
+seom:PathwayShape a sh:NodeShape ;
+  sh:targetClass seom:Pathway ;
+  sh:property [ sh:path skos:prefLabel ; sh:minCount 1 ] ;
+  sh:property [ sh:path skos:broader ; sh:class seom:Route ; sh:minCount 1 ] .
+
+seom:ClusterShape a sh:NodeShape ;
+  sh:targetClass seom:Cluster ;
+  sh:property [ sh:path skos:prefLabel ; sh:minCount 1 ] ;
+  sh:property [ sh:path skos:broader ; sh:class seom:Pathway ; sh:minCount 1 ] .

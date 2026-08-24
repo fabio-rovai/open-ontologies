@@ -1,0 +1,6 @@
+.venv/
+# Large, re-fetchable vocabularies (run-demo.sh downloads them). IES4 lives in the parent repo.
+data/*.owl
+data/*.ttl
+__pycache__/
+*.pyc

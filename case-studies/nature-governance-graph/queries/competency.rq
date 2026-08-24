@@ -1,0 +1,40 @@
+# Competency questions the UK Nature Governance Graph is scoped to answer.
+# Run each against graph.ttl (e.g. with `arq` or rdflib).
+
+# CQ1: Which bodies does Defra sponsor?
+PREFIX ngg: <https://tesseract.academy/ns/ngg#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?sponsored WHERE {
+  ?r ngg:relFrom ?defra ; ngg:relType "sponsors" ; ngg:relTo ?to .
+  ?defra rdfs:label ?fl . FILTER(CONTAINS(?fl, "Defra"))
+  ?to rdfs:label ?sponsored .
+}
+
+# CQ2: Every actor that supplies data to the NBN Atlas, with the evidencing source.
+PREFIX ngg: <https://tesseract.academy/ns/ngg#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+SELECT ?supplier ?url WHERE {
+  ?r ngg:relType "supplies-data-to" ; ngg:relFrom ?f ; ngg:relTo ?t ;
+     prov:wasDerivedFrom ?s .
+  ?t rdfs:label ?tl . FILTER(CONTAINS(?tl, "NBN Atlas"))
+  ?f rdfs:label ?supplier .
+  ?s ngg:sourceUrl ?url .
+}
+
+# CQ3: Which relationships rest on legislation (a legislation.gov.uk source)?
+PREFIX ngg: <https://tesseract.academy/ns/ngg#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+SELECT ?from ?type ?to ?url WHERE {
+  ?r ngg:relFrom ?f ; ngg:relTo ?t ; ngg:relType ?type ;
+     prov:wasDerivedFrom ?s .
+  ?s ngg:sourceUrl ?url . FILTER(CONTAINS(STR(?url), "legislation.gov.uk"))
+  ?f rdfs:label ?from . ?t rdfs:label ?to .
+}
+
+# CQ4: How many actors of each class?
+PREFIX ngg: <https://tesseract.academy/ns/ngg#>
+SELECT ?class (COUNT(?a) AS ?n) WHERE {
+  ?a a ngg:Actor ; ngg:actorClass ?class .
+} GROUP BY ?class ORDER BY DESC(?n)

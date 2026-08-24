@@ -1,12 +1,11 @@
-# Module B — Metadata & Data Structures
-
+# Module B: Metadata & Data Structures
 **Status:** Normative · v1.0
 **Applies to:** All NAPH-compliant records, all tiers
 **Defines:** the structural and descriptive metadata required for computational discovery, identification, and retrieval
 
 ## B.1 Purpose
 
-Module B is the technical heart of the standard. It specifies what metadata fields a record must expose, in what form, with what semantics, to be **computation-ready** — meaning a researcher can find, filter, aggregate, and reason over the record using any RDF-aware tool without manual interpretation.
+Module B is the technical heart of the standard. It specifies what metadata fields a record must expose, in what form, with what semantics, to be **computation-ready**, meaning a researcher can find, filter, aggregate, and reason over the record using any RDF-aware tool without manual interpretation.
 
 The bar is: a record's metadata must answer competency questions ([§B.5](#b5-competency-questions)) using a machine-readable query, not a human reading free-text fields.
 
@@ -39,7 +38,7 @@ An Enhanced-compliant record MUST additionally have:
 
 An Enhanced-compliant record SHOULD additionally have:
 
-- **B.E.4** Multiple surrogate variants — preservation master + access copy
+- **B.E.4** Multiple surrogate variants: preservation master + access copy
 - **B.E.5** `dcterms:format` for the access surrogate
 - **B.E.6** `dcterms:extent` for original physical artefact (cm or pixels)
 
@@ -75,9 +74,9 @@ Identifiers MUST be globally unique. The recommended way to guarantee this is to
 
 For institutions with existing composite identifier schemes (e.g. NCAP's Collection / Sortie / Frame), NAPH provides distinct properties so the composite can be recovered:
 
-- `naph:collectionCode` — the institutional collection prefix (e.g. `RAF`, `NARA`, `DOS`)
-- `naph:sortieReference` — the sortie identifier within the collection
-- `naph:frameNumber` — the sequential frame number within the sortie
+- `naph:collectionCode`: the institutional collection prefix (e.g. `RAF`, `NARA`, `DOS`)
+- `naph:sortieReference`: the sortie identifier within the collection
+- `naph:frameNumber`: the sequential frame number within the sortie
 
 Only `naph:hasIdentifier` is the canonical record identifier; the composite components are descriptive.
 
@@ -102,7 +101,7 @@ Approximate dates ("c. 1944") MUST be expressed using:
 ```turtle
 ex:photo-X naph:capturedOn "1944"^^xsd:gYear ;
            naph:dateUncertainty "approximate"^^xsd:string ;
-           naph:dateUncertaintyNote "c. 1944 — pre-war reconnaissance archive notes" .
+           naph:dateUncertaintyNote "c. 1944 (pre-war reconnaissance archive notes)" .
 ```
 
 ### B.4.3 Date ranges
@@ -201,10 +200,10 @@ ex:place-Berlin a naph:Place ;
 
 ## B.8 Cross-references
 
-- [Module A — Capture & Imaging](A-capture-imaging.md)
-- [Module C — Rights, Licensing & Ethics](C-rights-licensing-ethics.md)
-- [Module D — Packaging & Publication](D-packaging-publication.md)
-- [Module E — Paradata & Workflow](E-paradata-workflow.md)
-- [Module F — QA & Validation](F-qa-validation.md)
+- [Module A: Capture & Imaging](A-capture-imaging.md)
+- [Module C: Rights, Licensing & Ethics](C-rights-licensing-ethics.md)
+- [Module D: Packaging & Publication](D-packaging-publication.md)
+- [Module E: Paradata & Workflow](E-paradata-workflow.md)
+- [Module F: QA & Validation](F-qa-validation.md)
 - [Identifier policy decision tree](../../04-adoption-guidance/decision-trees/identifier-policy.md)
 - [Date normalisation decision tree](../../04-adoption-guidance/decision-trees/date-normalisation.md)

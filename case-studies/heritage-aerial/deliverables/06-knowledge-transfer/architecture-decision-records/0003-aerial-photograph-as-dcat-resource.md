@@ -19,7 +19,7 @@ The red-team review (see [`docs/red-team-report.md`](../../../docs/red-team-repo
 
 From the DCAT 3 specification:
 
-> A dataset is "a collection of data, published or curated by a single agent" — emphasising that datasets are inherently aggregations.
+> A dataset is "a collection of data, published or curated by a single agent", emphasising that datasets are inherently aggregations.
 
 For individual data items (photographs, documents):
 
@@ -98,14 +98,14 @@ After the correction:
 
 This decision was made in error initially, caught by the red-team review, and corrected before any external publication. The lesson:
 
-- **Verify standards alignment claims against the canonical spec** — don't rely on intuition or memory
-- **Red-team reviews catch real errors** — building review into the development process is valuable
-- **Documentation of decisions (ADRs) makes it easier to correct course** — the original wasn't documented as a deliberate decision, which made it hard to evaluate
+- **Verify standards alignment claims against the canonical spec**: don't rely on intuition or memory
+- **Red-team reviews catch real errors**: building review into the development process is valuable
+- **Documentation of decisions (ADRs) makes it easier to correct course**: the original wasn't documented as a deliberate decision, which made it hard to evaluate
 
 ## Cross-references
 
 - [DCAT 3 specification](https://www.w3.org/TR/vocab-dcat-3/)
 - [DCMI Type vocabulary](https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/dcmitype/)
 - [Red-team report](../../../docs/red-team-report.md)
-- [ADR-0002 — Synthesis over invention](0002-synthesis-over-invention.md)
+- [ADR-0002: Synthesis over invention](0002-synthesis-over-invention.md)
 - [Reasoning inference documentation](../../../docs/reasoning-inference.md)

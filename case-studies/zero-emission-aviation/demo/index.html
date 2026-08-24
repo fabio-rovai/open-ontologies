@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UK Zero-Emission Flight Ecosystem — interactive reference graph</title>
+<meta name="description" content="An open, SHACL-validated, provenance-first knowledge graph of the UK hydrogen and electric aviation ecosystem. WCAG 2.2 AA. Open source by The Tesseract Academy." />
+<script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  mermaid.initialize({ startOnLoad: true, securityLevel: 'strict',
+    theme: dark ? 'dark' : 'neutral', flowchart: { htmlLabels: true, curve: 'basis' },
+    themeVariables: { fontFamily: 'inherit' } });
+</script>
+<style>
+  :root {
+    --ink: #16202c; --muted: #4a5763; --line: #d9e0e7; --bg: #ffffff; --panel: #f6f8fa;
+    --blue: #1f3864; --accent: #2e75b6; --focus: #b4530a; --chip: #eef2f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink: #e8edf2; --muted: #a4b0bd; --line: #2a3542; --bg: #0f151c; --panel: #161e27;
+      --blue: #7aa7db; --accent: #6ba6e0; --focus: #ffb066; --chip: #1c2733; }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px; line-height: 1.55; }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+    outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+  /* 2.4.11 focus not obscured: keep focused targets clear of the sticky header */
+  :target, [id] { scroll-margin-top: 90px; }
+  .skip { position: absolute; left: -999px; top: 0; background: var(--blue); color: #fff;
+    padding: 10px 16px; z-index: 100; border-radius: 0 0 8px 0; }
+  .skip:focus { left: 0; }
+  header.site { position: sticky; top: 0; z-index: 20; background: var(--bg);
+    border-bottom: 1px solid var(--line); padding: 14px 20px; }
+  header.site h1 { margin: 0; font-size: 1.25rem; color: var(--blue); line-height: 1.25; }
+  header.site p { margin: 4px 0 0; color: var(--muted); font-size: 0.9rem; max-width: 80ch; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .chip { background: var(--chip); border: 1px solid var(--line); border-radius: 999px;
+    padding: 4px 12px; font-size: 0.82rem; font-weight: 600; }
+  .chip b { color: var(--blue); }
+  main { max-width: 1100px; margin: 0 auto; padding: 8px 20px 60px; }
+  section { margin-top: 34px; }
+  h2 { font-size: 1.15rem; color: var(--blue); margin: 0 0 6px; }
+  .lede { color: var(--muted); margin: 0 0 14px; max-width: 78ch; }
+  .card { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); padding: 18px; }
+  figure { margin: 0; }
+  figcaption { color: var(--muted); font-size: 0.85rem; margin-top: 8px; }
+  .mermaid { background: transparent; overflow-x: auto; }
+  /* controls */
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-bottom: 12px; }
+  .toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .toggle button { min-height: 40px; min-width: 90px; padding: 8px 16px; border: 0; background: var(--bg);
+    color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+  .toggle button[aria-pressed="true"] { background: var(--blue); color: #fff; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 0.82rem; font-weight: 600; color: var(--muted); }
+  .field input { min-height: 40px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--bg); color: var(--ink); font: inherit; min-width: 240px; }
+  .zoom button { min-height: 40px; min-width: 40px; font-size: 1.1rem; font-weight: 700;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 10px; cursor: pointer; }
+  /* graph + panel */
+  .layout { display: grid; grid-template-columns: 1fr 320px; gap: 16px; }
+  @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+  #net { height: 560px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+  #tableView table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  #tableView caption { text-align: left; color: var(--muted); font-size: 0.85rem; margin-bottom: 8px; }
+  #tableView th, #tableView td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line);
+    vertical-align: top; }
+  #tableView thead th { position: sticky; top: 74px; background: var(--bg); }
+  .tableWrap { max-height: 560px; overflow: auto; border: 1px solid var(--line); border-radius: 12px; }
+  aside { border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: var(--panel); }
+  aside h3 { margin: 0 0 8px; font-size: 0.78rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .legend li { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; margin: 5px 0; list-style: none; }
+  .legend { padding: 0; margin: 0 0 14px; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; flex: 0 0 auto; border: 1px solid rgba(0,0,0,.15); }
+  #detail { font-size: 0.9rem; }
+  #detail .name { font-weight: 700; color: var(--blue); font-size: 1rem; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  footer { border-top: 1px solid var(--line); margin-top: 40px; padding: 20px; color: var(--muted); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+
+<header class="site">
+  <h1>UK Zero-Emission Flight Ecosystem</h1>
+  <p>An open, SHACL-validated, provenance-first reference graph of the UK hydrogen and electric aviation ecosystem. Independent open dataset by The Tesseract Academy (CC BY 4.0). This page is built to WCAG 2.2 AA.</p>
+  <div class="chips" role="list" aria-label="Key metrics">
+    <span class="chip" role="listitem"><b>45</b> entities</span>
+    <span class="chip" role="listitem"><b>56</b> relationships</span>
+    <span class="chip" role="listitem"><b>482</b> triples</span>
+    <span class="chip" role="listitem"><b>0</b> SHACL violations</span>
+    <span class="chip" role="listitem"><b>8</b> provenanced quantities</span>
+    <span class="chip" role="listitem"><b>6</b> competency questions</span>
+  </div>
+</header>
+
+<main id="main">
+  <section aria-labelledby="chain-h">
+    <h2 id="chain-h">The hydrogen production-to-use chain</h2>
+    <p class="lede">The value-chain axis of the model: each stage transforms a hydrogen carrier and is realised by one or more technologies. Rendered from the ontology's chain-stage definitions.</p>
+    <figure class="card">
+      <pre class="mermaid" aria-hidden="true">
+flowchart LR
+  E["Renewable<br/>electricity"] --> P["1 Production<br/>(electrolysis)"]
+  P -->|GH2| L["2 Liquefaction<br/>&amp; distribution"]
+  L -->|LH2| S["3 On-airport<br/>cryogenic storage"]
+  S -->|LH2| R["4 Aircraft<br/>refuelling"]
+  R -->|LH2| PR["5 Propulsion<br/>(fuel cell / turbine)"]
+  classDef s fill:#0b8a8a,stroke:#fff,color:#fff;
+  class P,L,S,R,PR s;
+      </pre>
+      <figcaption id="chain-desc">Hydrogen chain, five stages left to right: renewable electricity feeds production by electrolysis, producing gaseous hydrogen; liquefaction and distribution produce liquid hydrogen; then on-airport cryogenic storage; aircraft refuelling; and finally propulsion by fuel cell or turbine. Each arrow is labelled with the hydrogen carrier form.</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="model-h">
+    <h2 id="model-h">The provenance-first data model</h2>
+    <p class="lede">Maturity and every quantity are reified as their own nodes carrying a value and a source, after the PECO pattern, so no number is ever an unsourced literal.</p>
+    <figure class="card">
+      <pre class="mermaid" aria-hidden="true">
+classDiagram
+  class TRLAssessment {
+    +int trlValue_1_to_9
+    +date assessedOn
+  }
+  class Quantity {
+    +decimal numericValue
+    +string unit
+    +gYear forYear
+  }
+  class Source {
+    +string dcterms_title
+    +string dcterms_source
+  }
+  Technology --> ChainStage : realisesStage
+  Technology --> TRLAssessment : hasTRLAssessment
+  Technology --> Quantity : hasQuantity
+  TRLAssessment --> Source : prov_wasDerivedFrom
+  Quantity --> Source : prov_wasDerivedFrom
+      </pre>
+      <figcaption>Class diagram: a Technology realises a ChainStage and has TRL assessments and quantities; each assessment and quantity is derived from a Source with a title and URL. TRL assessments carry an integer 1 to 9 and a date; quantities carry a value, a unit and a year.</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="explore-h">
+    <h2 id="explore-h">Explore the ecosystem</h2>
+    <p class="lede">Switch between an interactive network view and an equivalent data table. Both present the same 45 entities and their relationships.</p>
+    <div class="toolbar">
+      <div class="toggle" role="group" aria-label="Choose a view">
+        <button id="btnGraph" aria-pressed="true">Network</button>
+        <button id="btnTable" aria-pressed="false">Table</button>
+      </div>
+      <div class="field">
+        <label for="search">Search entities</label>
+        <input id="search" type="search" autocomplete="off" placeholder="e.g. ZeroAvia, H2GEAR, electrolysis" aria-describedby="search-help" />
+      </div>
+      <div class="zoom" id="zoomControls" role="group" aria-label="Zoom the network">
+        <button id="zoomIn" aria-label="Zoom in">+</button>
+        <button id="zoomOut" aria-label="Zoom out">&minus;</button>
+        <button id="zoomFit" aria-label="Fit graph to view">Fit</button>
+      </div>
+    </div>
+    <p id="search-help" class="visually-hidden">Type to find and focus an entity. The network view can also be panned with the mouse or, when focused, the arrow keys; the table view is a full keyboard-accessible alternative.</p>
+    <p id="status" role="status" aria-live="polite" class="visually-hidden"></p>
+
+    <div class="layout">
+      <div>
+        <div id="graphView">
+          <div id="net" tabindex="0" role="application" aria-label="Interactive network of ecosystem entities. This is a visual view; use the Table button for an accessible equivalent."></div>
+        </div>
+        <div id="tableView" hidden>
+          <div class="tableWrap">
+            <table>
+              <caption>All 45 entities with type, maturity or TRL, and connections. Sortable-free, screen-reader friendly.</caption>
+              <thead><tr>
+                <th scope="col">Entity</th><th scope="col">Type</th><th scope="col">Maturity / TRL</th><th scope="col">Connected to</th>
+              </tr></thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <aside aria-labelledby="legend-h">
+        <h3 id="legend-h">Entity types</h3>
+        <ul class="legend" id="legend"></ul>
+        <h3>Selected entity</h3>
+        <div id="detail">Select a node, or a row in the table view, to see its detail and connections.</div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>Open source and reproducible: <a href="https://github.com/fabio-rovai/open-ontologies/tree/main/case-studies/zero-emission-aviation">github.com/fabio-rovai/open-ontologies</a>. Built to WCAG 2.2 AA: full keyboard operability, a table alternative to the visual graph, visible focus, reduced-motion and dark-mode support. Indicative maturity and TRL values carry provenance and are not an authoritative assessment.</p>
+</footer>
+
+<script>
+const TYPE_COL = { Organisation:"#2e75b6", Airport:"#c0642a", Programme:"#1f3864", Project:"#8e44ad",
+  Funder:"#2f9e6f", Body:"#555555", Alliance:"#c0392b", Technology:"#0b8a8a", Standard:"#b8860b" };
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const announce = (m) => { document.getElementById('status').textContent = m; };
+let net, nodesDS, DATA;
+
+fetch("graph.json").then(r => r.json()).then(data => {
+  DATA = data;
+  buildLegend();
+  buildTable(data);
+  buildGraph(data);
+  wireControls();
+});
+
+function buildLegend() {
+  const ul = document.getElementById('legend');
+  Object.entries(TYPE_COL).forEach(([t, c]) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="dot" style="background:${c}"></span>${t}`;
+    ul.appendChild(li);
+  });
+}
+
+function labelOf(id) { const n = DATA.nodes.find(x => x.id === id); return n ? n.label : id; }
+
+function connectionsOf(id) {
+  const out = DATA.edges.filter(e => e.from === id).map(e => `${e.label} → ${labelOf(e.to)}`);
+  const inc = DATA.edges.filter(e => e.to === id).map(e => `${labelOf(e.from)} ${e.label} →`);
+  return out.concat(inc);
+}
+
+function buildTable(data) {
+  const tb = document.getElementById('tbody');
+  data.nodes.slice().sort((a, b) => a.type.localeCompare(b.type) || a.label.localeCompare(b.label))
+    .forEach(n => {
+      const tr = document.createElement('tr');
+      const mat = n.trl ? `TRL ${n.trl}` : (n.maturity || '–');
+      const conns = connectionsOf(n.id);
+      tr.innerHTML = `<td><button class="rowbtn" data-id="${n.id}"
+          style="background:none;border:0;color:var(--accent);font:inherit;text-align:left;cursor:pointer;padding:0;min-height:24px">${n.label}</button></td>
+        <td>${n.type}</td><td>${mat}</td>
+        <td>${conns.length ? conns.join('; ') : '–'}</td>`;
+      tb.appendChild(tr);
+    });
+  tb.addEventListener('click', e => {
+    const b = e.target.closest('.rowbtn'); if (b) showDetail(b.dataset.id);
+  });
+}
+
+function buildGraph(data) {
+  nodesDS = new vis.DataSet(data.nodes.map(n => ({
+    id: n.id, label: n.label, title: n.note || n.label,
+    color: { background: n.color, border: "#ffffff" }, font: { size: 14 },
+    shape: "dot", size: (["Programme", "Project", "Funder"].includes(n.type) ? 18 : 13), _type: n.type
+  })));
+  const edges = new vis.DataSet(data.edges.map(e => ({
+    from: e.from, to: e.to, label: e.label, arrows: "to",
+    color: { color: "#9aa7b4", highlight: "#1f3864" }, font: { size: 10, color: "#7c8894", strokeWidth: 3 }
+  })));
+  net = new vis.Network(document.getElementById("net"), { nodes: nodesDS, edges }, {
+    physics: reduceMotion ? { enabled: false } : { barnesHut: { springLength: 150, gravitationalConstant: -9000 }, stabilization: { iterations: 250 } },
+    interaction: { hover: true, keyboard: { enabled: true, bindToWindow: false }, tooltipDelay: 150 },
+    layout: reduceMotion ? { improvedLayout: true } : {}
+  });
+  net.on("click", p => { if (p.nodes.length) showDetail(p.nodes[0]); });
+}
+
+function showDetail(id) {
+  const n = DATA.nodes.find(x => x.id === id); if (!n) return;
+  const conns = connectionsOf(id);
+  const mat = n.trl ? `TRL ${n.trl}` : (n.maturity ? n.maturity : '');
+  document.getElementById('detail').innerHTML =
+    `<p class="name">${n.label}</p><p style="color:var(--muted);margin:.2rem 0">${n.type}${mat ? ' · ' + mat : ''}</p>` +
+    `<p>${n.note || ''}</p><p style="font-weight:700;margin:.4rem 0 .2rem">Connections (${conns.length})</p>` +
+    `<ul style="margin:.2rem 0;padding-left:1.1rem">${conns.map(c => `<li>${c}</li>`).join('')}</ul>`;
+  if (net && document.getElementById('graphView').hidden === false) { try { net.selectNodes([id]); } catch (e) {} }
+  announce(`Selected ${n.label}, ${n.type}, with ${conns.length} connections.`);
+}
+
+function wireControls() {
+  const bG = document.getElementById('btnGraph'), bT = document.getElementById('btnTable');
+  const gV = document.getElementById('graphView'), tV = document.getElementById('tableView');
+  const zoom = document.getElementById('zoomControls');
+  const setView = (graph) => {
+    bG.setAttribute('aria-pressed', graph); bT.setAttribute('aria-pressed', !graph);
+    gV.hidden = !graph; tV.hidden = graph; zoom.style.visibility = graph ? 'visible' : 'hidden';
+    announce(graph ? 'Network view shown.' : 'Table view shown.');
+  };
+  bG.addEventListener('click', () => setView(true));
+  bT.addEventListener('click', () => setView(false));
+  document.getElementById('search').addEventListener('input', e => {
+    const q = e.target.value.trim().toLowerCase(); if (!q) return;
+    const hit = DATA.nodes.find(n => n.label.toLowerCase().includes(q));
+    if (hit) { showDetail(hit.id); if (net && !gV.hidden) net.focus(hit.id, { scale: 1.1, animation: !reduceMotion }); }
+  });
+  document.getElementById('zoomIn').addEventListener('click', () => net && net.moveTo({ scale: net.getScale() * 1.3, animation: !reduceMotion }));
+  document.getElementById('zoomOut').addEventListener('click', () => net && net.moveTo({ scale: net.getScale() / 1.3, animation: !reduceMotion }));
+  document.getElementById('zoomFit').addEventListener('click', () => net && net.fit({ animation: !reduceMotion }));
+}
+</script>
+</body>
+</html>

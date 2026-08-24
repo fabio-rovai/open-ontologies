@@ -1,0 +1,57 @@
+# Competency questions for the ZEF ecosystem ontology, as runnable SPARQL.
+# The pipeline (build_and_validate.py) executes each and prints the answers,
+# so the ontology is shown to answer real ecosystem-coordination questions,
+# not just to type-check. Separated by the marker line "### CQ".
+
+### CQ1  Which technologies gate a pathway because they are below TRL 6 (not yet demonstrated in a relevant environment)?
+PREFIX zef: <https://tesseract.academy/ns/zef#>
+SELECT ?techLabel ?trl ?stageLabel WHERE {
+  ?tech a zef:Technology ; rdfs:label ?techLabel ;
+        zef:hasTRLAssessment ?a .
+  ?a zef:trlValue ?trl .
+  OPTIONAL { ?tech zef:realisesStage ?stage . ?stage rdfs:label ?stageLabel . }
+  FILTER (?trl < 6)
+} ORDER BY ?trl
+
+### CQ2  For each hydrogen chain stage, which organisations develop technologies that realise it?
+PREFIX zef: <https://tesseract.academy/ns/zef#>
+SELECT ?stageLabel ?stageOrder ?orgLabel ?techLabel WHERE {
+  ?stage a zef:ChainStage ; rdfs:label ?stageLabel .
+  OPTIONAL { ?stage zef:stageOrder ?stageOrder . }
+  ?tech zef:realisesStage ?stage ; rdfs:label ?techLabel .
+  ?org zef:develops ?tech ; rdfs:label ?orgLabel .
+} ORDER BY ?stageOrder ?orgLabel
+
+### CQ3  Which provenanced quantities (funding, capacity, benefit) does the graph hold, for which entity, and from which source?
+PREFIX zef: <https://tesseract.academy/ns/zef#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+SELECT ?concernsLabel ?metric ?value ?unit ?year ?sourceTitle WHERE {
+  ?concerns zef:hasQuantity ?q ; rdfs:label ?concernsLabel .
+  ?q zef:aboutMetric ?metric ; zef:numericValue ?value ; zef:unit ?unit .
+  OPTIONAL { ?q zef:forYear ?year . }
+  OPTIONAL { ?q prov:wasDerivedFrom ?src . ?src dcterms:title ?sourceTitle . }
+} ORDER BY ?year ?concernsLabel
+
+### CQ4  Which funders fund which projects and programmes, and via which relationships?
+PREFIX zef: <https://tesseract.academy/ns/zef#>
+SELECT ?funderLabel ?fundedLabel ?fundedType WHERE {
+  ?funder a zef:Funder ; rdfs:label ?funderLabel ; zef:funds ?funded .
+  ?funded rdfs:label ?fundedLabel ; a ?fundedType .
+  FILTER (?fundedType IN (zef:Project, zef:Programme))
+} ORDER BY ?funderLabel
+
+### CQ5  Which technologies are governed by a named safety or fuelling standard?
+PREFIX zef: <https://tesseract.academy/ns/zef#>
+SELECT ?techLabel ?standardLabel WHERE {
+  ?tech a zef:Technology ; rdfs:label ?techLabel ; zef:governedBy ?std .
+  ?std rdfs:label ?standardLabel .
+} ORDER BY ?techLabel
+
+### CQ6  Which airports are demonstration sites, for which projects and technologies?
+PREFIX zef: <https://tesseract.academy/ns/zef#>
+SELECT ?airportLabel ?projectLabel ?techLabel WHERE {
+  ?project zef:demonstratesAt ?airport ; rdfs:label ?projectLabel .
+  ?airport rdfs:label ?airportLabel .
+  OPTIONAL { ?project zef:usesTechnology ?tech . ?tech rdfs:label ?techLabel . }
+} ORDER BY ?airportLabel

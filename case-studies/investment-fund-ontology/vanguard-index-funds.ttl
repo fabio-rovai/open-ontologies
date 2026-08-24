@@ -1,0 +1,1619 @@
+@prefix ifo: <https://gov.tesseract.academy/def/fund#> .
+@prefix ifosch: <https://gov.tesseract.academy/def/fund/scheme#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://gov.tesseract.academy/id/fund/identifier/cik/36405> a ifo:CIK,
+        ifo:Identifier ;
+    ifo:identifierScheme ifosch:CIK ;
+    ifo:identifierValue "36405" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/registrant/36405> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007773> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007773" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007773> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007774> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007774" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007774> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007775> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007775" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007775> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007776> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007776" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007776> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007777> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007777" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007777> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007778> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007778" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007778> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007779> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007779" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007779> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007780> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007780" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007780> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007781> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007781" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007781> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007782> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007782" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007782> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007783> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007783" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007783> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007784> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007784" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007784> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007785> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007785" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007785> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007786> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007786" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007786> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007787> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007787" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007787> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007788> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007788" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007788> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007789> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007789" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007789> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007790> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007790" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007790> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007791> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007791" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007791> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007792> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007792" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007792> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007793> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007793" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007793> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007794> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007794" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007794> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007795> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007795" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007795> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007796> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007796" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007796> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007797> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007797" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007797> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007798> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007798" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007798> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007799> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007799" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007799> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007800> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007800" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007800> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007801> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007801" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007801> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007802> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007802" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007802> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007803> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007803" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007803> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007804> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007804" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007804> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007805> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007805" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007805> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007806> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007806" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007806> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007807> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007807" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007807> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000007808> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000007808" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000007808> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000034427> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000034427" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000034427> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000034428> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000034428" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000034428> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000034429> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000034429" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000034429> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000034430> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000034430" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000034430> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000092055> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000092055" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000092055> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000096110> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000096110" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000096110> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000096111> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000096111" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000096111> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000096112> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000096112" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000096112> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000105304> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000105304" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000105304> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000105305> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000105305" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000105305> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000105306> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000105306" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000105306> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000105307> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000105307" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000105307> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000155407> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000155407" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000155407> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000170274> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000170274" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000170274> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000170275> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000170275" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000170275> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/class/C000170276> a ifo:Identifier,
+        ifo:SECClassId ;
+    ifo:identifierScheme ifosch:SECClassId ;
+    ifo:identifierValue "C000170276" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/class/C000170276> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/filenum/811-02652> a ifo:Identifier,
+        ifo:SECFileNumber ;
+    ifo:identifierScheme ifosch:SECFileNumber ;
+    ifo:identifierValue "811-02652" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/registrant/36405> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/lei/12WZ1W76P8QD4VJ6OB47> a ifo:Identifier,
+        ifo:LEI ;
+    ifo:checksumValid true ;
+    ifo:identifierScheme ifosch:LEI ;
+    ifo:identifierValue "12WZ1W76P8QD4VJ6OB47" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002839> ;
+    ifo:sourceSystem ifosch:SEC-NCEN .
+
+<https://gov.tesseract.academy/id/fund/identifier/lei/549300G6KNDK44WUN559> a ifo:Identifier,
+        ifo:LEI ;
+    ifo:checksumValid true ;
+    ifo:identifierScheme ifosch:LEI ;
+    ifo:identifierValue "549300G6KNDK44WUN559" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/registrant/36405> ;
+    ifo:sourceSystem ifosch:SEC-NCEN .
+
+<https://gov.tesseract.academy/id/fund/identifier/lei/8DLNZLT9FCSJNCMHQC12> a ifo:Identifier,
+        ifo:LEI ;
+    ifo:checksumValid true ;
+    ifo:identifierScheme ifosch:LEI ;
+    ifo:identifierValue "8DLNZLT9FCSJNCMHQC12" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002842> ;
+    ifo:sourceSystem ifosch:SEC-NCEN .
+
+<https://gov.tesseract.academy/id/fund/identifier/lei/E6X2OQ8OM0Z814YUKF70> a ifo:Identifier,
+        ifo:LEI ;
+    ifo:checksumValid true ;
+    ifo:identifierScheme ifosch:LEI ;
+    ifo:identifierValue "E6X2OQ8OM0Z814YUKF70" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002843> ;
+    ifo:sourceSystem ifosch:SEC-NCEN .
+
+<https://gov.tesseract.academy/id/fund/identifier/lei/F7RXEPKL33W3OZ8V3S02> a ifo:Identifier,
+        ifo:LEI ;
+    ifo:checksumValid true ;
+    ifo:identifierScheme ifosch:LEI ;
+    ifo:identifierValue "F7RXEPKL33W3OZ8V3S02" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002844> ;
+    ifo:sourceSystem ifosch:SEC-NCEN .
+
+<https://gov.tesseract.academy/id/fund/identifier/lei/HH8Q33B0J5YWPPIGZP55> a ifo:Identifier,
+        ifo:LEI ;
+    ifo:checksumValid true ;
+    ifo:identifierScheme ifosch:LEI ;
+    ifo:identifierValue "HH8Q33B0J5YWPPIGZP55" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002840> ;
+    ifo:sourceSystem ifosch:SEC-NCEN .
+
+<https://gov.tesseract.academy/id/fund/identifier/lei/HJ2RZRUQEVF2A5SPRB21> a ifo:Identifier,
+        ifo:LEI ;
+    ifo:checksumValid true ;
+    ifo:identifierScheme ifosch:LEI ;
+    ifo:identifierValue "HJ2RZRUQEVF2A5SPRB21" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002848> ;
+    ifo:sourceSystem ifosch:SEC-NCEN .
+
+<https://gov.tesseract.academy/id/fund/identifier/lei/HZKQM2YGJWB4I8NIZL49> a ifo:Identifier,
+        ifo:LEI ;
+    ifo:checksumValid true ;
+    ifo:identifierScheme ifosch:LEI ;
+    ifo:identifierValue "HZKQM2YGJWB4I8NIZL49" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002845> ;
+    ifo:sourceSystem ifosch:SEC-NCEN .
+
+<https://gov.tesseract.academy/id/fund/identifier/lei/IYAYRN9IGNRICDXDWU21> a ifo:Identifier,
+        ifo:LEI ;
+    ifo:checksumValid true ;
+    ifo:identifierScheme ifosch:LEI ;
+    ifo:identifierValue "IYAYRN9IGNRICDXDWU21" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002847> ;
+    ifo:sourceSystem ifosch:SEC-NCEN .
+
+<https://gov.tesseract.academy/id/fund/identifier/lei/M6JWDO0S7R5FNUM8T614> a ifo:Identifier,
+        ifo:LEI ;
+    ifo:checksumValid true ;
+    ifo:identifierScheme ifosch:LEI ;
+    ifo:identifierValue "M6JWDO0S7R5FNUM8T614" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000012756> ;
+    ifo:sourceSystem ifosch:SEC-NCEN .
+
+<https://gov.tesseract.academy/id/fund/identifier/lei/NKRB5RF4FYYMQPL0SY31> a ifo:Identifier,
+        ifo:LEI ;
+    ifo:checksumValid true ;
+    ifo:identifierScheme ifosch:LEI ;
+    ifo:identifierValue "NKRB5RF4FYYMQPL0SY31" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002841> ;
+    ifo:sourceSystem ifosch:SEC-NCEN .
+
+<https://gov.tesseract.academy/id/fund/identifier/lei/Q4QUKKUM8YYJ562GIO45> a ifo:Identifier,
+        ifo:LEI ;
+    ifo:checksumValid true ;
+    ifo:identifierScheme ifosch:LEI ;
+    ifo:identifierValue "Q4QUKKUM8YYJ562GIO45" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000012757> ;
+    ifo:sourceSystem ifosch:SEC-NCEN .
+
+<https://gov.tesseract.academy/id/fund/identifier/lei/UWJDRZIFJ6DZX3P2T284> a ifo:Identifier,
+        ifo:LEI ;
+    ifo:checksumValid true ;
+    ifo:identifierScheme ifosch:LEI ;
+    ifo:identifierValue "UWJDRZIFJ6DZX3P2T284" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002846> ;
+    ifo:sourceSystem ifosch:SEC-NCEN .
+
+<https://gov.tesseract.academy/id/fund/identifier/mic/ARCX> a ifo:Identifier,
+        ifo:MICIdentifier ;
+    ifo:identifierScheme ifosch:MIC ;
+    ifo:identifierValue "ARCX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/venue/ARCX> ;
+    ifo:sourceSystem ifosch:SEC-NCEN .
+
+<https://gov.tesseract.academy/id/fund/identifier/series/S000002839> a ifo:Identifier,
+        ifo:SECSeriesId ;
+    ifo:identifierScheme ifosch:SECSeriesId ;
+    ifo:identifierValue "S000002839" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002839> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/series/S000002840> a ifo:Identifier,
+        ifo:SECSeriesId ;
+    ifo:identifierScheme ifosch:SECSeriesId ;
+    ifo:identifierValue "S000002840" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002840> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/series/S000002841> a ifo:Identifier,
+        ifo:SECSeriesId ;
+    ifo:identifierScheme ifosch:SECSeriesId ;
+    ifo:identifierValue "S000002841" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002841> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/series/S000002842> a ifo:Identifier,
+        ifo:SECSeriesId ;
+    ifo:identifierScheme ifosch:SECSeriesId ;
+    ifo:identifierValue "S000002842" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002842> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/series/S000002843> a ifo:Identifier,
+        ifo:SECSeriesId ;
+    ifo:identifierScheme ifosch:SECSeriesId ;
+    ifo:identifierValue "S000002843" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002843> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/series/S000002844> a ifo:Identifier,
+        ifo:SECSeriesId ;
+    ifo:identifierScheme ifosch:SECSeriesId ;
+    ifo:identifierValue "S000002844" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002844> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/series/S000002845> a ifo:Identifier,
+        ifo:SECSeriesId ;
+    ifo:identifierScheme ifosch:SECSeriesId ;
+    ifo:identifierValue "S000002845" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002845> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/series/S000002846> a ifo:Identifier,
+        ifo:SECSeriesId ;
+    ifo:identifierScheme ifosch:SECSeriesId ;
+    ifo:identifierValue "S000002846" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002846> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/series/S000002847> a ifo:Identifier,
+        ifo:SECSeriesId ;
+    ifo:identifierScheme ifosch:SECSeriesId ;
+    ifo:identifierValue "S000002847" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002847> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/series/S000002848> a ifo:Identifier,
+        ifo:SECSeriesId ;
+    ifo:identifierScheme ifosch:SECSeriesId ;
+    ifo:identifierValue "S000002848" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000002848> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/series/S000012756> a ifo:Identifier,
+        ifo:SECSeriesId ;
+    ifo:identifierScheme ifosch:SECSeriesId ;
+    ifo:identifierValue "S000012756" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000012756> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/series/S000012757> a ifo:Identifier,
+        ifo:SECSeriesId ;
+    ifo:identifierScheme ifosch:SECSeriesId ;
+    ifo:identifierValue "S000012757" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/series/S000012757> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/NAESX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "NAESX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007795> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VB> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VB" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007798> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VBK> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VBK" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007801> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VBR> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VBR" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007804> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VEMPX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VEMPX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000096110> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VEXAX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VEXAX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007780> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VEXMX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VEXMX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007779> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VFIAX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VFIAX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007774> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VFINX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VFINX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007773> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VIEIX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VIEIX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007781> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VIGAX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VIGAX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007784> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VIGIX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VIGIX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007785> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VIGRX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VIGRX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007783> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VIMAX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VIMAX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007792> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VIMSX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VIMSX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007791> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VISGX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VISGX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007799> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VISVX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VISVX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007802> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VITSX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VITSX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007807> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VIVAX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VIVAX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007775> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VIVIX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VIVIX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007777> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VLACX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VLACX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007787> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VLCAX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VLCAX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007788> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VLISX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VLISX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007789> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VMCIX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VMCIX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007793> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VMCPX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VMCPX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000096111> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VMGIX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VMGIX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000034427> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VMGMX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VMGMX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000105306> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VMVAX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VMVAX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000105307> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VMVIX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VMVIX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000034429> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VO> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VO" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007794> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VOE> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VOE" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000034430> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VOO> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VOO" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000092055> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VOT> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VOT" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000034428> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VSCIX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VSCIX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007797> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VSCPX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VSCPX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000096112> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VSGAX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VSGAX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000105304> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VSGIX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VSGIX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007800> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VSIAX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VSIAX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000105305> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VSIIX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VSIIX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007803> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VSMAX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VSMAX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007796> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VSMPX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VSMPX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000155407> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VTI> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VTI" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007808> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VTSAX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VTSAX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007806> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VTSMX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VTSMX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007805> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VTV> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VTV" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007778> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VUG> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VUG" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007786> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VV> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VV" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007790> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VVIAX> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VVIAX" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007776> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/identifier/ticker/VXF> a ifo:Identifier,
+        ifo:TickerSymbol ;
+    ifo:identifierScheme ifosch:TickerSymbol ;
+    ifo:identifierValue "VXF" ;
+    ifo:identifies <https://gov.tesseract.academy/id/fund/listing/C000007782> ;
+    ifo:sourceSystem ifosch:SEC-SCI .
+
+<https://gov.tesseract.academy/id/fund/class/C000170274> a ifo:ShareClass ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000170274> ;
+    ifo:legalName "Institutional Select Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002839> .
+
+<https://gov.tesseract.academy/id/fund/class/C000170275> a ifo:ShareClass ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000170275> ;
+    ifo:legalName "Institutional Select Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002841> .
+
+<https://gov.tesseract.academy/id/fund/class/C000170276> a ifo:ShareClass ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000170276> ;
+    ifo:legalName "Institutional Select Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002848> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007773> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VFINX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007773> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007774> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VFIAX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007774> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007775> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VIVAX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007775> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007776> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VVIAX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007776> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007777> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VIVIX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007777> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007778> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VTV> ;
+    ifo:listedOn <https://gov.tesseract.academy/id/fund/venue/ARCX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007778> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007779> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VEXMX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007779> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007780> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VEXAX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007780> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007781> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VIEIX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007781> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007782> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VXF> ;
+    ifo:listedOn <https://gov.tesseract.academy/id/fund/venue/ARCX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007782> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007783> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VIGRX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007783> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007784> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VIGAX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007784> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007785> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VIGIX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007785> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007786> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VUG> ;
+    ifo:listedOn <https://gov.tesseract.academy/id/fund/venue/ARCX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007786> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007787> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VLACX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007787> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007788> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VLCAX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007788> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007789> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VLISX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007789> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007790> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VV> ;
+    ifo:listedOn <https://gov.tesseract.academy/id/fund/venue/ARCX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007790> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007791> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VIMSX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007791> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007792> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VIMAX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007792> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007793> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VMCIX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007793> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007794> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VO> ;
+    ifo:listedOn <https://gov.tesseract.academy/id/fund/venue/ARCX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007794> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007795> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/NAESX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007795> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007796> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VSMAX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007796> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007797> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VSCIX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007797> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007798> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VB> ;
+    ifo:listedOn <https://gov.tesseract.academy/id/fund/venue/ARCX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007798> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007799> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VISGX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007799> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007800> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VSGIX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007800> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007801> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VBK> ;
+    ifo:listedOn <https://gov.tesseract.academy/id/fund/venue/ARCX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007801> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007802> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VISVX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007802> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007803> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VSIIX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007803> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007804> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VBR> ;
+    ifo:listedOn <https://gov.tesseract.academy/id/fund/venue/ARCX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007804> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007805> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VTSMX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007805> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007806> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VTSAX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007806> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007807> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VITSX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007807> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000007808> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VTI> ;
+    ifo:listedOn <https://gov.tesseract.academy/id/fund/venue/ARCX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000007808> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000034427> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VMGIX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000034427> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000034428> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VOT> ;
+    ifo:listedOn <https://gov.tesseract.academy/id/fund/venue/ARCX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000034428> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000034429> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VMVIX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000034429> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000034430> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VOE> ;
+    ifo:listedOn <https://gov.tesseract.academy/id/fund/venue/ARCX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000034430> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000092055> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VOO> ;
+    ifo:listedOn <https://gov.tesseract.academy/id/fund/venue/ARCX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000092055> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000096110> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VEMPX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000096110> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000096111> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VMCPX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000096111> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000096112> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VSCPX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000096112> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000105304> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VSGAX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000105304> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000105305> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VSIAX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000105305> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000105306> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VMGMX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000105306> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000105307> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VMVAX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000105307> .
+
+<https://gov.tesseract.academy/id/fund/listing/C000155407> a ifo:Listing ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/ticker/VSMPX> ;
+    ifo:listingOf <https://gov.tesseract.academy/id/fund/class/C000155407> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007773> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007773> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007773> ;
+    ifo:legalName "Investor Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002839> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007774> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007774> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007774> ;
+    ifo:legalName "Admiral Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002839> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007775> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007775> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007775> ;
+    ifo:legalName "Investor Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002840> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007776> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007776> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007776> ;
+    ifo:legalName "Admiral Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002840> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007777> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007777> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007777> ;
+    ifo:legalName "Institutional Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002840> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007778> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007778> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007778> ;
+    ifo:legalName "ETF Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002840> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007779> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007779> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007779> ;
+    ifo:legalName "Investor Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002841> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007780> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007780> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007780> ;
+    ifo:legalName "Admiral Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002841> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007781> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007781> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007781> ;
+    ifo:legalName "Institutional Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002841> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007782> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007782> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007782> ;
+    ifo:legalName "ETF Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002841> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007783> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007783> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007783> ;
+    ifo:legalName "Investor Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002842> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007784> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007784> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007784> ;
+    ifo:legalName "Admiral Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002842> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007785> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007785> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007785> ;
+    ifo:legalName "Institutional Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002842> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007786> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007786> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007786> ;
+    ifo:legalName "ETF Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002842> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007787> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007787> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007787> ;
+    ifo:legalName "Investor Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002843> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007788> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007788> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007788> ;
+    ifo:legalName "Admiral Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002843> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007789> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007789> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007789> ;
+    ifo:legalName "Institutional Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002843> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007790> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007790> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007790> ;
+    ifo:legalName "ETF Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002843> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007791> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007791> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007791> ;
+    ifo:legalName "Investor Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002844> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007792> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007792> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007792> ;
+    ifo:legalName "Admiral Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002844> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007793> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007793> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007793> ;
+    ifo:legalName "Institutional Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002844> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007794> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007794> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007794> ;
+    ifo:legalName "ETF Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002844> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007795> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007795> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007795> ;
+    ifo:legalName "Investor Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002845> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007796> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007796> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007796> ;
+    ifo:legalName "Admiral Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002845> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007797> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007797> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007797> ;
+    ifo:legalName "Institutional Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002845> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007798> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007798> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007798> ;
+    ifo:legalName "ETF Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002845> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007799> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007799> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007799> ;
+    ifo:legalName "Investor Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002846> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007800> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007800> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007800> ;
+    ifo:legalName "Institutional Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002846> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007801> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007801> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007801> ;
+    ifo:legalName "ETF Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002846> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007802> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007802> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007802> ;
+    ifo:legalName "Investor Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002847> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007803> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007803> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007803> ;
+    ifo:legalName "Institutional Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002847> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007804> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007804> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007804> ;
+    ifo:legalName "ETF Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002847> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007805> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007805> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007805> ;
+    ifo:legalName "Investor Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002848> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007806> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007806> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007806> ;
+    ifo:legalName "Admiral Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002848> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007807> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007807> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007807> ;
+    ifo:legalName "Institutional Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002848> .
+
+<https://gov.tesseract.academy/id/fund/class/C000007808> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000007808> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000007808> ;
+    ifo:legalName "ETF Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002848> .
+
+<https://gov.tesseract.academy/id/fund/class/C000034427> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000034427> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000034427> ;
+    ifo:legalName "Investor Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000012756> .
+
+<https://gov.tesseract.academy/id/fund/class/C000034428> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000034428> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000034428> ;
+    ifo:legalName "ETF Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000012756> .
+
+<https://gov.tesseract.academy/id/fund/class/C000034429> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000034429> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000034429> ;
+    ifo:legalName "Investor Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000012757> .
+
+<https://gov.tesseract.academy/id/fund/class/C000034430> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000034430> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000034430> ;
+    ifo:legalName "ETF Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000012757> .
+
+<https://gov.tesseract.academy/id/fund/class/C000092055> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000092055> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000092055> ;
+    ifo:legalName "ETF Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002839> .
+
+<https://gov.tesseract.academy/id/fund/class/C000096110> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000096110> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000096110> ;
+    ifo:legalName "Institutional Plus Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002841> .
+
+<https://gov.tesseract.academy/id/fund/class/C000096111> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000096111> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000096111> ;
+    ifo:legalName "Institutional Plus Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002844> .
+
+<https://gov.tesseract.academy/id/fund/class/C000096112> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000096112> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000096112> ;
+    ifo:legalName "Institutional Plus Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002845> .
+
+<https://gov.tesseract.academy/id/fund/class/C000105304> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000105304> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000105304> ;
+    ifo:legalName "Admiral Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002846> .
+
+<https://gov.tesseract.academy/id/fund/class/C000105305> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000105305> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000105305> ;
+    ifo:legalName "Admiral Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002847> .
+
+<https://gov.tesseract.academy/id/fund/class/C000105306> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000105306> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000105306> ;
+    ifo:legalName "Admiral Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000012756> .
+
+<https://gov.tesseract.academy/id/fund/class/C000105307> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000105307> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000105307> ;
+    ifo:legalName "Admiral Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000012757> .
+
+<https://gov.tesseract.academy/id/fund/class/C000155407> a ifo:ShareClass ;
+    ifo:hasListing <https://gov.tesseract.academy/id/fund/listing/C000155407> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/class/C000155407> ;
+    ifo:legalName "Institutional Plus Shares" ;
+    ifo:shareClassOf <https://gov.tesseract.academy/id/fund/series/S000002848> .
+
+<https://gov.tesseract.academy/id/fund/series/S000012756> a ifo:Fund ;
+    ifo:fundOf <https://gov.tesseract.academy/id/fund/registrant/36405> ;
+    ifo:hasFeature ifosch:ExchangeTradedFund,
+        ifosch:IndexFund ;
+    ifo:hasShareClass <https://gov.tesseract.academy/id/fund/class/C000034427>,
+        <https://gov.tesseract.academy/id/fund/class/C000034428>,
+        <https://gov.tesseract.academy/id/fund/class/C000105306> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/lei/M6JWDO0S7R5FNUM8T614>,
+        <https://gov.tesseract.academy/id/fund/identifier/series/S000012756> ;
+    ifo:legalName "Vanguard Mid-Cap Growth Index Fund" ;
+    ifo:reportedShareClassCount 3 .
+
+<https://gov.tesseract.academy/id/fund/series/S000012757> a ifo:Fund ;
+    ifo:fundOf <https://gov.tesseract.academy/id/fund/registrant/36405> ;
+    ifo:hasFeature ifosch:ExchangeTradedFund,
+        ifosch:IndexFund ;
+    ifo:hasShareClass <https://gov.tesseract.academy/id/fund/class/C000034429>,
+        <https://gov.tesseract.academy/id/fund/class/C000034430>,
+        <https://gov.tesseract.academy/id/fund/class/C000105307> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/lei/Q4QUKKUM8YYJ562GIO45>,
+        <https://gov.tesseract.academy/id/fund/identifier/series/S000012757> ;
+    ifo:legalName "Vanguard Mid-Cap Value Index Fund" ;
+    ifo:reportedShareClassCount 3 .
+
+<https://gov.tesseract.academy/id/fund/series/S000002839> a ifo:Fund ;
+    ifo:fundOf <https://gov.tesseract.academy/id/fund/registrant/36405> ;
+    ifo:hasFeature ifosch:ExchangeTradedFund,
+        ifosch:IndexFund ;
+    ifo:hasShareClass <https://gov.tesseract.academy/id/fund/class/C000007773>,
+        <https://gov.tesseract.academy/id/fund/class/C000007774>,
+        <https://gov.tesseract.academy/id/fund/class/C000092055>,
+        <https://gov.tesseract.academy/id/fund/class/C000170274> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/lei/12WZ1W76P8QD4VJ6OB47>,
+        <https://gov.tesseract.academy/id/fund/identifier/series/S000002839> ;
+    ifo:legalName "Vanguard 500 Index Fund" ;
+    ifo:reportedShareClassCount 4 .
+
+<https://gov.tesseract.academy/id/fund/series/S000002840> a ifo:Fund ;
+    ifo:fundOf <https://gov.tesseract.academy/id/fund/registrant/36405> ;
+    ifo:hasFeature ifosch:ExchangeTradedFund,
+        ifosch:IndexFund ;
+    ifo:hasShareClass <https://gov.tesseract.academy/id/fund/class/C000007775>,
+        <https://gov.tesseract.academy/id/fund/class/C000007776>,
+        <https://gov.tesseract.academy/id/fund/class/C000007777>,
+        <https://gov.tesseract.academy/id/fund/class/C000007778> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/lei/HH8Q33B0J5YWPPIGZP55>,
+        <https://gov.tesseract.academy/id/fund/identifier/series/S000002840> ;
+    ifo:legalName "Vanguard Value Index Fund" ;
+    ifo:reportedShareClassCount 4 .
+
+<https://gov.tesseract.academy/id/fund/series/S000002842> a ifo:Fund ;
+    ifo:fundOf <https://gov.tesseract.academy/id/fund/registrant/36405> ;
+    ifo:hasFeature ifosch:ExchangeTradedFund,
+        ifosch:IndexFund ;
+    ifo:hasShareClass <https://gov.tesseract.academy/id/fund/class/C000007783>,
+        <https://gov.tesseract.academy/id/fund/class/C000007784>,
+        <https://gov.tesseract.academy/id/fund/class/C000007785>,
+        <https://gov.tesseract.academy/id/fund/class/C000007786> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/lei/8DLNZLT9FCSJNCMHQC12>,
+        <https://gov.tesseract.academy/id/fund/identifier/series/S000002842> ;
+    ifo:legalName "Vanguard Growth Index Fund" ;
+    ifo:reportedShareClassCount 4 .
+
+<https://gov.tesseract.academy/id/fund/series/S000002843> a ifo:Fund ;
+    ifo:fundOf <https://gov.tesseract.academy/id/fund/registrant/36405> ;
+    ifo:hasFeature ifosch:ExchangeTradedFund,
+        ifosch:IndexFund ;
+    ifo:hasShareClass <https://gov.tesseract.academy/id/fund/class/C000007787>,
+        <https://gov.tesseract.academy/id/fund/class/C000007788>,
+        <https://gov.tesseract.academy/id/fund/class/C000007789>,
+        <https://gov.tesseract.academy/id/fund/class/C000007790> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/lei/E6X2OQ8OM0Z814YUKF70>,
+        <https://gov.tesseract.academy/id/fund/identifier/series/S000002843> ;
+    ifo:legalName "Vanguard Large-Cap Index Fund" ;
+    ifo:reportedShareClassCount 4 .
+
+<https://gov.tesseract.academy/id/fund/series/S000002846> a ifo:Fund ;
+    ifo:fundOf <https://gov.tesseract.academy/id/fund/registrant/36405> ;
+    ifo:hasFeature ifosch:ExchangeTradedFund,
+        ifosch:IndexFund ;
+    ifo:hasShareClass <https://gov.tesseract.academy/id/fund/class/C000007799>,
+        <https://gov.tesseract.academy/id/fund/class/C000007800>,
+        <https://gov.tesseract.academy/id/fund/class/C000007801>,
+        <https://gov.tesseract.academy/id/fund/class/C000105304> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/lei/UWJDRZIFJ6DZX3P2T284>,
+        <https://gov.tesseract.academy/id/fund/identifier/series/S000002846> ;
+    ifo:legalName "Vanguard Small-Cap Growth Index Fund" ;
+    ifo:reportedShareClassCount 4 .
+
+<https://gov.tesseract.academy/id/fund/series/S000002847> a ifo:Fund ;
+    ifo:fundOf <https://gov.tesseract.academy/id/fund/registrant/36405> ;
+    ifo:hasFeature ifosch:ExchangeTradedFund,
+        ifosch:IndexFund ;
+    ifo:hasShareClass <https://gov.tesseract.academy/id/fund/class/C000007802>,
+        <https://gov.tesseract.academy/id/fund/class/C000007803>,
+        <https://gov.tesseract.academy/id/fund/class/C000007804>,
+        <https://gov.tesseract.academy/id/fund/class/C000105305> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/lei/IYAYRN9IGNRICDXDWU21>,
+        <https://gov.tesseract.academy/id/fund/identifier/series/S000002847> ;
+    ifo:legalName "Vanguard Small-Cap Value Index Fund" ;
+    ifo:reportedShareClassCount 4 .
+
+<https://gov.tesseract.academy/id/fund/series/S000002844> a ifo:Fund ;
+    ifo:fundOf <https://gov.tesseract.academy/id/fund/registrant/36405> ;
+    ifo:hasFeature ifosch:ExchangeTradedFund,
+        ifosch:IndexFund ;
+    ifo:hasShareClass <https://gov.tesseract.academy/id/fund/class/C000007791>,
+        <https://gov.tesseract.academy/id/fund/class/C000007792>,
+        <https://gov.tesseract.academy/id/fund/class/C000007793>,
+        <https://gov.tesseract.academy/id/fund/class/C000007794>,
+        <https://gov.tesseract.academy/id/fund/class/C000096111> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/lei/F7RXEPKL33W3OZ8V3S02>,
+        <https://gov.tesseract.academy/id/fund/identifier/series/S000002844> ;
+    ifo:legalName "Vanguard Mid-Cap Index Fund" ;
+    ifo:reportedShareClassCount 5 .
+
+<https://gov.tesseract.academy/id/fund/series/S000002845> a ifo:Fund ;
+    ifo:fundOf <https://gov.tesseract.academy/id/fund/registrant/36405> ;
+    ifo:hasFeature ifosch:ExchangeTradedFund,
+        ifosch:IndexFund ;
+    ifo:hasShareClass <https://gov.tesseract.academy/id/fund/class/C000007795>,
+        <https://gov.tesseract.academy/id/fund/class/C000007796>,
+        <https://gov.tesseract.academy/id/fund/class/C000007797>,
+        <https://gov.tesseract.academy/id/fund/class/C000007798>,
+        <https://gov.tesseract.academy/id/fund/class/C000096112> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/lei/HZKQM2YGJWB4I8NIZL49>,
+        <https://gov.tesseract.academy/id/fund/identifier/series/S000002845> ;
+    ifo:legalName "Vanguard Small-Cap Index Fund" ;
+    ifo:reportedShareClassCount 5 .
+
+<https://gov.tesseract.academy/id/fund/series/S000002841> a ifo:Fund ;
+    ifo:fundOf <https://gov.tesseract.academy/id/fund/registrant/36405> ;
+    ifo:hasFeature ifosch:ExchangeTradedFund,
+        ifosch:IndexFund ;
+    ifo:hasShareClass <https://gov.tesseract.academy/id/fund/class/C000007779>,
+        <https://gov.tesseract.academy/id/fund/class/C000007780>,
+        <https://gov.tesseract.academy/id/fund/class/C000007781>,
+        <https://gov.tesseract.academy/id/fund/class/C000007782>,
+        <https://gov.tesseract.academy/id/fund/class/C000096110>,
+        <https://gov.tesseract.academy/id/fund/class/C000170275> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/lei/NKRB5RF4FYYMQPL0SY31>,
+        <https://gov.tesseract.academy/id/fund/identifier/series/S000002841> ;
+    ifo:legalName "Vanguard Extended Market Index Fund" ;
+    ifo:reportedShareClassCount 5 .
+
+<https://gov.tesseract.academy/id/fund/series/S000002848> a ifo:Fund ;
+    ifo:fundOf <https://gov.tesseract.academy/id/fund/registrant/36405> ;
+    ifo:hasFeature ifosch:ExchangeTradedFund,
+        ifosch:IndexFund ;
+    ifo:hasShareClass <https://gov.tesseract.academy/id/fund/class/C000007805>,
+        <https://gov.tesseract.academy/id/fund/class/C000007806>,
+        <https://gov.tesseract.academy/id/fund/class/C000007807>,
+        <https://gov.tesseract.academy/id/fund/class/C000007808>,
+        <https://gov.tesseract.academy/id/fund/class/C000155407>,
+        <https://gov.tesseract.academy/id/fund/class/C000170276> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/lei/HJ2RZRUQEVF2A5SPRB21>,
+        <https://gov.tesseract.academy/id/fund/identifier/series/S000002848> ;
+    ifo:legalName "Vanguard Total Stock Market Index Fund" ;
+    ifo:reportedShareClassCount 6 .
+
+<https://gov.tesseract.academy/id/fund/venue/ARCX> a ifo:TradingVenue ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/mic/ARCX> .
+
+<https://gov.tesseract.academy/id/fund/registrant/36405> a ifo:FundRegistrant ;
+    ifo:domicileCountry "US" ;
+    ifo:hasFund <https://gov.tesseract.academy/id/fund/series/S000002839>,
+        <https://gov.tesseract.academy/id/fund/series/S000002840>,
+        <https://gov.tesseract.academy/id/fund/series/S000002841>,
+        <https://gov.tesseract.academy/id/fund/series/S000002842>,
+        <https://gov.tesseract.academy/id/fund/series/S000002843>,
+        <https://gov.tesseract.academy/id/fund/series/S000002844>,
+        <https://gov.tesseract.academy/id/fund/series/S000002845>,
+        <https://gov.tesseract.academy/id/fund/series/S000002846>,
+        <https://gov.tesseract.academy/id/fund/series/S000002847>,
+        <https://gov.tesseract.academy/id/fund/series/S000002848>,
+        <https://gov.tesseract.academy/id/fund/series/S000012756>,
+        <https://gov.tesseract.academy/id/fund/series/S000012757> ;
+    ifo:identifiedBy <https://gov.tesseract.academy/id/fund/identifier/cik/36405>,
+        <https://gov.tesseract.academy/id/fund/identifier/filenum/811-02652>,
+        <https://gov.tesseract.academy/id/fund/identifier/lei/549300G6KNDK44WUN559> ;
+    ifo:legalName "VANGUARD INDEX FUNDS" .
+

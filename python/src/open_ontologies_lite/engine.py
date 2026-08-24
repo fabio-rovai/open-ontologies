@@ -27,6 +27,10 @@ _FORMATS = {
     "xml": ox.RdfFormat.RDF_XML,
     "n3": ox.RdfFormat.N3,
     "jsonld": ox.RdfFormat.JSON_LD,
+    # The W3C media-type registration and most other tooling, rdflib included,
+    # spell it with the hyphen. Taking only "jsonld" rejected a correct name.
+    "json-ld": ox.RdfFormat.JSON_LD,
+    "json": ox.RdfFormat.JSON_LD,
 }
 
 OWL_CLASS = "http://www.w3.org/2002/07/owl#Class"
@@ -80,6 +84,21 @@ class OntologyEngine:
             raise ValueError(f"cannot infer format from {path!r}; pass fmt explicitly")
         self.store.load(path=str(p), format=rdf_format)
         return len(self.store)
+
+    def load_rows(
+        self,
+        rows_or_df,
+        base_iri: str = "http://example.org/data/",
+        class_iri: str | None = None,
+        id_column: str | None = None,
+    ) -> int:
+        """Load tabular rows (or any dataframe-like object — fenic, polars,
+        pandas, pyarrow) into the store as RDF; return total triple count."""
+        from .dataframe import rows_from_dataframe, rows_to_turtle
+
+        rows = rows_from_dataframe(rows_or_df)
+        ntriples = rows_to_turtle(rows, base_iri=base_iri, class_iri=class_iri, id_column=id_column)
+        return self.load(ntriples, "ntriples")
 
     def clear(self) -> None:
         self.store.clear()
@@ -138,6 +157,11 @@ class OntologyEngine:
             raise ValueError(f"cannot infer format from {path!r}; pass fmt explicitly")
         _dump(self.store, str(p), rdf_format)
         return str(p)
+
+    def dump(self, fmt: str = "turtle") -> str:
+        """Serialize the loaded store to a string (needed to hand it to pySHACL)."""
+        out = _dump(self.store, None, resolve_format(fmt))
+        return out.decode("utf-8") if isinstance(out, (bytes, bytearray)) else str(out)
 
     @staticmethod
     def convert(data: str, from_fmt: str, to_fmt: str) -> str:

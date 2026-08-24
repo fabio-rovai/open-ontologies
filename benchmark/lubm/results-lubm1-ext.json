@@ -1,0 +1,97 @@
+{
+  "dataset": "data1",
+  "files": 15,
+  "triples": 100866,
+  "load_seconds": 0.16,
+  "reasoned": true,
+  "profile": "owl-rl-ext",
+  "reason_seconds": 0.28,
+  "inferred_triples": 48583,
+  "runs_per_query": 1,
+  "queries": [
+    {
+      "query": "Q1",
+      "results": 4,
+      "ms": 271.4,
+      "needs_inference": false
+    },
+    {
+      "query": "Q2",
+      "results": 0,
+      "ms": 296.9,
+      "needs_inference": true
+    },
+    {
+      "query": "Q3",
+      "results": 6,
+      "ms": 269.0,
+      "needs_inference": false
+    },
+    {
+      "query": "Q4",
+      "results": 34,
+      "ms": 265.6,
+      "needs_inference": true
+    },
+    {
+      "query": "Q5",
+      "results": 719,
+      "ms": 278.3,
+      "needs_inference": true
+    },
+    {
+      "query": "Q6",
+      "results": 7790,
+      "ms": 280.8,
+      "needs_inference": true
+    },
+    {
+      "query": "Q7",
+      "results": 67,
+      "ms": 272.4,
+      "needs_inference": true
+    },
+    {
+      "query": "Q8",
+      "results": 7790,
+      "ms": 329.2,
+      "needs_inference": true
+    },
+    {
+      "query": "Q9",
+      "results": 208,
+      "ms": 293.2,
+      "needs_inference": true
+    },
+    {
+      "query": "Q10",
+      "results": 4,
+      "ms": 272.6,
+      "needs_inference": true
+    },
+    {
+      "query": "Q11",
+      "results": 224,
+      "ms": 275.8,
+      "needs_inference": true
+    },
+    {
+      "query": "Q12",
+      "results": 15,
+      "ms": 288.9,
+      "needs_inference": true
+    },
+    {
+      "query": "Q13",
+      "results": 1,
+      "ms": 302.2,
+      "needs_inference": true
+    },
+    {
+      "query": "Q14",
+      "results": 5916,
+      "ms": 332.0,
+      "needs_inference": false
+    }
+  ]
+}

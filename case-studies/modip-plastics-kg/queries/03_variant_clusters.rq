@@ -1,0 +1,3 @@
+# Objects that share a mould/design (variant edges recovered from description prose).
+PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>
+SELECT ?a ?b WHERE { ?a crm:P130_shows_features_of ?b . } LIMIT 50

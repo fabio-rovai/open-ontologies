@@ -113,6 +113,14 @@ impl OntologyRegistry {
                         && e.source_size == fp.size
                         && e.source_sha == fp.sha_prefix
                         && Path::new(&e.cache_path).exists()
+                        // A cache written before the format carried graph
+                        // names holds a flattened dataset. The source has not
+                        // changed, so every other check passes and it would be
+                        // read back as authoritative — recompile instead. One
+                        // extra parse per ontology, once, and warm caches heal
+                        // themselves instead of staying quietly wrong.
+                        && Path::new(&e.cache_path).extension().and_then(|x| x.to_str())
+                            == Some(crate::cache::CACHE_EXT)
                 })
                 .unwrap_or(false);
 
@@ -121,9 +129,9 @@ impl OntologyRegistry {
 
         let (triple_count, origin, cache_path) = if cache_is_fresh {
             let entry = existing.unwrap();
-            let nt = std::fs::read_to_string(&entry.cache_path)
+            let quads = std::fs::read_to_string(&entry.cache_path)
                 .with_context(|| format!("read cache {}", entry.cache_path))?;
-            let count = self.graph.load_ntriples(&nt)?;
+            let count = self.graph.load_nquads(&quads)?;
             self.cache.touch(&name)?;
             (count, "cache", PathBuf::from(entry.cache_path))
         } else {
@@ -133,8 +141,11 @@ impl OntologyRegistry {
                 .with_context(|| format!("parse source {}", path))?;
             let cache_path = if self.config.enabled {
                 let cp = self.cache.cache_path_for(&name, &fp.sha_prefix);
-                let nt = self.graph.serialize("ntriples")?;
-                CacheManager::atomic_write(&cp, &nt)?;
+                // N-Quads, not N-Triples: the cache has to be able to give
+                // back what it was given, and a named graph does not survive
+                // the trip through a triple format.
+                let quads = self.graph.serialize("nquads")?;
+                CacheManager::atomic_write(&cp, &quads)?;
                 self.cache.upsert(&name, path, &fp, &cp, count)?;
                 cp
             } else {
@@ -209,8 +220,8 @@ impl OntologyRegistry {
                 self.graph.clear()?;
                 let count = self.graph.load_file(&source_path)?;
                 let new_cache = self.cache.cache_path_for(&name, &cur.sha_prefix);
-                let nt = self.graph.serialize("ntriples")?;
-                CacheManager::atomic_write(&new_cache, &nt)?;
+                let quads = self.graph.serialize("nquads")?;
+                CacheManager::atomic_write(&new_cache, &quads)?;
                 self.cache.upsert(&name, &source_path, &cur, &new_cache, count)?;
 
                 let mut active_guard = self.active.lock().unwrap();
@@ -227,9 +238,9 @@ impl OntologyRegistry {
             // Reload from N-Triples cache; fall back to source if cache file
             // is missing for some reason.
             if cache_path.exists() {
-                let nt = std::fs::read_to_string(&cache_path)?;
+                let quads = std::fs::read_to_string(&cache_path)?;
                 self.graph.clear()?;
-                self.graph.load_ntriples(&nt)?;
+                self.graph.load_nquads(&quads)?;
             } else if Path::new(&source_path).exists() {
                 self.graph.clear()?;
                 self.graph.load_file(&source_path)?;
@@ -364,10 +375,10 @@ impl OntologyRegistry {
             .with_context(|| format!("parse source {}", entry.source_path))?;
         let fp = SourceFingerprint::from_path(path)?;
         let cache_path = self.cache.cache_path_for(name, &fp.sha_prefix);
-        let nt = isolated_graph.serialize("ntriples")?;
-        CacheManager::atomic_write(&cache_path, &nt)?;
+        let quads = isolated_graph.serialize("nquads")?;
+        CacheManager::atomic_write(&cache_path, &quads)?;
         // If the sha-prefix changed, the new cache_path differs from the old
-        // one. Remove the old file to avoid leaking stale .nt files.
+        // one. Remove the old file to avoid leaking stale cache files.
         if entry.cache_path != cache_path.to_string_lossy() {
             let _ = std::fs::remove_file(&entry.cache_path);
         }

@@ -1,0 +1,7 @@
+@prefix schema: <https://schema.org/> .
+@prefix ex: <https://ex.tesseract.academy/inst/> .
+
+ex:offer1 a schema:Offer ;
+    schema:priceCurrency "GBP" ;
+    schema:price "49.00" ;
+    schema:availability "InStock" .

@@ -1,0 +1,237 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+# An Apache Ossie ontology document exercising every construct in
+# ontology/ontology.md 0.2.0.dev0: value types with facet constraints,
+# entity types, subtyping, derived concepts, unary / binary / ternary
+# relationships, ManyToOne and OneToOne multiplicities, simple and
+# compound identifiers, derivation rules and requires constraints.
+#
+# The concepts are drawn from the worked examples in ontology/ontology.md.
+
+version: 0.2.0.dev0
+name: EnterpriseOntology
+description: >-
+  Reference ontology covering the full 0.2.0.dev0 construct set: people,
+  employment, retail items, stores and orders.
+ai_context:
+  instructions: Use this ontology for workforce and retail analysis.
+  synonyms:
+    - staff
+    - headcount
+
+ontology:
+  # ---------------------------------------------------------------- value types
+  - concept: SocialSecurityNr
+    type: ValueType
+    description: A nine-digit US social security number.
+    extends: [Integer]
+    requires:
+      - "0 < SocialSecurityNr"
+      - "SocialSecurityNr <= 999999999"
+
+  - concept: Salary
+    type: ValueType
+    description: Annual gross salary in the reporting currency.
+    extends: [Decimal]
+    requires:
+      - "Salary >= 0.0"
+
+  - concept: TaxRate
+    type: ValueType
+    description: Marginal tax rate expressed as a percentage.
+    extends: [Decimal]
+    requires:
+      - "TaxRate >= 0.0"
+      - "TaxRate <= 100.0"
+
+  - concept: Amount
+    type: ValueType
+    description: A monetary amount.
+    extends: [Decimal]
+
+  - concept: NrDays
+    type: ValueType
+    description: A whole number of days.
+    extends: [Integer]
+    requires:
+      - "NrDays >= 0"
+
+  - concept: SkuNr
+    type: ValueType
+    description: Stock keeping unit number.
+    extends: [String]
+
+  - concept: LineNr
+    type: ValueType
+    description: Line number within a customer order.
+    extends: [Integer]
+    requires:
+      - "LineNr > 0"
+
+  - concept: OrderNr
+    type: ValueType
+    description: Customer order number.
+    extends: [Integer]
+
+  # -------------------------------------------------------------- entity types
+  - concept: Person
+    type: EntityType
+    description: A natural person known to the enterprise.
+    identify_by: [nr]
+    relationships:
+      - name: nr
+        description: Preferred identifier of a person.
+        roles:
+          - concept: SocialSecurityNr
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Person} is identified by {SocialSecurityNr}"
+
+      - name: files_married_joint
+        description: Unary fact type recording filing status.
+        verbalizes:
+          - "{Person} files married filing joint"
+
+      - name: earns
+        roles:
+          - concept: Salary
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Person} earns {Salary}"
+
+      - name: parent_of
+        roles:
+          - concept: Person
+            name: child
+        verbalizes:
+          - "{Person} is a parent of {Person:child}"
+          - "{Person:child} is a child of {Person}"
+
+      - name: ancestor_of
+        roles:
+          - concept: Person
+            name: descendant
+        derived_by:
+          - "Person.parent_of(descendant)"
+          - "Person.ancestor_of.parent_of(descendant)"
+        verbalizes:
+          - "{Person} is an ancestor of {Person:descendant}"
+
+      - name: taxed_at
+        roles:
+          - concept: TaxRate
+        multiplicity: ManyToOne
+        derived_by:
+          - "Person.files_married_joint AND Person.earns <= 23850 AND TaxRate == 10.0"
+        verbalizes:
+          - "{Person} is taxed at {TaxRate}"
+
+  - concept: Employee
+    type: EntityType
+    description: A person who earns a salary.
+    extends: [Person]
+    derived_by:
+      - "EXISTS ( Person.earns )"
+
+  - concept: Store
+    type: EntityType
+    description: A retail location.
+    relationships:
+      - name: ships_to_in_days
+        roles:
+          - concept: Store
+            name: destination
+          - concept: NrDays
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{Store} ships to {Store:destination} in {NrDays}"
+
+  - concept: Item
+    type: EntityType
+    description: A product offered for sale.
+    identify_by: [nr]
+    relationships:
+      - name: nr
+        roles:
+          - concept: SkuNr
+        multiplicity: OneToOne
+        verbalizes:
+          - "{Item} is identified by {SkuNr}"
+
+      - name: active
+        verbalizes:
+          - "{Item} is actively sold"
+
+      - name: offers_in
+        roles:
+          - concept: Store
+        verbalizes:
+          - "{Item} is offered for sale in {Store}"
+          - "{Store} offers sale of {Item}"
+
+      - name: total_sales_in
+        roles:
+          - concept: Store
+          - concept: Amount
+        multiplicity: ManyToOne
+        requires:
+          - "Amount > 0.0"
+          - "Item.offers_in(Store)"
+        verbalizes:
+          - "{Item} sold for cumulative {Amount} in {Store}"
+
+  - concept: CustOrder
+    type: EntityType
+    description: A customer order.
+    identify_by: [nr]
+    relationships:
+      - name: nr
+        roles:
+          - concept: OrderNr
+        multiplicity: OneToOne
+        verbalizes:
+          - "{CustOrder} is identified by {OrderNr}"
+
+  - concept: OrderLineItem
+    type: EntityType
+    description: A single line on a customer order, identified compoundly.
+    identify_by: [nr, order]
+    requires:
+      - "OrderLineItem.nr"
+      - "OrderLineItem.order"
+    relationships:
+      - name: nr
+        roles:
+          - concept: LineNr
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OrderLineItem} has line number {LineNr}"
+
+      - name: order
+        roles:
+          - concept: CustOrder
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OrderLineItem} belongs to {CustOrder}"
+
+      - name: of_item
+        roles:
+          - concept: Item
+        multiplicity: ManyToOne
+        verbalizes:
+          - "{OrderLineItem} is for {Item}"

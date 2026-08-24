@@ -1,12 +1,10 @@
-# NAPH SPARQL Library — Spatial queries
-#
+# NAPH SPARQL Library: Spatial queries#
 # Geographic filtering and intersection queries. Most require GeoSPARQL
 # function support (Apache Jena Fuseki, GraphDB, Stardog). Oxigraph DOES NOT
 # support these GeoSPARQL functions.
 
 # =============================================================================
-# Q-SPAT-1 [B + GeoSPARQL] — Photographs covering a polygon
-# =============================================================================
+# Q-SPAT-1 [B + GeoSPARQL]: Photographs covering a polygon# =============================================================================
 # Use case: find all aerial coverage of a defined area (e.g. central Edinburgh).
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
@@ -27,8 +25,7 @@ WHERE {
 ORDER BY ?date
 
 # =============================================================================
-# Q-SPAT-2 [B + GeoSPARQL] — Photographs near a point (within distance)
-# =============================================================================
+# Q-SPAT-2 [B + GeoSPARQL]: Photographs near a point (within distance)# =============================================================================
 # Use case: find aerial coverage within X km of a specific point.
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
@@ -49,8 +46,7 @@ WHERE {
 ORDER BY ?distance
 
 # =============================================================================
-# Q-SPAT-3 [B + GeoSPARQL] — Photographs within a country boundary
-# =============================================================================
+# Q-SPAT-3 [B + GeoSPARQL]: Photographs within a country boundary# =============================================================================
 # Use case: filter to a specific country (assumes country boundary loaded
 # as a separate WKT).
 
@@ -69,8 +65,7 @@ WHERE {
 }
 
 # =============================================================================
-# Q-SPAT-4 [E] — Photographs covering a polygon (Oxigraph-compatible fallback)
-# =============================================================================
+# Q-SPAT-4 [E]: Photographs covering a polygon (Oxigraph-compatible fallback)# =============================================================================
 # Use case: same as Q-SPAT-1 but using bounding-box numeric comparison
 # instead of GeoSPARQL function. Works in any SPARQL engine.
 # Trade-off: only finds records where stored polygon coordinates fall
@@ -86,14 +81,13 @@ WHERE {
            naph:capturedOn ?date ;
            naph:coversArea ?footprint .
     ?footprint naph:asWKT ?wkt .
-    # Note: stricter than full GeoSPARQL — requires substring match against
+    # Note: stricter than full GeoSPARQL, requires substring match against
     # known coordinates. Useful only for sanity checks, not analytical queries.
     FILTER (CONTAINS(STR(?wkt), "55.94") || CONTAINS(STR(?wkt), "55.95"))
 }
 
 # =============================================================================
-# Q-SPAT-5 [B + GeoSPARQL] — Stereo overlap detection
-# =============================================================================
+# Q-SPAT-5 [B + GeoSPARQL]: Stereo overlap detection# =============================================================================
 # Use case: find adjacent frames with overlapping footprints (potential
 # stereo pairs).
 
@@ -117,8 +111,7 @@ WHERE {
 }
 
 # =============================================================================
-# Q-SPAT-6 [B + GeoSPARQL] — All aerial coverage of a location across decades
-# =============================================================================
+# Q-SPAT-6 [B + GeoSPARQL]: All aerial coverage of a location across decades# =============================================================================
 # Use case: change-detection over time at a fixed location.
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
@@ -139,8 +132,7 @@ WHERE {
 ORDER BY ?date
 
 # =============================================================================
-# Q-SPAT-7 [A + GeoSPARQL] — Density of aerial coverage per area
-# =============================================================================
+# Q-SPAT-7 [A + GeoSPARQL]: Density of aerial coverage per area# =============================================================================
 # Use case: identify areas with dense vs sparse aerial heritage coverage.
 
 PREFIX naph: <https://w3id.org/naph/ontology#>

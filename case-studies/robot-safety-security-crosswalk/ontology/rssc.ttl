@@ -1,0 +1,914 @@
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix org:     <http://www.w3.org/ns/org#> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix rssc:    <https://tesseract.academy/ns/rssc#> .
+@prefix band:    <https://tesseract.academy/id/rssc/band/> .
+@prefix role:    <https://tesseract.academy/id/rssc/role/> .
+@prefix sl:      <https://tesseract.academy/id/rssc/security-level/> .
+@prefix slt:     <https://tesseract.academy/id/rssc/security-level-type/> .
+@prefix fr:      <https://tesseract.academy/id/rssc/foundational-requirement/> .
+@prefix ev:      <https://tesseract.academy/id/rssc/evidence-type/> .
+@prefix conf:    <https://tesseract.academy/id/rssc/confidence/> .
+@prefix gap:     <https://tesseract.academy/id/rssc/gap-kind/> .
+@prefix scheme:  <https://tesseract.academy/id/rssc/scheme/> .
+
+# =============================================================================
+# RSSC. Robot Safety and Security Crosswalk ontology, v0.1.0
+# Kampakis and Co Ltd, trading as The Tesseract Academy. CC BY 4.0.
+#
+# A vocabulary for stating, and for falsifying, the claim that a cyber
+# compromise of a robot is a safety event. It binds machinery safety clauses
+# (ISO 10218-1:2025, ISO 10218-2:2025, ISO 12100, IEC TS 63074:2023) to
+# industrial security requirements (the IEC 62443 series), across a three-band
+# autonomy gradient, with every binding reified and cited.
+#
+# DESIGN PRINCIPLES
+#  * Reuse before minting. Concepts are skos:Concept, provenance is PROV-O,
+#    bibliographic metadata is Dublin Core, organisations are W3C ORG.
+#    Supersession is dcterms:replaces, not a minted property.
+#    REUSED, NOT MINTED, and expected on instances of the classes below:
+#      skos:Concept, skos:ConceptScheme, skos:inScheme, skos:hasTopConcept,
+#      skos:prefLabel, skos:altLabel, skos:notation, skos:definition,
+#      skos:scopeNote                     on every controlled-scheme member
+#      skos:exactMatch, skos:closeMatch, skos:broadMatch, skos:narrowMatch,
+#      skos:relatedMatch                  as VALUES of rssc:mappingRelation
+#      prov:Entity, prov:wasDerivedFrom   assertion to the rssc:Source consulted
+#      dcterms:source                     assertion to the cited document
+#      dcterms:title, dcterms:description, dcterms:created, dcterms:replaces,
+#      dcterms:isReplacedBy               standards and ontology metadata
+#      org:Organization                   the bearer of a rssc:SupplyChainRole
+#      foaf:Agent                         where a non-organisational party is needed
+#  * No unsourced mapping. EVERY instance of rssc:EvidencedAssertion carries
+#    rssc:citation, rssc:evidenceType and rssc:confidence. The SHACL shapes
+#    fail the build without them. A mapping you cannot cite cannot enter the
+#    graph.
+#  * Never invent an identifier. Clause identifiers, requirement identifiers,
+#    part numbers, editions and dates are recorded as literals with a citation
+#    to where they were read. Anything unconfirmed is either omitted or
+#    marked rssc:confidence conf:low and said out loud in prose.
+#
+# PAYWALL CONSTRAINT, TREATED AS A DESIGN FEATURE
+#  ISO and IEC standards are paywalled. NO normative text from any ISO or IEC
+#  standard is reproduced in this file. What is recorded here is the public
+#  surface: designations, part numbers, editions, publication dates, clause
+#  identifiers, clause titles, annex letters and annex normative status, all
+#  of which are published free by the issuing bodies and their distributors in
+#  cover pages, contents pages, forewords, scopes and normative-reference
+#  lists. Definitions attached to concepts below are this project's own
+#  paraphrase, written so that a reader without the standards can use the
+#  vocabulary, and are labelled as paraphrase wherever they restate a
+#  paywalled definition.
+#
+#  Deliberate omission: IEC 62443-3-3:2013 Annex B Table B.1 and
+#  IEC 62443-4-2:2019 Annex B Table B.1 map requirements to security levels.
+#  Both annexes are informative and both are paywalled. This vocabulary
+#  provides NO property for that mapping, because providing one would invite
+#  reproduction of the table. See rssc:SecurityLevel.
+#
+# SEPARATOR SUBSTITUTION
+#  Official ISO and IEC titles separate title elements with U+2014. House
+#  style forbids that character. Titles appear here in the BSI and EN
+#  full-stop rendering ("Robotics. Safety requirements. Part 1: Industrial
+#  robots"). The separator is the only alteration to any official title.
+#
+# INDEPENDENCE
+#  Independent, self-initiated open research. Not endorsed by, affiliated
+#  with or approved by ISO, IEC, CEN, CENELEC, BSI, ISA, the ISA Security
+#  Compliance Institute, IEEE, MITRE or any other body named within it.
+# =============================================================================
+
+<https://tesseract.academy/ns/rssc> a owl:Ontology ;
+    dcterms:title "Robot Safety and Security Crosswalk ontology (RSSC)" ;
+    dcterms:description "A provenance-first vocabulary for crosswalking machinery and robot safety clauses to industrial cyber security requirements across an autonomy gradient. Models robots, robot applications and robot cells; safety functions and hazards; the IEC 62443 supply-chain roles, foundational requirements and security levels; and a reified, cited assertion layer in which every mapping, safety-impact claim, security-level claim and control gap carries its own evidence type and confidence." ;
+    dcterms:creator "Fabio Rovai" ;
+    dcterms:creator "Kampakis and Co Ltd, trading as The Tesseract Academy" ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    dcterms:rights "No normative text from any ISO or IEC standard is reproduced in this file. Standard designations, part numbers, editions, publication dates, clause identifiers and clause titles are cited as facts, read from publicly published front matter, contents pages, scopes, normative-reference lists and catalogue entries. ISO and IEC standards remain the copyright of ISO and IEC and must be purchased from the issuing body. This vocabulary is an independent, self-initiated work and is not endorsed by ISO, IEC, CEN, CENELEC, BSI, ISA, IEEE, MITRE or any other body named within it." ;
+    dcterms:created "2026-08-08"^^xsd:date ;
+    rdfs:seeAlso <http://purl.org/ieee1872-owl/cora> ;
+    rdfs:seeAlso <https://ontology.unifiedcyberontology.org/uco/core> ;
+    rdfs:seeAlso <http://d3fend.mitre.org/ontologies/d3fend.owl> ;
+    rdfs:seeAlso <https://webstore.iec.ch/en/publication/69228> ;
+    owl:versionInfo "0.1.0" .
+
+# =============================================================================
+# SECTION 1: STANDARDS AND CLAUSE REFERENCES
+# The citable surface of a paywalled document.
+# =============================================================================
+
+rssc:Standard a owl:Class ;
+    rdfs:label "Standard"@en ;
+    rdfs:comment "A published standard, technical specification, technical report, publicly available specification or regulation that this crosswalk cites. An instance records only the public surface of the document: its designation, issuing body, document type, edition, publication date and title. It never carries the document's text. Supersession between editions is recorded with dcterms:replaces and dcterms:isReplacedBy, which are reused rather than minted."@en .
+
+rssc:ClauseReference a owl:Class ;
+    rdfs:label "Clause reference"@en ;
+    rdfs:comment "A pointer to one numbered clause, sub-clause or annex of a standard, identified by its published identifier and title. This is the atom of the crosswalk: a mapping binds a clause reference on the safety side to a security anchor on the security side. A clause reference asserts only that a clause with this number and this title exists in this document, and records where that was read. It asserts nothing about what the clause requires."@en .
+
+rssc:SecurityRequirement a owl:Class ;
+    rdfs:label "Security requirement"@en ;
+    rdfs:comment "A single identified requirement in the IEC 62443 series, recorded by its published identifier and title only. Covers the several identifier grammars the series uses: SR x.y in IEC 62443-3-3, CR x.y in IEC 62443-4-2 with the component-specific variants EDR, HDR, NDR and SAR, ZCR n.m in IEC 62443-3-2, and the practice requirements of IEC 62443-4-1 (SM, SR, SD, SI, SVV, DM, SUM, SG). Requirement text is not reproduced."@en .
+
+rssc:designation a owl:DatatypeProperty ;
+    rdfs:label "designation"@en ;
+    rdfs:domain rssc:Standard ;
+    rdfs:range xsd:string ;
+    rdfs:comment "The published designation of a standard as a citable string, for example 'ISO 10218-1:2025', 'IEC TS 63074:2023' or 'IEC 62443-3-3:2013'. Record the issuing body's own form, including the document-type token (TS, TR, PAS) where the issuing body uses one."@en .
+
+rssc:issuingBody a owl:DatatypeProperty ;
+    rdfs:label "issuing body"@en ;
+    rdfs:range xsd:string ;
+    rdfs:comment "The body that published the document, for example 'ISO', 'IEC', 'ISO/IEC', 'CENELEC' or 'European Union'. Left as a literal rather than an organisation IRI because this vocabulary makes no claim to identify standards bodies as resources."@en .
+
+rssc:standardType a owl:DatatypeProperty ;
+    rdfs:label "standard type"@en ;
+    rdfs:domain rssc:Standard ;
+    rdfs:range xsd:string ;
+    rdfs:comment "The document type as the issuing body classifies it. Controlled values used by this project: 'international-standard', 'technical-specification', 'technical-report', 'publicly-available-specification', 'regulation'. The distinction is load-bearing, not cosmetic: IEC 63074 moved from Technical Report (2019) to Technical Specification (2023), which is a rise in formal standing, and a Technical Specification is not an International Standard."@en .
+
+rssc:edition a owl:DatatypeProperty ;
+    rdfs:label "edition"@en ;
+    rdfs:domain rssc:Standard ;
+    rdfs:range xsd:string ;
+    rdfs:comment "The edition as printed on the document, for example 'third' or '1.0'. Recorded because an edition change is where a technical revision is declared, and the foreword of a new edition is the free, citable statement of what changed."@en .
+
+rssc:publicationDate a owl:DatatypeProperty ;
+    rdfs:label "publication date"@en ;
+    rdfs:domain rssc:Standard ;
+    rdfs:comment "The publication date at the precision that is actually confirmed. Deliberately declared without a fixed rdfs:range: use xsd:date only where a day is confirmed from a primary source, and xsd:gYearMonth where only the cover month is confirmed. This is not pedantry. Secondary sources disagree on the day of publication for the ISO 10218:2025 parts while the cover pages state only a month, and recording a day that was never confirmed would be a fabricated fact."@en .
+
+rssc:paywalled a owl:DatatypeProperty ;
+    rdfs:label "paywalled"@en ;
+    rdfs:range xsd:boolean ;
+    rdfs:comment "True where the document's normative text sits behind a purchase requirement, so that only its public surface (cover, contents, foreword, scope, normative references, catalogue entry) could be read. Recorded on a rssc:Standard and on a rssc:Source. This is a first-class fact about the evidence base, not a caveat: a crosswalk built from public surfaces alone is reproducible by any reader without buying anything, and this flag is what makes that checkable."@en .
+
+rssc:clauseIdentifier a owl:DatatypeProperty ;
+    rdfs:label "clause identifier"@en ;
+    rdfs:domain rssc:ClauseReference ;
+    rdfs:range xsd:string ;
+    rdfs:comment "The clause number exactly as published, for example '5.1.16', '7.5.23', '6.3.7' or 'Annex C'. NEVER construct or infer one. Where sources disagree on a number, record the number that was read in a primary contents page and attach rssc:confidence to the assertion that uses it; where no primary reading was possible, omit the clause reference entirely rather than guess."@en .
+
+rssc:clauseTitle a owl:DatatypeProperty ;
+    rdfs:label "clause title"@en ;
+    rdfs:domain rssc:ClauseReference ;
+    rdfs:range xsd:string ;
+    rdfs:comment "The clause heading as printed in the document's contents page, for example 'Cybersecurity' or 'Timely response to events'. Clause headings are published free by the issuing bodies in the document preview and are cited here as facts. The clause body is not reproduced."@en .
+
+rssc:normativeStatus a owl:DatatypeProperty ;
+    rdfs:label "normative status"@en ;
+    rdfs:domain rssc:ClauseReference ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Whether the clause or annex is normative or informative, using the controlled values 'normative' and 'informative'. This carries one of the sharpest findings the crosswalk can make: annex status is not symmetric between the two parts of ISO 10218:2025, and the security-related material in the machinery standards is reached through informative routes. Record it per clause, from the annex heading, and never assume it transfers between parts."@en .
+
+rssc:inStandard a owl:ObjectProperty ;
+    rdfs:label "in standard"@en ;
+    rdfs:range rssc:Standard ;
+    rdfs:comment "Binds a rssc:ClauseReference or a rssc:SecurityRequirement to the rssc:Standard that publishes it. Every clause reference and every security requirement must have exactly one, otherwise the identifier is unattributable and therefore unusable."@en .
+
+rssc:requirementIdentifier a owl:DatatypeProperty ;
+    rdfs:label "requirement identifier"@en ;
+    rdfs:domain rssc:SecurityRequirement ;
+    rdfs:range xsd:string ;
+    rdfs:comment "The requirement identifier exactly as published, for example 'SR 3.1', 'CR 7.2', 'NDR 1.6 RE 1', 'ZCR 3.3' or 'SUM-1'. Record the issuing body's own spacing and punctuation."@en .
+
+rssc:requirementTitle a owl:DatatypeProperty ;
+    rdfs:label "requirement title"@en ;
+    rdfs:domain rssc:SecurityRequirement ;
+    rdfs:range xsd:string ;
+    rdfs:comment "The requirement heading as printed in the contents page, for example 'Denial of service protection'. The requirement text itself is paywalled and is not reproduced."@en .
+
+rssc:identifierScheme a owl:DatatypeProperty ;
+    rdfs:label "identifier scheme"@en ;
+    rdfs:domain rssc:SecurityRequirement ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Which IEC 62443 identifier grammar the requirement belongs to. Controlled values used by this project: 'SR' (system requirement, IEC 62443-3-3), 'CR' (component requirement, IEC 62443-4-2), 'EDR', 'HDR', 'NDR', 'SAR' (the component-type-specific variants of CR), 'ZCR' (zone and conduit requirement, IEC 62443-3-2) and 'practice' (the SM, SR, SD, SI, SVV, DM, SUM and SG requirements of IEC 62443-4-1). BEWARE the collision: 'SR' in IEC 62443-3-3 is a dotted system requirement (SR 3.1) while 'SR' in IEC 62443-4-1 is a hyphenated practice requirement (SR-1), and the two mean entirely different things. This property is what disambiguates them."@en .
+
+rssc:enhancementOf a owl:ObjectProperty ;
+    rdfs:label "enhancement of"@en ;
+    rdfs:domain rssc:SecurityRequirement ;
+    rdfs:range rssc:SecurityRequirement ;
+    rdfs:comment "Binds a requirement enhancement (the 'RE n' suffix form, for example 'CR 1.1 RE 1') to the base requirement it enhances. An enhancement is never a stand-alone requirement, so an instance carrying this property is meaningless without its base requirement also being present in the graph."@en .
+
+rssc:derivedFromFoundationalRequirement a owl:ObjectProperty ;
+    rdfs:label "derived from foundational requirement"@en ;
+    rdfs:domain rssc:SecurityRequirement ;
+    rdfs:range rssc:FoundationalRequirement ;
+    rdfs:comment "Binds a requirement to the foundational requirement it sits under. For the dotted grammars this is mechanical and needs no interpretation: the leading digit of SR x.y and CR x.y is the foundational requirement number. For ZCR and practice identifiers there is no such mechanical mapping and this property should be left unset rather than inferred."@en .
+
+# =============================================================================
+# SECTION 2: THE AUTONOMY GRADIENT
+# This project's own analytical construct, and labelled as such.
+# =============================================================================
+
+rssc:AutonomyBand a owl:Class ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:label "Autonomy band"@en ;
+    rdfs:comment "One band of the three-band autonomy gradient this case study is organised by. The gradient is an analytical device of this project, NOT a classification issued by any standards body, and it is deliberately coarse: its purpose is to sort robotic systems by how much of the safety envelope is computed at run time rather than fixed at design time, because that is what determines whether a machinery type-C standard can reach the system at all. Bands are ordered A, B, C by increasing autonomy. Every claim that a band lies inside or outside a standard's scope is recorded as a rssc:ControlGap or a rssc:CrosswalkAssertion with its own citation, never as a bare edge."@en .
+
+rssc:autonomyBand a owl:ObjectProperty ;
+    rdfs:label "autonomy band"@en ;
+    rdfs:domain rssc:RoboticSystem ;
+    rdfs:range rssc:AutonomyBand ;
+    rdfs:comment "Places a robotic system on the autonomy gradient. A system may sit in more than one band where a single platform is operated in more than one mode, for example a mobile manipulator that is teleoperated during commissioning and conditionally autonomous in service. Where that is so, assert both bands rather than picking the higher one, because the exposures differ."@en .
+
+scheme:autonomy-band a skos:ConceptScheme ;
+    skos:prefLabel "RSSC autonomy gradient"@en ;
+    dcterms:description "Three bands sorting robotic systems by how much of the safety envelope is computed at run time. An analytical construct of this case study."@en ;
+    skos:hasTopConcept band:A , band:B , band:C .
+
+band:A a rssc:AutonomyBand , skos:Concept ;
+    skos:inScheme scheme:autonomy-band ;
+    skos:prefLabel "Band A. Teleoperated and pre-programmed"@en ;
+    skos:notation "A" ;
+    skos:definition "Robotic systems whose motion is either commanded in real time by a human operator or replayed from a program fixed before operation. The safety envelope is established at design and commissioning time and does not change while the system runs. Typical members: fixed industrial robot cells, teleoperated inspection and maintenance manipulators."@en ;
+    skos:scopeNote "This is the band the machinery safety canon was written for, and the only band a type-C industrial robot safety standard reaches without qualification."@en ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:high ;
+    rssc:citation "Analytical construct of this case study. Band boundaries are ours, not any standards body's." .
+
+band:B a rssc:AutonomyBand , skos:Concept ;
+    skos:inScheme scheme:autonomy-band ;
+    skos:prefLabel "Band B. Conditionally autonomous"@en ;
+    skos:notation "B" ;
+    skos:definition "Robotic systems that plan and execute their own motion within an operating envelope set by a human, in environments that are not fully enclosed and that contain people who have not been trained as operators. The safety envelope depends on run-time perception. Typical members: autonomous mobile robots in warehouses and hospitals, agricultural platforms, uncrewed aircraft flown beyond visual line of sight."@en ;
+    skos:scopeNote "Sensing is the safety envelope in this band, so any security property that protects the integrity or availability of perception data becomes a safety property. Fixed-machinery standards written around a guarded cell do not reach most of this band."@en ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:high ;
+    rssc:citation "Analytical construct of this case study. Band boundaries are ours, not any standards body's." .
+
+band:C a rssc:AutonomyBand , skos:Concept ;
+    skos:inScheme scheme:autonomy-band ;
+    skos:prefLabel "Band C. Highly autonomous and learning-enabled"@en ;
+    skos:notation "C" ;
+    skos:definition "Robotic systems whose behaviour is generated by learned policies or foundation models, and which may adapt after deployment. Neither the motion nor, in the general case, the set of reachable states is enumerable before operation. Typical members: foundation-model-driven manipulation, humanoid platforms, multi-robot swarms."@en ;
+    skos:scopeNote "In this band the trained model, its weights, its update channel and its prompt or goal channel are all attack surfaces whose compromise changes behaviour without any component failing. No machinery type-C standard currently addresses this, and the empty cells in the crosswalk for Band C are a finding to be counted, not a gap to be filled by forcing clauses onto rows they do not cover."@en ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:high ;
+    rssc:citation "Analytical construct of this case study. Band boundaries are ours, not any standards body's." .
+
+# NOTE ON A NEAR NEIGHBOUR. These bands are not the SAE J3016 driving-automation
+# levels, and no mapping to them is asserted anywhere in this vocabulary. They
+# are also not the ISO 10218:2025 robot classes (Class I and Class II), which
+# are a functional-safety classification of the robot's own force and motion
+# capability, not of its autonomy.
+
+# =============================================================================
+# SECTION 3: ROBOTIC SYSTEMS AND THE TWO ROLE VOCABULARIES
+# ISO 10218 splits the robot from the application. IEC 62443 splits the
+# supply chain. The crosswalk has to speak both.
+# =============================================================================
+
+rssc:RoboticSystem a owl:Class ;
+    rdfs:label "Robotic system"@en ;
+    rdfs:comment "Any robot, robot application, robot cell or fleet of them that this crosswalk reasons about. The superclass exists so that the autonomy gradient and the assertion layer can attach to Band B and Band C systems that no industrial robot standard classifies. Aligned informally to the IEEE 1872 CORA family, which is pointed at with rdfs:seeAlso only: no equivalence is asserted here, because an equivalence would be a mapping and every mapping in this project must be reified and cited."@en ;
+    rdfs:seeAlso <http://purl.org/ieee1872-owl/cora> .
+
+rssc:Robot a owl:Class ;
+    rdfs:subClassOf rssc:RoboticSystem ;
+    rdfs:label "Robot"@en ;
+    rdfs:comment "The machine itself: the manipulator, its drives and its controller, considered apart from the task it is put to. This is the object of ISO 10218-1:2025, whose third edition treats the industrial robot as partly completed machinery, meaning it cannot be placed in service on its own and its safety case is completed by whoever integrates it. Placing security obligations on this class is placing them on the robot manufacturer."@en .
+
+rssc:RobotApplication a owl:Class ;
+    rdfs:subClassOf rssc:RoboticSystem ;
+    rdfs:label "Robot application"@en ;
+    rdfs:comment "A robot together with the workpieces, the task program and the machinery and equipment that support the intended task. This is the object of ISO 10218-2:2025, whose second edition renamed the scope from 'robot systems and integration' to 'industrial robot applications and robot cells'. That rename is the substantive point: the unit of safety assessment moved from the machine to the application, and the same move is what makes the application, not the robot, the right place to assess cyber exposure."@en .
+
+rssc:RobotCell a owl:Class ;
+    rdfs:subClassOf rssc:RoboticSystem ;
+    rdfs:label "Robot cell"@en ;
+    rdfs:comment "The bounded physical installation in which one or more robot applications run, including its safeguards, its span of control and its boundaries with adjacent cells. Kept distinct from rssc:RobotApplication because a cell may host several applications and because the security zone boundary, in IEC 62443 terms, is usually drawn at the cell rather than at the application."@en .
+
+rssc:SafetyRelatedControlSystem a owl:Class ;
+    rdfs:label "Safety-related control system"@en ;
+    rdfs:comment "The part of a machine's control system that implements one or more safety functions, abbreviated SCS in IEC TS 63074:2023 and in IEC 62061. This class is the pivot of the whole crosswalk. It is a control system, so it is exposed to the same threats as any other control system; and it carries safety functions, so the consequence of its compromise is a safety consequence rather than an information-loss consequence. Everything the case study claims follows from those two facts holding of one object."@en .
+
+rssc:partOfSystem a owl:ObjectProperty ;
+    rdfs:label "part of system"@en ;
+    rdfs:domain rssc:SafetyRelatedControlSystem ;
+    rdfs:range rssc:RoboticSystem ;
+    rdfs:comment "Binds a safety-related control system to the robotic system it is part of."@en .
+
+rssc:SupplyChainRole a owl:Class ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:label "Supply chain role"@en ;
+    rdfs:comment "A role in the industrial automation supply chain, as the IEC 62443 series partitions responsibility. The series is organised by role rather than by technology, so the same requirement lands on a different party depending on who is being addressed. This vocabulary keeps roles as SKOS concepts rather than classes of organisation because one organisation routinely holds several roles at once: a robot manufacturer that also integrates cells is both product supplier and system integrator, and the obligations do not merge."@en .
+
+rssc:hasSupplyChainRole a owl:ObjectProperty ;
+    rdfs:label "has supply chain role"@en ;
+    rdfs:domain org:Organization ;
+    rdfs:range rssc:SupplyChainRole ;
+    rdfs:comment "Assigns one or more supply chain roles to an organisation. Reuses the W3C Organization Ontology for the organisation itself rather than minting an organisation class."@en .
+
+scheme:supply-chain-role a skos:ConceptScheme ;
+    skos:prefLabel "IEC 62443 supply chain roles"@en ;
+    dcterms:description "The roles by which the IEC 62443 series partitions responsibility, recorded with the part of the series that addresses each."@en ;
+    skos:hasTopConcept role:product-supplier , role:system-integrator , role:asset-owner , role:service-provider .
+
+role:product-supplier a rssc:SupplyChainRole , skos:Concept ;
+    skos:inScheme scheme:supply-chain-role ;
+    skos:prefLabel "Product supplier"@en ;
+    skos:notation "product-supplier" ;
+    skos:definition "The party that develops and supplies a hardware or software product to be built into a control system. In robotics this is the robot manufacturer, and also the suppliers of the controller, the teach pendant, the safety controller and the offline programming software."@en ;
+    skos:scopeNote "Addressed by IEC 62443-4-1:2018 'Secure product development lifecycle requirements' and IEC 62443-4-2:2019 'Technical security requirements for IACS components'. This is the same party ISO 10218-1:2025 addresses as the manufacturer of the robot as partly completed machinery, which is why the two documents can be crosswalked at all. The alignment itself is asserted in the crosswalk file as a cited rssc:CrosswalkAssertion, not here."@en ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "Titles of IEC 62443-4-1:2018 and IEC 62443-4-2:2019 read from the published free previews of those documents." .
+
+role:system-integrator a rssc:SupplyChainRole , skos:Concept ;
+    skos:inScheme scheme:supply-chain-role ;
+    skos:prefLabel "System integrator"@en ;
+    skos:notation "system-integrator" ;
+    skos:definition "The party that assembles products into a working installation and hands it over. In robotics this is the cell builder: the party that combines a robot with tooling, safeguards, conveyors and a task program to make a robot application."@en ;
+    skos:scopeNote "Addressed by IEC 62443-3-2:2020 'Security risk assessment for system design', which is where a security standard makes its most direct demand about safety assets, and by IEC 62443-2-4:2023 for the integrator's own process. This is the party ISO 10218-2:2025 addresses. It is also where the two standards families most obviously converge, because the integrator is the only party that sees both the safety case and the network architecture."@en ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "Titles of IEC 62443-3-2:2020 and IEC 62443-2-4:2023 read from the published free previews of those documents." .
+
+role:asset-owner a rssc:SupplyChainRole , skos:Concept ;
+    skos:inScheme scheme:supply-chain-role ;
+    skos:prefLabel "Asset owner"@en ;
+    skos:notation "asset-owner" ;
+    skos:definition "The party that operates the installation and accepts the residual risk: the factory, the warehouse, the hospital, the farm. Holds the operating security programme and, in IEC 62443 terms, the final approval of the risk assessment."@en ;
+    skos:scopeNote "Addressed by IEC 62443-2-1:2024 edition 2.0 'Security program requirements for IACS asset owners'. In the machinery world this party is the user of the machine, and it is the party that inherits a security obligation through the instruction handbook rather than through any contract it negotiated."@en ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "Title and edition of IEC 62443-2-1:2024 read from the IEC catalogue entry and the published free preview." .
+
+role:service-provider a rssc:SupplyChainRole , skos:Concept ;
+    skos:inScheme scheme:supply-chain-role ;
+    skos:prefLabel "Service provider"@en ;
+    skos:notation "service-provider" ;
+    skos:definition "A party providing integration or maintenance services across the life of an installation, including remote support. Distinguished from the system integrator because maintenance and remote support continue for years after handover and are the usual route by which a remote-access path into a safety-related control system comes to exist."@en ;
+    skos:scopeNote "Addressed by IEC 62443-2-4:2023 edition 2.0 'Security program requirements for IACS service providers'. Robotics-specific relevance: this is the role behind remote diagnostics and over-the-air update channels, which is why it becomes acute in Band B and Band C where fleets are updated rather than individually serviced."@en ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "Title and edition of IEC 62443-2-4:2023 read from the published free preview of that document." .
+
+# =============================================================================
+# SECTION 4: HAZARDS AND SAFETY FUNCTIONS
+# =============================================================================
+
+rssc:Hazard a owl:Class ;
+    rdfs:label "Hazard"@en ;
+    rdfs:comment "A potential source of harm arising from a robotic system, in the machinery sense established by ISO 12100. Instances are the hazards a crosswalk row is about, for example unexpected start-up, loss of a speed limit, or motion outside a permitted space. This vocabulary treats a hazard as something a system HAS and a safety function MITIGATES, so that a security requirement can be tied to a hazard through the safety function it protects, rather than being asserted to cause harm directly."@en .
+
+rssc:hasHazard a owl:ObjectProperty ;
+    rdfs:label "has hazard"@en ;
+    rdfs:domain rssc:RoboticSystem ;
+    rdfs:range rssc:Hazard ;
+    rdfs:comment "Binds a robotic system to a hazard it presents."@en .
+
+rssc:SafetyFunction a owl:Class ;
+    rdfs:label "Safety function"@en ;
+    rdfs:comment "A function of a machine whose failure results in an immediate increase of risk. In the robot standards these are named and numbered: stopping functions, single point of control, start and restart interlock, speed limit monitoring, enabling, monitored standstill, stopping time and stopping distance limiting, and the capabilities used in collaborative applications. Every instance MUST carry rssc:definedByClause pointing at the clause reference that names it, because a safety function with no clause behind it is an opinion, not a requirement."@en .
+
+rssc:StoppingFunction a owl:Class ;
+    rdfs:subClassOf rssc:SafetyFunction ;
+    rdfs:label "Stopping function"@en ;
+    rdfs:comment "A safety function that brings motion to a halt: emergency stop, protective stop, normal stop and the stopping of associated equipment. Kept as a subclass because the stopping functions are the ones whose timing is the safety property, so their exposure to a security requirement about determinism and availability is direct rather than indirect."@en .
+
+rssc:CollaborativeCapability a owl:Class ;
+    rdfs:subClassOf rssc:SafetyFunction ;
+    rdfs:label "Collaborative capability"@en ;
+    rdfs:comment "A capability used to make a collaborative application safe: hand-guided control, speed and separation monitoring, and power and force limiting. Kept as a subclass because these depend on run-time sensing of where a person is, which makes them the point in Band A where the perception integrity problem of Band B already appears. Note the terminology of ISO 10218:2025: only an application is collaborative, never a robot, so an instance of this class is a capability of a robot that is used to build a collaborative application."@en .
+
+rssc:definedByClause a owl:ObjectProperty ;
+    rdfs:label "defined by clause"@en ;
+    rdfs:range rssc:ClauseReference ;
+    rdfs:comment "Binds a safety function or a hazard to the clause reference that names it in a standard. Required on every rssc:SafetyFunction. Deliberately declared without a domain so that the same property can anchor a hazard, a safety function or a collaborative capability to its clause without forcing a common superclass on the three."@en .
+
+rssc:mitigatesHazard a owl:ObjectProperty ;
+    rdfs:label "mitigates hazard"@en ;
+    rdfs:domain rssc:SafetyFunction ;
+    rdfs:range rssc:Hazard ;
+    rdfs:comment "Binds a safety function to the hazard it reduces. This is the edge that carries the argument: if a security compromise degrades the safety function, the hazard it was mitigating returns, and that is a safety consequence rather than a security one."@en .
+
+rssc:implementedBy a owl:ObjectProperty ;
+    rdfs:label "implemented by"@en ;
+    rdfs:domain rssc:SafetyFunction ;
+    rdfs:range rssc:SafetyRelatedControlSystem ;
+    rdfs:comment "Binds a safety function to the safety-related control system that realises it. The chain hazard, safety function, safety-related control system, security requirement is the whole crosswalk in four steps, and this property is the third of them."@en .
+
+# =============================================================================
+# SECTION 5: SECURITY LEVELS AND FOUNDATIONAL REQUIREMENTS
+# =============================================================================
+#
+# READ THIS BEFORE USING SECURITY LEVELS.
+# A statement that a robot or a controller "is SL2" is not false, it is
+# incomplete to the point of being unusable, because it does not say which
+# KIND of security level is meant. A target level is a requirement, a
+# capability level is a property of a product, and an achieved level is a
+# property of an installation as it actually stands. A controller with a
+# capability level of 2 dropped into a flat unsegmented network has an
+# achieved level far below it. That is why rssc:SecurityLevelClaim is a
+# reified class with a mandatory rssc:securityLevelType, and why this
+# vocabulary offers no way to attach a bare security level to a product.
+#
+# The mapping from individual requirements to security levels lives in
+# IEC 62443-3-3:2013 Annex B Table B.1 and IEC 62443-4-2:2019 Annex B
+# Table B.1. Both annexes are INFORMATIVE, which is itself worth knowing,
+# and both are paywalled. No property is provided for that mapping.
+# ---------------------------------------------------------------------------
+
+rssc:SecurityLevel a owl:Class ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:label "Security level"@en ;
+    rdfs:comment "One of the graded security levels of the IEC 62443 series, distinguishing the capability of an attacker that the level is meant to withstand along four factors: means, resources, skills and motivation. The levels are cumulative, so each level carries everything the level below it carries plus additional base requirements and requirement enhancements. Definitions attached to the concepts below are this project's paraphrase, written from publicly published summaries, not a reproduction of the paywalled definition text."@en .
+
+scheme:security-level a skos:ConceptScheme ;
+    skos:prefLabel "IEC 62443 security levels"@en ;
+    dcterms:description "SL0 to SL4, paraphrased from publicly published summaries. The canonical wording sits in IEC TS 62443-1-1:2009, Clause 5.11 'Security levels', sub-clause 5.11.2 'Types of security levels', Table 8 'Security levels' (page 53), and is not reproduced."@en ;
+    skos:hasTopConcept sl:SL0 , sl:SL1 , sl:SL2 , sl:SL3 , sl:SL4 .
+
+sl:SL0 a rssc:SecurityLevel , skos:Concept ;
+    skos:inScheme scheme:security-level ;
+    skos:prefLabel "SL 0"@en ;
+    skos:notation "SL0" ;
+    skos:definition "The degenerate case: no specific security protection is held to be necessary. Paraphrase."@en ;
+    skos:scopeNote "TREAT WITH CARE. Several authoritative descriptions of the series, including the IEC's own free system-committee guidance page and the requirement structure of IEC 62443-3-3:2013 itself, describe only four levels, SL1 to SL4. SL0 is best read as the absence of a requirement rather than as a normatively specified level, and it is included here only so that a crosswalk row can record 'no level required' explicitly rather than by omission."@en ;
+    rssc:evidenceType ev:SecondaryLiterature ;
+    rssc:confidence conf:moderate ;
+    rssc:citation "SL0 is widely reported in public summaries of the series but is not corroborated as a specified level by the sources that enumerate SL1 to SL4." .
+
+sl:SL1 a rssc:SecurityLevel , skos:Concept ;
+    skos:inScheme scheme:security-level ;
+    skos:prefLabel "SL 1"@en ;
+    skos:notation "SL1" ;
+    skos:definition "Protection against violation that is casual or coincidental rather than deliberate: the misconfiguration, the wrong cable, the curious passer-by. No adversary is assumed. Paraphrase."@en ;
+    rssc:evidenceType ev:PublishedSummary ;
+    rssc:confidence conf:high ;
+    rssc:citation "Paraphrased from publicly published summaries of IEC TS 62443-1-1:2009, Clause 5.11, Table 8. Canonical wording not reproduced." .
+
+sl:SL2 a rssc:SecurityLevel , skos:Concept ;
+    skos:inScheme scheme:security-level ;
+    skos:prefLabel "SL 2"@en ;
+    skos:notation "SL2" ;
+    skos:definition "Protection against deliberate violation by an attacker using simple means, low resources, generic rather than sector-specific skills, and low motivation. Paraphrase."@en ;
+    skos:scopeNote "The most contested level in the robotics literature. A widely repeated claim holds that ISO 10218:2025 maps safety-related components to SL2. This project could NOT confirm that claim in any primary source, and the only traceable origins are expert commentary and an unattributed news aggregator. Any assertion linking a robot safety clause to this concept must be recorded as a rssc:SecurityLevelClaim with rssc:confidence conf:low and an evidence type no stronger than ev:SecondaryLiterature. A separate and better-sourced claim, that SL2 is a sensible MINIMUM capability level for industrial control system components generally, comes from the ISA Security Compliance Institute and should not be conflated with the robot-specific claim."@en ;
+    rssc:evidenceType ev:PublishedSummary ;
+    rssc:confidence conf:high ;
+    rssc:citation "Paraphrased from publicly published summaries of IEC TS 62443-1-1:2009, Clause 5.11, Table 8. Canonical wording not reproduced. The claim that robot safety components map to SL2 is a separate assertion and is NOT part of this definition." .
+
+sl:SL3 a rssc:SecurityLevel , skos:Concept ;
+    skos:inScheme scheme:security-level ;
+    skos:prefLabel "SL 3"@en ;
+    skos:notation "SL3" ;
+    skos:definition "Protection against deliberate violation by an attacker using sophisticated means, moderate resources, skills specific to industrial automation and control systems, and moderate motivation. Paraphrase."@en ;
+    rssc:evidenceType ev:PublishedSummary ;
+    rssc:confidence conf:high ;
+    rssc:citation "Paraphrased from publicly published summaries of IEC TS 62443-1-1:2009, Clause 5.11, Table 8. Canonical wording not reproduced." .
+
+sl:SL4 a rssc:SecurityLevel , skos:Concept ;
+    skos:inScheme scheme:security-level ;
+    skos:prefLabel "SL 4"@en ;
+    skos:notation "SL4" ;
+    skos:definition "Protection against deliberate violation by an attacker using sophisticated means, extended resources, skills specific to industrial automation and control systems, and high motivation. Paraphrase."@en ;
+    rssc:evidenceType ev:PublishedSummary ;
+    rssc:confidence conf:high ;
+    rssc:citation "Paraphrased from publicly published summaries of IEC TS 62443-1-1:2009, Clause 5.11, Table 8. Canonical wording not reproduced." .
+
+rssc:SecurityLevelType a owl:Class ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:label "Security level type"@en ;
+    rdfs:comment "Which kind of security level is being stated: target, capability or achieved. The IEC 62443 series distinguishes the three and they are not interchangeable. Omitting the type is the single most common error in public writing about security levels, and this vocabulary makes it structurally impossible by requiring the type on every rssc:SecurityLevelClaim."@en .
+
+scheme:security-level-type a skos:ConceptScheme ;
+    skos:prefLabel "IEC 62443 security level types"@en ;
+    dcterms:description "Target, capability and achieved. The distinction is discussed in IEC 62443-3-3:2013, clause 0.3 and Annex A, 'Discussion of the SL vector', with Figure A.3 'Schematic of correlation of the use of different SL types'."@en ;
+    skos:hasTopConcept slt:target , slt:capability , slt:achieved .
+
+slt:target a rssc:SecurityLevelType , skos:Concept ;
+    skos:inScheme scheme:security-level-type ;
+    skos:prefLabel "Target security level (SL-T)"@en ;
+    skos:notation "SL-T" ;
+    skos:definition "The level required for a zone or a conduit, set by risk assessment. A requirement, not a property of anything that exists yet."@en ;
+    skos:scopeNote "Determined through the workflow of IEC 62443-3-2:2020, whose requirement ZCR 5.6 is titled 'Determine SL-T'."@en ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "ZCR 5.6 identifier and title read from the published contents of IEC 62443-3-2:2020." .
+
+slt:capability a rssc:SecurityLevelType , skos:Concept ;
+    skos:inScheme scheme:security-level-type ;
+    skos:prefLabel "Capability security level (SL-C)"@en ;
+    skos:notation "SL-C" ;
+    skos:definition "The level a product or system can deliver when it is correctly configured, with no compensating countermeasures relied on. A property of the thing as supplied, and the thing that certification tests."@en ;
+    skos:scopeNote "Specified by IEC 62443-3-3:2013 for control systems and IEC 62443-4-2:2019 for components. A supplier's certificate states a capability level and says nothing about any particular installation."@en ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "Roles of IEC 62443-3-3:2013 and IEC 62443-4-2:2019 read from the published scope and clause 0.3 of IEC 62443-3-3:2013." .
+
+slt:achieved a rssc:SecurityLevelType , skos:Concept ;
+    skos:inScheme scheme:security-level-type ;
+    skos:prefLabel "Achieved security level (SL-A)"@en ;
+    skos:notation "SL-A" ;
+    skos:definition "The level a real installation actually attains once designed, deployed, configured and connected. The only one of the three that describes the robot on the floor."@en ;
+    skos:scopeNote "This is where a robot cell most often fails: a controller with a high capability level installed on a flat, unsegmented network attains far less than it could. Any claim about a deployed robot cell should use this type."@en ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "Distinction read from IEC 62443-3-3:2013, clause 0.3 and the Annex A heading 'Discussion of the SL vector'." .
+
+rssc:FoundationalRequirement a owl:Class ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:label "Foundational requirement"@en ;
+    rdfs:comment "One of the seven foundational requirements that organise the IEC 62443 series. They originate in IEC TS 62443-1-1:2009, Clause 5.3 'Foundational requirements', and they supply the clause structure of IEC 62443-3-3:2013, whose clauses 5 to 11 carry their titles. They are the right granularity for a machinery crosswalk, because the machinery specification that bridges to the series organises its own countermeasure clauses by the same seven headings rather than by security level."@en .
+
+scheme:foundational-requirement a skos:ConceptScheme ;
+    skos:prefLabel "IEC 62443 foundational requirements"@en ;
+    dcterms:description "FR 1 to FR 7, with the titles as printed in the contents of IEC 62443-3-3:2013 and the count of system requirements published under each."@en ;
+    skos:hasTopConcept fr:FR1 , fr:FR2 , fr:FR3 , fr:FR4 , fr:FR5 , fr:FR6 , fr:FR7 .
+
+fr:FR1 a rssc:FoundationalRequirement , skos:Concept ;
+    skos:inScheme scheme:foundational-requirement ;
+    skos:prefLabel "FR 1. Identification and authentication control"@en ;
+    skos:altLabel "IAC"@en ;
+    skos:notation "FR1" ;
+    skos:definition "Establishing and checking who or what is asking, before anything else is decided. Covers human users, software processes and devices."@en ;
+    skos:scopeNote "Robotics relevance: the teach pendant, the engineering laptop and the safety-configuration tool are the identities that matter, because whoever holds them can change a safety limit."@en ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "Title read from the published contents of IEC 62443-3-3:2013, clause 5. Thirteen system requirements are published under this heading." .
+
+fr:FR2 a rssc:FoundationalRequirement , skos:Concept ;
+    skos:inScheme scheme:foundational-requirement ;
+    skos:prefLabel "FR 2. Use control"@en ;
+    skos:altLabel "UC"@en ;
+    skos:notation "FR2" ;
+    skos:definition "Constraining what an authenticated identity is permitted to do, and recording that it did it. Covers authorisation, portable and mobile devices, session control and auditing."@en ;
+    skos:scopeNote "Robotics relevance: mode selection and the enabling device sit here. Authentication that does not constrain which modes a given identity may select leaves the safety case intact on paper and broken in practice."@en ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "Title read from the published contents of IEC 62443-3-3:2013, clause 6. Twelve system requirements are published under this heading." .
+
+fr:FR3 a rssc:FoundationalRequirement , skos:Concept ;
+    skos:inScheme scheme:foundational-requirement ;
+    skos:prefLabel "FR 3. System integrity"@en ;
+    skos:altLabel "SI"@en ;
+    skos:notation "FR3" ;
+    skos:definition "Keeping the system, its software, its configuration and its communications as they were intended to be, and detecting when they are not."@en ;
+    skos:scopeNote "Robotics relevance: this is the foundational requirement that carries determinism of output and integrity of software and configuration, so it is the most direct security counterpart of a functional safety argument. In Band C it extends to the integrity of model weights and of the update channel that delivers them."@en ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "Title read from the published contents of IEC 62443-3-3:2013, clause 7. Nine system requirements are published under this heading." .
+
+fr:FR4 a rssc:FoundationalRequirement , skos:Concept ;
+    skos:inScheme scheme:foundational-requirement ;
+    skos:prefLabel "FR 4. Data confidentiality"@en ;
+    skos:altLabel "DC"@en ;
+    skos:notation "FR4" ;
+    skos:definition "Preventing disclosure of information to those not entitled to it, whether in transit, at rest or in residue."@en ;
+    skos:scopeNote "Robotics relevance: the weakest of the seven for a direct safety argument, and saying so is more useful than manufacturing a link. Its safety relevance is indirect, through reconnaissance: a disclosed cell layout, safety parameter set or network map makes a later integrity attack cheaper."@en ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "Title read from the published contents of IEC 62443-3-3:2013, clause 8. Three system requirements are published under this heading." .
+
+fr:FR5 a rssc:FoundationalRequirement , skos:Concept ;
+    skos:inScheme scheme:foundational-requirement ;
+    skos:prefLabel "FR 5. Restricted data flow"@en ;
+    skos:altLabel "RDF"@en ;
+    skos:notation "FR5" ;
+    skos:definition "Segmenting the system so that traffic can only go where it is meant to go, and controlling what crosses a boundary."@en ;
+    skos:scopeNote "Robotics relevance: this is where the security world says explicitly that safety assets should be separated from the rest, and it is therefore the cleanest single point of contact between a security standard and a safety case. Beware the abbreviation clash with the RDF data model; in this vocabulary the string 'RDF' as a skos:altLabel always means restricted data flow."@en ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "Title read from the published contents of IEC 62443-3-3:2013, clause 9. Four system requirements are published under this heading." .
+
+fr:FR6 a rssc:FoundationalRequirement , skos:Concept ;
+    skos:inScheme scheme:foundational-requirement ;
+    skos:prefLabel "FR 6. Timely response to events"@en ;
+    skos:altLabel "TRE"@en ;
+    skos:notation "FR6" ;
+    skos:definition "Noticing that something has happened and being able to act on it while it still matters. Covers audit log accessibility and continuous monitoring."@en ;
+    skos:scopeNote "Robotics relevance: the machinery world has no equivalent of continuous security monitoring, and this is one of the places where the security side is simply ahead. Note the plural: the heading is 'Timely response to events', not 'event', and secondary sources routinely get this wrong."@en ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "Title read from the published contents of IEC 62443-3-3:2013, clause 10. Two system requirements are published under this heading." .
+
+fr:FR7 a rssc:FoundationalRequirement , skos:Concept ;
+    skos:inScheme scheme:foundational-requirement ;
+    skos:prefLabel "FR 7. Resource availability"@en ;
+    skos:altLabel "RA"@en ;
+    skos:notation "FR7" ;
+    skos:definition "Keeping the system able to do its job under load, degradation or attack. Covers denial of service protection, resource management, backup, recovery and least functionality."@en ;
+    skos:scopeNote "Robotics relevance: the most under-appreciated of the seven for safety. A safety function that is unavailable is not fail-safe by default; a stopping function that cannot execute within its stopping time is a hazard, and starving a controller of resources is a cheaper attack than corrupting it."@en ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    rssc:citation "Title read from the published contents of IEC 62443-3-3:2013, clause 11. Eight system requirements are published under this heading." .
+
+# =============================================================================
+# SECTION 6: THE ASSERTION LAYER
+# The falsifiability contract. Nothing crosses between safety and security
+# except through a reified assertion that carries its own evidence.
+# =============================================================================
+
+rssc:EvidencedAssertion a owl:Class ;
+    rdfs:label "Evidenced assertion"@en ;
+    rdfs:comment "The abstract superclass of every claim this project makes that is not simply a transcription of a public fact. An evidenced assertion is a reified node, so it can be counted, queried, contested and retracted individually. Every instance MUST carry rssc:citation, rssc:evidenceType and rssc:confidence, and the SHACL shapes fail the build if any does not. This is not a convention, it is the enforcement point: an assertion you cannot cite cannot enter the graph. Provenance is reused rather than minted: an assertion links to the document actually consulted with prov:wasDerivedFrom pointing at a rssc:Source, and to the cited standard or page with dcterms:source. Four kinds are defined: a crosswalk mapping, a safety-impact claim, a security-level claim and a control gap."@en .
+
+rssc:citation a owl:DatatypeProperty ;
+    rdfs:label "citation"@en ;
+    rdfs:range xsd:string ;
+    rdfs:comment "The human-readable citation that supports the assertion, naming the document, the clause or page, and where it was read. Written so that a reader can check it without this graph in front of them. REQUIRED on every rssc:EvidencedAssertion. Deliberately declared without a domain so that it can also annotate a concept, a clause reference or a standard whose provenance needs stating."@en .
+
+rssc:basis a owl:DatatypeProperty ;
+    rdfs:label "basis"@en ;
+    rdfs:domain rssc:EvidencedAssertion ;
+    rdfs:range xsd:string ;
+    rdfs:comment "A plain-language paragraph saying why this assertion holds and what would falsify it. Distinct from rssc:citation, which says where the evidence is; the basis says what the evidence is taken to show. Where the reasoning is this project's rather than a standards body's, say so here in as many words."@en .
+
+rssc:evidenceType a owl:ObjectProperty ;
+    rdfs:label "evidence type"@en ;
+    rdfs:range rssc:EvidenceType ;
+    rdfs:comment "What KIND of evidence supports the assertion. REQUIRED on every rssc:EvidencedAssertion. Use the concept IRI from the scheme, not a bare literal; the flat string form is available as skos:notation on each concept. Deliberately declared without a domain so that a concept or a clause reference can also state how it was established. This property carries the most important distinction in the whole artefact, between a link a standard makes normatively and a link it merely mentions."@en .
+
+rssc:confidence a owl:ObjectProperty ;
+    rdfs:label "confidence"@en ;
+    rdfs:range rssc:ConfidenceLevel ;
+    rdfs:comment "How strongly the assertion is held, given the evidence available. REQUIRED on every rssc:EvidencedAssertion. Use the concept IRI, not a bare literal; the flat string form is available as skos:notation on each concept. Deliberately declared without a domain so that any resource whose identity is uncertain, such as a clause identifier that sources disagree about, can be marked directly."@en .
+
+rssc:appliesToBand a owl:ObjectProperty ;
+    rdfs:label "applies to band"@en ;
+    rdfs:domain rssc:EvidencedAssertion ;
+    rdfs:range rssc:AutonomyBand ;
+    rdfs:comment "Restricts an assertion to one or more bands of the autonomy gradient. This is what makes coverage countable per band rather than asserted overall, and it is what lets an empty result for Band C be reported as a measured finding rather than as an omission."@en .
+
+rssc:appliesToRole a owl:ObjectProperty ;
+    rdfs:label "applies to role"@en ;
+    rdfs:domain rssc:EvidencedAssertion ;
+    rdfs:range rssc:SupplyChainRole ;
+    rdfs:comment "Names the supply chain role or roles on which the assertion places an obligation. An obligation with no role attached is unactionable, because the reader cannot tell whether it is theirs."@en .
+
+rssc:CrosswalkAssertion a owl:Class ;
+    rdfs:subClassOf rssc:EvidencedAssertion ;
+    rdfs:label "Crosswalk assertion"@en ;
+    rdfs:comment "A reified mapping from a clause of a safety standard to an anchor on the security side: a foundational requirement, a security requirement, a security level or a clause of a security document. Reified rather than expressed as a direct SKOS triple so that the relation, the evidence type, the confidence, the affected band and the responsible role all travel with the mapping instead of being lost. The direct SKOS triple may additionally be emitted by the pipeline for consumers that want it, but the reified node is the record of account."@en .
+
+rssc:subjectClause a owl:ObjectProperty ;
+    rdfs:label "subject clause"@en ;
+    rdfs:domain rssc:CrosswalkAssertion ;
+    rdfs:range rssc:ClauseReference ;
+    rdfs:comment "The safety-side clause the mapping starts from. Exactly one per crosswalk assertion: a mapping with two subjects is two mappings."@en .
+
+rssc:targetRequirement a owl:ObjectProperty ;
+    rdfs:label "target requirement"@en ;
+    rdfs:domain rssc:CrosswalkAssertion ;
+    rdfs:comment "The security-side anchor the mapping arrives at. Deliberately declared without an rdfs:range because the legitimate targets are of several kinds: a rssc:FoundationalRequirement, a rssc:SecurityRequirement, a rssc:SecurityLevel or a rssc:ClauseReference in a security document. The permitted set is enforced in the SHACL shapes rather than by an OWL range, so that widening it later is a shapes change rather than a semantic one."@en .
+
+rssc:mappingRelation a owl:ObjectProperty ;
+    rdfs:label "mapping relation"@en ;
+    rdfs:domain rssc:CrosswalkAssertion ;
+    rdfs:range rdf:Property ;
+    rdfs:comment "The SKOS mapping relation the assertion claims, given as the property IRI itself: skos:exactMatch, skos:closeMatch, skos:broadMatch, skos:narrowMatch or skos:relatedMatch. Match discipline for this project: use skos:exactMatch ONLY where the two terms denote the same thing with no scope difference, which across a safety and security boundary will be almost never; skos:closeMatch for a strong but not identical correspondence; skos:broadMatch or skos:narrowMatch where one side is strictly wider than the other; and skos:relatedMatch where the connection is real but the scopes cross rather than nest. When in doubt, weaken the relation and say why in rssc:basis."@en .
+
+rssc:SafetyImpactAssertion a owl:Class ;
+    rdfs:subClassOf rssc:EvidencedAssertion ;
+    rdfs:label "Safety impact assertion"@en ;
+    rdfs:comment "The central claim of this case study, made one instance at a time: that failing to meet a given security property can degrade a given safety function, so that a cyber compromise produces a safety consequence. Reified because each such claim has to stand or fall on its own evidence. A crosswalk assertion says two clauses correspond; a safety impact assertion says something breaks. They are different claims and are kept apart deliberately."@en .
+
+rssc:impactingRequirement a owl:ObjectProperty ;
+    rdfs:label "impacting requirement"@en ;
+    rdfs:domain rssc:SafetyImpactAssertion ;
+    rdfs:comment "The security property whose absence or violation drives the impact, given as a rssc:FoundationalRequirement or a rssc:SecurityRequirement. Declared without a range for the same reason as rssc:targetRequirement: the permitted kinds are enforced in the shapes."@en .
+
+rssc:impactedSafetyFunction a owl:ObjectProperty ;
+    rdfs:label "impacted safety function"@en ;
+    rdfs:domain rssc:SafetyImpactAssertion ;
+    rdfs:range rssc:SafetyFunction ;
+    rdfs:comment "The safety function that is degraded. Because every safety function carries rssc:definedByClause, this property is what connects a security requirement to a numbered clause of a safety standard through a stated mechanism rather than by assertion."@en .
+
+rssc:safetyConsequence a owl:DatatypeProperty ;
+    rdfs:label "safety consequence"@en ;
+    rdfs:domain rssc:SafetyImpactAssertion ;
+    rdfs:range xsd:string ;
+    rdfs:comment "What actually goes wrong, in one or two plain sentences, stated in terms of the machine rather than the network: motion continues after a stop is commanded, a speed limit is silently raised, a separation distance is computed from spoofed perception data. If this cannot be written concretely, the assertion is not ready to be made."@en .
+
+rssc:SecurityLevelClaim a owl:Class ;
+    rdfs:subClassOf rssc:EvidencedAssertion ;
+    rdfs:label "Security level claim"@en ;
+    rdfs:comment "A reified claim that some subject is associated with a given security level, of a given type. Exists as its own class because a bare security level attached to a product is the commonest error in this field: without the type, the reader cannot tell whether a requirement, a product capability or a deployed installation is being described. Every instance MUST carry both rssc:claimedLevel and rssc:securityLevelType, plus the evidence furniture inherited from rssc:EvidencedAssertion."@en .
+
+rssc:claimSubject a owl:ObjectProperty ;
+    rdfs:label "claim subject"@en ;
+    rdfs:domain rssc:SecurityLevelClaim ;
+    rdfs:comment "What the security level is being claimed about: a robotic system, a safety-related control system, a zone, or a class of component. Declared without a range because the subject varies with the level type, a target level attaching to a zone and a capability level to a product."@en .
+
+rssc:claimedLevel a owl:ObjectProperty ;
+    rdfs:label "claimed level"@en ;
+    rdfs:domain rssc:SecurityLevelClaim ;
+    rdfs:range rssc:SecurityLevel ;
+    rdfs:comment "The security level claimed. Required on every security level claim."@en .
+
+rssc:securityLevelType a owl:ObjectProperty ;
+    rdfs:label "security level type"@en ;
+    rdfs:domain rssc:SecurityLevelClaim ;
+    rdfs:range rssc:SecurityLevelType ;
+    rdfs:comment "Whether the claimed level is a target, a capability or an achieved level. Required on every security level claim, with no default: there is no sensible default, and supplying one would hide exactly the error this class exists to prevent."@en .
+
+rssc:ControlGap a owl:Class ;
+    rdfs:subClassOf rssc:EvidencedAssertion ;
+    rdfs:label "Control gap"@en ;
+    rdfs:comment "The finding the demonstration is built to surface: a band of the autonomy gradient implies an exposure that a cited safety clause does not itself address, together with the security requirement that would address it. A control gap is an assertion like any other and carries the same evidence furniture, because 'the standard does not cover this' is a claim about a document and can be wrong. Three kinds are distinguished by rssc:gapKind, and the distinction matters: a standard that explicitly excludes something has made a decision, while a standard that is silent has not."@en .
+
+rssc:exposure a owl:DatatypeProperty ;
+    rdfs:label "exposure"@en ;
+    rdfs:domain rssc:ControlGap ;
+    rdfs:range xsd:string ;
+    rdfs:comment "The exposure the autonomy band implies, stated concretely enough to be argued with: which surface, reached how, changing what. Vague exposures produce unfalsifiable gaps."@en .
+
+rssc:unaddressedBy a owl:ObjectProperty ;
+    rdfs:label "unaddressed by"@en ;
+    rdfs:domain rssc:ControlGap ;
+    rdfs:range rssc:ClauseReference ;
+    rdfs:comment "The safety clause that is cited but that does not itself address the exposure. Pointing at a specific clause rather than at a whole standard is what makes the gap checkable: a reader can go to that clause identifier in the published contents and see the scope for themselves."@en .
+
+rssc:wouldBeAddressedBy a owl:ObjectProperty ;
+    rdfs:label "would be addressed by"@en ;
+    rdfs:comment "The security requirement, foundational requirement or clause that would address the exposure if it were applied. Declared without an rdfs:range because the useful answer is sometimes a specific requirement identifier and sometimes only a foundational requirement. Where nothing in the public corpus would address it, leave this unset: an unfilled gap is a stronger finding than a forced one."@en .
+
+rssc:gapKind a owl:ObjectProperty ;
+    rdfs:label "gap kind"@en ;
+    rdfs:domain rssc:ControlGap ;
+    rdfs:range rssc:GapKind ;
+    rdfs:comment "Which kind of gap this is: explicitly excluded by the standard's own scope, not addressed at all, or addressed only through an informative route. Required on every control gap, because the three carry completely different implications for a reader deciding what to do next."@en .
+
+# =============================================================================
+# SECTION 7: CONTROLLED SCHEMES FOR EVIDENCE, CONFIDENCE AND GAP KIND
+# =============================================================================
+
+rssc:EvidenceType a owl:Class ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:label "Evidence type"@en ;
+    rdfs:comment "The kind of evidence that supports an assertion, from a normative reference at the strongest to this project's own reasoning at the weakest. The scheme exists to stop the most common failure mode in standards commentary, which is presenting a bibliographic mention as though it were a normative requirement. Ordered from strongest to weakest: NormativeReference, InformativeReference, PublishedPreview, PublishedSummary, SecondaryLiterature, AnalyticalInference."@en .
+
+scheme:evidence-type a skos:ConceptScheme ;
+    skos:prefLabel "RSSC evidence types"@en ;
+    dcterms:description "Six kinds of evidence, ordered from a standard's own normative text to this project's own inference."@en ;
+    skos:hasTopConcept ev:NormativeReference , ev:InformativeReference , ev:PublishedPreview ,
+                       ev:PublishedSummary , ev:SecondaryLiterature , ev:AnalyticalInference .
+
+ev:NormativeReference a rssc:EvidenceType , skos:Concept ;
+    skos:inScheme scheme:evidence-type ;
+    skos:prefLabel "Normative reference"@en ;
+    skos:notation "normative-reference" ;
+    skos:definition "The link is carried by requirement text or by an entry in the standard's own list of normative references, so conformity with the citing standard requires it. The strongest evidence type available."@en ;
+    skos:scopeNote "Use ONLY where the referenced document appears in the clause headed 'Normative references', or where the requirement text itself carries the obligation. Normative-reference lists are published free in every standard preview, so this is checkable by any reader at zero cost. Do not use this type on the strength of a marketing claim that one standard 'requires' another."@en .
+
+ev:InformativeReference a rssc:EvidenceType , skos:Concept ;
+    skos:inScheme scheme:evidence-type ;
+    skos:prefLabel "Informative reference"@en ;
+    skos:notation "informative-reference" ;
+    skos:definition "The link is real but is carried by a bibliography entry, a NOTE or an informative annex, so it is guidance and not an obligation. Conformity with the citing standard does not require conformity with the referenced one."@en ;
+    skos:scopeNote "This type carries one of the load-bearing findings of the case study. A chain of documents can be entirely real and entirely informative, and the difference between the two types is the difference between 'must' and 'might help'. Where the location of the reference (bibliography or NOTE) could not be confirmed, say so in rssc:basis and set rssc:confidence accordingly."@en .
+
+ev:PublishedPreview a rssc:EvidenceType , skos:Concept ;
+    skos:inScheme scheme:evidence-type ;
+    skos:prefLabel "Published preview"@en ;
+    skos:notation "published-preview" ;
+    skos:definition "Read from the free preview that the issuing body or its distributor publishes for a paywalled standard: cover page, contents, foreword, introduction, scope and normative references. Primary evidence about the document's structure, obtained without buying it."@en ;
+    skos:scopeNote "This is how nearly every clause identifier and clause title in this project was established. It is primary evidence for what a clause is called and where it sits, and it is NOT evidence for what the clause requires."@en .
+
+ev:PublishedSummary a rssc:EvidenceType , skos:Concept ;
+    skos:inScheme scheme:evidence-type ;
+    skos:prefLabel "Published summary"@en ;
+    skos:notation "published-summary" ;
+    skos:definition "A public, non-normative summary published by the issuing body, a national committee, a certification body or a supplier describing what a standard requires. Reliable about intent and structure, not authoritative about wording."@en ;
+    skos:scopeNote "Includes national standards-committee bulletins and certification-body descriptions of what an assessment covered. Where such a source describes a draft rather than the published edition, that fact belongs in rssc:basis, because a draft can differ from what was published years later."@en .
+
+ev:SecondaryLiterature a rssc:EvidenceType , skos:Concept ;
+    skos:inScheme scheme:evidence-type ;
+    skos:prefLabel "Secondary literature"@en ;
+    skos:notation "secondary-literature" ;
+    skos:definition "Independent commentary: journal and conference papers, trade press, consultancy explainers, vendor blogs. Useful, frequently wrong about clause numbers, and to be corroborated across independent sources before it is relied on."@en ;
+    skos:scopeNote "Where two secondary sources disagree about a clause identifier, record neither as fact. Either use the number confirmed in a published preview, or omit the clause reference and set rssc:confidence conf:low on whatever assertion needed it."@en .
+
+ev:AnalyticalInference a rssc:EvidenceType , skos:Concept ;
+    skos:inScheme scheme:evidence-type ;
+    skos:prefLabel "Analytical inference"@en ;
+    skos:notation "analytical-inference" ;
+    skos:definition "This project's own reasoning. No standards body asserts it. The honest label for a conclusion drawn by us from facts that are themselves cited."@en ;
+    skos:scopeNote "The autonomy gradient itself, every mapping of a band to an exposure, and every judgement that a standard's scope does not reach a system are inferences of this kind. Labelling them honestly is what makes the rest of the graph trustworthy: a reader who disagrees with an inference can discard it without discarding the cited facts underneath."@en .
+
+rssc:ConfidenceLevel a owl:Class ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:label "Confidence level"@en ;
+    rdfs:comment "How strongly an assertion is held. Three levels only, because finer grading invites false precision. The levels are defined by the quality of the evidence trail, not by how sure the author feels."@en .
+
+scheme:confidence a skos:ConceptScheme ;
+    skos:prefLabel "RSSC confidence levels"@en ;
+    dcterms:description "High, moderate and low, defined by the quality of the evidence trail rather than by authorial conviction."@en ;
+    skos:hasTopConcept conf:high , conf:moderate , conf:low .
+
+conf:high a rssc:ConfidenceLevel , skos:Concept ;
+    skos:inScheme scheme:confidence ;
+    skos:prefLabel "High"@en ;
+    skos:notation "high" ;
+    skos:definition "Established from a primary published source that was read directly: a standard's own free preview front matter, an issuing body's own catalogue entry or guidance page, or the official text of a regulation."@en .
+
+conf:moderate a rssc:ConfidenceLevel , skos:Concept ;
+    skos:inScheme scheme:confidence ;
+    skos:prefLabel "Moderate"@en ;
+    skos:notation "moderate" ;
+    skos:definition "Supported by more than one independent secondary source in agreement, or by a single clearly authoritative secondary source, but not read in a primary document."@en .
+
+conf:low a rssc:ConfidenceLevel , skos:Concept ;
+    skos:inScheme scheme:confidence ;
+    skos:prefLabel "Low"@en ;
+    skos:notation "low" ;
+    skos:definition "Resting on a single secondary source, on sources that contradict each other, or on material read only through a search index. Anything at this level is flagged in prose as well as in the graph, and must never be presented as a finding."@en .
+
+rssc:GapKind a owl:Class ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:label "Gap kind"@en ;
+    rdfs:comment "Why a cited safety clause does not address an exposure. The three kinds are not interchangeable: an explicit exclusion is a decision by a committee, silence is an absence, and an informative-only route is coverage that carries no obligation."@en .
+
+scheme:gap-kind a skos:ConceptScheme ;
+    skos:prefLabel "RSSC control gap kinds"@en ;
+    dcterms:description "Three reasons a safety clause fails to reach an exposure: explicit scope exclusion, silence, or informative-only coverage."@en ;
+    skos:hasTopConcept gap:excluded-by-scope , gap:not-addressed , gap:informative-only .
+
+gap:excluded-by-scope a rssc:GapKind , skos:Concept ;
+    skos:inScheme scheme:gap-kind ;
+    skos:prefLabel "Excluded by scope"@en ;
+    skos:notation "excluded-by-scope" ;
+    skos:definition "The standard's own Scope clause puts the system, the hazard or the aspect outside its coverage. A deliberate decision, recorded in a clause that is published free, and therefore the strongest kind of gap to assert."@en ;
+    skos:scopeNote "Assert this only with a citation to the Scope clause itself, never on the strength of a standard simply not mentioning something."@en .
+
+gap:not-addressed a rssc:GapKind , skos:Concept ;
+    skos:inScheme scheme:gap-kind ;
+    skos:prefLabel "Not addressed"@en ;
+    skos:notation "not-addressed" ;
+    skos:definition "The standard is silent: nothing in its published structure covers the exposure, and its scope neither includes nor excludes it. An absence, which is weaker evidence than an exclusion and should carry lower confidence."@en ;
+    skos:scopeNote "An argument from silence about a paywalled document can only be made from its published contents page, so state in rssc:basis exactly what structure was searched and what was not visible."@en .
+
+gap:informative-only a rssc:GapKind , skos:Concept ;
+    skos:inScheme scheme:gap-kind ;
+    skos:prefLabel "Informative only"@en ;
+    skos:notation "informative-only" ;
+    skos:definition "The exposure is reached, but only through a bibliography entry, a NOTE or an informative annex, so nothing about it is required for conformity. Coverage that a reader may mistake for an obligation."@en ;
+    skos:scopeNote "This is the kind of gap that public commentary most often misreports, because the citing document does mention the right thing, just not in a place that binds anyone."@en .
+
+# =============================================================================
+# SECTION 8: SOURCES
+# =============================================================================
+
+rssc:Source a owl:Class ;
+    rdfs:subClassOf prov:Entity ;
+    rdfs:label "Source"@en ;
+    rdfs:comment "A document actually consulted, with a resolvable location and the date it was retrieved. Assertions point at sources with prov:wasDerivedFrom, so that a reader can retrace the evidence rather than take it on trust. A source that cannot be resolved is not a source; record it as such, with rssc:paywalled true where the barrier is a purchase requirement rather than a broken link."@en .
+
+rssc:sourceUrl a owl:DatatypeProperty ;
+    rdfs:label "source URL"@en ;
+    rdfs:domain rssc:Source ;
+    rdfs:range xsd:anyURI ;
+    rdfs:comment "The resolvable location of the source. Exactly one per source. Where a document was consulted only as a purchased or catalogue-listed item, give the issuing body's catalogue entry, which is public, and set rssc:paywalled true."@en .
+
+rssc:retrievedOn a owl:DatatypeProperty ;
+    rdfs:label "retrieved on"@en ;
+    rdfs:domain rssc:Source ;
+    rdfs:range xsd:date ;
+    rdfs:comment "The date the source was retrieved. Recorded because standards catalogues, certification listings and harmonisation statuses change, and a citation without a retrieval date cannot be audited later."@en .
+
+# =============================================================================
+# UNVERIFIED TERMS AND IDENTIFIERS: WHAT WAS REMOVED RATHER THAN GUESSED
+#
+# No clause identifier, requirement identifier, standard designation, edition
+# or date appears anywhere in this file unless it was read in a published
+# source. Specifically, and deliberately, this file does NOT contain:
+#
+#  * Any numeric threshold for the ISO 10218-1:2025 robot classes. Sources
+#    disagree both on the values and on whether the classes are labelled with
+#    Roman or Arabic numerals, so no threshold and no class individual is
+#    minted here. The class concept is named in Section 2 only as a thing the
+#    autonomy bands are NOT.
+#  * Any assertion that ISO 10218-1:2025 or ISO 10218-2:2025 normatively
+#    references IEC TS 63074 or any part of IEC 62443. The published
+#    normative-reference lists of both parts were read and neither document
+#    appears in them. Any link between them must therefore be recorded with
+#    ev:InformativeReference, never ev:NormativeReference.
+#  * Any assertion that safety-related robot components map to security level
+#    SL2. That claim could not be traced to a primary source. See the
+#    skos:scopeNote on sl:SL2. It may be recorded only as a
+#    rssc:SecurityLevelClaim carrying ev:SecondaryLiterature and conf:low.
+#  * Any property for mapping individual requirements to security levels. The
+#    tables that do this are informative and paywalled, and providing the
+#    property would invite reproducing them.
+#  * Any IRI in an iso: or iec: namespace. ISO and IEC issue no dereferenceable
+#    IRIs for their clauses. Clause anchors are minted under this project's own
+#    instance base and carry the real identifier as a literal, so that no
+#    reader can mistake our IRI for the issuing body's.
+#  * Any term IRI from IEEE 1872 CORA, UCO or D3FEND. Those vocabularies are
+#    pointed at with rdfs:seeAlso at the ontology level only; asserting an
+#    equivalence to a specific term would be a mapping, and every mapping in
+#    this project must be reified and cited in the crosswalk file.
+#
+# Confirmed identifier families used by this vocabulary, all read in published
+# previews or catalogue entries: ISO 10218-1:2025 and ISO 10218-2:2025 clause
+# and annex numbering; IEC TS 63074:2023 clause numbering; IEC 62443-3-3:2013
+# clauses 5 to 11 and the SR x.y grammar; IEC 62443-4-2:2019 CR x.y with the
+# EDR, HDR, NDR and SAR variants; IEC 62443-3-2:2020 ZCR n.m; IEC 62443-4-1:2018
+# practice identifiers; IEC TS 62443-1-1:2009 clause 5.3 and clause 5.11.
+# =============================================================================

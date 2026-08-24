@@ -292,3 +292,112 @@ fn test_cli_lint_suppression_end_to_end() {
     let v: serde_json::Value = serde_json::from_str(stdout.trim()).unwrap();
     assert!(v["suppressed_count"].as_u64().unwrap() > 0, "suppressed_count should be > 0 after 3 dismissals");
 }
+
+// ── #91: plan → apply across the real CLI surface ────────────────────────────
+//
+// The reporter's repro, run through the shipped binary rather than through a
+// held `Planner`. `batch` is a single process; the two-process test covers the
+// `plan` and `apply` subcommands, which build a `Planner` each.
+
+fn write_plan_fixtures(dir: &tempfile::TempDir) -> (String, String) {
+    let base = dir.path().join("base.ttl");
+    let proposed = dir.path().join("proposed.ttl");
+    std::fs::write(&base, r#"
+        @prefix ex: <https://example.org/> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        ex:Persona a owl:Class ; rdfs:label "Persona" .
+    "#).unwrap();
+    std::fs::write(&proposed, r#"
+        @prefix ex: <https://example.org/> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        ex:Persona a owl:Class ; rdfs:label "Persona" .
+        ex:Organizacion a owl:Class ; rdfs:label "Organizacion" .
+    "#).unwrap();
+    (
+        base.to_str().unwrap().to_string(),
+        proposed.to_str().unwrap().to_string(),
+    )
+}
+
+#[test]
+fn test_cli_batch_plan_then_apply() {
+    let dir = tempfile::tempdir().unwrap();
+    let (base, proposed) = write_plan_fixtures(&dir);
+    let batch = dir.path().join("batch.txt");
+    // Absolute paths on purpose: batch lines are tokenised by
+    // `split_command_line`, and a Windows path here is what caught
+    // `shell_words::split` eating every separator.
+    std::fs::write(
+        &batch,
+        format!("load {base}\nplan {proposed}\napply safe\nstats\n"),
+    )
+    .unwrap();
+
+    let out = oo_isolated(&dir)
+        .args(["batch", batch.to_str().unwrap()])
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&out.stdout);
+
+    let lines: Vec<serde_json::Value> = stdout
+        .lines()
+        .filter(|l| !l.trim().is_empty())
+        .map(|l| serde_json::from_str(l).unwrap())
+        .collect();
+
+    let apply = lines.iter().find(|l| l["command"] == "apply").unwrap();
+    assert!(
+        apply["result"]["error"].is_null(),
+        "apply failed inside a single batch process: {apply}"
+    );
+    assert_eq!(apply["result"]["ok"], true);
+
+    // The applied class must actually be in the store afterwards.
+    let stats = lines.iter().find(|l| l["command"] == "stats").unwrap();
+    assert_eq!(
+        stats["result"]["classes"], 2,
+        "apply reported success but the store did not change: {stats}"
+    );
+}
+
+#[test]
+fn test_cli_plan_then_apply_separate_processes() {
+    let dir = tempfile::tempdir().unwrap();
+    let (_base, proposed) = write_plan_fixtures(&dir);
+
+    let plan_out = oo_isolated(&dir)
+        .args(["plan", &proposed])
+        .output()
+        .unwrap();
+    assert!(plan_out.status.success());
+    let plan: serde_json::Value =
+        serde_json::from_str(String::from_utf8_lossy(&plan_out.stdout).trim()).unwrap();
+    let plan_id = plan["plan_id"].as_str().expect("plan must emit a plan_id");
+
+    // Fresh process, same data-dir: the plan is in the state db, not in memory.
+    let apply_out = oo_isolated(&dir)
+        .args(["apply", "--plan-id", plan_id])
+        .output()
+        .unwrap();
+    let apply: serde_json::Value =
+        serde_json::from_str(String::from_utf8_lossy(&apply_out.stdout).trim()).unwrap();
+    assert!(
+        apply["error"].is_null(),
+        "apply could not find a plan from a previous process: {apply}"
+    );
+    assert_eq!(apply["ok"], true);
+    assert_eq!(apply["plan_id"].as_str().unwrap(), plan_id);
+}
+
+#[test]
+fn test_cli_apply_without_plan_reports_no_plan() {
+    let dir = tempfile::tempdir().unwrap();
+    let out = oo_isolated(&dir).args(["apply", "safe"]).output().unwrap();
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        stdout.contains("No plan found"),
+        "expected a no-plan error, got: {stdout}"
+    );
+}

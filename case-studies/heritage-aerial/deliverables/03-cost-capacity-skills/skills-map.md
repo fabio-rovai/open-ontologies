@@ -2,7 +2,7 @@
 
 What capabilities institutions need to adopt NAPH at each tier, where these skills typically live (in-house vs. consultancy vs. shared sector infrastructure), and what the gap looks like for typical UK GLAM organisations.
 
-This document is **paired with** [`cost-effort-analysis.md`](../../docs/cost-effort-analysis.md) — costs are dominated by skill availability, not by raw effort.
+This document is **paired with** [`cost-effort-analysis.md`](../../docs/cost-effort-analysis.md): costs are dominated by skill availability, not by raw effort.
 
 ## Skill categories
 
@@ -80,7 +80,7 @@ This document is **paired with** [`cost-effort-analysis.md`](../../docs/cost-eff
 
 ### 5. Web / API engineering (Enhanced+)
 
-**What it is:** running production web services — SPARQL endpoints, IIIF Image API, content-negotiated RDF serving.
+**What it is:** running production web services: SPARQL endpoints, IIIF Image API, content-negotiated RDF serving.
 
 **Specific tasks:**
 
@@ -91,7 +91,7 @@ This document is **paired with** [`cost-effort-analysis.md`](../../docs/cost-eff
 
 **Existing in most GLAM institutions?** Variable. National institutions usually have it; smaller institutions often don't, and outsource hosting.
 
-**Cost to acquire:** £500-800/day for a generalist; or use a hosted service (NAPH-as-a-service is a viable model — see [shared infrastructure](#shared-infrastructure-options)).
+**Cost to acquire:** £500-800/day for a generalist; or use a hosted service (NAPH-as-a-service is a viable model, see [shared infrastructure](#shared-infrastructure-options)).
 
 ---
 
@@ -183,9 +183,9 @@ These are **not** part of the immediate NAPH Pilot scope but are the natural fol
 If you're an institution evaluating NAPH adoption:
 
 1. **Audit your existing skills** against the matrix above
-2. **Identify your minimum viable capacity** — what skills you already have that cover Baseline?
-3. **Plan your gap** — what's needed for Enhanced/Aspirational that you'd need to acquire?
-4. **Choose your acquisition strategy** — in-house, consultancy, shared service, partnership — for each gap
+2. **Identify your minimum viable capacity**: what skills you already have that cover Baseline?
+3. **Plan your gap**: what's needed for Enhanced/Aspirational that you'd need to acquire?
+4. **Choose your acquisition strategy**: in-house, consultancy, shared service, partnership, for each gap
 5. **Cost it** against the [cost-effort analysis](../../docs/cost-effort-analysis.md) figures
 
 NAPH Baseline is achievable for almost every UK GLAM institution today using existing or rapidly-acquired skills. Higher tiers require deliberate capability investment, and shared infrastructure dramatically lowers the per-institution cost of Aspirational tier.

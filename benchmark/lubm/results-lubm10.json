@@ -1,0 +1,8 @@
+{
+  "dataset": "data10",
+  "files": 189,
+  "triples": 1273246,
+  "load_seconds": 2.04,
+  "reason_seconds": 2.9,
+  "total_after_reasoning": 1745401
+}

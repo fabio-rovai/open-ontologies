@@ -8,11 +8,11 @@
 
 This sub-profile specialises NAPH for collections of military aerial reconnaissance photography. The defining characteristics:
 
-- **Originally classified material** — declassification provenance is critical
-- **Operational sortie context** — squadron, aircraft, mission type are research-relevant
+- **Originally classified material**: declassification provenance is critical
+- **Operational sortie context**: squadron, aircraft, mission type are research-relevant
 - **Crown Copyright (UK) or Federal Public Domain (US) typical rights regime**
-- **Stereo pairs intended for photo-interpretation** — adjacency relationships matter
-- **Frame numbers within sortie sequence** — operational ordering preserves intelligence context
+- **Stereo pairs intended for photo-interpretation**: adjacency relationships matter
+- **Frame numbers within sortie sequence**: operational ordering preserves intelligence context
 
 Examples: RAF/106G, RAF/541, USAAF/3PRS, USAF/91SRS, Luftwaffe (German Federal Archive), Soviet (selectively released).
 
@@ -67,8 +67,7 @@ naph:InterpretationReport a owl:Class ;
     rdfs:label "Interpretation Report" .
 ```
 
-## R.3 Identifier scheme — wartime conventions
-
+## R.3 Identifier scheme: wartime conventions
 Wartime reconnaissance identifiers commonly use:
 
 ```
@@ -77,14 +76,13 @@ Wartime reconnaissance identifiers commonly use:
 
 Examples:
 
-- `RAF/106G/UK/1655` — RAF 106 Group, UK area, sortie 1655
-- `USAAF/3PRS/EU/2287` — USAAF 3rd Photo Reconnaissance Squadron, European theatre
-- `RAF/541/HAM/1943-07-26` — RAF 541 Sqn, Hamburg, dated sortie
+- `RAF/106G/UK/1655`: RAF 106 Group, UK area, sortie 1655
+- `USAAF/3PRS/EU/2287`: USAAF 3rd Photo Reconnaissance Squadron, European theatre
+- `RAF/541/HAM/1943-07-26`: RAF 541 Sqn, Hamburg, dated sortie
 
 Frame numbers within the sortie are sequential and indicate temporal/spatial ordering of exposures.
 
-## R.4 Rights determination — wartime specifics
-
+## R.4 Rights determination: wartime specifics
 Use the [rights decision tree](../../04-adoption-guidance/decision-trees/rights-decision-tree.md) with these reconnaissance-specific notes:
 
 ### R.4.1 UK Crown Copyright reconnaissance
@@ -96,7 +94,7 @@ Use the [rights decision tree](../../04-adoption-guidance/decision-trees/rights-
 ### R.4.2 US Federal Public Domain
 
 - USAAF, USAF, USN, NARA-held material: public domain in US under federal-employee work doctrine.
-- Note: status outside US not automatically asserted — use `NoC-US/1.0/` rather than CC0.
+- Note: status outside US not automatically asserted; use `NoC-US/1.0/` rather than CC0.
 
 ### R.4.3 Captured / seized enemy material
 
@@ -135,8 +133,7 @@ ex:photo-Hamburg-001 naph:linkedRecord
 
 WW1 and WW2 reconnaissance frames are increasingly used for archaeological landscape research (e.g. cropmark analysis pre-modern agricultural intensification). Where reconnaissance archives are heavily used by archaeologists, consider also applying the [Aerial Archaeology sub-profile](aerial-archaeology.md) for relevant frames.
 
-## R.7 Worked example — Mosquito reconnaissance frame, Berlin 1944
-
+## R.7 Worked example: Mosquito reconnaissance frame, Berlin 1944
 ```turtle
 @prefix naph: <https://w3id.org/naph/ontology#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -145,7 +142,7 @@ WW1 and WW2 reconnaissance frames are increasingly used for archaeological lands
 
 ex:photo-001 a naph:AerialPhotograph ;
     dcterms:type dctype:StillImage ;
-    rdfs:label "Berlin reconnaissance — 540 Squadron, 1944-03-28, frame 4023" ;
+    rdfs:label "Berlin reconnaissance - 540 Squadron, 1944-03-28, frame 4023" ;
     naph:hasIdentifier "https://w3id.org/naph/photo/RAF-106G-UK-1655-4023" ;
     naph:partOfSortie ex:sortie-RAF-106G-UK-1655 ;
     naph:frameNumber 4023 ;
@@ -167,7 +164,7 @@ ex:sortie-RAF-106G-UK-1655 a naph:Sortie ;
     naph:aircraft "de Havilland Mosquito PR.IX" ;
     naph:missionType "damage assessment" ;
     naph:targetPriority 1 ;
-    naph:missionObjective "Strategic photographic reconnaissance — Berlin industrial district" .
+    naph:missionObjective "Strategic photographic reconnaissance - Berlin industrial district" .
 
 ex:provenance-001 a naph:ProvenanceChain ;
     rdfs:label "RAF 1944 → Air Ministry → MoD → declassified 1972 → NCAP transfer 2008" ;
@@ -176,14 +173,14 @@ ex:provenance-001 a naph:ProvenanceChain ;
 ex:declassify-1972 a naph:DeclassificationEvent ;
     rdfs:label "Declassification under UK 30-Year Rule (1968 Public Records Act)" ;
     prov:atTime "1972-01-01T00:00:00Z"^^xsd:dateTime ;
-    naph:declassificationOrder "Public Records Act 1968 — 30-year automatic declassification" ;
+    naph:declassificationOrder "Public Records Act 1968, 30-year automatic declassification" ;
     naph:originalClassification "SECRET" .
 ```
 
 ## R.8 Cross-references
 
 - [Aerial Photography Profile](../aerial-photography.md) (parent)
-- [Module C — Rights, Licensing & Ethics](../../modules/C-rights-licensing-ethics.md)
-- [Module E — Paradata & Workflow](../../modules/E-paradata-workflow.md)
+- [Module C: Rights, Licensing & Ethics](../../modules/C-rights-licensing-ethics.md)
+- [Module E: Paradata & Workflow](../../modules/E-paradata-workflow.md)
 - [Aerial Archaeology sub-profile](aerial-archaeology.md)
 - [Satellite Imagery sub-profile](satellite.md)

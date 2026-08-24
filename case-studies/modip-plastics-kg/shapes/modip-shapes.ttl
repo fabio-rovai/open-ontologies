@@ -1,0 +1,51 @@
+# SHACL shapes for the MoDiP CIDOC-CRM graph.
+# These enforce the invariants the transformation guarantees. Validation is run
+# by src/validate.py with pyshacl; a clean run is a release gate.
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix crm:  <http://www.cidoc-crm.org/cidoc-crm/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+# Every object must be a titled, identified, rights-bearing E22 whose materials
+# are resolved concepts (crm:E57_Material), not free-text strings.
+<https://ontology.tesseract.academy/modip/shapes/ObjectShape>
+    a sh:NodeShape ;
+    sh:targetClass crm:E22_Human-Made_Object ;
+    sh:property [ sh:path rdfs:label ; sh:minCount 1 ; sh:severity sh:Warning ;
+                  sh:message "object should have a label/title" ] ;
+    sh:property [ sh:path crm:P1_is_identified_by ; sh:minCount 1 ;
+                  sh:message "object must carry an identifier (accession number)" ] ;
+    sh:property [ sh:path dct:rightsHolder ; sh:minCount 1 ;
+                  sh:message "object must record a rights holder" ] ;
+    sh:property [ sh:path crm:P45_consists_of ; sh:nodeKind sh:IRI ;
+                  sh:class skos:Concept ;
+                  sh:message "material must be a resolved SKOS/E57 concept, not a literal" ] .
+
+# Identifiers must carry symbolic content.
+<https://ontology.tesseract.academy/modip/shapes/IdentifierShape>
+    a sh:NodeShape ;
+    sh:targetClass crm:E42_Identifier ;
+    sh:property [ sh:path crm:P190_has_symbolic_content ; sh:minCount 1 ;
+                  sh:datatype xsd:string ;
+                  sh:message "identifier must have symbolic content" ] .
+
+# Parsed dimensions must have a numeric value and a unit.
+<https://ontology.tesseract.academy/modip/shapes/DimensionShape>
+    a sh:NodeShape ;
+    sh:targetClass crm:E54_Dimension ;
+    sh:xone (
+      [ sh:property [ sh:path crm:P90_has_value ; sh:minCount 1 ; sh:datatype xsd:decimal ] ;
+        sh:property [ sh:path crm:P91_has_unit ; sh:minCount 1 ] ]
+      [ sh:property [ sh:path rdfs:label ; sh:minCount 1 ] ]
+    ) ;
+    sh:message "dimension must be either (value+unit) or an unparsed label" .
+
+# Production events must be linked from an object and be well-formed.
+<https://ontology.tesseract.academy/modip/shapes/ProductionShape>
+    a sh:NodeShape ;
+    sh:targetClass crm:E12_Production ;
+    sh:property [ sh:path [ sh:inversePath crm:P108i_was_produced_by ] ;
+                  sh:minCount 1 ;
+                  sh:message "production event must be attached to an object" ] .

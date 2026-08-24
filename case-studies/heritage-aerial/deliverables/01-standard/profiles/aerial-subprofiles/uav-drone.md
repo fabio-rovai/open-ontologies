@@ -8,7 +8,7 @@
 
 This sub-profile specialises NAPH for born-digital aerial imagery captured by UAVs (drones). The defining characteristics:
 
-- Born-digital — no scanning step
+- Born-digital, no scanning step
 - High-resolution and georeferenced via on-board GNSS
 - Frequently part of structured surveys (orthomosaic generation, photogrammetric input)
 - Modern rights regime (operator-licensed rather than crown/federal)
@@ -85,7 +85,7 @@ naph:photogrammetrySoftware a owl:DatatypeProperty ;
 
 naph:processingSettings a owl:DatatypeProperty ;
     rdfs:label "photogrammetry processing settings" ;
-    rdfs:comment "Brief description of processing settings — accuracy, point density, GCPs used" .
+    rdfs:comment "Brief description of processing settings: accuracy, point density, GCPs used" .
 ```
 
 ### U.2.4 Ground control points
@@ -107,7 +107,7 @@ naph:gcpCoordinates a owl:DatatypeProperty ;
 
 naph:gcpRMSE a owl:DatatypeProperty ;
     rdfs:label "GCP RMSE" ;
-    rdfs:comment "Root mean square error in survey terms — accuracy estimate." .
+    rdfs:comment "Root mean square error in survey terms (accuracy estimate)." .
 ```
 
 ## U.3 Capture metadata expectations
@@ -116,7 +116,7 @@ For UAV imagery, EXIF metadata typically contains:
 
 - Camera make/model + lens
 - ISO, exposure, aperture
-- Timestamp (with timezone — important)
+- Timestamp (with timezone: important)
 - GNSS lat/lon/altitude
 - Drone telemetry (sometimes)
 
@@ -127,14 +127,13 @@ NAPH MUST preserve this metadata. The `pipeline/uav-ingest.py` (planned v0.3) wi
 3. Construct per-frame footprint from GNSS + flight parameters
 4. Document any geometric processing (deskew, orthorectify) as `prov:Activity`
 
-## U.4 Rights — operator-licensed regime
-
+## U.4 Rights: operator-licensed regime
 For UAV imagery, rights typically lie with:
 
-- **Operator** (the organisation that flew the drone) — typically asserts copyright
-- **Project sponsor** (where the project paid for the flight) — may have licensing terms
-- **Subjects** (people or property visible in imagery) — privacy / data protection concerns
-- **Permission-granting authority** (landowner / airspace authority) — may impose terms
+- **Operator** (the organisation that flew the drone), typically asserts copyright
+- **Project sponsor** (where the project paid for the flight): may have licensing terms
+- **Subjects** (people or property visible in imagery): privacy / data protection concerns
+- **Permission-granting authority** (landowner / airspace authority): may impose terms
 
 For modern UAV imagery, the typical rights statement is a Creative Commons licence:
 
@@ -166,8 +165,7 @@ UAV imagery routinely captures identifiable individuals, vehicles, residential p
 
 Use `naph:ethicsStatement` for material with privacy concerns even when legally clear.
 
-## U.5 Worked example — UAV survey of a heritage site
-
+## U.5 Worked example: UAV survey of a heritage site
 ```turtle
 @prefix naph: <https://w3id.org/naph/ontology#> .
 
@@ -194,7 +192,7 @@ ex:drone-flight-2024-08-15 a naph:DroneFlight ;
     naph:sortieReference "2024-08-15-site-X" ;
     naph:droneModel "DJI Phantom 4 RTK" ;
     naph:operatorLicence "CAA-OPER-12345" ;
-    naph:airspaceAuthorisation "CAA Article 16 OA — Site X heritage research" ;
+    naph:airspaceAuthorisation "CAA Article 16 OA - Site X heritage research" ;
     naph:photogrammetrySoftware "Agisoft Metashape Professional 2.1" ;
     naph:processingSettings "high-density point cloud, 12 GCPs, RMSE 1.2 cm" ;
     naph:hasOrthomosaicOutput ex:orthomosaic-2024-08-15 .

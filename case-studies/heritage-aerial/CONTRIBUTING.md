@@ -59,7 +59,7 @@ NAPH should align cleanly with adjacent standards. We'd value contributions of:
 ## Style notes
 
 - TTL files use 4-space indentation, one statement per logical group, comments explain non-obvious modelling choices
-- Markdown follows the existing case-study tone — direct, evidence-led, no marketing fluff
+- Markdown follows the existing case-study tone: direct, evidence-led, no marketing fluff
 - Python scripts are self-contained, type-hinted where it adds clarity, no external dependencies beyond the standard library
 
 ## Questions

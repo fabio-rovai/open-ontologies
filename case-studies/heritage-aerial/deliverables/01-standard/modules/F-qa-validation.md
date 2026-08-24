@@ -1,5 +1,4 @@
-# Module F — QA & Validation
-
+# Module F: QA & Validation
 **Status:** Normative · v1.0
 **Applies to:** All NAPH-compliant collections, all tiers (with tier-specific intensity)
 **Defines:** the quality-assurance and validation workflow for assessing and asserting NAPH compliance
@@ -47,7 +46,7 @@ An Enhanced-compliant collection SHOULD additionally:
 
 An Aspirational-compliant collection MUST additionally:
 
-- **F.A.1** Run computational reuse tests as part of validation — actually execute typical research queries against the collection and assert they return correct results
+- **F.A.1** Run computational reuse tests as part of validation: actually execute typical research queries against the collection and assert they return correct results
 - **F.A.2** Maintain a test fixture set of 50+ records with known expected outcomes for regression testing
 - **F.A.3** Validate cross-collection links (broken `naph:linkedRecord` URIs MUST be flagged for repair)
 
@@ -55,10 +54,10 @@ An Aspirational-compliant collection MUST additionally:
 
 The reference validation toolkit is provided in [`pipeline/generate-report.py`](../../../pipeline/generate-report.py). It produces:
 
-1. **SHACL conformance report** — pass/fail per shape, per record, with violation messages
-2. **Tier distribution** — count of records at each tier
-3. **Competency-question results** — does each documented research question return expected results?
-4. **Drift report** — what changed since the last validation run?
+1. **SHACL conformance report**: pass/fail per shape, per record, with violation messages
+2. **Tier distribution**: count of records at each tier
+3. **Competency-question results**: does each documented research question return expected results?
+4. **Drift report**: what changed since the last validation run?
 
 The toolkit is open-source (MIT) and can be extended with collection-specific checks.
 
@@ -101,7 +100,7 @@ Sampling MUST be:
 
 - **Random** (not just first N records)
 - **Stratified** for Aspirational (Aerial subject, Place authority link, Cross-collection link)
-- **Documented** — sample IDs, reviewer, outcome recorded as `naph:qcReview` events (Module E)
+- **Documented**: sample IDs, reviewer, outcome recorded as `naph:qcReview` events (Module E)
 
 ## F.6 Computational reuse tests (Aspirational)
 
@@ -126,7 +125,7 @@ Track these metrics over time:
 
 | Metric | What it indicates |
 |---|---|
-| SHACL violations count | Quality drift — is compliance degrading? |
+| SHACL violations count | Quality drift: is compliance degrading? |
 | Tier distribution | Are records being upgraded or down-graded? |
 | Average record age (since last validation) | Is the collection stale? |
 | External link health (Wikidata, GeoNames) | Are upstream authorities moving? |
@@ -144,7 +143,7 @@ A conformance report is a JSON-LD or RDF document recording the outcome of a val
 @prefix prov: <http://www.w3.org/ns/prov#> .
 
 ex:report-2024-04-30 a naph:ConformanceReport, prov:Activity ;
-    rdfs:label "NAPH conformance report — 2024-04-30" ;
+    rdfs:label "NAPH conformance report - 2024-04-30" ;
     prov:atTime "2024-04-30T20:00:00Z"^^xsd:dateTime ;
     prov:wasAssociatedWith ex:NCAP-validation-tooling ;
     naph:specVersion "1.0" ;
@@ -203,10 +202,10 @@ jobs:
 
 ## F.11 Cross-references
 
-- [Module A — Capture & Imaging](A-capture-imaging.md) (capture-quality QA)
-- [Module B — Metadata & Data Structures](B-metadata-data-structures.md) (descriptive validation)
-- [Module C — Rights, Licensing & Ethics](C-rights-licensing-ethics.md) (rights review)
-- [Module D — Packaging & Publication](D-packaging-publication.md) (manifest integrity)
-- [Module E — Paradata & Workflow](E-paradata-workflow.md) (provenance validation)
+- [Module A: Capture & Imaging](A-capture-imaging.md) (capture-quality QA)
+- [Module B: Metadata & Data Structures](B-metadata-data-structures.md) (descriptive validation)
+- [Module C: Rights, Licensing & Ethics](C-rights-licensing-ethics.md) (rights review)
+- [Module D: Packaging & Publication](D-packaging-publication.md) (manifest integrity)
+- [Module E: Paradata & Workflow](E-paradata-workflow.md) (provenance validation)
 - [Validation checklist](../../04-adoption-guidance/validation-checklists.md)
-- [`pipeline/generate-report.py`](../../../pipeline/generate-report.py) — reference implementation
+- [`pipeline/generate-report.py`](../../../pipeline/generate-report.py): reference implementation

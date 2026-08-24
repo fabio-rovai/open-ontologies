@@ -1,0 +1,23 @@
+{
+  "entities": 45,
+  "relations": 56,
+  "triples": 482,
+  "shacl_violations": 0,
+  "dangling_edge_caught": true,
+  "trl_assessments": 1,
+  "quantities": 8,
+  "sources": 14,
+  "chain_stages": 5,
+  "competency_questions": 6,
+  "by_type": {
+    "Organisation": 15,
+    "Airport": 4,
+    "Funder": 3,
+    "Body": 3,
+    "Alliance": 1,
+    "Standard": 3,
+    "Programme": 3,
+    "Project": 6,
+    "Technology": 7
+  }
+}

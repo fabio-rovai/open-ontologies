@@ -1,5 +1,4 @@
-# Module D — Packaging & Publication
-
+# Module D: Packaging & Publication
 **Status:** Normative · v1.0
 **Applies to:** All NAPH-compliant collections, all tiers
 **Defines:** how records are bundled, transferred, and exposed for downstream consumption
@@ -151,8 +150,8 @@ The reference implementation is [`pipeline/iiif-bridge.py`](../../../pipeline/ii
 
 An Aspirational-tier collection MUST run a IIIF Image API 3.0 service for each access surrogate. The service URL MUST be the `id` of the `ImageService3` declaration in the manifest. It MUST respond to:
 
-- `{base-uri}/info.json` — service descriptor
-- `{base-uri}/{region}/{size}/{rotation}/{quality}.{format}` — image requests
+- `{base-uri}/info.json`: service descriptor
+- `{base-uri}/{region}/{size}/{rotation}/{quality}.{format}`: image requests
 
 NAPH does not specify an implementation. Recommended servers: IIPImage, Cantaloupe, IIIF-Cloud, OpenSeadragon-Plus.
 
@@ -250,9 +249,9 @@ A SHACL shape (`naph:CollectionShape`) checks:
 
 ## D.10 Cross-references
 
-- [Module A — Capture & Imaging](A-capture-imaging.md)
-- [Module B — Metadata & Data Structures](B-metadata-data-structures.md)
-- [Module F — QA & Validation](F-qa-validation.md)
+- [Module A: Capture & Imaging](A-capture-imaging.md)
+- [Module B: Metadata & Data Structures](B-metadata-data-structures.md)
+- [Module F: QA & Validation](F-qa-validation.md)
 - [BagIt RFC 8493](https://datatracker.ietf.org/doc/html/rfc8493)
 - [RO-Crate 1.1](https://www.researchobject.org/ro-crate/1.1/)
 - [IIIF Presentation 3.0](https://iiif.io/api/presentation/3.0/)

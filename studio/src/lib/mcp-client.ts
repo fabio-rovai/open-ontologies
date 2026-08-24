@@ -4,7 +4,26 @@ import { invoke } from '@tauri-apps/api/core';
 // This avoids webview fetch restrictions and handles SSE parsing in Rust
 
 async function mcpCall(method: string, params: Record<string, unknown> = {}): Promise<unknown> {
-  return invoke('mcp_call', { method, params });
+  try {
+    return await invoke('mcp_call', { method, params });
+  } catch (e) {
+    // A restarted engine invalidates the stored session and every call then
+    // fails with "Session not found" until something re-initialises. Do it
+    // here, once, transparently: panels should never surface a dead session.
+    const msg = e instanceof Error ? e.message : String(e);
+    if (method !== 'initialize' && /session not found|not found/i.test(msg)) {
+      await invoke('mcp_call', {
+        method: 'initialize',
+        params: {
+          protocolVersion: '2025-03-26', capabilities: {},
+          clientInfo: { name: 'open-ontologies-studio', version: '1.0.0' },
+        },
+      });
+      try { await invoke('mcp_call', { method: 'notifications/initialized', params: {} }); } catch { /* ok */ }
+      return invoke('mcp_call', { method, params });
+    }
+    throw e;
+  }
 }
 
 // Sessionless REST API — direct access to shared graph store, no MCP session required

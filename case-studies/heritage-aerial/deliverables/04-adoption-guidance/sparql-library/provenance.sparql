@@ -1,11 +1,9 @@
-# NAPH SPARQL Library — Provenance queries
-#
+# NAPH SPARQL Library: Provenance queries#
 # Provenance audits and lineage tracing. Most queries require Enhanced or
 # Aspirational tier.
 
 # =============================================================================
-# Q-PROV-1 [E] — Provenance chain summary per record
-# =============================================================================
+# Q-PROV-1 [E]: Provenance chain summary per record# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -19,8 +17,7 @@ WHERE {
 }
 
 # =============================================================================
-# Q-PROV-2 [E] — Photographs from a specific provenance pathway
-# =============================================================================
+# Q-PROV-2 [E]: Photographs from a specific provenance pathway# =============================================================================
 # Use case: audit which records came via a specific transfer agreement.
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
@@ -36,8 +33,7 @@ WHERE {
 }
 
 # =============================================================================
-# Q-PROV-3 [E] — Records by digitisation date
-# =============================================================================
+# Q-PROV-3 [E]: Records by digitisation date# =============================================================================
 # Use case: when was each record digitised? Identifies older digitisations
 # that may need re-validation.
 
@@ -56,8 +52,7 @@ WHERE {
 ORDER BY ?digitisedOn
 
 # =============================================================================
-# Q-PROV-4 [E] — Records digitised by a specific operator/event
-# =============================================================================
+# Q-PROV-4 [E]: Records digitised by a specific operator/event# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 PREFIX prov: <http://www.w3.org/ns/prov#>
@@ -72,8 +67,7 @@ WHERE {
 ORDER BY ?digitisedBy ?digitisedOn
 
 # =============================================================================
-# Q-PROV-5 [E] — Records with declassification events
-# =============================================================================
+# Q-PROV-5 [E]: Records with declassification events# =============================================================================
 # Use case: audit which records were classified at some point.
 # Requires reconnaissance sub-profile (`naph:DeclassificationEvent` defined).
 
@@ -93,8 +87,7 @@ WHERE {
 ORDER BY ?declassifyDate
 
 # =============================================================================
-# Q-PROV-6 [A] — AI-derived field provenance audit
-# =============================================================================
+# Q-PROV-6 [A]: AI-derived field provenance audit# =============================================================================
 # Use case: identify all records whose subject classification came from
 # an automated tool (vs. human curator).
 
@@ -113,10 +106,8 @@ WHERE {
 ORDER BY DESC(?confidence)
 
 # =============================================================================
-# Q-PROV-7 [A] — AI-derived fields without human validation
-# =============================================================================
-# Use case: data-quality audit — find unvalidated AI claims.
-
+# Q-PROV-7 [A]: AI-derived fields without human validation# =============================================================================
+# Use case: data-quality audit: find unvalidated AI claims.
 PREFIX naph: <https://w3id.org/naph/ontology#>
 PREFIX prov: <http://www.w3.org/ns/prov#>
 
@@ -134,10 +125,8 @@ WHERE {
 ORDER BY ?confidence
 
 # =============================================================================
-# Q-PROV-8 [E] — Records missing provenance chain
-# =============================================================================
-# Use case: data-quality audit — Enhanced-claimed records that lack provenance.
-
+# Q-PROV-8 [E]: Records missing provenance chain# =============================================================================
+# Use case: data-quality audit: Enhanced-claimed records that lack provenance.
 PREFIX naph: <https://w3id.org/naph/ontology#>
 
 SELECT ?photo
@@ -148,8 +137,7 @@ WHERE {
 }
 
 # =============================================================================
-# Q-PROV-9 [E] — Sortie-level provenance summary
-# =============================================================================
+# Q-PROV-9 [E]: Sortie-level provenance summary# =============================================================================
 # Use case: see provenance grouped by mission to identify patterns.
 
 PREFIX naph: <https://w3id.org/naph/ontology#>

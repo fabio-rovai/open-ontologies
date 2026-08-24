@@ -5,8 +5,16 @@ on:
   pull_request:
     branches: [main]
 
+# Superseded branch runs are cancelled; main runs are kept so every commit
+# keeps its own status. Three pushes to main landed inside 33 minutes on
+# 2026-08-18 and each one started a fresh 6 hour hang.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   build:
+    timeout-minutes: 30
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -37,3 +45,185 @@ jobs:
         run: |
           cargo install cargo-audit
           cargo audit
+
+  # Windows is the only leg that rejects an unrepresentable path, and it rejects
+  # it inside actions/checkout, before a line is compiled: `benchmark/lubm\Uni-
+  # versity0_0.owl` is one file on Linux and macOS and an invalid path on
+  # Windows, so git exits 128 and cancels the rest of the matrix. That is how
+  # 190 generated LUBM files rode in on #100 while every local `git status`
+  # stayed clean and the failure surfaced as an unexplained build break. This
+  # job names the offending paths in seconds.
+  paths:
+    timeout-minutes: 10
+    name: paths / windows-safe
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject paths Windows cannot check out
+        run: |
+          bad=$(git ls-files -z | tr '\0' '\n' \
+            | grep -Ei '\\|[:?*<>"|]|[ .]$|(^|/)(con|prn|aux|nul|com[1-9]|lpt[1-9])(\.|$)' || true)
+          if [ -n "$bad" ]; then
+            echo "Tracked paths that actions/checkout will reject on Windows:"
+            echo "$bad"
+            exit 1
+          fi
+          echo "All tracked paths are representable on Windows."
+
+  # Optional features are compiled by nothing above: `default = []`, and the
+  # three cargo invocations in `build` are bare. A green run there says nothing
+  # about postgres, duckdb, sql, embeddings or causal-pywhy, nor about the
+  # dependency trees they pull in (sqlx, duckdb, tract-onnx, tokenizers,
+  # instant-distance).
+  #
+  # It is also why eight test files under tests/ had never been collected once.
+  # tests/schema_test.rs is gated on `postgres` and covers
+  # SchemaIntrospector::sql_to_xsd, which carried a real defect the whole time
+  # (#76, fixed in #80): the test existed, and it was dark.
+  #
+  # Ubuntu only. The bundled duckdb build dominates wall time and Windows would
+  # double it for no signal the Linux leg does not already give.
+  features:
+    timeout-minutes: 45
+    name: features / ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Breadth: everything compiles and lints, including causal-pywhy,
+          # whose Rust side has no dependencies of its own.
+          - name: breadth (all-features)
+            cache_key: breadth
+            flags: --all-features
+            test: false
+          # Depth: everything whose tests run without external services.
+          # causal-pywhy is left out here rather than everywhere — it shells out
+          # to Python/DoWhy at runtime, which is a service dependency in all but
+          # name. It is still compiled and linted by the breadth leg.
+          # `turbovec` belongs in this leg rather than only in the breadth
+          # leg, because breadth is `test: false`. Without it here the
+          # TurboQuant backend and the text-vector eviction mode are compiled
+          # and linted by CI but never once executed by it.
+          - name: depth (postgres,duckdb,embeddings,sql,turbovec)
+            cache_key: depth
+            flags: --features postgres,duckdb,embeddings,sql,turbovec
+            test: true
+    env:
+      CARGO_INCREMENTAL: 0
+      CARGO_PROFILE_DEV_DEBUG: 0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/powershell /usr/local/share/chromium /usr/local/share/edge
+          sudo apt-get clean
+          df -h
+      - name: Install build deps (OpenSSL/libpq)
+        # The runner image already ships all three of these, so the common case
+        # is a no-op: the step logged "0 upgraded, 0 newly installed" every time
+        # it succeeded. Its only real effect was an unconditional network call.
+        # On 2026-08-18 the Azure apt mirror went dark, apt fell back to
+        # archive.ubuntu.com, stalled mid-transfer, and sat there with no
+        # timeout until GitHub killed the job at the 6 hour ceiling (runs
+        # 32156117278 and 32157458411, 5h58m of silence after the last Get:).
+        # So: touch the network only when something is genuinely missing, and
+        # bound apt when it is.
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          missing=()
+          for p in pkg-config libssl-dev libpq-dev; do
+            dpkg -s "$p" >/dev/null 2>&1 || missing+=("$p")
+          done
+          if [ ${#missing[@]} -eq 0 ]; then
+            echo "Build deps already present on the image; skipping apt."
+            exit 0
+          fi
+          echo "Missing build deps: ${missing[*]}"
+          sudo apt-get -o Acquire::Retries=3 \
+                       -o Acquire::http::Timeout=30 \
+                       -o Acquire::https::Timeout=30 update
+          sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
+                       --no-install-recommends "${missing[@]}"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          # Keyed per leg: they build disjoint dependency trees, and sharing one
+          # cache between them would thrash it on every run. Not `matrix.name` —
+          # GitHub rejects cache keys containing commas, and the rejection is a
+          # log annotation rather than a failing step, so the leg would keep
+          # running uncached and silent.
+          key: ${{ matrix.cache_key }}
+      - name: Check
+        run: cargo check ${{ matrix.flags }} --all-targets
+      - name: Clippy
+        # --all-targets so the gated tests are linted too. `-D warnings` over
+        # code that is never compiled is not a check.
+        run: cargo clippy ${{ matrix.flags }} --all-targets -- -D warnings
+      - name: Test
+        if: matrix.test
+        run: |
+          set -o pipefail
+          cargo test ${{ matrix.flags }} 2>&1 | tee cargo-test.log
+      - name: Verify every enabled test file collected tests
+        if: matrix.test
+        # Same flags as the test step, so the enabled set cannot drift from what
+        # was actually built. The script expands them through [features], which
+        # a hand-written list would not: `sql` implies postgres + duckdb.
+        run: bash scripts/check-test-collection.sh cargo-test.log "${{ matrix.flags }}"
+
+  # `python/` (open-ontologies-lite) has its own test suite and its own release
+  # workflow, and until now nothing ran the tests. `python-release.yml` goes
+  # straight from `uv build` to `pypa/gh-action-pypi-publish` on a `py-v*` tag,
+  # so every wheel published to PyPI so far was published without its 15 tests
+  # having executed once. Same shape of gap as #67, one subpackage over.
+  #
+  # Kept in CI rather than bolted onto the release workflow: a test that only
+  # runs at publish time tells you about the defect after the artefact is
+  # public.
+  python:
+    timeout-minutes: 15
+    name: python (open-ontologies-lite)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'   # the floor declared by requires-python
+      - name: Install with dev extras
+        working-directory: python
+        run: uv pip install --system -e ".[dev]"
+      - name: Test
+        working-directory: python
+        run: python -m pytest -q
+
+  # Nothing built, type-checked or linted `studio/` before this, so a green tick
+  # on a PR that only touched Studio said nothing whatsoever about it (#64 is
+  # exactly that PR).
+  #
+  # `tsc --noEmit` rather than `npm run build`: the build script chains
+  # `vite build && npm run prepare-engine`, and prepare-engine stages the Rust
+  # binary, which would make this job depend on a release build of the whole
+  # crate. Type-checking is the part that catches the errors a reviewer cannot
+  # see by reading a diff.
+  studio:
+    timeout-minutes: 15
+    name: studio (typecheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: studio/package-lock.json
+      - name: Install
+        working-directory: studio
+        run: npm ci
+      - name: Type-check
+        working-directory: studio
+        run: npx tsc --noEmit

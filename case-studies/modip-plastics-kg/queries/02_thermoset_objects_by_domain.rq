@@ -1,0 +1,9 @@
+# Count thermoset objects by use-domain, using the mod:thermalBehaviour facet.
+PREFIX crm:  <http://www.cidoc-crm.org/cidoc-crm/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX mod:  <https://ontology.tesseract.academy/modip/prop/>
+SELECT ?domain (COUNT(DISTINCT ?obj) AS ?n) WHERE {
+  ?c mod:thermalBehaviour "thermoset" .
+  ?obj crm:P45_consists_of ?c ; crm:P2_has_type ?domain .
+  ?domain skos:inScheme <https://ontology.tesseract.academy/modip/domains> .
+} GROUP BY ?domain ORDER BY DESC(?n)

@@ -6,9 +6,9 @@ A practical decision tree for converting messy date data into NAPH-compliant ISO
 
 Free-text dates are **not permitted** in NAPH-compliant records. Every date MUST be expressed as one of:
 
-- `xsd:date` — full date (`1944-03-28`)
-- `xsd:gYearMonth` — year and month (`1944-03`)
-- `xsd:gYear` — year only (`1944`)
+- `xsd:date`: full date (`1944-03-28`)
+- `xsd:gYearMonth`: year and month (`1944-03`)
+- `xsd:gYear`: year only (`1944`)
 - A `dcterms:PeriodOfTime` for a range
 
 If the source data cannot be resolved to at least year precision, the record cannot use `naph:capturedOn` and must be flagged for review.
@@ -31,7 +31,7 @@ For mechanical date format conversion, use the [`pipeline/ingest.py`](../../../p
 
 - `28 March 1944` → `1944-03-28`
 - `28/03/1944` → `1944-03-28` (UK convention)
-- `03/28/1944` → `1944-03-28` (US convention — must be detected from context)
+- `03/28/1944` → `1944-03-28` (US convention, must be detected from context)
 - `15-Jun-1947` → `1947-06-15`
 - `15-Jun-47` → `1947-06-15` (two-digit years assumed 19xx for archival)
 
@@ -74,7 +74,7 @@ Use `dcterms:temporal` for the full range AND `naph:capturedOn` for the most-lik
 
 `Spring 1944` → use `xsd:gYearMonth` for the central month, with annotation:
 
-- Northern Hemisphere Spring → use `1944-04` and annotate `naph:dateUncertaintyNote "Spring 1944 — exact date unknown"`
+- Northern Hemisphere Spring → use `1944-04` and annotate `naph:dateUncertaintyNote "Spring 1944, exact date unknown"`
 - Use the conventional centre month for each season
 
 ### Q3.3: Decade
@@ -96,7 +96,7 @@ Always include an uncertainty annotation.
 ```turtle
 ex:photo-X naph:capturedOn "1944"^^xsd:gYear ;
     naph:dateUncertainty "approximate" ;
-    naph:dateUncertaintyNote "c. 1944 — based on archival arrangement context" .
+    naph:dateUncertaintyNote "c. 1944, based on archival arrangement context" .
 ```
 
 ### Q4.1: How accurate is "circa"?
@@ -120,12 +120,12 @@ Because researchers will query date ranges. A photograph dated "c. 1944" should 
 
 The record cannot use `naph:capturedOn`. Three options:
 
-1. **Exclude from NAPH publication** — return to cataloguing for date research
+1. **Exclude from NAPH publication**: return to cataloguing for date research
 2. **Publish at a fallback tier** with an annotation:
 
 ```turtle
 ex:photo-X naph:dateUnknown true ;
-    naph:dateUncertaintyNote "Date unknown — cataloguer notes give no temporal context" .
+    naph:dateUncertaintyNote "Date unknown: cataloguer notes give no temporal context" .
 ```
 
 Note: a record without `naph:capturedOn` does NOT meet Baseline tier requirements. It must be excluded from any tier compliance claim, OR it must use a coarse `naph:capturedOn` based on collection-level context.
@@ -143,7 +143,7 @@ Always annotate the source phrase.
 ### Q5.3: "Before X" / "After X"
 
 ```turtle
-ex:photo-X naph:dateUncertaintyNote "Before 1945 — verso annotation 'wartime issue'" ;
+ex:photo-X naph:dateUncertaintyNote "Before 1945 (verso annotation 'wartime issue')" ;
     naph:capturedOn "1944"^^xsd:gYear ;
     naph:dateUncertainty "before-bound" .
 ```
@@ -185,7 +185,7 @@ If a record could be 1944-03-28 OR 1944-04-15:
 
 ```turtle
 ex:photo-X naph:capturedOn "1944-03"^^xsd:gYearMonth ;  # use shared precision
-    naph:dateUncertaintyNote "Possibly 28 March or 15 April 1944 — sortie log incomplete" .
+    naph:dateUncertaintyNote "Possibly 28 March or 15 April 1944, sortie log incomplete" .
 ```
 
 Use the most precise date that both candidates share.
@@ -203,17 +203,17 @@ Most heritage records have date-only precision; time zones don't matter. For rec
 
 For your collection:
 
-- [ ] Audit all existing date formats — which ones appear?
+- [ ] Audit all existing date formats, which ones appear?
 - [ ] Identify any UK/US convention ambiguity
 - [ ] Decide policy on partial / approximate dates
 - [ ] Configure ingest pipeline `normalise_date` patterns
 - [ ] Run normalisation on a 100-record sample, manually verify
 - [ ] Roll out to full collection
-- [ ] Document any records that couldn't be normalised — these need cataloguing review
+- [ ] Document any records that couldn't be normalised, these need cataloguing review
 
 ## Cross-references
 
-- [Module B.4 — Date handling](../../01-standard/modules/B-metadata-data-structures.md#b4-date-handling)
-- [Ingest pipeline](../../../pipeline/ingest.py) — reference implementation
+- [Module B.4: Date handling](../../01-standard/modules/B-metadata-data-structures.md#b4-date-handling)
+- [Ingest pipeline](../../../pipeline/ingest.py): reference implementation
 - [W3C XSD date types](https://www.w3.org/TR/xmlschema11-2/)
 - [DCMI Period of Time](https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/PeriodOfTime)

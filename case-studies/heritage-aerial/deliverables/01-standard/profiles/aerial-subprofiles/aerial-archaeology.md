@@ -6,7 +6,7 @@
 
 ## A.1 Scope
 
-This sub-profile specialises NAPH for aerial photography taken for archaeological survey purposes — cropmark photography, soilmark photography, parchmark photography, and analytical reuse of historic reconnaissance for archaeological purposes.
+This sub-profile specialises NAPH for aerial photography taken for archaeological survey purposes: cropmark photography, soilmark photography, parchmark photography, and analytical reuse of historic reconnaissance for archaeological purposes.
 
 The defining characteristics:
 
@@ -55,7 +55,7 @@ Cropmark photography requires specific conditions:
 ```turtle
 naph:cropMarkConditions a owl:DatatypeProperty ;
     rdfs:label "cropmark conditions" ;
-    rdfs:comment "'optimal' | 'developing' | 'late' — recorded by the observer for cropmark visibility assessment" .
+    rdfs:comment "'optimal' | 'developing' | 'late'; recorded by the observer for cropmark visibility assessment" .
 
 naph:lightingConditions a owl:DatatypeProperty ;
     rdfs:label "lighting conditions" ;
@@ -63,7 +63,7 @@ naph:lightingConditions a owl:DatatypeProperty ;
 
 naph:seasonalContext a owl:DatatypeProperty ;
     rdfs:label "seasonal context" ;
-    rdfs:comment "'late drought' | 'mid-summer' | 'spring' | etc. — reasons for capture timing" .
+    rdfs:comment "'late drought' | 'mid-summer' | 'spring' | etc.; reasons for capture timing" .
 ```
 
 ### A.2.3 Linked monument records
@@ -85,13 +85,13 @@ When archaeological observations are made on a historic reconnaissance frame, th
 
 - Belongs primarily to the [reconnaissance sub-profile](reconnaissance.md)
 - ALSO has archaeological observations attached
-- Has dual context — military origin, archaeological research use
+- Has dual context: military origin, archaeological research use
 
 Example:
 
 ```turtle
 ex:photo-RAF-541-EDI-1946-08-2287 a naph:AerialPhotograph ;
-    rdfs:label "Edinburgh — pre-modern landscape reconnaissance" ;
+    rdfs:label "Edinburgh - pre-modern landscape reconnaissance" ;
     naph:partOfSortie ex:RAF-541-EDI-1946-08 ;
     # ... reconnaissance metadata ...
     naph:hasArchaeologicalObservation ex:obs-edinburgh-fieldsystems-2018 .
@@ -111,7 +111,7 @@ A single archaeological site may be photographed across multiple aerial visits o
 ```turtle
 naph:siteRevisit a owl:ObjectProperty ;
     rdfs:label "site revisit" ;
-    rdfs:comment "Links a frame to other frames covering the same archaeological site at different times — supports change-detection over multi-decade timespans." ;
+    rdfs:comment "Links a frame to other frames covering the same archaeological site at different times. Supports change-detection over multi-decade timespans." ;
     a owl:SymmetricProperty .
 ```
 
@@ -127,8 +127,7 @@ SELECT ?photo ?date WHERE {
 ORDER BY ?date
 ```
 
-## A.5 Worked example — RCAHMS oblique cropmark photography
-
+## A.5 Worked example: RCAHMS oblique cropmark photography
 ```turtle
 @prefix naph: <https://w3id.org/naph/ontology#> .
 
@@ -180,5 +179,5 @@ ex:rcahms-rights a naph:RightsStatement ;
 - [Aerial Photography Profile](../aerial-photography.md) (parent)
 - [Reconnaissance sub-profile](reconnaissance.md) (historic reconnaissance often reused archaeologically)
 - [UAV sub-profile](uav-drone.md) (modern aerial archaeology often UAV-based)
-- [Canmore](https://canmore.org.uk/) — RCAHMS / HES national monument record
-- [Historic England Pastscape](https://www.heritagegateway.org.uk/) — English equivalent
+- [Canmore](https://canmore.org.uk/): RCAHMS / HES national monument record
+- [Historic England Pastscape](https://www.heritagegateway.org.uk/): English equivalent

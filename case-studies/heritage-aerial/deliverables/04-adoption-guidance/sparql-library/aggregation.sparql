@@ -1,10 +1,8 @@
-# NAPH SPARQL Library — Aggregation queries
-#
+# NAPH SPARQL Library: Aggregation queries#
 # Collection-level statistics, summaries, and dashboard queries.
 
 # =============================================================================
-# Q-AGG-1 [B] — Collection summary statistics
-# =============================================================================
+# Q-AGG-1 [B]: Collection summary statistics# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 
@@ -19,8 +17,7 @@ WHERE {
 }
 
 # =============================================================================
-# Q-AGG-2 [B] — Records by collection code
-# =============================================================================
+# Q-AGG-2 [B]: Records by collection code# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 
@@ -34,8 +31,7 @@ GROUP BY ?collectionCode
 ORDER BY DESC(?count)
 
 # =============================================================================
-# Q-AGG-3 [B] — Tier compliance distribution (the dashboard view)
-# =============================================================================
+# Q-AGG-3 [B]: Tier compliance distribution (the dashboard view)# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -49,8 +45,7 @@ GROUP BY ?tierLabel
 ORDER BY ?tierLabel
 
 # =============================================================================
-# Q-AGG-4 [E] — Records by aircraft type
-# =============================================================================
+# Q-AGG-4 [E]: Records by aircraft type# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 
@@ -64,8 +59,7 @@ GROUP BY ?aircraft
 ORDER BY DESC(?count)
 
 # =============================================================================
-# Q-AGG-5 [E] — Records by squadron
-# =============================================================================
+# Q-AGG-5 [E]: Records by squadron# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 
@@ -79,8 +73,7 @@ GROUP BY ?squadron
 ORDER BY DESC(?count)
 
 # =============================================================================
-# Q-AGG-6 [B] — Records by capture orientation
-# =============================================================================
+# Q-AGG-6 [B]: Records by capture orientation# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 
@@ -92,8 +85,7 @@ WHERE {
 GROUP BY ?orientation
 
 # =============================================================================
-# Q-AGG-7 [E] — Records by film stock
-# =============================================================================
+# Q-AGG-7 [E]: Records by film stock# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 
@@ -105,8 +97,7 @@ WHERE {
 GROUP BY ?filmStock
 
 # =============================================================================
-# Q-AGG-8 [B] — Average altitude by aircraft type
-# =============================================================================
+# Q-AGG-8 [B]: Average altitude by aircraft type# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 
@@ -122,8 +113,7 @@ GROUP BY ?aircraft
 ORDER BY DESC(?avgAltitude)
 
 # =============================================================================
-# Q-AGG-9 [B] — Decade × collection code matrix
-# =============================================================================
+# Q-AGG-9 [B]: Decade × collection code matrix# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 

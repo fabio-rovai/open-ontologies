@@ -1,0 +1,142 @@
+@prefix iro:     <https://gov.tesseract.academy/def/insurance#> .
+@prefix irosch:  <https://gov.tesseract.academy/def/insurance/scheme#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+<https://gov.tesseract.academy/def/insurance>
+    a owl:Ontology ;
+    dcterms:title "Insurance Register Ontology (IRO)"@en ;
+    dcterms:creator "Fabio Rovai" ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    rdfs:comment "An open OWL 2 ontology for the authorization, cross-border operation, and identifier fabric of insurance and reinsurance undertakings. First instantiated against the EIOPA Register of Insurance Undertakings joined with GLEIF LEI records. Identifiers are reified assertions carrying scheme, source system, and computed validation state, the same design stance as the Investment Fund Ontology (https://github.com/fabio-rovai/investment-fund-ontology), of which this is the second vertical instantiation."@en .
+
+#################################################################
+# Core entities
+#################################################################
+
+iro:InsuranceUndertaking a owl:Class ;
+    rdfs:label "insurance or reinsurance undertaking"@en ;
+    rdfs:comment "An undertaking authorised to pursue insurance or reinsurance activity (Solvency II, Directive 2009/138/EC, Article 13(1)-(4)). The EIOPA register does not distinguish direct insurers from pure reinsurers in its public export, so this class deliberately spans both; a subclass assertion requires evidence the export does not carry."@en .
+
+iro:SupervisoryAuthority a owl:Class ;
+    rdfs:label "national competent authority"@en ;
+    rdfs:comment "The national supervisory authority (NCA) responsible for the home authorization of an undertaking."@en .
+
+iro:Country a owl:Class ;
+    rdfs:label "country"@en .
+
+#################################################################
+# Authorization and operation, reified, because both are
+# relations with their own lifecycle, not edges.
+#################################################################
+
+iro:Registration a owl:Class ;
+    rdfs:label "home registration"@en ;
+    rdfs:comment "The home-state authorization of an undertaking by its NCA: who authorised whom, where, from when to when. Reified so that the registration's own start and end dates, and the source system asserting it, are first-class."@en .
+
+iro:CrossBorderOperation a owl:Class ;
+    rdfs:label "cross-border operation"@en ;
+    rdfs:comment "One undertaking operating in one host country under one operation mode (freedom of services, EEA branch, third-country branch...). One row of the EU passporting fabric, reified with its own dates."@en .
+
+iro:registrationOf a owl:ObjectProperty ;
+    rdfs:domain iro:Registration ; rdfs:range iro:InsuranceUndertaking ;
+    rdfs:label "registration of"@en .
+
+iro:registeredBy a owl:ObjectProperty ;
+    rdfs:domain iro:Registration ; rdfs:range iro:SupervisoryAuthority ;
+    rdfs:label "registered by"@en .
+
+iro:homeCountry a owl:ObjectProperty ;
+    rdfs:domain iro:InsuranceUndertaking ; rdfs:range iro:Country ;
+    rdfs:label "home country"@en .
+
+iro:operationOf a owl:ObjectProperty ;
+    rdfs:domain iro:CrossBorderOperation ; rdfs:range iro:InsuranceUndertaking ;
+    rdfs:label "operation of"@en .
+
+iro:hostCountry a owl:ObjectProperty ;
+    rdfs:domain iro:CrossBorderOperation ; rdfs:range iro:Country ;
+    rdfs:label "host country"@en .
+
+iro:operationMode a owl:ObjectProperty ;
+    rdfs:domain iro:CrossBorderOperation ; rdfs:range skos:Concept ;
+    rdfs:label "operation mode"@en ;
+    rdfs:comment "Points into the SKOS registry of operation modes (domestic, EEA freedom of services, EEA branch, third-country branch, FPS for EEA branches)."@en .
+
+iro:registrationStart a owl:DatatypeProperty ;
+    rdfs:range xsd:date ; rdfs:label "registration start date"@en .
+iro:registrationEnd a owl:DatatypeProperty ;
+    rdfs:range xsd:date ; rdfs:label "registration end date"@en .
+iro:operationStart a owl:DatatypeProperty ;
+    rdfs:range xsd:date ; rdfs:label "operation start date"@en .
+iro:operationEnd a owl:DatatypeProperty ;
+    rdfs:range xsd:date ; rdfs:label "operation end date"@en .
+
+iro:legalName a owl:DatatypeProperty ;
+    rdfs:label "legal name"@en .
+iro:internationalName a owl:DatatypeProperty ;
+    rdfs:label "international name"@en .
+
+#################################################################
+# The identifier fabric, reified assertions, as in IFO.
+# An Identifier here is an identifier ASSERTION: a value, in a
+# scheme, made by a source system, with a computed validation
+# state. Cross-system disagreement becomes a query.
+#################################################################
+
+iro:Identifier a owl:Class ;
+    rdfs:label "identifier assertion"@en ;
+    rdfs:comment "A reified identifier assertion: scheme + value + asserting source system + computed checksum state. Deliberately NOT identifier-as-designator: two systems asserting different LEIs for one undertaking is representable, queryable state, not an error in the model."@en .
+
+iro:LEI a owl:Class ; rdfs:subClassOf iro:Identifier ;
+    rdfs:label "LEI assertion"@en .
+iro:NationalIdentificationCode a owl:Class ; rdfs:subClassOf iro:Identifier ;
+    rdfs:label "national identification code assertion"@en ;
+    rdfs:comment "The NCA-scoped identification code the EIOPA register carries per undertaking. Uniqueness is scoped to the issuing NCA, not global, which is precisely the kind of scope fact the scheme registry declares as data."@en .
+
+iro:identifiedBy a owl:ObjectProperty ;
+    rdfs:range iro:Identifier ; rdfs:label "identified by"@en .
+iro:identifies a owl:ObjectProperty ;
+    owl:inverseOf iro:identifiedBy ;
+    rdfs:domain iro:Identifier ; rdfs:label "identifies"@en .
+iro:identifierValue a owl:DatatypeProperty ;
+    rdfs:domain iro:Identifier ; rdfs:label "identifier value"@en .
+iro:identifierScheme a owl:ObjectProperty ;
+    rdfs:domain iro:Identifier ; rdfs:range skos:Concept ;
+    rdfs:label "identifier scheme"@en .
+iro:sourceSystem a owl:ObjectProperty ;
+    rdfs:domain iro:Identifier ; rdfs:label "source system"@en .
+iro:checksumValid a owl:DatatypeProperty ;
+    rdfs:domain iro:Identifier ; rdfs:range xsd:boolean ;
+    rdfs:label "checksum valid"@en ;
+    rdfs:comment "Computed by the pipeline (ISO 7064 MOD 97-10 for LEI), asserted into the graph; shapes require the recorded result. Arithmetic in code, policy in shapes."@en .
+
+#################################################################
+# GLEIF reconciliation facets, the cross-source layer.
+#################################################################
+
+iro:gleifEntityStatus a owl:DatatypeProperty ;
+    rdfs:domain iro:LEI ;
+    rdfs:label "GLEIF entity status"@en ;
+    rdfs:comment "ACTIVE or INACTIVE per the GLEIF record for this LEI at harvest time."@en .
+
+iro:gleifRegistrationStatus a owl:DatatypeProperty ;
+    rdfs:domain iro:LEI ;
+    rdfs:label "GLEIF registration status"@en ;
+    rdfs:comment "ISSUED, LAPSED, RETIRED, MERGED, ANNULLED... per GLEIF at harvest time. A LAPSED LEI is still a valid identifier whose annual renewal was not made."@en .
+
+iro:gleifLegalName a owl:DatatypeProperty ;
+    rdfs:domain iro:LEI ;
+    rdfs:label "GLEIF legal name"@en .
+
+iro:inGleif a owl:DatatypeProperty ;
+    rdfs:domain iro:LEI ; rdfs:range xsd:boolean ;
+    rdfs:label "present in GLEIF"@en ;
+    rdfs:comment "Whether the harvested GLEIF API returned any record for this LEI value."@en .
+
+iro:RegisteredPresence a owl:Class ;
+    rdfs:label "registered presence"@en ;
+    rdfs:comment "A registered market presence that has no home-registration row in this register and could not be joined to a home undertaking by key or unambiguous LEI: third-country branches by construction, plus branch rows the register itself does not key back to their head office. Kept distinct rather than silently merged, the join failure is data, not noise."@en .

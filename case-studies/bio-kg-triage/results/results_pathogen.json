@@ -1,0 +1,29 @@
+{
+  "source": "CARD card.json (gene-organism) + current NCBI taxonomy (nodes.dmp)",
+  "edges": 6404,
+  "distinct_organisms": 740,
+  "policed_namespaces": [
+    "ARO",
+    "Biolink",
+    "NCBITaxon"
+  ],
+  "ncbi_current_taxids": 2871791,
+  "grounded_shacl_conforms": true,
+  "organism_ids_flagged_not_current": 17,
+  "of_which_retired_and_merged": 17,
+  "of_which_unexplained": 0,
+  "retired_examples": [
+    "1144672",
+    "1194538",
+    "1214076",
+    "1217697",
+    "1217698",
+    "1217700",
+    "1217701",
+    "1217702",
+    "1217703",
+    "1217706"
+  ],
+  "ungrounded_shacl_conforms": true,
+  "injected_fabricated_taxid_caught": true
+}

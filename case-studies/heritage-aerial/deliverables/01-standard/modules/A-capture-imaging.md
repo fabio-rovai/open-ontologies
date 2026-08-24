@@ -1,14 +1,13 @@
-# Module A — Capture & Imaging
-
+# Module A: Capture & Imaging
 **Status:** Normative · v1.0
 **Applies to:** All NAPH-compliant records, all tiers
 **Defines:** outcome requirements for the digital capture step that produces the digital surrogate
 
 ## A.1 Purpose
 
-Module A specifies what a digital surrogate must satisfy at the moment of capture so that downstream processing — storage, packaging, serving, computational reuse — does not lose information that is recoverable only by re-imaging the physical artefact.
+Module A specifies what a digital surrogate must satisfy at the moment of capture so that downstream processing (storage, packaging, serving, computational reuse) does not lose information that is recoverable only by re-imaging the physical artefact.
 
-Most existing digitisation guidance addresses *processes* (resolution settings, colour profiles, file naming). Module A specifies *outcomes* — what the surrogate must demonstrate, regardless of the workflow that produced it. This allows institutions to reuse existing equipment, vendors, and workflows.
+Most existing digitisation guidance addresses *processes* (resolution settings, colour profiles, file naming). Module A specifies *outcomes*: what the surrogate must demonstrate, regardless of the workflow that produced it. This allows institutions to reuse existing equipment, vendors, and workflows.
 
 ## A.2 Outcome requirements
 
@@ -88,8 +87,7 @@ ex:photo-001-master a naph:DigitalSurrogate ;
     naph:hasIdentifier "https://w3id.org/naph/example/photo-001/master" .
 ```
 
-### A.4.2 Enhanced — preservation master + access copy
-
+### A.4.2 Enhanced: preservation master + access copy
 ```turtle
 ex:photo-001-master a naph:DigitalSurrogate ;
     naph:digitisedOn "2024-03-12"^^xsd:date ;
@@ -133,7 +131,7 @@ See [`ontology/naph-shapes.ttl`](../../../ontology/naph-shapes.ttl) for the cano
 
 ## A.7 Cross-references
 
-- [Module B](B-metadata-data-structures.md) — descriptive and structural metadata
-- [Module D](D-packaging-publication.md) — packaging and IIIF service binding
-- [Module E](E-paradata-workflow.md) — workflow documentation
+- [Module B](B-metadata-data-structures.md): descriptive and structural metadata
+- [Module D](D-packaging-publication.md): packaging and IIIF service binding
+- [Module E](E-paradata-workflow.md): workflow documentation
 - [Date normalisation decision tree](../../04-adoption-guidance/decision-trees/date-normalisation.md)

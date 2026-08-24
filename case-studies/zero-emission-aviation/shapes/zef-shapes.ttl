@@ -1,0 +1,81 @@
+@prefix zef:     <https://tesseract.academy/ns/zef#> .
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# SHACL shapes for the ZEF ecosystem graph (v0.2).
+# Enforce: labelling; controlled + sourced maturity; TRL in range with provenance
+# and date; provenanced, unit-bearing quantities; sourced sources; and
+# referential integrity on every relationship (no dangling / inferred links).
+
+zef:EntityShape a sh:NodeShape ;
+  sh:targetClass zef:Entity ;
+  sh:property [
+    sh:path rdfs:label ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ;
+    sh:message "Every ecosystem entity must have exactly one string label." ] .
+
+# A Technology must carry EITHER a controlled maturity band OR a TRL assessment,
+# and its maturity band (if present) must come from the controlled vocabulary.
+zef:TechnologyShape a sh:NodeShape ;
+  sh:targetClass zef:Technology ;
+  sh:or (
+    [ sh:property [ sh:path zef:maturityBand ; sh:minCount 1 ] ]
+    [ sh:property [ sh:path zef:hasTRLAssessment ; sh:minCount 1 ] ]
+  ) ;
+  sh:message "A technology must carry a controlled maturity band or a TRL assessment." ;
+  sh:property [
+    sh:path zef:maturityBand ; sh:maxCount 1 ;
+    sh:in ( "Research" "Development" "Demonstration" "Pilot" "Commercial" ) ;
+    sh:message "Maturity band must be one of Research, Development, Demonstration, Pilot, Commercial." ] .
+
+# TRL assessments are reified and must be sourced, dated and in range 1-9.
+zef:TRLAssessmentShape a sh:NodeShape ;
+  sh:targetClass zef:TRLAssessment ;
+  sh:property [ sh:path zef:trlValue ; sh:minCount 1 ; sh:maxCount 1 ;
+    sh:datatype xsd:integer ; sh:minInclusive 1 ; sh:maxInclusive 9 ;
+    sh:message "TRL value must be an integer 1-9." ] ;
+  sh:property [ sh:path zef:assessedOn ; sh:minCount 1 ; sh:datatype xsd:date ;
+    sh:message "A TRL assessment must carry an assessment date." ] ;
+  sh:property [ sh:path prov:wasDerivedFrom ; sh:minCount 1 ; sh:class zef:Source ;
+    sh:message "A TRL assessment must be derived from a declared Source (provenance)." ] .
+
+# Quantities must carry a metric, a numeric value, a unit, and a source.
+zef:QuantityShape a sh:NodeShape ;
+  sh:targetClass zef:Quantity ;
+  sh:property [ sh:path zef:aboutMetric ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+  sh:property [ sh:path zef:numericValue ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:decimal ;
+    sh:message "A quantity must carry exactly one decimal numeric value." ] ;
+  sh:property [ sh:path zef:unit ; sh:minCount 1 ; sh:datatype xsd:string ;
+    sh:message "A quantity must carry a unit." ] ;
+  sh:property [ sh:path prov:wasDerivedFrom ; sh:minCount 1 ; sh:class zef:Source ;
+    sh:message "A quantity must be derived from a declared Source (provenance)." ] .
+
+# Sources must be citable: a title and a resolvable source URL at minimum.
+zef:SourceShape a sh:NodeShape ;
+  sh:targetClass zef:Source ;
+  sh:property [ sh:path dcterms:title ; sh:minCount 1 ; sh:datatype xsd:string ;
+    sh:message "A Source must have a title." ] ;
+  sh:property [ sh:path dcterms:source ; sh:minCount 1 ;
+    sh:message "A Source must carry a resolvable source URL (dcterms:source)." ] .
+
+# Referential integrity: the object of every ecosystem link must be a declared
+# entity of the correct kind. Graph-level equivalent of "only validated,
+# provided relationships are shown, none inferred".
+zef:ReferentialIntegrityShape a sh:NodeShape ;
+  sh:targetClass zef:Entity ;
+  sh:property [ sh:path zef:funds ;          sh:class zef:Entity ; sh:message "funds must point to a declared entity." ] ;
+  sh:property [ sh:path zef:develops ;       sh:class zef:Entity ; sh:message "develops must point to a declared entity." ] ;
+  sh:property [ sh:path zef:partnerOf ;      sh:class zef:Entity ; sh:message "partnerOf must point to a declared entity." ] ;
+  sh:property [ sh:path zef:memberOf ;       sh:class zef:Entity ; sh:message "memberOf must point to a declared entity." ] ;
+  sh:property [ sh:path zef:basedAt ;        sh:class zef:Airport ; sh:message "basedAt must point to a declared Airport." ] ;
+  sh:property [ sh:path zef:demonstratesAt ; sh:class zef:Airport ; sh:message "demonstratesAt must point to a declared Airport." ] ;
+  sh:property [ sh:path zef:usesTechnology ; sh:class zef:Technology ; sh:message "usesTechnology must point to a declared Technology." ] ;
+  sh:property [ sh:path zef:leads ;          sh:class zef:Entity ; sh:message "leads must point to a declared entity." ] ;
+  sh:property [ sh:path zef:regulates ;      sh:class zef:Entity ; sh:message "regulates must point to a declared entity." ] ;
+  sh:property [ sh:path zef:coordinates ;    sh:class zef:Entity ; sh:message "coordinates must point to a declared entity." ] ;
+  sh:property [ sh:path zef:governedBy ;     sh:class zef:Entity ; sh:message "governedBy must point to a declared entity." ] ;
+  sh:property [ sh:path zef:realisesStage ;  sh:class zef:ChainStage ; sh:message "realisesStage must point to a declared ChainStage." ] ;
+  sh:property [ sh:path zef:feedsInto ;      sh:class zef:Technology ; sh:message "feedsInto must point to a declared Technology." ] .

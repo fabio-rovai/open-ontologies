@@ -1,5 +1,4 @@
-# Vision-Language Model Classification Pipeline — Specification
-
+# Vision-Language Model Classification Pipeline: Specification
 A specification for the VLM-based subject classification pipeline that supports Aspirational-tier adoption at scale. The reference implementation `pipeline/vision-classify.py` is planned for NAPH v0.4.
 
 ## Purpose
@@ -18,27 +17,26 @@ The pipeline does NOT replace human curation. It produces drafts that human cura
 ```
 Access surrogate (JPEG/JP2)
     ↓
-[1] VLM inference — generate subject suggestions
+[1] VLM inference: generate subject suggestions
     ↓
-[2] Confidence scoring — per-suggestion
+[2] Confidence scoring, per-suggestion
     ↓
-[3] Authority resolution — map suggestions to Wikidata/GeoNames QIDs
+[3] Authority resolution: map suggestions to Wikidata/GeoNames QIDs
     ↓
-[4] Verification — confirm QIDs point to correct entities
+[4] Verification: confirm QIDs point to correct entities
     ↓
-[5] Output Turtle — with provenance + confidence
+[5] Output Turtle: with provenance + confidence
     ↓
-[6] Human validation queue — sampled records for review
+[6] Human validation queue: sampled records for review
     ↓
-[7] Validation events — recorded as provenance
+[7] Validation events: recorded as provenance
 ```
 
-## Step 1 — VLM inference
-
+## Step 1: VLM inference
 ### Input
 
 - Path to access surrogate file (JPEG/JP2)
-- Sortie + capture context (helps disambiguate — a photograph from RAF/Berlin/1944 has different likely subjects than one from RAF/Edinburgh/1947)
+- Sortie + capture context (helps disambiguate: a photograph from RAF/Berlin/1944 has different likely subjects than one from RAF/Edinburgh/1947)
 
 ### Process
 
@@ -68,10 +66,10 @@ Respond in JSON.
 
 ### Models supported
 
-- **Claude 3.5 Sonnet** (Anthropic) — strong visual reasoning, accessible API
-- **GPT-4 Vision** (OpenAI) — established baseline
-- **Gemini Pro Vision** (Google) — particularly strong for georeferenced material
-- **LLaVA / open-source models** — for institutions requiring on-premises processing
+- **Claude 3.5 Sonnet** (Anthropic): strong visual reasoning, accessible API
+- **GPT-4 Vision** (OpenAI): established baseline
+- **Gemini Pro Vision** (Google): particularly strong for georeferenced material
+- **LLaVA / open-source models**: for institutions requiring on-premises processing
 
 ### Output (per record)
 
@@ -99,8 +97,7 @@ Respond in JSON.
 }
 ```
 
-## Step 2 — Confidence scoring
-
+## Step 2: Confidence scoring
 The VLM provides a confidence score, but these are not reliably calibrated across:
 
 - Models (different VLMs have different scoring characteristics)
@@ -119,8 +116,7 @@ The pipeline normalises confidences into NAPH-relevant buckets:
 
 Bucket thresholds are configurable per institution.
 
-## Step 3 — Authority resolution
-
+## Step 3: Authority resolution
 For each subject suggested by the VLM:
 
 1. Take the candidate QID (if provided)
@@ -156,8 +152,7 @@ def search_wikidata(label: str, expected_type: str = None) -> str | None:
     return None
 ```
 
-## Step 4 — Verification
-
+## Step 4: Verification
 Before applying any QID to a record, verify:
 
 - The QID resolves (200 response from Wikidata)
@@ -167,8 +162,7 @@ Before applying any QID to a record, verify:
 
 This verification step catches the red-team failure case (Q11461 was provided as "atomic bombing" but actually refers to Sound).
 
-## Step 5 — Output Turtle
-
+## Step 5: Output Turtle
 For each record, emit:
 
 ```turtle
@@ -191,8 +185,7 @@ ex:vlm-classifier-2024-10-22 a prov:SoftwareAgent, prov:Activity ;
     prov:used ex:photo-X-thumbnail .
 ```
 
-## Step 6 — Human validation queue
-
+## Step 6: Human validation queue
 Records flagged for validation are added to the institution's review queue. Recommended interface:
 
 - Show the access surrogate
@@ -203,8 +196,7 @@ Records flagged for validation are added to the institution's review queue. Reco
 
 Processing: ~30-60 records/hour for a competent reviewer.
 
-## Step 7 — Validation events
-
+## Step 7: Validation events
 Each human validation produces a `prov:Activity`:
 
 ```turtle
@@ -274,9 +266,9 @@ Run periodic re-classification of a fixed sample (e.g. 100 records) over time. T
 
 ## When NOT to use this pipeline
 
-- **High-stakes legal / forensic records** — human curation should be primary, AI strictly assistive
-- **Records with restricted access** — privacy / data-protection rules may prohibit third-party API processing
-- **Research-significant subsets** — for the most-cited records, hand-curate; AI is for the long tail
+- **High-stakes legal / forensic records**: human curation should be primary, AI strictly assistive
+- **Records with restricted access**: privacy / data-protection rules may prohibit third-party API processing
+- **Research-significant subsets**: for the most-cited records, hand-curate; AI is for the long tail
 
 ## Future extensions (v0.5+)
 
@@ -287,7 +279,7 @@ Run periodic re-classification of a fixed sample (e.g. 100 records) over time. T
 
 ## Cross-references
 
-- [Module B §B.2.3 — Aspirational subject classification](../01-standard/modules/B-metadata-data-structures.md#b23-aspirational-b-aspirational)
-- [Module E §E.6 — AI-derived fields](../01-standard/modules/E-paradata-workflow.md#e6-ai-derived-fields)
+- [Module B §B.2.3: Aspirational subject classification](../01-standard/modules/B-metadata-data-structures.md#b23-aspirational-b-aspirational)
+- [Module E §E.6: AI-derived fields](../01-standard/modules/E-paradata-workflow.md#e6-ai-derived-fields)
 - [Tier Transition Guide: Enhanced → Aspirational](../04-adoption-guidance/transition-guides/enhanced-to-aspirational.md)
-- [SPARQL library — provenance audit Q-PROV-6, Q-PROV-7](../04-adoption-guidance/sparql-library/provenance.sparql)
+- [SPARQL library: provenance audit Q-PROV-6, Q-PROV-7](../04-adoption-guidance/sparql-library/provenance.sparql)

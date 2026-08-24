@@ -37,8 +37,21 @@ impl SchemaIntrospector {
             "integer" | "int" | "bigint" | "smallint" | "tinyint" | "hugeint"
             | "int4" | "int8" | "int2" | "int1" | "serial" | "bigserial"
             | "smallserial" | "ubigint" | "uinteger" | "usmallint" | "utinyint" => "xsd:integer",
-            "numeric" | "decimal" | "real" | "double precision" | "double"
-            | "float" | "float4" | "float8" => "xsd:decimal",
+            "numeric" | "decimal" => "xsd:decimal",
+            // IEEE 754 binary floats are deliberately NOT xsd:decimal. That
+            // type's value space is integers over powers of ten, so it cannot
+            // represent NaN, INF or -INF, and asserting it claims an exactness
+            // the source column does not have.
+            "real" | "float4" => "xsd:float",
+            // Bare `float` is dialect-dependent: Postgres reads it as float8,
+            // DuckDB as float4 (an alias of REAL). Widen rather than narrow.
+            // Every xsd:float value is exactly representable as an xsd:double,
+            // so calling a DuckDB single a double overstates the range without
+            // misrepresenting any value; the reverse would declare a range
+            // narrower than the data. Parameterised `float(p)` normalises to
+            // this arm too, which is the same safe direction under Postgres,
+            // where p <= 24 would otherwise select real.
+            "double precision" | "double" | "float" | "float8" => "xsd:double",
             "boolean" | "bool" => "xsd:boolean",
             "date" => "xsd:date",
             "timestamp" | "timestamptz" | "timestamp without time zone"
@@ -195,27 +208,32 @@ impl SchemaIntrospector {
             Connection::open(target)?
         };
 
-        // Tables in the default schema (`main`). User tables only — exclude
-        // system schemas.
+        // User tables across ALL user schemas — not just `main`. Frameworks
+        // that keep their local catalog in a DuckDB file put tables in their
+        // own schema (fenic writes to `typedef_default`). Excluded: SQL system
+        // schemas, engine-internal schemas (`__`-prefixed, e.g. fenic's
+        // `__fenic_system`), and fenic's telemetry schema `fenic_system`.
         let mut stmt = conn.prepare(
-            "SELECT table_name FROM information_schema.tables \
-             WHERE table_schema = 'main' AND table_type = 'BASE TABLE' \
-             ORDER BY table_name",
+            "SELECT table_schema, table_name FROM information_schema.tables \
+             WHERE table_type = 'BASE TABLE' \
+               AND table_schema NOT IN ('information_schema', 'pg_catalog', 'fenic_system') \
+               AND table_schema NOT LIKE '\\_\\_%' ESCAPE '\\' \
+             ORDER BY table_schema, table_name",
         )?;
-        let table_names: Vec<String> = stmt
-            .query_map([], |row| row.get::<_, String>(0))?
+        let schema_tables: Vec<(String, String)> = stmt
+            .query_map([], |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)))?
             .collect::<Result<Vec<_>, _>>()?;
         drop(stmt);
 
-        let mut tables = Vec::new();
-        for table_name in &table_names {
+        let mut tables: Vec<TableInfo> = Vec::new();
+        for (schema_name, table_name) in &schema_tables {
             // Columns
             let mut col_stmt = conn.prepare(
                 "SELECT column_name, data_type, is_nullable FROM information_schema.columns \
-                 WHERE table_schema = 'main' AND table_name = ? ORDER BY ordinal_position",
+                 WHERE table_schema = ? AND table_name = ? ORDER BY ordinal_position",
             )?;
             let col_rows: Vec<(String, String, String)> = col_stmt
-                .query_map([table_name], |row| {
+                .query_map([schema_name, table_name], |row| {
                     Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?, row.get::<_, String>(2)?))
                 })?
                 .collect::<Result<Vec<_>, _>>()?;
@@ -228,10 +246,10 @@ impl SchemaIntrospector {
             let mut pk_stmt = conn.prepare(
                 "SELECT array_to_string(constraint_column_names, ',') AS cols \
                  FROM duckdb_constraints() \
-                 WHERE schema_name = 'main' AND table_name = ? AND constraint_type = 'PRIMARY KEY'",
+                 WHERE schema_name = ? AND table_name = ? AND constraint_type = 'PRIMARY KEY'",
             )?;
             let pk_strings: Vec<String> = pk_stmt
-                .query_map([table_name], |row| row.get::<_, String>(0))?
+                .query_map([schema_name, table_name], |row| row.get::<_, String>(0))?
                 .collect::<Result<Vec<_>, _>>()?;
             drop(pk_stmt);
             let pk_cols: Vec<String> = pk_strings
@@ -247,10 +265,10 @@ impl SchemaIntrospector {
                         referenced_table, \
                         array_to_string(referenced_column_names, ',') AS parent_cols \
                  FROM duckdb_constraints() \
-                 WHERE schema_name = 'main' AND table_name = ? AND constraint_type = 'FOREIGN KEY'",
+                 WHERE schema_name = ? AND table_name = ? AND constraint_type = 'FOREIGN KEY'",
             )?;
             let fk_rows: Vec<(String, String, String)> = fk_stmt
-                .query_map([table_name], |row| {
+                .query_map([schema_name, table_name], |row| {
                     Ok((
                         row.get::<_, String>(0)?,
                         row.get::<_, String>(1)?,
@@ -287,8 +305,15 @@ impl SchemaIntrospector {
                 })
                 .collect();
 
+            // Bare table names feed `table_to_class`; qualify only on a
+            // cross-schema collision so single-schema catalogs are unchanged.
+            let name = if tables.iter().any(|t: &TableInfo| t.name == *table_name) {
+                format!("{}_{}", schema_name, table_name)
+            } else {
+                table_name.clone()
+            };
             tables.push(TableInfo {
-                name: table_name.clone(),
+                name,
                 columns,
                 foreign_keys,
             });

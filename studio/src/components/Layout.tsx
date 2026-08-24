@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useEngine } from '../hooks/useEngine';
 import { TreeView } from './TreeView';
+import { Graph3D } from './Graph3D';
 import { ChatPanel } from './ChatPanel';
 import { PropertyInspector } from './PropertyInspector';
 import { LineagePanel } from './LineagePanel';
@@ -10,6 +11,7 @@ type ViewMode = 'tree';
 
 export function Layout() {
   const [showChat, setShowChat] = useState(true);
+  const [graphMode, setGraphMode] = useState<'2d' | '3d'>('2d');
   const [showInspector, setShowInspector] = useState(false);
   const [showLineage, setShowLineage] = useState(false);
   const [_viewMode, _setViewMode] = useState<ViewMode>('tree');
@@ -122,6 +124,17 @@ export function Layout() {
         <div className="ml-auto flex gap-2">
           {/* View mode toggle */}
           <div className="w-px mx-1" style={{ background: 'var(--border)' }} />
+          <div className="flex items-center rounded text-xs overflow-hidden"
+               style={{ border: '1px solid var(--border)' }}>
+            {(['2d', '3d'] as const).map(m => (
+              <button key={m} onClick={() => setGraphMode(m)}
+                      className="px-2 py-1 uppercase"
+                      style={{ background: graphMode === m ? 'var(--accent)' : 'var(--bg-panel)',
+                               color: graphMode === m ? 'var(--bg-primary)' : 'var(--text-secondary)' }}>
+                {m}
+              </button>
+            ))}
+          </div>
           <button onClick={() => setShowChat(!showChat)}
                   className="text-xs px-2 py-1 rounded"
                   style={{ background: showChat ? 'var(--accent)' : 'var(--bg-panel)',
@@ -147,7 +160,9 @@ export function Layout() {
       <div className="flex-1 flex overflow-hidden">
         {/* Graph canvas */}
         <div className="flex-1 relative">
-          <TreeView onNodeSelect={setSelectedNode} />
+          {graphMode === '2d'
+            ? <TreeView onNodeSelect={setSelectedNode} />
+            : <Graph3D onNodeSelect={setSelectedNode} />}
         </div>
 
         {/* Inspector panel */}

@@ -137,9 +137,64 @@ impl TextEmbedder {
 
 /// Unified text embedder that dispatches to either the local ONNX model or
 /// an OpenAI-compatible HTTP API, selected by configuration.
+// clippy::large_enum_variant fires here (Local is ~1.4 KB against ~100 bytes for
+// OpenAI) and the lint had never run, because nothing in CI compiled the
+// `embeddings` feature. Boxing is not the right answer for this one: the value
+// is built once at startup and immediately parked in an `Arc` (server.rs), then
+// only ever borrowed — it is never moved in a hot path or stored in a
+// collection. The box would buy an indirection on every embed call and change a
+// public type, to save a single move of 1.4 KB at boot.
+#[allow(clippy::large_enum_variant)]
 pub enum TextEmbedderProvider {
     Local(TextEmbedder),
     OpenAI(crate::embed_remote::OpenAIEmbedder),
+}
+
+/// Default directory the local ONNX model and tokenizer are looked up in.
+fn default_model_dir() -> Option<std::path::PathBuf> {
+    dirs::home_dir().map(|h| h.join(".open-ontologies/models"))
+}
+
+/// Resolve the ONNX model file the local provider will load.
+///
+/// Extracted from `TextEmbedderProvider::from_config` so the embedding
+/// fingerprint (`crate::embed_fingerprint`) hashes *the file that is actually
+/// loaded*. Two copies of this resolution could drift, and a fingerprint over
+/// the wrong file is worse than no fingerprint: it would report "unchanged"
+/// while the loader picked up a different model.
+///
+/// Returns the path whether or not it exists — the caller decides. The legacy
+/// fallback only wins when it is the file present on disk.
+pub fn resolve_local_model_path(
+    cfg: &crate::config::EmbeddingsConfig,
+) -> Option<std::path::PathBuf> {
+    cfg.model_path
+        .clone()
+        .map(|p| std::path::PathBuf::from(crate::config::expand_tilde(&p)))
+        .or_else(|| {
+            default_model_dir().map(|d| {
+                // Prefer the multilingual default; fall back to a legacy
+                // English model only if it is the one present on disk
+                // (older installs).
+                let preferred = d.join(DEFAULT_MODEL_FILENAME);
+                if preferred.exists() {
+                    return preferred;
+                }
+                let legacy = d.join(LEGACY_EN_MODEL_FILENAME);
+                if legacy.exists() { legacy } else { preferred }
+            })
+        })
+}
+
+/// Resolve the tokenizer file the local provider will load. Companion to
+/// [`resolve_local_model_path`].
+pub fn resolve_local_tokenizer_path(
+    cfg: &crate::config::EmbeddingsConfig,
+) -> Option<std::path::PathBuf> {
+    cfg.tokenizer_path
+        .clone()
+        .map(|p| std::path::PathBuf::from(crate::config::expand_tilde(&p)))
+        .or_else(|| default_model_dir().map(|d| d.join("tokenizer.json")))
 }
 
 impl TextEmbedderProvider {
@@ -166,36 +221,8 @@ impl TextEmbedderProvider {
                 Ok(Some(Self::OpenAI(embedder)))
             }
             "local" | "" | "onnx" => {
-                let default_model_dir =
-                    dirs::home_dir().map(|h| h.join(".open-ontologies/models"));
-
-                let model_path = cfg
-                    .model_path
-                    .clone()
-                    .map(|p| std::path::PathBuf::from(crate::config::expand_tilde(&p)))
-                    .or_else(|| {
-                        default_model_dir.as_ref().map(|d| {
-                            // Prefer the multilingual default; fall back to a
-                            // legacy English model only if it is the one present
-                            // on disk (older installs).
-                            let preferred = d.join(DEFAULT_MODEL_FILENAME);
-                            if preferred.exists() {
-                                return preferred;
-                            }
-                            let legacy = d.join(LEGACY_EN_MODEL_FILENAME);
-                            if legacy.exists() { legacy } else { preferred }
-                        })
-                    });
-
-                let tokenizer_path = cfg
-                    .tokenizer_path
-                    .clone()
-                    .map(|p| std::path::PathBuf::from(crate::config::expand_tilde(&p)))
-                    .or_else(|| {
-                        default_model_dir
-                            .as_ref()
-                            .map(|d| d.join("tokenizer.json"))
-                    });
+                let model_path = resolve_local_model_path(cfg);
+                let tokenizer_path = resolve_local_tokenizer_path(cfg);
 
                 match (model_path, tokenizer_path) {
                     (Some(m), Some(t)) if m.exists() && t.exists() => {

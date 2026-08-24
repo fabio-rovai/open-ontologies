@@ -6,14 +6,14 @@ Each query file is self-contained, with standard prefixes, a description of the 
 
 ## Categories
 
-- **[Discovery](discovery.sparql)** — find records by metadata criteria
-- **[Spatial](spatial.sparql)** — geographic filtering and intersection
-- **[Temporal](temporal.sparql)** — date-range and temporal aggregation
-- **[Provenance](provenance.sparql)** — provenance audits and lineage tracing
-- **[Rights](rights.sparql)** — rights-aware filtering for publication and reuse
-- **[Aggregation](aggregation.sparql)** — collection-level statistics and summaries
-- **[Federation](federation.sparql)** — federated queries across NAPH and external authorities
-- **[Compliance](compliance.sparql)** — tier compliance and validation queries
+- **[Discovery](discovery.sparql)**: find records by metadata criteria
+- **[Spatial](spatial.sparql)**: geographic filtering and intersection
+- **[Temporal](temporal.sparql)**: date-range and temporal aggregation
+- **[Provenance](provenance.sparql)**: provenance audits and lineage tracing
+- **[Rights](rights.sparql)**: rights-aware filtering for publication and reuse
+- **[Aggregation](aggregation.sparql)**: collection-level statistics and summaries
+- **[Federation](federation.sparql)**: federated queries across NAPH and external authorities
+- **[Compliance](compliance.sparql)**: tier compliance and validation queries
 
 ## Standard prefixes
 
@@ -37,9 +37,9 @@ PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 
 Each query is annotated with the minimum NAPH tier required:
 
-- **B** — Baseline tier sufficient
-- **E** — Enhanced tier required
-- **A** — Aspirational tier required
+- **B**: Baseline tier sufficient
+- **E**: Enhanced tier required
+- **A**: Aspirational tier required
 
 ## Engine notes
 

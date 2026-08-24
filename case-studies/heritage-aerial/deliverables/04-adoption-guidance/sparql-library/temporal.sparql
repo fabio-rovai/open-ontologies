@@ -1,10 +1,8 @@
-# NAPH SPARQL Library — Temporal queries
-#
+# NAPH SPARQL Library: Temporal queries#
 # Date-range filtering and temporal aggregation queries.
 
 # =============================================================================
-# Q-TEMP-1 [B] — Photographs from a date range
-# =============================================================================
+# Q-TEMP-1 [B]: Photographs from a date range# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -20,8 +18,7 @@ WHERE {
 ORDER BY ?date
 
 # =============================================================================
-# Q-TEMP-2 [B] — Earliest and latest record in collection
-# =============================================================================
+# Q-TEMP-2 [B]: Earliest and latest record in collection# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 
@@ -32,8 +29,7 @@ WHERE {
 }
 
 # =============================================================================
-# Q-TEMP-3 [B] — Photographs from a specific decade
-# =============================================================================
+# Q-TEMP-3 [B]: Photographs from a specific decade# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
@@ -49,8 +45,7 @@ WHERE {
 ORDER BY ?date
 
 # =============================================================================
-# Q-TEMP-4 [B] — Records grouped by year
-# =============================================================================
+# Q-TEMP-4 [B]: Records grouped by year# =============================================================================
 # Note: aggregation by year requires SUBSTR or YEAR() depending on engine.
 # This is the SUBSTR variant which works in Oxigraph and other compliant engines.
 
@@ -66,8 +61,7 @@ GROUP BY (SUBSTR(STR(?date), 1, 4))
 ORDER BY ?year
 
 # =============================================================================
-# Q-TEMP-5 [B] — Records grouped by month within a year
-# =============================================================================
+# Q-TEMP-5 [B]: Records grouped by month within a year# =============================================================================
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
@@ -82,8 +76,7 @@ GROUP BY (SUBSTR(STR(?date), 6, 2))
 ORDER BY ?month
 
 # =============================================================================
-# Q-TEMP-6 [E] — Photographs captured during a specific operation period
-# =============================================================================
+# Q-TEMP-6 [E]: Photographs captured during a specific operation period# =============================================================================
 # Use case: filter to records captured during a defined operational period.
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
@@ -103,8 +96,7 @@ WHERE {
 ORDER BY ?date
 
 # =============================================================================
-# Q-TEMP-7 [A] — Temporal coverage of a specific location
-# =============================================================================
+# Q-TEMP-7 [A]: Temporal coverage of a specific location# =============================================================================
 # Use case: how often has this location been photographed?
 
 PREFIX naph: <https://w3id.org/naph/ontology#>
@@ -121,10 +113,8 @@ GROUP BY (SUBSTR(STR(?date), 1, 4))
 ORDER BY ?year
 
 # =============================================================================
-# Q-TEMP-8 [B] — Photographs without complete dates (partial / missing)
-# =============================================================================
-# Use case: data-quality audit — find records that need date research.
-
+# Q-TEMP-8 [B]: Photographs without complete dates (partial / missing)# =============================================================================
+# Use case: data-quality audit: find records that need date research.
 PREFIX naph: <https://w3id.org/naph/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 

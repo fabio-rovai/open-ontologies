@@ -18,19 +18,19 @@ This tree covers the **most common cases** for UK heritage collections. Edge cas
 
 ### Q1.2: Has it been at least 50 years since publication?
 
-→ Yes: `http://rightsstatements.org/vocab/NoC-OKLR/1.0/` — Crown Copyright expired
-→ No: `https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/` — current Crown Copyright (consider OGL release)
+→ Yes: `http://rightsstatements.org/vocab/NoC-OKLR/1.0/`, Crown Copyright expired
+→ No: `https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/`, current Crown Copyright (consider OGL release)
 
 ### Q1.3: Has it been at least 125 years since creation OR 50 years since first commercial exploitation?
 
-→ Yes: `http://rightsstatements.org/vocab/NoC-OKLR/1.0/` — Crown Copyright expired (unpublished works rule)
+→ Yes: `http://rightsstatements.org/vocab/NoC-OKLR/1.0/`, Crown Copyright expired (unpublished works rule)
 → No: Crown Copyright still applies; consider [OGL v3](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) release if appropriate
 
 ---
 
 ## Q2: Was the work created by a US Federal employee in the course of duty?
 
-→ Yes: `http://rightsstatements.org/vocab/NoC-US/1.0/` — Public Domain in US (note: status outside US not asserted)
+→ Yes: `http://rightsstatements.org/vocab/NoC-US/1.0/`, Public Domain in US (note: status outside US not asserted)
 → No: **go to Q3**
 
 ---
@@ -56,7 +56,7 @@ The applicable rule depends on jurisdiction and creation date. For UK works:
 ### Q3.3: Was the work made public more than 70 years ago?
 
 → Yes: `http://rightsstatements.org/vocab/NoC-OKLR/1.0/`
-→ No: `http://rightsstatements.org/vocab/CNE/1.0/` — Copyright Not Evaluated (orphan work, requires diligent search)
+→ No: `http://rightsstatements.org/vocab/CNE/1.0/`, Copyright Not Evaluated (orphan work, requires diligent search)
 
 ---
 
@@ -65,7 +65,7 @@ The applicable rule depends on jurisdiction and creation date. For UK works:
 ### Q4.1: Has the rightsholder licensed the work to the institution under a documented agreement?
 
 → Yes: **go to Q4.2**
-→ No: `http://rightsstatements.org/vocab/InC/1.0/` — In Copyright (no public reuse permitted; institution may use under fair dealing for archival/research)
+→ No: `http://rightsstatements.org/vocab/InC/1.0/`, In Copyright (no public reuse permitted; institution may use under fair dealing for archival/research)
 
 ### Q4.2: Does the licence permit external reuse?
 
@@ -86,16 +86,15 @@ For UK orphan works covered by the [Orphan Works Licensing Scheme](https://www.g
 → With orphan works licence: `http://rightsstatements.org/vocab/InC-OW-EU/1.0/`
 
 For orphan works without a formal licence:
-→ `http://rightsstatements.org/vocab/CNE/1.0/` — Copyright Not Evaluated (with documented diligent search)
+→ `http://rightsstatements.org/vocab/CNE/1.0/`, Copyright Not Evaluated (with documented diligent search)
 
-### Q5.2: Multiple rightsholders (correspondence — author + recipient)
-
+### Q5.2: Multiple rightsholders (correspondence: author + recipient)
 Document each separately:
 
 ```turtle
 ex:letter-001 naph:hasRightsStatement ex:rights-author-component ;
               naph:hasRightsStatement ex:rights-recipient-component ;
-              naph:rightsNote "Letter — author and recipient may have separate rights" .
+              naph:rightsNote "Letter: author and recipient may have separate rights" .
 ```
 
 If one component blocks reuse, default to the more restrictive statement.
@@ -153,10 +152,10 @@ Always record:
 ex:rights-X a naph:RightsStatement ;
     naph:rightsURI <chosen-URI> ;
     naph:rightsLabel "<canonical label from authority>" ;
-    naph:rightsNote "<optional context — e.g. specific declassification reference>" ;
+    naph:rightsNote "<optional context, e.g. specific declassification reference>" ;
     naph:rightsReviewedOn "2024-04-30"^^xsd:date ;
     naph:rightsReviewedBy ex:reviewer-A ;
-    naph:rightsReviewBasis "<brief justification — e.g. CDPA 1988 s.163(3) Crown unpublished works>" .
+    naph:rightsReviewBasis "<brief justification, e.g. CDPA 1988 s.163(3) Crown unpublished works>" .
 ```
 
 ---
@@ -175,7 +174,7 @@ For these, document the case-by-case determination and consider engaging a copyr
 
 ## Cross-references
 
-- [Module C — Rights, Licensing & Ethics](../../01-standard/modules/C-rights-licensing-ethics.md)
+- [Module C: Rights, Licensing & Ethics](../../01-standard/modules/C-rights-licensing-ethics.md)
 - [rightsstatements.org documentation](https://rightsstatements.org/page/1.0/)
 - [Local Contexts TK Labels](https://localcontexts.org/labels/)
 - [Open Government Licence v3](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)

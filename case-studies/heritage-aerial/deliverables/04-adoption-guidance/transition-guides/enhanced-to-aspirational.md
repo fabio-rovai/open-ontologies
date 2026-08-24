@@ -6,9 +6,9 @@ You have a NAPH Enhanced-compliant collection. This guide walks through what's n
 
 Three semantic enrichment layers:
 
-1. **Subject classification** (`naph:depicts`) — what each photograph shows (places, events, themes)
-2. **Place authority links** — connection to GeoNames / Wikidata / equivalent gazetteers
-3. **Cross-collection links** (`naph:linkedRecord`) — connection to peer institutions' related records
+1. **Subject classification** (`naph:depicts`): what each photograph shows (places, events, themes)
+2. **Place authority links**: connection to GeoNames / Wikidata / equivalent gazetteers
+3. **Cross-collection links** (`naph:linkedRecord`): connection to peer institutions' related records
 
 ## Effort at scale
 
@@ -23,19 +23,18 @@ For a 100,000-record collection:
 | QA + drift monitoring | 12 FTE-days one-time + ongoing | | Medium |
 | Total | | ~107 FTE-days | mostly automatable |
 
-At ~£700/day, Aspirational tier costs roughly **£75,000** for 100k records — but most of this is automation + QA, scaling sub-linearly with collection size.
+At ~£700/day, Aspirational tier costs roughly **£75,000** for 100k records, but most of this is automation + QA, scaling sub-linearly with collection size.
 
 ## Sequencing
 
-### Phase 1 — Place authority bootstrap (week 1-2)
-
+### Phase 1: Place authority bootstrap (week 1-2)
 For each unique geographic location in your collection:
 
 1. Identify candidate Wikidata QID via search
 2. Verify the QID actually points to the right entity (the red-team failure mode)
 3. Generate `naph:Place` records linking to QIDs
 
-Most aerial collections cover a small number of distinct places per geographic region. The places list is shorter than the records list — typically a few hundred unique places for tens of thousands of records.
+Most aerial collections cover a small number of distinct places per geographic region. The places list is shorter than the records list, typically a few hundred unique places for tens of thousands of records.
 
 Tools:
 
@@ -43,8 +42,7 @@ Tools:
 - Wikidata SPARQL endpoint for batch lookup
 - [Pelias](https://pelias.io/) or [Nominatim](https://nominatim.org/) for OpenStreetMap-based geocoding
 
-### Phase 2 — Subject classification (week 3-12)
-
+### Phase 2: Subject classification (week 3-12)
 For each record:
 
 1. Run vision-language model (Claude Vision, GPT-4 Vision, Gemini, open-source LLaVA)
@@ -52,7 +50,7 @@ For each record:
 3. Validate sample (~5-10%) by human reviewer
 4. Apply classifications to records
 
-Reference implementation: [`pipeline/vision-classify.py`](../../../pipeline/vision-classify.py) (planned v0.4 — spec in [`vlm-pipeline-spec.md`](../../06-knowledge-transfer/vlm-pipeline-spec.md)).
+Reference implementation: [`pipeline/vision-classify.py`](../../../pipeline/vision-classify.py) (planned v0.4, spec in [`vlm-pipeline-spec.md`](../../06-knowledge-transfer/vlm-pipeline-spec.md)).
 
 Required structure for each AI-derived classification:
 
@@ -74,8 +72,7 @@ Confidence threshold guidance:
 - 0.50-0.79: human-validate before accepting
 - < 0.50: reject; reclassify or leave un-classified
 
-### Phase 3 — Event linkage (week 13-14)
-
+### Phase 3: Event linkage (week 13-14)
 For records connected to historic events:
 
 1. Identify the relevant Wikidata event QIDs
@@ -88,8 +85,7 @@ Common categories for aerial reconnaissance:
 - Atomic bombings (Hiroshima → Q703203)
 - Specific reconnaissance missions where named (rare)
 
-### Phase 4 — Cross-collection matching (week 15-18)
-
+### Phase 4: Cross-collection matching (week 15-18)
 For each record, identify peer-institution records that:
 
 - Cover the same location at the same time
@@ -104,8 +100,7 @@ Tooling for scale:
 
 Apply via `naph:linkedRecord` URIs.
 
-### Phase 5 — QA + drift monitoring (ongoing)
-
+### Phase 5: QA + drift monitoring (ongoing)
 Aspirational tier requires:
 
 - 10% stratified sample human review per audit cycle
@@ -117,7 +112,7 @@ Set up scheduled jobs for these checks.
 
 ## The Wikidata QID minefield
 
-The single biggest red-team finding was fabricated Wikidata QIDs — IDs that pointed to wrong entities (Q11461 = "Sound", not the atomic bombing). **Verify every QID before using it.**
+The single biggest red-team finding was fabricated Wikidata QIDs, IDs that pointed to wrong entities (Q11461 = "Sound", not the atomic bombing). **Verify every QID before using it.**
 
 Verification process:
 
@@ -145,7 +140,7 @@ def verify_qid(qid: str, expected_label_substring: str) -> bool:
 
 ### Confidence scores aren't well-calibrated
 
-Vision-language model confidences are not always reliable. A "0.87 confidence" for "this is Edinburgh Castle" may be more or less reliable than the same score for "this is a residential area" — calibration varies by class.
+Vision-language model confidences are not always reliable. A "0.87 confidence" for "this is Edinburgh Castle" may be more or less reliable than the same score for "this is a residential area": calibration varies by class.
 
 Mitigation:
 
@@ -180,8 +175,7 @@ URLs at peer institutions move. Aspirational tier requires `naph:linkedRecord` U
 Set up automated link-health monitoring:
 
 ```bash
-# Scheduled task — weekly link health check
-python3 pipeline/check-link-health.py data/sample-photographs.ttl > reports/link-health.json
+# Scheduled task: weekly link health checkpython3 pipeline/check-link-health.py data/sample-photographs.ttl > reports/link-health.json
 ```
 
 Broken links should be either repaired (find the new URL) or marked deprecated.
@@ -217,15 +211,15 @@ GeoNames, Wikidata, and other authorities update their data. A QID's referent ca
 
 After Aspirational tier:
 
-1. Update [compliance registry submission](../../../registry/compliance-declaration-template.ttl) — your collection now claims `tierAspirationalCount > 0`
+1. Update [compliance registry submission](../../../registry/compliance-declaration-template.ttl): your collection now claims `tierAspirationalCount > 0`
 2. Set up SPARQL endpoint federation participation (see [federation playbook](../../06-knowledge-transfer/federation-playbook/README.md))
 3. Publish IIIF Image API service for content-based retrieval
 4. Consider research partnerships using your Aspirational tier subset as a foundation
 
 ## Cross-references
 
-- [Tutorial 3 — Reaching Aspirational tier](../tutorials/03-aspirational-tier.md) — single-record walkthrough
-- [Module B §B.2.3 — Aspirational](../../01-standard/modules/B-metadata-data-structures.md#b23-aspirational-b-aspirational) — specification
-- [Module E §E.6 — AI-derived fields](../../01-standard/modules/E-paradata-workflow.md#e6-ai-derived-fields) — provenance for AI outputs
+- [Tutorial 3: Reaching Aspirational tier](../tutorials/03-aspirational-tier.md): single-record walkthrough
+- [Module B §B.2.3: Aspirational](../../01-standard/modules/B-metadata-data-structures.md#b23-aspirational-b-aspirational): specification
+- [Module E §E.6: AI-derived fields](../../01-standard/modules/E-paradata-workflow.md#e6-ai-derived-fields): provenance for AI outputs
 - [Federation playbook](../../06-knowledge-transfer/federation-playbook/README.md)
 - [Cost & effort analysis](../../docs/cost-effort-analysis.md)

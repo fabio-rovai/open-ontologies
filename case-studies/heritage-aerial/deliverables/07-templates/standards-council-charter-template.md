@@ -1,5 +1,4 @@
-# NAPH Standards Council — Charter Template
-
+# NAPH Standards Council: Charter Template
 This is the charter document for the NAPH Standards Council. Adopted on [date] by the Steward [HES] in consultation with the Editorial team and inaugural Council members.
 
 ## 1. Purpose
@@ -17,11 +16,11 @@ The Council is **advisory**. The Steward retains decision rights but is expected
 
 The Council consists of:
 
-- **Chair** — appointed by the Steward; rotates every 2 years
-- **Steward representative** — nominated by HES (typically a senior digital or collections officer)
-- **Up to 5 institutional representatives** — from adopting GLAM institutions
-- **2 external representatives** — one researcher, one technical (linked-data / heritage informatics specialist)
-- **Editor** — ex officio, non-voting (operational role)
+- **Chair**: appointed by the Steward; rotates every 2 years
+- **Steward representative**: nominated by HES (typically a senior digital or collections officer)
+- **Up to 5 institutional representatives**: from adopting GLAM institutions
+- **2 external representatives**: one researcher, one technical (linked-data / heritage informatics specialist)
+- **Editor**: ex officio, non-voting (operational role)
 
 Total voting members: 8.
 

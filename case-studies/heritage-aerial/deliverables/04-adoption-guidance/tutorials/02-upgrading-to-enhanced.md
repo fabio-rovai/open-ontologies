@@ -1,5 +1,4 @@
-# Tutorial 2 — Upgrading to Enhanced Tier
-
+# Tutorial 2: Upgrading to Enhanced Tier
 You have a Baseline-compliant record (from [Tutorial 1](01-your-first-naph-record.md)). Now upgrade it to Enhanced tier.
 
 By the end of this tutorial you will:
@@ -15,17 +14,16 @@ By the end of this tutorial you will:
 
 Enhanced adds three structural pieces:
 
-1. **Digital surrogates** — multiple variants (preservation master + access copy)
-2. **Capture event details** — full capture context with operator, equipment
-3. **Provenance chain** — documented lineage from creation to current state
+1. **Digital surrogates**: multiple variants (preservation master + access copy)
+2. **Capture event details**: full capture context with operator, equipment
+3. **Provenance chain**: documented lineage from creation to current state
 
 Optional Enhanced additions:
 
 4. Workflow document reference
 5. Quality-control review records
 
-## Step 1 — Add digital surrogates
-
+## Step 1: Add digital surrogates
 A NAPH Enhanced record has at least two surrogate variants:
 
 ```turtle
@@ -53,16 +51,14 @@ Note:
 - The access copy is linked to the master via `prov:wasDerivedFrom`
 - File formats are MIME types (`image/tiff`, `image/jp2`)
 
-## Step 2 — Update the photograph to reference surrogates
-
+## Step 2: Update the photograph to reference surrogates
 ```turtle
 ex:photo-001 naph:hasDigitalSurrogate ex:photo-001-master, ex:photo-001-access .
 ```
 
-The comma separates multiple values for the same property — this is Turtle shorthand.
+The comma separates multiple values for the same property: this is Turtle shorthand.
 
-## Step 3 — Document the digitisation event
-
+## Step 3: Document the digitisation event
 The DigitisationEvent records who, when, where, with what equipment:
 
 ```turtle
@@ -86,8 +82,7 @@ ex:scanner-Phase-One-IQ4 a prov:Agent, prov:Entity ;
     naph:firmwareVersion "v3.2.1" .
 ```
 
-## Step 4 — Document the provenance chain
-
+## Step 4: Document the provenance chain
 The ProvenanceChain captures the artefact's history from creation to current state:
 
 ```turtle
@@ -117,22 +112,20 @@ This provenance chain explicitly records:
 
 - The original capture (1944)
 - The transfer to Air Ministry holdings (1944)
-- The declassification event (1972 — under the 30-year rule)
+- The declassification event (1972, under the 30-year rule)
 - The transfer to NCAP (2008)
 - The scanning event (2018)
 
 A researcher looking at the record can audit the entire history.
 
-## Step 5 — Update the photograph to reference provenance
-
+## Step 5: Update the photograph to reference provenance
 ```turtle
 ex:photo-001
     naph:hasCaptureEvent ex:capture-event-1944 ;
     naph:hasProvenanceChain ex:provenance-001 .
 ```
 
-## Step 6 — Update tier compliance
-
+## Step 6: Update tier compliance
 Change the tier declaration:
 
 ```turtle
@@ -141,8 +134,7 @@ ex:photo-001 naph:compliesWithTier naph:TierEnhanced .
 
 (Replacing the previous `naph:TierBaseline`.)
 
-## Step 7 — Validate
-
+## Step 7: Validate
 Save and validate:
 
 ```bash
@@ -161,13 +153,12 @@ Expected output:
 
 If validation fails, common Enhanced-tier issues:
 
-- "Enhanced tier requires at least one DigitalSurrogate" — missing `naph:hasDigitalSurrogate`
-- "Enhanced tier requires CaptureEvent metadata" — missing `naph:hasCaptureEvent`
-- "Enhanced tier requires a documented provenance chain" — missing `naph:hasProvenanceChain`
-- "Scan resolution must be at least 300 DPI" — `naph:scanResolution` below threshold
+- "Enhanced tier requires at least one DigitalSurrogate": missing `naph:hasDigitalSurrogate`
+- "Enhanced tier requires CaptureEvent metadata": missing `naph:hasCaptureEvent`
+- "Enhanced tier requires a documented provenance chain": missing `naph:hasProvenanceChain`
+- "Scan resolution must be at least 300 DPI": `naph:scanResolution` below threshold
 
-## Step 8 — Self-assess
-
+## Step 8: Self-assess
 ```bash
 python3 /path/to/pipeline/self-assessment.py my-enhanced-record.ttl
 ```
@@ -185,10 +176,10 @@ You now have an Enhanced-tier record.
 
 A researcher querying your collection can now:
 
-- Filter by digitisation date (`naph:digitisedOn`) — e.g. "find records digitised after 2020"
-- Audit provenance — "find all records that came via a NARA partnership"
-- Trace lineage — "what happened to this artefact between 1944 and now?"
-- Filter by capture context — "find records captured at altitudes above 6000m"
+- Filter by digitisation date (`naph:digitisedOn`), e.g. "find records digitised after 2020"
+- Audit provenance: "find all records that came via a NARA partnership"
+- Trace lineage: "what happened to this artefact between 1944 and now?"
+- Filter by capture context: "find records captured at altitudes above 6000m"
 
 These queries are impossible at Baseline. Enhanced unlocks reproducible computational research.
 
@@ -209,7 +200,7 @@ These are typically decades apart. Don't confuse them.
 
 The Baseline shape allows surrogates of any resolution; the DigitalSurrogateShape requires 300+ DPI. Most institutional preservation masters are 600-1200 DPI.
 
-If your only available surrogate is below 300 DPI, you can't claim Enhanced tier — re-scan or accept Baseline-only.
+If your only available surrogate is below 300 DPI, you can't claim Enhanced tier: re-scan or accept Baseline-only.
 
 ### Operator names and privacy
 
@@ -217,6 +208,6 @@ Operator names in `prov:wasAssociatedWith` may need to be anonymised for staff p
 
 ## Next steps
 
-- **Tutorial 3** — Reach Aspirational tier (subject classification, place authorities)
-- **Tutorial 4** — Bulk ingest from CSV
+- **Tutorial 3**: Reach Aspirational tier (subject classification, place authorities)
+- **Tutorial 4**: Bulk ingest from CSV
 - Real-world examples: [sample-photographs.ttl](../../../data/sample-photographs.ttl) records 4-7 are Enhanced tier

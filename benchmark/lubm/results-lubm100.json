@@ -1,0 +1,8 @@
+{
+  "dataset": "data100",
+  "files": 2007,
+  "triples": 13409688,
+  "load_seconds": 24.96,
+  "reason_seconds": 94.97,
+  "total_after_reasoning": 19810608
+}

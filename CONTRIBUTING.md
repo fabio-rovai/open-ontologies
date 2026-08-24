@@ -71,6 +71,16 @@ The codebase is organized into domain modules under `src/`:
 | `embed.rs` | ONNX text embedder (embeddings feature) |
 | `structembed.rs` | Poincaré structural embedding trainer (embeddings feature) |
 
+## Contributing Without Writing Rust
+
+Three extension surfaces accept contributions that never touch the core:
+
+- **Community ontology packs** — add a manifest to [`community/registry.json`](community/registry.json); it becomes installable via `onto_marketplace` for every user as soon as the PR merges. Rules and acceptance criteria: [community/README.md](community/README.md).
+- **Community skills** — markdown workflow recipes in [`skills/community/`](skills/community/); start from the template there.
+- **Companion servers** — build your own MCP server against the [companion contract](docs/companion-servers.md) and PR a listing row to [ECOSYSTEM.md](ECOSYSTEM.md).
+
+For in-process tools, see the **WASM plugin** surface ([docs/plugins.md](docs/plugins.md)) — plugins live in their own repos and need no PR here at all, though we happily link notable ones from ECOSYSTEM.md.
+
 ## Pull Requests
 
 - Keep PRs focused on a single change
@@ -78,6 +88,17 @@ The codebase is organized into domain modules under `src/`:
 - Run `cargo clippy -- -D warnings` before submitting
 - Update CHANGELOG.md for user-facing changes
 - CI must pass (build, test, clippy, audit)
+
+## Releasing
+
+Releases are cut from tags and their GitHub release notes are populated automatically from CHANGELOG.md. The convention:
+
+1. Add the CHANGELOG.md entry for the new version first. Both heading formats in use are recognized by the automation: `## X.Y.Z - YYYY-MM-DD` (bare version) and `## [X.Y.Z] - YYYY-MM-DD` (bracketed version).
+2. Bump `version` in `Cargo.toml` to the same `X.Y.Z` and commit both changes together.
+3. Tag that commit: `git tag vX.Y.Z` (the tag carries the leading `v`; the CHANGELOG heading does not need one).
+4. Push the tag: `git push origin vX.Y.Z`.
+
+Pushing the tag fires `.github/workflows/release.yml`, which builds the binaries, extracts the matching CHANGELOG section via `scripts/extract-changelog.sh`, and publishes the release with that section as the body. If no matching section exists, the release still publishes with an empty body, so check the heading version matches the tag before pushing.
 
 ## Code Style
 

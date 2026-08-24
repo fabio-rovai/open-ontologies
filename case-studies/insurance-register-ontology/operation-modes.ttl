@@ -1,0 +1,86 @@
+@prefix iro:     <https://gov.tesseract.academy/def/insurance#> .
+@prefix irosch:  <https://gov.tesseract.academy/def/insurance/scheme#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+#################################################################
+# Operation modes: the five ways an undertaking appears in the
+# EIOPA register's cross-border fabric. Values are the register's
+# own vocabulary ("Cross border status" column), given definitions
+# grounded in Directive 2009/138/EC (Solvency II).
+#################################################################
+
+irosch:operationModes a skos:ConceptScheme ;
+    skos:prefLabel "IRO operation modes"@en ;
+    dcterms:source "EIOPA Register of Insurance Undertakings, 'Cross border status' field; Directive 2009/138/EC Title I Chapter VIII (freedom of establishment and freedom to provide services)"@en .
+
+irosch:Domestic a skos:Concept ;
+    skos:inScheme irosch:operationModes ;
+    skos:prefLabel "domestic undertaking"@en ;
+    skos:notation "Domestic undertaking" ;
+    skos:definition "The undertaking's home-state authorization row: authorised by its home NCA and operating in its home market."@en .
+
+irosch:EEAFreedomOfServices a skos:Concept ;
+    skos:inScheme irosch:operationModes ;
+    skos:prefLabel "EEA freedom of services"@en ;
+    skos:notation "EEA FPS" ;
+    skos:definition "Operation in a host EEA country under freedom to provide services (passporting without establishment), Directive 2009/138/EC Articles 147-149."@en .
+
+irosch:EEABranch a skos:Concept ;
+    skos:inScheme irosch:operationModes ;
+    skos:prefLabel "EEA branch"@en ;
+    skos:notation "EEA branch" ;
+    skos:definition "Operation in a host EEA country through an established branch (freedom of establishment), Directive 2009/138/EC Articles 145-146."@en .
+
+irosch:ThirdCountryBranch a skos:Concept ;
+    skos:inScheme irosch:operationModes ;
+    skos:prefLabel "third-country branch"@en ;
+    skos:notation "3rd country branch" ;
+    skos:definition "A branch of an undertaking whose head office is outside the EEA, authorised under Directive 2009/138/EC Article 162."@en .
+
+irosch:FPSForEEABranch a skos:Concept ;
+    skos:inScheme irosch:operationModes ;
+    skos:prefLabel "freedom of services exercised by an EEA branch"@en ;
+    skos:notation "FPS for EEA Branches" ;
+    skos:definition "Freedom-of-services operation notified for an EEA branch rather than for the head-office undertaking: the register's own encoding of second-order passporting."@en .
+
+#################################################################
+# Identifier schemes present in this register fabric.
+#################################################################
+
+irosch:identifierSchemes a skos:ConceptScheme ;
+    skos:prefLabel "IRO identifier schemes"@en .
+
+irosch:LEI a skos:Concept ;
+    skos:inScheme irosch:identifierSchemes ;
+    skos:prefLabel "LEI"@en ;
+    skos:altLabel "Legal Entity Identifier"@en ;
+    skos:definition "20-character legal entity identifier defined by ISO 17442; 2 final check digits under ISO 7064 MOD 97-10. Entity-scoped and globally unique. EIOPA's 2014 Guidelines on the use of the Legal Entity Identifier (EIOPA-BoS-14-026) ask NCAs to ensure all undertakings under Solvency II hold one."@en ;
+    iro:identifierScope irosch:EntityScoped ;
+    iro:syntaxPattern "^[A-Z0-9]{18}[0-9]{2}$" .
+
+irosch:NationalIdentificationCode a skos:Concept ;
+    skos:inScheme irosch:identifierSchemes ;
+    skos:prefLabel "national identification code"@en ;
+    skos:definition "The identification code the home NCA assigns to the undertaking, carried by the EIOPA register. Unique only within the issuing NCA's namespace; formats differ per country. NCA-scoped, not global, the scope declaration is the data quality rule."@en ;
+    iro:identifierScope irosch:AuthorityScoped .
+
+irosch:EntityScoped a skos:Concept ;
+    skos:prefLabel "entity-scoped"@en ;
+    skos:definition "Identifies a legal entity, globally."@en .
+irosch:AuthorityScoped a skos:Concept ;
+    skos:prefLabel "authority-scoped"@en ;
+    skos:definition "Unique only within one issuing authority's namespace."@en .
+
+#################################################################
+# Source systems.
+#################################################################
+
+irosch:EIOPA-DATINS a skos:Concept ;
+    skos:prefLabel "EIOPA Register of Insurance Undertakings"@en ;
+    skos:definition "EIOPA's public register of insurance and reinsurance undertakings (register.eiopa.europa.eu), bulk CSV export."@en .
+
+irosch:GLEIF-API a skos:Concept ;
+    skos:prefLabel "GLEIF LEI records API"@en ;
+    skos:definition "api.gleif.org v1 lei-records, harvested per LEI value found in the EIOPA register."@en .

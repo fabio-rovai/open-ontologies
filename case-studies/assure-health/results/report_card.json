@@ -1,0 +1,138 @@
+{
+  "dataset": "UCI Diabetes 130-US-hospitals readmission (real, public)",
+  "task": "predict 30-day readmission",
+  "protected_attribute": "race",
+  "subgroup_sizes_train": {
+    "Caucasian": 6150,
+    "AfricanAmerican": 1520,
+    "Hispanic": 153
+  },
+  "subgroup_sizes_test": {
+    "Caucasian": 9263,
+    "AfricanAmerican": 2260,
+    "Hispanic": 226
+  },
+  "n_train": 8000,
+  "n_test": 12000,
+  "dp_noise_draws_averaged": 40,
+  "dp_mechanism": "output perturbation, (epsilon, delta)-DP Gaussian mechanism (CMS 2011)",
+  "delta": 1e-05,
+  "report_card": [
+    {
+      "epsilon": "inf",
+      "subgroup_balanced_accuracy": {
+        "Caucasian": 0.564,
+        "AfricanAmerican": 0.6054,
+        "Hispanic": 0.6677
+      },
+      "subgroup_accuracy_drop_vs_nonprivate": {
+        "Caucasian": 0.0,
+        "AfricanAmerican": -0.0,
+        "Hispanic": -0.0
+      },
+      "subgroup_mia_advantage": {
+        "Caucasian": 0.0124,
+        "AfricanAmerican": 0.0,
+        "Hispanic": 0.0
+      },
+      "majority_accuracy_drop": 0.0,
+      "minority_accuracy_drop": 0.0,
+      "mean_mia_advantage": 0.0041
+    },
+    {
+      "epsilon": 4.0,
+      "subgroup_balanced_accuracy": {
+        "Caucasian": 0.5623,
+        "AfricanAmerican": 0.6087,
+        "Hispanic": 0.6563
+      },
+      "subgroup_accuracy_drop_vs_nonprivate": {
+        "Caucasian": 0.0017,
+        "AfricanAmerican": -0.0033,
+        "Hispanic": 0.0114
+      },
+      "subgroup_mia_advantage": {
+        "Caucasian": 0.0125,
+        "AfricanAmerican": 0.0,
+        "Hispanic": 0.0
+      },
+      "majority_accuracy_drop": 0.0017,
+      "minority_accuracy_drop": 0.004,
+      "mean_mia_advantage": 0.0042
+    },
+    {
+      "epsilon": 1.0,
+      "subgroup_balanced_accuracy": {
+        "Caucasian": 0.5592,
+        "AfricanAmerican": 0.6035,
+        "Hispanic": 0.6469
+      },
+      "subgroup_accuracy_drop_vs_nonprivate": {
+        "Caucasian": 0.0048,
+        "AfricanAmerican": 0.0019,
+        "Hispanic": 0.0208
+      },
+      "subgroup_mia_advantage": {
+        "Caucasian": 0.0129,
+        "AfricanAmerican": 0.0,
+        "Hispanic": 0.0053
+      },
+      "majority_accuracy_drop": 0.0048,
+      "minority_accuracy_drop": 0.0113,
+      "mean_mia_advantage": 0.0061
+    },
+    {
+      "epsilon": 0.5,
+      "subgroup_balanced_accuracy": {
+        "Caucasian": 0.5548,
+        "AfricanAmerican": 0.5881,
+        "Hispanic": 0.629
+      },
+      "subgroup_accuracy_drop_vs_nonprivate": {
+        "Caucasian": 0.0092,
+        "AfricanAmerican": 0.0173,
+        "Hispanic": 0.0387
+      },
+      "subgroup_mia_advantage": {
+        "Caucasian": 0.0103,
+        "AfricanAmerican": 0.0001,
+        "Hispanic": 0.0076
+      },
+      "majority_accuracy_drop": 0.0092,
+      "minority_accuracy_drop": 0.028,
+      "mean_mia_advantage": 0.006
+    },
+    {
+      "epsilon": 0.25,
+      "subgroup_balanced_accuracy": {
+        "Caucasian": 0.5389,
+        "AfricanAmerican": 0.5612,
+        "Hispanic": 0.5823
+      },
+      "subgroup_accuracy_drop_vs_nonprivate": {
+        "Caucasian": 0.0251,
+        "AfricanAmerican": 0.0442,
+        "Hispanic": 0.0854
+      },
+      "subgroup_mia_advantage": {
+        "Caucasian": 0.0127,
+        "AfricanAmerican": 0.0021,
+        "Hispanic": 0.023
+      },
+      "majority_accuracy_drop": 0.0251,
+      "minority_accuracy_drop": 0.0648,
+      "mean_mia_advantage": 0.0126
+    }
+  ],
+  "coupling": {
+    "epsilon_tight": 0.25,
+    "mia_advantage_inf_to_tight": [
+      0.0041,
+      0.0126
+    ],
+    "majority_accuracy_drop_at_tight": 0.0251,
+    "minority_accuracy_drop_at_tight": 0.0648,
+    "disparate_impact_ratio": 2.58,
+    "reading": "tightening privacy (lower epsilon) lowers membership-inference advantage, but the accuracy it costs falls disproportionately on the smaller subgroups: the disparate impact of differential privacy. Auditing privacy or fairness alone hides this."
+  }
+}

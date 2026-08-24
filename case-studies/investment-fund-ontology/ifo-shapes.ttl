@@ -1,0 +1,220 @@
+@prefix ifo:    <https://gov.tesseract.academy/def/fund#> .
+@prefix ifosch: <https://gov.tesseract.academy/def/fund/scheme#> .
+@prefix sh:     <http://www.w3.org/ns/shacl#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+
+#################################################################
+# IFO governance shapes
+#
+# Three layers, in increasing order of business meaning:
+#   1. Identifier syntax and checksum shapes (per scheme).
+#   2. Hierarchy integrity shapes (Fund, ShareClass, Listing).
+#   3. Cross-source and conditional business rules (SPARQL-based):
+#      the rules a fund data platform actually pays for.
+#
+# Severity convention:
+#   sh:Violation  = the record is wrong and must be fixed.
+#   sh:Warning    = the record exposes a governance gap that needs
+#                   a decision, not necessarily a correction.
+#
+# Division of labour (deliberate): check-digit arithmetic (ISO
+# 7064 MOD 97-10, Luhn variants, SEDOL weights) is computed by the
+# pipeline and asserted as ifo:checksumValid; shapes then REQUIRE
+# the recorded result to be true. SHACL enforces policy; code does
+# arithmetic. Encoding MOD 97 in SPARQL is possible and unwise.
+#################################################################
+
+#################################################################
+# Layer 1: identifier syntax + checksum
+#################################################################
+
+ifo:IdentifierShape a sh:NodeShape ;
+    sh:targetClass ifo:Identifier ;
+    sh:property [
+        sh:path ifo:identifierValue ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Every identifier assertion carries exactly one value string." ;
+    ] ;
+    sh:property [
+        sh:path ifo:identifierScheme ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Every identifier assertion names its scheme." ;
+    ] ;
+    sh:property [
+        sh:path ifo:sourceSystem ;
+        sh:minCount 1 ;
+        sh:message "Every identifier assertion records at least one source system: an identifier with no provenance cannot be governed." ;
+    ] .
+
+ifo:ISINSyntaxShape a sh:NodeShape ;
+    sh:targetClass ifo:ISIN ;
+    sh:property [
+        sh:path ifo:identifierValue ;
+        sh:pattern "^[A-Z]{2}[A-Z0-9]{9}[0-9]$" ;
+        sh:message "ISIN must be 12 characters: 2-letter country prefix, 9-character NSIN, 1 check digit (ISO 6166)." ;
+    ] ;
+    sh:property [
+        sh:path ifo:checksumValid ;
+        sh:hasValue true ;
+        sh:message "ISIN check digit fails the ISO 6166 modulus-10 double-add-double algorithm." ;
+    ] .
+
+ifo:LEISyntaxShape a sh:NodeShape ;
+    sh:targetClass ifo:LEI ;
+    sh:property [
+        sh:path ifo:identifierValue ;
+        sh:pattern "^[A-Z0-9]{18}[0-9]{2}$" ;
+        sh:message "LEI must be 20 characters ending in 2 check digits (ISO 17442)." ;
+    ] ;
+    sh:property [
+        sh:path ifo:checksumValid ;
+        sh:hasValue true ;
+        sh:message "LEI check digits fail ISO 7064 MOD 97-10." ;
+    ] .
+
+ifo:CUSIPSyntaxShape a sh:NodeShape ;
+    sh:targetClass ifo:CUSIP ;
+    sh:property [
+        sh:path ifo:identifierValue ;
+        sh:pattern "^[A-Z0-9]{8}[0-9]$" ;
+        sh:message "CUSIP must be 9 characters ending in a modulus-10 check digit (ANSI X9.6)." ;
+    ] ;
+    sh:property [
+        sh:path ifo:checksumValid ;
+        sh:hasValue true ;
+        sh:message "CUSIP check digit fails the double-add-double algorithm." ;
+    ] .
+
+ifo:TickerSyntaxShape a sh:NodeShape ;
+    sh:targetClass ifo:TickerSymbol ;
+    sh:property [
+        sh:path ifo:identifierValue ;
+        sh:pattern "^[A-Z][A-Z0-9.]{0,9}$" ;
+        sh:severity sh:Warning ;
+        sh:message "Ticker symbol deviates from conventional venue symbology (letters, digits, dots; leading letter). Not fatal: ticker conventions are venue-local, which is why tickers must never be primary keys." ;
+    ] .
+
+ifo:SECSeriesIdSyntaxShape a sh:NodeShape ;
+    sh:targetClass ifo:SECSeriesId ;
+    sh:property [
+        sh:path ifo:identifierValue ;
+        sh:pattern "^S[0-9]{9}$" ;
+        sh:message "SEC series identifier must be the letter S followed by 9 digits." ;
+    ] .
+
+ifo:SECClassIdSyntaxShape a sh:NodeShape ;
+    sh:targetClass ifo:SECClassId ;
+    sh:property [
+        sh:path ifo:identifierValue ;
+        sh:pattern "^C[0-9]{9}$" ;
+        sh:message "SEC class identifier must be the letter C followed by 9 digits." ;
+    ] .
+
+ifo:SECFileNumberSyntaxShape a sh:NodeShape ;
+    sh:targetClass ifo:SECFileNumber ;
+    sh:property [
+        sh:path ifo:identifierValue ;
+        sh:pattern "^81[14]-[0-9]{1,6}$" ;
+        sh:severity sh:Warning ;
+        sh:message "Investment company file number outside the 811-/814- convention." ;
+    ] .
+
+ifo:MICSyntaxShape a sh:NodeShape ;
+    sh:targetClass ifo:MICIdentifier ;
+    sh:property [
+        sh:path ifo:identifierValue ;
+        sh:pattern "^[A-Z0-9]{4}$" ;
+        sh:message "Market identifier code must be 4 characters (ISO 10383)." ;
+    ] .
+
+#################################################################
+# Layer 2: hierarchy integrity
+#################################################################
+
+ifo:FundRegistrantShape a sh:NodeShape ;
+    sh:targetClass ifo:FundRegistrant ;
+    sh:property [
+        sh:path ifo:legalName ;
+        sh:minCount 1 ;
+        sh:message "Registrant must carry a legal name." ;
+    ] ;
+    sh:property [
+        sh:path [ sh:inversePath ifo:fundOf ] ;
+        sh:minCount 1 ;
+        sh:severity sh:Warning ;
+        sh:message "Registrant with no fund series attached: either a shell registration or a join failure between source systems." ;
+    ] .
+
+ifo:FundShape a sh:NodeShape ;
+    sh:targetClass ifo:Fund ;
+    sh:property [
+        sh:path ifo:identifiedBy ;
+        sh:qualifiedValueShape [ sh:class ifo:SECSeriesId ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:qualifiedMaxCount 1 ;
+        sh:message "Fund must carry exactly one SEC series identifier." ;
+    ] ;
+    sh:property [
+        sh:path ifo:fundOf ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Fund must belong to exactly one registrant." ;
+    ] ;
+    sh:property [
+        sh:path ifo:identifiedBy ;
+        sh:qualifiedValueShape [ sh:class ifo:LEI ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:severity sh:Warning ;
+        sh:message "Fund has no LEI assertion from any source system. Not an error in the record; a coverage gap in the identifier fabric worth a governance decision." ;
+    ] .
+
+ifo:ShareClassShape a sh:NodeShape ;
+    sh:targetClass ifo:ShareClass ;
+    sh:property [
+        sh:path ifo:identifiedBy ;
+        sh:qualifiedValueShape [ sh:class ifo:SECClassId ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:qualifiedMaxCount 1 ;
+        sh:message "Share class must carry exactly one SEC class identifier." ;
+    ] ;
+    sh:property [
+        sh:path ifo:shareClassOf ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Share class must belong to exactly one fund." ;
+    ] .
+
+ifo:ListingShape a sh:NodeShape ;
+    sh:targetClass ifo:Listing ;
+    sh:property [
+        sh:path ifo:listedOn ;
+        sh:maxCount 1 ;
+        sh:message "Listing must not name more than one trading venue." ;
+    ] ;
+    sh:property [
+        sh:path ifo:listedOn ;
+        sh:minCount 1 ;
+        sh:severity sh:Warning ;
+        sh:message "Quotation with no resolvable trading venue: the SEC series/class register publishes tickers venue-free, and venue resolution is not derivable from public SEC data alone. A governance gap in the public identifier fabric, not an error in the record." ;
+    ] ;
+    sh:property [
+        sh:path ifo:identifiedBy ;
+        sh:qualifiedValueShape [ sh:class ifo:TickerSymbol ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Listing must carry a ticker symbol." ;
+    ] ;
+    sh:property [
+        sh:path ifo:listingOf ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Listing must belong to exactly one share class." ;
+    ] .
+
+ifo:TradingVenueShape a sh:NodeShape ;
+    sh:targetClass ifo:TradingVenue ;
+    sh:property [
+        sh:path ifo:identifiedBy ;
+        sh:qualifiedValueShape [ sh:class ifo:MICIdentifier ] ;
+        sh:qualifiedMinCount 1 ; sh:qualifiedMaxCount 1 ;
+        sh:message "Trading venue must carry exactly one ISO 10383 MIC." ;
+    ] .

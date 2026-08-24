@@ -58,6 +58,8 @@ CONFIGS = {
     'struct_no_stable':  [0.00, 0.25, 0.25, 0.20, 0.20, 0.10],
 }
 
+RESULTS = {'with_stable': [], 'without_stable': []}
+
 # First test: run WITH stable matching (current code) at different thresholds
 print('\n=== WITH stable matching (varying threshold) ===')
 for threshold in ['0.70', '0.75', '0.80', '0.85']:
@@ -75,13 +77,16 @@ for threshold in ['0.70', '0.75', '0.80', '0.85']:
     p = tp / (tp + fp) if (tp + fp) > 0 else 0
     r = tp / (tp + fn) if (tp + fn) > 0 else 0
     f1 = 2 * p * r / (p + r) if (p + r) > 0 else 0
-    print(f'  conf={threshold}: {len(candidates):>5} cands | P={p:.3f} R={r:.3f} F1={f1:.3f}')
+    print(f'  conf={threshold}: {len(candidates):>5} cands | P={p:.3f} R={r:.3f} F1={f1:.3f}', flush=True)
+    RESULTS['with_stable'].append({'weights': 'full', 'threshold': float(threshold),
+        'candidates': len(candidates), 'tp': tp, 'fp': fp, 'fn': fn,
+        'precision': round(p,4), 'recall': round(r,4), 'f1': round(f1,4)})
 
 # Now test WITHOUT stable matching
 # We need to actually remove the stable matching block from the code
 # Find the exact block to remove
 stable_block_start = '        // Stable matching: for each source class, keep only the top-scoring target.'
-stable_block_end = '        // Auto-apply above threshold'
+stable_block_end = '        // Auto-apply above high_threshold.'
 
 if stable_block_start in original_src:
     idx_start = original_src.index(stable_block_start)
@@ -125,7 +130,10 @@ if stable_block_start in original_src:
             p = tp / (tp + fp) if (tp + fp) > 0 else 0
             r = tp / (tp + fn) if (tp + fn) > 0 else 0
             f1 = 2 * p * r / (p + r) if (p + r) > 0 else 0
-            print(f'  {name} conf={threshold}: {len(candidates):>6} cands | P={p:.3f} R={r:.3f} F1={f1:.3f}')
+            print(f'  {name} conf={threshold}: {len(candidates):>6} cands | P={p:.3f} R={r:.3f} F1={f1:.3f}', flush=True)
+            RESULTS['without_stable'].append({'weights': name, 'threshold': float(threshold),
+                'candidates': len(candidates), 'tp': tp, 'fp': fp, 'fn': fn,
+                'precision': round(p,4), 'recall': round(r,4), 'f1': round(f1,4)})
 else:
     print('ERROR: Could not find stable matching block')
 
@@ -140,3 +148,11 @@ subprocess.run(
     env={**os.environ, 'CARGO_TARGET_DIR': 'target'}
 )
 print('\nRestored original align.rs and rebuilt')
+
+with open('benchmark/oaei/results/ablation_no_stable.json', 'w') as f:
+    json.dump({'_meta': {'reference_mappings': len(reference),
+                         'note': 'Single-variable ablation: stable 1-to-1 matching removed from '
+                                 'src/align.rs, everything else held constant. Source is restored '
+                                 'and rebuilt at the end of this script.'},
+               **RESULTS}, f, indent=2)
+print('\nSaved to benchmark/oaei/results/ablation_no_stable.json', flush=True)

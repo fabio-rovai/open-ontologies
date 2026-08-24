@@ -9,24 +9,28 @@
       "onto_align"
     ],
     "date": "2026-04-21",
-    "notes": "v2: stable matching + label penalty (fixes #8). Previous results (v1, 2026-03-31) in oaei_results_v1.json"
+    "notes": "v2: stable matching + label penalty (fixes #8). Previous results (v1, 2026-03-31) in oaei_results_v1.json",
+    "comparators": "OAEI 2025 (CEUR Vol-4144, om2025-oaei-paper0)",
+    "deterministic_since": "align.rs: sort extract_classes by IRI; total-order candidate sort"
   },
   "anatomy": {
-    "precision": 0.963,
-    "recall": 0.733,
-    "f1": 0.832,
-    "tp": 1112,
-    "fp": 42,
-    "fn": 404,
+    "precision": 0.9601,
+    "recall": 0.7296,
+    "f1": 0.8291,
+    "tp": 1106,
+    "fp": 46,
+    "fn": 410,
     "reference_size": 1516,
-    "predicted_size": 1154,
+    "predicted_size": 1152,
     "time_s": 47,
-    "min_confidence": 0.80,
+    "min_confidence": 0.8,
     "changes": [
       "stable 1-to-1 matching (keep top candidate per source and target class)",
       "label penalty (label_sim * 0.85) when structural signals are zero",
       "label pre-filter raised from 0.70 to 0.75"
-    ]
+    ],
+    "deterministic": true,
+    "notes": "Deterministic as of the align.rs ordering fix. Before it, extract_classes returned classes in HashMap iteration order and the confidence sort was not a total order, so the greedy 1-to-1 selection varied per process: five runs of the same binary gave 1151/1153/1151/1152/1154 candidates and five distinct alignments. The previously recorded P=0.963 R=0.733 F1=0.832 was one draw from that distribution."
   },
   "anatomy_v1": {
     "precision": 0.1021,
@@ -41,60 +45,145 @@
     "notes": "Before stable matching and label penalty"
   },
   "conference": {
-    "pairs": [],
-    "micro_avg": {
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0.0,
-      "tp": 0,
-      "fp": 0,
-      "fn": 0
-    },
-    "notes": "Conference track unsolved. See issue #10."
+    "pairs_evaluated": 15,
+    "pairs_total": 21,
+    "precision": 0.6931,
+    "recall": 0.3196,
+    "f1": 0.4375,
+    "tp": 70,
+    "fp": 31,
+    "fn": 149,
+    "averaging": "micro",
+    "per_pair": "see conference_results.json",
+    "notes": "15 of 21 pairs at a fixed confidence threshold, so not like-for-like with the published rows (all 21 pairs, rar2, F1-optimal threshold). Below every participating system and both baselines either way. See issue #10."
   },
   "published": {
+    "_source": "OAEI 2025 official results, CEUR-WS Vol-4144 om2025-oaei-paper0, Tables 9 and 10",
+    "_url": "https://ceur-ws.org/Vol-4144/om2025-oaei-paper0.pdf",
+    "_note": "Complete participating field including both baselines. No systems omitted.",
     "anatomy": {
+      "Matcha": {
+        "precision": 0.951,
+        "recall": 0.931,
+        "f1": 0.941,
+        "recall_plus": 0.82
+      },
+      "Agent-OM": {
+        "precision": 0.959,
+        "recall": 0.883,
+        "f1": 0.92,
+        "recall_plus": 0.698
+      },
+      "ALIN": {
+        "precision": 0.942,
+        "recall": 0.884,
+        "f1": 0.912,
+        "recall_plus": 0.7
+      },
+      "LogMapLLM": {
+        "precision": 0.964,
+        "recall": 0.842,
+        "f1": 0.899,
+        "recall_plus": 0.588
+      },
+      "LogMap-Bio": {
+        "precision": 0.885,
+        "recall": 0.911,
+        "f1": 0.898,
+        "recall_plus": 0.766
+      },
+      "MDMapper": {
+        "precision": 0.899,
+        "recall": 0.879,
+        "f1": 0.889,
+        "recall_plus": 0.707
+      },
       "LogMap": {
-        "precision": 0.921,
-        "recall": 0.903,
-        "f1": 0.912
+        "precision": 0.917,
+        "recall": 0.848,
+        "f1": 0.881,
+        "recall_plus": 0.602
       },
-      "AML": {
-        "precision": 0.95,
-        "recall": 0.922,
-        "f1": 0.936
+      "LogMapKG": {
+        "precision": 0.917,
+        "recall": 0.848,
+        "f1": 0.881,
+        "recall_plus": 0.602
       },
-      "BERTMap": {
-        "precision": 0.932,
-        "recall": 0.916,
-        "f1": 0.924
+      "DRAL-OA": {
+        "precision": 0.83,
+        "recall": 0.827,
+        "f1": 0.828,
+        "recall_plus": 0.56
       },
-      "OLaLa": {
-        "precision": 0.87,
-        "recall": 0.91,
-        "f1": 0.89
+      "LogMapLt": {
+        "precision": 0.962,
+        "recall": 0.728,
+        "f1": 0.828,
+        "recall_plus": 0.288
+      },
+      "StringEquiv": {
+        "precision": 0.997,
+        "recall": 0.622,
+        "f1": 0.766,
+        "recall_plus": 0.0,
+        "baseline": true
+      },
+      "LSMatch": {
+        "precision": 0.952,
+        "recall": 0.634,
+        "f1": 0.761,
+        "recall_plus": 0.037
       }
     },
     "conference": {
+      "_reference": "rar2, classes and properties, each system at its F1-optimal threshold, all 21 pairs",
+      "ALIN": {
+        "precision": 0.62,
+        "recall": 0.68,
+        "f1": 0.65
+      },
       "LogMap": {
-        "precision": 0.72,
-        "recall": 0.62,
-        "f1": 0.67
+        "precision": 0.76,
+        "recall": 0.56,
+        "f1": 0.64
       },
-      "AML": {
-        "precision": 0.74,
-        "recall": 0.63,
-        "f1": 0.68
+      "Matcha": {
+        "precision": 0.77,
+        "recall": 0.53,
+        "f1": 0.63
       },
-      "BERTMap": {
-        "precision": 0.7,
-        "recall": 0.72,
-        "f1": 0.71
+      "Agent-OM": {
+        "precision": 0.64,
+        "recall": 0.59,
+        "f1": 0.61
       },
-      "OLaLa": {
+      "MDMapper": {
         "precision": 0.69,
-        "recall": 0.75,
-        "f1": 0.72
+        "recall": 0.5,
+        "f1": 0.58
+      },
+      "edna": {
+        "precision": 0.74,
+        "recall": 0.45,
+        "f1": 0.56,
+        "baseline": true
+      },
+      "LogMapLt": {
+        "precision": 0.68,
+        "recall": 0.47,
+        "f1": 0.56
+      },
+      "LSMatch": {
+        "precision": 0.83,
+        "recall": 0.41,
+        "f1": 0.55
+      },
+      "StringEquiv": {
+        "precision": 0.76,
+        "recall": 0.41,
+        "f1": 0.53,
+        "baseline": true
       }
     }
   }

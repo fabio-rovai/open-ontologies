@@ -1,0 +1,85 @@
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix rssc:    <https://tesseract.academy/ns/rssc#> .
+@prefix band:    <https://tesseract.academy/id/rssc/band/> .
+@prefix fr:      <https://tesseract.academy/id/rssc/foundational-requirement/> .
+@prefix ev:      <https://tesseract.academy/id/rssc/evidence-type/> .
+@prefix conf:    <https://tesseract.academy/id/rssc/confidence/> .
+@prefix gap:     <https://tesseract.academy/id/rssc/gap-kind/> .
+@prefix fx:      <https://tesseract.academy/id/rssc/SELFTEST-FIXTURE/> .
+@prefix fxi:     <https://tesseract.academy/id/rssc/SELFTEST-FIXTURE-INVALID/> .
+
+# =============================================================================
+# SELF-TEST FIXTURE, DELIBERATELY BROKEN. NOT PART OF THE PUBLISHED CROSSWALK.
+#
+# Four assertions, each breaking one rule the artefact promises to enforce.
+# Loaded only when RSSC_ROOT points at pipeline/selftest/invalid. If a run over
+# this directory ever reports PASS, the falsifiability contract has stopped
+# working and the artefact's central claim is no longer machine-checked.
+#
+# Expected failures:
+#   fxi:mapping-uncited        no citation, no basis, no dcterms:source,
+#                              no prov:wasDerivedFrom, no evidence type,
+#                              no confidence
+#   fxi:mapping-literal-grades evidence type and confidence given as bare
+#                              literals instead of concept IRIs, which is the
+#                              documented trap in this vocabulary
+#   fxi:mapping-overclaimed    our own reasoning graded high confidence
+#   fxi:gap-silence-overclaimed an argument from silence graded high confidence
+# =============================================================================
+
+# 1. The uncited mapping. This is the one thing the artefact promises cannot
+#    enter the graph.
+fxi:mapping-uncited a rssc:CrosswalkAssertion ;
+    rdfs:label "FIXTURE INVALID: mapping with no evidence furniture at all"@en ;
+    rssc:subjectClause fx:clause-10218-1-5-1-16 ;
+    rssc:targetRequirement fr:FR5 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:appliesToBand band:A .
+
+# 2. Evidence type and confidence as literals. Passes a naive eyeball, fails
+#    the sh:nodeKind and sh:in constraints.
+fxi:mapping-literal-grades a rssc:CrosswalkAssertion ;
+    rdfs:label "FIXTURE INVALID: evidence type and confidence as bare literals"@en ;
+    rssc:subjectClause fx:clause-10218-1-7-5-11 ;
+    rssc:targetRequirement fr:FR1 ;
+    rssc:mappingRelation skos:relatedMatch ;
+    rssc:appliesToBand band:A ;
+    rssc:citation "ISO 10218-1:2025, Contents page, clause 7.5.11 Cybersecurity, page 42, read in the official ISO free preview." ;
+    rssc:basis "Written to exercise the shapes. The grades below are given as bare strings rather than as concept IRIs, which is exactly the mistake the vocabulary is designed to make impossible." ;
+    rssc:evidenceType "published-preview" ;
+    rssc:confidence "low" ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf> ;
+    prov:wasDerivedFrom fx:source-iso-10218-1-preview .
+
+# 3. Our own inference, graded high. The confidence ceiling should refuse it.
+fxi:mapping-overclaimed a rssc:CrosswalkAssertion ;
+    rdfs:label "FIXTURE INVALID: analytical inference graded high confidence"@en ;
+    rssc:subjectClause fx:clause-10218-1-5-1-16 ;
+    rssc:targetRequirement fr:FR7 ;
+    rssc:mappingRelation skos:closeMatch ;
+    rssc:appliesToBand band:B ;
+    rssc:citation "ISO 10218-1:2025, Contents page, clause 5.1.16 Cybersecurity, read in the official ISO free preview." ;
+    rssc:basis "Written to exercise the confidence ceiling. The reasoning is entirely ours, so grading it high confidence overstates what the evidence supports." ;
+    rssc:evidenceType ev:AnalyticalInference ;
+    rssc:confidence conf:high ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf> ;
+    prov:wasDerivedFrom fx:source-iso-10218-1-preview .
+
+# 4. An argument from silence, graded high. The silence ceiling should refuse it.
+fxi:gap-silence-overclaimed a rssc:ControlGap ;
+    rdfs:label "FIXTURE INVALID: argument from silence graded high confidence"@en ;
+    rssc:exposure "A fleet update channel that reaches many robots at once is not addressed by any clause heading in the published contents, and the exposure scales with the size of the fleet." ;
+    rssc:appliesToBand band:B ;
+    rssc:unaddressedBy fx:clause-10218-1-5-1-16 ;
+    rssc:wouldBeAddressedBy fr:FR3 ;
+    rssc:gapKind gap:not-addressed ;
+    rssc:citation "ISO 10218-1:2025, Contents pages, read in the official ISO free preview." ;
+    rssc:basis "Written to exercise the silence ceiling. A claim that a paywalled document says nothing about something, made from its contents page alone, cannot support high confidence." ;
+    rssc:evidenceType ev:PublishedPreview ;
+    rssc:confidence conf:high ;
+    dcterms:source <https://cdn.standards.iteh.ai/samples/73933/b5387b20934848a48b4518c9b2e5455d/ISO-10218-1-2025.pdf> ;
+    prov:wasDerivedFrom fx:source-iso-10218-1-preview .

@@ -1,0 +1,58 @@
+@prefix col: <https://ontology.tesseract.academy/modip/colours/> .
+@prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+col:black a crm:E55_Type ;
+    rdfs:label "black"@en .
+
+col:black-and-white-print a crm:E55_Type ;
+    rdfs:label "black and white print"@en .
+
+col:blue a crm:E55_Type ;
+    rdfs:label "blue"@en .
+
+col:brown a crm:E55_Type ;
+    rdfs:label "brown"@en .
+
+col:colour-print a crm:E55_Type ;
+    rdfs:label "colour print"@en .
+
+col:colourless a crm:E55_Type ;
+    rdfs:label "colourless"@en .
+
+col:cream a crm:E55_Type ;
+    rdfs:label "cream"@en .
+
+col:gold a crm:E55_Type ;
+    rdfs:label "gold"@en .
+
+col:green a crm:E55_Type ;
+    rdfs:label "green"@en .
+
+col:grey a crm:E55_Type ;
+    rdfs:label "grey"@en .
+
+col:multi-coloured a crm:E55_Type ;
+    rdfs:label "multi-coloured"@en .
+
+col:orange a crm:E55_Type ;
+    rdfs:label "orange"@en .
+
+col:pink a crm:E55_Type ;
+    rdfs:label "pink"@en .
+
+col:purple a crm:E55_Type ;
+    rdfs:label "purple"@en .
+
+col:red a crm:E55_Type ;
+    rdfs:label "red"@en .
+
+col:silver a crm:E55_Type ;
+    rdfs:label "silver"@en .
+
+col:white a crm:E55_Type ;
+    rdfs:label "white"@en .
+
+col:yellow a crm:E55_Type ;
+    rdfs:label "yellow"@en .
+

@@ -11,4 +11,17 @@ ignore = [
     # the next oxigraph release.
     "RUSTSEC-2026-0194",
     "RUSTSEC-2026-0195",
+    # rkyv 0.7.46 out-of-bounds reads on archives containing Rc/Arc.
+    # Not compiled by this project in any configuration. rkyv is an OPTIONAL
+    # dependency of rust_decimal (rust_decimal-1.42.1/Cargo.toml: `rkyv =
+    # ["dep:rkyv"]`), reaching us only via duckdb -> rust_decimal, and duckdb
+    # does not enable that feature. Verified: `cargo tree --all-features
+    # --target all -i rkyv` returns no results, while `-i rust_decimal` shows
+    # rust_decimal -> duckdb -> open-ontologies. cargo audit reads Cargo.lock,
+    # which records optional dependencies the compiler never sees.
+    # Unfixable by version bump: the advisory requires >= 0.8.17, but
+    # rust_decimal pins rkyv 0.7.46 exactly and has not migrated to the 0.8
+    # line (it carries a separate rkyv-0_8 dev-dependency). Remove this entry
+    # once rust_decimal ships a release depending on rkyv 0.8.
+    "RUSTSEC-2026-0235",
 ]

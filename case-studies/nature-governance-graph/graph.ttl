@@ -1,0 +1,796 @@
+@prefix ngg: <https://tesseract.academy/ns/ngg#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://tesseract.academy/id/ngg/actor/buglife> a ngg:Actor,
+        ngg:NGO ;
+    rdfs:label "Buglife"^^xsd:string ;
+    rdfs:seeAlso <https://www.buglife.org.uk/> ;
+    ngg:actorClass "ngo" ;
+    ngg:role "Charity dedicated to conservation of invertebrates"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/plantlife> a ngg:Actor,
+        ngg:NGO ;
+    rdfs:label "Plantlife"^^xsd:string ;
+    rdfs:seeAlso <https://www.plantlife.org.uk/> ;
+    ngg:actorClass "ngo" ;
+    ngg:role "Conservation charity for wild plants, fungi and their habitats"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/woodland-trust> a ngg:Actor,
+        ngg:NGO ;
+    rdfs:label "Woodland Trust"^^xsd:string ;
+    rdfs:seeAlso <https://www.woodlandtrust.org.uk/> ;
+    ngg:actorClass "ngo" ;
+    ngg:role "UK's largest woodland conservation charity; ancient woodland protection and tree planting"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/wwf-uk> a ngg:Actor,
+        ngg:NGO ;
+    rdfs:label "WWF-UK"^^xsd:string ;
+    rdfs:seeAlso <https://www.wwf.org.uk/> ;
+    ngg:actorClass "ngo" ;
+    ngg:role "UK arm of the global environmental charity; nature, climate and species"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/rel/000> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/303c9ab5eece> ;
+    ngg:basis "JNCC is an executive NDPB sponsored by Defra (jointly with devolved administrations)"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/jncc> ;
+    ngg:relType "sponsors" .
+
+<https://tesseract.academy/id/ngg/rel/001> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/5bd98e166782> ;
+    ngg:basis "Natural England is an executive NDPB sponsored by Defra"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/natural-england> ;
+    ngg:relType "sponsors" .
+
+<https://tesseract.academy/id/ngg/rel/002> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/0f5e543b2418> ;
+    ngg:basis "Environment Agency is an executive NDPB accountable to the Defra Secretary of State"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/environment-agency> ;
+    ngg:relType "sponsors" .
+
+<https://tesseract.academy/id/ngg/rel/003> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/352fdbc5eb02> ;
+    ngg:basis "MMO is an executive NDPB of Defra"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/mmo> ;
+    ngg:relType "sponsors" .
+
+<https://tesseract.academy/id/ngg/rel/004> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/1515d19b135e> ;
+    ngg:basis "Forestry Commission is a non-ministerial department within the Defra group"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/forestry-commission> ;
+    ngg:relType "sponsors" .
+
+<https://tesseract.academy/id/ngg/rel/005> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/f5aa0a0ea230> ;
+    ngg:basis "OEP is an independent NDPB established and funded within the Defra portfolio"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/oep> ;
+    ngg:relType "sponsors" .
+
+<https://tesseract.academy/id/ngg/rel/006> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/f5aa0a0ea230> ;
+    ngg:basis "OEP monitors and holds government and public authorities to account on environmental law in England and NI"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/oep> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relType "regulates" .
+
+<https://tesseract.academy/id/ngg/rel/007> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/b8269961be5f> ;
+    ngg:basis "OEP reviewed LNRS and their role in contributing to nature recovery commitments in England"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/oep> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/lnrs> ;
+    ngg:relType "regulates" .
+
+<https://tesseract.academy/id/ngg/rel/008> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/569958f39cc0> ;
+    ngg:basis "OEP established by the Environment Act 2021"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/oep> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relType "designated-under" .
+
+<https://tesseract.academy/id/ngg/rel/009> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/f3894e2e5848> ;
+    ngg:basis "ESS monitors and secures compliance by Scottish public authorities with environmental law"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/ess> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/sepa> ;
+    ngg:relType "regulates" .
+
+<https://tesseract.academy/id/ngg/rel/010> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/816b4ab9332b> ;
+    ngg:basis "JNCC is the only statutory nature adviser to the four countries of the UK across a range of legislation"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/jncc> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relType "advises" .
+
+<https://tesseract.academy/id/ngg/rel/011> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/f32376f5bc44> ;
+    ngg:basis "JNCC is the UK's nature conservation adviser in international fora, incl. UK implementation of the CBD"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/jncc> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/cbd> ;
+    ngg:relType "advises" .
+
+<https://tesseract.academy/id/ngg/rel/012> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/f3d4f4cbae82> ;
+    ngg:basis "JNCC coordinates UK implementation of the Convention on Wetlands (Ramsar)"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/jncc> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/ramsar> ;
+    ngg:relType "advises" .
+
+<https://tesseract.academy/id/ngg/rel/013> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/d545c363edb1> ;
+    ngg:basis "JNCC coordinates UK input to the OSPAR Convention on the North-East Atlantic marine environment"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/jncc> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/ospar> ;
+    ngg:relType "advises" .
+
+<https://tesseract.academy/id/ngg/rel/014> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/5bd98e166782> ;
+    ngg:basis "Natural England is the government's statutory adviser on the natural environment in England"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/natural-england> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relType "advises" .
+
+<https://tesseract.academy/id/ngg/rel/015> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/4269654dafa4> ;
+    ngg:basis "48 responsible authorities appointed by the Secretary of State under Environment Act 2021 s.104"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/lnrs> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relType "designated-under" .
+
+<https://tesseract.academy/id/ngg/rel/016> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/b8269961be5f> ;
+    ngg:basis "LNRS statutory guidance sets how responsible authorities prepare strategies with Natural England support"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/lnrs> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/natural-england> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/017> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/dd56c0a90c44> ;
+    ngg:basis "Statutory BNG framework introduced by Schedule 7A TCPA 1990, inserted by the Environment Act 2021"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/bng-market> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relType "designated-under" .
+
+<https://tesseract.academy/id/ngg/rel/018> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/9dc471396419> ;
+    ngg:basis "Statutory biodiversity credits are purchased from Natural England on behalf of Defra; income reinvested in nature"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/natural-england> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/bng-market> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/019> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/e0a9987a9f98> ;
+    ngg:basis "NBN Trust operates the NBN Atlas, connecting 200+ organisations' biodiversity data"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/nbn-trust> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/nbn-atlas> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/020> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/1c8651c35b80> ;
+    ngg:basis "BTO supplies bird monitoring datasets (160M+ records) to the NBN Atlas"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/bto> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/nbn-atlas> ;
+    ngg:relType "supplies-data-to" .
+
+<https://tesseract.academy/id/ngg/rel/021> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/864a93384ec4> ;
+    ngg:basis "Butterfly Conservation made 46M+ butterfly and moth records available on the NBN Atlas"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/butterfly-conservation> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/nbn-atlas> ;
+    ngg:relType "supplies-data-to" .
+
+<https://tesseract.academy/id/ngg/rel/022> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/0c190030a021> ;
+    ngg:basis "Biological Records Centre is a partnership between JNCC and UKCEH"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/jncc> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/brc> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/023> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/2895231a3708> ;
+    ngg:basis "BRC is hosted as a partnership between UKCEH and JNCC"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/ukceh> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/brc> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/024> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/3fd0feeb8975> ;
+    ngg:basis "BRC develops and maintains the Indicia tools underpinning iRecord"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/brc> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/irecord> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/025> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/2c1f59e821a4> ;
+    ngg:basis "BSBI works with UKCEH to import vascular-plant/stonewort records into the BSBI Distribution Database"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/bsbi> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/ukceh> ;
+    ngg:relType "supplies-data-to" .
+
+<https://tesseract.academy/id/ngg/rel/026> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/9fff5300b904> ;
+    ngg:basis "NIEA is an executive agency within DAERA responsible for NI's environment and natural heritage"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/daera> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/niea> ;
+    ngg:relType "sponsors" .
+
+<https://tesseract.academy/id/ngg/rel/027> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/96457b884c10> ;
+    ngg:basis "NatureScot is Scotland's nature agency, a Scottish Government sponsored NDPB advising on the natural environment"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/naturescot> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relType "advises" .
+
+<https://tesseract.academy/id/ngg/rel/028> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/609ca08b040f> ;
+    ngg:basis "NRW is a Welsh Government Sponsored Body ensuring Wales' natural resources are sustainably managed"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/nrw> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relType "advises" .
+
+<https://tesseract.academy/id/ngg/rel/029> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/5afaf2dc32ab> ;
+    ngg:basis "Water companies deliver the Water Industry National Environment Programme (WINEP) under environmental requirements"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/environment-agency> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/water-companies> ;
+    ngg:relType "regulates" .
+
+<https://tesseract.academy/id/ngg/rel/030> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/20b21c32f1e9> ;
+    ngg:basis "Water companies are core partners in CaBA catchment partnerships alongside government, LAs and NGOs"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/water-companies> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/caba> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/031> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/b2af2aad0765> ;
+    ngg:basis "Rivers Trusts work in partnership with water companies on catchment and river restoration"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/rivers-trust> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/water-companies> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/032> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/fd72a0e69a02> ;
+    ngg:basis "Heritage Fund provides grants for projects conserving habitats and species"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/nlhf> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/wildlife-trusts> ;
+    ngg:relType "funds" .
+
+<https://tesseract.academy/id/ngg/rel/033> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/8f924cdf0d5d> ;
+    ngg:basis "Esmee Fairbairn Foundation funds nature restoration under its 'Our Natural World' priority"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/esmee-fairbairn> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/wildlife-trusts> ;
+    ngg:relType "funds" .
+
+<https://tesseract.academy/id/ngg/rel/034> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/14d6db0c9224> ;
+    ngg:basis "Heritage Fund and Esmee Fairbairn jointly funded Nature North for nature recovery"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/nlhf> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/esmee-fairbairn> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/035> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/3ef5bf1ff479> ;
+    ngg:basis "Government invests in the National Landscapes Association to build a green-finance project pipeline in Protected Landscapes"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/national-landscapes-association> ;
+    ngg:relType "funds" .
+
+<https://tesseract.academy/id/ngg/rel/036> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/254dc7332b76> ;
+    ngg:basis "National Park Authorities are relevant authorities under the strengthened Protected Landscapes duty"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/national-park-authorities> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/natural-england> ;
+    ngg:relType "designated-under" .
+
+<https://tesseract.academy/id/ngg/rel/037> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/3ef5bf1ff479> ;
+    ngg:basis "National Landscapes and National Park Authorities are the lead partners managing England's protected landscapes"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/national-landscapes-association> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/national-park-authorities> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/038> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/c7ca09b0de3d> ;
+    ngg:basis "Natural England builds Local Nature Partnerships and partnerships for nature's recovery"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/local-nature-partnerships> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/natural-england> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/039> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/0d26df1d586f> ;
+    ngg:basis "NFU represents farming businesses and engages Defra on agriculture/environment policy (e.g. Farm Tenancy Forum)"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/nfu> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/040> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/7115ec000caa> ;
+    ngg:basis "CLA represents rural landowners/businesses and engages government via forums such as the Farm Tenancy Forum"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/cla> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/041> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/6c07b64d457a> ;
+    ngg:basis "TFA represents tenant farmers and engages government via the Farm Tenancy Forum"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/tfa> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/defra> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/042> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/43817e0414d9> ;
+    ngg:basis "IUCN National Committee UK coordinates UK IUCN members and links them to the global union"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/iucn-uk> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/iucn> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/043> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/c9dc6205b49b> ;
+    ngg:basis "OSPAR Biodiversity Committee coordinates biodiversity assessment with JNCC as UK adviser"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/ospar> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/jncc> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/044> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/46ab516ba4b0> ;
+    ngg:basis "Water UK is the trade association representing water companies, working to protect and improve the environment"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/water-uk> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/water-companies> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/045> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/467e7b05aed7> ;
+    ngg:basis "UK's biggest nature charities jointly published shared Nature Markets Principles"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/national-trust> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/wildlife-trusts> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/046> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/467e7b05aed7> ;
+    ngg:basis "RSPB and Wildlife Trusts are among the UK's biggest nature charities collaborating on shared nature-market principles"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/rspb> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/wildlife-trusts> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/rel/047> a ngg:Relationship ;
+    prov:wasDerivedFrom <https://tesseract.academy/id/ngg/source/e0a9987a9f98> ;
+    ngg:basis "BTO is a member of the National Biodiversity Network"^^xsd:string ;
+    ngg:relFrom <https://tesseract.academy/id/ngg/actor/bto> ;
+    ngg:relTo <https://tesseract.academy/id/ngg/actor/nbn-trust> ;
+    ngg:relType "partners-with" .
+
+<https://tesseract.academy/id/ngg/actor/bsbi> a ngg:Actor,
+        ngg:DataBody ;
+    rdfs:label "Botanical Society of Britain and Ireland (BSBI)"^^xsd:string ;
+    rdfs:seeAlso <https://bsbi.org/> ;
+    ngg:actorClass "data-body" ;
+    ngg:role "Society for vascular-plant recording; maintains the plant Distribution Database"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/butterfly-conservation> a ngg:Actor,
+        ngg:DataBody ;
+    rdfs:label "Butterfly Conservation"^^xsd:string ;
+    rdfs:seeAlso <https://butterfly-conservation.org/> ;
+    ngg:actorClass "data-body" ;
+    ngg:role "Charity and data custodian of UK butterfly and moth recording schemes"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/caba> a ngg:Actor,
+        ngg:Partnership ;
+    rdfs:label "Catchment Based Approach (CaBA)"^^xsd:string ;
+    rdfs:seeAlso <https://catchmentbasedapproach.org/about/> ;
+    ngg:actorClass "partnership" ;
+    ngg:role "Civil-society-led partnerships in 100+ river catchments linking government, water companies, LAs and NGOs"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/cbd> a ngg:Actor,
+        ngg:International ;
+    rdfs:label "Convention on Biological Diversity (CBD)"^^xsd:string ;
+    rdfs:seeAlso <https://www.cbd.int/> ;
+    ngg:actorClass "international" ;
+    ngg:role "UN treaty framework for biodiversity conservation, sustainable use and benefit sharing"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/cla> a ngg:Actor,
+        ngg:SectorBody ;
+    rdfs:label "Country Land and Business Association (CLA)"^^xsd:string ;
+    rdfs:seeAlso <https://www.cla.org.uk/> ;
+    ngg:actorClass "sector-body" ;
+    ngg:role "Membership body for rural landowners and land-based businesses in England and Wales"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/daera> a ngg:Actor,
+        ngg:StatutoryAgency ;
+    rdfs:label "Department of Agriculture, Environment and Rural Affairs (DAERA)"^^xsd:string ;
+    rdfs:seeAlso <https://www.daera-ni.gov.uk/> ;
+    ngg:actorClass "statutory-agency" ;
+    ngg:role "Northern Ireland department for environment, agriculture and rural affairs"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/ess> a ngg:Actor,
+        ngg:StatutoryAgency ;
+    rdfs:label "Environmental Standards Scotland (ESS)"^^xsd:string ;
+    rdfs:seeAlso <https://environmentalstandards.scot/about-us/what-we-do/> ;
+    ngg:actorClass "statutory-agency" ;
+    ngg:role "Independent non-ministerial body monitoring public-authority compliance with environmental law in Scotland"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/forestry-commission> a ngg:Actor,
+        ngg:StatutoryAgency ;
+    rdfs:label "Forestry Commission"^^xsd:string ;
+    rdfs:seeAlso <https://www.gov.uk/government/organisations/forestry-commission> ;
+    ngg:actorClass "statutory-agency" ;
+    ngg:role "Non-ministerial department for forestry/woodland in England (incl. Forest Research, Forestry England)"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/irecord> a ngg:Actor,
+        ngg:DataBody ;
+    rdfs:label "iRecord"^^xsd:string ;
+    rdfs:seeAlso <https://irecord.org.uk/> ;
+    ngg:actorClass "data-body" ;
+    ngg:role "Online biological-records platform developed and maintained by BRC"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/iucn> a ngg:Actor,
+        ngg:International ;
+    rdfs:label "International Union for Conservation of Nature (IUCN)"^^xsd:string ;
+    rdfs:seeAlso <https://iucn.org/> ;
+    ngg:actorClass "international" ;
+    ngg:role "Global union setting conservation standards (Red List, protected-area categories)"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/iucn-uk> a ngg:Actor,
+        ngg:International ;
+    rdfs:label "IUCN National Committee UK"^^xsd:string ;
+    rdfs:seeAlso <https://iucn-nc.uk/> ;
+    ngg:actorClass "international" ;
+    ngg:role "Coordinates UK IUCN members and links them to the global union"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/local-nature-partnerships> a ngg:Actor,
+        ngg:Partnership ;
+    rdfs:label "Local Nature Partnerships"^^xsd:string ;
+    rdfs:seeAlso <https://www.gov.uk/government/publications/natural-england-building-partnerships-for-natures-recovery/building-partnerships-for-natures-recovery> ;
+    ngg:actorClass "partnership" ;
+    ngg:role "Local strategic partnerships driving joined-up action for nature recovery"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/mmo> a ngg:Actor,
+        ngg:StatutoryAgency ;
+    rdfs:label "Marine Management Organisation (MMO)"^^xsd:string ;
+    rdfs:seeAlso <https://www.gov.uk/government/organisations/marine-management-organisation> ;
+    ngg:actorClass "statutory-agency" ;
+    ngg:role "Marine licensing, planning and fisheries regulator for English waters; NDPB sponsored by Defra"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/national-trust> a ngg:Actor,
+        ngg:NGO ;
+    rdfs:label "National Trust"^^xsd:string ;
+    rdfs:seeAlso <https://www.nationaltrust.org.uk/> ;
+    ngg:actorClass "ngo" ;
+    ngg:role "Major heritage and nature conservation charity and landowner (Europe's largest conservation charity)"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/naturescot> a ngg:Actor,
+        ngg:StatutoryAgency ;
+    rdfs:label "NatureScot"^^xsd:string ;
+    rdfs:seeAlso <https://www.nature.scot/> ;
+    ngg:actorClass "statutory-agency" ;
+    ngg:role "Scotland's nature agency; Scottish Government sponsored NDPB"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/nfu> a ngg:Actor,
+        ngg:SectorBody ;
+    rdfs:label "National Farmers' Union (NFU)"^^xsd:string ;
+    rdfs:seeAlso <https://www.nfuonline.com/> ;
+    ngg:actorClass "sector-body" ;
+    ngg:role "Representative body for ~43,000 farming/growing businesses in England and Wales"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/niea> a ngg:Actor,
+        ngg:StatutoryAgency ;
+    rdfs:label "Northern Ireland Environment Agency (NIEA)"^^xsd:string ;
+    rdfs:seeAlso <https://www.daera-ni.gov.uk/articles/northern-ireland-environment-agency> ;
+    ngg:actorClass "statutory-agency" ;
+    ngg:role "Executive agency within DAERA protecting NI's environment and natural heritage"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/nrw> a ngg:Actor,
+        ngg:StatutoryAgency ;
+    rdfs:label "Natural Resources Wales (NRW)"^^xsd:string ;
+    rdfs:seeAlso <https://naturalresources.wales/?lang=en> ;
+    ngg:actorClass "statutory-agency" ;
+    ngg:role "Wales' environmental regulator and nature body; Welsh Government Sponsored Body"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/ramsar> a ngg:Actor,
+        ngg:International ;
+    rdfs:label "Ramsar Convention (Convention on Wetlands)"^^xsd:string ;
+    rdfs:seeAlso <https://www.ramsar.org/> ;
+    ngg:actorClass "international" ;
+    ngg:role "Intergovernmental treaty for conservation and wise use of wetlands"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/rivers-trust> a ngg:Actor,
+        ngg:NGO ;
+    rdfs:label "The Rivers Trust"^^xsd:string ;
+    rdfs:seeAlso <https://theriverstrust.org/> ;
+    ngg:actorClass "ngo" ;
+    ngg:role "Umbrella body for the rivers trust movement; river/catchment restoration"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/rspb> a ngg:Actor,
+        ngg:NGO ;
+    rdfs:label "RSPB"^^xsd:string ;
+    rdfs:seeAlso <https://www.rspb.org.uk/> ;
+    ngg:actorClass "ngo" ;
+    ngg:role "UK's largest nature conservation charity; birds and wider habitats"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/sepa> a ngg:Actor,
+        ngg:StatutoryAgency ;
+    rdfs:label "Scottish Environment Protection Agency (SEPA)"^^xsd:string ;
+    rdfs:seeAlso <https://www.sepa.org.uk/> ;
+    ngg:actorClass "statutory-agency" ;
+    ngg:role "Scotland's environmental regulator and flood forecasting/warning authority"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/tfa> a ngg:Actor,
+        ngg:SectorBody ;
+    rdfs:label "Tenant Farmers Association (TFA)"^^xsd:string ;
+    rdfs:seeAlso <https://tfa.org.uk/> ;
+    ngg:actorClass "sector-body" ;
+    ngg:role "Support and representation body for tenant farmers in England and Wales"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/water-uk> a ngg:Actor,
+        ngg:SectorBody ;
+    rdfs:label "Water UK"^^xsd:string ;
+    rdfs:seeAlso <https://www.water.org.uk/> ;
+    ngg:actorClass "sector-body" ;
+    ngg:role "Trade association for the UK water industry"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/source/0c190030a021> a ngg:Source ;
+    ngg:sourceUrl "https://jncc.gov.uk/our-work/biodiversity-recording/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/0d26df1d586f> a ngg:Source ;
+    ngg:sourceUrl "https://www.nfuonline.com/about-us/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/0f5e543b2418> a ngg:Source ;
+    ngg:sourceUrl "https://www.gov.uk/government/organisations/environment-agency"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/14d6db0c9224> a ngg:Source ;
+    ngg:sourceUrl "https://www.heritagefund.org.uk/news/national-lottery-support-nature-recovery-north-england"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/1515d19b135e> a ngg:Source ;
+    ngg:sourceUrl "https://www.gov.uk/government/organisations/forestry-commission"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/1c8651c35b80> a ngg:Source ;
+    ngg:sourceUrl "https://registry.nbnatlas.org/public/show/dp29"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/20b21c32f1e9> a ngg:Source ;
+    ngg:sourceUrl "https://catchmentbasedapproach.org/about/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/254dc7332b76> a ngg:Source ;
+    ngg:sourceUrl "https://www.gov.uk/government/publications/the-protected-landscapes-duty/guidance-for-relevant-authorities-on-seeking-to-further-the-purposes-of-protected-landscapes"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/2895231a3708> a ngg:Source ;
+    ngg:sourceUrl "https://www.ceh.ac.uk/our-science/projects/biological-records-centre"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/2c1f59e821a4> a ngg:Source ;
+    ngg:sourceUrl "https://www.brc.ac.uk/scheme/botanical-society-britain-and-ireland"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/303c9ab5eece> a ngg:Source ;
+    ngg:sourceUrl "https://www.gov.uk/government/organisations/joint-nature-conservation-committee"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/352fdbc5eb02> a ngg:Source ;
+    ngg:sourceUrl "https://www.gov.uk/government/organisations/marine-management-organisation"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/3fd0feeb8975> a ngg:Source ;
+    ngg:sourceUrl "https://www.brc.ac.uk/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/4269654dafa4> a ngg:Source ;
+    ngg:sourceUrl "https://www.legislation.gov.uk/ukpga/2021/30/part/6/crossheading/local-nature-recovery-strategies/enacted"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/43817e0414d9> a ngg:Source ;
+    ngg:sourceUrl "https://iucn-nc.uk/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/46ab516ba4b0> a ngg:Source ;
+    ngg:sourceUrl "https://www.water.org.uk/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/569958f39cc0> a ngg:Source ;
+    ngg:sourceUrl "https://www.legislation.gov.uk/ukpga/2021/30"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/5afaf2dc32ab> a ngg:Source ;
+    ngg:sourceUrl "https://www.gov.uk/government/publications/developing-the-environmental-resilience-and-flood-risk-actions-for-the-price-review-2024/water-industry-strategic-environmental-requirements-wiser"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/609ca08b040f> a ngg:Source ;
+    ngg:sourceUrl "https://www.gov.wales/natural-resources-wales"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/6c07b64d457a> a ngg:Source ;
+    ngg:sourceUrl "https://tfa.org.uk/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/7115ec000caa> a ngg:Source ;
+    ngg:sourceUrl "https://www.cla.org.uk/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/816b4ab9332b> a ngg:Source ;
+    ngg:sourceUrl "https://jncc.gov.uk/about-jncc/our-strategy/who-jncc-is/jnccs-statutory-duties/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/864a93384ec4> a ngg:Source ;
+    ngg:sourceUrl "https://nbn.org.uk/news/46-million-butterfly-conservation-records-on-nbn-atlas/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/8f924cdf0d5d> a ngg:Source ;
+    ngg:sourceUrl "https://www.wildlifetrusts.org/esmee-fairbairn-foundation"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/96457b884c10> a ngg:Source ;
+    ngg:sourceUrl "https://www.nature.scot/about-naturescot/our-work/naturescot-responsibilities-and-other-organisations"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/9dc471396419> a ngg:Source ;
+    ngg:sourceUrl "https://www.gov.uk/government/publications/biodiversity-net-gain-bng-statutory-credit-reports-2025-to-2026/biodiversity-net-gain-bng-statutory-credits-report-1-april-2025-to-31-march-2026"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/9fff5300b904> a ngg:Source ;
+    ngg:sourceUrl "https://www.daera-ni.gov.uk/articles/northern-ireland-environment-agency"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/b2af2aad0765> a ngg:Source ;
+    ngg:sourceUrl "https://theriverstrust.org/about-us/our-position-statements/working-with-water-companies"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/c7ca09b0de3d> a ngg:Source ;
+    ngg:sourceUrl "https://www.gov.uk/government/publications/natural-england-building-partnerships-for-natures-recovery/building-partnerships-for-natures-recovery"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/c9dc6205b49b> a ngg:Source ;
+    ngg:sourceUrl "https://www.ospar.org/work-areas/bdc"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/d545c363edb1> a ngg:Source ;
+    ngg:sourceUrl "https://jncc.gov.uk/our-work/ospar-convention/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/dd56c0a90c44> a ngg:Source ;
+    ngg:sourceUrl "https://www.gov.uk/guidance/biodiversity-net-gain"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/f32376f5bc44> a ngg:Source ;
+    ngg:sourceUrl "https://jncc.gov.uk/our-work/international-conventions/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/f3894e2e5848> a ngg:Source ;
+    ngg:sourceUrl "https://environmentalstandards.scot/about-us/what-we-do/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/f3d4f4cbae82> a ngg:Source ;
+    ngg:sourceUrl "https://jncc.gov.uk/our-work/convention-on-wetlands/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/fd72a0e69a02> a ngg:Source ;
+    ngg:sourceUrl "https://www.heritagefund.org.uk/our-work/landscapes-parks-nature"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/actor/bng-market> a ngg:Actor,
+        ngg:Funder ;
+    rdfs:label "Biodiversity Net Gain market / statutory biodiversity credits"^^xsd:string ;
+    rdfs:seeAlso <https://www.gov.uk/guidance/biodiversity-net-gain> ;
+    ngg:actorClass "funder" ;
+    ngg:role "Statutory market requiring 10% BNG on development; credits sold by Natural England on behalf of Defra"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/bto> a ngg:Actor,
+        ngg:DataBody ;
+    rdfs:label "British Trust for Ornithology (BTO)"^^xsd:string ;
+    rdfs:seeAlso <https://www.bto.org/> ;
+    ngg:actorClass "data-body" ;
+    ngg:role "Bird monitoring/research charity; major volunteer-survey data supplier"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/environment-agency> a ngg:Actor,
+        ngg:StatutoryAgency ;
+    rdfs:label "Environment Agency"^^xsd:string ;
+    rdfs:seeAlso <https://www.gov.uk/government/organisations/environment-agency> ;
+    ngg:actorClass "statutory-agency" ;
+    ngg:role "England's environmental regulator (water, waste, flood risk); NDPB sponsored by Defra"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/esmee-fairbairn> a ngg:Actor,
+        ngg:Funder ;
+    rdfs:label "Esmee Fairbairn Foundation"^^xsd:string ;
+    rdfs:seeAlso <https://esmeefairbairn.org.uk/> ;
+    ngg:actorClass "funder" ;
+    ngg:role "Independent grant-maker with 'Our Natural World' priority funding species/habitat restoration"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/national-landscapes-association> a ngg:Actor,
+        ngg:Partnership ;
+    rdfs:label "National Landscapes Association (AONBs / National Landscapes)"^^xsd:string ;
+    rdfs:seeAlso <https://national-landscapes.org.uk/> ;
+    ngg:actorClass "partnership" ;
+    ngg:role "Collective voice supporting the 34+ National Landscape (AONB) partnerships"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/national-park-authorities> a ngg:Actor,
+        ngg:Partnership ;
+    rdfs:label "National Park Authorities"^^xsd:string ;
+    rdfs:seeAlso <https://www.gov.uk/government/publications/the-protected-landscapes-duty/guidance-for-relevant-authorities-on-seeking-to-further-the-purposes-of-protected-landscapes> ;
+    ngg:actorClass "partnership" ;
+    ngg:role "Statutory authorities managing England's National Parks and their protected-landscape purposes"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/nbn-trust> a ngg:Actor,
+        ngg:DataBody ;
+    rdfs:label "National Biodiversity Network (NBN) Trust"^^xsd:string ;
+    rdfs:seeAlso <https://nbn.org.uk/about-us/who-we-are/> ;
+    ngg:actorClass "data-body" ;
+    ngg:role "Charity connecting 200+ organisations to share UK biodiversity data; operates the NBN Atlas"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/nlhf> a ngg:Actor,
+        ngg:Funder ;
+    rdfs:label "National Lottery Heritage Fund"^^xsd:string ;
+    rdfs:seeAlso <https://www.heritagefund.org.uk/our-work/landscapes-parks-nature> ;
+    ngg:actorClass "funder" ;
+    ngg:role "Distributes National Lottery funding for heritage, incl. landscapes, parks and nature"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/ospar> a ngg:Actor,
+        ngg:International ;
+    rdfs:label "OSPAR Commission"^^xsd:string ;
+    rdfs:seeAlso <https://www.ospar.org/> ;
+    ngg:actorClass "international" ;
+    ngg:role "Regional convention protecting the marine environment of the North-East Atlantic"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/ukceh> a ngg:Actor,
+        ngg:DataBody ;
+    rdfs:label "UK Centre for Ecology & Hydrology (UKCEH)"^^xsd:string ;
+    rdfs:seeAlso <https://www.ceh.ac.uk/> ;
+    ngg:actorClass "data-body" ;
+    ngg:role "Research institute for environmental science; co-hosts the Biological Records Centre"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/source/3ef5bf1ff479> a ngg:Source ;
+    ngg:sourceUrl "https://www.gov.uk/government/publications/landscapes-review-national-parks-and-aonbs-government-response/landscapes-review-national-parks-and-aonbs-government-response"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/467e7b05aed7> a ngg:Source ;
+    ngg:sourceUrl "https://www.wildlifetrusts.org/news/uks-nature-charities-publish-nature-markets-principles"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/5bd98e166782> a ngg:Source ;
+    ngg:sourceUrl "https://www.gov.uk/government/organisations/natural-england"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/b8269961be5f> a ngg:Source ;
+    ngg:sourceUrl "https://www.gov.uk/government/publications/local-nature-recovery-strategies/local-nature-recovery-strategies"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/e0a9987a9f98> a ngg:Source ;
+    ngg:sourceUrl "https://nbn.org.uk/about-us/who-we-are/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/source/f5aa0a0ea230> a ngg:Source ;
+    ngg:sourceUrl "https://www.theoep.org.uk/"^^xsd:anyURI .
+
+<https://tesseract.academy/id/ngg/actor/brc> a ngg:Actor,
+        ngg:DataBody ;
+    rdfs:label "Biological Records Centre (BRC)"^^xsd:string ;
+    rdfs:seeAlso <https://www.brc.ac.uk/> ;
+    ngg:actorClass "data-body" ;
+    ngg:role "National focus for species recording; partnership between JNCC and UKCEH"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/lnrs> a ngg:Actor,
+        ngg:Partnership ;
+    rdfs:label "Local Nature Recovery Strategies (responsible authorities)"^^xsd:string ;
+    rdfs:seeAlso <https://www.gov.uk/government/publications/local-nature-recovery-strategies/local-nature-recovery-strategies> ;
+    ngg:actorClass "partnership" ;
+    ngg:role "48 responsible authorities appointed to prepare LNRS covering all of England"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/nbn-atlas> a ngg:Actor,
+        ngg:DataBody ;
+    rdfs:label "NBN Atlas"^^xsd:string ;
+    rdfs:seeAlso <https://nbnatlas.org/> ;
+    ngg:actorClass "data-body" ;
+    ngg:role "UK's largest open biodiversity data portal (385M+ species occurrence records)"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/oep> a ngg:Actor,
+        ngg:StatutoryAgency ;
+    rdfs:label "Office for Environmental Protection (OEP)"^^xsd:string ;
+    rdfs:seeAlso <https://www.theoep.org.uk/> ;
+    ngg:actorClass "statutory-agency" ;
+    ngg:role "Independent environmental watchdog for England and NI; holds public authorities to account on environmental law"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/water-companies> a ngg:Actor,
+        ngg:SectorBody ;
+    rdfs:label "Water companies (as a class)"^^xsd:string ;
+    rdfs:seeAlso <https://www.gov.uk/government/publications/developing-the-environmental-resilience-and-flood-risk-actions-for-the-price-review-2024/water-industry-strategic-environmental-requirements-wiser> ;
+    ngg:actorClass "sector-body" ;
+    ngg:role "Regulated utilities; largest single spend on the water environment via WINEP"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/wildlife-trusts> a ngg:Actor,
+        ngg:NGO ;
+    rdfs:label "The Wildlife Trusts"^^xsd:string ;
+    rdfs:seeAlso <https://www.wildlifetrusts.org/about-us/how-we-are-run> ;
+    ngg:actorClass "ngo" ;
+    ngg:role "Federation of 46 place-based Wildlife Trusts (Royal Society of Wildlife Trusts) managing 2,600+ reserves"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/natural-england> a ngg:Actor,
+        ngg:StatutoryAgency ;
+    rdfs:label "Natural England"^^xsd:string ;
+    rdfs:seeAlso <https://www.gov.uk/government/organisations/natural-england> ;
+    ngg:actorClass "statutory-agency" ;
+    ngg:role "Government's statutory adviser on the natural environment in England; NDPB sponsored by Defra"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/jncc> a ngg:Actor,
+        ngg:StatutoryAgency ;
+    rdfs:label "Joint Nature Conservation Committee (JNCC)"^^xsd:string ;
+    rdfs:seeAlso <https://jncc.gov.uk/> ;
+    ngg:actorClass "statutory-agency" ;
+    ngg:role "Statutory nature conservation adviser to UK and devolved governments, including in international fora"^^xsd:string .
+
+<https://tesseract.academy/id/ngg/actor/defra> a ngg:Actor,
+        ngg:StatutoryAgency ;
+    rdfs:label "Department for Environment, Food & Rural Affairs (Defra)"^^xsd:string ;
+    rdfs:seeAlso <https://www.gov.uk/government/organisations/department-for-environment-food-rural-affairs> ;
+    ngg:actorClass "statutory-agency" ;
+    ngg:role "UK government department for environment, food, farming and rural affairs; sponsors most England nature bodies"^^xsd:string .
+

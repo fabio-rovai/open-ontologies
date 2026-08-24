@@ -5,3 +5,7 @@ __pycache__/
 dist/
 build/
 *.pyc
+
+# uv resolves this per-environment; the package is a library, so the lock is
+# not part of what we publish.
+uv.lock
