@@ -1,9173 +1,13180 @@
-// node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs
-import { join as XV } from "path";
-import { fileURLToPath as wE } from "url";
-import { setMaxListeners as bV } from "events";
-import { spawn as OU } from "child_process";
-import { createInterface as DU } from "readline";
-import { randomUUID as mq } from "crypto";
-import { appendFile as lq, mkdir as cq } from "fs/promises";
-import { join as S5 } from "path";
-import { join as fq } from "path";
-import { homedir as uq } from "os";
-import * as u from "fs";
-import { stat as oq, readdir as rq, readFile as T5, unlink as tq, rmdir as aq, rm as sq, mkdir as eq, rename as QU, open as XU } from "fs/promises";
-import { dirname as u5, join as m5 } from "path";
-import { cwd as JU } from "process";
-import { realpathSync as x5 } from "fs";
-import { randomUUID as i4 } from "crypto";
-import { execFile as jU } from "child_process";
-import { promisify as RU } from "util";
-var LV = Object.create;
-var { getPrototypeOf: FV, defineProperty: yQ, getOwnPropertyNames: NV } = Object;
-var OV = Object.prototype.hasOwnProperty;
-function DV(Q) {
-  return this[Q];
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __esm = (fn, res, err) => function __init() {
+  if (err) throw err[0];
+  try {
+    return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+  } catch (e) {
+    throw err = [e], e;
+  }
+};
+var __commonJS = (cb, mod) => function __require() {
+  try {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  } catch (e) {
+    throw mod = 0, e;
+  }
+};
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+
+// node_modules/@anthropic-ai/sdk/internal/tslib.mjs
+function __classPrivateFieldSet(receiver, state, value, kind, f) {
+  if (kind === "m")
+    throw new TypeError("Private method is not writable");
+  if (kind === "a" && !f)
+    throw new TypeError("Private accessor was defined without a setter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
+    throw new TypeError("Cannot write private member to an object whose class did not declare it");
+  return kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value), value;
 }
-var MV;
-var wV;
-var s7 = (Q, X, Y) => {
-  var $ = Q != null && typeof Q === "object";
-  if ($) {
-    var J = X ? MV ??= /* @__PURE__ */ new WeakMap() : wV ??= /* @__PURE__ */ new WeakMap(), W = J.get(Q);
-    if (W) return W;
-  }
-  Y = Q != null ? LV(FV(Q)) : {};
-  let G = X || !Q || !Q.__esModule ? yQ(Y, "default", { value: Q, enumerable: true }) : Y;
-  for (let H of NV(Q)) if (!OV.call(G, H)) yQ(G, H, { get: DV.bind(Q, H), enumerable: true });
-  if ($) J.set(Q, G);
-  return G;
-};
-var E = (Q, X) => () => (X || Q((X = { exports: {} }).exports, X), X.exports);
-var AV = (Q) => Q;
-function jV(Q, X) {
-  this[Q] = AV.bind(null, X);
+function __classPrivateFieldGet(receiver, state, kind, f) {
+  if (kind === "a" && !f)
+    throw new TypeError("Private accessor was defined without a getter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
+    throw new TypeError("Cannot read private member from an object whose class did not declare it");
+  return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 }
-var gQ = (Q, X) => {
-  for (var Y in X) yQ(Q, Y, { get: X[Y], enumerable: true, configurable: true, set: jV.bind(X, Y) });
-};
-var RV = Symbol.dispose || /* @__PURE__ */ Symbol.for("Symbol.dispose");
-var IV = Symbol.asyncDispose || /* @__PURE__ */ Symbol.for("Symbol.asyncDispose");
-var X0 = (Q, X, Y) => {
-  if (X != null) {
-    if (typeof X !== "object" && typeof X !== "function") throw TypeError('Object expected to be assigned to "using" declaration');
-    var $;
-    if (Y) $ = X[IV];
-    if ($ === void 0) $ = X[RV];
-    if (typeof $ !== "function") throw TypeError("Object not disposable");
-    Q.push([Y, $, X]);
-  } else if (Y) Q.push([Y]);
-  return X;
-};
-var Y0 = (Q, X, Y) => {
-  var $ = typeof SuppressedError === "function" ? SuppressedError : function(G, H, B, z) {
-    return z = Error(B), z.name = "SuppressedError", z.error = G, z.suppressed = H, z;
-  }, J = (G) => X = Y ? new $(G, X, "An error was suppressed during disposal") : (Y = true, G), W = (G) => {
-    while (G = Q.pop()) try {
-      var H = G[1] && G[1].call(G[2]);
-      if (G[0]) return Promise.resolve(H).then(W, (B) => (J(B), W()));
-    } catch (B) {
-      J(B);
-    }
-    if (Y) throw X;
-  };
-  return W();
-};
-var M4 = E((H3) => {
-  Object.defineProperty(H3, "__esModule", { value: true });
-  H3.regexpCode = H3.getEsmExportName = H3.getProperty = H3.safeStringify = H3.stringify = H3.strConcat = H3.addCodeArg = H3.str = H3._ = H3.nil = H3._Code = H3.Name = H3.IDENTIFIER = H3._CodeOrName = void 0;
-  class a8 {
-  }
-  H3._CodeOrName = a8;
-  H3.IDENTIFIER = /^[a-z$_][a-z$_0-9]*$/i;
-  class M9 extends a8 {
-    constructor(Q) {
-      super();
-      if (!H3.IDENTIFIER.test(Q)) throw Error("CodeGen: name must be a valid identifier");
-      this.str = Q;
-    }
-    toString() {
-      return this.str;
-    }
-    emptyStr() {
-      return false;
-    }
-    get names() {
-      return { [this.str]: 1 };
-    }
-  }
-  H3.Name = M9;
-  class z1 extends a8 {
-    constructor(Q) {
-      super();
-      this._items = typeof Q === "string" ? [Q] : Q;
-    }
-    toString() {
-      return this.str;
-    }
-    emptyStr() {
-      if (this._items.length > 1) return false;
-      let Q = this._items[0];
-      return Q === "" || Q === '""';
-    }
-    get str() {
-      var Q;
-      return (Q = this._str) !== null && Q !== void 0 ? Q : this._str = this._items.reduce((X, Y) => `${X}${Y}`, "");
-    }
-    get names() {
-      var Q;
-      return (Q = this._names) !== null && Q !== void 0 ? Q : this._names = this._items.reduce((X, Y) => {
-        if (Y instanceof M9) X[Y.str] = (X[Y.str] || 0) + 1;
-        return X;
-      }, {});
-    }
-  }
-  H3._Code = z1;
-  H3.nil = new z1("");
-  function W3(Q, ...X) {
-    let Y = [Q[0]], $ = 0;
-    while ($ < X.length) g$(Y, X[$]), Y.push(Q[++$]);
-    return new z1(Y);
-  }
-  H3._ = W3;
-  var y$ = new z1("+");
-  function G3(Q, ...X) {
-    let Y = [D4(Q[0])], $ = 0;
-    while ($ < X.length) Y.push(y$), g$(Y, X[$]), Y.push(y$, D4(Q[++$]));
-    return XM(Y), new z1(Y);
-  }
-  H3.str = G3;
-  function g$(Q, X) {
-    if (X instanceof z1) Q.push(...X._items);
-    else if (X instanceof M9) Q.push(X);
-    else Q.push(JM(X));
-  }
-  H3.addCodeArg = g$;
-  function XM(Q) {
-    let X = 1;
-    while (X < Q.length - 1) {
-      if (Q[X] === y$) {
-        let Y = YM(Q[X - 1], Q[X + 1]);
-        if (Y !== void 0) {
-          Q.splice(X - 1, 3, Y);
-          continue;
-        }
-        Q[X++] = "+";
-      }
-      X++;
-    }
-  }
-  function YM(Q, X) {
-    if (X === '""') return Q;
-    if (Q === '""') return X;
-    if (typeof Q == "string") {
-      if (X instanceof M9 || Q[Q.length - 1] !== '"') return;
-      if (typeof X != "string") return `${Q.slice(0, -1)}${X}"`;
-      if (X[0] === '"') return Q.slice(0, -1) + X.slice(1);
-      return;
-    }
-    if (typeof X == "string" && X[0] === '"' && !(Q instanceof M9)) return `"${Q}${X.slice(1)}`;
-    return;
-  }
-  function $M(Q, X) {
-    return X.emptyStr() ? Q : Q.emptyStr() ? X : G3`${Q}${X}`;
-  }
-  H3.strConcat = $M;
-  function JM(Q) {
-    return typeof Q == "number" || typeof Q == "boolean" || Q === null ? Q : D4(Array.isArray(Q) ? Q.join(",") : Q);
-  }
-  function WM(Q) {
-    return new z1(D4(Q));
-  }
-  H3.stringify = WM;
-  function D4(Q) {
-    return JSON.stringify(Q).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
-  }
-  H3.safeStringify = D4;
-  function GM(Q) {
-    return typeof Q == "string" && H3.IDENTIFIER.test(Q) ? new z1(`.${Q}`) : W3`[${Q}]`;
-  }
-  H3.getProperty = GM;
-  function HM(Q) {
-    if (typeof Q == "string" && H3.IDENTIFIER.test(Q)) return new z1(`${Q}`);
-    throw Error(`CodeGen: invalid export name: ${Q}, use explicit $id name mapping`);
-  }
-  H3.getEsmExportName = HM;
-  function BM(Q) {
-    return new z1(Q.toString());
-  }
-  H3.regexpCode = BM;
-});
-var m$ = E((V3) => {
-  Object.defineProperty(V3, "__esModule", { value: true });
-  V3.ValueScope = V3.ValueScopeName = V3.Scope = V3.varKinds = V3.UsedValueState = void 0;
-  var g0 = M4();
-  class z3 extends Error {
-    constructor(Q) {
-      super(`CodeGen: "code" for ${Q} not defined`);
-      this.value = Q.value;
-    }
-  }
-  var e8;
-  (function(Q) {
-    Q[Q.Started = 0] = "Started", Q[Q.Completed = 1] = "Completed";
-  })(e8 || (V3.UsedValueState = e8 = {}));
-  V3.varKinds = { const: new g0.Name("const"), let: new g0.Name("let"), var: new g0.Name("var") };
-  class f$ {
-    constructor({ prefixes: Q, parent: X } = {}) {
-      this._names = {}, this._prefixes = Q, this._parent = X;
-    }
-    toName(Q) {
-      return Q instanceof g0.Name ? Q : this.name(Q);
-    }
-    name(Q) {
-      return new g0.Name(this._newName(Q));
-    }
-    _newName(Q) {
-      let X = this._names[Q] || this._nameGroup(Q);
-      return `${Q}${X.index++}`;
-    }
-    _nameGroup(Q) {
-      var X, Y;
-      if (((Y = (X = this._parent) === null || X === void 0 ? void 0 : X._prefixes) === null || Y === void 0 ? void 0 : Y.has(Q)) || this._prefixes && !this._prefixes.has(Q)) throw Error(`CodeGen: prefix "${Q}" is not allowed in this scope`);
-      return this._names[Q] = { prefix: Q, index: 0 };
-    }
-  }
-  V3.Scope = f$;
-  class u$ extends g0.Name {
-    constructor(Q, X) {
-      super(X);
-      this.prefix = Q;
-    }
-    setValue(Q, { property: X, itemIndex: Y }) {
-      this.value = Q, this.scopePath = g0._`.${new g0.Name(X)}[${Y}]`;
-    }
-  }
-  V3.ValueScopeName = u$;
-  var AM = g0._`\n`;
-  class K3 extends f$ {
-    constructor(Q) {
-      super(Q);
-      this._values = {}, this._scope = Q.scope, this.opts = { ...Q, _n: Q.lines ? AM : g0.nil };
-    }
-    get() {
-      return this._scope;
-    }
-    name(Q) {
-      return new u$(Q, this._newName(Q));
-    }
-    value(Q, X) {
-      var Y;
-      if (X.ref === void 0) throw Error("CodeGen: ref must be passed in value");
-      let $ = this.toName(Q), { prefix: J } = $, W = (Y = X.key) !== null && Y !== void 0 ? Y : X.ref, G = this._values[J];
-      if (G) {
-        let z = G.get(W);
-        if (z) return z;
-      } else G = this._values[J] = /* @__PURE__ */ new Map();
-      G.set(W, $);
-      let H = this._scope[J] || (this._scope[J] = []), B = H.length;
-      return H[B] = X.ref, $.setValue(X, { property: J, itemIndex: B }), $;
-    }
-    getValue(Q, X) {
-      let Y = this._values[Q];
-      if (!Y) return;
-      return Y.get(X);
-    }
-    scopeRefs(Q, X = this._values) {
-      return this._reduceValues(X, (Y) => {
-        if (Y.scopePath === void 0) throw Error(`CodeGen: name "${Y}" has no value`);
-        return g0._`${Q}${Y.scopePath}`;
-      });
-    }
-    scopeCode(Q = this._values, X, Y) {
-      return this._reduceValues(Q, ($) => {
-        if ($.value === void 0) throw Error(`CodeGen: name "${$}" has no value`);
-        return $.value.code;
-      }, X, Y);
-    }
-    _reduceValues(Q, X, Y = {}, $) {
-      let J = g0.nil;
-      for (let W in Q) {
-        let G = Q[W];
-        if (!G) continue;
-        let H = Y[W] = Y[W] || /* @__PURE__ */ new Map();
-        G.forEach((B) => {
-          if (H.has(B)) return;
-          H.set(B, e8.Started);
-          let z = X(B);
-          if (z) {
-            let K = this.opts.es5 ? V3.varKinds.var : V3.varKinds.const;
-            J = g0._`${J}${K} ${B} = ${z};${this.opts._n}`;
-          } else if (z = $ === null || $ === void 0 ? void 0 : $(B)) J = g0._`${J}${z}${this.opts._n}`;
-          else throw new z3(B);
-          H.set(B, e8.Completed);
-        });
-      }
-      return J;
-    }
-  }
-  V3.ValueScope = K3;
-});
-var c = E((h0) => {
-  Object.defineProperty(h0, "__esModule", { value: true });
-  h0.or = h0.and = h0.not = h0.CodeGen = h0.operators = h0.varKinds = h0.ValueScopeName = h0.ValueScope = h0.Scope = h0.Name = h0.regexpCode = h0.stringify = h0.getProperty = h0.nil = h0.strConcat = h0.str = h0._ = void 0;
-  var r = M4(), K1 = m$(), Q6 = M4();
-  Object.defineProperty(h0, "_", { enumerable: true, get: function() {
-    return Q6._;
-  } });
-  Object.defineProperty(h0, "str", { enumerable: true, get: function() {
-    return Q6.str;
-  } });
-  Object.defineProperty(h0, "strConcat", { enumerable: true, get: function() {
-    return Q6.strConcat;
-  } });
-  Object.defineProperty(h0, "nil", { enumerable: true, get: function() {
-    return Q6.nil;
-  } });
-  Object.defineProperty(h0, "getProperty", { enumerable: true, get: function() {
-    return Q6.getProperty;
-  } });
-  Object.defineProperty(h0, "stringify", { enumerable: true, get: function() {
-    return Q6.stringify;
-  } });
-  Object.defineProperty(h0, "regexpCode", { enumerable: true, get: function() {
-    return Q6.regexpCode;
-  } });
-  Object.defineProperty(h0, "Name", { enumerable: true, get: function() {
-    return Q6.Name;
-  } });
-  var WQ = m$();
-  Object.defineProperty(h0, "Scope", { enumerable: true, get: function() {
-    return WQ.Scope;
-  } });
-  Object.defineProperty(h0, "ValueScope", { enumerable: true, get: function() {
-    return WQ.ValueScope;
-  } });
-  Object.defineProperty(h0, "ValueScopeName", { enumerable: true, get: function() {
-    return WQ.ValueScopeName;
-  } });
-  Object.defineProperty(h0, "varKinds", { enumerable: true, get: function() {
-    return WQ.varKinds;
-  } });
-  h0.operators = { GT: new r._Code(">"), GTE: new r._Code(">="), LT: new r._Code("<"), LTE: new r._Code("<="), EQ: new r._Code("==="), NEQ: new r._Code("!=="), NOT: new r._Code("!"), OR: new r._Code("||"), AND: new r._Code("&&"), ADD: new r._Code("+") };
-  class X6 {
-    optimizeNodes() {
-      return this;
-    }
-    optimizeNames(Q, X) {
-      return this;
-    }
-  }
-  class U3 extends X6 {
-    constructor(Q, X, Y) {
-      super();
-      this.varKind = Q, this.name = X, this.rhs = Y;
-    }
-    render({ es5: Q, _n: X }) {
-      let Y = Q ? K1.varKinds.var : this.varKind, $ = this.rhs === void 0 ? "" : ` = ${this.rhs}`;
-      return `${Y} ${this.name}${$};` + X;
-    }
-    optimizeNames(Q, X) {
-      if (!Q[this.name.str]) return;
-      if (this.rhs) this.rhs = A9(this.rhs, Q, X);
-      return this;
-    }
-    get names() {
-      return this.rhs instanceof r._CodeOrName ? this.rhs.names : {};
-    }
-  }
-  class p$ extends X6 {
-    constructor(Q, X, Y) {
-      super();
-      this.lhs = Q, this.rhs = X, this.sideEffects = Y;
-    }
-    render({ _n: Q }) {
-      return `${this.lhs} = ${this.rhs};` + Q;
-    }
-    optimizeNames(Q, X) {
-      if (this.lhs instanceof r.Name && !Q[this.lhs.str] && !this.sideEffects) return;
-      return this.rhs = A9(this.rhs, Q, X), this;
-    }
-    get names() {
-      let Q = this.lhs instanceof r.Name ? {} : { ...this.lhs.names };
-      return JQ(Q, this.rhs);
-    }
-  }
-  class L3 extends p$ {
-    constructor(Q, X, Y, $) {
-      super(Q, Y, $);
-      this.op = X;
-    }
-    render({ _n: Q }) {
-      return `${this.lhs} ${this.op}= ${this.rhs};` + Q;
-    }
-  }
-  class F3 extends X6 {
-    constructor(Q) {
-      super();
-      this.label = Q, this.names = {};
-    }
-    render({ _n: Q }) {
-      return `${this.label}:` + Q;
-    }
-  }
-  class N3 extends X6 {
-    constructor(Q) {
-      super();
-      this.label = Q, this.names = {};
-    }
-    render({ _n: Q }) {
-      return `break${this.label ? ` ${this.label}` : ""};` + Q;
-    }
-  }
-  class O3 extends X6 {
-    constructor(Q) {
-      super();
-      this.error = Q;
-    }
-    render({ _n: Q }) {
-      return `throw ${this.error};` + Q;
-    }
-    get names() {
-      return this.error.names;
-    }
-  }
-  class D3 extends X6 {
-    constructor(Q) {
-      super();
-      this.code = Q;
-    }
-    render({ _n: Q }) {
-      return `${this.code};` + Q;
-    }
-    optimizeNodes() {
-      return `${this.code}` ? this : void 0;
-    }
-    optimizeNames(Q, X) {
-      return this.code = A9(this.code, Q, X), this;
-    }
-    get names() {
-      return this.code instanceof r._CodeOrName ? this.code.names : {};
-    }
-  }
-  class GQ extends X6 {
-    constructor(Q = []) {
-      super();
-      this.nodes = Q;
-    }
-    render(Q) {
-      return this.nodes.reduce((X, Y) => X + Y.render(Q), "");
-    }
-    optimizeNodes() {
-      let { nodes: Q } = this, X = Q.length;
-      while (X--) {
-        let Y = Q[X].optimizeNodes();
-        if (Array.isArray(Y)) Q.splice(X, 1, ...Y);
-        else if (Y) Q[X] = Y;
-        else Q.splice(X, 1);
-      }
-      return Q.length > 0 ? this : void 0;
-    }
-    optimizeNames(Q, X) {
-      let { nodes: Y } = this, $ = Y.length;
-      while ($--) {
-        let J = Y[$];
-        if (J.optimizeNames(Q, X)) continue;
-        bM(Q, J.names), Y.splice($, 1);
-      }
-      return Y.length > 0 ? this : void 0;
-    }
-    get names() {
-      return this.nodes.reduce((Q, X) => E6(Q, X.names), {});
-    }
-  }
-  class Y6 extends GQ {
-    render(Q) {
-      return "{" + Q._n + super.render(Q) + "}" + Q._n;
-    }
-  }
-  class M3 extends GQ {
-  }
-  class w4 extends Y6 {
-  }
-  w4.kind = "else";
-  class _1 extends Y6 {
-    constructor(Q, X) {
-      super(X);
-      this.condition = Q;
-    }
-    render(Q) {
-      let X = `if(${this.condition})` + super.render(Q);
-      if (this.else) X += "else " + this.else.render(Q);
-      return X;
-    }
-    optimizeNodes() {
-      super.optimizeNodes();
-      let Q = this.condition;
-      if (Q === true) return this.nodes;
-      let X = this.else;
-      if (X) {
-        let Y = X.optimizeNodes();
-        X = this.else = Array.isArray(Y) ? new w4(Y) : Y;
-      }
-      if (X) {
-        if (Q === false) return X instanceof _1 ? X : X.nodes;
-        if (this.nodes.length) return this;
-        return new _1(I3(Q), X instanceof _1 ? [X] : X.nodes);
-      }
-      if (Q === false || !this.nodes.length) return;
-      return this;
-    }
-    optimizeNames(Q, X) {
-      var Y;
-      if (this.else = (Y = this.else) === null || Y === void 0 ? void 0 : Y.optimizeNames(Q, X), !(super.optimizeNames(Q, X) || this.else)) return;
-      return this.condition = A9(this.condition, Q, X), this;
-    }
-    get names() {
-      let Q = super.names;
-      if (JQ(Q, this.condition), this.else) E6(Q, this.else.names);
-      return Q;
-    }
-  }
-  _1.kind = "if";
-  class w9 extends Y6 {
-  }
-  w9.kind = "for";
-  class w3 extends w9 {
-    constructor(Q) {
-      super();
-      this.iteration = Q;
-    }
-    render(Q) {
-      return `for(${this.iteration})` + super.render(Q);
-    }
-    optimizeNames(Q, X) {
-      if (!super.optimizeNames(Q, X)) return;
-      return this.iteration = A9(this.iteration, Q, X), this;
-    }
-    get names() {
-      return E6(super.names, this.iteration.names);
-    }
-  }
-  class A3 extends w9 {
-    constructor(Q, X, Y, $) {
-      super();
-      this.varKind = Q, this.name = X, this.from = Y, this.to = $;
-    }
-    render(Q) {
-      let X = Q.es5 ? K1.varKinds.var : this.varKind, { name: Y, from: $, to: J } = this;
-      return `for(${X} ${Y}=${$}; ${Y}<${J}; ${Y}++)` + super.render(Q);
-    }
-    get names() {
-      let Q = JQ(super.names, this.from);
-      return JQ(Q, this.to);
-    }
-  }
-  class l$ extends w9 {
-    constructor(Q, X, Y, $) {
-      super();
-      this.loop = Q, this.varKind = X, this.name = Y, this.iterable = $;
-    }
-    render(Q) {
-      return `for(${this.varKind} ${this.name} ${this.loop} ${this.iterable})` + super.render(Q);
-    }
-    optimizeNames(Q, X) {
-      if (!super.optimizeNames(Q, X)) return;
-      return this.iterable = A9(this.iterable, Q, X), this;
-    }
-    get names() {
-      return E6(super.names, this.iterable.names);
-    }
-  }
-  class QQ extends Y6 {
-    constructor(Q, X, Y) {
-      super();
-      this.name = Q, this.args = X, this.async = Y;
-    }
-    render(Q) {
-      return `${this.async ? "async " : ""}function ${this.name}(${this.args})` + super.render(Q);
-    }
-  }
-  QQ.kind = "func";
-  class XQ extends GQ {
-    render(Q) {
-      return "return " + super.render(Q);
-    }
-  }
-  XQ.kind = "return";
-  class j3 extends Y6 {
-    render(Q) {
-      let X = "try" + super.render(Q);
-      if (this.catch) X += this.catch.render(Q);
-      if (this.finally) X += this.finally.render(Q);
-      return X;
-    }
-    optimizeNodes() {
-      var Q, X;
-      return super.optimizeNodes(), (Q = this.catch) === null || Q === void 0 || Q.optimizeNodes(), (X = this.finally) === null || X === void 0 || X.optimizeNodes(), this;
-    }
-    optimizeNames(Q, X) {
-      var Y, $;
-      return super.optimizeNames(Q, X), (Y = this.catch) === null || Y === void 0 || Y.optimizeNames(Q, X), ($ = this.finally) === null || $ === void 0 || $.optimizeNames(Q, X), this;
-    }
-    get names() {
-      let Q = super.names;
-      if (this.catch) E6(Q, this.catch.names);
-      if (this.finally) E6(Q, this.finally.names);
-      return Q;
-    }
-  }
-  class YQ extends Y6 {
-    constructor(Q) {
-      super();
-      this.error = Q;
-    }
-    render(Q) {
-      return `catch(${this.error})` + super.render(Q);
-    }
-  }
-  YQ.kind = "catch";
-  class $Q extends Y6 {
-    render(Q) {
-      return "finally" + super.render(Q);
-    }
-  }
-  $Q.kind = "finally";
-  class R3 {
-    constructor(Q, X = {}) {
-      this._values = {}, this._blockStarts = [], this._constants = {}, this.opts = { ...X, _n: X.lines ? `
-` : "" }, this._extScope = Q, this._scope = new K1.Scope({ parent: Q }), this._nodes = [new M3()];
-    }
-    toString() {
-      return this._root.render(this.opts);
-    }
-    name(Q) {
-      return this._scope.name(Q);
-    }
-    scopeName(Q) {
-      return this._extScope.name(Q);
-    }
-    scopeValue(Q, X) {
-      let Y = this._extScope.value(Q, X);
-      return (this._values[Y.prefix] || (this._values[Y.prefix] = /* @__PURE__ */ new Set())).add(Y), Y;
-    }
-    getScopeValue(Q, X) {
-      return this._extScope.getValue(Q, X);
-    }
-    scopeRefs(Q) {
-      return this._extScope.scopeRefs(Q, this._values);
-    }
-    scopeCode() {
-      return this._extScope.scopeCode(this._values);
-    }
-    _def(Q, X, Y, $) {
-      let J = this._scope.toName(X);
-      if (Y !== void 0 && $) this._constants[J.str] = Y;
-      return this._leafNode(new U3(Q, J, Y)), J;
-    }
-    const(Q, X, Y) {
-      return this._def(K1.varKinds.const, Q, X, Y);
-    }
-    let(Q, X, Y) {
-      return this._def(K1.varKinds.let, Q, X, Y);
-    }
-    var(Q, X, Y) {
-      return this._def(K1.varKinds.var, Q, X, Y);
-    }
-    assign(Q, X, Y) {
-      return this._leafNode(new p$(Q, X, Y));
-    }
-    add(Q, X) {
-      return this._leafNode(new L3(Q, h0.operators.ADD, X));
-    }
-    code(Q) {
-      if (typeof Q == "function") Q();
-      else if (Q !== r.nil) this._leafNode(new D3(Q));
-      return this;
-    }
-    object(...Q) {
-      let X = ["{"];
-      for (let [Y, $] of Q) {
-        if (X.length > 1) X.push(",");
-        if (X.push(Y), Y !== $ || this.opts.es5) X.push(":"), (0, r.addCodeArg)(X, $);
-      }
-      return X.push("}"), new r._Code(X);
-    }
-    if(Q, X, Y) {
-      if (this._blockNode(new _1(Q)), X && Y) this.code(X).else().code(Y).endIf();
-      else if (X) this.code(X).endIf();
-      else if (Y) throw Error('CodeGen: "else" body without "then" body');
-      return this;
-    }
-    elseIf(Q) {
-      return this._elseNode(new _1(Q));
-    }
-    else() {
-      return this._elseNode(new w4());
-    }
-    endIf() {
-      return this._endBlockNode(_1, w4);
-    }
-    _for(Q, X) {
-      if (this._blockNode(Q), X) this.code(X).endFor();
-      return this;
-    }
-    for(Q, X) {
-      return this._for(new w3(Q), X);
-    }
-    forRange(Q, X, Y, $, J = this.opts.es5 ? K1.varKinds.var : K1.varKinds.let) {
-      let W = this._scope.toName(Q);
-      return this._for(new A3(J, W, X, Y), () => $(W));
-    }
-    forOf(Q, X, Y, $ = K1.varKinds.const) {
-      let J = this._scope.toName(Q);
-      if (this.opts.es5) {
-        let W = X instanceof r.Name ? X : this.var("_arr", X);
-        return this.forRange("_i", 0, r._`${W}.length`, (G) => {
-          this.var(J, r._`${W}[${G}]`), Y(J);
-        });
-      }
-      return this._for(new l$("of", $, J, X), () => Y(J));
-    }
-    forIn(Q, X, Y, $ = this.opts.es5 ? K1.varKinds.var : K1.varKinds.const) {
-      if (this.opts.ownProperties) return this.forOf(Q, r._`Object.keys(${X})`, Y);
-      let J = this._scope.toName(Q);
-      return this._for(new l$("in", $, J, X), () => Y(J));
-    }
-    endFor() {
-      return this._endBlockNode(w9);
-    }
-    label(Q) {
-      return this._leafNode(new F3(Q));
-    }
-    break(Q) {
-      return this._leafNode(new N3(Q));
-    }
-    return(Q) {
-      let X = new XQ();
-      if (this._blockNode(X), this.code(Q), X.nodes.length !== 1) throw Error('CodeGen: "return" should have one node');
-      return this._endBlockNode(XQ);
-    }
-    try(Q, X, Y) {
-      if (!X && !Y) throw Error('CodeGen: "try" without "catch" and "finally"');
-      let $ = new j3();
-      if (this._blockNode($), this.code(Q), X) {
-        let J = this.name("e");
-        this._currNode = $.catch = new YQ(J), X(J);
-      }
-      if (Y) this._currNode = $.finally = new $Q(), this.code(Y);
-      return this._endBlockNode(YQ, $Q);
-    }
-    throw(Q) {
-      return this._leafNode(new O3(Q));
-    }
-    block(Q, X) {
-      if (this._blockStarts.push(this._nodes.length), Q) this.code(Q).endBlock(X);
-      return this;
-    }
-    endBlock(Q) {
-      let X = this._blockStarts.pop();
-      if (X === void 0) throw Error("CodeGen: not in self-balancing block");
-      let Y = this._nodes.length - X;
-      if (Y < 0 || Q !== void 0 && Y !== Q) throw Error(`CodeGen: wrong number of nodes: ${Y} vs ${Q} expected`);
-      return this._nodes.length = X, this;
-    }
-    func(Q, X = r.nil, Y, $) {
-      if (this._blockNode(new QQ(Q, X, Y)), $) this.code($).endFunc();
-      return this;
-    }
-    endFunc() {
-      return this._endBlockNode(QQ);
-    }
-    optimize(Q = 1) {
-      while (Q-- > 0) this._root.optimizeNodes(), this._root.optimizeNames(this._root.names, this._constants);
-    }
-    _leafNode(Q) {
-      return this._currNode.nodes.push(Q), this;
-    }
-    _blockNode(Q) {
-      this._currNode.nodes.push(Q), this._nodes.push(Q);
-    }
-    _endBlockNode(Q, X) {
-      let Y = this._currNode;
-      if (Y instanceof Q || X && Y instanceof X) return this._nodes.pop(), this;
-      throw Error(`CodeGen: not in block "${X ? `${Q.kind}/${X.kind}` : Q.kind}"`);
-    }
-    _elseNode(Q) {
-      let X = this._currNode;
-      if (!(X instanceof _1)) throw Error('CodeGen: "else" without "if"');
-      return this._currNode = X.else = Q, this;
-    }
-    get _root() {
-      return this._nodes[0];
-    }
-    get _currNode() {
-      let Q = this._nodes;
-      return Q[Q.length - 1];
-    }
-    set _currNode(Q) {
-      let X = this._nodes;
-      X[X.length - 1] = Q;
-    }
-  }
-  h0.CodeGen = R3;
-  function E6(Q, X) {
-    for (let Y in X) Q[Y] = (Q[Y] || 0) + (X[Y] || 0);
-    return Q;
-  }
-  function JQ(Q, X) {
-    return X instanceof r._CodeOrName ? E6(Q, X.names) : Q;
-  }
-  function A9(Q, X, Y) {
-    if (Q instanceof r.Name) return $(Q);
-    if (!J(Q)) return Q;
-    return new r._Code(Q._items.reduce((W, G) => {
-      if (G instanceof r.Name) G = $(G);
-      if (G instanceof r._Code) W.push(...G._items);
-      else W.push(G);
-      return W;
-    }, []));
-    function $(W) {
-      let G = Y[W.str];
-      if (G === void 0 || X[W.str] !== 1) return W;
-      return delete X[W.str], G;
-    }
-    function J(W) {
-      return W instanceof r._Code && W._items.some((G) => G instanceof r.Name && X[G.str] === 1 && Y[G.str] !== void 0);
-    }
-  }
-  function bM(Q, X) {
-    for (let Y in X) Q[Y] = (Q[Y] || 0) - (X[Y] || 0);
-  }
-  function I3(Q) {
-    return typeof Q == "boolean" || typeof Q == "number" || Q === null ? !Q : r._`!${c$(Q)}`;
-  }
-  h0.not = I3;
-  var EM = b3(h0.operators.AND);
-  function PM(...Q) {
-    return Q.reduce(EM);
-  }
-  h0.and = PM;
-  var ZM = b3(h0.operators.OR);
-  function CM(...Q) {
-    return Q.reduce(ZM);
-  }
-  h0.or = CM;
-  function b3(Q) {
-    return (X, Y) => X === r.nil ? Y : Y === r.nil ? X : r._`${c$(X)} ${Q} ${c$(Y)}`;
-  }
-  function c$(Q) {
-    return Q instanceof r.Name ? Q : r._`(${Q})`;
+var init_tslib = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/tslib.mjs"() {
   }
 });
-var a = E((T3) => {
-  Object.defineProperty(T3, "__esModule", { value: true });
-  T3.checkStrictMode = T3.getErrorPath = T3.Type = T3.useFunc = T3.setEvaluated = T3.evaluatedPropsToName = T3.mergeEvaluated = T3.eachItem = T3.unescapeJsonPointer = T3.escapeJsonPointer = T3.escapeFragment = T3.unescapeFragment = T3.schemaRefOrVal = T3.schemaHasRulesButRef = T3.schemaHasRules = T3.checkUnknownRules = T3.alwaysValidSchema = T3.toHash = void 0;
-  var Q0 = c(), vM = M4();
-  function TM(Q) {
-    let X = {};
-    for (let Y of Q) X[Y] = true;
-    return X;
-  }
-  T3.toHash = TM;
-  function xM(Q, X) {
-    if (typeof X == "boolean") return X;
-    if (Object.keys(X).length === 0) return true;
-    return C3(Q, X), !S3(X, Q.self.RULES.all);
-  }
-  T3.alwaysValidSchema = xM;
-  function C3(Q, X = Q.schema) {
-    let { opts: Y, self: $ } = Q;
-    if (!Y.strictSchema) return;
-    if (typeof X === "boolean") return;
-    let J = $.RULES.keywords;
-    for (let W in X) if (!J[W]) v3(Q, `unknown keyword: "${W}"`);
-  }
-  T3.checkUnknownRules = C3;
-  function S3(Q, X) {
-    if (typeof Q == "boolean") return !Q;
-    for (let Y in Q) if (X[Y]) return true;
-    return false;
-  }
-  T3.schemaHasRules = S3;
-  function yM(Q, X) {
-    if (typeof Q == "boolean") return !Q;
-    for (let Y in Q) if (Y !== "$ref" && X.all[Y]) return true;
-    return false;
-  }
-  T3.schemaHasRulesButRef = yM;
-  function gM({ topSchemaRef: Q, schemaPath: X }, Y, $, J) {
-    if (!J) {
-      if (typeof Y == "number" || typeof Y == "boolean") return Y;
-      if (typeof Y == "string") return Q0._`${Y}`;
-    }
-    return Q0._`${Q}${X}${(0, Q0.getProperty)($)}`;
-  }
-  T3.schemaRefOrVal = gM;
-  function hM(Q) {
-    return _3(decodeURIComponent(Q));
-  }
-  T3.unescapeFragment = hM;
-  function fM(Q) {
-    return encodeURIComponent(i$(Q));
-  }
-  T3.escapeFragment = fM;
-  function i$(Q) {
-    if (typeof Q == "number") return `${Q}`;
-    return Q.replace(/~/g, "~0").replace(/\//g, "~1");
-  }
-  T3.escapeJsonPointer = i$;
-  function _3(Q) {
-    return Q.replace(/~1/g, "/").replace(/~0/g, "~");
-  }
-  T3.unescapeJsonPointer = _3;
-  function uM(Q, X) {
-    if (Array.isArray(Q)) for (let Y of Q) X(Y);
-    else X(Q);
-  }
-  T3.eachItem = uM;
-  function P3({ mergeNames: Q, mergeToName: X, mergeValues: Y, resultToName: $ }) {
-    return (J, W, G, H) => {
-      let B = G === void 0 ? W : G instanceof Q0.Name ? (W instanceof Q0.Name ? Q(J, W, G) : X(J, W, G), G) : W instanceof Q0.Name ? (X(J, G, W), W) : Y(W, G);
-      return H === Q0.Name && !(B instanceof Q0.Name) ? $(J, B) : B;
+
+// node_modules/@anthropic-ai/sdk/internal/utils/uuid.mjs
+var uuid4;
+var init_uuid = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/utils/uuid.mjs"() {
+    uuid4 = function() {
+      const { crypto: crypto2 } = globalThis;
+      if (crypto2?.randomUUID) {
+        uuid4 = crypto2.randomUUID.bind(crypto2);
+        return crypto2.randomUUID();
+      }
+      const u8 = new Uint8Array(1);
+      const randomByte = crypto2 ? () => crypto2.getRandomValues(u8)[0] : () => Math.random() * 255 & 255;
+      return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) => (+c ^ randomByte() & 15 >> +c / 4).toString(16));
     };
   }
-  T3.mergeEvaluated = { props: P3({ mergeNames: (Q, X, Y) => Q.if(Q0._`${Y} !== true && ${X} !== undefined`, () => {
-    Q.if(Q0._`${X} === true`, () => Q.assign(Y, true), () => Q.assign(Y, Q0._`${Y} || {}`).code(Q0._`Object.assign(${Y}, ${X})`));
-  }), mergeToName: (Q, X, Y) => Q.if(Q0._`${Y} !== true`, () => {
-    if (X === true) Q.assign(Y, true);
-    else Q.assign(Y, Q0._`${Y} || {}`), n$(Q, Y, X);
-  }), mergeValues: (Q, X) => Q === true ? true : { ...Q, ...X }, resultToName: k3 }), items: P3({ mergeNames: (Q, X, Y) => Q.if(Q0._`${Y} !== true && ${X} !== undefined`, () => Q.assign(Y, Q0._`${X} === true ? true : ${Y} > ${X} ? ${Y} : ${X}`)), mergeToName: (Q, X, Y) => Q.if(Q0._`${Y} !== true`, () => Q.assign(Y, X === true ? true : Q0._`${Y} > ${X} ? ${Y} : ${X}`)), mergeValues: (Q, X) => Q === true ? true : Math.max(Q, X), resultToName: (Q, X) => Q.var("items", X) }) };
-  function k3(Q, X) {
-    if (X === true) return Q.var("props", true);
-    let Y = Q.var("props", Q0._`{}`);
-    if (X !== void 0) n$(Q, Y, X);
-    return Y;
-  }
-  T3.evaluatedPropsToName = k3;
-  function n$(Q, X, Y) {
-    Object.keys(Y).forEach(($) => Q.assign(Q0._`${X}${(0, Q0.getProperty)($)}`, true));
-  }
-  T3.setEvaluated = n$;
-  var Z3 = {};
-  function mM(Q, X) {
-    return Q.scopeValue("func", { ref: X, code: Z3[X.code] || (Z3[X.code] = new vM._Code(X.code)) });
-  }
-  T3.useFunc = mM;
-  var d$;
-  (function(Q) {
-    Q[Q.Num = 0] = "Num", Q[Q.Str = 1] = "Str";
-  })(d$ || (T3.Type = d$ = {}));
-  function lM(Q, X, Y) {
-    if (Q instanceof Q0.Name) {
-      let $ = X === d$.Num;
-      return Y ? $ ? Q0._`"[" + ${Q} + "]"` : Q0._`"['" + ${Q} + "']"` : $ ? Q0._`"/" + ${Q}` : Q0._`"/" + ${Q}.replace(/~/g, "~0").replace(/\\//g, "~1")`;
-    }
-    return Y ? (0, Q0.getProperty)(Q).toString() : "/" + i$(Q);
-  }
-  T3.getErrorPath = lM;
-  function v3(Q, X, Y = Q.opts.strictSchema) {
-    if (!Y) return;
-    if (X = `strict mode: ${X}`, Y === true) throw Error(X);
-    Q.self.logger.warn(X);
-  }
-  T3.checkStrictMode = v3;
 });
-var k1 = E((y3) => {
-  Object.defineProperty(y3, "__esModule", { value: true });
-  var Z0 = c(), Gw = { data: new Z0.Name("data"), valCxt: new Z0.Name("valCxt"), instancePath: new Z0.Name("instancePath"), parentData: new Z0.Name("parentData"), parentDataProperty: new Z0.Name("parentDataProperty"), rootData: new Z0.Name("rootData"), dynamicAnchors: new Z0.Name("dynamicAnchors"), vErrors: new Z0.Name("vErrors"), errors: new Z0.Name("errors"), this: new Z0.Name("this"), self: new Z0.Name("self"), scope: new Z0.Name("scope"), json: new Z0.Name("json"), jsonPos: new Z0.Name("jsonPos"), jsonLen: new Z0.Name("jsonLen"), jsonPart: new Z0.Name("jsonPart") };
-  y3.default = Gw;
-});
-var A4 = E((u3) => {
-  Object.defineProperty(u3, "__esModule", { value: true });
-  u3.extendErrors = u3.resetErrorsCount = u3.reportExtraError = u3.reportError = u3.keyword$DataError = u3.keywordError = void 0;
-  var t = c(), BQ = a(), k0 = k1();
-  u3.keywordError = { message: ({ keyword: Q }) => t.str`must pass "${Q}" keyword validation` };
-  u3.keyword$DataError = { message: ({ keyword: Q, schemaType: X }) => X ? t.str`"${Q}" keyword must be ${X} ($data)` : t.str`"${Q}" keyword is invalid ($data)` };
-  function Bw(Q, X = u3.keywordError, Y, $) {
-    let { it: J } = Q, { gen: W, compositeRule: G, allErrors: H } = J, B = f3(Q, X, Y);
-    if ($ !== null && $ !== void 0 ? $ : G || H) g3(W, B);
-    else h3(J, t._`[${B}]`);
-  }
-  u3.reportError = Bw;
-  function zw(Q, X = u3.keywordError, Y) {
-    let { it: $ } = Q, { gen: J, compositeRule: W, allErrors: G } = $, H = f3(Q, X, Y);
-    if (g3(J, H), !(W || G)) h3($, k0.default.vErrors);
-  }
-  u3.reportExtraError = zw;
-  function Kw(Q, X) {
-    Q.assign(k0.default.errors, X), Q.if(t._`${k0.default.vErrors} !== null`, () => Q.if(X, () => Q.assign(t._`${k0.default.vErrors}.length`, X), () => Q.assign(k0.default.vErrors, null)));
-  }
-  u3.resetErrorsCount = Kw;
-  function Vw({ gen: Q, keyword: X, schemaValue: Y, data: $, errsCount: J, it: W }) {
-    if (J === void 0) throw Error("ajv implementation error");
-    let G = Q.name("err");
-    Q.forRange("i", J, k0.default.errors, (H) => {
-      if (Q.const(G, t._`${k0.default.vErrors}[${H}]`), Q.if(t._`${G}.instancePath === undefined`, () => Q.assign(t._`${G}.instancePath`, (0, t.strConcat)(k0.default.instancePath, W.errorPath))), Q.assign(t._`${G}.schemaPath`, t.str`${W.errSchemaPath}/${X}`), W.opts.verbose) Q.assign(t._`${G}.schema`, Y), Q.assign(t._`${G}.data`, $);
-    });
-  }
-  u3.extendErrors = Vw;
-  function g3(Q, X) {
-    let Y = Q.const("err", X);
-    Q.if(t._`${k0.default.vErrors} === null`, () => Q.assign(k0.default.vErrors, t._`[${Y}]`), t._`${k0.default.vErrors}.push(${Y})`), Q.code(t._`${k0.default.errors}++`);
-  }
-  function h3(Q, X) {
-    let { gen: Y, validateName: $, schemaEnv: J } = Q;
-    if (J.$async) Y.throw(t._`new ${Q.ValidationError}(${X})`);
-    else Y.assign(t._`${$}.errors`, X), Y.return(false);
-  }
-  var P6 = { keyword: new t.Name("keyword"), schemaPath: new t.Name("schemaPath"), params: new t.Name("params"), propertyName: new t.Name("propertyName"), message: new t.Name("message"), schema: new t.Name("schema"), parentSchema: new t.Name("parentSchema") };
-  function f3(Q, X, Y) {
-    let { createErrors: $ } = Q.it;
-    if ($ === false) return t._`{}`;
-    return qw(Q, X, Y);
-  }
-  function qw(Q, X, Y = {}) {
-    let { gen: $, it: J } = Q, W = [Uw(J, Y), Lw(Q, Y)];
-    return Fw(Q, X, W), $.object(...W);
-  }
-  function Uw({ errorPath: Q }, { instancePath: X }) {
-    let Y = X ? t.str`${Q}${(0, BQ.getErrorPath)(X, BQ.Type.Str)}` : Q;
-    return [k0.default.instancePath, (0, t.strConcat)(k0.default.instancePath, Y)];
-  }
-  function Lw({ keyword: Q, it: { errSchemaPath: X } }, { schemaPath: Y, parentSchema: $ }) {
-    let J = $ ? X : t.str`${X}/${Q}`;
-    if (Y) J = t.str`${J}${(0, BQ.getErrorPath)(Y, BQ.Type.Str)}`;
-    return [P6.schemaPath, J];
-  }
-  function Fw(Q, { params: X, message: Y }, $) {
-    let { keyword: J, data: W, schemaValue: G, it: H } = Q, { opts: B, propertyName: z, topSchemaRef: K, schemaPath: U } = H;
-    if ($.push([P6.keyword, J], [P6.params, typeof X == "function" ? X(Q) : X || t._`{}`]), B.messages) $.push([P6.message, typeof Y == "function" ? Y(Q) : Y]);
-    if (B.verbose) $.push([P6.schema, G], [P6.parentSchema, t._`${K}${U}`], [k0.default.data, W]);
-    if (z) $.push([P6.propertyName, z]);
-  }
-});
-var d3 = E((c3) => {
-  Object.defineProperty(c3, "__esModule", { value: true });
-  c3.boolOrEmptySchema = c3.topBoolOrEmptySchema = void 0;
-  var ww = A4(), Aw = c(), jw = k1(), Rw = { message: "boolean schema is false" };
-  function Iw(Q) {
-    let { gen: X, schema: Y, validateName: $ } = Q;
-    if (Y === false) l3(Q, false);
-    else if (typeof Y == "object" && Y.$async === true) X.return(jw.default.data);
-    else X.assign(Aw._`${$}.errors`, null), X.return(true);
-  }
-  c3.topBoolOrEmptySchema = Iw;
-  function bw(Q, X) {
-    let { gen: Y, schema: $ } = Q;
-    if ($ === false) Y.var(X, false), l3(Q);
-    else Y.var(X, true);
-  }
-  c3.boolOrEmptySchema = bw;
-  function l3(Q, X) {
-    let { gen: Y, data: $ } = Q, J = { gen: Y, keyword: "false schema", data: $, schema: false, schemaCode: false, schemaValue: false, params: {}, it: Q };
-    (0, ww.reportError)(J, Rw, void 0, X);
-  }
-});
-var r$ = E((i3) => {
-  Object.defineProperty(i3, "__esModule", { value: true });
-  i3.getRules = i3.isJSONType = void 0;
-  var Pw = ["string", "number", "integer", "boolean", "null", "object", "array"], Zw = new Set(Pw);
-  function Cw(Q) {
-    return typeof Q == "string" && Zw.has(Q);
-  }
-  i3.isJSONType = Cw;
-  function Sw() {
-    let Q = { number: { type: "number", rules: [] }, string: { type: "string", rules: [] }, array: { type: "array", rules: [] }, object: { type: "object", rules: [] } };
-    return { types: { ...Q, integer: true, boolean: true, null: true }, rules: [{ rules: [] }, Q.number, Q.string, Q.array, Q.object], post: { rules: [] }, all: {}, keywords: {} };
-  }
-  i3.getRules = Sw;
-});
-var t$ = E((t3) => {
-  Object.defineProperty(t3, "__esModule", { value: true });
-  t3.shouldUseRule = t3.shouldUseGroup = t3.schemaHasRulesForType = void 0;
-  function kw({ schema: Q, self: X }, Y) {
-    let $ = X.RULES.types[Y];
-    return $ && $ !== true && o3(Q, $);
-  }
-  t3.schemaHasRulesForType = kw;
-  function o3(Q, X) {
-    return X.rules.some((Y) => r3(Q, Y));
-  }
-  t3.shouldUseGroup = o3;
-  function r3(Q, X) {
-    var Y;
-    return Q[X.keyword] !== void 0 || ((Y = X.definition.implements) === null || Y === void 0 ? void 0 : Y.some(($) => Q[$] !== void 0));
-  }
-  t3.shouldUseRule = r3;
-});
-var j4 = E((XH) => {
-  Object.defineProperty(XH, "__esModule", { value: true });
-  XH.reportTypeError = XH.checkDataTypes = XH.checkDataType = XH.coerceAndCheckDataType = XH.getJSONTypes = XH.getSchemaTypes = XH.DataType = void 0;
-  var xw = r$(), yw = t$(), gw = A4(), l = c(), s3 = a(), j9;
-  (function(Q) {
-    Q[Q.Correct = 0] = "Correct", Q[Q.Wrong = 1] = "Wrong";
-  })(j9 || (XH.DataType = j9 = {}));
-  function hw(Q) {
-    let X = e3(Q.type);
-    if (X.includes("null")) {
-      if (Q.nullable === false) throw Error("type: null contradicts nullable: false");
-    } else {
-      if (!X.length && Q.nullable !== void 0) throw Error('"nullable" cannot be used without "type"');
-      if (Q.nullable === true) X.push("null");
-    }
-    return X;
-  }
-  XH.getSchemaTypes = hw;
-  function e3(Q) {
-    let X = Array.isArray(Q) ? Q : Q ? [Q] : [];
-    if (X.every(xw.isJSONType)) return X;
-    throw Error("type must be JSONType or JSONType[]: " + X.join(","));
-  }
-  XH.getJSONTypes = e3;
-  function fw(Q, X) {
-    let { gen: Y, data: $, opts: J } = Q, W = uw(X, J.coerceTypes), G = X.length > 0 && !(W.length === 0 && X.length === 1 && (0, yw.schemaHasRulesForType)(Q, X[0]));
-    if (G) {
-      let H = s$(X, $, J.strictNumbers, j9.Wrong);
-      Y.if(H, () => {
-        if (W.length) mw(Q, X, W);
-        else e$(Q);
-      });
-    }
-    return G;
-  }
-  XH.coerceAndCheckDataType = fw;
-  var QH = /* @__PURE__ */ new Set(["string", "number", "integer", "boolean", "null"]);
-  function uw(Q, X) {
-    return X ? Q.filter((Y) => QH.has(Y) || X === "array" && Y === "array") : [];
-  }
-  function mw(Q, X, Y) {
-    let { gen: $, data: J, opts: W } = Q, G = $.let("dataType", l._`typeof ${J}`), H = $.let("coerced", l._`undefined`);
-    if (W.coerceTypes === "array") $.if(l._`${G} == 'object' && Array.isArray(${J}) && ${J}.length == 1`, () => $.assign(J, l._`${J}[0]`).assign(G, l._`typeof ${J}`).if(s$(X, J, W.strictNumbers), () => $.assign(H, J)));
-    $.if(l._`${H} !== undefined`);
-    for (let z of Y) if (QH.has(z) || z === "array" && W.coerceTypes === "array") B(z);
-    $.else(), e$(Q), $.endIf(), $.if(l._`${H} !== undefined`, () => {
-      $.assign(J, H), lw(Q, H);
-    });
-    function B(z) {
-      switch (z) {
-        case "string":
-          $.elseIf(l._`${G} == "number" || ${G} == "boolean"`).assign(H, l._`"" + ${J}`).elseIf(l._`${J} === null`).assign(H, l._`""`);
-          return;
-        case "number":
-          $.elseIf(l._`${G} == "boolean" || ${J} === null
-              || (${G} == "string" && ${J} && ${J} == +${J})`).assign(H, l._`+${J}`);
-          return;
-        case "integer":
-          $.elseIf(l._`${G} === "boolean" || ${J} === null
-              || (${G} === "string" && ${J} && ${J} == +${J} && !(${J} % 1))`).assign(H, l._`+${J}`);
-          return;
-        case "boolean":
-          $.elseIf(l._`${J} === "false" || ${J} === 0 || ${J} === null`).assign(H, false).elseIf(l._`${J} === "true" || ${J} === 1`).assign(H, true);
-          return;
-        case "null":
-          $.elseIf(l._`${J} === "" || ${J} === 0 || ${J} === false`), $.assign(H, null);
-          return;
-        case "array":
-          $.elseIf(l._`${G} === "string" || ${G} === "number"
-              || ${G} === "boolean" || ${J} === null`).assign(H, l._`[${J}]`);
-      }
-    }
-  }
-  function lw({ gen: Q, parentData: X, parentDataProperty: Y }, $) {
-    Q.if(l._`${X} !== undefined`, () => Q.assign(l._`${X}[${Y}]`, $));
-  }
-  function a$(Q, X, Y, $ = j9.Correct) {
-    let J = $ === j9.Correct ? l.operators.EQ : l.operators.NEQ, W;
-    switch (Q) {
-      case "null":
-        return l._`${X} ${J} null`;
-      case "array":
-        W = l._`Array.isArray(${X})`;
-        break;
-      case "object":
-        W = l._`${X} && typeof ${X} == "object" && !Array.isArray(${X})`;
-        break;
-      case "integer":
-        W = G(l._`!(${X} % 1) && !isNaN(${X})`);
-        break;
-      case "number":
-        W = G();
-        break;
-      default:
-        return l._`typeof ${X} ${J} ${Q}`;
-    }
-    return $ === j9.Correct ? W : (0, l.not)(W);
-    function G(H = l.nil) {
-      return (0, l.and)(l._`typeof ${X} == "number"`, H, Y ? l._`isFinite(${X})` : l.nil);
-    }
-  }
-  XH.checkDataType = a$;
-  function s$(Q, X, Y, $) {
-    if (Q.length === 1) return a$(Q[0], X, Y, $);
-    let J, W = (0, s3.toHash)(Q);
-    if (W.array && W.object) {
-      let G = l._`typeof ${X} != "object"`;
-      J = W.null ? G : l._`!${X} || ${G}`, delete W.null, delete W.array, delete W.object;
-    } else J = l.nil;
-    if (W.number) delete W.integer;
-    for (let G in W) J = (0, l.and)(J, a$(G, X, Y, $));
-    return J;
-  }
-  XH.checkDataTypes = s$;
-  var cw = { message: ({ schema: Q }) => `must be ${Q}`, params: ({ schema: Q, schemaValue: X }) => typeof Q == "string" ? l._`{type: ${Q}}` : l._`{type: ${X}}` };
-  function e$(Q) {
-    let X = pw(Q);
-    (0, gw.reportError)(X, cw);
-  }
-  XH.reportTypeError = e$;
-  function pw(Q) {
-    let { gen: X, data: Y, schema: $ } = Q, J = (0, s3.schemaRefOrVal)(Q, $, "type");
-    return { gen: X, keyword: "type", data: Y, schema: $.type, schemaCode: J, schemaValue: J, parentSchema: $, params: {}, it: Q };
-  }
-});
-var GH = E((JH) => {
-  Object.defineProperty(JH, "__esModule", { value: true });
-  JH.assignDefaults = void 0;
-  var R9 = c(), aw = a();
-  function sw(Q, X) {
-    let { properties: Y, items: $ } = Q.schema;
-    if (X === "object" && Y) for (let J in Y) $H(Q, J, Y[J].default);
-    else if (X === "array" && Array.isArray($)) $.forEach((J, W) => $H(Q, W, J.default));
-  }
-  JH.assignDefaults = sw;
-  function $H(Q, X, Y) {
-    let { gen: $, compositeRule: J, data: W, opts: G } = Q;
-    if (Y === void 0) return;
-    let H = R9._`${W}${(0, R9.getProperty)(X)}`;
-    if (J) {
-      (0, aw.checkStrictMode)(Q, `default is ignored for: ${H}`);
-      return;
-    }
-    let B = R9._`${H} === undefined`;
-    if (G.useDefaults === "empty") B = R9._`${B} || ${H} === null || ${H} === ""`;
-    $.if(B, R9._`${H} = ${(0, R9.stringify)(Y)}`);
-  }
-});
-var e0 = E((zH) => {
-  Object.defineProperty(zH, "__esModule", { value: true });
-  zH.validateUnion = zH.validateArray = zH.usePattern = zH.callValidateCode = zH.schemaProperties = zH.allSchemaProperties = zH.noPropertyInData = zH.propertyInData = zH.isOwnProperty = zH.hasPropFunc = zH.reportMissingProp = zH.checkMissingProp = zH.checkReportMissingProp = void 0;
-  var H0 = c(), Q7 = a(), $6 = k1(), ew = a();
-  function QA(Q, X) {
-    let { gen: Y, data: $, it: J } = Q;
-    Y.if(Y7(Y, $, X, J.opts.ownProperties), () => {
-      Q.setParams({ missingProperty: H0._`${X}` }, true), Q.error();
-    });
-  }
-  zH.checkReportMissingProp = QA;
-  function XA({ gen: Q, data: X, it: { opts: Y } }, $, J) {
-    return (0, H0.or)(...$.map((W) => (0, H0.and)(Y7(Q, X, W, Y.ownProperties), H0._`${J} = ${W}`)));
-  }
-  zH.checkMissingProp = XA;
-  function YA(Q, X) {
-    Q.setParams({ missingProperty: X }, true), Q.error();
-  }
-  zH.reportMissingProp = YA;
-  function HH(Q) {
-    return Q.scopeValue("func", { ref: Object.prototype.hasOwnProperty, code: H0._`Object.prototype.hasOwnProperty` });
-  }
-  zH.hasPropFunc = HH;
-  function X7(Q, X, Y) {
-    return H0._`${HH(Q)}.call(${X}, ${Y})`;
-  }
-  zH.isOwnProperty = X7;
-  function $A(Q, X, Y, $) {
-    let J = H0._`${X}${(0, H0.getProperty)(Y)} !== undefined`;
-    return $ ? H0._`${J} && ${X7(Q, X, Y)}` : J;
-  }
-  zH.propertyInData = $A;
-  function Y7(Q, X, Y, $) {
-    let J = H0._`${X}${(0, H0.getProperty)(Y)} === undefined`;
-    return $ ? (0, H0.or)(J, (0, H0.not)(X7(Q, X, Y))) : J;
-  }
-  zH.noPropertyInData = Y7;
-  function BH(Q) {
-    return Q ? Object.keys(Q).filter((X) => X !== "__proto__") : [];
-  }
-  zH.allSchemaProperties = BH;
-  function JA(Q, X) {
-    return BH(X).filter((Y) => !(0, Q7.alwaysValidSchema)(Q, X[Y]));
-  }
-  zH.schemaProperties = JA;
-  function WA({ schemaCode: Q, data: X, it: { gen: Y, topSchemaRef: $, schemaPath: J, errorPath: W }, it: G }, H, B, z) {
-    let K = z ? H0._`${Q}, ${X}, ${$}${J}` : X, U = [[$6.default.instancePath, (0, H0.strConcat)($6.default.instancePath, W)], [$6.default.parentData, G.parentData], [$6.default.parentDataProperty, G.parentDataProperty], [$6.default.rootData, $6.default.rootData]];
-    if (G.opts.dynamicRef) U.push([$6.default.dynamicAnchors, $6.default.dynamicAnchors]);
-    let q = H0._`${K}, ${Y.object(...U)}`;
-    return B !== H0.nil ? H0._`${H}.call(${B}, ${q})` : H0._`${H}(${q})`;
-  }
-  zH.callValidateCode = WA;
-  var GA = H0._`new RegExp`;
-  function HA({ gen: Q, it: { opts: X } }, Y) {
-    let $ = X.unicodeRegExp ? "u" : "", { regExp: J } = X.code, W = J(Y, $);
-    return Q.scopeValue("pattern", { key: W.toString(), ref: W, code: H0._`${J.code === "new RegExp" ? GA : (0, ew.useFunc)(Q, J)}(${Y}, ${$})` });
-  }
-  zH.usePattern = HA;
-  function BA(Q) {
-    let { gen: X, data: Y, keyword: $, it: J } = Q, W = X.name("valid");
-    if (J.allErrors) {
-      let H = X.let("valid", true);
-      return G(() => X.assign(H, false)), H;
-    }
-    return X.var(W, true), G(() => X.break()), W;
-    function G(H) {
-      let B = X.const("len", H0._`${Y}.length`);
-      X.forRange("i", 0, B, (z) => {
-        Q.subschema({ keyword: $, dataProp: z, dataPropType: Q7.Type.Num }, W), X.if((0, H0.not)(W), H);
-      });
-    }
-  }
-  zH.validateArray = BA;
-  function zA(Q) {
-    let { gen: X, schema: Y, keyword: $, it: J } = Q;
-    if (!Array.isArray(Y)) throw Error("ajv implementation error");
-    if (Y.some((B) => (0, Q7.alwaysValidSchema)(J, B)) && !J.opts.unevaluated) return;
-    let G = X.let("valid", false), H = X.name("_valid");
-    X.block(() => Y.forEach((B, z) => {
-      let K = Q.subschema({ keyword: $, schemaProp: z, compositeRule: true }, H);
-      if (X.assign(G, H0._`${G} || ${H}`), !Q.mergeValidEvaluated(K, H)) X.if((0, H0.not)(G));
-    })), Q.result(G, () => Q.reset(), () => Q.error(true));
-  }
-  zH.validateUnion = zA;
-});
-var FH = E((UH) => {
-  Object.defineProperty(UH, "__esModule", { value: true });
-  UH.validateKeywordUsage = UH.validSchemaType = UH.funcKeywordCode = UH.macroKeywordCode = void 0;
-  var v0 = c(), Z6 = k1(), jA = e0(), RA = A4();
-  function IA(Q, X) {
-    let { gen: Y, keyword: $, schema: J, parentSchema: W, it: G } = Q, H = X.macro.call(G.self, J, W, G), B = qH(Y, $, H);
-    if (G.opts.validateSchema !== false) G.self.validateSchema(H, true);
-    let z = Y.name("valid");
-    Q.subschema({ schema: H, schemaPath: v0.nil, errSchemaPath: `${G.errSchemaPath}/${$}`, topSchemaRef: B, compositeRule: true }, z), Q.pass(z, () => Q.error(true));
-  }
-  UH.macroKeywordCode = IA;
-  function bA(Q, X) {
-    var Y;
-    let { gen: $, keyword: J, schema: W, parentSchema: G, $data: H, it: B } = Q;
-    PA(B, X);
-    let z = !H && X.compile ? X.compile.call(B.self, W, G, B) : X.validate, K = qH($, J, z), U = $.let("valid");
-    Q.block$data(U, q), Q.ok((Y = X.valid) !== null && Y !== void 0 ? Y : U);
-    function q() {
-      if (X.errors === false) {
-        if (F(), X.modifying) VH(Q);
-        M(() => Q.error());
-      } else {
-        let O = X.async ? V() : L();
-        if (X.modifying) VH(Q);
-        M(() => EA(Q, O));
-      }
-    }
-    function V() {
-      let O = $.let("ruleErrs", null);
-      return $.try(() => F(v0._`await `), (A) => $.assign(U, false).if(v0._`${A} instanceof ${B.ValidationError}`, () => $.assign(O, v0._`${A}.errors`), () => $.throw(A))), O;
-    }
-    function L() {
-      let O = v0._`${K}.errors`;
-      return $.assign(O, null), F(v0.nil), O;
-    }
-    function F(O = X.async ? v0._`await ` : v0.nil) {
-      let A = B.opts.passContext ? Z6.default.this : Z6.default.self, R = !("compile" in X && !H || X.schema === false);
-      $.assign(U, v0._`${O}${(0, jA.callValidateCode)(Q, K, A, R)}`, X.modifying);
-    }
-    function M(O) {
-      var A;
-      $.if((0, v0.not)((A = X.valid) !== null && A !== void 0 ? A : U), O);
-    }
-  }
-  UH.funcKeywordCode = bA;
-  function VH(Q) {
-    let { gen: X, data: Y, it: $ } = Q;
-    X.if($.parentData, () => X.assign(Y, v0._`${$.parentData}[${$.parentDataProperty}]`));
-  }
-  function EA(Q, X) {
-    let { gen: Y } = Q;
-    Y.if(v0._`Array.isArray(${X})`, () => {
-      Y.assign(Z6.default.vErrors, v0._`${Z6.default.vErrors} === null ? ${X} : ${Z6.default.vErrors}.concat(${X})`).assign(Z6.default.errors, v0._`${Z6.default.vErrors}.length`), (0, RA.extendErrors)(Q);
-    }, () => Q.error());
-  }
-  function PA({ schemaEnv: Q }, X) {
-    if (X.async && !Q.$async) throw Error("async keyword in sync schema");
-  }
-  function qH(Q, X, Y) {
-    if (Y === void 0) throw Error(`keyword "${X}" failed to compile`);
-    return Q.scopeValue("keyword", typeof Y == "function" ? { ref: Y } : { ref: Y, code: (0, v0.stringify)(Y) });
-  }
-  function ZA(Q, X, Y = false) {
-    return !X.length || X.some(($) => $ === "array" ? Array.isArray(Q) : $ === "object" ? Q && typeof Q == "object" && !Array.isArray(Q) : typeof Q == $ || Y && typeof Q > "u");
-  }
-  UH.validSchemaType = ZA;
-  function CA({ schema: Q, opts: X, self: Y, errSchemaPath: $ }, J, W) {
-    if (Array.isArray(J.keyword) ? !J.keyword.includes(W) : J.keyword !== W) throw Error("ajv implementation error");
-    let G = J.dependencies;
-    if (G === null || G === void 0 ? void 0 : G.some((H) => !Object.prototype.hasOwnProperty.call(Q, H))) throw Error(`parent schema must have dependencies of ${W}: ${G.join(",")}`);
-    if (J.validateSchema) {
-      if (!J.validateSchema(Q[W])) {
-        let B = `keyword "${W}" value is invalid at path "${$}": ` + Y.errorsText(J.validateSchema.errors);
-        if (X.validateSchema === "log") Y.logger.error(B);
-        else throw Error(B);
-      }
-    }
-  }
-  UH.validateKeywordUsage = CA;
-});
-var MH = E((OH) => {
-  Object.defineProperty(OH, "__esModule", { value: true });
-  OH.extendSubschemaMode = OH.extendSubschemaData = OH.getSubschema = void 0;
-  var R1 = c(), NH = a();
-  function vA(Q, { keyword: X, schemaProp: Y, schema: $, schemaPath: J, errSchemaPath: W, topSchemaRef: G }) {
-    if (X !== void 0 && $ !== void 0) throw Error('both "keyword" and "schema" passed, only one allowed');
-    if (X !== void 0) {
-      let H = Q.schema[X];
-      return Y === void 0 ? { schema: H, schemaPath: R1._`${Q.schemaPath}${(0, R1.getProperty)(X)}`, errSchemaPath: `${Q.errSchemaPath}/${X}` } : { schema: H[Y], schemaPath: R1._`${Q.schemaPath}${(0, R1.getProperty)(X)}${(0, R1.getProperty)(Y)}`, errSchemaPath: `${Q.errSchemaPath}/${X}/${(0, NH.escapeFragment)(Y)}` };
-    }
-    if ($ !== void 0) {
-      if (J === void 0 || W === void 0 || G === void 0) throw Error('"schemaPath", "errSchemaPath" and "topSchemaRef" are required with "schema"');
-      return { schema: $, schemaPath: J, topSchemaRef: G, errSchemaPath: W };
-    }
-    throw Error('either "keyword" or "schema" must be passed');
-  }
-  OH.getSubschema = vA;
-  function TA(Q, X, { dataProp: Y, dataPropType: $, data: J, dataTypes: W, propertyName: G }) {
-    if (J !== void 0 && Y !== void 0) throw Error('both "data" and "dataProp" passed, only one allowed');
-    let { gen: H } = X;
-    if (Y !== void 0) {
-      let { errorPath: z, dataPathArr: K, opts: U } = X, q = H.let("data", R1._`${X.data}${(0, R1.getProperty)(Y)}`, true);
-      B(q), Q.errorPath = R1.str`${z}${(0, NH.getErrorPath)(Y, $, U.jsPropertySyntax)}`, Q.parentDataProperty = R1._`${Y}`, Q.dataPathArr = [...K, Q.parentDataProperty];
-    }
-    if (J !== void 0) {
-      let z = J instanceof R1.Name ? J : H.let("data", J, true);
-      if (B(z), G !== void 0) Q.propertyName = G;
-    }
-    if (W) Q.dataTypes = W;
-    function B(z) {
-      Q.data = z, Q.dataLevel = X.dataLevel + 1, Q.dataTypes = [], X.definedProperties = /* @__PURE__ */ new Set(), Q.parentData = X.data, Q.dataNames = [...X.dataNames, z];
-    }
-  }
-  OH.extendSubschemaData = TA;
-  function xA(Q, { jtdDiscriminator: X, jtdMetadata: Y, compositeRule: $, createErrors: J, allErrors: W }) {
-    if ($ !== void 0) Q.compositeRule = $;
-    if (J !== void 0) Q.createErrors = J;
-    if (W !== void 0) Q.allErrors = W;
-    Q.jtdDiscriminator = X, Q.jtdMetadata = Y;
-  }
-  OH.extendSubschemaMode = xA;
-});
-var $7 = E((px, wH) => {
-  wH.exports = function Q(X, Y) {
-    if (X === Y) return true;
-    if (X && Y && typeof X == "object" && typeof Y == "object") {
-      if (X.constructor !== Y.constructor) return false;
-      var $, J, W;
-      if (Array.isArray(X)) {
-        if ($ = X.length, $ != Y.length) return false;
-        for (J = $; J-- !== 0; ) if (!Q(X[J], Y[J])) return false;
-        return true;
-      }
-      if (X.constructor === RegExp) return X.source === Y.source && X.flags === Y.flags;
-      if (X.valueOf !== Object.prototype.valueOf) return X.valueOf() === Y.valueOf();
-      if (X.toString !== Object.prototype.toString) return X.toString() === Y.toString();
-      if (W = Object.keys(X), $ = W.length, $ !== Object.keys(Y).length) return false;
-      for (J = $; J-- !== 0; ) if (!Object.prototype.hasOwnProperty.call(Y, W[J])) return false;
-      for (J = $; J-- !== 0; ) {
-        var G = W[J];
-        if (!Q(X[G], Y[G])) return false;
-      }
-      return true;
-    }
-    return X !== X && Y !== Y;
-  };
-});
-var jH = E((dx, AH) => {
-  var J6 = AH.exports = function(Q, X, Y) {
-    if (typeof X == "function") Y = X, X = {};
-    Y = X.cb || Y;
-    var $ = typeof Y == "function" ? Y : Y.pre || function() {
-    }, J = Y.post || function() {
-    };
-    zQ(X, $, J, Q, "", Q);
-  };
-  J6.keywords = { additionalItems: true, items: true, contains: true, additionalProperties: true, propertyNames: true, not: true, if: true, then: true, else: true };
-  J6.arrayKeywords = { items: true, allOf: true, anyOf: true, oneOf: true };
-  J6.propsKeywords = { $defs: true, definitions: true, properties: true, patternProperties: true, dependencies: true };
-  J6.skipKeywords = { default: true, enum: true, const: true, required: true, maximum: true, minimum: true, exclusiveMaximum: true, exclusiveMinimum: true, multipleOf: true, maxLength: true, minLength: true, pattern: true, format: true, maxItems: true, minItems: true, uniqueItems: true, maxProperties: true, minProperties: true };
-  function zQ(Q, X, Y, $, J, W, G, H, B, z) {
-    if ($ && typeof $ == "object" && !Array.isArray($)) {
-      X($, J, W, G, H, B, z);
-      for (var K in $) {
-        var U = $[K];
-        if (Array.isArray(U)) {
-          if (K in J6.arrayKeywords) for (var q = 0; q < U.length; q++) zQ(Q, X, Y, U[q], J + "/" + K + "/" + q, W, J, K, $, q);
-        } else if (K in J6.propsKeywords) {
-          if (U && typeof U == "object") for (var V in U) zQ(Q, X, Y, U[V], J + "/" + K + "/" + hA(V), W, J, K, $, V);
-        } else if (K in J6.keywords || Q.allKeys && !(K in J6.skipKeywords)) zQ(Q, X, Y, U, J + "/" + K, W, J, K, $);
-      }
-      Y($, J, W, G, H, B, z);
-    }
-  }
-  function hA(Q) {
-    return Q.replace(/~/g, "~0").replace(/\//g, "~1");
-  }
-});
-var R4 = E((EH) => {
-  Object.defineProperty(EH, "__esModule", { value: true });
-  EH.getSchemaRefs = EH.resolveUrl = EH.normalizeId = EH._getFullPath = EH.getFullPath = EH.inlineRef = void 0;
-  var fA = a(), uA = $7(), mA = jH(), lA = /* @__PURE__ */ new Set(["type", "format", "pattern", "maxLength", "minLength", "maxProperties", "minProperties", "maxItems", "minItems", "maximum", "minimum", "uniqueItems", "multipleOf", "required", "enum", "const"]);
-  function cA(Q, X = true) {
-    if (typeof Q == "boolean") return true;
-    if (X === true) return !J7(Q);
-    if (!X) return false;
-    return RH(Q) <= X;
-  }
-  EH.inlineRef = cA;
-  var pA = /* @__PURE__ */ new Set(["$ref", "$recursiveRef", "$recursiveAnchor", "$dynamicRef", "$dynamicAnchor"]);
-  function J7(Q) {
-    for (let X in Q) {
-      if (pA.has(X)) return true;
-      let Y = Q[X];
-      if (Array.isArray(Y) && Y.some(J7)) return true;
-      if (typeof Y == "object" && J7(Y)) return true;
-    }
-    return false;
-  }
-  function RH(Q) {
-    let X = 0;
-    for (let Y in Q) {
-      if (Y === "$ref") return 1 / 0;
-      if (X++, lA.has(Y)) continue;
-      if (typeof Q[Y] == "object") (0, fA.eachItem)(Q[Y], ($) => X += RH($));
-      if (X === 1 / 0) return 1 / 0;
-    }
-    return X;
-  }
-  function IH(Q, X = "", Y) {
-    if (Y !== false) X = I9(X);
-    let $ = Q.parse(X);
-    return bH(Q, $);
-  }
-  EH.getFullPath = IH;
-  function bH(Q, X) {
-    return Q.serialize(X).split("#")[0] + "#";
-  }
-  EH._getFullPath = bH;
-  var dA = /#\/?$/;
-  function I9(Q) {
-    return Q ? Q.replace(dA, "") : "";
-  }
-  EH.normalizeId = I9;
-  function iA(Q, X, Y) {
-    return Y = I9(Y), Q.resolve(X, Y);
-  }
-  EH.resolveUrl = iA;
-  var nA = /^[a-z_][-a-z0-9._]*$/i;
-  function oA(Q, X) {
-    if (typeof Q == "boolean") return {};
-    let { schemaId: Y, uriResolver: $ } = this.opts, J = I9(Q[Y] || X), W = { "": J }, G = IH($, J, false), H = {}, B = /* @__PURE__ */ new Set();
-    return mA(Q, { allKeys: true }, (U, q, V, L) => {
-      if (L === void 0) return;
-      let F = G + q, M = W[L];
-      if (typeof U[Y] == "string") M = O.call(this, U[Y]);
-      A.call(this, U.$anchor), A.call(this, U.$dynamicAnchor), W[q] = M;
-      function O(R) {
-        let Z = this.opts.uriResolver.resolve;
-        if (R = I9(M ? Z(M, R) : R), B.has(R)) throw K(R);
-        B.add(R);
-        let C = this.refs[R];
-        if (typeof C == "string") C = this.refs[C];
-        if (typeof C == "object") z(U, C.schema, R);
-        else if (R !== I9(F)) if (R[0] === "#") z(U, H[R], R), H[R] = U;
-        else this.refs[R] = F;
-        return R;
-      }
-      function A(R) {
-        if (typeof R == "string") {
-          if (!nA.test(R)) throw Error(`invalid anchor "${R}"`);
-          O.call(this, `#${R}`);
-        }
-      }
-    }), H;
-    function z(U, q, V) {
-      if (q !== void 0 && !uA(U, q)) throw K(V);
-    }
-    function K(U) {
-      return Error(`reference "${U}" resolves to more than one schema`);
-    }
-  }
-  EH.getSchemaRefs = oA;
-});
-var E4 = E((lH) => {
-  Object.defineProperty(lH, "__esModule", { value: true });
-  lH.getData = lH.KeywordCxt = lH.validateFunctionCode = void 0;
-  var kH = d3(), ZH = j4(), G7 = t$(), KQ = j4(), Qj = GH(), b4 = FH(), W7 = MH(), v = c(), f = k1(), Xj = R4(), v1 = a(), I4 = A4();
-  function Yj(Q) {
-    if (xH(Q)) {
-      if (yH(Q), TH(Q)) {
-        Wj(Q);
-        return;
-      }
-    }
-    vH(Q, () => (0, kH.topBoolOrEmptySchema)(Q));
-  }
-  lH.validateFunctionCode = Yj;
-  function vH({ gen: Q, validateName: X, schema: Y, schemaEnv: $, opts: J }, W) {
-    if (J.code.es5) Q.func(X, v._`${f.default.data}, ${f.default.valCxt}`, $.$async, () => {
-      Q.code(v._`"use strict"; ${CH(Y, J)}`), Jj(Q, J), Q.code(W);
-    });
-    else Q.func(X, v._`${f.default.data}, ${$j(J)}`, $.$async, () => Q.code(CH(Y, J)).code(W));
-  }
-  function $j(Q) {
-    return v._`{${f.default.instancePath}="", ${f.default.parentData}, ${f.default.parentDataProperty}, ${f.default.rootData}=${f.default.data}${Q.dynamicRef ? v._`, ${f.default.dynamicAnchors}={}` : v.nil}}={}`;
-  }
-  function Jj(Q, X) {
-    Q.if(f.default.valCxt, () => {
-      if (Q.var(f.default.instancePath, v._`${f.default.valCxt}.${f.default.instancePath}`), Q.var(f.default.parentData, v._`${f.default.valCxt}.${f.default.parentData}`), Q.var(f.default.parentDataProperty, v._`${f.default.valCxt}.${f.default.parentDataProperty}`), Q.var(f.default.rootData, v._`${f.default.valCxt}.${f.default.rootData}`), X.dynamicRef) Q.var(f.default.dynamicAnchors, v._`${f.default.valCxt}.${f.default.dynamicAnchors}`);
-    }, () => {
-      if (Q.var(f.default.instancePath, v._`""`), Q.var(f.default.parentData, v._`undefined`), Q.var(f.default.parentDataProperty, v._`undefined`), Q.var(f.default.rootData, f.default.data), X.dynamicRef) Q.var(f.default.dynamicAnchors, v._`{}`);
-    });
-  }
-  function Wj(Q) {
-    let { schema: X, opts: Y, gen: $ } = Q;
-    vH(Q, () => {
-      if (Y.$comment && X.$comment) hH(Q);
-      if (Kj(Q), $.let(f.default.vErrors, null), $.let(f.default.errors, 0), Y.unevaluated) Gj(Q);
-      gH(Q), Uj(Q);
-    });
-    return;
-  }
-  function Gj(Q) {
-    let { gen: X, validateName: Y } = Q;
-    Q.evaluated = X.const("evaluated", v._`${Y}.evaluated`), X.if(v._`${Q.evaluated}.dynamicProps`, () => X.assign(v._`${Q.evaluated}.props`, v._`undefined`)), X.if(v._`${Q.evaluated}.dynamicItems`, () => X.assign(v._`${Q.evaluated}.items`, v._`undefined`));
-  }
-  function CH(Q, X) {
-    let Y = typeof Q == "object" && Q[X.schemaId];
-    return Y && (X.code.source || X.code.process) ? v._`/*# sourceURL=${Y} */` : v.nil;
-  }
-  function Hj(Q, X) {
-    if (xH(Q)) {
-      if (yH(Q), TH(Q)) {
-        Bj(Q, X);
-        return;
-      }
-    }
-    (0, kH.boolOrEmptySchema)(Q, X);
-  }
-  function TH({ schema: Q, self: X }) {
-    if (typeof Q == "boolean") return !Q;
-    for (let Y in Q) if (X.RULES.all[Y]) return true;
-    return false;
-  }
-  function xH(Q) {
-    return typeof Q.schema != "boolean";
-  }
-  function Bj(Q, X) {
-    let { schema: Y, gen: $, opts: J } = Q;
-    if (J.$comment && Y.$comment) hH(Q);
-    Vj(Q), qj(Q);
-    let W = $.const("_errs", f.default.errors);
-    gH(Q, W), $.var(X, v._`${W} === ${f.default.errors}`);
-  }
-  function yH(Q) {
-    (0, v1.checkUnknownRules)(Q), zj(Q);
-  }
-  function gH(Q, X) {
-    if (Q.opts.jtd) return SH(Q, [], false, X);
-    let Y = (0, ZH.getSchemaTypes)(Q.schema), $ = (0, ZH.coerceAndCheckDataType)(Q, Y);
-    SH(Q, Y, !$, X);
-  }
-  function zj(Q) {
-    let { schema: X, errSchemaPath: Y, opts: $, self: J } = Q;
-    if (X.$ref && $.ignoreKeywordsWithRef && (0, v1.schemaHasRulesButRef)(X, J.RULES)) J.logger.warn(`$ref: keywords ignored in schema at path "${Y}"`);
-  }
-  function Kj(Q) {
-    let { schema: X, opts: Y } = Q;
-    if (X.default !== void 0 && Y.useDefaults && Y.strictSchema) (0, v1.checkStrictMode)(Q, "default is ignored in the schema root");
-  }
-  function Vj(Q) {
-    let X = Q.schema[Q.opts.schemaId];
-    if (X) Q.baseId = (0, Xj.resolveUrl)(Q.opts.uriResolver, Q.baseId, X);
-  }
-  function qj(Q) {
-    if (Q.schema.$async && !Q.schemaEnv.$async) throw Error("async schema in sync schema");
-  }
-  function hH({ gen: Q, schemaEnv: X, schema: Y, errSchemaPath: $, opts: J }) {
-    let W = Y.$comment;
-    if (J.$comment === true) Q.code(v._`${f.default.self}.logger.log(${W})`);
-    else if (typeof J.$comment == "function") {
-      let G = v.str`${$}/$comment`, H = Q.scopeValue("root", { ref: X.root });
-      Q.code(v._`${f.default.self}.opts.$comment(${W}, ${G}, ${H}.schema)`);
-    }
-  }
-  function Uj(Q) {
-    let { gen: X, schemaEnv: Y, validateName: $, ValidationError: J, opts: W } = Q;
-    if (Y.$async) X.if(v._`${f.default.errors} === 0`, () => X.return(f.default.data), () => X.throw(v._`new ${J}(${f.default.vErrors})`));
-    else {
-      if (X.assign(v._`${$}.errors`, f.default.vErrors), W.unevaluated) Lj(Q);
-      X.return(v._`${f.default.errors} === 0`);
-    }
-  }
-  function Lj({ gen: Q, evaluated: X, props: Y, items: $ }) {
-    if (Y instanceof v.Name) Q.assign(v._`${X}.props`, Y);
-    if ($ instanceof v.Name) Q.assign(v._`${X}.items`, $);
-  }
-  function SH(Q, X, Y, $) {
-    let { gen: J, schema: W, data: G, allErrors: H, opts: B, self: z } = Q, { RULES: K } = z;
-    if (W.$ref && (B.ignoreKeywordsWithRef || !(0, v1.schemaHasRulesButRef)(W, K))) {
-      J.block(() => uH(Q, "$ref", K.all.$ref.definition));
-      return;
-    }
-    if (!B.jtd) Fj(Q, X);
-    J.block(() => {
-      for (let q of K.rules) U(q);
-      U(K.post);
-    });
-    function U(q) {
-      if (!(0, G7.shouldUseGroup)(W, q)) return;
-      if (q.type) {
-        if (J.if((0, KQ.checkDataType)(q.type, G, B.strictNumbers)), _H(Q, q), X.length === 1 && X[0] === q.type && Y) J.else(), (0, KQ.reportTypeError)(Q);
-        J.endIf();
-      } else _H(Q, q);
-      if (!H) J.if(v._`${f.default.errors} === ${$ || 0}`);
-    }
-  }
-  function _H(Q, X) {
-    let { gen: Y, schema: $, opts: { useDefaults: J } } = Q;
-    if (J) (0, Qj.assignDefaults)(Q, X.type);
-    Y.block(() => {
-      for (let W of X.rules) if ((0, G7.shouldUseRule)($, W)) uH(Q, W.keyword, W.definition, X.type);
-    });
-  }
-  function Fj(Q, X) {
-    if (Q.schemaEnv.meta || !Q.opts.strictTypes) return;
-    if (Nj(Q, X), !Q.opts.allowUnionTypes) Oj(Q, X);
-    Dj(Q, Q.dataTypes);
-  }
-  function Nj(Q, X) {
-    if (!X.length) return;
-    if (!Q.dataTypes.length) {
-      Q.dataTypes = X;
-      return;
-    }
-    X.forEach((Y) => {
-      if (!fH(Q.dataTypes, Y)) H7(Q, `type "${Y}" not allowed by context "${Q.dataTypes.join(",")}"`);
-    }), wj(Q, X);
-  }
-  function Oj(Q, X) {
-    if (X.length > 1 && !(X.length === 2 && X.includes("null"))) H7(Q, "use allowUnionTypes to allow union type keyword");
-  }
-  function Dj(Q, X) {
-    let Y = Q.self.RULES.all;
-    for (let $ in Y) {
-      let J = Y[$];
-      if (typeof J == "object" && (0, G7.shouldUseRule)(Q.schema, J)) {
-        let { type: W } = J.definition;
-        if (W.length && !W.some((G) => Mj(X, G))) H7(Q, `missing type "${W.join(",")}" for keyword "${$}"`);
-      }
-    }
-  }
-  function Mj(Q, X) {
-    return Q.includes(X) || X === "number" && Q.includes("integer");
-  }
-  function fH(Q, X) {
-    return Q.includes(X) || X === "integer" && Q.includes("number");
-  }
-  function wj(Q, X) {
-    let Y = [];
-    for (let $ of Q.dataTypes) if (fH(X, $)) Y.push($);
-    else if (X.includes("integer") && $ === "number") Y.push("integer");
-    Q.dataTypes = Y;
-  }
-  function H7(Q, X) {
-    let Y = Q.schemaEnv.baseId + Q.errSchemaPath;
-    X += ` at "${Y}" (strictTypes)`, (0, v1.checkStrictMode)(Q, X, Q.opts.strictTypes);
-  }
-  class B7 {
-    constructor(Q, X, Y) {
-      if ((0, b4.validateKeywordUsage)(Q, X, Y), this.gen = Q.gen, this.allErrors = Q.allErrors, this.keyword = Y, this.data = Q.data, this.schema = Q.schema[Y], this.$data = X.$data && Q.opts.$data && this.schema && this.schema.$data, this.schemaValue = (0, v1.schemaRefOrVal)(Q, this.schema, Y, this.$data), this.schemaType = X.schemaType, this.parentSchema = Q.schema, this.params = {}, this.it = Q, this.def = X, this.$data) this.schemaCode = Q.gen.const("vSchema", mH(this.$data, Q));
-      else if (this.schemaCode = this.schemaValue, !(0, b4.validSchemaType)(this.schema, X.schemaType, X.allowUndefined)) throw Error(`${Y} value must be ${JSON.stringify(X.schemaType)}`);
-      if ("code" in X ? X.trackErrors : X.errors !== false) this.errsCount = Q.gen.const("_errs", f.default.errors);
-    }
-    result(Q, X, Y) {
-      this.failResult((0, v.not)(Q), X, Y);
-    }
-    failResult(Q, X, Y) {
-      if (this.gen.if(Q), Y) Y();
-      else this.error();
-      if (X) {
-        if (this.gen.else(), X(), this.allErrors) this.gen.endIf();
-      } else if (this.allErrors) this.gen.endIf();
-      else this.gen.else();
-    }
-    pass(Q, X) {
-      this.failResult((0, v.not)(Q), void 0, X);
-    }
-    fail(Q) {
-      if (Q === void 0) {
-        if (this.error(), !this.allErrors) this.gen.if(false);
-        return;
-      }
-      if (this.gen.if(Q), this.error(), this.allErrors) this.gen.endIf();
-      else this.gen.else();
-    }
-    fail$data(Q) {
-      if (!this.$data) return this.fail(Q);
-      let { schemaCode: X } = this;
-      this.fail(v._`${X} !== undefined && (${(0, v.or)(this.invalid$data(), Q)})`);
-    }
-    error(Q, X, Y) {
-      if (X) {
-        this.setParams(X), this._error(Q, Y), this.setParams({});
-        return;
-      }
-      this._error(Q, Y);
-    }
-    _error(Q, X) {
-      (Q ? I4.reportExtraError : I4.reportError)(this, this.def.error, X);
-    }
-    $dataError() {
-      (0, I4.reportError)(this, this.def.$dataError || I4.keyword$DataError);
-    }
-    reset() {
-      if (this.errsCount === void 0) throw Error('add "trackErrors" to keyword definition');
-      (0, I4.resetErrorsCount)(this.gen, this.errsCount);
-    }
-    ok(Q) {
-      if (!this.allErrors) this.gen.if(Q);
-    }
-    setParams(Q, X) {
-      if (X) Object.assign(this.params, Q);
-      else this.params = Q;
-    }
-    block$data(Q, X, Y = v.nil) {
-      this.gen.block(() => {
-        this.check$data(Q, Y), X();
-      });
-    }
-    check$data(Q = v.nil, X = v.nil) {
-      if (!this.$data) return;
-      let { gen: Y, schemaCode: $, schemaType: J, def: W } = this;
-      if (Y.if((0, v.or)(v._`${$} === undefined`, X)), Q !== v.nil) Y.assign(Q, true);
-      if (J.length || W.validateSchema) {
-        if (Y.elseIf(this.invalid$data()), this.$dataError(), Q !== v.nil) Y.assign(Q, false);
-      }
-      Y.else();
-    }
-    invalid$data() {
-      let { gen: Q, schemaCode: X, schemaType: Y, def: $, it: J } = this;
-      return (0, v.or)(W(), G());
-      function W() {
-        if (Y.length) {
-          if (!(X instanceof v.Name)) throw Error("ajv implementation error");
-          let H = Array.isArray(Y) ? Y : [Y];
-          return v._`${(0, KQ.checkDataTypes)(H, X, J.opts.strictNumbers, KQ.DataType.Wrong)}`;
-        }
-        return v.nil;
-      }
-      function G() {
-        if ($.validateSchema) {
-          let H = Q.scopeValue("validate$data", { ref: $.validateSchema });
-          return v._`!${H}(${X})`;
-        }
-        return v.nil;
-      }
-    }
-    subschema(Q, X) {
-      let Y = (0, W7.getSubschema)(this.it, Q);
-      (0, W7.extendSubschemaData)(Y, this.it, Q), (0, W7.extendSubschemaMode)(Y, Q);
-      let $ = { ...this.it, ...Y, items: void 0, props: void 0 };
-      return Hj($, X), $;
-    }
-    mergeEvaluated(Q, X) {
-      let { it: Y, gen: $ } = this;
-      if (!Y.opts.unevaluated) return;
-      if (Y.props !== true && Q.props !== void 0) Y.props = v1.mergeEvaluated.props($, Q.props, Y.props, X);
-      if (Y.items !== true && Q.items !== void 0) Y.items = v1.mergeEvaluated.items($, Q.items, Y.items, X);
-    }
-    mergeValidEvaluated(Q, X) {
-      let { it: Y, gen: $ } = this;
-      if (Y.opts.unevaluated && (Y.props !== true || Y.items !== true)) return $.if(X, () => this.mergeEvaluated(Q, v.Name)), true;
-    }
-  }
-  lH.KeywordCxt = B7;
-  function uH(Q, X, Y, $) {
-    let J = new B7(Q, Y, X);
-    if ("code" in Y) Y.code(J, $);
-    else if (J.$data && Y.validate) (0, b4.funcKeywordCode)(J, Y);
-    else if ("macro" in Y) (0, b4.macroKeywordCode)(J, Y);
-    else if (Y.compile || Y.validate) (0, b4.funcKeywordCode)(J, Y);
-  }
-  var Aj = /^\/(?:[^~]|~0|~1)*$/, jj = /^([0-9]+)(#|\/(?:[^~]|~0|~1)*)?$/;
-  function mH(Q, { dataLevel: X, dataNames: Y, dataPathArr: $ }) {
-    let J, W;
-    if (Q === "") return f.default.rootData;
-    if (Q[0] === "/") {
-      if (!Aj.test(Q)) throw Error(`Invalid JSON-pointer: ${Q}`);
-      J = Q, W = f.default.rootData;
-    } else {
-      let z = jj.exec(Q);
-      if (!z) throw Error(`Invalid JSON-pointer: ${Q}`);
-      let K = +z[1];
-      if (J = z[2], J === "#") {
-        if (K >= X) throw Error(B("property/index", K));
-        return $[X - K];
-      }
-      if (K > X) throw Error(B("data", K));
-      if (W = Y[X - K], !J) return W;
-    }
-    let G = W, H = J.split("/");
-    for (let z of H) if (z) W = v._`${W}${(0, v.getProperty)((0, v1.unescapeJsonPointer)(z))}`, G = v._`${G} && ${W}`;
-    return G;
-    function B(z, K) {
-      return `Cannot access ${z} ${K} levels up, current level is ${X}`;
-    }
-  }
-  lH.getData = mH;
-});
-var VQ = E((dH) => {
-  Object.defineProperty(dH, "__esModule", { value: true });
-  class pH extends Error {
-    constructor(Q) {
-      super("validation failed");
-      this.errors = Q, this.ajv = this.validation = true;
-    }
-  }
-  dH.default = pH;
-});
-var P4 = E((nH) => {
-  Object.defineProperty(nH, "__esModule", { value: true });
-  var z7 = R4();
-  class iH extends Error {
-    constructor(Q, X, Y, $) {
-      super($ || `can't resolve reference ${Y} from id ${X}`);
-      this.missingRef = (0, z7.resolveUrl)(Q, X, Y), this.missingSchema = (0, z7.normalizeId)((0, z7.getFullPath)(Q, this.missingRef));
-    }
-  }
-  nH.default = iH;
-});
-var UQ = E((tH) => {
-  Object.defineProperty(tH, "__esModule", { value: true });
-  tH.resolveSchema = tH.getCompilingSchema = tH.resolveRef = tH.compileSchema = tH.SchemaEnv = void 0;
-  var V1 = c(), Pj = VQ(), C6 = k1(), q1 = R4(), oH = a(), Zj = E4();
-  class Z4 {
-    constructor(Q) {
-      var X;
-      this.refs = {}, this.dynamicAnchors = {};
-      let Y;
-      if (typeof Q.schema == "object") Y = Q.schema;
-      this.schema = Q.schema, this.schemaId = Q.schemaId, this.root = Q.root || this, this.baseId = (X = Q.baseId) !== null && X !== void 0 ? X : (0, q1.normalizeId)(Y === null || Y === void 0 ? void 0 : Y[Q.schemaId || "$id"]), this.schemaPath = Q.schemaPath, this.localRefs = Q.localRefs, this.meta = Q.meta, this.$async = Y === null || Y === void 0 ? void 0 : Y.$async, this.refs = {};
-    }
-  }
-  tH.SchemaEnv = Z4;
-  function V7(Q) {
-    let X = rH.call(this, Q);
-    if (X) return X;
-    let Y = (0, q1.getFullPath)(this.opts.uriResolver, Q.root.baseId), { es5: $, lines: J } = this.opts.code, { ownProperties: W } = this.opts, G = new V1.CodeGen(this.scope, { es5: $, lines: J, ownProperties: W }), H;
-    if (Q.$async) H = G.scopeValue("Error", { ref: Pj.default, code: V1._`require("ajv/dist/runtime/validation_error").default` });
-    let B = G.scopeName("validate");
-    Q.validateName = B;
-    let z = { gen: G, allErrors: this.opts.allErrors, data: C6.default.data, parentData: C6.default.parentData, parentDataProperty: C6.default.parentDataProperty, dataNames: [C6.default.data], dataPathArr: [V1.nil], dataLevel: 0, dataTypes: [], definedProperties: /* @__PURE__ */ new Set(), topSchemaRef: G.scopeValue("schema", this.opts.code.source === true ? { ref: Q.schema, code: (0, V1.stringify)(Q.schema) } : { ref: Q.schema }), validateName: B, ValidationError: H, schema: Q.schema, schemaEnv: Q, rootId: Y, baseId: Q.baseId || Y, schemaPath: V1.nil, errSchemaPath: Q.schemaPath || (this.opts.jtd ? "" : "#"), errorPath: V1._`""`, opts: this.opts, self: this }, K;
-    try {
-      this._compilations.add(Q), (0, Zj.validateFunctionCode)(z), G.optimize(this.opts.code.optimize);
-      let U = G.toString();
-      if (K = `${G.scopeRefs(C6.default.scope)}return ${U}`, this.opts.code.process) K = this.opts.code.process(K, Q);
-      let V = Function(`${C6.default.self}`, `${C6.default.scope}`, K)(this, this.scope.get());
-      if (this.scope.value(B, { ref: V }), V.errors = null, V.schema = Q.schema, V.schemaEnv = Q, Q.$async) V.$async = true;
-      if (this.opts.code.source === true) V.source = { validateName: B, validateCode: U, scopeValues: G._values };
-      if (this.opts.unevaluated) {
-        let { props: L, items: F } = z;
-        if (V.evaluated = { props: L instanceof V1.Name ? void 0 : L, items: F instanceof V1.Name ? void 0 : F, dynamicProps: L instanceof V1.Name, dynamicItems: F instanceof V1.Name }, V.source) V.source.evaluated = (0, V1.stringify)(V.evaluated);
-      }
-      return Q.validate = V, Q;
-    } catch (U) {
-      if (delete Q.validate, delete Q.validateName, K) this.logger.error("Error compiling schema, function code:", K);
-      throw U;
-    } finally {
-      this._compilations.delete(Q);
-    }
-  }
-  tH.compileSchema = V7;
-  function Cj(Q, X, Y) {
-    var $;
-    Y = (0, q1.resolveUrl)(this.opts.uriResolver, X, Y);
-    let J = Q.refs[Y];
-    if (J) return J;
-    let W = kj.call(this, Q, Y);
-    if (W === void 0) {
-      let G = ($ = Q.localRefs) === null || $ === void 0 ? void 0 : $[Y], { schemaId: H } = this.opts;
-      if (G) W = new Z4({ schema: G, schemaId: H, root: Q, baseId: X });
-    }
-    if (W === void 0) return;
-    return Q.refs[Y] = Sj.call(this, W);
-  }
-  tH.resolveRef = Cj;
-  function Sj(Q) {
-    if ((0, q1.inlineRef)(Q.schema, this.opts.inlineRefs)) return Q.schema;
-    return Q.validate ? Q : V7.call(this, Q);
-  }
-  function rH(Q) {
-    for (let X of this._compilations) if (_j(X, Q)) return X;
-  }
-  tH.getCompilingSchema = rH;
-  function _j(Q, X) {
-    return Q.schema === X.schema && Q.root === X.root && Q.baseId === X.baseId;
-  }
-  function kj(Q, X) {
-    let Y;
-    while (typeof (Y = this.refs[X]) == "string") X = Y;
-    return Y || this.schemas[X] || qQ.call(this, Q, X);
-  }
-  function qQ(Q, X) {
-    let Y = this.opts.uriResolver.parse(X), $ = (0, q1._getFullPath)(this.opts.uriResolver, Y), J = (0, q1.getFullPath)(this.opts.uriResolver, Q.baseId, void 0);
-    if (Object.keys(Q.schema).length > 0 && $ === J) return K7.call(this, Y, Q);
-    let W = (0, q1.normalizeId)($), G = this.refs[W] || this.schemas[W];
-    if (typeof G == "string") {
-      let H = qQ.call(this, Q, G);
-      if (typeof (H === null || H === void 0 ? void 0 : H.schema) !== "object") return;
-      return K7.call(this, Y, H);
-    }
-    if (typeof (G === null || G === void 0 ? void 0 : G.schema) !== "object") return;
-    if (!G.validate) V7.call(this, G);
-    if (W === (0, q1.normalizeId)(X)) {
-      let { schema: H } = G, { schemaId: B } = this.opts, z = H[B];
-      if (z) J = (0, q1.resolveUrl)(this.opts.uriResolver, J, z);
-      return new Z4({ schema: H, schemaId: B, root: Q, baseId: J });
-    }
-    return K7.call(this, Y, G);
-  }
-  tH.resolveSchema = qQ;
-  var vj = /* @__PURE__ */ new Set(["properties", "patternProperties", "enum", "dependencies", "definitions"]);
-  function K7(Q, { baseId: X, schema: Y, root: $ }) {
-    var J;
-    if (((J = Q.fragment) === null || J === void 0 ? void 0 : J[0]) !== "/") return;
-    for (let H of Q.fragment.slice(1).split("/")) {
-      if (typeof Y === "boolean") return;
-      let B = Y[(0, oH.unescapeFragment)(H)];
-      if (B === void 0) return;
-      Y = B;
-      let z = typeof Y === "object" && Y[this.opts.schemaId];
-      if (!vj.has(H) && z) X = (0, q1.resolveUrl)(this.opts.uriResolver, X, z);
-    }
-    let W;
-    if (typeof Y != "boolean" && Y.$ref && !(0, oH.schemaHasRulesButRef)(Y, this.RULES)) {
-      let H = (0, q1.resolveUrl)(this.opts.uriResolver, X, Y.$ref);
-      W = qQ.call(this, $, H);
-    }
-    let { schemaId: G } = this.opts;
-    if (W = W || new Z4({ schema: Y, schemaId: G, root: $, baseId: X }), W.schema !== W.root.schema) return W;
-    return;
-  }
-});
-var sH = E((ax, hj) => {
-  hj.exports = { $id: "https://raw.githubusercontent.com/ajv-validator/ajv/master/lib/refs/data.json#", description: "Meta-schema for $data reference (JSON AnySchema extension proposal)", type: "object", required: ["$data"], properties: { $data: { type: "string", anyOf: [{ format: "relative-json-pointer" }, { format: "json-pointer" }] } }, additionalProperties: false };
-});
-var QB = E((sx, eH) => {
-  var fj = { 0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, a: 10, A: 10, b: 11, B: 11, c: 12, C: 12, d: 13, D: 13, e: 14, E: 14, f: 15, F: 15 };
-  eH.exports = { HEX: fj };
-});
-var BB = E((ex, HB) => {
-  var { HEX: uj } = QB(), mj = /^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/u;
-  function JB(Q) {
-    if (GB(Q, ".") < 3) return { host: Q, isIPV4: false };
-    let X = Q.match(mj) || [], [Y] = X;
-    if (Y) return { host: cj(Y, "."), isIPV4: true };
-    else return { host: Q, isIPV4: false };
-  }
-  function q7(Q, X = false) {
-    let Y = "", $ = true;
-    for (let J of Q) {
-      if (uj[J] === void 0) return;
-      if (J !== "0" && $ === true) $ = false;
-      if (!$) Y += J;
-    }
-    if (X && Y.length === 0) Y = "0";
-    return Y;
-  }
-  function lj(Q) {
-    let X = 0, Y = { error: false, address: "", zone: "" }, $ = [], J = [], W = false, G = false, H = false;
-    function B() {
-      if (J.length) {
-        if (W === false) {
-          let z = q7(J);
-          if (z !== void 0) $.push(z);
-          else return Y.error = true, false;
-        }
-        J.length = 0;
-      }
-      return true;
-    }
-    for (let z = 0; z < Q.length; z++) {
-      let K = Q[z];
-      if (K === "[" || K === "]") continue;
-      if (K === ":") {
-        if (G === true) H = true;
-        if (!B()) break;
-        if (X++, $.push(":"), X > 7) {
-          Y.error = true;
-          break;
-        }
-        if (z - 1 >= 0 && Q[z - 1] === ":") G = true;
-        continue;
-      } else if (K === "%") {
-        if (!B()) break;
-        W = true;
-      } else {
-        J.push(K);
-        continue;
-      }
-    }
-    if (J.length) if (W) Y.zone = J.join("");
-    else if (H) $.push(J.join(""));
-    else $.push(q7(J));
-    return Y.address = $.join(""), Y;
-  }
-  function WB(Q) {
-    if (GB(Q, ":") < 2) return { host: Q, isIPV6: false };
-    let X = lj(Q);
-    if (!X.error) {
-      let { address: Y, address: $ } = X;
-      if (X.zone) Y += "%" + X.zone, $ += "%25" + X.zone;
-      return { host: Y, escapedHost: $, isIPV6: true };
-    } else return { host: Q, isIPV6: false };
-  }
-  function cj(Q, X) {
-    let Y = "", $ = true, J = Q.length;
-    for (let W = 0; W < J; W++) {
-      let G = Q[W];
-      if (G === "0" && $) {
-        if (W + 1 <= J && Q[W + 1] === X || W + 1 === J) Y += G, $ = false;
-      } else {
-        if (G === X) $ = true;
-        else $ = false;
-        Y += G;
-      }
-    }
-    return Y;
-  }
-  function GB(Q, X) {
-    let Y = 0;
-    for (let $ = 0; $ < Q.length; $++) if (Q[$] === X) Y++;
-    return Y;
-  }
-  var XB = /^\.\.?\//u, YB = /^\/\.(?:\/|$)/u, $B = /^\/\.\.(?:\/|$)/u, pj = /^\/?(?:.|\n)*?(?=\/|$)/u;
-  function dj(Q) {
-    let X = [];
-    while (Q.length) if (Q.match(XB)) Q = Q.replace(XB, "");
-    else if (Q.match(YB)) Q = Q.replace(YB, "/");
-    else if (Q.match($B)) Q = Q.replace($B, "/"), X.pop();
-    else if (Q === "." || Q === "..") Q = "";
-    else {
-      let Y = Q.match(pj);
-      if (Y) {
-        let $ = Y[0];
-        Q = Q.slice($.length), X.push($);
-      } else throw Error("Unexpected dot segment condition");
-    }
-    return X.join("");
-  }
-  function ij(Q, X) {
-    let Y = X !== true ? escape : unescape;
-    if (Q.scheme !== void 0) Q.scheme = Y(Q.scheme);
-    if (Q.userinfo !== void 0) Q.userinfo = Y(Q.userinfo);
-    if (Q.host !== void 0) Q.host = Y(Q.host);
-    if (Q.path !== void 0) Q.path = Y(Q.path);
-    if (Q.query !== void 0) Q.query = Y(Q.query);
-    if (Q.fragment !== void 0) Q.fragment = Y(Q.fragment);
-    return Q;
-  }
-  function nj(Q) {
-    let X = [];
-    if (Q.userinfo !== void 0) X.push(Q.userinfo), X.push("@");
-    if (Q.host !== void 0) {
-      let Y = unescape(Q.host), $ = JB(Y);
-      if ($.isIPV4) Y = $.host;
-      else {
-        let J = WB($.host);
-        if (J.isIPV6 === true) Y = `[${J.escapedHost}]`;
-        else Y = Q.host;
-      }
-      X.push(Y);
-    }
-    if (typeof Q.port === "number" || typeof Q.port === "string") X.push(":"), X.push(String(Q.port));
-    return X.length ? X.join("") : void 0;
-  }
-  HB.exports = { recomposeAuthority: nj, normalizeComponentEncoding: ij, removeDotSegments: dj, normalizeIPv4: JB, normalizeIPv6: WB, stringArrayToHexStripped: q7 };
-});
-var LB = E((Qy, UB) => {
-  var oj = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/iu, rj = /([\da-z][\d\-a-z]{0,31}):((?:[\w!$'()*+,\-.:;=@]|%[\da-f]{2})+)/iu;
-  function zB(Q) {
-    return typeof Q.secure === "boolean" ? Q.secure : String(Q.scheme).toLowerCase() === "wss";
-  }
-  function KB(Q) {
-    if (!Q.host) Q.error = Q.error || "HTTP URIs must have a host.";
-    return Q;
-  }
-  function VB(Q) {
-    let X = String(Q.scheme).toLowerCase() === "https";
-    if (Q.port === (X ? 443 : 80) || Q.port === "") Q.port = void 0;
-    if (!Q.path) Q.path = "/";
-    return Q;
-  }
-  function tj(Q) {
-    return Q.secure = zB(Q), Q.resourceName = (Q.path || "/") + (Q.query ? "?" + Q.query : ""), Q.path = void 0, Q.query = void 0, Q;
-  }
-  function aj(Q) {
-    if (Q.port === (zB(Q) ? 443 : 80) || Q.port === "") Q.port = void 0;
-    if (typeof Q.secure === "boolean") Q.scheme = Q.secure ? "wss" : "ws", Q.secure = void 0;
-    if (Q.resourceName) {
-      let [X, Y] = Q.resourceName.split("?");
-      Q.path = X && X !== "/" ? X : void 0, Q.query = Y, Q.resourceName = void 0;
-    }
-    return Q.fragment = void 0, Q;
-  }
-  function sj(Q, X) {
-    if (!Q.path) return Q.error = "URN can not be parsed", Q;
-    let Y = Q.path.match(rj);
-    if (Y) {
-      let $ = X.scheme || Q.scheme || "urn";
-      Q.nid = Y[1].toLowerCase(), Q.nss = Y[2];
-      let J = `${$}:${X.nid || Q.nid}`, W = U7[J];
-      if (Q.path = void 0, W) Q = W.parse(Q, X);
-    } else Q.error = Q.error || "URN can not be parsed.";
-    return Q;
-  }
-  function ej(Q, X) {
-    let Y = X.scheme || Q.scheme || "urn", $ = Q.nid.toLowerCase(), J = `${Y}:${X.nid || $}`, W = U7[J];
-    if (W) Q = W.serialize(Q, X);
-    let G = Q, H = Q.nss;
-    return G.path = `${$ || X.nid}:${H}`, X.skipEscape = true, G;
-  }
-  function QR(Q, X) {
-    let Y = Q;
-    if (Y.uuid = Y.nss, Y.nss = void 0, !X.tolerant && (!Y.uuid || !oj.test(Y.uuid))) Y.error = Y.error || "UUID is not valid.";
-    return Y;
-  }
-  function XR(Q) {
-    let X = Q;
-    return X.nss = (Q.uuid || "").toLowerCase(), X;
-  }
-  var qB = { scheme: "http", domainHost: true, parse: KB, serialize: VB }, YR = { scheme: "https", domainHost: qB.domainHost, parse: KB, serialize: VB }, LQ = { scheme: "ws", domainHost: true, parse: tj, serialize: aj }, $R = { scheme: "wss", domainHost: LQ.domainHost, parse: LQ.parse, serialize: LQ.serialize }, JR = { scheme: "urn", parse: sj, serialize: ej, skipNormalize: true }, WR = { scheme: "urn:uuid", parse: QR, serialize: XR, skipNormalize: true }, U7 = { http: qB, https: YR, ws: LQ, wss: $R, urn: JR, "urn:uuid": WR };
-  UB.exports = U7;
-});
-var NB = E((Xy, NQ) => {
-  var { normalizeIPv6: GR, normalizeIPv4: HR, removeDotSegments: C4, recomposeAuthority: BR, normalizeComponentEncoding: FQ } = BB(), L7 = LB();
-  function zR(Q, X) {
-    if (typeof Q === "string") Q = I1(T1(Q, X), X);
-    else if (typeof Q === "object") Q = T1(I1(Q, X), X);
-    return Q;
-  }
-  function KR(Q, X, Y) {
-    let $ = Object.assign({ scheme: "null" }, Y), J = FB(T1(Q, $), T1(X, $), $, true);
-    return I1(J, { ...$, skipEscape: true });
-  }
-  function FB(Q, X, Y, $) {
-    let J = {};
-    if (!$) Q = T1(I1(Q, Y), Y), X = T1(I1(X, Y), Y);
-    if (Y = Y || {}, !Y.tolerant && X.scheme) J.scheme = X.scheme, J.userinfo = X.userinfo, J.host = X.host, J.port = X.port, J.path = C4(X.path || ""), J.query = X.query;
-    else {
-      if (X.userinfo !== void 0 || X.host !== void 0 || X.port !== void 0) J.userinfo = X.userinfo, J.host = X.host, J.port = X.port, J.path = C4(X.path || ""), J.query = X.query;
-      else {
-        if (!X.path) if (J.path = Q.path, X.query !== void 0) J.query = X.query;
-        else J.query = Q.query;
-        else {
-          if (X.path.charAt(0) === "/") J.path = C4(X.path);
-          else {
-            if ((Q.userinfo !== void 0 || Q.host !== void 0 || Q.port !== void 0) && !Q.path) J.path = "/" + X.path;
-            else if (!Q.path) J.path = X.path;
-            else J.path = Q.path.slice(0, Q.path.lastIndexOf("/") + 1) + X.path;
-            J.path = C4(J.path);
+
+// node_modules/@anthropic-ai/sdk/internal/errors.mjs
+function isAbortError(err) {
+  return typeof err === "object" && err !== null && // Spec-compliant fetch implementations
+  ("name" in err && err.name === "AbortError" || // Expo fetch
+  "message" in err && String(err.message).includes("FetchRequestCanceledException"));
+}
+var castToError;
+var init_errors = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/errors.mjs"() {
+    castToError = (err) => {
+      if (err instanceof Error)
+        return err;
+      if (typeof err === "object" && err !== null) {
+        try {
+          if (Object.prototype.toString.call(err) === "[object Error]") {
+            const error = new Error(err.message, err.cause ? { cause: err.cause } : {});
+            if (err.stack)
+              error.stack = err.stack;
+            if (err.cause && !error.cause)
+              error.cause = err.cause;
+            if (err.name)
+              error.name = err.name;
+            return error;
           }
-          J.query = X.query;
-        }
-        J.userinfo = Q.userinfo, J.host = Q.host, J.port = Q.port;
-      }
-      J.scheme = Q.scheme;
-    }
-    return J.fragment = X.fragment, J;
-  }
-  function VR(Q, X, Y) {
-    if (typeof Q === "string") Q = unescape(Q), Q = I1(FQ(T1(Q, Y), true), { ...Y, skipEscape: true });
-    else if (typeof Q === "object") Q = I1(FQ(Q, true), { ...Y, skipEscape: true });
-    if (typeof X === "string") X = unescape(X), X = I1(FQ(T1(X, Y), true), { ...Y, skipEscape: true });
-    else if (typeof X === "object") X = I1(FQ(X, true), { ...Y, skipEscape: true });
-    return Q.toLowerCase() === X.toLowerCase();
-  }
-  function I1(Q, X) {
-    let Y = { host: Q.host, scheme: Q.scheme, userinfo: Q.userinfo, port: Q.port, path: Q.path, query: Q.query, nid: Q.nid, nss: Q.nss, uuid: Q.uuid, fragment: Q.fragment, reference: Q.reference, resourceName: Q.resourceName, secure: Q.secure, error: "" }, $ = Object.assign({}, X), J = [], W = L7[($.scheme || Y.scheme || "").toLowerCase()];
-    if (W && W.serialize) W.serialize(Y, $);
-    if (Y.path !== void 0) if (!$.skipEscape) {
-      if (Y.path = escape(Y.path), Y.scheme !== void 0) Y.path = Y.path.split("%3A").join(":");
-    } else Y.path = unescape(Y.path);
-    if ($.reference !== "suffix" && Y.scheme) J.push(Y.scheme, ":");
-    let G = BR(Y);
-    if (G !== void 0) {
-      if ($.reference !== "suffix") J.push("//");
-      if (J.push(G), Y.path && Y.path.charAt(0) !== "/") J.push("/");
-    }
-    if (Y.path !== void 0) {
-      let H = Y.path;
-      if (!$.absolutePath && (!W || !W.absolutePath)) H = C4(H);
-      if (G === void 0) H = H.replace(/^\/\//u, "/%2F");
-      J.push(H);
-    }
-    if (Y.query !== void 0) J.push("?", Y.query);
-    if (Y.fragment !== void 0) J.push("#", Y.fragment);
-    return J.join("");
-  }
-  var qR = Array.from({ length: 127 }, (Q, X) => /[^!"$&'()*+,\-.;=_`a-z{}~]/u.test(String.fromCharCode(X)));
-  function UR(Q) {
-    let X = 0;
-    for (let Y = 0, $ = Q.length; Y < $; ++Y) if (X = Q.charCodeAt(Y), X > 126 || qR[X]) return true;
-    return false;
-  }
-  var LR = /^(?:([^#/:?]+):)?(?:\/\/((?:([^#/?@]*)@)?(\[[^#/?\]]+\]|[^#/:?]*)(?::(\d*))?))?([^#?]*)(?:\?([^#]*))?(?:#((?:.|[\n\r])*))?/u;
-  function T1(Q, X) {
-    let Y = Object.assign({}, X), $ = { scheme: void 0, userinfo: void 0, host: "", port: void 0, path: "", query: void 0, fragment: void 0 }, J = Q.indexOf("%") !== -1, W = false;
-    if (Y.reference === "suffix") Q = (Y.scheme ? Y.scheme + ":" : "") + "//" + Q;
-    let G = Q.match(LR);
-    if (G) {
-      if ($.scheme = G[1], $.userinfo = G[3], $.host = G[4], $.port = parseInt(G[5], 10), $.path = G[6] || "", $.query = G[7], $.fragment = G[8], isNaN($.port)) $.port = G[5];
-      if ($.host) {
-        let B = HR($.host);
-        if (B.isIPV4 === false) {
-          let z = GR(B.host);
-          $.host = z.host.toLowerCase(), W = z.isIPV6;
-        } else $.host = B.host, W = true;
-      }
-      if ($.scheme === void 0 && $.userinfo === void 0 && $.host === void 0 && $.port === void 0 && $.query === void 0 && !$.path) $.reference = "same-document";
-      else if ($.scheme === void 0) $.reference = "relative";
-      else if ($.fragment === void 0) $.reference = "absolute";
-      else $.reference = "uri";
-      if (Y.reference && Y.reference !== "suffix" && Y.reference !== $.reference) $.error = $.error || "URI is not a " + Y.reference + " reference.";
-      let H = L7[(Y.scheme || $.scheme || "").toLowerCase()];
-      if (!Y.unicodeSupport && (!H || !H.unicodeSupport)) {
-        if ($.host && (Y.domainHost || H && H.domainHost) && W === false && UR($.host)) try {
-          $.host = URL.domainToASCII($.host.toLowerCase());
-        } catch (B) {
-          $.error = $.error || "Host's domain name can not be converted to ASCII: " + B;
-        }
-      }
-      if (!H || H && !H.skipNormalize) {
-        if (J && $.scheme !== void 0) $.scheme = unescape($.scheme);
-        if (J && $.host !== void 0) $.host = unescape($.host);
-        if ($.path) $.path = escape(unescape($.path));
-        if ($.fragment) $.fragment = encodeURI(decodeURIComponent($.fragment));
-      }
-      if (H && H.parse) H.parse($, Y);
-    } else $.error = $.error || "URI can not be parsed.";
-    return $;
-  }
-  var F7 = { SCHEMES: L7, normalize: zR, resolve: KR, resolveComponents: FB, equal: VR, serialize: I1, parse: T1 };
-  NQ.exports = F7;
-  NQ.exports.default = F7;
-  NQ.exports.fastUri = F7;
-});
-var MB = E((DB) => {
-  Object.defineProperty(DB, "__esModule", { value: true });
-  var OB = NB();
-  OB.code = 'require("ajv/dist/runtime/uri").default';
-  DB.default = OB;
-});
-var PB = E((x1) => {
-  Object.defineProperty(x1, "__esModule", { value: true });
-  x1.CodeGen = x1.Name = x1.nil = x1.stringify = x1.str = x1._ = x1.KeywordCxt = void 0;
-  var NR = E4();
-  Object.defineProperty(x1, "KeywordCxt", { enumerable: true, get: function() {
-    return NR.KeywordCxt;
-  } });
-  var b9 = c();
-  Object.defineProperty(x1, "_", { enumerable: true, get: function() {
-    return b9._;
-  } });
-  Object.defineProperty(x1, "str", { enumerable: true, get: function() {
-    return b9.str;
-  } });
-  Object.defineProperty(x1, "stringify", { enumerable: true, get: function() {
-    return b9.stringify;
-  } });
-  Object.defineProperty(x1, "nil", { enumerable: true, get: function() {
-    return b9.nil;
-  } });
-  Object.defineProperty(x1, "Name", { enumerable: true, get: function() {
-    return b9.Name;
-  } });
-  Object.defineProperty(x1, "CodeGen", { enumerable: true, get: function() {
-    return b9.CodeGen;
-  } });
-  var OR = VQ(), IB = P4(), DR = r$(), S4 = UQ(), MR = c(), _4 = R4(), OQ = j4(), O7 = a(), wB = sH(), wR = MB(), bB = (Q, X) => new RegExp(Q, X);
-  bB.code = "new RegExp";
-  var AR = ["removeAdditional", "useDefaults", "coerceTypes"], jR = /* @__PURE__ */ new Set(["validate", "serialize", "parse", "wrapper", "root", "schema", "keyword", "pattern", "formats", "validate$data", "func", "obj", "Error"]), RR = { errorDataPath: "", format: "`validateFormats: false` can be used instead.", nullable: '"nullable" keyword is supported by default.', jsonPointers: "Deprecated jsPropertySyntax can be used instead.", extendRefs: "Deprecated ignoreKeywordsWithRef can be used instead.", missingRefs: "Pass empty schema with $id that should be ignored to ajv.addSchema.", processCode: "Use option `code: {process: (code, schemaEnv: object) => string}`", sourceCode: "Use option `code: {source: true}`", strictDefaults: "It is default now, see option `strict`.", strictKeywords: "It is default now, see option `strict`.", uniqueItems: '"uniqueItems" keyword is always validated.', unknownFormats: "Disable strict mode or pass `true` to `ajv.addFormat` (or `formats` option).", cache: "Map is used as cache, schema object as key.", serialize: "Map is used as cache, schema object as key.", ajvErrors: "It is default now." }, IR = { ignoreKeywordsWithRef: "", jsPropertySyntax: "", unicode: '"minLength"/"maxLength" account for unicode characters by default.' }, AB = 200;
-  function bR(Q) {
-    var X, Y, $, J, W, G, H, B, z, K, U, q, V, L, F, M, O, A, R, Z, C, B0, O0, d0, B6;
-    let F1 = Q.strict, z6 = (X = Q.code) === null || X === void 0 ? void 0 : X.optimize, y1 = z6 === true || z6 === void 0 ? 1 : z6 || 0, K6 = ($ = (Y = Q.code) === null || Y === void 0 ? void 0 : Y.regExp) !== null && $ !== void 0 ? $ : bB, h = (J = Q.uriResolver) !== null && J !== void 0 ? J : wR.default;
-    return { strictSchema: (G = (W = Q.strictSchema) !== null && W !== void 0 ? W : F1) !== null && G !== void 0 ? G : true, strictNumbers: (B = (H = Q.strictNumbers) !== null && H !== void 0 ? H : F1) !== null && B !== void 0 ? B : true, strictTypes: (K = (z = Q.strictTypes) !== null && z !== void 0 ? z : F1) !== null && K !== void 0 ? K : "log", strictTuples: (q = (U = Q.strictTuples) !== null && U !== void 0 ? U : F1) !== null && q !== void 0 ? q : "log", strictRequired: (L = (V = Q.strictRequired) !== null && V !== void 0 ? V : F1) !== null && L !== void 0 ? L : false, code: Q.code ? { ...Q.code, optimize: y1, regExp: K6 } : { optimize: y1, regExp: K6 }, loopRequired: (F = Q.loopRequired) !== null && F !== void 0 ? F : AB, loopEnum: (M = Q.loopEnum) !== null && M !== void 0 ? M : AB, meta: (O = Q.meta) !== null && O !== void 0 ? O : true, messages: (A = Q.messages) !== null && A !== void 0 ? A : true, inlineRefs: (R = Q.inlineRefs) !== null && R !== void 0 ? R : true, schemaId: (Z = Q.schemaId) !== null && Z !== void 0 ? Z : "$id", addUsedSchema: (C = Q.addUsedSchema) !== null && C !== void 0 ? C : true, validateSchema: (B0 = Q.validateSchema) !== null && B0 !== void 0 ? B0 : true, validateFormats: (O0 = Q.validateFormats) !== null && O0 !== void 0 ? O0 : true, unicodeRegExp: (d0 = Q.unicodeRegExp) !== null && d0 !== void 0 ? d0 : true, int32range: (B6 = Q.int32range) !== null && B6 !== void 0 ? B6 : true, uriResolver: h };
-  }
-  class DQ {
-    constructor(Q = {}) {
-      this.schemas = {}, this.refs = {}, this.formats = {}, this._compilations = /* @__PURE__ */ new Set(), this._loading = {}, this._cache = /* @__PURE__ */ new Map(), Q = this.opts = { ...Q, ...bR(Q) };
-      let { es5: X, lines: Y } = this.opts.code;
-      this.scope = new MR.ValueScope({ scope: {}, prefixes: jR, es5: X, lines: Y }), this.logger = _R(Q.logger);
-      let $ = Q.validateFormats;
-      if (Q.validateFormats = false, this.RULES = (0, DR.getRules)(), jB.call(this, RR, Q, "NOT SUPPORTED"), jB.call(this, IR, Q, "DEPRECATED", "warn"), this._metaOpts = CR.call(this), Q.formats) PR.call(this);
-      if (this._addVocabularies(), this._addDefaultMetaSchema(), Q.keywords) ZR.call(this, Q.keywords);
-      if (typeof Q.meta == "object") this.addMetaSchema(Q.meta);
-      ER.call(this), Q.validateFormats = $;
-    }
-    _addVocabularies() {
-      this.addKeyword("$async");
-    }
-    _addDefaultMetaSchema() {
-      let { $data: Q, meta: X, schemaId: Y } = this.opts, $ = wB;
-      if (Y === "id") $ = { ...wB }, $.id = $.$id, delete $.$id;
-      if (X && Q) this.addMetaSchema($, $[Y], false);
-    }
-    defaultMeta() {
-      let { meta: Q, schemaId: X } = this.opts;
-      return this.opts.defaultMeta = typeof Q == "object" ? Q[X] || Q : void 0;
-    }
-    validate(Q, X) {
-      let Y;
-      if (typeof Q == "string") {
-        if (Y = this.getSchema(Q), !Y) throw Error(`no schema with key or ref "${Q}"`);
-      } else Y = this.compile(Q);
-      let $ = Y(X);
-      if (!("$async" in Y)) this.errors = Y.errors;
-      return $;
-    }
-    compile(Q, X) {
-      let Y = this._addSchema(Q, X);
-      return Y.validate || this._compileSchemaEnv(Y);
-    }
-    compileAsync(Q, X) {
-      if (typeof this.opts.loadSchema != "function") throw Error("options.loadSchema should be a function");
-      let { loadSchema: Y } = this.opts;
-      return $.call(this, Q, X);
-      async function $(z, K) {
-        await J.call(this, z.$schema);
-        let U = this._addSchema(z, K);
-        return U.validate || W.call(this, U);
-      }
-      async function J(z) {
-        if (z && !this.getSchema(z)) await $.call(this, { $ref: z }, true);
-      }
-      async function W(z) {
-        try {
-          return this._compileSchemaEnv(z);
-        } catch (K) {
-          if (!(K instanceof IB.default)) throw K;
-          return G.call(this, K), await H.call(this, K.missingSchema), W.call(this, z);
-        }
-      }
-      function G({ missingSchema: z, missingRef: K }) {
-        if (this.refs[z]) throw Error(`AnySchema ${z} is loaded but ${K} cannot be resolved`);
-      }
-      async function H(z) {
-        let K = await B.call(this, z);
-        if (!this.refs[z]) await J.call(this, K.$schema);
-        if (!this.refs[z]) this.addSchema(K, z, X);
-      }
-      async function B(z) {
-        let K = this._loading[z];
-        if (K) return K;
-        try {
-          return await (this._loading[z] = Y(z));
-        } finally {
-          delete this._loading[z];
-        }
-      }
-    }
-    addSchema(Q, X, Y, $ = this.opts.validateSchema) {
-      if (Array.isArray(Q)) {
-        for (let W of Q) this.addSchema(W, void 0, Y, $);
-        return this;
-      }
-      let J;
-      if (typeof Q === "object") {
-        let { schemaId: W } = this.opts;
-        if (J = Q[W], J !== void 0 && typeof J != "string") throw Error(`schema ${W} must be string`);
-      }
-      return X = (0, _4.normalizeId)(X || J), this._checkUnique(X), this.schemas[X] = this._addSchema(Q, Y, X, $, true), this;
-    }
-    addMetaSchema(Q, X, Y = this.opts.validateSchema) {
-      return this.addSchema(Q, X, true, Y), this;
-    }
-    validateSchema(Q, X) {
-      if (typeof Q == "boolean") return true;
-      let Y;
-      if (Y = Q.$schema, Y !== void 0 && typeof Y != "string") throw Error("$schema must be a string");
-      if (Y = Y || this.opts.defaultMeta || this.defaultMeta(), !Y) return this.logger.warn("meta-schema not available"), this.errors = null, true;
-      let $ = this.validate(Y, Q);
-      if (!$ && X) {
-        let J = "schema is invalid: " + this.errorsText();
-        if (this.opts.validateSchema === "log") this.logger.error(J);
-        else throw Error(J);
-      }
-      return $;
-    }
-    getSchema(Q) {
-      let X;
-      while (typeof (X = RB.call(this, Q)) == "string") Q = X;
-      if (X === void 0) {
-        let { schemaId: Y } = this.opts, $ = new S4.SchemaEnv({ schema: {}, schemaId: Y });
-        if (X = S4.resolveSchema.call(this, $, Q), !X) return;
-        this.refs[Q] = X;
-      }
-      return X.validate || this._compileSchemaEnv(X);
-    }
-    removeSchema(Q) {
-      if (Q instanceof RegExp) return this._removeAllSchemas(this.schemas, Q), this._removeAllSchemas(this.refs, Q), this;
-      switch (typeof Q) {
-        case "undefined":
-          return this._removeAllSchemas(this.schemas), this._removeAllSchemas(this.refs), this._cache.clear(), this;
-        case "string": {
-          let X = RB.call(this, Q);
-          if (typeof X == "object") this._cache.delete(X.schema);
-          return delete this.schemas[Q], delete this.refs[Q], this;
-        }
-        case "object": {
-          let X = Q;
-          this._cache.delete(X);
-          let Y = Q[this.opts.schemaId];
-          if (Y) Y = (0, _4.normalizeId)(Y), delete this.schemas[Y], delete this.refs[Y];
-          return this;
-        }
-        default:
-          throw Error("ajv.removeSchema: invalid parameter");
-      }
-    }
-    addVocabulary(Q) {
-      for (let X of Q) this.addKeyword(X);
-      return this;
-    }
-    addKeyword(Q, X) {
-      let Y;
-      if (typeof Q == "string") {
-        if (Y = Q, typeof X == "object") this.logger.warn("these parameters are deprecated, see docs for addKeyword"), X.keyword = Y;
-      } else if (typeof Q == "object" && X === void 0) {
-        if (X = Q, Y = X.keyword, Array.isArray(Y) && !Y.length) throw Error("addKeywords: keyword must be string or non-empty array");
-      } else throw Error("invalid addKeywords parameters");
-      if (vR.call(this, Y, X), !X) return (0, O7.eachItem)(Y, (J) => N7.call(this, J)), this;
-      xR.call(this, X);
-      let $ = { ...X, type: (0, OQ.getJSONTypes)(X.type), schemaType: (0, OQ.getJSONTypes)(X.schemaType) };
-      return (0, O7.eachItem)(Y, $.type.length === 0 ? (J) => N7.call(this, J, $) : (J) => $.type.forEach((W) => N7.call(this, J, $, W))), this;
-    }
-    getKeyword(Q) {
-      let X = this.RULES.all[Q];
-      return typeof X == "object" ? X.definition : !!X;
-    }
-    removeKeyword(Q) {
-      let { RULES: X } = this;
-      delete X.keywords[Q], delete X.all[Q];
-      for (let Y of X.rules) {
-        let $ = Y.rules.findIndex((J) => J.keyword === Q);
-        if ($ >= 0) Y.rules.splice($, 1);
-      }
-      return this;
-    }
-    addFormat(Q, X) {
-      if (typeof X == "string") X = new RegExp(X);
-      return this.formats[Q] = X, this;
-    }
-    errorsText(Q = this.errors, { separator: X = ", ", dataVar: Y = "data" } = {}) {
-      if (!Q || Q.length === 0) return "No errors";
-      return Q.map(($) => `${Y}${$.instancePath} ${$.message}`).reduce(($, J) => $ + X + J);
-    }
-    $dataMetaSchema(Q, X) {
-      let Y = this.RULES.all;
-      Q = JSON.parse(JSON.stringify(Q));
-      for (let $ of X) {
-        let J = $.split("/").slice(1), W = Q;
-        for (let G of J) W = W[G];
-        for (let G in Y) {
-          let H = Y[G];
-          if (typeof H != "object") continue;
-          let { $data: B } = H.definition, z = W[G];
-          if (B && z) W[G] = EB(z);
-        }
-      }
-      return Q;
-    }
-    _removeAllSchemas(Q, X) {
-      for (let Y in Q) {
-        let $ = Q[Y];
-        if (!X || X.test(Y)) {
-          if (typeof $ == "string") delete Q[Y];
-          else if ($ && !$.meta) this._cache.delete($.schema), delete Q[Y];
-        }
-      }
-    }
-    _addSchema(Q, X, Y, $ = this.opts.validateSchema, J = this.opts.addUsedSchema) {
-      let W, { schemaId: G } = this.opts;
-      if (typeof Q == "object") W = Q[G];
-      else if (this.opts.jtd) throw Error("schema must be object");
-      else if (typeof Q != "boolean") throw Error("schema must be object or boolean");
-      let H = this._cache.get(Q);
-      if (H !== void 0) return H;
-      Y = (0, _4.normalizeId)(W || Y);
-      let B = _4.getSchemaRefs.call(this, Q, Y);
-      if (H = new S4.SchemaEnv({ schema: Q, schemaId: G, meta: X, baseId: Y, localRefs: B }), this._cache.set(H.schema, H), J && !Y.startsWith("#")) {
-        if (Y) this._checkUnique(Y);
-        this.refs[Y] = H;
-      }
-      if ($) this.validateSchema(Q, true);
-      return H;
-    }
-    _checkUnique(Q) {
-      if (this.schemas[Q] || this.refs[Q]) throw Error(`schema with key or id "${Q}" already exists`);
-    }
-    _compileSchemaEnv(Q) {
-      if (Q.meta) this._compileMetaSchema(Q);
-      else S4.compileSchema.call(this, Q);
-      if (!Q.validate) throw Error("ajv implementation error");
-      return Q.validate;
-    }
-    _compileMetaSchema(Q) {
-      let X = this.opts;
-      this.opts = this._metaOpts;
-      try {
-        S4.compileSchema.call(this, Q);
-      } finally {
-        this.opts = X;
-      }
-    }
-  }
-  DQ.ValidationError = OR.default;
-  DQ.MissingRefError = IB.default;
-  x1.default = DQ;
-  function jB(Q, X, Y, $ = "error") {
-    for (let J in Q) {
-      let W = J;
-      if (W in X) this.logger[$](`${Y}: option ${J}. ${Q[W]}`);
-    }
-  }
-  function RB(Q) {
-    return Q = (0, _4.normalizeId)(Q), this.schemas[Q] || this.refs[Q];
-  }
-  function ER() {
-    let Q = this.opts.schemas;
-    if (!Q) return;
-    if (Array.isArray(Q)) this.addSchema(Q);
-    else for (let X in Q) this.addSchema(Q[X], X);
-  }
-  function PR() {
-    for (let Q in this.opts.formats) {
-      let X = this.opts.formats[Q];
-      if (X) this.addFormat(Q, X);
-    }
-  }
-  function ZR(Q) {
-    if (Array.isArray(Q)) {
-      this.addVocabulary(Q);
-      return;
-    }
-    this.logger.warn("keywords option as map is deprecated, pass array");
-    for (let X in Q) {
-      let Y = Q[X];
-      if (!Y.keyword) Y.keyword = X;
-      this.addKeyword(Y);
-    }
-  }
-  function CR() {
-    let Q = { ...this.opts };
-    for (let X of AR) delete Q[X];
-    return Q;
-  }
-  var SR = { log() {
-  }, warn() {
-  }, error() {
-  } };
-  function _R(Q) {
-    if (Q === false) return SR;
-    if (Q === void 0) return console;
-    if (Q.log && Q.warn && Q.error) return Q;
-    throw Error("logger must implement log, warn and error methods");
-  }
-  var kR = /^[a-z_$][a-z0-9_$:-]*$/i;
-  function vR(Q, X) {
-    let { RULES: Y } = this;
-    if ((0, O7.eachItem)(Q, ($) => {
-      if (Y.keywords[$]) throw Error(`Keyword ${$} is already defined`);
-      if (!kR.test($)) throw Error(`Keyword ${$} has invalid name`);
-    }), !X) return;
-    if (X.$data && !("code" in X || "validate" in X)) throw Error('$data keyword must have "code" or "validate" function');
-  }
-  function N7(Q, X, Y) {
-    var $;
-    let J = X === null || X === void 0 ? void 0 : X.post;
-    if (Y && J) throw Error('keyword with "post" flag cannot have "type"');
-    let { RULES: W } = this, G = J ? W.post : W.rules.find(({ type: B }) => B === Y);
-    if (!G) G = { type: Y, rules: [] }, W.rules.push(G);
-    if (W.keywords[Q] = true, !X) return;
-    let H = { keyword: Q, definition: { ...X, type: (0, OQ.getJSONTypes)(X.type), schemaType: (0, OQ.getJSONTypes)(X.schemaType) } };
-    if (X.before) TR.call(this, G, H, X.before);
-    else G.rules.push(H);
-    W.all[Q] = H, ($ = X.implements) === null || $ === void 0 || $.forEach((B) => this.addKeyword(B));
-  }
-  function TR(Q, X, Y) {
-    let $ = Q.rules.findIndex((J) => J.keyword === Y);
-    if ($ >= 0) Q.rules.splice($, 0, X);
-    else Q.rules.push(X), this.logger.warn(`rule ${Y} is not defined`);
-  }
-  function xR(Q) {
-    let { metaSchema: X } = Q;
-    if (X === void 0) return;
-    if (Q.$data && this.opts.$data) X = EB(X);
-    Q.validateSchema = this.compile(X, true);
-  }
-  var yR = { $ref: "https://raw.githubusercontent.com/ajv-validator/ajv/master/lib/refs/data.json#" };
-  function EB(Q) {
-    return { anyOf: [Q, yR] };
-  }
-});
-var CB = E((ZB) => {
-  Object.defineProperty(ZB, "__esModule", { value: true });
-  var fR = { keyword: "id", code() {
-    throw Error('NOT SUPPORTED: keyword "id", use "$id" for schema ID');
-  } };
-  ZB.default = fR;
-});
-var xB = E((vB) => {
-  Object.defineProperty(vB, "__esModule", { value: true });
-  vB.callRef = vB.getValidate = void 0;
-  var mR = P4(), SB = e0(), f0 = c(), E9 = k1(), _B = UQ(), MQ = a(), lR = { keyword: "$ref", schemaType: "string", code(Q) {
-    let { gen: X, schema: Y, it: $ } = Q, { baseId: J, schemaEnv: W, validateName: G, opts: H, self: B } = $, { root: z } = W;
-    if ((Y === "#" || Y === "#/") && J === z.baseId) return U();
-    let K = _B.resolveRef.call(B, z, J, Y);
-    if (K === void 0) throw new mR.default($.opts.uriResolver, J, Y);
-    if (K instanceof _B.SchemaEnv) return q(K);
-    return V(K);
-    function U() {
-      if (W === z) return wQ(Q, G, W, W.$async);
-      let L = X.scopeValue("root", { ref: z });
-      return wQ(Q, f0._`${L}.validate`, z, z.$async);
-    }
-    function q(L) {
-      let F = kB(Q, L);
-      wQ(Q, F, L, L.$async);
-    }
-    function V(L) {
-      let F = X.scopeValue("schema", H.code.source === true ? { ref: L, code: (0, f0.stringify)(L) } : { ref: L }), M = X.name("valid"), O = Q.subschema({ schema: L, dataTypes: [], schemaPath: f0.nil, topSchemaRef: F, errSchemaPath: Y }, M);
-      Q.mergeEvaluated(O), Q.ok(M);
-    }
-  } };
-  function kB(Q, X) {
-    let { gen: Y } = Q;
-    return X.validate ? Y.scopeValue("validate", { ref: X.validate }) : f0._`${Y.scopeValue("wrapper", { ref: X })}.validate`;
-  }
-  vB.getValidate = kB;
-  function wQ(Q, X, Y, $) {
-    let { gen: J, it: W } = Q, { allErrors: G, schemaEnv: H, opts: B } = W, z = B.passContext ? E9.default.this : f0.nil;
-    if ($) K();
-    else U();
-    function K() {
-      if (!H.$async) throw Error("async schema referenced by sync schema");
-      let L = J.let("valid");
-      J.try(() => {
-        if (J.code(f0._`await ${(0, SB.callValidateCode)(Q, X, z)}`), V(X), !G) J.assign(L, true);
-      }, (F) => {
-        if (J.if(f0._`!(${F} instanceof ${W.ValidationError})`, () => J.throw(F)), q(F), !G) J.assign(L, false);
-      }), Q.ok(L);
-    }
-    function U() {
-      Q.result((0, SB.callValidateCode)(Q, X, z), () => V(X), () => q(X));
-    }
-    function q(L) {
-      let F = f0._`${L}.errors`;
-      J.assign(E9.default.vErrors, f0._`${E9.default.vErrors} === null ? ${F} : ${E9.default.vErrors}.concat(${F})`), J.assign(E9.default.errors, f0._`${E9.default.vErrors}.length`);
-    }
-    function V(L) {
-      var F;
-      if (!W.opts.unevaluated) return;
-      let M = (F = Y === null || Y === void 0 ? void 0 : Y.validate) === null || F === void 0 ? void 0 : F.evaluated;
-      if (W.props !== true) if (M && !M.dynamicProps) {
-        if (M.props !== void 0) W.props = MQ.mergeEvaluated.props(J, M.props, W.props);
-      } else {
-        let O = J.var("props", f0._`${L}.evaluated.props`);
-        W.props = MQ.mergeEvaluated.props(J, O, W.props, f0.Name);
-      }
-      if (W.items !== true) if (M && !M.dynamicItems) {
-        if (M.items !== void 0) W.items = MQ.mergeEvaluated.items(J, M.items, W.items);
-      } else {
-        let O = J.var("items", f0._`${L}.evaluated.items`);
-        W.items = MQ.mergeEvaluated.items(J, O, W.items, f0.Name);
-      }
-    }
-  }
-  vB.callRef = wQ;
-  vB.default = lR;
-});
-var gB = E((yB) => {
-  Object.defineProperty(yB, "__esModule", { value: true });
-  var dR = CB(), iR = xB(), nR = ["$schema", "$id", "$defs", "$vocabulary", { keyword: "$comment" }, "definitions", dR.default, iR.default];
-  yB.default = nR;
-});
-var fB = E((hB) => {
-  Object.defineProperty(hB, "__esModule", { value: true });
-  var AQ = c(), W6 = AQ.operators, jQ = { maximum: { okStr: "<=", ok: W6.LTE, fail: W6.GT }, minimum: { okStr: ">=", ok: W6.GTE, fail: W6.LT }, exclusiveMaximum: { okStr: "<", ok: W6.LT, fail: W6.GTE }, exclusiveMinimum: { okStr: ">", ok: W6.GT, fail: W6.LTE } }, rR = { message: ({ keyword: Q, schemaCode: X }) => AQ.str`must be ${jQ[Q].okStr} ${X}`, params: ({ keyword: Q, schemaCode: X }) => AQ._`{comparison: ${jQ[Q].okStr}, limit: ${X}}` }, tR = { keyword: Object.keys(jQ), type: "number", schemaType: "number", $data: true, error: rR, code(Q) {
-    let { keyword: X, data: Y, schemaCode: $ } = Q;
-    Q.fail$data(AQ._`${Y} ${jQ[X].fail} ${$} || isNaN(${Y})`);
-  } };
-  hB.default = tR;
-});
-var mB = E((uB) => {
-  Object.defineProperty(uB, "__esModule", { value: true });
-  var k4 = c(), sR = { message: ({ schemaCode: Q }) => k4.str`must be multiple of ${Q}`, params: ({ schemaCode: Q }) => k4._`{multipleOf: ${Q}}` }, eR = { keyword: "multipleOf", type: "number", schemaType: "number", $data: true, error: sR, code(Q) {
-    let { gen: X, data: Y, schemaCode: $, it: J } = Q, W = J.opts.multipleOfPrecision, G = X.let("res"), H = W ? k4._`Math.abs(Math.round(${G}) - ${G}) > 1e-${W}` : k4._`${G} !== parseInt(${G})`;
-    Q.fail$data(k4._`(${$} === 0 || (${G} = ${Y}/${$}, ${H}))`);
-  } };
-  uB.default = eR;
-});
-var pB = E((cB) => {
-  Object.defineProperty(cB, "__esModule", { value: true });
-  function lB(Q) {
-    let X = Q.length, Y = 0, $ = 0, J;
-    while ($ < X) if (Y++, J = Q.charCodeAt($++), J >= 55296 && J <= 56319 && $ < X) {
-      if (J = Q.charCodeAt($), (J & 64512) === 56320) $++;
-    }
-    return Y;
-  }
-  cB.default = lB;
-  lB.code = 'require("ajv/dist/runtime/ucs2length").default';
-});
-var iB = E((dB) => {
-  Object.defineProperty(dB, "__esModule", { value: true });
-  var S6 = c(), Y2 = a(), $2 = pB(), J2 = { message({ keyword: Q, schemaCode: X }) {
-    let Y = Q === "maxLength" ? "more" : "fewer";
-    return S6.str`must NOT have ${Y} than ${X} characters`;
-  }, params: ({ schemaCode: Q }) => S6._`{limit: ${Q}}` }, W2 = { keyword: ["maxLength", "minLength"], type: "string", schemaType: "number", $data: true, error: J2, code(Q) {
-    let { keyword: X, data: Y, schemaCode: $, it: J } = Q, W = X === "maxLength" ? S6.operators.GT : S6.operators.LT, G = J.opts.unicode === false ? S6._`${Y}.length` : S6._`${(0, Y2.useFunc)(Q.gen, $2.default)}(${Y})`;
-    Q.fail$data(S6._`${G} ${W} ${$}`);
-  } };
-  dB.default = W2;
-});
-var oB = E((nB) => {
-  Object.defineProperty(nB, "__esModule", { value: true });
-  var H2 = e0(), RQ = c(), B2 = { message: ({ schemaCode: Q }) => RQ.str`must match pattern "${Q}"`, params: ({ schemaCode: Q }) => RQ._`{pattern: ${Q}}` }, z2 = { keyword: "pattern", type: "string", schemaType: "string", $data: true, error: B2, code(Q) {
-    let { data: X, $data: Y, schema: $, schemaCode: J, it: W } = Q, G = W.opts.unicodeRegExp ? "u" : "", H = Y ? RQ._`(new RegExp(${J}, ${G}))` : (0, H2.usePattern)(Q, $);
-    Q.fail$data(RQ._`!${H}.test(${X})`);
-  } };
-  nB.default = z2;
-});
-var tB = E((rB) => {
-  Object.defineProperty(rB, "__esModule", { value: true });
-  var v4 = c(), V2 = { message({ keyword: Q, schemaCode: X }) {
-    let Y = Q === "maxProperties" ? "more" : "fewer";
-    return v4.str`must NOT have ${Y} than ${X} properties`;
-  }, params: ({ schemaCode: Q }) => v4._`{limit: ${Q}}` }, q2 = { keyword: ["maxProperties", "minProperties"], type: "object", schemaType: "number", $data: true, error: V2, code(Q) {
-    let { keyword: X, data: Y, schemaCode: $ } = Q, J = X === "maxProperties" ? v4.operators.GT : v4.operators.LT;
-    Q.fail$data(v4._`Object.keys(${Y}).length ${J} ${$}`);
-  } };
-  rB.default = q2;
-});
-var sB = E((aB) => {
-  Object.defineProperty(aB, "__esModule", { value: true });
-  var T4 = e0(), x4 = c(), L2 = a(), F2 = { message: ({ params: { missingProperty: Q } }) => x4.str`must have required property '${Q}'`, params: ({ params: { missingProperty: Q } }) => x4._`{missingProperty: ${Q}}` }, N2 = { keyword: "required", type: "object", schemaType: "array", $data: true, error: F2, code(Q) {
-    let { gen: X, schema: Y, schemaCode: $, data: J, $data: W, it: G } = Q, { opts: H } = G;
-    if (!W && Y.length === 0) return;
-    let B = Y.length >= H.loopRequired;
-    if (G.allErrors) z();
-    else K();
-    if (H.strictRequired) {
-      let V = Q.parentSchema.properties, { definedProperties: L } = Q.it;
-      for (let F of Y) if ((V === null || V === void 0 ? void 0 : V[F]) === void 0 && !L.has(F)) {
-        let M = G.schemaEnv.baseId + G.errSchemaPath, O = `required property "${F}" is not defined at "${M}" (strictRequired)`;
-        (0, L2.checkStrictMode)(G, O, G.opts.strictRequired);
-      }
-    }
-    function z() {
-      if (B || W) Q.block$data(x4.nil, U);
-      else for (let V of Y) (0, T4.checkReportMissingProp)(Q, V);
-    }
-    function K() {
-      let V = X.let("missing");
-      if (B || W) {
-        let L = X.let("valid", true);
-        Q.block$data(L, () => q(V, L)), Q.ok(L);
-      } else X.if((0, T4.checkMissingProp)(Q, Y, V)), (0, T4.reportMissingProp)(Q, V), X.else();
-    }
-    function U() {
-      X.forOf("prop", $, (V) => {
-        Q.setParams({ missingProperty: V }), X.if((0, T4.noPropertyInData)(X, J, V, H.ownProperties), () => Q.error());
-      });
-    }
-    function q(V, L) {
-      Q.setParams({ missingProperty: V }), X.forOf(V, $, () => {
-        X.assign(L, (0, T4.propertyInData)(X, J, V, H.ownProperties)), X.if((0, x4.not)(L), () => {
-          Q.error(), X.break();
-        });
-      }, x4.nil);
-    }
-  } };
-  aB.default = N2;
-});
-var Qz = E((eB) => {
-  Object.defineProperty(eB, "__esModule", { value: true });
-  var y4 = c(), D2 = { message({ keyword: Q, schemaCode: X }) {
-    let Y = Q === "maxItems" ? "more" : "fewer";
-    return y4.str`must NOT have ${Y} than ${X} items`;
-  }, params: ({ schemaCode: Q }) => y4._`{limit: ${Q}}` }, M2 = { keyword: ["maxItems", "minItems"], type: "array", schemaType: "number", $data: true, error: D2, code(Q) {
-    let { keyword: X, data: Y, schemaCode: $ } = Q, J = X === "maxItems" ? y4.operators.GT : y4.operators.LT;
-    Q.fail$data(y4._`${Y}.length ${J} ${$}`);
-  } };
-  eB.default = M2;
-});
-var IQ = E((Yz) => {
-  Object.defineProperty(Yz, "__esModule", { value: true });
-  var Xz = $7();
-  Xz.code = 'require("ajv/dist/runtime/equal").default';
-  Yz.default = Xz;
-});
-var Jz = E(($z) => {
-  Object.defineProperty($z, "__esModule", { value: true });
-  var D7 = j4(), E0 = c(), j2 = a(), R2 = IQ(), I2 = { message: ({ params: { i: Q, j: X } }) => E0.str`must NOT have duplicate items (items ## ${X} and ${Q} are identical)`, params: ({ params: { i: Q, j: X } }) => E0._`{i: ${Q}, j: ${X}}` }, b2 = { keyword: "uniqueItems", type: "array", schemaType: "boolean", $data: true, error: I2, code(Q) {
-    let { gen: X, data: Y, $data: $, schema: J, parentSchema: W, schemaCode: G, it: H } = Q;
-    if (!$ && !J) return;
-    let B = X.let("valid"), z = W.items ? (0, D7.getSchemaTypes)(W.items) : [];
-    Q.block$data(B, K, E0._`${G} === false`), Q.ok(B);
-    function K() {
-      let L = X.let("i", E0._`${Y}.length`), F = X.let("j");
-      Q.setParams({ i: L, j: F }), X.assign(B, true), X.if(E0._`${L} > 1`, () => (U() ? q : V)(L, F));
-    }
-    function U() {
-      return z.length > 0 && !z.some((L) => L === "object" || L === "array");
-    }
-    function q(L, F) {
-      let M = X.name("item"), O = (0, D7.checkDataTypes)(z, M, H.opts.strictNumbers, D7.DataType.Wrong), A = X.const("indices", E0._`{}`);
-      X.for(E0._`;${L}--;`, () => {
-        if (X.let(M, E0._`${Y}[${L}]`), X.if(O, E0._`continue`), z.length > 1) X.if(E0._`typeof ${M} == "string"`, E0._`${M} += "_"`);
-        X.if(E0._`typeof ${A}[${M}] == "number"`, () => {
-          X.assign(F, E0._`${A}[${M}]`), Q.error(), X.assign(B, false).break();
-        }).code(E0._`${A}[${M}] = ${L}`);
-      });
-    }
-    function V(L, F) {
-      let M = (0, j2.useFunc)(X, R2.default), O = X.name("outer");
-      X.label(O).for(E0._`;${L}--;`, () => X.for(E0._`${F} = ${L}; ${F}--;`, () => X.if(E0._`${M}(${Y}[${L}], ${Y}[${F}])`, () => {
-        Q.error(), X.assign(B, false).break(O);
-      })));
-    }
-  } };
-  $z.default = b2;
-});
-var Gz = E((Wz) => {
-  Object.defineProperty(Wz, "__esModule", { value: true });
-  var M7 = c(), P2 = a(), Z2 = IQ(), C2 = { message: "must be equal to constant", params: ({ schemaCode: Q }) => M7._`{allowedValue: ${Q}}` }, S2 = { keyword: "const", $data: true, error: C2, code(Q) {
-    let { gen: X, data: Y, $data: $, schemaCode: J, schema: W } = Q;
-    if ($ || W && typeof W == "object") Q.fail$data(M7._`!${(0, P2.useFunc)(X, Z2.default)}(${Y}, ${J})`);
-    else Q.fail(M7._`${W} !== ${Y}`);
-  } };
-  Wz.default = S2;
-});
-var Bz = E((Hz) => {
-  Object.defineProperty(Hz, "__esModule", { value: true });
-  var g4 = c(), k2 = a(), v2 = IQ(), T2 = { message: "must be equal to one of the allowed values", params: ({ schemaCode: Q }) => g4._`{allowedValues: ${Q}}` }, x2 = { keyword: "enum", schemaType: "array", $data: true, error: T2, code(Q) {
-    let { gen: X, data: Y, $data: $, schema: J, schemaCode: W, it: G } = Q;
-    if (!$ && J.length === 0) throw Error("enum must have non-empty array");
-    let H = J.length >= G.opts.loopEnum, B, z = () => B !== null && B !== void 0 ? B : B = (0, k2.useFunc)(X, v2.default), K;
-    if (H || $) K = X.let("valid"), Q.block$data(K, U);
-    else {
-      if (!Array.isArray(J)) throw Error("ajv implementation error");
-      let V = X.const("vSchema", W);
-      K = (0, g4.or)(...J.map((L, F) => q(V, F)));
-    }
-    Q.pass(K);
-    function U() {
-      X.assign(K, false), X.forOf("v", W, (V) => X.if(g4._`${z()}(${Y}, ${V})`, () => X.assign(K, true).break()));
-    }
-    function q(V, L) {
-      let F = J[L];
-      return typeof F === "object" && F !== null ? g4._`${z()}(${Y}, ${V}[${L}])` : g4._`${Y} === ${F}`;
-    }
-  } };
-  Hz.default = x2;
-});
-var Kz = E((zz) => {
-  Object.defineProperty(zz, "__esModule", { value: true });
-  var g2 = fB(), h2 = mB(), f2 = iB(), u2 = oB(), m2 = tB(), l2 = sB(), c2 = Qz(), p2 = Jz(), d2 = Gz(), i2 = Bz(), n2 = [g2.default, h2.default, f2.default, u2.default, m2.default, l2.default, c2.default, p2.default, { keyword: "type", schemaType: ["string", "array"] }, { keyword: "nullable", schemaType: "boolean" }, d2.default, i2.default];
-  zz.default = n2;
-});
-var A7 = E((qz) => {
-  Object.defineProperty(qz, "__esModule", { value: true });
-  qz.validateAdditionalItems = void 0;
-  var _6 = c(), w7 = a(), r2 = { message: ({ params: { len: Q } }) => _6.str`must NOT have more than ${Q} items`, params: ({ params: { len: Q } }) => _6._`{limit: ${Q}}` }, t2 = { keyword: "additionalItems", type: "array", schemaType: ["boolean", "object"], before: "uniqueItems", error: r2, code(Q) {
-    let { parentSchema: X, it: Y } = Q, { items: $ } = X;
-    if (!Array.isArray($)) {
-      (0, w7.checkStrictMode)(Y, '"additionalItems" is ignored when "items" is not an array of schemas');
-      return;
-    }
-    Vz(Q, $);
-  } };
-  function Vz(Q, X) {
-    let { gen: Y, schema: $, data: J, keyword: W, it: G } = Q;
-    G.items = true;
-    let H = Y.const("len", _6._`${J}.length`);
-    if ($ === false) Q.setParams({ len: X.length }), Q.pass(_6._`${H} <= ${X.length}`);
-    else if (typeof $ == "object" && !(0, w7.alwaysValidSchema)(G, $)) {
-      let z = Y.var("valid", _6._`${H} <= ${X.length}`);
-      Y.if((0, _6.not)(z), () => B(z)), Q.ok(z);
-    }
-    function B(z) {
-      Y.forRange("i", X.length, H, (K) => {
-        if (Q.subschema({ keyword: W, dataProp: K, dataPropType: w7.Type.Num }, z), !G.allErrors) Y.if((0, _6.not)(z), () => Y.break());
-      });
-    }
-  }
-  qz.validateAdditionalItems = Vz;
-  qz.default = t2;
-});
-var j7 = E((Nz) => {
-  Object.defineProperty(Nz, "__esModule", { value: true });
-  Nz.validateTuple = void 0;
-  var Lz = c(), bQ = a(), s2 = e0(), e2 = { keyword: "items", type: "array", schemaType: ["object", "array", "boolean"], before: "uniqueItems", code(Q) {
-    let { schema: X, it: Y } = Q;
-    if (Array.isArray(X)) return Fz(Q, "additionalItems", X);
-    if (Y.items = true, (0, bQ.alwaysValidSchema)(Y, X)) return;
-    Q.ok((0, s2.validateArray)(Q));
-  } };
-  function Fz(Q, X, Y = Q.schema) {
-    let { gen: $, parentSchema: J, data: W, keyword: G, it: H } = Q;
-    if (K(J), H.opts.unevaluated && Y.length && H.items !== true) H.items = bQ.mergeEvaluated.items($, Y.length, H.items);
-    let B = $.name("valid"), z = $.const("len", Lz._`${W}.length`);
-    Y.forEach((U, q) => {
-      if ((0, bQ.alwaysValidSchema)(H, U)) return;
-      $.if(Lz._`${z} > ${q}`, () => Q.subschema({ keyword: G, schemaProp: q, dataProp: q }, B)), Q.ok(B);
-    });
-    function K(U) {
-      let { opts: q, errSchemaPath: V } = H, L = Y.length, F = L === U.minItems && (L === U.maxItems || U[X] === false);
-      if (q.strictTuples && !F) {
-        let M = `"${G}" is ${L}-tuple, but minItems or maxItems/${X} are not specified or different at path "${V}"`;
-        (0, bQ.checkStrictMode)(H, M, q.strictTuples);
-      }
-    }
-  }
-  Nz.validateTuple = Fz;
-  Nz.default = e2;
-});
-var Mz = E((Dz) => {
-  Object.defineProperty(Dz, "__esModule", { value: true });
-  var XI = j7(), YI = { keyword: "prefixItems", type: "array", schemaType: ["array"], before: "uniqueItems", code: (Q) => (0, XI.validateTuple)(Q, "items") };
-  Dz.default = YI;
-});
-var jz = E((Az) => {
-  Object.defineProperty(Az, "__esModule", { value: true });
-  var wz = c(), JI = a(), WI = e0(), GI = A7(), HI = { message: ({ params: { len: Q } }) => wz.str`must NOT have more than ${Q} items`, params: ({ params: { len: Q } }) => wz._`{limit: ${Q}}` }, BI = { keyword: "items", type: "array", schemaType: ["object", "boolean"], before: "uniqueItems", error: HI, code(Q) {
-    let { schema: X, parentSchema: Y, it: $ } = Q, { prefixItems: J } = Y;
-    if ($.items = true, (0, JI.alwaysValidSchema)($, X)) return;
-    if (J) (0, GI.validateAdditionalItems)(Q, J);
-    else Q.ok((0, WI.validateArray)(Q));
-  } };
-  Az.default = BI;
-});
-var Iz = E((Rz) => {
-  Object.defineProperty(Rz, "__esModule", { value: true });
-  var Q1 = c(), EQ = a(), KI = { message: ({ params: { min: Q, max: X } }) => X === void 0 ? Q1.str`must contain at least ${Q} valid item(s)` : Q1.str`must contain at least ${Q} and no more than ${X} valid item(s)`, params: ({ params: { min: Q, max: X } }) => X === void 0 ? Q1._`{minContains: ${Q}}` : Q1._`{minContains: ${Q}, maxContains: ${X}}` }, VI = { keyword: "contains", type: "array", schemaType: ["object", "boolean"], before: "uniqueItems", trackErrors: true, error: KI, code(Q) {
-    let { gen: X, schema: Y, parentSchema: $, data: J, it: W } = Q, G, H, { minContains: B, maxContains: z } = $;
-    if (W.opts.next) G = B === void 0 ? 1 : B, H = z;
-    else G = 1;
-    let K = X.const("len", Q1._`${J}.length`);
-    if (Q.setParams({ min: G, max: H }), H === void 0 && G === 0) {
-      (0, EQ.checkStrictMode)(W, '"minContains" == 0 without "maxContains": "contains" keyword ignored');
-      return;
-    }
-    if (H !== void 0 && G > H) {
-      (0, EQ.checkStrictMode)(W, '"minContains" > "maxContains" is always invalid'), Q.fail();
-      return;
-    }
-    if ((0, EQ.alwaysValidSchema)(W, Y)) {
-      let F = Q1._`${K} >= ${G}`;
-      if (H !== void 0) F = Q1._`${F} && ${K} <= ${H}`;
-      Q.pass(F);
-      return;
-    }
-    W.items = true;
-    let U = X.name("valid");
-    if (H === void 0 && G === 1) V(U, () => X.if(U, () => X.break()));
-    else if (G === 0) {
-      if (X.let(U, true), H !== void 0) X.if(Q1._`${J}.length > 0`, q);
-    } else X.let(U, false), q();
-    Q.result(U, () => Q.reset());
-    function q() {
-      let F = X.name("_valid"), M = X.let("count", 0);
-      V(F, () => X.if(F, () => L(M)));
-    }
-    function V(F, M) {
-      X.forRange("i", 0, K, (O) => {
-        Q.subschema({ keyword: "contains", dataProp: O, dataPropType: EQ.Type.Num, compositeRule: true }, F), M();
-      });
-    }
-    function L(F) {
-      if (X.code(Q1._`${F}++`), H === void 0) X.if(Q1._`${F} >= ${G}`, () => X.assign(U, true).break());
-      else if (X.if(Q1._`${F} > ${H}`, () => X.assign(U, false).break()), G === 1) X.assign(U, true);
-      else X.if(Q1._`${F} >= ${G}`, () => X.assign(U, true));
-    }
-  } };
-  Rz.default = VI;
-});
-var Sz = E((Pz) => {
-  Object.defineProperty(Pz, "__esModule", { value: true });
-  Pz.validateSchemaDeps = Pz.validatePropertyDeps = Pz.error = void 0;
-  var R7 = c(), UI = a(), h4 = e0();
-  Pz.error = { message: ({ params: { property: Q, depsCount: X, deps: Y } }) => {
-    let $ = X === 1 ? "property" : "properties";
-    return R7.str`must have ${$} ${Y} when property ${Q} is present`;
-  }, params: ({ params: { property: Q, depsCount: X, deps: Y, missingProperty: $ } }) => R7._`{property: ${Q},
-    missingProperty: ${$},
-    depsCount: ${X},
-    deps: ${Y}}` };
-  var LI = { keyword: "dependencies", type: "object", schemaType: "object", error: Pz.error, code(Q) {
-    let [X, Y] = FI(Q);
-    bz(Q, X), Ez(Q, Y);
-  } };
-  function FI({ schema: Q }) {
-    let X = {}, Y = {};
-    for (let $ in Q) {
-      if ($ === "__proto__") continue;
-      let J = Array.isArray(Q[$]) ? X : Y;
-      J[$] = Q[$];
-    }
-    return [X, Y];
-  }
-  function bz(Q, X = Q.schema) {
-    let { gen: Y, data: $, it: J } = Q;
-    if (Object.keys(X).length === 0) return;
-    let W = Y.let("missing");
-    for (let G in X) {
-      let H = X[G];
-      if (H.length === 0) continue;
-      let B = (0, h4.propertyInData)(Y, $, G, J.opts.ownProperties);
-      if (Q.setParams({ property: G, depsCount: H.length, deps: H.join(", ") }), J.allErrors) Y.if(B, () => {
-        for (let z of H) (0, h4.checkReportMissingProp)(Q, z);
-      });
-      else Y.if(R7._`${B} && (${(0, h4.checkMissingProp)(Q, H, W)})`), (0, h4.reportMissingProp)(Q, W), Y.else();
-    }
-  }
-  Pz.validatePropertyDeps = bz;
-  function Ez(Q, X = Q.schema) {
-    let { gen: Y, data: $, keyword: J, it: W } = Q, G = Y.name("valid");
-    for (let H in X) {
-      if ((0, UI.alwaysValidSchema)(W, X[H])) continue;
-      Y.if((0, h4.propertyInData)(Y, $, H, W.opts.ownProperties), () => {
-        let B = Q.subschema({ keyword: J, schemaProp: H }, G);
-        Q.mergeValidEvaluated(B, G);
-      }, () => Y.var(G, true)), Q.ok(G);
-    }
-  }
-  Pz.validateSchemaDeps = Ez;
-  Pz.default = LI;
-});
-var vz = E((kz) => {
-  Object.defineProperty(kz, "__esModule", { value: true });
-  var _z = c(), DI = a(), MI = { message: "property name must be valid", params: ({ params: Q }) => _z._`{propertyName: ${Q.propertyName}}` }, wI = { keyword: "propertyNames", type: "object", schemaType: ["object", "boolean"], error: MI, code(Q) {
-    let { gen: X, schema: Y, data: $, it: J } = Q;
-    if ((0, DI.alwaysValidSchema)(J, Y)) return;
-    let W = X.name("valid");
-    X.forIn("key", $, (G) => {
-      Q.setParams({ propertyName: G }), Q.subschema({ keyword: "propertyNames", data: G, dataTypes: ["string"], propertyName: G, compositeRule: true }, W), X.if((0, _z.not)(W), () => {
-        if (Q.error(true), !J.allErrors) X.break();
-      });
-    }), Q.ok(W);
-  } };
-  kz.default = wI;
-});
-var I7 = E((Tz) => {
-  Object.defineProperty(Tz, "__esModule", { value: true });
-  var PQ = e0(), U1 = c(), jI = k1(), ZQ = a(), RI = { message: "must NOT have additional properties", params: ({ params: Q }) => U1._`{additionalProperty: ${Q.additionalProperty}}` }, II = { keyword: "additionalProperties", type: ["object"], schemaType: ["boolean", "object"], allowUndefined: true, trackErrors: true, error: RI, code(Q) {
-    let { gen: X, schema: Y, parentSchema: $, data: J, errsCount: W, it: G } = Q;
-    if (!W) throw Error("ajv implementation error");
-    let { allErrors: H, opts: B } = G;
-    if (G.props = true, B.removeAdditional !== "all" && (0, ZQ.alwaysValidSchema)(G, Y)) return;
-    let z = (0, PQ.allSchemaProperties)($.properties), K = (0, PQ.allSchemaProperties)($.patternProperties);
-    U(), Q.ok(U1._`${W} === ${jI.default.errors}`);
-    function U() {
-      X.forIn("key", J, (M) => {
-        if (!z.length && !K.length) L(M);
-        else X.if(q(M), () => L(M));
-      });
-    }
-    function q(M) {
-      let O;
-      if (z.length > 8) {
-        let A = (0, ZQ.schemaRefOrVal)(G, $.properties, "properties");
-        O = (0, PQ.isOwnProperty)(X, A, M);
-      } else if (z.length) O = (0, U1.or)(...z.map((A) => U1._`${M} === ${A}`));
-      else O = U1.nil;
-      if (K.length) O = (0, U1.or)(O, ...K.map((A) => U1._`${(0, PQ.usePattern)(Q, A)}.test(${M})`));
-      return (0, U1.not)(O);
-    }
-    function V(M) {
-      X.code(U1._`delete ${J}[${M}]`);
-    }
-    function L(M) {
-      if (B.removeAdditional === "all" || B.removeAdditional && Y === false) {
-        V(M);
-        return;
-      }
-      if (Y === false) {
-        if (Q.setParams({ additionalProperty: M }), Q.error(), !H) X.break();
-        return;
-      }
-      if (typeof Y == "object" && !(0, ZQ.alwaysValidSchema)(G, Y)) {
-        let O = X.name("valid");
-        if (B.removeAdditional === "failing") F(M, O, false), X.if((0, U1.not)(O), () => {
-          Q.reset(), V(M);
-        });
-        else if (F(M, O), !H) X.if((0, U1.not)(O), () => X.break());
-      }
-    }
-    function F(M, O, A) {
-      let R = { keyword: "additionalProperties", dataProp: M, dataPropType: ZQ.Type.Str };
-      if (A === false) Object.assign(R, { compositeRule: true, createErrors: false, allErrors: false });
-      Q.subschema(R, O);
-    }
-  } };
-  Tz.default = II;
-});
-var hz = E((gz) => {
-  Object.defineProperty(gz, "__esModule", { value: true });
-  var EI = E4(), xz = e0(), b7 = a(), yz = I7(), PI = { keyword: "properties", type: "object", schemaType: "object", code(Q) {
-    let { gen: X, schema: Y, parentSchema: $, data: J, it: W } = Q;
-    if (W.opts.removeAdditional === "all" && $.additionalProperties === void 0) yz.default.code(new EI.KeywordCxt(W, yz.default, "additionalProperties"));
-    let G = (0, xz.allSchemaProperties)(Y);
-    for (let U of G) W.definedProperties.add(U);
-    if (W.opts.unevaluated && G.length && W.props !== true) W.props = b7.mergeEvaluated.props(X, (0, b7.toHash)(G), W.props);
-    let H = G.filter((U) => !(0, b7.alwaysValidSchema)(W, Y[U]));
-    if (H.length === 0) return;
-    let B = X.name("valid");
-    for (let U of H) {
-      if (z(U)) K(U);
-      else {
-        if (X.if((0, xz.propertyInData)(X, J, U, W.opts.ownProperties)), K(U), !W.allErrors) X.else().var(B, true);
-        X.endIf();
-      }
-      Q.it.definedProperties.add(U), Q.ok(B);
-    }
-    function z(U) {
-      return W.opts.useDefaults && !W.compositeRule && Y[U].default !== void 0;
-    }
-    function K(U) {
-      Q.subschema({ keyword: "properties", schemaProp: U, dataProp: U }, B);
-    }
-  } };
-  gz.default = PI;
-});
-var cz = E((lz) => {
-  Object.defineProperty(lz, "__esModule", { value: true });
-  var fz = e0(), CQ = c(), uz = a(), mz = a(), CI = { keyword: "patternProperties", type: "object", schemaType: "object", code(Q) {
-    let { gen: X, schema: Y, data: $, parentSchema: J, it: W } = Q, { opts: G } = W, H = (0, fz.allSchemaProperties)(Y), B = H.filter((F) => (0, uz.alwaysValidSchema)(W, Y[F]));
-    if (H.length === 0 || B.length === H.length && (!W.opts.unevaluated || W.props === true)) return;
-    let z = G.strictSchema && !G.allowMatchingProperties && J.properties, K = X.name("valid");
-    if (W.props !== true && !(W.props instanceof CQ.Name)) W.props = (0, mz.evaluatedPropsToName)(X, W.props);
-    let { props: U } = W;
-    q();
-    function q() {
-      for (let F of H) {
-        if (z) V(F);
-        if (W.allErrors) L(F);
-        else X.var(K, true), L(F), X.if(K);
-      }
-    }
-    function V(F) {
-      for (let M in z) if (new RegExp(F).test(M)) (0, uz.checkStrictMode)(W, `property ${M} matches pattern ${F} (use allowMatchingProperties)`);
-    }
-    function L(F) {
-      X.forIn("key", $, (M) => {
-        X.if(CQ._`${(0, fz.usePattern)(Q, F)}.test(${M})`, () => {
-          let O = B.includes(F);
-          if (!O) Q.subschema({ keyword: "patternProperties", schemaProp: F, dataProp: M, dataPropType: mz.Type.Str }, K);
-          if (W.opts.unevaluated && U !== true) X.assign(CQ._`${U}[${M}]`, true);
-          else if (!O && !W.allErrors) X.if((0, CQ.not)(K), () => X.break());
-        });
-      });
-    }
-  } };
-  lz.default = CI;
-});
-var dz = E((pz) => {
-  Object.defineProperty(pz, "__esModule", { value: true });
-  var _I = a(), kI = { keyword: "not", schemaType: ["object", "boolean"], trackErrors: true, code(Q) {
-    let { gen: X, schema: Y, it: $ } = Q;
-    if ((0, _I.alwaysValidSchema)($, Y)) {
-      Q.fail();
-      return;
-    }
-    let J = X.name("valid");
-    Q.subschema({ keyword: "not", compositeRule: true, createErrors: false, allErrors: false }, J), Q.failResult(J, () => Q.reset(), () => Q.error());
-  }, error: { message: "must NOT be valid" } };
-  pz.default = kI;
-});
-var nz = E((iz) => {
-  Object.defineProperty(iz, "__esModule", { value: true });
-  var TI = e0(), xI = { keyword: "anyOf", schemaType: "array", trackErrors: true, code: TI.validateUnion, error: { message: "must match a schema in anyOf" } };
-  iz.default = xI;
-});
-var rz = E((oz) => {
-  Object.defineProperty(oz, "__esModule", { value: true });
-  var SQ = c(), gI = a(), hI = { message: "must match exactly one schema in oneOf", params: ({ params: Q }) => SQ._`{passingSchemas: ${Q.passing}}` }, fI = { keyword: "oneOf", schemaType: "array", trackErrors: true, error: hI, code(Q) {
-    let { gen: X, schema: Y, parentSchema: $, it: J } = Q;
-    if (!Array.isArray(Y)) throw Error("ajv implementation error");
-    if (J.opts.discriminator && $.discriminator) return;
-    let W = Y, G = X.let("valid", false), H = X.let("passing", null), B = X.name("_valid");
-    Q.setParams({ passing: H }), X.block(z), Q.result(G, () => Q.reset(), () => Q.error(true));
-    function z() {
-      W.forEach((K, U) => {
-        let q;
-        if ((0, gI.alwaysValidSchema)(J, K)) X.var(B, true);
-        else q = Q.subschema({ keyword: "oneOf", schemaProp: U, compositeRule: true }, B);
-        if (U > 0) X.if(SQ._`${B} && ${G}`).assign(G, false).assign(H, SQ._`[${H}, ${U}]`).else();
-        X.if(B, () => {
-          if (X.assign(G, true), X.assign(H, U), q) Q.mergeEvaluated(q, SQ.Name);
-        });
-      });
-    }
-  } };
-  oz.default = fI;
-});
-var az = E((tz) => {
-  Object.defineProperty(tz, "__esModule", { value: true });
-  var mI = a(), lI = { keyword: "allOf", schemaType: "array", code(Q) {
-    let { gen: X, schema: Y, it: $ } = Q;
-    if (!Array.isArray(Y)) throw Error("ajv implementation error");
-    let J = X.name("valid");
-    Y.forEach((W, G) => {
-      if ((0, mI.alwaysValidSchema)($, W)) return;
-      let H = Q.subschema({ keyword: "allOf", schemaProp: G }, J);
-      Q.ok(J), Q.mergeEvaluated(H);
-    });
-  } };
-  tz.default = lI;
-});
-var XK = E((QK) => {
-  Object.defineProperty(QK, "__esModule", { value: true });
-  var _Q = c(), ez = a(), pI = { message: ({ params: Q }) => _Q.str`must match "${Q.ifClause}" schema`, params: ({ params: Q }) => _Q._`{failingKeyword: ${Q.ifClause}}` }, dI = { keyword: "if", schemaType: ["object", "boolean"], trackErrors: true, error: pI, code(Q) {
-    let { gen: X, parentSchema: Y, it: $ } = Q;
-    if (Y.then === void 0 && Y.else === void 0) (0, ez.checkStrictMode)($, '"if" without "then" and "else" is ignored');
-    let J = sz($, "then"), W = sz($, "else");
-    if (!J && !W) return;
-    let G = X.let("valid", true), H = X.name("_valid");
-    if (B(), Q.reset(), J && W) {
-      let K = X.let("ifClause");
-      Q.setParams({ ifClause: K }), X.if(H, z("then", K), z("else", K));
-    } else if (J) X.if(H, z("then"));
-    else X.if((0, _Q.not)(H), z("else"));
-    Q.pass(G, () => Q.error(true));
-    function B() {
-      let K = Q.subschema({ keyword: "if", compositeRule: true, createErrors: false, allErrors: false }, H);
-      Q.mergeEvaluated(K);
-    }
-    function z(K, U) {
-      return () => {
-        let q = Q.subschema({ keyword: K }, H);
-        if (X.assign(G, H), Q.mergeValidEvaluated(q, G), U) X.assign(U, _Q._`${K}`);
-        else Q.setParams({ ifClause: K });
-      };
-    }
-  } };
-  function sz(Q, X) {
-    let Y = Q.schema[X];
-    return Y !== void 0 && !(0, ez.alwaysValidSchema)(Q, Y);
-  }
-  QK.default = dI;
-});
-var $K = E((YK) => {
-  Object.defineProperty(YK, "__esModule", { value: true });
-  var nI = a(), oI = { keyword: ["then", "else"], schemaType: ["object", "boolean"], code({ keyword: Q, parentSchema: X, it: Y }) {
-    if (X.if === void 0) (0, nI.checkStrictMode)(Y, `"${Q}" without "if" is ignored`);
-  } };
-  YK.default = oI;
-});
-var WK = E((JK) => {
-  Object.defineProperty(JK, "__esModule", { value: true });
-  var tI = A7(), aI = Mz(), sI = j7(), eI = jz(), Qb = Iz(), Xb = Sz(), Yb = vz(), $b = I7(), Jb = hz(), Wb = cz(), Gb = dz(), Hb = nz(), Bb = rz(), zb = az(), Kb = XK(), Vb = $K();
-  function qb(Q = false) {
-    let X = [Gb.default, Hb.default, Bb.default, zb.default, Kb.default, Vb.default, Yb.default, $b.default, Xb.default, Jb.default, Wb.default];
-    if (Q) X.push(aI.default, eI.default);
-    else X.push(tI.default, sI.default);
-    return X.push(Qb.default), X;
-  }
-  JK.default = qb;
-});
-var HK = E((GK) => {
-  Object.defineProperty(GK, "__esModule", { value: true });
-  var D0 = c(), Lb = { message: ({ schemaCode: Q }) => D0.str`must match format "${Q}"`, params: ({ schemaCode: Q }) => D0._`{format: ${Q}}` }, Fb = { keyword: "format", type: ["number", "string"], schemaType: "string", $data: true, error: Lb, code(Q, X) {
-    let { gen: Y, data: $, $data: J, schema: W, schemaCode: G, it: H } = Q, { opts: B, errSchemaPath: z, schemaEnv: K, self: U } = H;
-    if (!B.validateFormats) return;
-    if (J) q();
-    else V();
-    function q() {
-      let L = Y.scopeValue("formats", { ref: U.formats, code: B.code.formats }), F = Y.const("fDef", D0._`${L}[${G}]`), M = Y.let("fType"), O = Y.let("format");
-      Y.if(D0._`typeof ${F} == "object" && !(${F} instanceof RegExp)`, () => Y.assign(M, D0._`${F}.type || "string"`).assign(O, D0._`${F}.validate`), () => Y.assign(M, D0._`"string"`).assign(O, F)), Q.fail$data((0, D0.or)(A(), R()));
-      function A() {
-        if (B.strictSchema === false) return D0.nil;
-        return D0._`${G} && !${O}`;
-      }
-      function R() {
-        let Z = K.$async ? D0._`(${F}.async ? await ${O}(${$}) : ${O}(${$}))` : D0._`${O}(${$})`, C = D0._`(typeof ${O} == "function" ? ${Z} : ${O}.test(${$}))`;
-        return D0._`${O} && ${O} !== true && ${M} === ${X} && !${C}`;
-      }
-    }
-    function V() {
-      let L = U.formats[W];
-      if (!L) {
-        A();
-        return;
-      }
-      if (L === true) return;
-      let [F, M, O] = R(L);
-      if (F === X) Q.pass(Z());
-      function A() {
-        if (B.strictSchema === false) {
-          U.logger.warn(C());
-          return;
-        }
-        throw Error(C());
-        function C() {
-          return `unknown format "${W}" ignored in schema at path "${z}"`;
-        }
-      }
-      function R(C) {
-        let B0 = C instanceof RegExp ? (0, D0.regexpCode)(C) : B.code.formats ? D0._`${B.code.formats}${(0, D0.getProperty)(W)}` : void 0, O0 = Y.scopeValue("formats", { key: W, ref: C, code: B0 });
-        if (typeof C == "object" && !(C instanceof RegExp)) return [C.type || "string", C.validate, D0._`${O0}.validate`];
-        return ["string", C, O0];
-      }
-      function Z() {
-        if (typeof L == "object" && !(L instanceof RegExp) && L.async) {
-          if (!K.$async) throw Error("async format in sync schema");
-          return D0._`await ${O}(${$})`;
-        }
-        return typeof M == "function" ? D0._`${O}(${$})` : D0._`${O}.test(${$})`;
-      }
-    }
-  } };
-  GK.default = Fb;
-});
-var zK = E((BK) => {
-  Object.defineProperty(BK, "__esModule", { value: true });
-  var Ob = HK(), Db = [Ob.default];
-  BK.default = Db;
-});
-var qK = E((KK) => {
-  Object.defineProperty(KK, "__esModule", { value: true });
-  KK.contentVocabulary = KK.metadataVocabulary = void 0;
-  KK.metadataVocabulary = ["title", "description", "default", "deprecated", "readOnly", "writeOnly", "examples"];
-  KK.contentVocabulary = ["contentMediaType", "contentEncoding", "contentSchema"];
-});
-var FK = E((LK) => {
-  Object.defineProperty(LK, "__esModule", { value: true });
-  var Ab = gB(), jb = Kz(), Rb = WK(), Ib = zK(), UK = qK(), bb = [Ab.default, jb.default, (0, Rb.default)(), Ib.default, UK.metadataVocabulary, UK.contentVocabulary];
-  LK.default = bb;
-});
-var MK = E((OK) => {
-  Object.defineProperty(OK, "__esModule", { value: true });
-  OK.DiscrError = void 0;
-  var NK;
-  (function(Q) {
-    Q.Tag = "tag", Q.Mapping = "mapping";
-  })(NK || (OK.DiscrError = NK = {}));
-});
-var jK = E((AK) => {
-  Object.defineProperty(AK, "__esModule", { value: true });
-  var P9 = c(), E7 = MK(), wK = UQ(), Pb = P4(), Zb = a(), Cb = { message: ({ params: { discrError: Q, tagName: X } }) => Q === E7.DiscrError.Tag ? `tag "${X}" must be string` : `value of tag "${X}" must be in oneOf`, params: ({ params: { discrError: Q, tag: X, tagName: Y } }) => P9._`{error: ${Q}, tag: ${Y}, tagValue: ${X}}` }, Sb = { keyword: "discriminator", type: "object", schemaType: "object", error: Cb, code(Q) {
-    let { gen: X, data: Y, schema: $, parentSchema: J, it: W } = Q, { oneOf: G } = J;
-    if (!W.opts.discriminator) throw Error("discriminator: requires discriminator option");
-    let H = $.propertyName;
-    if (typeof H != "string") throw Error("discriminator: requires propertyName");
-    if ($.mapping) throw Error("discriminator: mapping is not supported");
-    if (!G) throw Error("discriminator: requires oneOf keyword");
-    let B = X.let("valid", false), z = X.const("tag", P9._`${Y}${(0, P9.getProperty)(H)}`);
-    X.if(P9._`typeof ${z} == "string"`, () => K(), () => Q.error(false, { discrError: E7.DiscrError.Tag, tag: z, tagName: H })), Q.ok(B);
-    function K() {
-      let V = q();
-      X.if(false);
-      for (let L in V) X.elseIf(P9._`${z} === ${L}`), X.assign(B, U(V[L]));
-      X.else(), Q.error(false, { discrError: E7.DiscrError.Mapping, tag: z, tagName: H }), X.endIf();
-    }
-    function U(V) {
-      let L = X.name("valid"), F = Q.subschema({ keyword: "oneOf", schemaProp: V }, L);
-      return Q.mergeEvaluated(F, P9.Name), L;
-    }
-    function q() {
-      var V;
-      let L = {}, F = O(J), M = true;
-      for (let Z = 0; Z < G.length; Z++) {
-        let C = G[Z];
-        if ((C === null || C === void 0 ? void 0 : C.$ref) && !(0, Zb.schemaHasRulesButRef)(C, W.self.RULES)) {
-          let O0 = C.$ref;
-          if (C = wK.resolveRef.call(W.self, W.schemaEnv.root, W.baseId, O0), C instanceof wK.SchemaEnv) C = C.schema;
-          if (C === void 0) throw new Pb.default(W.opts.uriResolver, W.baseId, O0);
-        }
-        let B0 = (V = C === null || C === void 0 ? void 0 : C.properties) === null || V === void 0 ? void 0 : V[H];
-        if (typeof B0 != "object") throw Error(`discriminator: oneOf subschemas (or referenced schemas) must have "properties/${H}"`);
-        M = M && (F || O(C)), A(B0, Z);
-      }
-      if (!M) throw Error(`discriminator: "${H}" must be required`);
-      return L;
-      function O({ required: Z }) {
-        return Array.isArray(Z) && Z.includes(H);
-      }
-      function A(Z, C) {
-        if (Z.const) R(Z.const, C);
-        else if (Z.enum) for (let B0 of Z.enum) R(B0, C);
-        else throw Error(`discriminator: "properties/${H}" must have "const" or "enum"`);
-      }
-      function R(Z, C) {
-        if (typeof Z != "string" || Z in L) throw Error(`discriminator: "${H}" values must be unique strings`);
-        L[Z] = C;
-      }
-    }
-  } };
-  AK.default = Sb;
-});
-var RK = E((ry, kb) => {
-  kb.exports = { $schema: "http://json-schema.org/draft-07/schema#", $id: "http://json-schema.org/draft-07/schema#", title: "Core schema meta-schema", definitions: { schemaArray: { type: "array", minItems: 1, items: { $ref: "#" } }, nonNegativeInteger: { type: "integer", minimum: 0 }, nonNegativeIntegerDefault0: { allOf: [{ $ref: "#/definitions/nonNegativeInteger" }, { default: 0 }] }, simpleTypes: { enum: ["array", "boolean", "integer", "null", "number", "object", "string"] }, stringArray: { type: "array", items: { type: "string" }, uniqueItems: true, default: [] } }, type: ["object", "boolean"], properties: { $id: { type: "string", format: "uri-reference" }, $schema: { type: "string", format: "uri" }, $ref: { type: "string", format: "uri-reference" }, $comment: { type: "string" }, title: { type: "string" }, description: { type: "string" }, default: true, readOnly: { type: "boolean", default: false }, examples: { type: "array", items: true }, multipleOf: { type: "number", exclusiveMinimum: 0 }, maximum: { type: "number" }, exclusiveMaximum: { type: "number" }, minimum: { type: "number" }, exclusiveMinimum: { type: "number" }, maxLength: { $ref: "#/definitions/nonNegativeInteger" }, minLength: { $ref: "#/definitions/nonNegativeIntegerDefault0" }, pattern: { type: "string", format: "regex" }, additionalItems: { $ref: "#" }, items: { anyOf: [{ $ref: "#" }, { $ref: "#/definitions/schemaArray" }], default: true }, maxItems: { $ref: "#/definitions/nonNegativeInteger" }, minItems: { $ref: "#/definitions/nonNegativeIntegerDefault0" }, uniqueItems: { type: "boolean", default: false }, contains: { $ref: "#" }, maxProperties: { $ref: "#/definitions/nonNegativeInteger" }, minProperties: { $ref: "#/definitions/nonNegativeIntegerDefault0" }, required: { $ref: "#/definitions/stringArray" }, additionalProperties: { $ref: "#" }, definitions: { type: "object", additionalProperties: { $ref: "#" }, default: {} }, properties: { type: "object", additionalProperties: { $ref: "#" }, default: {} }, patternProperties: { type: "object", additionalProperties: { $ref: "#" }, propertyNames: { format: "regex" }, default: {} }, dependencies: { type: "object", additionalProperties: { anyOf: [{ $ref: "#" }, { $ref: "#/definitions/stringArray" }] } }, propertyNames: { $ref: "#" }, const: true, enum: { type: "array", items: true, minItems: 1, uniqueItems: true }, type: { anyOf: [{ $ref: "#/definitions/simpleTypes" }, { type: "array", items: { $ref: "#/definitions/simpleTypes" }, minItems: 1, uniqueItems: true }] }, format: { type: "string" }, contentMediaType: { type: "string" }, contentEncoding: { type: "string" }, if: { $ref: "#" }, then: { $ref: "#" }, else: { $ref: "#" }, allOf: { $ref: "#/definitions/schemaArray" }, anyOf: { $ref: "#/definitions/schemaArray" }, oneOf: { $ref: "#/definitions/schemaArray" }, not: { $ref: "#" } }, default: true };
-});
-var Z7 = E((u0, P7) => {
-  Object.defineProperty(u0, "__esModule", { value: true });
-  u0.MissingRefError = u0.ValidationError = u0.CodeGen = u0.Name = u0.nil = u0.stringify = u0.str = u0._ = u0.KeywordCxt = u0.Ajv = void 0;
-  var vb = PB(), Tb = FK(), xb = jK(), IK = RK(), yb = ["/properties"], kQ = "http://json-schema.org/draft-07/schema";
-  class f4 extends vb.default {
-    _addVocabularies() {
-      if (super._addVocabularies(), Tb.default.forEach((Q) => this.addVocabulary(Q)), this.opts.discriminator) this.addKeyword(xb.default);
-    }
-    _addDefaultMetaSchema() {
-      if (super._addDefaultMetaSchema(), !this.opts.meta) return;
-      let Q = this.opts.$data ? this.$dataMetaSchema(IK, yb) : IK;
-      this.addMetaSchema(Q, kQ, false), this.refs["http://json-schema.org/schema"] = kQ;
-    }
-    defaultMeta() {
-      return this.opts.defaultMeta = super.defaultMeta() || (this.getSchema(kQ) ? kQ : void 0);
-    }
-  }
-  u0.Ajv = f4;
-  P7.exports = u0 = f4;
-  P7.exports.Ajv = f4;
-  Object.defineProperty(u0, "__esModule", { value: true });
-  u0.default = f4;
-  var gb = E4();
-  Object.defineProperty(u0, "KeywordCxt", { enumerable: true, get: function() {
-    return gb.KeywordCxt;
-  } });
-  var Z9 = c();
-  Object.defineProperty(u0, "_", { enumerable: true, get: function() {
-    return Z9._;
-  } });
-  Object.defineProperty(u0, "str", { enumerable: true, get: function() {
-    return Z9.str;
-  } });
-  Object.defineProperty(u0, "stringify", { enumerable: true, get: function() {
-    return Z9.stringify;
-  } });
-  Object.defineProperty(u0, "nil", { enumerable: true, get: function() {
-    return Z9.nil;
-  } });
-  Object.defineProperty(u0, "Name", { enumerable: true, get: function() {
-    return Z9.Name;
-  } });
-  Object.defineProperty(u0, "CodeGen", { enumerable: true, get: function() {
-    return Z9.CodeGen;
-  } });
-  var hb = VQ();
-  Object.defineProperty(u0, "ValidationError", { enumerable: true, get: function() {
-    return hb.default;
-  } });
-  var fb = P4();
-  Object.defineProperty(u0, "MissingRefError", { enumerable: true, get: function() {
-    return fb.default;
-  } });
-});
-var TK = E((kK) => {
-  Object.defineProperty(kK, "__esModule", { value: true });
-  kK.formatNames = kK.fastFormats = kK.fullFormats = void 0;
-  function b1(Q, X) {
-    return { validate: Q, compare: X };
-  }
-  kK.fullFormats = { date: b1(ZK, k7), time: b1(S7(true), v7), "date-time": b1(bK(true), SK), "iso-time": b1(S7(), CK), "iso-date-time": b1(bK(), _K), duration: /^P(?!$)((\d+Y)?(\d+M)?(\d+D)?(T(?=\d)(\d+H)?(\d+M)?(\d+S)?)?|(\d+W)?)$/, uri: nb, "uri-reference": /^(?:[a-z][a-z0-9+\-.]*:)?(?:\/?\/(?:(?:[a-z0-9\-._~!$&'()*+,;=:]|%[0-9a-f]{2})*@)?(?:\[(?:(?:(?:(?:[0-9a-f]{1,4}:){6}|::(?:[0-9a-f]{1,4}:){5}|(?:[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){4}|(?:(?:[0-9a-f]{1,4}:){0,1}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){3}|(?:(?:[0-9a-f]{1,4}:){0,2}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){2}|(?:(?:[0-9a-f]{1,4}:){0,3}[0-9a-f]{1,4})?::[0-9a-f]{1,4}:|(?:(?:[0-9a-f]{1,4}:){0,4}[0-9a-f]{1,4})?::)(?:[0-9a-f]{1,4}:[0-9a-f]{1,4}|(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?))|(?:(?:[0-9a-f]{1,4}:){0,5}[0-9a-f]{1,4})?::[0-9a-f]{1,4}|(?:(?:[0-9a-f]{1,4}:){0,6}[0-9a-f]{1,4})?::)|[Vv][0-9a-f]+\.[a-z0-9\-._~!$&'()*+,;=:]+)\]|(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)|(?:[a-z0-9\-._~!$&'"()*+,;=]|%[0-9a-f]{2})*)(?::\d*)?(?:\/(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})*)*|\/(?:(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})+(?:\/(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})*)*)?|(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})+(?:\/(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})*)*)?(?:\?(?:[a-z0-9\-._~!$&'"()*+,;=:@/?]|%[0-9a-f]{2})*)?(?:#(?:[a-z0-9\-._~!$&'"()*+,;=:@/?]|%[0-9a-f]{2})*)?$/i, "uri-template": /^(?:(?:[^\x00-\x20"'<>%\\^`{|}]|%[0-9a-f]{2})|\{[+#./;?&=,!@|]?(?:[a-z0-9_]|%[0-9a-f]{2})+(?::[1-9][0-9]{0,3}|\*)?(?:,(?:[a-z0-9_]|%[0-9a-f]{2})+(?::[1-9][0-9]{0,3}|\*)?)*\})*$/i, url: /^(?:https?|ftp):\/\/(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u{00a1}-\u{ffff}]+-)*[a-z0-9\u{00a1}-\u{ffff}]+)(?:\.(?:[a-z0-9\u{00a1}-\u{ffff}]+-)*[a-z0-9\u{00a1}-\u{ffff}]+)*(?:\.(?:[a-z\u{00a1}-\u{ffff}]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?$/iu, email: /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i, hostname: /^(?=.{1,253}\.?$)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[-0-9a-z]{0,61}[0-9a-z])?)*\.?$/i, ipv4: /^(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/, ipv6: /^((([0-9a-f]{1,4}:){7}([0-9a-f]{1,4}|:))|(([0-9a-f]{1,4}:){6}(:[0-9a-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9a-f]{1,4}:){5}(((:[0-9a-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9a-f]{1,4}:){4}(((:[0-9a-f]{1,4}){1,3})|((:[0-9a-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){3}(((:[0-9a-f]{1,4}){1,4})|((:[0-9a-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){2}(((:[0-9a-f]{1,4}){1,5})|((:[0-9a-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){1}(((:[0-9a-f]{1,4}){1,6})|((:[0-9a-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9a-f]{1,4}){1,7})|((:[0-9a-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))$/i, regex: QE, uuid: /^(?:urn:uuid:)?[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i, "json-pointer": /^(?:\/(?:[^~/]|~0|~1)*)*$/, "json-pointer-uri-fragment": /^#(?:\/(?:[a-z0-9_\-.!$&'()*+,;:=@]|%[0-9a-f]{2}|~0|~1)*)*$/i, "relative-json-pointer": /^(?:0|[1-9][0-9]*)(?:#|(?:\/(?:[^~/]|~0|~1)*)*)$/, byte: ob, int32: { type: "number", validate: ab }, int64: { type: "number", validate: sb }, float: { type: "number", validate: PK }, double: { type: "number", validate: PK }, password: true, binary: true };
-  kK.fastFormats = { ...kK.fullFormats, date: b1(/^\d\d\d\d-[0-1]\d-[0-3]\d$/, k7), time: b1(/^(?:[0-2]\d:[0-5]\d:[0-5]\d|23:59:60)(?:\.\d+)?(?:z|[+-]\d\d(?::?\d\d)?)$/i, v7), "date-time": b1(/^\d\d\d\d-[0-1]\d-[0-3]\dt(?:[0-2]\d:[0-5]\d:[0-5]\d|23:59:60)(?:\.\d+)?(?:z|[+-]\d\d(?::?\d\d)?)$/i, SK), "iso-time": b1(/^(?:[0-2]\d:[0-5]\d:[0-5]\d|23:59:60)(?:\.\d+)?(?:z|[+-]\d\d(?::?\d\d)?)?$/i, CK), "iso-date-time": b1(/^\d\d\d\d-[0-1]\d-[0-3]\d[t\s](?:[0-2]\d:[0-5]\d:[0-5]\d|23:59:60)(?:\.\d+)?(?:z|[+-]\d\d(?::?\d\d)?)?$/i, _K), uri: /^(?:[a-z][a-z0-9+\-.]*:)(?:\/?\/)?[^\s]*$/i, "uri-reference": /^(?:(?:[a-z][a-z0-9+\-.]*:)?\/?\/)?(?:[^\\\s#][^\s#]*)?(?:#[^\\\s]*)?$/i, email: /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/i };
-  kK.formatNames = Object.keys(kK.fullFormats);
-  function lb(Q) {
-    return Q % 4 === 0 && (Q % 100 !== 0 || Q % 400 === 0);
-  }
-  var cb = /^(\d\d\d\d)-(\d\d)-(\d\d)$/, pb = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  function ZK(Q) {
-    let X = cb.exec(Q);
-    if (!X) return false;
-    let Y = +X[1], $ = +X[2], J = +X[3];
-    return $ >= 1 && $ <= 12 && J >= 1 && J <= ($ === 2 && lb(Y) ? 29 : pb[$]);
-  }
-  function k7(Q, X) {
-    if (!(Q && X)) return;
-    if (Q > X) return 1;
-    if (Q < X) return -1;
-    return 0;
-  }
-  var C7 = /^(\d\d):(\d\d):(\d\d(?:\.\d+)?)(z|([+-])(\d\d)(?::?(\d\d))?)?$/i;
-  function S7(Q) {
-    return function(Y) {
-      let $ = C7.exec(Y);
-      if (!$) return false;
-      let J = +$[1], W = +$[2], G = +$[3], H = $[4], B = $[5] === "-" ? -1 : 1, z = +($[6] || 0), K = +($[7] || 0);
-      if (z > 23 || K > 59 || Q && !H) return false;
-      if (J <= 23 && W <= 59 && G < 60) return true;
-      let U = W - K * B, q = J - z * B - (U < 0 ? 1 : 0);
-      return (q === 23 || q === -1) && (U === 59 || U === -1) && G < 61;
-    };
-  }
-  function v7(Q, X) {
-    if (!(Q && X)) return;
-    let Y = (/* @__PURE__ */ new Date("2020-01-01T" + Q)).valueOf(), $ = (/* @__PURE__ */ new Date("2020-01-01T" + X)).valueOf();
-    if (!(Y && $)) return;
-    return Y - $;
-  }
-  function CK(Q, X) {
-    if (!(Q && X)) return;
-    let Y = C7.exec(Q), $ = C7.exec(X);
-    if (!(Y && $)) return;
-    if (Q = Y[1] + Y[2] + Y[3], X = $[1] + $[2] + $[3], Q > X) return 1;
-    if (Q < X) return -1;
-    return 0;
-  }
-  var _7 = /t|\s/i;
-  function bK(Q) {
-    let X = S7(Q);
-    return function($) {
-      let J = $.split(_7);
-      return J.length === 2 && ZK(J[0]) && X(J[1]);
-    };
-  }
-  function SK(Q, X) {
-    if (!(Q && X)) return;
-    let Y = new Date(Q).valueOf(), $ = new Date(X).valueOf();
-    if (!(Y && $)) return;
-    return Y - $;
-  }
-  function _K(Q, X) {
-    if (!(Q && X)) return;
-    let [Y, $] = Q.split(_7), [J, W] = X.split(_7), G = k7(Y, J);
-    if (G === void 0) return;
-    return G || v7($, W);
-  }
-  var db = /\/|:/, ib = /^(?:[a-z][a-z0-9+\-.]*:)(?:\/?\/(?:(?:[a-z0-9\-._~!$&'()*+,;=:]|%[0-9a-f]{2})*@)?(?:\[(?:(?:(?:(?:[0-9a-f]{1,4}:){6}|::(?:[0-9a-f]{1,4}:){5}|(?:[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){4}|(?:(?:[0-9a-f]{1,4}:){0,1}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){3}|(?:(?:[0-9a-f]{1,4}:){0,2}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){2}|(?:(?:[0-9a-f]{1,4}:){0,3}[0-9a-f]{1,4})?::[0-9a-f]{1,4}:|(?:(?:[0-9a-f]{1,4}:){0,4}[0-9a-f]{1,4})?::)(?:[0-9a-f]{1,4}:[0-9a-f]{1,4}|(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?))|(?:(?:[0-9a-f]{1,4}:){0,5}[0-9a-f]{1,4})?::[0-9a-f]{1,4}|(?:(?:[0-9a-f]{1,4}:){0,6}[0-9a-f]{1,4})?::)|[Vv][0-9a-f]+\.[a-z0-9\-._~!$&'()*+,;=:]+)\]|(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)|(?:[a-z0-9\-._~!$&'()*+,;=]|%[0-9a-f]{2})*)(?::\d*)?(?:\/(?:[a-z0-9\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})*)*|\/(?:(?:[a-z0-9\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})+(?:\/(?:[a-z0-9\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})*)*)?|(?:[a-z0-9\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})+(?:\/(?:[a-z0-9\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})*)*)(?:\?(?:[a-z0-9\-._~!$&'()*+,;=:@/?]|%[0-9a-f]{2})*)?(?:#(?:[a-z0-9\-._~!$&'()*+,;=:@/?]|%[0-9a-f]{2})*)?$/i;
-  function nb(Q) {
-    return db.test(Q) && ib.test(Q);
-  }
-  var EK = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/gm;
-  function ob(Q) {
-    return EK.lastIndex = 0, EK.test(Q);
-  }
-  var rb = -2147483648, tb = 2147483647;
-  function ab(Q) {
-    return Number.isInteger(Q) && Q <= tb && Q >= rb;
-  }
-  function sb(Q) {
-    return Number.isInteger(Q);
-  }
-  function PK() {
-    return true;
-  }
-  var eb = /[^\\]\\Z/;
-  function QE(Q) {
-    if (eb.test(Q)) return false;
-    try {
-      return new RegExp(Q), true;
-    } catch (X) {
-      return false;
-    }
-  }
-});
-var yK = E((xK) => {
-  Object.defineProperty(xK, "__esModule", { value: true });
-  xK.formatLimitDefinition = void 0;
-  var YE = Z7(), L1 = c(), G6 = L1.operators, vQ = { formatMaximum: { okStr: "<=", ok: G6.LTE, fail: G6.GT }, formatMinimum: { okStr: ">=", ok: G6.GTE, fail: G6.LT }, formatExclusiveMaximum: { okStr: "<", ok: G6.LT, fail: G6.GTE }, formatExclusiveMinimum: { okStr: ">", ok: G6.GT, fail: G6.LTE } }, $E = { message: ({ keyword: Q, schemaCode: X }) => L1.str`should be ${vQ[Q].okStr} ${X}`, params: ({ keyword: Q, schemaCode: X }) => L1._`{comparison: ${vQ[Q].okStr}, limit: ${X}}` };
-  xK.formatLimitDefinition = { keyword: Object.keys(vQ), type: "string", schemaType: "string", $data: true, error: $E, code(Q) {
-    let { gen: X, data: Y, schemaCode: $, keyword: J, it: W } = Q, { opts: G, self: H } = W;
-    if (!G.validateFormats) return;
-    let B = new YE.KeywordCxt(W, H.RULES.all.format.definition, "format");
-    if (B.$data) z();
-    else K();
-    function z() {
-      let q = X.scopeValue("formats", { ref: H.formats, code: G.code.formats }), V = X.const("fmt", L1._`${q}[${B.schemaCode}]`);
-      Q.fail$data((0, L1.or)(L1._`typeof ${V} != "object"`, L1._`${V} instanceof RegExp`, L1._`typeof ${V}.compare != "function"`, U(V)));
-    }
-    function K() {
-      let q = B.schema, V = H.formats[q];
-      if (!V || V === true) return;
-      if (typeof V != "object" || V instanceof RegExp || typeof V.compare != "function") throw Error(`"${J}": format "${q}" does not define "compare" function`);
-      let L = X.scopeValue("formats", { key: q, ref: V, code: G.code.formats ? L1._`${G.code.formats}${(0, L1.getProperty)(q)}` : void 0 });
-      Q.fail$data(U(L));
-    }
-    function U(q) {
-      return L1._`${q}.compare(${Y}, ${$}) ${vQ[J].fail} 0`;
-    }
-  }, dependencies: ["format"] };
-  var JE = (Q) => {
-    return Q.addKeyword(xK.formatLimitDefinition), Q;
-  };
-  xK.default = JE;
-});
-var uK = E((u4, fK) => {
-  Object.defineProperty(u4, "__esModule", { value: true });
-  var C9 = TK(), GE = yK(), y7 = c(), gK = new y7.Name("fullFormats"), HE = new y7.Name("fastFormats"), g7 = (Q, X = { keywords: true }) => {
-    if (Array.isArray(X)) return hK(Q, X, C9.fullFormats, gK), Q;
-    let [Y, $] = X.mode === "fast" ? [C9.fastFormats, HE] : [C9.fullFormats, gK], J = X.formats || C9.formatNames;
-    if (hK(Q, J, Y, $), X.keywords) (0, GE.default)(Q);
-    return Q;
-  };
-  g7.get = (Q, X = "full") => {
-    let $ = (X === "fast" ? C9.fastFormats : C9.fullFormats)[Q];
-    if (!$) throw Error(`Unknown format "${Q}"`);
-    return $;
-  };
-  function hK(Q, X, Y, $) {
-    var J, W;
-    (J = (W = Q.opts.code).formats) !== null && J !== void 0 || (W.formats = y7._`require("ajv-formats/dist/formats").${$}`);
-    for (let G of X) Q.addFormat(G, Y[G]);
-  }
-  fK.exports = u4 = g7;
-  Object.defineProperty(u4, "__esModule", { value: true });
-  u4.default = g7;
-});
-var EV = 50;
-function y6(Q = EV) {
-  let X = new AbortController();
-  return bV(Q, X.signal), X;
-}
-var T0 = class extends Error {
-};
-function g6() {
-  return process.versions.bun !== void 0;
-}
-var CV = typeof global == "object" && global && global.Object === Object && global;
-var e7 = CV;
-var SV = typeof self == "object" && self && self.Object === Object && self;
-var _V = e7 || SV || Function("return this")();
-var h6 = _V;
-var kV = h6.Symbol;
-var f6 = kV;
-var Q5 = Object.prototype;
-var vV = Q5.hasOwnProperty;
-var TV = Q5.toString;
-var T9 = f6 ? f6.toStringTag : void 0;
-function xV(Q) {
-  var X = vV.call(Q, T9), Y = Q[T9];
-  try {
-    Q[T9] = void 0;
-    var $ = true;
-  } catch (W) {
-  }
-  var J = TV.call(Q);
-  if ($) if (X) Q[T9] = Y;
-  else delete Q[T9];
-  return J;
-}
-var X5 = xV;
-var yV = Object.prototype;
-var gV = yV.toString;
-function hV(Q) {
-  return gV.call(Q);
-}
-var Y5 = hV;
-var fV = "[object Null]";
-var uV = "[object Undefined]";
-var $5 = f6 ? f6.toStringTag : void 0;
-function mV(Q) {
-  if (Q == null) return Q === void 0 ? uV : fV;
-  return $5 && $5 in Object(Q) ? X5(Q) : Y5(Q);
-}
-var J5 = mV;
-function lV(Q) {
-  var X = typeof Q;
-  return Q != null && (X == "object" || X == "function");
-}
-var c4 = lV;
-var cV = "[object AsyncFunction]";
-var pV = "[object Function]";
-var dV = "[object GeneratorFunction]";
-var iV = "[object Proxy]";
-function nV(Q) {
-  if (!c4(Q)) return false;
-  var X = J5(Q);
-  return X == pV || X == dV || X == cV || X == iV;
-}
-var W5 = nV;
-var oV = h6["__core-js_shared__"];
-var p4 = oV;
-var G5 = (function() {
-  var Q = /[^.]+$/.exec(p4 && p4.keys && p4.keys.IE_PROTO || "");
-  return Q ? "Symbol(src)_1." + Q : "";
-})();
-function rV(Q) {
-  return !!G5 && G5 in Q;
-}
-var H5 = rV;
-var tV = Function.prototype;
-var aV = tV.toString;
-function sV(Q) {
-  if (Q != null) {
-    try {
-      return aV.call(Q);
-    } catch (X) {
-    }
-    try {
-      return Q + "";
-    } catch (X) {
-    }
-  }
-  return "";
-}
-var B5 = sV;
-var eV = /[\\^$.*+?()[\]{}|]/g;
-var Qq = /^\[object .+?Constructor\]$/;
-var Xq = Function.prototype;
-var Yq = Object.prototype;
-var $q = Xq.toString;
-var Jq = Yq.hasOwnProperty;
-var Wq = RegExp("^" + $q.call(Jq).replace(eV, "\\$&").replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, "$1.*?") + "$");
-function Gq(Q) {
-  if (!c4(Q) || H5(Q)) return false;
-  var X = W5(Q) ? Wq : Qq;
-  return X.test(B5(Q));
-}
-var z5 = Gq;
-function Hq(Q, X) {
-  return Q == null ? void 0 : Q[X];
-}
-var K5 = Hq;
-function Bq(Q, X) {
-  var Y = K5(Q, X);
-  return z5(Y) ? Y : void 0;
-}
-var d4 = Bq;
-var zq = d4(Object, "create");
-var P1 = zq;
-function Kq() {
-  this.__data__ = P1 ? P1(null) : {}, this.size = 0;
-}
-var V5 = Kq;
-function Vq(Q) {
-  var X = this.has(Q) && delete this.__data__[Q];
-  return this.size -= X ? 1 : 0, X;
-}
-var q5 = Vq;
-var qq = "__lodash_hash_undefined__";
-var Uq = Object.prototype;
-var Lq = Uq.hasOwnProperty;
-function Fq(Q) {
-  var X = this.__data__;
-  if (P1) {
-    var Y = X[Q];
-    return Y === qq ? void 0 : Y;
-  }
-  return Lq.call(X, Q) ? X[Q] : void 0;
-}
-var U5 = Fq;
-var Nq = Object.prototype;
-var Oq = Nq.hasOwnProperty;
-function Dq(Q) {
-  var X = this.__data__;
-  return P1 ? X[Q] !== void 0 : Oq.call(X, Q);
-}
-var L5 = Dq;
-var Mq = "__lodash_hash_undefined__";
-function wq(Q, X) {
-  var Y = this.__data__;
-  return this.size += this.has(Q) ? 0 : 1, Y[Q] = P1 && X === void 0 ? Mq : X, this;
-}
-var F5 = wq;
-function u6(Q) {
-  var X = -1, Y = Q == null ? 0 : Q.length;
-  this.clear();
-  while (++X < Y) {
-    var $ = Q[X];
-    this.set($[0], $[1]);
-  }
-}
-u6.prototype.clear = V5;
-u6.prototype.delete = q5;
-u6.prototype.get = U5;
-u6.prototype.has = L5;
-u6.prototype.set = F5;
-var hQ = u6;
-function Aq() {
-  this.__data__ = [], this.size = 0;
-}
-var N5 = Aq;
-function jq(Q, X) {
-  return Q === X || Q !== Q && X !== X;
-}
-var O5 = jq;
-function Rq(Q, X) {
-  var Y = Q.length;
-  while (Y--) if (O5(Q[Y][0], X)) return Y;
-  return -1;
-}
-var h1 = Rq;
-var Iq = Array.prototype;
-var bq = Iq.splice;
-function Eq(Q) {
-  var X = this.__data__, Y = h1(X, Q);
-  if (Y < 0) return false;
-  var $ = X.length - 1;
-  if (Y == $) X.pop();
-  else bq.call(X, Y, 1);
-  return --this.size, true;
-}
-var D5 = Eq;
-function Pq(Q) {
-  var X = this.__data__, Y = h1(X, Q);
-  return Y < 0 ? void 0 : X[Y][1];
-}
-var M5 = Pq;
-function Zq(Q) {
-  return h1(this.__data__, Q) > -1;
-}
-var w5 = Zq;
-function Cq(Q, X) {
-  var Y = this.__data__, $ = h1(Y, Q);
-  if ($ < 0) ++this.size, Y.push([Q, X]);
-  else Y[$][1] = X;
-  return this;
-}
-var A5 = Cq;
-function m6(Q) {
-  var X = -1, Y = Q == null ? 0 : Q.length;
-  this.clear();
-  while (++X < Y) {
-    var $ = Q[X];
-    this.set($[0], $[1]);
-  }
-}
-m6.prototype.clear = N5;
-m6.prototype.delete = D5;
-m6.prototype.get = M5;
-m6.prototype.has = w5;
-m6.prototype.set = A5;
-var j5 = m6;
-var Sq = d4(h6, "Map");
-var R5 = Sq;
-function _q() {
-  this.size = 0, this.__data__ = { hash: new hQ(), map: new (R5 || j5)(), string: new hQ() };
-}
-var I5 = _q;
-function kq(Q) {
-  var X = typeof Q;
-  return X == "string" || X == "number" || X == "symbol" || X == "boolean" ? Q !== "__proto__" : Q === null;
-}
-var b5 = kq;
-function vq(Q, X) {
-  var Y = Q.__data__;
-  return b5(X) ? Y[typeof X == "string" ? "string" : "hash"] : Y.map;
-}
-var f1 = vq;
-function Tq(Q) {
-  var X = f1(this, Q).delete(Q);
-  return this.size -= X ? 1 : 0, X;
-}
-var E5 = Tq;
-function xq(Q) {
-  return f1(this, Q).get(Q);
-}
-var P5 = xq;
-function yq(Q) {
-  return f1(this, Q).has(Q);
-}
-var Z5 = yq;
-function gq(Q, X) {
-  var Y = f1(this, Q), $ = Y.size;
-  return Y.set(Q, X), this.size += Y.size == $ ? 0 : 1, this;
-}
-var C5 = gq;
-function l6(Q) {
-  var X = -1, Y = Q == null ? 0 : Q.length;
-  this.clear();
-  while (++X < Y) {
-    var $ = Q[X];
-    this.set($[0], $[1]);
-  }
-}
-l6.prototype.clear = I5;
-l6.prototype.delete = E5;
-l6.prototype.get = P5;
-l6.prototype.has = Z5;
-l6.prototype.set = C5;
-var fQ = l6;
-var hq = "Expected a function";
-function uQ(Q, X) {
-  if (typeof Q != "function" || X != null && typeof X != "function") throw TypeError(hq);
-  var Y = function() {
-    var $ = arguments, J = X ? X.apply(this, $) : $[0], W = Y.cache;
-    if (W.has(J)) return W.get(J);
-    var G = Q.apply(this, $);
-    return Y.cache = W.set(J, G) || W, G;
-  };
-  return Y.cache = new (uQ.Cache || fQ)(), Y;
-}
-uQ.Cache = fQ;
-var X1 = uQ;
-var c6 = X1(() => {
-  return (process.env.CLAUDE_CONFIG_DIR ?? fq(uq(), ".claude")).normalize("NFC");
-}, () => process.env.CLAUDE_CONFIG_DIR);
-function x9(Q) {
-  if (!Q) return false;
-  if (typeof Q === "boolean") return Q;
-  let X = Q.toLowerCase().trim();
-  return ["1", "true", "yes", "on"].includes(X);
-}
-var d6;
-var p6 = null;
-function pq() {
-  if (p6) return p6;
-  if (!process.env.DEBUG_CLAUDE_AGENT_SDK) return d6 = null, p6 = Promise.resolve(), p6;
-  let Q = S5(c6(), "debug");
-  return d6 = S5(Q, `sdk-${mq()}.txt`), process.stderr.write(`SDK debug logs: ${d6}
-`), p6 = cq(Q, { recursive: true }).then(() => {
-  }).catch(() => {
-  }), p6;
-}
-function i0(Q) {
-  if (d6 === null) return;
-  let Y = `${(/* @__PURE__ */ new Date()).toISOString()} ${Q}
-`;
-  pq().then(() => {
-    if (d6) lq(d6, Y).catch(() => {
-    });
-  });
-}
-function dq(Q, X) {
-  if (Q.destroyed) return;
-  Q.write(X);
-}
-function _5(Q) {
-  dq(process.stderr, Q);
-}
-var k5 = X1((Q) => {
-  if (!Q || Q.trim() === "") return null;
-  let X = Q.split(",").map((W) => W.trim()).filter(Boolean);
-  if (X.length === 0) return null;
-  let Y = X.some((W) => W.startsWith("!")), $ = X.some((W) => !W.startsWith("!"));
-  if (Y && $) return null;
-  let J = X.map((W) => W.replace(/^!/, "").toLowerCase());
-  return { include: Y ? [] : J, exclude: Y ? J : [], isExclusive: Y };
-});
-function iq(Q) {
-  let X = [], Y = Q.match(/^MCP server ["']([^"']+)["']/);
-  if (Y && Y[1]) X.push("mcp"), X.push(Y[1].toLowerCase());
-  else {
-    let W = Q.match(/^([^:[]+):/);
-    if (W && W[1]) X.push(W[1].trim().toLowerCase());
-  }
-  let $ = Q.match(/^\[([^\]]+)]/);
-  if ($ && $[1]) X.push($[1].trim().toLowerCase());
-  if (Q.toLowerCase().includes("1p event:")) X.push("1p");
-  let J = Q.match(/:\s*([^:]+?)(?:\s+(?:type|mode|status|event))?:/);
-  if (J && J[1]) {
-    let W = J[1].trim().toLowerCase();
-    if (W.length < 30 && !W.includes(" ")) X.push(W);
-  }
-  return Array.from(new Set(X));
-}
-function nq(Q, X) {
-  if (!X) return true;
-  if (Q.length === 0) return false;
-  if (X.isExclusive) return !Q.some((Y) => X.exclude.includes(Y));
-  else return Q.some((Y) => X.include.includes(Y));
-}
-function v5(Q, X) {
-  if (!X) return true;
-  let Y = iq(Q);
-  return nq(Y, X);
-}
-var YU = { cwd() {
-  return process.cwd();
-}, existsSync(Q) {
-  let Y = [];
-  try {
-    const X = X0(Y, U0`fs.existsSync(${Q})`, 0);
-    return u.existsSync(Q);
-  } catch ($) {
-    var J = $, W = 1;
-  } finally {
-    Y0(Y, J, W);
-  }
-}, async stat(Q) {
-  return oq(Q);
-}, async readdir(Q) {
-  return rq(Q, { withFileTypes: true });
-}, async unlink(Q) {
-  return tq(Q);
-}, async rmdir(Q) {
-  return aq(Q);
-}, async rm(Q, X) {
-  return sq(Q, X);
-}, async mkdir(Q, X) {
-  try {
-    await eq(Q, { recursive: true, ...X });
-  } catch (Y) {
-    if (Y.code !== "EEXIST") throw Y;
-  }
-}, async readFile(Q, X) {
-  return T5(Q, { encoding: X.encoding });
-}, async rename(Q, X) {
-  return QU(Q, X);
-}, statSync(Q) {
-  let Y = [];
-  try {
-    const X = X0(Y, U0`fs.statSync(${Q})`, 0);
-    return u.statSync(Q);
-  } catch ($) {
-    var J = $, W = 1;
-  } finally {
-    Y0(Y, J, W);
-  }
-}, lstatSync(Q) {
-  let Y = [];
-  try {
-    const X = X0(Y, U0`fs.lstatSync(${Q})`, 0);
-    return u.lstatSync(Q);
-  } catch ($) {
-    var J = $, W = 1;
-  } finally {
-    Y0(Y, J, W);
-  }
-}, readFileSync(Q, X) {
-  let $ = [];
-  try {
-    const Y = X0($, U0`fs.readFileSync(${Q})`, 0);
-    return u.readFileSync(Q, { encoding: X.encoding });
-  } catch (J) {
-    var W = J, G = 1;
-  } finally {
-    Y0($, W, G);
-  }
-}, readFileBytesSync(Q) {
-  let Y = [];
-  try {
-    const X = X0(Y, U0`fs.readFileBytesSync(${Q})`, 0);
-    return u.readFileSync(Q);
-  } catch ($) {
-    var J = $, W = 1;
-  } finally {
-    Y0(Y, J, W);
-  }
-}, readSync(Q, X) {
-  let J = [];
-  try {
-    const Y = X0(J, U0`fs.readSync(${Q}, ${X.length} bytes)`, 0);
-    let $ = void 0;
-    try {
-      $ = u.openSync(Q, "r");
-      let B = Buffer.alloc(X.length), z = u.readSync($, B, 0, X.length, 0);
-      return { buffer: B, bytesRead: z };
-    } finally {
-      if ($) u.closeSync($);
-    }
-  } catch (W) {
-    var G = W, H = 1;
-  } finally {
-    Y0(J, G, H);
-  }
-}, appendFileSync(Q, X, Y) {
-  let J = [];
-  try {
-    const $ = X0(J, U0`fs.appendFileSync(${Q}, ${X.length} chars)`, 0);
-    if (Y?.mode !== void 0) try {
-      let B = u.openSync(Q, "ax", Y.mode);
-      try {
-        u.appendFileSync(B, X);
-      } finally {
-        u.closeSync(B);
-      }
-      return;
-    } catch (B) {
-      if (B.code !== "EEXIST") throw B;
-    }
-    u.appendFileSync(Q, X);
-  } catch (W) {
-    var G = W, H = 1;
-  } finally {
-    Y0(J, G, H);
-  }
-}, copyFileSync(Q, X) {
-  let $ = [];
-  try {
-    const Y = X0($, U0`fs.copyFileSync(${Q} → ${X})`, 0);
-    u.copyFileSync(Q, X);
-  } catch (J) {
-    var W = J, G = 1;
-  } finally {
-    Y0($, W, G);
-  }
-}, unlinkSync(Q) {
-  let Y = [];
-  try {
-    const X = X0(Y, U0`fs.unlinkSync(${Q})`, 0);
-    u.unlinkSync(Q);
-  } catch ($) {
-    var J = $, W = 1;
-  } finally {
-    Y0(Y, J, W);
-  }
-}, renameSync(Q, X) {
-  let $ = [];
-  try {
-    const Y = X0($, U0`fs.renameSync(${Q} → ${X})`, 0);
-    u.renameSync(Q, X);
-  } catch (J) {
-    var W = J, G = 1;
-  } finally {
-    Y0($, W, G);
-  }
-}, linkSync(Q, X) {
-  let $ = [];
-  try {
-    const Y = X0($, U0`fs.linkSync(${Q} → ${X})`, 0);
-    u.linkSync(Q, X);
-  } catch (J) {
-    var W = J, G = 1;
-  } finally {
-    Y0($, W, G);
-  }
-}, symlinkSync(Q, X, Y) {
-  let J = [];
-  try {
-    const $ = X0(J, U0`fs.symlinkSync(${Q} → ${X})`, 0);
-    u.symlinkSync(Q, X, Y);
-  } catch (W) {
-    var G = W, H = 1;
-  } finally {
-    Y0(J, G, H);
-  }
-}, readlinkSync(Q) {
-  let Y = [];
-  try {
-    const X = X0(Y, U0`fs.readlinkSync(${Q})`, 0);
-    return u.readlinkSync(Q);
-  } catch ($) {
-    var J = $, W = 1;
-  } finally {
-    Y0(Y, J, W);
-  }
-}, realpathSync(Q) {
-  let Y = [];
-  try {
-    const X = X0(Y, U0`fs.realpathSync(${Q})`, 0);
-    return u.realpathSync(Q).normalize("NFC");
-  } catch ($) {
-    var J = $, W = 1;
-  } finally {
-    Y0(Y, J, W);
-  }
-}, mkdirSync(Q, X) {
-  let J = [];
-  try {
-    const Y = X0(J, U0`fs.mkdirSync(${Q})`, 0);
-    let $ = { recursive: true };
-    if (X?.mode !== void 0) $.mode = X.mode;
-    try {
-      u.mkdirSync(Q, $);
-    } catch (B) {
-      if (B.code !== "EEXIST") throw B;
-    }
-  } catch (W) {
-    var G = W, H = 1;
-  } finally {
-    Y0(J, G, H);
-  }
-}, readdirSync(Q) {
-  let Y = [];
-  try {
-    const X = X0(Y, U0`fs.readdirSync(${Q})`, 0);
-    return u.readdirSync(Q, { withFileTypes: true });
-  } catch ($) {
-    var J = $, W = 1;
-  } finally {
-    Y0(Y, J, W);
-  }
-}, readdirStringSync(Q) {
-  let Y = [];
-  try {
-    const X = X0(Y, U0`fs.readdirStringSync(${Q})`, 0);
-    return u.readdirSync(Q);
-  } catch ($) {
-    var J = $, W = 1;
-  } finally {
-    Y0(Y, J, W);
-  }
-}, isDirEmptySync(Q) {
-  let $ = [];
-  try {
-    const X = X0($, U0`fs.isDirEmptySync(${Q})`, 0);
-    let Y = this.readdirSync(Q);
-    return Y.length === 0;
-  } catch (J) {
-    var W = J, G = 1;
-  } finally {
-    Y0($, W, G);
-  }
-}, rmdirSync(Q) {
-  let Y = [];
-  try {
-    const X = X0(Y, U0`fs.rmdirSync(${Q})`, 0);
-    u.rmdirSync(Q);
-  } catch ($) {
-    var J = $, W = 1;
-  } finally {
-    Y0(Y, J, W);
-  }
-}, rmSync(Q, X) {
-  let $ = [];
-  try {
-    const Y = X0($, U0`fs.rmSync(${Q})`, 0);
-    u.rmSync(Q, X);
-  } catch (J) {
-    var W = J, G = 1;
-  } finally {
-    Y0($, W, G);
-  }
-}, createWriteStream(Q) {
-  return u.createWriteStream(Q);
-}, async readFileBytes(Q, X) {
-  if (X === void 0) return T5(Q);
-  let Y = await XU(Q, "r");
-  try {
-    let { size: $ } = await Y.stat(), J = Math.min($, X), W = Buffer.allocUnsafe(J), G = 0;
-    while (G < J) {
-      let { bytesRead: H } = await Y.read(W, G, J - G, G);
-      if (H === 0) break;
-      G += H;
-    }
-    return G < J ? W.subarray(0, G) : W;
-  } finally {
-    await Y.close();
-  }
-} };
-var $U = YU;
-function i6() {
-  return $U;
-}
-function WU() {
-  let Q = "";
-  if (typeof process < "u" && typeof process.cwd === "function" && typeof x5 === "function") Q = x5(JU()).normalize("NFC");
-  return { originalCwd: Q, projectRoot: Q, totalCostUSD: 0, totalAPIDuration: 0, totalAPIDurationWithoutRetries: 0, totalToolDuration: 0, tokenSaverBytesSaved: 0, tokenSaverHits: 0, turnHookDurationMs: 0, turnToolDurationMs: 0, turnClassifierDurationMs: 0, turnToolCount: 0, turnHookCount: 0, turnClassifierCount: 0, startTime: Date.now(), lastInteractionTime: Date.now(), totalLinesAdded: 0, totalLinesRemoved: 0, hasUnknownModelCost: false, cwd: Q, modelUsage: {}, mainLoopModelOverride: void 0, initialMainLoopModel: null, modelStrings: null, isInteractive: false, kairosActive: false, sdkAgentProgressSummariesEnabled: false, userMsgOptIn: false, clientType: "cli", sessionSource: void 0, questionPreviewFormat: void 0, sessionIngressToken: void 0, oauthTokenFromFd: void 0, apiKeyFromFd: void 0, flagSettingsPath: void 0, flagSettingsInline: null, allowedSettingSources: ["userSettings", "projectSettings", "localSettings", "flagSettings", "policySettings"], meter: null, sessionCounter: null, locCounter: null, prCounter: null, commitCounter: null, costCounter: null, tokenCounter: null, codeEditToolDecisionCounter: null, activeTimeCounter: null, statsStore: null, sessionId: i4(), parentSessionId: void 0, loggerProvider: null, eventLogger: null, meterProvider: null, tracerProvider: null, agentColorMap: /* @__PURE__ */ new Map(), agentColorIndex: 0, lastAPIRequest: null, lastClassifierRequests: null, inMemoryErrorLog: [], inlinePlugins: [], chromeFlagOverride: void 0, useCoworkPlugins: false, sessionBypassPermissionsMode: false, scheduledTasksEnabled: false, sessionCronTasks: [], sessionCreatedTeams: /* @__PURE__ */ new Set(), sessionTrustAccepted: false, sessionPersistenceDisabled: false, hasExitedPlanMode: false, needsPlanModeExitAttachment: false, needsAutoModeExitAttachment: false, lspRecommendationShownThisSession: false, initJsonSchema: null, registeredHooks: null, planSlugCache: /* @__PURE__ */ new Map(), teleportedSessionInfo: null, invokedSkills: /* @__PURE__ */ new Map(), slowOperations: [], sdkBetas: void 0, mainThreadAgentType: void 0, isRemoteMode: false, isInWorktree: false, ...{}, directConnectServerUrl: void 0, systemPromptSectionCache: /* @__PURE__ */ new Map(), lastEmittedDate: null, additionalDirectoriesForClaudeMd: [], allowedChannels: [], sessionProjectDir: null, promptCache1hAllowlist: null, promptId: null };
-}
-var GU = WU();
-function y5() {
-  return GU.sessionId;
-}
-function g5({ writeFn: Q, flushIntervalMs: X = 1e3, maxBufferSize: Y = 100, maxBufferBytes: $ = 1 / 0, immediateMode: J = false }) {
-  let W = [], G = 0, H = null, B = null;
-  function z() {
-    if (H) clearTimeout(H), H = null;
-  }
-  function K() {
-    if (B) Q(B.join("")), B = null;
-    if (W.length === 0) return;
-    Q(W.join("")), W = [], G = 0, z();
-  }
-  function U() {
-    if (!H) H = setTimeout(K, X);
-  }
-  function q() {
-    if (B) {
-      B.push(...W), W = [], G = 0, z();
-      return;
-    }
-    let V = W;
-    W = [], G = 0, z(), B = V, setImmediate(() => {
-      let L = B;
-      if (B = null, L) Q(L.join(""));
-    });
-  }
-  return { write(V) {
-    if (J) {
-      Q(V);
-      return;
-    }
-    if (W.push(V), G += V.length, U(), W.length >= Y || G >= $) q();
-  }, flush: K, dispose() {
-    K();
-  } };
-}
-var h5 = /* @__PURE__ */ new Set();
-function f5(Q) {
-  return h5.add(Q), () => h5.delete(Q);
-}
-var mQ = { verbose: 0, debug: 1, info: 2, warn: 3, error: 4 };
-var HU = X1(() => {
-  let Q = process.env.CLAUDE_CODE_DEBUG_LOG_LEVEL?.toLowerCase().trim();
-  if (Q && Object.hasOwn(mQ, Q)) return Q;
-  return "debug";
-});
-var BU = false;
-var l5 = X1(() => {
-  return BU || x9(process.env.DEBUG) || x9(process.env.DEBUG_SDK) || process.argv.includes("--debug") || process.argv.includes("-d") || c5() || process.argv.some((Q) => Q.startsWith("--debug=")) || p5() !== null;
-});
-var zU = X1(() => {
-  let Q = process.argv.find((Y) => Y.startsWith("--debug="));
-  if (!Q) return null;
-  let X = Q.substring(8);
-  return k5(X);
-});
-var c5 = X1(() => {
-  return process.argv.includes("--debug-to-stderr") || process.argv.includes("-d2e");
-});
-var p5 = X1(() => {
-  for (let Q = 0; Q < process.argv.length; Q++) {
-    let X = process.argv[Q];
-    if (X.startsWith("--debug-file=")) return X.substring(13);
-    if (X === "--debug-file" && Q + 1 < process.argv.length) return process.argv[Q + 1];
-  }
-  return null;
-});
-function KU(Q) {
-  if (!l5()) return false;
-  if (typeof process > "u" || typeof process.versions > "u" || typeof process.versions.node > "u") return false;
-  let X = zU();
-  return v5(Q, X);
-}
-var VU = false;
-var n4 = null;
-function qU() {
-  if (!n4) {
-    let Q = null;
-    n4 = g5({ writeFn: (X) => {
-      let Y = d5(), $ = u5(Y);
-      if (Q !== $) {
-        try {
-          i6().mkdirSync($);
         } catch {
         }
-        Q = $;
+        try {
+          return new Error(JSON.stringify(err));
+        } catch {
+        }
       }
-      i6().appendFileSync(Y, X), UU();
-    }, flushIntervalMs: 1e3, maxBufferSize: 100, immediateMode: l5() }), f5(async () => n4?.dispose());
-  }
-  return n4;
-}
-function N1(Q, { level: X } = { level: "debug" }) {
-  if (mQ[X] < mQ[HU()]) return;
-  if (!KU(Q)) return;
-  if (VU && Q.includes(`
-`)) Q = G0(Q);
-  let $ = `${(/* @__PURE__ */ new Date()).toISOString()} [${X.toUpperCase()}] ${Q.trim()}
-`;
-  if (c5()) {
-    _5($);
-    return;
-  }
-  qU().write($);
-}
-function d5() {
-  return p5() ?? process.env.CLAUDE_CODE_DEBUG_LOGS_DIR ?? m5(c6(), "debug", `${y5()}.txt`);
-}
-var UU = X1(() => {
-  try {
-    let Q = d5(), X = u5(Q), Y = m5(X, "latest");
-    try {
-      i6().mkdirSync(X);
-    } catch {
-    }
-    try {
-      i6().unlinkSync(Y);
-    } catch {
-    }
-    i6().symlinkSync(Q, Y);
-  } catch {
+      return new Error(err);
+    };
   }
 });
-var $C = (() => {
-  let Q = process.env.CLAUDE_CODE_SLOW_OPERATION_THRESHOLD_MS;
-  if (Q !== void 0) {
-    let X = Number(Q);
-    if (!Number.isNaN(X) && X >= 0) return X;
-  }
-  return 1 / 0;
-})();
-var LU = { [Symbol.dispose]() {
-} };
-function FU() {
-  return LU;
-}
-var U0 = FU;
-function G0(Q, X, Y) {
-  let J = [];
-  try {
-    const $ = X0(J, U0`JSON.stringify(${Q})`, 0);
-    return JSON.stringify(Q, X, Y);
-  } catch (W) {
-    var G = W, H = 1;
-  } finally {
-    Y0(J, G, H);
-  }
-}
-var O1 = (Q, X) => {
-  let $ = [];
-  try {
-    const Y = X0($, U0`JSON.parse(${Q})`, 0);
-    return typeof X > "u" ? JSON.parse(Q) : JSON.parse(Q, X);
-  } catch (J) {
-    var W = J, G = 1;
-  } finally {
-    Y0($, W, G);
-  }
-};
-function NU(Q) {
-  let X = Q.trim();
-  return X.startsWith("{") && X.endsWith("}");
-}
-function i5(Q, X) {
-  let Y = { ...Q };
-  if (X) {
-    let $ = Y.settings;
-    if ($ && !NU($)) throw Error("Cannot use both a settings file path and the sandbox option. Include the sandbox configuration in your settings file instead.");
-    let J = { sandbox: X };
-    if ($) try {
-      J = { ...O1($), sandbox: X };
-    } catch {
-    }
-    Y.settings = G0(J);
-  }
-  return Y;
-}
-var y9 = class {
-  options;
-  process;
-  processStdin;
-  processStdout;
-  ready = false;
-  abortController;
-  exitError;
-  exitListeners = [];
-  processExitHandler;
-  abortHandler;
-  constructor(Q) {
-    this.options = Q;
-    this.abortController = Q.abortController || y6(), this.initialize();
-  }
-  getDefaultExecutable() {
-    return g6() ? "bun" : "node";
-  }
-  spawnLocalProcess(Q) {
-    let { command: X, args: Y, cwd: $, env: J, signal: W } = Q, G = J.DEBUG_CLAUDE_AGENT_SDK || this.options.stderr ? "pipe" : "ignore", H = OU(X, Y, { cwd: $, stdio: ["pipe", "pipe", G], signal: W, env: J, windowsHide: true });
-    if (J.DEBUG_CLAUDE_AGENT_SDK || this.options.stderr) H.stderr.on("data", (z) => {
-      let K = z.toString();
-      if (i0(K), this.options.stderr) this.options.stderr(K);
-    });
-    return { stdin: H.stdin, stdout: H.stdout, get killed() {
-      return H.killed;
-    }, get exitCode() {
-      return H.exitCode;
-    }, kill: H.kill.bind(H), on: H.on.bind(H), once: H.once.bind(H), off: H.off.bind(H) };
-  }
-  initialize() {
-    try {
-      let { additionalDirectories: Q = [], agent: X, betas: Y, cwd: $, executable: J = this.getDefaultExecutable(), executableArgs: W = [], extraArgs: G = {}, pathToClaudeCodeExecutable: H, env: B = { ...process.env }, thinkingConfig: z, maxTurns: K, maxBudgetUsd: U, model: q, fallbackModel: V, jsonSchema: L, permissionMode: F, allowDangerouslySkipPermissions: M, permissionPromptToolName: O, continueConversation: A, resume: R, settingSources: Z, allowedTools: C = [], disallowedTools: B0 = [], tools: O0, mcpServers: d0, strictMcpConfig: B6, canUseTool: F1, includePartialMessages: z6, plugins: y1, sandbox: K6 } = this.options, h = ["--output-format", "stream-json", "--verbose", "--input-format", "stream-json"];
-      if (z) switch (z.type) {
-        case "enabled":
-          if (z.budgetTokens === void 0) h.push("--thinking", "adaptive");
-          else h.push("--max-thinking-tokens", z.budgetTokens.toString());
-          break;
-        case "disabled":
-          h.push("--thinking", "disabled");
-          break;
-        case "adaptive":
-          h.push("--thinking", "adaptive");
-          break;
+
+// node_modules/@anthropic-ai/sdk/core/error.mjs
+var AnthropicError, APIError, APIUserAbortError, APIConnectionError, APIConnectionTimeoutError, RetryableError, BadRequestError, AuthenticationError, PermissionDeniedError, NotFoundError, ConflictError, UnprocessableEntityError, RateLimitError, InternalServerError;
+var init_error = __esm({
+  "node_modules/@anthropic-ai/sdk/core/error.mjs"() {
+    init_errors();
+    AnthropicError = class extends Error {
+    };
+    APIError = class _APIError extends AnthropicError {
+      constructor(status, error, message, headers, type) {
+        super(`${_APIError.makeMessage(status, error, message)}`);
+        this.status = status;
+        this.headers = headers;
+        this.requestID = headers?.get("request-id");
+        this.error = error;
+        this.type = type ?? null;
       }
-      if (this.options.effort) h.push("--effort", this.options.effort);
-      if (K) h.push("--max-turns", K.toString());
-      if (U !== void 0) h.push("--max-budget-usd", U.toString());
-      if (q) h.push("--model", q);
-      if (X) h.push("--agent", X);
-      if (Y && Y.length > 0) h.push("--betas", Y.join(","));
-      if (L) h.push("--json-schema", G0(L));
-      if (this.options.debugFile) h.push("--debug-file", this.options.debugFile);
-      else if (this.options.debug) h.push("--debug");
-      if (B.DEBUG_CLAUDE_AGENT_SDK) h.push("--debug-to-stderr");
-      if (F1) {
-        if (O) throw Error("canUseTool callback cannot be used with permissionPromptToolName. Please use one or the other.");
-        h.push("--permission-prompt-tool", "stdio");
-      } else if (O) h.push("--permission-prompt-tool", O);
-      if (A) h.push("--continue");
-      if (R) h.push("--resume", R);
-      if (this.options.proactive) h.push("--proactive");
-      if (this.options.assistant) h.push("--assistant");
-      if (C.length > 0) h.push("--allowedTools", C.join(","));
-      if (B0.length > 0) h.push("--disallowedTools", B0.join(","));
-      if (O0 !== void 0) if (Array.isArray(O0)) if (O0.length === 0) h.push("--tools", "");
-      else h.push("--tools", O0.join(","));
-      else h.push("--tools", "default");
-      if (d0 && Object.keys(d0).length > 0) h.push("--mcp-config", G0({ mcpServers: d0 }));
-      if (Z) h.push("--setting-sources", Z.join(","));
-      if (B6) h.push("--strict-mcp-config");
-      if (F) h.push("--permission-mode", F);
-      if (M) h.push("--allow-dangerously-skip-permissions");
-      if (V) {
-        if (q && V === q) throw Error("Fallback model cannot be the same as the main model. Please specify a different model for fallbackModel option.");
-        h.push("--fallback-model", V);
-      }
-      if (z6) h.push("--include-partial-messages");
-      for (let C0 of Q) h.push("--add-dir", C0);
-      if (y1 && y1.length > 0) for (let C0 of y1) if (C0.type === "local") h.push("--plugin-dir", C0.path);
-      else throw Error(`Unsupported plugin type: ${C0.type}`);
-      if (this.options.forkSession) h.push("--fork-session");
-      if (this.options.resumeSessionAt) h.push("--resume-session-at", this.options.resumeSessionAt);
-      if (this.options.sessionId) h.push("--session-id", this.options.sessionId);
-      if (this.options.persistSession === false) h.push("--no-session-persistence");
-      let S9 = { ...G ?? {} };
-      if (this.options.settings) S9.settings = this.options.settings;
-      let TQ = i5(S9, K6);
-      for (let [C0, g1] of Object.entries(TQ)) if (g1 === null) h.push(`--${C0}`);
-      else h.push(`--${C0}`, g1);
-      if (!B.CLAUDE_CODE_ENTRYPOINT) B.CLAUDE_CODE_ENTRYPOINT = "sdk-ts";
-      if (delete B.NODE_OPTIONS, B.DEBUG_CLAUDE_AGENT_SDK) B.DEBUG = "1";
-      else delete B.DEBUG;
-      let _9 = MU(H), k9 = _9 ? H : J, V6 = _9 ? [...W, ...h] : [...W, H, ...h], l4 = { command: k9, args: V6, cwd: $, env: B, signal: this.abortController.signal };
-      if (this.options.spawnClaudeCodeProcess) i0(`Spawning Claude Code (custom): ${k9} ${V6.join(" ")}`), this.process = this.options.spawnClaudeCodeProcess(l4);
-      else i0(`Spawning Claude Code: ${k9} ${V6.join(" ")}`), this.process = this.spawnLocalProcess(l4);
-      this.processStdin = this.process.stdin, this.processStdout = this.process.stdout;
-      let k6 = () => {
-        if (this.process && !this.process.killed) this.process.kill("SIGTERM");
-      };
-      this.processExitHandler = k6, this.abortHandler = k6, process.on("exit", this.processExitHandler), this.abortController.signal.addEventListener("abort", this.abortHandler), this.process.on("error", (C0) => {
-        if (this.ready = false, this.abortController.signal.aborted) this.exitError = new T0("Claude Code process aborted by user");
-        else if (C0.code === "ENOENT") {
-          let g1 = _9 ? `Claude Code native binary not found at ${H}. Please ensure Claude Code is installed via native installer or specify a valid path with options.pathToClaudeCodeExecutable.` : `Claude Code executable not found at ${H}. Is options.pathToClaudeCodeExecutable set?`;
-          this.exitError = ReferenceError(g1), i0(this.exitError.message);
-        } else this.exitError = Error(`Failed to spawn Claude Code process: ${C0.message}`), i0(this.exitError.message);
-      }), this.process.on("exit", (C0, g1) => {
-        if (this.ready = false, this.abortController.signal.aborted) this.exitError = new T0("Claude Code process aborted by user");
-        else {
-          let v6 = this.getProcessExitError(C0, g1);
-          if (v6) this.exitError = v6, i0(v6.message);
+      static makeMessage(status, error, message) {
+        const msg = error?.message ? typeof error.message === "string" ? error.message : JSON.stringify(error.message) : error ? JSON.stringify(error) : message;
+        if (status && msg) {
+          return `${status} ${msg}`;
         }
-      }), this.ready = true;
-    } catch (Q) {
-      throw this.ready = false, Q;
-    }
-  }
-  getProcessExitError(Q, X) {
-    if (Q !== 0 && Q !== null) return Error(`Claude Code process exited with code ${Q}`);
-    else if (X) return Error(`Claude Code process terminated by signal ${X}`);
-    return;
-  }
-  write(Q) {
-    if (this.abortController.signal.aborted) throw new T0("Operation aborted");
-    if (!this.ready || !this.processStdin) throw Error("ProcessTransport is not ready for writing");
-    if (this.process?.killed || this.process?.exitCode !== null) throw Error("Cannot write to terminated process");
-    if (this.exitError) throw Error(`Cannot write to process that exited with error: ${this.exitError.message}`);
-    i0(`[ProcessTransport] Writing to stdin: ${Q.substring(0, 100)}`);
-    try {
-      if (!this.processStdin.write(Q)) i0("[ProcessTransport] Write buffer full, data queued");
-    } catch (X) {
-      throw this.ready = false, Error(`Failed to write to process stdin: ${X.message}`);
-    }
-  }
-  close() {
-    if (this.processStdin) this.processStdin.end(), this.processStdin = void 0;
-    if (this.abortHandler) this.abortController.signal.removeEventListener("abort", this.abortHandler), this.abortHandler = void 0;
-    for (let { handler: Q } of this.exitListeners) this.process?.off("exit", Q);
-    if (this.exitListeners = [], this.process && !this.process.killed && this.process.exitCode === null) this.process.kill("SIGTERM"), setTimeout(() => {
-      if (this.process && !this.process.killed) this.process.kill("SIGKILL");
-    }, 5e3).unref();
-    if (this.ready = false, this.processExitHandler) process.off("exit", this.processExitHandler), this.processExitHandler = void 0;
-  }
-  isReady() {
-    return this.ready;
-  }
-  async *readMessages() {
-    if (!this.processStdout) throw Error("ProcessTransport output stream not available");
-    let Q = DU({ input: this.processStdout });
-    try {
-      for await (let X of Q) if (X.trim()) try {
-        yield O1(X);
-      } catch (Y) {
-        throw i0(`Non-JSON stdout: ${X}`), Error(`CLI output was not valid JSON. This may indicate an error during startup. Output: ${X.slice(0, 200)}${X.length > 200 ? "..." : ""}`);
-      }
-      await this.waitForExit();
-    } catch (X) {
-      throw X;
-    } finally {
-      Q.close();
-    }
-  }
-  endInput() {
-    if (this.processStdin) this.processStdin.end();
-  }
-  getInputStream() {
-    return this.processStdin;
-  }
-  onExit(Q) {
-    if (!this.process) return () => {
-    };
-    let X = (Y, $) => {
-      let J = this.getProcessExitError(Y, $);
-      Q(J);
-    };
-    return this.process.on("exit", X), this.exitListeners.push({ callback: Q, handler: X }), () => {
-      if (this.process) this.process.off("exit", X);
-      let Y = this.exitListeners.findIndex(($) => $.handler === X);
-      if (Y !== -1) this.exitListeners.splice(Y, 1);
-    };
-  }
-  async waitForExit() {
-    if (!this.process) {
-      if (this.exitError) throw this.exitError;
-      return;
-    }
-    if (this.process.exitCode !== null || this.process.killed) {
-      if (this.exitError) throw this.exitError;
-      return;
-    }
-    return new Promise((Q, X) => {
-      let Y = (J, W) => {
-        if (this.abortController.signal.aborted) {
-          X(new T0("Operation aborted"));
-          return;
+        if (status) {
+          return `${status} status code (no body)`;
         }
-        let G = this.getProcessExitError(J, W);
-        if (G) X(G);
-        else Q();
-      };
-      this.process.once("exit", Y);
-      let $ = (J) => {
-        this.process.off("exit", Y), X(J);
-      };
-      this.process.once("error", $), this.process.once("exit", () => {
-        this.process.off("error", $);
-      });
-    });
-  }
-};
-function MU(Q) {
-  return ![".js", ".mjs", ".tsx", ".ts", ".jsx"].some((Y) => Q.endsWith(Y));
-}
-var g9 = class {
-  returned;
-  queue = [];
-  readResolve;
-  readReject;
-  isDone = false;
-  hasError;
-  started = false;
-  constructor(Q) {
-    this.returned = Q;
-  }
-  [Symbol.asyncIterator]() {
-    if (this.started) throw Error("Stream can only be iterated once");
-    return this.started = true, this;
-  }
-  next() {
-    if (this.queue.length > 0) return Promise.resolve({ done: false, value: this.queue.shift() });
-    if (this.isDone) return Promise.resolve({ done: true, value: void 0 });
-    if (this.hasError) return Promise.reject(this.hasError);
-    return new Promise((Q, X) => {
-      this.readResolve = Q, this.readReject = X;
-    });
-  }
-  enqueue(Q) {
-    if (this.readResolve) {
-      let X = this.readResolve;
-      this.readResolve = void 0, this.readReject = void 0, X({ done: false, value: Q });
-    } else this.queue.push(Q);
-  }
-  done() {
-    if (this.isDone = true, this.readResolve) {
-      let Q = this.readResolve;
-      this.readResolve = void 0, this.readReject = void 0, Q({ done: true, value: void 0 });
-    }
-  }
-  error(Q) {
-    if (this.hasError = Q, this.readReject) {
-      let X = this.readReject;
-      this.readResolve = void 0, this.readReject = void 0, X(Q);
-    }
-  }
-  return() {
-    if (this.isDone = true, this.returned) this.returned();
-    return Promise.resolve({ done: true, value: void 0 });
-  }
-};
-var lQ = class {
-  sendMcpMessage;
-  isClosed = false;
-  constructor(Q) {
-    this.sendMcpMessage = Q;
-  }
-  onclose;
-  onerror;
-  onmessage;
-  async start() {
-  }
-  async send(Q) {
-    if (this.isClosed) throw Error("Transport is closed");
-    this.sendMcpMessage(Q);
-  }
-  async close() {
-    if (this.isClosed) return;
-    this.isClosed = true, this.onclose?.();
-  }
-};
-var h9 = class {
-  transport;
-  isSingleUserTurn;
-  canUseTool;
-  hooks;
-  abortController;
-  jsonSchema;
-  initConfig;
-  onElicitation;
-  pendingControlResponses = /* @__PURE__ */ new Map();
-  cleanupPerformed = false;
-  sdkMessages;
-  inputStream = new g9();
-  initialization;
-  cancelControllers = /* @__PURE__ */ new Map();
-  hookCallbacks = /* @__PURE__ */ new Map();
-  nextCallbackId = 0;
-  sdkMcpTransports = /* @__PURE__ */ new Map();
-  sdkMcpServerInstances = /* @__PURE__ */ new Map();
-  pendingMcpResponses = /* @__PURE__ */ new Map();
-  firstResultReceivedResolve;
-  firstResultReceived = false;
-  lastErrorResultText;
-  hasBidirectionalNeeds() {
-    return this.sdkMcpTransports.size > 0 || this.hooks !== void 0 && Object.keys(this.hooks).length > 0 || this.canUseTool !== void 0 || this.onElicitation !== void 0;
-  }
-  constructor(Q, X, Y, $, J, W = /* @__PURE__ */ new Map(), G, H, B) {
-    this.transport = Q;
-    this.isSingleUserTurn = X;
-    this.canUseTool = Y;
-    this.hooks = $;
-    this.abortController = J;
-    this.jsonSchema = G;
-    this.initConfig = H;
-    this.onElicitation = B;
-    for (let [z, K] of W) this.connectSdkMcpServer(z, K);
-    this.sdkMessages = this.readSdkMessages(), this.readMessages(), this.initialization = this.initialize(), this.initialization.catch(() => {
-    });
-  }
-  setError(Q) {
-    this.inputStream.error(Q);
-  }
-  async stopTask(Q) {
-    await this.request({ subtype: "stop_task", task_id: Q });
-  }
-  close() {
-    this.cleanup();
-  }
-  cleanup(Q) {
-    if (this.cleanupPerformed) return;
-    this.cleanupPerformed = true;
-    try {
-      this.transport.close();
-      let X = Error("Query closed before response received");
-      for (let { reject: Y } of this.pendingControlResponses.values()) Y(X);
-      this.pendingControlResponses.clear();
-      for (let { reject: Y } of this.pendingMcpResponses.values()) Y(X);
-      this.pendingMcpResponses.clear(), this.cancelControllers.clear(), this.hookCallbacks.clear();
-      for (let Y of this.sdkMcpTransports.values()) try {
-        Y.close();
-      } catch {
-      }
-      if (this.sdkMcpTransports.clear(), Q) this.inputStream.error(Q);
-      else this.inputStream.done();
-    } catch (X) {
-    }
-  }
-  next(...[Q]) {
-    return this.sdkMessages.next(...[Q]);
-  }
-  return(Q) {
-    return this.sdkMessages.return(Q);
-  }
-  throw(Q) {
-    return this.sdkMessages.throw(Q);
-  }
-  [Symbol.asyncIterator]() {
-    return this.sdkMessages;
-  }
-  [Symbol.asyncDispose]() {
-    return this.sdkMessages[Symbol.asyncDispose]();
-  }
-  async readMessages() {
-    try {
-      for await (let Q of this.transport.readMessages()) {
-        if (Q.type === "control_response") {
-          let X = this.pendingControlResponses.get(Q.response.request_id);
-          if (X) X.handler(Q.response);
-          continue;
-        } else if (Q.type === "control_request") {
-          this.handleControlRequest(Q);
-          continue;
-        } else if (Q.type === "control_cancel_request") {
-          this.handleControlCancelRequest(Q);
-          continue;
-        } else if (Q.type === "keep_alive") continue;
-        if (Q.type === "streamlined_text" || Q.type === "streamlined_tool_use_summary") continue;
-        if (Q.type === "result") {
-          if (this.lastErrorResultText = Q.is_error ? Q.subtype === "success" ? Q.result : Q.errors.join("; ") : void 0, this.firstResultReceived = true, this.firstResultReceivedResolve) this.firstResultReceivedResolve();
-          if (this.isSingleUserTurn) N1("[Query.readMessages] First result received for single-turn query, closing stdin"), this.transport.endInput();
-        } else this.lastErrorResultText = void 0;
-        this.inputStream.enqueue(Q);
-      }
-      if (this.firstResultReceivedResolve) this.firstResultReceivedResolve();
-      this.inputStream.done(), this.cleanup();
-    } catch (Q) {
-      if (this.firstResultReceivedResolve) this.firstResultReceivedResolve();
-      if (this.lastErrorResultText !== void 0 && !(Q instanceof T0)) {
-        let X = Error(`Claude Code returned an error result: ${this.lastErrorResultText}`);
-        N1(`[Query.readMessages] Replacing exit error with result text. Original: ${Q.message}`), this.inputStream.error(X), this.cleanup(X);
-        return;
-      }
-      this.inputStream.error(Q), this.cleanup(Q);
-    }
-  }
-  async handleControlRequest(Q) {
-    let X = new AbortController();
-    this.cancelControllers.set(Q.request_id, X);
-    try {
-      let Y = await this.processControlRequest(Q, X.signal), $ = { type: "control_response", response: { subtype: "success", request_id: Q.request_id, response: Y } };
-      await Promise.resolve(this.transport.write(G0($) + `
-`));
-    } catch (Y) {
-      let $ = { type: "control_response", response: { subtype: "error", request_id: Q.request_id, error: Y.message || String(Y) } };
-      await Promise.resolve(this.transport.write(G0($) + `
-`));
-    } finally {
-      this.cancelControllers.delete(Q.request_id);
-    }
-  }
-  handleControlCancelRequest(Q) {
-    let X = this.cancelControllers.get(Q.request_id);
-    if (X) X.abort(), this.cancelControllers.delete(Q.request_id);
-  }
-  async processControlRequest(Q, X) {
-    if (Q.request.subtype === "can_use_tool") {
-      if (!this.canUseTool) throw Error("canUseTool callback is not provided.");
-      return { ...await this.canUseTool(Q.request.tool_name, Q.request.input, { signal: X, suggestions: Q.request.permission_suggestions, blockedPath: Q.request.blocked_path, decisionReason: Q.request.decision_reason, toolUseID: Q.request.tool_use_id, agentID: Q.request.agent_id }), toolUseID: Q.request.tool_use_id };
-    } else if (Q.request.subtype === "hook_callback") return await this.handleHookCallbacks(Q.request.callback_id, Q.request.input, Q.request.tool_use_id, X);
-    else if (Q.request.subtype === "mcp_message") {
-      let Y = Q.request, $ = this.sdkMcpTransports.get(Y.server_name);
-      if (!$) throw Error(`SDK MCP server not found: ${Y.server_name}`);
-      if ("method" in Y.message && "id" in Y.message && Y.message.id !== null) return { mcp_response: await this.handleMcpControlRequest(Y.server_name, Y, $) };
-      else {
-        if ($.onmessage) $.onmessage(Y.message);
-        return { mcp_response: { jsonrpc: "2.0", result: {}, id: 0 } };
-      }
-    } else if (Q.request.subtype === "elicitation") {
-      let Y = Q.request;
-      if (this.onElicitation) return await this.onElicitation({ serverName: Y.mcp_server_name, message: Y.message, mode: Y.mode, url: Y.url, elicitationId: Y.elicitation_id, requestedSchema: Y.requested_schema }, { signal: X });
-      return { action: "decline" };
-    }
-    throw Error("Unsupported control request subtype: " + Q.request.subtype);
-  }
-  async *readSdkMessages() {
-    for await (let Q of this.inputStream) yield Q;
-  }
-  async initialize() {
-    let Q;
-    if (this.hooks) {
-      Q = {};
-      for (let [J, W] of Object.entries(this.hooks)) if (W.length > 0) Q[J] = W.map((G) => {
-        let H = [];
-        for (let B of G.hooks) {
-          let z = `hook_${this.nextCallbackId++}`;
-          this.hookCallbacks.set(z, B), H.push(z);
+        if (msg) {
+          return msg;
         }
-        return { matcher: G.matcher, hookCallbackIds: H, timeout: G.timeout };
-      });
-    }
-    let X = this.sdkMcpTransports.size > 0 ? Array.from(this.sdkMcpTransports.keys()) : void 0, Y = { subtype: "initialize", hooks: Q, sdkMcpServers: X, jsonSchema: this.jsonSchema, systemPrompt: this.initConfig?.systemPrompt, appendSystemPrompt: this.initConfig?.appendSystemPrompt, agents: this.initConfig?.agents, promptSuggestions: this.initConfig?.promptSuggestions, agentProgressSummaries: this.initConfig?.agentProgressSummaries };
-    return (await this.request(Y)).response;
-  }
-  async interrupt() {
-    await this.request({ subtype: "interrupt" });
-  }
-  async setPermissionMode(Q) {
-    await this.request({ subtype: "set_permission_mode", mode: Q });
-  }
-  async setModel(Q) {
-    await this.request({ subtype: "set_model", model: Q });
-  }
-  async setMaxThinkingTokens(Q) {
-    await this.request({ subtype: "set_max_thinking_tokens", max_thinking_tokens: Q });
-  }
-  async applyFlagSettings(Q) {
-    await this.request({ subtype: "apply_flag_settings", settings: Q });
-  }
-  async getSettings() {
-    return (await this.request({ subtype: "get_settings" })).response;
-  }
-  async rewindFiles(Q, X) {
-    return (await this.request({ subtype: "rewind_files", user_message_id: Q, dry_run: X?.dryRun })).response;
-  }
-  async cancelAsyncMessage(Q) {
-    return (await this.request({ subtype: "cancel_async_message", message_uuid: Q })).response.cancelled;
-  }
-  async enableRemoteControl(Q) {
-    return (await this.request({ subtype: "remote_control", enabled: Q })).response;
-  }
-  async setProactive(Q) {
-    await this.request({ subtype: "set_proactive", enabled: Q });
-  }
-  async generateSessionTitle(Q, X) {
-    return (await this.request({ subtype: "generate_session_title", description: Q, persist: X?.persist })).response.title;
-  }
-  async processPendingPermissionRequests(Q) {
-    for (let X of Q) if (X.request.subtype === "can_use_tool") this.handleControlRequest(X).catch(() => {
-    });
-  }
-  request(Q) {
-    let X = Math.random().toString(36).substring(2, 15), Y = { request_id: X, type: "control_request", request: Q };
-    return new Promise(($, J) => {
-      this.pendingControlResponses.set(X, { handler: (W) => {
-        if (this.pendingControlResponses.delete(X), W.subtype === "success") $(W);
-        else if (J(Error(W.error)), W.pending_permission_requests) this.processPendingPermissionRequests(W.pending_permission_requests);
-      }, reject: J }), Promise.resolve(this.transport.write(G0(Y) + `
-`));
-    });
-  }
-  async initializationResult() {
-    return this.initialization;
-  }
-  async supportedCommands() {
-    return (await this.initialization).commands;
-  }
-  async supportedModels() {
-    return (await this.initialization).models;
-  }
-  async supportedAgents() {
-    return (await this.initialization).agents;
-  }
-  async reconnectMcpServer(Q) {
-    await this.request({ subtype: "mcp_reconnect", serverName: Q });
-  }
-  async toggleMcpServer(Q, X) {
-    await this.request({ subtype: "mcp_toggle", serverName: Q, enabled: X });
-  }
-  async mcpAuthenticate(Q) {
-    return (await this.request({ subtype: "mcp_authenticate", serverName: Q })).response;
-  }
-  async mcpClearAuth(Q) {
-    return (await this.request({ subtype: "mcp_clear_auth", serverName: Q })).response;
-  }
-  async mcpSubmitOAuthCallbackUrl(Q, X) {
-    return (await this.request({ subtype: "mcp_oauth_callback_url", serverName: Q, callbackUrl: X })).response;
-  }
-  async mcpServerStatus() {
-    return (await this.request({ subtype: "mcp_status" })).response.mcpServers;
-  }
-  async setMcpServers(Q) {
-    let X = {}, Y = {};
-    for (let [H, B] of Object.entries(Q)) if (B.type === "sdk" && "instance" in B) X[H] = B.instance;
-    else Y[H] = B;
-    let $ = new Set(this.sdkMcpServerInstances.keys()), J = new Set(Object.keys(X));
-    for (let H of $) if (!J.has(H)) await this.disconnectSdkMcpServer(H);
-    for (let [H, B] of Object.entries(X)) if (!$.has(H)) this.connectSdkMcpServer(H, B);
-    let W = {};
-    for (let H of Object.keys(X)) W[H] = { type: "sdk", name: H };
-    return (await this.request({ subtype: "mcp_set_servers", servers: { ...Y, ...W } })).response;
-  }
-  async accountInfo() {
-    return (await this.initialization).account;
-  }
-  async streamInput(Q) {
-    N1("[Query.streamInput] Starting to process input stream");
-    try {
-      let X = 0;
-      for await (let Y of Q) {
-        if (X++, N1(`[Query.streamInput] Processing message ${X}: ${Y.type}`), this.abortController?.signal.aborted) break;
-        await Promise.resolve(this.transport.write(G0(Y) + `
-`));
+        return "(no status code or body)";
       }
-      if (N1(`[Query.streamInput] Finished processing ${X} messages from input stream`), X > 0 && this.hasBidirectionalNeeds()) N1("[Query.streamInput] Has bidirectional needs, waiting for first result"), await this.waitForFirstResult();
-      N1("[Query] Calling transport.endInput() to close stdin to CLI process"), this.transport.endInput();
-    } catch (X) {
-      if (!(X instanceof T0)) throw X;
-    }
-  }
-  waitForFirstResult() {
-    if (this.firstResultReceived) return N1("[Query.waitForFirstResult] Result already received, returning immediately"), Promise.resolve();
-    return new Promise((Q) => {
-      if (this.abortController?.signal.aborted) {
-        Q();
-        return;
-      }
-      this.abortController?.signal.addEventListener("abort", () => Q(), { once: true }), this.firstResultReceivedResolve = Q;
-    });
-  }
-  handleHookCallbacks(Q, X, Y, $) {
-    let J = this.hookCallbacks.get(Q);
-    if (!J) throw Error(`No hook callback found for ID: ${Q}`);
-    return J(X, Y, { signal: $ });
-  }
-  connectSdkMcpServer(Q, X) {
-    let Y = new lQ(($) => this.sendMcpServerMessageToCli(Q, $));
-    this.sdkMcpTransports.set(Q, Y), this.sdkMcpServerInstances.set(Q, X), X.connect(Y);
-  }
-  async disconnectSdkMcpServer(Q) {
-    let X = this.sdkMcpTransports.get(Q);
-    if (X) await X.close(), this.sdkMcpTransports.delete(Q);
-    this.sdkMcpServerInstances.delete(Q);
-  }
-  sendMcpServerMessageToCli(Q, X) {
-    if ("id" in X && X.id !== null && X.id !== void 0) {
-      let $ = `${Q}:${X.id}`, J = this.pendingMcpResponses.get($);
-      if (J) {
-        J.resolve(X), this.pendingMcpResponses.delete($);
-        return;
-      }
-    }
-    let Y = { type: "control_request", request_id: i4(), request: { subtype: "mcp_message", server_name: Q, message: X } };
-    this.transport.write(G0(Y) + `
-`);
-  }
-  handleMcpControlRequest(Q, X, Y) {
-    let $ = "id" in X.message ? X.message.id : null, J = `${Q}:${$}`;
-    return new Promise((W, G) => {
-      let H = () => {
-        this.pendingMcpResponses.delete(J);
-      }, B = (K) => {
-        H(), W(K);
-      }, z = (K) => {
-        H(), G(K);
-      };
-      if (this.pendingMcpResponses.set(J, { resolve: B, reject: z }), Y.onmessage) Y.onmessage(X.message);
-      else {
-        H(), G(Error("No message handler registered"));
-        return;
-      }
-    });
-  }
-};
-var IU = RU(jU);
-var i1 = {};
-gQ(i1, { void: () => uL, util: () => d, unknown: () => hL, union: () => cL, undefined: () => xL, tuple: () => iL, transformer: () => YF, symbol: () => TL, string: () => MJ, strictObject: () => lL, setErrorMap: () => WL, set: () => rL, record: () => nL, quotelessJson: () => $L, promise: () => XF, preprocess: () => WF, pipeline: () => GF, ostring: () => HF, optional: () => $F, onumber: () => BF, oboolean: () => zF, objectUtil: () => eQ, object: () => YX, number: () => wJ, nullable: () => JF, null: () => yL, never: () => fL, nativeEnum: () => QF, nan: () => _L, map: () => oL, makeIssue: () => m9, literal: () => sL, lazy: () => aL, late: () => CL, isValid: () => m1, isDirty: () => X8, isAsync: () => t6, isAborted: () => Q8, intersection: () => dL, instanceof: () => SL, getParsedType: () => M1, getErrorMap: () => r6, function: () => tL, enum: () => eL, effect: () => YF, discriminatedUnion: () => pL, defaultErrorMap: () => Z1, datetimeRegex: () => NJ, date: () => vL, custom: () => DJ, coerce: () => KF, boolean: () => AJ, bigint: () => kL, array: () => mL, any: () => gL, addIssueToContext: () => b, ZodVoid: () => c9, ZodUnknown: () => l1, ZodUnion: () => Y9, ZodUndefined: () => Q9, ZodType: () => p, ZodTuple: () => A1, ZodTransformer: () => W1, ZodSymbol: () => l9, ZodString: () => Y1, ZodSet: () => O6, ZodSchema: () => p, ZodRecord: () => p9, ZodReadonly: () => z9, ZodPromise: () => D6, ZodPipeline: () => n9, ZodParsedType: () => I, ZodOptional: () => m0, ZodObject: () => L0, ZodNumber: () => c1, ZodNullable: () => S1, ZodNull: () => X9, ZodNever: () => w1, ZodNativeEnum: () => G9, ZodNaN: () => i9, ZodMap: () => d9, ZodLiteral: () => W9, ZodLazy: () => J9, ZodIssueCode: () => w, ZodIntersection: () => $9, ZodFunction: () => s6, ZodFirstPartyTypeKind: () => j, ZodError: () => x0, ZodEnum: () => d1, ZodEffects: () => W1, ZodDiscriminatedUnion: () => Y8, ZodDefault: () => H9, ZodDate: () => F6, ZodCatch: () => B9, ZodBranded: () => $8, ZodBoolean: () => e6, ZodBigInt: () => p1, ZodArray: () => $1, ZodAny: () => N6, Schema: () => p, ParseStatus: () => A0, OK: () => P0, NEVER: () => VF, INVALID: () => x, EMPTY_PATH: () => GL, DIRTY: () => L6, BRAND: () => ZL });
-var d;
-(function(Q) {
-  Q.assertEqual = (J) => {
-  };
-  function X(J) {
-  }
-  Q.assertIs = X;
-  function Y(J) {
-    throw Error();
-  }
-  Q.assertNever = Y, Q.arrayToEnum = (J) => {
-    let W = {};
-    for (let G of J) W[G] = G;
-    return W;
-  }, Q.getValidEnumValues = (J) => {
-    let W = Q.objectKeys(J).filter((H) => typeof J[J[H]] !== "number"), G = {};
-    for (let H of W) G[H] = J[H];
-    return Q.objectValues(G);
-  }, Q.objectValues = (J) => {
-    return Q.objectKeys(J).map(function(W) {
-      return J[W];
-    });
-  }, Q.objectKeys = typeof Object.keys === "function" ? (J) => Object.keys(J) : (J) => {
-    let W = [];
-    for (let G in J) if (Object.prototype.hasOwnProperty.call(J, G)) W.push(G);
-    return W;
-  }, Q.find = (J, W) => {
-    for (let G of J) if (W(G)) return G;
-    return;
-  }, Q.isInteger = typeof Number.isInteger === "function" ? (J) => Number.isInteger(J) : (J) => typeof J === "number" && Number.isFinite(J) && Math.floor(J) === J;
-  function $(J, W = " | ") {
-    return J.map((G) => typeof G === "string" ? `'${G}'` : G).join(W);
-  }
-  Q.joinValues = $, Q.jsonStringifyReplacer = (J, W) => {
-    if (typeof W === "bigint") return W.toString();
-    return W;
-  };
-})(d || (d = {}));
-var eQ;
-(function(Q) {
-  Q.mergeShapes = (X, Y) => {
-    return { ...X, ...Y };
-  };
-})(eQ || (eQ = {}));
-var I = d.arrayToEnum(["string", "nan", "number", "integer", "float", "boolean", "date", "bigint", "symbol", "function", "undefined", "null", "array", "object", "unknown", "promise", "void", "never", "map", "set"]);
-var M1 = (Q) => {
-  switch (typeof Q) {
-    case "undefined":
-      return I.undefined;
-    case "string":
-      return I.string;
-    case "number":
-      return Number.isNaN(Q) ? I.nan : I.number;
-    case "boolean":
-      return I.boolean;
-    case "function":
-      return I.function;
-    case "bigint":
-      return I.bigint;
-    case "symbol":
-      return I.symbol;
-    case "object":
-      if (Array.isArray(Q)) return I.array;
-      if (Q === null) return I.null;
-      if (Q.then && typeof Q.then === "function" && Q.catch && typeof Q.catch === "function") return I.promise;
-      if (typeof Map < "u" && Q instanceof Map) return I.map;
-      if (typeof Set < "u" && Q instanceof Set) return I.set;
-      if (typeof Date < "u" && Q instanceof Date) return I.date;
-      return I.object;
-    default:
-      return I.unknown;
-  }
-};
-var w = d.arrayToEnum(["invalid_type", "invalid_literal", "custom", "invalid_union", "invalid_union_discriminator", "invalid_enum_value", "unrecognized_keys", "invalid_arguments", "invalid_return_type", "invalid_date", "invalid_string", "too_small", "too_big", "invalid_intersection_types", "not_multiple_of", "not_finite"]);
-var $L = (Q) => {
-  return JSON.stringify(Q, null, 2).replace(/"([^"]+)":/g, "$1:");
-};
-var x0 = class _x0 extends Error {
-  get errors() {
-    return this.issues;
-  }
-  constructor(Q) {
-    super();
-    this.issues = [], this.addIssue = (Y) => {
-      this.issues = [...this.issues, Y];
-    }, this.addIssues = (Y = []) => {
-      this.issues = [...this.issues, ...Y];
-    };
-    let X = new.target.prototype;
-    if (Object.setPrototypeOf) Object.setPrototypeOf(this, X);
-    else this.__proto__ = X;
-    this.name = "ZodError", this.issues = Q;
-  }
-  format(Q) {
-    let X = Q || function(J) {
-      return J.message;
-    }, Y = { _errors: [] }, $ = (J) => {
-      for (let W of J.issues) if (W.code === "invalid_union") W.unionErrors.map($);
-      else if (W.code === "invalid_return_type") $(W.returnTypeError);
-      else if (W.code === "invalid_arguments") $(W.argumentsError);
-      else if (W.path.length === 0) Y._errors.push(X(W));
-      else {
-        let G = Y, H = 0;
-        while (H < W.path.length) {
-          let B = W.path[H];
-          if (H !== W.path.length - 1) G[B] = G[B] || { _errors: [] };
-          else G[B] = G[B] || { _errors: [] }, G[B]._errors.push(X(W));
-          G = G[B], H++;
+      static generate(status, errorResponse, message, headers) {
+        if (!status || !headers) {
+          return new APIConnectionError({ message, cause: castToError(errorResponse) });
         }
+        const error = errorResponse;
+        const type = error?.["error"]?.["type"];
+        if (status === 400) {
+          return new BadRequestError(status, error, message, headers, type);
+        }
+        if (status === 401) {
+          return new AuthenticationError(status, error, message, headers, type);
+        }
+        if (status === 403) {
+          return new PermissionDeniedError(status, error, message, headers, type);
+        }
+        if (status === 404) {
+          return new NotFoundError(status, error, message, headers, type);
+        }
+        if (status === 409) {
+          return new ConflictError(status, error, message, headers, type);
+        }
+        if (status === 422) {
+          return new UnprocessableEntityError(status, error, message, headers, type);
+        }
+        if (status === 429) {
+          return new RateLimitError(status, error, message, headers, type);
+        }
+        if (status >= 500) {
+          return new InternalServerError(status, error, message, headers, type);
+        }
+        return new _APIError(status, error, message, headers, type);
       }
     };
-    return $(this), Y;
-  }
-  static assert(Q) {
-    if (!(Q instanceof _x0)) throw Error(`Not a ZodError: ${Q}`);
-  }
-  toString() {
-    return this.message;
-  }
-  get message() {
-    return JSON.stringify(this.issues, d.jsonStringifyReplacer, 2);
-  }
-  get isEmpty() {
-    return this.issues.length === 0;
-  }
-  flatten(Q = (X) => X.message) {
-    let X = {}, Y = [];
-    for (let $ of this.issues) if ($.path.length > 0) {
-      let J = $.path[0];
-      X[J] = X[J] || [], X[J].push(Q($));
-    } else Y.push(Q($));
-    return { formErrors: Y, fieldErrors: X };
-  }
-  get formErrors() {
-    return this.flatten();
-  }
-};
-x0.create = (Q) => {
-  return new x0(Q);
-};
-var JL = (Q, X) => {
-  let Y;
-  switch (Q.code) {
-    case w.invalid_type:
-      if (Q.received === I.undefined) Y = "Required";
-      else Y = `Expected ${Q.expected}, received ${Q.received}`;
-      break;
-    case w.invalid_literal:
-      Y = `Invalid literal value, expected ${JSON.stringify(Q.expected, d.jsonStringifyReplacer)}`;
-      break;
-    case w.unrecognized_keys:
-      Y = `Unrecognized key(s) in object: ${d.joinValues(Q.keys, ", ")}`;
-      break;
-    case w.invalid_union:
-      Y = "Invalid input";
-      break;
-    case w.invalid_union_discriminator:
-      Y = `Invalid discriminator value. Expected ${d.joinValues(Q.options)}`;
-      break;
-    case w.invalid_enum_value:
-      Y = `Invalid enum value. Expected ${d.joinValues(Q.options)}, received '${Q.received}'`;
-      break;
-    case w.invalid_arguments:
-      Y = "Invalid function arguments";
-      break;
-    case w.invalid_return_type:
-      Y = "Invalid function return type";
-      break;
-    case w.invalid_date:
-      Y = "Invalid date";
-      break;
-    case w.invalid_string:
-      if (typeof Q.validation === "object") if ("includes" in Q.validation) {
-        if (Y = `Invalid input: must include "${Q.validation.includes}"`, typeof Q.validation.position === "number") Y = `${Y} at one or more positions greater than or equal to ${Q.validation.position}`;
-      } else if ("startsWith" in Q.validation) Y = `Invalid input: must start with "${Q.validation.startsWith}"`;
-      else if ("endsWith" in Q.validation) Y = `Invalid input: must end with "${Q.validation.endsWith}"`;
-      else d.assertNever(Q.validation);
-      else if (Q.validation !== "regex") Y = `Invalid ${Q.validation}`;
-      else Y = "Invalid";
-      break;
-    case w.too_small:
-      if (Q.type === "array") Y = `Array must contain ${Q.exact ? "exactly" : Q.inclusive ? "at least" : "more than"} ${Q.minimum} element(s)`;
-      else if (Q.type === "string") Y = `String must contain ${Q.exact ? "exactly" : Q.inclusive ? "at least" : "over"} ${Q.minimum} character(s)`;
-      else if (Q.type === "number") Y = `Number must be ${Q.exact ? "exactly equal to " : Q.inclusive ? "greater than or equal to " : "greater than "}${Q.minimum}`;
-      else if (Q.type === "bigint") Y = `Number must be ${Q.exact ? "exactly equal to " : Q.inclusive ? "greater than or equal to " : "greater than "}${Q.minimum}`;
-      else if (Q.type === "date") Y = `Date must be ${Q.exact ? "exactly equal to " : Q.inclusive ? "greater than or equal to " : "greater than "}${new Date(Number(Q.minimum))}`;
-      else Y = "Invalid input";
-      break;
-    case w.too_big:
-      if (Q.type === "array") Y = `Array must contain ${Q.exact ? "exactly" : Q.inclusive ? "at most" : "less than"} ${Q.maximum} element(s)`;
-      else if (Q.type === "string") Y = `String must contain ${Q.exact ? "exactly" : Q.inclusive ? "at most" : "under"} ${Q.maximum} character(s)`;
-      else if (Q.type === "number") Y = `Number must be ${Q.exact ? "exactly" : Q.inclusive ? "less than or equal to" : "less than"} ${Q.maximum}`;
-      else if (Q.type === "bigint") Y = `BigInt must be ${Q.exact ? "exactly" : Q.inclusive ? "less than or equal to" : "less than"} ${Q.maximum}`;
-      else if (Q.type === "date") Y = `Date must be ${Q.exact ? "exactly" : Q.inclusive ? "smaller than or equal to" : "smaller than"} ${new Date(Number(Q.maximum))}`;
-      else Y = "Invalid input";
-      break;
-    case w.custom:
-      Y = "Invalid input";
-      break;
-    case w.invalid_intersection_types:
-      Y = "Intersection results could not be merged";
-      break;
-    case w.not_multiple_of:
-      Y = `Number must be a multiple of ${Q.multipleOf}`;
-      break;
-    case w.not_finite:
-      Y = "Number must be finite";
-      break;
-    default:
-      Y = X.defaultError, d.assertNever(Q);
-  }
-  return { message: Y };
-};
-var Z1 = JL;
-var VJ = Z1;
-function WL(Q) {
-  VJ = Q;
-}
-function r6() {
-  return VJ;
-}
-var m9 = (Q) => {
-  let { data: X, path: Y, errorMaps: $, issueData: J } = Q, W = [...Y, ...J.path || []], G = { ...J, path: W };
-  if (J.message !== void 0) return { ...J, path: W, message: J.message };
-  let H = "", B = $.filter((z) => !!z).slice().reverse();
-  for (let z of B) H = z(G, { data: X, defaultError: H }).message;
-  return { ...J, path: W, message: H };
-};
-var GL = [];
-function b(Q, X) {
-  let Y = r6(), $ = m9({ issueData: X, data: Q.data, path: Q.path, errorMaps: [Q.common.contextualErrorMap, Q.schemaErrorMap, Y, Y === Z1 ? void 0 : Z1].filter((J) => !!J) });
-  Q.common.issues.push($);
-}
-var A0 = class _A0 {
-  constructor() {
-    this.value = "valid";
-  }
-  dirty() {
-    if (this.value === "valid") this.value = "dirty";
-  }
-  abort() {
-    if (this.value !== "aborted") this.value = "aborted";
-  }
-  static mergeArray(Q, X) {
-    let Y = [];
-    for (let $ of X) {
-      if ($.status === "aborted") return x;
-      if ($.status === "dirty") Q.dirty();
-      Y.push($.value);
-    }
-    return { status: Q.value, value: Y };
-  }
-  static async mergeObjectAsync(Q, X) {
-    let Y = [];
-    for (let $ of X) {
-      let J = await $.key, W = await $.value;
-      Y.push({ key: J, value: W });
-    }
-    return _A0.mergeObjectSync(Q, Y);
-  }
-  static mergeObjectSync(Q, X) {
-    let Y = {};
-    for (let $ of X) {
-      let { key: J, value: W } = $;
-      if (J.status === "aborted") return x;
-      if (W.status === "aborted") return x;
-      if (J.status === "dirty") Q.dirty();
-      if (W.status === "dirty") Q.dirty();
-      if (J.value !== "__proto__" && (typeof W.value < "u" || $.alwaysSet)) Y[J.value] = W.value;
-    }
-    return { status: Q.value, value: Y };
-  }
-};
-var x = Object.freeze({ status: "aborted" });
-var L6 = (Q) => ({ status: "dirty", value: Q });
-var P0 = (Q) => ({ status: "valid", value: Q });
-var Q8 = (Q) => Q.status === "aborted";
-var X8 = (Q) => Q.status === "dirty";
-var m1 = (Q) => Q.status === "valid";
-var t6 = (Q) => typeof Promise < "u" && Q instanceof Promise;
-var S;
-(function(Q) {
-  Q.errToObj = (X) => typeof X === "string" ? { message: X } : X || {}, Q.toString = (X) => typeof X === "string" ? X : X?.message;
-})(S || (S = {}));
-var J1 = class {
-  constructor(Q, X, Y, $) {
-    this._cachedPath = [], this.parent = Q, this.data = X, this._path = Y, this._key = $;
-  }
-  get path() {
-    if (!this._cachedPath.length) if (Array.isArray(this._key)) this._cachedPath.push(...this._path, ...this._key);
-    else this._cachedPath.push(...this._path, this._key);
-    return this._cachedPath;
-  }
-};
-var qJ = (Q, X) => {
-  if (m1(X)) return { success: true, data: X.value };
-  else {
-    if (!Q.common.issues.length) throw Error("Validation failed but no issues detected.");
-    return { success: false, get error() {
-      if (this._error) return this._error;
-      let Y = new x0(Q.common.issues);
-      return this._error = Y, this._error;
-    } };
-  }
-};
-function m(Q) {
-  if (!Q) return {};
-  let { errorMap: X, invalid_type_error: Y, required_error: $, description: J } = Q;
-  if (X && (Y || $)) throw Error(`Can't use "invalid_type_error" or "required_error" in conjunction with custom error map.`);
-  if (X) return { errorMap: X, description: J };
-  return { errorMap: (G, H) => {
-    let { message: B } = Q;
-    if (G.code === "invalid_enum_value") return { message: B ?? H.defaultError };
-    if (typeof H.data > "u") return { message: B ?? $ ?? H.defaultError };
-    if (G.code !== "invalid_type") return { message: H.defaultError };
-    return { message: B ?? Y ?? H.defaultError };
-  }, description: J };
-}
-var p = class {
-  get description() {
-    return this._def.description;
-  }
-  _getType(Q) {
-    return M1(Q.data);
-  }
-  _getOrReturnCtx(Q, X) {
-    return X || { common: Q.parent.common, data: Q.data, parsedType: M1(Q.data), schemaErrorMap: this._def.errorMap, path: Q.path, parent: Q.parent };
-  }
-  _processInputParams(Q) {
-    return { status: new A0(), ctx: { common: Q.parent.common, data: Q.data, parsedType: M1(Q.data), schemaErrorMap: this._def.errorMap, path: Q.path, parent: Q.parent } };
-  }
-  _parseSync(Q) {
-    let X = this._parse(Q);
-    if (t6(X)) throw Error("Synchronous parse encountered promise.");
-    return X;
-  }
-  _parseAsync(Q) {
-    let X = this._parse(Q);
-    return Promise.resolve(X);
-  }
-  parse(Q, X) {
-    let Y = this.safeParse(Q, X);
-    if (Y.success) return Y.data;
-    throw Y.error;
-  }
-  safeParse(Q, X) {
-    let Y = { common: { issues: [], async: X?.async ?? false, contextualErrorMap: X?.errorMap }, path: X?.path || [], schemaErrorMap: this._def.errorMap, parent: null, data: Q, parsedType: M1(Q) }, $ = this._parseSync({ data: Q, path: Y.path, parent: Y });
-    return qJ(Y, $);
-  }
-  "~validate"(Q) {
-    let X = { common: { issues: [], async: !!this["~standard"].async }, path: [], schemaErrorMap: this._def.errorMap, parent: null, data: Q, parsedType: M1(Q) };
-    if (!this["~standard"].async) try {
-      let Y = this._parseSync({ data: Q, path: [], parent: X });
-      return m1(Y) ? { value: Y.value } : { issues: X.common.issues };
-    } catch (Y) {
-      if (Y?.message?.toLowerCase()?.includes("encountered")) this["~standard"].async = true;
-      X.common = { issues: [], async: true };
-    }
-    return this._parseAsync({ data: Q, path: [], parent: X }).then((Y) => m1(Y) ? { value: Y.value } : { issues: X.common.issues });
-  }
-  async parseAsync(Q, X) {
-    let Y = await this.safeParseAsync(Q, X);
-    if (Y.success) return Y.data;
-    throw Y.error;
-  }
-  async safeParseAsync(Q, X) {
-    let Y = { common: { issues: [], contextualErrorMap: X?.errorMap, async: true }, path: X?.path || [], schemaErrorMap: this._def.errorMap, parent: null, data: Q, parsedType: M1(Q) }, $ = this._parse({ data: Q, path: Y.path, parent: Y }), J = await (t6($) ? $ : Promise.resolve($));
-    return qJ(Y, J);
-  }
-  refine(Q, X) {
-    let Y = ($) => {
-      if (typeof X === "string" || typeof X > "u") return { message: X };
-      else if (typeof X === "function") return X($);
-      else return X;
+    APIUserAbortError = class extends APIError {
+      constructor({ message } = {}) {
+        super(void 0, void 0, message || "Request was aborted.", void 0);
+      }
     };
-    return this._refinement(($, J) => {
-      let W = Q($), G = () => J.addIssue({ code: w.custom, ...Y($) });
-      if (typeof Promise < "u" && W instanceof Promise) return W.then((H) => {
-        if (!H) return G(), false;
-        else return true;
-      });
-      if (!W) return G(), false;
-      else return true;
-    });
+    APIConnectionError = class extends APIError {
+      constructor({ message, cause }) {
+        super(void 0, void 0, message || "Connection error.", void 0);
+        if (cause)
+          this.cause = cause;
+      }
+    };
+    APIConnectionTimeoutError = class extends APIConnectionError {
+      constructor({ message } = {}) {
+        super({ message: message ?? "Request timed out." });
+      }
+    };
+    RetryableError = class extends AnthropicError {
+      constructor(message, { cause } = {}) {
+        super(message ?? "Retryable error.");
+        if (cause !== void 0)
+          this.cause = cause;
+      }
+    };
+    BadRequestError = class extends APIError {
+    };
+    AuthenticationError = class extends APIError {
+    };
+    PermissionDeniedError = class extends APIError {
+    };
+    NotFoundError = class extends APIError {
+    };
+    ConflictError = class extends APIError {
+    };
+    UnprocessableEntityError = class extends APIError {
+    };
+    RateLimitError = class extends APIError {
+    };
+    InternalServerError = class extends APIError {
+    };
   }
-  refinement(Q, X) {
-    return this._refinement((Y, $) => {
-      if (!Q(Y)) return $.addIssue(typeof X === "function" ? X(Y, $) : X), false;
-      else return true;
-    });
+});
+
+// node_modules/@anthropic-ai/sdk/internal/utils/values.mjs
+function maybeObj(x) {
+  if (typeof x !== "object") {
+    return {};
   }
-  _refinement(Q) {
-    return new W1({ schema: this, typeName: j.ZodEffects, effect: { type: "refinement", refinement: Q } });
-  }
-  superRefine(Q) {
-    return this._refinement(Q);
-  }
-  constructor(Q) {
-    this.spa = this.safeParseAsync, this._def = Q, this.parse = this.parse.bind(this), this.safeParse = this.safeParse.bind(this), this.parseAsync = this.parseAsync.bind(this), this.safeParseAsync = this.safeParseAsync.bind(this), this.spa = this.spa.bind(this), this.refine = this.refine.bind(this), this.refinement = this.refinement.bind(this), this.superRefine = this.superRefine.bind(this), this.optional = this.optional.bind(this), this.nullable = this.nullable.bind(this), this.nullish = this.nullish.bind(this), this.array = this.array.bind(this), this.promise = this.promise.bind(this), this.or = this.or.bind(this), this.and = this.and.bind(this), this.transform = this.transform.bind(this), this.brand = this.brand.bind(this), this.default = this.default.bind(this), this.catch = this.catch.bind(this), this.describe = this.describe.bind(this), this.pipe = this.pipe.bind(this), this.readonly = this.readonly.bind(this), this.isNullable = this.isNullable.bind(this), this.isOptional = this.isOptional.bind(this), this["~standard"] = { version: 1, vendor: "zod", validate: (X) => this["~validate"](X) };
-  }
-  optional() {
-    return m0.create(this, this._def);
-  }
-  nullable() {
-    return S1.create(this, this._def);
-  }
-  nullish() {
-    return this.nullable().optional();
-  }
-  array() {
-    return $1.create(this);
-  }
-  promise() {
-    return D6.create(this, this._def);
-  }
-  or(Q) {
-    return Y9.create([this, Q], this._def);
-  }
-  and(Q) {
-    return $9.create(this, Q, this._def);
-  }
-  transform(Q) {
-    return new W1({ ...m(this._def), schema: this, typeName: j.ZodEffects, effect: { type: "transform", transform: Q } });
-  }
-  default(Q) {
-    let X = typeof Q === "function" ? Q : () => Q;
-    return new H9({ ...m(this._def), innerType: this, defaultValue: X, typeName: j.ZodDefault });
-  }
-  brand() {
-    return new $8({ typeName: j.ZodBranded, type: this, ...m(this._def) });
-  }
-  catch(Q) {
-    let X = typeof Q === "function" ? Q : () => Q;
-    return new B9({ ...m(this._def), innerType: this, catchValue: X, typeName: j.ZodCatch });
-  }
-  describe(Q) {
-    return new this.constructor({ ...this._def, description: Q });
-  }
-  pipe(Q) {
-    return n9.create(this, Q);
-  }
-  readonly() {
-    return z9.create(this);
-  }
-  isOptional() {
-    return this.safeParse(void 0).success;
-  }
-  isNullable() {
-    return this.safeParse(null).success;
-  }
-};
-var HL = /^c[^\s-]{8,}$/i;
-var BL = /^[0-9a-z]+$/;
-var zL = /^[0-9A-HJKMNP-TV-Z]{26}$/i;
-var KL = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i;
-var VL = /^[a-z0-9_-]{21}$/i;
-var qL = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/;
-var UL = /^[-+]?P(?!$)(?:(?:[-+]?\d+Y)|(?:[-+]?\d+[.,]\d+Y$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:(?:[-+]?\d+W)|(?:[-+]?\d+[.,]\d+W$))?(?:(?:[-+]?\d+D)|(?:[-+]?\d+[.,]\d+D$))?(?:T(?=[\d+-])(?:(?:[-+]?\d+H)|(?:[-+]?\d+[.,]\d+H$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:[-+]?\d+(?:[.,]\d+)?S)?)??$/;
-var LL = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-\.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
-var FL = "^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$";
-var QX;
-var NL = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;
-var OL = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/(3[0-2]|[12]?[0-9])$/;
-var DL = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/;
-var ML = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/;
-var wL = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
-var AL = /^([0-9a-zA-Z-_]{4})*(([0-9a-zA-Z-_]{2}(==)?)|([0-9a-zA-Z-_]{3}(=)?))?$/;
-var LJ = "((\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-((0[13578]|1[02])-(0[1-9]|[12]\\d|3[01])|(0[469]|11)-(0[1-9]|[12]\\d|30)|(02)-(0[1-9]|1\\d|2[0-8])))";
-var jL = new RegExp(`^${LJ}$`);
-function FJ(Q) {
-  let X = "[0-5]\\d";
-  if (Q.precision) X = `${X}\\.\\d{${Q.precision}}`;
-  else if (Q.precision == null) X = `${X}(\\.\\d+)?`;
-  let Y = Q.precision ? "+" : "?";
-  return `([01]\\d|2[0-3]):[0-5]\\d(:${X})${Y}`;
+  return x ?? {};
 }
-function RL(Q) {
-  return new RegExp(`^${FJ(Q)}$`);
-}
-function NJ(Q) {
-  let X = `${LJ}T${FJ(Q)}`, Y = [];
-  if (Y.push(Q.local ? "Z?" : "Z"), Q.offset) Y.push("([+-]\\d{2}:?\\d{2})");
-  return X = `${X}(${Y.join("|")})`, new RegExp(`^${X}$`);
-}
-function IL(Q, X) {
-  if ((X === "v4" || !X) && NL.test(Q)) return true;
-  if ((X === "v6" || !X) && DL.test(Q)) return true;
-  return false;
-}
-function bL(Q, X) {
-  if (!qL.test(Q)) return false;
-  try {
-    let [Y] = Q.split(".");
-    if (!Y) return false;
-    let $ = Y.replace(/-/g, "+").replace(/_/g, "/").padEnd(Y.length + (4 - Y.length % 4) % 4, "="), J = JSON.parse(atob($));
-    if (typeof J !== "object" || J === null) return false;
-    if ("typ" in J && J?.typ !== "JWT") return false;
-    if (!J.alg) return false;
-    if (X && J.alg !== X) return false;
+function isEmptyObj(obj) {
+  if (!obj)
     return true;
-  } catch {
+  for (const _k in obj)
     return false;
-  }
-}
-function EL(Q, X) {
-  if ((X === "v4" || !X) && OL.test(Q)) return true;
-  if ((X === "v6" || !X) && ML.test(Q)) return true;
-  return false;
-}
-var Y1 = class _Y1 extends p {
-  _parse(Q) {
-    if (this._def.coerce) Q.data = String(Q.data);
-    if (this._getType(Q) !== I.string) {
-      let J = this._getOrReturnCtx(Q);
-      return b(J, { code: w.invalid_type, expected: I.string, received: J.parsedType }), x;
-    }
-    let Y = new A0(), $ = void 0;
-    for (let J of this._def.checks) if (J.kind === "min") {
-      if (Q.data.length < J.value) $ = this._getOrReturnCtx(Q, $), b($, { code: w.too_small, minimum: J.value, type: "string", inclusive: true, exact: false, message: J.message }), Y.dirty();
-    } else if (J.kind === "max") {
-      if (Q.data.length > J.value) $ = this._getOrReturnCtx(Q, $), b($, { code: w.too_big, maximum: J.value, type: "string", inclusive: true, exact: false, message: J.message }), Y.dirty();
-    } else if (J.kind === "length") {
-      let W = Q.data.length > J.value, G = Q.data.length < J.value;
-      if (W || G) {
-        if ($ = this._getOrReturnCtx(Q, $), W) b($, { code: w.too_big, maximum: J.value, type: "string", inclusive: true, exact: true, message: J.message });
-        else if (G) b($, { code: w.too_small, minimum: J.value, type: "string", inclusive: true, exact: true, message: J.message });
-        Y.dirty();
-      }
-    } else if (J.kind === "email") {
-      if (!LL.test(Q.data)) $ = this._getOrReturnCtx(Q, $), b($, { validation: "email", code: w.invalid_string, message: J.message }), Y.dirty();
-    } else if (J.kind === "emoji") {
-      if (!QX) QX = new RegExp(FL, "u");
-      if (!QX.test(Q.data)) $ = this._getOrReturnCtx(Q, $), b($, { validation: "emoji", code: w.invalid_string, message: J.message }), Y.dirty();
-    } else if (J.kind === "uuid") {
-      if (!KL.test(Q.data)) $ = this._getOrReturnCtx(Q, $), b($, { validation: "uuid", code: w.invalid_string, message: J.message }), Y.dirty();
-    } else if (J.kind === "nanoid") {
-      if (!VL.test(Q.data)) $ = this._getOrReturnCtx(Q, $), b($, { validation: "nanoid", code: w.invalid_string, message: J.message }), Y.dirty();
-    } else if (J.kind === "cuid") {
-      if (!HL.test(Q.data)) $ = this._getOrReturnCtx(Q, $), b($, { validation: "cuid", code: w.invalid_string, message: J.message }), Y.dirty();
-    } else if (J.kind === "cuid2") {
-      if (!BL.test(Q.data)) $ = this._getOrReturnCtx(Q, $), b($, { validation: "cuid2", code: w.invalid_string, message: J.message }), Y.dirty();
-    } else if (J.kind === "ulid") {
-      if (!zL.test(Q.data)) $ = this._getOrReturnCtx(Q, $), b($, { validation: "ulid", code: w.invalid_string, message: J.message }), Y.dirty();
-    } else if (J.kind === "url") try {
-      new URL(Q.data);
-    } catch {
-      $ = this._getOrReturnCtx(Q, $), b($, { validation: "url", code: w.invalid_string, message: J.message }), Y.dirty();
-    }
-    else if (J.kind === "regex") {
-      if (J.regex.lastIndex = 0, !J.regex.test(Q.data)) $ = this._getOrReturnCtx(Q, $), b($, { validation: "regex", code: w.invalid_string, message: J.message }), Y.dirty();
-    } else if (J.kind === "trim") Q.data = Q.data.trim();
-    else if (J.kind === "includes") {
-      if (!Q.data.includes(J.value, J.position)) $ = this._getOrReturnCtx(Q, $), b($, { code: w.invalid_string, validation: { includes: J.value, position: J.position }, message: J.message }), Y.dirty();
-    } else if (J.kind === "toLowerCase") Q.data = Q.data.toLowerCase();
-    else if (J.kind === "toUpperCase") Q.data = Q.data.toUpperCase();
-    else if (J.kind === "startsWith") {
-      if (!Q.data.startsWith(J.value)) $ = this._getOrReturnCtx(Q, $), b($, { code: w.invalid_string, validation: { startsWith: J.value }, message: J.message }), Y.dirty();
-    } else if (J.kind === "endsWith") {
-      if (!Q.data.endsWith(J.value)) $ = this._getOrReturnCtx(Q, $), b($, { code: w.invalid_string, validation: { endsWith: J.value }, message: J.message }), Y.dirty();
-    } else if (J.kind === "datetime") {
-      if (!NJ(J).test(Q.data)) $ = this._getOrReturnCtx(Q, $), b($, { code: w.invalid_string, validation: "datetime", message: J.message }), Y.dirty();
-    } else if (J.kind === "date") {
-      if (!jL.test(Q.data)) $ = this._getOrReturnCtx(Q, $), b($, { code: w.invalid_string, validation: "date", message: J.message }), Y.dirty();
-    } else if (J.kind === "time") {
-      if (!RL(J).test(Q.data)) $ = this._getOrReturnCtx(Q, $), b($, { code: w.invalid_string, validation: "time", message: J.message }), Y.dirty();
-    } else if (J.kind === "duration") {
-      if (!UL.test(Q.data)) $ = this._getOrReturnCtx(Q, $), b($, { validation: "duration", code: w.invalid_string, message: J.message }), Y.dirty();
-    } else if (J.kind === "ip") {
-      if (!IL(Q.data, J.version)) $ = this._getOrReturnCtx(Q, $), b($, { validation: "ip", code: w.invalid_string, message: J.message }), Y.dirty();
-    } else if (J.kind === "jwt") {
-      if (!bL(Q.data, J.alg)) $ = this._getOrReturnCtx(Q, $), b($, { validation: "jwt", code: w.invalid_string, message: J.message }), Y.dirty();
-    } else if (J.kind === "cidr") {
-      if (!EL(Q.data, J.version)) $ = this._getOrReturnCtx(Q, $), b($, { validation: "cidr", code: w.invalid_string, message: J.message }), Y.dirty();
-    } else if (J.kind === "base64") {
-      if (!wL.test(Q.data)) $ = this._getOrReturnCtx(Q, $), b($, { validation: "base64", code: w.invalid_string, message: J.message }), Y.dirty();
-    } else if (J.kind === "base64url") {
-      if (!AL.test(Q.data)) $ = this._getOrReturnCtx(Q, $), b($, { validation: "base64url", code: w.invalid_string, message: J.message }), Y.dirty();
-    } else d.assertNever(J);
-    return { status: Y.value, value: Q.data };
-  }
-  _regex(Q, X, Y) {
-    return this.refinement(($) => Q.test($), { validation: X, code: w.invalid_string, ...S.errToObj(Y) });
-  }
-  _addCheck(Q) {
-    return new _Y1({ ...this._def, checks: [...this._def.checks, Q] });
-  }
-  email(Q) {
-    return this._addCheck({ kind: "email", ...S.errToObj(Q) });
-  }
-  url(Q) {
-    return this._addCheck({ kind: "url", ...S.errToObj(Q) });
-  }
-  emoji(Q) {
-    return this._addCheck({ kind: "emoji", ...S.errToObj(Q) });
-  }
-  uuid(Q) {
-    return this._addCheck({ kind: "uuid", ...S.errToObj(Q) });
-  }
-  nanoid(Q) {
-    return this._addCheck({ kind: "nanoid", ...S.errToObj(Q) });
-  }
-  cuid(Q) {
-    return this._addCheck({ kind: "cuid", ...S.errToObj(Q) });
-  }
-  cuid2(Q) {
-    return this._addCheck({ kind: "cuid2", ...S.errToObj(Q) });
-  }
-  ulid(Q) {
-    return this._addCheck({ kind: "ulid", ...S.errToObj(Q) });
-  }
-  base64(Q) {
-    return this._addCheck({ kind: "base64", ...S.errToObj(Q) });
-  }
-  base64url(Q) {
-    return this._addCheck({ kind: "base64url", ...S.errToObj(Q) });
-  }
-  jwt(Q) {
-    return this._addCheck({ kind: "jwt", ...S.errToObj(Q) });
-  }
-  ip(Q) {
-    return this._addCheck({ kind: "ip", ...S.errToObj(Q) });
-  }
-  cidr(Q) {
-    return this._addCheck({ kind: "cidr", ...S.errToObj(Q) });
-  }
-  datetime(Q) {
-    if (typeof Q === "string") return this._addCheck({ kind: "datetime", precision: null, offset: false, local: false, message: Q });
-    return this._addCheck({ kind: "datetime", precision: typeof Q?.precision > "u" ? null : Q?.precision, offset: Q?.offset ?? false, local: Q?.local ?? false, ...S.errToObj(Q?.message) });
-  }
-  date(Q) {
-    return this._addCheck({ kind: "date", message: Q });
-  }
-  time(Q) {
-    if (typeof Q === "string") return this._addCheck({ kind: "time", precision: null, message: Q });
-    return this._addCheck({ kind: "time", precision: typeof Q?.precision > "u" ? null : Q?.precision, ...S.errToObj(Q?.message) });
-  }
-  duration(Q) {
-    return this._addCheck({ kind: "duration", ...S.errToObj(Q) });
-  }
-  regex(Q, X) {
-    return this._addCheck({ kind: "regex", regex: Q, ...S.errToObj(X) });
-  }
-  includes(Q, X) {
-    return this._addCheck({ kind: "includes", value: Q, position: X?.position, ...S.errToObj(X?.message) });
-  }
-  startsWith(Q, X) {
-    return this._addCheck({ kind: "startsWith", value: Q, ...S.errToObj(X) });
-  }
-  endsWith(Q, X) {
-    return this._addCheck({ kind: "endsWith", value: Q, ...S.errToObj(X) });
-  }
-  min(Q, X) {
-    return this._addCheck({ kind: "min", value: Q, ...S.errToObj(X) });
-  }
-  max(Q, X) {
-    return this._addCheck({ kind: "max", value: Q, ...S.errToObj(X) });
-  }
-  length(Q, X) {
-    return this._addCheck({ kind: "length", value: Q, ...S.errToObj(X) });
-  }
-  nonempty(Q) {
-    return this.min(1, S.errToObj(Q));
-  }
-  trim() {
-    return new _Y1({ ...this._def, checks: [...this._def.checks, { kind: "trim" }] });
-  }
-  toLowerCase() {
-    return new _Y1({ ...this._def, checks: [...this._def.checks, { kind: "toLowerCase" }] });
-  }
-  toUpperCase() {
-    return new _Y1({ ...this._def, checks: [...this._def.checks, { kind: "toUpperCase" }] });
-  }
-  get isDatetime() {
-    return !!this._def.checks.find((Q) => Q.kind === "datetime");
-  }
-  get isDate() {
-    return !!this._def.checks.find((Q) => Q.kind === "date");
-  }
-  get isTime() {
-    return !!this._def.checks.find((Q) => Q.kind === "time");
-  }
-  get isDuration() {
-    return !!this._def.checks.find((Q) => Q.kind === "duration");
-  }
-  get isEmail() {
-    return !!this._def.checks.find((Q) => Q.kind === "email");
-  }
-  get isURL() {
-    return !!this._def.checks.find((Q) => Q.kind === "url");
-  }
-  get isEmoji() {
-    return !!this._def.checks.find((Q) => Q.kind === "emoji");
-  }
-  get isUUID() {
-    return !!this._def.checks.find((Q) => Q.kind === "uuid");
-  }
-  get isNANOID() {
-    return !!this._def.checks.find((Q) => Q.kind === "nanoid");
-  }
-  get isCUID() {
-    return !!this._def.checks.find((Q) => Q.kind === "cuid");
-  }
-  get isCUID2() {
-    return !!this._def.checks.find((Q) => Q.kind === "cuid2");
-  }
-  get isULID() {
-    return !!this._def.checks.find((Q) => Q.kind === "ulid");
-  }
-  get isIP() {
-    return !!this._def.checks.find((Q) => Q.kind === "ip");
-  }
-  get isCIDR() {
-    return !!this._def.checks.find((Q) => Q.kind === "cidr");
-  }
-  get isBase64() {
-    return !!this._def.checks.find((Q) => Q.kind === "base64");
-  }
-  get isBase64url() {
-    return !!this._def.checks.find((Q) => Q.kind === "base64url");
-  }
-  get minLength() {
-    let Q = null;
-    for (let X of this._def.checks) if (X.kind === "min") {
-      if (Q === null || X.value > Q) Q = X.value;
-    }
-    return Q;
-  }
-  get maxLength() {
-    let Q = null;
-    for (let X of this._def.checks) if (X.kind === "max") {
-      if (Q === null || X.value < Q) Q = X.value;
-    }
-    return Q;
-  }
-};
-Y1.create = (Q) => {
-  return new Y1({ checks: [], typeName: j.ZodString, coerce: Q?.coerce ?? false, ...m(Q) });
-};
-function PL(Q, X) {
-  let Y = (Q.toString().split(".")[1] || "").length, $ = (X.toString().split(".")[1] || "").length, J = Y > $ ? Y : $, W = Number.parseInt(Q.toFixed(J).replace(".", "")), G = Number.parseInt(X.toFixed(J).replace(".", ""));
-  return W % G / 10 ** J;
-}
-var c1 = class _c1 extends p {
-  constructor() {
-    super(...arguments);
-    this.min = this.gte, this.max = this.lte, this.step = this.multipleOf;
-  }
-  _parse(Q) {
-    if (this._def.coerce) Q.data = Number(Q.data);
-    if (this._getType(Q) !== I.number) {
-      let J = this._getOrReturnCtx(Q);
-      return b(J, { code: w.invalid_type, expected: I.number, received: J.parsedType }), x;
-    }
-    let Y = void 0, $ = new A0();
-    for (let J of this._def.checks) if (J.kind === "int") {
-      if (!d.isInteger(Q.data)) Y = this._getOrReturnCtx(Q, Y), b(Y, { code: w.invalid_type, expected: "integer", received: "float", message: J.message }), $.dirty();
-    } else if (J.kind === "min") {
-      if (J.inclusive ? Q.data < J.value : Q.data <= J.value) Y = this._getOrReturnCtx(Q, Y), b(Y, { code: w.too_small, minimum: J.value, type: "number", inclusive: J.inclusive, exact: false, message: J.message }), $.dirty();
-    } else if (J.kind === "max") {
-      if (J.inclusive ? Q.data > J.value : Q.data >= J.value) Y = this._getOrReturnCtx(Q, Y), b(Y, { code: w.too_big, maximum: J.value, type: "number", inclusive: J.inclusive, exact: false, message: J.message }), $.dirty();
-    } else if (J.kind === "multipleOf") {
-      if (PL(Q.data, J.value) !== 0) Y = this._getOrReturnCtx(Q, Y), b(Y, { code: w.not_multiple_of, multipleOf: J.value, message: J.message }), $.dirty();
-    } else if (J.kind === "finite") {
-      if (!Number.isFinite(Q.data)) Y = this._getOrReturnCtx(Q, Y), b(Y, { code: w.not_finite, message: J.message }), $.dirty();
-    } else d.assertNever(J);
-    return { status: $.value, value: Q.data };
-  }
-  gte(Q, X) {
-    return this.setLimit("min", Q, true, S.toString(X));
-  }
-  gt(Q, X) {
-    return this.setLimit("min", Q, false, S.toString(X));
-  }
-  lte(Q, X) {
-    return this.setLimit("max", Q, true, S.toString(X));
-  }
-  lt(Q, X) {
-    return this.setLimit("max", Q, false, S.toString(X));
-  }
-  setLimit(Q, X, Y, $) {
-    return new _c1({ ...this._def, checks: [...this._def.checks, { kind: Q, value: X, inclusive: Y, message: S.toString($) }] });
-  }
-  _addCheck(Q) {
-    return new _c1({ ...this._def, checks: [...this._def.checks, Q] });
-  }
-  int(Q) {
-    return this._addCheck({ kind: "int", message: S.toString(Q) });
-  }
-  positive(Q) {
-    return this._addCheck({ kind: "min", value: 0, inclusive: false, message: S.toString(Q) });
-  }
-  negative(Q) {
-    return this._addCheck({ kind: "max", value: 0, inclusive: false, message: S.toString(Q) });
-  }
-  nonpositive(Q) {
-    return this._addCheck({ kind: "max", value: 0, inclusive: true, message: S.toString(Q) });
-  }
-  nonnegative(Q) {
-    return this._addCheck({ kind: "min", value: 0, inclusive: true, message: S.toString(Q) });
-  }
-  multipleOf(Q, X) {
-    return this._addCheck({ kind: "multipleOf", value: Q, message: S.toString(X) });
-  }
-  finite(Q) {
-    return this._addCheck({ kind: "finite", message: S.toString(Q) });
-  }
-  safe(Q) {
-    return this._addCheck({ kind: "min", inclusive: true, value: Number.MIN_SAFE_INTEGER, message: S.toString(Q) })._addCheck({ kind: "max", inclusive: true, value: Number.MAX_SAFE_INTEGER, message: S.toString(Q) });
-  }
-  get minValue() {
-    let Q = null;
-    for (let X of this._def.checks) if (X.kind === "min") {
-      if (Q === null || X.value > Q) Q = X.value;
-    }
-    return Q;
-  }
-  get maxValue() {
-    let Q = null;
-    for (let X of this._def.checks) if (X.kind === "max") {
-      if (Q === null || X.value < Q) Q = X.value;
-    }
-    return Q;
-  }
-  get isInt() {
-    return !!this._def.checks.find((Q) => Q.kind === "int" || Q.kind === "multipleOf" && d.isInteger(Q.value));
-  }
-  get isFinite() {
-    let Q = null, X = null;
-    for (let Y of this._def.checks) if (Y.kind === "finite" || Y.kind === "int" || Y.kind === "multipleOf") return true;
-    else if (Y.kind === "min") {
-      if (X === null || Y.value > X) X = Y.value;
-    } else if (Y.kind === "max") {
-      if (Q === null || Y.value < Q) Q = Y.value;
-    }
-    return Number.isFinite(X) && Number.isFinite(Q);
-  }
-};
-c1.create = (Q) => {
-  return new c1({ checks: [], typeName: j.ZodNumber, coerce: Q?.coerce || false, ...m(Q) });
-};
-var p1 = class _p1 extends p {
-  constructor() {
-    super(...arguments);
-    this.min = this.gte, this.max = this.lte;
-  }
-  _parse(Q) {
-    if (this._def.coerce) try {
-      Q.data = BigInt(Q.data);
-    } catch {
-      return this._getInvalidInput(Q);
-    }
-    if (this._getType(Q) !== I.bigint) return this._getInvalidInput(Q);
-    let Y = void 0, $ = new A0();
-    for (let J of this._def.checks) if (J.kind === "min") {
-      if (J.inclusive ? Q.data < J.value : Q.data <= J.value) Y = this._getOrReturnCtx(Q, Y), b(Y, { code: w.too_small, type: "bigint", minimum: J.value, inclusive: J.inclusive, message: J.message }), $.dirty();
-    } else if (J.kind === "max") {
-      if (J.inclusive ? Q.data > J.value : Q.data >= J.value) Y = this._getOrReturnCtx(Q, Y), b(Y, { code: w.too_big, type: "bigint", maximum: J.value, inclusive: J.inclusive, message: J.message }), $.dirty();
-    } else if (J.kind === "multipleOf") {
-      if (Q.data % J.value !== BigInt(0)) Y = this._getOrReturnCtx(Q, Y), b(Y, { code: w.not_multiple_of, multipleOf: J.value, message: J.message }), $.dirty();
-    } else d.assertNever(J);
-    return { status: $.value, value: Q.data };
-  }
-  _getInvalidInput(Q) {
-    let X = this._getOrReturnCtx(Q);
-    return b(X, { code: w.invalid_type, expected: I.bigint, received: X.parsedType }), x;
-  }
-  gte(Q, X) {
-    return this.setLimit("min", Q, true, S.toString(X));
-  }
-  gt(Q, X) {
-    return this.setLimit("min", Q, false, S.toString(X));
-  }
-  lte(Q, X) {
-    return this.setLimit("max", Q, true, S.toString(X));
-  }
-  lt(Q, X) {
-    return this.setLimit("max", Q, false, S.toString(X));
-  }
-  setLimit(Q, X, Y, $) {
-    return new _p1({ ...this._def, checks: [...this._def.checks, { kind: Q, value: X, inclusive: Y, message: S.toString($) }] });
-  }
-  _addCheck(Q) {
-    return new _p1({ ...this._def, checks: [...this._def.checks, Q] });
-  }
-  positive(Q) {
-    return this._addCheck({ kind: "min", value: BigInt(0), inclusive: false, message: S.toString(Q) });
-  }
-  negative(Q) {
-    return this._addCheck({ kind: "max", value: BigInt(0), inclusive: false, message: S.toString(Q) });
-  }
-  nonpositive(Q) {
-    return this._addCheck({ kind: "max", value: BigInt(0), inclusive: true, message: S.toString(Q) });
-  }
-  nonnegative(Q) {
-    return this._addCheck({ kind: "min", value: BigInt(0), inclusive: true, message: S.toString(Q) });
-  }
-  multipleOf(Q, X) {
-    return this._addCheck({ kind: "multipleOf", value: Q, message: S.toString(X) });
-  }
-  get minValue() {
-    let Q = null;
-    for (let X of this._def.checks) if (X.kind === "min") {
-      if (Q === null || X.value > Q) Q = X.value;
-    }
-    return Q;
-  }
-  get maxValue() {
-    let Q = null;
-    for (let X of this._def.checks) if (X.kind === "max") {
-      if (Q === null || X.value < Q) Q = X.value;
-    }
-    return Q;
-  }
-};
-p1.create = (Q) => {
-  return new p1({ checks: [], typeName: j.ZodBigInt, coerce: Q?.coerce ?? false, ...m(Q) });
-};
-var e6 = class extends p {
-  _parse(Q) {
-    if (this._def.coerce) Q.data = Boolean(Q.data);
-    if (this._getType(Q) !== I.boolean) {
-      let Y = this._getOrReturnCtx(Q);
-      return b(Y, { code: w.invalid_type, expected: I.boolean, received: Y.parsedType }), x;
-    }
-    return P0(Q.data);
-  }
-};
-e6.create = (Q) => {
-  return new e6({ typeName: j.ZodBoolean, coerce: Q?.coerce || false, ...m(Q) });
-};
-var F6 = class _F6 extends p {
-  _parse(Q) {
-    if (this._def.coerce) Q.data = new Date(Q.data);
-    if (this._getType(Q) !== I.date) {
-      let J = this._getOrReturnCtx(Q);
-      return b(J, { code: w.invalid_type, expected: I.date, received: J.parsedType }), x;
-    }
-    if (Number.isNaN(Q.data.getTime())) {
-      let J = this._getOrReturnCtx(Q);
-      return b(J, { code: w.invalid_date }), x;
-    }
-    let Y = new A0(), $ = void 0;
-    for (let J of this._def.checks) if (J.kind === "min") {
-      if (Q.data.getTime() < J.value) $ = this._getOrReturnCtx(Q, $), b($, { code: w.too_small, message: J.message, inclusive: true, exact: false, minimum: J.value, type: "date" }), Y.dirty();
-    } else if (J.kind === "max") {
-      if (Q.data.getTime() > J.value) $ = this._getOrReturnCtx(Q, $), b($, { code: w.too_big, message: J.message, inclusive: true, exact: false, maximum: J.value, type: "date" }), Y.dirty();
-    } else d.assertNever(J);
-    return { status: Y.value, value: new Date(Q.data.getTime()) };
-  }
-  _addCheck(Q) {
-    return new _F6({ ...this._def, checks: [...this._def.checks, Q] });
-  }
-  min(Q, X) {
-    return this._addCheck({ kind: "min", value: Q.getTime(), message: S.toString(X) });
-  }
-  max(Q, X) {
-    return this._addCheck({ kind: "max", value: Q.getTime(), message: S.toString(X) });
-  }
-  get minDate() {
-    let Q = null;
-    for (let X of this._def.checks) if (X.kind === "min") {
-      if (Q === null || X.value > Q) Q = X.value;
-    }
-    return Q != null ? new Date(Q) : null;
-  }
-  get maxDate() {
-    let Q = null;
-    for (let X of this._def.checks) if (X.kind === "max") {
-      if (Q === null || X.value < Q) Q = X.value;
-    }
-    return Q != null ? new Date(Q) : null;
-  }
-};
-F6.create = (Q) => {
-  return new F6({ checks: [], coerce: Q?.coerce || false, typeName: j.ZodDate, ...m(Q) });
-};
-var l9 = class extends p {
-  _parse(Q) {
-    if (this._getType(Q) !== I.symbol) {
-      let Y = this._getOrReturnCtx(Q);
-      return b(Y, { code: w.invalid_type, expected: I.symbol, received: Y.parsedType }), x;
-    }
-    return P0(Q.data);
-  }
-};
-l9.create = (Q) => {
-  return new l9({ typeName: j.ZodSymbol, ...m(Q) });
-};
-var Q9 = class extends p {
-  _parse(Q) {
-    if (this._getType(Q) !== I.undefined) {
-      let Y = this._getOrReturnCtx(Q);
-      return b(Y, { code: w.invalid_type, expected: I.undefined, received: Y.parsedType }), x;
-    }
-    return P0(Q.data);
-  }
-};
-Q9.create = (Q) => {
-  return new Q9({ typeName: j.ZodUndefined, ...m(Q) });
-};
-var X9 = class extends p {
-  _parse(Q) {
-    if (this._getType(Q) !== I.null) {
-      let Y = this._getOrReturnCtx(Q);
-      return b(Y, { code: w.invalid_type, expected: I.null, received: Y.parsedType }), x;
-    }
-    return P0(Q.data);
-  }
-};
-X9.create = (Q) => {
-  return new X9({ typeName: j.ZodNull, ...m(Q) });
-};
-var N6 = class extends p {
-  constructor() {
-    super(...arguments);
-    this._any = true;
-  }
-  _parse(Q) {
-    return P0(Q.data);
-  }
-};
-N6.create = (Q) => {
-  return new N6({ typeName: j.ZodAny, ...m(Q) });
-};
-var l1 = class extends p {
-  constructor() {
-    super(...arguments);
-    this._unknown = true;
-  }
-  _parse(Q) {
-    return P0(Q.data);
-  }
-};
-l1.create = (Q) => {
-  return new l1({ typeName: j.ZodUnknown, ...m(Q) });
-};
-var w1 = class extends p {
-  _parse(Q) {
-    let X = this._getOrReturnCtx(Q);
-    return b(X, { code: w.invalid_type, expected: I.never, received: X.parsedType }), x;
-  }
-};
-w1.create = (Q) => {
-  return new w1({ typeName: j.ZodNever, ...m(Q) });
-};
-var c9 = class extends p {
-  _parse(Q) {
-    if (this._getType(Q) !== I.undefined) {
-      let Y = this._getOrReturnCtx(Q);
-      return b(Y, { code: w.invalid_type, expected: I.void, received: Y.parsedType }), x;
-    }
-    return P0(Q.data);
-  }
-};
-c9.create = (Q) => {
-  return new c9({ typeName: j.ZodVoid, ...m(Q) });
-};
-var $1 = class _$1 extends p {
-  _parse(Q) {
-    let { ctx: X, status: Y } = this._processInputParams(Q), $ = this._def;
-    if (X.parsedType !== I.array) return b(X, { code: w.invalid_type, expected: I.array, received: X.parsedType }), x;
-    if ($.exactLength !== null) {
-      let W = X.data.length > $.exactLength.value, G = X.data.length < $.exactLength.value;
-      if (W || G) b(X, { code: W ? w.too_big : w.too_small, minimum: G ? $.exactLength.value : void 0, maximum: W ? $.exactLength.value : void 0, type: "array", inclusive: true, exact: true, message: $.exactLength.message }), Y.dirty();
-    }
-    if ($.minLength !== null) {
-      if (X.data.length < $.minLength.value) b(X, { code: w.too_small, minimum: $.minLength.value, type: "array", inclusive: true, exact: false, message: $.minLength.message }), Y.dirty();
-    }
-    if ($.maxLength !== null) {
-      if (X.data.length > $.maxLength.value) b(X, { code: w.too_big, maximum: $.maxLength.value, type: "array", inclusive: true, exact: false, message: $.maxLength.message }), Y.dirty();
-    }
-    if (X.common.async) return Promise.all([...X.data].map((W, G) => {
-      return $.type._parseAsync(new J1(X, W, X.path, G));
-    })).then((W) => {
-      return A0.mergeArray(Y, W);
-    });
-    let J = [...X.data].map((W, G) => {
-      return $.type._parseSync(new J1(X, W, X.path, G));
-    });
-    return A0.mergeArray(Y, J);
-  }
-  get element() {
-    return this._def.type;
-  }
-  min(Q, X) {
-    return new _$1({ ...this._def, minLength: { value: Q, message: S.toString(X) } });
-  }
-  max(Q, X) {
-    return new _$1({ ...this._def, maxLength: { value: Q, message: S.toString(X) } });
-  }
-  length(Q, X) {
-    return new _$1({ ...this._def, exactLength: { value: Q, message: S.toString(X) } });
-  }
-  nonempty(Q) {
-    return this.min(1, Q);
-  }
-};
-$1.create = (Q, X) => {
-  return new $1({ type: Q, minLength: null, maxLength: null, exactLength: null, typeName: j.ZodArray, ...m(X) });
-};
-function a6(Q) {
-  if (Q instanceof L0) {
-    let X = {};
-    for (let Y in Q.shape) {
-      let $ = Q.shape[Y];
-      X[Y] = m0.create(a6($));
-    }
-    return new L0({ ...Q._def, shape: () => X });
-  } else if (Q instanceof $1) return new $1({ ...Q._def, type: a6(Q.element) });
-  else if (Q instanceof m0) return m0.create(a6(Q.unwrap()));
-  else if (Q instanceof S1) return S1.create(a6(Q.unwrap()));
-  else if (Q instanceof A1) return A1.create(Q.items.map((X) => a6(X)));
-  else return Q;
-}
-var L0 = class _L0 extends p {
-  constructor() {
-    super(...arguments);
-    this._cached = null, this.nonstrict = this.passthrough, this.augment = this.extend;
-  }
-  _getCached() {
-    if (this._cached !== null) return this._cached;
-    let Q = this._def.shape(), X = d.objectKeys(Q);
-    return this._cached = { shape: Q, keys: X }, this._cached;
-  }
-  _parse(Q) {
-    if (this._getType(Q) !== I.object) {
-      let B = this._getOrReturnCtx(Q);
-      return b(B, { code: w.invalid_type, expected: I.object, received: B.parsedType }), x;
-    }
-    let { status: Y, ctx: $ } = this._processInputParams(Q), { shape: J, keys: W } = this._getCached(), G = [];
-    if (!(this._def.catchall instanceof w1 && this._def.unknownKeys === "strip")) {
-      for (let B in $.data) if (!W.includes(B)) G.push(B);
-    }
-    let H = [];
-    for (let B of W) {
-      let z = J[B], K = $.data[B];
-      H.push({ key: { status: "valid", value: B }, value: z._parse(new J1($, K, $.path, B)), alwaysSet: B in $.data });
-    }
-    if (this._def.catchall instanceof w1) {
-      let B = this._def.unknownKeys;
-      if (B === "passthrough") for (let z of G) H.push({ key: { status: "valid", value: z }, value: { status: "valid", value: $.data[z] } });
-      else if (B === "strict") {
-        if (G.length > 0) b($, { code: w.unrecognized_keys, keys: G }), Y.dirty();
-      } else if (B === "strip") ;
-      else throw Error("Internal ZodObject error: invalid unknownKeys value.");
-    } else {
-      let B = this._def.catchall;
-      for (let z of G) {
-        let K = $.data[z];
-        H.push({ key: { status: "valid", value: z }, value: B._parse(new J1($, K, $.path, z)), alwaysSet: z in $.data });
-      }
-    }
-    if ($.common.async) return Promise.resolve().then(async () => {
-      let B = [];
-      for (let z of H) {
-        let K = await z.key, U = await z.value;
-        B.push({ key: K, value: U, alwaysSet: z.alwaysSet });
-      }
-      return B;
-    }).then((B) => {
-      return A0.mergeObjectSync(Y, B);
-    });
-    else return A0.mergeObjectSync(Y, H);
-  }
-  get shape() {
-    return this._def.shape();
-  }
-  strict(Q) {
-    return S.errToObj, new _L0({ ...this._def, unknownKeys: "strict", ...Q !== void 0 ? { errorMap: (X, Y) => {
-      let $ = this._def.errorMap?.(X, Y).message ?? Y.defaultError;
-      if (X.code === "unrecognized_keys") return { message: S.errToObj(Q).message ?? $ };
-      return { message: $ };
-    } } : {} });
-  }
-  strip() {
-    return new _L0({ ...this._def, unknownKeys: "strip" });
-  }
-  passthrough() {
-    return new _L0({ ...this._def, unknownKeys: "passthrough" });
-  }
-  extend(Q) {
-    return new _L0({ ...this._def, shape: () => ({ ...this._def.shape(), ...Q }) });
-  }
-  merge(Q) {
-    return new _L0({ unknownKeys: Q._def.unknownKeys, catchall: Q._def.catchall, shape: () => ({ ...this._def.shape(), ...Q._def.shape() }), typeName: j.ZodObject });
-  }
-  setKey(Q, X) {
-    return this.augment({ [Q]: X });
-  }
-  catchall(Q) {
-    return new _L0({ ...this._def, catchall: Q });
-  }
-  pick(Q) {
-    let X = {};
-    for (let Y of d.objectKeys(Q)) if (Q[Y] && this.shape[Y]) X[Y] = this.shape[Y];
-    return new _L0({ ...this._def, shape: () => X });
-  }
-  omit(Q) {
-    let X = {};
-    for (let Y of d.objectKeys(this.shape)) if (!Q[Y]) X[Y] = this.shape[Y];
-    return new _L0({ ...this._def, shape: () => X });
-  }
-  deepPartial() {
-    return a6(this);
-  }
-  partial(Q) {
-    let X = {};
-    for (let Y of d.objectKeys(this.shape)) {
-      let $ = this.shape[Y];
-      if (Q && !Q[Y]) X[Y] = $;
-      else X[Y] = $.optional();
-    }
-    return new _L0({ ...this._def, shape: () => X });
-  }
-  required(Q) {
-    let X = {};
-    for (let Y of d.objectKeys(this.shape)) if (Q && !Q[Y]) X[Y] = this.shape[Y];
-    else {
-      let J = this.shape[Y];
-      while (J instanceof m0) J = J._def.innerType;
-      X[Y] = J;
-    }
-    return new _L0({ ...this._def, shape: () => X });
-  }
-  keyof() {
-    return OJ(d.objectKeys(this.shape));
-  }
-};
-L0.create = (Q, X) => {
-  return new L0({ shape: () => Q, unknownKeys: "strip", catchall: w1.create(), typeName: j.ZodObject, ...m(X) });
-};
-L0.strictCreate = (Q, X) => {
-  return new L0({ shape: () => Q, unknownKeys: "strict", catchall: w1.create(), typeName: j.ZodObject, ...m(X) });
-};
-L0.lazycreate = (Q, X) => {
-  return new L0({ shape: Q, unknownKeys: "strip", catchall: w1.create(), typeName: j.ZodObject, ...m(X) });
-};
-var Y9 = class extends p {
-  _parse(Q) {
-    let { ctx: X } = this._processInputParams(Q), Y = this._def.options;
-    function $(J) {
-      for (let G of J) if (G.result.status === "valid") return G.result;
-      for (let G of J) if (G.result.status === "dirty") return X.common.issues.push(...G.ctx.common.issues), G.result;
-      let W = J.map((G) => new x0(G.ctx.common.issues));
-      return b(X, { code: w.invalid_union, unionErrors: W }), x;
-    }
-    if (X.common.async) return Promise.all(Y.map(async (J) => {
-      let W = { ...X, common: { ...X.common, issues: [] }, parent: null };
-      return { result: await J._parseAsync({ data: X.data, path: X.path, parent: W }), ctx: W };
-    })).then($);
-    else {
-      let J = void 0, W = [];
-      for (let H of Y) {
-        let B = { ...X, common: { ...X.common, issues: [] }, parent: null }, z = H._parseSync({ data: X.data, path: X.path, parent: B });
-        if (z.status === "valid") return z;
-        else if (z.status === "dirty" && !J) J = { result: z, ctx: B };
-        if (B.common.issues.length) W.push(B.common.issues);
-      }
-      if (J) return X.common.issues.push(...J.ctx.common.issues), J.result;
-      let G = W.map((H) => new x0(H));
-      return b(X, { code: w.invalid_union, unionErrors: G }), x;
-    }
-  }
-  get options() {
-    return this._def.options;
-  }
-};
-Y9.create = (Q, X) => {
-  return new Y9({ options: Q, typeName: j.ZodUnion, ...m(X) });
-};
-var C1 = (Q) => {
-  if (Q instanceof J9) return C1(Q.schema);
-  else if (Q instanceof W1) return C1(Q.innerType());
-  else if (Q instanceof W9) return [Q.value];
-  else if (Q instanceof d1) return Q.options;
-  else if (Q instanceof G9) return d.objectValues(Q.enum);
-  else if (Q instanceof H9) return C1(Q._def.innerType);
-  else if (Q instanceof Q9) return [void 0];
-  else if (Q instanceof X9) return [null];
-  else if (Q instanceof m0) return [void 0, ...C1(Q.unwrap())];
-  else if (Q instanceof S1) return [null, ...C1(Q.unwrap())];
-  else if (Q instanceof $8) return C1(Q.unwrap());
-  else if (Q instanceof z9) return C1(Q.unwrap());
-  else if (Q instanceof B9) return C1(Q._def.innerType);
-  else return [];
-};
-var Y8 = class _Y8 extends p {
-  _parse(Q) {
-    let { ctx: X } = this._processInputParams(Q);
-    if (X.parsedType !== I.object) return b(X, { code: w.invalid_type, expected: I.object, received: X.parsedType }), x;
-    let Y = this.discriminator, $ = X.data[Y], J = this.optionsMap.get($);
-    if (!J) return b(X, { code: w.invalid_union_discriminator, options: Array.from(this.optionsMap.keys()), path: [Y] }), x;
-    if (X.common.async) return J._parseAsync({ data: X.data, path: X.path, parent: X });
-    else return J._parseSync({ data: X.data, path: X.path, parent: X });
-  }
-  get discriminator() {
-    return this._def.discriminator;
-  }
-  get options() {
-    return this._def.options;
-  }
-  get optionsMap() {
-    return this._def.optionsMap;
-  }
-  static create(Q, X, Y) {
-    let $ = /* @__PURE__ */ new Map();
-    for (let J of X) {
-      let W = C1(J.shape[Q]);
-      if (!W.length) throw Error(`A discriminator value for key \`${Q}\` could not be extracted from all schema options`);
-      for (let G of W) {
-        if ($.has(G)) throw Error(`Discriminator property ${String(Q)} has duplicate value ${String(G)}`);
-        $.set(G, J);
-      }
-    }
-    return new _Y8({ typeName: j.ZodDiscriminatedUnion, discriminator: Q, options: X, optionsMap: $, ...m(Y) });
-  }
-};
-function XX(Q, X) {
-  let Y = M1(Q), $ = M1(X);
-  if (Q === X) return { valid: true, data: Q };
-  else if (Y === I.object && $ === I.object) {
-    let J = d.objectKeys(X), W = d.objectKeys(Q).filter((H) => J.indexOf(H) !== -1), G = { ...Q, ...X };
-    for (let H of W) {
-      let B = XX(Q[H], X[H]);
-      if (!B.valid) return { valid: false };
-      G[H] = B.data;
-    }
-    return { valid: true, data: G };
-  } else if (Y === I.array && $ === I.array) {
-    if (Q.length !== X.length) return { valid: false };
-    let J = [];
-    for (let W = 0; W < Q.length; W++) {
-      let G = Q[W], H = X[W], B = XX(G, H);
-      if (!B.valid) return { valid: false };
-      J.push(B.data);
-    }
-    return { valid: true, data: J };
-  } else if (Y === I.date && $ === I.date && +Q === +X) return { valid: true, data: Q };
-  else return { valid: false };
-}
-var $9 = class extends p {
-  _parse(Q) {
-    let { status: X, ctx: Y } = this._processInputParams(Q), $ = (J, W) => {
-      if (Q8(J) || Q8(W)) return x;
-      let G = XX(J.value, W.value);
-      if (!G.valid) return b(Y, { code: w.invalid_intersection_types }), x;
-      if (X8(J) || X8(W)) X.dirty();
-      return { status: X.value, value: G.data };
-    };
-    if (Y.common.async) return Promise.all([this._def.left._parseAsync({ data: Y.data, path: Y.path, parent: Y }), this._def.right._parseAsync({ data: Y.data, path: Y.path, parent: Y })]).then(([J, W]) => $(J, W));
-    else return $(this._def.left._parseSync({ data: Y.data, path: Y.path, parent: Y }), this._def.right._parseSync({ data: Y.data, path: Y.path, parent: Y }));
-  }
-};
-$9.create = (Q, X, Y) => {
-  return new $9({ left: Q, right: X, typeName: j.ZodIntersection, ...m(Y) });
-};
-var A1 = class _A1 extends p {
-  _parse(Q) {
-    let { status: X, ctx: Y } = this._processInputParams(Q);
-    if (Y.parsedType !== I.array) return b(Y, { code: w.invalid_type, expected: I.array, received: Y.parsedType }), x;
-    if (Y.data.length < this._def.items.length) return b(Y, { code: w.too_small, minimum: this._def.items.length, inclusive: true, exact: false, type: "array" }), x;
-    if (!this._def.rest && Y.data.length > this._def.items.length) b(Y, { code: w.too_big, maximum: this._def.items.length, inclusive: true, exact: false, type: "array" }), X.dirty();
-    let J = [...Y.data].map((W, G) => {
-      let H = this._def.items[G] || this._def.rest;
-      if (!H) return null;
-      return H._parse(new J1(Y, W, Y.path, G));
-    }).filter((W) => !!W);
-    if (Y.common.async) return Promise.all(J).then((W) => {
-      return A0.mergeArray(X, W);
-    });
-    else return A0.mergeArray(X, J);
-  }
-  get items() {
-    return this._def.items;
-  }
-  rest(Q) {
-    return new _A1({ ...this._def, rest: Q });
-  }
-};
-A1.create = (Q, X) => {
-  if (!Array.isArray(Q)) throw Error("You must pass an array of schemas to z.tuple([ ... ])");
-  return new A1({ items: Q, typeName: j.ZodTuple, rest: null, ...m(X) });
-};
-var p9 = class _p9 extends p {
-  get keySchema() {
-    return this._def.keyType;
-  }
-  get valueSchema() {
-    return this._def.valueType;
-  }
-  _parse(Q) {
-    let { status: X, ctx: Y } = this._processInputParams(Q);
-    if (Y.parsedType !== I.object) return b(Y, { code: w.invalid_type, expected: I.object, received: Y.parsedType }), x;
-    let $ = [], J = this._def.keyType, W = this._def.valueType;
-    for (let G in Y.data) $.push({ key: J._parse(new J1(Y, G, Y.path, G)), value: W._parse(new J1(Y, Y.data[G], Y.path, G)), alwaysSet: G in Y.data });
-    if (Y.common.async) return A0.mergeObjectAsync(X, $);
-    else return A0.mergeObjectSync(X, $);
-  }
-  get element() {
-    return this._def.valueType;
-  }
-  static create(Q, X, Y) {
-    if (X instanceof p) return new _p9({ keyType: Q, valueType: X, typeName: j.ZodRecord, ...m(Y) });
-    return new _p9({ keyType: Y1.create(), valueType: Q, typeName: j.ZodRecord, ...m(X) });
-  }
-};
-var d9 = class extends p {
-  get keySchema() {
-    return this._def.keyType;
-  }
-  get valueSchema() {
-    return this._def.valueType;
-  }
-  _parse(Q) {
-    let { status: X, ctx: Y } = this._processInputParams(Q);
-    if (Y.parsedType !== I.map) return b(Y, { code: w.invalid_type, expected: I.map, received: Y.parsedType }), x;
-    let $ = this._def.keyType, J = this._def.valueType, W = [...Y.data.entries()].map(([G, H], B) => {
-      return { key: $._parse(new J1(Y, G, Y.path, [B, "key"])), value: J._parse(new J1(Y, H, Y.path, [B, "value"])) };
-    });
-    if (Y.common.async) {
-      let G = /* @__PURE__ */ new Map();
-      return Promise.resolve().then(async () => {
-        for (let H of W) {
-          let B = await H.key, z = await H.value;
-          if (B.status === "aborted" || z.status === "aborted") return x;
-          if (B.status === "dirty" || z.status === "dirty") X.dirty();
-          G.set(B.value, z.value);
-        }
-        return { status: X.value, value: G };
-      });
-    } else {
-      let G = /* @__PURE__ */ new Map();
-      for (let H of W) {
-        let { key: B, value: z } = H;
-        if (B.status === "aborted" || z.status === "aborted") return x;
-        if (B.status === "dirty" || z.status === "dirty") X.dirty();
-        G.set(B.value, z.value);
-      }
-      return { status: X.value, value: G };
-    }
-  }
-};
-d9.create = (Q, X, Y) => {
-  return new d9({ valueType: X, keyType: Q, typeName: j.ZodMap, ...m(Y) });
-};
-var O6 = class _O6 extends p {
-  _parse(Q) {
-    let { status: X, ctx: Y } = this._processInputParams(Q);
-    if (Y.parsedType !== I.set) return b(Y, { code: w.invalid_type, expected: I.set, received: Y.parsedType }), x;
-    let $ = this._def;
-    if ($.minSize !== null) {
-      if (Y.data.size < $.minSize.value) b(Y, { code: w.too_small, minimum: $.minSize.value, type: "set", inclusive: true, exact: false, message: $.minSize.message }), X.dirty();
-    }
-    if ($.maxSize !== null) {
-      if (Y.data.size > $.maxSize.value) b(Y, { code: w.too_big, maximum: $.maxSize.value, type: "set", inclusive: true, exact: false, message: $.maxSize.message }), X.dirty();
-    }
-    let J = this._def.valueType;
-    function W(H) {
-      let B = /* @__PURE__ */ new Set();
-      for (let z of H) {
-        if (z.status === "aborted") return x;
-        if (z.status === "dirty") X.dirty();
-        B.add(z.value);
-      }
-      return { status: X.value, value: B };
-    }
-    let G = [...Y.data.values()].map((H, B) => J._parse(new J1(Y, H, Y.path, B)));
-    if (Y.common.async) return Promise.all(G).then((H) => W(H));
-    else return W(G);
-  }
-  min(Q, X) {
-    return new _O6({ ...this._def, minSize: { value: Q, message: S.toString(X) } });
-  }
-  max(Q, X) {
-    return new _O6({ ...this._def, maxSize: { value: Q, message: S.toString(X) } });
-  }
-  size(Q, X) {
-    return this.min(Q, X).max(Q, X);
-  }
-  nonempty(Q) {
-    return this.min(1, Q);
-  }
-};
-O6.create = (Q, X) => {
-  return new O6({ valueType: Q, minSize: null, maxSize: null, typeName: j.ZodSet, ...m(X) });
-};
-var s6 = class _s6 extends p {
-  constructor() {
-    super(...arguments);
-    this.validate = this.implement;
-  }
-  _parse(Q) {
-    let { ctx: X } = this._processInputParams(Q);
-    if (X.parsedType !== I.function) return b(X, { code: w.invalid_type, expected: I.function, received: X.parsedType }), x;
-    function Y(G, H) {
-      return m9({ data: G, path: X.path, errorMaps: [X.common.contextualErrorMap, X.schemaErrorMap, r6(), Z1].filter((B) => !!B), issueData: { code: w.invalid_arguments, argumentsError: H } });
-    }
-    function $(G, H) {
-      return m9({ data: G, path: X.path, errorMaps: [X.common.contextualErrorMap, X.schemaErrorMap, r6(), Z1].filter((B) => !!B), issueData: { code: w.invalid_return_type, returnTypeError: H } });
-    }
-    let J = { errorMap: X.common.contextualErrorMap }, W = X.data;
-    if (this._def.returns instanceof D6) {
-      let G = this;
-      return P0(async function(...H) {
-        let B = new x0([]), z = await G._def.args.parseAsync(H, J).catch((q) => {
-          throw B.addIssue(Y(H, q)), B;
-        }), K = await Reflect.apply(W, this, z);
-        return await G._def.returns._def.type.parseAsync(K, J).catch((q) => {
-          throw B.addIssue($(K, q)), B;
-        });
-      });
-    } else {
-      let G = this;
-      return P0(function(...H) {
-        let B = G._def.args.safeParse(H, J);
-        if (!B.success) throw new x0([Y(H, B.error)]);
-        let z = Reflect.apply(W, this, B.data), K = G._def.returns.safeParse(z, J);
-        if (!K.success) throw new x0([$(z, K.error)]);
-        return K.data;
-      });
-    }
-  }
-  parameters() {
-    return this._def.args;
-  }
-  returnType() {
-    return this._def.returns;
-  }
-  args(...Q) {
-    return new _s6({ ...this._def, args: A1.create(Q).rest(l1.create()) });
-  }
-  returns(Q) {
-    return new _s6({ ...this._def, returns: Q });
-  }
-  implement(Q) {
-    return this.parse(Q);
-  }
-  strictImplement(Q) {
-    return this.parse(Q);
-  }
-  static create(Q, X, Y) {
-    return new _s6({ args: Q ? Q : A1.create([]).rest(l1.create()), returns: X || l1.create(), typeName: j.ZodFunction, ...m(Y) });
-  }
-};
-var J9 = class extends p {
-  get schema() {
-    return this._def.getter();
-  }
-  _parse(Q) {
-    let { ctx: X } = this._processInputParams(Q);
-    return this._def.getter()._parse({ data: X.data, path: X.path, parent: X });
-  }
-};
-J9.create = (Q, X) => {
-  return new J9({ getter: Q, typeName: j.ZodLazy, ...m(X) });
-};
-var W9 = class extends p {
-  _parse(Q) {
-    if (Q.data !== this._def.value) {
-      let X = this._getOrReturnCtx(Q);
-      return b(X, { received: X.data, code: w.invalid_literal, expected: this._def.value }), x;
-    }
-    return { status: "valid", value: Q.data };
-  }
-  get value() {
-    return this._def.value;
-  }
-};
-W9.create = (Q, X) => {
-  return new W9({ value: Q, typeName: j.ZodLiteral, ...m(X) });
-};
-function OJ(Q, X) {
-  return new d1({ values: Q, typeName: j.ZodEnum, ...m(X) });
-}
-var d1 = class _d1 extends p {
-  _parse(Q) {
-    if (typeof Q.data !== "string") {
-      let X = this._getOrReturnCtx(Q), Y = this._def.values;
-      return b(X, { expected: d.joinValues(Y), received: X.parsedType, code: w.invalid_type }), x;
-    }
-    if (!this._cache) this._cache = new Set(this._def.values);
-    if (!this._cache.has(Q.data)) {
-      let X = this._getOrReturnCtx(Q), Y = this._def.values;
-      return b(X, { received: X.data, code: w.invalid_enum_value, options: Y }), x;
-    }
-    return P0(Q.data);
-  }
-  get options() {
-    return this._def.values;
-  }
-  get enum() {
-    let Q = {};
-    for (let X of this._def.values) Q[X] = X;
-    return Q;
-  }
-  get Values() {
-    let Q = {};
-    for (let X of this._def.values) Q[X] = X;
-    return Q;
-  }
-  get Enum() {
-    let Q = {};
-    for (let X of this._def.values) Q[X] = X;
-    return Q;
-  }
-  extract(Q, X = this._def) {
-    return _d1.create(Q, { ...this._def, ...X });
-  }
-  exclude(Q, X = this._def) {
-    return _d1.create(this.options.filter((Y) => !Q.includes(Y)), { ...this._def, ...X });
-  }
-};
-d1.create = OJ;
-var G9 = class extends p {
-  _parse(Q) {
-    let X = d.getValidEnumValues(this._def.values), Y = this._getOrReturnCtx(Q);
-    if (Y.parsedType !== I.string && Y.parsedType !== I.number) {
-      let $ = d.objectValues(X);
-      return b(Y, { expected: d.joinValues($), received: Y.parsedType, code: w.invalid_type }), x;
-    }
-    if (!this._cache) this._cache = new Set(d.getValidEnumValues(this._def.values));
-    if (!this._cache.has(Q.data)) {
-      let $ = d.objectValues(X);
-      return b(Y, { received: Y.data, code: w.invalid_enum_value, options: $ }), x;
-    }
-    return P0(Q.data);
-  }
-  get enum() {
-    return this._def.values;
-  }
-};
-G9.create = (Q, X) => {
-  return new G9({ values: Q, typeName: j.ZodNativeEnum, ...m(X) });
-};
-var D6 = class extends p {
-  unwrap() {
-    return this._def.type;
-  }
-  _parse(Q) {
-    let { ctx: X } = this._processInputParams(Q);
-    if (X.parsedType !== I.promise && X.common.async === false) return b(X, { code: w.invalid_type, expected: I.promise, received: X.parsedType }), x;
-    let Y = X.parsedType === I.promise ? X.data : Promise.resolve(X.data);
-    return P0(Y.then(($) => {
-      return this._def.type.parseAsync($, { path: X.path, errorMap: X.common.contextualErrorMap });
-    }));
-  }
-};
-D6.create = (Q, X) => {
-  return new D6({ type: Q, typeName: j.ZodPromise, ...m(X) });
-};
-var W1 = class extends p {
-  innerType() {
-    return this._def.schema;
-  }
-  sourceType() {
-    return this._def.schema._def.typeName === j.ZodEffects ? this._def.schema.sourceType() : this._def.schema;
-  }
-  _parse(Q) {
-    let { status: X, ctx: Y } = this._processInputParams(Q), $ = this._def.effect || null, J = { addIssue: (W) => {
-      if (b(Y, W), W.fatal) X.abort();
-      else X.dirty();
-    }, get path() {
-      return Y.path;
-    } };
-    if (J.addIssue = J.addIssue.bind(J), $.type === "preprocess") {
-      let W = $.transform(Y.data, J);
-      if (Y.common.async) return Promise.resolve(W).then(async (G) => {
-        if (X.value === "aborted") return x;
-        let H = await this._def.schema._parseAsync({ data: G, path: Y.path, parent: Y });
-        if (H.status === "aborted") return x;
-        if (H.status === "dirty") return L6(H.value);
-        if (X.value === "dirty") return L6(H.value);
-        return H;
-      });
-      else {
-        if (X.value === "aborted") return x;
-        let G = this._def.schema._parseSync({ data: W, path: Y.path, parent: Y });
-        if (G.status === "aborted") return x;
-        if (G.status === "dirty") return L6(G.value);
-        if (X.value === "dirty") return L6(G.value);
-        return G;
-      }
-    }
-    if ($.type === "refinement") {
-      let W = (G) => {
-        let H = $.refinement(G, J);
-        if (Y.common.async) return Promise.resolve(H);
-        if (H instanceof Promise) throw Error("Async refinement encountered during synchronous parse operation. Use .parseAsync instead.");
-        return G;
-      };
-      if (Y.common.async === false) {
-        let G = this._def.schema._parseSync({ data: Y.data, path: Y.path, parent: Y });
-        if (G.status === "aborted") return x;
-        if (G.status === "dirty") X.dirty();
-        return W(G.value), { status: X.value, value: G.value };
-      } else return this._def.schema._parseAsync({ data: Y.data, path: Y.path, parent: Y }).then((G) => {
-        if (G.status === "aborted") return x;
-        if (G.status === "dirty") X.dirty();
-        return W(G.value).then(() => {
-          return { status: X.value, value: G.value };
-        });
-      });
-    }
-    if ($.type === "transform") if (Y.common.async === false) {
-      let W = this._def.schema._parseSync({ data: Y.data, path: Y.path, parent: Y });
-      if (!m1(W)) return x;
-      let G = $.transform(W.value, J);
-      if (G instanceof Promise) throw Error("Asynchronous transform encountered during synchronous parse operation. Use .parseAsync instead.");
-      return { status: X.value, value: G };
-    } else return this._def.schema._parseAsync({ data: Y.data, path: Y.path, parent: Y }).then((W) => {
-      if (!m1(W)) return x;
-      return Promise.resolve($.transform(W.value, J)).then((G) => ({ status: X.value, value: G }));
-    });
-    d.assertNever($);
-  }
-};
-W1.create = (Q, X, Y) => {
-  return new W1({ schema: Q, typeName: j.ZodEffects, effect: X, ...m(Y) });
-};
-W1.createWithPreprocess = (Q, X, Y) => {
-  return new W1({ schema: X, effect: { type: "preprocess", transform: Q }, typeName: j.ZodEffects, ...m(Y) });
-};
-var m0 = class extends p {
-  _parse(Q) {
-    if (this._getType(Q) === I.undefined) return P0(void 0);
-    return this._def.innerType._parse(Q);
-  }
-  unwrap() {
-    return this._def.innerType;
-  }
-};
-m0.create = (Q, X) => {
-  return new m0({ innerType: Q, typeName: j.ZodOptional, ...m(X) });
-};
-var S1 = class extends p {
-  _parse(Q) {
-    if (this._getType(Q) === I.null) return P0(null);
-    return this._def.innerType._parse(Q);
-  }
-  unwrap() {
-    return this._def.innerType;
-  }
-};
-S1.create = (Q, X) => {
-  return new S1({ innerType: Q, typeName: j.ZodNullable, ...m(X) });
-};
-var H9 = class extends p {
-  _parse(Q) {
-    let { ctx: X } = this._processInputParams(Q), Y = X.data;
-    if (X.parsedType === I.undefined) Y = this._def.defaultValue();
-    return this._def.innerType._parse({ data: Y, path: X.path, parent: X });
-  }
-  removeDefault() {
-    return this._def.innerType;
-  }
-};
-H9.create = (Q, X) => {
-  return new H9({ innerType: Q, typeName: j.ZodDefault, defaultValue: typeof X.default === "function" ? X.default : () => X.default, ...m(X) });
-};
-var B9 = class extends p {
-  _parse(Q) {
-    let { ctx: X } = this._processInputParams(Q), Y = { ...X, common: { ...X.common, issues: [] } }, $ = this._def.innerType._parse({ data: Y.data, path: Y.path, parent: { ...Y } });
-    if (t6($)) return $.then((J) => {
-      return { status: "valid", value: J.status === "valid" ? J.value : this._def.catchValue({ get error() {
-        return new x0(Y.common.issues);
-      }, input: Y.data }) };
-    });
-    else return { status: "valid", value: $.status === "valid" ? $.value : this._def.catchValue({ get error() {
-      return new x0(Y.common.issues);
-    }, input: Y.data }) };
-  }
-  removeCatch() {
-    return this._def.innerType;
-  }
-};
-B9.create = (Q, X) => {
-  return new B9({ innerType: Q, typeName: j.ZodCatch, catchValue: typeof X.catch === "function" ? X.catch : () => X.catch, ...m(X) });
-};
-var i9 = class extends p {
-  _parse(Q) {
-    if (this._getType(Q) !== I.nan) {
-      let Y = this._getOrReturnCtx(Q);
-      return b(Y, { code: w.invalid_type, expected: I.nan, received: Y.parsedType }), x;
-    }
-    return { status: "valid", value: Q.data };
-  }
-};
-i9.create = (Q) => {
-  return new i9({ typeName: j.ZodNaN, ...m(Q) });
-};
-var ZL = /* @__PURE__ */ Symbol("zod_brand");
-var $8 = class extends p {
-  _parse(Q) {
-    let { ctx: X } = this._processInputParams(Q), Y = X.data;
-    return this._def.type._parse({ data: Y, path: X.path, parent: X });
-  }
-  unwrap() {
-    return this._def.type;
-  }
-};
-var n9 = class _n9 extends p {
-  _parse(Q) {
-    let { status: X, ctx: Y } = this._processInputParams(Q);
-    if (Y.common.async) return (async () => {
-      let J = await this._def.in._parseAsync({ data: Y.data, path: Y.path, parent: Y });
-      if (J.status === "aborted") return x;
-      if (J.status === "dirty") return X.dirty(), L6(J.value);
-      else return this._def.out._parseAsync({ data: J.value, path: Y.path, parent: Y });
-    })();
-    else {
-      let $ = this._def.in._parseSync({ data: Y.data, path: Y.path, parent: Y });
-      if ($.status === "aborted") return x;
-      if ($.status === "dirty") return X.dirty(), { status: "dirty", value: $.value };
-      else return this._def.out._parseSync({ data: $.value, path: Y.path, parent: Y });
-    }
-  }
-  static create(Q, X) {
-    return new _n9({ in: Q, out: X, typeName: j.ZodPipeline });
-  }
-};
-var z9 = class extends p {
-  _parse(Q) {
-    let X = this._def.innerType._parse(Q), Y = ($) => {
-      if (m1($)) $.value = Object.freeze($.value);
-      return $;
-    };
-    return t6(X) ? X.then(($) => Y($)) : Y(X);
-  }
-  unwrap() {
-    return this._def.innerType;
-  }
-};
-z9.create = (Q, X) => {
-  return new z9({ innerType: Q, typeName: j.ZodReadonly, ...m(X) });
-};
-function UJ(Q, X) {
-  let Y = typeof Q === "function" ? Q(X) : typeof Q === "string" ? { message: Q } : Q;
-  return typeof Y === "string" ? { message: Y } : Y;
-}
-function DJ(Q, X = {}, Y) {
-  if (Q) return N6.create().superRefine(($, J) => {
-    let W = Q($);
-    if (W instanceof Promise) return W.then((G) => {
-      if (!G) {
-        let H = UJ(X, $), B = H.fatal ?? Y ?? true;
-        J.addIssue({ code: "custom", ...H, fatal: B });
-      }
-    });
-    if (!W) {
-      let G = UJ(X, $), H = G.fatal ?? Y ?? true;
-      J.addIssue({ code: "custom", ...G, fatal: H });
-    }
-    return;
-  });
-  return N6.create();
-}
-var CL = { object: L0.lazycreate };
-var j;
-(function(Q) {
-  Q.ZodString = "ZodString", Q.ZodNumber = "ZodNumber", Q.ZodNaN = "ZodNaN", Q.ZodBigInt = "ZodBigInt", Q.ZodBoolean = "ZodBoolean", Q.ZodDate = "ZodDate", Q.ZodSymbol = "ZodSymbol", Q.ZodUndefined = "ZodUndefined", Q.ZodNull = "ZodNull", Q.ZodAny = "ZodAny", Q.ZodUnknown = "ZodUnknown", Q.ZodNever = "ZodNever", Q.ZodVoid = "ZodVoid", Q.ZodArray = "ZodArray", Q.ZodObject = "ZodObject", Q.ZodUnion = "ZodUnion", Q.ZodDiscriminatedUnion = "ZodDiscriminatedUnion", Q.ZodIntersection = "ZodIntersection", Q.ZodTuple = "ZodTuple", Q.ZodRecord = "ZodRecord", Q.ZodMap = "ZodMap", Q.ZodSet = "ZodSet", Q.ZodFunction = "ZodFunction", Q.ZodLazy = "ZodLazy", Q.ZodLiteral = "ZodLiteral", Q.ZodEnum = "ZodEnum", Q.ZodEffects = "ZodEffects", Q.ZodNativeEnum = "ZodNativeEnum", Q.ZodOptional = "ZodOptional", Q.ZodNullable = "ZodNullable", Q.ZodDefault = "ZodDefault", Q.ZodCatch = "ZodCatch", Q.ZodPromise = "ZodPromise", Q.ZodBranded = "ZodBranded", Q.ZodPipeline = "ZodPipeline", Q.ZodReadonly = "ZodReadonly";
-})(j || (j = {}));
-var SL = (Q, X = { message: `Input not instance of ${Q.name}` }) => DJ((Y) => Y instanceof Q, X);
-var MJ = Y1.create;
-var wJ = c1.create;
-var _L = i9.create;
-var kL = p1.create;
-var AJ = e6.create;
-var vL = F6.create;
-var TL = l9.create;
-var xL = Q9.create;
-var yL = X9.create;
-var gL = N6.create;
-var hL = l1.create;
-var fL = w1.create;
-var uL = c9.create;
-var mL = $1.create;
-var YX = L0.create;
-var lL = L0.strictCreate;
-var cL = Y9.create;
-var pL = Y8.create;
-var dL = $9.create;
-var iL = A1.create;
-var nL = p9.create;
-var oL = d9.create;
-var rL = O6.create;
-var tL = s6.create;
-var aL = J9.create;
-var sL = W9.create;
-var eL = d1.create;
-var QF = G9.create;
-var XF = D6.create;
-var YF = W1.create;
-var $F = m0.create;
-var JF = S1.create;
-var WF = W1.createWithPreprocess;
-var GF = n9.create;
-var HF = () => MJ().optional();
-var BF = () => wJ().optional();
-var zF = () => AJ().optional();
-var KF = { string: (Q) => Y1.create({ ...Q, coerce: true }), number: (Q) => c1.create({ ...Q, coerce: true }), boolean: (Q) => e6.create({ ...Q, coerce: true }), bigint: (Q) => p1.create({ ...Q, coerce: true }), date: (Q) => F6.create({ ...Q, coerce: true }) };
-var VF = x;
-var qF = Object.freeze({ status: "aborted" });
-function D(Q, X, Y) {
-  function $(H, B) {
-    var z;
-    Object.defineProperty(H, "_zod", { value: H._zod ?? {}, enumerable: false }), (z = H._zod).traits ?? (z.traits = /* @__PURE__ */ new Set()), H._zod.traits.add(Q), X(H, B);
-    for (let K in G.prototype) if (!(K in H)) Object.defineProperty(H, K, { value: G.prototype[K].bind(H) });
-    H._zod.constr = G, H._zod.def = B;
-  }
-  let J = Y?.Parent ?? Object;
-  class W extends J {
-  }
-  Object.defineProperty(W, "name", { value: Q });
-  function G(H) {
-    var B;
-    let z = Y?.Parent ? new W() : this;
-    $(z, H), (B = z._zod).deferred ?? (B.deferred = []);
-    for (let K of z._zod.deferred) K();
-    return z;
-  }
-  return Object.defineProperty(G, "init", { value: $ }), Object.defineProperty(G, Symbol.hasInstance, { value: (H) => {
-    if (Y?.Parent && H instanceof Y.Parent) return true;
-    return H?._zod?.traits?.has(Q);
-  } }), Object.defineProperty(G, "name", { value: Q }), G;
-}
-var n1 = class extends Error {
-  constructor() {
-    super("Encountered Promise during synchronous parse. Use .parseAsync() instead.");
-  }
-};
-var J8 = {};
-function l0(Q) {
-  if (Q) Object.assign(J8, Q);
-  return J8;
-}
-var i = {};
-gQ(i, { unwrapMessage: () => o9, stringifyPrimitive: () => H8, required: () => SF, randomString: () => AF, propertyKeyTypes: () => BX, promiseAllObject: () => wF, primitiveTypes: () => jJ, prefixIssues: () => j1, pick: () => bF, partial: () => CF, optionalKeys: () => zX, omit: () => EF, numKeys: () => jF, nullish: () => a9, normalizeParams: () => y, merge: () => ZF, jsonStringifyReplacer: () => JX, joinValues: () => W8, issue: () => VX, isPlainObject: () => V9, isObject: () => K9, getSizableOrigin: () => IJ, getParsedType: () => RF, getLengthableOrigin: () => e9, getEnumValues: () => r9, getElementAtPath: () => MF, floatSafeRemainder: () => WX, finalizeIssue: () => G1, extend: () => PF, escapeRegex: () => o1, esc: () => M6, defineLazy: () => $0, createTransparentProxy: () => IF, clone: () => c0, cleanRegex: () => s9, cleanEnum: () => _F, captureStackTrace: () => G8, cached: () => t9, assignProp: () => GX, assertNotEqual: () => FF, assertNever: () => OF, assertIs: () => NF, assertEqual: () => LF, assert: () => DF, allowsEval: () => HX, aborted: () => w6, NUMBER_FORMAT_RANGES: () => KX, Class: () => bJ, BIGINT_FORMAT_RANGES: () => RJ });
-function LF(Q) {
-  return Q;
-}
-function FF(Q) {
-  return Q;
-}
-function NF(Q) {
-}
-function OF(Q) {
-  throw Error();
-}
-function DF(Q) {
-}
-function r9(Q) {
-  let X = Object.values(Q).filter(($) => typeof $ === "number");
-  return Object.entries(Q).filter(([$, J]) => X.indexOf(+$) === -1).map(([$, J]) => J);
-}
-function W8(Q, X = "|") {
-  return Q.map((Y) => H8(Y)).join(X);
-}
-function JX(Q, X) {
-  if (typeof X === "bigint") return X.toString();
-  return X;
-}
-function t9(Q) {
-  return { get value() {
-    {
-      let Y = Q();
-      return Object.defineProperty(this, "value", { value: Y }), Y;
-    }
-    throw Error("cached value already set");
-  } };
-}
-function a9(Q) {
-  return Q === null || Q === void 0;
-}
-function s9(Q) {
-  let X = Q.startsWith("^") ? 1 : 0, Y = Q.endsWith("$") ? Q.length - 1 : Q.length;
-  return Q.slice(X, Y);
-}
-function WX(Q, X) {
-  let Y = (Q.toString().split(".")[1] || "").length, $ = (X.toString().split(".")[1] || "").length, J = Y > $ ? Y : $, W = Number.parseInt(Q.toFixed(J).replace(".", "")), G = Number.parseInt(X.toFixed(J).replace(".", ""));
-  return W % G / 10 ** J;
-}
-function $0(Q, X, Y) {
-  Object.defineProperty(Q, X, { get() {
-    {
-      let J = Y();
-      return Q[X] = J, J;
-    }
-    throw Error("cached value already set");
-  }, set(J) {
-    Object.defineProperty(Q, X, { value: J });
-  }, configurable: true });
-}
-function GX(Q, X, Y) {
-  Object.defineProperty(Q, X, { value: Y, writable: true, enumerable: true, configurable: true });
-}
-function MF(Q, X) {
-  if (!X) return Q;
-  return X.reduce((Y, $) => Y?.[$], Q);
-}
-function wF(Q) {
-  let X = Object.keys(Q), Y = X.map(($) => Q[$]);
-  return Promise.all(Y).then(($) => {
-    let J = {};
-    for (let W = 0; W < X.length; W++) J[X[W]] = $[W];
-    return J;
-  });
-}
-function AF(Q = 10) {
-  let Y = "";
-  for (let $ = 0; $ < Q; $++) Y += "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)];
-  return Y;
-}
-function M6(Q) {
-  return JSON.stringify(Q);
-}
-var G8 = Error.captureStackTrace ? Error.captureStackTrace : (...Q) => {
-};
-function K9(Q) {
-  return typeof Q === "object" && Q !== null && !Array.isArray(Q);
-}
-var HX = t9(() => {
-  if (typeof navigator < "u" && navigator?.userAgent?.includes("Cloudflare")) return false;
-  try {
-    return new Function(""), true;
-  } catch (Q) {
-    return false;
-  }
-});
-function V9(Q) {
-  if (K9(Q) === false) return false;
-  let X = Q.constructor;
-  if (X === void 0) return true;
-  let Y = X.prototype;
-  if (K9(Y) === false) return false;
-  if (Object.prototype.hasOwnProperty.call(Y, "isPrototypeOf") === false) return false;
   return true;
 }
-function jF(Q) {
-  let X = 0;
-  for (let Y in Q) if (Object.prototype.hasOwnProperty.call(Q, Y)) X++;
-  return X;
+function hasOwn(obj, key) {
+  return Object.prototype.hasOwnProperty.call(obj, key);
 }
-var RF = (Q) => {
-  let X = typeof Q;
-  switch (X) {
-    case "undefined":
-      return "undefined";
-    case "string":
-      return "string";
-    case "number":
-      return Number.isNaN(Q) ? "nan" : "number";
-    case "boolean":
-      return "boolean";
-    case "function":
-      return "function";
-    case "bigint":
-      return "bigint";
-    case "symbol":
-      return "symbol";
-    case "object":
-      if (Array.isArray(Q)) return "array";
-      if (Q === null) return "null";
-      if (Q.then && typeof Q.then === "function" && Q.catch && typeof Q.catch === "function") return "promise";
-      if (typeof Map < "u" && Q instanceof Map) return "map";
-      if (typeof Set < "u" && Q instanceof Set) return "set";
-      if (typeof Date < "u" && Q instanceof Date) return "date";
-      if (typeof File < "u" && Q instanceof File) return "file";
-      return "object";
-    default:
-      throw Error(`Unknown data type: ${X}`);
+var startsWithSchemeRegexp, isAbsoluteURL, isArray, isReadonlyArray, validatePositiveInteger, safeJSON;
+var init_values = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/utils/values.mjs"() {
+    init_error();
+    startsWithSchemeRegexp = /^[a-z][a-z0-9+.-]*:/i;
+    isAbsoluteURL = (url) => {
+      return startsWithSchemeRegexp.test(url);
+    };
+    isArray = (val) => (isArray = Array.isArray, isArray(val));
+    isReadonlyArray = isArray;
+    validatePositiveInteger = (name, n) => {
+      if (typeof n !== "number" || !Number.isInteger(n)) {
+        throw new AnthropicError(`${name} must be an integer`);
+      }
+      if (n < 0) {
+        throw new AnthropicError(`${name} must be a positive integer`);
+      }
+      return n;
+    };
+    safeJSON = (text) => {
+      try {
+        return JSON.parse(text);
+      } catch (err) {
+        return void 0;
+      }
+    };
   }
-};
-var BX = /* @__PURE__ */ new Set(["string", "number", "symbol"]);
-var jJ = /* @__PURE__ */ new Set(["string", "number", "bigint", "boolean", "symbol", "undefined"]);
-function o1(Q) {
-  return Q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-function c0(Q, X, Y) {
-  let $ = new Q._zod.constr(X ?? Q._zod.def);
-  if (!X || Y?.parent) $._zod.parent = Q;
-  return $;
-}
-function y(Q) {
-  let X = Q;
-  if (!X) return {};
-  if (typeof X === "string") return { error: () => X };
-  if (X?.message !== void 0) {
-    if (X?.error !== void 0) throw Error("Cannot specify both `message` and `error` params");
-    X.error = X.message;
+});
+
+// node_modules/@anthropic-ai/sdk/internal/utils/sleep.mjs
+var sleep;
+var init_sleep = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/utils/sleep.mjs"() {
+    sleep = (ms, signal) => new Promise((resolve4) => {
+      if (signal?.aborted)
+        return resolve4();
+      const onAbort = () => {
+        clearTimeout(timer);
+        resolve4();
+      };
+      const timer = setTimeout(() => {
+        signal?.removeEventListener("abort", onAbort);
+        resolve4();
+      }, ms);
+      signal?.addEventListener("abort", onAbort, { once: true });
+    });
   }
-  if (delete X.message, typeof X.error === "string") return { ...X, error: () => X.error };
-  return X;
+});
+
+// node_modules/@anthropic-ai/sdk/version.mjs
+var VERSION;
+var init_version = __esm({
+  "node_modules/@anthropic-ai/sdk/version.mjs"() {
+    VERSION = "0.116.0";
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/detect-platform.mjs
+function getDetectedPlatform() {
+  if (typeof Deno !== "undefined" && Deno.build != null) {
+    return "deno";
+  }
+  if (typeof EdgeRuntime !== "undefined") {
+    return "edge";
+  }
+  if (Object.prototype.toString.call(typeof globalThis.process !== "undefined" ? globalThis.process : 0) === "[object process]") {
+    return "node";
+  }
+  return "unknown";
 }
-function IF(Q) {
-  let X;
-  return new Proxy({}, { get(Y, $, J) {
-    return X ?? (X = Q()), Reflect.get(X, $, J);
-  }, set(Y, $, J, W) {
-    return X ?? (X = Q()), Reflect.set(X, $, J, W);
-  }, has(Y, $) {
-    return X ?? (X = Q()), Reflect.has(X, $);
-  }, deleteProperty(Y, $) {
-    return X ?? (X = Q()), Reflect.deleteProperty(X, $);
-  }, ownKeys(Y) {
-    return X ?? (X = Q()), Reflect.ownKeys(X);
-  }, getOwnPropertyDescriptor(Y, $) {
-    return X ?? (X = Q()), Reflect.getOwnPropertyDescriptor(X, $);
-  }, defineProperty(Y, $, J) {
-    return X ?? (X = Q()), Reflect.defineProperty(X, $, J);
-  } });
+function getBrowserInfo() {
+  if (typeof navigator === "undefined" || !navigator) {
+    return null;
+  }
+  const browserPatterns = [
+    { key: "edge", pattern: /Edge(?:\W+(\d+)\.(\d+)(?:\.(\d+))?)?/ },
+    { key: "ie", pattern: /MSIE(?:\W+(\d+)\.(\d+)(?:\.(\d+))?)?/ },
+    { key: "ie", pattern: /Trident(?:.*rv\:(\d+)\.(\d+)(?:\.(\d+))?)?/ },
+    { key: "chrome", pattern: /Chrome(?:\W+(\d+)\.(\d+)(?:\.(\d+))?)?/ },
+    { key: "firefox", pattern: /Firefox(?:\W+(\d+)\.(\d+)(?:\.(\d+))?)?/ },
+    { key: "safari", pattern: /(?:Version\W+(\d+)\.(\d+)(?:\.(\d+))?)?(?:\W+Mobile\S*)?\W+Safari/ }
+  ];
+  for (const { key, pattern } of browserPatterns) {
+    const match = pattern.exec(navigator.userAgent);
+    if (match) {
+      const major = match[1] || 0;
+      const minor = match[2] || 0;
+      const patch = match[3] || 0;
+      return { browser: key, version: `${major}.${minor}.${patch}` };
+    }
+  }
+  return null;
 }
-function H8(Q) {
-  if (typeof Q === "bigint") return Q.toString() + "n";
-  if (typeof Q === "string") return `"${Q}"`;
-  return `${Q}`;
+var isRunningInBrowser, getPlatformProperties, normalizeArch, normalizePlatform, _platformHeaders, getPlatformHeaders;
+var init_detect_platform = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/detect-platform.mjs"() {
+    init_version();
+    isRunningInBrowser = () => {
+      return (
+        // @ts-ignore
+        typeof window !== "undefined" && // @ts-ignore
+        typeof window.document !== "undefined" && // @ts-ignore
+        typeof navigator !== "undefined"
+      );
+    };
+    getPlatformProperties = () => {
+      const detectedPlatform = getDetectedPlatform();
+      if (detectedPlatform === "deno") {
+        return {
+          "X-Stainless-Lang": "js",
+          "X-Stainless-Package-Version": VERSION,
+          "X-Stainless-OS": normalizePlatform(Deno.build.os),
+          "X-Stainless-Arch": normalizeArch(Deno.build.arch),
+          "X-Stainless-Runtime": "deno",
+          "X-Stainless-Runtime-Version": typeof Deno.version === "string" ? Deno.version : Deno.version?.deno ?? "unknown"
+        };
+      }
+      if (typeof EdgeRuntime !== "undefined") {
+        return {
+          "X-Stainless-Lang": "js",
+          "X-Stainless-Package-Version": VERSION,
+          "X-Stainless-OS": "Unknown",
+          "X-Stainless-Arch": `other:${EdgeRuntime}`,
+          "X-Stainless-Runtime": "edge",
+          "X-Stainless-Runtime-Version": globalThis.process.version
+        };
+      }
+      if (detectedPlatform === "node") {
+        return {
+          "X-Stainless-Lang": "js",
+          "X-Stainless-Package-Version": VERSION,
+          "X-Stainless-OS": normalizePlatform(globalThis.process.platform ?? "unknown"),
+          "X-Stainless-Arch": normalizeArch(globalThis.process.arch ?? "unknown"),
+          "X-Stainless-Runtime": "node",
+          "X-Stainless-Runtime-Version": globalThis.process.version ?? "unknown"
+        };
+      }
+      const browserInfo = getBrowserInfo();
+      if (browserInfo) {
+        return {
+          "X-Stainless-Lang": "js",
+          "X-Stainless-Package-Version": VERSION,
+          "X-Stainless-OS": "Unknown",
+          "X-Stainless-Arch": "unknown",
+          "X-Stainless-Runtime": `browser:${browserInfo.browser}`,
+          "X-Stainless-Runtime-Version": browserInfo.version
+        };
+      }
+      return {
+        "X-Stainless-Lang": "js",
+        "X-Stainless-Package-Version": VERSION,
+        "X-Stainless-OS": "Unknown",
+        "X-Stainless-Arch": "unknown",
+        "X-Stainless-Runtime": "unknown",
+        "X-Stainless-Runtime-Version": "unknown"
+      };
+    };
+    normalizeArch = (arch) => {
+      if (arch === "x32")
+        return "x32";
+      if (arch === "x86_64" || arch === "x64")
+        return "x64";
+      if (arch === "arm")
+        return "arm";
+      if (arch === "aarch64" || arch === "arm64")
+        return "arm64";
+      if (arch)
+        return `other:${arch}`;
+      return "unknown";
+    };
+    normalizePlatform = (platform) => {
+      platform = platform.toLowerCase();
+      if (platform.includes("ios"))
+        return "iOS";
+      if (platform === "android")
+        return "Android";
+      if (platform === "darwin")
+        return "MacOS";
+      if (platform === "win32")
+        return "Windows";
+      if (platform === "freebsd")
+        return "FreeBSD";
+      if (platform === "openbsd")
+        return "OpenBSD";
+      if (platform === "linux")
+        return "Linux";
+      if (platform)
+        return `Other:${platform}`;
+      return "Unknown";
+    };
+    getPlatformHeaders = () => {
+      return _platformHeaders ?? (_platformHeaders = getPlatformProperties());
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/request-signal.mjs
+function makeCleanup(signal, listener) {
+  return () => signal.removeEventListener("abort", listener);
 }
-function zX(Q) {
-  return Object.keys(Q).filter((X) => {
-    return Q[X]._zod.optin === "optional" && Q[X]._zod.optout === "optional";
+function registerRequestSignalCleanup(controller, signal, listener) {
+  cleanups.set(controller, makeCleanup(signal, listener));
+}
+function armAbandonmentBackstop(body, controller) {
+  if (cleanups.has(controller))
+    registry?.register(body, controller, controller);
+}
+function releaseRequestSignal(controller) {
+  const cleanup = cleanups.get(controller);
+  if (cleanup) {
+    cleanups.delete(controller);
+    registry?.unregister(controller);
+    cleanup();
+  }
+}
+var cleanups, registry;
+var init_request_signal = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/request-signal.mjs"() {
+    cleanups = /* @__PURE__ */ new WeakMap();
+    registry = typeof globalThis.FinalizationRegistry === "function" ? new globalThis.FinalizationRegistry((controller) => releaseRequestSignal(controller)) : null;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/shims.mjs
+function getDefaultFetch() {
+  if (typeof fetch !== "undefined") {
+    return fetch;
+  }
+  throw new Error("`fetch` is not defined as a global; Either pass `fetch` to the client, `new Anthropic({ fetch })` or polyfill the global, `globalThis.fetch = fetch`");
+}
+function makeReadableStream(...args) {
+  const ReadableStream2 = globalThis.ReadableStream;
+  if (typeof ReadableStream2 === "undefined") {
+    throw new Error("`ReadableStream` is not defined as a global; You will need to polyfill it, `globalThis.ReadableStream = ReadableStream`");
+  }
+  return new ReadableStream2(...args);
+}
+function ReadableStreamFrom(iterable) {
+  let iter = Symbol.asyncIterator in iterable ? iterable[Symbol.asyncIterator]() : iterable[Symbol.iterator]();
+  return makeReadableStream({
+    start() {
+    },
+    async pull(controller) {
+      const { done, value } = await iter.next();
+      if (done) {
+        controller.close();
+      } else {
+        controller.enqueue(value);
+      }
+    },
+    async cancel() {
+      await iter.return?.();
+    }
   });
 }
-var KX = { safeint: [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER], int32: [-2147483648, 2147483647], uint32: [0, 4294967295], float32: [-34028234663852886e22, 34028234663852886e22], float64: [-Number.MAX_VALUE, Number.MAX_VALUE] };
-var RJ = { int64: [BigInt("-9223372036854775808"), BigInt("9223372036854775807")], uint64: [BigInt(0), BigInt("18446744073709551615")] };
-function bF(Q, X) {
-  let Y = {}, $ = Q._zod.def;
-  for (let J in X) {
-    if (!(J in $.shape)) throw Error(`Unrecognized key: "${J}"`);
-    if (!X[J]) continue;
-    Y[J] = $.shape[J];
+function ReadableStreamToAsyncIterable(stream) {
+  if (stream[Symbol.asyncIterator])
+    return stream;
+  const reader = stream.getReader();
+  return {
+    async next() {
+      try {
+        const result = await reader.read();
+        if (result?.done)
+          reader.releaseLock();
+        return result;
+      } catch (e) {
+        reader.releaseLock();
+        throw e;
+      }
+    },
+    async return() {
+      const cancelPromise = reader.cancel();
+      reader.releaseLock();
+      await cancelPromise;
+      return { done: true, value: void 0 };
+    },
+    [Symbol.asyncIterator]() {
+      return this;
+    }
+  };
+}
+async function CancelReadableStream(stream) {
+  if (stream === null || typeof stream !== "object")
+    return;
+  if (stream[Symbol.asyncIterator]) {
+    await stream[Symbol.asyncIterator]().return?.();
+    return;
   }
-  return c0(Q, { ...Q._zod.def, shape: Y, checks: [] });
+  const reader = stream.getReader();
+  const cancelPromise = reader.cancel();
+  reader.releaseLock();
+  await cancelPromise;
 }
-function EF(Q, X) {
-  let Y = { ...Q._zod.def.shape }, $ = Q._zod.def;
-  for (let J in X) {
-    if (!(J in $.shape)) throw Error(`Unrecognized key: "${J}"`);
-    if (!X[J]) continue;
-    delete Y[J];
+var init_shims = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/shims.mjs"() {
   }
-  return c0(Q, { ...Q._zod.def, shape: Y, checks: [] });
-}
-function PF(Q, X) {
-  if (!V9(X)) throw Error("Invalid input to extend: expected a plain object");
-  let Y = { ...Q._zod.def, get shape() {
-    let $ = { ...Q._zod.def.shape, ...X };
-    return GX(this, "shape", $), $;
-  }, checks: [] };
-  return c0(Q, Y);
-}
-function ZF(Q, X) {
-  return c0(Q, { ...Q._zod.def, get shape() {
-    let Y = { ...Q._zod.def.shape, ...X._zod.def.shape };
-    return GX(this, "shape", Y), Y;
-  }, catchall: X._zod.def.catchall, checks: [] });
-}
-function CF(Q, X, Y) {
-  let $ = X._zod.def.shape, J = { ...$ };
-  if (Y) for (let W in Y) {
-    if (!(W in $)) throw Error(`Unrecognized key: "${W}"`);
-    if (!Y[W]) continue;
-    J[W] = Q ? new Q({ type: "optional", innerType: $[W] }) : $[W];
+});
+
+// node_modules/@anthropic-ai/sdk/internal/request-options.mjs
+var FallbackEncoder;
+var init_request_options = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/request-options.mjs"() {
+    FallbackEncoder = ({ headers, body }) => {
+      return {
+        bodyHeaders: {
+          "content-type": "application/json"
+        },
+        body: JSON.stringify(body)
+      };
+    };
   }
-  else for (let W in $) J[W] = Q ? new Q({ type: "optional", innerType: $[W] }) : $[W];
-  return c0(X, { ...X._zod.def, shape: J, checks: [] });
-}
-function SF(Q, X, Y) {
-  let $ = X._zod.def.shape, J = { ...$ };
-  if (Y) for (let W in Y) {
-    if (!(W in J)) throw Error(`Unrecognized key: "${W}"`);
-    if (!Y[W]) continue;
-    J[W] = new Q({ type: "nonoptional", innerType: $[W] });
+});
+
+// node_modules/@anthropic-ai/sdk/internal/qs/formats.mjs
+var default_format, default_formatter, formatters, RFC1738;
+var init_formats = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/qs/formats.mjs"() {
+    default_format = "RFC3986";
+    default_formatter = (v) => String(v);
+    formatters = {
+      RFC1738: (v) => String(v).replace(/%20/g, "+"),
+      RFC3986: default_formatter
+    };
+    RFC1738 = "RFC1738";
   }
-  else for (let W in $) J[W] = new Q({ type: "nonoptional", innerType: $[W] });
-  return c0(X, { ...X._zod.def, shape: J, checks: [] });
+});
+
+// node_modules/@anthropic-ai/sdk/internal/qs/utils.mjs
+function is_buffer(obj) {
+  if (!obj || typeof obj !== "object") {
+    return false;
+  }
+  return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
 }
-function w6(Q, X = 0) {
-  for (let Y = X; Y < Q.issues.length; Y++) if (Q.issues[Y]?.continue !== true) return true;
+function maybe_map(val, fn) {
+  if (isArray(val)) {
+    const mapped = [];
+    for (let i = 0; i < val.length; i += 1) {
+      mapped.push(fn(val[i]));
+    }
+    return mapped;
+  }
+  return fn(val);
+}
+var has, hex_table, limit, encode;
+var init_utils = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/qs/utils.mjs"() {
+    init_formats();
+    init_values();
+    has = (obj, key) => (has = Object.hasOwn ?? Function.prototype.call.bind(Object.prototype.hasOwnProperty), has(obj, key));
+    hex_table = /* @__PURE__ */ (() => {
+      const array = [];
+      for (let i = 0; i < 256; ++i) {
+        array.push("%" + ((i < 16 ? "0" : "") + i.toString(16)).toUpperCase());
+      }
+      return array;
+    })();
+    limit = 1024;
+    encode = (str, _defaultEncoder, charset, _kind, format) => {
+      if (str.length === 0) {
+        return str;
+      }
+      let string = str;
+      if (typeof str === "symbol") {
+        string = Symbol.prototype.toString.call(str);
+      } else if (typeof str !== "string") {
+        string = String(str);
+      }
+      if (charset === "iso-8859-1") {
+        return escape(string).replace(/%u[0-9a-f]{4}/gi, function($0) {
+          return "%26%23" + parseInt($0.slice(2), 16) + "%3B";
+        });
+      }
+      let out = "";
+      for (let j = 0; j < string.length; j += limit) {
+        const segment = string.length >= limit ? string.slice(j, j + limit) : string;
+        const arr = [];
+        for (let i = 0; i < segment.length; ++i) {
+          let c = segment.charCodeAt(i);
+          if (c === 45 || // -
+          c === 46 || // .
+          c === 95 || // _
+          c === 126 || // ~
+          c >= 48 && c <= 57 || // 0-9
+          c >= 65 && c <= 90 || // a-z
+          c >= 97 && c <= 122 || // A-Z
+          format === RFC1738 && (c === 40 || c === 41)) {
+            arr[arr.length] = segment.charAt(i);
+            continue;
+          }
+          if (c < 128) {
+            arr[arr.length] = hex_table[c];
+            continue;
+          }
+          if (c < 2048) {
+            arr[arr.length] = hex_table[192 | c >> 6] + hex_table[128 | c & 63];
+            continue;
+          }
+          if (c < 55296 || c >= 57344) {
+            arr[arr.length] = hex_table[224 | c >> 12] + hex_table[128 | c >> 6 & 63] + hex_table[128 | c & 63];
+            continue;
+          }
+          i += 1;
+          c = 65536 + ((c & 1023) << 10 | segment.charCodeAt(i) & 1023);
+          arr[arr.length] = hex_table[240 | c >> 18] + hex_table[128 | c >> 12 & 63] + hex_table[128 | c >> 6 & 63] + hex_table[128 | c & 63];
+        }
+        out += arr.join("");
+      }
+      return out;
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/qs/stringify.mjs
+function is_non_nullish_primitive(v) {
+  return typeof v === "string" || typeof v === "number" || typeof v === "boolean" || typeof v === "symbol" || typeof v === "bigint";
+}
+function inner_stringify(object, prefix, generateArrayPrefix, commaRoundTrip, allowEmptyArrays, strictNullHandling, skipNulls, encodeDotInKeys, encoder2, filter, sort, allowDots, serializeDate, format, formatter, encodeValuesOnly, charset, sideChannel) {
+  let obj = object;
+  let tmp_sc = sideChannel;
+  let step = 0;
+  let find_flag = false;
+  while ((tmp_sc = tmp_sc.get(sentinel)) !== void 0 && !find_flag) {
+    const pos = tmp_sc.get(object);
+    step += 1;
+    if (typeof pos !== "undefined") {
+      if (pos === step) {
+        throw new RangeError("Cyclic object value");
+      } else {
+        find_flag = true;
+      }
+    }
+    if (typeof tmp_sc.get(sentinel) === "undefined") {
+      step = 0;
+    }
+  }
+  if (typeof filter === "function") {
+    obj = filter(prefix, obj);
+  } else if (obj instanceof Date) {
+    obj = serializeDate?.(obj);
+  } else if (generateArrayPrefix === "comma" && isArray(obj)) {
+    obj = maybe_map(obj, function(value) {
+      if (value instanceof Date) {
+        return serializeDate?.(value);
+      }
+      return value;
+    });
+  }
+  if (obj === null) {
+    if (strictNullHandling) {
+      return encoder2 && !encodeValuesOnly ? (
+        // @ts-expect-error
+        encoder2(prefix, defaults.encoder, charset, "key", format)
+      ) : prefix;
+    }
+    obj = "";
+  }
+  if (is_non_nullish_primitive(obj) || is_buffer(obj)) {
+    if (encoder2) {
+      const key_value = encodeValuesOnly ? prefix : encoder2(prefix, defaults.encoder, charset, "key", format);
+      return [
+        formatter?.(key_value) + "=" + // @ts-expect-error
+        formatter?.(encoder2(obj, defaults.encoder, charset, "value", format))
+      ];
+    }
+    return [formatter?.(prefix) + "=" + formatter?.(String(obj))];
+  }
+  const values = [];
+  if (typeof obj === "undefined") {
+    return values;
+  }
+  let obj_keys;
+  if (generateArrayPrefix === "comma" && isArray(obj)) {
+    if (encodeValuesOnly && encoder2) {
+      obj = maybe_map(obj, encoder2);
+    }
+    obj_keys = [{ value: obj.length > 0 ? obj.join(",") || null : void 0 }];
+  } else if (isArray(filter)) {
+    obj_keys = filter;
+  } else {
+    const keys = Object.keys(obj);
+    obj_keys = sort ? keys.sort(sort) : keys;
+  }
+  const encoded_prefix = encodeDotInKeys ? String(prefix).replace(/\./g, "%2E") : String(prefix);
+  const adjusted_prefix = commaRoundTrip && isArray(obj) && obj.length === 1 ? encoded_prefix + "[]" : encoded_prefix;
+  if (allowEmptyArrays && isArray(obj) && obj.length === 0) {
+    return adjusted_prefix + "[]";
+  }
+  for (let j = 0; j < obj_keys.length; ++j) {
+    const key = obj_keys[j];
+    const value = (
+      // @ts-ignore
+      typeof key === "object" && typeof key.value !== "undefined" ? key.value : obj[key]
+    );
+    if (skipNulls && value === null) {
+      continue;
+    }
+    const encoded_key = allowDots && encodeDotInKeys ? key.replace(/\./g, "%2E") : key;
+    const key_prefix = isArray(obj) ? typeof generateArrayPrefix === "function" ? generateArrayPrefix(adjusted_prefix, encoded_key) : adjusted_prefix : adjusted_prefix + (allowDots ? "." + encoded_key : "[" + encoded_key + "]");
+    sideChannel.set(object, step);
+    const valueSideChannel = /* @__PURE__ */ new WeakMap();
+    valueSideChannel.set(sentinel, sideChannel);
+    push_to_array(values, inner_stringify(
+      value,
+      key_prefix,
+      generateArrayPrefix,
+      commaRoundTrip,
+      allowEmptyArrays,
+      strictNullHandling,
+      skipNulls,
+      encodeDotInKeys,
+      // @ts-ignore
+      generateArrayPrefix === "comma" && encodeValuesOnly && isArray(obj) ? null : encoder2,
+      filter,
+      sort,
+      allowDots,
+      serializeDate,
+      format,
+      formatter,
+      encodeValuesOnly,
+      charset,
+      valueSideChannel
+    ));
+  }
+  return values;
+}
+function normalize_stringify_options(opts = defaults) {
+  if (typeof opts.allowEmptyArrays !== "undefined" && typeof opts.allowEmptyArrays !== "boolean") {
+    throw new TypeError("`allowEmptyArrays` option can only be `true` or `false`, when provided");
+  }
+  if (typeof opts.encodeDotInKeys !== "undefined" && typeof opts.encodeDotInKeys !== "boolean") {
+    throw new TypeError("`encodeDotInKeys` option can only be `true` or `false`, when provided");
+  }
+  if (opts.encoder !== null && typeof opts.encoder !== "undefined" && typeof opts.encoder !== "function") {
+    throw new TypeError("Encoder has to be a function.");
+  }
+  const charset = opts.charset || defaults.charset;
+  if (typeof opts.charset !== "undefined" && opts.charset !== "utf-8" && opts.charset !== "iso-8859-1") {
+    throw new TypeError("The charset option must be either utf-8, iso-8859-1, or undefined");
+  }
+  let format = default_format;
+  if (typeof opts.format !== "undefined") {
+    if (!has(formatters, opts.format)) {
+      throw new TypeError("Unknown format option provided.");
+    }
+    format = opts.format;
+  }
+  const formatter = formatters[format];
+  let filter = defaults.filter;
+  if (typeof opts.filter === "function" || isArray(opts.filter)) {
+    filter = opts.filter;
+  }
+  let arrayFormat;
+  if (opts.arrayFormat && opts.arrayFormat in array_prefix_generators) {
+    arrayFormat = opts.arrayFormat;
+  } else if ("indices" in opts) {
+    arrayFormat = opts.indices ? "indices" : "repeat";
+  } else {
+    arrayFormat = defaults.arrayFormat;
+  }
+  if ("commaRoundTrip" in opts && typeof opts.commaRoundTrip !== "boolean") {
+    throw new TypeError("`commaRoundTrip` must be a boolean, or absent");
+  }
+  const allowDots = typeof opts.allowDots === "undefined" ? !!opts.encodeDotInKeys === true ? true : defaults.allowDots : !!opts.allowDots;
+  return {
+    addQueryPrefix: typeof opts.addQueryPrefix === "boolean" ? opts.addQueryPrefix : defaults.addQueryPrefix,
+    // @ts-ignore
+    allowDots,
+    allowEmptyArrays: typeof opts.allowEmptyArrays === "boolean" ? !!opts.allowEmptyArrays : defaults.allowEmptyArrays,
+    arrayFormat,
+    charset,
+    charsetSentinel: typeof opts.charsetSentinel === "boolean" ? opts.charsetSentinel : defaults.charsetSentinel,
+    commaRoundTrip: !!opts.commaRoundTrip,
+    delimiter: typeof opts.delimiter === "undefined" ? defaults.delimiter : opts.delimiter,
+    encode: typeof opts.encode === "boolean" ? opts.encode : defaults.encode,
+    encodeDotInKeys: typeof opts.encodeDotInKeys === "boolean" ? opts.encodeDotInKeys : defaults.encodeDotInKeys,
+    encoder: typeof opts.encoder === "function" ? opts.encoder : defaults.encoder,
+    encodeValuesOnly: typeof opts.encodeValuesOnly === "boolean" ? opts.encodeValuesOnly : defaults.encodeValuesOnly,
+    filter,
+    format,
+    formatter,
+    serializeDate: typeof opts.serializeDate === "function" ? opts.serializeDate : defaults.serializeDate,
+    skipNulls: typeof opts.skipNulls === "boolean" ? opts.skipNulls : defaults.skipNulls,
+    // @ts-ignore
+    sort: typeof opts.sort === "function" ? opts.sort : null,
+    strictNullHandling: typeof opts.strictNullHandling === "boolean" ? opts.strictNullHandling : defaults.strictNullHandling
+  };
+}
+function stringify(object, opts = {}) {
+  let obj = object;
+  const options = normalize_stringify_options(opts);
+  let obj_keys;
+  let filter;
+  if (typeof options.filter === "function") {
+    filter = options.filter;
+    obj = filter("", obj);
+  } else if (isArray(options.filter)) {
+    filter = options.filter;
+    obj_keys = filter;
+  }
+  const keys = [];
+  if (typeof obj !== "object" || obj === null) {
+    return "";
+  }
+  const generateArrayPrefix = array_prefix_generators[options.arrayFormat];
+  const commaRoundTrip = generateArrayPrefix === "comma" && options.commaRoundTrip;
+  if (!obj_keys) {
+    obj_keys = Object.keys(obj);
+  }
+  if (options.sort) {
+    obj_keys.sort(options.sort);
+  }
+  const sideChannel = /* @__PURE__ */ new WeakMap();
+  for (let i = 0; i < obj_keys.length; ++i) {
+    const key = obj_keys[i];
+    if (options.skipNulls && obj[key] === null) {
+      continue;
+    }
+    push_to_array(keys, inner_stringify(
+      obj[key],
+      key,
+      // @ts-expect-error
+      generateArrayPrefix,
+      commaRoundTrip,
+      options.allowEmptyArrays,
+      options.strictNullHandling,
+      options.skipNulls,
+      options.encodeDotInKeys,
+      options.encode ? options.encoder : null,
+      options.filter,
+      options.sort,
+      options.allowDots,
+      options.serializeDate,
+      options.format,
+      options.formatter,
+      options.encodeValuesOnly,
+      options.charset,
+      sideChannel
+    ));
+  }
+  const joined = keys.join(options.delimiter);
+  let prefix = options.addQueryPrefix === true ? "?" : "";
+  if (options.charsetSentinel) {
+    if (options.charset === "iso-8859-1") {
+      prefix += "utf8=%26%2310003%3B&";
+    } else {
+      prefix += "utf8=%E2%9C%93&";
+    }
+  }
+  return joined.length > 0 ? prefix + joined : "";
+}
+var array_prefix_generators, push_to_array, toISOString, defaults, sentinel;
+var init_stringify = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/qs/stringify.mjs"() {
+    init_utils();
+    init_formats();
+    init_values();
+    array_prefix_generators = {
+      brackets(prefix) {
+        return String(prefix) + "[]";
+      },
+      comma: "comma",
+      indices(prefix, key) {
+        return String(prefix) + "[" + key + "]";
+      },
+      repeat(prefix) {
+        return String(prefix);
+      }
+    };
+    push_to_array = function(arr, value_or_array) {
+      Array.prototype.push.apply(arr, isArray(value_or_array) ? value_or_array : [value_or_array]);
+    };
+    defaults = {
+      addQueryPrefix: false,
+      allowDots: false,
+      allowEmptyArrays: false,
+      arrayFormat: "indices",
+      charset: "utf-8",
+      charsetSentinel: false,
+      delimiter: "&",
+      encode: true,
+      encodeDotInKeys: false,
+      encoder: encode,
+      encodeValuesOnly: false,
+      format: default_format,
+      formatter: default_formatter,
+      /** @deprecated */
+      indices: false,
+      serializeDate(date) {
+        return (toISOString ?? (toISOString = Function.prototype.call.bind(Date.prototype.toISOString)))(date);
+      },
+      skipNulls: false,
+      strictNullHandling: false
+    };
+    sentinel = {};
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/utils/query.mjs
+function stringifyQuery(query) {
+  return stringify(query, { arrayFormat: "brackets" });
+}
+var init_query = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/utils/query.mjs"() {
+    init_stringify();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/credentials/types.mjs
+function requireSecureTokenEndpoint(baseURL) {
+  if (!baseURL)
+    return;
+  let u;
+  try {
+    u = new URL(baseURL);
+  } catch (err) {
+    throw new WorkloadIdentityError(`Invalid token endpoint base URL "${baseURL}": ${err}`);
+  }
+  if (u.protocol === "https:")
+    return;
+  const host = u.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  if (u.protocol === "http:" && (host === "localhost" || host === "127.0.0.1" || host === "::1")) {
+    return;
+  }
+  throw new WorkloadIdentityError(`Refusing to send credential over non-https token endpoint "${baseURL}"`);
+}
+async function parseTokenResponse(resp, requestId) {
+  const text = await readLimitedText(resp);
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new WorkloadIdentityError(`Token endpoint returned non-JSON response (status ${resp.status})`, resp.status, redactSensitive(text), requestId);
+  }
+  if (!data.access_token) {
+    throw new WorkloadIdentityError(`Token endpoint response missing access_token: ${JSON.stringify(redactSensitive(data))}`, resp.status, redactSensitive(data), requestId);
+  }
+  if (data.token_type && data.token_type.toLowerCase() !== "bearer") {
+    throw new WorkloadIdentityError(`Token endpoint response: unsupported token_type "${data.token_type}" (want Bearer)`, resp.status, redactSensitive(data), requestId);
+  }
+  return data;
+}
+function redactSensitive(body) {
+  if (body == null)
+    return body;
+  if (typeof body === "string") {
+    let parsed;
+    try {
+      parsed = JSON.parse(body);
+    } catch {
+      if (body.length <= MAX_ERROR_BODY_CHARS)
+        return body;
+      return body.slice(0, MAX_ERROR_BODY_CHARS) + `... <${body.length - MAX_ERROR_BODY_CHARS} more chars>`;
+    }
+    return JSON.stringify(redactSensitive(parsed));
+  }
+  if (typeof body === "object" && !Array.isArray(body)) {
+    const out = {};
+    for (const [k, v] of Object.entries(body)) {
+      if (SAFE_ERROR_KEYS.has(k))
+        out[k] = v;
+    }
+    return out;
+  }
+  return null;
+}
+async function checkCredentialsFileSafety(path6, onWarn = (m) => console.warn(`anthropic-sdk: ${m}`)) {
+  if (typeof process === "undefined" || process.platform === "win32")
+    return;
+  const fs5 = await import("node:fs");
+  let resolved = path6;
+  let st;
+  try {
+    resolved = await fs5.promises.realpath(path6);
+    st = await fs5.promises.stat(resolved);
+  } catch {
+    return;
+  }
+  const mode = st.mode & 511;
+  if (mode & 18) {
+    throw new WorkloadIdentityError(`Credentials file at ${resolved} is group/world-writable (mode 0o${mode.toString(8)}); this allows other local users to plant tokens. Run \`chmod 600 ${resolved}\`.`);
+  }
+  if (mode & 36) {
+    throw new WorkloadIdentityError(`Credentials file at ${resolved} is group/world-readable (mode 0o${mode.toString(8)}); run \`chmod 600 ${resolved}\` before retrying.`);
+  }
+  if (typeof process.getuid === "function" && st.uid !== process.getuid()) {
+    onWarn(`credentials file at ${resolved} is owned by uid ${st.uid} (current process uid ${process.getuid()}); verify this is intentional.`);
+  }
+}
+async function writeCredentialsFileAtomic(targetPath, data) {
+  const fs5 = await import("node:fs");
+  const path6 = await import("node:path");
+  const dir = path6.dirname(targetPath);
+  await fs5.promises.mkdir(dir, { recursive: true, mode: 448 });
+  const tmpPath = `${targetPath}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
+  try {
+    const fh = await fs5.promises.open(tmpPath, "w", 384);
+    try {
+      await fh.writeFile(JSON.stringify(data, null, 2));
+      await fh.sync();
+    } finally {
+      await fh.close();
+    }
+    await fs5.promises.rename(tmpPath, targetPath);
+  } catch (err) {
+    await fs5.promises.unlink(tmpPath).catch(() => {
+    });
+    throw err;
+  }
+  try {
+    const dirFh = await fs5.promises.open(dir, "r");
+    try {
+      await dirFh.sync();
+    } finally {
+      await dirFh.close();
+    }
+  } catch {
+  }
+}
+async function readLimitedText(resp) {
+  if (!resp.body) {
+    return "";
+  }
+  const reader = resp.body.getReader();
+  const chunks = [];
+  let received = 0;
+  for (; ; ) {
+    const { done, value } = await reader.read();
+    if (done)
+      break;
+    if (received + value.length > MAX_TOKEN_RESPONSE_BYTES) {
+      const remaining = MAX_TOKEN_RESPONSE_BYTES - received;
+      if (remaining > 0)
+        chunks.push(value.subarray(0, remaining));
+      await reader.cancel();
+      break;
+    }
+    chunks.push(value);
+    received += value.length;
+  }
+  let merged;
+  if (chunks.length === 1) {
+    merged = chunks[0];
+  } else {
+    merged = new Uint8Array(chunks.reduce((n, c) => n + c.length, 0));
+    let offset = 0;
+    for (const c of chunks) {
+      merged.set(c, offset);
+      offset += c.length;
+    }
+  }
+  return new TextDecoder("utf-8").decode(merged);
+}
+var GRANT_TYPE_JWT_BEARER, GRANT_TYPE_REFRESH_TOKEN, TOKEN_ENDPOINT, OAUTH_API_BETA_HEADER, FEDERATION_BETA_HEADER, ADVISORY_REFRESH_THRESHOLD_IN_SECONDS, MANDATORY_REFRESH_THRESHOLD_IN_SECONDS, ADVISORY_REFRESH_BACKOFF_IN_SECONDS, MAX_TOKEN_RESPONSE_BYTES, MAX_ERROR_BODY_CHARS, SAFE_ERROR_KEYS, WorkloadIdentityError;
+var init_types = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/credentials/types.mjs"() {
+    init_error();
+    GRANT_TYPE_JWT_BEARER = "urn:ietf:params:oauth:grant-type:jwt-bearer";
+    GRANT_TYPE_REFRESH_TOKEN = "refresh_token";
+    TOKEN_ENDPOINT = "/v1/oauth/token";
+    OAUTH_API_BETA_HEADER = "oauth-2025-04-20";
+    FEDERATION_BETA_HEADER = "oidc-federation-2026-04-01";
+    ADVISORY_REFRESH_THRESHOLD_IN_SECONDS = 120;
+    MANDATORY_REFRESH_THRESHOLD_IN_SECONDS = 30;
+    ADVISORY_REFRESH_BACKOFF_IN_SECONDS = 5;
+    MAX_TOKEN_RESPONSE_BYTES = 1 << 20;
+    MAX_ERROR_BODY_CHARS = 2e3;
+    SAFE_ERROR_KEYS = /* @__PURE__ */ new Set(["error", "error_description", "error_uri"]);
+    WorkloadIdentityError = class extends AnthropicError {
+      constructor(message, statusCode = null, body = null, requestId = null) {
+        super(message);
+        this.statusCode = statusCode;
+        this.body = body;
+        this.requestId = requestId;
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/utils/time.mjs
+function nowAsSeconds() {
+  return Math.floor(Date.now() / 1e3);
+}
+var init_time = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/utils/time.mjs"() {
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/credentials/token-cache.mjs
+var TokenCache;
+var init_token_cache = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/credentials/token-cache.mjs"() {
+    init_types();
+    init_time();
+    TokenCache = class {
+      constructor(provider2, onAdvisoryRefreshError) {
+        this.cached = null;
+        this.pendingRefresh = null;
+        this.nextForce = false;
+        this.lastAdvisoryError = 0;
+        this.provider = provider2;
+        this.onAdvisoryRefreshError = onAdvisoryRefreshError;
+      }
+      async getToken() {
+        const force = this.nextForce;
+        this.nextForce = false;
+        const cached = this.cached;
+        if (force || cached == null) {
+          const token3 = await this.refresh(force);
+          return token3.token;
+        }
+        if (cached.expiresAt == null) {
+          return cached.token;
+        }
+        const remaining = cached.expiresAt - nowAsSeconds();
+        if (remaining > ADVISORY_REFRESH_THRESHOLD_IN_SECONDS) {
+          return cached.token;
+        }
+        if (remaining > MANDATORY_REFRESH_THRESHOLD_IN_SECONDS) {
+          this.backgroundRefresh();
+          return cached.token;
+        }
+        const token2 = await this.refresh();
+        return token2.token;
+      }
+      /**
+       * Clears the cached token and marks the next {@link getToken} as a forced
+       * refresh, so the underlying provider bypasses any on-disk freshness check.
+       * Called after a 401 — the server has just told us the token is bad even
+       * if its `expires_at` still looks fresh.
+       */
+      invalidate() {
+        this.cached = null;
+        this.nextForce = true;
+      }
+      /**
+       * Mandatory refresh. Joins any in-flight refresh unless forced — a forced
+       * refresh must not coalesce into a non-forced one that may re-serve the
+       * same stale disk token.
+       */
+      refresh(force = false) {
+        if (this.pendingRefresh && !force) {
+          return this.pendingRefresh;
+        }
+        return this.doRefresh(force);
+      }
+      /**
+       * Advisory background refresh. Shares the same in-flight promise as
+       * mandatory refreshes for deduplication, but swallows errors so the
+       * stale cached token keeps being served. Backs off for
+       * {@link ADVISORY_REFRESH_BACKOFF_IN_SECONDS} after a failure so an
+       * outage during the advisory window doesn't hammer the token endpoint.
+       */
+      backgroundRefresh() {
+        if (this.pendingRefresh) {
+          return;
+        }
+        if (nowAsSeconds() - this.lastAdvisoryError < ADVISORY_REFRESH_BACKOFF_IN_SECONDS) {
+          return;
+        }
+        this.doRefresh().catch((err) => {
+          this.lastAdvisoryError = nowAsSeconds();
+          this.onAdvisoryRefreshError?.(err);
+        });
+      }
+      /**
+       * Core refresh. Sets {@link pendingRefresh} so concurrent callers
+       * (both advisory and mandatory) coalesce into a single provider call.
+       */
+      doRefresh(force = false) {
+        this.pendingRefresh = this.provider(force ? { forceRefresh: true } : void 0).then((token2) => {
+          this.cached = token2;
+          this.pendingRefresh = null;
+          return token2;
+        }, (err) => {
+          this.pendingRefresh = null;
+          throw err;
+        });
+        return this.pendingRefresh;
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/utils/env.mjs
+var readEnv;
+var init_env = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/utils/env.mjs"() {
+    readEnv = (env) => {
+      if (typeof globalThis.process !== "undefined") {
+        return globalThis.process.env?.[env]?.trim() || void 0;
+      }
+      if (typeof globalThis.Deno !== "undefined") {
+        return globalThis.Deno.env?.get?.(env)?.trim() || void 0;
+      }
+      return void 0;
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/utils/bytes.mjs
+function concatBytes(buffers) {
+  let length = 0;
+  for (const buffer of buffers) {
+    length += buffer.length;
+  }
+  const output = new Uint8Array(length);
+  let index = 0;
+  for (const buffer of buffers) {
+    output.set(buffer, index);
+    index += buffer.length;
+  }
+  return output;
+}
+function encodeUTF8(str) {
+  let encoder2;
+  return (encodeUTF8_ ?? (encoder2 = new globalThis.TextEncoder(), encodeUTF8_ = encoder2.encode.bind(encoder2)))(str);
+}
+function decodeUTF8(bytes) {
+  let decoder;
+  return (decodeUTF8_ ?? (decoder = new globalThis.TextDecoder(), decodeUTF8_ = decoder.decode.bind(decoder)))(bytes);
+}
+var encodeUTF8_, decodeUTF8_;
+var init_bytes = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/utils/bytes.mjs"() {
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/utils/base64.mjs
+var init_base64 = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/utils/base64.mjs"() {
+    init_error();
+    init_bytes();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/utils/log.mjs
+function noop() {
+}
+function makeLogFn(fnLevel, logger, logLevel) {
+  if (!logger || levelNumbers[fnLevel] > levelNumbers[logLevel]) {
+    return noop;
+  } else {
+    return logger[fnLevel].bind(logger);
+  }
+}
+function filterLogger(logger, logLevel) {
+  const cachedLogger = cachedLoggers.get(logger);
+  if (cachedLogger && cachedLogger[0] === logLevel) {
+    return cachedLogger[1];
+  }
+  const levelLogger = {
+    error: makeLogFn("error", logger, logLevel),
+    warn: makeLogFn("warn", logger, logLevel),
+    info: makeLogFn("info", logger, logLevel),
+    debug: makeLogFn("debug", logger, logLevel)
+  };
+  cachedLoggers.set(logger, [logLevel, levelLogger]);
+  return levelLogger;
+}
+function loggerFor(client) {
+  const logger = client.logger;
+  const logLevel = client.logLevel ?? "off";
+  if (!logger) {
+    return noopLogger;
+  }
+  return filterLogger(logger, logLevel);
+}
+function defaultLogger() {
+  const envLevel = readEnv("ANTHROPIC_LOG");
+  if (!cachedDefaultLogger || envLevel !== lastEnvLevel) {
+    lastEnvLevel = envLevel;
+    cachedDefaultLogger = filterLogger(console, parseLogLevel(envLevel, "process.env['ANTHROPIC_LOG']", filterLogger(console, defaultLogLevel)) ?? defaultLogLevel);
+  }
+  return cachedDefaultLogger;
+}
+var defaultLogLevel, levelNumbers, parseLogLevel, noopLogger, cachedLoggers, lastEnvLevel, cachedDefaultLogger, formatRequestDetails;
+var init_log = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/utils/log.mjs"() {
+    init_values();
+    init_env();
+    defaultLogLevel = "warn";
+    levelNumbers = {
+      off: 0,
+      error: 200,
+      warn: 300,
+      info: 400,
+      debug: 500
+    };
+    parseLogLevel = (maybeLevel, sourceName, logger) => {
+      if (!maybeLevel) {
+        return void 0;
+      }
+      if (hasOwn(levelNumbers, maybeLevel)) {
+        return maybeLevel;
+      }
+      logger.warn(`${sourceName} was set to ${JSON.stringify(maybeLevel)}, expected one of ${JSON.stringify(Object.keys(levelNumbers))}`);
+      return void 0;
+    };
+    noopLogger = {
+      error: noop,
+      warn: noop,
+      info: noop,
+      debug: noop
+    };
+    cachedLoggers = /* @__PURE__ */ new WeakMap();
+    formatRequestDetails = (details) => {
+      if (details.options) {
+        details.options = { ...details.options };
+        delete details.options["headers"];
+      }
+      if (details.headers) {
+        details.headers = Object.fromEntries((details.headers instanceof Headers ? [...details.headers] : Object.entries(details.headers)).map(([name, value]) => [
+          name,
+          name.toLowerCase() === "authorization" || name.toLowerCase() === "api-key" || name.toLowerCase() === "x-api-key" || name.toLowerCase() === "cookie" || name.toLowerCase() === "set-cookie" ? "***" : value
+        ]));
+      }
+      if ("retryOfRequestLogID" in details) {
+        if (details.retryOfRequestLogID) {
+          details.retryOf = details.retryOfRequestLogID;
+        }
+        delete details.retryOfRequestLogID;
+      }
+      return details;
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/utils.mjs
+var init_utils2 = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/utils.mjs"() {
+    init_values();
+    init_base64();
+    init_env();
+    init_log();
+    init_uuid();
+    init_sleep();
+    init_query();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/core/credentials.mjs
+function validateProfileName(name) {
+  if (!name) {
+    throw new Error("profile name is empty");
+  }
+  if (name === "." || name === "..") {
+    throw new Error(`profile name "${name}" is not allowed`);
+  }
+  if (name.includes("/") || name.includes("\\")) {
+    throw new Error(`profile name "${name}" must not contain path separators`);
+  }
+  if (!PROFILE_NAME_PATTERN.test(name)) {
+    throw new Error(`profile name "${name}" contains disallowed characters (allowed: letters, digits, '_', '.', '-')`);
+  }
+}
+var CREDENTIALS_FILE_VERSION, PROFILE_NAME_PATTERN, loadConfigWithSource, getCredentialsPath, getRootConfigPath, supportsLocalConfigFiles, getActiveProfileName;
+var init_credentials = __esm({
+  "node_modules/@anthropic-ai/sdk/core/credentials.mjs"() {
+    init_detect_platform();
+    init_utils2();
+    CREDENTIALS_FILE_VERSION = "1.0";
+    PROFILE_NAME_PATTERN = /^[A-Za-z0-9_.-]+$/;
+    loadConfigWithSource = async (profile) => {
+      var _a2, _b;
+      const rootConfigPath = await getRootConfigPath();
+      if (rootConfigPath === null) {
+        return null;
+      }
+      const profileName = profile ?? await getActiveProfileName();
+      if (profileName === null) {
+        return null;
+      }
+      validateProfileName(profileName);
+      const fs5 = await import("node:fs");
+      const path6 = await import("node:path");
+      const configPath = path6.join(rootConfigPath, "configs", `${profileName}.json`);
+      let configRaw;
+      try {
+        configRaw = await fs5.promises.readFile(configPath, "utf-8");
+      } catch (err) {
+        if (err?.code !== "ENOENT") {
+          throw new Error(`failed to read config file ${configPath}: ${err}`);
+        }
+        configRaw = null;
+      }
+      if (configRaw === null) {
+        const organizationId = readEnv("ANTHROPIC_ORGANIZATION_ID");
+        const identityTokenFile = readEnv("ANTHROPIC_IDENTITY_TOKEN_FILE");
+        const federationRuleId = readEnv("ANTHROPIC_FEDERATION_RULE_ID");
+        if (federationRuleId && organizationId) {
+          return {
+            fromFile: false,
+            config: {
+              organization_id: organizationId,
+              // A defaulted-but-empty CI variable (`ANTHROPIC_WORKSPACE_ID=""`) is
+              // treated as unset — readEnv coerces empty to undefined, and the body
+              // builder's truthy check skips it — so `"workspace_id": ""` never goes
+              // on the wire.
+              workspace_id: readEnv("ANTHROPIC_WORKSPACE_ID"),
+              base_url: readEnv("ANTHROPIC_BASE_URL"),
+              authentication: {
+                type: "oidc_federation",
+                federation_rule_id: federationRuleId,
+                service_account_id: readEnv("ANTHROPIC_SERVICE_ACCOUNT_ID"),
+                identity_token: identityTokenFile ? { source: "file", path: identityTokenFile } : void 0,
+                scope: readEnv("ANTHROPIC_SCOPE")
+              }
+            }
+          };
+        }
+        return null;
+      }
+      let config;
+      try {
+        config = JSON.parse(configRaw);
+      } catch (err) {
+        throw new Error(`failed to parse config file ${configPath}: ${err}`);
+      }
+      if (!config.authentication) {
+        throw new Error(`config file ${configPath} is missing "authentication"`);
+      }
+      const authType = config.authentication.type;
+      if (authType !== "oidc_federation" && authType !== "user_oauth") {
+        throw new Error(`authentication.type "${authType}" is not a known authentication type`);
+      }
+      config.organization_id ?? (config.organization_id = readEnv("ANTHROPIC_ORGANIZATION_ID"));
+      config.workspace_id ?? (config.workspace_id = readEnv("ANTHROPIC_WORKSPACE_ID"));
+      config.base_url ?? (config.base_url = readEnv("ANTHROPIC_BASE_URL"));
+      (_a2 = config.authentication).scope ?? (_a2.scope = readEnv("ANTHROPIC_SCOPE"));
+      if (config.authentication.type === "oidc_federation") {
+        if (!config.authentication.identity_token) {
+          const identityTokenFile = readEnv("ANTHROPIC_IDENTITY_TOKEN_FILE");
+          if (identityTokenFile) {
+            config.authentication.identity_token = {
+              source: "file",
+              path: identityTokenFile
+            };
+          }
+        }
+        if (!config.authentication.federation_rule_id) {
+          config.authentication.federation_rule_id = readEnv("ANTHROPIC_FEDERATION_RULE_ID") ?? "";
+        }
+        (_b = config.authentication).service_account_id ?? (_b.service_account_id = readEnv("ANTHROPIC_SERVICE_ACCOUNT_ID"));
+      }
+      return { config, fromFile: true };
+    };
+    getCredentialsPath = async (config, profile) => {
+      if (config?.authentication.credentials_path) {
+        return config.authentication.credentials_path;
+      }
+      const rootConfigPath = await getRootConfigPath();
+      if (!rootConfigPath) {
+        return null;
+      }
+      const profileName = profile ?? await getActiveProfileName();
+      if (!profileName) {
+        return null;
+      }
+      validateProfileName(profileName);
+      const path6 = await import("node:path");
+      return path6.join(rootConfigPath, "credentials", `${profileName}.json`);
+    };
+    getRootConfigPath = async () => {
+      if (!supportsLocalConfigFiles()) {
+        return null;
+      }
+      const path6 = await import("node:path");
+      const configDir = readEnv("ANTHROPIC_CONFIG_DIR");
+      if (configDir) {
+        return configDir;
+      }
+      const os = getPlatformHeaders()["X-Stainless-OS"];
+      if (os === "Windows") {
+        const appData = readEnv("APPDATA");
+        if (appData) {
+          return path6.join(appData, "Anthropic");
+        }
+        const userProfile = readEnv("USERPROFILE");
+        if (userProfile) {
+          return path6.join(userProfile, "AppData", "Roaming", "Anthropic");
+        }
+        return null;
+      }
+      const xdgConfigHome = readEnv("XDG_CONFIG_HOME");
+      if (xdgConfigHome) {
+        return path6.join(xdgConfigHome, "anthropic");
+      }
+      const home = readEnv("HOME");
+      if (home) {
+        return path6.join(home, ".config", "anthropic");
+      }
+      return null;
+    };
+    supportsLocalConfigFiles = () => {
+      const runtime = getPlatformHeaders()["X-Stainless-Runtime"];
+      return runtime === "node" || runtime === "deno";
+    };
+    getActiveProfileName = async () => {
+      const rootConfigPath = await getRootConfigPath();
+      if (!rootConfigPath) {
+        return null;
+      }
+      const profileName = readEnv("ANTHROPIC_PROFILE");
+      if (profileName) {
+        return profileName;
+      }
+      const fs5 = await import("node:fs");
+      const path6 = await import("node:path");
+      const filePath = path6.join(rootConfigPath, "active_config");
+      try {
+        return (await fs5.promises.readFile(filePath, "utf-8")).trim() || "default";
+      } catch (err) {
+        if (err?.code !== "ENOENT") {
+          throw new Error(`failed to read ${filePath}: ${err}`);
+        }
+        return "default";
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/credentials/identity-token.mjs
+function identityTokenFromFile(path6) {
+  if (!path6) {
+    throw new AnthropicError("Identity token file path is empty");
+  }
+  return async () => {
+    const fs5 = await import("node:fs");
+    let content;
+    try {
+      content = await fs5.promises.readFile(path6, "utf-8");
+    } catch (err) {
+      throw new AnthropicError(`Failed to read identity token file at ${path6}: ${err}`);
+    }
+    const token2 = content.trim();
+    if (!token2) {
+      throw new AnthropicError(`Identity token file at ${path6} is empty`);
+    }
+    return token2;
+  };
+}
+function identityTokenFromValue(token2) {
+  if (!token2) {
+    throw new AnthropicError("Identity token value is empty");
+  }
+  return () => token2;
+}
+var init_identity_token = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/credentials/identity-token.mjs"() {
+    init_error();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/credentials/oidc-federation.mjs
+function oidcFederationProvider(config) {
+  return async () => {
+    requireSecureTokenEndpoint(config.baseURL);
+    const jwt = await config.identityTokenProvider();
+    if (jwt.length > 16 * 1024) {
+      throw new WorkloadIdentityError(`Identity token is ${Math.ceil(jwt.length / 1024)} KiB, exceeds the 16 KiB assertion limit`);
+    }
+    const body = {
+      grant_type: GRANT_TYPE_JWT_BEARER,
+      assertion: jwt,
+      federation_rule_id: config.federationRuleId,
+      organization_id: config.organizationId
+    };
+    if (config.serviceAccountId) {
+      body["service_account_id"] = config.serviceAccountId;
+    }
+    if (config.workspaceId) {
+      body["workspace_id"] = config.workspaceId;
+    }
+    const url = `${config.baseURL}${TOKEN_ENDPOINT}`;
+    let resp;
+    try {
+      resp = await config.fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "anthropic-beta": `${OAUTH_API_BETA_HEADER},${FEDERATION_BETA_HEADER}`,
+          "User-Agent": config.userAgent || `anthropic-sdk-typescript/${VERSION} oidcFederationProvider`
+        },
+        body: JSON.stringify(body)
+      });
+    } catch (err) {
+      throw new WorkloadIdentityError(`Failed to reach token endpoint ${url}: ${err}`);
+    }
+    const requestId = resp.headers.get("Request-Id");
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      const redacted = redactSensitive(text);
+      let hint = "";
+      if (resp.status === 401) {
+        const hintMiddle = config.workspaceId ? "" : "If your federation rule is scoped to multiple workspaces, set the ANTHROPIC_WORKSPACE_ID environment variable, the 'workspace_id' config key, or the `workspaceId` option. ";
+        hint = ` Ensure your federation rule matches your identity token. ${hintMiddle}View your authentication events in the Workload identity page of Claude Console for more details.`;
+      }
+      throw new WorkloadIdentityError(`Token exchange failed with status ${resp.status}${requestId ? ` (request-id ${requestId})` : ""}: ${redacted}${hint}`, resp.status, redacted, requestId);
+    }
+    const data = await parseTokenResponse(resp, requestId);
+    const expiresIn = Number(data.expires_in);
+    if (!Number.isFinite(expiresIn)) {
+      throw new WorkloadIdentityError(`Token endpoint response missing required fields: ${JSON.stringify(redactSensitive(data))}`, resp.status, redactSensitive(data), requestId);
+    }
+    return {
+      token: data.access_token,
+      expiresAt: nowAsSeconds() + expiresIn
+    };
+  };
+}
+var init_oidc_federation = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/credentials/oidc-federation.mjs"() {
+    init_types();
+    init_time();
+    init_version();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/credentials/user-oauth.mjs
+function userOAuthProvider(config) {
+  return async (opts) => {
+    const fs5 = await import("node:fs");
+    await checkCredentialsFileSafety(config.credentialsPath, config.onSafetyWarning);
+    let raw;
+    try {
+      raw = await fs5.promises.readFile(config.credentialsPath, "utf-8");
+    } catch (err) {
+      throw new WorkloadIdentityError(`Credentials file not found at ${config.credentialsPath}: ${err}`);
+    }
+    let creds;
+    try {
+      creds = JSON.parse(raw);
+    } catch (err) {
+      throw new WorkloadIdentityError(`Credentials file at ${config.credentialsPath} is not valid JSON: ${err}`);
+    }
+    const accessToken = creds.access_token;
+    if (!accessToken) {
+      throw new WorkloadIdentityError(`Credentials file at ${config.credentialsPath} must include 'access_token'`);
+    }
+    const expiresAt = creds.expires_at;
+    if (!opts?.forceRefresh && (expiresAt == null || nowAsSeconds() < expiresAt - MANDATORY_REFRESH_THRESHOLD_IN_SECONDS)) {
+      return { token: accessToken, expiresAt: expiresAt ?? null };
+    }
+    const refreshToken = creds.refresh_token;
+    if (!config.clientId || !refreshToken) {
+      throw new WorkloadIdentityError(`Access token at ${config.credentialsPath} has expired and no refresh is available (client_id ${config.clientId ? "set" : "empty"}, refresh_token ${refreshToken ? "set" : "empty"})`);
+    }
+    requireSecureTokenEndpoint(config.baseURL);
+    const body = {
+      grant_type: GRANT_TYPE_REFRESH_TOKEN,
+      refresh_token: refreshToken,
+      client_id: config.clientId
+    };
+    const url = `${config.baseURL}${TOKEN_ENDPOINT}`;
+    let resp;
+    try {
+      resp = await config.fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "anthropic-beta": OAUTH_API_BETA_HEADER,
+          "User-Agent": config.userAgent || `anthropic-sdk-typescript/${VERSION} userOAuthProvider`
+        },
+        body: JSON.stringify(body)
+      });
+    } catch (err) {
+      throw new WorkloadIdentityError(`User OAuth refresh failed to reach token endpoint: ${err}`);
+    }
+    const requestId = resp.headers.get("Request-Id");
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      throw new WorkloadIdentityError(`User OAuth refresh failed (HTTP ${resp.status}): ${redactSensitive(text)}`, resp.status, redactSensitive(text), requestId);
+    }
+    const data = await parseTokenResponse(resp, requestId);
+    const expiresIn = Number(data.expires_in);
+    if (!Number.isFinite(expiresIn)) {
+      throw new WorkloadIdentityError(`User OAuth refresh response missing or invalid expires_in: ${JSON.stringify(redactSensitive(data))}`, resp.status, redactSensitive(data), requestId);
+    }
+    const newExpiresAt = nowAsSeconds() + expiresIn;
+    const newRefreshToken = data.refresh_token || refreshToken;
+    await writeCredentialsFileAtomic(config.credentialsPath, {
+      ...creds,
+      version: CREDENTIALS_FILE_VERSION,
+      type: "oauth_token",
+      access_token: data.access_token,
+      expires_at: newExpiresAt,
+      refresh_token: newRefreshToken
+    });
+    return { token: data.access_token, expiresAt: newExpiresAt };
+  };
+}
+var init_user_oauth = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/credentials/user-oauth.mjs"() {
+    init_credentials();
+    init_types();
+    init_time();
+    init_version();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/credentials/credential-chain.mjs
+function resolveCredentialsFromConfig(config, options) {
+  const credentialsPath = config.authentication.credentials_path ?? null;
+  const effectiveBaseURL = (config.base_url || options.baseURL).replace(/\/+$/, "");
+  const provider2 = buildProvider(config, credentialsPath, effectiveBaseURL, options);
+  const extraHeaders = {};
+  if (config.workspace_id && config.authentication.type === "user_oauth") {
+    extraHeaders["anthropic-workspace-id"] = config.workspace_id;
+  }
+  return { provider: provider2, extraHeaders, baseURL: config.base_url || void 0 };
+}
+async function defaultCredentials(options, profile) {
+  const loaded = await loadConfigWithSource(profile);
+  if (!loaded) {
+    return null;
+  }
+  const { config, fromFile } = loaded;
+  const withPath = config.authentication.credentials_path || !fromFile ? config : {
+    ...config,
+    authentication: {
+      ...config.authentication,
+      credentials_path: await getCredentialsPath(config, profile) ?? void 0
+    }
+  };
+  return resolveCredentialsFromConfig(withPath, options);
+}
+function buildProvider(config, credentialsPath, baseURL, options) {
+  switch (config.authentication.type) {
+    case "oidc_federation": {
+      const auth = config.authentication;
+      const identityProvider = resolveIdentityTokenProvider(auth);
+      if (!identityProvider) {
+        throw new WorkloadIdentityError("oidc_federation config requires an identity token (set authentication.identity_token, ANTHROPIC_IDENTITY_TOKEN_FILE, or ANTHROPIC_IDENTITY_TOKEN)");
+      }
+      if (!auth.federation_rule_id) {
+        throw new WorkloadIdentityError("oidc_federation config requires 'federation_rule_id'. Set it in authentication.federation_rule_id in your profile, or via ANTHROPIC_FEDERATION_RULE_ID (profile takes precedence).");
+      }
+      if (!config.organization_id) {
+        throw new WorkloadIdentityError("oidc_federation config requires organization_id (set ANTHROPIC_ORGANIZATION_ID or config.organization_id)");
+      }
+      const exchange = oidcFederationProvider({
+        identityTokenProvider: identityProvider,
+        federationRuleId: auth.federation_rule_id,
+        organizationId: config.organization_id,
+        serviceAccountId: auth.service_account_id,
+        workspaceId: config.workspace_id,
+        baseURL,
+        fetch: options.fetch,
+        userAgent: options.userAgent
+      });
+      if (credentialsPath) {
+        return cachedExchangeProvider(exchange, credentialsPath, options.onCacheWriteError, options.onSafetyWarning);
+      }
+      return exchange;
+    }
+    case "user_oauth": {
+      if (!credentialsPath) {
+        throw new WorkloadIdentityError("user_oauth config requires authentication.credentials_path (or load via a profile so it defaults to <config_dir>/credentials/<profile>.json)");
+      }
+      return userOAuthProvider({
+        credentialsPath,
+        clientId: config.authentication.client_id,
+        baseURL,
+        fetch: options.fetch,
+        userAgent: options.userAgent,
+        onSafetyWarning: options.onSafetyWarning
+      });
+    }
+    default: {
+      const t = config.authentication.type;
+      throw new WorkloadIdentityError(`authentication.type "${t}" is not a known authentication type`);
+    }
+  }
+}
+function resolveIdentityTokenProvider(auth) {
+  if (auth.identity_token) {
+    const source = auth.identity_token.source;
+    if (source !== "file") {
+      throw new WorkloadIdentityError(`identity_token.source "${source}" is not supported by this SDK version (only "file")`);
+    }
+    if (!auth.identity_token.path) {
+      throw new WorkloadIdentityError(`identity_token.source "file" requires a non-empty path`);
+    }
+    return identityTokenFromFile(auth.identity_token.path);
+  }
+  const tokenFile = readEnv("ANTHROPIC_IDENTITY_TOKEN_FILE");
+  if (tokenFile) {
+    return identityTokenFromFile(tokenFile);
+  }
+  const tokenValue = readEnv("ANTHROPIC_IDENTITY_TOKEN");
+  if (tokenValue) {
+    return identityTokenFromValue(tokenValue);
+  }
+  return null;
+}
+function cachedExchangeProvider(exchange, credentialsPath, onCacheWriteError, onSafetyWarning) {
+  return async (opts) => {
+    const fs5 = await import("node:fs");
+    await checkCredentialsFileSafety(credentialsPath, onSafetyWarning);
+    let existing;
+    try {
+      const raw = await fs5.promises.readFile(credentialsPath, "utf-8");
+      existing = JSON.parse(raw);
+      const token2 = existing?.["access_token"];
+      if (token2 && !opts?.forceRefresh) {
+        const expiresAt = existing?.["expires_at"];
+        if (expiresAt == null || nowAsSeconds() < expiresAt - MANDATORY_REFRESH_THRESHOLD_IN_SECONDS) {
+          return { token: token2, expiresAt: expiresAt ?? null };
+        }
+      }
+    } catch (err) {
+      const code = err?.code;
+      if (code !== "ENOENT" && !(err instanceof SyntaxError)) {
+        onCacheWriteError?.(err);
+      }
+    }
+    const result = await exchange(opts);
+    try {
+      await writeCredentialsFileAtomic(credentialsPath, {
+        ...existing ?? {},
+        version: CREDENTIALS_FILE_VERSION,
+        type: "oauth_token",
+        access_token: result.token,
+        expires_at: result.expiresAt
+      });
+    } catch (err) {
+      onCacheWriteError?.(err);
+    }
+    return result;
+  };
+}
+var init_credential_chain = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/credentials/credential-chain.mjs"() {
+    init_env();
+    init_credentials();
+    init_types();
+    init_time();
+    init_identity_token();
+    init_oidc_federation();
+    init_user_oauth();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/decoders/line.mjs
+function findNewlineIndex(buffer, startIndex) {
+  const newline = 10;
+  const carriage = 13;
+  for (let i = startIndex ?? 0; i < buffer.length; i++) {
+    if (buffer[i] === newline) {
+      return { preceding: i, index: i + 1, carriage: false };
+    }
+    if (buffer[i] === carriage) {
+      return { preceding: i, index: i + 1, carriage: true };
+    }
+  }
+  return null;
+}
+function findDoubleNewlineIndex(buffer) {
+  const newline = 10;
+  const carriage = 13;
+  for (let i = 0; i < buffer.length - 1; i++) {
+    if (buffer[i] === newline && buffer[i + 1] === newline) {
+      return i + 2;
+    }
+    if (buffer[i] === carriage && buffer[i + 1] === carriage) {
+      return i + 2;
+    }
+    if (buffer[i] === carriage && buffer[i + 1] === newline && i + 3 < buffer.length && buffer[i + 2] === carriage && buffer[i + 3] === newline) {
+      return i + 4;
+    }
+  }
+  return -1;
+}
+var _LineDecoder_buffer, _LineDecoder_carriageReturnIndex, LineDecoder;
+var init_line = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/decoders/line.mjs"() {
+    init_tslib();
+    init_bytes();
+    LineDecoder = class {
+      constructor() {
+        _LineDecoder_buffer.set(this, void 0);
+        _LineDecoder_carriageReturnIndex.set(this, void 0);
+        __classPrivateFieldSet(this, _LineDecoder_buffer, new Uint8Array(), "f");
+        __classPrivateFieldSet(this, _LineDecoder_carriageReturnIndex, null, "f");
+      }
+      decode(chunk) {
+        if (chunk == null) {
+          return [];
+        }
+        const binaryChunk = chunk instanceof ArrayBuffer ? new Uint8Array(chunk) : typeof chunk === "string" ? encodeUTF8(chunk) : chunk;
+        __classPrivateFieldSet(this, _LineDecoder_buffer, concatBytes([__classPrivateFieldGet(this, _LineDecoder_buffer, "f"), binaryChunk]), "f");
+        const lines = [];
+        let patternIndex;
+        while ((patternIndex = findNewlineIndex(__classPrivateFieldGet(this, _LineDecoder_buffer, "f"), __classPrivateFieldGet(this, _LineDecoder_carriageReturnIndex, "f"))) != null) {
+          if (patternIndex.carriage && __classPrivateFieldGet(this, _LineDecoder_carriageReturnIndex, "f") == null) {
+            __classPrivateFieldSet(this, _LineDecoder_carriageReturnIndex, patternIndex.index, "f");
+            continue;
+          }
+          if (__classPrivateFieldGet(this, _LineDecoder_carriageReturnIndex, "f") != null && (patternIndex.index !== __classPrivateFieldGet(this, _LineDecoder_carriageReturnIndex, "f") + 1 || patternIndex.carriage)) {
+            lines.push(decodeUTF8(__classPrivateFieldGet(this, _LineDecoder_buffer, "f").subarray(0, __classPrivateFieldGet(this, _LineDecoder_carriageReturnIndex, "f") - 1)));
+            __classPrivateFieldSet(this, _LineDecoder_buffer, __classPrivateFieldGet(this, _LineDecoder_buffer, "f").subarray(__classPrivateFieldGet(this, _LineDecoder_carriageReturnIndex, "f")), "f");
+            __classPrivateFieldSet(this, _LineDecoder_carriageReturnIndex, null, "f");
+            continue;
+          }
+          const endIndex = __classPrivateFieldGet(this, _LineDecoder_carriageReturnIndex, "f") !== null ? patternIndex.preceding - 1 : patternIndex.preceding;
+          const line = decodeUTF8(__classPrivateFieldGet(this, _LineDecoder_buffer, "f").subarray(0, endIndex));
+          lines.push(line);
+          __classPrivateFieldSet(this, _LineDecoder_buffer, __classPrivateFieldGet(this, _LineDecoder_buffer, "f").subarray(patternIndex.index), "f");
+          __classPrivateFieldSet(this, _LineDecoder_carriageReturnIndex, null, "f");
+        }
+        return lines;
+      }
+      flush() {
+        if (!__classPrivateFieldGet(this, _LineDecoder_buffer, "f").length) {
+          return [];
+        }
+        return this.decode("\n");
+      }
+    };
+    _LineDecoder_buffer = /* @__PURE__ */ new WeakMap(), _LineDecoder_carriageReturnIndex = /* @__PURE__ */ new WeakMap();
+    LineDecoder.NEWLINE_CHARS = /* @__PURE__ */ new Set(["\n", "\r"]);
+    LineDecoder.NEWLINE_REGEXP = /\r\n|[\n\r]/g;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/core/streaming.mjs
+async function* _iterSSEMessages(response, controller) {
+  if (!response.body) {
+    controller.abort();
+    if (typeof globalThis.navigator !== "undefined" && globalThis.navigator.product === "ReactNative") {
+      throw new AnthropicError(`The default react-native fetch implementation does not support streaming. Please use expo/fetch: https://docs.expo.dev/versions/latest/sdk/expo/#expofetch-api`);
+    }
+    throw new AnthropicError(`Attempted to iterate over a response with no body`);
+  }
+  const sseDecoder = new SSEDecoder();
+  const lineDecoder = new LineDecoder();
+  const iter = ReadableStreamToAsyncIterable(response.body);
+  for await (const sseChunk of iterSSEChunks(iter)) {
+    for (const line of lineDecoder.decode(sseChunk)) {
+      const sse = sseDecoder.decode(line);
+      if (sse)
+        yield sse;
+    }
+  }
+  for (const line of lineDecoder.flush()) {
+    const sse = sseDecoder.decode(line);
+    if (sse)
+      yield sse;
+  }
+}
+async function* iterSSEChunks(iterator) {
+  let data = new Uint8Array();
+  for await (const chunk of iterator) {
+    if (chunk == null) {
+      continue;
+    }
+    const binaryChunk = chunk instanceof ArrayBuffer ? new Uint8Array(chunk) : typeof chunk === "string" ? encodeUTF8(chunk) : chunk;
+    let newData = new Uint8Array(data.length + binaryChunk.length);
+    newData.set(data);
+    newData.set(binaryChunk, data.length);
+    data = newData;
+    let patternIndex;
+    while ((patternIndex = findDoubleNewlineIndex(data)) !== -1) {
+      yield data.slice(0, patternIndex);
+      data = data.slice(patternIndex);
+    }
+  }
+  if (data.length > 0) {
+    yield data;
+  }
+}
+function partition(str, delimiter2) {
+  const index = str.indexOf(delimiter2);
+  if (index !== -1) {
+    return [str.substring(0, index), delimiter2, str.substring(index + delimiter2.length)];
+  }
+  return [str, "", ""];
+}
+var _Stream_client, Stream, SSEDecoder;
+var init_streaming = __esm({
+  "node_modules/@anthropic-ai/sdk/core/streaming.mjs"() {
+    init_tslib();
+    init_error();
+    init_shims();
+    init_line();
+    init_shims();
+    init_errors();
+    init_values();
+    init_bytes();
+    init_log();
+    init_error();
+    init_request_signal();
+    Stream = class _Stream {
+      constructor(iterator, controller, client) {
+        this.iterator = iterator;
+        _Stream_client.set(this, void 0);
+        this.controller = controller;
+        __classPrivateFieldSet(this, _Stream_client, client, "f");
+      }
+      /**
+       * Iterate the raw Server-Sent Events from `response` — `{event, data, raw}`
+       * objects, before any JSON parsing or event-name filtering.
+       *
+       * This reads `response.body` directly (not a clone), so the response is
+       * consumed. Use this in middleware that fully replaces the stream body; for
+       * read-only observation of parsed events, use `ctx.parse()` instead.
+       */
+      static rawEvents(response, controller = new AbortController()) {
+        return _iterSSEMessages(response, controller);
+      }
+      static fromSSEResponse(response, controller, client) {
+        let consumed = false;
+        const logger = client ? loggerFor(client) : console;
+        async function* iterator() {
+          if (consumed) {
+            throw new AnthropicError("Cannot iterate over a consumed stream, use `.tee()` to split the stream.");
+          }
+          consumed = true;
+          let done = false;
+          try {
+            for await (const sse of _iterSSEMessages(response, controller)) {
+              if (sse.event === "completion") {
+                try {
+                  yield JSON.parse(sse.data);
+                } catch (e) {
+                  logger.error(`Could not parse message into JSON:`, sse.data);
+                  logger.error(`From chunk:`, sse.raw);
+                  throw e;
+                }
+              }
+              if (sse.event === "message_start" || sse.event === "message_delta" || sse.event === "message_stop" || sse.event === "content_block_start" || sse.event === "content_block_delta" || sse.event === "content_block_stop" || sse.event === "message" || sse.event === "user.message" || sse.event === "user.interrupt" || sse.event === "user.tool_confirmation" || sse.event === "user.custom_tool_result" || sse.event === "user.tool_result" || sse.event === "agent.message" || sse.event === "agent.thinking" || sse.event === "agent.tool_use" || sse.event === "agent.tool_result" || sse.event === "agent.mcp_tool_use" || sse.event === "agent.mcp_tool_result" || sse.event === "agent.custom_tool_use" || sse.event === "agent.thread_context_compacted" || sse.event === "session.status_running" || sse.event === "session.status_idle" || sse.event === "session.status_rescheduled" || sse.event === "session.status_terminated" || sse.event === "session.error" || sse.event === "session.deleted" || sse.event === "session.updated" || sse.event === "span.model_request_start" || sse.event === "span.model_request_end" || sse.event === "span.outcome_evaluation_start" || sse.event === "span.outcome_evaluation_ongoing" || sse.event === "span.outcome_evaluation_end" || sse.event === "user.define_outcome" || sse.event === "agent.thread_message_received" || sse.event === "agent.thread_message_sent" || sse.event === "agent.session_thread_message_received" || sse.event === "agent.session_thread_message_sent" || sse.event === "session.thread_created" || sse.event === "session.thread_status_created" || sse.event === "session.thread_status_running" || sse.event === "session.thread_status_idle" || sse.event === "session.thread_status_rescheduled" || sse.event === "session.thread_status_terminated" || sse.event === "event_start" || sse.event === "event_delta" || sse.event === "system.message") {
+                try {
+                  yield JSON.parse(sse.data);
+                } catch (e) {
+                  logger.error(`Could not parse message into JSON:`, sse.data);
+                  logger.error(`From chunk:`, sse.raw);
+                  throw e;
+                }
+              }
+              if (sse.event === "ping") {
+                continue;
+              }
+              if (sse.event === "error") {
+                const body = safeJSON(sse.data) ?? sse.data;
+                const type = body?.error?.type;
+                throw new APIError(void 0, body, void 0, response.headers, type);
+              }
+            }
+            done = true;
+          } catch (e) {
+            if (isAbortError(e))
+              return;
+            throw e;
+          } finally {
+            if (!done)
+              controller.abort();
+            releaseRequestSignal(controller);
+          }
+        }
+        return new _Stream(iterator, controller, client);
+      }
+      /**
+       * Generates a Stream from a newline-separated ReadableStream
+       * where each item is a JSON value.
+       */
+      static fromReadableStream(readableStream, controller, client) {
+        let consumed = false;
+        async function* iterLines() {
+          const lineDecoder = new LineDecoder();
+          const iter = ReadableStreamToAsyncIterable(readableStream);
+          for await (const chunk of iter) {
+            for (const line of lineDecoder.decode(chunk)) {
+              yield line;
+            }
+          }
+          for (const line of lineDecoder.flush()) {
+            yield line;
+          }
+        }
+        async function* iterator() {
+          if (consumed) {
+            throw new AnthropicError("Cannot iterate over a consumed stream, use `.tee()` to split the stream.");
+          }
+          consumed = true;
+          let done = false;
+          try {
+            for await (const line of iterLines()) {
+              if (done)
+                continue;
+              if (line)
+                yield JSON.parse(line);
+            }
+            done = true;
+          } catch (e) {
+            if (isAbortError(e))
+              return;
+            throw e;
+          } finally {
+            if (!done)
+              controller.abort();
+            releaseRequestSignal(controller);
+          }
+        }
+        return new _Stream(iterator, controller, client);
+      }
+      [(_Stream_client = /* @__PURE__ */ new WeakMap(), Symbol.asyncIterator)]() {
+        return this.iterator();
+      }
+      /**
+       * Splits the stream into two streams which can be
+       * independently read from at different speeds.
+       */
+      tee() {
+        const left = [];
+        const right = [];
+        const iterator = this.iterator();
+        const teeIterator = (queue) => {
+          return {
+            next: () => {
+              if (queue.length === 0) {
+                const result = iterator.next();
+                left.push(result);
+                right.push(result);
+              }
+              return queue.shift();
+            }
+          };
+        };
+        return [
+          new _Stream(() => teeIterator(left), this.controller, __classPrivateFieldGet(this, _Stream_client, "f")),
+          new _Stream(() => teeIterator(right), this.controller, __classPrivateFieldGet(this, _Stream_client, "f"))
+        ];
+      }
+      /**
+       * Converts this stream to a newline-separated ReadableStream of
+       * JSON stringified values in the stream
+       * which can be turned back into a Stream with `Stream.fromReadableStream()`.
+       */
+      toReadableStream() {
+        const self = this;
+        let iter;
+        return makeReadableStream({
+          async start() {
+            iter = self[Symbol.asyncIterator]();
+          },
+          async pull(ctrl) {
+            try {
+              const { value, done } = await iter.next();
+              if (done)
+                return ctrl.close();
+              const bytes = encodeUTF8(JSON.stringify(value) + "\n");
+              ctrl.enqueue(bytes);
+            } catch (err) {
+              ctrl.error(err);
+            }
+          },
+          async cancel() {
+            await iter.return?.();
+          }
+        });
+      }
+    };
+    SSEDecoder = class {
+      constructor() {
+        this.event = null;
+        this.data = [];
+        this.chunks = [];
+      }
+      decode(line) {
+        if (line.endsWith("\r")) {
+          line = line.substring(0, line.length - 1);
+        }
+        if (!line) {
+          if (!this.event && !this.data.length)
+            return null;
+          const sse = {
+            event: this.event,
+            data: this.data.join("\n"),
+            raw: this.chunks
+          };
+          this.event = null;
+          this.data = [];
+          this.chunks = [];
+          return sse;
+        }
+        this.chunks.push(line);
+        if (line.startsWith(":")) {
+          return null;
+        }
+        let [fieldname, _, value] = partition(line, ":");
+        if (value.startsWith(" ")) {
+          value = value.substring(1);
+        }
+        if (fieldname === "event") {
+          this.event = value;
+        } else if (fieldname === "data") {
+          this.data.push(value);
+        }
+        return null;
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/parse.mjs
+async function defaultParseResponse(client, props) {
+  const { response, requestLogID, retryOfRequestLogID, startTime } = props;
+  const body = await (async () => {
+    if (props.options.stream) {
+      loggerFor(client).debug("response", response.status, response.url, response.headers, response.body);
+      return Stream.fromSSEResponse(response, props.controller);
+    }
+    if (response.status === 204) {
+      return null;
+    }
+    if (props.options.__binaryResponse) {
+      return response;
+    }
+    const contentType = response.headers.get("content-type");
+    const mediaType = contentType?.split(";")[0]?.trim();
+    const isJSON = mediaType?.includes("application/json") || mediaType?.endsWith("+json");
+    if (isJSON) {
+      const contentLength = response.headers.get("content-length");
+      if (contentLength === "0") {
+        return void 0;
+      }
+      const json = await response.json();
+      return addRequestID(json, response);
+    }
+    const text = await response.text();
+    return text;
+  })().finally(() => {
+    if (!props.options.stream && !props.options.__binaryResponse) {
+      releaseRequestSignal(props.controller);
+    }
+  });
+  loggerFor(client).debug(`[${requestLogID}] response parsed`, formatRequestDetails({
+    retryOfRequestLogID,
+    url: response.url,
+    status: response.status,
+    body,
+    durationMs: Date.now() - startTime
+  }));
+  return body;
+}
+function addRequestID(value, response) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+  return Object.defineProperty(value, "_request_id", {
+    value: response.headers.get("request-id"),
+    enumerable: false
+  });
+}
+var init_parse = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/parse.mjs"() {
+    init_streaming();
+    init_log();
+    init_request_signal();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/core/middleware.mjs
+function isFetchOriginError(err) {
+  return typeof err === "object" && err !== null && fetchOriginErrors.has(err);
+}
+function isRetryableError(err) {
+  const seen = /* @__PURE__ */ new Set();
+  while (typeof err === "object" && err !== null && !seen.has(err)) {
+    seen.add(err);
+    if (isFetchOriginError(err) || isAbortError(err) || err instanceof APIConnectionError || err instanceof RetryableError) {
+      return true;
+    }
+    err = err.cause;
+  }
   return false;
 }
-function j1(Q, X) {
-  return X.map((Y) => {
-    var $;
-    return ($ = Y).path ?? ($.path = []), Y.path.unshift(Q), Y;
-  });
+function wrapFetchWithMiddleware(fetchFn, middleware, options, client) {
+  return async (url, init = {}) => {
+    if (middleware.length === 0) {
+      return fetchFn.call(void 0, url, init);
+    }
+    const headers = init.headers instanceof Headers ? init.headers : new Headers(init.headers);
+    const response = await applyMiddleware(fetchFn, middleware, options, client)({
+      ...init,
+      headers,
+      url: typeof url === "string" ? url : url instanceof URL ? url.href : url.url
+    });
+    if (response.bodyUsed || response.body?.locked) {
+      throw new AnthropicError("middleware consumed the response body; use response.clone() to inspect it, or return new Response(body, response) to consume and replace it");
+    }
+    return response;
+  };
 }
-function o9(Q) {
-  return typeof Q === "string" ? Q : Q?.message;
-}
-function G1(Q, X, Y) {
-  let $ = { ...Q, path: Q.path ?? [] };
-  if (!Q.message) {
-    let J = o9(Q.inst?._zod.def?.error?.(Q)) ?? o9(X?.error?.(Q)) ?? o9(Y.customError?.(Q)) ?? o9(Y.localeError?.(Q)) ?? "Invalid input";
-    $.message = J;
-  }
-  if (delete $.inst, delete $.continue, !X?.reportInput) delete $.input;
-  return $;
-}
-function IJ(Q) {
-  if (Q instanceof Set) return "set";
-  if (Q instanceof Map) return "map";
-  if (Q instanceof File) return "file";
-  return "unknown";
-}
-function e9(Q) {
-  if (Array.isArray(Q)) return "array";
-  if (typeof Q === "string") return "string";
-  return "unknown";
-}
-function VX(...Q) {
-  let [X, Y, $] = Q;
-  if (typeof X === "string") return { message: X, code: "custom", input: Y, inst: $ };
-  return { ...X };
-}
-function _F(Q) {
-  return Object.entries(Q).filter(([X, Y]) => {
-    return Number.isNaN(Number.parseInt(X, 10));
-  }).map((X) => X[1]);
-}
-var bJ = class {
-  constructor(...Q) {
-  }
-};
-var EJ = (Q, X) => {
-  Q.name = "$ZodError", Object.defineProperty(Q, "_zod", { value: Q._zod, enumerable: false }), Object.defineProperty(Q, "issues", { value: X, enumerable: false }), Object.defineProperty(Q, "message", { get() {
-    return JSON.stringify(X, JX, 2);
-  }, enumerable: true });
-};
-var B8 = D("$ZodError", EJ);
-var Q4 = D("$ZodError", EJ, { Parent: Error });
-function qX(Q, X = (Y) => Y.message) {
-  let Y = {}, $ = [];
-  for (let J of Q.issues) if (J.path.length > 0) Y[J.path[0]] = Y[J.path[0]] || [], Y[J.path[0]].push(X(J));
-  else $.push(X(J));
-  return { formErrors: $, fieldErrors: Y };
-}
-function UX(Q, X) {
-  let Y = X || function(W) {
-    return W.message;
-  }, $ = { _errors: [] }, J = (W) => {
-    for (let G of W.issues) if (G.code === "invalid_union" && G.errors.length) G.errors.map((H) => J({ issues: H }));
-    else if (G.code === "invalid_key") J({ issues: G.issues });
-    else if (G.code === "invalid_element") J({ issues: G.issues });
-    else if (G.path.length === 0) $._errors.push(Y(G));
-    else {
-      let H = $, B = 0;
-      while (B < G.path.length) {
-        let z = G.path[B];
-        if (B !== G.path.length - 1) H[z] = H[z] || { _errors: [] };
-        else H[z] = H[z] || { _errors: [] }, H[z]._errors.push(Y(G));
-        H = H[z], B++;
+function createMiddlewareContext(options, client) {
+  const cache = /* @__PURE__ */ new WeakMap();
+  return {
+    options,
+    // Resolved per chain, so changes to the client's `logLevel`/`logger`
+    // apply to subsequent requests.
+    logger: client ? loggerFor(client) : defaultLogger(),
+    parse(response) {
+      if (options?.stream && response.ok) {
+        return parseMiddlewareResponse(response, options);
       }
+      let parsed = cache.get(response);
+      if (!parsed) {
+        parsed = parseMiddlewareResponse(response, options);
+        cache.set(response, parsed);
+      }
+      return parsed;
     }
   };
-  return J(Q), $;
 }
-var LX = (Q) => (X, Y, $, J) => {
-  let W = $ ? Object.assign($, { async: false }) : { async: false }, G = X._zod.run({ value: Y, issues: [] }, W);
-  if (G instanceof Promise) throw new n1();
-  if (G.issues.length) {
-    let H = new (J?.Err ?? Q)(G.issues.map((B) => G1(B, W, l0())));
-    throw G8(H, J?.callee), H;
+async function parseMiddlewareResponse(response, options) {
+  if (response.bodyUsed || response.body?.locked) {
+    throw new AnthropicError("cannot ctx.parse() a response whose body was already consumed; call ctx.parse() instead of reading the body, or read via response.clone()");
   }
-  return G.value;
-};
-var FX = LX(Q4);
-var NX = (Q) => async (X, Y, $, J) => {
-  let W = $ ? Object.assign($, { async: true }) : { async: true }, G = X._zod.run({ value: Y, issues: [] }, W);
-  if (G instanceof Promise) G = await G;
-  if (G.issues.length) {
-    let H = new (J?.Err ?? Q)(G.issues.map((B) => G1(B, W, l0())));
-    throw G8(H, J?.callee), H;
+  if (options?.stream && response.ok) {
+    return Stream.fromSSEResponse(response.clone(), new AbortController());
   }
-  return G.value;
-};
-var OX = NX(Q4);
-var DX = (Q) => (X, Y, $) => {
-  let J = $ ? { ...$, async: false } : { async: false }, W = X._zod.run({ value: Y, issues: [] }, J);
-  if (W instanceof Promise) throw new n1();
-  return W.issues.length ? { success: false, error: new (Q ?? B8)(W.issues.map((G) => G1(G, J, l0()))) } : { success: true, data: W.value };
-};
-var A6 = DX(Q4);
-var MX = (Q) => async (X, Y, $) => {
-  let J = $ ? Object.assign($, { async: true }) : { async: true }, W = X._zod.run({ value: Y, issues: [] }, J);
-  if (W instanceof Promise) W = await W;
-  return W.issues.length ? { success: false, error: new Q(W.issues.map((G) => G1(G, J, l0()))) } : { success: true, data: W.value };
-};
-var j6 = MX(Q4);
-var PJ = /^[cC][^\s-]{8,}$/;
-var ZJ = /^[0-9a-z]+$/;
-var CJ = /^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$/;
-var SJ = /^[0-9a-vA-V]{20}$/;
-var _J = /^[A-Za-z0-9]{27}$/;
-var kJ = /^[a-zA-Z0-9_-]{21}$/;
-var vJ = /^P(?:(\d+W)|(?!.*W)(?=\d|T\d)(\d+Y)?(\d+M)?(\d+D)?(T(?=\d)(\d+H)?(\d+M)?(\d+([.,]\d+)?S)?)?)$/;
-var TJ = /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/;
-var wX = (Q) => {
-  if (!Q) return /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$/;
-  return new RegExp(`^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-${Q}[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$`);
-};
-var xJ = /^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/;
-function yJ() {
-  return new RegExp("^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$", "u");
-}
-var gJ = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;
-var hJ = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::|([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:?){0,6})$/;
-var fJ = /^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/([0-9]|[1-2][0-9]|3[0-2])$/;
-var uJ = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::|([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:?){0,6})\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/;
-var mJ = /^$|^(?:[0-9a-zA-Z+/]{4})*(?:(?:[0-9a-zA-Z+/]{2}==)|(?:[0-9a-zA-Z+/]{3}=))?$/;
-var AX = /^[A-Za-z0-9_-]*$/;
-var lJ = /^([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+$/;
-var cJ = /^\+(?:[0-9]){6,14}[0-9]$/;
-var pJ = "(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))";
-var dJ = new RegExp(`^${pJ}$`);
-function iJ(Q) {
-  return typeof Q.precision === "number" ? Q.precision === -1 ? "(?:[01]\\d|2[0-3]):[0-5]\\d" : Q.precision === 0 ? "(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d" : `(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{${Q.precision}}` : "(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?";
-}
-function nJ(Q) {
-  return new RegExp(`^${iJ(Q)}$`);
-}
-function oJ(Q) {
-  let X = iJ({ precision: Q.precision }), Y = ["Z"];
-  if (Q.local) Y.push("");
-  if (Q.offset) Y.push("([+-]\\d{2}:\\d{2})");
-  let $ = `${X}(?:${Y.join("|")})`;
-  return new RegExp(`^${pJ}T(?:${$})$`);
-}
-var rJ = (Q) => {
-  let X = Q ? `[\\s\\S]{${Q?.minimum ?? 0},${Q?.maximum ?? ""}}` : "[\\s\\S]*";
-  return new RegExp(`^${X}$`);
-};
-var tJ = /^\d+$/;
-var aJ = /^-?\d+(?:\.\d+)?/i;
-var sJ = /true|false/i;
-var eJ = /null/i;
-var QW = /^[^A-Z]*$/;
-var XW = /^[^a-z]*$/;
-var j0 = D("$ZodCheck", (Q, X) => {
-  var Y;
-  Q._zod ?? (Q._zod = {}), Q._zod.def = X, (Y = Q._zod).onattach ?? (Y.onattach = []);
-});
-var YW = { number: "number", bigint: "bigint", object: "date" };
-var jX = D("$ZodCheckLessThan", (Q, X) => {
-  j0.init(Q, X);
-  let Y = YW[typeof X.value];
-  Q._zod.onattach.push(($) => {
-    let J = $._zod.bag, W = (X.inclusive ? J.maximum : J.exclusiveMaximum) ?? Number.POSITIVE_INFINITY;
-    if (X.value < W) if (X.inclusive) J.maximum = X.value;
-    else J.exclusiveMaximum = X.value;
-  }), Q._zod.check = ($) => {
-    if (X.inclusive ? $.value <= X.value : $.value < X.value) return;
-    $.issues.push({ origin: Y, code: "too_big", maximum: X.value, input: $.value, inclusive: X.inclusive, inst: Q, continue: !X.abort });
-  };
-});
-var RX = D("$ZodCheckGreaterThan", (Q, X) => {
-  j0.init(Q, X);
-  let Y = YW[typeof X.value];
-  Q._zod.onattach.push(($) => {
-    let J = $._zod.bag, W = (X.inclusive ? J.minimum : J.exclusiveMinimum) ?? Number.NEGATIVE_INFINITY;
-    if (X.value > W) if (X.inclusive) J.minimum = X.value;
-    else J.exclusiveMinimum = X.value;
-  }), Q._zod.check = ($) => {
-    if (X.inclusive ? $.value >= X.value : $.value > X.value) return;
-    $.issues.push({ origin: Y, code: "too_small", minimum: X.value, input: $.value, inclusive: X.inclusive, inst: Q, continue: !X.abort });
-  };
-});
-var $W = D("$ZodCheckMultipleOf", (Q, X) => {
-  j0.init(Q, X), Q._zod.onattach.push((Y) => {
-    var $;
-    ($ = Y._zod.bag).multipleOf ?? ($.multipleOf = X.value);
-  }), Q._zod.check = (Y) => {
-    if (typeof Y.value !== typeof X.value) throw Error("Cannot mix number and bigint in multiple_of check.");
-    if (typeof Y.value === "bigint" ? Y.value % X.value === BigInt(0) : WX(Y.value, X.value) === 0) return;
-    Y.issues.push({ origin: typeof Y.value, code: "not_multiple_of", divisor: X.value, input: Y.value, inst: Q, continue: !X.abort });
-  };
-});
-var JW = D("$ZodCheckNumberFormat", (Q, X) => {
-  j0.init(Q, X), X.format = X.format || "float64";
-  let Y = X.format?.includes("int"), $ = Y ? "int" : "number", [J, W] = KX[X.format];
-  Q._zod.onattach.push((G) => {
-    let H = G._zod.bag;
-    if (H.format = X.format, H.minimum = J, H.maximum = W, Y) H.pattern = tJ;
-  }), Q._zod.check = (G) => {
-    let H = G.value;
-    if (Y) {
-      if (!Number.isInteger(H)) {
-        G.issues.push({ expected: $, format: X.format, code: "invalid_type", input: H, inst: Q });
-        return;
-      }
-      if (!Number.isSafeInteger(H)) {
-        if (H > 0) G.issues.push({ input: H, code: "too_big", maximum: Number.MAX_SAFE_INTEGER, note: "Integers must be within the safe integer range.", inst: Q, origin: $, continue: !X.abort });
-        else G.issues.push({ input: H, code: "too_small", minimum: Number.MIN_SAFE_INTEGER, note: "Integers must be within the safe integer range.", inst: Q, origin: $, continue: !X.abort });
-        return;
-      }
+  if (response.status === 204) {
+    return null;
+  }
+  if (options?.__binaryResponse) {
+    return response;
+  }
+  const contentType = response.headers.get("content-type");
+  const mediaType = contentType?.split(";")[0]?.trim();
+  const isJSON = mediaType?.includes("application/json") || mediaType?.endsWith("+json");
+  if (isJSON) {
+    if (response.headers.get("content-length") === "0") {
+      return void 0;
     }
-    if (H < J) G.issues.push({ origin: "number", input: H, code: "too_small", minimum: J, inclusive: true, inst: Q, continue: !X.abort });
-    if (H > W) G.issues.push({ origin: "number", input: H, code: "too_big", maximum: W, inst: Q });
-  };
-});
-var WW = D("$ZodCheckMaxLength", (Q, X) => {
-  j0.init(Q, X), Q._zod.when = (Y) => {
-    let $ = Y.value;
-    return !a9($) && $.length !== void 0;
-  }, Q._zod.onattach.push((Y) => {
-    let $ = Y._zod.bag.maximum ?? Number.POSITIVE_INFINITY;
-    if (X.maximum < $) Y._zod.bag.maximum = X.maximum;
-  }), Q._zod.check = (Y) => {
-    let $ = Y.value;
-    if ($.length <= X.maximum) return;
-    let W = e9($);
-    Y.issues.push({ origin: W, code: "too_big", maximum: X.maximum, inclusive: true, input: $, inst: Q, continue: !X.abort });
-  };
-});
-var GW = D("$ZodCheckMinLength", (Q, X) => {
-  j0.init(Q, X), Q._zod.when = (Y) => {
-    let $ = Y.value;
-    return !a9($) && $.length !== void 0;
-  }, Q._zod.onattach.push((Y) => {
-    let $ = Y._zod.bag.minimum ?? Number.NEGATIVE_INFINITY;
-    if (X.minimum > $) Y._zod.bag.minimum = X.minimum;
-  }), Q._zod.check = (Y) => {
-    let $ = Y.value;
-    if ($.length >= X.minimum) return;
-    let W = e9($);
-    Y.issues.push({ origin: W, code: "too_small", minimum: X.minimum, inclusive: true, input: $, inst: Q, continue: !X.abort });
-  };
-});
-var HW = D("$ZodCheckLengthEquals", (Q, X) => {
-  j0.init(Q, X), Q._zod.when = (Y) => {
-    let $ = Y.value;
-    return !a9($) && $.length !== void 0;
-  }, Q._zod.onattach.push((Y) => {
-    let $ = Y._zod.bag;
-    $.minimum = X.length, $.maximum = X.length, $.length = X.length;
-  }), Q._zod.check = (Y) => {
-    let $ = Y.value, J = $.length;
-    if (J === X.length) return;
-    let W = e9($), G = J > X.length;
-    Y.issues.push({ origin: W, ...G ? { code: "too_big", maximum: X.length } : { code: "too_small", minimum: X.length }, inclusive: true, exact: true, input: Y.value, inst: Q, continue: !X.abort });
-  };
-});
-var X4 = D("$ZodCheckStringFormat", (Q, X) => {
-  var Y, $;
-  if (j0.init(Q, X), Q._zod.onattach.push((J) => {
-    let W = J._zod.bag;
-    if (W.format = X.format, X.pattern) W.patterns ?? (W.patterns = /* @__PURE__ */ new Set()), W.patterns.add(X.pattern);
-  }), X.pattern) (Y = Q._zod).check ?? (Y.check = (J) => {
-    if (X.pattern.lastIndex = 0, X.pattern.test(J.value)) return;
-    J.issues.push({ origin: "string", code: "invalid_format", format: X.format, input: J.value, ...X.pattern ? { pattern: X.pattern.toString() } : {}, inst: Q, continue: !X.abort });
-  });
-  else ($ = Q._zod).check ?? ($.check = () => {
-  });
-});
-var BW = D("$ZodCheckRegex", (Q, X) => {
-  X4.init(Q, X), Q._zod.check = (Y) => {
-    if (X.pattern.lastIndex = 0, X.pattern.test(Y.value)) return;
-    Y.issues.push({ origin: "string", code: "invalid_format", format: "regex", input: Y.value, pattern: X.pattern.toString(), inst: Q, continue: !X.abort });
-  };
-});
-var zW = D("$ZodCheckLowerCase", (Q, X) => {
-  X.pattern ?? (X.pattern = QW), X4.init(Q, X);
-});
-var KW = D("$ZodCheckUpperCase", (Q, X) => {
-  X.pattern ?? (X.pattern = XW), X4.init(Q, X);
-});
-var VW = D("$ZodCheckIncludes", (Q, X) => {
-  j0.init(Q, X);
-  let Y = o1(X.includes), $ = new RegExp(typeof X.position === "number" ? `^.{${X.position}}${Y}` : Y);
-  X.pattern = $, Q._zod.onattach.push((J) => {
-    let W = J._zod.bag;
-    W.patterns ?? (W.patterns = /* @__PURE__ */ new Set()), W.patterns.add($);
-  }), Q._zod.check = (J) => {
-    if (J.value.includes(X.includes, X.position)) return;
-    J.issues.push({ origin: "string", code: "invalid_format", format: "includes", includes: X.includes, input: J.value, inst: Q, continue: !X.abort });
-  };
-});
-var qW = D("$ZodCheckStartsWith", (Q, X) => {
-  j0.init(Q, X);
-  let Y = new RegExp(`^${o1(X.prefix)}.*`);
-  X.pattern ?? (X.pattern = Y), Q._zod.onattach.push(($) => {
-    let J = $._zod.bag;
-    J.patterns ?? (J.patterns = /* @__PURE__ */ new Set()), J.patterns.add(Y);
-  }), Q._zod.check = ($) => {
-    if ($.value.startsWith(X.prefix)) return;
-    $.issues.push({ origin: "string", code: "invalid_format", format: "starts_with", prefix: X.prefix, input: $.value, inst: Q, continue: !X.abort });
-  };
-});
-var UW = D("$ZodCheckEndsWith", (Q, X) => {
-  j0.init(Q, X);
-  let Y = new RegExp(`.*${o1(X.suffix)}$`);
-  X.pattern ?? (X.pattern = Y), Q._zod.onattach.push(($) => {
-    let J = $._zod.bag;
-    J.patterns ?? (J.patterns = /* @__PURE__ */ new Set()), J.patterns.add(Y);
-  }), Q._zod.check = ($) => {
-    if ($.value.endsWith(X.suffix)) return;
-    $.issues.push({ origin: "string", code: "invalid_format", format: "ends_with", suffix: X.suffix, input: $.value, inst: Q, continue: !X.abort });
-  };
-});
-var LW = D("$ZodCheckOverwrite", (Q, X) => {
-  j0.init(Q, X), Q._zod.check = (Y) => {
-    Y.value = X.tx(Y.value);
-  };
-});
-var IX = class {
-  constructor(Q = []) {
-    if (this.content = [], this.indent = 0, this) this.args = Q;
+    return addRequestID(await response.clone().json(), response);
   }
-  indented(Q) {
-    this.indent += 1, Q(this), this.indent -= 1;
-  }
-  write(Q) {
-    if (typeof Q === "function") {
-      Q(this, { execution: "sync" }), Q(this, { execution: "async" });
-      return;
+  return await response.clone().text();
+}
+function applyMiddleware(fetchFn, middleware, options, client) {
+  let next = async ({ url, ...init }) => {
+    try {
+      return await fetchFn.call(void 0, url, init);
+    } catch (err) {
+      const error = castToError(err);
+      fetchOriginErrors.add(error);
+      throw error;
     }
-    let Y = Q.split(`
-`).filter((W) => W), $ = Math.min(...Y.map((W) => W.length - W.trimStart().length)), J = Y.map((W) => W.slice($)).map((W) => " ".repeat(this.indent * 2) + W);
-    for (let W of J) this.content.push(W);
+  };
+  const ctx = createMiddlewareContext(options, client);
+  for (let i = middleware.length - 1; i >= 0; i--) {
+    const mw = middleware[i];
+    const nextInner = next;
+    next = async (request) => mw(request, nextInner, ctx);
   }
-  compile() {
-    let Q = Function, X = this?.args, $ = [...(this?.content ?? [""]).map((J) => `  ${J}`)];
-    return new Q(...X, $.join(`
-`));
+  return next;
+}
+var fetchOriginErrors;
+var init_middleware = __esm({
+  "node_modules/@anthropic-ai/sdk/core/middleware.mjs"() {
+    init_errors();
+    init_parse();
+    init_log();
+    init_error();
+    init_streaming();
+    fetchOriginErrors = /* @__PURE__ */ new WeakSet();
   }
-};
-var NW = { major: 4, minor: 0, patch: 0 };
-var e = D("$ZodType", (Q, X) => {
-  var Y;
-  Q ?? (Q = {}), Q._zod.def = X, Q._zod.bag = Q._zod.bag || {}, Q._zod.version = NW;
-  let $ = [...Q._zod.def.checks ?? []];
-  if (Q._zod.traits.has("$ZodCheck")) $.unshift(Q);
-  for (let J of $) for (let W of J._zod.onattach) W(Q);
-  if ($.length === 0) (Y = Q._zod).deferred ?? (Y.deferred = []), Q._zod.deferred?.push(() => {
-    Q._zod.run = Q._zod.parse;
-  });
-  else {
-    let J = (W, G, H) => {
-      let B = w6(W), z;
-      for (let K of G) {
-        if (K._zod.when) {
-          if (!K._zod.when(W)) continue;
-        } else if (B) continue;
-        let U = W.issues.length, q = K._zod.check(W);
-        if (q instanceof Promise && H?.async === false) throw new n1();
-        if (z || q instanceof Promise) z = (z ?? Promise.resolve()).then(async () => {
-          if (await q, W.issues.length === U) return;
-          if (!B) B = w6(W, U);
+});
+
+// node_modules/@anthropic-ai/sdk/core/api-promise.mjs
+var _APIPromise_client, APIPromise;
+var init_api_promise = __esm({
+  "node_modules/@anthropic-ai/sdk/core/api-promise.mjs"() {
+    init_tslib();
+    init_parse();
+    APIPromise = class _APIPromise extends Promise {
+      constructor(client, responsePromise, parseResponse = defaultParseResponse) {
+        super((resolve4) => {
+          resolve4(null);
         });
-        else {
-          if (W.issues.length === U) continue;
-          if (!B) B = w6(W, U);
+        this.responsePromise = responsePromise;
+        this.parseResponse = parseResponse;
+        _APIPromise_client.set(this, void 0);
+        __classPrivateFieldSet(this, _APIPromise_client, client, "f");
+      }
+      _thenUnwrap(transform) {
+        return new _APIPromise(__classPrivateFieldGet(this, _APIPromise_client, "f"), this.responsePromise, async (client, props) => addRequestID(transform(await this.parseResponse(client, props), props), props.response));
+      }
+      /**
+       * Gets the raw `Response` instance instead of parsing the response
+       * data.
+       *
+       * If you want to parse the response body but still get the `Response`
+       * instance, you can use {@link withResponse()}.
+       *
+       * 👋 Getting the wrong TypeScript type for `Response`?
+       * Try setting `"moduleResolution": "NodeNext"` or add `"lib": ["DOM"]`
+       * to your `tsconfig.json`.
+       */
+      asResponse() {
+        return this.responsePromise.then((p) => p.response);
+      }
+      /**
+       * Gets the parsed response data, the raw `Response` instance and the ID of the request,
+       * returned via the `request-id` header which is useful for debugging requests and resporting
+       * issues to Anthropic.
+       *
+       * If you just want to get the raw `Response` instance without parsing it,
+       * you can use {@link asResponse()}.
+       *
+       * 👋 Getting the wrong TypeScript type for `Response`?
+       * Try setting `"moduleResolution": "NodeNext"` or add `"lib": ["DOM"]`
+       * to your `tsconfig.json`.
+       */
+      async withResponse() {
+        const [data, response] = await Promise.all([this.parse(), this.asResponse()]);
+        return { data, response, request_id: response.headers.get("request-id") };
+      }
+      parse() {
+        if (!this.parsedPromise) {
+          this.parsedPromise = this.responsePromise.then((data) => this.parseResponse(__classPrivateFieldGet(this, _APIPromise_client, "f"), data));
+        }
+        return this.parsedPromise;
+      }
+      then(onfulfilled, onrejected) {
+        return this.parse().then(onfulfilled, onrejected);
+      }
+      catch(onrejected) {
+        return this.parse().catch(onrejected);
+      }
+      finally(onfinally) {
+        return this.parse().finally(onfinally);
+      }
+    };
+    _APIPromise_client = /* @__PURE__ */ new WeakMap();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/core/pagination.mjs
+var _AbstractPage_client, AbstractPage, PagePromise, Page, PageCursor, BidirectionalPageCursor;
+var init_pagination = __esm({
+  "node_modules/@anthropic-ai/sdk/core/pagination.mjs"() {
+    init_tslib();
+    init_error();
+    init_parse();
+    init_api_promise();
+    init_values();
+    AbstractPage = class {
+      constructor(client, response, body, options) {
+        _AbstractPage_client.set(this, void 0);
+        __classPrivateFieldSet(this, _AbstractPage_client, client, "f");
+        this.options = options;
+        this.response = response;
+        this.body = body;
+      }
+      hasNextPage() {
+        const items = this.getPaginatedItems();
+        if (!items.length)
+          return false;
+        return this.nextPageRequestOptions() != null;
+      }
+      async getNextPage() {
+        const nextOptions = this.nextPageRequestOptions();
+        if (!nextOptions) {
+          throw new AnthropicError("No next page expected; please check `.hasNextPage()` before calling `.getNextPage()`.");
+        }
+        return await __classPrivateFieldGet(this, _AbstractPage_client, "f").requestAPIList(this.constructor, nextOptions);
+      }
+      async *iterPages() {
+        let page = this;
+        yield page;
+        while (page.hasNextPage()) {
+          page = await page.getNextPage();
+          yield page;
         }
       }
-      if (z) return z.then(() => {
-        return W;
-      });
-      return W;
-    };
-    Q._zod.run = (W, G) => {
-      let H = Q._zod.parse(W, G);
-      if (H instanceof Promise) {
-        if (G.async === false) throw new n1();
-        return H.then((B) => J(B, $, G));
-      }
-      return J(H, $, G);
-    };
-  }
-  Q["~standard"] = { validate: (J) => {
-    try {
-      let W = A6(Q, J);
-      return W.success ? { value: W.data } : { issues: W.error?.issues };
-    } catch (W) {
-      return j6(Q, J).then((G) => G.success ? { value: G.data } : { issues: G.error?.issues });
-    }
-  }, vendor: "zod", version: 1 };
-});
-var Y4 = D("$ZodString", (Q, X) => {
-  e.init(Q, X), Q._zod.pattern = [...Q?._zod.bag?.patterns ?? []].pop() ?? rJ(Q._zod.bag), Q._zod.parse = (Y, $) => {
-    if (X.coerce) try {
-      Y.value = String(Y.value);
-    } catch (J) {
-    }
-    if (typeof Y.value === "string") return Y;
-    return Y.issues.push({ expected: "string", code: "invalid_type", input: Y.value, inst: Q }), Y;
-  };
-});
-var J0 = D("$ZodStringFormat", (Q, X) => {
-  X4.init(Q, X), Y4.init(Q, X);
-});
-var EX = D("$ZodGUID", (Q, X) => {
-  X.pattern ?? (X.pattern = TJ), J0.init(Q, X);
-});
-var PX = D("$ZodUUID", (Q, X) => {
-  if (X.version) {
-    let $ = { v1: 1, v2: 2, v3: 3, v4: 4, v5: 5, v6: 6, v7: 7, v8: 8 }[X.version];
-    if ($ === void 0) throw Error(`Invalid UUID version: "${X.version}"`);
-    X.pattern ?? (X.pattern = wX($));
-  } else X.pattern ?? (X.pattern = wX());
-  J0.init(Q, X);
-});
-var ZX = D("$ZodEmail", (Q, X) => {
-  X.pattern ?? (X.pattern = xJ), J0.init(Q, X);
-});
-var CX = D("$ZodURL", (Q, X) => {
-  J0.init(Q, X), Q._zod.check = (Y) => {
-    try {
-      let $ = Y.value, J = new URL($), W = J.href;
-      if (X.hostname) {
-        if (X.hostname.lastIndex = 0, !X.hostname.test(J.hostname)) Y.issues.push({ code: "invalid_format", format: "url", note: "Invalid hostname", pattern: lJ.source, input: Y.value, inst: Q, continue: !X.abort });
-      }
-      if (X.protocol) {
-        if (X.protocol.lastIndex = 0, !X.protocol.test(J.protocol.endsWith(":") ? J.protocol.slice(0, -1) : J.protocol)) Y.issues.push({ code: "invalid_format", format: "url", note: "Invalid protocol", pattern: X.protocol.source, input: Y.value, inst: Q, continue: !X.abort });
-      }
-      if (!$.endsWith("/") && W.endsWith("/")) Y.value = W.slice(0, -1);
-      else Y.value = W;
-      return;
-    } catch ($) {
-      Y.issues.push({ code: "invalid_format", format: "url", input: Y.value, inst: Q, continue: !X.abort });
-    }
-  };
-});
-var SX = D("$ZodEmoji", (Q, X) => {
-  X.pattern ?? (X.pattern = yJ()), J0.init(Q, X);
-});
-var _X = D("$ZodNanoID", (Q, X) => {
-  X.pattern ?? (X.pattern = kJ), J0.init(Q, X);
-});
-var kX = D("$ZodCUID", (Q, X) => {
-  X.pattern ?? (X.pattern = PJ), J0.init(Q, X);
-});
-var vX = D("$ZodCUID2", (Q, X) => {
-  X.pattern ?? (X.pattern = ZJ), J0.init(Q, X);
-});
-var TX = D("$ZodULID", (Q, X) => {
-  X.pattern ?? (X.pattern = CJ), J0.init(Q, X);
-});
-var xX = D("$ZodXID", (Q, X) => {
-  X.pattern ?? (X.pattern = SJ), J0.init(Q, X);
-});
-var yX = D("$ZodKSUID", (Q, X) => {
-  X.pattern ?? (X.pattern = _J), J0.init(Q, X);
-});
-var EW = D("$ZodISODateTime", (Q, X) => {
-  X.pattern ?? (X.pattern = oJ(X)), J0.init(Q, X);
-});
-var PW = D("$ZodISODate", (Q, X) => {
-  X.pattern ?? (X.pattern = dJ), J0.init(Q, X);
-});
-var ZW = D("$ZodISOTime", (Q, X) => {
-  X.pattern ?? (X.pattern = nJ(X)), J0.init(Q, X);
-});
-var CW = D("$ZodISODuration", (Q, X) => {
-  X.pattern ?? (X.pattern = vJ), J0.init(Q, X);
-});
-var gX = D("$ZodIPv4", (Q, X) => {
-  X.pattern ?? (X.pattern = gJ), J0.init(Q, X), Q._zod.onattach.push((Y) => {
-    let $ = Y._zod.bag;
-    $.format = "ipv4";
-  });
-});
-var hX = D("$ZodIPv6", (Q, X) => {
-  X.pattern ?? (X.pattern = hJ), J0.init(Q, X), Q._zod.onattach.push((Y) => {
-    let $ = Y._zod.bag;
-    $.format = "ipv6";
-  }), Q._zod.check = (Y) => {
-    try {
-      new URL(`http://[${Y.value}]`);
-    } catch {
-      Y.issues.push({ code: "invalid_format", format: "ipv6", input: Y.value, inst: Q, continue: !X.abort });
-    }
-  };
-});
-var fX = D("$ZodCIDRv4", (Q, X) => {
-  X.pattern ?? (X.pattern = fJ), J0.init(Q, X);
-});
-var uX = D("$ZodCIDRv6", (Q, X) => {
-  X.pattern ?? (X.pattern = uJ), J0.init(Q, X), Q._zod.check = (Y) => {
-    let [$, J] = Y.value.split("/");
-    try {
-      if (!J) throw Error();
-      let W = Number(J);
-      if (`${W}` !== J) throw Error();
-      if (W < 0 || W > 128) throw Error();
-      new URL(`http://[${$}]`);
-    } catch {
-      Y.issues.push({ code: "invalid_format", format: "cidrv6", input: Y.value, inst: Q, continue: !X.abort });
-    }
-  };
-});
-function SW(Q) {
-  if (Q === "") return true;
-  if (Q.length % 4 !== 0) return false;
-  try {
-    return atob(Q), true;
-  } catch {
-    return false;
-  }
-}
-var mX = D("$ZodBase64", (Q, X) => {
-  X.pattern ?? (X.pattern = mJ), J0.init(Q, X), Q._zod.onattach.push((Y) => {
-    Y._zod.bag.contentEncoding = "base64";
-  }), Q._zod.check = (Y) => {
-    if (SW(Y.value)) return;
-    Y.issues.push({ code: "invalid_format", format: "base64", input: Y.value, inst: Q, continue: !X.abort });
-  };
-});
-function vF(Q) {
-  if (!AX.test(Q)) return false;
-  let X = Q.replace(/[-_]/g, ($) => $ === "-" ? "+" : "/"), Y = X.padEnd(Math.ceil(X.length / 4) * 4, "=");
-  return SW(Y);
-}
-var lX = D("$ZodBase64URL", (Q, X) => {
-  X.pattern ?? (X.pattern = AX), J0.init(Q, X), Q._zod.onattach.push((Y) => {
-    Y._zod.bag.contentEncoding = "base64url";
-  }), Q._zod.check = (Y) => {
-    if (vF(Y.value)) return;
-    Y.issues.push({ code: "invalid_format", format: "base64url", input: Y.value, inst: Q, continue: !X.abort });
-  };
-});
-var cX = D("$ZodE164", (Q, X) => {
-  X.pattern ?? (X.pattern = cJ), J0.init(Q, X);
-});
-function TF(Q, X = null) {
-  try {
-    let Y = Q.split(".");
-    if (Y.length !== 3) return false;
-    let [$] = Y;
-    if (!$) return false;
-    let J = JSON.parse(atob($));
-    if ("typ" in J && J?.typ !== "JWT") return false;
-    if (!J.alg) return false;
-    if (X && (!("alg" in J) || J.alg !== X)) return false;
-    return true;
-  } catch {
-    return false;
-  }
-}
-var pX = D("$ZodJWT", (Q, X) => {
-  J0.init(Q, X), Q._zod.check = (Y) => {
-    if (TF(Y.value, X.alg)) return;
-    Y.issues.push({ code: "invalid_format", format: "jwt", input: Y.value, inst: Q, continue: !X.abort });
-  };
-});
-var V8 = D("$ZodNumber", (Q, X) => {
-  e.init(Q, X), Q._zod.pattern = Q._zod.bag.pattern ?? aJ, Q._zod.parse = (Y, $) => {
-    if (X.coerce) try {
-      Y.value = Number(Y.value);
-    } catch (G) {
-    }
-    let J = Y.value;
-    if (typeof J === "number" && !Number.isNaN(J) && Number.isFinite(J)) return Y;
-    let W = typeof J === "number" ? Number.isNaN(J) ? "NaN" : !Number.isFinite(J) ? "Infinity" : void 0 : void 0;
-    return Y.issues.push({ expected: "number", code: "invalid_type", input: J, inst: Q, ...W ? { received: W } : {} }), Y;
-  };
-});
-var dX = D("$ZodNumber", (Q, X) => {
-  JW.init(Q, X), V8.init(Q, X);
-});
-var iX = D("$ZodBoolean", (Q, X) => {
-  e.init(Q, X), Q._zod.pattern = sJ, Q._zod.parse = (Y, $) => {
-    if (X.coerce) try {
-      Y.value = Boolean(Y.value);
-    } catch (W) {
-    }
-    let J = Y.value;
-    if (typeof J === "boolean") return Y;
-    return Y.issues.push({ expected: "boolean", code: "invalid_type", input: J, inst: Q }), Y;
-  };
-});
-var nX = D("$ZodNull", (Q, X) => {
-  e.init(Q, X), Q._zod.pattern = eJ, Q._zod.values = /* @__PURE__ */ new Set([null]), Q._zod.parse = (Y, $) => {
-    let J = Y.value;
-    if (J === null) return Y;
-    return Y.issues.push({ expected: "null", code: "invalid_type", input: J, inst: Q }), Y;
-  };
-});
-var oX = D("$ZodUnknown", (Q, X) => {
-  e.init(Q, X), Q._zod.parse = (Y) => Y;
-});
-var rX = D("$ZodNever", (Q, X) => {
-  e.init(Q, X), Q._zod.parse = (Y, $) => {
-    return Y.issues.push({ expected: "never", code: "invalid_type", input: Y.value, inst: Q }), Y;
-  };
-});
-function OW(Q, X, Y) {
-  if (Q.issues.length) X.issues.push(...j1(Y, Q.issues));
-  X.value[Y] = Q.value;
-}
-var tX = D("$ZodArray", (Q, X) => {
-  e.init(Q, X), Q._zod.parse = (Y, $) => {
-    let J = Y.value;
-    if (!Array.isArray(J)) return Y.issues.push({ expected: "array", code: "invalid_type", input: J, inst: Q }), Y;
-    Y.value = Array(J.length);
-    let W = [];
-    for (let G = 0; G < J.length; G++) {
-      let H = J[G], B = X.element._zod.run({ value: H, issues: [] }, $);
-      if (B instanceof Promise) W.push(B.then((z) => OW(z, Y, G)));
-      else OW(B, Y, G);
-    }
-    if (W.length) return Promise.all(W).then(() => Y);
-    return Y;
-  };
-});
-function K8(Q, X, Y) {
-  if (Q.issues.length) X.issues.push(...j1(Y, Q.issues));
-  X.value[Y] = Q.value;
-}
-function DW(Q, X, Y, $) {
-  if (Q.issues.length) if ($[Y] === void 0) if (Y in $) X.value[Y] = void 0;
-  else X.value[Y] = Q.value;
-  else X.issues.push(...j1(Y, Q.issues));
-  else if (Q.value === void 0) {
-    if (Y in $) X.value[Y] = void 0;
-  } else X.value[Y] = Q.value;
-}
-var q8 = D("$ZodObject", (Q, X) => {
-  e.init(Q, X);
-  let Y = t9(() => {
-    let U = Object.keys(X.shape);
-    for (let V of U) if (!(X.shape[V] instanceof e)) throw Error(`Invalid element at key "${V}": expected a Zod schema`);
-    let q = zX(X.shape);
-    return { shape: X.shape, keys: U, keySet: new Set(U), numKeys: U.length, optionalKeys: new Set(q) };
-  });
-  $0(Q._zod, "propValues", () => {
-    let U = X.shape, q = {};
-    for (let V in U) {
-      let L = U[V]._zod;
-      if (L.values) {
-        q[V] ?? (q[V] = /* @__PURE__ */ new Set());
-        for (let F of L.values) q[V].add(F);
-      }
-    }
-    return q;
-  });
-  let $ = (U) => {
-    let q = new IX(["shape", "payload", "ctx"]), V = Y.value, L = (A) => {
-      let R = M6(A);
-      return `shape[${R}]._zod.run({ value: input[${R}], issues: [] }, ctx)`;
-    };
-    q.write("const input = payload.value;");
-    let F = /* @__PURE__ */ Object.create(null), M = 0;
-    for (let A of V.keys) F[A] = `key_${M++}`;
-    q.write("const newResult = {}");
-    for (let A of V.keys) if (V.optionalKeys.has(A)) {
-      let R = F[A];
-      q.write(`const ${R} = ${L(A)};`);
-      let Z = M6(A);
-      q.write(`
-        if (${R}.issues.length) {
-          if (input[${Z}] === undefined) {
-            if (${Z} in input) {
-              newResult[${Z}] = undefined;
-            }
-          } else {
-            payload.issues = payload.issues.concat(
-              ${R}.issues.map((iss) => ({
-                ...iss,
-                path: iss.path ? [${Z}, ...iss.path] : [${Z}],
-              }))
-            );
+      async *[(_AbstractPage_client = /* @__PURE__ */ new WeakMap(), Symbol.asyncIterator)]() {
+        for await (const page of this.iterPages()) {
+          for (const item of page.getPaginatedItems()) {
+            yield item;
           }
-        } else if (${R}.value === undefined) {
-          if (${Z} in input) newResult[${Z}] = undefined;
-        } else {
-          newResult[${Z}] = ${R}.value;
         }
-        `);
-    } else {
-      let R = F[A];
-      q.write(`const ${R} = ${L(A)};`), q.write(`
-          if (${R}.issues.length) payload.issues = payload.issues.concat(${R}.issues.map(iss => ({
-            ...iss,
-            path: iss.path ? [${M6(A)}, ...iss.path] : [${M6(A)}]
-          })));`), q.write(`newResult[${M6(A)}] = ${R}.value`);
+      }
+    };
+    PagePromise = class extends APIPromise {
+      constructor(client, request, Page2) {
+        super(client, request, async (client2, props) => new Page2(client2, props.response, await defaultParseResponse(client2, props), props.options));
+      }
+      /**
+       * Allow auto-paginating iteration on an unawaited list call, eg:
+       *
+       *    for await (const item of client.items.list()) {
+       *      console.log(item)
+       *    }
+       */
+      async *[Symbol.asyncIterator]() {
+        const page = await this;
+        for await (const item of page) {
+          yield item;
+        }
+      }
+    };
+    Page = class extends AbstractPage {
+      constructor(client, response, body, options) {
+        super(client, response, body, options);
+        this.data = body.data || [];
+        this.has_more = body.has_more || false;
+        this.first_id = body.first_id || null;
+        this.last_id = body.last_id || null;
+      }
+      getPaginatedItems() {
+        return this.data ?? [];
+      }
+      hasNextPage() {
+        if (this.has_more === false) {
+          return false;
+        }
+        return super.hasNextPage();
+      }
+      nextPageRequestOptions() {
+        if (this.options.query?.["before_id"]) {
+          const first_id = this.first_id;
+          if (!first_id) {
+            return null;
+          }
+          return {
+            ...this.options,
+            query: {
+              ...maybeObj(this.options.query),
+              before_id: first_id
+            }
+          };
+        }
+        const cursor = this.last_id;
+        if (!cursor) {
+          return null;
+        }
+        return {
+          ...this.options,
+          query: {
+            ...maybeObj(this.options.query),
+            after_id: cursor
+          }
+        };
+      }
+    };
+    PageCursor = class extends AbstractPage {
+      constructor(client, response, body, options) {
+        super(client, response, body, options);
+        this.data = body.data || [];
+        this.next_page = body.next_page || null;
+      }
+      getPaginatedItems() {
+        return this.data ?? [];
+      }
+      nextPageRequestOptions() {
+        const cursor = this.next_page;
+        if (!cursor) {
+          return null;
+        }
+        return {
+          ...this.options,
+          query: {
+            ...maybeObj(this.options.query),
+            page: cursor
+          }
+        };
+      }
+    };
+    BidirectionalPageCursor = class extends AbstractPage {
+      constructor(client, response, body, options) {
+        super(client, response, body, options);
+        this.data = body.data || [];
+        this.next_page = body.next_page || null;
+        this.prev_page = body.prev_page || null;
+      }
+      getPaginatedItems() {
+        return this.data ?? [];
+      }
+      nextPageRequestOptions() {
+        const cursor = this.next_page;
+        if (!cursor) {
+          return null;
+        }
+        return {
+          ...this.options,
+          query: {
+            ...maybeObj(this.options.query),
+            page: cursor
+          }
+        };
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/uploads.mjs
+function makeFile(fileBits, fileName, options) {
+  checkFileSupport();
+  return new File(fileBits, fileName ?? "unknown_file", options);
+}
+function getName(value, stripPath) {
+  const val = typeof value === "object" && value !== null && ("name" in value && value.name && String(value.name) || "url" in value && value.url && String(value.url) || "filename" in value && value.filename && String(value.filename) || "path" in value && value.path && String(value.path)) || "";
+  return stripPath ? val.split(/[\\/]/).pop() || void 0 : val;
+}
+function supportsFormData(fetchObject) {
+  const fetch2 = typeof fetchObject === "function" ? fetchObject : fetchObject.fetch;
+  const cached = supportsFormDataMap.get(fetch2);
+  if (cached)
+    return cached;
+  const promise = (async () => {
+    try {
+      const FetchResponse = "Response" in fetch2 ? fetch2.Response : (await fetch2("data:,")).constructor;
+      const data = new FormData();
+      if (data.toString() === await new FetchResponse(data).text()) {
+        return false;
+      }
+      return true;
+    } catch {
+      return true;
     }
-    q.write("payload.value = newResult;"), q.write("return payload;");
-    let O = q.compile();
-    return (A, R) => O(U, A, R);
-  }, J, W = K9, G = !J8.jitless, B = G && HX.value, z = X.catchall, K;
-  Q._zod.parse = (U, q) => {
-    K ?? (K = Y.value);
-    let V = U.value;
-    if (!W(V)) return U.issues.push({ expected: "object", code: "invalid_type", input: V, inst: Q }), U;
-    let L = [];
-    if (G && B && q?.async === false && q.jitless !== true) {
-      if (!J) J = $(X.shape);
-      U = J(U, q);
-    } else {
-      U.value = {};
-      let R = K.shape;
-      for (let Z of K.keys) {
-        let C = R[Z], B0 = C._zod.run({ value: V[Z], issues: [] }, q), O0 = C._zod.optin === "optional" && C._zod.optout === "optional";
-        if (B0 instanceof Promise) L.push(B0.then((d0) => O0 ? DW(d0, U, Z, V) : K8(d0, U, Z)));
-        else if (O0) DW(B0, U, Z, V);
-        else K8(B0, U, Z);
+  })();
+  supportsFormDataMap.set(fetch2, promise);
+  return promise;
+}
+var checkFileSupport, isAsyncIterable, multipartFormRequestOptions, supportsFormDataMap, createForm, isNamedBlob, addFormValue;
+var init_uploads = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/uploads.mjs"() {
+    init_shims();
+    checkFileSupport = () => {
+      if (typeof File === "undefined") {
+        const { process: process2 } = globalThis;
+        const isOldNode = typeof process2?.versions?.node === "string" && parseInt(process2.versions.node.split(".")) < 20;
+        throw new Error("`File` is not defined as a global, which is required for file uploads." + (isOldNode ? " Update to Node 20 LTS or newer, or set `globalThis.File` to `import('node:buffer').File`." : ""));
+      }
+    };
+    isAsyncIterable = (value) => value != null && typeof value === "object" && typeof value[Symbol.asyncIterator] === "function";
+    multipartFormRequestOptions = async (opts, fetch2, stripFilenames = true) => {
+      return { ...opts, body: await createForm(opts.body, fetch2, stripFilenames) };
+    };
+    supportsFormDataMap = /* @__PURE__ */ new WeakMap();
+    createForm = async (body, fetch2, stripFilenames = true) => {
+      if (!await supportsFormData(fetch2)) {
+        throw new TypeError("The provided fetch function does not support file uploads with the current global FormData class.");
+      }
+      const form = new FormData();
+      await Promise.all(Object.entries(body || {}).map(([key, value]) => addFormValue(form, key, value, stripFilenames)));
+      return form;
+    };
+    isNamedBlob = (value) => value instanceof Blob && "name" in value;
+    addFormValue = async (form, key, value, stripFilenames) => {
+      if (value === void 0)
+        return;
+      if (value == null) {
+        throw new TypeError(`Received null for "${key}"; to pass null in FormData, you must use the string 'null'`);
+      }
+      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+        form.append(key, String(value));
+      } else if (value instanceof Response) {
+        let options = {};
+        const contentType = value.headers.get("Content-Type");
+        if (contentType) {
+          options = { type: contentType };
+        }
+        form.append(key, makeFile([await value.blob()], getName(value, stripFilenames), options));
+      } else if (isAsyncIterable(value)) {
+        form.append(key, makeFile([await new Response(ReadableStreamFrom(value)).blob()], getName(value, stripFilenames)));
+      } else if (isNamedBlob(value)) {
+        form.append(key, makeFile([value], getName(value, stripFilenames), { type: value.type }));
+      } else if (Array.isArray(value)) {
+        await Promise.all(value.map((entry) => addFormValue(form, key + "[]", entry, stripFilenames)));
+      } else if (typeof value === "object") {
+        await Promise.all(Object.entries(value).map(([name, prop]) => addFormValue(form, `${key}[${name}]`, prop, stripFilenames)));
+      } else {
+        throw new TypeError(`Invalid value given to form, expected a string, number, boolean, object, Array, File or Blob but got ${value} instead`);
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/to-file.mjs
+async function toFile(value, name, options) {
+  checkFileSupport();
+  value = await value;
+  name || (name = getName(value, true));
+  if (isFileLike(value)) {
+    if (value instanceof File && name == null && options == null) {
+      return value;
+    }
+    return makeFile([await value.arrayBuffer()], name ?? value.name, {
+      type: value.type,
+      lastModified: value.lastModified,
+      ...options
+    });
+  }
+  if (isResponseLike(value)) {
+    const blob = await value.blob();
+    name || (name = new URL(value.url).pathname.split(/[\\/]/).pop());
+    return makeFile(await getBytes(blob), name, options);
+  }
+  const parts = await getBytes(value);
+  if (!options?.type) {
+    const type = parts.find((part) => typeof part === "object" && "type" in part && part.type);
+    if (typeof type === "string") {
+      options = { ...options, type };
+    }
+  }
+  return makeFile(parts, name, options);
+}
+async function getBytes(value) {
+  let parts = [];
+  if (typeof value === "string" || ArrayBuffer.isView(value) || // includes Uint8Array, Buffer, etc.
+  value instanceof ArrayBuffer) {
+    parts.push(value);
+  } else if (isBlobLike(value)) {
+    parts.push(value instanceof Blob ? value : await value.arrayBuffer());
+  } else if (isAsyncIterable(value)) {
+    for await (const chunk of value) {
+      parts.push(...await getBytes(chunk));
+    }
+  } else {
+    const constructor = value?.constructor?.name;
+    throw new Error(`Unexpected data type: ${typeof value}${constructor ? `; constructor: ${constructor}` : ""}${propsForError(value)}`);
+  }
+  return parts;
+}
+function propsForError(value) {
+  if (typeof value !== "object" || value === null)
+    return "";
+  const props = Object.getOwnPropertyNames(value);
+  return `; props: [${props.map((p) => `"${p}"`).join(", ")}]`;
+}
+var isBlobLike, isFileLike, isResponseLike;
+var init_to_file = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/to-file.mjs"() {
+    init_uploads();
+    init_uploads();
+    isBlobLike = (value) => value != null && typeof value === "object" && typeof value.size === "number" && typeof value.type === "string" && typeof value.text === "function" && typeof value.slice === "function" && typeof value.arrayBuffer === "function";
+    isFileLike = (value) => value != null && typeof value === "object" && typeof value.name === "string" && typeof value.lastModified === "number" && isBlobLike(value);
+    isResponseLike = (value) => value != null && typeof value === "object" && typeof value.url === "string" && typeof value.blob === "function";
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/core/uploads.mjs
+var init_uploads2 = __esm({
+  "node_modules/@anthropic-ai/sdk/core/uploads.mjs"() {
+    init_to_file();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/shared.mjs
+var init_shared = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/shared.mjs"() {
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/core/resource.mjs
+var APIResource;
+var init_resource = __esm({
+  "node_modules/@anthropic-ai/sdk/core/resource.mjs"() {
+    APIResource = class {
+      constructor(client) {
+        this._client = client;
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/headers.mjs
+function* iterateHeaders(headers) {
+  if (!headers)
+    return;
+  if (brand_privateNullableHeaders in headers) {
+    const { values, nulls } = headers;
+    yield* values.entries();
+    for (const name of nulls) {
+      yield [name, null];
+    }
+    return;
+  }
+  let shouldClear = false;
+  let iter;
+  if (headers instanceof Headers) {
+    iter = headers.entries();
+  } else if (isReadonlyArray(headers)) {
+    iter = headers;
+  } else {
+    shouldClear = true;
+    iter = Object.entries(headers ?? {});
+  }
+  for (let row of iter) {
+    const name = row[0];
+    if (typeof name !== "string")
+      throw new TypeError("expected header name to be a string");
+    const values = isReadonlyArray(row[1]) ? row[1] : [row[1]];
+    let didClear = false;
+    for (const value of values) {
+      if (value === void 0)
+        continue;
+      if (shouldClear && !didClear) {
+        didClear = true;
+        yield [name, clearSentinel];
+      }
+      yield [name, value];
+    }
+  }
+}
+var brand_privateNullableHeaders, clearSentinel, APPEND_HEADERS, appendHeaderValue, buildHeaders;
+var init_headers = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/headers.mjs"() {
+    init_values();
+    brand_privateNullableHeaders = /* @__PURE__ */ Symbol.for("brand.privateNullableHeaders");
+    clearSentinel = /* @__PURE__ */ Symbol("clear");
+    APPEND_HEADERS = /* @__PURE__ */ new Set(["x-stainless-helper"]);
+    appendHeaderValue = (existing, addition) => {
+      const tokens = existing ? existing.split(",").map((t) => t.trim()).filter(Boolean) : [];
+      for (const tok of addition.split(",").map((t) => t.trim())) {
+        if (tok && !tokens.includes(tok))
+          tokens.push(tok);
+      }
+      return tokens.join(", ");
+    };
+    buildHeaders = (newHeaders) => {
+      const targetHeaders = new Headers();
+      const nullHeaders = /* @__PURE__ */ new Set();
+      for (const headers of newHeaders) {
+        const seenHeaders = /* @__PURE__ */ new Set();
+        for (const [name, value] of iterateHeaders(headers)) {
+          const lowerName = name.toLowerCase();
+          if (APPEND_HEADERS.has(lowerName)) {
+            if (value === clearSentinel)
+              continue;
+            if (value === null) {
+              targetHeaders.delete(name);
+              nullHeaders.add(lowerName);
+            } else {
+              targetHeaders.set(name, appendHeaderValue(targetHeaders.get(name), value));
+              nullHeaders.delete(lowerName);
+            }
+            continue;
+          }
+          if (value === clearSentinel || !seenHeaders.has(lowerName)) {
+            targetHeaders.delete(name);
+            seenHeaders.add(lowerName);
+            if (value === clearSentinel)
+              continue;
+          }
+          if (value === null) {
+            targetHeaders.delete(name);
+            nullHeaders.add(lowerName);
+          } else {
+            targetHeaders.append(name, value);
+            nullHeaders.delete(lowerName);
+          }
+        }
+      }
+      return { [brand_privateNullableHeaders]: true, values: targetHeaders, nulls: nullHeaders };
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/utils/path.mjs
+function encodeURIPath(str) {
+  return str.replace(/[^A-Za-z0-9\-._~!$&'()*+,;=:@]+/g, encodeURIComponent);
+}
+var EMPTY, createPathTagFunction, path;
+var init_path = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/utils/path.mjs"() {
+    init_error();
+    EMPTY = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.create(null));
+    createPathTagFunction = (pathEncoder = encodeURIPath) => function path6(statics, ...params) {
+      if (statics.length === 1)
+        return statics[0];
+      let postPath = false;
+      const invalidSegments = [];
+      const path7 = statics.reduce((previousValue, currentValue, index) => {
+        if (/[?#]/.test(currentValue)) {
+          postPath = true;
+        }
+        const value = params[index];
+        let encoded = (postPath ? encodeURIComponent : pathEncoder)("" + value);
+        if (index !== params.length && (value == null || typeof value === "object" && // handle values from other realms
+        value.toString === Object.getPrototypeOf(Object.getPrototypeOf(value.hasOwnProperty ?? EMPTY) ?? EMPTY)?.toString)) {
+          encoded = value + "";
+          invalidSegments.push({
+            start: previousValue.length + currentValue.length,
+            length: encoded.length,
+            error: `Value of type ${Object.prototype.toString.call(value).slice(8, -1)} is not a valid path parameter`
+          });
+        }
+        return previousValue + currentValue + (index === params.length ? "" : encoded);
+      }, "");
+      const pathOnly = path7.split(/[?#]/, 1)[0];
+      const invalidSegmentPattern = /(?<=^|\/)(?:\.|%2e){1,2}(?=\/|$)/gi;
+      let match;
+      while ((match = invalidSegmentPattern.exec(pathOnly)) !== null) {
+        invalidSegments.push({
+          start: match.index,
+          length: match[0].length,
+          error: `Value "${match[0]}" can't be safely passed as a path parameter`
+        });
+      }
+      invalidSegments.sort((a, b) => a.start - b.start);
+      if (invalidSegments.length > 0) {
+        let lastEnd = 0;
+        const underline = invalidSegments.reduce((acc, segment) => {
+          const spaces = " ".repeat(segment.start - lastEnd);
+          const arrows = "^".repeat(segment.length);
+          lastEnd = segment.start + segment.length;
+          return acc + spaces + arrows;
+        }, "");
+        throw new AnthropicError(`Path parameters result in path with invalid segments:
+${invalidSegments.map((e) => e.error).join("\n")}
+${path7}
+${underline}`);
+      }
+      return path7;
+    };
+    path = /* @__PURE__ */ createPathTagFunction(encodeURIPath);
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/deployment-runs.mjs
+var DeploymentRuns;
+var init_deployment_runs = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/deployment-runs.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_path();
+    DeploymentRuns = class extends APIResource {
+      /**
+       * Get Deployment Run
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsDeploymentRun =
+       *   await client.beta.deploymentRuns.retrieve(
+       *     'deployment_run_id',
+       *   );
+       * ```
+       */
+      retrieve(deploymentRunID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/deployment_runs/${deploymentRunID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List Deployment Runs
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaManagedAgentsDeploymentRun of client.beta.deploymentRuns.list()) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList("/v1/deployment_runs?beta=true", PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/deployments.mjs
+var Deployments;
+var init_deployments = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/deployments.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_path();
+    Deployments = class extends APIResource {
+      /**
+       * Create Deployment
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsDeployment =
+       *   await client.beta.deployments.create({
+       *     agent: 'string',
+       *     environment_id: 'x',
+       *     initial_events: [
+       *       {
+       *         content: [
+       *           {
+       *             text: 'Where is my order #1234?',
+       *             type: 'text',
+       *           },
+       *         ],
+       *         type: 'user.message',
+       *       },
+       *     ],
+       *     name: 'x',
+       *   });
+       * ```
+       */
+      create(params, options) {
+        const { betas, ...body } = params;
+        return this._client.post("/v1/deployments?beta=true", {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Get Deployment
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsDeployment =
+       *   await client.beta.deployments.retrieve(
+       *     'depl_011CZkZcDH3vPqd7xnEfwTai',
+       *   );
+       * ```
+       */
+      retrieve(deploymentID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/deployments/${deploymentID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Update Deployment
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsDeployment =
+       *   await client.beta.deployments.update(
+       *     'depl_011CZkZcDH3vPqd7xnEfwTai',
+       *   );
+       * ```
+       */
+      update(deploymentID, params, options) {
+        const { betas, ...body } = params;
+        return this._client.post(path`/v1/deployments/${deploymentID}?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List Deployments
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaManagedAgentsDeployment of client.beta.deployments.list()) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList("/v1/deployments?beta=true", PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Archive Deployment
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsDeployment =
+       *   await client.beta.deployments.archive(
+       *     'depl_011CZkZcDH3vPqd7xnEfwTai',
+       *   );
+       * ```
+       */
+      archive(deploymentID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.post(path`/v1/deployments/${deploymentID}/archive?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Pause Deployment
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsDeployment =
+       *   await client.beta.deployments.pause(
+       *     'depl_011CZkZcDH3vPqd7xnEfwTai',
+       *   );
+       * ```
+       */
+      pause(deploymentID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.post(path`/v1/deployments/${deploymentID}/pause?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Run Deployment Now
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsDeploymentRun =
+       *   await client.beta.deployments.run(
+       *     'depl_011CZkZcDH3vPqd7xnEfwTai',
+       *   );
+       * ```
+       */
+      run(deploymentID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.post(path`/v1/deployments/${deploymentID}/run?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Unpause Deployment
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsDeployment =
+       *   await client.beta.deployments.unpause(
+       *     'depl_011CZkZcDH3vPqd7xnEfwTai',
+       *   );
+       * ```
+       */
+      unpause(deploymentID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.post(path`/v1/deployments/${deploymentID}/unpause?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/dreams.mjs
+var Dreams;
+var init_dreams = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/dreams.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_path();
+    Dreams = class extends APIResource {
+      /**
+       * Create a Dream
+       *
+       * @example
+       * ```ts
+       * const betaDream = await client.beta.dreams.create({
+       *   inputs: [{ memory_store_id: 'x', type: 'memory_store' }],
+       *   model: 'string',
+       * });
+       * ```
+       */
+      create(params, options) {
+        const { betas, ...body } = params;
+        return this._client.post("/v1/dreams?beta=true", {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "dreaming-2026-04-21"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Get a Dream
+       *
+       * @example
+       * ```ts
+       * const betaDream = await client.beta.dreams.retrieve(
+       *   'dream_id',
+       * );
+       * ```
+       */
+      retrieve(dreamID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/dreams/${dreamID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "dreaming-2026-04-21"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List Dreams
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaDream of client.beta.dreams.list()) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList("/v1/dreams?beta=true", PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "dreaming-2026-04-21"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Archive a Dream
+       *
+       * @example
+       * ```ts
+       * const betaDream = await client.beta.dreams.archive(
+       *   'dream_id',
+       * );
+       * ```
+       */
+      archive(dreamID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.post(path`/v1/dreams/${dreamID}/archive?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "dreaming-2026-04-21"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Cancel a Dream
+       *
+       * @example
+       * ```ts
+       * const betaDream = await client.beta.dreams.cancel(
+       *   'dream_id',
+       * );
+       * ```
+       */
+      cancel(dreamID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.post(path`/v1/dreams/${dreamID}/cancel?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "dreaming-2026-04-21"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/stainless-helper-header.mjs
+function helperHeader(value) {
+  return { [STAINLESS_HELPER_HEADER]: value };
+}
+function wasCreatedByStainlessHelper(value) {
+  return typeof value === "object" && value !== null && SDK_HELPER_SYMBOL in value;
+}
+function collectStainlessHelpers(tools, messages) {
+  const helpers = /* @__PURE__ */ new Set();
+  if (tools) {
+    for (const tool of tools) {
+      if (wasCreatedByStainlessHelper(tool)) {
+        helpers.add(tool[SDK_HELPER_SYMBOL]);
       }
     }
-    if (!z) return L.length ? Promise.all(L).then(() => U) : U;
-    let F = [], M = K.keySet, O = z._zod, A = O.def.type;
-    for (let R of Object.keys(V)) {
-      if (M.has(R)) continue;
-      if (A === "never") {
-        F.push(R);
+  }
+  if (messages) {
+    for (const message of messages) {
+      if (wasCreatedByStainlessHelper(message)) {
+        helpers.add(message[SDK_HELPER_SYMBOL]);
+      }
+      const content = message.content;
+      if (Array.isArray(content)) {
+        for (const block of content) {
+          if (wasCreatedByStainlessHelper(block)) {
+            helpers.add(block[SDK_HELPER_SYMBOL]);
+          }
+        }
+      }
+    }
+  }
+  return Array.from(helpers);
+}
+function stainlessHelperHeader(tools, messages) {
+  const helpers = collectStainlessHelpers(tools, messages);
+  if (helpers.length === 0)
+    return {};
+  return { [STAINLESS_HELPER_HEADER]: helpers.join(", ") };
+}
+function stainlessHelperHeaderFromFile(file) {
+  if (wasCreatedByStainlessHelper(file)) {
+    return { [STAINLESS_HELPER_HEADER]: file[SDK_HELPER_SYMBOL] };
+  }
+  return {};
+}
+var STAINLESS_HELPER_HEADER, STAINLESS_HELPER_METHOD_HEADER, SDK_HELPER_SYMBOL;
+var init_stainless_helper_header = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/stainless-helper-header.mjs"() {
+    STAINLESS_HELPER_HEADER = "x-stainless-helper";
+    STAINLESS_HELPER_METHOD_HEADER = "x-stainless-helper-method";
+    SDK_HELPER_SYMBOL = /* @__PURE__ */ Symbol("anthropic.sdk.stainlessHelper");
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/files.mjs
+var Files;
+var init_files = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/files.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_stainless_helper_header();
+    init_uploads();
+    init_path();
+    Files = class extends APIResource {
+      /**
+       * List Files
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const fileMetadata of client.beta.files.list()) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList("/v1/files?beta=true", Page, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "files-api-2025-04-14"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Delete File
+       *
+       * @example
+       * ```ts
+       * const deletedFile = await client.beta.files.delete(
+       *   'file_id',
+       * );
+       * ```
+       */
+      delete(fileID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.delete(path`/v1/files/${fileID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "files-api-2025-04-14"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Download File
+       *
+       * @example
+       * ```ts
+       * const response = await client.beta.files.download(
+       *   'file_id',
+       * );
+       *
+       * const content = await response.blob();
+       * console.log(content);
+       * ```
+       */
+      download(fileID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/files/${fileID}/content?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            {
+              "anthropic-beta": [...betas ?? [], "files-api-2025-04-14"].toString(),
+              Accept: "application/binary"
+            },
+            options?.headers
+          ]),
+          __binaryResponse: true
+        });
+      }
+      /**
+       * Get File Metadata
+       *
+       * @example
+       * ```ts
+       * const fileMetadata =
+       *   await client.beta.files.retrieveMetadata('file_id');
+       * ```
+       */
+      retrieveMetadata(fileID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/files/${fileID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "files-api-2025-04-14"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Upload File
+       *
+       * @example
+       * ```ts
+       * const fileMetadata = await client.beta.files.upload({
+       *   file: fs.createReadStream('path/to/file'),
+       * });
+       * ```
+       */
+      upload(params, options) {
+        const { betas, ...body } = params;
+        return this._client.post("/v1/files?beta=true", multipartFormRequestOptions({
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "files-api-2025-04-14"].toString() },
+            stainlessHelperHeaderFromFile(body.file),
+            options?.headers
+          ])
+        }, this._client));
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/models.mjs
+var Models;
+var init_models = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/models.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_path();
+    Models = class extends APIResource {
+      /**
+       * Get a specific model.
+       *
+       * The Models API response can be used to determine information about a specific
+       * model or resolve a model alias to a model ID.
+       *
+       * @example
+       * ```ts
+       * const betaModelInfo = await client.beta.models.retrieve(
+       *   'model_id',
+       * );
+       * ```
+       */
+      retrieve(modelID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/models/${modelID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { ...betas?.toString() != null ? { "anthropic-beta": betas?.toString() } : void 0 },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List available models.
+       *
+       * The Models API response can be used to determine which models are available for
+       * use in the API. More recently released models are listed first.
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaModelInfo of client.beta.models.list()) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList("/v1/models?beta=true", Page, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { ...betas?.toString() != null ? { "anthropic-beta": betas?.toString() } : void 0 },
+            options?.headers
+          ])
+        });
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/user-profiles.mjs
+var UserProfiles;
+var init_user_profiles = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/user-profiles.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_path();
+    UserProfiles = class extends APIResource {
+      /**
+       * Create User Profile
+       *
+       * @example
+       * ```ts
+       * const betaUserProfile =
+       *   await client.beta.userProfiles.create();
+       * ```
+       */
+      create(params, options) {
+        const { betas, ...body } = params;
+        return this._client.post("/v1/user_profiles?beta=true", {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "user-profiles-2026-03-24"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Get User Profile
+       *
+       * @example
+       * ```ts
+       * const betaUserProfile =
+       *   await client.beta.userProfiles.retrieve(
+       *     'uprof_011CZkZCu8hGbp5mYRQgUmz9',
+       *   );
+       * ```
+       */
+      retrieve(userProfileID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/user_profiles/${userProfileID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "user-profiles-2026-03-24"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Update User Profile
+       *
+       * @example
+       * ```ts
+       * const betaUserProfile =
+       *   await client.beta.userProfiles.update(
+       *     'uprof_011CZkZCu8hGbp5mYRQgUmz9',
+       *   );
+       * ```
+       */
+      update(userProfileID, params, options) {
+        const { betas, ...body } = params;
+        return this._client.post(path`/v1/user_profiles/${userProfileID}?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "user-profiles-2026-03-24"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List User Profiles
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaUserProfile of client.beta.userProfiles.list()) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList("/v1/user_profiles?beta=true", PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "user-profiles-2026-03-24"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Create Enrollment URL
+       *
+       * @example
+       * ```ts
+       * const betaUserProfileEnrollmentURL =
+       *   await client.beta.userProfiles.createEnrollmentURL(
+       *     'uprof_011CZkZCu8hGbp5mYRQgUmz9',
+       *   );
+       * ```
+       */
+      createEnrollmentURL(userProfileID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.post(path`/v1/user_profiles/${userProfileID}/enrollment_url?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "user-profiles-2026-03-24"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+  }
+});
+
+// node_modules/standardwebhooks/dist/timing_safe_equal.js
+var require_timing_safe_equal = __commonJS({
+  "node_modules/standardwebhooks/dist/timing_safe_equal.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.timingSafeEqual = void 0;
+    function assert(expr, msg = "") {
+      if (!expr) {
+        throw new Error(msg);
+      }
+    }
+    function timingSafeEqual(a, b) {
+      if (a.byteLength !== b.byteLength) {
+        return false;
+      }
+      if (!(a instanceof DataView)) {
+        a = new DataView(ArrayBuffer.isView(a) ? a.buffer : a);
+      }
+      if (!(b instanceof DataView)) {
+        b = new DataView(ArrayBuffer.isView(b) ? b.buffer : b);
+      }
+      assert(a instanceof DataView);
+      assert(b instanceof DataView);
+      const length = a.byteLength;
+      let out = 0;
+      let i = -1;
+      while (++i < length) {
+        out |= a.getUint8(i) ^ b.getUint8(i);
+      }
+      return out === 0;
+    }
+    exports.timingSafeEqual = timingSafeEqual;
+  }
+});
+
+// node_modules/@stablelib/base64/lib/base64.js
+var require_base64 = __commonJS({
+  "node_modules/@stablelib/base64/lib/base64.js"(exports) {
+    "use strict";
+    var __extends = exports && exports.__extends || /* @__PURE__ */ (function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
+          d2.__proto__ = b2;
+        } || function(d2, b2) {
+          for (var p in b2) if (b2.hasOwnProperty(p)) d2[p] = b2[p];
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    })();
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var INVALID_BYTE = 256;
+    var Coder = (
+      /** @class */
+      (function() {
+        function Coder2(_paddingCharacter) {
+          if (_paddingCharacter === void 0) {
+            _paddingCharacter = "=";
+          }
+          this._paddingCharacter = _paddingCharacter;
+        }
+        Coder2.prototype.encodedLength = function(length) {
+          if (!this._paddingCharacter) {
+            return (length * 8 + 5) / 6 | 0;
+          }
+          return (length + 2) / 3 * 4 | 0;
+        };
+        Coder2.prototype.encode = function(data) {
+          var out = "";
+          var i = 0;
+          for (; i < data.length - 2; i += 3) {
+            var c = data[i] << 16 | data[i + 1] << 8 | data[i + 2];
+            out += this._encodeByte(c >>> 3 * 6 & 63);
+            out += this._encodeByte(c >>> 2 * 6 & 63);
+            out += this._encodeByte(c >>> 1 * 6 & 63);
+            out += this._encodeByte(c >>> 0 * 6 & 63);
+          }
+          var left = data.length - i;
+          if (left > 0) {
+            var c = data[i] << 16 | (left === 2 ? data[i + 1] << 8 : 0);
+            out += this._encodeByte(c >>> 3 * 6 & 63);
+            out += this._encodeByte(c >>> 2 * 6 & 63);
+            if (left === 2) {
+              out += this._encodeByte(c >>> 1 * 6 & 63);
+            } else {
+              out += this._paddingCharacter || "";
+            }
+            out += this._paddingCharacter || "";
+          }
+          return out;
+        };
+        Coder2.prototype.maxDecodedLength = function(length) {
+          if (!this._paddingCharacter) {
+            return (length * 6 + 7) / 8 | 0;
+          }
+          return length / 4 * 3 | 0;
+        };
+        Coder2.prototype.decodedLength = function(s) {
+          return this.maxDecodedLength(s.length - this._getPaddingLength(s));
+        };
+        Coder2.prototype.decode = function(s) {
+          if (s.length === 0) {
+            return new Uint8Array(0);
+          }
+          var paddingLength = this._getPaddingLength(s);
+          var length = s.length - paddingLength;
+          var out = new Uint8Array(this.maxDecodedLength(length));
+          var op = 0;
+          var i = 0;
+          var haveBad = 0;
+          var v0 = 0, v1 = 0, v2 = 0, v3 = 0;
+          for (; i < length - 4; i += 4) {
+            v0 = this._decodeChar(s.charCodeAt(i + 0));
+            v1 = this._decodeChar(s.charCodeAt(i + 1));
+            v2 = this._decodeChar(s.charCodeAt(i + 2));
+            v3 = this._decodeChar(s.charCodeAt(i + 3));
+            out[op++] = v0 << 2 | v1 >>> 4;
+            out[op++] = v1 << 4 | v2 >>> 2;
+            out[op++] = v2 << 6 | v3;
+            haveBad |= v0 & INVALID_BYTE;
+            haveBad |= v1 & INVALID_BYTE;
+            haveBad |= v2 & INVALID_BYTE;
+            haveBad |= v3 & INVALID_BYTE;
+          }
+          if (i < length - 1) {
+            v0 = this._decodeChar(s.charCodeAt(i));
+            v1 = this._decodeChar(s.charCodeAt(i + 1));
+            out[op++] = v0 << 2 | v1 >>> 4;
+            haveBad |= v0 & INVALID_BYTE;
+            haveBad |= v1 & INVALID_BYTE;
+          }
+          if (i < length - 2) {
+            v2 = this._decodeChar(s.charCodeAt(i + 2));
+            out[op++] = v1 << 4 | v2 >>> 2;
+            haveBad |= v2 & INVALID_BYTE;
+          }
+          if (i < length - 3) {
+            v3 = this._decodeChar(s.charCodeAt(i + 3));
+            out[op++] = v2 << 6 | v3;
+            haveBad |= v3 & INVALID_BYTE;
+          }
+          if (haveBad !== 0) {
+            throw new Error("Base64Coder: incorrect characters for decoding");
+          }
+          return out;
+        };
+        Coder2.prototype._encodeByte = function(b) {
+          var result = b;
+          result += 65;
+          result += 25 - b >>> 8 & 0 - 65 - 26 + 97;
+          result += 51 - b >>> 8 & 26 - 97 - 52 + 48;
+          result += 61 - b >>> 8 & 52 - 48 - 62 + 43;
+          result += 62 - b >>> 8 & 62 - 43 - 63 + 47;
+          return String.fromCharCode(result);
+        };
+        Coder2.prototype._decodeChar = function(c) {
+          var result = INVALID_BYTE;
+          result += (42 - c & c - 44) >>> 8 & -INVALID_BYTE + c - 43 + 62;
+          result += (46 - c & c - 48) >>> 8 & -INVALID_BYTE + c - 47 + 63;
+          result += (47 - c & c - 58) >>> 8 & -INVALID_BYTE + c - 48 + 52;
+          result += (64 - c & c - 91) >>> 8 & -INVALID_BYTE + c - 65 + 0;
+          result += (96 - c & c - 123) >>> 8 & -INVALID_BYTE + c - 97 + 26;
+          return result;
+        };
+        Coder2.prototype._getPaddingLength = function(s) {
+          var paddingLength = 0;
+          if (this._paddingCharacter) {
+            for (var i = s.length - 1; i >= 0; i--) {
+              if (s[i] !== this._paddingCharacter) {
+                break;
+              }
+              paddingLength++;
+            }
+            if (s.length < 4 || paddingLength > 2) {
+              throw new Error("Base64Coder: incorrect padding");
+            }
+          }
+          return paddingLength;
+        };
+        return Coder2;
+      })()
+    );
+    exports.Coder = Coder;
+    var stdCoder = new Coder();
+    function encode2(data) {
+      return stdCoder.encode(data);
+    }
+    exports.encode = encode2;
+    function decode(s) {
+      return stdCoder.decode(s);
+    }
+    exports.decode = decode;
+    var URLSafeCoder = (
+      /** @class */
+      (function(_super) {
+        __extends(URLSafeCoder2, _super);
+        function URLSafeCoder2() {
+          return _super !== null && _super.apply(this, arguments) || this;
+        }
+        URLSafeCoder2.prototype._encodeByte = function(b) {
+          var result = b;
+          result += 65;
+          result += 25 - b >>> 8 & 0 - 65 - 26 + 97;
+          result += 51 - b >>> 8 & 26 - 97 - 52 + 48;
+          result += 61 - b >>> 8 & 52 - 48 - 62 + 45;
+          result += 62 - b >>> 8 & 62 - 45 - 63 + 95;
+          return String.fromCharCode(result);
+        };
+        URLSafeCoder2.prototype._decodeChar = function(c) {
+          var result = INVALID_BYTE;
+          result += (44 - c & c - 46) >>> 8 & -INVALID_BYTE + c - 45 + 62;
+          result += (94 - c & c - 96) >>> 8 & -INVALID_BYTE + c - 95 + 63;
+          result += (47 - c & c - 58) >>> 8 & -INVALID_BYTE + c - 48 + 52;
+          result += (64 - c & c - 91) >>> 8 & -INVALID_BYTE + c - 65 + 0;
+          result += (96 - c & c - 123) >>> 8 & -INVALID_BYTE + c - 97 + 26;
+          return result;
+        };
+        return URLSafeCoder2;
+      })(Coder)
+    );
+    exports.URLSafeCoder = URLSafeCoder;
+    var urlSafeCoder = new URLSafeCoder();
+    function encodeURLSafe(data) {
+      return urlSafeCoder.encode(data);
+    }
+    exports.encodeURLSafe = encodeURLSafe;
+    function decodeURLSafe(s) {
+      return urlSafeCoder.decode(s);
+    }
+    exports.decodeURLSafe = decodeURLSafe;
+    exports.encodedLength = function(length) {
+      return stdCoder.encodedLength(length);
+    };
+    exports.maxDecodedLength = function(length) {
+      return stdCoder.maxDecodedLength(length);
+    };
+    exports.decodedLength = function(s) {
+      return stdCoder.decodedLength(s);
+    };
+  }
+});
+
+// node_modules/fast-sha256/sha256.js
+var require_sha256 = __commonJS({
+  "node_modules/fast-sha256/sha256.js"(exports, module) {
+    (function(root, factory) {
+      var exports2 = {};
+      factory(exports2);
+      var sha256 = exports2["default"];
+      for (var k in exports2) {
+        sha256[k] = exports2[k];
+      }
+      if (typeof module === "object" && typeof module.exports === "object") {
+        module.exports = sha256;
+      } else if (typeof define === "function" && define.amd) {
+        define(function() {
+          return sha256;
+        });
+      } else {
+        root.sha256 = sha256;
+      }
+    })(exports, function(exports2) {
+      "use strict";
+      exports2.__esModule = true;
+      exports2.digestLength = 32;
+      exports2.blockSize = 64;
+      var K = new Uint32Array([
+        1116352408,
+        1899447441,
+        3049323471,
+        3921009573,
+        961987163,
+        1508970993,
+        2453635748,
+        2870763221,
+        3624381080,
+        310598401,
+        607225278,
+        1426881987,
+        1925078388,
+        2162078206,
+        2614888103,
+        3248222580,
+        3835390401,
+        4022224774,
+        264347078,
+        604807628,
+        770255983,
+        1249150122,
+        1555081692,
+        1996064986,
+        2554220882,
+        2821834349,
+        2952996808,
+        3210313671,
+        3336571891,
+        3584528711,
+        113926993,
+        338241895,
+        666307205,
+        773529912,
+        1294757372,
+        1396182291,
+        1695183700,
+        1986661051,
+        2177026350,
+        2456956037,
+        2730485921,
+        2820302411,
+        3259730800,
+        3345764771,
+        3516065817,
+        3600352804,
+        4094571909,
+        275423344,
+        430227734,
+        506948616,
+        659060556,
+        883997877,
+        958139571,
+        1322822218,
+        1537002063,
+        1747873779,
+        1955562222,
+        2024104815,
+        2227730452,
+        2361852424,
+        2428436474,
+        2756734187,
+        3204031479,
+        3329325298
+      ]);
+      function hashBlocks(w, v, p, pos, len) {
+        var a, b, c, d, e, f, g, h, u, i, j, t1, t2;
+        while (len >= 64) {
+          a = v[0];
+          b = v[1];
+          c = v[2];
+          d = v[3];
+          e = v[4];
+          f = v[5];
+          g = v[6];
+          h = v[7];
+          for (i = 0; i < 16; i++) {
+            j = pos + i * 4;
+            w[i] = (p[j] & 255) << 24 | (p[j + 1] & 255) << 16 | (p[j + 2] & 255) << 8 | p[j + 3] & 255;
+          }
+          for (i = 16; i < 64; i++) {
+            u = w[i - 2];
+            t1 = (u >>> 17 | u << 32 - 17) ^ (u >>> 19 | u << 32 - 19) ^ u >>> 10;
+            u = w[i - 15];
+            t2 = (u >>> 7 | u << 32 - 7) ^ (u >>> 18 | u << 32 - 18) ^ u >>> 3;
+            w[i] = (t1 + w[i - 7] | 0) + (t2 + w[i - 16] | 0);
+          }
+          for (i = 0; i < 64; i++) {
+            t1 = (((e >>> 6 | e << 32 - 6) ^ (e >>> 11 | e << 32 - 11) ^ (e >>> 25 | e << 32 - 25)) + (e & f ^ ~e & g) | 0) + (h + (K[i] + w[i] | 0) | 0) | 0;
+            t2 = ((a >>> 2 | a << 32 - 2) ^ (a >>> 13 | a << 32 - 13) ^ (a >>> 22 | a << 32 - 22)) + (a & b ^ a & c ^ b & c) | 0;
+            h = g;
+            g = f;
+            f = e;
+            e = d + t1 | 0;
+            d = c;
+            c = b;
+            b = a;
+            a = t1 + t2 | 0;
+          }
+          v[0] += a;
+          v[1] += b;
+          v[2] += c;
+          v[3] += d;
+          v[4] += e;
+          v[5] += f;
+          v[6] += g;
+          v[7] += h;
+          pos += 64;
+          len -= 64;
+        }
+        return pos;
+      }
+      var Hash = (
+        /** @class */
+        (function() {
+          function Hash2() {
+            this.digestLength = exports2.digestLength;
+            this.blockSize = exports2.blockSize;
+            this.state = new Int32Array(8);
+            this.temp = new Int32Array(64);
+            this.buffer = new Uint8Array(128);
+            this.bufferLength = 0;
+            this.bytesHashed = 0;
+            this.finished = false;
+            this.reset();
+          }
+          Hash2.prototype.reset = function() {
+            this.state[0] = 1779033703;
+            this.state[1] = 3144134277;
+            this.state[2] = 1013904242;
+            this.state[3] = 2773480762;
+            this.state[4] = 1359893119;
+            this.state[5] = 2600822924;
+            this.state[6] = 528734635;
+            this.state[7] = 1541459225;
+            this.bufferLength = 0;
+            this.bytesHashed = 0;
+            this.finished = false;
+            return this;
+          };
+          Hash2.prototype.clean = function() {
+            for (var i = 0; i < this.buffer.length; i++) {
+              this.buffer[i] = 0;
+            }
+            for (var i = 0; i < this.temp.length; i++) {
+              this.temp[i] = 0;
+            }
+            this.reset();
+          };
+          Hash2.prototype.update = function(data, dataLength) {
+            if (dataLength === void 0) {
+              dataLength = data.length;
+            }
+            if (this.finished) {
+              throw new Error("SHA256: can't update because hash was finished.");
+            }
+            var dataPos = 0;
+            this.bytesHashed += dataLength;
+            if (this.bufferLength > 0) {
+              while (this.bufferLength < 64 && dataLength > 0) {
+                this.buffer[this.bufferLength++] = data[dataPos++];
+                dataLength--;
+              }
+              if (this.bufferLength === 64) {
+                hashBlocks(this.temp, this.state, this.buffer, 0, 64);
+                this.bufferLength = 0;
+              }
+            }
+            if (dataLength >= 64) {
+              dataPos = hashBlocks(this.temp, this.state, data, dataPos, dataLength);
+              dataLength %= 64;
+            }
+            while (dataLength > 0) {
+              this.buffer[this.bufferLength++] = data[dataPos++];
+              dataLength--;
+            }
+            return this;
+          };
+          Hash2.prototype.finish = function(out) {
+            if (!this.finished) {
+              var bytesHashed = this.bytesHashed;
+              var left = this.bufferLength;
+              var bitLenHi = bytesHashed / 536870912 | 0;
+              var bitLenLo = bytesHashed << 3;
+              var padLength = bytesHashed % 64 < 56 ? 64 : 128;
+              this.buffer[left] = 128;
+              for (var i = left + 1; i < padLength - 8; i++) {
+                this.buffer[i] = 0;
+              }
+              this.buffer[padLength - 8] = bitLenHi >>> 24 & 255;
+              this.buffer[padLength - 7] = bitLenHi >>> 16 & 255;
+              this.buffer[padLength - 6] = bitLenHi >>> 8 & 255;
+              this.buffer[padLength - 5] = bitLenHi >>> 0 & 255;
+              this.buffer[padLength - 4] = bitLenLo >>> 24 & 255;
+              this.buffer[padLength - 3] = bitLenLo >>> 16 & 255;
+              this.buffer[padLength - 2] = bitLenLo >>> 8 & 255;
+              this.buffer[padLength - 1] = bitLenLo >>> 0 & 255;
+              hashBlocks(this.temp, this.state, this.buffer, 0, padLength);
+              this.finished = true;
+            }
+            for (var i = 0; i < 8; i++) {
+              out[i * 4 + 0] = this.state[i] >>> 24 & 255;
+              out[i * 4 + 1] = this.state[i] >>> 16 & 255;
+              out[i * 4 + 2] = this.state[i] >>> 8 & 255;
+              out[i * 4 + 3] = this.state[i] >>> 0 & 255;
+            }
+            return this;
+          };
+          Hash2.prototype.digest = function() {
+            var out = new Uint8Array(this.digestLength);
+            this.finish(out);
+            return out;
+          };
+          Hash2.prototype._saveState = function(out) {
+            for (var i = 0; i < this.state.length; i++) {
+              out[i] = this.state[i];
+            }
+          };
+          Hash2.prototype._restoreState = function(from, bytesHashed) {
+            for (var i = 0; i < this.state.length; i++) {
+              this.state[i] = from[i];
+            }
+            this.bytesHashed = bytesHashed;
+            this.finished = false;
+            this.bufferLength = 0;
+          };
+          return Hash2;
+        })()
+      );
+      exports2.Hash = Hash;
+      var HMAC = (
+        /** @class */
+        (function() {
+          function HMAC2(key) {
+            this.inner = new Hash();
+            this.outer = new Hash();
+            this.blockSize = this.inner.blockSize;
+            this.digestLength = this.inner.digestLength;
+            var pad = new Uint8Array(this.blockSize);
+            if (key.length > this.blockSize) {
+              new Hash().update(key).finish(pad).clean();
+            } else {
+              for (var i = 0; i < key.length; i++) {
+                pad[i] = key[i];
+              }
+            }
+            for (var i = 0; i < pad.length; i++) {
+              pad[i] ^= 54;
+            }
+            this.inner.update(pad);
+            for (var i = 0; i < pad.length; i++) {
+              pad[i] ^= 54 ^ 92;
+            }
+            this.outer.update(pad);
+            this.istate = new Uint32Array(8);
+            this.ostate = new Uint32Array(8);
+            this.inner._saveState(this.istate);
+            this.outer._saveState(this.ostate);
+            for (var i = 0; i < pad.length; i++) {
+              pad[i] = 0;
+            }
+          }
+          HMAC2.prototype.reset = function() {
+            this.inner._restoreState(this.istate, this.inner.blockSize);
+            this.outer._restoreState(this.ostate, this.outer.blockSize);
+            return this;
+          };
+          HMAC2.prototype.clean = function() {
+            for (var i = 0; i < this.istate.length; i++) {
+              this.ostate[i] = this.istate[i] = 0;
+            }
+            this.inner.clean();
+            this.outer.clean();
+          };
+          HMAC2.prototype.update = function(data) {
+            this.inner.update(data);
+            return this;
+          };
+          HMAC2.prototype.finish = function(out) {
+            if (this.outer.finished) {
+              this.outer.finish(out);
+            } else {
+              this.inner.finish(out);
+              this.outer.update(out, this.digestLength).finish(out);
+            }
+            return this;
+          };
+          HMAC2.prototype.digest = function() {
+            var out = new Uint8Array(this.digestLength);
+            this.finish(out);
+            return out;
+          };
+          return HMAC2;
+        })()
+      );
+      exports2.HMAC = HMAC;
+      function hash(data) {
+        var h = new Hash().update(data);
+        var digest = h.digest();
+        h.clean();
+        return digest;
+      }
+      exports2.hash = hash;
+      exports2["default"] = hash;
+      function hmac(key, data) {
+        var h = new HMAC(key).update(data);
+        var digest = h.digest();
+        h.clean();
+        return digest;
+      }
+      exports2.hmac = hmac;
+      function fillBuffer(buffer, hmac2, info, counter) {
+        var num = counter[0];
+        if (num === 0) {
+          throw new Error("hkdf: cannot expand more");
+        }
+        hmac2.reset();
+        if (num > 1) {
+          hmac2.update(buffer);
+        }
+        if (info) {
+          hmac2.update(info);
+        }
+        hmac2.update(counter);
+        hmac2.finish(buffer);
+        counter[0]++;
+      }
+      var hkdfSalt = new Uint8Array(exports2.digestLength);
+      function hkdf(key, salt, info, length) {
+        if (salt === void 0) {
+          salt = hkdfSalt;
+        }
+        if (length === void 0) {
+          length = 32;
+        }
+        var counter = new Uint8Array([1]);
+        var okm = hmac(salt, key);
+        var hmac_ = new HMAC(okm);
+        var buffer = new Uint8Array(hmac_.digestLength);
+        var bufpos = buffer.length;
+        var out = new Uint8Array(length);
+        for (var i = 0; i < length; i++) {
+          if (bufpos === buffer.length) {
+            fillBuffer(buffer, hmac_, info, counter);
+            bufpos = 0;
+          }
+          out[i] = buffer[bufpos++];
+        }
+        hmac_.clean();
+        buffer.fill(0);
+        counter.fill(0);
+        return out;
+      }
+      exports2.hkdf = hkdf;
+      function pbkdf2(password, salt, iterations, dkLen) {
+        var prf = new HMAC(password);
+        var len = prf.digestLength;
+        var ctr = new Uint8Array(4);
+        var t = new Uint8Array(len);
+        var u = new Uint8Array(len);
+        var dk = new Uint8Array(dkLen);
+        for (var i = 0; i * len < dkLen; i++) {
+          var c = i + 1;
+          ctr[0] = c >>> 24 & 255;
+          ctr[1] = c >>> 16 & 255;
+          ctr[2] = c >>> 8 & 255;
+          ctr[3] = c >>> 0 & 255;
+          prf.reset();
+          prf.update(salt);
+          prf.update(ctr);
+          prf.finish(u);
+          for (var j = 0; j < len; j++) {
+            t[j] = u[j];
+          }
+          for (var j = 2; j <= iterations; j++) {
+            prf.reset();
+            prf.update(u).finish(u);
+            for (var k = 0; k < len; k++) {
+              t[k] ^= u[k];
+            }
+          }
+          for (var j = 0; j < len && i * len + j < dkLen; j++) {
+            dk[i * len + j] = t[j];
+          }
+        }
+        for (var i = 0; i < len; i++) {
+          t[i] = u[i] = 0;
+        }
+        for (var i = 0; i < 4; i++) {
+          ctr[i] = 0;
+        }
+        prf.clean();
+        return dk;
+      }
+      exports2.pbkdf2 = pbkdf2;
+    });
+  }
+});
+
+// node_modules/standardwebhooks/dist/index.js
+var require_dist = __commonJS({
+  "node_modules/standardwebhooks/dist/index.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Webhook = exports.WebhookVerificationError = void 0;
+    var timing_safe_equal_1 = require_timing_safe_equal();
+    var base64 = require_base64();
+    var sha256 = require_sha256();
+    var WEBHOOK_TOLERANCE_IN_SECONDS = 5 * 60;
+    var ExtendableError = class _ExtendableError extends Error {
+      constructor(message) {
+        super(message);
+        Object.setPrototypeOf(this, _ExtendableError.prototype);
+        this.name = "ExtendableError";
+        this.stack = new Error(message).stack;
+      }
+    };
+    var WebhookVerificationError = class _WebhookVerificationError extends ExtendableError {
+      constructor(message) {
+        super(message);
+        Object.setPrototypeOf(this, _WebhookVerificationError.prototype);
+        this.name = "WebhookVerificationError";
+      }
+    };
+    exports.WebhookVerificationError = WebhookVerificationError;
+    var Webhook2 = class _Webhook {
+      constructor(secret, options) {
+        if (!secret) {
+          throw new Error("Secret can't be empty.");
+        }
+        if ((options === null || options === void 0 ? void 0 : options.format) === "raw") {
+          if (secret instanceof Uint8Array) {
+            this.key = secret;
+          } else {
+            this.key = Uint8Array.from(secret, (c) => c.charCodeAt(0));
+          }
+        } else {
+          if (typeof secret !== "string") {
+            throw new Error("Expected secret to be of type string");
+          }
+          if (secret.startsWith(_Webhook.prefix)) {
+            secret = secret.substring(_Webhook.prefix.length);
+          }
+          this.key = base64.decode(secret);
+        }
+      }
+      verify(payload, headers_) {
+        const headers = {};
+        for (const key of Object.keys(headers_)) {
+          headers[key.toLowerCase()] = headers_[key];
+        }
+        const msgId = headers["webhook-id"];
+        const msgSignature = headers["webhook-signature"];
+        const msgTimestamp = headers["webhook-timestamp"];
+        if (!msgSignature || !msgId || !msgTimestamp) {
+          throw new WebhookVerificationError("Missing required headers");
+        }
+        const timestamp = this.verifyTimestamp(msgTimestamp);
+        const computedSignature = this.sign(msgId, timestamp, payload);
+        const expectedSignature = computedSignature.split(",")[1];
+        const passedSignatures = msgSignature.split(" ");
+        const encoder2 = new globalThis.TextEncoder();
+        for (const versionedSignature of passedSignatures) {
+          const [version, signature] = versionedSignature.split(",");
+          if (version !== "v1") {
+            continue;
+          }
+          if ((0, timing_safe_equal_1.timingSafeEqual)(encoder2.encode(signature), encoder2.encode(expectedSignature))) {
+            return JSON.parse(payload.toString());
+          }
+        }
+        throw new WebhookVerificationError("No matching signature found");
+      }
+      sign(msgId, timestamp, payload) {
+        if (typeof payload === "string") {
+        } else if (payload.constructor.name === "Buffer") {
+          payload = payload.toString();
+        } else {
+          throw new Error("Expected payload to be of type string or Buffer.");
+        }
+        const encoder2 = new TextEncoder();
+        const timestampNumber = Math.floor(timestamp.getTime() / 1e3);
+        const toSign = encoder2.encode(`${msgId}.${timestampNumber}.${payload}`);
+        const expectedSignature = base64.encode(sha256.hmac(this.key, toSign));
+        return `v1,${expectedSignature}`;
+      }
+      verifyTimestamp(timestampHeader) {
+        const now = Math.floor(Date.now() / 1e3);
+        const timestamp = parseInt(timestampHeader, 10);
+        if (isNaN(timestamp)) {
+          throw new WebhookVerificationError("Invalid Signature Headers");
+        }
+        if (now - timestamp > WEBHOOK_TOLERANCE_IN_SECONDS) {
+          throw new WebhookVerificationError("Message timestamp too old");
+        }
+        if (timestamp > now + WEBHOOK_TOLERANCE_IN_SECONDS) {
+          throw new WebhookVerificationError("Message timestamp too new");
+        }
+        return new Date(timestamp * 1e3);
+      }
+    };
+    exports.Webhook = Webhook2;
+    Webhook2.prefix = "whsec_";
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/webhooks.mjs
+var import_standardwebhooks, Webhooks;
+var init_webhooks = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/webhooks.mjs"() {
+    init_resource();
+    import_standardwebhooks = __toESM(require_dist(), 1);
+    Webhooks = class extends APIResource {
+      unwrap(body, { headers, key }) {
+        if (headers !== void 0) {
+          const keyStr = key === void 0 ? this._client.webhookKey : key;
+          if (keyStr === null)
+            throw new Error("Webhook key must not be null in order to unwrap");
+          const wh = new import_standardwebhooks.Webhook(keyStr);
+          wh.verify(body, headers);
+        }
+        return JSON.parse(body);
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/agents/versions.mjs
+var Versions;
+var init_versions = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/agents/versions.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_path();
+    Versions = class extends APIResource {
+      /**
+       * List Agent Versions
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaManagedAgentsAgent of client.beta.agents.versions.list(
+       *   'agent_011CZkYpogX7uDKUyvBTophP',
+       * )) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(agentID, params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList(path`/v1/agents/${agentID}/versions?beta=true`, PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/agents/agents.mjs
+var Agents;
+var init_agents = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/agents/agents.mjs"() {
+    init_resource();
+    init_versions();
+    init_versions();
+    init_pagination();
+    init_headers();
+    init_path();
+    Agents = class extends APIResource {
+      constructor() {
+        super(...arguments);
+        this.versions = new Versions(this._client);
+      }
+      /**
+       * Create Agent
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsAgent =
+       *   await client.beta.agents.create({
+       *     model: 'claude-sonnet-4-6',
+       *     name: 'My First Agent',
+       *   });
+       * ```
+       */
+      create(params, options) {
+        const { betas, ...body } = params;
+        return this._client.post("/v1/agents?beta=true", {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Get Agent
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsAgent =
+       *   await client.beta.agents.retrieve(
+       *     'agent_011CZkYpogX7uDKUyvBTophP',
+       *   );
+       * ```
+       */
+      retrieve(agentID, params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.get(path`/v1/agents/${agentID}?beta=true`, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Update Agent
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsAgent =
+       *   await client.beta.agents.update(
+       *     'agent_011CZkYpogX7uDKUyvBTophP',
+       *     { description: 'updated' },
+       *   );
+       * ```
+       */
+      update(agentID, params, options) {
+        const { betas, ...body } = params;
+        return this._client.post(path`/v1/agents/${agentID}?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List Agents
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaManagedAgentsAgent of client.beta.agents.list()) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList("/v1/agents?beta=true", PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Archive Agent
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsAgent =
+       *   await client.beta.agents.archive(
+       *     'agent_011CZkYpogX7uDKUyvBTophP',
+       *   );
+       * ```
+       */
+      archive(agentID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.post(path`/v1/agents/${agentID}/archive?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+    Agents.Versions = Versions;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/utils/abort.mjs
+function linkAbort(external, controller) {
+  if (!external)
+    return () => {
+    };
+  if (external.aborted) {
+    controller.abort();
+    return () => {
+    };
+  }
+  const onAbort = () => controller.abort();
+  external.addEventListener("abort", onAbort);
+  return () => external.removeEventListener("abort", onAbort);
+}
+var init_abort = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/utils/abort.mjs"() {
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/utils/backoff.mjs
+function isStatus(e, code) {
+  return e instanceof APIError && e.status === code;
+}
+function is4xx(e) {
+  return e instanceof APIError && typeof e.status === "number" && e.status >= 400 && e.status < 500;
+}
+function isFatal4xx(e) {
+  return is4xx(e) && !isStatus(e, 408) && !isStatus(e, 409) && !isStatus(e, 429);
+}
+function backoff(attempt, baseMs, capMs) {
+  return Math.min(baseMs * 2 ** attempt, capMs);
+}
+function jitter(lowMs, highMs) {
+  return lowMs + Math.random() * (highMs - lowMs);
+}
+function applyJitter(ms) {
+  return ms * (1 - Math.random() * 0.25);
+}
+var init_backoff = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/utils/backoff.mjs"() {
+    init_error();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/helper-client.mjs
+function copyClientForHelper(client, { authToken, helper }) {
+  if (!authToken) {
+    throw new AnthropicError(`copyClientForHelper: expected a non-empty authToken but received ${JSON.stringify(authToken)}`);
+  }
+  const internal = client;
+  const parentDefaults = internal._options.defaultHeaders;
+  const parentAuthExtraHeaders = internal._authState?.extraHeaders;
+  const inheritedAuthExtraHeaders = parentAuthExtraHeaders ? Object.fromEntries(Object.entries(parentAuthExtraHeaders).filter(([name]) => {
+    const lower = name.toLowerCase();
+    return lower !== "authorization" && lower !== "x-api-key";
+  })) : void 0;
+  const defaultHeaders = buildHeaders([
+    inheritedAuthExtraHeaders,
+    parentDefaults,
+    { [STAINLESS_HELPER_HEADER]: helper }
+  ]);
+  return client.withOptions({
+    apiKey: null,
+    authToken,
+    baseURL: client.baseURL,
+    credentials: void 0,
+    defaultHeaders
+  });
+}
+var init_helper_client = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/helper-client.mjs"() {
+    init_error();
+    init_headers();
+    init_stainless_helper_header();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/environments/poller.mjs
+function backoff2(attempt) {
+  return backoff(attempt, POLL_BACKOFF_BASE_MS, POLL_BACKOFF_CAP_MS);
+}
+function defaultWorkerId() {
+  const env = globalThis.process?.env;
+  const host = env?.["HOSTNAME"];
+  return host ? `${host}-${uuid4()}` : uuid4();
+}
+var _WorkPoller_runnerClient, _WorkPoller_consumed, _WorkPoller_controller, _WorkPoller_detachExternal, _WorkPoller_autoStop, _WorkPoller_drain, _WorkPoller_blockMs, _WorkPoller_reclaimOlderThanMs, _WorkPoller_requestOpts, POLL_BLOCK_MS, POLL_BACKOFF_BASE_MS, POLL_BACKOFF_CAP_MS, WorkPoller;
+var init_poller = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/environments/poller.mjs"() {
+    init_tslib();
+    init_error();
+    init_log();
+    init_sleep();
+    init_uuid();
+    init_abort();
+    init_headers();
+    init_backoff();
+    init_helper_client();
+    init_backoff();
+    POLL_BLOCK_MS = 999;
+    POLL_BACKOFF_BASE_MS = 1e3;
+    POLL_BACKOFF_CAP_MS = 6e4;
+    WorkPoller = class {
+      constructor(opts) {
+        _WorkPoller_runnerClient.set(this, void 0);
+        _WorkPoller_consumed.set(this, false);
+        _WorkPoller_controller.set(this, void 0);
+        _WorkPoller_detachExternal.set(this, void 0);
+        _WorkPoller_autoStop.set(this, void 0);
+        _WorkPoller_drain.set(this, void 0);
+        _WorkPoller_blockMs.set(this, void 0);
+        _WorkPoller_reclaimOlderThanMs.set(this, void 0);
+        _WorkPoller_requestOpts.set(this, void 0);
+        this.client = opts.client;
+        this.environmentId = opts.environmentId;
+        this.environmentKey = opts.environmentKey;
+        this.workerId = opts.workerId ?? defaultWorkerId();
+        __classPrivateFieldSet(this, _WorkPoller_runnerClient, copyClientForHelper(opts.client, {
+          authToken: opts.environmentKey,
+          helper: "environments-work-poller"
+        }), "f");
+        __classPrivateFieldSet(this, _WorkPoller_autoStop, opts.autoStop ?? true, "f");
+        __classPrivateFieldSet(this, _WorkPoller_drain, opts.drain ?? false, "f");
+        __classPrivateFieldSet(this, _WorkPoller_blockMs, opts.blockMs === void 0 ? POLL_BLOCK_MS : opts.blockMs, "f");
+        __classPrivateFieldSet(this, _WorkPoller_reclaimOlderThanMs, opts.reclaimOlderThanMs ?? null, "f");
+        __classPrivateFieldSet(this, _WorkPoller_requestOpts, opts.requestOptions, "f");
+        __classPrivateFieldSet(this, _WorkPoller_controller, new AbortController(), "f");
+        __classPrivateFieldSet(this, _WorkPoller_detachExternal, linkAbort(opts.signal, __classPrivateFieldGet(this, _WorkPoller_controller, "f")), "f");
+      }
+      /** Read-only view of this iterator's abort signal. */
+      get signal() {
+        return __classPrivateFieldGet(this, _WorkPoller_controller, "f").signal;
+      }
+      /** Abort the iterator. The current `for await` will exit cleanly. */
+      abort() {
+        __classPrivateFieldGet(this, _WorkPoller_controller, "f").abort();
+      }
+      async *[(_WorkPoller_runnerClient = /* @__PURE__ */ new WeakMap(), _WorkPoller_consumed = /* @__PURE__ */ new WeakMap(), _WorkPoller_controller = /* @__PURE__ */ new WeakMap(), _WorkPoller_detachExternal = /* @__PURE__ */ new WeakMap(), _WorkPoller_autoStop = /* @__PURE__ */ new WeakMap(), _WorkPoller_drain = /* @__PURE__ */ new WeakMap(), _WorkPoller_blockMs = /* @__PURE__ */ new WeakMap(), _WorkPoller_reclaimOlderThanMs = /* @__PURE__ */ new WeakMap(), _WorkPoller_requestOpts = /* @__PURE__ */ new WeakMap(), Symbol.asyncIterator)]() {
+        if (__classPrivateFieldGet(this, _WorkPoller_consumed, "f")) {
+          throw new AnthropicError("Cannot iterate over a consumed WorkPoller");
+        }
+        __classPrivateFieldSet(this, _WorkPoller_consumed, true, "f");
+        const log = loggerFor(this.client);
+        log.info("poller starting", {
+          component: "work-poller",
+          environment_id: this.environmentId
+        });
+        try {
+          let attempt = 0;
+          while (!__classPrivateFieldGet(this, _WorkPoller_controller, "f").signal.aborted) {
+            let work;
+            try {
+              work = await __classPrivateFieldGet(this, _WorkPoller_runnerClient, "f").beta.environments.work.poll(this.environmentId, {
+                "Anthropic-Worker-ID": this.workerId,
+                ...__classPrivateFieldGet(this, _WorkPoller_blockMs, "f") !== null ? { block_ms: __classPrivateFieldGet(this, _WorkPoller_blockMs, "f") } : {},
+                ...__classPrivateFieldGet(this, _WorkPoller_reclaimOlderThanMs, "f") !== null ? { reclaim_older_than_ms: __classPrivateFieldGet(this, _WorkPoller_reclaimOlderThanMs, "f") } : {}
+              }, { headers: buildHeaders([__classPrivateFieldGet(this, _WorkPoller_requestOpts, "f")?.headers]), signal: __classPrivateFieldGet(this, _WorkPoller_controller, "f").signal });
+            } catch (e) {
+              if (__classPrivateFieldGet(this, _WorkPoller_controller, "f").signal.aborted)
+                return;
+              if (isFatal4xx(e)) {
+                log.error("poll failed permanently, stopping poller", { error: String(e) });
+                throw e;
+              }
+              const wait = applyJitter(backoff2(attempt));
+              log.warn("poll failed, backing off", { error: String(e), backoff_ms: wait });
+              attempt++;
+              await sleep(wait, __classPrivateFieldGet(this, _WorkPoller_controller, "f").signal);
+              continue;
+            }
+            attempt = 0;
+            if (work == null) {
+              if (__classPrivateFieldGet(this, _WorkPoller_drain, "f"))
+                return;
+              await sleep(jitter(1e3, 3e3), __classPrivateFieldGet(this, _WorkPoller_controller, "f").signal);
+              continue;
+            }
+            log.info("claimed work", {
+              component: "work-poller",
+              environment_id: this.environmentId,
+              work_id: work.id,
+              work_type: work.data.type
+            });
+            try {
+              await __classPrivateFieldGet(this, _WorkPoller_runnerClient, "f").beta.environments.work.ack(work.id, { environment_id: work.environment_id }, { headers: buildHeaders([__classPrivateFieldGet(this, _WorkPoller_requestOpts, "f")?.headers]), signal: __classPrivateFieldGet(this, _WorkPoller_controller, "f").signal });
+            } catch (e) {
+              log.error("ack failed", { work_id: work.id, error: String(e) });
+              continue;
+            }
+            try {
+              yield work;
+            } finally {
+              if (__classPrivateFieldGet(this, _WorkPoller_autoStop, "f")) {
+                try {
+                  await __classPrivateFieldGet(this, _WorkPoller_runnerClient, "f").beta.environments.work.stop(work.id, { environment_id: work.environment_id }, { headers: buildHeaders([__classPrivateFieldGet(this, _WorkPoller_requestOpts, "f")?.headers]) });
+                } catch (e) {
+                  if (!isStatus(e, 409))
+                    log.warn("stop failed", { work_id: work.id, error: String(e) });
+                }
+              }
+            }
+          }
+        } finally {
+          __classPrivateFieldGet(this, _WorkPoller_detachExternal, "f").call(this);
+        }
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/utils/async-queue.mjs
+var _AsyncQueue_items, _AsyncQueue_waiters, _AsyncQueue_closed, AsyncQueue;
+var init_async_queue = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/utils/async-queue.mjs"() {
+    init_tslib();
+    AsyncQueue = class {
+      constructor() {
+        _AsyncQueue_items.set(this, []);
+        _AsyncQueue_waiters.set(this, []);
+        _AsyncQueue_closed.set(this, false);
+      }
+      /** Enqueue an item, or hand it directly to a waiting reader. Returns `false` once closed. */
+      push(item) {
+        if (__classPrivateFieldGet(this, _AsyncQueue_closed, "f"))
+          return false;
+        const w = __classPrivateFieldGet(this, _AsyncQueue_waiters, "f").shift();
+        if (w)
+          w({ done: false, value: item });
+        else
+          __classPrivateFieldGet(this, _AsyncQueue_items, "f").push(item);
+        return true;
+      }
+      /** Mark the queue done. Idempotent; wakes every pending reader with `done: true`. */
+      close() {
+        if (__classPrivateFieldGet(this, _AsyncQueue_closed, "f"))
+          return;
+        __classPrivateFieldSet(this, _AsyncQueue_closed, true, "f");
+        while (__classPrivateFieldGet(this, _AsyncQueue_waiters, "f").length > 0) {
+          const w = __classPrivateFieldGet(this, _AsyncQueue_waiters, "f").shift();
+          w({ done: true, value: void 0 });
+        }
+      }
+      /**
+       * Resolve with the next item, or `done: true` once the queue is closed and
+       * drained. When `signal` is supplied, aborting it resolves a pending read
+       * with `done: true` (cancellation is pushed down here rather than handled by
+       * an outer `Promise.race`).
+       */
+      next(signal) {
+        if (__classPrivateFieldGet(this, _AsyncQueue_items, "f").length > 0) {
+          return Promise.resolve({ done: false, value: __classPrivateFieldGet(this, _AsyncQueue_items, "f").shift() });
+        }
+        if (__classPrivateFieldGet(this, _AsyncQueue_closed, "f") || signal?.aborted) {
+          return Promise.resolve({ done: true, value: void 0 });
+        }
+        return new Promise((resolve4) => {
+          const waiter = (r) => {
+            signal?.removeEventListener("abort", onAbort);
+            resolve4(r);
+          };
+          const onAbort = () => {
+            const idx = __classPrivateFieldGet(this, _AsyncQueue_waiters, "f").indexOf(waiter);
+            if (idx >= 0)
+              __classPrivateFieldGet(this, _AsyncQueue_waiters, "f").splice(idx, 1);
+            resolve4({ done: true, value: void 0 });
+          };
+          __classPrivateFieldGet(this, _AsyncQueue_waiters, "f").push(waiter);
+          signal?.addEventListener("abort", onAbort, { once: true });
+        });
+      }
+      /** Synchronously remove and return the next buffered item, or `undefined` if empty. */
+      tryShift() {
+        return __classPrivateFieldGet(this, _AsyncQueue_items, "f").shift();
+      }
+    };
+    _AsyncQueue_items = /* @__PURE__ */ new WeakMap(), _AsyncQueue_waiters = /* @__PURE__ */ new WeakMap(), _AsyncQueue_closed = /* @__PURE__ */ new WeakMap();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/tools/ToolError.mjs
+var ToolError;
+var init_ToolError = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/tools/ToolError.mjs"() {
+    ToolError = class extends Error {
+      constructor(content) {
+        const message = typeof content === "string" ? content : content.map((block) => {
+          if (block.type === "text")
+            return block.text;
+          return `[${block.type}]`;
+        }).join(" ");
+        super(message);
+        this.name = "ToolError";
+        this.content = content;
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/tools/BetaRunnableTool.mjs
+function toolName(tool) {
+  return "name" in tool ? tool.name : tool.mcp_server_name;
+}
+function toolErrorContent(e) {
+  return e instanceof ToolError ? e.content : `Error: ${e instanceof Error ? e.message : String(e)}`;
+}
+async function runRunnableTool(tool, rawInput, context) {
+  try {
+    const input = tool.parse ? tool.parse(rawInput) : rawInput;
+    const content = await tool.run(input, context);
+    return { content, isError: false };
+  } catch (e) {
+    return { content: toolErrorContent(e), isError: true };
+  }
+}
+var init_BetaRunnableTool = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/tools/BetaRunnableTool.mjs"() {
+    init_ToolError();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/tools/SessionToolRunner.mjs
+function isEndTurnIdle(ev) {
+  return ev.type === "session.status_idle" && ev.stop_reason?.type === "end_turn";
+}
+function buildResultEvent(ev, isError, content) {
+  if (ev.type === "agent.custom_tool_use") {
+    return { type: "user.custom_tool_result", custom_tool_use_id: ev.id, is_error: isError, content };
+  }
+  return { type: "user.tool_result", tool_use_id: ev.id, is_error: isError, content };
+}
+function toSessionContent(content) {
+  if (typeof content === "string")
+    return [{ type: "text", text: content || "(no output)" }];
+  const out = content.map((b) => {
+    if (b.type === "text")
+      return { type: "text", text: b.text || "(no output)" };
+    if (b.type === "image" || b.type === "document")
+      return b;
+    if (b.type === "search_result") {
+      return {
+        type: "search_result",
+        source: b.source,
+        title: b.title,
+        content: b.content.map((c) => ({ type: "text", text: c.text })),
+        citations: { enabled: b.citations?.enabled ?? false }
+      };
+    }
+    return { type: "text", text: JSON.stringify(b) };
+  });
+  return out.length > 0 ? out : [{ type: "text", text: "(no output)" }];
+}
+var _IdleClock_maxIdleMs, _IdleClock_onExpire, _IdleClock_blockers, _IdleClock_armPending, _IdleClock_timer, _SessionToolRunner_instances, _SessionToolRunner_consumed, _SessionToolRunner_controller, _SessionToolRunner_detachExternal, _SessionToolRunner_requestOpts, _SessionToolRunner_toolByName, _SessionToolRunner_logger, _SessionToolRunner_seen, _SessionToolRunner_answered, _SessionToolRunner_confirmationVerdicts, _SessionToolRunner_awaitingConfirmation, _SessionToolRunner_results, _SessionToolRunner_inFlightCount, _SessionToolRunner_onIdle, _SessionToolRunner_idleClock, _SessionToolRunner_requestOptions, _SessionToolRunner_streamLoop, _SessionToolRunner_reconcile, _SessionToolRunner_ingestHistory, _SessionToolRunner_handleStreamEvent, _SessionToolRunner_routeToolEvent, _SessionToolRunner_noteConfirmation, _SessionToolRunner_applyVerdict, _SessionToolRunner_surfaceCall, _SessionToolRunner_execute, _SessionToolRunner_sendResult, _SessionToolRunner_drain, STREAM_BACKOFF_START_MS, STREAM_BACKOFF_CAP_MS, TOOL_TIMEOUT_MS, DRAIN_TIMEOUT_MS, SEND_RETRIES, DEFAULT_MAX_IDLE_MS, IdleClock, SessionToolRunner;
+var init_SessionToolRunner = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/tools/SessionToolRunner.mjs"() {
+    init_tslib();
+    init_error();
+    init_log();
+    init_sleep();
+    init_backoff();
+    init_abort();
+    init_async_queue();
+    init_headers();
+    init_stainless_helper_header();
+    init_BetaRunnableTool();
+    STREAM_BACKOFF_START_MS = 500;
+    STREAM_BACKOFF_CAP_MS = 1e4;
+    TOOL_TIMEOUT_MS = 12e4;
+    DRAIN_TIMEOUT_MS = 3e4;
+    SEND_RETRIES = 3;
+    DEFAULT_MAX_IDLE_MS = 6e4;
+    IdleClock = class {
+      constructor(maxIdleMs, onExpire) {
+        _IdleClock_maxIdleMs.set(this, void 0);
+        _IdleClock_onExpire.set(this, void 0);
+        _IdleClock_blockers.set(this, /* @__PURE__ */ new Set());
+        _IdleClock_armPending.set(this, false);
+        _IdleClock_timer.set(this, void 0);
+        __classPrivateFieldSet(this, _IdleClock_maxIdleMs, maxIdleMs, "f");
+        __classPrivateFieldSet(this, _IdleClock_onExpire, onExpire, "f");
+      }
+      /**
+       * Arm on `status_idle{end_turn}`; disarm otherwise. `user.tool_confirmation`
+       * is neutral: it signals neither agent activity nor an idle, and its effect
+       * on the clock flows through {@link block} / {@link unblock} instead —
+       * disarming here would discard the pending arm the verdict is about to
+       * settle.
+       */
+      noteEvent(ev) {
+        if (ev.type === "user.tool_confirmation")
+          return;
+        if (isEndTurnIdle(ev))
+          this.arm();
+        else
+          this.disarm();
+      }
+      /** Register gated work that must resolve before an idle countdown starts. */
+      block(toolUseId) {
+        __classPrivateFieldGet(this, _IdleClock_blockers, "f").add(toolUseId);
+        if (__classPrivateFieldGet(this, _IdleClock_timer, "f") !== void 0) {
+          __classPrivateFieldSet(this, _IdleClock_armPending, true, "f");
+          clearTimeout(__classPrivateFieldGet(this, _IdleClock_timer, "f"));
+          __classPrivateFieldSet(this, _IdleClock_timer, void 0, "f");
+        }
+      }
+      /**
+       * Retire gated work (a no-op for ids never blocked); applies a pending arm —
+       * with a fresh full `maxIdleMs` window — once the last blocker retires.
+       */
+      unblock(toolUseId) {
+        __classPrivateFieldGet(this, _IdleClock_blockers, "f").delete(toolUseId);
+        if (__classPrivateFieldGet(this, _IdleClock_blockers, "f").size === 0 && __classPrivateFieldGet(this, _IdleClock_armPending, "f"))
+          this.arm();
+      }
+      /**
+       * (Re)start the idle countdown — or, while blockers are outstanding, hold
+       * the arm pending instead. Stopping then would drop a held call when its
+       * verdict later arrives, or cut the runner off before a released call's
+       * result can drive the next turn.
+       */
+      arm() {
+        if (__classPrivateFieldGet(this, _IdleClock_maxIdleMs, "f") <= 0)
+          return;
+        if (__classPrivateFieldGet(this, _IdleClock_blockers, "f").size > 0) {
+          __classPrivateFieldSet(this, _IdleClock_armPending, true, "f");
+          return;
+        }
+        __classPrivateFieldSet(this, _IdleClock_armPending, false, "f");
+        if (__classPrivateFieldGet(this, _IdleClock_timer, "f") !== void 0)
+          clearTimeout(__classPrivateFieldGet(this, _IdleClock_timer, "f"));
+        __classPrivateFieldSet(this, _IdleClock_timer, setTimeout(__classPrivateFieldGet(this, _IdleClock_onExpire, "f"), __classPrivateFieldGet(this, _IdleClock_maxIdleMs, "f")), "f");
+      }
+      /**
+       * Cancel the idle countdown and any pending arm. Blockers persist — they
+       * track real outstanding work, retired only by {@link unblock}.
+       */
+      disarm() {
+        __classPrivateFieldSet(this, _IdleClock_armPending, false, "f");
+        if (__classPrivateFieldGet(this, _IdleClock_timer, "f") !== void 0) {
+          clearTimeout(__classPrivateFieldGet(this, _IdleClock_timer, "f"));
+          __classPrivateFieldSet(this, _IdleClock_timer, void 0, "f");
+        }
+      }
+    };
+    _IdleClock_maxIdleMs = /* @__PURE__ */ new WeakMap(), _IdleClock_onExpire = /* @__PURE__ */ new WeakMap(), _IdleClock_blockers = /* @__PURE__ */ new WeakMap(), _IdleClock_armPending = /* @__PURE__ */ new WeakMap(), _IdleClock_timer = /* @__PURE__ */ new WeakMap();
+    SessionToolRunner = class {
+      constructor(sessionId, opts) {
+        _SessionToolRunner_instances.add(this);
+        _SessionToolRunner_consumed.set(this, false);
+        _SessionToolRunner_controller.set(this, void 0);
+        _SessionToolRunner_detachExternal.set(this, void 0);
+        _SessionToolRunner_requestOpts.set(this, void 0);
+        _SessionToolRunner_toolByName.set(this, void 0);
+        _SessionToolRunner_logger.set(this, void 0);
+        _SessionToolRunner_seen.set(this, /* @__PURE__ */ new Set());
+        _SessionToolRunner_answered.set(this, /* @__PURE__ */ new Set());
+        _SessionToolRunner_confirmationVerdicts.set(this, /* @__PURE__ */ new Map());
+        _SessionToolRunner_awaitingConfirmation.set(this, /* @__PURE__ */ new Map());
+        _SessionToolRunner_results.set(this, new AsyncQueue());
+        _SessionToolRunner_inFlightCount.set(this, 0);
+        _SessionToolRunner_onIdle.set(this, null);
+        _SessionToolRunner_idleClock.set(this, void 0);
+        this.client = opts.client;
+        this.sessionId = sessionId;
+        this.tools = opts.tools;
+        this.maxIdleMs = opts.maxIdleMs ?? DEFAULT_MAX_IDLE_MS;
+        __classPrivateFieldSet(this, _SessionToolRunner_logger, loggerFor(opts.client), "f");
+        __classPrivateFieldSet(this, _SessionToolRunner_toolByName, new Map(opts.tools.map((t) => [toolName(t), t])), "f");
+        __classPrivateFieldSet(this, _SessionToolRunner_controller, new AbortController(), "f");
+        __classPrivateFieldSet(this, _SessionToolRunner_detachExternal, linkAbort(opts.signal, __classPrivateFieldGet(this, _SessionToolRunner_controller, "f")), "f");
+        __classPrivateFieldSet(this, _SessionToolRunner_requestOpts, opts.requestOptions, "f");
+        __classPrivateFieldSet(this, _SessionToolRunner_idleClock, new IdleClock(this.maxIdleMs, () => {
+          __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").info("session idle after end_turn; stopping", {
+            component: "session-tool-runner",
+            session_id: this.sessionId,
+            max_idle_ms: this.maxIdleMs
+          });
+          __classPrivateFieldGet(this, _SessionToolRunner_controller, "f").abort();
+        }), "f");
+      }
+      /** Read-only view of this runner's abort signal. */
+      get signal() {
+        return __classPrivateFieldGet(this, _SessionToolRunner_controller, "f").signal;
+      }
+      /** Abort the runner. Background tasks will wind down and `for await` will exit cleanly. */
+      abort() {
+        __classPrivateFieldGet(this, _SessionToolRunner_controller, "f").abort();
+      }
+      async *[(_SessionToolRunner_consumed = /* @__PURE__ */ new WeakMap(), _SessionToolRunner_controller = /* @__PURE__ */ new WeakMap(), _SessionToolRunner_detachExternal = /* @__PURE__ */ new WeakMap(), _SessionToolRunner_requestOpts = /* @__PURE__ */ new WeakMap(), _SessionToolRunner_toolByName = /* @__PURE__ */ new WeakMap(), _SessionToolRunner_logger = /* @__PURE__ */ new WeakMap(), _SessionToolRunner_seen = /* @__PURE__ */ new WeakMap(), _SessionToolRunner_answered = /* @__PURE__ */ new WeakMap(), _SessionToolRunner_confirmationVerdicts = /* @__PURE__ */ new WeakMap(), _SessionToolRunner_awaitingConfirmation = /* @__PURE__ */ new WeakMap(), _SessionToolRunner_results = /* @__PURE__ */ new WeakMap(), _SessionToolRunner_inFlightCount = /* @__PURE__ */ new WeakMap(), _SessionToolRunner_onIdle = /* @__PURE__ */ new WeakMap(), _SessionToolRunner_idleClock = /* @__PURE__ */ new WeakMap(), _SessionToolRunner_instances = /* @__PURE__ */ new WeakSet(), Symbol.asyncIterator)]() {
+        if (__classPrivateFieldGet(this, _SessionToolRunner_consumed, "f")) {
+          throw new AnthropicError("Cannot iterate over a consumed SessionToolRunner");
+        }
+        __classPrivateFieldSet(this, _SessionToolRunner_consumed, true, "f");
+        __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").info("session tool runner starting", {
+          component: "session-tool-runner",
+          session_id: this.sessionId
+        });
+        const streamPromise = __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_streamLoop).call(this).catch((e) => {
+          if (!__classPrivateFieldGet(this, _SessionToolRunner_controller, "f").signal.aborted) {
+            __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").error("stream loop failed", { error: String(e) });
+          }
+          __classPrivateFieldGet(this, _SessionToolRunner_controller, "f").abort();
+        });
+        try {
+          while (true) {
+            const next = await __classPrivateFieldGet(this, _SessionToolRunner_results, "f").next(__classPrivateFieldGet(this, _SessionToolRunner_controller, "f").signal);
+            if (next.done)
+              break;
+            yield next.value;
+          }
+          await streamPromise;
+          let pending;
+          while ((pending = __classPrivateFieldGet(this, _SessionToolRunner_results, "f").tryShift()) !== void 0) {
+            yield pending;
+          }
+        } finally {
+          __classPrivateFieldGet(this, _SessionToolRunner_controller, "f").abort();
+          __classPrivateFieldGet(this, _SessionToolRunner_idleClock, "f").disarm();
+          await streamPromise;
+          try {
+            await __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_drain).call(this);
+          } catch (e) {
+            __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").warn("drain failed", { error: String(e) });
+          }
+          __classPrivateFieldGet(this, _SessionToolRunner_results, "f").close();
+          for (const t of this.tools) {
+            try {
+              await t.close?.();
+            } catch (e) {
+              __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").warn("tool.close failed", { tool: toolName(t), error: String(e) });
+            }
+          }
+          __classPrivateFieldGet(this, _SessionToolRunner_detachExternal, "f").call(this);
+        }
+      }
+    };
+    _SessionToolRunner_requestOptions = function _SessionToolRunner_requestOptions2() {
+      return {
+        ...__classPrivateFieldGet(this, _SessionToolRunner_requestOpts, "f"),
+        headers: buildHeaders([helperHeader("session-tool-runner"), __classPrivateFieldGet(this, _SessionToolRunner_requestOpts, "f")?.headers]),
+        signal: __classPrivateFieldGet(this, _SessionToolRunner_controller, "f").signal
+      };
+    }, _SessionToolRunner_streamLoop = // ===== event stream =====
+    async function _SessionToolRunner_streamLoop2() {
+      const ctrl = __classPrivateFieldGet(this, _SessionToolRunner_controller, "f");
+      let backoff3 = STREAM_BACKOFF_START_MS;
+      while (!ctrl.signal.aborted) {
+        try {
+          const stream = await this.client.beta.sessions.events.stream(this.sessionId, {}, __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_requestOptions).call(this));
+          await __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_reconcile).call(this);
+          for await (const ev of stream) {
+            backoff3 = STREAM_BACKOFF_START_MS;
+            if (await __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_handleStreamEvent).call(this, ev))
+              return;
+          }
+        } catch (e) {
+          ctrl.signal.throwIfAborted();
+          if (isFatal4xx(e)) {
+            __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").error("permanent stream failure, shutting down", { error: String(e) });
+            ctrl.abort();
+            throw e;
+          }
+          __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").warn("stream disconnected, reconnecting", {
+            error: String(e),
+            backoff_ms: backoff3
+          });
+        }
+        ctrl.signal.throwIfAborted();
+        await sleep(backoff3, ctrl.signal);
+        backoff3 = Math.min(backoff3 * 2, STREAM_BACKOFF_CAP_MS);
+      }
+    }, _SessionToolRunner_reconcile = /**
+     * Read full history before dispatching so a `tool_use` whose result appears
+     * later in the same history is not re-executed. Runs after the live stream is
+     * already attached (see {@link SessionToolRunner.#streamLoop}).
+     */
+    async function _SessionToolRunner_reconcile2() {
+      const ctrl = __classPrivateFieldGet(this, _SessionToolRunner_controller, "f");
+      const pending = [];
+      let lastWasEndTurn = false;
+      try {
+        for await (const ev of this.client.beta.sessions.events.list(this.sessionId, { limit: 1e3 }, __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_requestOptions).call(this))) {
+          __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_ingestHistory).call(this, ev, pending);
+          lastWasEndTurn = isEndTurnIdle(ev);
+        }
+      } catch (e) {
+        ctrl.signal.throwIfAborted();
+        __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").warn("reconcile list failed", { error: String(e) });
+        for (const ev of pending)
+          __classPrivateFieldGet(this, _SessionToolRunner_seen, "f").delete(ev.id);
+        return;
+      }
+      const unanswered = pending.filter((ev) => !__classPrivateFieldGet(this, _SessionToolRunner_answered, "f").has(ev.id));
+      __classPrivateFieldGet(this, _SessionToolRunner_idleClock, "f").disarm();
+      for (const ev of unanswered)
+        await __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_routeToolEvent).call(this, ev);
+      for (const held of [...__classPrivateFieldGet(this, _SessionToolRunner_awaitingConfirmation, "f").values()]) {
+        const verdict = __classPrivateFieldGet(this, _SessionToolRunner_confirmationVerdicts, "f").get(held.id);
+        if (verdict !== void 0)
+          await __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_applyVerdict).call(this, held, verdict);
+      }
+      const outstanding = unanswered.filter((ev) => !__classPrivateFieldGet(this, _SessionToolRunner_answered, "f").has(ev.id) && !__classPrivateFieldGet(this, _SessionToolRunner_awaitingConfirmation, "f").has(ev.id));
+      if (lastWasEndTurn && outstanding.length === 0)
+        __classPrivateFieldGet(this, _SessionToolRunner_idleClock, "f").arm();
+      else
+        __classPrivateFieldGet(this, _SessionToolRunner_idleClock, "f").disarm();
+    }, _SessionToolRunner_ingestHistory = function _SessionToolRunner_ingestHistory2(ev, pending) {
+      if (ev.type === "agent.tool_use" || ev.type === "agent.custom_tool_use") {
+        __classPrivateFieldGet(this, _SessionToolRunner_seen, "f").add(ev.id);
+        if (!__classPrivateFieldGet(this, _SessionToolRunner_answered, "f").has(ev.id))
+          pending.push(ev);
+      } else if (ev.type === "user.tool_result") {
+        __classPrivateFieldGet(this, _SessionToolRunner_answered, "f").add(ev.tool_use_id);
+      } else if (ev.type === "user.custom_tool_result") {
+        __classPrivateFieldGet(this, _SessionToolRunner_answered, "f").add(ev.custom_tool_use_id);
+      } else if (ev.type === "user.tool_confirmation") {
+        if (!__classPrivateFieldGet(this, _SessionToolRunner_answered, "f").has(ev.tool_use_id))
+          __classPrivateFieldGet(this, _SessionToolRunner_confirmationVerdicts, "f").set(ev.tool_use_id, ev.result);
+      }
+    }, _SessionToolRunner_handleStreamEvent = /** Returns true when the runner should exit. */
+    async function _SessionToolRunner_handleStreamEvent2(ev) {
+      __classPrivateFieldGet(this, _SessionToolRunner_idleClock, "f").noteEvent(ev);
+      switch (ev.type) {
+        case "agent.tool_use":
+        case "agent.custom_tool_use":
+          if (!__classPrivateFieldGet(this, _SessionToolRunner_seen, "f").has(ev.id)) {
+            __classPrivateFieldGet(this, _SessionToolRunner_seen, "f").add(ev.id);
+            await __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_routeToolEvent).call(this, ev);
+          }
+          return false;
+        case "user.tool_confirmation":
+          await __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_noteConfirmation).call(this, ev);
+          return false;
+        case "user.tool_result":
+          __classPrivateFieldGet(this, _SessionToolRunner_answered, "f").add(ev.tool_use_id);
+          return false;
+        case "user.custom_tool_result":
+          __classPrivateFieldGet(this, _SessionToolRunner_answered, "f").add(ev.custom_tool_use_id);
+          return false;
+        case "session.status_terminated":
+        case "session.deleted":
+          __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").info("session terminated", {
+            component: "session-tool-runner",
+            session_id: this.sessionId
+          });
+          __classPrivateFieldGet(this, _SessionToolRunner_controller, "f").abort();
+          return true;
+        default:
+          return false;
+      }
+    }, _SessionToolRunner_routeToolEvent = // ===== confirmation gating (always_ask tools) =====
+    /**
+     * Dispatch `ev`, honoring its evaluated permission. A call the server gated
+     * (`evaluated_permission == "ask"`) is held until its `user.tool_confirmation`
+     * arrives. Fails closed: only an explicit `allow` verdict releases a gated
+     * call; a server-side `deny` overrides any recorded verdict; an unrecognized
+     * permission is held like `ask` and an unrecognized verdict is denied.
+     */
+    async function _SessionToolRunner_routeToolEvent2(ev) {
+      const permission = ev.evaluated_permission;
+      const verdict = permission === "deny" ? "deny" : __classPrivateFieldGet(this, _SessionToolRunner_confirmationVerdicts, "f").get(ev.id);
+      if (verdict === void 0) {
+        if (permission === void 0 || permission === "allow") {
+          await __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_execute).call(this, ev, void 0);
+        } else if (!__classPrivateFieldGet(this, _SessionToolRunner_awaitingConfirmation, "f").has(ev.id)) {
+          __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").info("tool call awaiting confirmation; holding", {
+            component: "session-tool-runner",
+            session_id: this.sessionId,
+            tool: ev.name,
+            tool_use_id: ev.id
+          });
+          __classPrivateFieldGet(this, _SessionToolRunner_awaitingConfirmation, "f").set(ev.id, ev);
+          __classPrivateFieldGet(this, _SessionToolRunner_idleClock, "f").block(ev.id);
+        }
+        return;
+      }
+      await __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_applyVerdict).call(this, ev, verdict);
+    }, _SessionToolRunner_noteConfirmation = /** Record an allow/deny verdict and release the held call it gates, if any. */
+    async function _SessionToolRunner_noteConfirmation2(ev) {
+      __classPrivateFieldGet(this, _SessionToolRunner_confirmationVerdicts, "f").set(ev.tool_use_id, ev.result);
+      const held = __classPrivateFieldGet(this, _SessionToolRunner_awaitingConfirmation, "f").get(ev.tool_use_id);
+      if (held === void 0)
+        return;
+      await __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_applyVerdict).call(this, held, ev.result);
+    }, _SessionToolRunner_applyVerdict = /**
+     * Dispatch or resolve a gated call according to its verdict.
+     *
+     * The idle-clock blocker accounting lives here: a denial retires the held
+     * call's blocker, while an allow keeps one on the call — taking it now if the
+     * verdict was already known when the call was routed, so it was never held —
+     * until `#execute` has finished with it. The countdown must not run over
+     * gated work that is still in flight.
+     */
+    async function _SessionToolRunner_applyVerdict2(ev, verdict) {
+      const wasHeld = __classPrivateFieldGet(this, _SessionToolRunner_awaitingConfirmation, "f").delete(ev.id);
+      if (verdict === "allow") {
+        __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").info("tool call confirmed", {
+          component: "session-tool-runner",
+          session_id: this.sessionId,
+          tool: ev.name,
+          tool_use_id: ev.id
+        });
+        if (!wasHeld)
+          __classPrivateFieldGet(this, _SessionToolRunner_idleClock, "f").block(ev.id);
+        try {
+          await __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_execute).call(this, ev, "allow");
+        } finally {
+          __classPrivateFieldGet(this, _SessionToolRunner_idleClock, "f").unblock(ev.id);
+        }
+        return;
+      }
+      if (wasHeld)
+        __classPrivateFieldGet(this, _SessionToolRunner_idleClock, "f").unblock(ev.id);
+      __classPrivateFieldGet(this, _SessionToolRunner_answered, "f").add(ev.id);
+      __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").info("tool call denied; not executing", {
+        component: "session-tool-runner",
+        session_id: this.sessionId,
+        tool: ev.name,
+        tool_use_id: ev.id
+      });
+      __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_surfaceCall).call(this, {
+        event: ev,
+        toolUseId: ev.id,
+        name: ev.name,
+        isError: false,
+        posted: false,
+        confirmation: "deny"
+      });
+    }, _SessionToolRunner_surfaceCall = function _SessionToolRunner_surfaceCall2(call) {
+      __classPrivateFieldGet(this, _SessionToolRunner_results, "f").push(call);
+    }, _SessionToolRunner_execute = // ===== tool execution =====
+    async function _SessionToolRunner_execute2(ev, confirmation) {
+      var _a2, _b;
+      if (__classPrivateFieldGet(this, _SessionToolRunner_answered, "f").has(ev.id))
+        return;
+      __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").info("executing tool", {
+        component: "session-tool-runner",
+        session_id: this.sessionId,
+        tool: ev.name,
+        tool_use_id: ev.id
+      });
+      __classPrivateFieldSet(this, _SessionToolRunner_inFlightCount, (_a2 = __classPrivateFieldGet(this, _SessionToolRunner_inFlightCount, "f"), _a2++, _a2), "f");
+      try {
+        const tool = __classPrivateFieldGet(this, _SessionToolRunner_toolByName, "f").get(ev.name);
+        if (!tool) {
+          __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").info("tool not owned by this runner; leaving the tool_use_id pending for its owner", {
+            component: "session-tool-runner",
+            session_id: this.sessionId,
+            tool: ev.name,
+            tool_use_id: ev.id
+          });
+          __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_surfaceCall).call(this, {
+            event: ev,
+            toolUseId: ev.id,
+            name: ev.name,
+            isError: false,
+            posted: false,
+            confirmation
+          });
+          return;
+        }
+        let content;
+        let isError;
+        const toolCtrl = new AbortController();
+        const detachTool = linkAbort(__classPrivateFieldGet(this, _SessionToolRunner_controller, "f").signal, toolCtrl);
+        const timer = setTimeout(() => toolCtrl.abort(), TOOL_TIMEOUT_MS);
+        try {
+          const outcome = await runRunnableTool(tool, ev.input, {
+            toolUse: ev,
+            toolUseBlock: ev,
+            signal: toolCtrl.signal
+          });
+          content = outcome.content;
+          isError = outcome.isError;
+        } finally {
+          clearTimeout(timer);
+          detachTool();
+        }
+        const result = buildResultEvent(ev, isError, toSessionContent(content));
+        const posted = await __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_sendResult).call(this, result, ev.id);
+        __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_surfaceCall).call(this, {
+          event: ev,
+          result,
+          toolUseId: ev.id,
+          name: ev.name,
+          isError,
+          posted,
+          confirmation
+        });
+      } finally {
+        __classPrivateFieldSet(this, _SessionToolRunner_inFlightCount, (_b = __classPrivateFieldGet(this, _SessionToolRunner_inFlightCount, "f"), _b--, _b), "f");
+        if (__classPrivateFieldGet(this, _SessionToolRunner_inFlightCount, "f") === 0)
+          __classPrivateFieldGet(this, _SessionToolRunner_onIdle, "f")?.call(this);
+      }
+    }, _SessionToolRunner_sendResult = async function _SessionToolRunner_sendResult2(result, toolUseId) {
+      const ctrl = __classPrivateFieldGet(this, _SessionToolRunner_controller, "f");
+      let lastErr;
+      for (let i = 0; i < SEND_RETRIES; i++) {
+        ctrl.signal.throwIfAborted();
+        try {
+          await this.client.beta.sessions.events.send(this.sessionId, { events: [result] }, __classPrivateFieldGet(this, _SessionToolRunner_instances, "m", _SessionToolRunner_requestOptions).call(this));
+          __classPrivateFieldGet(this, _SessionToolRunner_answered, "f").add(toolUseId);
+          return true;
+        } catch (e) {
+          lastErr = e;
+          if (isFatal4xx(e))
+            break;
+          if (i < SEND_RETRIES - 1)
+            await sleep((i + 1) * 1e3, ctrl.signal);
+        }
+      }
+      __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").error("failed to send tool result", {
+        tool_use_id: toolUseId,
+        error: String(lastErr)
+      });
+      return false;
+    }, _SessionToolRunner_drain = /** Wait (bounded) for in-flight tool executions to finish during teardown. */
+    async function _SessionToolRunner_drain2() {
+      if (__classPrivateFieldGet(this, _SessionToolRunner_inFlightCount, "f") === 0)
+        return;
+      await Promise.race([new Promise((r) => __classPrivateFieldSet(this, _SessionToolRunner_onIdle, r, "f")), sleep(DRAIN_TIMEOUT_MS)]);
+      __classPrivateFieldSet(this, _SessionToolRunner_onIdle, null, "f");
+      if (__classPrivateFieldGet(this, _SessionToolRunner_inFlightCount, "f") > 0) {
+        __classPrivateFieldGet(this, _SessionToolRunner_logger, "f").warn("drain timeout exceeded");
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/transform-json-schema.mjs
+var init_transform_json_schema = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/transform-json-schema.mjs"() {
+    init_utils2();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/helpers/beta/json-schema.mjs
+function betaTool(options) {
+  if (options.inputSchema.type !== "object") {
+    throw new Error(`JSON schema for tool "${options.name}" must be an object, but got ${options.inputSchema.type}`);
+  }
+  return {
+    type: "custom",
+    name: options.name,
+    input_schema: options.inputSchema,
+    description: options.description,
+    run: options.run,
+    parse: (content) => content,
+    ...options.close ? { close: options.close } : {}
+  };
+}
+var init_json_schema = __esm({
+  "node_modules/@anthropic-ai/sdk/helpers/beta/json-schema.mjs"() {
+    init_sdk();
+    init_transform_json_schema();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/utils/promise.mjs
+function promiseWithResolvers() {
+  let resolve4;
+  let reject;
+  const promise = new Promise((res, rej) => {
+    resolve4 = res;
+    reject = rej;
+  });
+  return { promise, resolve: resolve4, reject };
+}
+var init_promise = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/utils/promise.mjs"() {
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/tools/agent-toolset/fs-util.mjs
+import * as fs from "node:fs/promises";
+import * as path2 from "node:path";
+import { randomUUID } from "node:crypto";
+async function realpathOrSelf(p) {
+  try {
+    return await fs.realpath(p);
+  } catch {
+    return p;
+  }
+}
+async function canonicalize(abs) {
+  const tail = [];
+  let prefix = abs;
+  let hops = 0;
+  for (; ; ) {
+    let real;
+    try {
+      real = await fs.realpath(prefix);
+    } catch {
+      let isLink = false;
+      try {
+        isLink = (await fs.lstat(prefix)).isSymbolicLink();
+      } catch {
+      }
+      if (isLink) {
+        if (++hops > 40) {
+          throw new ToolError(`path ${JSON.stringify(abs)} has too many levels of symbolic links`);
+        }
+        prefix = path2.resolve(path2.dirname(prefix), await fs.readlink(prefix));
         continue;
       }
-      let Z = O.run({ value: V[R], issues: [] }, q);
-      if (Z instanceof Promise) L.push(Z.then((C) => K8(C, U, R)));
-      else K8(Z, U, R);
+      const parent = path2.dirname(prefix);
+      if (parent === prefix)
+        return abs;
+      tail.push(path2.basename(prefix));
+      prefix = parent;
+      continue;
     }
-    if (F.length) U.issues.push({ code: "unrecognized_keys", keys: F, input: V, inst: Q });
-    if (!L.length) return U;
-    return Promise.all(L).then(() => {
-      return U;
-    });
-  };
-});
-function MW(Q, X, Y, $) {
-  for (let J of Q) if (J.issues.length === 0) return X.value = J.value, X;
-  return X.issues.push({ code: "invalid_union", input: X.value, inst: Y, errors: Q.map((J) => J.issues.map((W) => G1(W, $, l0()))) }), X;
+    return tail.length ? path2.join(real, ...tail.reverse()) : real;
+  }
 }
-var U8 = D("$ZodUnion", (Q, X) => {
-  e.init(Q, X), $0(Q._zod, "optin", () => X.options.some((Y) => Y._zod.optin === "optional") ? "optional" : void 0), $0(Q._zod, "optout", () => X.options.some((Y) => Y._zod.optout === "optional") ? "optional" : void 0), $0(Q._zod, "values", () => {
-    if (X.options.every((Y) => Y._zod.values)) return new Set(X.options.flatMap((Y) => Array.from(Y._zod.values)));
-    return;
-  }), $0(Q._zod, "pattern", () => {
-    if (X.options.every((Y) => Y._zod.pattern)) {
-      let Y = X.options.map(($) => $._zod.pattern);
-      return new RegExp(`^(${Y.map(($) => s9($.source)).join("|")})$`);
-    }
-    return;
-  }), Q._zod.parse = (Y, $) => {
-    let J = false, W = [];
-    for (let G of X.options) {
-      let H = G._zod.run({ value: Y.value, issues: [] }, $);
-      if (H instanceof Promise) W.push(H), J = true;
-      else {
-        if (H.issues.length === 0) return H;
-        W.push(H);
-      }
-    }
-    if (!J) return MW(W, Y, Q, $);
-    return Promise.all(W).then((G) => {
-      return MW(G, Y, Q, $);
+async function confineToRoot(root, p, opts) {
+  const allowOutside = opts?.allowOutside ?? false;
+  const realRoot = await realpathOrSelf(path2.resolve(root));
+  const abs = path2.resolve(realRoot, p);
+  if (allowOutside)
+    return abs;
+  const real = await canonicalize(abs);
+  if (real !== realRoot && !real.startsWith(realRoot + path2.sep)) {
+    throw new ToolError(`path ${JSON.stringify(p)} escapes workdir`);
+  }
+  return real;
+}
+async function atomicWriteFile(targetPath, content) {
+  const dir = path2.dirname(targetPath);
+  const tempPath = path2.join(dir, `.tmp-${process.pid}-${randomUUID()}`);
+  let handle;
+  try {
+    handle = await fs.open(tempPath, "wx", FILE_CREATE_MODE);
+    await handle.writeFile(content, "utf-8");
+    await handle.sync();
+    await handle.close();
+    handle = void 0;
+    await fs.rename(tempPath, targetPath);
+  } catch (err) {
+    if (handle)
+      await handle.close().catch(() => {
+      });
+    await fs.unlink(tempPath).catch(() => {
     });
-  };
+    throw err;
+  }
+}
+function fsErrorMessage(err, file) {
+  const code = err?.code;
+  switch (code) {
+    case "ENOENT":
+      return `${file}: no such file or directory`;
+    case "EACCES":
+    case "EPERM":
+      return `${file}: permission denied`;
+    case "ENOTDIR":
+      return `${file}: not a directory`;
+    case "EISDIR":
+      return `${file}: is a directory`;
+    case "ELOOP":
+      return `${file}: too many levels of symbolic links`;
+    case "ENAMETOOLONG":
+      return `${file}: file name too long`;
+    case "ENOSPC":
+      return `${file}: no space left on device`;
+    case "EMFILE":
+    case "ENFILE":
+      return `${file}: too many open files`;
+    default:
+      return `${file}: ${err instanceof Error ? err.message : String(err)}`;
+  }
+}
+var DIR_CREATE_MODE, FILE_CREATE_MODE;
+var init_fs_util = __esm({
+  "node_modules/@anthropic-ai/sdk/tools/agent-toolset/fs-util.mjs"() {
+    init_ToolError();
+    DIR_CREATE_MODE = 493;
+    FILE_CREATE_MODE = 420;
+  }
 });
-var aX = D("$ZodDiscriminatedUnion", (Q, X) => {
-  U8.init(Q, X);
-  let Y = Q._zod.parse;
-  $0(Q._zod, "propValues", () => {
-    let J = {};
-    for (let W of X.options) {
-      let G = W._zod.propValues;
-      if (!G || Object.keys(G).length === 0) throw Error(`Invalid discriminated union option at index "${X.options.indexOf(W)}"`);
-      for (let [H, B] of Object.entries(G)) {
-        if (!J[H]) J[H] = /* @__PURE__ */ new Set();
-        for (let z of B) J[H].add(z);
+
+// node_modules/@anthropic-ai/sdk/tools/agent-toolset/skills.mjs
+import * as fs2 from "node:fs/promises";
+import * as fssync from "node:fs";
+import * as path3 from "node:path";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+async function setupSkills(ctx) {
+  const { client, sessionId } = ctx;
+  if (!client || !sessionId)
+    return async () => {
+    };
+  const log = loggerFor(client);
+  const session = await client.beta.sessions.retrieve(sessionId);
+  const skillsRoot = path3.resolve(ctx.workdir, "skills");
+  const created = [];
+  for (const skill of session.agent.skills) {
+    try {
+      const versionId = await resolveSkillVersion(client, skill.skill_id, skill.version);
+      const version = await client.beta.skills.versions.retrieve(versionId, { skill_id: skill.skill_id });
+      let dirname5 = path3.basename(version.name.trim());
+      if (dirname5 === "" || dirname5 === "." || dirname5 === "..")
+        dirname5 = skill.skill_id;
+      const dest = path3.resolve(skillsRoot, dirname5);
+      if (dest !== skillsRoot && !dest.startsWith(skillsRoot + path3.sep)) {
+        log.warn("skill name escapes the skills dir; skipping", {
+          component: "agent-tool-context",
+          name: version.name
+        });
+        continue;
       }
+      const resp = await client.beta.skills.versions.download(versionId, { skill_id: skill.skill_id });
+      await fs2.rm(dest, { recursive: true, force: true });
+      await fs2.mkdir(dest, { recursive: true, mode: DIR_CREATE_MODE });
+      created.push(dest);
+      await extractSkillArchive(resp, dest);
+      log.info("downloaded skill", {
+        component: "agent-tool-context",
+        skill_id: skill.skill_id,
+        version: versionId,
+        dest
+      });
+    } catch (e) {
+      log.warn("failed to download skill", {
+        component: "agent-tool-context",
+        skill_id: skill.skill_id,
+        error: String(e)
+      });
     }
-    return J;
+  }
+  return async () => {
+    for (const dest of created) {
+      await fs2.rm(dest, { recursive: true, force: true }).catch((e) => {
+        log.warn("failed to clean up skill", { component: "agent-tool-context", dest, error: String(e) });
+      });
+    }
+  };
+}
+async function resolveSkillVersion(client, skillId, version) {
+  if (/^\d+$/.test(version))
+    return version;
+  let newest;
+  for await (const v of client.beta.skills.versions.list(skillId)) {
+    if (/^\d+$/.test(v.version) && (newest === void 0 || BigInt(v.version) > BigInt(newest))) {
+      newest = v.version;
+    }
+  }
+  if (newest === void 0) {
+    throw new AnthropicError(`skill ${JSON.stringify(skillId)} has no concrete version to resolve ${JSON.stringify(version)} against`);
+  }
+  return newest;
+}
+function assertSafeMemberNames(names) {
+  for (const raw of names.split("\n")) {
+    const entry = raw.trim();
+    if (!entry)
+      continue;
+    if (path3.isAbsolute(entry) || entry.split(/[\\/]/).includes("..")) {
+      throw new AnthropicError(`refusing to extract unsafe archive member: ${entry}`);
+    }
+  }
+}
+function assertNoSpecialMembers(verboseListing) {
+  for (const line of verboseListing.split("\n")) {
+    const type = line.trimStart()[0];
+    if (type === "l" || type === "h" || type === "b" || type === "c" || type === "p" || type === "s") {
+      throw new AnthropicError("refusing to extract archive with symlink/hardlink/device member");
+    }
+  }
+}
+async function runArchiveTool(cmd, args) {
+  try {
+    const { stdout } = await execFileAsync(cmd, args);
+    return stdout;
+  } catch (e) {
+    if (e != null && typeof e === "object" && e.code === "ENOENT") {
+      throw new AnthropicError(`skill extraction requires the \`${cmd}\` command, but it was not found on PATH`);
+    }
+    throw e;
+  }
+}
+function archiveTopDir(listing) {
+  let top;
+  let nested = false;
+  for (const raw of listing.split("\n")) {
+    const parts = raw.trim().split("/").filter((p) => p !== "" && p !== ".");
+    if (parts.length === 0)
+      continue;
+    const first = parts[0];
+    if (top === void 0)
+      top = first;
+    else if (first !== top)
+      return "";
+    if (parts.length > 1)
+      nested = true;
+  }
+  return top !== void 0 && nested ? top : "";
+}
+async function extractSkillArchive(resp, dest) {
+  const tmp = path3.join(dest, `.skill-archive-${process.pid}-${Date.now()}`);
+  if (!resp.body) {
+    throw new AnthropicError("skill download response had no body");
+  }
+  await pipeline(Readable.fromWeb(resp.body), fssync.createWriteStream(tmp));
+  const stage = path3.join(path3.dirname(dest), `.skill-stage-${process.pid}-${Date.now()}`);
+  try {
+    const head = await readHead(tmp, 4);
+    const isZip = head.length >= 4 && head[0] === 80 && head[1] === 75 && head[2] === 3 && head[3] === 4;
+    const archiveCmd = isZip ? "unzip" : "tar";
+    const listing = await runArchiveTool(archiveCmd, isZip ? ["-Z1", tmp] : ["-tf", tmp]);
+    assertSafeMemberNames(listing);
+    assertNoSpecialMembers(await runArchiveTool(archiveCmd, isZip ? ["-Z", tmp] : ["-tvf", tmp]));
+    const top = archiveTopDir(listing);
+    await fs2.mkdir(stage, { recursive: true, mode: DIR_CREATE_MODE });
+    await runArchiveTool(archiveCmd, isZip ? ["-oq", tmp, "-d", stage] : ["-xf", tmp, "-C", stage]);
+    const srcRoot = top ? path3.join(stage, top) : stage;
+    for (const entry of await fs2.readdir(srcRoot)) {
+      await fs2.rename(path3.join(srcRoot, entry), path3.join(dest, entry));
+    }
+  } finally {
+    await fs2.rm(tmp, { force: true });
+    await fs2.rm(stage, { recursive: true, force: true });
+  }
+}
+async function readHead(file, n) {
+  const handle = await fs2.open(file, "r");
+  try {
+    const buf = Buffer.alloc(n);
+    const { bytesRead } = await handle.read(buf, 0, n, 0);
+    return buf.subarray(0, bytesRead);
+  } finally {
+    await handle.close();
+  }
+}
+var execFileAsync;
+var init_skills = __esm({
+  "node_modules/@anthropic-ai/sdk/tools/agent-toolset/skills.mjs"() {
+    init_error();
+    init_log();
+    init_fs_util();
+    execFileAsync = promisify(execFile);
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/tools/agent-toolset/node.mjs
+var node_exports = {};
+__export(node_exports, {
+  BashSession: () => BashSession,
+  BashTimeoutError: () => BashTimeoutError,
+  betaAgentToolset20260401: () => betaAgentToolset20260401,
+  betaBashTool: () => betaBashTool,
+  betaEditTool: () => betaEditTool,
+  betaGlobTool: () => betaGlobTool,
+  betaGrepTool: () => betaGrepTool,
+  betaReadTool: () => betaReadTool,
+  betaWriteTool: () => betaWriteTool,
+  extractSkillArchive: () => extractSkillArchive,
+  resolvePath: () => resolvePath,
+  resolveSkillVersion: () => resolveSkillVersion,
+  setupSkills: () => setupSkills
+});
+import * as fs3 from "node:fs/promises";
+import * as fssync2 from "node:fs";
+import * as path4 from "node:path";
+import * as cp from "node:child_process";
+import * as crypto from "node:crypto";
+import * as readline from "node:readline";
+function resolveMaxBytes(configured) {
+  return configured === void 0 ? DEFAULT_MAX_FILE_BYTES : configured;
+}
+function betaAgentToolset20260401(ctx) {
+  return [
+    betaBashTool(ctx),
+    betaReadTool(ctx),
+    betaWriteTool(ctx),
+    betaEditTool(ctx),
+    betaGlobTool(ctx),
+    betaGrepTool(ctx)
+  ];
+}
+function resolvePath(ctx, p) {
+  return confineToRoot(ctx.workdir, p, { allowOutside: ctx.unrestrictedPaths ?? false });
+}
+function scrubbedShellEnv() {
+  const env = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (key.startsWith("ANTHROPIC_"))
+      continue;
+    env[key] = value;
+  }
+  return env;
+}
+function betaBashTool(ctx) {
+  let session;
+  let tail = Promise.resolve();
+  return betaTool({
+    name: "bash",
+    description: "Run a bash command in a persistent shell. State (cwd, env vars) persists across calls.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        command: { type: "string", description: "The command to run" },
+        restart: { type: "boolean", description: "Restart the persistent shell before running" },
+        timeout_ms: { type: "integer", description: "Per-call timeout in milliseconds" }
+      }
+    },
+    run: async ({ command, restart, timeout_ms }, context) => {
+      const prev = tail;
+      const gate = promiseWithResolvers();
+      tail = gate.promise;
+      try {
+        await prev;
+      } catch {
+      }
+      try {
+        if (restart) {
+          session?.close();
+          session = void 0;
+        }
+        if (!command) {
+          if (restart)
+            return "bash session restarted";
+          throw new ToolError("bash: command is required");
+        }
+        session ?? (session = new BashSession(ctx.workdir, ctx.env));
+        try {
+          const { output, exitCode } = await session.exec(command, {
+            timeoutMs: timeout_ms ?? BASH_DEFAULT_TIMEOUT_MS,
+            signal: context?.signal
+          });
+          if (exitCode !== 0)
+            throw new ToolError(output || `exit ${exitCode}`);
+          return output;
+        } catch (e) {
+          if (e instanceof ToolError)
+            throw e;
+          session.close();
+          session = void 0;
+          throw new ToolError(`bash: ${e instanceof Error ? e.message : String(e)}`);
+        }
+      } finally {
+        gate.resolve();
+      }
+    },
+    close: () => {
+      session?.close();
+      session = void 0;
+    }
   });
-  let $ = t9(() => {
-    let J = X.options, W = /* @__PURE__ */ new Map();
-    for (let G of J) {
-      let H = G._zod.propValues[X.discriminator];
-      if (!H || H.size === 0) throw Error(`Invalid discriminated union option at index "${X.options.indexOf(G)}"`);
-      for (let B of H) {
-        if (W.has(B)) throw Error(`Duplicate discriminator value "${String(B)}"`);
-        W.set(B, G);
+}
+function betaReadTool(ctx) {
+  return betaTool({
+    name: "read",
+    description: "Read a UTF-8 text file relative to the workdir.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        file_path: { type: "string" },
+        view_range: {
+          type: "array",
+          items: { type: "integer" },
+          description: "[start_line, end_line] 1-indexed inclusive"
+        }
+      },
+      required: ["file_path"]
+    },
+    run: async ({ file_path, view_range }) => {
+      if (!file_path)
+        throw new ToolError("read: file_path is required");
+      const abs = await resolvePath(ctx, file_path);
+      let data;
+      try {
+        const st = await fs3.stat(abs);
+        if (!st.isFile()) {
+          throw new ToolError(`read: ${file_path} is not a regular file`);
+        }
+        const limit2 = resolveMaxBytes(ctx.maxFileBytes);
+        if (limit2 !== null && st.size > limit2) {
+          throw new ToolError(`read: ${file_path} is ${st.size} bytes, exceeds ${limit2}-byte limit. Use bash (head/tail/sed) to read a slice.`);
+        }
+        data = await fs3.readFile(abs, "utf8");
+      } catch (e) {
+        if (e instanceof ToolError)
+          throw e;
+        throw new ToolError(`read: ${fsErrorMessage(e, file_path)}`);
       }
+      if (!view_range)
+        return data;
+      if (view_range.length !== 2)
+        throw new ToolError("read: view_range must be [start_line, end_line]");
+      const [startLine, endLine] = view_range;
+      const lines = data.split("\n");
+      const start = Math.max(0, startLine - 1);
+      const end = endLine > 0 ? endLine : lines.length;
+      return lines.slice(start, end).join("\n");
     }
-    return W;
   });
-  Q._zod.parse = (J, W) => {
-    let G = J.value;
-    if (!K9(G)) return J.issues.push({ code: "invalid_type", expected: "object", input: G, inst: Q }), J;
-    let H = $.value.get(G?.[X.discriminator]);
-    if (H) return H._zod.run(J, W);
-    if (X.unionFallback) return Y(J, W);
-    return J.issues.push({ code: "invalid_union", errors: [], note: "No matching discriminator", input: G, path: [X.discriminator], inst: Q }), J;
-  };
-});
-var sX = D("$ZodIntersection", (Q, X) => {
-  e.init(Q, X), Q._zod.parse = (Y, $) => {
-    let J = Y.value, W = X.left._zod.run({ value: J, issues: [] }, $), G = X.right._zod.run({ value: J, issues: [] }, $);
-    if (W instanceof Promise || G instanceof Promise) return Promise.all([W, G]).then(([B, z]) => {
-      return wW(Y, B, z);
-    });
-    return wW(Y, W, G);
-  };
-});
-function bX(Q, X) {
-  if (Q === X) return { valid: true, data: Q };
-  if (Q instanceof Date && X instanceof Date && +Q === +X) return { valid: true, data: Q };
-  if (V9(Q) && V9(X)) {
-    let Y = Object.keys(X), $ = Object.keys(Q).filter((W) => Y.indexOf(W) !== -1), J = { ...Q, ...X };
-    for (let W of $) {
-      let G = bX(Q[W], X[W]);
-      if (!G.valid) return { valid: false, mergeErrorPath: [W, ...G.mergeErrorPath] };
-      J[W] = G.data;
-    }
-    return { valid: true, data: J };
-  }
-  if (Array.isArray(Q) && Array.isArray(X)) {
-    if (Q.length !== X.length) return { valid: false, mergeErrorPath: [] };
-    let Y = [];
-    for (let $ = 0; $ < Q.length; $++) {
-      let J = Q[$], W = X[$], G = bX(J, W);
-      if (!G.valid) return { valid: false, mergeErrorPath: [$, ...G.mergeErrorPath] };
-      Y.push(G.data);
-    }
-    return { valid: true, data: Y };
-  }
-  return { valid: false, mergeErrorPath: [] };
 }
-function wW(Q, X, Y) {
-  if (X.issues.length) Q.issues.push(...X.issues);
-  if (Y.issues.length) Q.issues.push(...Y.issues);
-  if (w6(Q)) return Q;
-  let $ = bX(X.value, Y.value);
-  if (!$.valid) throw Error(`Unmergable intersection. Error path: ${JSON.stringify($.mergeErrorPath)}`);
-  return Q.value = $.data, Q;
+function betaWriteTool(ctx) {
+  return betaTool({
+    name: "write",
+    description: "Write a UTF-8 text file relative to the workdir, creating parent directories as needed.",
+    inputSchema: {
+      type: "object",
+      properties: { file_path: { type: "string" }, content: { type: "string" } },
+      required: ["file_path", "content"]
+    },
+    run: async ({ file_path, content }) => {
+      if (!file_path)
+        throw new ToolError("write: file_path is required");
+      const abs = await resolvePath(ctx, file_path);
+      try {
+        await fs3.mkdir(path4.dirname(abs), { recursive: true, mode: DIR_CREATE_MODE });
+        await atomicWriteFile(abs, content ?? "");
+      } catch (e) {
+        throw new ToolError(`write: ${fsErrorMessage(e, file_path)}`);
+      }
+      return `wrote ${Buffer.byteLength(content ?? "")} bytes to ${file_path}`;
+    }
+  });
 }
-var eX = D("$ZodRecord", (Q, X) => {
-  e.init(Q, X), Q._zod.parse = (Y, $) => {
-    let J = Y.value;
-    if (!V9(J)) return Y.issues.push({ expected: "record", code: "invalid_type", input: J, inst: Q }), Y;
-    let W = [];
-    if (X.keyType._zod.values) {
-      let G = X.keyType._zod.values;
-      Y.value = {};
-      for (let B of G) if (typeof B === "string" || typeof B === "number" || typeof B === "symbol") {
-        let z = X.valueType._zod.run({ value: J[B], issues: [] }, $);
-        if (z instanceof Promise) W.push(z.then((K) => {
-          if (K.issues.length) Y.issues.push(...j1(B, K.issues));
-          Y.value[B] = K.value;
-        }));
-        else {
-          if (z.issues.length) Y.issues.push(...j1(B, z.issues));
-          Y.value[B] = z.value;
+function betaEditTool(ctx) {
+  return betaTool({
+    name: "edit",
+    description: "Replace old_string with new_string in a file. old_string must be unique unless replace_all.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        file_path: { type: "string" },
+        old_string: { type: "string" },
+        new_string: { type: "string" },
+        replace_all: { type: "boolean" }
+      },
+      required: ["file_path", "old_string", "new_string"]
+    },
+    run: async ({ file_path, old_string, new_string, replace_all }) => {
+      if (!file_path)
+        throw new ToolError("edit: file_path is required");
+      if (!old_string)
+        throw new ToolError("edit: old_string is required");
+      const abs = await resolvePath(ctx, file_path);
+      let data;
+      try {
+        const st = await fs3.stat(abs);
+        if (!st.isFile()) {
+          throw new ToolError(`edit: ${file_path} is not a regular file`);
         }
-      }
-      let H;
-      for (let B in J) if (!G.has(B)) H = H ?? [], H.push(B);
-      if (H && H.length > 0) Y.issues.push({ code: "unrecognized_keys", input: J, inst: Q, keys: H });
-    } else {
-      Y.value = {};
-      for (let G of Reflect.ownKeys(J)) {
-        if (G === "__proto__") continue;
-        let H = X.keyType._zod.run({ value: G, issues: [] }, $);
-        if (H instanceof Promise) throw Error("Async schemas not supported in object keys currently");
-        if (H.issues.length) {
-          Y.issues.push({ origin: "record", code: "invalid_key", issues: H.issues.map((z) => G1(z, $, l0())), input: G, path: [G], inst: Q }), Y.value[H.value] = H.value;
-          continue;
+        const limit2 = resolveMaxBytes(ctx.maxFileBytes);
+        if (limit2 !== null && st.size > limit2) {
+          throw new ToolError(`edit: ${file_path} is ${st.size} bytes, exceeds ${limit2}-byte limit. Use bash (sed/awk) to edit a large file.`);
         }
-        let B = X.valueType._zod.run({ value: J[G], issues: [] }, $);
-        if (B instanceof Promise) W.push(B.then((z) => {
-          if (z.issues.length) Y.issues.push(...j1(G, z.issues));
-          Y.value[H.value] = z.value;
-        }));
-        else {
-          if (B.issues.length) Y.issues.push(...j1(G, B.issues));
-          Y.value[H.value] = B.value;
+        data = await fs3.readFile(abs, "utf8");
+      } catch (e) {
+        if (e instanceof ToolError)
+          throw e;
+        throw new ToolError(`edit: ${fsErrorMessage(e, file_path)}`);
+      }
+      const count = data.split(old_string).length - 1;
+      if (count === 0)
+        throw new ToolError(`edit: old_string not found in ${file_path}`);
+      let updated;
+      if (replace_all) {
+        updated = data.split(old_string).join(new_string);
+      } else {
+        if (count > 1)
+          throw new ToolError(`edit: old_string appears ${count} times in ${file_path} (must be unique)`);
+        updated = data.replace(old_string, () => new_string);
+      }
+      try {
+        await atomicWriteFile(abs, updated);
+      } catch (e) {
+        throw new ToolError(`edit: write: ${fsErrorMessage(e, file_path)}`);
+      }
+      return `edited ${file_path} (${replace_all ? count : 1} replacement(s))`;
+    }
+  });
+}
+function betaGlobTool(ctx) {
+  return betaTool({
+    name: "glob",
+    description: "Match files under the workdir against a glob pattern. Results are mtime-sorted, newest first.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        pattern: { type: "string" },
+        path: { type: "string", description: "Directory to search in. Defaults to the workdir." }
+      },
+      required: ["pattern"]
+    },
+    run: async ({ pattern, path: searchPath }) => {
+      if (!pattern)
+        throw new ToolError("glob: pattern is required");
+      let root = path4.resolve(ctx.workdir);
+      let pat = pattern;
+      if (path4.isAbsolute(pattern)) {
+        if (!ctx.unrestrictedPaths)
+          throw new ToolError("glob: absolute pattern not permitted");
+        root = path4.parse(pattern).root;
+        pat = path4.relative(root, pattern);
+      } else if (searchPath) {
+        root = await resolvePath(ctx, searchPath);
+      }
+      if (!ctx.unrestrictedPaths && pat.split(/[\\/]/).includes("..")) {
+        throw new ToolError('glob: ".." is not permitted in the pattern');
+      }
+      const realRoot = ctx.unrestrictedPaths ? root : await fs3.realpath(root).catch(() => root);
+      const matches = [];
+      try {
+        for await (const entry of fsGlob(pat, {
+          cwd: root,
+          withFileTypes: true,
+          exclude: (d) => d.name === ".git" || d.name === "node_modules"
+        })) {
+          if (!entry.isFile())
+            continue;
+          const full = path4.join(entry.parentPath, entry.name);
+          if (!ctx.unrestrictedPaths) {
+            let real;
+            try {
+              real = await fs3.realpath(full);
+            } catch {
+              continue;
+            }
+            if (!isWithin(realRoot, real))
+              continue;
+          }
+          let mtime = 0;
+          try {
+            mtime = (await fs3.stat(full)).mtimeMs;
+          } catch {
+          }
+          matches.push({ path: full, mtime });
         }
+      } catch (e) {
+        throw new ToolError(`glob: ${e instanceof Error ? e.message : String(e)}`);
       }
+      if (matches.length === 0)
+        return "no matches";
+      matches.sort((a, b) => b.mtime - a.mtime);
+      return matches.slice(0, GLOB_RESULT_LIMIT).map((m) => m.path).join("\n");
     }
-    if (W.length) return Promise.all(W).then(() => Y);
-    return Y;
-  };
-});
-var QY = D("$ZodEnum", (Q, X) => {
-  e.init(Q, X);
-  let Y = r9(X.entries);
-  Q._zod.values = new Set(Y), Q._zod.pattern = new RegExp(`^(${Y.filter(($) => BX.has(typeof $)).map(($) => typeof $ === "string" ? o1($) : $.toString()).join("|")})$`), Q._zod.parse = ($, J) => {
-    let W = $.value;
-    if (Q._zod.values.has(W)) return $;
-    return $.issues.push({ code: "invalid_value", values: Y, input: W, inst: Q }), $;
-  };
-});
-var XY = D("$ZodLiteral", (Q, X) => {
-  e.init(Q, X), Q._zod.values = new Set(X.values), Q._zod.pattern = new RegExp(`^(${X.values.map((Y) => typeof Y === "string" ? o1(Y) : Y ? Y.toString() : String(Y)).join("|")})$`), Q._zod.parse = (Y, $) => {
-    let J = Y.value;
-    if (Q._zod.values.has(J)) return Y;
-    return Y.issues.push({ code: "invalid_value", values: X.values, input: J, inst: Q }), Y;
-  };
-});
-var YY = D("$ZodTransform", (Q, X) => {
-  e.init(Q, X), Q._zod.parse = (Y, $) => {
-    let J = X.transform(Y.value, Y);
-    if ($.async) return (J instanceof Promise ? J : Promise.resolve(J)).then((G) => {
-      return Y.value = G, Y;
+  });
+}
+function betaGrepTool(ctx) {
+  return betaTool({
+    name: "grep",
+    description: "Search file contents for a regex. Uses ripgrep if available, otherwise a built-in walker.",
+    inputSchema: {
+      type: "object",
+      properties: { pattern: { type: "string" }, path: { type: "string" } },
+      required: ["pattern"]
+    },
+    run: async ({ pattern, path: p }, context) => {
+      if (!pattern)
+        throw new ToolError("grep: pattern is required");
+      let searchPath = path4.resolve(ctx.workdir);
+      if (p)
+        searchPath = await resolvePath(ctx, p);
+      const rg = await findRg();
+      return rg ? runRipgrep(rg, pattern, searchPath, context?.signal) : runWalkGrep(pattern, searchPath, context?.signal);
+    }
+  });
+}
+function runRipgrep(rg, pattern, searchPath, signal) {
+  return new Promise((resolve4, reject) => {
+    const proc = cp.spawn(rg, ["-n", "--no-heading", "-e", pattern, "--", searchPath], {
+      ...signal ? { signal } : {}
     });
-    if (J instanceof Promise) throw new n1();
-    return Y.value = J, Y;
-  };
-});
-var $Y = D("$ZodOptional", (Q, X) => {
-  e.init(Q, X), Q._zod.optin = "optional", Q._zod.optout = "optional", $0(Q._zod, "values", () => {
-    return X.innerType._zod.values ? /* @__PURE__ */ new Set([...X.innerType._zod.values, void 0]) : void 0;
-  }), $0(Q._zod, "pattern", () => {
-    let Y = X.innerType._zod.pattern;
-    return Y ? new RegExp(`^(${s9(Y.source)})?$`) : void 0;
-  }), Q._zod.parse = (Y, $) => {
-    if (X.innerType._zod.optin === "optional") return X.innerType._zod.run(Y, $);
-    if (Y.value === void 0) return Y;
-    return X.innerType._zod.run(Y, $);
-  };
-});
-var JY = D("$ZodNullable", (Q, X) => {
-  e.init(Q, X), $0(Q._zod, "optin", () => X.innerType._zod.optin), $0(Q._zod, "optout", () => X.innerType._zod.optout), $0(Q._zod, "pattern", () => {
-    let Y = X.innerType._zod.pattern;
-    return Y ? new RegExp(`^(${s9(Y.source)}|null)$`) : void 0;
-  }), $0(Q._zod, "values", () => {
-    return X.innerType._zod.values ? /* @__PURE__ */ new Set([...X.innerType._zod.values, null]) : void 0;
-  }), Q._zod.parse = (Y, $) => {
-    if (Y.value === null) return Y;
-    return X.innerType._zod.run(Y, $);
-  };
-});
-var WY = D("$ZodDefault", (Q, X) => {
-  e.init(Q, X), Q._zod.optin = "optional", $0(Q._zod, "values", () => X.innerType._zod.values), Q._zod.parse = (Y, $) => {
-    if (Y.value === void 0) return Y.value = X.defaultValue, Y;
-    let J = X.innerType._zod.run(Y, $);
-    if (J instanceof Promise) return J.then((W) => AW(W, X));
-    return AW(J, X);
-  };
-});
-function AW(Q, X) {
-  if (Q.value === void 0) Q.value = X.defaultValue;
-  return Q;
-}
-var GY = D("$ZodPrefault", (Q, X) => {
-  e.init(Q, X), Q._zod.optin = "optional", $0(Q._zod, "values", () => X.innerType._zod.values), Q._zod.parse = (Y, $) => {
-    if (Y.value === void 0) Y.value = X.defaultValue;
-    return X.innerType._zod.run(Y, $);
-  };
-});
-var HY = D("$ZodNonOptional", (Q, X) => {
-  e.init(Q, X), $0(Q._zod, "values", () => {
-    let Y = X.innerType._zod.values;
-    return Y ? new Set([...Y].filter(($) => $ !== void 0)) : void 0;
-  }), Q._zod.parse = (Y, $) => {
-    let J = X.innerType._zod.run(Y, $);
-    if (J instanceof Promise) return J.then((W) => jW(W, Q));
-    return jW(J, Q);
-  };
-});
-function jW(Q, X) {
-  if (!Q.issues.length && Q.value === void 0) Q.issues.push({ code: "invalid_type", expected: "nonoptional", input: Q.value, inst: X });
-  return Q;
-}
-var BY = D("$ZodCatch", (Q, X) => {
-  e.init(Q, X), Q._zod.optin = "optional", $0(Q._zod, "optout", () => X.innerType._zod.optout), $0(Q._zod, "values", () => X.innerType._zod.values), Q._zod.parse = (Y, $) => {
-    let J = X.innerType._zod.run(Y, $);
-    if (J instanceof Promise) return J.then((W) => {
-      if (Y.value = W.value, W.issues.length) Y.value = X.catchValue({ ...Y, error: { issues: W.issues.map((G) => G1(G, $, l0())) }, input: Y.value }), Y.issues = [];
-      return Y;
+    let out = "";
+    let errOut = "";
+    let truncated = false;
+    proc.stdout.on("data", (d) => {
+      if (truncated)
+        return;
+      out += d;
+      if (out.length > GREP_OUTPUT_LIMIT) {
+        truncated = true;
+        out = out.slice(0, GREP_OUTPUT_LIMIT);
+        proc.kill("SIGKILL");
+      }
     });
-    if (Y.value = J.value, J.issues.length) Y.value = X.catchValue({ ...Y, error: { issues: J.issues.map((W) => G1(W, $, l0())) }, input: Y.value }), Y.issues = [];
-    return Y;
-  };
-});
-var zY = D("$ZodPipe", (Q, X) => {
-  e.init(Q, X), $0(Q._zod, "values", () => X.in._zod.values), $0(Q._zod, "optin", () => X.in._zod.optin), $0(Q._zod, "optout", () => X.out._zod.optout), Q._zod.parse = (Y, $) => {
-    let J = X.in._zod.run(Y, $);
-    if (J instanceof Promise) return J.then((W) => RW(W, X, $));
-    return RW(J, X, $);
-  };
-});
-function RW(Q, X, Y) {
-  if (w6(Q)) return Q;
-  return X.out._zod.run({ value: Q.value, issues: Q.issues }, Y);
+    proc.stderr.on("data", (d) => errOut += d);
+    proc.on("close", (code) => {
+      if (signal?.aborted)
+        return reject(new ToolError("grep: aborted"));
+      if (truncated)
+        return resolve4(out + `
+[output truncated at ${GREP_OUTPUT_LIMIT} bytes]`);
+      if (code === 0)
+        return resolve4(out);
+      if (code === 1)
+        return resolve4("no matches");
+      reject(new ToolError(`grep: rg failed: ${errOut || `exit ${code}`}`));
+    });
+    proc.on("error", (e) => {
+      if (signal?.aborted)
+        return reject(new ToolError("grep: aborted"));
+      reject(new ToolError(`grep: rg failed: ${e.message}`));
+    });
+  });
 }
-var KY = D("$ZodReadonly", (Q, X) => {
-  e.init(Q, X), $0(Q._zod, "propValues", () => X.innerType._zod.propValues), $0(Q._zod, "values", () => X.innerType._zod.values), $0(Q._zod, "optin", () => X.innerType._zod.optin), $0(Q._zod, "optout", () => X.innerType._zod.optout), Q._zod.parse = (Y, $) => {
-    let J = X.innerType._zod.run(Y, $);
-    if (J instanceof Promise) return J.then(IW);
-    return IW(J);
-  };
-});
-function IW(Q) {
-  return Q.value = Object.freeze(Q.value), Q;
-}
-var VY = D("$ZodCustom", (Q, X) => {
-  j0.init(Q, X), e.init(Q, X), Q._zod.parse = (Y, $) => {
-    return Y;
-  }, Q._zod.check = (Y) => {
-    let $ = Y.value, J = X.fn($);
-    if (J instanceof Promise) return J.then((W) => bW(W, Y, $, Q));
-    bW(J, Y, $, Q);
-    return;
-  };
-});
-function bW(Q, X, Y, $) {
-  if (!Q) {
-    let J = { code: "custom", input: Y, inst: $, path: [...$._zod.def.path ?? []], continue: !$._zod.def.abort };
-    if ($._zod.def.params) J.params = $._zod.def.params;
-    X.issues.push(VX(J));
+async function runWalkGrep(pattern, root, signal) {
+  let re;
+  try {
+    re = new RegExp(pattern);
+  } catch (e) {
+    throw new ToolError(`grep: invalid regex: ${e instanceof Error ? e.message : String(e)}`);
   }
-}
-var xF = (Q) => {
-  let X = typeof Q;
-  switch (X) {
-    case "number":
-      return Number.isNaN(Q) ? "NaN" : "number";
-    case "object": {
-      if (Array.isArray(Q)) return "array";
-      if (Q === null) return "null";
-      if (Object.getPrototypeOf(Q) !== Object.prototype && Q.constructor) return Q.constructor.name;
+  const hits = [];
+  let budget = GREP_OUTPUT_LIMIT;
+  const push = (line) => {
+    budget -= line.length + 1;
+    if (budget < 0) {
+      hits.push(`[output truncated at ${GREP_OUTPUT_LIMIT} bytes]`);
+      return false;
     }
+    hits.push(line);
+    return true;
+  };
+  const stat2 = await fs3.stat(root).catch(() => null);
+  if (stat2?.isFile()) {
+    await grepFile(root, re, push);
+  } else {
+    await walk(root, "", (rel) => grepFile(path4.join(root, rel), re, push), signal);
   }
-  return X;
-};
-var yF = () => {
-  let Q = { string: { unit: "characters", verb: "to have" }, file: { unit: "bytes", verb: "to have" }, array: { unit: "items", verb: "to have" }, set: { unit: "items", verb: "to have" } };
-  function X($) {
-    return Q[$] ?? null;
+  if (signal?.aborted)
+    throw new ToolError("grep: aborted");
+  if (hits.length === 0)
+    return "no matches";
+  return hits.join("\n");
+}
+async function grepFile(file, re, push) {
+  const stream = fssync2.createReadStream(file, { encoding: "utf8" });
+  const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
+  let i = 0;
+  try {
+    for await (const line of rl) {
+      i++;
+      if (line.length > GREP_MAX_LINE_LENGTH)
+        continue;
+      if (re.test(line) && !push(`${file}:${i}:${line}`))
+        return false;
+    }
+  } catch {
+  } finally {
+    stream.destroy();
   }
-  let Y = { regex: "input", email: "email address", url: "URL", emoji: "emoji", uuid: "UUID", uuidv4: "UUIDv4", uuidv6: "UUIDv6", nanoid: "nanoid", guid: "GUID", cuid: "cuid", cuid2: "cuid2", ulid: "ULID", xid: "XID", ksuid: "KSUID", datetime: "ISO datetime", date: "ISO date", time: "ISO time", duration: "ISO duration", ipv4: "IPv4 address", ipv6: "IPv6 address", cidrv4: "IPv4 range", cidrv6: "IPv6 range", base64: "base64-encoded string", base64url: "base64url-encoded string", json_string: "JSON string", e164: "E.164 number", jwt: "JWT", template_literal: "input" };
-  return ($) => {
-    switch ($.code) {
-      case "invalid_type":
-        return `Invalid input: expected ${$.expected}, received ${xF($.input)}`;
-      case "invalid_value":
-        if ($.values.length === 1) return `Invalid input: expected ${H8($.values[0])}`;
-        return `Invalid option: expected one of ${W8($.values, "|")}`;
-      case "too_big": {
-        let J = $.inclusive ? "<=" : "<", W = X($.origin);
-        if (W) return `Too big: expected ${$.origin ?? "value"} to have ${J}${$.maximum.toString()} ${W.unit ?? "elements"}`;
-        return `Too big: expected ${$.origin ?? "value"} to be ${J}${$.maximum.toString()}`;
+  return true;
+}
+function isWithin(root, p) {
+  const rel = path4.relative(root, p);
+  return rel === "" || !rel.startsWith(".." + path4.sep) && rel !== ".." && !path4.isAbsolute(rel);
+}
+async function walk(root, rel, fn, signal) {
+  let remaining = WALK_MAX_ENTRIES;
+  async function inner(rel2, depth) {
+    if (depth > WALK_MAX_DEPTH)
+      return true;
+    if (signal?.aborted)
+      return false;
+    let entries;
+    try {
+      entries = await fs3.readdir(path4.join(root, rel2), { withFileTypes: true });
+    } catch {
+      return true;
+    }
+    for (const e of entries) {
+      if (e.name === ".git" || e.name === "node_modules")
+        continue;
+      if (remaining-- <= 0)
+        return false;
+      if (signal?.aborted)
+        return false;
+      const childRel = rel2 ? path4.join(rel2, e.name) : e.name;
+      if (e.isDirectory()) {
+        if (!await inner(childRel, depth + 1))
+          return false;
+      } else if (e.isFile()) {
+        if (await fn(childRel) === false)
+          return false;
       }
-      case "too_small": {
-        let J = $.inclusive ? ">=" : ">", W = X($.origin);
-        if (W) return `Too small: expected ${$.origin} to have ${J}${$.minimum.toString()} ${W.unit}`;
-        return `Too small: expected ${$.origin} to be ${J}${$.minimum.toString()}`;
-      }
-      case "invalid_format": {
-        let J = $;
-        if (J.format === "starts_with") return `Invalid string: must start with "${J.prefix}"`;
-        if (J.format === "ends_with") return `Invalid string: must end with "${J.suffix}"`;
-        if (J.format === "includes") return `Invalid string: must include "${J.includes}"`;
-        if (J.format === "regex") return `Invalid string: must match pattern ${J.pattern}`;
-        return `Invalid ${Y[J.format] ?? $.format}`;
-      }
-      case "not_multiple_of":
-        return `Invalid number: must be a multiple of ${$.divisor}`;
-      case "unrecognized_keys":
-        return `Unrecognized key${$.keys.length > 1 ? "s" : ""}: ${W8($.keys, ", ")}`;
-      case "invalid_key":
-        return `Invalid key in ${$.origin}`;
-      case "invalid_union":
-        return "Invalid input";
-      case "invalid_element":
-        return `Invalid value in ${$.origin}`;
-      default:
-        return "Invalid input";
     }
-  };
-};
-function qY() {
-  return { localeError: yF() };
-}
-var L8 = class {
-  constructor() {
-    this._map = /* @__PURE__ */ new WeakMap(), this._idmap = /* @__PURE__ */ new Map();
+    return true;
   }
-  add(Q, ...X) {
-    let Y = X[0];
-    if (this._map.set(Q, Y), Y && typeof Y === "object" && "id" in Y) {
-      if (this._idmap.has(Y.id)) throw Error(`ID ${Y.id} already exists in the registry`);
-      this._idmap.set(Y.id, Q);
+  await inner(rel, 0);
+}
+async function findRg() {
+  const dirs = (process.env["PATH"] ?? "").split(path4.delimiter);
+  for (const d of dirs) {
+    const candidate = path4.join(d, "rg");
+    try {
+      await fs3.access(candidate, fssync2.constants.X_OK);
+      return candidate;
+    } catch {
     }
-    return this;
   }
-  remove(Q) {
-    return this._map.delete(Q), this;
-  }
-  get(Q) {
-    let X = Q._zod.parent;
-    if (X) {
-      let Y = { ...this.get(X) ?? {} };
-      return delete Y.id, { ...Y, ...this._map.get(Q) };
-    }
-    return this._map.get(Q);
-  }
-  has(Q) {
-    return this._map.has(Q);
-  }
-};
-function _W() {
-  return new L8();
-}
-var r1 = _W();
-function UY(Q, X) {
-  return new Q({ type: "string", ...y(X) });
-}
-function LY(Q, X) {
-  return new Q({ type: "string", format: "email", check: "string_format", abort: false, ...y(X) });
-}
-function F8(Q, X) {
-  return new Q({ type: "string", format: "guid", check: "string_format", abort: false, ...y(X) });
-}
-function FY(Q, X) {
-  return new Q({ type: "string", format: "uuid", check: "string_format", abort: false, ...y(X) });
-}
-function NY(Q, X) {
-  return new Q({ type: "string", format: "uuid", check: "string_format", abort: false, version: "v4", ...y(X) });
-}
-function OY(Q, X) {
-  return new Q({ type: "string", format: "uuid", check: "string_format", abort: false, version: "v6", ...y(X) });
-}
-function DY(Q, X) {
-  return new Q({ type: "string", format: "uuid", check: "string_format", abort: false, version: "v7", ...y(X) });
-}
-function MY(Q, X) {
-  return new Q({ type: "string", format: "url", check: "string_format", abort: false, ...y(X) });
-}
-function wY(Q, X) {
-  return new Q({ type: "string", format: "emoji", check: "string_format", abort: false, ...y(X) });
-}
-function AY(Q, X) {
-  return new Q({ type: "string", format: "nanoid", check: "string_format", abort: false, ...y(X) });
-}
-function jY(Q, X) {
-  return new Q({ type: "string", format: "cuid", check: "string_format", abort: false, ...y(X) });
-}
-function RY(Q, X) {
-  return new Q({ type: "string", format: "cuid2", check: "string_format", abort: false, ...y(X) });
-}
-function IY(Q, X) {
-  return new Q({ type: "string", format: "ulid", check: "string_format", abort: false, ...y(X) });
-}
-function bY(Q, X) {
-  return new Q({ type: "string", format: "xid", check: "string_format", abort: false, ...y(X) });
-}
-function EY(Q, X) {
-  return new Q({ type: "string", format: "ksuid", check: "string_format", abort: false, ...y(X) });
-}
-function PY(Q, X) {
-  return new Q({ type: "string", format: "ipv4", check: "string_format", abort: false, ...y(X) });
-}
-function ZY(Q, X) {
-  return new Q({ type: "string", format: "ipv6", check: "string_format", abort: false, ...y(X) });
-}
-function CY(Q, X) {
-  return new Q({ type: "string", format: "cidrv4", check: "string_format", abort: false, ...y(X) });
-}
-function SY(Q, X) {
-  return new Q({ type: "string", format: "cidrv6", check: "string_format", abort: false, ...y(X) });
-}
-function _Y(Q, X) {
-  return new Q({ type: "string", format: "base64", check: "string_format", abort: false, ...y(X) });
-}
-function kY(Q, X) {
-  return new Q({ type: "string", format: "base64url", check: "string_format", abort: false, ...y(X) });
-}
-function vY(Q, X) {
-  return new Q({ type: "string", format: "e164", check: "string_format", abort: false, ...y(X) });
-}
-function TY(Q, X) {
-  return new Q({ type: "string", format: "jwt", check: "string_format", abort: false, ...y(X) });
-}
-function kW(Q, X) {
-  return new Q({ type: "string", format: "datetime", check: "string_format", offset: false, local: false, precision: null, ...y(X) });
-}
-function vW(Q, X) {
-  return new Q({ type: "string", format: "date", check: "string_format", ...y(X) });
-}
-function TW(Q, X) {
-  return new Q({ type: "string", format: "time", check: "string_format", precision: null, ...y(X) });
-}
-function xW(Q, X) {
-  return new Q({ type: "string", format: "duration", check: "string_format", ...y(X) });
-}
-function xY(Q, X) {
-  return new Q({ type: "number", checks: [], ...y(X) });
-}
-function yY(Q, X) {
-  return new Q({ type: "number", check: "number_format", abort: false, format: "safeint", ...y(X) });
-}
-function gY(Q, X) {
-  return new Q({ type: "boolean", ...y(X) });
-}
-function hY(Q, X) {
-  return new Q({ type: "null", ...y(X) });
-}
-function fY(Q) {
-  return new Q({ type: "unknown" });
-}
-function uY(Q, X) {
-  return new Q({ type: "never", ...y(X) });
-}
-function N8(Q, X) {
-  return new jX({ check: "less_than", ...y(X), value: Q, inclusive: false });
-}
-function $4(Q, X) {
-  return new jX({ check: "less_than", ...y(X), value: Q, inclusive: true });
-}
-function O8(Q, X) {
-  return new RX({ check: "greater_than", ...y(X), value: Q, inclusive: false });
-}
-function J4(Q, X) {
-  return new RX({ check: "greater_than", ...y(X), value: Q, inclusive: true });
-}
-function D8(Q, X) {
-  return new $W({ check: "multiple_of", ...y(X), value: Q });
-}
-function M8(Q, X) {
-  return new WW({ check: "max_length", ...y(X), maximum: Q });
-}
-function q9(Q, X) {
-  return new GW({ check: "min_length", ...y(X), minimum: Q });
-}
-function w8(Q, X) {
-  return new HW({ check: "length_equals", ...y(X), length: Q });
-}
-function mY(Q, X) {
-  return new BW({ check: "string_format", format: "regex", ...y(X), pattern: Q });
-}
-function lY(Q) {
-  return new zW({ check: "string_format", format: "lowercase", ...y(Q) });
-}
-function cY(Q) {
-  return new KW({ check: "string_format", format: "uppercase", ...y(Q) });
-}
-function pY(Q, X) {
-  return new VW({ check: "string_format", format: "includes", ...y(X), includes: Q });
-}
-function dY(Q, X) {
-  return new qW({ check: "string_format", format: "starts_with", ...y(X), prefix: Q });
-}
-function iY(Q, X) {
-  return new UW({ check: "string_format", format: "ends_with", ...y(X), suffix: Q });
-}
-function R6(Q) {
-  return new LW({ check: "overwrite", tx: Q });
-}
-function nY(Q) {
-  return R6((X) => X.normalize(Q));
-}
-function oY() {
-  return R6((Q) => Q.trim());
-}
-function rY() {
-  return R6((Q) => Q.toLowerCase());
-}
-function tY() {
-  return R6((Q) => Q.toUpperCase());
-}
-function yW(Q, X, Y) {
-  return new Q({ type: "array", element: X, ...y(Y) });
-}
-function aY(Q, X, Y) {
-  let $ = y(Y);
-  return $.abort ?? ($.abort = true), new Q({ type: "custom", check: "custom", fn: X, ...$ });
-}
-function sY(Q, X, Y) {
-  return new Q({ type: "custom", check: "custom", fn: X, ...y(Y) });
-}
-var MN = D("ZodMiniType", (Q, X) => {
-  if (!Q._zod) throw Error("Uninitialized schema in ZodMiniType.");
-  e.init(Q, X), Q.def = X, Q.parse = (Y, $) => FX(Q, Y, $, { callee: Q.parse }), Q.safeParse = (Y, $) => A6(Q, Y, $), Q.parseAsync = async (Y, $) => OX(Q, Y, $, { callee: Q.parseAsync }), Q.safeParseAsync = async (Y, $) => j6(Q, Y, $), Q.check = (...Y) => {
-    return Q.clone({ ...X, checks: [...X.checks ?? [], ...Y.map(($) => typeof $ === "function" ? { _zod: { check: $, def: { check: "custom" }, onattach: [] } } : $)] });
-  }, Q.clone = (Y, $) => c0(Q, Y, $), Q.brand = () => Q, Q.register = (Y, $) => {
-    return Y.add(Q, $), Q;
-  };
-});
-var wN = D("ZodMiniObject", (Q, X) => {
-  q8.init(Q, X), MN.init(Q, X), i.defineLazy(Q, "shape", () => X.shape);
-});
-var W4 = {};
-gQ(W4, { time: () => J$, duration: () => W$, datetime: () => Y$, date: () => $$, ZodISOTime: () => lW, ZodISODuration: () => cW, ZodISODateTime: () => uW, ZodISODate: () => mW });
-var uW = D("ZodISODateTime", (Q, X) => {
-  EW.init(Q, X), z0.init(Q, X);
-});
-function Y$(Q) {
-  return kW(uW, Q);
-}
-var mW = D("ZodISODate", (Q, X) => {
-  PW.init(Q, X), z0.init(Q, X);
-});
-function $$(Q) {
-  return vW(mW, Q);
-}
-var lW = D("ZodISOTime", (Q, X) => {
-  ZW.init(Q, X), z0.init(Q, X);
-});
-function J$(Q) {
-  return TW(lW, Q);
-}
-var cW = D("ZodISODuration", (Q, X) => {
-  CW.init(Q, X), z0.init(Q, X);
-});
-function W$(Q) {
-  return xW(cW, Q);
-}
-var pW = (Q, X) => {
-  B8.init(Q, X), Q.name = "ZodError", Object.defineProperties(Q, { format: { value: (Y) => UX(Q, Y) }, flatten: { value: (Y) => qX(Q, Y) }, addIssue: { value: (Y) => Q.issues.push(Y) }, addIssues: { value: (Y) => Q.issues.push(...Y) }, isEmpty: { get() {
-    return Q.issues.length === 0;
-  } } });
-};
-var d_ = D("ZodError", pW);
-var G4 = D("ZodError", pW, { Parent: Error });
-var dW = LX(G4);
-var iW = NX(G4);
-var nW = DX(G4);
-var oW = MX(G4);
-var N0 = D("ZodType", (Q, X) => {
-  return e.init(Q, X), Q.def = X, Object.defineProperty(Q, "_def", { value: X }), Q.check = (...Y) => {
-    return Q.clone({ ...X, checks: [...X.checks ?? [], ...Y.map(($) => typeof $ === "function" ? { _zod: { check: $, def: { check: "custom" }, onattach: [] } } : $)] });
-  }, Q.clone = (Y, $) => c0(Q, Y, $), Q.brand = () => Q, Q.register = (Y, $) => {
-    return Y.add(Q, $), Q;
-  }, Q.parse = (Y, $) => dW(Q, Y, $, { callee: Q.parse }), Q.safeParse = (Y, $) => nW(Q, Y, $), Q.parseAsync = async (Y, $) => iW(Q, Y, $, { callee: Q.parseAsync }), Q.safeParseAsync = async (Y, $) => oW(Q, Y, $), Q.spa = Q.safeParseAsync, Q.refine = (Y, $) => Q.check(OO(Y, $)), Q.superRefine = (Y) => Q.check(DO(Y)), Q.overwrite = (Y) => Q.check(R6(Y)), Q.optional = () => F0(Q), Q.nullable = () => aW(Q), Q.nullish = () => F0(aW(Q)), Q.nonoptional = (Y) => KO(Q, Y), Q.array = () => n(Q), Q.or = (Y) => W0([Q, Y]), Q.and = (Y) => b8(Q, Y), Q.transform = (Y) => H$(Q, YG(Y)), Q.default = (Y) => HO(Q, Y), Q.prefault = (Y) => zO(Q, Y), Q.catch = (Y) => qO(Q, Y), Q.pipe = (Y) => H$(Q, Y), Q.readonly = () => FO(Q), Q.describe = (Y) => {
-    let $ = Q.clone();
-    return r1.add($, { description: Y }), $;
-  }, Object.defineProperty(Q, "description", { get() {
-    return r1.get(Q)?.description;
-  }, configurable: true }), Q.meta = (...Y) => {
-    if (Y.length === 0) return r1.get(Q);
-    let $ = Q.clone();
-    return r1.add($, Y[0]), $;
-  }, Q.isOptional = () => Q.safeParse(void 0).success, Q.isNullable = () => Q.safeParse(null).success, Q;
-});
-var sW = D("_ZodString", (Q, X) => {
-  Y4.init(Q, X), N0.init(Q, X);
-  let Y = Q._zod.bag;
-  Q.format = Y.format ?? null, Q.minLength = Y.minimum ?? null, Q.maxLength = Y.maximum ?? null, Q.regex = (...$) => Q.check(mY(...$)), Q.includes = (...$) => Q.check(pY(...$)), Q.startsWith = (...$) => Q.check(dY(...$)), Q.endsWith = (...$) => Q.check(iY(...$)), Q.min = (...$) => Q.check(q9(...$)), Q.max = (...$) => Q.check(M8(...$)), Q.length = (...$) => Q.check(w8(...$)), Q.nonempty = (...$) => Q.check(q9(1, ...$)), Q.lowercase = ($) => Q.check(lY($)), Q.uppercase = ($) => Q.check(cY($)), Q.trim = () => Q.check(oY()), Q.normalize = (...$) => Q.check(nY(...$)), Q.toLowerCase = () => Q.check(rY()), Q.toUpperCase = () => Q.check(tY());
-});
-var CN = D("ZodString", (Q, X) => {
-  Y4.init(Q, X), sW.init(Q, X), Q.email = (Y) => Q.check(LY(SN, Y)), Q.url = (Y) => Q.check(MY(_N, Y)), Q.jwt = (Y) => Q.check(TY(iN, Y)), Q.emoji = (Y) => Q.check(wY(kN, Y)), Q.guid = (Y) => Q.check(F8(rW, Y)), Q.uuid = (Y) => Q.check(FY(I8, Y)), Q.uuidv4 = (Y) => Q.check(NY(I8, Y)), Q.uuidv6 = (Y) => Q.check(OY(I8, Y)), Q.uuidv7 = (Y) => Q.check(DY(I8, Y)), Q.nanoid = (Y) => Q.check(AY(vN, Y)), Q.guid = (Y) => Q.check(F8(rW, Y)), Q.cuid = (Y) => Q.check(jY(TN, Y)), Q.cuid2 = (Y) => Q.check(RY(xN, Y)), Q.ulid = (Y) => Q.check(IY(yN, Y)), Q.base64 = (Y) => Q.check(_Y(cN, Y)), Q.base64url = (Y) => Q.check(kY(pN, Y)), Q.xid = (Y) => Q.check(bY(gN, Y)), Q.ksuid = (Y) => Q.check(EY(hN, Y)), Q.ipv4 = (Y) => Q.check(PY(fN, Y)), Q.ipv6 = (Y) => Q.check(ZY(uN, Y)), Q.cidrv4 = (Y) => Q.check(CY(mN, Y)), Q.cidrv6 = (Y) => Q.check(SY(lN, Y)), Q.e164 = (Y) => Q.check(vY(dN, Y)), Q.datetime = (Y) => Q.check(Y$(Y)), Q.date = (Y) => Q.check($$(Y)), Q.time = (Y) => Q.check(J$(Y)), Q.duration = (Y) => Q.check(W$(Y));
-});
-function N(Q) {
-  return UY(CN, Q);
-}
-var z0 = D("ZodStringFormat", (Q, X) => {
-  J0.init(Q, X), sW.init(Q, X);
-});
-var SN = D("ZodEmail", (Q, X) => {
-  ZX.init(Q, X), z0.init(Q, X);
-});
-var rW = D("ZodGUID", (Q, X) => {
-  EX.init(Q, X), z0.init(Q, X);
-});
-var I8 = D("ZodUUID", (Q, X) => {
-  PX.init(Q, X), z0.init(Q, X);
-});
-var _N = D("ZodURL", (Q, X) => {
-  CX.init(Q, X), z0.init(Q, X);
-});
-var kN = D("ZodEmoji", (Q, X) => {
-  SX.init(Q, X), z0.init(Q, X);
-});
-var vN = D("ZodNanoID", (Q, X) => {
-  _X.init(Q, X), z0.init(Q, X);
-});
-var TN = D("ZodCUID", (Q, X) => {
-  kX.init(Q, X), z0.init(Q, X);
-});
-var xN = D("ZodCUID2", (Q, X) => {
-  vX.init(Q, X), z0.init(Q, X);
-});
-var yN = D("ZodULID", (Q, X) => {
-  TX.init(Q, X), z0.init(Q, X);
-});
-var gN = D("ZodXID", (Q, X) => {
-  xX.init(Q, X), z0.init(Q, X);
-});
-var hN = D("ZodKSUID", (Q, X) => {
-  yX.init(Q, X), z0.init(Q, X);
-});
-var fN = D("ZodIPv4", (Q, X) => {
-  gX.init(Q, X), z0.init(Q, X);
-});
-var uN = D("ZodIPv6", (Q, X) => {
-  hX.init(Q, X), z0.init(Q, X);
-});
-var mN = D("ZodCIDRv4", (Q, X) => {
-  fX.init(Q, X), z0.init(Q, X);
-});
-var lN = D("ZodCIDRv6", (Q, X) => {
-  uX.init(Q, X), z0.init(Q, X);
-});
-var cN = D("ZodBase64", (Q, X) => {
-  mX.init(Q, X), z0.init(Q, X);
-});
-var pN = D("ZodBase64URL", (Q, X) => {
-  lX.init(Q, X), z0.init(Q, X);
-});
-var dN = D("ZodE164", (Q, X) => {
-  cX.init(Q, X), z0.init(Q, X);
-});
-var iN = D("ZodJWT", (Q, X) => {
-  pX.init(Q, X), z0.init(Q, X);
-});
-var eW = D("ZodNumber", (Q, X) => {
-  V8.init(Q, X), N0.init(Q, X), Q.gt = ($, J) => Q.check(O8($, J)), Q.gte = ($, J) => Q.check(J4($, J)), Q.min = ($, J) => Q.check(J4($, J)), Q.lt = ($, J) => Q.check(N8($, J)), Q.lte = ($, J) => Q.check($4($, J)), Q.max = ($, J) => Q.check($4($, J)), Q.int = ($) => Q.check(tW($)), Q.safe = ($) => Q.check(tW($)), Q.positive = ($) => Q.check(O8(0, $)), Q.nonnegative = ($) => Q.check(J4(0, $)), Q.negative = ($) => Q.check(N8(0, $)), Q.nonpositive = ($) => Q.check($4(0, $)), Q.multipleOf = ($, J) => Q.check(D8($, J)), Q.step = ($, J) => Q.check(D8($, J)), Q.finite = () => Q;
-  let Y = Q._zod.bag;
-  Q.minValue = Math.max(Y.minimum ?? Number.NEGATIVE_INFINITY, Y.exclusiveMinimum ?? Number.NEGATIVE_INFINITY) ?? null, Q.maxValue = Math.min(Y.maximum ?? Number.POSITIVE_INFINITY, Y.exclusiveMaximum ?? Number.POSITIVE_INFINITY) ?? null, Q.isInt = (Y.format ?? "").includes("int") || Number.isSafeInteger(Y.multipleOf ?? 0.5), Q.isFinite = true, Q.format = Y.format ?? null;
-});
-function s(Q) {
-  return xY(eW, Q);
-}
-var nN = D("ZodNumberFormat", (Q, X) => {
-  dX.init(Q, X), eW.init(Q, X);
-});
-function tW(Q) {
-  return yY(nN, Q);
-}
-var oN = D("ZodBoolean", (Q, X) => {
-  iX.init(Q, X), N0.init(Q, X);
-});
-function w0(Q) {
-  return gY(oN, Q);
-}
-var rN = D("ZodNull", (Q, X) => {
-  nX.init(Q, X), N0.init(Q, X);
-});
-function B$(Q) {
-  return hY(rN, Q);
-}
-var tN = D("ZodUnknown", (Q, X) => {
-  oX.init(Q, X), N0.init(Q, X);
-});
-function K0() {
-  return fY(tN);
-}
-var aN = D("ZodNever", (Q, X) => {
-  rX.init(Q, X), N0.init(Q, X);
-});
-function sN(Q) {
-  return uY(aN, Q);
-}
-var eN = D("ZodArray", (Q, X) => {
-  tX.init(Q, X), N0.init(Q, X), Q.element = X.element, Q.min = (Y, $) => Q.check(q9(Y, $)), Q.nonempty = (Y) => Q.check(q9(1, Y)), Q.max = (Y, $) => Q.check(M8(Y, $)), Q.length = (Y, $) => Q.check(w8(Y, $)), Q.unwrap = () => Q.element;
-});
-function n(Q, X) {
-  return yW(eN, Q, X);
-}
-var QG = D("ZodObject", (Q, X) => {
-  q8.init(Q, X), N0.init(Q, X), i.defineLazy(Q, "shape", () => X.shape), Q.keyof = () => y0(Object.keys(Q._zod.def.shape)), Q.catchall = (Y) => Q.clone({ ...Q._zod.def, catchall: Y }), Q.passthrough = () => Q.clone({ ...Q._zod.def, catchall: K0() }), Q.loose = () => Q.clone({ ...Q._zod.def, catchall: K0() }), Q.strict = () => Q.clone({ ...Q._zod.def, catchall: sN() }), Q.strip = () => Q.clone({ ...Q._zod.def, catchall: void 0 }), Q.extend = (Y) => {
-    return i.extend(Q, Y);
-  }, Q.merge = (Y) => i.merge(Q, Y), Q.pick = (Y) => i.pick(Q, Y), Q.omit = (Y) => i.omit(Q, Y), Q.partial = (...Y) => i.partial($G, Q, Y[0]), Q.required = (...Y) => i.required(JG, Q, Y[0]);
-});
-function P(Q, X) {
-  let Y = { type: "object", get shape() {
-    return i.assignProp(this, "shape", { ...Q }), this.shape;
-  }, ...i.normalizeParams(X) };
-  return new QG(Y);
-}
-function S0(Q, X) {
-  return new QG({ type: "object", get shape() {
-    return i.assignProp(this, "shape", { ...Q }), this.shape;
-  }, catchall: K0(), ...i.normalizeParams(X) });
-}
-var XG = D("ZodUnion", (Q, X) => {
-  U8.init(Q, X), N0.init(Q, X), Q.options = X.options;
-});
-function W0(Q, X) {
-  return new XG({ type: "union", options: Q, ...i.normalizeParams(X) });
-}
-var QO = D("ZodDiscriminatedUnion", (Q, X) => {
-  XG.init(Q, X), aX.init(Q, X);
-});
-function z$(Q, X, Y) {
-  return new QO({ type: "union", options: X, discriminator: Q, ...i.normalizeParams(Y) });
-}
-var XO = D("ZodIntersection", (Q, X) => {
-  sX.init(Q, X), N0.init(Q, X);
-});
-function b8(Q, X) {
-  return new XO({ type: "intersection", left: Q, right: X });
-}
-var YO = D("ZodRecord", (Q, X) => {
-  eX.init(Q, X), N0.init(Q, X), Q.keyType = X.keyType, Q.valueType = X.valueType;
-});
-function V0(Q, X, Y) {
-  return new YO({ type: "record", keyType: Q, valueType: X, ...i.normalizeParams(Y) });
-}
-var G$ = D("ZodEnum", (Q, X) => {
-  QY.init(Q, X), N0.init(Q, X), Q.enum = X.entries, Q.options = Object.values(X.entries);
-  let Y = new Set(Object.keys(X.entries));
-  Q.extract = ($, J) => {
-    let W = {};
-    for (let G of $) if (Y.has(G)) W[G] = X.entries[G];
-    else throw Error(`Key ${G} not found in enum`);
-    return new G$({ ...X, checks: [], ...i.normalizeParams(J), entries: W });
-  }, Q.exclude = ($, J) => {
-    let W = { ...X.entries };
-    for (let G of $) if (Y.has(G)) delete W[G];
-    else throw Error(`Key ${G} not found in enum`);
-    return new G$({ ...X, checks: [], ...i.normalizeParams(J), entries: W });
-  };
-});
-function y0(Q, X) {
-  let Y = Array.isArray(Q) ? Object.fromEntries(Q.map(($) => [$, $])) : Q;
-  return new G$({ type: "enum", entries: Y, ...i.normalizeParams(X) });
-}
-var $O = D("ZodLiteral", (Q, X) => {
-  XY.init(Q, X), N0.init(Q, X), Q.values = new Set(X.values), Object.defineProperty(Q, "value", { get() {
-    if (X.values.length > 1) throw Error("This schema contains multiple valid literal values. Use `.values` instead.");
-    return X.values[0];
-  } });
-});
-function k(Q, X) {
-  return new $O({ type: "literal", values: Array.isArray(Q) ? Q : [Q], ...i.normalizeParams(X) });
-}
-var JO = D("ZodTransform", (Q, X) => {
-  YY.init(Q, X), N0.init(Q, X), Q._zod.parse = (Y, $) => {
-    Y.addIssue = (W) => {
-      if (typeof W === "string") Y.issues.push(i.issue(W, Y.value, X));
-      else {
-        let G = W;
-        if (G.fatal) G.continue = false;
-        G.code ?? (G.code = "custom"), G.input ?? (G.input = Y.value), G.inst ?? (G.inst = Q), G.continue ?? (G.continue = true), Y.issues.push(i.issue(G));
+  return null;
+}
+var _BashSession_instances, _BashSession_proc, _BashSession_buf, _BashSession_truncated, _BashSession_closed, _BashSession_waiting, _BashSession_append, BASH_OUTPUT_LIMIT, BASH_DEFAULT_TIMEOUT_MS, DEFAULT_MAX_FILE_BYTES, GREP_OUTPUT_LIMIT, GREP_MAX_LINE_LENGTH, GLOB_RESULT_LIMIT, BashTimeoutError, ANSI_RE, fsGlob, BashSession, WALK_MAX_DEPTH, WALK_MAX_ENTRIES;
+var init_node = __esm({
+  "node_modules/@anthropic-ai/sdk/tools/agent-toolset/node.mjs"() {
+    init_tslib();
+    init_error();
+    init_ToolError();
+    init_json_schema();
+    init_promise();
+    init_fs_util();
+    init_skills();
+    BASH_OUTPUT_LIMIT = 100 * 1024;
+    BASH_DEFAULT_TIMEOUT_MS = 12e4;
+    DEFAULT_MAX_FILE_BYTES = 256 * 1024;
+    GREP_OUTPUT_LIMIT = 100 * 1024;
+    GREP_MAX_LINE_LENGTH = 2e3;
+    GLOB_RESULT_LIMIT = 200;
+    BashTimeoutError = class extends AnthropicError {
+      constructor(timeoutMs) {
+        super(`bash command timed out after ${timeoutMs}ms`);
+        this.name = "BashTimeoutError";
+        this.timeoutMs = timeoutMs;
       }
     };
-    let J = X.transform(Y.value, Y);
-    if (J instanceof Promise) return J.then((W) => {
-      return Y.value = W, Y;
-    });
-    return Y.value = J, Y;
-  };
-});
-function YG(Q) {
-  return new JO({ type: "transform", transform: Q });
-}
-var $G = D("ZodOptional", (Q, X) => {
-  $Y.init(Q, X), N0.init(Q, X), Q.unwrap = () => Q._zod.def.innerType;
-});
-function F0(Q) {
-  return new $G({ type: "optional", innerType: Q });
-}
-var WO = D("ZodNullable", (Q, X) => {
-  JY.init(Q, X), N0.init(Q, X), Q.unwrap = () => Q._zod.def.innerType;
-});
-function aW(Q) {
-  return new WO({ type: "nullable", innerType: Q });
-}
-var GO = D("ZodDefault", (Q, X) => {
-  WY.init(Q, X), N0.init(Q, X), Q.unwrap = () => Q._zod.def.innerType, Q.removeDefault = Q.unwrap;
-});
-function HO(Q, X) {
-  return new GO({ type: "default", innerType: Q, get defaultValue() {
-    return typeof X === "function" ? X() : X;
-  } });
-}
-var BO = D("ZodPrefault", (Q, X) => {
-  GY.init(Q, X), N0.init(Q, X), Q.unwrap = () => Q._zod.def.innerType;
-});
-function zO(Q, X) {
-  return new BO({ type: "prefault", innerType: Q, get defaultValue() {
-    return typeof X === "function" ? X() : X;
-  } });
-}
-var JG = D("ZodNonOptional", (Q, X) => {
-  HY.init(Q, X), N0.init(Q, X), Q.unwrap = () => Q._zod.def.innerType;
-});
-function KO(Q, X) {
-  return new JG({ type: "nonoptional", innerType: Q, ...i.normalizeParams(X) });
-}
-var VO = D("ZodCatch", (Q, X) => {
-  BY.init(Q, X), N0.init(Q, X), Q.unwrap = () => Q._zod.def.innerType, Q.removeCatch = Q.unwrap;
-});
-function qO(Q, X) {
-  return new VO({ type: "catch", innerType: Q, catchValue: typeof X === "function" ? X : () => X });
-}
-var UO = D("ZodPipe", (Q, X) => {
-  zY.init(Q, X), N0.init(Q, X), Q.in = X.in, Q.out = X.out;
-});
-function H$(Q, X) {
-  return new UO({ type: "pipe", in: Q, out: X });
-}
-var LO = D("ZodReadonly", (Q, X) => {
-  KY.init(Q, X), N0.init(Q, X);
-});
-function FO(Q) {
-  return new LO({ type: "readonly", innerType: Q });
-}
-var WG = D("ZodCustom", (Q, X) => {
-  VY.init(Q, X), N0.init(Q, X);
-});
-function NO(Q, X) {
-  let Y = new j0({ check: "custom", ...i.normalizeParams(X) });
-  return Y._zod.check = Q, Y;
-}
-function GG(Q, X) {
-  return aY(WG, Q ?? (() => true), X);
-}
-function OO(Q, X = {}) {
-  return sY(WG, Q, X);
-}
-function DO(Q, X) {
-  let Y = NO(($) => {
-    return $.addIssue = (J) => {
-      if (typeof J === "string") $.issues.push(i.issue(J, $.value, Y._zod.def));
-      else {
-        let W = J;
-        if (W.fatal) W.continue = false;
-        W.code ?? (W.code = "custom"), W.input ?? (W.input = $.value), W.inst ?? (W.inst = Y), W.continue ?? (W.continue = !Y._zod.def.abort), $.issues.push(i.issue(W));
+    ANSI_RE = /\x1b\[[0-9;?]*[ -/]*[@-~]/g;
+    fsGlob = fs3.glob;
+    BashSession = class {
+      constructor(dir, env = scrubbedShellEnv()) {
+        _BashSession_instances.add(this);
+        _BashSession_proc.set(this, void 0);
+        _BashSession_buf.set(this, "");
+        _BashSession_truncated.set(this, false);
+        _BashSession_closed.set(this, false);
+        _BashSession_waiting.set(this, null);
+        __classPrivateFieldSet(this, _BashSession_proc, cp.spawn("/bin/bash", ["--noprofile", "--norc"], {
+          cwd: dir,
+          // `env` is the full base environment (the scrubbed process env by
+          // default, or the verbatim replacement from `AgentToolContext.env`).
+          // PS1/PS2/TERM are shell-control settings BashSession always applies so
+          // the pipe-based sentinel exec parsing works — not part of the
+          // user-facing environment.
+          env: { ...env, PS1: "", PS2: "", TERM: "dumb" },
+          stdio: ["pipe", "pipe", "pipe"],
+          detached: true
+        }), "f");
+        __classPrivateFieldGet(this, _BashSession_proc, "f").stdout.setEncoding("utf8");
+        __classPrivateFieldGet(this, _BashSession_proc, "f").stderr.setEncoding("utf8");
+        __classPrivateFieldGet(this, _BashSession_proc, "f").stdout.on("data", (d) => __classPrivateFieldGet(this, _BashSession_instances, "m", _BashSession_append).call(this, d));
+        __classPrivateFieldGet(this, _BashSession_proc, "f").stderr.on("data", (d) => __classPrivateFieldGet(this, _BashSession_instances, "m", _BashSession_append).call(this, d));
+        __classPrivateFieldGet(this, _BashSession_proc, "f").once("close", () => {
+          __classPrivateFieldSet(this, _BashSession_closed, true, "f");
+          const w = __classPrivateFieldGet(this, _BashSession_waiting, "f");
+          __classPrivateFieldSet(this, _BashSession_waiting, null, "f");
+          w?.resolve();
+        });
       }
-    }, Q($.value, $);
-  }, X);
-  return Y;
-}
-function K$(Q, X) {
-  return H$(YG(Q), X);
-}
-l0(qY());
-var s1 = "io.modelcontextprotocol/related-task";
-var P8 = "2.0";
-var R0 = GG((Q) => Q !== null && (typeof Q === "object" || typeof Q === "function"));
-var BG = W0([N(), s().int()]);
-var zG = N();
-var Wk = S0({ ttl: W0([s(), B$()]).optional(), pollInterval: s().optional() });
-var MO = P({ ttl: s().optional() });
-var wO = P({ taskId: N() });
-var q$ = S0({ progressToken: BG.optional(), [s1]: wO.optional() });
-var p0 = P({ _meta: q$.optional() });
-var H4 = p0.extend({ task: MO.optional() });
-var I0 = P({ method: N(), params: p0.loose().optional() });
-var a0 = P({ _meta: q$.optional() });
-var s0 = P({ method: N(), params: a0.loose().optional() });
-var b0 = S0({ _meta: q$.optional() });
-var Z8 = W0([N(), s().int()]);
-var VG = P({ jsonrpc: k(P8), id: Z8, ...I0.shape }).strict();
-var qG = P({ jsonrpc: k(P8), ...s0.shape }).strict();
-var L$ = P({ jsonrpc: k(P8), id: Z8, result: b0 }).strict();
-var T;
-(function(Q) {
-  Q[Q.ConnectionClosed = -32e3] = "ConnectionClosed", Q[Q.RequestTimeout = -32001] = "RequestTimeout", Q[Q.ParseError = -32700] = "ParseError", Q[Q.InvalidRequest = -32600] = "InvalidRequest", Q[Q.MethodNotFound = -32601] = "MethodNotFound", Q[Q.InvalidParams = -32602] = "InvalidParams", Q[Q.InternalError = -32603] = "InternalError", Q[Q.UrlElicitationRequired = -32042] = "UrlElicitationRequired";
-})(T || (T = {}));
-var F$ = P({ jsonrpc: k(P8), id: Z8.optional(), error: P({ code: s().int(), message: N(), data: K0().optional() }) }).strict();
-var Gk = W0([VG, qG, L$, F$]);
-var Hk = W0([L$, F$]);
-var C8 = b0.strict();
-var AO = a0.extend({ requestId: Z8.optional(), reason: N().optional() });
-var S8 = s0.extend({ method: k("notifications/cancelled"), params: AO });
-var jO = P({ src: N(), mimeType: N().optional(), sizes: n(N()).optional(), theme: y0(["light", "dark"]).optional() });
-var z4 = P({ icons: n(jO).optional() });
-var L9 = P({ name: N(), title: N().optional() });
-var FG = L9.extend({ ...L9.shape, ...z4.shape, version: N(), websiteUrl: N().optional(), description: N().optional() });
-var RO = b8(P({ applyDefaults: w0().optional() }), V0(N(), K0()));
-var IO = K$((Q) => {
-  if (Q && typeof Q === "object" && !Array.isArray(Q)) {
-    if (Object.keys(Q).length === 0) return { form: {} };
+      /** Whether the underlying shell process has exited. */
+      get closed() {
+        return __classPrivateFieldGet(this, _BashSession_closed, "f");
+      }
+      async exec(command, opts = {}) {
+        if (__classPrivateFieldGet(this, _BashSession_closed, "f")) {
+          throw new AnthropicError("bash session terminated");
+        }
+        const timeoutMs = opts.timeoutMs ?? BASH_DEFAULT_TIMEOUT_MS;
+        const signal = opts.signal;
+        signal?.throwIfAborted();
+        __classPrivateFieldSet(this, _BashSession_buf, "", "f");
+        __classPrivateFieldSet(this, _BashSession_truncated, false, "f");
+        const sentinel2 = `__ANT_CMD_${crypto.randomUUID()}_DONE__`;
+        const sentinelSplit = `${sentinel2.slice(0, 8)}''${sentinel2.slice(8)}`;
+        const wrapped = `{ ${command}
+} </dev/null 2>&1; printf '\\n${sentinelSplit}%d\\n' $?
+`;
+        __classPrivateFieldGet(this, _BashSession_proc, "f").stdin.write(wrapped);
+        if (__classPrivateFieldGet(this, _BashSession_buf, "f").indexOf(sentinel2) < 0) {
+          const { promise: sentinelSeen, resolve: resolve4 } = promiseWithResolvers();
+          __classPrivateFieldSet(this, _BashSession_waiting, { sentinel: sentinel2, resolve: resolve4 }, "f");
+          let timer;
+          let onAbort;
+          try {
+            await Promise.race([
+              sentinelSeen,
+              new Promise((_, reject) => {
+                timer = setTimeout(() => reject(new BashTimeoutError(timeoutMs)), timeoutMs);
+              }),
+              new Promise((_, reject) => {
+                if (!signal)
+                  return;
+                onAbort = () => reject(signal.reason);
+                signal.addEventListener("abort", onAbort, { once: true });
+              })
+            ]);
+          } finally {
+            if (timer)
+              clearTimeout(timer);
+            if (onAbort && signal)
+              signal.removeEventListener("abort", onAbort);
+            __classPrivateFieldSet(this, _BashSession_waiting, null, "f");
+          }
+        }
+        const idx = __classPrivateFieldGet(this, _BashSession_buf, "f").indexOf(sentinel2);
+        if (idx < 0) {
+          throw new AnthropicError("bash session terminated");
+        }
+        const tail = __classPrivateFieldGet(this, _BashSession_buf, "f").slice(idx + sentinel2.length);
+        const m = tail.match(/^(-?\d+)/);
+        const exitCode = m ? parseInt(m[1], 10) : -1;
+        let out = __classPrivateFieldGet(this, _BashSession_buf, "f").slice(0, idx).replace(ANSI_RE, "").replace(/\n+$/, "");
+        if (__classPrivateFieldGet(this, _BashSession_truncated, "f")) {
+          out = `[output truncated]
+${out}`;
+        }
+        return { output: out, exitCode };
+      }
+      close() {
+        if (__classPrivateFieldGet(this, _BashSession_closed, "f"))
+          return;
+        __classPrivateFieldSet(this, _BashSession_closed, true, "f");
+        const w = __classPrivateFieldGet(this, _BashSession_waiting, "f");
+        __classPrivateFieldSet(this, _BashSession_waiting, null, "f");
+        w?.resolve();
+        __classPrivateFieldGet(this, _BashSession_proc, "f").stdout.destroy();
+        __classPrivateFieldGet(this, _BashSession_proc, "f").stderr.destroy();
+        __classPrivateFieldGet(this, _BashSession_proc, "f").stdin.destroy();
+        try {
+          process.kill(-__classPrivateFieldGet(this, _BashSession_proc, "f").pid, "SIGKILL");
+        } catch {
+          __classPrivateFieldGet(this, _BashSession_proc, "f").kill("SIGKILL");
+        }
+        __classPrivateFieldGet(this, _BashSession_proc, "f").unref();
+      }
+    };
+    _BashSession_proc = /* @__PURE__ */ new WeakMap(), _BashSession_buf = /* @__PURE__ */ new WeakMap(), _BashSession_truncated = /* @__PURE__ */ new WeakMap(), _BashSession_closed = /* @__PURE__ */ new WeakMap(), _BashSession_waiting = /* @__PURE__ */ new WeakMap(), _BashSession_instances = /* @__PURE__ */ new WeakSet(), _BashSession_append = function _BashSession_append2(d) {
+      __classPrivateFieldSet(this, _BashSession_buf, __classPrivateFieldGet(this, _BashSession_buf, "f") + d, "f");
+      if (__classPrivateFieldGet(this, _BashSession_buf, "f").length > BASH_OUTPUT_LIMIT) {
+        __classPrivateFieldSet(this, _BashSession_buf, __classPrivateFieldGet(this, _BashSession_buf, "f").slice(__classPrivateFieldGet(this, _BashSession_buf, "f").length - BASH_OUTPUT_LIMIT), "f");
+        __classPrivateFieldSet(this, _BashSession_truncated, true, "f");
+      }
+      if (__classPrivateFieldGet(this, _BashSession_waiting, "f") && __classPrivateFieldGet(this, _BashSession_buf, "f").indexOf(__classPrivateFieldGet(this, _BashSession_waiting, "f").sentinel) >= 0) {
+        const w = __classPrivateFieldGet(this, _BashSession_waiting, "f");
+        __classPrivateFieldSet(this, _BashSession_waiting, null, "f");
+        w.resolve();
+      }
+    };
+    WALK_MAX_DEPTH = 40;
+    WALK_MAX_ENTRIES = 5e4;
   }
-  return Q;
-}, b8(P({ form: RO.optional(), url: R0.optional() }), V0(N(), K0()).optional()));
-var bO = S0({ list: R0.optional(), cancel: R0.optional(), requests: S0({ sampling: S0({ createMessage: R0.optional() }).optional(), elicitation: S0({ create: R0.optional() }).optional() }).optional() });
-var EO = S0({ list: R0.optional(), cancel: R0.optional(), requests: S0({ tools: S0({ call: R0.optional() }).optional() }).optional() });
-var PO = P({ experimental: V0(N(), R0).optional(), sampling: P({ context: R0.optional(), tools: R0.optional() }).optional(), elicitation: IO.optional(), roots: P({ listChanged: w0().optional() }).optional(), tasks: bO.optional() });
-var ZO = p0.extend({ protocolVersion: N(), capabilities: PO, clientInfo: FG });
-var N$ = I0.extend({ method: k("initialize"), params: ZO });
-var CO = P({ experimental: V0(N(), R0).optional(), logging: R0.optional(), completions: R0.optional(), prompts: P({ listChanged: w0().optional() }).optional(), resources: P({ subscribe: w0().optional(), listChanged: w0().optional() }).optional(), tools: P({ listChanged: w0().optional() }).optional(), tasks: EO.optional() });
-var SO = b0.extend({ protocolVersion: N(), capabilities: CO, serverInfo: FG, instructions: N().optional() });
-var O$ = s0.extend({ method: k("notifications/initialized"), params: a0.optional() });
-var _8 = I0.extend({ method: k("ping"), params: p0.optional() });
-var _O = P({ progress: s(), total: F0(s()), message: F0(N()) });
-var kO = P({ ...a0.shape, ..._O.shape, progressToken: BG });
-var k8 = s0.extend({ method: k("notifications/progress"), params: kO });
-var vO = p0.extend({ cursor: zG.optional() });
-var K4 = I0.extend({ params: vO.optional() });
-var V4 = b0.extend({ nextCursor: zG.optional() });
-var TO = y0(["working", "input_required", "completed", "failed", "cancelled"]);
-var q4 = P({ taskId: N(), status: TO, ttl: W0([s(), B$()]), createdAt: N(), lastUpdatedAt: N(), pollInterval: F0(s()), statusMessage: F0(N()) });
-var F9 = b0.extend({ task: q4 });
-var xO = a0.merge(q4);
-var U4 = s0.extend({ method: k("notifications/tasks/status"), params: xO });
-var v8 = I0.extend({ method: k("tasks/get"), params: p0.extend({ taskId: N() }) });
-var T8 = b0.merge(q4);
-var x8 = I0.extend({ method: k("tasks/result"), params: p0.extend({ taskId: N() }) });
-var Bk = b0.loose();
-var y8 = K4.extend({ method: k("tasks/list") });
-var g8 = V4.extend({ tasks: n(q4) });
-var h8 = I0.extend({ method: k("tasks/cancel"), params: p0.extend({ taskId: N() }) });
-var NG = b0.merge(q4);
-var OG = P({ uri: N(), mimeType: F0(N()), _meta: V0(N(), K0()).optional() });
-var DG = OG.extend({ text: N() });
-var D$ = N().refine((Q) => {
+});
+
+// node_modules/@anthropic-ai/sdk/lib/environments/worker.mjs
+async function forceStop(client, work, log, requestOptions) {
   try {
-    return atob(Q), true;
-  } catch {
-    return false;
+    await client.beta.environments.work.stop(
+      work.id,
+      { environment_id: work.environment_id, force: true },
+      // Caller's headers pass through; the helper-tag header is on the scoped
+      // sub-client's default_headers via copyClientForHelper, so no per-call
+      // re-stamping needed.
+      { ...requestOptions, headers: buildHeaders([requestOptions?.headers]) }
+    );
+  } catch (e) {
+    if (!isStatus(e, 409)) {
+      log.error("force-stop on exit failed", { work_id: work.id, error: String(e) });
+    }
   }
-}, { message: "Invalid Base64 string" });
-var MG = OG.extend({ blob: D$ });
-var L4 = y0(["user", "assistant"]);
-var N9 = P({ audience: n(L4).optional(), priority: s().min(0).max(1).optional(), lastModified: W4.datetime({ offset: true }).optional() });
-var wG = P({ ...L9.shape, ...z4.shape, uri: N(), description: F0(N()), mimeType: F0(N()), annotations: N9.optional(), _meta: F0(S0({})) });
-var yO = P({ ...L9.shape, ...z4.shape, uriTemplate: N(), description: F0(N()), mimeType: F0(N()), annotations: N9.optional(), _meta: F0(S0({})) });
-var f8 = K4.extend({ method: k("resources/list") });
-var gO = V4.extend({ resources: n(wG) });
-var u8 = K4.extend({ method: k("resources/templates/list") });
-var hO = V4.extend({ resourceTemplates: n(yO) });
-var M$ = p0.extend({ uri: N() });
-var fO = M$;
-var m8 = I0.extend({ method: k("resources/read"), params: fO });
-var uO = b0.extend({ contents: n(W0([DG, MG])) });
-var mO = s0.extend({ method: k("notifications/resources/list_changed"), params: a0.optional() });
-var lO = M$;
-var cO = I0.extend({ method: k("resources/subscribe"), params: lO });
-var pO = M$;
-var dO = I0.extend({ method: k("resources/unsubscribe"), params: pO });
-var iO = a0.extend({ uri: N() });
-var nO = s0.extend({ method: k("notifications/resources/updated"), params: iO });
-var oO = P({ name: N(), description: F0(N()), required: F0(w0()) });
-var rO = P({ ...L9.shape, ...z4.shape, description: F0(N()), arguments: F0(n(oO)), _meta: F0(S0({})) });
-var l8 = K4.extend({ method: k("prompts/list") });
-var tO = V4.extend({ prompts: n(rO) });
-var aO = p0.extend({ name: N(), arguments: V0(N(), N()).optional() });
-var c8 = I0.extend({ method: k("prompts/get"), params: aO });
-var w$ = P({ type: k("text"), text: N(), annotations: N9.optional(), _meta: V0(N(), K0()).optional() });
-var A$ = P({ type: k("image"), data: D$, mimeType: N(), annotations: N9.optional(), _meta: V0(N(), K0()).optional() });
-var j$ = P({ type: k("audio"), data: D$, mimeType: N(), annotations: N9.optional(), _meta: V0(N(), K0()).optional() });
-var sO = P({ type: k("tool_use"), name: N(), id: N(), input: V0(N(), K0()), _meta: V0(N(), K0()).optional() });
-var eO = P({ type: k("resource"), resource: W0([DG, MG]), annotations: N9.optional(), _meta: V0(N(), K0()).optional() });
-var QD = wG.extend({ type: k("resource_link") });
-var R$ = W0([w$, A$, j$, QD, eO]);
-var XD = P({ role: L4, content: R$ });
-var YD = b0.extend({ description: N().optional(), messages: n(XD) });
-var $D = s0.extend({ method: k("notifications/prompts/list_changed"), params: a0.optional() });
-var JD = P({ title: N().optional(), readOnlyHint: w0().optional(), destructiveHint: w0().optional(), idempotentHint: w0().optional(), openWorldHint: w0().optional() });
-var WD = P({ taskSupport: y0(["required", "optional", "forbidden"]).optional() });
-var AG = P({ ...L9.shape, ...z4.shape, description: N().optional(), inputSchema: P({ type: k("object"), properties: V0(N(), R0).optional(), required: n(N()).optional() }).catchall(K0()), outputSchema: P({ type: k("object"), properties: V0(N(), R0).optional(), required: n(N()).optional() }).catchall(K0()).optional(), annotations: JD.optional(), execution: WD.optional(), _meta: V0(N(), K0()).optional() });
-var p8 = K4.extend({ method: k("tools/list") });
-var GD = V4.extend({ tools: n(AG) });
-var d8 = b0.extend({ content: n(R$).default([]), structuredContent: V0(N(), K0()).optional(), isError: w0().optional() });
-var zk = d8.or(b0.extend({ toolResult: K0() }));
-var HD = H4.extend({ name: N(), arguments: V0(N(), K0()).optional() });
-var O9 = I0.extend({ method: k("tools/call"), params: HD });
-var BD = s0.extend({ method: k("notifications/tools/list_changed"), params: a0.optional() });
-var Kk = P({ autoRefresh: w0().default(true), debounceMs: s().int().nonnegative().default(300) });
-var F4 = y0(["debug", "info", "notice", "warning", "error", "critical", "alert", "emergency"]);
-var zD = p0.extend({ level: F4 });
-var I$ = I0.extend({ method: k("logging/setLevel"), params: zD });
-var KD = a0.extend({ level: F4, logger: N().optional(), data: K0() });
-var VD = s0.extend({ method: k("notifications/message"), params: KD });
-var qD = P({ name: N().optional() });
-var UD = P({ hints: n(qD).optional(), costPriority: s().min(0).max(1).optional(), speedPriority: s().min(0).max(1).optional(), intelligencePriority: s().min(0).max(1).optional() });
-var LD = P({ mode: y0(["auto", "required", "none"]).optional() });
-var FD = P({ type: k("tool_result"), toolUseId: N().describe("The unique identifier for the corresponding tool call."), content: n(R$).default([]), structuredContent: P({}).loose().optional(), isError: w0().optional(), _meta: V0(N(), K0()).optional() });
-var ND = z$("type", [w$, A$, j$]);
-var E8 = z$("type", [w$, A$, j$, sO, FD]);
-var OD = P({ role: L4, content: W0([E8, n(E8)]), _meta: V0(N(), K0()).optional() });
-var DD = H4.extend({ messages: n(OD), modelPreferences: UD.optional(), systemPrompt: N().optional(), includeContext: y0(["none", "thisServer", "allServers"]).optional(), temperature: s().optional(), maxTokens: s().int(), stopSequences: n(N()).optional(), metadata: R0.optional(), tools: n(AG).optional(), toolChoice: LD.optional() });
-var MD = I0.extend({ method: k("sampling/createMessage"), params: DD });
-var N4 = b0.extend({ model: N(), stopReason: F0(y0(["endTurn", "stopSequence", "maxTokens"]).or(N())), role: L4, content: ND });
-var b$ = b0.extend({ model: N(), stopReason: F0(y0(["endTurn", "stopSequence", "maxTokens", "toolUse"]).or(N())), role: L4, content: W0([E8, n(E8)]) });
-var wD = P({ type: k("boolean"), title: N().optional(), description: N().optional(), default: w0().optional() });
-var AD = P({ type: k("string"), title: N().optional(), description: N().optional(), minLength: s().optional(), maxLength: s().optional(), format: y0(["email", "uri", "date", "date-time"]).optional(), default: N().optional() });
-var jD = P({ type: y0(["number", "integer"]), title: N().optional(), description: N().optional(), minimum: s().optional(), maximum: s().optional(), default: s().optional() });
-var RD = P({ type: k("string"), title: N().optional(), description: N().optional(), enum: n(N()), default: N().optional() });
-var ID = P({ type: k("string"), title: N().optional(), description: N().optional(), oneOf: n(P({ const: N(), title: N() })), default: N().optional() });
-var bD = P({ type: k("string"), title: N().optional(), description: N().optional(), enum: n(N()), enumNames: n(N()).optional(), default: N().optional() });
-var ED = W0([RD, ID]);
-var PD = P({ type: k("array"), title: N().optional(), description: N().optional(), minItems: s().optional(), maxItems: s().optional(), items: P({ type: k("string"), enum: n(N()) }), default: n(N()).optional() });
-var ZD = P({ type: k("array"), title: N().optional(), description: N().optional(), minItems: s().optional(), maxItems: s().optional(), items: P({ anyOf: n(P({ const: N(), title: N() })) }), default: n(N()).optional() });
-var CD = W0([PD, ZD]);
-var SD = W0([bD, ED, CD]);
-var _D = W0([SD, wD, AD, jD]);
-var kD = H4.extend({ mode: k("form").optional(), message: N(), requestedSchema: P({ type: k("object"), properties: V0(N(), _D), required: n(N()).optional() }) });
-var vD = H4.extend({ mode: k("url"), message: N(), elicitationId: N(), url: N().url() });
-var TD = W0([kD, vD]);
-var xD = I0.extend({ method: k("elicitation/create"), params: TD });
-var yD = a0.extend({ elicitationId: N() });
-var gD = s0.extend({ method: k("notifications/elicitation/complete"), params: yD });
-var D9 = b0.extend({ action: y0(["accept", "decline", "cancel"]), content: K$((Q) => Q === null ? void 0 : Q, V0(N(), W0([N(), s(), w0(), n(N())])).optional()) });
-var hD = P({ type: k("ref/resource"), uri: N() });
-var fD = P({ type: k("ref/prompt"), name: N() });
-var uD = p0.extend({ ref: W0([fD, hD]), argument: P({ name: N(), value: N() }), context: P({ arguments: V0(N(), N()).optional() }).optional() });
-var i8 = I0.extend({ method: k("completion/complete"), params: uD });
-var mD = b0.extend({ completion: S0({ values: n(N()).max(100), total: F0(s().int()), hasMore: F0(w0()) }) });
-var lD = P({ uri: N().startsWith("file://"), name: N().optional(), _meta: V0(N(), K0()).optional() });
-var cD = I0.extend({ method: k("roots/list"), params: p0.optional() });
-var E$ = b0.extend({ roots: n(lD) });
-var pD = s0.extend({ method: k("notifications/roots/list_changed"), params: a0.optional() });
-var Vk = W0([_8, N$, i8, I$, c8, l8, f8, u8, m8, cO, dO, O9, p8, v8, x8, y8, h8]);
-var qk = W0([S8, k8, O$, pD, U4]);
-var Uk = W0([C8, N4, b$, D9, E$, T8, g8, F9]);
-var Lk = W0([_8, MD, xD, cD, v8, x8, y8, h8]);
-var Fk = W0([S8, k8, VD, nO, mO, BD, $D, U4, gD]);
-var Nk = W0([C8, SO, mD, YD, tO, gO, hO, uO, d8, GD, T8, g8, F9]);
-var nD = new Set("ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvxyz0123456789");
-var mK = s7(Z7(), 1);
-var lK = s7(uK(), 1);
-var dK;
-(function(Q) {
-  Q.Completable = "McpCompletable";
-})(dK || (dK = {}));
-function aK(Q) {
-  let X;
-  return () => X ??= Q();
 }
-var OE = aK(() => i1.object({ session_id: i1.string(), ws_url: i1.string(), work_dir: i1.string().optional(), session_key: i1.string().optional() }));
-function Yh({ prompt: Q, options: X }) {
-  let { systemPrompt: Y, settings: $, settingSources: J, sandbox: W, ...G } = X ?? {}, H, B;
-  if (Y === void 0) H = "";
-  else if (typeof Y === "string") H = Y;
-  else if (Y.type === "preset") B = Y.append;
-  let z = G.pathToClaudeCodeExecutable;
-  if (!z) {
-    let T6 = wE(import.meta.url), x6 = XV(T6, "..");
-    z = XV(x6, "cli.js");
+async function heartbeatLoop(client, work, ctrl, logger, requestOptions) {
+  let intervalMs = HEARTBEAT_DEFAULT_MS;
+  let last = NO_HEARTBEAT_SENTINEL;
+  const beat = async () => {
+    try {
+      const resp = await client.beta.environments.work.heartbeat(work.id, { environment_id: work.environment_id, expected_last_heartbeat: last }, { ...requestOptions, headers: buildHeaders([requestOptions?.headers]), signal: ctrl.signal });
+      last = resp.last_heartbeat;
+      if (resp.ttl_seconds > 0) {
+        intervalMs = Math.max(1e3, Math.min(resp.ttl_seconds * 1e3 / 2, HEARTBEAT_DEFAULT_MS));
+      }
+      if (resp.state === "stopping" || resp.state === "stopped") {
+        logger.info("heartbeat signals shutdown", { work_id: work.id, state: resp.state });
+        ctrl.abort();
+      }
+      if (!resp.lease_extended) {
+        logger.warn("lease not extended, shutting down", { work_id: work.id });
+        ctrl.abort();
+      }
+    } catch (e) {
+      ctrl.signal.throwIfAborted();
+      if (isFatal4xx(e)) {
+        logger.error("permanent heartbeat failure", { work_id: work.id, error: String(e) });
+        ctrl.abort();
+        throw e;
+      }
+      logger.warn("transient heartbeat failure", { work_id: work.id, error: String(e) });
+    }
+  };
+  await beat();
+  while (!ctrl.signal.aborted) {
+    await sleep(intervalMs, ctrl.signal);
+    ctrl.signal.throwIfAborted();
+    await beat();
   }
-  process.env.CLAUDE_AGENT_SDK_VERSION = "0.2.76";
-  let { abortController: K = y6(), additionalDirectories: U = [], agent: q, agents: V, allowedTools: L = [], betas: F, canUseTool: M, continue: O, cwd: A, debug: R, debugFile: Z, disallowedTools: C = [], tools: B0, env: O0, executable: d0 = g6() ? "bun" : "node", executableArgs: B6 = [], extraArgs: F1 = {}, fallbackModel: z6, enableFileCheckpointing: y1, toolConfig: K6, forkSession: h, hooks: S9, includePartialMessages: TQ, onElicitation: _9, persistSession: k9, thinking: V6, effort: l4, maxThinkingTokens: k6, maxTurns: C0, maxBudgetUsd: g1, mcpServers: v6, model: YV, outputFormat: i7, permissionMode: $V = "default", allowDangerouslySkipPermissions: JV = false, permissionPromptToolName: WV, plugins: GV, workload: n7, resume: HV, resumeSessionAt: BV, sessionId: zV, stderr: KV, strictMcpConfig: VV } = G, o7 = i7?.type === "json_schema" ? i7.schema : void 0, q6 = O0;
-  if (!q6) q6 = { ...process.env };
-  if (!q6.CLAUDE_CODE_ENTRYPOINT) q6.CLAUDE_CODE_ENTRYPOINT = "sdk-ts";
-  if (y1) q6.CLAUDE_CODE_ENABLE_SDK_FILE_CHECKPOINTING = "true";
-  if (K6?.askUserQuestion?.previewFormat) q6.CLAUDE_CODE_QUESTION_PREVIEW_FORMAT = K6.askUserQuestion.previewFormat;
-  if (!z) throw Error("pathToClaudeCodeExecutable is required");
-  let xQ = {}, r7 = /* @__PURE__ */ new Map();
-  if (v6) for (let [T6, x6] of Object.entries(v6)) if (x6.type === "sdk" && "instance" in x6) r7.set(T6, x6.instance), xQ[T6] = { type: "sdk", name: T6 };
-  else xQ[T6] = x6;
-  let qV = typeof Q === "string", v9;
-  if (V6) switch (V6.type) {
-    case "adaptive":
-      v9 = { type: "adaptive" };
+}
+var _EnvironmentWorker_instances, _EnvironmentWorker_signal, _EnvironmentWorker_handleItem, HEARTBEAT_DEFAULT_MS, NO_HEARTBEAT_SENTINEL, EnvironmentWorker;
+var init_worker = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/environments/worker.mjs"() {
+    init_tslib();
+    init_error();
+    init_log();
+    init_env();
+    init_sleep();
+    init_backoff();
+    init_abort();
+    init_headers();
+    init_SessionToolRunner();
+    init_poller();
+    init_helper_client();
+    HEARTBEAT_DEFAULT_MS = 3e4;
+    NO_HEARTBEAT_SENTINEL = "NO_HEARTBEAT";
+    EnvironmentWorker = class {
+      constructor(opts) {
+        _EnvironmentWorker_instances.add(this);
+        _EnvironmentWorker_signal.set(this, void 0);
+        this.client = opts.client;
+        this.environmentId = opts.environmentId;
+        this.environmentKey = opts.environmentKey;
+        this.tools = opts.tools;
+        this.workdir = opts.workdir ?? process.cwd();
+        this.unrestrictedPaths = opts.unrestrictedPaths;
+        this.maxFileBytes = opts.maxFileBytes;
+        this.maxIdleMs = opts.maxIdleMs;
+        this.workerId = opts.workerId;
+        this.requestOptions = opts.requestOptions;
+        __classPrivateFieldSet(this, _EnvironmentWorker_signal, opts.signal, "f");
+      }
+      /**
+       * Poll the environment and service each claimed session until the supplied
+       * signal (or the one passed to the constructor) aborts. Throws if
+       * `environmentId` / `environmentKey` were not provided to the constructor.
+       */
+      async run(signal) {
+        const { environmentId, environmentKey } = this;
+        if (environmentId === void 0 || environmentKey === void 0) {
+          throw new AnthropicError("EnvironmentWorker.run: environmentId and environmentKey are required to poll for work");
+        }
+        const externalSignal = signal ?? __classPrivateFieldGet(this, _EnvironmentWorker_signal, "f");
+        const poller = new WorkPoller({
+          client: this.client,
+          environmentId,
+          environmentKey,
+          ...this.workerId !== void 0 ? { workerId: this.workerId } : {},
+          ...externalSignal ? { signal: externalSignal } : {},
+          ...this.requestOptions !== void 0 ? { requestOptions: this.requestOptions } : {},
+          // The per-item handler force-stops every work item on exit; let it be the
+          // single owner of `work.stop` rather than double-posting from the poller.
+          autoStop: false
+        });
+        for await (const work of poller) {
+          await __classPrivateFieldGet(this, _EnvironmentWorker_instances, "m", _EnvironmentWorker_handleItem).call(this, work, environmentKey, poller.signal);
+        }
+      }
+      /**
+       * Service a single, already-claimed work item without the poll loop: build the
+       * per-session {@link AgentToolContext} (workdir from this worker's options),
+       * download the session agent's skills (`setupSkills`), run a
+       * {@link SessionToolRunner} for the session while heartbeating the work-item
+       * lease in parallel, and force-stop the work item on exit (whether the runner
+       * finishes normally, throws, or the heartbeat loop signals shutdown).
+       *
+       * Use this when something else does the claiming — e.g. a `worker poll
+       * --on-work` script that hands an already-claimed item to a fresh process. The
+       * work id / environment id / session id each fall back to `ANTHROPIC_WORK_ID` /
+       * `ANTHROPIC_ENVIRONMENT_ID` / `ANTHROPIC_SESSION_ID` (the env vars that
+       * command sets) when not passed; the environment key resolves from this
+       * option, then the worker's own `environmentKey`, then
+       * `ANTHROPIC_ENVIRONMENT_KEY`. With no arguments inside that command it just
+       * works. Throws a clear error naming the first of the four required values
+       * still missing after resolution.
+       */
+      async handleItem(opts) {
+        const workId = opts?.workId ?? readEnv("ANTHROPIC_WORK_ID");
+        const environmentId = opts?.environmentId ?? readEnv("ANTHROPIC_ENVIRONMENT_ID");
+        const sessionId = opts?.sessionId ?? readEnv("ANTHROPIC_SESSION_ID");
+        const environmentKey = opts?.environmentKey ?? this.environmentKey ?? readEnv("ANTHROPIC_ENVIRONMENT_KEY");
+        if (!workId) {
+          throw new AnthropicError("handleItem: workId is required \u2014 pass it or set ANTHROPIC_WORK_ID");
+        }
+        if (!environmentId) {
+          throw new AnthropicError("handleItem: environmentId is required \u2014 pass it or set ANTHROPIC_ENVIRONMENT_ID");
+        }
+        if (!sessionId) {
+          throw new AnthropicError("handleItem: sessionId is required \u2014 pass it or set ANTHROPIC_SESSION_ID");
+        }
+        if (!environmentKey) {
+          throw new AnthropicError("handleItem: environmentKey is required \u2014 pass it, construct the worker with it, or set ANTHROPIC_ENVIRONMENT_KEY");
+        }
+        const work = {
+          id: workId,
+          environment_id: environmentId,
+          data: { type: "session", id: sessionId }
+        };
+        await __classPrivateFieldGet(this, _EnvironmentWorker_instances, "m", _EnvironmentWorker_handleItem).call(this, work, environmentKey, opts?.signal ?? __classPrivateFieldGet(this, _EnvironmentWorker_signal, "f"));
+      }
+    };
+    _EnvironmentWorker_signal = /* @__PURE__ */ new WeakMap(), _EnvironmentWorker_instances = /* @__PURE__ */ new WeakSet(), _EnvironmentWorker_handleItem = /**
+     * The per-item body shared by {@link EnvironmentWorker.run}'s poll loop and
+     * {@link EnvironmentWorker.handleItem}: run a {@link SessionToolRunner} for the
+     * work item's session while heartbeating its lease, force-stopping on exit.
+     * Non-session work items are ignored.
+     */
+    async function _EnvironmentWorker_handleItem2(work, environmentKey, externalSignal) {
+      const log = loggerFor(this.client);
+      const sessionClient = copyClientForHelper(this.client, {
+        authToken: environmentKey,
+        helper: "environments-worker"
+      });
+      const sessionId = work.data.id;
+      const ctx = {
+        workdir: this.workdir,
+        client: this.client,
+        sessionId,
+        ...this.unrestrictedPaths !== void 0 ? { unrestrictedPaths: this.unrestrictedPaths } : {},
+        ...this.maxFileBytes !== void 0 ? { maxFileBytes: this.maxFileBytes } : {}
+      };
+      const agentToolset = await Promise.resolve().then(() => (init_node(), node_exports));
+      let cleanupSkills = async () => {
+      };
+      try {
+        cleanupSkills = await agentToolset.setupSkills(ctx);
+      } catch (e) {
+        log.warn("skill setup failed", { session_id: sessionId, work_id: work.id, error: String(e) });
+      }
+      const tools = typeof this.tools === "function" ? this.tools(ctx) : this.tools ?? agentToolset.betaAgentToolset20260401(ctx);
+      const ctrl = new AbortController();
+      const detachExternal = linkAbort(externalSignal, ctrl);
+      const heartbeatPromise = heartbeatLoop(sessionClient, work, ctrl, log, this.requestOptions).catch((e) => {
+        if (!ctrl.signal.aborted)
+          log.error("heartbeat loop failed", { work_id: work.id, error: String(e) });
+        ctrl.abort();
+      });
+      try {
+        const runner = new SessionToolRunner(sessionId, {
+          client: sessionClient,
+          tools,
+          ...this.maxIdleMs !== void 0 ? { maxIdleMs: this.maxIdleMs } : {},
+          ...this.requestOptions !== void 0 ? { requestOptions: this.requestOptions } : {},
+          signal: ctrl.signal
+        });
+        for await (const _ of runner) {
+        }
+      } finally {
+        ctrl.abort();
+        detachExternal();
+        await heartbeatPromise;
+        await cleanupSkills().catch((e) => {
+          log.warn("skill cleanup failed", { session_id: sessionId, work_id: work.id, error: String(e) });
+        });
+        await forceStop(sessionClient, work, log, this.requestOptions);
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/environments/work.mjs
+var Work;
+var init_work = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/environments/work.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_path();
+    init_poller();
+    init_worker();
+    init_poller();
+    init_worker();
+    Work = class extends APIResource {
+      /**
+       * Note: these endpoints are called automatically by the pre-built environment
+       * worker provided in the SDKs and CLI, for orchestrating sessions with self-hosted
+       * sandbox environments. They are included here as a reference; you do not need to
+       * invoke them directly.
+       *
+       * Retrieve detailed information about a specific work item.
+       *
+       * @example
+       * ```ts
+       * const betaSelfHostedWork =
+       *   await client.beta.environments.work.retrieve('work_id', {
+       *     environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
+       *   });
+       * ```
+       */
+      retrieve(workID, params, options) {
+        const { environment_id, betas } = params;
+        return this._client.get(path`/v1/environments/${environment_id}/work/${workID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Note: these endpoints are called automatically by the pre-built environment
+       * worker provided in the SDKs and CLI, for orchestrating sessions with self-hosted
+       * sandbox environments. They are included here as a reference; you do not need to
+       * invoke them directly.
+       *
+       * Update work item metadata with merge semantics.
+       *
+       * @example
+       * ```ts
+       * const betaSelfHostedWork =
+       *   await client.beta.environments.work.update('work_id', {
+       *     environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
+       *     metadata: { foo: 'string' },
+       *   });
+       * ```
+       */
+      update(workID, params, options) {
+        const { environment_id, betas, ...body } = params;
+        return this._client.post(path`/v1/environments/${environment_id}/work/${workID}?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Note: these endpoints are called automatically by the pre-built environment
+       * worker provided in the SDKs and CLI, for orchestrating sessions with self-hosted
+       * sandbox environments. They are included here as a reference; you do not need to
+       * invoke them directly.
+       *
+       * List work items in an environment.
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaSelfHostedWork of client.beta.environments.work.list(
+       *   'env_011CZkZ9X2dpNyB7HsEFoRfW',
+       * )) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(environmentID, params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList(path`/v1/environments/${environmentID}/work?beta=true`, PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Note: these endpoints are called automatically by the pre-built environment
+       * worker provided in the SDKs and CLI, for orchestrating sessions with self-hosted
+       * sandbox environments. They are included here as a reference; you do not need to
+       * invoke them directly.
+       *
+       * Acknowledge receipt of a work item, transitioning it from 'queued' to 'starting'
+       * and removing it from the queue.
+       *
+       * @example
+       * ```ts
+       * const betaSelfHostedWork =
+       *   await client.beta.environments.work.ack('work_id', {
+       *     environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
+       *   });
+       * ```
+       */
+      ack(workID, params, options) {
+        const { environment_id, betas } = params;
+        return this._client.post(path`/v1/environments/${environment_id}/work/${workID}/ack?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Note: these endpoints are called automatically by the pre-built environment
+       * worker provided in the SDKs and CLI, for orchestrating sessions with self-hosted
+       * sandbox environments. They are included here as a reference; you do not need to
+       * invoke them directly.
+       *
+       * Record a heartbeat for a work item to maintain the lease.
+       *
+       * @example
+       * ```ts
+       * const betaSelfHostedWorkHeartbeatResponse =
+       *   await client.beta.environments.work.heartbeat('work_id', {
+       *     environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
+       *   });
+       * ```
+       */
+      heartbeat(workID, params, options) {
+        const { environment_id, desired_ttl_seconds, expected_last_heartbeat, betas } = params;
+        return this._client.post(path`/v1/environments/${environment_id}/work/${workID}/heartbeat?beta=true`, {
+          query: { desired_ttl_seconds, expected_last_heartbeat },
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Note: these endpoints are called automatically by the pre-built environment
+       * worker provided in the SDKs and CLI, for orchestrating sessions with self-hosted
+       * sandbox environments. They are included here as a reference; you do not need to
+       * invoke them directly.
+       *
+       * Long poll for work items in the queue.
+       *
+       * @example
+       * ```ts
+       * const betaSelfHostedWork =
+       *   await client.beta.environments.work.poll(
+       *     'env_011CZkZ9X2dpNyB7HsEFoRfW',
+       *   );
+       * ```
+       */
+      poll(environmentID, params = {}, options) {
+        const { betas, "Anthropic-Worker-ID": anthropicWorkerID, ...query } = params ?? {};
+        return this._client.get(path`/v1/environments/${environmentID}/work/poll?beta=true`, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            {
+              "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString(),
+              ...anthropicWorkerID != null ? { "Anthropic-Worker-ID": anthropicWorkerID } : void 0
+            },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Get statistics about the work queue for an environment.
+       *
+       * @example
+       * ```ts
+       * const betaSelfHostedWorkQueueStats =
+       *   await client.beta.environments.work.stats(
+       *     'env_011CZkZ9X2dpNyB7HsEFoRfW',
+       *   );
+       * ```
+       */
+      stats(environmentID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/environments/${environmentID}/work/stats?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Note: these endpoints are called automatically by the pre-built environment
+       * worker provided in the SDKs and CLI, for orchestrating sessions with self-hosted
+       * sandbox environments. They are included here as a reference; you do not need to
+       * invoke them directly.
+       *
+       * Stop a work item, initiating graceful or forced shutdown.
+       *
+       * @example
+       * ```ts
+       * const betaSelfHostedWork =
+       *   await client.beta.environments.work.stop('work_id', {
+       *     environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
+       *   });
+       * ```
+       */
+      stop(workID, params, options) {
+        const { environment_id, betas, ...body } = params;
+        return this._client.post(path`/v1/environments/${environment_id}/work/${workID}/stop?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Continuously claim work from a self-hosted environment, ack each item,
+       * and yield it. Posts `stop` automatically when the consumer's loop body
+       * returns or when iteration ends.
+       *
+       * @example
+       * ```ts
+       * for await (const work of client.beta.environments.work.poller({
+       *   environmentId,
+       *   environmentKey,
+       * })) {
+       *   if (work.data.type !== 'session') continue;
+       *   // ...service the work...
+       * }
+       * ```
+       */
+      poller(opts) {
+        return new WorkPoller({ ...opts, client: this._client });
+      }
+      /**
+       * The self-hosted environment runner: poll for work, and for each claimed
+       * session set up the workdir, download the agent's skills, run the tools while
+       * heartbeating the lease, and force-stop on exit.
+       *
+       * @example
+       * ```ts
+       * // Long-running daemon — poll, serve each session, loop:
+       * await client.beta.environments.work
+       *   .worker({ environmentId, environmentKey, workdir: '/workspace' })
+       *   .run();
+       *
+       * // Or service one already-claimed work item (e.g. inside a sandbox spawned
+       * // by `ant worker poll --on-work`) — handleItem() reads the ANTHROPIC_* env vars:
+       * await client.beta.environments.work.worker({ workdir: '/workspace' }).handleItem();
+       * ```
+       */
+      worker(opts) {
+        return new EnvironmentWorker({ ...opts, client: this._client });
+      }
+    };
+    Work.WorkPoller = WorkPoller;
+    Work.EnvironmentWorker = EnvironmentWorker;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/environments/environments.mjs
+var Environments;
+var init_environments = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/environments/environments.mjs"() {
+    init_resource();
+    init_work();
+    init_work();
+    init_pagination();
+    init_headers();
+    init_path();
+    Environments = class extends APIResource {
+      constructor() {
+        super(...arguments);
+        this.work = new Work(this._client);
+      }
+      /**
+       * Create a new environment with the specified configuration.
+       *
+       * @example
+       * ```ts
+       * const betaEnvironment =
+       *   await client.beta.environments.create({
+       *     name: 'python-data-analysis',
+       *   });
+       * ```
+       */
+      create(params, options) {
+        const { betas, ...body } = params;
+        return this._client.post("/v1/environments?beta=true", {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Retrieve a specific environment by ID.
+       *
+       * @example
+       * ```ts
+       * const betaEnvironment =
+       *   await client.beta.environments.retrieve(
+       *     'env_011CZkZ9X2dpNyB7HsEFoRfW',
+       *   );
+       * ```
+       */
+      retrieve(environmentID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/environments/${environmentID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Update an existing environment's configuration.
+       *
+       * @example
+       * ```ts
+       * const betaEnvironment =
+       *   await client.beta.environments.update(
+       *     'env_011CZkZ9X2dpNyB7HsEFoRfW',
+       *   );
+       * ```
+       */
+      update(environmentID, params, options) {
+        const { betas, ...body } = params;
+        return this._client.post(path`/v1/environments/${environmentID}?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List environments with pagination support.
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaEnvironment of client.beta.environments.list()) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList("/v1/environments?beta=true", PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Delete an environment by ID. Returns a confirmation of the deletion.
+       *
+       * @example
+       * ```ts
+       * const betaEnvironmentDeleteResponse =
+       *   await client.beta.environments.delete(
+       *     'env_011CZkZ9X2dpNyB7HsEFoRfW',
+       *   );
+       * ```
+       */
+      delete(environmentID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.delete(path`/v1/environments/${environmentID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Archive an environment by ID. Archived environments cannot be used to create new
+       * sessions.
+       *
+       * @example
+       * ```ts
+       * const betaEnvironment =
+       *   await client.beta.environments.archive(
+       *     'env_011CZkZ9X2dpNyB7HsEFoRfW',
+       *   );
+       * ```
+       */
+      archive(environmentID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.post(path`/v1/environments/${environmentID}/archive?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+    Environments.Work = Work;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/memory-stores/memories.mjs
+var Memories;
+var init_memories = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/memory-stores/memories.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_path();
+    Memories = class extends APIResource {
+      /**
+       * Create a memory
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsMemory =
+       *   await client.beta.memoryStores.memories.create(
+       *     'memory_store_id',
+       *     { content: 'content', path: 'xx' },
+       *   );
+       * ```
+       */
+      create(memoryStoreID, params, options) {
+        const { view, betas, ...body } = params;
+        return this._client.post(path`/v1/memory_stores/${memoryStoreID}/memories?beta=true`, {
+          query: { view },
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "agent-memory-2026-07-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Retrieve a memory
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsMemory =
+       *   await client.beta.memoryStores.memories.retrieve(
+       *     'memory_id',
+       *     { memory_store_id: 'memory_store_id' },
+       *   );
+       * ```
+       */
+      retrieve(memoryID, params, options) {
+        const { memory_store_id, betas, ...query } = params;
+        return this._client.get(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}?beta=true`, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "agent-memory-2026-07-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Update a memory
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsMemory =
+       *   await client.beta.memoryStores.memories.update(
+       *     'memory_id',
+       *     { memory_store_id: 'memory_store_id' },
+       *   );
+       * ```
+       */
+      update(memoryID, params, options) {
+        const { memory_store_id, view, betas, ...body } = params;
+        return this._client.post(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}?beta=true`, {
+          query: { view },
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "agent-memory-2026-07-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List memories
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaManagedAgentsMemoryListItem of client.beta.memoryStores.memories.list(
+       *   'memory_store_id',
+       * )) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(memoryStoreID, params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList(path`/v1/memory_stores/${memoryStoreID}/memories?beta=true`, PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "agent-memory-2026-07-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Delete a memory
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsDeletedMemory =
+       *   await client.beta.memoryStores.memories.delete(
+       *     'memory_id',
+       *     { memory_store_id: 'memory_store_id' },
+       *   );
+       * ```
+       */
+      delete(memoryID, params, options) {
+        const { memory_store_id, expected_content_sha256, betas } = params;
+        return this._client.delete(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}?beta=true`, {
+          query: { expected_content_sha256 },
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "agent-memory-2026-07-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/memory-stores/memory-versions.mjs
+var MemoryVersions;
+var init_memory_versions = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/memory-stores/memory-versions.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_path();
+    MemoryVersions = class extends APIResource {
+      /**
+       * Retrieve a memory version
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsMemoryVersion =
+       *   await client.beta.memoryStores.memoryVersions.retrieve(
+       *     'memory_version_id',
+       *     { memory_store_id: 'memory_store_id' },
+       *   );
+       * ```
+       */
+      retrieve(memoryVersionID, params, options) {
+        const { memory_store_id, betas, ...query } = params;
+        return this._client.get(path`/v1/memory_stores/${memory_store_id}/memory_versions/${memoryVersionID}?beta=true`, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "agent-memory-2026-07-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List memory versions
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaManagedAgentsMemoryVersion of client.beta.memoryStores.memoryVersions.list(
+       *   'memory_store_id',
+       * )) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(memoryStoreID, params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList(path`/v1/memory_stores/${memoryStoreID}/memory_versions?beta=true`, PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "agent-memory-2026-07-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Redact a memory version
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsMemoryVersion =
+       *   await client.beta.memoryStores.memoryVersions.redact(
+       *     'memory_version_id',
+       *     { memory_store_id: 'memory_store_id' },
+       *   );
+       * ```
+       */
+      redact(memoryVersionID, params, options) {
+        const { memory_store_id, betas } = params;
+        return this._client.post(path`/v1/memory_stores/${memory_store_id}/memory_versions/${memoryVersionID}/redact?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "agent-memory-2026-07-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/memory-stores/memory-stores.mjs
+var MemoryStores;
+var init_memory_stores = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/memory-stores/memory-stores.mjs"() {
+    init_resource();
+    init_memories();
+    init_memories();
+    init_memory_versions();
+    init_memory_versions();
+    init_pagination();
+    init_headers();
+    init_path();
+    MemoryStores = class extends APIResource {
+      constructor() {
+        super(...arguments);
+        this.memories = new Memories(this._client);
+        this.memoryVersions = new MemoryVersions(this._client);
+      }
+      /**
+       * Create a memory store
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsMemoryStore =
+       *   await client.beta.memoryStores.create({ name: 'x' });
+       * ```
+       */
+      create(params, options) {
+        const { betas, ...body } = params;
+        return this._client.post("/v1/memory_stores?beta=true", {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "agent-memory-2026-07-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Retrieve a memory store
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsMemoryStore =
+       *   await client.beta.memoryStores.retrieve(
+       *     'memory_store_id',
+       *   );
+       * ```
+       */
+      retrieve(memoryStoreID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/memory_stores/${memoryStoreID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "agent-memory-2026-07-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Update a memory store
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsMemoryStore =
+       *   await client.beta.memoryStores.update('memory_store_id');
+       * ```
+       */
+      update(memoryStoreID, params, options) {
+        const { betas, ...body } = params;
+        return this._client.post(path`/v1/memory_stores/${memoryStoreID}?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "agent-memory-2026-07-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List memory stores
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaManagedAgentsMemoryStore of client.beta.memoryStores.list()) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList("/v1/memory_stores?beta=true", PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "agent-memory-2026-07-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Delete a memory store
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsDeletedMemoryStore =
+       *   await client.beta.memoryStores.delete('memory_store_id');
+       * ```
+       */
+      delete(memoryStoreID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.delete(path`/v1/memory_stores/${memoryStoreID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "agent-memory-2026-07-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Archive a memory store
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsMemoryStore =
+       *   await client.beta.memoryStores.archive('memory_store_id');
+       * ```
+       */
+      archive(memoryStoreID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.post(path`/v1/memory_stores/${memoryStoreID}/archive?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "agent-memory-2026-07-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+    MemoryStores.Memories = Memories;
+    MemoryStores.MemoryVersions = MemoryVersions;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/error.mjs
+var init_error2 = __esm({
+  "node_modules/@anthropic-ai/sdk/error.mjs"() {
+    init_error();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/decoders/jsonl.mjs
+var JSONLDecoder;
+var init_jsonl = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/decoders/jsonl.mjs"() {
+    init_error();
+    init_shims();
+    init_line();
+    JSONLDecoder = class _JSONLDecoder {
+      constructor(iterator, controller) {
+        this.iterator = iterator;
+        this.controller = controller;
+      }
+      async *decoder() {
+        const lineDecoder = new LineDecoder();
+        for await (const chunk of this.iterator) {
+          for (const line of lineDecoder.decode(chunk)) {
+            yield JSON.parse(line);
+          }
+        }
+        for (const line of lineDecoder.flush()) {
+          yield JSON.parse(line);
+        }
+      }
+      [Symbol.asyncIterator]() {
+        return this.decoder();
+      }
+      static fromResponse(response, controller) {
+        if (!response.body) {
+          controller.abort();
+          if (typeof globalThis.navigator !== "undefined" && globalThis.navigator.product === "ReactNative") {
+            throw new AnthropicError(`The default react-native fetch implementation does not support streaming. Please use expo/fetch: https://docs.expo.dev/versions/latest/sdk/expo/#expofetch-api`);
+          }
+          throw new AnthropicError(`Attempted to iterate over a response with no body`);
+        }
+        return new _JSONLDecoder(ReadableStreamToAsyncIterable(response.body), controller);
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/messages/batches.mjs
+var Batches;
+var init_batches = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/messages/batches.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_jsonl();
+    init_error2();
+    init_path();
+    Batches = class extends APIResource {
+      /**
+       * Send a batch of Message creation requests.
+       *
+       * The Message Batches API can be used to process multiple Messages API requests at
+       * once. Once a Message Batch is created, it begins processing immediately. Batches
+       * can take up to 24 hours to complete.
+       *
+       * Learn more about the Message Batches API in our
+       * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+       *
+       * @example
+       * ```ts
+       * const betaMessageBatch =
+       *   await client.beta.messages.batches.create({
+       *     requests: [
+       *       {
+       *         custom_id: 'my-custom-id-1',
+       *         params: {
+       *           max_tokens: 1024,
+       *           messages: [
+       *             { content: 'Hello, world', role: 'user' },
+       *           ],
+       *           model: 'claude-opus-4-6',
+       *         },
+       *       },
+       *     ],
+       *   });
+       * ```
+       */
+      create(params, options) {
+        const { betas, user_profile_id, ...body } = params;
+        return this._client.post("/v1/messages/batches?beta=true", {
+          body,
+          ...options,
+          headers: buildHeaders([
+            {
+              "anthropic-beta": [...betas ?? [], "message-batches-2024-09-24"].toString(),
+              ...user_profile_id != null ? { "anthropic-user-profile-id": user_profile_id } : void 0
+            },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * This endpoint is idempotent and can be used to poll for Message Batch
+       * completion. To access the results of a Message Batch, make a request to the
+       * `results_url` field in the response.
+       *
+       * Learn more about the Message Batches API in our
+       * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+       *
+       * @example
+       * ```ts
+       * const betaMessageBatch =
+       *   await client.beta.messages.batches.retrieve(
+       *     'message_batch_id',
+       *   );
+       * ```
+       */
+      retrieve(messageBatchID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "message-batches-2024-09-24"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List all Message Batches within a Workspace. Most recently created batches are
+       * returned first.
+       *
+       * Learn more about the Message Batches API in our
+       * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaMessageBatch of client.beta.messages.batches.list()) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList("/v1/messages/batches?beta=true", Page, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "message-batches-2024-09-24"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Delete a Message Batch.
+       *
+       * Message Batches can only be deleted once they've finished processing. If you'd
+       * like to delete an in-progress batch, you must first cancel it.
+       *
+       * Learn more about the Message Batches API in our
+       * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+       *
+       * @example
+       * ```ts
+       * const betaDeletedMessageBatch =
+       *   await client.beta.messages.batches.delete(
+       *     'message_batch_id',
+       *   );
+       * ```
+       */
+      delete(messageBatchID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.delete(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "message-batches-2024-09-24"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Batches may be canceled any time before processing ends. Once cancellation is
+       * initiated, the batch enters a `canceling` state, at which time the system may
+       * complete any in-progress, non-interruptible requests before finalizing
+       * cancellation.
+       *
+       * The number of canceled requests is specified in `request_counts`. To determine
+       * which requests were canceled, check the individual results within the batch.
+       * Note that cancellation may not result in any canceled requests if they were
+       * non-interruptible.
+       *
+       * Learn more about the Message Batches API in our
+       * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+       *
+       * @example
+       * ```ts
+       * const betaMessageBatch =
+       *   await client.beta.messages.batches.cancel(
+       *     'message_batch_id',
+       *   );
+       * ```
+       */
+      cancel(messageBatchID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "message-batches-2024-09-24"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Streams the results of a Message Batch as a `.jsonl` file.
+       *
+       * Each line in the file is a JSON object containing the result of a single request
+       * in the Message Batch. Results are not guaranteed to be in the same order as
+       * requests. Use the `custom_id` field to match results to requests.
+       *
+       * Learn more about the Message Batches API in our
+       * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+       *
+       * @example
+       * ```ts
+       * const betaMessageBatchIndividualResponse =
+       *   await client.beta.messages.batches.results(
+       *     'message_batch_id',
+       *   );
+       * ```
+       */
+      async results(messageBatchID, params = {}, options) {
+        const batch = await this.retrieve(messageBatchID);
+        if (!batch.results_url) {
+          throw new AnthropicError(`No batch \`results_url\`; Has it finished processing? ${batch.processing_status} - ${batch.id}`);
+        }
+        const { betas } = params ?? {};
+        return this._client.get(batch.results_url, {
+          ...options,
+          headers: buildHeaders([
+            {
+              "anthropic-beta": [...betas ?? [], "message-batches-2024-09-24"].toString(),
+              Accept: "application/binary"
+            },
+            options?.headers
+          ]),
+          stream: true,
+          __binaryResponse: true
+        })._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller));
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/constants.mjs
+var MODEL_NONSTREAMING_TOKENS;
+var init_constants = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/constants.mjs"() {
+    MODEL_NONSTREAMING_TOKENS = {
+      "claude-opus-4@20250514": 8192,
+      "anthropic.claude-opus-4-1-20250805-v1:0": 8192,
+      "claude-opus-4-1@20250805": 8192
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/beta-parser.mjs
+function getOutputFormat(params) {
+  return params?.output_format ?? params?.output_config?.format;
+}
+function maybeParseBetaMessage(message, params, opts) {
+  const outputFormat = getOutputFormat(params);
+  if (!params || !("parse" in (outputFormat ?? {}))) {
+    return {
+      ...message,
+      content: message.content.map((block) => {
+        if (block.type === "text") {
+          const parsedBlock = Object.defineProperty({ ...block }, "parsed_output", {
+            value: null,
+            enumerable: false
+          });
+          return Object.defineProperty(parsedBlock, "parsed", {
+            get() {
+              opts.logger.warn("The `parsed` property on `text` blocks is deprecated, please use `parsed_output` instead.");
+              return null;
+            },
+            enumerable: false
+          });
+        }
+        return block;
+      }),
+      parsed_output: null
+    };
+  }
+  return parseBetaMessage(message, params, opts);
+}
+function parseBetaMessage(message, params, opts) {
+  let firstParsedOutput = null;
+  const content = message.content.map((block) => {
+    if (block.type === "text") {
+      const parsedOutput = parseBetaOutputFormat(params, block.text);
+      if (firstParsedOutput === null) {
+        firstParsedOutput = parsedOutput;
+      }
+      const parsedBlock = Object.defineProperty({ ...block }, "parsed_output", {
+        value: parsedOutput,
+        enumerable: false
+      });
+      return Object.defineProperty(parsedBlock, "parsed", {
+        get() {
+          opts.logger.warn("The `parsed` property on `text` blocks is deprecated, please use `parsed_output` instead.");
+          return parsedOutput;
+        },
+        enumerable: false
+      });
+    }
+    return block;
+  });
+  return {
+    ...message,
+    content,
+    parsed_output: firstParsedOutput
+  };
+}
+function parseBetaOutputFormat(params, content) {
+  const outputFormat = getOutputFormat(params);
+  if (outputFormat?.type !== "json_schema") {
+    return null;
+  }
+  try {
+    if ("parse" in outputFormat) {
+      return outputFormat.parse(content);
+    }
+    return JSON.parse(content);
+  } catch (error) {
+    throw new AnthropicError(`Failed to parse structured output: ${error}`);
+  }
+}
+var init_beta_parser = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/beta-parser.mjs"() {
+    init_error();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/streaming.mjs
+var init_streaming2 = __esm({
+  "node_modules/@anthropic-ai/sdk/streaming.mjs"() {
+    init_streaming();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/_vendor/partial-json-parser/parser.mjs
+var tokenize, strip, unstrip, generate, partialParse;
+var init_parser = __esm({
+  "node_modules/@anthropic-ai/sdk/_vendor/partial-json-parser/parser.mjs"() {
+    tokenize = (input) => {
+      let current = 0;
+      let tokens = [];
+      while (current < input.length) {
+        let char = input[current];
+        if (char === "\\") {
+          current++;
+          continue;
+        }
+        if (char === "{") {
+          tokens.push({
+            type: "brace",
+            value: "{"
+          });
+          current++;
+          continue;
+        }
+        if (char === "}") {
+          tokens.push({
+            type: "brace",
+            value: "}"
+          });
+          current++;
+          continue;
+        }
+        if (char === "[") {
+          tokens.push({
+            type: "paren",
+            value: "["
+          });
+          current++;
+          continue;
+        }
+        if (char === "]") {
+          tokens.push({
+            type: "paren",
+            value: "]"
+          });
+          current++;
+          continue;
+        }
+        if (char === ":") {
+          tokens.push({
+            type: "separator",
+            value: ":"
+          });
+          current++;
+          continue;
+        }
+        if (char === ",") {
+          tokens.push({
+            type: "delimiter",
+            value: ","
+          });
+          current++;
+          continue;
+        }
+        if (char === '"') {
+          let value = "";
+          let danglingQuote = false;
+          char = input[++current];
+          while (char !== '"') {
+            if (current === input.length) {
+              danglingQuote = true;
+              break;
+            }
+            if (char === "\\") {
+              current++;
+              if (current === input.length) {
+                danglingQuote = true;
+                break;
+              }
+              value += char + input[current];
+              char = input[++current];
+            } else {
+              value += char;
+              char = input[++current];
+            }
+          }
+          char = input[++current];
+          if (!danglingQuote) {
+            tokens.push({
+              type: "string",
+              value
+            });
+          }
+          continue;
+        }
+        let WHITESPACE = /\s/;
+        if (char && WHITESPACE.test(char)) {
+          current++;
+          continue;
+        }
+        let NUMBERS = /[0-9]/;
+        if (char && NUMBERS.test(char) || char === "-" || char === ".") {
+          let value = "";
+          if (char === "-") {
+            value += char;
+            char = input[++current];
+          }
+          while (char && (NUMBERS.test(char) || char === "." || // exponent marker, e.g. `1e10` or `1.5E-9`
+          char === "e" || char === "E" || // exponent sign, only valid immediately after the exponent marker
+          (char === "-" || char === "+") && (value[value.length - 1] === "e" || value[value.length - 1] === "E"))) {
+            value += char;
+            char = input[++current];
+          }
+          tokens.push({
+            type: "number",
+            value
+          });
+          continue;
+        }
+        let LETTERS = /[a-z]/i;
+        if (char && LETTERS.test(char)) {
+          let value = "";
+          while (char && LETTERS.test(char)) {
+            if (current === input.length) {
+              break;
+            }
+            value += char;
+            char = input[++current];
+          }
+          if (value == "true" || value == "false" || value === "null") {
+            tokens.push({
+              type: "name",
+              value
+            });
+          } else {
+            current++;
+            continue;
+          }
+          continue;
+        }
+        current++;
+      }
+      return tokens;
+    };
+    strip = (tokens) => {
+      if (tokens.length === 0) {
+        return tokens;
+      }
+      let lastToken = tokens[tokens.length - 1];
+      switch (lastToken.type) {
+        case "separator":
+          tokens = tokens.slice(0, tokens.length - 1);
+          return strip(tokens);
+          break;
+        case "number":
+          let lastCharacterOfLastToken = lastToken.value[lastToken.value.length - 1];
+          if (lastCharacterOfLastToken === "." || lastCharacterOfLastToken === "-" || lastCharacterOfLastToken === "+" || lastCharacterOfLastToken === "e" || lastCharacterOfLastToken === "E") {
+            tokens = tokens.slice(0, tokens.length - 1);
+            return strip(tokens);
+          }
+        case "string":
+          let tokenBeforeTheLastToken = tokens[tokens.length - 2];
+          if (tokenBeforeTheLastToken?.type === "delimiter") {
+            tokens = tokens.slice(0, tokens.length - 1);
+            return strip(tokens);
+          } else if (tokenBeforeTheLastToken?.type === "brace" && tokenBeforeTheLastToken.value === "{") {
+            tokens = tokens.slice(0, tokens.length - 1);
+            return strip(tokens);
+          }
+          break;
+        case "delimiter":
+          tokens = tokens.slice(0, tokens.length - 1);
+          return strip(tokens);
+          break;
+      }
+      return tokens;
+    };
+    unstrip = (tokens) => {
+      let tail = [];
+      tokens.map((token2) => {
+        if (token2.type === "brace") {
+          if (token2.value === "{") {
+            tail.push("}");
+          } else {
+            tail.splice(tail.lastIndexOf("}"), 1);
+          }
+        }
+        if (token2.type === "paren") {
+          if (token2.value === "[") {
+            tail.push("]");
+          } else {
+            tail.splice(tail.lastIndexOf("]"), 1);
+          }
+        }
+      });
+      if (tail.length > 0) {
+        tail.reverse().map((item) => {
+          if (item === "}") {
+            tokens.push({
+              type: "brace",
+              value: "}"
+            });
+          } else if (item === "]") {
+            tokens.push({
+              type: "paren",
+              value: "]"
+            });
+          }
+        });
+      }
+      return tokens;
+    };
+    generate = (tokens) => {
+      let output = "";
+      tokens.map((token2) => {
+        switch (token2.type) {
+          case "string":
+            output += '"' + token2.value + '"';
+            break;
+          default:
+            output += token2.value;
+            break;
+        }
+      });
+      return output;
+    };
+    partialParse = (input) => JSON.parse(generate(unstrip(strip(tokenize(input)))));
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/internal/message-stream-utils.mjs
+function withLazyInput(prev, jsonBuf) {
+  const next = {};
+  for (const key of Object.keys(prev)) {
+    if (key !== "input")
+      next[key] = prev[key];
+  }
+  Object.defineProperty(next, JSON_BUF_PROPERTY, { value: jsonBuf, enumerable: false, writable: true });
+  let input;
+  let parsed = false;
+  Object.defineProperty(next, "input", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      if (!parsed) {
+        input = jsonBuf ? partialParse(jsonBuf) : {};
+        parsed = true;
+      }
+      return input;
+    }
+  });
+  return next;
+}
+var JSON_BUF_PROPERTY;
+var init_message_stream_utils = __esm({
+  "node_modules/@anthropic-ai/sdk/internal/message-stream-utils.mjs"() {
+    init_parser();
+    JSON_BUF_PROPERTY = "__json_buf";
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/BetaMessageStream.mjs
+function tracksToolInput(content) {
+  return content.type === "tool_use" || content.type === "server_tool_use" || content.type === "mcp_tool_use";
+}
+function checkNever(x) {
+}
+var _BetaMessageStream_instances, _BetaMessageStream_currentMessageSnapshot, _BetaMessageStream_params, _BetaMessageStream_connectedPromise, _BetaMessageStream_resolveConnectedPromise, _BetaMessageStream_rejectConnectedPromise, _BetaMessageStream_endPromise, _BetaMessageStream_resolveEndPromise, _BetaMessageStream_rejectEndPromise, _BetaMessageStream_listeners, _BetaMessageStream_ended, _BetaMessageStream_errored, _BetaMessageStream_aborted, _BetaMessageStream_catchingPromiseCreated, _BetaMessageStream_response, _BetaMessageStream_request_id, _BetaMessageStream_logger, _BetaMessageStream_getFinalMessage, _BetaMessageStream_getFinalText, _BetaMessageStream_handleError, _BetaMessageStream_beginRequest, _BetaMessageStream_addStreamEvent, _BetaMessageStream_endRequest, _BetaMessageStream_accumulateMessage, _BetaMessageStream_toolInputParseError, BetaMessageStream;
+var init_BetaMessageStream = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/BetaMessageStream.mjs"() {
+    init_tslib();
+    init_stainless_helper_header();
+    init_error2();
+    init_errors();
+    init_streaming2();
+    init_beta_parser();
+    init_message_stream_utils();
+    BetaMessageStream = class _BetaMessageStream {
+      constructor(params, opts) {
+        _BetaMessageStream_instances.add(this);
+        this.messages = [];
+        this.receivedMessages = [];
+        _BetaMessageStream_currentMessageSnapshot.set(this, void 0);
+        _BetaMessageStream_params.set(this, null);
+        this.controller = new AbortController();
+        _BetaMessageStream_connectedPromise.set(this, void 0);
+        _BetaMessageStream_resolveConnectedPromise.set(this, () => {
+        });
+        _BetaMessageStream_rejectConnectedPromise.set(this, () => {
+        });
+        _BetaMessageStream_endPromise.set(this, void 0);
+        _BetaMessageStream_resolveEndPromise.set(this, () => {
+        });
+        _BetaMessageStream_rejectEndPromise.set(this, () => {
+        });
+        _BetaMessageStream_listeners.set(this, {});
+        _BetaMessageStream_ended.set(this, false);
+        _BetaMessageStream_errored.set(this, false);
+        _BetaMessageStream_aborted.set(this, false);
+        _BetaMessageStream_catchingPromiseCreated.set(this, false);
+        _BetaMessageStream_response.set(this, void 0);
+        _BetaMessageStream_request_id.set(this, void 0);
+        _BetaMessageStream_logger.set(this, void 0);
+        _BetaMessageStream_handleError.set(this, (error) => {
+          __classPrivateFieldSet(this, _BetaMessageStream_errored, true, "f");
+          if (isAbortError(error)) {
+            error = new APIUserAbortError();
+          }
+          if (error instanceof APIUserAbortError) {
+            __classPrivateFieldSet(this, _BetaMessageStream_aborted, true, "f");
+            return this._emit("abort", error);
+          }
+          if (error instanceof AnthropicError) {
+            return this._emit("error", error);
+          }
+          if (error instanceof Error) {
+            const anthropicError = new AnthropicError(error.message);
+            anthropicError.cause = error;
+            return this._emit("error", anthropicError);
+          }
+          return this._emit("error", new AnthropicError(String(error)));
+        });
+        __classPrivateFieldSet(this, _BetaMessageStream_connectedPromise, new Promise((resolve4, reject) => {
+          __classPrivateFieldSet(this, _BetaMessageStream_resolveConnectedPromise, resolve4, "f");
+          __classPrivateFieldSet(this, _BetaMessageStream_rejectConnectedPromise, reject, "f");
+        }), "f");
+        __classPrivateFieldSet(this, _BetaMessageStream_endPromise, new Promise((resolve4, reject) => {
+          __classPrivateFieldSet(this, _BetaMessageStream_resolveEndPromise, resolve4, "f");
+          __classPrivateFieldSet(this, _BetaMessageStream_rejectEndPromise, reject, "f");
+        }), "f");
+        __classPrivateFieldGet(this, _BetaMessageStream_connectedPromise, "f").catch(() => {
+        });
+        __classPrivateFieldGet(this, _BetaMessageStream_endPromise, "f").catch(() => {
+        });
+        __classPrivateFieldSet(this, _BetaMessageStream_params, params, "f");
+        __classPrivateFieldSet(this, _BetaMessageStream_logger, opts?.logger ?? console, "f");
+      }
+      get response() {
+        return __classPrivateFieldGet(this, _BetaMessageStream_response, "f");
+      }
+      get request_id() {
+        return __classPrivateFieldGet(this, _BetaMessageStream_request_id, "f");
+      }
+      /**
+       * Returns the `MessageStream` data, the raw `Response` instance and the ID of the request,
+       * returned vie the `request-id` header which is useful for debugging requests and resporting
+       * issues to Anthropic.
+       *
+       * This is the same as the `APIPromise.withResponse()` method.
+       *
+       * This method will raise an error if you created the stream using `MessageStream.fromReadableStream`
+       * as no `Response` is available.
+       */
+      async withResponse() {
+        __classPrivateFieldSet(this, _BetaMessageStream_catchingPromiseCreated, true, "f");
+        const response = await __classPrivateFieldGet(this, _BetaMessageStream_connectedPromise, "f");
+        if (!response) {
+          throw new Error("Could not resolve a `Response` object");
+        }
+        return {
+          data: this,
+          response,
+          request_id: response.headers.get("request-id")
+        };
+      }
+      /**
+       * Intended for use on the frontend, consuming a stream produced with
+       * `.toReadableStream()` on the backend.
+       *
+       * Note that messages sent to the model do not appear in `.on('message')`
+       * in this context.
+       */
+      static fromReadableStream(stream) {
+        const runner = new _BetaMessageStream(null);
+        runner._run(() => runner._fromReadableStream(stream));
+        return runner;
+      }
+      static createMessage(messages, params, options, { logger } = {}) {
+        const runner = new _BetaMessageStream(params, { logger });
+        for (const message of params.messages) {
+          runner._addMessageParam(message);
+        }
+        __classPrivateFieldSet(runner, _BetaMessageStream_params, { ...params, stream: true }, "f");
+        runner._run(() => runner._createMessage(messages, { ...params, stream: true }, { ...options, headers: { ...options?.headers, [STAINLESS_HELPER_METHOD_HEADER]: "stream" } }));
+        return runner;
+      }
+      _run(executor) {
+        executor().then(() => {
+          this._emitFinal();
+          this._emit("end");
+        }, __classPrivateFieldGet(this, _BetaMessageStream_handleError, "f"));
+      }
+      _addMessageParam(message) {
+        this.messages.push(message);
+      }
+      _addMessage(message, emit = true) {
+        this.receivedMessages.push(message);
+        if (emit) {
+          this._emit("message", message);
+        }
+      }
+      async _createMessage(messages, params, options) {
+        const signal = options?.signal;
+        let abortHandler;
+        if (signal) {
+          if (signal.aborted)
+            this.controller.abort();
+          abortHandler = this.controller.abort.bind(this.controller);
+          signal.addEventListener("abort", abortHandler);
+        }
+        try {
+          __classPrivateFieldGet(this, _BetaMessageStream_instances, "m", _BetaMessageStream_beginRequest).call(this);
+          const { response, data: stream } = await messages.create({ ...params, stream: true }, { ...options, signal: this.controller.signal }).withResponse();
+          this._connected(response);
+          for await (const event of stream) {
+            __classPrivateFieldGet(this, _BetaMessageStream_instances, "m", _BetaMessageStream_addStreamEvent).call(this, event);
+          }
+          if (stream.controller.signal?.aborted) {
+            throw new APIUserAbortError();
+          }
+          __classPrivateFieldGet(this, _BetaMessageStream_instances, "m", _BetaMessageStream_endRequest).call(this);
+        } finally {
+          if (signal && abortHandler) {
+            signal.removeEventListener("abort", abortHandler);
+          }
+        }
+      }
+      _connected(response) {
+        if (this.ended)
+          return;
+        __classPrivateFieldSet(this, _BetaMessageStream_response, response, "f");
+        __classPrivateFieldSet(this, _BetaMessageStream_request_id, response?.headers.get("request-id"), "f");
+        __classPrivateFieldGet(this, _BetaMessageStream_resolveConnectedPromise, "f").call(this, response);
+        this._emit("connect");
+      }
+      get ended() {
+        return __classPrivateFieldGet(this, _BetaMessageStream_ended, "f");
+      }
+      get errored() {
+        return __classPrivateFieldGet(this, _BetaMessageStream_errored, "f");
+      }
+      get aborted() {
+        return __classPrivateFieldGet(this, _BetaMessageStream_aborted, "f");
+      }
+      abort() {
+        this.controller.abort();
+      }
+      /**
+       * Adds the listener function to the end of the listeners array for the event.
+       * No checks are made to see if the listener has already been added. Multiple calls passing
+       * the same combination of event and listener will result in the listener being added, and
+       * called, multiple times.
+       * @returns this MessageStream, so that calls can be chained
+       */
+      on(event, listener) {
+        const listeners = __classPrivateFieldGet(this, _BetaMessageStream_listeners, "f")[event] || (__classPrivateFieldGet(this, _BetaMessageStream_listeners, "f")[event] = []);
+        listeners.push({ listener });
+        return this;
+      }
+      /**
+       * Removes the specified listener from the listener array for the event.
+       * off() will remove, at most, one instance of a listener from the listener array. If any single
+       * listener has been added multiple times to the listener array for the specified event, then
+       * off() must be called multiple times to remove each instance.
+       * @returns this MessageStream, so that calls can be chained
+       */
+      off(event, listener) {
+        const listeners = __classPrivateFieldGet(this, _BetaMessageStream_listeners, "f")[event];
+        if (!listeners)
+          return this;
+        const index = listeners.findIndex((l) => l.listener === listener);
+        if (index >= 0)
+          listeners.splice(index, 1);
+        return this;
+      }
+      /**
+       * Adds a one-time listener function for the event. The next time the event is triggered,
+       * this listener is removed and then invoked.
+       * @returns this MessageStream, so that calls can be chained
+       */
+      once(event, listener) {
+        const listeners = __classPrivateFieldGet(this, _BetaMessageStream_listeners, "f")[event] || (__classPrivateFieldGet(this, _BetaMessageStream_listeners, "f")[event] = []);
+        listeners.push({ listener, once: true });
+        return this;
+      }
+      /**
+       * This is similar to `.once()`, but returns a Promise that resolves the next time
+       * the event is triggered, instead of calling a listener callback.
+       * @returns a Promise that resolves the next time given event is triggered,
+       * or rejects if an error is emitted.  (If you request the 'error' event,
+       * returns a promise that resolves with the error).
+       *
+       * Example:
+       *
+       *   const message = await stream.emitted('message') // rejects if the stream errors
+       */
+      emitted(event) {
+        return new Promise((resolve4, reject) => {
+          __classPrivateFieldSet(this, _BetaMessageStream_catchingPromiseCreated, true, "f");
+          if (event !== "error")
+            this.once("error", reject);
+          this.once(event, resolve4);
+        });
+      }
+      async done() {
+        __classPrivateFieldSet(this, _BetaMessageStream_catchingPromiseCreated, true, "f");
+        await __classPrivateFieldGet(this, _BetaMessageStream_endPromise, "f");
+      }
+      get currentMessage() {
+        return __classPrivateFieldGet(this, _BetaMessageStream_currentMessageSnapshot, "f");
+      }
+      /**
+       * @returns a promise that resolves with the the final assistant Message response,
+       * or rejects if an error occurred or the stream ended prematurely without producing a Message.
+       * If structured outputs were used, this will be a ParsedMessage with a `parsed` field.
+       */
+      async finalMessage() {
+        await this.done();
+        return __classPrivateFieldGet(this, _BetaMessageStream_instances, "m", _BetaMessageStream_getFinalMessage).call(this);
+      }
+      /**
+       * @returns a promise that resolves with the the final assistant Message's text response, concatenated
+       * together if there are more than one text blocks.
+       * Rejects if an error occurred or the stream ended prematurely without producing a Message.
+       */
+      async finalText() {
+        await this.done();
+        return __classPrivateFieldGet(this, _BetaMessageStream_instances, "m", _BetaMessageStream_getFinalText).call(this);
+      }
+      _emit(event, ...args) {
+        if (__classPrivateFieldGet(this, _BetaMessageStream_ended, "f"))
+          return;
+        if (event === "end") {
+          __classPrivateFieldSet(this, _BetaMessageStream_ended, true, "f");
+          __classPrivateFieldGet(this, _BetaMessageStream_resolveEndPromise, "f").call(this);
+        }
+        const listeners = __classPrivateFieldGet(this, _BetaMessageStream_listeners, "f")[event];
+        if (listeners) {
+          __classPrivateFieldGet(this, _BetaMessageStream_listeners, "f")[event] = listeners.filter((l) => !l.once);
+          listeners.forEach(({ listener }) => listener(...args));
+        }
+        if (event === "abort") {
+          const error = args[0];
+          if (!__classPrivateFieldGet(this, _BetaMessageStream_catchingPromiseCreated, "f") && !listeners?.length) {
+            Promise.reject(error);
+          }
+          __classPrivateFieldGet(this, _BetaMessageStream_rejectConnectedPromise, "f").call(this, error);
+          __classPrivateFieldGet(this, _BetaMessageStream_rejectEndPromise, "f").call(this, error);
+          this._emit("end");
+          return;
+        }
+        if (event === "error") {
+          const error = args[0];
+          if (!__classPrivateFieldGet(this, _BetaMessageStream_catchingPromiseCreated, "f") && !listeners?.length) {
+            Promise.reject(error);
+          }
+          __classPrivateFieldGet(this, _BetaMessageStream_rejectConnectedPromise, "f").call(this, error);
+          __classPrivateFieldGet(this, _BetaMessageStream_rejectEndPromise, "f").call(this, error);
+          this._emit("end");
+        }
+      }
+      _emitFinal() {
+        const finalMessage = this.receivedMessages.at(-1);
+        if (finalMessage) {
+          this._emit("finalMessage", __classPrivateFieldGet(this, _BetaMessageStream_instances, "m", _BetaMessageStream_getFinalMessage).call(this));
+        }
+      }
+      async _fromReadableStream(readableStream, options) {
+        const signal = options?.signal;
+        let abortHandler;
+        if (signal) {
+          if (signal.aborted)
+            this.controller.abort();
+          abortHandler = this.controller.abort.bind(this.controller);
+          signal.addEventListener("abort", abortHandler);
+        }
+        try {
+          __classPrivateFieldGet(this, _BetaMessageStream_instances, "m", _BetaMessageStream_beginRequest).call(this);
+          this._connected(null);
+          const stream = Stream.fromReadableStream(readableStream, this.controller);
+          for await (const event of stream) {
+            __classPrivateFieldGet(this, _BetaMessageStream_instances, "m", _BetaMessageStream_addStreamEvent).call(this, event);
+          }
+          if (stream.controller.signal?.aborted) {
+            throw new APIUserAbortError();
+          }
+          __classPrivateFieldGet(this, _BetaMessageStream_instances, "m", _BetaMessageStream_endRequest).call(this);
+        } finally {
+          if (signal && abortHandler) {
+            signal.removeEventListener("abort", abortHandler);
+          }
+        }
+      }
+      [(_BetaMessageStream_currentMessageSnapshot = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_params = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_connectedPromise = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_resolveConnectedPromise = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_rejectConnectedPromise = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_endPromise = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_resolveEndPromise = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_rejectEndPromise = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_listeners = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_ended = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_errored = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_aborted = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_catchingPromiseCreated = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_response = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_request_id = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_logger = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_handleError = /* @__PURE__ */ new WeakMap(), _BetaMessageStream_instances = /* @__PURE__ */ new WeakSet(), _BetaMessageStream_getFinalMessage = function _BetaMessageStream_getFinalMessage2() {
+        if (this.receivedMessages.length === 0) {
+          throw new AnthropicError("stream ended without producing a Message with role=assistant");
+        }
+        return this.receivedMessages.at(-1);
+      }, _BetaMessageStream_getFinalText = function _BetaMessageStream_getFinalText2() {
+        if (this.receivedMessages.length === 0) {
+          throw new AnthropicError("stream ended without producing a Message with role=assistant");
+        }
+        const textBlocks = this.receivedMessages.at(-1).content.filter((block) => block.type === "text").map((block) => block.text);
+        if (textBlocks.length === 0) {
+          throw new AnthropicError("stream ended without producing a content block with type=text");
+        }
+        return textBlocks.join(" ");
+      }, _BetaMessageStream_beginRequest = function _BetaMessageStream_beginRequest2() {
+        if (this.ended)
+          return;
+        __classPrivateFieldSet(this, _BetaMessageStream_currentMessageSnapshot, void 0, "f");
+      }, _BetaMessageStream_addStreamEvent = function _BetaMessageStream_addStreamEvent2(event) {
+        if (this.ended)
+          return;
+        const messageSnapshot = __classPrivateFieldGet(this, _BetaMessageStream_instances, "m", _BetaMessageStream_accumulateMessage).call(this, event);
+        this._emit("streamEvent", event, messageSnapshot);
+        switch (event.type) {
+          case "content_block_delta": {
+            const content = messageSnapshot.content.at(-1);
+            switch (event.delta.type) {
+              case "text_delta": {
+                if (content.type === "text") {
+                  this._emit("text", event.delta.text, content.text || "");
+                }
+                break;
+              }
+              case "citations_delta": {
+                if (content.type === "text") {
+                  this._emit("citation", event.delta.citation, content.citations ?? []);
+                }
+                break;
+              }
+              case "input_json_delta": {
+                if (tracksToolInput(content) && __classPrivateFieldGet(this, _BetaMessageStream_listeners, "f").inputJson?.length) {
+                  let jsonSnapshot;
+                  try {
+                    jsonSnapshot = content.input;
+                  } catch (err) {
+                    __classPrivateFieldGet(this, _BetaMessageStream_handleError, "f").call(this, __classPrivateFieldGet(this, _BetaMessageStream_instances, "m", _BetaMessageStream_toolInputParseError).call(this, content, err));
+                    break;
+                  }
+                  this._emit("inputJson", event.delta.partial_json, jsonSnapshot);
+                }
+                break;
+              }
+              case "thinking_delta": {
+                if (content.type === "thinking") {
+                  this._emit("thinking", event.delta.thinking, content.thinking);
+                }
+                break;
+              }
+              case "signature_delta": {
+                if (content.type === "thinking") {
+                  this._emit("signature", content.signature);
+                }
+                break;
+              }
+              case "compaction_delta": {
+                if (content.type === "compaction" && content.content) {
+                  this._emit("compaction", content.content);
+                }
+                break;
+              }
+              default:
+                checkNever(event.delta);
+            }
+            break;
+          }
+          case "message_stop": {
+            this._addMessageParam(messageSnapshot);
+            this._addMessage(maybeParseBetaMessage(messageSnapshot, __classPrivateFieldGet(this, _BetaMessageStream_params, "f"), { logger: __classPrivateFieldGet(this, _BetaMessageStream_logger, "f") }), true);
+            break;
+          }
+          case "content_block_stop": {
+            this._emit("contentBlock", messageSnapshot.content.at(-1));
+            break;
+          }
+          case "message_start": {
+            __classPrivateFieldSet(this, _BetaMessageStream_currentMessageSnapshot, messageSnapshot, "f");
+            break;
+          }
+          case "content_block_start":
+          case "message_delta":
+            break;
+        }
+      }, _BetaMessageStream_endRequest = function _BetaMessageStream_endRequest2() {
+        if (this.ended) {
+          throw new AnthropicError(`stream has ended, this shouldn't happen`);
+        }
+        const snapshot = __classPrivateFieldGet(this, _BetaMessageStream_currentMessageSnapshot, "f");
+        if (!snapshot) {
+          throw new AnthropicError(`request ended without sending any chunks`);
+        }
+        __classPrivateFieldSet(this, _BetaMessageStream_currentMessageSnapshot, void 0, "f");
+        return maybeParseBetaMessage(snapshot, __classPrivateFieldGet(this, _BetaMessageStream_params, "f"), { logger: __classPrivateFieldGet(this, _BetaMessageStream_logger, "f") });
+      }, _BetaMessageStream_accumulateMessage = function _BetaMessageStream_accumulateMessage2(event) {
+        let snapshot = __classPrivateFieldGet(this, _BetaMessageStream_currentMessageSnapshot, "f");
+        if (event.type === "message_start") {
+          if (snapshot) {
+            throw new AnthropicError(`Unexpected event order, got ${event.type} before receiving "message_stop"`);
+          }
+          return event.message;
+        }
+        if (!snapshot) {
+          throw new AnthropicError(`Unexpected event order, got ${event.type} before "message_start"`);
+        }
+        switch (event.type) {
+          case "message_stop":
+            return snapshot;
+          case "message_delta":
+            snapshot.container = event.delta.container;
+            snapshot.stop_reason = event.delta.stop_reason;
+            snapshot.stop_sequence = event.delta.stop_sequence;
+            if (event.delta.stop_details != null) {
+              snapshot.stop_details = event.delta.stop_details;
+            }
+            snapshot.usage.output_tokens = event.usage.output_tokens;
+            snapshot.context_management = event.context_management;
+            if (event.usage.input_tokens != null) {
+              snapshot.usage.input_tokens = event.usage.input_tokens;
+            }
+            if (event.usage.cache_creation_input_tokens != null) {
+              snapshot.usage.cache_creation_input_tokens = event.usage.cache_creation_input_tokens;
+            }
+            if (event.usage.cache_read_input_tokens != null) {
+              snapshot.usage.cache_read_input_tokens = event.usage.cache_read_input_tokens;
+            }
+            if (event.usage.server_tool_use != null) {
+              snapshot.usage.server_tool_use = event.usage.server_tool_use;
+            }
+            if (event.usage.iterations != null) {
+              snapshot.usage.iterations = event.usage.iterations;
+            }
+            if (event.usage.fallback_credit != null) {
+              snapshot.usage.fallback_credit = event.usage.fallback_credit;
+            }
+            return snapshot;
+          case "content_block_start":
+            snapshot.content.push(event.content_block);
+            if (event.content_block.type === "fallback") {
+              snapshot.model = event.content_block.to.model;
+            }
+            return snapshot;
+          case "content_block_delta": {
+            const snapshotContent = snapshot.content.at(event.index);
+            switch (event.delta.type) {
+              case "text_delta": {
+                if (snapshotContent?.type === "text") {
+                  snapshot.content[event.index] = {
+                    ...snapshotContent,
+                    text: (snapshotContent.text || "") + event.delta.text
+                  };
+                }
+                break;
+              }
+              case "citations_delta": {
+                if (snapshotContent?.type === "text") {
+                  snapshot.content[event.index] = {
+                    ...snapshotContent,
+                    citations: [...snapshotContent.citations ?? [], event.delta.citation]
+                  };
+                }
+                break;
+              }
+              case "input_json_delta": {
+                if (snapshotContent && tracksToolInput(snapshotContent)) {
+                  const jsonBuf = (snapshotContent[JSON_BUF_PROPERTY] || "") + event.delta.partial_json;
+                  snapshot.content[event.index] = withLazyInput(snapshotContent, jsonBuf);
+                }
+                break;
+              }
+              case "thinking_delta": {
+                if (snapshotContent?.type === "thinking") {
+                  snapshot.content[event.index] = {
+                    ...snapshotContent,
+                    thinking: snapshotContent.thinking + event.delta.thinking
+                  };
+                }
+                break;
+              }
+              case "signature_delta": {
+                if (snapshotContent?.type === "thinking") {
+                  snapshot.content[event.index] = {
+                    ...snapshotContent,
+                    signature: event.delta.signature
+                  };
+                }
+                break;
+              }
+              case "compaction_delta": {
+                if (snapshotContent?.type === "compaction") {
+                  snapshot.content[event.index] = {
+                    ...snapshotContent,
+                    content: (snapshotContent.content || "") + event.delta.content,
+                    encrypted_content: event.delta.encrypted_content
+                  };
+                }
+                break;
+              }
+              default:
+                checkNever(event.delta);
+            }
+            return snapshot;
+          }
+          case "content_block_stop": {
+            const snapshotContent = snapshot.content.at(event.index);
+            if (snapshotContent && tracksToolInput(snapshotContent) && JSON_BUF_PROPERTY in snapshotContent) {
+              let input;
+              try {
+                input = snapshotContent.input;
+              } catch (err) {
+                input = {};
+                __classPrivateFieldGet(this, _BetaMessageStream_handleError, "f").call(this, __classPrivateFieldGet(this, _BetaMessageStream_instances, "m", _BetaMessageStream_toolInputParseError).call(this, snapshotContent, err));
+              }
+              Object.defineProperty(snapshotContent, "input", {
+                value: input,
+                enumerable: true,
+                configurable: true,
+                writable: true
+              });
+            }
+            return snapshot;
+          }
+        }
+      }, _BetaMessageStream_toolInputParseError = function _BetaMessageStream_toolInputParseError2(block, err) {
+        const jsonBuf = block[JSON_BUF_PROPERTY];
+        return new AnthropicError(`Unable to parse tool parameter JSON from model. Please retry your request or adjust your prompt. Error: ${err}. JSON: ${jsonBuf}`);
+      }, Symbol.asyncIterator)]() {
+        const pushQueue = [];
+        const readQueue = [];
+        let done = false;
+        this.on("streamEvent", (event) => {
+          const reader = readQueue.shift();
+          if (reader) {
+            reader.resolve(event);
+          } else {
+            pushQueue.push(event);
+          }
+        });
+        this.on("end", () => {
+          done = true;
+          for (const reader of readQueue) {
+            reader.resolve(void 0);
+          }
+          readQueue.length = 0;
+        });
+        this.on("abort", (err) => {
+          done = true;
+          for (const reader of readQueue) {
+            reader.reject(err);
+          }
+          readQueue.length = 0;
+        });
+        this.on("error", (err) => {
+          done = true;
+          for (const reader of readQueue) {
+            reader.reject(err);
+          }
+          readQueue.length = 0;
+        });
+        return {
+          next: async () => {
+            if (!pushQueue.length) {
+              if (done) {
+                return { value: void 0, done: true };
+              }
+              return new Promise((resolve4, reject) => readQueue.push({ resolve: resolve4, reject })).then((chunk2) => chunk2 ? { value: chunk2, done: false } : { value: void 0, done: true });
+            }
+            const chunk = pushQueue.shift();
+            return { value: chunk, done: false };
+          },
+          return: async () => {
+            this.abort();
+            return { value: void 0, done: true };
+          }
+        };
+      }
+      toReadableStream() {
+        const stream = new Stream(this[Symbol.asyncIterator].bind(this), this.controller);
+        return stream.toReadableStream();
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/tools/CompactionControl.mjs
+var DEFAULT_TOKEN_THRESHOLD, DEFAULT_SUMMARY_PROMPT;
+var init_CompactionControl = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/tools/CompactionControl.mjs"() {
+    DEFAULT_TOKEN_THRESHOLD = 1e5;
+    DEFAULT_SUMMARY_PROMPT = `You have been working on the task described above but have not yet completed it. Write a continuation summary that will allow you (or another instance of yourself) to resume work efficiently in a future context window where the conversation history will be replaced with this summary. Your summary should be structured, concise, and actionable. Include:
+1. Task Overview
+The user's core request and success criteria
+Any clarifications or constraints they specified
+2. Current State
+What has been completed so far
+Files created, modified, or analyzed (with paths if relevant)
+Key outputs or artifacts produced
+3. Important Discoveries
+Technical constraints or requirements uncovered
+Decisions made and their rationale
+Errors encountered and how they were resolved
+What approaches were tried that didn't work (and why)
+4. Next Steps
+Specific actions needed to complete the task
+Any blockers or open questions to resolve
+Priority order if multiple steps remain
+5. Context to Preserve
+User preferences or style requirements
+Domain-specific details that aren't obvious
+Any promises made to the user
+Be concise but complete\u2014err on the side of including information that would prevent duplicate work or repeated mistakes. Write in a way that enables immediate resumption of the task.
+Wrap your summary in <summary></summary> tags.`;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/tools/BetaToolRunner.mjs
+async function generateToolResponse(params, lastMessage = params.messages.at(-1), requestOptions) {
+  if (!lastMessage || lastMessage.role !== "assistant" || !lastMessage.content || typeof lastMessage.content === "string") {
+    return null;
+  }
+  const toolUseBlocks = lastMessage.content.filter((content) => content.type === "tool_use");
+  if (toolUseBlocks.length === 0) {
+    return null;
+  }
+  const available = availableToolNames(params);
+  const toolResults = await Promise.all(toolUseBlocks.map(async (toolUse) => {
+    const tool = params.tools.find((t) => ("name" in t ? t.name : t.mcp_server_name) === toolUse.name);
+    if (!tool || !("run" in tool) || !available.has(toolUse.name)) {
+      return toolNotFoundResult(toolUse);
+    }
+    try {
+      let input = toolUse.input;
+      if ("parse" in tool && tool.parse) {
+        input = tool.parse(input);
+      }
+      const result = await tool.run(input, {
+        toolUse,
+        toolUseBlock: toolUse,
+        signal: requestOptions?.signal
+      });
+      return {
+        type: "tool_result",
+        tool_use_id: toolUse.id,
+        content: result
+      };
+    } catch (error) {
+      return {
+        type: "tool_result",
+        tool_use_id: toolUse.id,
+        content: error instanceof ToolError ? error.content : `Error: ${error instanceof Error ? error.message : String(error)}`,
+        is_error: true
+      };
+    }
+  }));
+  return {
+    role: "user",
+    content: toolResults
+  };
+}
+function toolNotFoundResult(toolUse) {
+  return {
+    type: "tool_result",
+    tool_use_id: toolUse.id,
+    content: `Error: Tool '${toolUse.name}' not found`,
+    is_error: true
+  };
+}
+function availableToolNames(params) {
+  const available = /* @__PURE__ */ new Set();
+  for (const tool of params.tools) {
+    if ("run" in tool) {
+      available.add(tool.name);
+    }
+  }
+  for (const message of params.messages) {
+    if (message.role !== "system" || typeof message.content === "string") {
+      continue;
+    }
+    for (const block of message.content) {
+      applyToolChange(block, available);
+    }
+  }
+  return available;
+}
+function applyToolChange(block, available) {
+  switch (block.type) {
+    case "tool_removal":
+    case "tool_addition":
+      applyToolReference(block, available);
       break;
-    case "enabled":
-      v9 = { type: "enabled", budgetTokens: V6.budgetTokens };
+    case "mid_conv_system":
+      for (const inner of block.content) {
+        if (inner.type === "tool_removal" || inner.type === "tool_addition") {
+          applyToolReference(inner, available);
+        }
+      }
       break;
-    case "disabled":
-      v9 = { type: "disabled" };
+    default:
       break;
   }
-  else if (k6 !== void 0) v9 = k6 === 0 ? { type: "disabled" } : { type: "enabled", budgetTokens: k6 };
-  let t7 = new y9({ abortController: K, additionalDirectories: U, agent: q, betas: F, cwd: A, debug: R, debugFile: Z, executable: d0, executableArgs: B6, extraArgs: n7 ? { ...F1, workload: n7 } : F1, pathToClaudeCodeExecutable: z, env: q6, forkSession: h, stderr: KV, thinkingConfig: v9, effort: l4, maxTurns: C0, maxBudgetUsd: g1, model: YV, fallbackModel: z6, jsonSchema: o7, permissionMode: $V, allowDangerouslySkipPermissions: JV, permissionPromptToolName: WV, continueConversation: O, resume: HV, resumeSessionAt: BV, sessionId: zV, settings: typeof $ === "object" ? G0($) : $, settingSources: J ?? [], allowedTools: L, disallowedTools: C, tools: B0, mcpServers: xQ, strictMcpConfig: VV, canUseTool: !!M, hooks: !!S9, includePartialMessages: TQ, persistSession: k9, plugins: GV, sandbox: W, spawnClaudeCodeProcess: G.spawnClaudeCodeProcess }), UV = { systemPrompt: H, appendSystemPrompt: B, agents: V, promptSuggestions: G.promptSuggestions, agentProgressSummaries: G.agentProgressSummaries }, a7 = new h9(t7, qV, M, S9, K, r7, o7, UV, _9);
-  if (typeof Q === "string") t7.write(G0({ type: "user", session_id: "", message: { role: "user", content: [{ type: "text", text: Q }] }, parent_tool_use_id: null }) + `
-`);
-  else a7.streamInput(Q);
-  return a7;
+}
+function applyToolReference(block, available) {
+  const name = referencedToolName(block.tool);
+  if (name === void 0)
+    return;
+  if (block.type === "tool_removal") {
+    available.delete(name);
+  } else {
+    available.add(name);
+  }
+}
+function referencedToolName(ref) {
+  switch (ref.type) {
+    case "tool_reference":
+      return ref.name;
+    default:
+      return void 0;
+  }
+}
+var _BetaToolRunner_instances, _BetaToolRunner_consumed, _BetaToolRunner_mutated, _BetaToolRunner_state, _BetaToolRunner_options, _BetaToolRunner_message, _BetaToolRunner_toolResponse, _BetaToolRunner_completion, _BetaToolRunner_iterationCount, _BetaToolRunner_checkAndCompact, _BetaToolRunner_generateToolResponse, BetaToolRunner;
+var init_BetaToolRunner = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/tools/BetaToolRunner.mjs"() {
+    init_tslib();
+    init_ToolError();
+    init_error();
+    init_headers();
+    init_promise();
+    init_CompactionControl();
+    init_stainless_helper_header();
+    BetaToolRunner = class {
+      constructor(client, params, options) {
+        _BetaToolRunner_instances.add(this);
+        this.client = client;
+        _BetaToolRunner_consumed.set(this, false);
+        _BetaToolRunner_mutated.set(this, false);
+        _BetaToolRunner_state.set(this, void 0);
+        _BetaToolRunner_options.set(this, void 0);
+        _BetaToolRunner_message.set(this, void 0);
+        _BetaToolRunner_toolResponse.set(this, void 0);
+        _BetaToolRunner_completion.set(this, void 0);
+        _BetaToolRunner_iterationCount.set(this, 0);
+        __classPrivateFieldSet(this, _BetaToolRunner_state, {
+          params: {
+            // You can't clone the entire params since there are functions as handlers.
+            // You also don't really need to clone params.messages, but it probably will prevent a foot gun
+            // somewhere.
+            ...params,
+            messages: structuredClone(params.messages)
+          }
+        }, "f");
+        const collected = collectStainlessHelpers(params.tools, params.messages);
+        __classPrivateFieldSet(this, _BetaToolRunner_options, {
+          ...options,
+          headers: buildHeaders([
+            helperHeader("BetaToolRunner"),
+            collected.length ? { [STAINLESS_HELPER_HEADER]: collected.join(", ") } : void 0,
+            options?.headers
+          ])
+        }, "f");
+        __classPrivateFieldSet(this, _BetaToolRunner_completion, promiseWithResolvers(), "f");
+        if (params.compactionControl?.enabled) {
+          console.warn('Anthropic: The `compactionControl` parameter is deprecated and will be removed in a future version. Use server-side compaction instead by passing `edits: [{ type: "compact_20260112" }]` in the params passed to `toolRunner()`. See https://platform.claude.com/docs/en/build-with-claude/compaction');
+        }
+      }
+      async *[(_BetaToolRunner_consumed = /* @__PURE__ */ new WeakMap(), _BetaToolRunner_mutated = /* @__PURE__ */ new WeakMap(), _BetaToolRunner_state = /* @__PURE__ */ new WeakMap(), _BetaToolRunner_options = /* @__PURE__ */ new WeakMap(), _BetaToolRunner_message = /* @__PURE__ */ new WeakMap(), _BetaToolRunner_toolResponse = /* @__PURE__ */ new WeakMap(), _BetaToolRunner_completion = /* @__PURE__ */ new WeakMap(), _BetaToolRunner_iterationCount = /* @__PURE__ */ new WeakMap(), _BetaToolRunner_instances = /* @__PURE__ */ new WeakSet(), _BetaToolRunner_checkAndCompact = async function _BetaToolRunner_checkAndCompact2() {
+        const compactionControl = __classPrivateFieldGet(this, _BetaToolRunner_state, "f").params.compactionControl;
+        if (!compactionControl || !compactionControl.enabled) {
+          return false;
+        }
+        let tokensUsed = 0;
+        if (__classPrivateFieldGet(this, _BetaToolRunner_message, "f") !== void 0) {
+          try {
+            const message = await __classPrivateFieldGet(this, _BetaToolRunner_message, "f");
+            const totalInputTokens = message.usage.input_tokens + (message.usage.cache_creation_input_tokens ?? 0) + (message.usage.cache_read_input_tokens ?? 0);
+            tokensUsed = totalInputTokens + message.usage.output_tokens;
+          } catch {
+            return false;
+          }
+        }
+        const threshold = compactionControl.contextTokenThreshold ?? DEFAULT_TOKEN_THRESHOLD;
+        if (tokensUsed < threshold) {
+          return false;
+        }
+        const model = compactionControl.model ?? __classPrivateFieldGet(this, _BetaToolRunner_state, "f").params.model;
+        const summaryPrompt = compactionControl.summaryPrompt ?? DEFAULT_SUMMARY_PROMPT;
+        const messages = __classPrivateFieldGet(this, _BetaToolRunner_state, "f").params.messages;
+        if (messages[messages.length - 1].role === "assistant") {
+          const lastMessage = messages[messages.length - 1];
+          if (Array.isArray(lastMessage.content)) {
+            const nonToolBlocks = lastMessage.content.filter((block) => block.type !== "tool_use");
+            if (nonToolBlocks.length === 0) {
+              messages.pop();
+            } else {
+              lastMessage.content = nonToolBlocks;
+            }
+          }
+        }
+        const response = await this.client.beta.messages.create({
+          model,
+          messages: [
+            ...messages,
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: summaryPrompt
+                }
+              ]
+            }
+          ],
+          max_tokens: __classPrivateFieldGet(this, _BetaToolRunner_state, "f").params.max_tokens
+        }, {
+          signal: __classPrivateFieldGet(this, _BetaToolRunner_options, "f").signal,
+          headers: buildHeaders([__classPrivateFieldGet(this, _BetaToolRunner_options, "f").headers, helperHeader("compaction")])
+        });
+        if (response.content[0]?.type !== "text") {
+          throw new AnthropicError("Expected text response for compaction");
+        }
+        __classPrivateFieldGet(this, _BetaToolRunner_state, "f").params.messages = [
+          {
+            role: "user",
+            content: response.content
+          }
+        ];
+        return true;
+      }, Symbol.asyncIterator)]() {
+        var _a2;
+        if (__classPrivateFieldGet(this, _BetaToolRunner_consumed, "f")) {
+          throw new AnthropicError("Cannot iterate over a consumed stream");
+        }
+        __classPrivateFieldSet(this, _BetaToolRunner_consumed, true, "f");
+        __classPrivateFieldSet(this, _BetaToolRunner_mutated, true, "f");
+        __classPrivateFieldSet(this, _BetaToolRunner_toolResponse, void 0, "f");
+        try {
+          while (true) {
+            let stream;
+            try {
+              if (__classPrivateFieldGet(this, _BetaToolRunner_state, "f").params.max_iterations && __classPrivateFieldGet(this, _BetaToolRunner_iterationCount, "f") >= __classPrivateFieldGet(this, _BetaToolRunner_state, "f").params.max_iterations) {
+                break;
+              }
+              __classPrivateFieldSet(this, _BetaToolRunner_mutated, false, "f");
+              __classPrivateFieldSet(this, _BetaToolRunner_toolResponse, void 0, "f");
+              __classPrivateFieldSet(this, _BetaToolRunner_iterationCount, (_a2 = __classPrivateFieldGet(this, _BetaToolRunner_iterationCount, "f"), _a2++, _a2), "f");
+              __classPrivateFieldSet(this, _BetaToolRunner_message, void 0, "f");
+              const { max_iterations, compactionControl, ...params } = __classPrivateFieldGet(this, _BetaToolRunner_state, "f").params;
+              if (params.stream) {
+                stream = this.client.beta.messages.stream({ ...params }, __classPrivateFieldGet(this, _BetaToolRunner_options, "f"));
+                __classPrivateFieldSet(this, _BetaToolRunner_message, stream.finalMessage(), "f");
+                __classPrivateFieldGet(this, _BetaToolRunner_message, "f").catch(() => {
+                });
+                yield stream;
+              } else {
+                __classPrivateFieldSet(this, _BetaToolRunner_message, this.client.beta.messages.create({ ...params, stream: false }, __classPrivateFieldGet(this, _BetaToolRunner_options, "f")), "f");
+                yield __classPrivateFieldGet(this, _BetaToolRunner_message, "f");
+              }
+              const isCompacted = await __classPrivateFieldGet(this, _BetaToolRunner_instances, "m", _BetaToolRunner_checkAndCompact).call(this);
+              if (!isCompacted) {
+                if (!__classPrivateFieldGet(this, _BetaToolRunner_mutated, "f")) {
+                  const message = await __classPrivateFieldGet(this, _BetaToolRunner_message, "f");
+                  __classPrivateFieldGet(this, _BetaToolRunner_state, "f").params.messages.push({ role: message.role, content: message.content });
+                  if (message.stop_reason === "refusal") {
+                    break;
+                  }
+                }
+                const toolMessage = await __classPrivateFieldGet(this, _BetaToolRunner_instances, "m", _BetaToolRunner_generateToolResponse).call(this, __classPrivateFieldGet(this, _BetaToolRunner_state, "f").params.messages.at(-1));
+                if (toolMessage) {
+                  __classPrivateFieldGet(this, _BetaToolRunner_state, "f").params.messages.push(toolMessage);
+                } else if (!__classPrivateFieldGet(this, _BetaToolRunner_mutated, "f")) {
+                  break;
+                }
+              }
+            } finally {
+              if (stream) {
+                stream.abort();
+              }
+            }
+          }
+          if (!__classPrivateFieldGet(this, _BetaToolRunner_message, "f")) {
+            throw new AnthropicError("ToolRunner concluded without a message from the server");
+          }
+          __classPrivateFieldGet(this, _BetaToolRunner_completion, "f").resolve(await __classPrivateFieldGet(this, _BetaToolRunner_message, "f"));
+        } catch (error) {
+          __classPrivateFieldSet(this, _BetaToolRunner_consumed, false, "f");
+          __classPrivateFieldGet(this, _BetaToolRunner_completion, "f").promise.catch(() => {
+          });
+          __classPrivateFieldGet(this, _BetaToolRunner_completion, "f").reject(error);
+          __classPrivateFieldSet(this, _BetaToolRunner_completion, promiseWithResolvers(), "f");
+          throw error;
+        }
+      }
+      setMessagesParams(paramsOrMutator) {
+        if (typeof paramsOrMutator === "function") {
+          __classPrivateFieldGet(this, _BetaToolRunner_state, "f").params = paramsOrMutator(__classPrivateFieldGet(this, _BetaToolRunner_state, "f").params);
+        } else {
+          __classPrivateFieldGet(this, _BetaToolRunner_state, "f").params = paramsOrMutator;
+        }
+        __classPrivateFieldSet(this, _BetaToolRunner_mutated, true, "f");
+        __classPrivateFieldSet(this, _BetaToolRunner_toolResponse, void 0, "f");
+      }
+      setRequestOptions(optionsOrMutator) {
+        if (typeof optionsOrMutator === "function") {
+          __classPrivateFieldSet(this, _BetaToolRunner_options, optionsOrMutator(__classPrivateFieldGet(this, _BetaToolRunner_options, "f")), "f");
+        } else {
+          __classPrivateFieldSet(this, _BetaToolRunner_options, { ...__classPrivateFieldGet(this, _BetaToolRunner_options, "f"), ...optionsOrMutator }, "f");
+        }
+      }
+      /**
+       * Get the tool response for the last message from the assistant.
+       * Avoids redundant tool executions by caching results.
+       *
+       * @returns A promise that resolves to a BetaMessageParam containing tool results, or null if no tools need to be executed
+       *
+       * @example
+       * const toolResponse = await runner.generateToolResponse();
+       * if (toolResponse) {
+       *   console.log('Tool results:', toolResponse.content);
+       * }
+       */
+      async generateToolResponse(signal = __classPrivateFieldGet(this, _BetaToolRunner_options, "f").signal) {
+        const message = await __classPrivateFieldGet(this, _BetaToolRunner_message, "f") ?? this.params.messages.at(-1);
+        if (!message) {
+          return null;
+        }
+        return __classPrivateFieldGet(this, _BetaToolRunner_instances, "m", _BetaToolRunner_generateToolResponse).call(this, message, signal);
+      }
+      /**
+       * Wait for the async iterator to complete. This works even if the async iterator hasn't yet started, and
+       * will wait for an instance to start and go to completion.
+       *
+       * @returns A promise that resolves to the final BetaMessage when the iterator completes
+       *
+       * @example
+       * // Start consuming the iterator
+       * for await (const message of runner) {
+       *   console.log('Message:', message.content);
+       * }
+       *
+       * // Meanwhile, wait for completion from another part of the code
+       * const finalMessage = await runner.done();
+       * console.log('Final response:', finalMessage.content);
+       */
+      done() {
+        return __classPrivateFieldGet(this, _BetaToolRunner_completion, "f").promise;
+      }
+      /**
+       * Returns a promise indicating that the stream is done. Unlike .done(), this will eagerly read the stream:
+       * * If the iterator has not been consumed, consume the entire iterator and return the final message from the
+       * assistant.
+       * * If the iterator has been consumed, waits for it to complete and returns the final message.
+       *
+       * @returns A promise that resolves to the final BetaMessage from the conversation
+       * @throws {AnthropicError} If no messages were processed during the conversation
+       *
+       * @example
+       * const finalMessage = await runner.runUntilDone();
+       * console.log('Final response:', finalMessage.content);
+       */
+      async runUntilDone() {
+        if (!__classPrivateFieldGet(this, _BetaToolRunner_consumed, "f")) {
+          for await (const _ of this) {
+          }
+        }
+        return this.done();
+      }
+      /**
+       * Get the current parameters being used by the ToolRunner.
+       *
+       * @returns A readonly view of the current ToolRunnerParams
+       *
+       * @example
+       * const currentParams = runner.params;
+       * console.log('Current model:', currentParams.model);
+       * console.log('Message count:', currentParams.messages.length);
+       */
+      get params() {
+        return __classPrivateFieldGet(this, _BetaToolRunner_state, "f").params;
+      }
+      /**
+       * Add one or more messages to the conversation history.
+       *
+       * @param messages - One or more BetaMessageParam objects to add to the conversation
+       *
+       * @example
+       * runner.pushMessages(
+       *   { role: 'user', content: 'Also, what about the weather in NYC?' }
+       * );
+       *
+       * @example
+       * // Adding multiple messages
+       * runner.pushMessages(
+       *   { role: 'user', content: 'What about NYC?' },
+       *   { role: 'user', content: 'And Boston?' }
+       * );
+       */
+      pushMessages(...messages) {
+        this.setMessagesParams((params) => ({
+          ...params,
+          messages: [...params.messages, ...messages]
+        }));
+      }
+      /**
+       * Makes the ToolRunner directly awaitable, equivalent to calling .runUntilDone()
+       * This allows using `await runner` instead of `await runner.runUntilDone()`
+       */
+      then(onfulfilled, onrejected) {
+        return this.runUntilDone().then(onfulfilled, onrejected);
+      }
+    };
+    _BetaToolRunner_generateToolResponse = async function _BetaToolRunner_generateToolResponse2(lastMessage, signal = __classPrivateFieldGet(this, _BetaToolRunner_options, "f").signal) {
+      if (__classPrivateFieldGet(this, _BetaToolRunner_toolResponse, "f") !== void 0) {
+        return __classPrivateFieldGet(this, _BetaToolRunner_toolResponse, "f");
+      }
+      __classPrivateFieldSet(this, _BetaToolRunner_toolResponse, generateToolResponse(__classPrivateFieldGet(this, _BetaToolRunner_state, "f").params, lastMessage, {
+        ...__classPrivateFieldGet(this, _BetaToolRunner_options, "f"),
+        signal
+      }), "f");
+      return __classPrivateFieldGet(this, _BetaToolRunner_toolResponse, "f");
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/messages/messages.mjs
+function transformOutputFormat(params) {
+  if (!params.output_format) {
+    return params;
+  }
+  if (params.output_config?.format) {
+    throw new AnthropicError("Both output_format and output_config.format were provided. Please use only output_config.format (output_format is deprecated).");
+  }
+  const { output_format, ...rest } = params;
+  return {
+    ...rest,
+    output_config: {
+      ...params.output_config,
+      format: output_format
+    }
+  };
+}
+var DEPRECATED_MODELS, MODELS_TO_WARN_WITH_THINKING_ENABLED, Messages;
+var init_messages = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/messages/messages.mjs"() {
+    init_error2();
+    init_batches();
+    init_resource();
+    init_constants();
+    init_headers();
+    init_stainless_helper_header();
+    init_beta_parser();
+    init_BetaMessageStream();
+    init_BetaToolRunner();
+    init_ToolError();
+    init_batches();
+    init_BetaToolRunner();
+    init_ToolError();
+    DEPRECATED_MODELS = {};
+    MODELS_TO_WARN_WITH_THINKING_ENABLED = ["claude-mythos-preview", "claude-opus-4-6"];
+    Messages = class extends APIResource {
+      constructor() {
+        super(...arguments);
+        this.batches = new Batches(this._client);
+      }
+      create(params, options) {
+        const modifiedParams = transformOutputFormat(params);
+        const { betas, user_profile_id, ...body } = modifiedParams;
+        if (body.model in DEPRECATED_MODELS) {
+          console.warn(`The model '${body.model}' is deprecated and will reach end-of-life on ${DEPRECATED_MODELS[body.model]}
+Please migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.`);
+        }
+        if (MODELS_TO_WARN_WITH_THINKING_ENABLED.includes(body.model) && body.thinking && body.thinking.type === "enabled") {
+          console.warn(`Using Claude with ${body.model} and 'thinking.type=enabled' is deprecated. Use 'thinking.type=adaptive' instead which results in better model performance in our testing: https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking`);
+        }
+        let timeout = this._client._options.timeout;
+        if (!body.stream && timeout == null) {
+          const maxNonstreamingTokens = MODEL_NONSTREAMING_TOKENS[body.model] ?? void 0;
+          timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
+        }
+        const helperHeader2 = stainlessHelperHeader(body.tools, body.messages);
+        return this._client.post("/v1/messages?beta=true", {
+          body,
+          timeout: timeout ?? 6e5,
+          ...options,
+          headers: buildHeaders([
+            {
+              ...betas?.toString() != null ? { "anthropic-beta": betas?.toString() } : void 0,
+              ...user_profile_id != null ? { "anthropic-user-profile-id": user_profile_id } : void 0
+            },
+            helperHeader2,
+            options?.headers
+          ]),
+          stream: modifiedParams.stream ?? false
+        });
+      }
+      /**
+       * Send a structured list of input messages with text and/or image content, along with an expected `output_format` and
+       * the response will be automatically parsed and available in the `parsed_output` property of the message.
+       *
+       * @example
+       * ```ts
+       * const message = await client.beta.messages.parse({
+       *   model: 'claude-3-5-sonnet-20241022',
+       *   max_tokens: 1024,
+       *   messages: [{ role: 'user', content: 'What is 2+2?' }],
+       *   output_format: zodOutputFormat(z.object({ answer: z.number() }), 'math'),
+       * });
+       *
+       * console.log(message.parsed_output?.answer); // 4
+       * ```
+       */
+      parse(params, options) {
+        options = {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...params.betas ?? [], "structured-outputs-2025-12-15"].toString() },
+            options?.headers
+          ])
+        };
+        return this.create(params, options).then((message) => parseBetaMessage(message, params, { logger: this._client.logger ?? console }));
+      }
+      /**
+       * Create a Message stream
+       */
+      stream(body, options) {
+        return BetaMessageStream.createMessage(this, body, options);
+      }
+      /**
+       * Count the number of tokens in a Message.
+       *
+       * The Token Count API can be used to count the number of tokens in a Message,
+       * including tools, images, and documents, without creating it.
+       *
+       * Learn more about token counting in our
+       * [user guide](https://platform.claude.com/docs/en/build-with-claude/token-counting)
+       *
+       * @example
+       * ```ts
+       * const betaMessageTokensCount =
+       *   await client.beta.messages.countTokens({
+       *     messages: [{ content: 'Hello, world', role: 'user' }],
+       *     model: 'claude-opus-4-6',
+       *   });
+       * ```
+       */
+      countTokens(params, options) {
+        const modifiedParams = transformOutputFormat(params);
+        const { betas, user_profile_id, ...body } = modifiedParams;
+        return this._client.post("/v1/messages/count_tokens?beta=true", {
+          body,
+          ...options,
+          headers: buildHeaders([
+            {
+              "anthropic-beta": [...betas ?? [], "token-counting-2024-11-01"].toString(),
+              ...user_profile_id != null ? { "anthropic-user-profile-id": user_profile_id } : void 0
+            },
+            options?.headers
+          ])
+        });
+      }
+      toolRunner(body, options) {
+        return new BetaToolRunner(this._client, body, options);
+      }
+    };
+    Messages.Batches = Batches;
+    Messages.BetaToolRunner = BetaToolRunner;
+    Messages.ToolError = ToolError;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/sessions/events.mjs
+var Events;
+var init_events = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/sessions/events.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_path();
+    init_SessionToolRunner();
+    init_SessionToolRunner();
+    Events = class extends APIResource {
+      /**
+       * List Events
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaManagedAgentsSessionEvent of client.beta.sessions.events.list(
+       *   'sesn_011CZkZAtmR3yMPDzynEDxu7',
+       * )) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(sessionID, params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList(path`/v1/sessions/${sessionID}/events?beta=true`, PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Send Events
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsSendSessionEvents =
+       *   await client.beta.sessions.events.send(
+       *     'sesn_011CZkZAtmR3yMPDzynEDxu7',
+       *     {
+       *       events: [
+       *         {
+       *           content: [
+       *             {
+       *               text: 'Where is my order #1234?',
+       *               type: 'text',
+       *             },
+       *           ],
+       *           type: 'user.message',
+       *         },
+       *       ],
+       *     },
+       *   );
+       * ```
+       */
+      send(sessionID, params, options) {
+        const { betas, ...body } = params;
+        return this._client.post(path`/v1/sessions/${sessionID}/events?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Stream Events
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsStreamSessionEvents =
+       *   await client.beta.sessions.events.stream(
+       *     'sesn_011CZkZAtmR3yMPDzynEDxu7',
+       *   );
+       * ```
+       */
+      stream(sessionID, params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.get(path`/v1/sessions/${sessionID}/events/stream?beta=true`, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ]),
+          stream: true
+        });
+      }
+      /**
+       * Attach to a session and dispatch every incoming `agent.tool_use` and
+       * `agent.custom_tool_use` event to a local tool registry, sending the matching
+       * result back (`user.tool_result` / `user.custom_tool_result`). The
+       * sessions-side counterpart to `client.beta.messages.toolRunner`: yields one
+       * entry per completed tool call so callers can observe each dispatch (and
+       * `break` to abort cleanly).
+       *
+       * @example
+       * ```ts
+       * import { betaAgentToolset20260401 } from '@anthropic-ai/sdk/tools/agent-toolset/node';
+       *
+       * for await (const call of client.beta.sessions.events.toolRunner(work.data.id, {
+       *   tools: [...betaAgentToolset20260401({ workdir }), myTool],
+       * })) {
+       *   console.log(`${call.name} -> ${call.isError ? 'error' : 'ok'}`);
+       * }
+       * ```
+       */
+      toolRunner(sessionID, opts) {
+        return new SessionToolRunner(sessionID, { ...opts, client: this._client });
+      }
+    };
+    Events.SessionToolRunner = SessionToolRunner;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/sessions/resources.mjs
+var Resources;
+var init_resources = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/sessions/resources.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_path();
+    Resources = class extends APIResource {
+      /**
+       * Get Session Resource
+       *
+       * @example
+       * ```ts
+       * const resource =
+       *   await client.beta.sessions.resources.retrieve(
+       *     'sesrsc_011CZkZBJq5dWxk9fVLNcPht',
+       *     { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
+       *   );
+       * ```
+       */
+      retrieve(resourceID, params, options) {
+        const { session_id, betas } = params;
+        return this._client.get(path`/v1/sessions/${session_id}/resources/${resourceID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Update Session Resource
+       *
+       * @example
+       * ```ts
+       * const resource =
+       *   await client.beta.sessions.resources.update(
+       *     'sesrsc_011CZkZBJq5dWxk9fVLNcPht',
+       *     {
+       *       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
+       *       authorization_token: 'ghp_exampletoken',
+       *     },
+       *   );
+       * ```
+       */
+      update(resourceID, params, options) {
+        const { session_id, betas, ...body } = params;
+        return this._client.post(path`/v1/sessions/${session_id}/resources/${resourceID}?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List Session Resources
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaManagedAgentsSessionResource of client.beta.sessions.resources.list(
+       *   'sesn_011CZkZAtmR3yMPDzynEDxu7',
+       * )) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(sessionID, params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList(path`/v1/sessions/${sessionID}/resources?beta=true`, PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Delete Session Resource
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsDeleteSessionResource =
+       *   await client.beta.sessions.resources.delete(
+       *     'sesrsc_011CZkZBJq5dWxk9fVLNcPht',
+       *     { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
+       *   );
+       * ```
+       */
+      delete(resourceID, params, options) {
+        const { session_id, betas } = params;
+        return this._client.delete(path`/v1/sessions/${session_id}/resources/${resourceID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Add Session Resource
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsFileResource =
+       *   await client.beta.sessions.resources.add(
+       *     'sesn_011CZkZAtmR3yMPDzynEDxu7',
+       *     {
+       *       file_id: 'file_011CNha8iCJcU1wXNR6q4V8w',
+       *       type: 'file',
+       *     },
+       *   );
+       * ```
+       */
+      add(sessionID, params, options) {
+        const { betas, ...body } = params;
+        return this._client.post(path`/v1/sessions/${sessionID}/resources?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/sessions/threads/events.mjs
+var Events2;
+var init_events2 = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/sessions/threads/events.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_path();
+    Events2 = class extends APIResource {
+      /**
+       * List Session Thread Events
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaManagedAgentsSessionEvent of client.beta.sessions.threads.events.list(
+       *   'sthr_011CZkZVWa6oIjw0rgXZpnBt',
+       *   { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
+       * )) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(threadID, params, options) {
+        const { session_id, betas, ...query } = params;
+        return this._client.getAPIList(path`/v1/sessions/${session_id}/threads/${threadID}/events?beta=true`, PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Stream Session Thread Events
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsStreamSessionThreadEvents =
+       *   await client.beta.sessions.threads.events.stream(
+       *     'sthr_011CZkZVWa6oIjw0rgXZpnBt',
+       *     { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
+       *   );
+       * ```
+       */
+      stream(threadID, params, options) {
+        const { session_id, betas, ...query } = params;
+        return this._client.get(path`/v1/sessions/${session_id}/threads/${threadID}/stream?beta=true`, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ]),
+          stream: true
+        });
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/sessions/threads/threads.mjs
+var Threads;
+var init_threads = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/sessions/threads/threads.mjs"() {
+    init_resource();
+    init_events2();
+    init_events2();
+    init_pagination();
+    init_headers();
+    init_path();
+    Threads = class extends APIResource {
+      constructor() {
+        super(...arguments);
+        this.events = new Events2(this._client);
+      }
+      /**
+       * Get Session Thread
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsSessionThread =
+       *   await client.beta.sessions.threads.retrieve(
+       *     'sthr_011CZkZVWa6oIjw0rgXZpnBt',
+       *     { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
+       *   );
+       * ```
+       */
+      retrieve(threadID, params, options) {
+        const { session_id, betas } = params;
+        return this._client.get(path`/v1/sessions/${session_id}/threads/${threadID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List Session Threads
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaManagedAgentsSessionThread of client.beta.sessions.threads.list(
+       *   'sesn_011CZkZAtmR3yMPDzynEDxu7',
+       * )) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(sessionID, params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList(path`/v1/sessions/${sessionID}/threads?beta=true`, PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Archive Session Thread
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsSessionThread =
+       *   await client.beta.sessions.threads.archive(
+       *     'sthr_011CZkZVWa6oIjw0rgXZpnBt',
+       *     { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
+       *   );
+       * ```
+       */
+      archive(threadID, params, options) {
+        const { session_id, betas } = params;
+        return this._client.post(path`/v1/sessions/${session_id}/threads/${threadID}/archive?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+    Threads.Events = Events2;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/sessions/sessions.mjs
+var Sessions;
+var init_sessions = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/sessions/sessions.mjs"() {
+    init_resource();
+    init_events();
+    init_events();
+    init_resources();
+    init_resources();
+    init_threads();
+    init_threads();
+    init_pagination();
+    init_headers();
+    init_path();
+    Sessions = class extends APIResource {
+      constructor() {
+        super(...arguments);
+        this.events = new Events(this._client);
+        this.resources = new Resources(this._client);
+        this.threads = new Threads(this._client);
+      }
+      /**
+       * Create Session
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsSession =
+       *   await client.beta.sessions.create({
+       *     agent: 'agent_011CZkYpogX7uDKUyvBTophP',
+       *     environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
+       *   });
+       * ```
+       */
+      create(params, options) {
+        const { betas, ...body } = params;
+        return this._client.post("/v1/sessions?beta=true", {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Get Session
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsSession =
+       *   await client.beta.sessions.retrieve(
+       *     'sesn_011CZkZAtmR3yMPDzynEDxu7',
+       *   );
+       * ```
+       */
+      retrieve(sessionID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/sessions/${sessionID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Update Session
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsSession =
+       *   await client.beta.sessions.update(
+       *     'sesn_011CZkZAtmR3yMPDzynEDxu7',
+       *   );
+       * ```
+       */
+      update(sessionID, params, options) {
+        const { betas, ...body } = params;
+        return this._client.post(path`/v1/sessions/${sessionID}?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List Sessions
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaManagedAgentsSession of client.beta.sessions.list()) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList("/v1/sessions?beta=true", BidirectionalPageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Delete Session
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsDeletedSession =
+       *   await client.beta.sessions.delete(
+       *     'sesn_011CZkZAtmR3yMPDzynEDxu7',
+       *   );
+       * ```
+       */
+      delete(sessionID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.delete(path`/v1/sessions/${sessionID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Archive Session
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsSession =
+       *   await client.beta.sessions.archive(
+       *     'sesn_011CZkZAtmR3yMPDzynEDxu7',
+       *   );
+       * ```
+       */
+      archive(sessionID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.post(path`/v1/sessions/${sessionID}/archive?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+    Sessions.Events = Events;
+    Sessions.Resources = Resources;
+    Sessions.Threads = Threads;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/skills/versions.mjs
+var Versions2;
+var init_versions2 = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/skills/versions.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_uploads();
+    init_path();
+    Versions2 = class extends APIResource {
+      /**
+       * Create Skill Version
+       *
+       * @example
+       * ```ts
+       * const version = await client.beta.skills.versions.create(
+       *   'skill_id',
+       *   { files: [fs.createReadStream('path/to/file')] },
+       * );
+       * ```
+       */
+      create(skillID, params, options) {
+        const { betas, ...body } = params;
+        return this._client.post(path`/v1/skills/${skillID}/versions?beta=true`, multipartFormRequestOptions({
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "skills-2025-10-02"].toString() },
+            options?.headers
+          ])
+        }, this._client, false));
+      }
+      /**
+       * Get Skill Version
+       *
+       * @example
+       * ```ts
+       * const version = await client.beta.skills.versions.retrieve(
+       *   'version',
+       *   { skill_id: 'skill_id' },
+       * );
+       * ```
+       */
+      retrieve(version, params, options) {
+        const { skill_id, betas } = params;
+        return this._client.get(path`/v1/skills/${skill_id}/versions/${version}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "skills-2025-10-02"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List Skill Versions
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const versionListResponse of client.beta.skills.versions.list(
+       *   'skill_id',
+       * )) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(skillID, params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList(path`/v1/skills/${skillID}/versions?beta=true`, PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "skills-2025-10-02"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Delete Skill Version
+       *
+       * @example
+       * ```ts
+       * const version = await client.beta.skills.versions.delete(
+       *   'version',
+       *   { skill_id: 'skill_id' },
+       * );
+       * ```
+       */
+      delete(version, params, options) {
+        const { skill_id, betas } = params;
+        return this._client.delete(path`/v1/skills/${skill_id}/versions/${version}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "skills-2025-10-02"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Download a skill version's content as a zip archive.
+       *
+       * @example
+       * ```ts
+       * const response = await client.beta.skills.versions.download(
+       *   'version',
+       *   { skill_id: 'skill_id' },
+       * );
+       *
+       * const content = await response.blob();
+       * console.log(content);
+       * ```
+       */
+      download(version, params, options) {
+        const { skill_id, betas } = params;
+        return this._client.get(path`/v1/skills/${skill_id}/versions/${version}/content?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            {
+              "anthropic-beta": [...betas ?? [], "skills-2025-10-02"].toString(),
+              Accept: "application/binary"
+            },
+            options?.headers
+          ]),
+          __binaryResponse: true
+        });
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/skills/skills.mjs
+var Skills;
+var init_skills2 = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/skills/skills.mjs"() {
+    init_resource();
+    init_versions2();
+    init_versions2();
+    init_pagination();
+    init_headers();
+    init_uploads();
+    init_path();
+    Skills = class extends APIResource {
+      constructor() {
+        super(...arguments);
+        this.versions = new Versions2(this._client);
+      }
+      /**
+       * Create Skill
+       *
+       * @example
+       * ```ts
+       * const skill = await client.beta.skills.create({
+       *   files: [fs.createReadStream('path/to/file')],
+       * });
+       * ```
+       */
+      create(params, options) {
+        const { betas, ...body } = params;
+        return this._client.post("/v1/skills?beta=true", multipartFormRequestOptions({
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "skills-2025-10-02"].toString() },
+            options?.headers
+          ])
+        }, this._client, false));
+      }
+      /**
+       * Get Skill
+       *
+       * @example
+       * ```ts
+       * const skill = await client.beta.skills.retrieve('skill_id');
+       * ```
+       */
+      retrieve(skillID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/skills/${skillID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "skills-2025-10-02"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List Skills
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const skillListResponse of client.beta.skills.list()) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList("/v1/skills?beta=true", PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "skills-2025-10-02"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Delete Skill
+       *
+       * @example
+       * ```ts
+       * const skill = await client.beta.skills.delete('skill_id');
+       * ```
+       */
+      delete(skillID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.delete(path`/v1/skills/${skillID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "skills-2025-10-02"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+    Skills.Versions = Versions2;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/tunnels/certificates.mjs
+var Certificates;
+var init_certificates = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/tunnels/certificates.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_path();
+    Certificates = class extends APIResource {
+      /**
+       * The Tunnels API is in research preview. It requires the
+       * `anthropic-beta: mcp-tunnels-2026-06-22` header and may change without a
+       * deprecation period. It supersedes the Admin API endpoints at
+       * `/v1/organizations/tunnels`, which remain available during a migration window.
+       *
+       * Registers a public CA certificate on a tunnel. Anthropic verifies the gateway's
+       * server certificate against this CA when it terminates the inner TLS session. A
+       * tunnel holds at most two non-archived certificates.
+       *
+       * @example
+       * ```ts
+       * const betaTunnelCertificate =
+       *   await client.beta.tunnels.certificates.create(
+       *     'tunnel_id',
+       *     { ca_certificate_pem: 'ca_certificate_pem' },
+       *   );
+       * ```
+       */
+      create(tunnelID, params, options) {
+        const { betas, ...body } = params;
+        return this._client.post(path`/v1/tunnels/${tunnelID}/certificates?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "mcp-tunnels-2026-06-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * The Tunnels API is in research preview. It requires the
+       * `anthropic-beta: mcp-tunnels-2026-06-22` header and may change without a
+       * deprecation period. It supersedes the Admin API endpoints at
+       * `/v1/organizations/tunnels`, which remain available during a migration window.
+       *
+       * Fetches a tunnel certificate by ID.
+       *
+       * @example
+       * ```ts
+       * const betaTunnelCertificate =
+       *   await client.beta.tunnels.certificates.retrieve(
+       *     'certificate_id',
+       *     { tunnel_id: 'tunnel_id' },
+       *   );
+       * ```
+       */
+      retrieve(certificateID, params, options) {
+        const { tunnel_id, betas } = params;
+        return this._client.get(path`/v1/tunnels/${tunnel_id}/certificates/${certificateID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "mcp-tunnels-2026-06-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * The Tunnels API is in research preview. It requires the
+       * `anthropic-beta: mcp-tunnels-2026-06-22` header and may change without a
+       * deprecation period. It supersedes the Admin API endpoints at
+       * `/v1/organizations/tunnels`, which remain available during a migration window.
+       *
+       * Lists the certificates registered on a tunnel. Archived certificates are
+       * excluded unless include_archived is set.
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaTunnelCertificate of client.beta.tunnels.certificates.list(
+       *   'tunnel_id',
+       * )) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(tunnelID, params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList(path`/v1/tunnels/${tunnelID}/certificates?beta=true`, PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "mcp-tunnels-2026-06-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * The Tunnels API is in research preview. It requires the
+       * `anthropic-beta: mcp-tunnels-2026-06-22` header and may change without a
+       * deprecation period. It supersedes the Admin API endpoints at
+       * `/v1/organizations/tunnels`, which remain available during a migration window.
+       *
+       * Archives a tunnel certificate, removing it from the set Anthropic trusts for the
+       * tunnel. The certificate record is retained. Archiving the last non-archived
+       * certificate is permitted; the tunnel rejects MCP traffic until a new certificate
+       * is added.
+       *
+       * @example
+       * ```ts
+       * const betaTunnelCertificate =
+       *   await client.beta.tunnels.certificates.archive(
+       *     'certificate_id',
+       *     { tunnel_id: 'tunnel_id' },
+       *   );
+       * ```
+       */
+      archive(certificateID, params, options) {
+        const { tunnel_id, betas } = params;
+        return this._client.post(path`/v1/tunnels/${tunnel_id}/certificates/${certificateID}/archive?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "mcp-tunnels-2026-06-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/tunnels/tunnels.mjs
+var Tunnels;
+var init_tunnels = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/tunnels/tunnels.mjs"() {
+    init_resource();
+    init_certificates();
+    init_certificates();
+    init_pagination();
+    init_headers();
+    init_path();
+    Tunnels = class extends APIResource {
+      constructor() {
+        super(...arguments);
+        this.certificates = new Certificates(this._client);
+      }
+      /**
+       * The Tunnels API is in research preview. It requires the
+       * `anthropic-beta: mcp-tunnels-2026-06-22` header and may change without a
+       * deprecation period. It supersedes the Admin API endpoints at
+       * `/v1/organizations/tunnels`, which remain available during a migration window.
+       *
+       * Creates a tunnel. Creation allocates a fresh hostname and provisions the tunnel;
+       * it is not idempotent. The new tunnel rejects MCP traffic until at least one CA
+       * certificate is added.
+       *
+       * @example
+       * ```ts
+       * const betaTunnel = await client.beta.tunnels.create();
+       * ```
+       */
+      create(params, options) {
+        const { betas, ...body } = params;
+        return this._client.post("/v1/tunnels?beta=true", {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "mcp-tunnels-2026-06-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * The Tunnels API is in research preview. It requires the
+       * `anthropic-beta: mcp-tunnels-2026-06-22` header and may change without a
+       * deprecation period. It supersedes the Admin API endpoints at
+       * `/v1/organizations/tunnels`, which remain available during a migration window.
+       *
+       * Fetches a tunnel by ID.
+       *
+       * @example
+       * ```ts
+       * const betaTunnel = await client.beta.tunnels.retrieve(
+       *   'tunnel_id',
+       * );
+       * ```
+       */
+      retrieve(tunnelID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/tunnels/${tunnelID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "mcp-tunnels-2026-06-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * The Tunnels API is in research preview. It requires the
+       * `anthropic-beta: mcp-tunnels-2026-06-22` header and may change without a
+       * deprecation period. It supersedes the Admin API endpoints at
+       * `/v1/organizations/tunnels`, which remain available during a migration window.
+       *
+       * Lists tunnels. Results are ordered by creation time, newest first; archived
+       * tunnels are excluded unless include_archived is set.
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaTunnel of client.beta.tunnels.list()) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList("/v1/tunnels?beta=true", PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "mcp-tunnels-2026-06-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * The Tunnels API is in research preview. It requires the
+       * `anthropic-beta: mcp-tunnels-2026-06-22` header and may change without a
+       * deprecation period. It supersedes the Admin API endpoints at
+       * `/v1/organizations/tunnels`, which remain available during a migration window.
+       *
+       * Archives a tunnel. Archival is irreversible: every non-archived certificate on
+       * the tunnel is archived in the same operation, the hostname is retired and never
+       * re-allocated, and the tunnel token is invalidated. Retrying against an
+       * already-archived tunnel returns the existing record unchanged.
+       *
+       * @example
+       * ```ts
+       * const betaTunnel = await client.beta.tunnels.archive(
+       *   'tunnel_id',
+       * );
+       * ```
+       */
+      archive(tunnelID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.post(path`/v1/tunnels/${tunnelID}/archive?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "mcp-tunnels-2026-06-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * The Tunnels API is in research preview. It requires the
+       * `anthropic-beta: mcp-tunnels-2026-06-22` header and may change without a
+       * deprecation period. It supersedes the Admin API endpoints at
+       * `/v1/organizations/tunnels`, which remain available during a migration window.
+       *
+       * Reveals a tunnel's connector token. The value is fetched live on each call;
+       * Anthropic does not store it. Repeated calls return the same value until the
+       * token is rotated. Exposed as POST so the token does not appear in intermediary
+       * access logs.
+       *
+       * @example
+       * ```ts
+       * const betaTunnelToken =
+       *   await client.beta.tunnels.revealToken('tunnel_id');
+       * ```
+       */
+      revealToken(tunnelID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.post(path`/v1/tunnels/${tunnelID}/reveal_token?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "mcp-tunnels-2026-06-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * The Tunnels API is in research preview. It requires the
+       * `anthropic-beta: mcp-tunnels-2026-06-22` header and may change without a
+       * deprecation period. It supersedes the Admin API endpoints at
+       * `/v1/organizations/tunnels`, which remain available during a migration window.
+       *
+       * Rotates a tunnel's connector token. Rotation invalidates the current token for
+       * new connections and returns a fresh value; established connections are not
+       * severed. A connector restarted after rotation must use the new value.
+       *
+       * @example
+       * ```ts
+       * const betaTunnelToken =
+       *   await client.beta.tunnels.rotateToken('tunnel_id');
+       * ```
+       */
+      rotateToken(tunnelID, params, options) {
+        const { betas, ...body } = params;
+        return this._client.post(path`/v1/tunnels/${tunnelID}/rotate_token?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "mcp-tunnels-2026-06-22"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+    Tunnels.Certificates = Certificates;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/vaults/credentials.mjs
+var Credentials;
+var init_credentials2 = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/vaults/credentials.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_path();
+    Credentials = class extends APIResource {
+      /**
+       * Create Credential
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsCredential =
+       *   await client.beta.vaults.credentials.create(
+       *     'vlt_011CZkZDLs7fYzm1hXNPeRjv',
+       *     {
+       *       auth: {
+       *         token: 'bearer_exampletoken',
+       *         mcp_server_url:
+       *           'https://example-server.modelcontextprotocol.io/sse',
+       *         type: 'static_bearer',
+       *       },
+       *     },
+       *   );
+       * ```
+       */
+      create(vaultID, params, options) {
+        const { betas, ...body } = params;
+        return this._client.post(path`/v1/vaults/${vaultID}/credentials?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Get Credential
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsCredential =
+       *   await client.beta.vaults.credentials.retrieve(
+       *     'vcrd_011CZkZEMt8gZan2iYOQfSkw',
+       *     { vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv' },
+       *   );
+       * ```
+       */
+      retrieve(credentialID, params, options) {
+        const { vault_id, betas } = params;
+        return this._client.get(path`/v1/vaults/${vault_id}/credentials/${credentialID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Update Credential
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsCredential =
+       *   await client.beta.vaults.credentials.update(
+       *     'vcrd_011CZkZEMt8gZan2iYOQfSkw',
+       *     { vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv' },
+       *   );
+       * ```
+       */
+      update(credentialID, params, options) {
+        const { vault_id, betas, ...body } = params;
+        return this._client.post(path`/v1/vaults/${vault_id}/credentials/${credentialID}?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List Credentials
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaManagedAgentsCredential of client.beta.vaults.credentials.list(
+       *   'vlt_011CZkZDLs7fYzm1hXNPeRjv',
+       * )) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(vaultID, params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList(path`/v1/vaults/${vaultID}/credentials?beta=true`, PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Delete Credential
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsDeletedCredential =
+       *   await client.beta.vaults.credentials.delete(
+       *     'vcrd_011CZkZEMt8gZan2iYOQfSkw',
+       *     { vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv' },
+       *   );
+       * ```
+       */
+      delete(credentialID, params, options) {
+        const { vault_id, betas } = params;
+        return this._client.delete(path`/v1/vaults/${vault_id}/credentials/${credentialID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Archive Credential
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsCredential =
+       *   await client.beta.vaults.credentials.archive(
+       *     'vcrd_011CZkZEMt8gZan2iYOQfSkw',
+       *     { vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv' },
+       *   );
+       * ```
+       */
+      archive(credentialID, params, options) {
+        const { vault_id, betas } = params;
+        return this._client.post(path`/v1/vaults/${vault_id}/credentials/${credentialID}/archive?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Validate Credential
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsCredentialValidation =
+       *   await client.beta.vaults.credentials.mcpOAuthValidate(
+       *     'vcrd_011CZkZEMt8gZan2iYOQfSkw',
+       *     { vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv' },
+       *   );
+       * ```
+       */
+      mcpOAuthValidate(credentialID, params, options) {
+        const { vault_id, betas } = params;
+        return this._client.post(path`/v1/vaults/${vault_id}/credentials/${credentialID}/mcp_oauth_validate?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/vaults/vaults.mjs
+var Vaults;
+var init_vaults = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/vaults/vaults.mjs"() {
+    init_resource();
+    init_credentials2();
+    init_credentials2();
+    init_pagination();
+    init_headers();
+    init_path();
+    Vaults = class extends APIResource {
+      constructor() {
+        super(...arguments);
+        this.credentials = new Credentials(this._client);
+      }
+      /**
+       * Create Vault
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsVault =
+       *   await client.beta.vaults.create({
+       *     display_name: 'Example vault',
+       *   });
+       * ```
+       */
+      create(params, options) {
+        const { betas, ...body } = params;
+        return this._client.post("/v1/vaults?beta=true", {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Get Vault
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsVault =
+       *   await client.beta.vaults.retrieve(
+       *     'vlt_011CZkZDLs7fYzm1hXNPeRjv',
+       *   );
+       * ```
+       */
+      retrieve(vaultID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/vaults/${vaultID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Update Vault
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsVault =
+       *   await client.beta.vaults.update(
+       *     'vlt_011CZkZDLs7fYzm1hXNPeRjv',
+       *   );
+       * ```
+       */
+      update(vaultID, params, options) {
+        const { betas, ...body } = params;
+        return this._client.post(path`/v1/vaults/${vaultID}?beta=true`, {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List Vaults
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const betaManagedAgentsVault of client.beta.vaults.list()) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList("/v1/vaults?beta=true", PageCursor, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Delete Vault
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsDeletedVault =
+       *   await client.beta.vaults.delete(
+       *     'vlt_011CZkZDLs7fYzm1hXNPeRjv',
+       *   );
+       * ```
+       */
+      delete(vaultID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.delete(path`/v1/vaults/${vaultID}?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * Archive Vault
+       *
+       * @example
+       * ```ts
+       * const betaManagedAgentsVault =
+       *   await client.beta.vaults.archive(
+       *     'vlt_011CZkZDLs7fYzm1hXNPeRjv',
+       *   );
+       * ```
+       */
+      archive(vaultID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.post(path`/v1/vaults/${vaultID}/archive?beta=true`, {
+          ...options,
+          headers: buildHeaders([
+            { "anthropic-beta": [...betas ?? [], "managed-agents-2026-04-01"].toString() },
+            options?.headers
+          ])
+        });
+      }
+    };
+    Vaults.Credentials = Credentials;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/beta/beta.mjs
+var Beta;
+var init_beta = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/beta/beta.mjs"() {
+    init_resource();
+    init_deployment_runs();
+    init_deployment_runs();
+    init_deployments();
+    init_deployments();
+    init_dreams();
+    init_dreams();
+    init_files();
+    init_files();
+    init_models();
+    init_models();
+    init_user_profiles();
+    init_user_profiles();
+    init_webhooks();
+    init_webhooks();
+    init_agents();
+    init_agents();
+    init_environments();
+    init_environments();
+    init_memory_stores();
+    init_memory_stores();
+    init_messages();
+    init_messages();
+    init_sessions();
+    init_sessions();
+    init_skills2();
+    init_skills2();
+    init_tunnels();
+    init_tunnels();
+    init_vaults();
+    init_vaults();
+    Beta = class extends APIResource {
+      constructor() {
+        super(...arguments);
+        this.models = new Models(this._client);
+        this.messages = new Messages(this._client);
+        this.agents = new Agents(this._client);
+        this.environments = new Environments(this._client);
+        this.sessions = new Sessions(this._client);
+        this.deployments = new Deployments(this._client);
+        this.deploymentRuns = new DeploymentRuns(this._client);
+        this.vaults = new Vaults(this._client);
+        this.memoryStores = new MemoryStores(this._client);
+        this.files = new Files(this._client);
+        this.skills = new Skills(this._client);
+        this.webhooks = new Webhooks(this._client);
+        this.userProfiles = new UserProfiles(this._client);
+        this.dreams = new Dreams(this._client);
+        this.tunnels = new Tunnels(this._client);
+      }
+    };
+    Beta.Models = Models;
+    Beta.Messages = Messages;
+    Beta.Agents = Agents;
+    Beta.Environments = Environments;
+    Beta.Sessions = Sessions;
+    Beta.Deployments = Deployments;
+    Beta.DeploymentRuns = DeploymentRuns;
+    Beta.Vaults = Vaults;
+    Beta.MemoryStores = MemoryStores;
+    Beta.Files = Files;
+    Beta.Skills = Skills;
+    Beta.Webhooks = Webhooks;
+    Beta.UserProfiles = UserProfiles;
+    Beta.Dreams = Dreams;
+    Beta.Tunnels = Tunnels;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/completions.mjs
+var Completions;
+var init_completions = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/completions.mjs"() {
+    init_resource();
+    init_headers();
+    Completions = class extends APIResource {
+      create(params, options) {
+        const { betas, ...body } = params;
+        return this._client.post("/v1/complete", {
+          body,
+          timeout: this._client._options.timeout ?? 6e5,
+          ...options,
+          headers: buildHeaders([
+            { ...betas?.toString() != null ? { "anthropic-beta": betas?.toString() } : void 0 },
+            options?.headers
+          ]),
+          stream: params.stream ?? false
+        });
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/parser.mjs
+function getOutputFormat2(params) {
+  return params?.output_config?.format;
+}
+function maybeParseMessage(message, params, opts) {
+  const outputFormat = getOutputFormat2(params);
+  if (!params || !("parse" in (outputFormat ?? {}))) {
+    return {
+      ...message,
+      content: message.content.map((block) => {
+        if (block.type === "text") {
+          const parsedBlock = Object.defineProperty({ ...block }, "parsed_output", {
+            value: null,
+            enumerable: false
+          });
+          return parsedBlock;
+        }
+        return block;
+      }),
+      parsed_output: null
+    };
+  }
+  return parseMessage(message, params, opts);
+}
+function parseMessage(message, params, opts) {
+  let firstParsedOutput = null;
+  const content = message.content.map((block) => {
+    if (block.type === "text") {
+      const parsedOutput = parseOutputFormat(params, block.text);
+      if (firstParsedOutput === null) {
+        firstParsedOutput = parsedOutput;
+      }
+      const parsedBlock = Object.defineProperty({ ...block }, "parsed_output", {
+        value: parsedOutput,
+        enumerable: false
+      });
+      return parsedBlock;
+    }
+    return block;
+  });
+  return {
+    ...message,
+    content,
+    parsed_output: firstParsedOutput
+  };
+}
+function parseOutputFormat(params, content) {
+  const outputFormat = getOutputFormat2(params);
+  if (outputFormat?.type !== "json_schema") {
+    return null;
+  }
+  try {
+    if ("parse" in outputFormat) {
+      return outputFormat.parse(content);
+    }
+    return JSON.parse(content);
+  } catch (error) {
+    throw new AnthropicError(`Failed to parse structured output: ${error}`);
+  }
+}
+var init_parser2 = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/parser.mjs"() {
+    init_error();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/MessageStream.mjs
+function tracksToolInput2(content) {
+  return content.type === "tool_use" || content.type === "server_tool_use";
+}
+function checkNever2(x) {
+}
+var _MessageStream_instances, _MessageStream_currentMessageSnapshot, _MessageStream_params, _MessageStream_connectedPromise, _MessageStream_resolveConnectedPromise, _MessageStream_rejectConnectedPromise, _MessageStream_endPromise, _MessageStream_resolveEndPromise, _MessageStream_rejectEndPromise, _MessageStream_listeners, _MessageStream_ended, _MessageStream_errored, _MessageStream_aborted, _MessageStream_catchingPromiseCreated, _MessageStream_response, _MessageStream_request_id, _MessageStream_logger, _MessageStream_getFinalMessage, _MessageStream_getFinalText, _MessageStream_handleError, _MessageStream_beginRequest, _MessageStream_addStreamEvent, _MessageStream_endRequest, _MessageStream_accumulateMessage, MessageStream;
+var init_MessageStream = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/MessageStream.mjs"() {
+    init_tslib();
+    init_stainless_helper_header();
+    init_errors();
+    init_error2();
+    init_streaming2();
+    init_parser2();
+    init_message_stream_utils();
+    MessageStream = class _MessageStream {
+      constructor(params, opts) {
+        _MessageStream_instances.add(this);
+        this.messages = [];
+        this.receivedMessages = [];
+        _MessageStream_currentMessageSnapshot.set(this, void 0);
+        _MessageStream_params.set(this, null);
+        this.controller = new AbortController();
+        _MessageStream_connectedPromise.set(this, void 0);
+        _MessageStream_resolveConnectedPromise.set(this, () => {
+        });
+        _MessageStream_rejectConnectedPromise.set(this, () => {
+        });
+        _MessageStream_endPromise.set(this, void 0);
+        _MessageStream_resolveEndPromise.set(this, () => {
+        });
+        _MessageStream_rejectEndPromise.set(this, () => {
+        });
+        _MessageStream_listeners.set(this, {});
+        _MessageStream_ended.set(this, false);
+        _MessageStream_errored.set(this, false);
+        _MessageStream_aborted.set(this, false);
+        _MessageStream_catchingPromiseCreated.set(this, false);
+        _MessageStream_response.set(this, void 0);
+        _MessageStream_request_id.set(this, void 0);
+        _MessageStream_logger.set(this, void 0);
+        _MessageStream_handleError.set(this, (error) => {
+          __classPrivateFieldSet(this, _MessageStream_errored, true, "f");
+          if (isAbortError(error)) {
+            error = new APIUserAbortError();
+          }
+          if (error instanceof APIUserAbortError) {
+            __classPrivateFieldSet(this, _MessageStream_aborted, true, "f");
+            return this._emit("abort", error);
+          }
+          if (error instanceof AnthropicError) {
+            return this._emit("error", error);
+          }
+          if (error instanceof Error) {
+            const anthropicError = new AnthropicError(error.message);
+            anthropicError.cause = error;
+            return this._emit("error", anthropicError);
+          }
+          return this._emit("error", new AnthropicError(String(error)));
+        });
+        __classPrivateFieldSet(this, _MessageStream_connectedPromise, new Promise((resolve4, reject) => {
+          __classPrivateFieldSet(this, _MessageStream_resolveConnectedPromise, resolve4, "f");
+          __classPrivateFieldSet(this, _MessageStream_rejectConnectedPromise, reject, "f");
+        }), "f");
+        __classPrivateFieldSet(this, _MessageStream_endPromise, new Promise((resolve4, reject) => {
+          __classPrivateFieldSet(this, _MessageStream_resolveEndPromise, resolve4, "f");
+          __classPrivateFieldSet(this, _MessageStream_rejectEndPromise, reject, "f");
+        }), "f");
+        __classPrivateFieldGet(this, _MessageStream_connectedPromise, "f").catch(() => {
+        });
+        __classPrivateFieldGet(this, _MessageStream_endPromise, "f").catch(() => {
+        });
+        __classPrivateFieldSet(this, _MessageStream_params, params, "f");
+        __classPrivateFieldSet(this, _MessageStream_logger, opts?.logger ?? console, "f");
+      }
+      get response() {
+        return __classPrivateFieldGet(this, _MessageStream_response, "f");
+      }
+      get request_id() {
+        return __classPrivateFieldGet(this, _MessageStream_request_id, "f");
+      }
+      /**
+       * Returns the `MessageStream` data, the raw `Response` instance and the ID of the request,
+       * returned vie the `request-id` header which is useful for debugging requests and resporting
+       * issues to Anthropic.
+       *
+       * This is the same as the `APIPromise.withResponse()` method.
+       *
+       * This method will raise an error if you created the stream using `MessageStream.fromReadableStream`
+       * as no `Response` is available.
+       */
+      async withResponse() {
+        __classPrivateFieldSet(this, _MessageStream_catchingPromiseCreated, true, "f");
+        const response = await __classPrivateFieldGet(this, _MessageStream_connectedPromise, "f");
+        if (!response) {
+          throw new Error("Could not resolve a `Response` object");
+        }
+        return {
+          data: this,
+          response,
+          request_id: response.headers.get("request-id")
+        };
+      }
+      /**
+       * Intended for use on the frontend, consuming a stream produced with
+       * `.toReadableStream()` on the backend.
+       *
+       * Note that messages sent to the model do not appear in `.on('message')`
+       * in this context.
+       */
+      static fromReadableStream(stream) {
+        const runner = new _MessageStream(null);
+        runner._run(() => runner._fromReadableStream(stream));
+        return runner;
+      }
+      static createMessage(messages, params, options, { logger } = {}) {
+        const runner = new _MessageStream(params, { logger });
+        for (const message of params.messages) {
+          runner._addMessageParam(message);
+        }
+        __classPrivateFieldSet(runner, _MessageStream_params, { ...params, stream: true }, "f");
+        runner._run(() => runner._createMessage(messages, { ...params, stream: true }, { ...options, headers: { ...options?.headers, [STAINLESS_HELPER_METHOD_HEADER]: "stream" } }));
+        return runner;
+      }
+      _run(executor) {
+        executor().then(() => {
+          this._emitFinal();
+          this._emit("end");
+        }, __classPrivateFieldGet(this, _MessageStream_handleError, "f"));
+      }
+      _addMessageParam(message) {
+        this.messages.push(message);
+      }
+      _addMessage(message, emit = true) {
+        this.receivedMessages.push(message);
+        if (emit) {
+          this._emit("message", message);
+        }
+      }
+      async _createMessage(messages, params, options) {
+        const signal = options?.signal;
+        let abortHandler;
+        if (signal) {
+          if (signal.aborted)
+            this.controller.abort();
+          abortHandler = this.controller.abort.bind(this.controller);
+          signal.addEventListener("abort", abortHandler);
+        }
+        try {
+          __classPrivateFieldGet(this, _MessageStream_instances, "m", _MessageStream_beginRequest).call(this);
+          const { response, data: stream } = await messages.create({ ...params, stream: true }, { ...options, signal: this.controller.signal }).withResponse();
+          this._connected(response);
+          for await (const event of stream) {
+            __classPrivateFieldGet(this, _MessageStream_instances, "m", _MessageStream_addStreamEvent).call(this, event);
+          }
+          if (stream.controller.signal?.aborted) {
+            throw new APIUserAbortError();
+          }
+          __classPrivateFieldGet(this, _MessageStream_instances, "m", _MessageStream_endRequest).call(this);
+        } finally {
+          if (signal && abortHandler) {
+            signal.removeEventListener("abort", abortHandler);
+          }
+        }
+      }
+      _connected(response) {
+        if (this.ended)
+          return;
+        __classPrivateFieldSet(this, _MessageStream_response, response, "f");
+        __classPrivateFieldSet(this, _MessageStream_request_id, response?.headers.get("request-id"), "f");
+        __classPrivateFieldGet(this, _MessageStream_resolveConnectedPromise, "f").call(this, response);
+        this._emit("connect");
+      }
+      get ended() {
+        return __classPrivateFieldGet(this, _MessageStream_ended, "f");
+      }
+      get errored() {
+        return __classPrivateFieldGet(this, _MessageStream_errored, "f");
+      }
+      get aborted() {
+        return __classPrivateFieldGet(this, _MessageStream_aborted, "f");
+      }
+      abort() {
+        this.controller.abort();
+      }
+      /**
+       * Adds the listener function to the end of the listeners array for the event.
+       * No checks are made to see if the listener has already been added. Multiple calls passing
+       * the same combination of event and listener will result in the listener being added, and
+       * called, multiple times.
+       * @returns this MessageStream, so that calls can be chained
+       */
+      on(event, listener) {
+        const listeners = __classPrivateFieldGet(this, _MessageStream_listeners, "f")[event] || (__classPrivateFieldGet(this, _MessageStream_listeners, "f")[event] = []);
+        listeners.push({ listener });
+        return this;
+      }
+      /**
+       * Removes the specified listener from the listener array for the event.
+       * off() will remove, at most, one instance of a listener from the listener array. If any single
+       * listener has been added multiple times to the listener array for the specified event, then
+       * off() must be called multiple times to remove each instance.
+       * @returns this MessageStream, so that calls can be chained
+       */
+      off(event, listener) {
+        const listeners = __classPrivateFieldGet(this, _MessageStream_listeners, "f")[event];
+        if (!listeners)
+          return this;
+        const index = listeners.findIndex((l) => l.listener === listener);
+        if (index >= 0)
+          listeners.splice(index, 1);
+        return this;
+      }
+      /**
+       * Adds a one-time listener function for the event. The next time the event is triggered,
+       * this listener is removed and then invoked.
+       * @returns this MessageStream, so that calls can be chained
+       */
+      once(event, listener) {
+        const listeners = __classPrivateFieldGet(this, _MessageStream_listeners, "f")[event] || (__classPrivateFieldGet(this, _MessageStream_listeners, "f")[event] = []);
+        listeners.push({ listener, once: true });
+        return this;
+      }
+      /**
+       * This is similar to `.once()`, but returns a Promise that resolves the next time
+       * the event is triggered, instead of calling a listener callback.
+       * @returns a Promise that resolves the next time given event is triggered,
+       * or rejects if an error is emitted.  (If you request the 'error' event,
+       * returns a promise that resolves with the error).
+       *
+       * Example:
+       *
+       *   const message = await stream.emitted('message') // rejects if the stream errors
+       */
+      emitted(event) {
+        return new Promise((resolve4, reject) => {
+          __classPrivateFieldSet(this, _MessageStream_catchingPromiseCreated, true, "f");
+          if (event !== "error")
+            this.once("error", reject);
+          this.once(event, resolve4);
+        });
+      }
+      async done() {
+        __classPrivateFieldSet(this, _MessageStream_catchingPromiseCreated, true, "f");
+        await __classPrivateFieldGet(this, _MessageStream_endPromise, "f");
+      }
+      get currentMessage() {
+        return __classPrivateFieldGet(this, _MessageStream_currentMessageSnapshot, "f");
+      }
+      /**
+       * @returns a promise that resolves with the the final assistant Message response,
+       * or rejects if an error occurred or the stream ended prematurely without producing a Message.
+       * If structured outputs were used, this will be a ParsedMessage with a `parsed_output` field.
+       */
+      async finalMessage() {
+        await this.done();
+        return __classPrivateFieldGet(this, _MessageStream_instances, "m", _MessageStream_getFinalMessage).call(this);
+      }
+      /**
+       * @returns a promise that resolves with the the final assistant Message's text response, concatenated
+       * together if there are more than one text blocks.
+       * Rejects if an error occurred or the stream ended prematurely without producing a Message.
+       */
+      async finalText() {
+        await this.done();
+        return __classPrivateFieldGet(this, _MessageStream_instances, "m", _MessageStream_getFinalText).call(this);
+      }
+      _emit(event, ...args) {
+        if (__classPrivateFieldGet(this, _MessageStream_ended, "f"))
+          return;
+        if (event === "end") {
+          __classPrivateFieldSet(this, _MessageStream_ended, true, "f");
+          __classPrivateFieldGet(this, _MessageStream_resolveEndPromise, "f").call(this);
+        }
+        const listeners = __classPrivateFieldGet(this, _MessageStream_listeners, "f")[event];
+        if (listeners) {
+          __classPrivateFieldGet(this, _MessageStream_listeners, "f")[event] = listeners.filter((l) => !l.once);
+          listeners.forEach(({ listener }) => listener(...args));
+        }
+        if (event === "abort") {
+          const error = args[0];
+          if (!__classPrivateFieldGet(this, _MessageStream_catchingPromiseCreated, "f") && !listeners?.length) {
+            Promise.reject(error);
+          }
+          __classPrivateFieldGet(this, _MessageStream_rejectConnectedPromise, "f").call(this, error);
+          __classPrivateFieldGet(this, _MessageStream_rejectEndPromise, "f").call(this, error);
+          this._emit("end");
+          return;
+        }
+        if (event === "error") {
+          const error = args[0];
+          if (!__classPrivateFieldGet(this, _MessageStream_catchingPromiseCreated, "f") && !listeners?.length) {
+            Promise.reject(error);
+          }
+          __classPrivateFieldGet(this, _MessageStream_rejectConnectedPromise, "f").call(this, error);
+          __classPrivateFieldGet(this, _MessageStream_rejectEndPromise, "f").call(this, error);
+          this._emit("end");
+        }
+      }
+      _emitFinal() {
+        const finalMessage = this.receivedMessages.at(-1);
+        if (finalMessage) {
+          this._emit("finalMessage", __classPrivateFieldGet(this, _MessageStream_instances, "m", _MessageStream_getFinalMessage).call(this));
+        }
+      }
+      async _fromReadableStream(readableStream, options) {
+        const signal = options?.signal;
+        let abortHandler;
+        if (signal) {
+          if (signal.aborted)
+            this.controller.abort();
+          abortHandler = this.controller.abort.bind(this.controller);
+          signal.addEventListener("abort", abortHandler);
+        }
+        try {
+          __classPrivateFieldGet(this, _MessageStream_instances, "m", _MessageStream_beginRequest).call(this);
+          this._connected(null);
+          const stream = Stream.fromReadableStream(readableStream, this.controller);
+          for await (const event of stream) {
+            __classPrivateFieldGet(this, _MessageStream_instances, "m", _MessageStream_addStreamEvent).call(this, event);
+          }
+          if (stream.controller.signal?.aborted) {
+            throw new APIUserAbortError();
+          }
+          __classPrivateFieldGet(this, _MessageStream_instances, "m", _MessageStream_endRequest).call(this);
+        } finally {
+          if (signal && abortHandler) {
+            signal.removeEventListener("abort", abortHandler);
+          }
+        }
+      }
+      [(_MessageStream_currentMessageSnapshot = /* @__PURE__ */ new WeakMap(), _MessageStream_params = /* @__PURE__ */ new WeakMap(), _MessageStream_connectedPromise = /* @__PURE__ */ new WeakMap(), _MessageStream_resolveConnectedPromise = /* @__PURE__ */ new WeakMap(), _MessageStream_rejectConnectedPromise = /* @__PURE__ */ new WeakMap(), _MessageStream_endPromise = /* @__PURE__ */ new WeakMap(), _MessageStream_resolveEndPromise = /* @__PURE__ */ new WeakMap(), _MessageStream_rejectEndPromise = /* @__PURE__ */ new WeakMap(), _MessageStream_listeners = /* @__PURE__ */ new WeakMap(), _MessageStream_ended = /* @__PURE__ */ new WeakMap(), _MessageStream_errored = /* @__PURE__ */ new WeakMap(), _MessageStream_aborted = /* @__PURE__ */ new WeakMap(), _MessageStream_catchingPromiseCreated = /* @__PURE__ */ new WeakMap(), _MessageStream_response = /* @__PURE__ */ new WeakMap(), _MessageStream_request_id = /* @__PURE__ */ new WeakMap(), _MessageStream_logger = /* @__PURE__ */ new WeakMap(), _MessageStream_handleError = /* @__PURE__ */ new WeakMap(), _MessageStream_instances = /* @__PURE__ */ new WeakSet(), _MessageStream_getFinalMessage = function _MessageStream_getFinalMessage2() {
+        if (this.receivedMessages.length === 0) {
+          throw new AnthropicError("stream ended without producing a Message with role=assistant");
+        }
+        return this.receivedMessages.at(-1);
+      }, _MessageStream_getFinalText = function _MessageStream_getFinalText2() {
+        if (this.receivedMessages.length === 0) {
+          throw new AnthropicError("stream ended without producing a Message with role=assistant");
+        }
+        const textBlocks = this.receivedMessages.at(-1).content.filter((block) => block.type === "text").map((block) => block.text);
+        if (textBlocks.length === 0) {
+          throw new AnthropicError("stream ended without producing a content block with type=text");
+        }
+        return textBlocks.join(" ");
+      }, _MessageStream_beginRequest = function _MessageStream_beginRequest2() {
+        if (this.ended)
+          return;
+        __classPrivateFieldSet(this, _MessageStream_currentMessageSnapshot, void 0, "f");
+      }, _MessageStream_addStreamEvent = function _MessageStream_addStreamEvent2(event) {
+        if (this.ended)
+          return;
+        const messageSnapshot = __classPrivateFieldGet(this, _MessageStream_instances, "m", _MessageStream_accumulateMessage).call(this, event);
+        this._emit("streamEvent", event, messageSnapshot);
+        switch (event.type) {
+          case "content_block_delta": {
+            const content = messageSnapshot.content.at(-1);
+            switch (event.delta.type) {
+              case "text_delta": {
+                if (content.type === "text") {
+                  this._emit("text", event.delta.text, content.text || "");
+                }
+                break;
+              }
+              case "citations_delta": {
+                if (content.type === "text") {
+                  this._emit("citation", event.delta.citation, content.citations ?? []);
+                }
+                break;
+              }
+              case "input_json_delta": {
+                if (tracksToolInput2(content) && __classPrivateFieldGet(this, _MessageStream_listeners, "f").inputJson?.length) {
+                  this._emit("inputJson", event.delta.partial_json, content.input);
+                }
+                break;
+              }
+              case "thinking_delta": {
+                if (content.type === "thinking") {
+                  this._emit("thinking", event.delta.thinking, content.thinking);
+                }
+                break;
+              }
+              case "signature_delta": {
+                if (content.type === "thinking") {
+                  this._emit("signature", content.signature);
+                }
+                break;
+              }
+              default:
+                checkNever2(event.delta);
+            }
+            break;
+          }
+          case "message_stop": {
+            this._addMessageParam(messageSnapshot);
+            this._addMessage(maybeParseMessage(messageSnapshot, __classPrivateFieldGet(this, _MessageStream_params, "f"), { logger: __classPrivateFieldGet(this, _MessageStream_logger, "f") }), true);
+            break;
+          }
+          case "content_block_stop": {
+            this._emit("contentBlock", messageSnapshot.content.at(-1));
+            break;
+          }
+          case "message_start": {
+            __classPrivateFieldSet(this, _MessageStream_currentMessageSnapshot, messageSnapshot, "f");
+            break;
+          }
+          case "content_block_start":
+          case "message_delta":
+            break;
+        }
+      }, _MessageStream_endRequest = function _MessageStream_endRequest2() {
+        if (this.ended) {
+          throw new AnthropicError(`stream has ended, this shouldn't happen`);
+        }
+        const snapshot = __classPrivateFieldGet(this, _MessageStream_currentMessageSnapshot, "f");
+        if (!snapshot) {
+          throw new AnthropicError(`request ended without sending any chunks`);
+        }
+        __classPrivateFieldSet(this, _MessageStream_currentMessageSnapshot, void 0, "f");
+        return maybeParseMessage(snapshot, __classPrivateFieldGet(this, _MessageStream_params, "f"), { logger: __classPrivateFieldGet(this, _MessageStream_logger, "f") });
+      }, _MessageStream_accumulateMessage = function _MessageStream_accumulateMessage2(event) {
+        let snapshot = __classPrivateFieldGet(this, _MessageStream_currentMessageSnapshot, "f");
+        if (event.type === "message_start") {
+          if (snapshot) {
+            throw new AnthropicError(`Unexpected event order, got ${event.type} before receiving "message_stop"`);
+          }
+          return event.message;
+        }
+        if (!snapshot) {
+          throw new AnthropicError(`Unexpected event order, got ${event.type} before "message_start"`);
+        }
+        switch (event.type) {
+          case "message_stop":
+            return snapshot;
+          case "message_delta":
+            snapshot.stop_reason = event.delta.stop_reason;
+            snapshot.stop_sequence = event.delta.stop_sequence;
+            if (event.delta.stop_details != null) {
+              snapshot.stop_details = event.delta.stop_details;
+            }
+            snapshot.usage.output_tokens = event.usage.output_tokens;
+            if (event.usage.input_tokens != null) {
+              snapshot.usage.input_tokens = event.usage.input_tokens;
+            }
+            if (event.usage.cache_creation_input_tokens != null) {
+              snapshot.usage.cache_creation_input_tokens = event.usage.cache_creation_input_tokens;
+            }
+            if (event.usage.cache_read_input_tokens != null) {
+              snapshot.usage.cache_read_input_tokens = event.usage.cache_read_input_tokens;
+            }
+            if (event.usage.server_tool_use != null) {
+              snapshot.usage.server_tool_use = event.usage.server_tool_use;
+            }
+            return snapshot;
+          case "content_block_start":
+            snapshot.content.push({ ...event.content_block });
+            return snapshot;
+          case "content_block_delta": {
+            const snapshotContent = snapshot.content.at(event.index);
+            switch (event.delta.type) {
+              case "text_delta": {
+                if (snapshotContent?.type === "text") {
+                  snapshot.content[event.index] = {
+                    ...snapshotContent,
+                    text: (snapshotContent.text || "") + event.delta.text
+                  };
+                }
+                break;
+              }
+              case "citations_delta": {
+                if (snapshotContent?.type === "text") {
+                  snapshot.content[event.index] = {
+                    ...snapshotContent,
+                    citations: [...snapshotContent.citations ?? [], event.delta.citation]
+                  };
+                }
+                break;
+              }
+              case "input_json_delta": {
+                if (snapshotContent && tracksToolInput2(snapshotContent)) {
+                  const jsonBuf = (snapshotContent[JSON_BUF_PROPERTY] || "") + event.delta.partial_json;
+                  snapshot.content[event.index] = withLazyInput(snapshotContent, jsonBuf);
+                }
+                break;
+              }
+              case "thinking_delta": {
+                if (snapshotContent?.type === "thinking") {
+                  snapshot.content[event.index] = {
+                    ...snapshotContent,
+                    thinking: snapshotContent.thinking + event.delta.thinking
+                  };
+                }
+                break;
+              }
+              case "signature_delta": {
+                if (snapshotContent?.type === "thinking") {
+                  snapshot.content[event.index] = {
+                    ...snapshotContent,
+                    signature: event.delta.signature
+                  };
+                }
+                break;
+              }
+              default:
+                checkNever2(event.delta);
+            }
+            return snapshot;
+          }
+          case "content_block_stop": {
+            const snapshotContent = snapshot.content.at(event.index);
+            if (snapshotContent && tracksToolInput2(snapshotContent) && JSON_BUF_PROPERTY in snapshotContent) {
+              Object.defineProperty(snapshotContent, "input", {
+                value: snapshotContent.input,
+                enumerable: true,
+                configurable: true,
+                writable: true
+              });
+            }
+            return snapshot;
+          }
+        }
+      }, Symbol.asyncIterator)]() {
+        const pushQueue = [];
+        const readQueue = [];
+        let done = false;
+        this.on("streamEvent", (event) => {
+          const reader = readQueue.shift();
+          if (reader) {
+            reader.resolve(event);
+          } else {
+            pushQueue.push(event);
+          }
+        });
+        this.on("end", () => {
+          done = true;
+          for (const reader of readQueue) {
+            reader.resolve(void 0);
+          }
+          readQueue.length = 0;
+        });
+        this.on("abort", (err) => {
+          done = true;
+          for (const reader of readQueue) {
+            reader.reject(err);
+          }
+          readQueue.length = 0;
+        });
+        this.on("error", (err) => {
+          done = true;
+          for (const reader of readQueue) {
+            reader.reject(err);
+          }
+          readQueue.length = 0;
+        });
+        return {
+          next: async () => {
+            if (!pushQueue.length) {
+              if (done) {
+                return { value: void 0, done: true };
+              }
+              return new Promise((resolve4, reject) => readQueue.push({ resolve: resolve4, reject })).then((chunk2) => chunk2 ? { value: chunk2, done: false } : { value: void 0, done: true });
+            }
+            const chunk = pushQueue.shift();
+            return { value: chunk, done: false };
+          },
+          return: async () => {
+            this.abort();
+            return { value: void 0, done: true };
+          }
+        };
+      }
+      toReadableStream() {
+        const stream = new Stream(this[Symbol.asyncIterator].bind(this), this.controller);
+        return stream.toReadableStream();
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/messages/batches.mjs
+var Batches2;
+var init_batches2 = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/messages/batches.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_jsonl();
+    init_error2();
+    init_path();
+    Batches2 = class extends APIResource {
+      /**
+       * Send a batch of Message creation requests.
+       *
+       * The Message Batches API can be used to process multiple Messages API requests at
+       * once. Once a Message Batch is created, it begins processing immediately. Batches
+       * can take up to 24 hours to complete.
+       *
+       * Learn more about the Message Batches API in our
+       * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+       *
+       * @example
+       * ```ts
+       * const messageBatch = await client.messages.batches.create({
+       *   requests: [
+       *     {
+       *       custom_id: 'my-custom-id-1',
+       *       params: {
+       *         max_tokens: 1024,
+       *         messages: [
+       *           { content: 'Hello, world', role: 'user' },
+       *         ],
+       *         model: 'claude-opus-4-6',
+       *       },
+       *     },
+       *   ],
+       * });
+       * ```
+       */
+      create(params, options) {
+        const { user_profile_id, ...body } = params;
+        return this._client.post("/v1/messages/batches", {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { ...user_profile_id != null ? { "anthropic-user-profile-id": user_profile_id } : void 0 },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * This endpoint is idempotent and can be used to poll for Message Batch
+       * completion. To access the results of a Message Batch, make a request to the
+       * `results_url` field in the response.
+       *
+       * Learn more about the Message Batches API in our
+       * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+       *
+       * @example
+       * ```ts
+       * const messageBatch = await client.messages.batches.retrieve(
+       *   'message_batch_id',
+       * );
+       * ```
+       */
+      retrieve(messageBatchID, options) {
+        return this._client.get(path`/v1/messages/batches/${messageBatchID}`, options);
+      }
+      /**
+       * List all Message Batches within a Workspace. Most recently created batches are
+       * returned first.
+       *
+       * Learn more about the Message Batches API in our
+       * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+       *
+       * @example
+       * ```ts
+       * // Automatically fetches more pages as needed.
+       * for await (const messageBatch of client.messages.batches.list()) {
+       *   // ...
+       * }
+       * ```
+       */
+      list(query = {}, options) {
+        return this._client.getAPIList("/v1/messages/batches", Page, { query, ...options });
+      }
+      /**
+       * Delete a Message Batch.
+       *
+       * Message Batches can only be deleted once they've finished processing. If you'd
+       * like to delete an in-progress batch, you must first cancel it.
+       *
+       * Learn more about the Message Batches API in our
+       * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+       *
+       * @example
+       * ```ts
+       * const deletedMessageBatch =
+       *   await client.messages.batches.delete('message_batch_id');
+       * ```
+       */
+      delete(messageBatchID, options) {
+        return this._client.delete(path`/v1/messages/batches/${messageBatchID}`, options);
+      }
+      /**
+       * Batches may be canceled any time before processing ends. Once cancellation is
+       * initiated, the batch enters a `canceling` state, at which time the system may
+       * complete any in-progress, non-interruptible requests before finalizing
+       * cancellation.
+       *
+       * The number of canceled requests is specified in `request_counts`. To determine
+       * which requests were canceled, check the individual results within the batch.
+       * Note that cancellation may not result in any canceled requests if they were
+       * non-interruptible.
+       *
+       * Learn more about the Message Batches API in our
+       * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+       *
+       * @example
+       * ```ts
+       * const messageBatch = await client.messages.batches.cancel(
+       *   'message_batch_id',
+       * );
+       * ```
+       */
+      cancel(messageBatchID, options) {
+        return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel`, options);
+      }
+      /**
+       * Streams the results of a Message Batch as a `.jsonl` file.
+       *
+       * Each line in the file is a JSON object containing the result of a single request
+       * in the Message Batch. Results are not guaranteed to be in the same order as
+       * requests. Use the `custom_id` field to match results to requests.
+       *
+       * Learn more about the Message Batches API in our
+       * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+       *
+       * @example
+       * ```ts
+       * const messageBatchIndividualResponse =
+       *   await client.messages.batches.results('message_batch_id');
+       * ```
+       */
+      async results(messageBatchID, options) {
+        const batch = await this.retrieve(messageBatchID);
+        if (!batch.results_url) {
+          throw new AnthropicError(`No batch \`results_url\`; Has it finished processing? ${batch.processing_status} - ${batch.id}`);
+        }
+        return this._client.get(batch.results_url, {
+          ...options,
+          headers: buildHeaders([{ Accept: "application/binary" }, options?.headers]),
+          stream: true,
+          __binaryResponse: true
+        })._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller));
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/messages/messages.mjs
+var Messages2, DEPRECATED_MODELS2, MODELS_TO_WARN_WITH_THINKING_ENABLED2;
+var init_messages2 = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/messages/messages.mjs"() {
+    init_resource();
+    init_headers();
+    init_stainless_helper_header();
+    init_MessageStream();
+    init_parser2();
+    init_batches2();
+    init_batches2();
+    init_constants();
+    Messages2 = class extends APIResource {
+      constructor() {
+        super(...arguments);
+        this.batches = new Batches2(this._client);
+      }
+      create(params, options) {
+        const { user_profile_id, ...body } = params;
+        if (body.model in DEPRECATED_MODELS2) {
+          console.warn(`The model '${body.model}' is deprecated and will reach end-of-life on ${DEPRECATED_MODELS2[body.model]}
+Please migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.`);
+        }
+        if (MODELS_TO_WARN_WITH_THINKING_ENABLED2.includes(body.model) && body.thinking && body.thinking.type === "enabled") {
+          console.warn(`Using Claude with ${body.model} and 'thinking.type=enabled' is deprecated. Use 'thinking.type=adaptive' instead which results in better model performance in our testing: https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking`);
+        }
+        let timeout = this._client._options.timeout;
+        if (!body.stream && timeout == null) {
+          const maxNonstreamingTokens = MODEL_NONSTREAMING_TOKENS[body.model] ?? void 0;
+          timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
+        }
+        const helperHeader2 = stainlessHelperHeader(body.tools, body.messages);
+        return this._client.post("/v1/messages", {
+          body,
+          timeout: timeout ?? 6e5,
+          ...options,
+          headers: buildHeaders([
+            { ...user_profile_id != null ? { "anthropic-user-profile-id": user_profile_id } : void 0 },
+            helperHeader2,
+            options?.headers
+          ]),
+          stream: params.stream ?? false
+        });
+      }
+      /**
+       * Send a structured list of input messages with text and/or image content, along with an expected `output_config.format` and
+       * the response will be automatically parsed and available in the `parsed_output` property of the message.
+       *
+       * @example
+       * ```ts
+       * const message = await client.messages.parse({
+       *   model: 'claude-sonnet-4-5-20250929',
+       *   max_tokens: 1024,
+       *   messages: [{ role: 'user', content: 'What is 2+2?' }],
+       *   output_config: {
+       *     format: zodOutputFormat(z.object({ answer: z.number() })),
+       *   },
+       * });
+       *
+       * console.log(message.parsed_output?.answer); // 4
+       * ```
+       */
+      parse(params, options) {
+        return this.create(params, options).then((message) => parseMessage(message, params, { logger: this._client.logger ?? console }));
+      }
+      /**
+       * Create a Message stream.
+       *
+       * If `output_config.format` is provided with a parseable format (like `zodOutputFormat()`),
+       * the final message will include a `parsed_output` property with the parsed content.
+       *
+       * @example
+       * ```ts
+       * const stream = client.messages.stream({
+       *   model: 'claude-sonnet-4-5-20250929',
+       *   max_tokens: 1024,
+       *   messages: [{ role: 'user', content: 'What is 2+2?' }],
+       *   output_config: {
+       *     format: zodOutputFormat(z.object({ answer: z.number() })),
+       *   },
+       * });
+       *
+       * const message = await stream.finalMessage();
+       * console.log(message.parsed_output?.answer); // 4
+       * ```
+       */
+      stream(body, options) {
+        return MessageStream.createMessage(this, body, options, { logger: this._client.logger ?? console });
+      }
+      /**
+       * Count the number of tokens in a Message.
+       *
+       * The Token Count API can be used to count the number of tokens in a Message,
+       * including tools, images, and documents, without creating it.
+       *
+       * Learn more about token counting in our
+       * [user guide](https://platform.claude.com/docs/en/build-with-claude/token-counting)
+       *
+       * @example
+       * ```ts
+       * const messageTokensCount =
+       *   await client.messages.countTokens({
+       *     messages: [{ content: 'Hello, world', role: 'user' }],
+       *     model: 'claude-opus-4-6',
+       *   });
+       * ```
+       */
+      countTokens(params, options) {
+        const { user_profile_id, ...body } = params;
+        return this._client.post("/v1/messages/count_tokens", {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { ...user_profile_id != null ? { "anthropic-user-profile-id": user_profile_id } : void 0 },
+            options?.headers
+          ])
+        });
+      }
+    };
+    DEPRECATED_MODELS2 = {};
+    MODELS_TO_WARN_WITH_THINKING_ENABLED2 = ["claude-mythos-preview", "claude-opus-4-6"];
+    Messages2.Batches = Batches2;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/models.mjs
+var Models2;
+var init_models2 = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/models.mjs"() {
+    init_resource();
+    init_pagination();
+    init_headers();
+    init_path();
+    Models2 = class extends APIResource {
+      /**
+       * Get a specific model.
+       *
+       * The Models API response can be used to determine information about a specific
+       * model or resolve a model alias to a model ID.
+       */
+      retrieve(modelID, params = {}, options) {
+        const { betas } = params ?? {};
+        return this._client.get(path`/v1/models/${modelID}`, {
+          ...options,
+          headers: buildHeaders([
+            { ...betas?.toString() != null ? { "anthropic-beta": betas?.toString() } : void 0 },
+            options?.headers
+          ])
+        });
+      }
+      /**
+       * List available models.
+       *
+       * The Models API response can be used to determine which models are available for
+       * use in the API. More recently released models are listed first.
+       */
+      list(params = {}, options) {
+        const { betas, ...query } = params ?? {};
+        return this._client.getAPIList("/v1/models", Page, {
+          query,
+          ...options,
+          headers: buildHeaders([
+            { ...betas?.toString() != null ? { "anthropic-beta": betas?.toString() } : void 0 },
+            options?.headers
+          ])
+        });
+      }
+    };
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/resources/index.mjs
+var init_resources2 = __esm({
+  "node_modules/@anthropic-ai/sdk/resources/index.mjs"() {
+    init_shared();
+    init_beta();
+    init_completions();
+    init_messages2();
+    init_models2();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/client.mjs
+var _BaseAnthropic_instances, _a, _BaseAnthropic_encoder, _BaseAnthropic_baseURLOverridden, HUMAN_PROMPT, AI_PROMPT, BaseAnthropic, Anthropic;
+var init_client = __esm({
+  "node_modules/@anthropic-ai/sdk/client.mjs"() {
+    init_tslib();
+    init_uuid();
+    init_values();
+    init_sleep();
+    init_errors();
+    init_detect_platform();
+    init_request_signal();
+    init_shims();
+    init_request_options();
+    init_query();
+    init_version();
+    init_error();
+    init_types();
+    init_token_cache();
+    init_credential_chain();
+    init_middleware();
+    init_pagination();
+    init_uploads2();
+    init_resources2();
+    init_api_promise();
+    init_completions();
+    init_models2();
+    init_beta();
+    init_messages2();
+    init_detect_platform();
+    init_headers();
+    init_env();
+    init_log();
+    init_values();
+    HUMAN_PROMPT = "\\n\\nHuman:";
+    AI_PROMPT = "\\n\\nAssistant:";
+    BaseAnthropic = class {
+      /**
+       * The active credential provider. Default credential resolution runs once
+       * at construction time. If it fails, the error is surfaced on every
+       * request and the client must be reconstructed — there is no retry path.
+       *
+       * Clones returned by {@link withOptions} share the parent's auth state
+       * (provider, token cache, pending resolution, and any resolution error)
+       * unless the caller passes an explicit `apiKey`, `authToken`,
+       * `credentials`, `config`, or `profile` override.
+       */
+      get credentials() {
+        return this._authState.provider;
+      }
+      /**
+       * API Client for interfacing with the Anthropic API.
+       *
+       * @param {string | null | undefined} [opts.apiKey=process.env['ANTHROPIC_API_KEY'] ?? null]
+       * @param {string | null | undefined} [opts.authToken=process.env['ANTHROPIC_AUTH_TOKEN'] ?? null]
+       * @param {string | null | undefined} [opts.webhookKey=process.env['ANTHROPIC_WEBHOOK_SIGNING_KEY'] ?? null]
+       * @param {string} [opts.baseURL=process.env['ANTHROPIC_BASE_URL'] ?? https://api.anthropic.com] - Override the default base URL for the API.
+       * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
+       * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
+       * @param {Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
+       * @param {number} [opts.maxRetries=2] - The maximum number of times the client will retry a request.
+       * @param {HeadersLike} opts.defaultHeaders - Default headers to include with every request to the API.
+       * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
+       * @param {boolean} [opts.dangerouslyAllowBrowser=false] - By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
+       */
+      constructor({ baseURL = readEnv("ANTHROPIC_BASE_URL"), apiKey, authToken, webhookKey = readEnv("ANTHROPIC_WEBHOOK_SIGNING_KEY") ?? null, ...opts } = {}) {
+        _BaseAnthropic_instances.add(this);
+        this._requestAuthFlags = /* @__PURE__ */ new WeakMap();
+        _BaseAnthropic_encoder.set(this, void 0);
+        if (apiKey === void 0) {
+          apiKey = opts.profile != null ? null : readEnv("ANTHROPIC_API_KEY") ?? null;
+        }
+        if (authToken === void 0) {
+          authToken = opts.profile != null ? null : readEnv("ANTHROPIC_AUTH_TOKEN") ?? null;
+        }
+        if (opts.profile != null && (opts.credentials != null || opts.config != null)) {
+          throw new TypeError("Pass at most one of `profile`, `credentials`, or `config`.");
+        }
+        const options = {
+          apiKey,
+          authToken,
+          webhookKey,
+          ...opts,
+          baseURL: baseURL || `https://api.anthropic.com`
+        };
+        if (!options.dangerouslyAllowBrowser && isRunningInBrowser()) {
+          throw new AnthropicError("It looks like you're running in a browser-like environment.\n\nThis is disabled by default, as it risks exposing your secret API credentials to attackers.\nIf you understand the risks and have appropriate mitigations in place,\nyou can set the `dangerouslyAllowBrowser` option to `true`, e.g.,\n\nnew Anthropic({ apiKey, dangerouslyAllowBrowser: true });\n");
+        }
+        this.baseURL = options.baseURL;
+        this._baseURLIsExplicit = opts.__baseURLIsExplicit ?? !!baseURL;
+        this.timeout = options.timeout ?? _a.DEFAULT_TIMEOUT;
+        this.logger = options.logger ?? console;
+        this.logLevel = defaultLogLevel;
+        this.logLevel = parseLogLevel(options.logLevel, "ClientOptions.logLevel", loggerFor(this)) ?? parseLogLevel(readEnv("ANTHROPIC_LOG"), "process.env['ANTHROPIC_LOG']", loggerFor(this)) ?? defaultLogLevel;
+        this.fetchOptions = options.fetchOptions;
+        this.maxRetries = options.maxRetries ?? 2;
+        this.fetch = options.fetch ?? getDefaultFetch();
+        __classPrivateFieldSet(this, _BaseAnthropic_encoder, FallbackEncoder, "f");
+        this.middleware = [...options.middleware ?? []];
+        const customHeadersEnv = readEnv("ANTHROPIC_CUSTOM_HEADERS");
+        if (customHeadersEnv) {
+          const parsed = {};
+          for (const line of customHeadersEnv.split("\n")) {
+            const colon = line.indexOf(":");
+            if (colon >= 0) {
+              parsed[line.substring(0, colon).trim()] = line.substring(colon + 1).trim();
+            }
+          }
+          options.defaultHeaders = { ...parsed, ...options.defaultHeaders };
+        }
+        const inherited = opts.__auth;
+        delete options.__auth;
+        delete options.__baseURLIsExplicit;
+        this._options = options;
+        this.apiKey = typeof apiKey === "string" ? apiKey : null;
+        this.authToken = authToken;
+        this.webhookKey = webhookKey;
+        if (inherited) {
+          this._authState = inherited;
+          if (!this._baseURLIsExplicit && inherited.baseURL) {
+            this.baseURL = inherited.baseURL;
+          }
+        } else {
+          this._authState = { provider: null, tokenCache: null, resolution: null, error: null, extraHeaders: {} };
+          if (this.apiKey == null && this.authToken == null) {
+            const credentials = options.credentials ?? null;
+            if (credentials) {
+              this._authState.provider = credentials;
+              this._authState.tokenCache = this._makeTokenCache(credentials);
+            } else if (options.config != null) {
+              const result = resolveCredentialsFromConfig(options.config, this._credentialResolverOptions());
+              this._authState.provider = result.provider;
+              this._authState.tokenCache = this._makeTokenCache(result.provider);
+              this._authState.extraHeaders = result.extraHeaders;
+              this._applyCredentialBaseURL(result.baseURL);
+            } else if (options.profile != null) {
+              this._authState.resolution = this._resolveDefaultCredentials(options.profile);
+            } else if (this._shouldResolveDefaultCredentials()) {
+              this._authState.resolution = this._resolveDefaultCredentials();
+            }
+          }
+        }
+      }
+      /**
+       * Whether to lazily resolve auth from the default credential chain when no
+       * explicit auth is configured. Called once from the constructor, so
+       * overrides must not depend on subclass instance state. Subclasses that
+       * bring their own auth scheme return false so unrelated local credentials
+       * are never resolved or allowed to supply a base URL.
+       */
+      _shouldResolveDefaultCredentials() {
+        return true;
+      }
+      /**
+       * Stores a profile/config-supplied base URL on the shared auth state and, if
+       * the caller did not pin `baseURL` via constructor option or env, adopts it
+       * as this client's outbound API host. Precedence: ctor opt > env > profile >
+       * hardcoded default.
+       */
+      _applyCredentialBaseURL(baseURL) {
+        if (!baseURL)
+          return;
+        const normalized = baseURL.replace(/\/+$/, "");
+        this._authState.baseURL = normalized;
+        if (!this._baseURLIsExplicit) {
+          this.baseURL = normalized;
+        }
+      }
+      /**
+       * Options bag passed into the credential chain. `baseURL` here is only the
+       * fallback host for the token-exchange POST when the config itself omits
+       * `base_url`; the chain returns the config's own `base_url` (if any) on
+       * {@link CredentialResult.baseURL}, which {@link _applyCredentialBaseURL}
+       * then adopts for outbound API requests. The two are deliberately decoupled
+       * so this fallback never round-trips into precedence.
+       */
+      _credentialResolverOptions() {
+        return {
+          baseURL: this.baseURL,
+          fetch: this._credentialsFetch(),
+          userAgent: this.getUserAgent(),
+          onCacheWriteError: (err) => {
+            loggerFor(this).debug("credential cache write failed (best-effort)", err);
+          },
+          onSafetyWarning: (msg) => {
+            loggerFor(this).warn(msg);
+          }
+        };
+      }
+      /**
+       * A `Fetch` for first-party credential token-exchange requests (OIDC
+       * federation jwt-bearer grants, user-OAuth refresh grants) that routes
+       * through this client's middleware chain, so middleware observes token
+       * traffic like any other request. Only client-level middleware applies:
+       * a minted token is shared across requests, so attributing the exchange
+       * to any one request's per-request middleware would be arbitrary. For the
+       * same reason, `ctx.options` is undefined for these requests.
+       */
+      _credentialsFetch() {
+        return wrapFetchWithMiddleware(this.fetch, this.middleware, void 0, this);
+      }
+      _makeTokenCache(provider2) {
+        return new TokenCache(provider2, (err) => {
+          loggerFor(this).debug("advisory token refresh failed; serving cached token", err);
+        });
+      }
+      /**
+       * Create a new client instance re-using the same options given to the current client with optional overriding.
+       */
+      withOptions(options) {
+        const overridesStructuredAuth = "credentials" in options || "config" in options || "profile" in options;
+        const overridesAuth = "apiKey" in options || "authToken" in options || overridesStructuredAuth;
+        const internal = {
+          ...this._options,
+          // Only forward baseURL when the caller (or env) explicitly chose it.
+          // For a non-explicit parent, this.baseURL may have been mutated to the
+          // profile-resolved host; pinning that as the clone's options.baseURL
+          // would make _options on the clone misreport caller intent and would
+          // leave the clone stuck on the parent's host across an auth override.
+          // The clone instead receives the construction-time value via
+          // ...this._options above and re-adopts the profile host through the
+          // shared _authState.baseURL + __baseURLIsExplicit=false path.
+          ...this._baseURLIsExplicit ? { baseURL: this.baseURL } : {},
+          maxRetries: this.maxRetries,
+          timeout: this.timeout,
+          logger: this.logger,
+          logLevel: this.logLevel,
+          fetch: this.fetch,
+          fetchOptions: this.fetchOptions,
+          middleware: this.middleware,
+          apiKey: this.apiKey,
+          authToken: this.authToken,
+          webhookKey: this.webhookKey,
+          // credentials: this.credentials is a no-op when __auth is shared (the
+          // ctor takes the inherited path and ignores options.credentials); when
+          // overridesAuth is true via apiKey/authToken only, it lets the clone
+          // build a fresh TokenCache around the parent's provider.
+          credentials: this.credentials,
+          // When the caller passes a structured-credential override, drop inherited
+          // structured-credential options so only `...options` supplies them —
+          // otherwise an inherited `credentials`/`config`/`profile` would trip the
+          // mutual-exclusion check or precedence over the override.
+          ...overridesStructuredAuth ? { credentials: void 0, config: void 0, profile: void 0 } : {},
+          ...options,
+          // Always set __auth so any stale value from ...this._options is
+          // overwritten. undefined means "build fresh auth from these options".
+          __auth: overridesAuth ? void 0 : this._authState,
+          __baseURLIsExplicit: "baseURL" in options ? true : this._baseURLIsExplicit
+        };
+        return new this.constructor(internal);
+      }
+      /**
+       * Lazily resolves credentials from config files or environment variables.
+       * Called once from the constructor when no explicit auth is provided, or
+       * when an explicit `profile` was passed (in which case a missing/unresolved
+       * profile is surfaced as an error instead of falling through to "no auth").
+       * The returned promise is stored and awaited on the first request.
+       */
+      async _resolveDefaultCredentials(profile) {
+        try {
+          const result = await defaultCredentials(this._credentialResolverOptions(), profile);
+          if (result) {
+            this._authState.provider = result.provider;
+            this._authState.tokenCache = this._makeTokenCache(result.provider);
+            this._authState.extraHeaders = result.extraHeaders;
+            this._applyCredentialBaseURL(result.baseURL);
+          } else if (profile != null) {
+            throw new AnthropicError(`Profile "${profile}" could not be resolved (no <config_dir>/configs/${profile}.json found).`);
+          }
+        } catch (err) {
+          this._authState.error = err;
+        } finally {
+          this._authState.resolution = null;
+        }
+      }
+      defaultQuery() {
+        return this._options.defaultQuery;
+      }
+      validateHeaders({ values, nulls }) {
+        if (values.get("x-api-key") || values.get("authorization")) {
+          return;
+        }
+        if (this._authState.error) {
+          throw this._authState.error;
+        }
+        if (this._authState.tokenCache || this._authState.resolution) {
+          return;
+        }
+        if (this.apiKey && values.get("x-api-key")) {
+          return;
+        }
+        if (nulls.has("x-api-key")) {
+          return;
+        }
+        if (this.authToken && values.get("authorization")) {
+          return;
+        }
+        if (nulls.has("authorization")) {
+          return;
+        }
+        throw new Error('Could not resolve authentication method. Expected one of apiKey, authToken, credentials, config, or profile to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted');
+      }
+      _authFlags(opts) {
+        let flags = this._requestAuthFlags.get(opts);
+        if (!flags) {
+          flags = { usedTokenCache: false, didRefreshFor401: false };
+          this._requestAuthFlags.set(opts, flags);
+        }
+        return flags;
+      }
+      async authHeaders(opts) {
+        if (this._authState.resolution) {
+          await this._authState.resolution;
+        }
+        if (this._authState.error) {
+          return void 0;
+        }
+        if (this._authState.tokenCache && this.apiKey == null) {
+          const token2 = await this._authState.tokenCache.getToken();
+          this._authFlags(opts).usedTokenCache = true;
+          return buildHeaders([{ Authorization: `Bearer ${token2}` }]);
+        }
+        return buildHeaders([await this.apiKeyAuth(opts), await this.bearerAuth(opts)]);
+      }
+      async apiKeyAuth(opts) {
+        if (this.apiKey == null) {
+          return void 0;
+        }
+        return buildHeaders([{ "X-Api-Key": this.apiKey }]);
+      }
+      async bearerAuth(opts) {
+        if (this.authToken == null) {
+          return void 0;
+        }
+        return buildHeaders([{ Authorization: `Bearer ${this.authToken}` }]);
+      }
+      stringifyQuery(query) {
+        return stringifyQuery(query);
+      }
+      getUserAgent() {
+        return `Anthropic/JS ${VERSION}`;
+      }
+      defaultIdempotencyKey() {
+        return `stainless-node-retry-${uuid4()}`;
+      }
+      makeStatusError(status, error, message, headers) {
+        return APIError.generate(status, error, message, headers);
+      }
+      buildURL(path6, query, defaultBaseURL) {
+        const baseURL = !__classPrivateFieldGet(this, _BaseAnthropic_instances, "m", _BaseAnthropic_baseURLOverridden).call(this) && defaultBaseURL || this.baseURL;
+        const url = isAbsoluteURL(path6) ? new URL(path6) : new URL(baseURL + (baseURL.endsWith("/") && path6.startsWith("/") ? path6.slice(1) : path6));
+        const defaultQuery = this.defaultQuery();
+        const pathQuery = Object.fromEntries(url.searchParams);
+        if (!isEmptyObj(defaultQuery) || !isEmptyObj(pathQuery)) {
+          query = { ...pathQuery, ...defaultQuery, ...query };
+        }
+        if (typeof query === "object" && query && !Array.isArray(query)) {
+          url.search = this.stringifyQuery(query);
+        }
+        return url.toString();
+      }
+      _calculateNonstreamingTimeout(maxTokens) {
+        const defaultTimeout = 10 * 60;
+        const expectedTimeout = 60 * 60 * maxTokens / 128e3;
+        if (expectedTimeout > defaultTimeout) {
+          throw new AnthropicError("Streaming is required for operations that may take longer than 10 minutes. See https://github.com/anthropics/anthropic-sdk-typescript#streaming-responses for more details");
+        }
+        return defaultTimeout * 1e3;
+      }
+      /**
+       * Used as a callback for mutating the given `FinalRequestOptions` object.
+       */
+      async prepareOptions(options) {
+      }
+      /**
+       * Used as a callback for mutating the given `RequestInit` object.
+       *
+       * This is useful for cases where you want to add certain headers based off of
+       * the request properties, e.g. `method` or `url`.
+       *
+       * Runs after all middleware (including {@link backendMiddleware}),
+       * immediately before each underlying fetch call, so it sees exactly what
+       * goes over the wire. Middleware may replay a request by calling `next()`
+       * more than once, so this hook can run multiple times per attempt:
+       * overrides must be idempotent and overwrite headers from a previous
+       * invocation rather than append to them.
+       */
+      async prepareRequest(request, { url, options }) {
+        if (this._authState.tokenCache && this.apiKey == null) {
+          const headers = request.headers instanceof Headers ? request.headers : new Headers(request.headers);
+          for (const [k, v] of Object.entries(this._authState.extraHeaders)) {
+            if (!headers.has(k))
+              headers.set(k, v);
+          }
+          const existing = headers.get("anthropic-beta")?.split(",").map((s) => s.trim());
+          if (!existing?.includes(OAUTH_API_BETA_HEADER)) {
+            headers.append("anthropic-beta", OAUTH_API_BETA_HEADER);
+          }
+          request.headers = headers;
+        }
+      }
+      /**
+       * Internal {@link Middleware} composed innermost in the chain — inside both
+       * client-level and per-request middleware, immediately around the underlying
+       * `fetch`. Subclasses for third-party backends override this to adapt the
+       * canonical Anthropic-shaped request to the backend's wire shape (URL/body
+       * rewriting, request signing) and to normalize the wire response back to the
+       * canonical shape (e.g. AWS EventStream to SSE).
+       *
+       * Running inside the user's middleware means user middleware always observes
+       * canonical Anthropic-shaped traffic, and the adaptation re-runs (e.g.
+       * re-signs) on every `next()` invocation, covering whatever the middleware
+       * mutated.
+       *
+       * Errors thrown here follow the middleware error policy: they propagate to
+       * the caller as-is — no retries, no `APIConnectionError` wrapping — unless
+       * retryable (see {@link Middleware}); throw a `RetryableError` to opt into
+       * the retry path.
+       */
+      backendMiddleware() {
+        return [];
+      }
+      get(path6, opts) {
+        return this.methodRequest("get", path6, opts);
+      }
+      post(path6, opts) {
+        return this.methodRequest("post", path6, opts);
+      }
+      patch(path6, opts) {
+        return this.methodRequest("patch", path6, opts);
+      }
+      put(path6, opts) {
+        return this.methodRequest("put", path6, opts);
+      }
+      delete(path6, opts) {
+        return this.methodRequest("delete", path6, opts);
+      }
+      methodRequest(method, path6, opts) {
+        return this.request(Promise.resolve(opts).then((opts2) => {
+          return { method, path: path6, ...opts2 };
+        }));
+      }
+      request(options, remainingRetries = null) {
+        return new APIPromise(this, this.makeRequest(options, remainingRetries, void 0));
+      }
+      async makeRequest(optionsInput, retriesRemaining, retryOfRequestLogID) {
+        const options = await optionsInput;
+        const maxRetries = options.maxRetries ?? this.maxRetries;
+        if (retriesRemaining == null) {
+          retriesRemaining = maxRetries;
+          this._requestAuthFlags.delete(options);
+        }
+        await this.prepareOptions(options);
+        const { req, url, timeout } = await this.buildRequest(options, {
+          retryCount: maxRetries - retriesRemaining
+        });
+        const requestLogID = "log_" + (Math.random() * (1 << 24) | 0).toString(16).padStart(6, "0");
+        const retryLogStr = retryOfRequestLogID === void 0 ? "" : `, retryOf: ${retryOfRequestLogID}`;
+        const startTime = Date.now();
+        if (options.signal?.aborted) {
+          throw new APIUserAbortError();
+        }
+        const controller = new AbortController();
+        const response = await this.fetchWithTimeout(url, req, timeout, controller, options, {
+          requestLogID,
+          retryOfRequestLogID
+        }).catch(castToError);
+        const headersTime = Date.now();
+        if (response instanceof globalThis.Error) {
+          releaseRequestSignal(controller);
+          const retryMessage = `retrying, ${retriesRemaining} attempts remaining`;
+          if (options.signal?.aborted) {
+            throw new APIUserAbortError();
+          }
+          const isTimeout = isAbortError(response) || /timed? ?out/i.test(String(response) + ("cause" in response ? String(response.cause) : ""));
+          const hasMiddleware = this.middleware.length > 0 || !!options.middleware?.length || this.backendMiddleware().length > 0;
+          if (hasMiddleware && !isTimeout && !isRetryableError(response)) {
+            loggerFor(this).info(`[${requestLogID}] middleware error (not retryable)`);
+            loggerFor(this).debug(`[${requestLogID}] middleware error (not retryable)`, formatRequestDetails({
+              retryOfRequestLogID,
+              url,
+              durationMs: headersTime - startTime,
+              message: response.message
+            }));
+            throw response;
+          }
+          if (retriesRemaining) {
+            loggerFor(this).info(`[${requestLogID}] connection ${isTimeout ? "timed out" : "failed"} - ${retryMessage}`);
+            loggerFor(this).debug(`[${requestLogID}] connection ${isTimeout ? "timed out" : "failed"} (${retryMessage})`, formatRequestDetails({
+              retryOfRequestLogID,
+              url,
+              durationMs: headersTime - startTime,
+              message: response.message
+            }));
+            return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID);
+          }
+          loggerFor(this).info(`[${requestLogID}] connection ${isTimeout ? "timed out" : "failed"} - error; no more retries left`);
+          loggerFor(this).debug(`[${requestLogID}] connection ${isTimeout ? "timed out" : "failed"} (error; no more retries left)`, formatRequestDetails({
+            retryOfRequestLogID,
+            url,
+            durationMs: headersTime - startTime,
+            message: response.message
+          }));
+          if (isTimeout) {
+            throw new APIConnectionTimeoutError();
+          }
+          if (hasMiddleware && !isFetchOriginError(response)) {
+            throw response;
+          }
+          throw new APIConnectionError({ cause: response });
+        }
+        const specialHeaders = [...response.headers.entries()].filter(([name]) => name === "request-id").map(([name, value]) => ", " + name + ": " + JSON.stringify(value)).join("");
+        const responseInfo = `[${requestLogID}${retryLogStr}${specialHeaders}] ${req.method} ${url} ${response.ok ? "succeeded" : "failed"} with status ${response.status} in ${headersTime - startTime}ms`;
+        if (!response.ok) {
+          const shouldRetry = await this.shouldRetry(response, options);
+          if (retriesRemaining && shouldRetry) {
+            const retryMessage2 = `retrying, ${retriesRemaining} attempts remaining`;
+            await CancelReadableStream(response.body);
+            releaseRequestSignal(controller);
+            loggerFor(this).info(`${responseInfo} - ${retryMessage2}`);
+            loggerFor(this).debug(`[${requestLogID}] response error (${retryMessage2})`, formatRequestDetails({
+              retryOfRequestLogID,
+              url: response.url,
+              status: response.status,
+              headers: response.headers,
+              durationMs: headersTime - startTime
+            }));
+            return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID, response.headers);
+          }
+          const retryMessage = shouldRetry ? `error; no more retries left` : `error; not retryable`;
+          loggerFor(this).info(`${responseInfo} - ${retryMessage}`);
+          const errText = await response.text().catch((err2) => castToError(err2).message);
+          const errJSON = safeJSON(errText);
+          const errMessage = errJSON ? void 0 : errText;
+          loggerFor(this).debug(`[${requestLogID}] response error (${retryMessage})`, formatRequestDetails({
+            retryOfRequestLogID,
+            url: response.url,
+            status: response.status,
+            headers: response.headers,
+            message: errMessage,
+            durationMs: Date.now() - startTime
+          }));
+          releaseRequestSignal(controller);
+          const err = this.makeStatusError(response.status, errJSON, errMessage, response.headers);
+          throw err;
+        }
+        loggerFor(this).info(responseInfo);
+        loggerFor(this).debug(`[${requestLogID}] response start`, formatRequestDetails({
+          retryOfRequestLogID,
+          url: response.url,
+          status: response.status,
+          headers: response.headers,
+          durationMs: headersTime - startTime
+        }));
+        armAbandonmentBackstop(response.body ?? response, controller);
+        return { response, options, controller, requestLogID, retryOfRequestLogID, startTime };
+      }
+      getAPIList(path6, Page2, opts) {
+        return this.requestAPIList(Page2, opts && "then" in opts ? opts.then((opts2) => ({ method: "get", path: path6, ...opts2 })) : { method: "get", path: path6, ...opts });
+      }
+      requestAPIList(Page2, options) {
+        const request = this.makeRequest(options, null, void 0);
+        return new PagePromise(this, request, Page2);
+      }
+      async fetchWithTimeout(url, init, ms, controller, requestOptions, logCtx) {
+        const { signal, method, ...options } = init || {};
+        const abort = this._makeAbort(controller);
+        if (signal) {
+          signal.addEventListener("abort", abort, { once: true });
+          registerRequestSignalCleanup(controller, signal, abort);
+        }
+        const isReadableBody = globalThis.ReadableStream && options.body instanceof globalThis.ReadableStream || typeof options.body === "object" && options.body !== null && Symbol.asyncIterator in options.body;
+        const fetchOptions = {
+          signal: controller.signal,
+          ...isReadableBody ? { duplex: "half" } : {},
+          method: "GET",
+          ...options
+        };
+        if (method) {
+          fetchOptions.method = method.toUpperCase();
+        }
+        const baseFetch = this.fetch;
+        const timedFetch = async (innerUrl, innerInit) => {
+          const timeout = setTimeout(abort, ms);
+          try {
+            return await baseFetch.call(void 0, innerUrl, innerInit);
+          } finally {
+            clearTimeout(timeout);
+          }
+        };
+        const innerFetch = requestOptions === void 0 ? timedFetch : (async (innerUrl, innerInit = {}) => {
+          const innerUrlStr = typeof innerUrl === "string" ? innerUrl : innerUrl instanceof URL ? innerUrl.href : innerUrl.url;
+          innerInit.headers = innerInit.headers instanceof Headers ? innerInit.headers : new Headers(innerInit.headers);
+          await this.prepareRequest(innerInit, { url: innerUrlStr, options: requestOptions });
+          if (logCtx) {
+            loggerFor(this).debug(`[${logCtx.requestLogID}] sending request`, formatRequestDetails({
+              retryOfRequestLogID: logCtx.retryOfRequestLogID,
+              method: innerInit.method,
+              url: innerUrlStr,
+              options: requestOptions,
+              headers: innerInit.headers
+            }));
+          }
+          return timedFetch(innerUrl, innerInit);
+        });
+        const requestMiddleware = requestOptions?.middleware;
+        const backendMiddleware = this.backendMiddleware();
+        const allMiddleware = requestMiddleware?.length || backendMiddleware.length ? [...this.middleware, ...requestMiddleware ?? [], ...backendMiddleware] : this.middleware;
+        return await wrapFetchWithMiddleware(innerFetch, allMiddleware, requestOptions, this)(url, fetchOptions);
+      }
+      async shouldRetry(response, options) {
+        const flags = this._authFlags(options);
+        if (response.status === 401 && this._authState.tokenCache && flags.usedTokenCache && !flags.didRefreshFor401) {
+          flags.didRefreshFor401 = true;
+          this._authState.tokenCache.invalidate();
+          return true;
+        }
+        const shouldRetryHeader = response.headers.get("x-should-retry");
+        if (shouldRetryHeader === "true")
+          return true;
+        if (shouldRetryHeader === "false")
+          return false;
+        if (response.status === 408)
+          return true;
+        if (response.status === 409)
+          return true;
+        if (response.status === 429)
+          return true;
+        if (response.status >= 500)
+          return true;
+        return false;
+      }
+      async retryRequest(options, retriesRemaining, requestLogID, responseHeaders) {
+        let timeoutMillis;
+        const retryAfterMillisHeader = responseHeaders?.get("retry-after-ms");
+        if (retryAfterMillisHeader) {
+          const timeoutMs = parseFloat(retryAfterMillisHeader);
+          if (!Number.isNaN(timeoutMs)) {
+            timeoutMillis = timeoutMs;
+          }
+        }
+        const retryAfterHeader = responseHeaders?.get("retry-after");
+        if (retryAfterHeader && !timeoutMillis) {
+          const timeoutSeconds = parseFloat(retryAfterHeader);
+          if (!Number.isNaN(timeoutSeconds)) {
+            timeoutMillis = timeoutSeconds * 1e3;
+          } else {
+            timeoutMillis = Date.parse(retryAfterHeader) - Date.now();
+          }
+        }
+        if (timeoutMillis === void 0) {
+          const maxRetries = options.maxRetries ?? this.maxRetries;
+          timeoutMillis = this.calculateDefaultRetryTimeoutMillis(retriesRemaining, maxRetries);
+        }
+        await sleep(timeoutMillis);
+        return this.makeRequest(options, retriesRemaining - 1, requestLogID);
+      }
+      calculateDefaultRetryTimeoutMillis(retriesRemaining, maxRetries) {
+        const initialRetryDelay = 0.5;
+        const maxRetryDelay = 8;
+        const numRetries = maxRetries - retriesRemaining;
+        const sleepSeconds = Math.min(initialRetryDelay * Math.pow(2, numRetries), maxRetryDelay);
+        const jitter2 = 1 - Math.random() * 0.25;
+        return sleepSeconds * jitter2 * 1e3;
+      }
+      calculateNonstreamingTimeout(maxTokens, maxNonstreamingTokens) {
+        const maxTime = 60 * 60 * 1e3;
+        const defaultTime = 60 * 10 * 1e3;
+        const expectedTime = maxTime * maxTokens / 128e3;
+        if (expectedTime > defaultTime || maxNonstreamingTokens != null && maxTokens > maxNonstreamingTokens) {
+          throw new AnthropicError("Streaming is required for operations that may take longer than 10 minutes. See https://github.com/anthropics/anthropic-sdk-typescript#long-requests for more details");
+        }
+        return defaultTime;
+      }
+      async buildRequest(inputOptions, { retryCount = 0 } = {}) {
+        const options = { ...inputOptions };
+        const { method, path: path6, query, defaultBaseURL } = options;
+        if (this._authState.resolution) {
+          await this._authState.resolution;
+        }
+        if (!this._baseURLIsExplicit && this._authState.baseURL && this.baseURL !== this._authState.baseURL) {
+          this.baseURL = this._authState.baseURL;
+        }
+        const url = this.buildURL(path6, query, defaultBaseURL);
+        if ("timeout" in options)
+          validatePositiveInteger("timeout", options.timeout);
+        options.timeout = options.timeout ?? this.timeout;
+        const { bodyHeaders, body } = this.buildBody({ options });
+        const reqHeaders = await this.buildHeaders({ options: inputOptions, method, bodyHeaders, retryCount });
+        const req = {
+          method,
+          headers: reqHeaders,
+          ...options.signal && { signal: options.signal },
+          ...globalThis.ReadableStream && body instanceof globalThis.ReadableStream && { duplex: "half" },
+          ...body && { body },
+          ...this.fetchOptions ?? {},
+          ...options.fetchOptions ?? {}
+        };
+        return { req, url, timeout: options.timeout };
+      }
+      async buildHeaders({ options, method, bodyHeaders, retryCount }) {
+        let idempotencyHeaders = {};
+        if (this.idempotencyHeader && method !== "get") {
+          if (!options.idempotencyKey)
+            options.idempotencyKey = this.defaultIdempotencyKey();
+          idempotencyHeaders[this.idempotencyHeader] = options.idempotencyKey;
+        }
+        const headers = buildHeaders([
+          idempotencyHeaders,
+          {
+            Accept: "application/json",
+            "User-Agent": this.getUserAgent(),
+            "X-Stainless-Retry-Count": String(retryCount),
+            ...options.timeout ? { "X-Stainless-Timeout": String(Math.trunc(options.timeout / 1e3)) } : {},
+            ...getPlatformHeaders(),
+            ...this._options.dangerouslyAllowBrowser ? { "anthropic-dangerous-direct-browser-access": "true" } : void 0,
+            "anthropic-version": "2023-06-01"
+          },
+          await this.authHeaders(options),
+          this._options.defaultHeaders,
+          bodyHeaders,
+          options.headers
+        ]);
+        this.validateHeaders(headers);
+        return headers.values;
+      }
+      _makeAbort(controller) {
+        return () => controller.abort();
+      }
+      buildBody({ options: { body, headers: rawHeaders } }) {
+        if (!body) {
+          return { bodyHeaders: void 0, body: void 0 };
+        }
+        const headers = buildHeaders([rawHeaders]);
+        if (
+          // Pass raw type verbatim
+          ArrayBuffer.isView(body) || body instanceof ArrayBuffer || body instanceof DataView || typeof body === "string" && // Preserve legacy string encoding behavior for now
+          headers.values.has("content-type") || // `Blob` is superset of `File`
+          globalThis.Blob && body instanceof globalThis.Blob || // `FormData` -> `multipart/form-data`
+          body instanceof FormData || // `URLSearchParams` -> `application/x-www-form-urlencoded`
+          body instanceof URLSearchParams || // Send chunked stream (each chunk has own `length`)
+          globalThis.ReadableStream && body instanceof globalThis.ReadableStream
+        ) {
+          return { bodyHeaders: void 0, body };
+        } else if (typeof body === "object" && (Symbol.asyncIterator in body || Symbol.iterator in body && "next" in body && typeof body.next === "function")) {
+          return { bodyHeaders: void 0, body: ReadableStreamFrom(body) };
+        } else if (typeof body === "object" && headers.values.get("content-type") === "application/x-www-form-urlencoded") {
+          return {
+            bodyHeaders: { "content-type": "application/x-www-form-urlencoded" },
+            body: this.stringifyQuery(body)
+          };
+        } else {
+          return __classPrivateFieldGet(this, _BaseAnthropic_encoder, "f").call(this, { body, headers });
+        }
+      }
+    };
+    _a = BaseAnthropic, _BaseAnthropic_encoder = /* @__PURE__ */ new WeakMap(), _BaseAnthropic_instances = /* @__PURE__ */ new WeakSet(), _BaseAnthropic_baseURLOverridden = function _BaseAnthropic_baseURLOverridden2() {
+      return this.baseURL !== "https://api.anthropic.com";
+    };
+    BaseAnthropic.Anthropic = _a;
+    BaseAnthropic.HUMAN_PROMPT = HUMAN_PROMPT;
+    BaseAnthropic.AI_PROMPT = AI_PROMPT;
+    BaseAnthropic.DEFAULT_TIMEOUT = 6e5;
+    BaseAnthropic.AnthropicError = AnthropicError;
+    BaseAnthropic.APIError = APIError;
+    BaseAnthropic.APIConnectionError = APIConnectionError;
+    BaseAnthropic.APIConnectionTimeoutError = APIConnectionTimeoutError;
+    BaseAnthropic.APIUserAbortError = APIUserAbortError;
+    BaseAnthropic.NotFoundError = NotFoundError;
+    BaseAnthropic.ConflictError = ConflictError;
+    BaseAnthropic.RateLimitError = RateLimitError;
+    BaseAnthropic.BadRequestError = BadRequestError;
+    BaseAnthropic.AuthenticationError = AuthenticationError;
+    BaseAnthropic.InternalServerError = InternalServerError;
+    BaseAnthropic.PermissionDeniedError = PermissionDeniedError;
+    BaseAnthropic.UnprocessableEntityError = UnprocessableEntityError;
+    BaseAnthropic.toFile = toFile;
+    Anthropic = class extends BaseAnthropic {
+      constructor() {
+        super(...arguments);
+        this.completions = new Completions(this);
+        this.messages = new Messages2(this);
+        this.models = new Models2(this);
+        this.beta = new Beta(this);
+      }
+    };
+    Anthropic.Completions = Completions;
+    Anthropic.Messages = Messages2;
+    Anthropic.Models = Models2;
+    Anthropic.Beta = Beta;
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/lib/middleware.mjs
+var encoder;
+var init_middleware2 = __esm({
+  "node_modules/@anthropic-ai/sdk/lib/middleware.mjs"() {
+    init_error();
+    init_streaming();
+    init_errors();
+    init_headers();
+    init_stainless_helper_header();
+    init_values();
+    init_request_options();
+    encoder = new TextEncoder();
+  }
+});
+
+// node_modules/@anthropic-ai/sdk/index.mjs
+var init_sdk = __esm({
+  "node_modules/@anthropic-ai/sdk/index.mjs"() {
+    init_client();
+    init_uploads2();
+    init_api_promise();
+    init_middleware2();
+    init_client();
+    init_pagination();
+    init_error();
+  }
+});
+
+// index.ts
+import * as readline2 from "readline";
+import * as fs4 from "fs";
+import * as path5 from "path";
+
+// mcp.ts
+var McpClient = class {
+  constructor(endpoint) {
+    this.endpoint = endpoint;
+  }
+  endpoint;
+  sessionId;
+  nextId = 1;
+  async rpc(method, params) {
+    const headers = {
+      "Content-Type": "application/json",
+      Accept: "application/json, text/event-stream"
+    };
+    if (this.sessionId) headers["Mcp-Session-Id"] = this.sessionId;
+    const resp = await fetch(this.endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ jsonrpc: "2.0", id: this.nextId++, method, params })
+    });
+    const newSession = resp.headers.get("Mcp-Session-Id");
+    if (newSession) this.sessionId = newSession;
+    if (!resp.ok && method !== "initialize") {
+      const body = await resp.text();
+      if (resp.status === 404 || resp.status === 422 || /session not found/i.test(body)) {
+        this.sessionId = void 0;
+        await this.initialize();
+        return this.rpc(method, params);
+      }
+      throw new Error(`MCP ${method} failed: HTTP ${resp.status} ${body}`);
+    }
+    if (!resp.ok) {
+      throw new Error(`MCP ${method} failed: HTTP ${resp.status} ${await resp.text()}`);
+    }
+    const payload = this.parseBody(await resp.text());
+    if (payload?.error) {
+      throw new Error(`MCP ${method} error: ${payload.error.message ?? JSON.stringify(payload.error)}`);
+    }
+    return payload?.result;
+  }
+  /** Accepts a bare JSON body or an SSE stream, returning the JSON-RPC frame. */
+  parseBody(body) {
+    const trimmed = body.trim();
+    if (!trimmed) return void 0;
+    if (trimmed.startsWith("{")) return JSON.parse(trimmed);
+    for (const line of trimmed.split("\n")) {
+      if (!line.startsWith("data:")) continue;
+      const data = line.slice(5).trim();
+      if (!data || data === "[DONE]") continue;
+      try {
+        const frame = JSON.parse(data);
+        if (frame && (frame.result !== void 0 || frame.error !== void 0)) return frame;
+      } catch {
+      }
+    }
+    return void 0;
+  }
+  async initialize() {
+    await this.rpc("initialize", {
+      protocolVersion: "2025-03-26",
+      capabilities: {},
+      clientInfo: { name: "ontology-studio-sidecar", version: "3.0.0" }
+    });
+  }
+  async listTools() {
+    const result = await this.rpc("tools/list", {});
+    const tools = result?.tools ?? [];
+    return tools.map((t) => ({
+      name: t.name,
+      description: t.description ?? "",
+      inputSchema: t.inputSchema ?? { type: "object", properties: {} }
+    }));
+  }
+  async callTool(name, args) {
+    const result = await this.rpc("tools/call", { name, arguments: args ?? {} });
+    const content = result?.content;
+    if (Array.isArray(content)) {
+      const text = content.filter((c) => c?.type === "text" && typeof c.text === "string").map((c) => c.text).join("\n");
+      if (text) return text;
+    }
+    return JSON.stringify(result ?? {});
+  }
+};
+
+// graphrag.ts
+var NS = process.env.ONTO_NS ?? "https://w3id.org/dcat-us-demo#";
+var P = `PREFIX dcus: <${NS}>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+`;
+var STOP = new Set(
+  "the a an of to in for is are be and or that this with by on at as it its what which who whom why how when where does do did can could would should may might will shall about any all some there their they them we our you your i me my show tell give list find explain".split(" ")
+);
+function shorten(v) {
+  if (!v) return v;
+  if (v.startsWith("<") && v.endsWith(">")) return v.slice(1, -1).split("#").pop() ?? v;
+  if (v.startsWith('"')) {
+    const body = v.slice(1);
+    for (const cut of ['"^^', '"@', '"']) {
+      const i = body.indexOf(cut);
+      if (i >= 0) return body.slice(0, i);
+    }
+    return body;
+  }
+  return v;
+}
+async function select(mcp2, sparql) {
+  try {
+    const raw = await mcp2.callTool("onto_query", { query: sparql.replace(/\s+/g, " ") });
+    const rows = JSON.parse(raw)?.results ?? [];
+    return rows.map((r) => {
+      const out = {};
+      for (const [k, v] of Object.entries(r)) out[k] = shorten(v);
+      return out;
+    });
+  } catch {
+    return [];
+  }
+}
+function terms(question) {
+  const words = question.toLowerCase().match(/[a-z0-9][a-z0-9\-_]{2,}/g) ?? [];
+  const uniq = [...new Set(words.filter((w) => !STOP.has(w) && w.length >= 4))];
+  return uniq.slice(0, 8);
+}
+async function retrieve(mcp2, question, hops = 2) {
+  const ts = terms(question);
+  if (ts.length === 0) {
+    return { anchors: [], facts: [], claims: [], provenance: [], conflicts: [] };
+  }
+  const filter = ts.map((t) => `CONTAINS(LCASE(?l), "${t}") || CONTAINS(LCASE(STR(?e)), "${t}")`).join(" || ");
+  const anchorRows = await select(mcp2, `${P}
+    SELECT DISTINCT ?e ?l WHERE {
+      ?e rdfs:label ?l .
+      FILTER(${filter})
+    } ORDER BY STRLEN(?l) LIMIT 16`);
+  const anchors = anchorRows.map((r) => ({ iri: r.e, label: r.l }));
+  if (anchors.length === 0) {
+    return { anchors: [], facts: [], claims: [], provenance: [], conflicts: [] };
+  }
+  const classValues = anchors.map((a) => `dcus:${a.iri}`).join(" ");
+  const instanceRows = await select(mcp2, `${P}
+    SELECT DISTINCT ?i ?il WHERE {
+      VALUES ?c { ${classValues} }
+      ?i a ?c .
+      OPTIONAL { ?i rdfs:label ?il }
+    } LIMIT 12`);
+  for (const r of instanceRows) {
+    if (!anchors.some((a) => a.iri === r.i)) {
+      anchors.push({ iri: r.i, label: r.il ?? r.i.replace(/^.*[#/]/, "") });
+    }
+  }
+  const values = anchors.map((a) => `dcus:${a.iri}`).join(" ");
+  const depth = Math.max(1, Math.min(hops, 3));
+  const facts = [];
+  for (let hop = 1; hop <= depth; hop++) {
+    const path6 = hop === 1 ? "?p" : `?p1/?p${hop === 2 ? "2" : "2/?p3"}`;
+    const rows = await select(mcp2, `${P}
+      SELECT DISTINCT ?s ?sl ?p ?o ?ol WHERE {
+        VALUES ?anchor { ${values} }
+        { ?anchor ?p ?o . BIND(?anchor AS ?s) }
+        UNION
+        { ?s ?p ?anchor . BIND(?anchor AS ?o) }
+        OPTIONAL { ?s rdfs:label ?sl }
+        OPTIONAL { ?o rdfs:label ?ol }
+        FILTER(!isBlank(?o) && !isBlank(?s))
+      } LIMIT 120`);
+    for (const r of rows) {
+      const s = r.sl || r.s;
+      const o = r.ol || r.o;
+      if (s && o && r.p) facts.push(`${s} --[${r.p}]--> ${o}`);
+    }
+    if (hop >= 1) break;
+    void path6;
+  }
+  const claimRows = await select(mcp2, `${P}
+    SELECT DISTINCT ?text ?doc ?sec WHERE {
+      VALUES ?anchor { ${values} }
+      ?c a dcus:Claim ; dcus:claimText ?text ; dcus:aboutEntity ?anchor ; dcus:statedIn ?target .
+      {
+        ?target dcus:docId ?doc .
+        BIND(?target AS ?docNode)
+      } UNION {
+        ?docNode dcus:hasSection ?target ; dcus:docId ?doc .
+        OPTIONAL { ?target dcus:sectionNumber ?sec }
+      }
+    } LIMIT 60`);
+  const claims = claimRows.map((r) => ({ text: r.text, doc: r.doc ?? "unattributed", section: r.sec ?? "" }));
+  const provRows = await select(mcp2, `${P}
+    SELECT ?thing ?s ?doc ?src WHERE {
+      VALUES ?thing { ${values} }
+      ?thing prov:wasDerivedFrom ?s .
+      OPTIONAL { ?s dcus:docId ?doc }
+      OPTIONAL { ?s rdfs:label ?src }
+    }`);
+  const byThing = /* @__PURE__ */ new Map();
+  for (const r of provRows) {
+    if (!byThing.has(r.thing)) byThing.set(r.thing, /* @__PURE__ */ new Map());
+    const name = r.doc || r.src || r.s;
+    byThing.get(r.thing).set(r.s, name);
+  }
+  const provenance = [...byThing.entries()].map(([thing, sources]) => ({
+    thing,
+    sources: [...new Set(sources.values())]
+  }));
+  const conflictRows = await select(mcp2, `${P}
+    SELECT DISTINCT ?subject ?a ?b WHERE {
+      VALUES ?subject { ${values} }
+      ?subject a ?a, ?b .
+      FILTER(STR(?a) < STR(?b))
+      ?a rdfs:subClassOf* ?da . ?b rdfs:subClassOf* ?db .
+      { ?da owl:disjointWith ?db } UNION { ?db owl:disjointWith ?da }
+    }`);
+  const conflicts = conflictRows.map(
+    (r) => `${r.subject} is typed as both ${r.a} and ${r.b}, which the ontology declares disjoint`
+  );
+  const detailed = disagreements(claims);
+  const named = new Set(detailed.map((d) => d.split(" is typed as ")[0]));
+  const kept = conflicts.filter((c) => ![...named].some((n) => c.startsWith(`${n} is typed`)));
+  conflicts.length = 0;
+  conflicts.push(...kept, ...detailed);
+  return {
+    anchors,
+    facts: [...new Set(facts)].slice(0, 80),
+    claims,
+    provenance,
+    conflicts: [...new Set(conflicts)]
+  };
+}
+function disagreements(claims) {
+  const byEntity = /* @__PURE__ */ new Map();
+  for (const c of claims) {
+    const m = /^(\S+)\s+types\s+(\S+)\s+as\s+(\S+)$/.exec(c.text.trim());
+    if (!m) continue;
+    const [, , entity, type] = m;
+    if (!byEntity.has(entity)) byEntity.set(entity, /* @__PURE__ */ new Map());
+    const types = byEntity.get(entity);
+    if (!types.has(type)) types.set(type, /* @__PURE__ */ new Set());
+    types.get(type).add(c.doc);
+  }
+  const out = [];
+  for (const [entity, types] of byEntity) {
+    if (types.size < 2) continue;
+    const parts = [...types.entries()].map(
+      ([type, docs]) => `${type} per ${[...docs].sort().join(", ")}`
+    );
+    out.push(`${entity} is typed as ${parts.join(" but ")}`);
+  }
+  return out;
+}
+function asContext(r) {
+  const parts = [];
+  parts.push(`ANCHOR ENTITIES
+${r.anchors.map((a) => `- ${a.label} (${a.iri})`).join("\n")}`);
+  if (r.facts.length) parts.push(`
+GRAPH NEIGHBOURHOOD
+${r.facts.map((f) => `- ${f}`).join("\n")}`);
+  if (r.claims.length) {
+    parts.push(
+      `
+DOCUMENT CLAIMS (cite these by document and section)
+` + r.claims.map((c) => `- [${c.doc}${c.section ? ` S${c.section}` : ""}] ${c.text}`).join("\n")
+    );
+  }
+  if (r.provenance.length) {
+    parts.push(
+      `
+PROVENANCE
+` + r.provenance.map((p) => `- ${p.thing}: ${p.sources.join(", ")}${p.sources.length > 1 ? "  <-- DISPUTED, two sources" : ""}`).join("\n")
+    );
+  }
+  if (r.conflicts.length) {
+    parts.push(`
+REASONER CONFLICTS
+${r.conflicts.map((c) => `- ${c}`).join("\n")}`);
+  }
+  return parts.join("\n");
+}
+var QA_SYSTEM_PROMPT = `You answer questions about a knowledge graph derived from a document corpus.
+
+You are given a SUBGRAPH retrieved by traversing the graph from the entities the question mentions. It is not a set of text chunks: the edges shown are real relationships in the model.
+
+Rules:
+- Answer ONLY from the supplied subgraph. If it does not contain the answer, state what the graph DOES record about the entity and stop. Do not supplement from general knowledge, not even labelled as such: an answer the graph cannot back is worse than a short one.
+- Values like TOK_KIND_hex are tokens standing in for protected values. Repeat them verbatim; never guess what they hide.
+- Cite document and section in square brackets for anything drawn from a claim, e.g. [DCAT-001 S3].
+- If PROVENANCE shows an entity asserted by two sources, say the entity is disputed and name both.
+- If REASONER CONFLICTS is non-empty, lead with it. A contradiction in the model outranks any other finding.
+- FORMAT: first a direct answer of one to three sentences that FULLY answers the question on its own. If the question asks which documents, the document names appear HERE, on both sides. If it asks for a value, the value appears here. The reader may never expand further.
+- Then a line containing only --- . Then supporting detail: per-document claims, section citations, counts. Nothing before the answer.
+- DETAIL LIMIT: at most six short lines. One line per document claim. Do not restate the summary, do not repeat the conflict you already led with, and do not comment on entities the question did not ask about.
+- Never speculate about what the graph "cannot confirm" unless the question asked whether something is knowable.
+- Be concise. No preamble. No emoji.`;
+
+// providers/anthropic.ts
+init_sdk();
+var DEFAULT_MODEL = "claude-opus-5";
+var FALLBACK_BETA = "server-side-fallback-2026-07-01";
+var AnthropicProvider = class {
+  name = "anthropic";
+  client;
+  model;
+  system;
+  maxTokens;
+  useFallbacks;
+  // Beta param types are a superset of the stable ones, so using them for
+  // history keeps one representation whether or not fallbacks are enabled.
+  messages = [];
+  constructor(opts) {
+    this.system = opts.system;
+    this.model = opts.model || process.env.ONTO_LLM_MODEL || DEFAULT_MODEL;
+    this.maxTokens = Number(process.env.ONTO_MAX_OUTPUT_TOKENS ?? 16e3);
+    this.useFallbacks = process.env.ONTO_ANTHROPIC_FALLBACKS !== "0";
+    this.client = new Anthropic({
+      ...opts.apiKey ? { apiKey: opts.apiKey } : {},
+      ...opts.baseURL ? { baseURL: opts.baseURL } : {}
+    });
+  }
+  async describe() {
+    return displayModel(this.model);
+  }
+  setSystem(system) {
+    this.system = system;
+  }
+  reset() {
+    this.messages = [];
+  }
+  addUser(text) {
+    this.messages.push({ role: "user", content: text });
+  }
+  async step(tools) {
+    const anthropicTools = tools.map((t) => ({
+      name: t.name,
+      description: t.description.slice(0, 1024),
+      input_schema: t.inputSchema
+    }));
+    const params = {
+      model: this.model,
+      max_tokens: this.maxTokens,
+      system: this.system,
+      tools: anthropicTools,
+      messages: this.messages
+      // No temperature/top_p/top_k: removed on Opus 5, they return 400.
+      // No thinking config: adaptive is the default on Opus 5.
+    };
+    const response = await this.client.beta.messages.create({
+      ...params,
+      ...this.useFallbacks ? { betas: [FALLBACK_BETA], fallbacks: "default" } : {}
+    });
+    this.messages.push({ role: "assistant", content: response.content });
+    const text = [];
+    const toolCalls = [];
+    for (const block of response.content) {
+      if (block.type === "text" && block.text) {
+        text.push(block.text);
+      } else if (block.type === "tool_use") {
+        toolCalls.push({
+          id: block.id,
+          name: block.name,
+          input: block.input ?? {}
+        });
+      }
+    }
+    return {
+      text,
+      toolCalls,
+      stopReason: response.stop_reason ?? "end_turn"
+    };
+  }
+  addToolResults(outcomes) {
+    const content = outcomes.map((o) => ({
+      type: "tool_result",
+      tool_use_id: o.call.id,
+      content: o.content,
+      ...o.isError ? { is_error: true } : {}
+    }));
+    this.messages.push({ role: "user", content });
+  }
+};
+
+// providers/openai.ts
+var OpenAICompatibleProvider = class {
+  name = "openai-compatible";
+  baseURL;
+  apiKey;
+  model;
+  system;
+  maxTokens;
+  messages = [];
+  constructor(opts) {
+    this.system = opts.system;
+    this.baseURL = opts.baseURL.replace(/\/$/, "");
+    this.apiKey = opts.apiKey ?? "not-needed";
+    this.model = opts.model ?? "";
+    this.maxTokens = Number(process.env.ONTO_MAX_OUTPUT_TOKENS ?? 4096);
+  }
+  /** Resolve a usable model id. MLX servers 404 on a mismatched id. */
+  async resolveModel() {
+    if (this.model) return this.model;
+    try {
+      const resp = await fetch(`${this.baseURL}/models`, {
+        headers: { Authorization: `Bearer ${this.apiKey}` }
+      });
+      const json = await resp.json();
+      const first = json?.data?.[0]?.id;
+      if (first) {
+        this.model = first;
+        return first;
+      }
+    } catch {
+    }
+    this.model = "default";
+    return this.model;
+  }
+  async describe() {
+    return displayModel(await this.resolveModel());
+  }
+  setSystem(system) {
+    this.system = system;
+  }
+  reset() {
+    this.messages = [];
+  }
+  addUser(text) {
+    if (this.messages.length === 0) {
+      this.messages.push({ role: "system", content: this.system });
+    }
+    this.messages.push({ role: "user", content: text });
+  }
+  async step(tools) {
+    const model = await this.resolveModel();
+    const resp = await fetch(`${this.baseURL}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.apiKey}`
+      },
+      body: JSON.stringify({
+        model,
+        messages: this.messages,
+        tools: tools.map((t) => ({
+          type: "function",
+          function: {
+            name: t.name,
+            description: t.description.slice(0, 1024),
+            parameters: t.inputSchema
+          }
+        })),
+        tool_choice: "auto",
+        temperature: 0.7,
+        top_p: 0.8,
+        max_tokens: this.maxTokens,
+        // Qwen-family servers only honour thinking suppression through this
+        // key. Ignored by other providers.
+        chat_template_kwargs: { enable_thinking: false }
+      })
+    });
+    if (!resp.ok) {
+      throw new Error(`Model endpoint ${this.baseURL} returned HTTP ${resp.status}: ${await resp.text()}`);
+    }
+    const completion = await resp.json();
+    const message = completion?.choices?.[0]?.message;
+    if (!message) throw new Error("Model returned no message");
+    const rawCalls = message.tool_calls ?? [];
+    this.messages.push({
+      role: "assistant",
+      content: message.content ?? null,
+      ...rawCalls.length ? { tool_calls: rawCalls } : {}
+    });
+    const toolCalls = rawCalls.map((c) => {
+      let input = {};
+      try {
+        input = c.function?.arguments ? JSON.parse(c.function.arguments) : {};
+      } catch {
+        input = {};
+      }
+      return { id: c.id, name: c.function?.name ?? "", input };
+    });
+    return {
+      text: message.content ? [message.content] : [],
+      toolCalls,
+      stopReason: toolCalls.length > 0 ? "tool_use" : "end_turn"
+    };
+  }
+  addToolResults(outcomes) {
+    for (const o of outcomes) {
+      this.messages.push({
+        role: "tool",
+        tool_call_id: o.call.id,
+        content: o.content
+      });
+    }
+  }
+};
+
+// providers/claudecli.ts
+import { spawn as spawn2 } from "child_process";
+var ClaudeCliProvider = class {
+  name = "claude-cli";
+  bin;
+  model;
+  system;
+  history = [];
+  constructor(opts) {
+    this.system = opts.system;
+    this.model = opts.model ?? process.env.ONTO_CLAUDE_CLI_MODEL;
+    this.bin = opts.bin ?? process.env.ONTO_CLAUDE_BIN ?? "claude";
+  }
+  async describe() {
+    return displayModel(this.model ?? "claude-cli");
+  }
+  setSystem(system) {
+    this.system = system;
+  }
+  reset() {
+    this.history = [];
+  }
+  addUser(text) {
+    this.history.push(text);
+  }
+  async step(_tools) {
+    const prompt = this.history[this.history.length - 1] ?? "";
+    const args = [
+      "-p",
+      "--system-prompt",
+      this.system,
+      "--exclude-dynamic-system-prompt-sections",
+      "--no-session-persistence"
+    ];
+    if (this.model) args.push("--model", this.model);
+    const text = await new Promise((resolve4, reject) => {
+      const child = spawn2(this.bin, args, { stdio: ["pipe", "pipe", "pipe"] });
+      let out = "";
+      let err = "";
+      const timer = setTimeout(() => {
+        child.kill("SIGKILL");
+        reject(new Error("claude CLI timed out"));
+      }, Number(process.env.ONTO_CLAUDE_TIMEOUT_MS ?? 3e5));
+      child.stdout.on("data", (d) => out += d.toString());
+      child.stderr.on("data", (d) => err += d.toString());
+      child.on("error", (e) => {
+        clearTimeout(timer);
+        reject(new Error(`could not run "${this.bin}": ${e}`));
+      });
+      child.on("close", (code) => {
+        clearTimeout(timer);
+        if (code !== 0 && !out.trim()) {
+          reject(new Error(`claude CLI exited ${code}: ${err.slice(0, 400)}`));
+        } else {
+          resolve4(out.trim());
+        }
+      });
+      child.stdin.write(prompt);
+      child.stdin.end();
+    });
+    const cleaned = stripHostPreamble(text);
+    this.history.push(cleaned);
+    return { text: [cleaned], toolCalls: [], stopReason: "end_turn" };
+  }
+  addToolResults(_outcomes) {
+  }
+};
+var HOST_PATTERNS = [
+  /routing mode/i,
+  /\bqwen\b/i,
+  /\bkimi\b/i,
+  /no skill applies/i,
+  /skill (?:applies|is relevant)/i,
+  /^(?:let me|i'?ll) answer (?:from|the)/i,
+  /not an ontology-engineering task/i,
+  /^now,? to your question/i,
+  /^(?:this|that) is a graph question/i,
+  /so i'?ll (?:answer|lead) /i
+];
+function stripHostPreamble(text) {
+  const blocks = text.split(/\n\s*\n/);
+  if (blocks.length < 2) return text.trim();
+  const first = blocks[0].trim();
+  const looksLikeHost = HOST_PATTERNS.some((re) => re.test(first));
+  if (!looksLikeHost) return text.trim();
+  const rest = blocks.slice(1).join("\n\n").trim();
+  return rest.length > 0 ? rest : text.trim();
+}
+
+// providers/alias.ts
+function displayModel(real) {
+  const label = process.env.ONTO_MODEL_LABEL;
+  return label && label.trim() ? label.trim() : real;
+}
+function selectProvider(env, system) {
+  const explicit = (env.ONTO_PROVIDER ?? "").toLowerCase();
+  const baseURL = env.ONTO_LLM_BASE_URL;
+  if (explicit === "openai" || explicit === "openai-compatible") {
+    return new OpenAICompatibleProvider({
+      system,
+      baseURL: baseURL ?? "http://localhost:8081/v1",
+      apiKey: env.ONTO_LLM_API_KEY,
+      model: env.ONTO_LLM_MODEL
+    });
+  }
+  if (explicit === "claude-cli" || explicit === "cli") {
+    return new ClaudeCliProvider({ system });
+  }
+  if (explicit === "anthropic" || explicit === "claude") {
+    return new AnthropicProvider({ system, model: env.ONTO_LLM_MODEL });
+  }
+  if (baseURL) {
+    return new OpenAICompatibleProvider({
+      system,
+      baseURL,
+      apiKey: env.ONTO_LLM_API_KEY,
+      model: env.ONTO_LLM_MODEL
+    });
+  }
+  if (env.ANTHROPIC_API_KEY) {
+    return new AnthropicProvider({ system, model: env.ONTO_LLM_MODEL });
+  }
+  return new OpenAICompatibleProvider({
+    system,
+    baseURL: "http://localhost:8081/v1",
+    apiKey: env.ONTO_LLM_API_KEY,
+    model: env.ONTO_LLM_MODEL
+  });
 }
 
 // tokenise.ts
@@ -9187,31 +13194,180 @@ function tokeniseInbound(text) {
   let out = text;
   let count = 0;
   for (const [kind, pattern] of PATTERNS) {
-    out = out.replace(pattern, (m2) => {
+    out = out.replace(pattern, (m) => {
       count += 1;
-      return token(kind, m2);
+      return token(kind, m);
     });
   }
   return { text: out, count };
 }
 
-// index.ts
-import * as readline from "readline";
-var DEFAULT_ENGINE_PORT = 8137;
-function resolveEnginePort() {
-  const raw = process.env.OPEN_ONTOLOGIES_STUDIO_PORT;
-  const parsed = raw ? Number.parseInt(raw, 10) : NaN;
-  return Number.isInteger(parsed) && parsed > 0 && parsed < 65536 ? parsed : DEFAULT_ENGINE_PORT;
+// workflows.ts
+function namespaceFor(domain) {
+  const ns = domain.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  return { ns, prefix: `@prefix : <http://example.org/${ns}#> .` };
 }
-var ENGINE_URL = `http://localhost:${resolveEnginePort()}/mcp`;
+var deepen = (prefix, branchDesc) => `Call onto_query with this SPARQL to find leaf classes in ${branchDesc}:
+SELECT ?leaf ?label WHERE { ?leaf rdfs:subClassOf+ ?branch . FILTER NOT EXISTS { ?child rdfs:subClassOf ?leaf } . OPTIONAL { ?leaf rdfs:label ?label } } LIMIT 30
+
+Then call onto_load with Turtle using the SAME namespace ${prefix} adding DEEPER subclass chains. For each leaf class:
+1. Add 3-5 rdfs:subClassOf children
+2. For each of THOSE children, add 2-4 more subclasses
+3. If possible, add one more level below that
+
+The goal is DEPTH not width. Each new class needs rdfs:label and rdfs:comment.
+Add at most 80-120 classes in this step. Call onto_stats after. Do NOT save yet.`;
+function buildWorkflow(domain) {
+  const { ns, prefix } = namespaceFor(domain);
+  const root = ns.charAt(0).toUpperCase() + ns.slice(1).replace(/-./g, (m) => m[1].toUpperCase());
+  return [
+    {
+      label: "Step 1: Foundation, root + 5 levels deep",
+      prompt: `Build an ontology about "${domain}". Use namespace ${prefix}
+
+Call onto_clear. Then call onto_load with Turtle containing:
+- An owl:Ontology declaration
+- A root class :${root}
+- 6-10 major branch classes as rdfs:subClassOf the root (Level 1)
+- For each branch, 3-5 subclasses (Level 2)
+- For each of those, 2-4 further subclasses (Level 3)
+- For at least half of Level 3, add 2-3 more subclasses (Level 4)
+- For at least a quarter of Level 4, add 2 more subclasses (Level 5)
+
+Structure this as a DEEP tree, not a wide one. Every class MUST have rdfs:label and rdfs:comment.
+
+Call onto_stats after. Do NOT save yet, many more steps coming.`
+    },
+    { label: "Step 2: Deepen the first major branch", prompt: deepen(prefix, "the FIRST major branch") },
+    { label: "Step 3: Deepen the second major branch", prompt: deepen(prefix, "the SECOND major branch") },
+    { label: "Step 4: Deepen the third major branch", prompt: deepen(prefix, "the THIRD major branch") },
+    { label: "Step 5: Deepen the fourth and fifth branches", prompt: deepen(prefix, "the FOURTH and FIFTH major branches") },
+    { label: "Step 6: Deepen all remaining branches", prompt: deepen(prefix, "ALL remaining major branches not yet deepened") },
+    {
+      label: "Step 7: Object properties",
+      prompt: `Add object properties. Call onto_load with Turtle containing 50-70 owl:ObjectProperty declarations.
+
+EVERY property MUST have rdfs:domain, rdfs:range, rdfs:label, rdfs:comment.
+
+Cover compositional (hasPart/isPartOf), causal (causes, prevents, inhibits), associative (dependsOn, influences), role and participation, temporal, and spatial relations. Build rdfs:subPropertyOf hierarchies 3-4 levels deep, add owl:inverseOf for every directional property, and mark owl:TransitiveProperty / owl:SymmetricProperty / owl:FunctionalProperty where they apply.
+
+Call onto_stats after. Do NOT save yet.`
+    },
+    {
+      label: "Step 8: Datatype properties",
+      prompt: `Add datatype properties. Call onto_load with Turtle containing 40-60 owl:DatatypeProperty declarations.
+
+Each with rdfs:domain, rdfs:range (xsd types), rdfs:label, rdfs:comment. Go through every major branch and cover identifiers, names, codes, dates, quantities, measurements, boolean flags, statuses and text fields.
+
+Call onto_stats after. Do NOT save yet.`
+    },
+    {
+      label: "Step 9: Disjointness axioms",
+      prompt: `Add owl:disjointWith between ALL sibling classes that cannot overlap. Target 60+ disjoint pairs minimum.
+
+Call onto_stats after. Do NOT save yet.`
+    },
+    {
+      label: "Step 10: Named individuals",
+      prompt: `Add 25-40 owl:NamedIndividual instances spread across ALL major branches.
+
+Each individual needs rdf:type (most specific class), rdfs:label, rdfs:comment, and 3-5 property values.
+
+Call onto_stats after. Do NOT save yet.`
+    },
+    {
+      label: "Step 11: Reason and save",
+      prompt: `Final step. Run onto_reason with profile "rdfs", then onto_stats, then onto_save with path "~/.open-ontologies/studio-live.ttl". Report the final statistics.`
+    }
+  ];
+}
+function sketchWorkflow(domain) {
+  const { prefix } = namespaceFor(domain);
+  return [
+    {
+      label: "Step 1/5: Foundation, root + 4 levels deep",
+      prompt: `Build an ontology about "${domain}". Use namespace ${prefix}
+
+Call onto_clear. Then call onto_load with ONE Turtle block containing:
+- An owl:Ontology declaration
+- A root class for the domain
+- 5-8 major branch classes under the root (Level 1)
+- For each branch, 3-4 subclasses (Level 2)
+- For each of those, 2-3 further subclasses (Level 3)
+- For at least half of Level 3, add 2 more subclasses (Level 4)
+
+Prioritise depth over width. Every class MUST have rdfs:label and rdfs:comment.
+
+Call onto_stats after. Do NOT save yet.`
+    },
+    {
+      label: "Step 2/5: Deepen and add properties",
+      prompt: `Call onto_query to find leaf classes:
+SELECT ?leaf ?label WHERE { ?leaf a owl:Class . FILTER NOT EXISTS { ?child rdfs:subClassOf ?leaf } . OPTIONAL { ?leaf rdfs:label ?label } } LIMIT 30
+
+Then call onto_load with Turtle using namespace ${prefix} adding:
+- For each leaf that can be subdivided, 2-3 subclasses, and for each of those 1-2 more
+- 15-25 owl:ObjectProperty each with rdfs:domain, rdfs:range, rdfs:label, rdfs:comment
+- owl:inverseOf pairs for directional properties
+- 8-12 owl:DatatypeProperty with rdfs:domain, rdfs:range (xsd types), rdfs:label
+
+Call onto_stats after. Do NOT save yet.`
+    },
+    {
+      label: "Step 3/5: Axioms and individuals",
+      prompt: `Call onto_load with Turtle using namespace ${prefix} adding:
+- owl:disjointWith between sibling classes that cannot overlap (15+ pairs)
+- 12-20 owl:NamedIndividual across different branches, each with rdf:type, rdfs:label, rdfs:comment and 2-4 property values
+
+Call onto_stats after. Do NOT save yet.`
+    },
+    {
+      label: "Step 4/5: Verify and fix gaps",
+      prompt: `Call onto_stats to check counts, and onto_lint to find missing labels, comments, domains or ranges.
+
+Fix anything lint reports by calling onto_load with corrective Turtle. If any branch is shallower than 4 levels, add 2-3 more levels below its leaves.
+
+Call onto_stats after. Do NOT save yet.`
+    },
+    {
+      label: "Step 5/5: Reason and save",
+      prompt: `Run onto_reason (profile "rdfs"), then onto_stats, then onto_save ("~/.open-ontologies/studio-live.ttl"). Report final class, property, individual and triple counts.`
+    }
+  ];
+}
+var BUILD_VERBS = ["build", "create", "make", "generate"];
+function isBuildRequest(msg) {
+  const lower = msg.toLowerCase();
+  return BUILD_VERBS.some((v) => lower.includes(v)) && (lower.includes("ontology") || lower.includes("about"));
+}
+function isSketchRequest(msg) {
+  return msg.toLowerCase().includes("sketch");
+}
+function extractDomain(msg) {
+  const patterns = [
+    /(?:about|for|on|of)\s+(.+)/i,
+    /(?:build|create|make|generate|sketch)\s+(?:a\s+|an\s+|the\s+)?(?:\w+\s+)?(?:ontology\s+)?(?:about|for|on|of)\s+(.+)/i
+  ];
+  for (const p of patterns) {
+    const m = msg.match(p);
+    const match = m?.[2] || m?.[1];
+    if (match) return match.trim().replace(/[.!?]+$/, "");
+  }
+  return msg.replace(/^(build|create|make|generate|sketch)\s+(an?\s+)?ontology\s*/i, "").trim() || msg;
+}
+
+// index.ts
+var ENGINE_PORT = process.env.OPEN_ONTOLOGIES_STUDIO_PORT ?? "8137";
+var ENGINE_URL = process.env.ONTO_ENGINE_URL ?? `http://127.0.0.1:${ENGINE_PORT}/mcp`;
+var MAX_ROUNDS = Number(process.env.ONTO_MAX_ROUNDS ?? 15);
 var SYSTEM_PROMPT = `You are an ontology engineering assistant with MCP tools for the Open Ontologies engine.
 
 No emoji. Plain text and markdown only.
 
-CRITICAL: When asked to build an ontology, you will receive step-by-step instructions. Follow each step EXACTLY. Call the tools specified \u2014 do NOT just describe what you would do.
+When asked to build an ontology you will receive step-by-step instructions. Follow each step exactly and call the tools specified. Do not merely describe what you would do.
 
-After any onto_load, always call onto_stats to verify what was loaded.
-After all loads are done, always call onto_save with path "~/.open-ontologies/studio-live.ttl".`;
+After any onto_load, call onto_stats to verify what was loaded.
+After all loads are done, call onto_save with path "~/.open-ontologies/studio-live.ttl".`;
 var MUTATION_TOOLS = /* @__PURE__ */ new Set([
   "onto_load",
   "onto_clear",
@@ -9224,402 +13380,242 @@ var MUTATION_TOOLS = /* @__PURE__ */ new Set([
   "onto_pull",
   "onto_enrich"
 ]);
-var sessionId;
+function sleep2(ms) {
+  return new Promise((resolve4) => setTimeout(resolve4, ms));
+}
+async function paceTo(startedAt, floorMs) {
+  const remaining = floorMs - (Date.now() - startedAt);
+  if (remaining > 0) await sleep2(remaining);
+}
 function send(msg) {
   process.stdout.write(JSON.stringify(msg) + "\n");
 }
-async function waitForEngine(maxRetries = 15) {
-  for (let i2 = 0; i2 < maxRetries; i2++) {
+var mcp = new McpClient(ENGINE_URL);
+var provider = selectProvider(process.env, SYSTEM_PROMPT);
+var toolCache = [];
+async function runTurn(prompt) {
+  let mutated = false;
+  provider.addUser(prompt);
+  for (let round = 0; round < MAX_ROUNDS; round++) {
+    const result = await provider.step(toolCache);
+    if (result.toolCalls.length === 0) {
+      for (const text of result.text) {
+        send({ type: "text", content: text });
+      }
+    }
+    if (result.stopReason === "refusal") {
+      send({ type: "error", error: "The model declined this request on policy grounds." });
+      return mutated;
+    }
+    if (result.stopReason === "max_tokens") {
+      send({ type: "text", content: "\n_Response hit the output limit. Raise ONTO_MAX_OUTPUT_TOKENS._" });
+    }
+    if (result.toolCalls.length === 0) return mutated;
+    const outcomes = [];
+    for (const call of result.toolCalls) {
+      send({ type: "tool_call", tool: call.name, input: call.input });
+      if (MUTATION_TOOLS.has(call.name)) mutated = true;
+      try {
+        const content = await mcp.callTool(call.name, call.input);
+        outcomes.push({ call, content: content.slice(0, 2e4), isError: false });
+      } catch (e) {
+        outcomes.push({ call, content: `ERROR: ${e}`, isError: true });
+      }
+    }
+    provider.addToolResults(outcomes);
+  }
+  send({ type: "text", content: `
+_Stopped after ${MAX_ROUNDS} tool rounds._` });
+  return mutated;
+}
+async function runWorkflow(title, steps) {
+  send({ type: "text", content: `**${title}** (${steps.length} steps)
+` });
+  send({ type: "progress", step: 0, total: steps.length, label: "Starting..." });
+  for (let i = 0; i < steps.length; i++) {
+    const step = steps[i];
+    send({ type: "progress", step: i + 1, total: steps.length, label: step.label });
+    send({ type: "text", content: `
+---
+**${step.label}**` });
     try {
-      const resp = await fetch(ENGINE_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json, text/event-stream" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "initialize",
-          params: { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "probe", version: "1.0.0" } }
-        })
+      await runTurn(step.prompt);
+    } catch (e) {
+      send({ type: "text", content: `Step failed: ${e}. Continuing...` });
+    }
+  }
+  send({ type: "progress", step: steps.length, total: steps.length, label: "Complete" });
+  send({ type: "text", content: `
+---
+**Complete.** The graph should now be visible in the tree view.` });
+}
+var CHAT_CACHE = process.env.ONTO_CHAT_CACHE ?? path5.join(process.cwd(), "demo/derived/_chat_cache.json");
+function readChatCache() {
+  try {
+    return JSON.parse(fs4.readFileSync(CHAT_CACHE, "utf8"));
+  } catch {
+    return {};
+  }
+}
+function writeChatCache(key, answer) {
+  try {
+    const all = readChatCache();
+    all[key] = answer;
+    fs4.mkdirSync(path5.dirname(CHAT_CACHE), { recursive: true });
+    fs4.writeFileSync(CHAT_CACHE, JSON.stringify(all, null, 1));
+  } catch {
+  }
+}
+function cacheKey(question) {
+  return question.trim().toLowerCase();
+}
+async function answerOnce(system, prompt) {
+  provider.reset();
+  provider.setSystem(system);
+  provider.addUser(prompt);
+  try {
+    const result = await provider.step([]);
+    return result.text.join("\n").trim();
+  } finally {
+    provider.setSystem(SYSTEM_PROMPT);
+    provider.reset();
+  }
+}
+async function answerFromGraph(question) {
+  const startedAt = Date.now();
+  const r = await retrieve(mcp, question, 2);
+  if (r.anchors.length === 0) {
+    send({
+      type: "text",
+      content: "_No entity in the graph matched that question, so nothing was retrieved to answer from._\n"
+    });
+    const missKey = cacheKey(question);
+    const missCached = readChatCache()[missKey];
+    if (missCached) {
+      await paceTo(startedAt, 3e3);
+      send({ type: "text", content: missCached });
+      return false;
+    }
+    const miss = await answerOnce(
+      QA_SYSTEM_PROMPT,
+      `--- RETRIEVED SUBGRAPH ---
+(empty: no entity matched)
+--- END SUBGRAPH ---
+
+QUESTION: ${question}`
+    );
+    if (miss) {
+      writeChatCache(missKey, miss);
+      await paceTo(startedAt, 3e3);
+      send({ type: "text", content: miss });
+      return false;
+    }
+    return runTurn(question);
+  }
+  send({
+    type: "retrieval",
+    anchors: r.anchors.length,
+    facts: r.facts.length,
+    claims: r.claims.length,
+    conflicts: r.conflicts.length
+  });
+  send({
+    type: "text",
+    content: `_Retrieved a subgraph: ${r.anchors.length} anchor entities, ${r.facts.length} relationships, ${r.claims.length} document claims` + (r.conflicts.length ? `, **${r.conflicts.length} reasoner conflict(s)**` : "") + "._\n"
+  });
+  const context = `--- RETRIEVED SUBGRAPH ---
+${asContext(r)}
+--- END SUBGRAPH ---
+
+QUESTION: ${question}`;
+  const key = cacheKey(question);
+  const cached = readChatCache()[key];
+  if (cached) {
+    await paceTo(startedAt, 3e3);
+    send({ type: "text", content: cached });
+    return false;
+  }
+  provider.setSystem(QA_SYSTEM_PROMPT);
+  try {
+    const answer = await answerOnce(QA_SYSTEM_PROMPT, context);
+    if (answer) {
+      writeChatCache(key, answer);
+      send({ type: "text", content: answer });
+      return false;
+    }
+    return await runTurn(context);
+  } finally {
+    provider.setSystem(SYSTEM_PROMPT);
+  }
+}
+async function handleMessage(userMessage, mode = "sketch") {
+  try {
+    const tok = tokeniseInbound(userMessage);
+    if (tok.count > 0) {
+      userMessage = tok.text;
+      send({
+        type: "text",
+        content: `_${tok.count} sensitive value(s) tokenised before the model saw your question._
+`
       });
-      if (resp.ok) return true;
+    }
+    if (isBuildRequest(userMessage) || isSketchRequest(userMessage)) {
+      const domain = extractDomain(userMessage);
+      provider.reset();
+      if (mode === "sketch") {
+        await runWorkflow(`Sketching ontology: ${domain}`, sketchWorkflow(domain));
+      } else {
+        await runWorkflow(`Building maximum-depth ontology: ${domain}`, buildWorkflow(domain));
+      }
+      send({ type: "done", mutated: true });
+    } else {
+      const mutated = await answerFromGraph(userMessage);
+      send({ type: "done", mutated });
+    }
+  } catch (e) {
+    send({ type: "error", error: String(e) });
+    send({ type: "done", mutated: false });
+  }
+}
+async function waitForEngine(maxRetries = 20) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await mcp.initialize();
+      toolCache = await mcp.listTools();
+      return true;
     } catch {
     }
     await new Promise((r) => setTimeout(r, 1e3));
   }
   return false;
 }
-async function runTurn(prompt) {
-  let mutated = false;
-  const q = Yh({
-    prompt,
-    options: {
-      systemPrompt: SYSTEM_PROMPT,
-      model: "claude-opus-4-8",
-      mcpServers: { "ontology-engine": { type: "http", url: ENGINE_URL } },
-      allowedTools: ["mcp__ontology-engine__*"],
-      tools: [],
-      persistSession: true,
-      ...sessionId ? { resume: sessionId } : {},
-      permissionMode: "bypassPermissions",
-      allowDangerouslySkipPermissions: true,
-      maxTurns: 15
-    }
-  });
-  for await (const message of q) {
-    if ("session_id" in message && message.session_id) {
-      if (!sessionId) {
-        sessionId = message.session_id;
-        send({ type: "session", sessionId: message.session_id });
-      }
-    }
-    switch (message.type) {
-      case "assistant": {
-        const content = message.message?.content;
-        if (Array.isArray(content)) {
-          for (const block of content) {
-            if (block.type === "text" && block.text) {
-              send({ type: "text", content: block.text });
-            }
-            if (block.type === "tool_use") {
-              send({ type: "tool_call", tool: block.name, input: block.input });
-              if ([...MUTATION_TOOLS].some((t) => block.name === t || block.name.endsWith(`__${t}`))) {
-                mutated = true;
-              }
-            }
-          }
-        }
-        break;
-      }
-      case "result": {
-        if (message.subtype !== "success") {
-          const errors = "errors" in message ? message.errors : [];
-          send({ type: "error", error: errors && errors.length > 0 ? errors.join("; ") : `Agent error: ${message.subtype}` });
-        }
-        break;
-      }
-      case "system":
-        break;
-    }
-  }
-  return mutated;
-}
-function isBuildRequest(msg) {
-  const lower = msg.toLowerCase();
-  return (lower.includes("build") || lower.includes("create") || lower.includes("make") || lower.includes("generate")) && (lower.includes("ontology") || lower.includes("about"));
-}
-function isSketchRequest(msg) {
-  return msg.toLowerCase().includes("sketch");
-}
-function extractDomain(msg) {
-  const patterns = [
-    /(?:about|for|on|of)\s+(.+)/i,
-    /(?:build|create|make|generate|sketch)\s+(?:a\s+|an\s+|the\s+)?(?:\w+\s+)?(?:ontology\s+)?(?:about|for|on|of)\s+(.+)/i
-  ];
-  for (const p2 of patterns) {
-    const m2 = msg.match(p2);
-    if (m2) {
-      const match = m2[2] || m2[1];
-      if (match) return match.trim().replace(/[.!?]+$/, "");
-    }
-  }
-  return msg.replace(/^(build|create|make|generate|sketch)\s+(an?\s+)?ontology\s*/i, "").trim() || msg;
-}
-async function handleBuild(domain) {
-  const ns = domain.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const prefix = `@prefix : <http://example.org/${ns}#> .`;
-  const DEEPEN = (branchDesc) => `Call onto_query with this SPARQL to find leaf classes in ${branchDesc}:
-SELECT ?leaf ?label WHERE { ?leaf rdfs:subClassOf+ ?branch . ?branch rdfs:subClassOf :${branchDesc.includes("FIRST") ? "" : ""} . FILTER NOT EXISTS { ?child rdfs:subClassOf ?leaf } . OPTIONAL { ?leaf rdfs:label ?label } } LIMIT 30
-
-Then call onto_load with Turtle using the SAME namespace ${prefix} adding DEEPER subclass chains. For each leaf class:
-1. Add 3-5 rdfs:subClassOf children
-2. For each of THOSE children, add 2-4 more subclasses (grandchildren of the leaf)
-3. If possible, add one more level below that
-
-The goal is DEPTH not width. Each new class needs rdfs:label and rdfs:comment.
-IMPORTANT: Add at most 80-120 classes in this step. Call onto_stats after. Do NOT save yet.`;
-  const steps = [
-    {
-      label: "Step 1: Foundation \u2014 root + 5 levels deep",
-      prompt: `Build an ontology about "${domain}". Use namespace ${prefix}
-
-Call onto_clear. Then call onto_load with Turtle containing:
-- An owl:Ontology declaration
-- A root class :${ns.charAt(0).toUpperCase() + ns.slice(1).replace(/-./g, (m2) => m2[1].toUpperCase())}
-- 6-10 major branch classes as rdfs:subClassOf the root (Level 1)
-- For each branch, 3-5 subclasses (Level 2)
-- For each of those, 2-4 further subclasses (Level 3)
-- For at least half of Level 3, add 2-3 more subclasses (Level 4)
-- For at least a quarter of Level 4, add 2 more subclasses (Level 5)
-
-Structure this as a DEEP tree, not a wide one. Every class MUST have rdfs:label and rdfs:comment.
-
-Call onto_stats after. Do NOT save yet \u2014 many more steps coming.`
-    },
-    {
-      label: "Step 2: Deepen \u2014 first major branch to maximum depth",
-      prompt: DEEPEN("the FIRST major branch (the first child of the root)")
-    },
-    {
-      label: "Step 3: Deepen \u2014 second major branch to maximum depth",
-      prompt: DEEPEN("the SECOND major branch")
-    },
-    {
-      label: "Step 4: Deepen \u2014 third major branch to maximum depth",
-      prompt: DEEPEN("the THIRD major branch")
-    },
-    {
-      label: "Step 5: Deepen \u2014 fourth and fifth major branches",
-      prompt: DEEPEN("the FOURTH and FIFTH major branches")
-    },
-    {
-      label: "Step 6: Deepen \u2014 all remaining branches",
-      prompt: DEEPEN("ALL remaining major branches that have not been deepened yet")
-    },
-    {
-      label: "Step 7: Deepen \u2014 second pass on shallow areas",
-      prompt: `Run this SPARQL to measure depth per root branch:
-SELECT ?branch (MAX(?depth) AS ?maxDepth) WHERE { ?class rdfs:subClassOf+ ?branch . ?branch rdfs:subClassOf ?root . ?root a owl:Class . FILTER NOT EXISTS { ?root rdfs:subClassOf ?x . ?x a owl:Class } . { SELECT ?class (COUNT(?mid) AS ?depth) WHERE { ?class rdfs:subClassOf+ ?mid } GROUP BY ?class } } GROUP BY ?branch ORDER BY ?maxDepth LIMIT 20
-
-For any branch with maxDepth < 7, find its leaf classes and add 2-3 more levels of subclasses below them (chain: A subClassOf B subClassOf C).
-Also: are there any major subtypes or categories missing entirely? Add them now as deep chains, not flat siblings.
-Call onto_load with the Turtle. Call onto_stats after. Do NOT save yet.`
-    },
-    {
-      label: "Step 8: Object properties \u2014 structural relationships",
-      prompt: `Now add object properties. Call onto_load with Turtle containing 50-70 owl:ObjectProperty declarations.
-
-EVERY property MUST have: rdfs:domain, rdfs:range, rdfs:label, rdfs:comment.
-
-Cover ALL relationship types:
-- Compositional: hasPart/isPartOf, contains/isContainedIn, hasComponent/isComponentOf
-- Causal: causes, prevents, triggers, treats, inhibits, enables
-- Associative: isAssociatedWith, isRelatedTo, dependsOn, influences
-- Hierarchical: hasSubtype, isExampleOf, instantiates
-- Build rdfs:subPropertyOf hierarchies (3-4 levels deep)
-- Add owl:inverseOf for EVERY directional property
-- Mark owl:TransitiveProperty, owl:SymmetricProperty, owl:FunctionalProperty
-
-Call onto_stats after. Do NOT save yet.`
-    },
-    {
-      label: "Step 9: Object properties \u2014 roles, temporal, spatial",
-      prompt: `Add MORE object properties. Call onto_load with Turtle containing 50-70 MORE owl:ObjectProperty declarations.
-
-Focus on what's MISSING \u2014 look at the classes and ask "how does X relate to Y?" for every pair of branches:
-- Role/participation: hasRole, participatesIn, performs, undergoes, produces, consumes
-- Temporal: precedes, follows, during, overlaps, startsWith, endsWith
-- Spatial: isLocatedIn, isNear, surrounds, isAdjacentTo, isWithin
-- Ownership: owns, belongsTo, isOwnedBy, manages, controls
-- Agent: hasAgent, hasPatient, hasBeneficiary, hasInstrument
-- More rdfs:subPropertyOf hierarchies and owl:inverseOf pairs
-
-Call onto_stats after. Do NOT save yet.`
-    },
-    {
-      label: "Step 10: Datatype properties \u2014 all attributes",
-      prompt: `Add datatype properties. Call onto_load with Turtle containing 40-60 owl:DatatypeProperty declarations.
-
-Each with: rdfs:domain, rdfs:range (xsd types), rdfs:label, rdfs:comment.
-
-Go through EVERY major branch and add ALL attributes:
-- Identifiers, names, codes, labels, descriptions, titles
-- Dates (birth, creation, modification, expiry, start, end)
-- Quantities (weight, height, length, count, duration, price, score, rating, percentage)
-- Measurements (temperature, speed, volume, area, concentration)
-- Boolean flags (isActive, isVerified, isPublic, isRequired, isOptional, isDeprecated)
-- Statuses, categories, priorities, levels, grades
-- Text fields (notes, comments, instructions, definitions)
-
-Call onto_stats after. Do NOT save yet.`
-    },
-    {
-      label: "Step 11: Axioms \u2014 disjoints everywhere",
-      prompt: `Add disjoint axioms. Call onto_load with Turtle containing owl:disjointWith between ALL sibling classes that cannot overlap.
-
-Go through EVERY branch systematically:
-- Root children: all major branches that are mutually exclusive
-- Within each branch: siblings that cannot overlap
-- Target: 60+ disjoint axiom pairs minimum
-
-Call onto_stats after. Do NOT save yet.`
-    },
-    {
-      label: "Step 12: Individuals \u2014 real-world examples",
-      prompt: `Add named individuals. Call onto_load with Turtle containing 25-40 owl:NamedIndividual instances.
-
-Spread them across ALL major branches \u2014 at least 3-4 individuals per branch.
-Each individual needs:
-- rdf:type (the most specific class)
-- rdfs:label and rdfs:comment
-- 3-5 property values (both object and datatype properties)
-
-Call onto_stats after. Do NOT save yet.`
-    },
-    {
-      label: "Step 13: Reason + save",
-      prompt: `Final step. Run:
-1. onto_reason with profile "rdfs"
-2. onto_stats \u2014 report the final counts
-3. onto_save with path "~/.open-ontologies/studio-live.ttl"
-
-Report the final ontology statistics.`
-    }
-  ];
-  send({ type: "text", content: `**Building maximum-depth ontology: ${domain}** (${steps.length} steps)
-` });
-  send({ type: "progress", step: 0, total: steps.length, label: "Starting build..." });
-  for (let i2 = 0; i2 < steps.length; i2++) {
-    const step = steps[i2];
-    send({ type: "progress", step: i2 + 1, total: steps.length, label: step.label });
-    send({ type: "text", content: `
----
-**${step.label}**` });
-    try {
-      await runTurn(step.prompt);
-    } catch (e2) {
-      send({ type: "text", content: `Step failed: ${e2}. Continuing...` });
-    }
-  }
-  send({ type: "progress", step: steps.length, total: steps.length, label: "Build complete" });
-  send({ type: "text", content: `
----
-**Build complete.** The graph should now be visible in the tree view.` });
-}
-async function handleSketch(domain) {
-  const ns = domain.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const prefix = `@prefix : <http://example.org/${ns}#> .`;
-  const steps = [
-    {
-      label: "Step 1/5: Foundation \u2014 root + 4 levels deep",
-      prompt: `Build an ontology about "${domain}". Use namespace ${prefix}
-
-Call onto_clear. Then call onto_load with ONE Turtle block containing:
-- An owl:Ontology declaration
-- A root class for the domain
-- 5-8 major branch classes under the root (Level 1)
-- For each branch, 3-4 subclasses (Level 2)
-- For each of those, 2-3 further subclasses (Level 3)
-- For at least half of Level 3, add 2 more subclasses (Level 4)
-
-Structure as a DEEP tree \u2014 prioritize depth over width. Every class MUST have rdfs:label and rdfs:comment.
-
-Call onto_stats after. Do NOT save yet.`
-    },
-    {
-      label: "Step 2/5: Deepen + properties",
-      prompt: `Call onto_query to find leaf classes:
-SELECT ?leaf ?label WHERE { ?leaf a owl:Class . FILTER NOT EXISTS { ?child rdfs:subClassOf ?leaf } . OPTIONAL { ?leaf rdfs:label ?label } } LIMIT 30
-
-Then call onto_load with Turtle using namespace ${prefix} adding:
-- For each leaf that can be subdivided: add 2-3 subclasses, and for each of those add 1-2 more subclasses (create chains 2-3 levels deeper, not just one flat level)
-- 15-25 owl:ObjectProperty each with rdfs:domain, rdfs:range, rdfs:label, rdfs:comment
-- owl:inverseOf pairs for directional properties
-- 8-12 owl:DatatypeProperty with rdfs:domain, rdfs:range (xsd types), rdfs:label
-
-The goal is DEPTH \u2014 chain subclasses 2-3 levels deep from the current leaves.
-
-Call onto_stats after. Do NOT save yet.`
-    },
-    {
-      label: "Step 3/5: Axioms + individuals",
-      prompt: `Call onto_load with Turtle using namespace ${prefix} adding:
-- owl:disjointWith between sibling classes that cannot overlap (15+ pairs)
-- 12-20 owl:NamedIndividual spread across different branches, each with:
-  - rdf:type (the most specific class)
-  - rdfs:label and rdfs:comment
-  - 2-4 property values (both object and datatype properties)
-
-Call onto_stats after. Do NOT save yet.`
-    },
-    {
-      label: "Step 4/5: Verify + fix gaps",
-      prompt: `Run this SPARQL to measure max depth:
-SELECT (MAX(?depth) AS ?maxDepth) WHERE { { SELECT ?class (COUNT(?mid) AS ?depth) WHERE { ?class rdfs:subClassOf+ ?mid . ?mid rdfs:subClassOf+ ?root . ?root a owl:Class . FILTER NOT EXISTS { ?root rdfs:subClassOf ?x . ?x a owl:Class } } GROUP BY ?class } }
-
-Also call onto_stats to check individual count.
-
-If max depth < 5: pick the 3 shallowest leaf classes and call onto_load with Turtle adding 2-3 levels of subclasses below each (chain them: A subClassOf B subClassOf C).
-If individuals < 10: call onto_load adding more individuals.
-
-Call onto_stats after. Do NOT save yet.`
-    },
-    {
-      label: "Step 5/5: Reason + save",
-      prompt: `Run onto_reason (profile "rdfs"), then onto_stats, then onto_save ("~/.open-ontologies/studio-live.ttl"). Report final statistics including class count, property count, individual count, max depth, and triple count.`
-    }
-  ];
-  send({ type: "text", content: `**Sketching ontology: ${domain}** (${steps.length} steps)
-` });
-  send({ type: "progress", step: 0, total: steps.length, label: "Starting sketch..." });
-  for (let i2 = 0; i2 < steps.length; i2++) {
-    const step = steps[i2];
-    send({ type: "progress", step: i2 + 1, total: steps.length, label: step.label });
-    send({ type: "text", content: `
----
-**${step.label}**` });
-    try {
-      await runTurn(step.prompt);
-    } catch (e2) {
-      send({ type: "text", content: `Step failed: ${e2}. Continuing...` });
-    }
-  }
-  send({ type: "progress", step: steps.length, total: steps.length, label: "Sketch complete" });
-  send({ type: "text", content: `
----
-**Sketch complete.** Use /expand to deepen any branch.` });
-}
-async function handleMessage(userMessage, mode = "sketch") {
-  const tok = tokeniseInbound(userMessage);
-  if (tok.count > 0) {
-    userMessage = tok.text;
-    send({
-      type: "text",
-      content: `_${tok.count} sensitive value(s) tokenised before the model saw your question._
-`
-    });
-  }
-  try {
-    const isBuildLike = isBuildRequest(userMessage) || isSketchRequest(userMessage);
-    if (isBuildLike) {
-      const domain = extractDomain(userMessage);
-      sessionId = void 0;
-      if (mode === "sketch") {
-        await handleSketch(domain);
-      } else {
-        await handleBuild(domain);
-      }
-      send({ type: "done", mutated: true });
-    } else {
-      const mutated = await runTurn(userMessage);
-      send({ type: "done", mutated });
-    }
-  } catch (e2) {
-    send({ type: "error", error: String(e2) });
-    send({ type: "done", mutated: false });
-  }
-}
 async function main() {
   const engineReady = await waitForEngine();
   if (!engineReady) {
-    send({ type: "error", error: "Engine not reachable after 15 retries" });
+    send({ type: "error", error: `Engine not reachable at ${ENGINE_URL} after 20 retries` });
+  } else {
+    send({
+      type: "text",
+      content: `_Connected: ${toolCache.length} ontology tools. Model: ${await provider.describe()}._`
+    });
   }
   send({ type: "ready" });
-  const rl = readline.createInterface({ input: process.stdin });
+  const rl = readline2.createInterface({ input: process.stdin });
   rl.on("line", async (line) => {
     try {
       const msg = JSON.parse(line);
       if (msg.type === "chat") {
         await handleMessage(msg.message, msg.mode || "sketch");
       } else if (msg.type === "reset") {
-        sessionId = void 0;
+        provider.reset();
         send({ type: "reset_done" });
       }
-    } catch (e2) {
-      send({ type: "error", error: String(e2) });
+    } catch (e) {
+      send({ type: "error", error: String(e) });
     }
   });
 }
-main().catch((e2) => {
-  send({ type: "error", error: String(e2) });
+main().catch((e) => {
+  send({ type: "error", error: String(e) });
   process.exit(1);
 });
