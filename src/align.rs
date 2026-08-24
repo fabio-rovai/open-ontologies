@@ -1267,4 +1267,20 @@ mod tests {
         );
         assert!(sim2 < 0.1, "Orthogonal vectors should give low score: {sim2}");
     }
+
+    #[test]
+    fn claim_strength_tracks_evidence_strength() {
+        // Strong name plus structural agreement is the only equivalence.
+        assert_eq!(
+            AlignmentEngine::classify_relation(0.9, 0.6, 0.0),
+            "owl:equivalentClass"
+        );
+        // A strong name alone is an exact match.
+        assert_eq!(AlignmentEngine::classify_relation(0.9, 0.1, 0.0), "skos:exactMatch");
+        // Shared parents without a strong name is a subclass claim.
+        assert_eq!(AlignmentEngine::classify_relation(0.3, 0.1, 0.7), "rdfs:subClassOf");
+        // A middling name with no structural support must not claim exactness.
+        assert_eq!(AlignmentEngine::classify_relation(0.7, 0.1, 0.1), "skos:closeMatch");
+        assert_eq!(AlignmentEngine::classify_relation(0.61, 0.0, 0.0), "skos:closeMatch");
+    }
 }
