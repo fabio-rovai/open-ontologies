@@ -1,5 +1,14 @@
 use std::sync::Mutex;
 
+use crate::engine;
+
+/// Pure construction of the MCP endpoint URL from a port, kept separate from
+/// port resolution so it can be unit-tested without touching the network or
+/// environment variables.
+fn mcp_endpoint(port: u16) -> String {
+    format!("http://127.0.0.1:{port}/mcp")
+}
+
 pub struct McpState {
     pub session_id: Mutex<Option<String>>,
     pub client: reqwest::Client,
@@ -61,7 +70,7 @@ async fn do_mcp_call(
     };
 
     let mut req = client
-        .post("http://127.0.0.1:8080/mcp")
+        .post(mcp_endpoint(engine::engine_port()))
         .header("Content-Type", "application/json")
         .header("Accept", "application/json, text/event-stream")
         .json(&body);
@@ -136,4 +145,18 @@ fn rand_id() -> u64 {
         .duration_since(UNIX_EPOCH)
         .map(|d| d.subsec_nanos() as u64)
         .unwrap_or(1)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mcp_endpoint_tracks_the_configured_port_not_a_literal() {
+        assert_eq!(mcp_endpoint(8137), "http://127.0.0.1:8137/mcp");
+        assert_eq!(mcp_endpoint(9001), "http://127.0.0.1:9001/mcp");
+        // The regression this guards against: the engine's default port
+        // changed away from 8080, but this call site kept the old literal.
+        assert_ne!(mcp_endpoint(8137), "http://127.0.0.1:8080/mcp");
+    }
 }

@@ -50,6 +50,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             engine_status,
+            engine::get_engine_port,
             mcp::mcp_call,
             mcp::set_mcp_session,
             chat::send_chat_message,

@@ -3,7 +3,18 @@ import { invoke } from '@tauri-apps/api/core';
 // All MCP calls go through the Tauri backend (Rust → localhost, configurable port)
 // This avoids webview fetch restrictions and handles SSE parsing in Rust
 
-const ENGINE_PORT = import.meta.env.VITE_ENGINE_PORT ?? '8137';
+// Rust (engine::engine_port) is the single source of truth for the port:
+// asked for once via a Tauri command and cached, rather than duplicated in
+// a frontend env var that could disagree with what the engine actually
+// bound to.
+let cachedPort: string | null = null;
+
+async function enginePort(): Promise<string> {
+  if (cachedPort === null) {
+    cachedPort = String(await invoke<number>('get_engine_port'));
+  }
+  return cachedPort;
+}
 
 async function mcpCall(method: string, params: Record<string, unknown> = {}): Promise<unknown> {
   try {
@@ -29,15 +40,17 @@ async function mcpCall(method: string, params: Record<string, unknown> = {}): Pr
 }
 
 // Sessionless REST API — direct access to shared graph store, no MCP session required
-const API = `http://127.0.0.1:${ENGINE_PORT}/api`;
+async function apiBase(): Promise<string> {
+  return `http://127.0.0.1:${await enginePort()}/api`;
+}
 
 async function apiGet(path: string): Promise<unknown> {
-  const resp = await fetch(`${API}${path}`);
+  const resp = await fetch(`${await apiBase()}${path}`);
   return resp.json();
 }
 
 async function apiPost(path: string, body: Record<string, unknown>): Promise<unknown> {
-  const resp = await fetch(`${API}${path}`, {
+  const resp = await fetch(`${await apiBase()}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

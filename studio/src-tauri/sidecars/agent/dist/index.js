@@ -9197,7 +9197,13 @@ function tokeniseInbound(text) {
 
 // index.ts
 import * as readline from "readline";
-var ENGINE_URL = "http://localhost:8080/mcp";
+var DEFAULT_ENGINE_PORT = 8137;
+function resolveEnginePort() {
+  const raw = process.env.OPEN_ONTOLOGIES_STUDIO_PORT;
+  const parsed = raw ? Number.parseInt(raw, 10) : NaN;
+  return Number.isInteger(parsed) && parsed > 0 && parsed < 65536 ? parsed : DEFAULT_ENGINE_PORT;
+}
+var ENGINE_URL = `http://localhost:${resolveEnginePort()}/mcp`;
 var SYSTEM_PROMPT = `You are an ontology engineering assistant with MCP tools for the Open Ontologies engine.
 
 No emoji. Plain text and markdown only.

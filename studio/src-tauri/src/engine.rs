@@ -126,9 +126,21 @@ fn parse_port(raw: Option<&str>) -> u16 {
         .unwrap_or(DEFAULT_ENGINE_PORT)
 }
 
-fn engine_port() -> u16 {
+/// Single source of truth for the engine's HTTP port. Every consumer of the
+/// port (the REST base URL handed to the frontend, the MCP endpoint the
+/// backend calls, and the environment variable passed to the agent sidecar)
+/// derives its value from this function rather than resolving it again.
+pub(crate) fn engine_port() -> u16 {
     let raw = std::env::var("OPEN_ONTOLOGIES_STUDIO_PORT").ok();
     parse_port(raw.as_deref())
+}
+
+/// Exposes the resolved engine port to the frontend so it does not need its
+/// own copy of the port-resolution logic (and cannot drift from Rust's view
+/// of it).
+#[tauri::command]
+pub fn get_engine_port() -> u16 {
+    engine_port()
 }
 
 pub fn spawn_engine(app: &tauri::AppHandle) -> Result<(), String> {

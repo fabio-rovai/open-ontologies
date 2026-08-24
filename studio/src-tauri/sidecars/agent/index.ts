@@ -3,7 +3,18 @@ import { tokeniseInbound } from './tokenise.js';
 import type { Query } from '@anthropic-ai/claude-agent-sdk';
 import * as readline from 'readline';
 
-const ENGINE_URL = 'http://localhost:8080/mcp';
+const DEFAULT_ENGINE_PORT = 8137;
+
+// Set by chat::spawn_agent_sidecar in the Rust host, which is the single
+// place that resolves the engine's actual port. The fallback here only
+// matters if the sidecar is ever run standalone outside that host.
+function resolveEnginePort(): number {
+  const raw = process.env.OPEN_ONTOLOGIES_STUDIO_PORT;
+  const parsed = raw ? Number.parseInt(raw, 10) : NaN;
+  return Number.isInteger(parsed) && parsed > 0 && parsed < 65536 ? parsed : DEFAULT_ENGINE_PORT;
+}
+
+const ENGINE_URL = `http://localhost:${resolveEnginePort()}/mcp`;
 
 const SYSTEM_PROMPT = `You are an ontology engineering assistant with MCP tools for the Open Ontologies engine.
 

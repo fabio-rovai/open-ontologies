@@ -35,7 +35,7 @@ Natural language ontology engineering via the Claude Agent SDK.
 
 **How it works:**
 - The agent runs as a Node.js sidecar process (`src-tauri/sidecars/agent/`), spawned by Tauri 3 seconds after the engine starts.
-- The sidecar connects Claude to the Open Ontologies engine via its MCP endpoint (`http://localhost:8080/mcp`), giving Claude access to all 42 ontology tools (`onto_load`, `onto_query`, `onto_validate`, `onto_lint`, `onto_reason`, `onto_enforce`, `onto_plan`, `onto_apply`, `onto_save`, `onto_diff`, `onto_align`, `onto_embed`, `onto_search`, and more).
+- The sidecar connects Claude to the Open Ontologies engine via its MCP endpoint (`http://localhost:<port>/mcp`, port 8137 by default, passed down from the Rust host), giving Claude access to all 42 ontology tools (`onto_load`, `onto_query`, `onto_validate`, `onto_lint`, `onto_reason`, `onto_enforce`, `onto_plan`, `onto_apply`, `onto_save`, `onto_diff`, `onto_align`, `onto_embed`, `onto_search`, and more).
 - The Tauri Rust backend communicates with the sidecar over stdin/stdout using a simple JSON protocol (`{ type: 'chat', message }` in, `{ type: 'text' | 'tool_call' | 'done' | 'error' }` out).
 - Multi-turn sessions are maintained in-memory within the sidecar process (not persisted to disk).
 - After any mutation tool call (`onto_load`, `onto_apply`, `onto_reason`, etc.), the frontend detects `mutated: true` in the `done` message and triggers a graph refresh.
@@ -150,7 +150,7 @@ Tauri will:
 1. Compile the Rust shell (first run takes ~1 min, subsequent runs are fast)
 2. Start the Vite dev server on `localhost:1420` with HMR
 3. Open the app window
-4. Spawn the engine sidecar (`open-ontologies serve-http --port 8080`)
+4. Spawn the engine sidecar (`open-ontologies serve-http --port 8137` by default, configurable via `OPEN_ONTOLOGIES_STUDIO_PORT`)
 5. Spawn the agent sidecar (Node.js, after a 3s delay)
 
 ## Development

@@ -5,6 +5,8 @@ use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use tauri::{Emitter, Manager};
 
+use crate::engine;
+
 pub struct ChatState {
     pub process: Mutex<Option<Child>>,
 }
@@ -118,12 +120,18 @@ pub fn spawn_agent_sidecar(app: &tauri::AppHandle) -> Result<(), String> {
     let entry = sidecar_entry(app)?;
     let node = resolve_node_binary();
 
+    // Same port the engine itself was spawned with (see engine::engine_port,
+    // the single place that resolves it). Passed through the environment
+    // rather than re-resolved here so the sidecar can't drift from it.
+    let port = engine::engine_port();
+
     let mut child = Command::new(&node)
         .arg(&entry)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .env("PATH", augmented_path())
+        .env("OPEN_ONTOLOGIES_STUDIO_PORT", port.to_string())
         .spawn()
         .map_err(|e| format!("Failed to spawn agent sidecar: {e}"))?;
 
