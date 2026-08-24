@@ -1,0 +1,44 @@
+[
+  {
+    "file": "profile-readme.md",
+    "retrieved": "2026-08-25",
+    "sha256": "71dda5970850e2303570c97f92b5702911d931a8d655b980569a9676ea1f663d",
+    "source_url": "https://github.com/GSA/dcat-us/blob/main/README.md"
+  },
+  {
+    "file": "dataset-schema.json",
+    "retrieved": "2026-08-25",
+    "sha256": "936dfb3a882782e0f3a67aae61bf15466db302f8227f5a4f2ac99d4f44025c4f",
+    "source_url": "https://github.com/GSA/dcat-us/blob/main/jsonschema/definitions/Dataset.json"
+  },
+  {
+    "file": "catalog-schema.json",
+    "retrieved": "2026-08-25",
+    "sha256": "4788b835f8d122ec52e0ca6e5343bb9e39d7361ce6ba0c6e4bfcdec87473161a",
+    "source_url": "https://github.com/GSA/dcat-us/blob/main/jsonschema/definitions/Catalog.json"
+  },
+  {
+    "file": "examples-sample.json",
+    "retrieved": "2026-08-25",
+    "sha256": "5b61db663652b7811415c1f394fb75b4b8443c52f56a3f152227ca0ef18524f3",
+    "source_url": "https://github.com/GSA/dcat-us/tree/main/jsonschema/examples"
+  },
+  {
+    "file": "recovered-shapes.ttl",
+    "retrieved": "2026-08-25",
+    "sha256": "fecdf70f48a46a73ae6280c1f047d84ac185f52dfbcae97816960f759b0a8efb",
+    "source_url": "https://github.com/GSA/dcat-us/blob/aaa3ff4a/shacl/dcat-us_3.0_shacl_shapes.ttl"
+  },
+  {
+    "file": "pr-120-record.md",
+    "retrieved": "2026-08-25",
+    "sha256": "8ec47d7578b9f798fb3c9ba1ca953fbf7f0644ceca84bacf0ab05896231f3300",
+    "source_url": "https://github.com/GSA/dcat-us/pull/120"
+  },
+  {
+    "file": "w3c-dcat-conformance.md",
+    "retrieved": "2026-08-25",
+    "sha256": "bf2787f0aee005b7fe2e94e3f25d3f53a2f1def38d65e040ca4dc5b1ec229cff",
+    "source_url": "https://www.w3.org/TR/vocab-dcat-3/#conformance"
+  }
+]

@@ -1,0 +1,1015 @@
+[
+  {
+    "_source_path": "jsonschema/examples/Catalog/good/complete_example.json",
+    "_source_url": "https://github.com/GSA/dcat-us/blob/main/jsonschema/examples/Catalog/good/complete_example.json",
+    "example": {
+      "@id": "https://example.gov/catalogs/federal-data-catalog",
+      "@type": "Catalog",
+      "title": "Federal Data Catalog",
+      "description": "A comprehensive catalog of federal government data assets spanning multiple agencies and data domains.",
+      "publisher": {
+        "@type": "Agent",
+        "name": "Federal Data Management Office",
+        "category": [
+          {
+            "@type": "Concept",
+            "prefLabel": "Government Agency"
+          }
+        ]
+      },
+      "creator": [
+        {
+          "@type": "Agent",
+          "name": "Data Governance Team"
+        }
+      ],
+      "contactPoint": [
+        {
+          "@type": "Kind",
+          "fn": "Federal Data Support Center",
+          "hasEmail": "mailto:data-support@example.gov",
+          "address": [
+            {
+              "@type": "Address",
+              "street-address": "1800 F Street NW",
+              "locality": "Washington",
+              "region": "DC",
+              "postal-code": "20405",
+              "country-name": "United States"
+            }
+          ],
+          "tel": "tel:+1-202-555-0100"
+        }
+      ],
+      "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "accessRights": "Public access with no restrictions",
+      "rights": [
+        "This catalog is maintained by the Federal Data Management Office.",
+        "Data within this catalog may be subject to individual dataset licensing terms."
+      ],
+      "rightsHolder": [
+        {
+          "@type": "Organization",
+          "name": "Federal Data Management Office"
+        }
+      ],
+      "language": [
+        "en",
+        "es"
+      ],
+      "issued": "2020-01-15",
+      "modified": "2024-06-01T14:30:00Z",
+      "identifier": {
+        "@type": "Identifier",
+        "notation": "FDC-2020-001",
+        "creator": {
+          "@type": "Agent",
+          "name": "Federal Data Management Office"
+        }
+      },
+      "otherIdentifier": [
+        {
+          "@type": "Identifier",
+          "notation": "LEGACY-CAT-001"
+        }
+      ],
+      "keyword": [
+        "federal data",
+        "government",
+        "open data",
+        "public records"
+      ],
+      "theme": [
+        {
+          "@type": "Concept",
+          "prefLabel": "Government Administration"
+        },
+        {
+          "@type": "Concept",
+          "prefLabel": "Public Services"
+        }
+      ],
+      "themeTaxonomy": [
+        {
+          "@type": "ConceptScheme",
+          "title": "Federal Data Categories",
+          "description": "Standard classification scheme for federal government data"
+        }
+      ],
+      "subject": [
+        {
+          "@type": "Concept",
+          "prefLabel": "Public Administration"
+        }
+      ],
+      "category": [
+        {
+          "@type": "Concept",
+          "prefLabel": "Aggregate Catalog"
+        }
+      ],
+      "spatial": [
+        {
+          "@type": "Location",
+          "prefLabel": "United States of America",
+          "identifier": "https://www.geonames.org/6252001/"
+        }
+      ],
+      "temporal": [
+        {
+          "@type": "PeriodOfTime",
+          "startDate": "2000-01-01",
+          "endDate": "2024-12-31"
+        }
+      ],
+      "conformsTo": {
+        "@type": "Standard",
+        "title": "DCAT-US 3.0"
+      },
+      "homepage": {
+        "@type": "Document",
+        "title": "Federal Data Catalog Portal",
+        "accessURL": "https://example.gov/data-catalog",
+        "description": "The main portal for accessing the Federal Data Catalog"
+      },
+      "dataset": [
+        {
+          "@type": "Dataset",
+          "title": "Annual Budget Data",
+          "description": "Federal budget allocations and expenditures by agency and fiscal year.",
+          "contactPoint": {
+            "fn": "Budget Data Team",
+            "hasEmail": "mailto:budget@example.gov"
+          },
+          "publisher": {
+            "name": "Office of Management and Budget"
+          },
+          "identifier": "https://example.gov/datasets/catalog-complete-001"
+        },
+        {
+          "@type": "Dataset",
+          "title": "Employment Statistics",
+          "description": "Monthly employment data across federal agencies.",
+          "contactPoint": {
+            "fn": "HR Data Team",
+            "hasEmail": "mailto:hr-data@example.gov"
+          },
+          "publisher": {
+            "name": "Office of Personnel Management"
+          },
+          "identifier": "https://example.gov/datasets/catalog-complete-002"
+        }
+      ],
+      "datasetSeries": [
+        {
+          "@id": "https://example.gov/series/federal-budget-data-series",
+          "@type": "DatasetSeries",
+          "title": "Federal Budget Data Series",
+          "description": "A series of federal budget datasets published by fiscal year.",
+          "publisher": {
+            "name": "Office of Management and Budget"
+          },
+          "seriesMember": [
+            {
+              "@type": "Dataset",
+              "title": "Annual Budget Data",
+              "description": "Federal budget allocations and expenditures by agency and fiscal year.",
+              "contactPoint": {
+                "fn": "Budget Data Team",
+                "hasEmail": "mailto:budget@example.gov"
+              },
+              "publisher": {
+                "name": "Office of Management and Budget"
+              },
+              "identifier": "https://example.gov/datasets/catalog-complete-001"
+            }
+          ]
+        }
+      ],
+      "service": [
+        {
+          "@type": "DataService",
+          "title": "Federal Data API",
+          "endpointURL": [
+            "https://api.example.gov/data/v1"
+          ],
+          "contactPoint": [
+            {
+              "fn": "API Support",
+              "hasEmail": "mailto:api@example.gov"
+            }
+          ],
+          "publisher": {
+            "@type": "Agent",
+            "name": "Federal Data Management Office"
+          },
+          "identifier": "https://example.gov/services/catalog-service-001"
+        }
+      ],
+      "record": [
+        {
+          "@type": "CatalogRecord",
+          "modified": "2024-06-01",
+          "primaryTopic": "https://example.gov/datasets/annual-budget-data"
+        }
+      ],
+      "catalog": [
+        {
+          "@type": "Catalog",
+          "title": "Related Agency Catalog",
+          "description": "A related catalog from a partner agency.",
+          "dataset": [
+            {
+              "@type": "Dataset",
+              "title": "Partner Dataset",
+              "description": "Dataset from partner agency.",
+              "contactPoint": {
+                "fn": "Partner Support",
+                "hasEmail": "mailto:partner@example.gov"
+              },
+              "publisher": {
+                "name": "Partner Agency"
+              },
+              "identifier": "https://example.gov/datasets/subcatalog-1-dataset-001"
+            }
+          ]
+        }
+      ],
+      "hasPart": [
+        {
+          "@type": "Catalog",
+          "title": "Budget Sub-Catalog",
+          "description": "A sub-catalog focused on budget-related datasets.",
+          "dataset": [
+            {
+              "@type": "Dataset",
+              "title": "Quarterly Budget Reports",
+              "description": "Quarterly financial reports.",
+              "contactPoint": {
+                "fn": "Finance Team",
+                "hasEmail": "mailto:finance@example.gov"
+              },
+              "publisher": {
+                "name": "Treasury Department"
+              },
+              "identifier": "https://example.gov/datasets/subcatalog-1-dataset-002"
+            }
+          ]
+        }
+      ],
+      "qualifiedAttribution": [
+        {
+          "@type": "Attribution",
+          "agent": {
+            "@type": "Agent",
+            "name": "Data Quality Assurance Team"
+          },
+          "hadRole": "Data Quality"
+        }
+      ]
+    }
+  },
+  {
+    "_source_path": "jsonschema/examples/Dataset/good/complete_example.json",
+    "_source_url": "https://github.com/GSA/dcat-us/blob/main/jsonschema/examples/Dataset/good/complete_example.json",
+    "example": {
+      "@id": "https://example.gov/datasets/national-climate-observations-2024",
+      "@type": "Dataset",
+      "title": "National Climate Observations 2024",
+      "description": "Comprehensive daily climate observations collected from monitoring stations across the United States, including temperature, precipitation, humidity, and wind measurements.",
+      "identifier": {
+        "@type": "Identifier",
+        "schemaAgency": "National Climate Data Center",
+        "notation": "NCDC-CLIMATE-OBS-2024",
+        "version": "1.0"
+      },
+      "publisher": {
+        "@id": "https://example.gov/organizations/ncdc",
+        "@type": "Organization",
+        "name": "National Climate Data Center",
+        "altLabel": "NCDC",
+        "prefLabel": "National Climate Data Center",
+        "notation": [
+          "NCDC"
+        ]
+      },
+      "contactPoint": [
+        {
+          "@id": "https://example.gov/contacts/climate-support",
+          "@type": "Kind",
+          "fn": "Climate Data Support Team",
+          "hasEmail": "mailto:climate-support@example.gov",
+          "organization-name": "National Climate Data Center",
+          "tel": "+1-555-CLIMATE",
+          "title": "Data Support Specialist",
+          "address": [
+            {
+              "@id": "https://example.gov/addresses/ncdc-hq",
+              "@type": "Address",
+              "street-address": "151 Patton Avenue",
+              "locality": "Asheville",
+              "region": "NC",
+              "postal-code": "28801",
+              "country-name": "United States"
+            }
+          ]
+        }
+      ],
+      "otherIdentifier": [
+        {
+          "@type": "Identifier",
+          "schemaAgency": "DOI",
+          "notation": "10.12345/ncdc-climate-2024"
+        }
+      ],
+      "distribution": [
+        {
+          "@id": "https://example.gov/distributions/climate-csv",
+          "@type": "Distribution",
+          "title": "Climate Observations CSV",
+          "description": "Daily climate observations in CSV format",
+          "accessURL": "https://example.gov/data/climate/2024",
+          "downloadURL": "https://example.gov/downloads/climate-observations-2024.csv",
+          "mediaType": "text/csv",
+          "format": "CSV",
+          "byteSize": "524288000",
+          "characterEncoding": [
+            "UTF-8"
+          ],
+          "issued": "2024-01-15",
+          "modified": "2024-06-01"
+        },
+        {
+          "@id": "https://example.gov/distributions/climate-json",
+          "@type": "Distribution",
+          "title": "Climate Observations JSON",
+          "description": "Daily climate observations in JSON format",
+          "accessURL": "https://example.gov/data/climate/2024/json",
+          "downloadURL": "https://example.gov/downloads/climate-observations-2024.json",
+          "mediaType": "application/json",
+          "format": "JSON",
+          "byteSize": "785432000"
+        }
+      ],
+      "sample": [
+        {
+          "@id": "https://example.gov/distributions/climate-sample",
+          "@type": "Distribution",
+          "title": "Climate Data Sample",
+          "description": "A sample subset of climate observations for preview",
+          "downloadURL": "https://example.gov/samples/climate-sample.csv",
+          "mediaType": "text/csv",
+          "byteSize": "10240"
+        }
+      ],
+      "keyword": [
+        "climate",
+        "weather",
+        "temperature",
+        "precipitation",
+        "humidity",
+        "wind",
+        "meteorology"
+      ],
+      "theme": [
+        {
+          "@id": "https://example.gov/concepts/climate-science",
+          "@type": "Concept",
+          "prefLabel": "Climate Science",
+          "altLabel": "Climatology",
+          "definition": "The scientific study of climate, including patterns, variability, and change over time.",
+          "notation": [
+            "CLIM-SCI"
+          ],
+          "inScheme": {
+            "@id": "https://example.gov/concept-schemes/science-domains",
+            "@type": "ConceptScheme",
+            "title": "Science Domains"
+          }
+        },
+        {
+          "@id": "https://example.gov/concepts/environmental-monitoring",
+          "@type": "Concept",
+          "prefLabel": "Environmental Monitoring",
+          "definition": "Systematic collection of environmental data to assess conditions and detect changes.",
+          "inScheme": {
+            "@id": "https://example.gov/concept-schemes/science-domains",
+            "@type": "ConceptScheme",
+            "title": "Science Domains"
+          }
+        }
+      ],
+      "status": {
+        "@id": "https://example.gov/concepts/status-published",
+        "@type": "Concept",
+        "prefLabel": "Published",
+        "definition": "The dataset has been officially published and is available for public access.",
+        "inScheme": {
+          "@id": "https://example.gov/concept-schemes/lifecycle-status",
+          "@type": "ConceptScheme",
+          "title": "Lifecycle Status"
+        }
+      },
+      "landingPage": {
+        "@id": "https://example.gov/datasets/climate-2024/landing",
+        "@type": "Document",
+        "title": "National Climate Observations 2024 - Dataset Home",
+        "description": "The official landing page for the National Climate Observations 2024 dataset.",
+        "accessURL": "https://example.gov/datasets/climate-2024"
+      },
+      "describedBy": {
+        "@id": "https://example.gov/distributions/climate-data-dict",
+        "@type": "Distribution",
+        "title": "Climate Data Dictionary",
+        "description": "Comprehensive data dictionary describing all variables in the climate observations dataset.",
+        "downloadURL": "https://example.gov/docs/climate-data-dictionary.pdf",
+        "mediaType": "application/pdf"
+      },
+      "conformsTo": [
+        {
+          "@id": "https://example.gov/standards/wmo-climate-data",
+          "@type": "Standard",
+          "title": "WMO Climate Data Standards",
+          "description": "World Meteorological Organization standards for climate data collection and reporting."
+        }
+      ],
+      "spatial": [
+        {
+          "@id": "https://example.gov/locations/usa",
+          "@type": "Location",
+          "geometry": "POLYGON((-125 24, -66 24, -66 50, -125 50, -125 24))"
+        }
+      ],
+      "temporal": [
+        {
+          "@id": "https://example.gov/periods/2024",
+          "@type": "PeriodOfTime",
+          "startDate": "2024-01-01",
+          "endDate": "2024-12-31"
+        }
+      ],
+      "spatialResolutionInMeters": "1000",
+      "temporalResolution": "P1D",
+      "accrualPeriodicity": "daily",
+      "version": "2024.1",
+      "versionNotes": "Initial release of 2024 climate observations data.",
+      "issued": "2024-01-15",
+      "inventoried": "2024-03-01",
+      "modified": "2024-06-01",
+      "created": "2024-01-01",
+      "language": [
+        "en"
+      ],
+      "accessRights": "Public access with no restrictions. Data is freely available for download and use.",
+      "rights": [
+        "This data is in the public domain and may be used without restriction."
+      ],
+      "creator": {
+        "@id": "https://example.gov/agents/climate-monitoring-team",
+        "@type": "Agent",
+        "name": "Climate Monitoring and Analysis Team",
+        "category": [
+          {
+            "@id": "https://example.gov/concepts/research-team",
+            "@type": "Concept",
+            "prefLabel": "Research Team",
+            "inScheme": {
+              "@id": "https://example.gov/concept-schemes/organization-types",
+              "@type": "ConceptScheme",
+              "title": "Organization Types"
+            }
+          }
+        ]
+      },
+      "contributor": [
+        {
+          "@id": "https://example.gov/agents/station-operators",
+          "@type": "Agent",
+          "name": "Weather Station Operators Network"
+        }
+      ],
+      "rightsHolder": [
+        {
+          "@id": "https://example.gov/organizations/noaa",
+          "@type": "Organization",
+          "name": "National Oceanic and Atmospheric Administration",
+          "altLabel": "NOAA"
+        }
+      ],
+      "provenance": [
+        "Data collected from automated weather stations deployed at 2,500 locations across the continental United States.",
+        "Quality control procedures applied according to WMO guidelines."
+      ],
+      "purpose": "To provide comprehensive, high-quality climate observations for research, planning, and decision-making related to weather and climate.",
+      "liabilityStatement": "This dataset is provided as-is without warranty of any kind. Users are responsible for determining fitness for their intended use.",
+      "previousVersion": {
+        "@id": "https://example.gov/datasets/national-climate-observations-2023",
+        "@type": "Dataset",
+        "title": "National Climate Observations 2023",
+        "description": "Previous year climate observations.",
+        "contactPoint": {
+          "fn": "Climate Support",
+          "hasEmail": "mailto:climate@example.gov"
+        },
+        "publisher": {
+          "name": "National Climate Data Center"
+        },
+        "identifier": "https://example.gov/datasets/complete-example-v1-prev"
+      },
+      "qualifiedRelation": [
+        {
+          "@id": "https://example.gov/relationships/climate-model-input",
+          "@type": "Relationship",
+          "hadRole": "isInputTo",
+          "relation": "https://example.gov/models/climate-prediction-model"
+        }
+      ],
+      "qualifiedAttribution": [
+        {
+          "@id": "https://example.gov/attributions/data-steward",
+          "@type": "Attribution",
+          "hadRole": "Data Steward",
+          "agent": {
+            "@id": "https://example.gov/agents/climate-steward",
+            "@type": "Agent",
+            "name": "Climate Data Stewardship Office"
+          }
+        }
+      ],
+      "wasGeneratedBy": [
+        {
+          "@id": "https://example.gov/activities/2024-monitoring",
+          "@type": "Activity",
+          "label": "2024 National Climate Monitoring Campaign",
+          "category": [
+            {
+              "@id": "https://example.gov/concepts/data-collection",
+              "@type": "Concept",
+              "prefLabel": "Data Collection",
+              "inScheme": {
+                "@id": "https://example.gov/concept-schemes/activity-types",
+                "@type": "ConceptScheme",
+                "title": "Activity Types"
+              }
+            }
+          ]
+        }
+      ],
+      "hasQualityMeasurement": [
+        {
+          "@id": "https://example.gov/quality/completeness-2024",
+          "@type": "QualityMeasurement",
+          "isMeasurementOf": {
+            "@id": "https://example.gov/metrics/data-completeness",
+            "@type": "Metric",
+            "expectedDataType": "xsd:decimal",
+            "inDimension": "https://example.gov/concepts/completeness-dimension"
+          },
+          "value": "99.2",
+          "unitMeasure": "percent"
+        }
+      ],
+      "page": [
+        {
+          "@id": "https://example.gov/docs/climate-user-guide",
+          "@type": "Document",
+          "title": "Climate Observations User Guide",
+          "description": "Comprehensive guide for accessing and using the climate observations dataset.",
+          "accessURL": "https://example.gov/docs/climate-user-guide"
+        }
+      ],
+      "isReferencedBy": [
+        "https://example.gov/publications/climate-trends-2024"
+      ],
+      "relation": [
+        "https://example.gov/datasets/historical-climate-averages"
+      ],
+      "scopeNote": "This dataset contains raw observational data. For derived products such as monthly averages or climate normals, see related datasets.",
+      "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "accessRestriction": [
+        {
+          "@id": "https://example.gov/restrictions/none",
+          "@type": "AccessRestriction",
+          "restrictionNote": "No access restrictions apply to this dataset.",
+          "restrictionStatus": {
+            "@id": "https://example.gov/concepts/unrestricted",
+            "@type": "Concept",
+            "prefLabel": "Unrestricted",
+            "definition": "No restrictions on access.",
+            "inScheme": {
+              "@id": "https://example.gov/concept-schemes/restriction-status",
+              "@type": "ConceptScheme",
+              "title": "Restriction Status"
+            }
+          }
+        }
+      ],
+      "cuiRestriction": {
+        "@id": "https://example.gov/cui-restrictions/none",
+        "@type": "CUIRestriction",
+        "cuiBannerMarking": "",
+        "designationIndicator": "",
+        "requiredIndicatorPerAuthority": []
+      },
+      "useRestriction": [
+        {
+          "@id": "https://example.gov/restrictions/attribution",
+          "@type": "UseRestriction",
+          "restrictionNote": "Attribution to the Climate Data Center is requested but not required.",
+          "restrictionStatus": {
+            "@id": "https://example.gov/concepts/unrestricted",
+            "@type": "Concept",
+            "prefLabel": "Unrestricted",
+            "definition": "No restrictions on use.",
+            "inScheme": {
+              "@id": "https://example.gov/concept-schemes/restriction-status",
+              "@type": "ConceptScheme",
+              "title": "Restriction Status"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "_source_path": "jsonschema/examples/Distribution/good/complete_example.json",
+    "_source_url": "https://github.com/GSA/dcat-us/blob/main/jsonschema/examples/Distribution/good/complete_example.json",
+    "example": {
+      "@id": "https://example.gov/distributions/climate-data-csv-001",
+      "@type": "Distribution",
+      "title": "Climate Data CSV Distribution",
+      "description": "A CSV file containing historical climate data including daily temperature and precipitation readings.",
+      "accessURL": "https://example.gov/data/climate/access",
+      "downloadURL": "https://example.gov/data/climate/climate-data-2023.csv",
+      "mediaType": "text/csv",
+      "format": "CSV",
+      "byteSize": "15728640",
+      "compressFormat": "application/gzip",
+      "packageFormat": "application/zip",
+      "characterEncoding": [
+        "UTF-8"
+      ],
+      "spatialResolutionInMeters": "1000",
+      "temporalResolution": "P1D",
+      "issued": "2023-06-01",
+      "modified": "2024-01-15",
+      "language": [
+        "en"
+      ],
+      "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "accessRights": "Public access without restrictions",
+      "rights": [
+        "This data is in the public domain and may be used without restriction."
+      ],
+      "representationTechnique": {
+        "@id": "https://example.gov/concepts/tabular-data",
+        "@type": "Concept",
+        "prefLabel": "Tabular Data",
+        "definition": "Data organized in rows and columns.",
+        "inScheme": {
+          "@id": "https://example.gov/concept-schemes/data-formats",
+          "@type": "ConceptScheme",
+          "title": "Data Formats"
+        }
+      },
+      "status": {
+        "@id": "https://example.gov/concepts/status-completed",
+        "@type": "Concept",
+        "prefLabel": "Completed",
+        "definition": "The distribution is complete and final.",
+        "inScheme": {
+          "@id": "https://example.gov/concept-schemes/lifecycle-status",
+          "@type": "ConceptScheme",
+          "title": "Lifecycle Status"
+        }
+      },
+      "availability": {
+        "@id": "https://example.gov/concepts/available-stable",
+        "@type": "Concept",
+        "prefLabel": "Stable",
+        "definition": "The distribution is intended to be available for the long term.",
+        "inScheme": {
+          "@id": "https://example.gov/concept-schemes/availability",
+          "@type": "ConceptScheme",
+          "title": "Availability"
+        }
+      },
+      "conformsTo": [
+        {
+          "@id": "https://example.gov/standards/csv-format",
+          "@type": "Standard",
+          "title": "RFC 4180 - CSV Format",
+          "description": "Common Format and MIME Type for Comma-Separated Values (CSV) Files"
+        }
+      ],
+      "describedBy": {
+        "@id": "https://example.gov/distributions/climate-data-dict",
+        "@type": "Distribution",
+        "title": "Climate Data Dictionary",
+        "description": "Data dictionary describing the fields in the climate data CSV.",
+        "downloadURL": "https://example.gov/data/climate/data-dictionary.pdf",
+        "mediaType": "application/pdf"
+      },
+      "accessService": [
+        {
+          "@id": "https://example.gov/data-services/climate-api",
+          "@type": "DataService",
+          "title": "Climate Data API",
+          "endpointURL": [
+            "https://api.example.gov/climate/v1"
+          ],
+          "contactPoint": [
+            {
+              "fn": "Climate Support",
+              "hasEmail": "mailto:climate@example.gov"
+            }
+          ],
+          "publisher": {
+            "name": "Climate Data Center"
+          }
+        }
+      ],
+      "accessRestriction": [
+        {
+          "@id": "https://example.gov/restrictions/none",
+          "@type": "AccessRestriction",
+          "restrictionNote": "No access restrictions apply to this distribution.",
+          "restrictionStatus": {
+            "@id": "https://example.gov/concepts/unrestricted",
+            "@type": "Concept",
+            "prefLabel": "Unrestricted",
+            "definition": "No restrictions on access.",
+            "inScheme": {
+              "@id": "https://example.gov/concept-schemes/restriction-status",
+              "@type": "ConceptScheme",
+              "title": "Restriction Status"
+            }
+          }
+        }
+      ],
+      "cuiRestriction": {
+        "@id": "https://example.gov/cui-restrictions/none",
+        "@type": "CUIRestriction",
+        "cuiBannerMarking": "",
+        "designationIndicator": "",
+        "requiredIndicatorPerAuthority": []
+      },
+      "useRestriction": [
+        {
+          "@id": "https://example.gov/restrictions/attribution",
+          "@type": "UseRestriction",
+          "restrictionNote": "Attribution to the Climate Data Center is requested but not required.",
+          "restrictionStatus": {
+            "@id": "https://example.gov/concepts/unrestricted",
+            "@type": "Concept",
+            "prefLabel": "Unrestricted",
+            "definition": "No restrictions on use.",
+            "inScheme": {
+              "@id": "https://example.gov/concept-schemes/restriction-status",
+              "@type": "ConceptScheme",
+              "title": "Restriction Status"
+            }
+          }
+        }
+      ],
+      "checksum": {
+        "@id": "https://example.gov/checksums/climate-csv-sha256",
+        "@type": "Checksum",
+        "algorithm": "SHA-256",
+        "checksumValue": "a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456"
+      },
+      "identifier": {
+        "@type": "Identifier",
+        "schemaAgency": "example.gov",
+        "notation": "DIST-CLIMATE-CSV-001"
+      },
+      "otherIdentifier": [
+        {
+          "@type": "Identifier",
+          "schemaAgency": "DOI",
+          "notation": "10.12345/climate-csv-2023"
+        }
+      ]
+    }
+  },
+  {
+    "_source_path": "jsonschema/examples/DataService/good/complete_example.json",
+    "_source_url": "https://github.com/GSA/dcat-us/blob/main/jsonschema/examples/DataService/good/complete_example.json",
+    "example": {
+      "@id": "https://example.gov/data-services/climate-api-001",
+      "@type": "DataService",
+      "title": "Climate Data REST API",
+      "description": "A RESTful API providing access to historical and real-time climate data including temperature, precipitation, and atmospheric conditions.",
+      "endpointURL": [
+        "https://api.example.gov/climate/v1",
+        "https://api.example.gov/climate/v2"
+      ],
+      "endpointDescription": [
+        "https://api.example.gov/climate/docs/openapi.json"
+      ],
+      "contactPoint": [
+        {
+          "@id": "https://example.gov/contacts/climate-team-001",
+          "@type": "Kind",
+          "fn": "Climate Data Support Team",
+          "hasEmail": "mailto:climate-support@example.gov",
+          "organization-name": "National Climate Data Center",
+          "tel": "+1-555-123-4567",
+          "address": [
+            {
+              "@id": "https://example.gov/addresses/climate-office-001",
+              "country-name": "United States",
+              "locality": "Asheville",
+              "postal-code": "28801",
+              "region": "NC",
+              "street-address": "151 Patton Ave"
+            }
+          ]
+        }
+      ],
+      "publisher": {
+        "@id": "https://example.gov/agents/ncdc-001",
+        "@type": "Agent",
+        "name": "National Climate Data Center",
+        "category": [
+          {
+            "@id": "https://example.gov/concepts/federal-agency",
+            "@type": "Concept",
+            "prefLabel": "Federal Agency",
+            "definition": "An agency of the federal government of the United States.",
+            "inScheme": {
+              "@id": "https://example.gov/concept-schemes/organization-types",
+              "@type": "ConceptScheme",
+              "title": "Organization Types"
+            }
+          }
+        ]
+      },
+      "servesDataset": [
+        {
+          "@id": "https://example.gov/datasets/daily-climate-obs",
+          "@type": "Dataset",
+          "title": "Daily Climate Observations",
+          "description": "Daily observations of temperature, precipitation, and other climate variables.",
+          "contactPoint": [
+            {
+              "fn": "Climate Data Team",
+              "hasEmail": "mailto:climate-data@example.gov"
+            }
+          ],
+          "publisher": {
+            "name": "National Climate Data Center"
+          },
+          "identifier": "https://example.gov/datasets/served-dataset-001"
+        }
+      ],
+      "keyword": [
+        "climate",
+        "weather",
+        "temperature",
+        "API",
+        "REST"
+      ],
+      "theme": [
+        {
+          "@id": "https://example.gov/concepts/climate-science",
+          "@type": "Concept",
+          "prefLabel": "Climate Science",
+          "definition": "The scientific study of climate and climate change.",
+          "inScheme": {
+            "@id": "https://example.gov/concept-schemes/science-domains",
+            "@type": "ConceptScheme",
+            "title": "Science Domains"
+          }
+        }
+      ],
+      "conformsTo": [
+        {
+          "@id": "https://example.gov/standards/ogc-api-features",
+          "@type": "Standard",
+          "title": "OGC API - Features",
+          "description": "OGC standard for accessing geospatial features via a Web API."
+        }
+      ],
+      "language": [
+        "en",
+        "es"
+      ],
+      "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "accessRights": "Public access with no restrictions",
+      "created": "2020-01-15",
+      "modified": "2024-03-20",
+      "spatialResolutionInMeters": "1000",
+      "temporalResolution": "P1D",
+      "spatial": [
+        {
+          "@id": "https://example.gov/locations/usa",
+          "@type": "Location",
+          "geometry": "POLYGON((-125 24, -66 24, -66 50, -125 50, -125 24))"
+        }
+      ],
+      "temporal": [
+        {
+          "@id": "https://example.gov/periods/1950-present",
+          "@type": "PeriodOfTime",
+          "startDate": "1950-01-01",
+          "endDate": "2024-12-31"
+        }
+      ],
+      "creator": [
+        {
+          "@id": "https://example.gov/agents/ncdc-team",
+          "@type": "Agent",
+          "name": "NCDC Development Team"
+        }
+      ],
+      "rights": [
+        "Data provided by the National Climate Data Center is in the public domain."
+      ],
+      "rightsHolder": [
+        {
+          "@id": "https://example.gov/organizations/noaa",
+          "@type": "Organization",
+          "name": "National Oceanic and Atmospheric Administration"
+        }
+      ],
+      "identifier": {
+        "@type": "Identifier",
+        "schemaAgency": "example.gov",
+        "notation": "CLIMATE-API-001"
+      },
+      "otherIdentifier": [
+        {
+          "@type": "Identifier",
+          "schemaAgency": "DOI",
+          "notation": "10.12345/climate-api"
+        }
+      ],
+      "accessRestriction": [
+        {
+          "@id": "https://example.gov/restrictions/none",
+          "@type": "AccessRestriction",
+          "restrictionNote": "No access restrictions apply to this data service.",
+          "restrictionStatus": {
+            "@id": "https://example.gov/concepts/unrestricted",
+            "@type": "Concept",
+            "prefLabel": "Unrestricted",
+            "definition": "No restrictions on access.",
+            "inScheme": {
+              "@id": "https://example.gov/concept-schemes/restriction-status",
+              "@type": "ConceptScheme",
+              "title": "Restriction Status"
+            }
+          }
+        }
+      ],
+      "cuiRestriction": {
+        "@id": "https://example.gov/cui-restrictions/none",
+        "@type": "CUIRestriction",
+        "cuiBannerMarking": "",
+        "designationIndicator": "",
+        "requiredIndicatorPerAuthority": []
+      },
+      "useRestriction": [
+        {
+          "@id": "https://example.gov/restrictions/attribution",
+          "@type": "UseRestriction",
+          "restrictionNote": "Attribution to the Climate Data Center is requested but not required.",
+          "restrictionStatus": {
+            "@id": "https://example.gov/concepts/unrestricted",
+            "@type": "Concept",
+            "prefLabel": "Unrestricted",
+            "definition": "No restrictions on use.",
+            "inScheme": {
+              "@id": "https://example.gov/concept-schemes/restriction-status",
+              "@type": "ConceptScheme",
+              "title": "Restriction Status"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "_source_path": "jsonschema/examples/Organization/good/complete_example.json",
+    "_source_url": "https://github.com/GSA/dcat-us/blob/main/jsonschema/examples/Organization/good/complete_example.json",
+    "example": {
+      "@id": "https://example.gov/organizations/census-bureau",
+      "@type": "Organization",
+      "name": "U.S. Census Bureau",
+      "prefLabel": "United States Census Bureau",
+      "altLabel": "Census Bureau",
+      "notation": [
+        "USCB",
+        "CB"
+      ],
+      "subOrganizationOf": [
+        {
+          "@id": "https://example.gov/organizations/doc",
+          "@type": "Organization",
+          "name": "U.S. Department of Commerce"
+        }
+      ]
+    }
+  }
+]
