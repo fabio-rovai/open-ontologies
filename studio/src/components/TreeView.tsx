@@ -197,6 +197,15 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
   const [versionStack, setVersionStack] = useState<string[]>([]);
   const [undoInProgress, setUndoInProgress] = useState(false);
   const [langFilter, setLangFilter] = useState<string>('en');
+  // `loadTree` is published as `window.__refreshGraph` and re-runs after every
+  // mutation, so it must not close over `langFilter`: with the value captured in
+  // its dependency array it would rebuild every label at the mount-time locale
+  // while the selected chip stayed highlighted, and the `[langFilter]` relabel
+  // effect would not re-fire because the state had not changed. Reading through
+  // a ref keeps the current locale available without making the reload depend on
+  // it, which is what lets a language switch stay a relabel rather than a
+  // re-query.
+  const langFilterRef = useRef<string>('en');
   const [availableLangs, setAvailableLangs] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
@@ -236,7 +245,7 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
       for (const labels of lmap.values()) for (const l of labels) if (l.lang) langSet.add(l.lang);
       setAvailableLangs(Array.from(langSet).sort());
 
-      const currentLang = langFilter;
+      const currentLang = langFilterRef.current;
 
       // Pass 2: build nodeMap with picked labels
       const nodeMap = new Map<string, { label: string; uri: string; nodeType: NodeType }>();
@@ -421,6 +430,9 @@ SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
 
   // Relabel tree when language filter changes — no re-query needed
   useEffect(() => {
+    // Ahead of the early return: a language picked before the first load must
+    // still be the one `loadTree` reads when it arrives.
+    langFilterRef.current = langFilter;
     if (labelMapRef.current.size === 0) return;
     const lmap = labelMapRef.current;
     setRoots(prev => relabelTree(prev, lmap, langFilter));
@@ -670,8 +682,13 @@ SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
             // Run up to indent-2: the direct-parent column (lvl = indent-1) is handled
             // by the own connector below — mixing both draws a phantom T on last children.
             for (let lvl = 0; lvl < indent - 1; lvl++) {
-              // Vertical continuation line for ancestors that are NOT the last child
-              if (lvl < parentIsLast.length && !parentIsLast[lvl]) {
+              // Vertical continuation line for ancestors that are NOT the last child.
+              // Column `lvl` belongs to the ancestor at indent `lvl + 1`, not `lvl`:
+              // a node at indent k draws its elbow and its sibling line at column
+              // k - 1. Gating on `parentIsLast[lvl]` dropped the vertical joining an
+              // ancestor to its next sibling across that ancestor's whole subtree,
+              // and drew a floating line under an L in the converse case.
+              if (lvl + 1 < parentIsLast.length && !parentIsLast[lvl + 1]) {
                 lines.push(
                   <span key={`v${lvl}`} style={{
                     position: 'absolute', left: lvl * INDENT_W + 16, top: 0, bottom: 0, width: 1,

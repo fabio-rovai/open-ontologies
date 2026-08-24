@@ -116,6 +116,21 @@ export function PropertyInspector({ node, onGraphChanged }: Props) {
     }
   }, [availableLangs, langFilter]);
 
+  // `editingIdx` is a row index into `visibleProperties`, and the language filter
+  // reshuffles that list underneath it. Left alone, an open edit would resolve to
+  // whichever property had moved into that row and `saveEdit`/`deleteProp` would
+  // run their DELETE/INSERT against the wrong triple, then persist it. The filter
+  // can change without the user touching a chip: the effect above flips it back to
+  // `all` when the last literal of the filtered language is deleted, which is
+  // reachable from the row's own delete button while an edit input is open. It can
+  // also change from a chip click that never blurs the input, as in Tauri's
+  // WKWebView, where buttons do not take focus. Closing the edit is the only
+  // response that cannot write to the wrong row.
+  useEffect(() => {
+    setEditingIdx(null);
+    setAdding(false);
+  }, [langFilter]);
+
   const visibleProperties = useMemo(() => {
     if (langFilter === 'all') return properties;
     return properties.filter(p =>
@@ -166,12 +181,14 @@ export function PropertyInspector({ node, onGraphChanged }: Props) {
     setSaving(true);
     try {
       const oldPart = literalPart(prop);
-      // Preserve language tag when saving, unless the value itself encodes @lang
-      const newPart = prop.valueType === 'uri' || editValue.startsWith('http')
-        ? `<${editValue}>`
-        : prop.language
-          ? `"${editValue.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"@${prop.language}`
-          : `"${editValue.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+      // The language tag rides along with the rest of the term. Built through `literalPart` rather than inlining the escapes again: the
+      // DELETE and the INSERT below have to agree about escaping exactly, and two
+      // copies of the rule are two things to keep in step.
+      const newPart = literalPart(
+        editValue.startsWith('http') && prop.valueType !== 'uri'
+          ? { ...prop, valueType: 'uri', value: editValue }
+          : { ...prop, value: editValue },
+      );
       await mcp.sparqlUpdate(
         `DELETE { <${node.uri}> <${prop.predicate}> ${oldPart} } INSERT { <${node.uri}> <${prop.predicate}> ${newPart} } WHERE {}`
       );
