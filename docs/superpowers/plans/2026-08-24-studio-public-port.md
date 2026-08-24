@@ -568,12 +568,13 @@ property or parent agreement upgrades it."
 
 ## Task 5: Port the pipeline modules
 
-Nine Python modules move. No corpus, no derived artifact and no ontology file moves with them.
+Ten Python modules move. No corpus, no derived artifact and no ontology file moves with them.
 
 **Files:**
 - Create: `demo/chunker.py`, `demo/tokenisation.py`, `demo/extract.py`,
-  `demo/corpus_pipeline.py`, `demo/ontology_from_docs.py`, `demo/contradiction_scan.py`,
-  `demo/verify.py`, `demo/kpi_context_graph.py`, `demo/cq/run-cross-doc.py`
+  `demo/corpus_pipeline.py`, `demo/corpus_text.py`, `demo/ontology_from_docs.py`,
+  `demo/contradiction_scan.py`, `demo/verify.py`, `demo/kpi_context_graph.py`,
+  `demo/cq/run-cross-doc.py`
 - Create: `demo/README.md`
 - Create: `demo/tests/test_reconcile.py`
 - Create: `demo/requirements.txt`
@@ -589,7 +590,7 @@ Nine Python modules move. No corpus, no derived artifact and no ontology file mo
 ```bash
 cd /Users/fabio/projects/open-ontologies
 mkdir -p demo/cq demo/tests
-for f in chunker.py tokenisation.py extract.py corpus_pipeline.py \
+for f in chunker.py tokenisation.py extract.py corpus_pipeline.py corpus_text.py \
          ontology_from_docs.py contradiction_scan.py verify.py kpi_context_graph.py; do
   cp "$INTERNAL/demo/$f" "demo/$f"
 done
@@ -597,7 +598,7 @@ cp "$INTERNAL/demo/cq/run-cross-doc.py" demo/cq/run-cross-doc.py
 ls demo
 ```
 
-Expected: exactly the nine files plus the directories you created. If anything else appears,
+Expected: exactly the ten files plus the directories you created. If anything else appears,
 delete it.
 
 - [ ] **Step 2: Strip identifying content**
@@ -681,8 +682,8 @@ em dashes.
 ```bash
 cd /Users/fabio/projects/open-ontologies
 git add demo/chunker.py demo/tokenisation.py demo/extract.py demo/corpus_pipeline.py \
-        demo/ontology_from_docs.py demo/contradiction_scan.py demo/verify.py \
-        demo/kpi_context_graph.py demo/cq/run-cross-doc.py demo/README.md \
+        demo/corpus_text.py demo/ontology_from_docs.py demo/contradiction_scan.py \
+        demo/verify.py demo/kpi_context_graph.py demo/cq/run-cross-doc.py demo/README.md \
         demo/requirements.txt demo/tests/test_reconcile.py
 git commit -m "feat(demo): add the document-to-ontology pipeline
 
@@ -856,6 +857,100 @@ decision, and pick an ontology file."
 
 ---
 
+## Task 6B: Port the access control, roles and governance layer
+
+Four files implementing document-level access control, role-based views of the corpus, and the
+governance panel that surfaces both. Added to the plan on 24 August at the owner's request, so
+that every feature the internal branch introduced reaches the public tree.
+
+**Files:**
+- Create: `studio/src-tauri/sidecars/agent/acl.ts`
+- Create: `demo/acl_normalise.py`
+- Create: `studio/src/lib/roles.ts`
+- Create: `studio/src/components/GovernancePanel.tsx`
+- Create: `studio/src/lib/__tests__/roles.test.ts`
+
+**Interfaces:**
+- Consumes: the sidecar layering from Task 6, the pipeline from Task 5
+- Produces: whatever `roles.ts` exports for resolving a role to the documents it may see.
+  Record the exact exported signatures in your report, because Task 12 wires the panel and
+  needs them.
+
+- [ ] **Step 1: Copy the four files**
+
+```bash
+cd /Users/fabio/projects/open-ontologies
+cp "$INTERNAL/studio/src-tauri/sidecars/agent/acl.ts" studio/src-tauri/sidecars/agent/acl.ts
+cp "$INTERNAL/demo/acl_normalise.py" demo/acl_normalise.py
+cp "$INTERNAL/studio/src/lib/roles.ts" studio/src/lib/roles.ts
+cp "$INTERNAL/studio/src/components/GovernancePanel.tsx" studio/src/components/GovernancePanel.tsx
+```
+
+- [ ] **Step 2: Strip every identifier**
+
+```bash
+cd /Users/fabio/projects/open-ontologies
+grep -niEf .identifiers-guard studio/src-tauri/sidecars/agent/acl.ts demo/acl_normalise.py \
+  studio/src/lib/roles.ts studio/src/components/GovernancePanel.tsx || echo CLEAN
+```
+
+Role names, document identifiers and example users in these files come from the internal
+corpus. Replace them with roles and documents that make sense for a public standards corpus,
+for example an editor who sees every document and a reader who sees only published ones.
+Re-run until the grep prints `CLEAN`.
+
+- [ ] **Step 3: Write the failing test**
+
+Read the actual exports of `roles.ts` first, then write `studio/src/lib/__tests__/roles.test.ts`
+against them. The test must cover the security-relevant behaviour, not the happy path alone:
+
+- a role granted access to a subset of documents sees exactly that subset
+- a role with no grants sees nothing, rather than everything
+- an unknown role name is denied, rather than defaulting to permitted
+
+The second and third cases are the ones that matter. An access control layer that fails open is
+worse than none, because it looks like it is working.
+
+- [ ] **Step 4: Run it to verify it fails**
+
+```bash
+cd /Users/fabio/projects/open-ontologies/studio && npm test -- roles
+```
+
+Expected: FAIL. If it passes immediately, confirm you are actually importing the real module and
+not asserting something trivially true.
+
+- [ ] **Step 5: Make it pass**
+
+If the ported code already satisfies the test, say so in your report and move on. If it fails
+open on an unknown role or an empty grant list, fix it. That is a real defect, not a porting
+artifact.
+
+- [ ] **Step 6: Compile everything**
+
+```bash
+cd /Users/fabio/projects/open-ontologies/studio && npx tsc --noEmit
+cd src-tauri/sidecars/agent && npx tsc --noEmit
+cd /Users/fabio/projects/open-ontologies && python -m pytest demo/tests -q
+```
+
+Expected: all three clean.
+
+- [ ] **Step 7: Commit**
+
+```bash
+cd /Users/fabio/projects/open-ontologies
+git add studio/src-tauri/sidecars/agent/acl.ts demo/acl_normalise.py studio/src/lib/roles.ts \
+        studio/src/components/GovernancePanel.tsx studio/src/lib/__tests__/roles.test.ts
+git commit -m "feat(studio): add document access control, roles and the governance panel
+
+Documents carry access grants, roles resolve to the set a viewer may see, and
+the governance panel surfaces both. Access is denied by default: an unknown
+role or an empty grant list sees nothing."
+```
+
+---
+
 ## Task 7: Assemble the DCAT-US corpus
 
 This is the task most likely to surprise, which is why it runs first on the calendar. The
@@ -1010,7 +1105,7 @@ file recorded with its source URL, retrieval date and checksum."
 
 **Interfaces:**
 - Consumes: `demo/corpus/dcat-us/`
-- Produces: `demo/precomputed/{corpus,graph,findings,chat}.json` and the combined
+- Produces: `demo/precomputed/{corpus,graph,findings,chat,compare}.json` and the combined
   `demo/precomputed/bundle.json`, whose shape is exactly the `ReplayFixtures` type defined in
   Task 9
 
@@ -1025,7 +1120,7 @@ import argparse
 import json
 from pathlib import Path
 
-PARTS = ("corpus", "graph", "findings", "chat")
+PARTS = ("corpus", "graph", "findings", "chat", "compare")
 
 
 def bundle(indir: Path) -> dict:
@@ -1081,7 +1176,7 @@ demo-verify:
 cd /Users/fabio/projects/open-ontologies && make demo && ls demo/precomputed
 ```
 
-Expected: five JSON files including `bundle.json`, plus `MANIFEST.sha256`. This step calls a
+Expected: six JSON files including `bundle.json`, plus `MANIFEST.sha256`. This step calls a
 model. It is the only step in the entire plan that does, and its output is committed so that
 nothing downstream ever repeats it.
 
@@ -1779,6 +1874,181 @@ git commit -m "feat(studio): rebuild the interface over the DemoSource abstracti
 Components take data as props and no longer reach the engine directly, so the
 same tree renders live against the engine and offline from the precomputed
 artifacts."
+```
+
+---
+
+## Task 12A: Port the baseline comparison
+
+Added on 24 August at the owner's request. This is the strongest demonstration asset in the
+whole port: it answers the same question twice, once grounded in the ontology and once by a
+plain baseline, and shows them side by side. A room full of people who already believe
+retrieval is enough is exactly the audience for that comparison, and it directly addresses the
+published counterargument that pre-built graphs are unnecessary for retrieval.
+
+**Files:**
+- Create: `studio/src-tauri/sidecars/agent/baseline.ts`
+- Create: `studio/src/components/ComparePanel.tsx`
+- Create: `studio/src/lib/compare-source.ts`
+- Create: `studio/src/lib/__tests__/compare-source.test.ts`
+
+**Interfaces:**
+- Consumes: `ReplayFixtures` from Task 9, the sidecar from Task 6, the `compare` artifact
+  written into `bundle.json` by Task 8
+- Produces:
+
+```ts
+export interface CompareResult {
+  question: string
+  grounded: { answer: string; citations: string[] }
+  baseline: { answer: string; citations: string[] }
+  divergence: string | null
+}
+export interface CompareSource {
+  compare(question: string): Promise<CompareResult>
+}
+```
+
+`CompareSource` is deliberately a separate interface rather than a fifth method on
+`DemoSource`. It keeps Tasks 9 through 11 untouched, and the comparison is an optional demo
+surface rather than part of the core loop.
+
+- [ ] **Step 1: Copy the baseline runner**
+
+```bash
+cd /Users/fabio/projects/open-ontologies
+cp "$INTERNAL/studio/src-tauri/sidecars/agent/baseline.ts" studio/src-tauri/sidecars/agent/baseline.ts
+cp "$INTERNAL/studio/src/components/ComparePanel.tsx" studio/src/components/ComparePanel.tsx
+grep -niEf .identifiers-guard studio/src-tauri/sidecars/agent/baseline.ts \
+  studio/src/components/ComparePanel.tsx || echo CLEAN
+```
+
+Re-run the grep until it prints `CLEAN`.
+
+- [ ] **Step 2: Write the failing test**
+
+Create `studio/src/lib/__tests__/compare-source.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest'
+import { createReplayCompareSource } from '../compare-source'
+
+const fixture = {
+  'does this profile implement W3C DCAT?': {
+    question: 'does this profile implement W3C DCAT?',
+    grounded: {
+      answer: 'No. The published examples expand to 76 triples and no DCAT predicates.',
+      citations: ['examples.json', 'w3c-dcat-conformance.md'],
+    },
+    baseline: {
+      answer: 'Yes. The README states it is an implementation of the W3C DCAT standard.',
+      citations: ['profile-readme.md'],
+    },
+    divergence: 'The baseline repeats the claim. The grounded answer checks it against the artifacts.',
+  },
+}
+
+describe('ReplayCompareSource', () => {
+  it('returns both answers with their citations', async () => {
+    const src = createReplayCompareSource(fixture)
+    const r = await src.compare('does this profile implement W3C DCAT?')
+    expect(r.grounded.citations).toContain('examples.json')
+    expect(r.baseline.citations).toEqual(['profile-readme.md'])
+    expect(r.divergence).not.toBeNull()
+  })
+
+  it('reports an unscripted question rather than fabricating a comparison', async () => {
+    const src = createReplayCompareSource(fixture)
+    const r = await src.compare('something nobody scripted')
+    expect(r.divergence).toBeNull()
+    expect(r.grounded.answer).toMatch(/not scripted|offline replay/i)
+  })
+})
+```
+
+The second test is the one that matters. A comparison panel that invents a difference when it
+has no data would be exactly the failure mode the demonstration argues against.
+
+- [ ] **Step 3: Run it to verify it fails**
+
+```bash
+cd /Users/fabio/projects/open-ontologies/studio && npm test -- compare-source
+```
+
+Expected: FAIL, cannot resolve `../compare-source`.
+
+- [ ] **Step 4: Implement**
+
+Create `studio/src/lib/compare-source.ts`:
+
+```ts
+export interface CompareResult {
+  question: string
+  grounded: { answer: string; citations: string[] }
+  baseline: { answer: string; citations: string[] }
+  divergence: string | null
+}
+
+export interface CompareSource {
+  compare(question: string): Promise<CompareResult>
+}
+
+export type CompareFixtures = Record<string, CompareResult>
+
+export function createReplayCompareSource(fixtures: CompareFixtures): CompareSource {
+  return {
+    async compare(question: string): Promise<CompareResult> {
+      const hit = fixtures[question] ?? fixtures[question.trim().toLowerCase()]
+      if (hit) return hit
+      return {
+        question,
+        grounded: {
+          answer: 'This question is not scripted in the offline replay.',
+          citations: [],
+        },
+        baseline: { answer: '', citations: [] },
+        divergence: null,
+      }
+    },
+  }
+}
+```
+
+- [ ] **Step 5: Run it to verify it passes**
+
+```bash
+cd /Users/fabio/projects/open-ontologies/studio && npm test -- compare-source
+```
+
+Expected: PASS, 2 tests.
+
+- [ ] **Step 6: Wire the panel**
+
+`ComparePanel` takes `{ result: CompareResult | null; onAsk: (q: string) => void }` and renders
+the two answers in adjacent columns with their citations listed beneath each, and the divergence
+note between them. It imports no source. Add it to the shell from Task 12, reading its data
+from the store.
+
+- [ ] **Step 7: Verify the replay build still works offline**
+
+```bash
+cd /Users/fabio/projects/open-ontologies/studio && npm test && npm run build:web
+```
+
+Expected: all tests pass and the web build succeeds. Open the preview with no engine running and
+confirm the comparison renders from `bundle.json`.
+
+- [ ] **Step 8: Commit**
+
+```bash
+cd /Users/fabio/projects/open-ontologies
+git add studio/src-tauri/sidecars/agent/baseline.ts studio/src/components/ComparePanel.tsx \
+        studio/src/lib/compare-source.ts studio/src/lib/__tests__/compare-source.test.ts
+git commit -m "feat(studio): answer the same question twice and show the difference
+
+One answer grounded in the ontology with citations into the corpus, one from a
+plain baseline. Where they diverge is the point of the demonstration. The
+replay reports an unscripted question rather than inventing a comparison."
 ```
 
 ---
