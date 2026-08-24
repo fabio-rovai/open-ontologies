@@ -57,12 +57,34 @@ fn augmented_path() -> String {
     parts.join(separator)
 }
 
+fn dev_sidecar_entry() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("sidecars/agent/dist/index.js")
+}
+
+fn sidecar_entry(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    if let Ok(dir) = app.path().resource_dir() {
+        let bundled = dir.join("sidecars/agent/dist/index.js");
+        if bundled.exists() {
+            return Ok(bundled);
+        }
+    }
+    let dev = dev_sidecar_entry();
+    if dev.exists() {
+        return Ok(dev);
+    }
+    Err(format!(
+        "Agent sidecar not found. Looked in the app resource directory and at {}. \
+         Run `npm run build` in studio/src-tauri/sidecars/agent to produce dist/index.js.",
+        dev.display()
+    ))
+}
+
 pub fn spawn_agent_sidecar(app: &tauri::AppHandle) -> Result<(), String> {
-    let sidecar_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("sidecars/agent");
+    let entry = sidecar_entry(app)?;
     let node = resolve_node_binary();
 
     let mut child = Command::new(&node)
-        .arg(sidecar_dir.join("dist/index.js"))
+        .arg(&entry)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -126,4 +148,19 @@ pub fn reset_chat(state: tauri::State<ChatState>) -> Result<(), String> {
     stdin.flush().map_err(|e| format!("Flush failed: {e}"))?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn dev_fallback_points_at_the_source_sidecar() {
+        let path = dev_sidecar_entry();
+        assert!(
+            path.ends_with("sidecars/agent/dist/index.js"),
+            "unexpected dev sidecar path: {}",
+            path.display()
+        );
+    }
 }
