@@ -523,8 +523,18 @@ impl Temporal {
     /// This is the point of carrying valid time at all. Without it, a
     /// correction reads as a contradiction: an entity recorded as one thing
     /// until May and another thereafter trips every disjointness check, and
-    /// the finding is noise. With it, a superseded statement is superseded,
-    /// and only genuine disagreement about the same period survives.
+    /// the finding is noise. With it, only genuine disagreement about the same
+    /// period survives.
+    ///
+    /// What the other bucket contains is narrower than it used to claim. The
+    /// test is `!overlaps`, which proves the two periods share no instant —
+    /// nothing more. It does NOT prove one replaced the other, and the data
+    /// carries no link that would. Three different situations land there:
+    /// periods that touch at a boundary, periods separated by a GAP, and
+    /// periods that never met. The gap is the one that is not benign: it is
+    /// missing coverage, not history, and reading it as a correction invents a
+    /// continuity nobody asserted. Hence `non_overlapping`, and hence
+    /// `superseded` being deprecated rather than redefined — see #110.
     pub fn conflicts(&self) -> anyhow::Result<String> {
         let (validities, validity_scan) = self.validities()?;
         let scan = self.rows(
@@ -540,7 +550,7 @@ impl Temporal {
         )?;
 
         let mut conflicts = Vec::new();
-        let mut superseded = Vec::new();
+        let mut non_overlapping = Vec::new();
         for row in &scan.rows {
             let get = |k: &str| row.get(k).and_then(|v| v.as_str()).map(plain);
             let (Some(s), Some(a), Some(b), Some(ga), Some(gb)) = (
@@ -571,20 +581,35 @@ impl Temporal {
             if va.overlaps(vb) {
                 conflicts.push(entry);
             } else {
-                superseded.push(entry);
+                non_overlapping.push(entry);
             }
         }
 
+        // `superseded` is the same set under its old, wrong name. Emitted
+        // unconditionally until 2.0 and behind no flag: an opt-out would be a
+        // third response shape to document and test, and it would let a client
+        // code against a shape no release guarantees. It is deprecated, not
+        // renamed — when lineage-backed supersession arrives it gets a NEW
+        // key, so that no key ever names a different set across a major
+        // version. See #110.
         let mut out = serde_json::json!({
             "ok": true,
             "contradictions": conflicts,
             "contradiction_count": conflicts.len(),
-            "superseded": superseded,
-            "superseded_count": superseded.len(),
+            "non_overlapping": non_overlapping,
+            "non_overlapping_count": non_overlapping.len(),
+            "superseded": non_overlapping,
+            "superseded_count": non_overlapping.len(),
             "complete": !validity_scan.hit && !scan.capped.hit,
             "note": "contradictions claim overlapping validity and genuinely disagree. \
-                     superseded pairs are corrections: one period ends where the other begins, \
-                     which is a history rather than a conflict.",
+                     non_overlapping pairs have no instant in common UNDER LEXICAL \
+                     COMPARISON of their bounds, which is all that has been checked: it is \
+                     not evidence that one replaced the other, the bucket also holds pairs \
+                     separated by a GAP (missing coverage rather than history), and bounds \
+                     written with different timezone offsets are compared as text, so a \
+                     genuinely overlapping pair can land here until bounds are parsed as \
+                     instants. superseded is the same set under a name that claimed more \
+                     than was proven; it is deprecated and will be dropped at 2.0.",
         });
 
         // A cut validity scan is not a smaller answer here, it is a wrong one:

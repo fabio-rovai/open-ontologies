@@ -440,8 +440,136 @@ fn boundary_touching_disjoint_assertions_are_superseded_not_contradictory() {
         "touching half-open periods do not overlap: {out}"
     );
     assert_eq!(
+        out["non_overlapping_count"], 1,
+        "the two periods share no instant: {out}"
+    );
+    assert_eq!(
         out["superseded_count"], 1,
-        "the earlier assertion is superseded history, not a live conflict"
+        "the deprecated key carries the same set until 2.0"
+    );
+}
+
+/// Two disjoint types with a GAP between their periods — nothing is asserted
+/// about 2025 at all. `!overlaps` is true here exactly as it is for a touching
+/// pair, which is why the bucket cannot be called `superseded`: this is missing
+/// coverage, not a correction.
+const CONFLICT_GAP: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+
+ex:g_a { ex:X a ex:Adherent . }
+ex:g_b { ex:X a ex:Suspension . }
+
+{
+  ex:Adherent owl:disjointWith ex:Suspension .
+  ex:g_a t:validFrom "2024-01-01" ; t:validTo "2025-01-01" .
+  ex:g_b t:validFrom "2026-01-01" .
+}
+"#;
+
+#[test]
+fn a_gap_between_periods_is_not_a_contradiction_and_is_not_a_correction() {
+    let t = temporal(CONFLICT_GAP);
+    let out: serde_json::Value = serde_json::from_str(&t.conflicts().unwrap()).unwrap();
+    assert_eq!(
+        out["contradiction_count"], 0,
+        "the periods share no instant, so they do not disagree: {out}"
+    );
+    assert_eq!(
+        out["non_overlapping_count"], 1,
+        "and that is the whole of what has been established: {out}"
+    );
+    // The old name says a correction happened. Nothing here shows one did:
+    // the whole of 2025 is undescribed, and the pair lands in exactly the same
+    // bucket as a touching pair does.
+    assert_eq!(out["superseded_count"], 1);
+}
+
+#[test]
+fn the_deprecated_key_carries_the_same_set_until_2_0() {
+    for fixture in [CONFLICT_SUPERSEDED, CONFLICT_GAP, CONFLICT_OVERLAP] {
+        let t = temporal(fixture);
+        let out: serde_json::Value = serde_json::from_str(&t.conflicts().unwrap()).unwrap();
+        assert_eq!(
+            out["superseded"], out["non_overlapping"],
+            "the deprecated key is emitted unconditionally and holds the same \
+             rows, so no reader has to change on the day it appears: {out}"
+        );
+        assert_eq!(out["superseded_count"], out["non_overlapping_count"]);
+    }
+}
+
+/// The `note` is output, and output can be wrong. It claimed "one period ends
+/// where the other begins" — adjacency — when the only test performed is
+/// `!overlaps`, which is disjointness. A gap satisfies it too. Nothing pinned
+/// that sentence, which is how it survived; this pins what the code proves.
+#[test]
+fn the_note_claims_only_what_the_code_checks() {
+    let t = temporal(CONFLICT_GAP);
+    let out: serde_json::Value = serde_json::from_str(&t.conflicts().unwrap()).unwrap();
+    let note = out["note"].as_str().expect("note is a string");
+    assert!(
+        note.contains("no instant in common"),
+        "the note must state the check that was performed: {note}"
+    );
+    assert!(
+        note.contains("gap") || note.contains("GAP"),
+        "and must name the case that is missing coverage rather than history: {note}"
+    );
+    assert!(
+        note.contains("LEXICAL COMPARISON") || note.contains("lexical"),
+        "and must qualify the guarantee by the comparison that backs it: {note}"
+    );
+    assert!(
+        !note.contains("one period ends where the other begins"),
+        "adjacency is never established by `!overlaps`: {note}"
+    );
+}
+
+/// Two periods that DO share an hour, written with different timezone offsets.
+/// `2026-05-01T00:00:00-02:00` is `02:00Z`, so the first period runs past the
+/// `01:00Z` start of the second.
+const CONFLICT_OFFSET_OVERLAP: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:g_a { ex:X a ex:Adherent . }
+ex:g_b { ex:X a ex:Suspension . }
+
+{
+  ex:Adherent owl:disjointWith ex:Suspension .
+  ex:g_a t:validFrom "2026-04-01T00:00:00Z"^^xsd:dateTime ;
+         t:validTo   "2026-05-01T00:00:00-02:00"^^xsd:dateTime .
+  ex:g_b t:validFrom "2026-05-01T01:00:00Z"^^xsd:dateTime .
+}
+"#;
+
+/// ACCIDENTAL, pinned on purpose so the parsed-time work (#95, item 4) lands as
+/// a diff on an assertion that already exists rather than as a new one.
+///
+/// `overlaps()` compares datatype-stripped literals as TEXT. `"…T01:00:00Z"`
+/// sorts after `"…T00:00:00-02:00"`, so the two periods read as disjoint and
+/// the pair is classified `non_overlapping` — while on the real timeline they
+/// share an hour and are a genuine contradiction.
+///
+/// This is why the `note` qualifies its guarantee with the comparison that
+/// backs it: the key must not promise more than `overlaps()` can establish.
+///
+/// AFTER item 4: `contradiction_count` is 1 and `non_overlapping_count` is 0.
+#[test]
+fn accidental_offset_bounds_can_hide_a_real_overlap_from_the_disjointness_check() {
+    let t = temporal(CONFLICT_OFFSET_OVERLAP);
+    let out: serde_json::Value = serde_json::from_str(&t.conflicts().unwrap()).unwrap();
+    assert_eq!(
+        out["contradiction_count"], 0,
+        "today the offsets are compared as text, so the real overlap is invisible: {out}"
+    );
+    assert_eq!(
+        out["non_overlapping_count"], 1,
+        "and the pair lands in the bucket whose guarantee it violates: {out}"
     );
 }
 
