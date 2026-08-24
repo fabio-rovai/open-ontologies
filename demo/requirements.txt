@@ -1,3 +1,2 @@
-rdflib>=7.0
 presidio-analyzer>=2.2
 pytest>=8.0

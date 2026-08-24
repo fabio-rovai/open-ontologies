@@ -117,8 +117,8 @@ def main() -> int:
     # class for the same notion. The extractor reliably picks the attribute
     # class, which is the one form disjointness cannot reach, so leaving both
     # in the vocabulary quietly disables contradiction detection. None of the
-    # engine's enforce packs catches this; the pipeline's reconcile() removes
-    # them, and this check keeps it removed.
+    # engine's enforce packs catches this; the pipeline's _reconcile_ttl()
+    # removes them, and this check keeps it removed.
     import re as _re
     ttl_text = ONTOLOGY.read_text()
     cls = set(_re.findall(r":(\w+)\s+(?:a|rdf:type)\s+owl:Class", ttl_text))

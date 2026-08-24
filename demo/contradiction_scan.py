@@ -55,7 +55,7 @@ EXTRA = sorted((ROOT / "demo" / "corpus_extracted").glob("*.ttl"))
 LLM_BASE = os.environ.get("ONTO_LLM_BASE_URL", "http://localhost:8081/v1").rstrip("/")
 LLM_KEY = os.environ.get("ONTO_LLM_API_KEY", "not-needed")
 
-PREFIXES = """PREFIX crd:  <https://w3id.org/dcat-us-demo#>
+PREFIXES = """PREFIX dcus:  <https://w3id.org/dcat-us-demo#>
 PREFIX owl:  <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX prov: <http://www.w3.org/ns/prov#>
@@ -88,12 +88,12 @@ TIER1 = [
     ),
     (
         "domain-rule",
-        "A candidate declares a control target the register classifies as beneficial",
+        "A candidate declares a target term the register classifies as deprecated",
         PREFIXES
-        + """SELECT DISTINCT ?subject ?organism ?viaClass WHERE {
-  ?subject crd:targetsOrganism ?organism .
-  ?organism a ?viaClass .
-  ?viaClass rdfs:subClassOf* crd:BeneficialOrganism .
+        + """SELECT DISTINCT ?subject ?term ?viaClass WHERE {
+  ?subject dcus:targetsTerm ?term .
+  ?term a ?viaClass .
+  ?viaClass rdfs:subClassOf* dcus:DeprecatedTerm .
 }""",
     ),
 ]
@@ -108,18 +108,18 @@ TIER1 = [
 #   - require the two claims to share vocabulary. Claims about the same
 #     individual that share no significant term are rarely contradictory.
 TIER2 = PREFIXES + """SELECT ?entity ?docA ?secA ?claimA ?docB ?secB ?claimB WHERE {
-  ?a a crd:Claim ; crd:aboutEntity ?entity ; crd:claimText ?claimA ; crd:statedIn ?sa .
-  ?b a crd:Claim ; crd:aboutEntity ?entity ; crd:claimText ?claimB ; crd:statedIn ?sb .
+  ?a a dcus:Claim ; dcus:aboutEntity ?entity ; dcus:claimText ?claimA ; dcus:statedIn ?sa .
+  ?b a dcus:Claim ; dcus:aboutEntity ?entity ; dcus:claimText ?claimB ; dcus:statedIn ?sb .
   FILTER(STR(?a) < STR(?b))
   FILTER NOT EXISTS { ?entity a owl:Class }
   FILTER NOT EXISTS { ?someone a ?entity }
-  ?sa crd:sectionNumber ?secA . ?da crd:hasSection ?sa ; crd:docId ?docA .
-  ?sb crd:sectionNumber ?secB . ?db crd:hasSection ?sb ; crd:docId ?docB .
+  ?sa dcus:sectionNumber ?secA . ?da dcus:hasSection ?sa ; dcus:docId ?docA .
+  ?sb dcus:sectionNumber ?secB . ?db dcus:hasSection ?sb ; dcus:docId ?docB .
   FILTER(?docA != ?docB)
 }"""
 
 # Total claims, for an honest reduction ratio rather than a bare count.
-CLAIM_COUNT = PREFIXES + "SELECT (COUNT(?c) AS ?n) WHERE { ?c a crd:Claim }"
+CLAIM_COUNT = PREFIXES + "SELECT (COUNT(?c) AS ?n) WHERE { ?c a dcus:Claim }"
 
 # Which source asserted each conflicting fact.
 PROVENANCE = PREFIXES + """SELECT ?thing ?sourceLabel WHERE {

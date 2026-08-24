@@ -34,17 +34,17 @@ LLM_KEY = os.environ.get("ONTO_LLM_API_KEY", "not-needed")
 
 VOCAB_HINT = """
 Classes you may use:
-  :Document :StandardOperatingProcedure :RegulatoryGuidance :TrialReport
-  :Section :Claim :Control :ReferenceSource
-  :Candidate :Organism :Pest :Pathogen :BeneficialOrganism :Pollinator :NaturalEnemy
-  :FieldTrial :TargetProtein :Mutation :EvidenceGap :StageGate
+  :Document :Specification :ImplementationGuide :ConformanceReport
+  :Section :Claim :Requirement :ReferenceSource
+  :Candidate :Dataset :Distribution :Catalog :Publisher :Licence :Theme
+  :ContactPoint :ConformanceProfile :Frequency :ConformanceGap :ReleaseStage
 
 Object properties you may use:
   :hasSection :parentSection :relatedSection :statedIn :aboutEntity
-  :supersedes :declaresControl :controlOver :blocksProgressionOf :documentsRiskIn
+  :supersedes :declaresRequirement :requirementOver :blocksReleaseOf :documentsGapIn
 
 Datatype properties you may use:
-  :docId :classification :aclGroup :sectionNumber :claimText :isAutomated :isBlocking
+  :docId :classification :aclGroup :sectionNumber :claimText :isMandatory :isBlocking
   rdfs:label rdfs:comment
 """
 
@@ -66,12 +66,12 @@ Extract:
    :classification, :aclGroup, and the most specific document type.
 2. A :Section node per numbered section, IRI :SEC_{docid_safe}_<number with dots as underscores>,
    with :sectionNumber and rdfs:label, linked by :hasSection from the document.
-3. :Claim nodes for assertions that matter to candidate progression or organism
+3. :Claim nodes for assertions that matter to candidate adoption or dataset
    classification. Each with :claimText and :statedIn pointing at its section.
-4. Where a section states a safeguard, a :Control node with :isAutomated and
-   :isBlocking, linked with :declaresControl.
+4. Where a section states a conformance requirement, a :Requirement node with
+   :isMandatory and :isBlocking, linked with :declaresRequirement.
 5. Where a section records a defect or limitation of a data source, link the
-   section with :documentsRiskIn.
+   section with :documentsGapIn.
 
 DOCUMENT ID: {docid}
 

@@ -34,7 +34,7 @@ back to the document and section it came from.
    because it is redundant with the partition and is the one form a
    reasoner cannot check for contradictions. Status and State are exempt,
    because a status is a property of a thing over time, not a kind of
-   thing (`ontology_from_docs.py`, function `reconcile`).
+   thing (`ontology_from_docs.py`, function `_reconcile_ttl`).
 7. **Populate.** Instances are extracted from the documents, constrained to
    the derived and reconciled ontology so nothing gets invented
    (`ontology_from_docs.py`, stage POPULATE; `extract.py`).

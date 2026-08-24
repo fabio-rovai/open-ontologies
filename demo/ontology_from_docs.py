@@ -3,9 +3,8 @@
 Ontology out of text: derive the ontology FROM a document corpus, then
 populate it, with PII tokenised before anything reaches a model.
 
-This is domain-agnostic. Nothing about crop protection, biology or any other
-subject is hardcoded; the vocabulary is whatever the documents turn out to be
-about.
+This is domain-agnostic. Nothing about any particular subject is hardcoded;
+the vocabulary is whatever the documents turn out to be about.
 
   STAGE 1  READ       every document in the folder
   STAGE 2  TOKENISE   detect and replace sensitive values with stable tokens
@@ -44,8 +43,6 @@ import sys
 import time
 import urllib.error
 import urllib.request
-
-from rdflib import Graph, OWL, RDF, RDFS, URIRef
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 BIN = ROOT / "target" / "release" / "open-ontologies"
@@ -384,31 +381,31 @@ Produce:
    has a class for that kind, TYPE the thing with that class. Never create an
    individual to stand for the kind itself.
 
-     "Culture07 is maintained as an adherent line"
-       correct:   :Culture07 a :AdherentLine ; rdfs:label "Culture07" .
-       WRONG:     :Culture07 a :CellLine .
-                  :ADHERENT_LINE a :CellLine ; rdfs:label "Adherent line" .
+     "Dataset07 is catalogued as a published dataset"
+       correct:   :Dataset07 a :PublishedDataset ; rdfs:label "Dataset07" .
+       WRONG:     :Dataset07 a :Dataset .
+                  :PUBLISHED_DATASET a :Dataset ; rdfs:label "Published dataset" .
 
    The wrong form loses the fact entirely: it records that something called
-   "adherent line" exists, not that Culture07 is one.
+   "published dataset" exists, not that Dataset07 is one.
 
    Give each individual EXACTLY ONE type: the single most specific class that
-   fits. A registry row listing a cell line's genotype, doubling time and
-   growth conditions describes ONE cell line; it does not make that cell line
-   a genotype or a doubling time. Attach those as properties, never as extra
+   fits. A registry row listing a dataset's licence, update frequency and
+   access level describes ONE dataset; it does not make that dataset a
+   licence or an update frequency. Attach those as properties, never as extra
    types.
 
-     correct:   :Culture07 a :AdherentLine ;
-                    :hasGenotype :GENOTYPE_WT ;
-                    :hasDoublingTime "24h" .
-     WRONG:     :Culture07 a :CellLine, :CellLineGenotype, :CellLineDoublingTime .
+     correct:   :Dataset07 a :PublishedDataset ;
+                    :hasLicence :LICENCE_CC_BY ;
+                    :hasUpdateFrequency "monthly" .
+     WRONG:     :Dataset07 a :Dataset, :Licence, :UpdateFrequency .
 
 4. Name each individual after the thing itself and nothing else. The IRI for
-   Culture07 is :Culture07 in every document that mentions it. Do not prefix it
+   Dataset07 is :Dataset07 in every document that mentions it. Do not prefix it
    with the document id, and do not qualify it with the context it appeared in
-   (:CULTURE07_STR, :CELL_LINE_CULTURE07_REGISTRY). The same real thing must
-   get the same IRI everywhere, because that is what lets facts from different
-   documents meet.
+   (:DATASET07_STR, :DATASET_CATALOGUE_DATASET07_REGISTRY). The same real thing
+   must get the same IRI everywhere, because that is what lets facts from
+   different documents meet.
 5. The relationships and attribute values the document asserts.
 
 Values that look like TOK_ followed by capitals and a hex string are tokens
@@ -434,8 +431,8 @@ def derive_one(args):
 def snap_to_vocab(body: str, declared: set[str]) -> str:
     """Snap a term to a declared term it differs from only in case.
 
-    The generator writes `:HasCellLine` where the ontology declares
-    `:hasCellLine`. Closed-world checking is right to reject it, but the intent
+    The generator writes `:HasPublisher` where the ontology declares
+    `:hasPublisher`. Closed-world checking is right to reject it, but the intent
     is unambiguous and there is exactly one candidate, so resolving it here is
     sound rather than charitable. Anything that does not match a declared term
     under case folding is left alone: that is real invention and it must stay
@@ -470,8 +467,8 @@ DISJOINT_PROMPT = """Here is a list of classes from an ontology derived from a
 document corpus.
 
 Identify pairs that are MUTUALLY EXCLUSIVE: a single thing cannot be both at
-the same time. Examples of the kind of pair that qualifies: a culture that is
-adherent versus one in suspension; a sample that passed versus failed; a
+the same time. Examples of the kind of pair that qualifies: a dataset that is
+published versus one that is a draft; a check that passed versus failed; a
 record that is authenticated versus unauthenticated.
 
 Return ONLY Turtle, one statement per line, no prose and no fences:
@@ -496,9 +493,9 @@ def _sibling_groups(classes: list[str], cap: int = 60) -> list[list[str]]:
     looks merely unlucky.
 
     Grouping is by head noun rather than arbitrary slicing, because that is
-    where mutual exclusivity actually lives. `AdherentLine` and
-    `SuspensionLine` are candidates precisely because they are both kinds
-    of `Line`; two classes with nothing in common almost never need an axiom
+    where mutual exclusivity actually lives. `PublishedDataset` and
+    `DraftDataset` are candidates precisely because they are both kinds
+    of `Dataset`; two classes with nothing in common almost never need an axiom
     between them. Small groups are pooled so a group of one is not a call.
     """
     def head(name: str) -> str:
@@ -528,7 +525,7 @@ def add_disjointness(merged_path: pathlib.Path) -> int:
 
     Deliberately a SEPARATE pass over the merged class list rather than part of
     per-document derivation. Disjointness is a cross-document property: whether
-    "adherent" and "suspension" are mutually exclusive is not visible from
+    "published" and "draft" are mutually exclusive is not visible from
     inside one document that only mentions one of them. Asking per document
     reliably produced none at all.
 
@@ -621,11 +618,11 @@ def _reconcile_ttl(merged_path: pathlib.Path) -> list[str]:
     """Collapse competing modelling patterns left behind by the merge.
 
     Per-document derivation is independent, so one document models a mode
-    as a subclass partition (:AdherentLine, :SuspensionLine) while another
-    models the same notion as an attribute class (:LineType). Concatenating
+    as a subclass partition (:PublishedDataset, :DraftDataset) while another
+    models the same notion as an attribute class (:DatasetType). Concatenating
     fragments keeps both, and the extractor then legitimately picks whichever
     it likes. It reliably picks the attribute class, which is the one form
-    disjointness cannot reach: :Culture07Type a :LineType says nothing the
+    disjointness cannot reach: :Dataset07 a :DatasetType says nothing the
     reasoner can contradict.
 
     The rule: where a parent has a subclass partition (two or more
@@ -638,8 +635,7 @@ def _reconcile_ttl(merged_path: pathlib.Path) -> list[str]:
     catches this today; it is a merge problem, not a single-ontology problem.
 
     Operates on the Turtle text on disk, mirroring the file-based fragment
-    merge the rest of this pipeline stage uses. `reconcile()` below applies
-    the identical rule to an in-memory RDF graph.
+    merge the rest of this pipeline stage uses.
     """
     ttl = merged_path.read_text()
     classes = set(re.findall(r":(\w+)\s+(?:a|rdf:type)\s+owl:Class", ttl))
@@ -671,76 +667,6 @@ def _reconcile_ttl(merged_path: pathlib.Path) -> list[str]:
     return doomed
 
 
-def _split_iri(iri: URIRef) -> tuple[str, str]:
-    """Namespace and local name of an IRI, splitting on the last '#' or '/'."""
-    s = str(iri)
-    if "#" in s:
-        ns, _, local = s.rpartition("#")
-        return ns + "#", local
-    ns, _, local = s.rpartition("/")
-    return ns + "/", local
-
-
-def reconcile(graph: Graph) -> Graph:
-    """Collapse competing modelling patterns left behind by the merge.
-
-    Per-document derivation is independent, so one document models a mode
-    as a subclass partition (:AdherentLine, :SuspensionLine) while another
-    models the same notion as an attribute class (:LineType). Concatenating
-    fragments keeps both, and the extractor then legitimately picks whichever
-    it likes. It reliably picks the attribute class, which is the one form
-    disjointness cannot reach: :Culture07Type a :LineType says nothing the
-    reasoner can contradict.
-
-    The rule: where a parent has a subclass partition (two or more
-    subclasses) AND the vocabulary also declares parent+KIND_SUFFIX, the
-    attribute class is redundant with the partition and loses. Remove it,
-    and remove any property whose domain or range points at it, so the only
-    way left to express the distinction is the one that supports reasoning.
-    Status and State are deliberately absent from KIND_SUFFIXES: a status is
-    a property of a thing over time, not a kind of thing, so an attribute
-    class named parent+Status or parent+State is genuinely an attribute and
-    is spared.
-
-    None of the engine's enforce packs (generic, hierarchy, value_partition)
-    catches this today; it is a merge problem, not a single-ontology problem.
-
-    Same rule as `_reconcile_ttl` above, expressed directly over RDF triples
-    instead of the Turtle text on disk, so it can run against a graph that
-    was never serialised to a file.
-    """
-    classes = set(graph.subjects(RDF.type, OWL.Class))
-    children: dict[URIRef, set[URIRef]] = {}
-    for child, parent in graph.subject_objects(RDFS.subClassOf):
-        children.setdefault(parent, set()).add(child)
-
-    doomed: set[URIRef] = set()
-    for parent, kids in children.items():
-        if len(kids) < 2:
-            continue
-        ns, name = _split_iri(parent)
-        for suf in KIND_SUFFIXES:
-            candidate = URIRef(ns + name + suf)
-            if candidate in classes:
-                doomed.add(candidate)
-
-    for cls in doomed:
-        # Properties anchored to the removed class go with it. A property
-        # whose range no longer exists invites the extractor to mint an
-        # untyped individual to fill it, which recreates the pattern that
-        # was just removed.
-        for prop in set(graph.subjects(RDFS.domain, cls)) | set(graph.subjects(RDFS.range, cls)):
-            graph.remove((prop, None, None))
-        # disjointWith triples referencing the removed class, either direction.
-        for s, o in list(graph.subject_objects(OWL.disjointWith)):
-            if s == cls or o == cls:
-                graph.remove((s, OWL.disjointWith, o))
-        # The class declaration itself, and everything else hanging off it.
-        graph.remove((cls, None, None))
-
-    return graph
-
-
 def _name_tokens(name: str) -> tuple[str, ...]:
     return tuple(sorted(t.lower() for t in re.findall(r"[A-Z][a-z0-9]*|^[a-z]+[0-9]*", name)
                         if t.lower() != "has"))
@@ -754,10 +680,10 @@ def mech_resolve(body: str, bad: list[str], onto_ttl: str, doc: str = "") -> str
 
       A  token equality      hasConcentrationValue -> ConcentrationValue
       B  unique superset     hasContainmentLevel   -> ContainmentLevelValue
-      C  has{Class} inversion  S :hasCellLineGenotype O, where
-         CellLineGenotype is a declared CLASS: the generator manufactured a
+      C  has{Class} inversion  S :hasDistributionFormat O, where
+         DistributionFormat is a declared CLASS: the generator manufactured a
          forward property where the vocabulary models the inverse. Rewritten
-         as O a :CellLineGenotype ; :hasCellLine S, which is the declared
+         as O a :DistributionFormat ; :hasDistribution S, which is the declared
          pattern every other document uses.
 
     Anything ambiguous (hasName with five plausible targets) is left alone
@@ -857,9 +783,9 @@ GATE_PROMPT = """One document contains these excerpts mentioning "{label}":
 Question: does "{label}" name a {parent}?
 
 The excerpts may be registry rows, change logs, or procedures ABOUT the thing;
-those still count: a registry row about a cell line is describing a cell line.
+those still count: a registry row about a dataset is describing a dataset.
 Answer no only when "{label}" names a different KIND of thing, such as a
-reagent batch, a measurement, a document, or a person.
+licence code, a file format, a document, or a person.
 
 Reply exactly yes or no.
 """
@@ -917,7 +843,7 @@ def refine(merged_path: pathlib.Path, instances: list[pathlib.Path],
     prompt entirely. For each individual typed with a bare partition parent,
     the excerpts mentioning it are shown back with the subclass names as a
     closed choice. A model that cannot follow "use the most specific class"
-    inside a 16k-character extraction task answers "adherent or suspension
+    inside a 16k-character extraction task answers "published or draft
     or unstated" correctly, because there is nothing else to do.
 
     This is the LLM-Modulo shape end to end: generation is decomposed until
@@ -968,7 +894,7 @@ def refine(merged_path: pathlib.Path, instances: list[pathlib.Path],
                     seen_subjects.add(subj)
                     if subj in all_classes:
                         # An INDIVIDUAL whose IRI is a declared class (a source
-                        # document emitted a literal :CellLine individual). Retyping it
+                        # document emitted a literal :Dataset individual). Retyping it
                         # would rewrite what looks like vocabulary. Humans only.
                         with open(merged_path.parent / "_review.jsonl", "a") as rq:
                             rq.write(json.dumps({
@@ -1001,9 +927,9 @@ def refine(merged_path: pathlib.Path, instances: list[pathlib.Path],
                     snippets = "\n".join(f"- {l[:220]}" for l in lines[:6])
                     # The gate is its own binary question. Offered only as an
                     # extra option inside the partition question, "other" loses
-                    # to pattern-matching: an FBS lot mentioned alongside
-                    # adherent cultures came back "AdherentLine". Asked
-                    # alone, "is Lot A itself a cell line?" gets the right no.
+                    # to pattern-matching: a licence code mentioned alongside
+                    # published datasets came back "PublishedDataset". Asked
+                    # alone, "is CC-BY-4.0 itself a dataset?" gets the right no.
                     try:
                         gate = call_model(GATE_PROMPT.format(
                             label=label, parent=parent, snippets=snippets),
@@ -1040,11 +966,11 @@ def refine(merged_path: pathlib.Path, instances: list[pathlib.Path],
                     elif anskey == "other":
                         # The extractor mistyped it upstream. An automatic
                         # second guess was tried here and reintroduced the
-                        # failure it was meant to fix (an FBS lot became
-                        # :CellLineGrowthRateComparison with :FBSLot sitting
-                        # in the candidate list). Wrong-type-with-confidence
-                        # is worse than wrong-type-in-a-queue: the type stays
-                        # as asserted and a human decides.
+                        # failure it was meant to fix (a licence code became
+                        # :DatasetUpdateFrequencyComparison with :LicenceCode
+                        # sitting in the candidate list). Wrong-type-with-
+                        # confidence is worse than wrong-type-in-a-queue: the
+                        # type stays as asserted and a human decides.
                         entry = {"doc": doc, "subject": subj, "label": label,
                                  "asserted": parent,
                                  "reason": f"not a {parent} per gate question"}
@@ -1081,7 +1007,7 @@ def prune_to_used(onto_ttl: str, data: str) -> tuple[str, dict]:
 
     Derivation over-proposes by an order of magnitude: 10 documents produced
     346 classes, most of them compositional one-offs
-    (CellLineGrowthRateMeasurementStatisticalSignificanceAnalysis) that no
+    (DatasetDistributionFormatConformanceAssessmentOutcome) that no
     instance ever uses. Rendering all of that buries the dozen entities the
     corpus is actually about. The FULL vocabulary stays on disk and keeps
     constraining extraction; the store the graph view and chat read carries
@@ -1129,8 +1055,8 @@ def prune_to_used(onto_ttl: str, data: str) -> tuple[str, dict]:
                 frontier.append(p)
 
     # View collapse. Two shapes of noise survive the instance-count filter:
-    # specialisation chains (CellLineGrowthRateMeasurementStatistical...
-    # extending CellLineGrowthRate token by token) and families of near
+    # specialisation chains (DatasetDistributionFormatConformance...
+    # extending DatasetDistributionFormat token by token) and families of near
     # duplicate siblings (fourteen ChangeLogEntryChange* classes). A box per
     # variant hides the dozen entities the corpus is about. Chains collapse
     # into their shortest kept prefix; families keep their two most
@@ -1189,8 +1115,8 @@ def sources_of(instances: list[pathlib.Path]) -> dict[tuple[str, str], set[str]]
     """Which document asserted that a given individual has a given type.
 
     Provenance is what separates the two things a disjointness violation can
-    mean. If one document types Culture07 as both a cell line and a doubling
-    time, that is a broken extraction. If two documents disagree about which
+    mean. If one document types Dataset07 as both a dataset and an update
+    frequency, that is a broken extraction. If two documents disagree about which
     of two mutually exclusive classes it belongs to, that is the corpus
     contradicting itself, and it is the only kind worth showing anyone.
 
@@ -1212,7 +1138,7 @@ def vocab_summary(ttl: str) -> str:
     """Vocabulary for the populate prompt, WITH definitions.
 
     A bare list of names invites the model to invent near-misses: given
-    :CellLine it will happily write :CellLineType or :CellLineInRoutineUse
+    :Dataset it will happily write :DatasetType or :DatasetArchived
     because they sound plausible. Including each term's label and comment makes
     the existing vocabulary concrete enough to reuse instead of extend, which
     is what the closed-world check is measuring.

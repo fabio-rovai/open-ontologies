@@ -15,58 +15,58 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 BIN = ROOT / "target" / "release" / "open-ontologies"
 BUNDLE = ROOT / "demo" / "bundle" / "dcat-us-full.ttl"
 
-P = """PREFIX crd: <https://w3id.org/dcat-us-demo#>
+P = """PREFIX dcus: <https://w3id.org/dcat-us-demo#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 """
 
 QUESTIONS = [
     (
         "XD-1",
-        "Which controls should block SYN-4471, are they automated, and who declares them?",
+        "Which requirements should block DS-4471, are they mandatory, and who declares them?",
         P
-        + """SELECT ?docId ?control ?blocking ?automated WHERE {
-  ?ctrl crd:blocksProgressionOf crd:SYN_4471 ;
-        rdfs:label ?control ; crd:isBlocking ?blocking ; crd:isAutomated ?automated .
-  ?doc crd:declaresControl ?ctrl ; crd:docId ?docId . }""",
+        + """SELECT ?docId ?requirement ?blocking ?mandatory WHERE {
+  ?req dcus:blocksReleaseOf dcus:DS_4471 ;
+        rdfs:label ?requirement ; dcus:isBlocking ?blocking ; dcus:isMandatory ?mandatory .
+  ?doc dcus:declaresRequirement ?req ; dcus:docId ?docId . }""",
     ),
     (
         "XD-2",
-        "Root cause: every claim about the mis-mapped bucket or the hoverfly, with its source",
+        "Root cause: every claim about the mis-mapped theme or the harvest feed, with its source",
         P
         + """SELECT ?docId ?section ?claim WHERE {
-  ?c a crd:Claim ; crd:claimText ?claim ; crd:statedIn ?sec ; crd:aboutEntity ?e .
-  VALUES ?e { crd:AphidAssociatedArthropod crd:EpisyrphusBalteatus crd:SRC_PestScoutingFeed }
-  ?sec crd:sectionNumber ?section .
-  ?doc crd:hasSection ?sec ; crd:docId ?docId . }""",
+  ?c a dcus:Claim ; dcus:claimText ?claim ; dcus:statedIn ?sec ; dcus:aboutEntity ?e .
+  VALUES ?e { dcus:EnergyTheme dcus:Theme_PublicTransit dcus:SRC_HarvestFeed }
+  ?sec dcus:sectionNumber ?section .
+  ?doc dcus:hasSection ?sec ; dcus:docId ?docId . }""",
     ),
     (
         "XD-3",
-        "Which safeguards exist only on paper (blocking or not, but not automated)?",
+        "Which requirements exist only on paper (blocking or not, but not mandatory)?",
         P
-        + """SELECT ?docId ?control ?blocking WHERE {
-  ?ctrl a crd:Control ; rdfs:label ?control ;
-        crd:isAutomated false ; crd:isBlocking ?blocking .
-  ?doc crd:declaresControl ?ctrl ; crd:docId ?docId . }""",
+        + """SELECT ?docId ?requirement ?blocking WHERE {
+  ?req a dcus:Requirement ; rdfs:label ?requirement ;
+        dcus:isMandatory false ; dcus:isBlocking ?blocking .
+  ?doc dcus:declaresRequirement ?req ; dcus:docId ?docId . }""",
     ),
     (
         "XD-4",
         "Which reference source is superseded, and which section documents its defect?",
         P
         + """SELECT ?supersedingSource ?supersededSource ?documentingDoc ?section ?sectionLabel WHERE {
-  ?winner crd:supersedes ?loser .
+  ?winner dcus:supersedes ?loser .
   BIND(REPLACE(STR(?winner), "^.*#", "") AS ?supersedingSource)
   BIND(REPLACE(STR(?loser),  "^.*#", "") AS ?supersededSource)
-  ?sec crd:documentsRiskIn ?loser ; crd:sectionNumber ?section ; rdfs:label ?sectionLabel .
-  ?doc crd:hasSection ?sec ; crd:docId ?documentingDoc . }""",
+  ?sec dcus:documentsGapIn ?loser ; dcus:sectionNumber ?section ; rdfs:label ?sectionLabel .
+  ?doc dcus:hasSection ?sec ; dcus:docId ?documentingDoc . }""",
     ),
     (
         "XD-5",
         "Cross-document section links: which section of one document bears on another?",
         P
         + """SELECT ?fromDoc ?fromSec ?toDoc ?toSec WHERE {
-  ?a crd:relatedSection ?b .
-  ?da crd:hasSection ?a ; crd:docId ?fromDoc . ?a crd:sectionNumber ?fromSec .
-  ?db crd:hasSection ?b ; crd:docId ?toDoc . ?b crd:sectionNumber ?toSec .
+  ?a dcus:relatedSection ?b .
+  ?da dcus:hasSection ?a ; dcus:docId ?fromDoc . ?a dcus:sectionNumber ?fromSec .
+  ?db dcus:hasSection ?b ; dcus:docId ?toDoc . ?b dcus:sectionNumber ?toSec .
   FILTER(?fromDoc != ?toDoc) }""",
     ),
     (
@@ -74,7 +74,7 @@ QUESTIONS = [
         "Access control: which ACL groups would a reader need to see this whole chain?",
         P
         + """SELECT DISTINCT ?docId ?classification ?acl WHERE {
-  ?doc crd:docId ?docId ; crd:classification ?classification ; crd:aclGroup ?acl . }""",
+  ?doc dcus:docId ?docId ; dcus:classification ?classification ; dcus:aclGroup ?acl . }""",
     ),
 ]
 

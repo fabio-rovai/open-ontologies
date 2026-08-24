@@ -46,14 +46,14 @@ if os.environ.get("NO_COLOR"):
 else:
     BOLD, DIM, RED, GRN, YEL, OFF = "\033[1m", "\033[2m", "\033[31m", "\033[32m", "\033[33m", "\033[0m"
 
-VOCAB_HINT = """Classes: :Document :StandardOperatingProcedure :RegulatoryGuidance :TrialReport
-  :Section :Claim :Control :ReferenceSource :Candidate :Organism :Pest :Pathogen
-  :BeneficialOrganism :Pollinator :NaturalEnemy :FieldTrial :TargetProtein :Mutation
-  :EvidenceGap :StageGate
+VOCAB_HINT = """Classes: :Document :Specification :ImplementationGuide :ConformanceReport
+  :Section :Claim :Requirement :ReferenceSource :Candidate :Dataset :Distribution
+  :Catalog :Publisher :Licence :Theme :ContactPoint :ConformanceProfile :Frequency
+  :ConformanceGap :ReleaseStage
 Object properties: :hasSection :parentSection :relatedSection :statedIn :aboutEntity
-  :supersedes :declaresControl :controlOver :blocksProgressionOf :documentsRiskIn
+  :supersedes :declaresRequirement :requirementOver :blocksReleaseOf :documentsGapIn
 Datatype properties: :docId :classification :aclGroup :sectionNumber :claimText
-  :isAutomated :isBlocking rdfs:label rdfs:comment"""
+  :isMandatory :isBlocking rdfs:label rdfs:comment"""
 
 PROMPT = """Extract a knowledge graph from this controlled document.
 
@@ -72,10 +72,11 @@ Extract:
    and its most specific document type.
 2. A :Section per numbered section, IRI :SEC_{safe}_<number with dots as underscores>,
    with :sectionNumber and rdfs:label, linked by :hasSection.
-3. :Claim nodes for assertions about candidate progression, organism classification,
-   thresholds, or safeguards. Each with :claimText, :statedIn, and :aboutEntity where
-   the subject is identifiable.
-4. Where a section states a safeguard, a :Control with :isAutomated and :isBlocking.
+3. :Claim nodes for assertions about candidate adoption, dataset classification,
+   thresholds, or conformance requirements. Each with :claimText, :statedIn, and
+   :aboutEntity where the subject is identifiable.
+4. Where a section states a conformance requirement, a :Requirement with
+   :isMandatory and :isBlocking.
 
 DOCUMENT ID: {docid}
 

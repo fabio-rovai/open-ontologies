@@ -19,7 +19,7 @@ Three things it does that a drawn diagram cannot:
 
 Usage:
     python3 demo/kpi_context_graph.py graph
-    python3 demo/kpi_context_graph.py impact :targetsOrganism
+    python3 demo/kpi_context_graph.py impact :targetsTerm
     python3 demo/kpi_context_graph.py breach
 """
 
@@ -35,7 +35,7 @@ LOADS = [
     ROOT / "demo" / "ontology" / "dcat-us-kpi.ttl",
 ]
 
-P = """PREFIX crd:  <https://w3id.org/dcat-us-demo#>
+P = """PREFIX dcus:  <https://w3id.org/dcat-us-demo#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl:  <http://www.w3.org/2002/07/owl#>
 """
@@ -76,18 +76,18 @@ def cmd_graph():
     Grouped into layers and styled so it reads at a glance: what the model is
     computed FROM on the left, the indicators in the middle, what they measure
     and what mandates them on the right. Blocking indicators are highlighted,
-    because "which of these stops a stage gate" is the first thing anyone asks.
+    because "which of these stops a release" is the first thing anyone asks.
     """
-    inputs = query(P + "SELECT ?kpi ?input WHERE { ?kpi a/rdfs:subClassOf* crd:KPI ; crd:computedFrom ?input }")
-    applies = query(P + "SELECT ?kpi ?cls WHERE { ?kpi a/rdfs:subClassOf* crd:KPI ; crd:appliesTo ?cls }")
-    comps = query(P + "SELECT ?kpi ?component WHERE { ?kpi crd:dependsOnKPI ?component }")
-    govs = query(P + "SELECT ?kpi ?doc WHERE { ?kpi crd:governedBy ?doc }")
+    inputs = query(P + "SELECT ?kpi ?input WHERE { ?kpi a/rdfs:subClassOf* dcus:KPI ; dcus:computedFrom ?input }")
+    applies = query(P + "SELECT ?kpi ?cls WHERE { ?kpi a/rdfs:subClassOf* dcus:KPI ; dcus:appliesTo ?cls }")
+    comps = query(P + "SELECT ?kpi ?component WHERE { ?kpi dcus:dependsOnKPI ?component }")
+    govs = query(P + "SELECT ?kpi ?doc WHERE { ?kpi dcus:governedBy ?doc }")
     labels = {r["kpi"]: r["label"] for r in
-              query(P + "SELECT ?kpi ?label WHERE { ?kpi a/rdfs:subClassOf* crd:KPI ; rdfs:label ?label }")}
-    # Scope to KPIs: Controls also carry isBlocking, and would otherwise leak
+              query(P + "SELECT ?kpi ?label WHERE { ?kpi a/rdfs:subClassOf* dcus:KPI ; rdfs:label ?label }")}
+    # Scope to KPIs: Requirements also carry isBlocking, and would otherwise leak
     # into the indicator styling.
     blocking = {r["kpi"] for r in
-                query(P + "SELECT ?kpi WHERE { ?kpi a/rdfs:subClassOf* crd:KPI ; crd:isBlocking true }")}
+                query(P + "SELECT ?kpi WHERE { ?kpi a/rdfs:subClassOf* dcus:KPI ; dcus:isBlocking true }")}
 
     kpis = sorted(labels)
     ins = sorted({r["input"] for r in inputs})
@@ -163,17 +163,17 @@ def cmd_impact(changed):
     direct = query(
         P
         + f"""SELECT ?kpi ?label ?blocking WHERE {{
-  ?kpi crd:computedFrom crd:{term} .
+  ?kpi dcus:computedFrom dcus:{term} .
   OPTIONAL {{ ?kpi rdfs:label ?label }}
-  OPTIONAL {{ ?kpi crd:isBlocking ?blocking }}
+  OPTIONAL {{ ?kpi dcus:isBlocking ?blocking }}
 }}"""
     )
     # dependsOnKPI is transitive, so the closure comes back from one query.
     downstream = query(
         P
         + f"""SELECT DISTINCT ?composite ?label WHERE {{
-  ?direct crd:computedFrom crd:{term} .
-  ?composite crd:dependsOnKPI ?direct .
+  ?direct dcus:computedFrom dcus:{term} .
+  ?composite dcus:dependsOnKPI ?direct .
   OPTIONAL {{ ?composite rdfs:label ?label }}
 }}"""
     )
@@ -197,16 +197,16 @@ def cmd_breach():
     print("Indicator evaluation against the loaded graph\n")
 
     checks = [
-        ("Field translation efficiency", 0.80, "lower value is a breach",
-         P + "SELECT ?c ?v WHERE { ?c crd:fieldToScreenRatio ?v . FILTER(?v < 0.80) }"),
-        ("Unexplained residual variance", 0.20, "higher value is a breach",
-         P + "SELECT ?c ?v WHERE { ?c crd:unexplainedResidualVariance ?v . FILTER(?v > 0.20) }"),
-        ("Binding evidence freshness", 1.0, "any stale protein is a breach",
-         P + "SELECT ?p WHERE { ?p crd:affectedByMutation ?m ; crd:isStale true }"),
-        ("Evidence gap closure", 1.0, "any open gap is a breach",
-         P + "SELECT ?c ?g WHERE { ?c crd:hasEvidenceGap ?g }"),
-        ("Trial data completeness", 1.0, "a field trial with no plot is a breach",
-         P + "SELECT ?t WHERE { ?t a crd:FieldTrial . FILTER NOT EXISTS { ?t crd:hasPlot ?p } }"),
+        ("Distribution coverage ratio", 0.80, "lower value is a breach",
+         P + "SELECT ?c ?v WHERE { ?c dcus:distributionCoverageRatio ?v . FILTER(?v < 0.80) }"),
+        ("Unthemed dataset ratio", 0.20, "higher value is a breach",
+         P + "SELECT ?c ?v WHERE { ?c dcus:unthemedDatasetRatio ?v . FILTER(?v > 0.20) }"),
+        ("Licence currency", 1.0, "any stale licence record is a breach",
+         P + "SELECT ?d WHERE { ?d dcus:affectedByLicenceChange ?m ; dcus:isStale true }"),
+        ("Conformance gap closure", 1.0, "any open gap is a breach",
+         P + "SELECT ?c ?g WHERE { ?c dcus:hasConformanceGap ?g }"),
+        ("Catalogue completeness", 1.0, "a catalogue with no dataset is a breach",
+         P + "SELECT ?t WHERE { ?t a dcus:Catalog . FILTER NOT EXISTS { ?t dcus:hasDataset ?p } }"),
     ]
     breaches = 0
     for name, threshold, note, sparql in checks:
@@ -220,23 +220,23 @@ def cmd_breach():
 
     safety = query(
         P
-        + """SELECT ?candidate ?organism ?doc WHERE {
-  ?candidate crd:targetsOrganism ?organism .
-  ?organism a ?cls . ?cls rdfs:subClassOf* crd:BeneficialOrganism .
-  OPTIONAL { ?kpi a crd:SafetyKPI ; crd:governedBy ?d . ?d crd:docId ?doc }
+        + """SELECT ?candidate ?term ?doc WHERE {
+  ?candidate dcus:targetsTerm ?term .
+  ?term a ?cls . ?cls rdfs:subClassOf* dcus:DeprecatedTerm .
+  OPTIONAL { ?kpi a dcus:GovernanceKPI ; dcus:governedBy ?d . ?d dcus:docId ?doc }
 }"""
     )
     print()
     if safety:
         breaches += 1
-        print(f"  [      BREACH] Beneficial organism exposure  [BLOCKING, threshold 0.0]")
+        print(f"  [      BREACH] Deprecated term targeting  [BLOCKING, threshold 0.0]")
         for r in safety:
             gov = f", mandated by {r['doc']}" if r.get("doc") else ""
-            print(f"                 {r['candidate']} targets {r['organism']}{gov}")
+            print(f"                 {r['candidate']} targets {r['term']}{gov}")
     else:
-        print("  [          ok] Beneficial organism exposure")
+        print("  [          ok] Deprecated term targeting")
 
-    print(f"\n  {breaches} indicators breached. Stage gate readiness: FAIL")
+    print(f"\n  {breaches} indicators breached. Release readiness: FAIL")
     print("  Every breach traces to a triple, and the blocking one traces to the")
     print("  controlled document that mandates it.")
 
@@ -248,7 +248,7 @@ def main():
     if cmd == "graph":
         cmd_graph()
     elif cmd == "impact":
-        cmd_impact(sys.argv[2] if len(sys.argv) > 2 else ":targetsOrganism")
+        cmd_impact(sys.argv[2] if len(sys.argv) > 2 else ":targetsTerm")
     elif cmd == "breach":
         cmd_breach()
     else:
