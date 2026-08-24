@@ -428,7 +428,7 @@ SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
     return () => { delete (window as unknown as Record<string, unknown>).__refreshGraph; };
   }, [loadTree]);
 
-  // Relabel tree when language filter changes — no re-query needed
+  // Relabel tree when language filter changes, no re-query needed
   useEffect(() => {
     // Ahead of the early return: a language picked before the first load must
     // still be the one `loadTree` reads when it arrives.
@@ -680,7 +680,7 @@ SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
             // Tree connector lines
             const lines: React.ReactNode[] = [];
             // Run up to indent-2: the direct-parent column (lvl = indent-1) is handled
-            // by the own connector below — mixing both draws a phantom T on last children.
+            // by the own connector below: mixing both draws a phantom T on last children.
             for (let lvl = 0; lvl < indent - 1; lvl++) {
               // Vertical continuation line for ancestors that are NOT the last child.
               // Column `lvl` belongs to the ancestor at indent `lvl + 1`, not `lvl`:

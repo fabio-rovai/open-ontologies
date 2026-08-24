@@ -109,10 +109,10 @@ const DENIED_ROLE: Role = {
 /**
  * Resolve a role id.
  *
- * `undefined` means "no role was selected" — the legitimate default state of
- * a fresh session — and resolves to the unrestricted role, matching the UI's
- * own default. Any OTHER string that does not match a known id is treated as
- * a bad or spoofed value, not a missing selection, and is denied rather than
+ * `undefined` means "no role was selected", the legitimate default state of a
+ * fresh session, and resolves to the unrestricted role, matching the UI's own
+ * default. Any OTHER string that does not match a known id is treated as a
+ * bad or spoofed value, not a missing selection, and is denied rather than
  * silently granted the unrestricted role.
  */
 export function roleById(id: string | undefined): Role {
@@ -131,7 +131,7 @@ export function isUnrestricted(role: Role): boolean {
  * Returns an empty string for the unrestricted role so the caller's query is
  * unchanged rather than wrapped in a tautology, which keeps the unrestricted
  * path byte-identical to the behaviour before access control existed. Every
- * other role — including one with an empty `groups` list — gets a `VALUES`
+ * other role, including one with an empty `groups` list, gets a `VALUES`
  * clause; an empty `VALUES {}` matches nothing, which is what denies a role
  * that has not been assigned to any group.
  */

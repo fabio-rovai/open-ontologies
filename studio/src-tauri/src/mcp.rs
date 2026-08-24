@@ -23,7 +23,7 @@ pub async fn mcp_call(
     // Try the call; if the session has expired, reinitialize and retry once
     match do_mcp_call(&method, &params, &state).await {
         Err(ref e) if e.contains("Session not found") || e.contains("Not Found") => {
-            // Session expired — reinitialize and retry
+            // Session expired, reinitialize and retry
             reinitialize(&state).await?;
             do_mcp_call(&method, &params, &state).await
         }
@@ -90,7 +90,7 @@ async fn do_mcp_call(
         }
     }
 
-    // Notifications get 202 with empty body — that's success
+    // Notifications get 202 with empty body, that's success
     if is_notification {
         return Ok(serde_json::Value::Null);
     }

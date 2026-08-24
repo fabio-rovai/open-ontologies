@@ -451,7 +451,7 @@ export function PropertyInspector({ node, onGraphChanged }: Props) {
             />
           </div>
 
-          {/* Language tag input — only for literals */}
+          {/* Language tag input, only for literals */}
           {newValType === 'literal' && (
             <div>
               <div style={{ color: 'var(--text-secondary)' }} className="mb-1">Language tag <span style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>(optional)</span></div>

@@ -13,7 +13,7 @@
  * document, so the two lists cannot silently drift into one filtering and the
  * other not. Defaulting either side to full access on a mismatch would still
  * "work" in the sense of not crashing, which is exactly what makes it
- * dangerous — it would visibly stop filtering while looking like it was.
+ * dangerous: it would visibly stop filtering while looking like it was.
  */
 
 export interface RoleOption {
@@ -71,7 +71,7 @@ export const ROLE_OPTIONS: RoleOption[] = [
  *
  * `roleId === undefined` is the one case treated as "no selection made" and
  * resolves to the unrestricted role, matching the dropdown's own default
- * state — a different situation from a role name that was supplied but not
+ * state, a different situation from a role name that was supplied but not
  * recognised.
  */
 export function resolveVisibility(

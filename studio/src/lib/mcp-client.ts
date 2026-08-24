@@ -39,7 +39,7 @@ async function mcpCall(method: string, params: Record<string, unknown> = {}): Pr
   }
 }
 
-// Sessionless REST API — direct access to shared graph store, no MCP session required
+// Sessionless REST API: direct access to shared graph store, no MCP session required
 async function apiBase(): Promise<string> {
   return `http://127.0.0.1:${await enginePort()}/api`;
 }

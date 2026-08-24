@@ -22,7 +22,7 @@ export const useEngine = create<EngineStore>((set, get) => ({
 
     for (let i = 0; i < 10; i++) {
       try {
-        // Use REST API for connectivity check — no MCP session needed
+        // Use REST API for connectivity check, no MCP session needed
         const stats = await mcp.getStats();
         if (stats) {
           set({ status: 'connected' });
