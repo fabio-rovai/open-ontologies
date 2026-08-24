@@ -1,6 +1,6 @@
 use std::io::BufRead;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use tauri::{Emitter, Manager};
@@ -57,26 +57,61 @@ fn augmented_path() -> String {
     parts.join(separator)
 }
 
-fn dev_sidecar_entry() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("sidecars/agent/dist/index.js")
+/// Where the sidecar lives inside a directory, whether that is a Tauri
+/// resource directory or the source checkout used during development.
+fn sidecar_relative_path() -> &'static str {
+    "sidecars/agent/dist/index.js"
 }
 
-fn sidecar_entry(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    if let Ok(dir) = app.path().resource_dir() {
-        let bundled = dir.join("sidecars/agent/dist/index.js");
+fn dev_sidecar_entry_under(manifest_dir: &Path) -> PathBuf {
+    manifest_dir.join(sidecar_relative_path())
+}
+
+// Only exercised directly by tests; production code goes through
+// `resolve_sidecar_entry`, which takes the manifest dir as a parameter so
+// it can be swapped for a temp directory in tests.
+#[cfg(test)]
+fn dev_sidecar_entry() -> PathBuf {
+    dev_sidecar_entry_under(Path::new(env!("CARGO_MANIFEST_DIR")))
+}
+
+/// Pure resolution logic, unit-testable without a `tauri::AppHandle`.
+///
+/// `bundled_resource_dir` is the app's resource directory when one is
+/// available (the packaged case); `dev_manifest_dir` is the crate root to
+/// fall back to for local development, and is parameterised so tests can
+/// control both branches with temp directories instead of the real
+/// `CARGO_MANIFEST_DIR` checkout.
+fn resolve_sidecar_entry(
+    bundled_resource_dir: Option<&Path>,
+    dev_manifest_dir: &Path,
+) -> Result<PathBuf, String> {
+    if let Some(dir) = bundled_resource_dir {
+        let bundled = dir.join(sidecar_relative_path());
         if bundled.exists() {
             return Ok(bundled);
         }
     }
-    let dev = dev_sidecar_entry();
+    let dev = dev_sidecar_entry_under(dev_manifest_dir);
     if dev.exists() {
         return Ok(dev);
     }
+    let bundled_display = bundled_resource_dir
+        .map(|dir| dir.join(sidecar_relative_path()).display().to_string())
+        .unwrap_or_else(|| "<no app resource directory available>".to_string());
     Err(format!(
-        "Agent sidecar not found. Looked in the app resource directory and at {}. \
+        "Agent sidecar not found. Looked in the app resource directory ({}) and at {}. \
          Run `npm run build` in studio/src-tauri/sidecars/agent to produce dist/index.js.",
+        bundled_display,
         dev.display()
     ))
+}
+
+fn sidecar_entry(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    resolve_sidecar_entry(
+        app.path().resource_dir().ok().as_deref(),
+        Path::new(env!("CARGO_MANIFEST_DIR")),
+    )
 }
 
 pub fn spawn_agent_sidecar(app: &tauri::AppHandle) -> Result<(), String> {
@@ -153,6 +188,7 @@ pub fn reset_chat(state: tauri::State<ChatState>) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
 
     #[test]
     fn dev_fallback_points_at_the_source_sidecar() {
@@ -161,6 +197,86 @@ mod tests {
             path.ends_with("sidecars/agent/dist/index.js"),
             "unexpected dev sidecar path: {}",
             path.display()
+        );
+    }
+
+    /// Creates `<dir>/sidecars/agent/dist/index.js` under a fresh temp
+    /// directory and returns the temp directory root.
+    fn make_sidecar_tree() -> tempfile::TempDir {
+        let tmp = tempfile::tempdir().expect("create temp dir");
+        let dist = tmp.path().join("sidecars/agent/dist");
+        fs::create_dir_all(&dist).expect("create dist dir");
+        fs::write(dist.join("index.js"), b"// stub sidecar\n").expect("write stub sidecar");
+        tmp
+    }
+
+    #[test]
+    fn bundled_path_wins_when_it_exists() {
+        let bundled_root = make_sidecar_tree();
+        let dev_root = tempfile::tempdir().expect("create temp dir"); // no sidecar under here
+
+        let resolved = resolve_sidecar_entry(Some(bundled_root.path()), dev_root.path())
+            .expect("should resolve to the bundled sidecar");
+
+        assert_eq!(
+            resolved,
+            bundled_root.path().join("sidecars/agent/dist/index.js")
+        );
+    }
+
+    #[test]
+    fn dev_path_is_used_when_bundled_is_missing() {
+        let bundled_root = tempfile::tempdir().expect("create temp dir"); // no sidecar under here
+        let dev_root = make_sidecar_tree();
+
+        let resolved = resolve_sidecar_entry(Some(bundled_root.path()), dev_root.path())
+            .expect("should fall back to the dev sidecar");
+
+        assert_eq!(
+            resolved,
+            dev_root.path().join("sidecars/agent/dist/index.js")
+        );
+    }
+
+    #[test]
+    fn dev_path_is_used_when_no_resource_dir_is_available() {
+        let dev_root = make_sidecar_tree();
+
+        let resolved =
+            resolve_sidecar_entry(None, dev_root.path()).expect("should fall back to dev sidecar");
+
+        assert_eq!(
+            resolved,
+            dev_root.path().join("sidecars/agent/dist/index.js")
+        );
+    }
+
+    #[test]
+    fn error_names_both_locations_when_neither_exists() {
+        let bundled_root = tempfile::tempdir().expect("create temp dir");
+        let dev_root = tempfile::tempdir().expect("create temp dir");
+
+        let err = resolve_sidecar_entry(Some(bundled_root.path()), dev_root.path())
+            .expect_err("neither location has a sidecar, so this must fail");
+
+        let expected_bundled = bundled_root
+            .path()
+            .join("sidecars/agent/dist/index.js")
+            .display()
+            .to_string();
+        let expected_dev = dev_root
+            .path()
+            .join("sidecars/agent/dist/index.js")
+            .display()
+            .to_string();
+
+        assert!(
+            err.contains(&expected_bundled),
+            "error does not name the bundled location: {err}"
+        );
+        assert!(
+            err.contains(&expected_dev),
+            "error does not name the dev location: {err}"
         );
     }
 }
