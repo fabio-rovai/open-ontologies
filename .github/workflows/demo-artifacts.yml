@@ -7,3 +7,16 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify committed artifacts match their manifest
         run: cd demo/precomputed && shasum -a 256 -c MANIFEST.sha256
+      # MANIFEST.sha256 only proves each committed file matches its OWN
+      # recorded checksum; it says nothing about whether bundle.json still
+      # reflects a real merge of the other four parts. A part and the bundle
+      # could drift apart together (edit findings.json, forget to
+      # regenerate bundle.json, re-run shasum so both individually still
+      # check out) and this job would still pass. Regenerating bundle.json
+      # from the committed parts and diffing it catches exactly that: it
+      # needs no model and no engine, since bundle_fixtures.py only reads
+      # and merges JSON already on disk.
+      - name: Regenerate bundle.json from its parts and diff against the committed copy
+        run: |
+          python3 demo/bundle_fixtures.py --in demo/precomputed --out /tmp/bundle.regenerated.json
+          diff demo/precomputed/bundle.json /tmp/bundle.regenerated.json

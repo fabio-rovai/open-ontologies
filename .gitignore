@@ -22,3 +22,12 @@ benchmark/reasoner/*.class
 benchmark/reasoner/results/
 __pycache__/
 python/oo_lite_test.duckdb
+.identifiers-guard
+.superpowers/
+
+# Pipeline output demo/README.md documents as regenerated on every run and
+# not checked in (see its "Derived artifacts" section). Was untracked but
+# not ignored, so it showed up as permanent noise in `git status`.
+demo/derived/
+demo/corpus_extracted/
+demo/_review.jsonl
