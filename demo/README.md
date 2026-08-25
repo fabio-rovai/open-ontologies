@@ -113,16 +113,34 @@ pipeline's contradiction scanner detects provenance-split typing conflicts
 disagreement is not that shape: it is a README's conformance claim
 contradicted by the artifacts published alongside it. That finding is
 established by a validator, not the model, and lives in
-`demo/dcat_conformance.py`.
+`demo/dcat_conformance.py`. `make demo-verify` runs it (and its tests) as
+part of the verify target, so the command a sceptic runs re-derives the
+figures below rather than only checking that committed bytes have not moved.
 
 The script reads only files committed under `demo/corpus/dcat-us/`: the full
 GSA/dcat-us `jsonschema/definitions/` and `jsonschema/examples/` tree
 (`demo/corpus/dcat-us/jsonschema/`, vendored separately from the seven
-documents the pipeline above reads) and `recovered-shapes.ttl`, the SHACL
-shapes file GSA/dcat-us deleted in pull request 120. It derives a JSON-LD
-context from the RDF terms the JSON Schema's own `_oldDocs` blocks still
-carry, expands every published "good" example with and without that context,
-and validates both expansions against the deleted shapes with pySHACL.
+documents the pipeline above reads), `recovered-shapes.ttl`, and
+`recovered-context.jsonld`. Pull request 120 deleted two files, not one:
+the SHACL shapes and the profile's only published JSON-LD `@context`
+(`context/dcat-us-3.0.jsonld`). Both are recovered here, from the pull
+request's base commit, and vendored unmodified; see
+`demo/corpus/dcat-us/pr-120-record.md` and `MANIFEST.json`.
+
+The script measures two independent things against the same 115 examples and
+the same unmodified `recovered-shapes.ttl`, and reports both rather than
+picking one:
+
+- **A schema-derived reconstruction.** A JSON-LD context built from the RDF
+  terms the JSON Schema's own `_oldDocs` blocks still carry (`declared`, and
+  `observed`, which also relaxes terms the corpus itself publishes as prose
+  rather than IRIs).
+- **The real recovered context**, `recovered-context.jsonld`, injected
+  verbatim (which binds almost nothing against today's examples, because its
+  class bindings are keyed by CURIE and every example's own `@type` is the
+  schema's bare title) and with each example's `@type` mechanically rewritten
+  to the CURIE the schema's own `_oldDocs.rdfClass` already names for it
+  (`typed`, exercising what the real context actually binds).
 
 ```bash
 python3 demo/dcat_conformance.py
@@ -130,8 +148,20 @@ python3 -m pytest demo/tests/test_dcat_conformance.py
 ```
 
 It writes `demo/corpus/dcat-us/jsonschema/generated-context.jsonld` (and an
-`.observed.jsonld` variant, lenient on the terms the corpus publishes as
-prose rather than IRIs), `demo/dcat_conformance_measurements.json` (every
-figure this script measures), and, by hand from those measurements,
-`demo/precomputed/findings.json`. No network call and no model call happen
-anywhere in this path.
+`.observed.jsonld` variant), `demo/dcat_conformance_measurements.json` (every
+figure this script measures, both ways), and, by hand from those
+measurements, `demo/precomputed/findings.json`. No network call and no model
+call happen anywhere in this path.
+
+**No single SHACL violation count is defensible as "the" figure.** The
+schema-derived reconstruction's own two variants disagree with each other
+(178 declared vs. 272 observed). The real recovered context, exercised
+against the same shapes, gives a third number again (147), lower than either
+reconstruction because it scopes every property binding strictly to its
+owning class with no cross-class default, unlike the reconstruction. And the
+two recovered files disagree internally about what the `org:` prefix
+expands to (`recovered-context.jsonld` line 18 vs. `recovered-shapes.ttl`),
+which alone moves the real-context count by several more violations if
+corrected. `demo/tests/test_dcat_conformance.py::
+test_shacl_violation_counts_disagree_across_methods` pins the disagreement,
+not a winner.

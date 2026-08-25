@@ -93,6 +93,8 @@ demo:
 demo-verify:
 	python3 demo/verify.py
 	cd demo/precomputed && shasum -a 256 -c MANIFEST.sha256
+	python3 demo/dcat_conformance.py
+	python3 -m pytest demo/tests/test_dcat_conformance.py -q
 
 # ─── Cleanup ─────────────────────────────────────────────────────────────────
 

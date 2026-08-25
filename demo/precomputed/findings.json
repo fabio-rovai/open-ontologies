@@ -15,6 +15,11 @@
         "object": "conforming data use the dcat: vocabulary (W3C DCAT 3, section 4)"
       },
       {
+        "document": "pr-120-record.md",
+        "predicate": "removedWithNoSuccessor",
+        "object": "two files, both status: removed with no renamed successor anywhere in the diff: context/dcat-us-3.0.jsonld (the profile's only published JSON-LD @context) and shacl/dcat-us_3.0_shacl_shapes.ttl (its only SHACL shapes); every other file the pull request touched has status: renamed into a DEPRECATED/ tree, byte-identical"
+      },
+      {
         "document": "jsonschema/examples/Catalog/good/complete_example.json",
         "predicate": "expandsAsPublishedTo",
         "object": "1 triple: rdf:type of a manufactured IRI, no @context present, 0 dcat: predicates"
@@ -48,77 +53,129 @@
       },
       {
         "document": "recovered-shapes.ttl",
-        "predicate": "measuredWithBinding",
-        "object": "the same 115 files, with the context demo/dcat_conformance.py derives from _oldDocs, expand to 1510 triples, 123 distinct predicates, 228 dcat: triples, 10 files empty, 0 errors"
+        "predicate": "measuredWithSchemaDerivedBinding",
+        "object": "the same 115 files, with a context demo/dcat_conformance.py derives from the schema's own _oldDocs residue (not the real context), expand to 1510 triples, 123 distinct predicates, 228 dcat: triples, 10 files empty, 0 errors"
+      },
+      {
+        "document": "recovered-context.jsonld",
+        "predicate": "measuredWithRealPublishedContextVerbatim",
+        "object": "the profile's own recovered, historically published context, injected exactly as retrieved with no rewriting: 76 triples, 1 predicate, 0 dcat, 39 empty files, 0 errors, nearly identical to publishing no context at all. Cause, verified directly: every good example's own @type is the bare schema title ('Dataset', 'Concept'), but this context's class bindings are keyed by full CURIE ('dcat:Dataset', 'skos:Concept'); JSON-LD type-scoped contexts require an exact term match, which the bare title never gives"
+      },
+      {
+        "document": "recovered-context.jsonld",
+        "predicate": "measuredWithRealPublishedContextTyped",
+        "object": "the same 115 files, same unmodified context, with each example's @type mechanically rewritten from the schema's bare title to the CURIE the schema's own _oldDocs.rdfClass already names for that title (no invented binding, only a reformatting the schema itself states): 1069 triples, 114 distinct predicates, 184 dcat: triples, 39 empty files, 0 errors. Lower than the schema-derived reconstruction's 1508/123/228 figures above: the real context scopes every property strictly to its owning class with no cross-class default term, while the reconstruction, built from _oldDocs residue without ever seeing the real context, defines every term as a global default plus per-class overrides only where the schema itself flags an ambiguity"
       }
     ]
   },
   {
-    "id": "conformance-3-unbound-heavily-instantiated-classes",
+    "id": "conformance-3-real-context-binds-what-schema-residue-does-not",
     "subject": "dcat-us:Concept,dcat-us:Identifier",
     "kind": "conformance",
     "claims": [
       {
         "document": "jsonschema/definitions/Concept.json",
         "predicate": "declaresRdfClass",
-        "object": "skos:Concept, in _oldDocs.rdfClass, with prefLabel, definition, inScheme, notation as properties"
+        "object": "skos:Concept, in _oldDocs.rdfClass, with prefLabel, altLabel, definition, inScheme, notation as properties"
       },
       {
         "document": "jsonschema/definitions/Concept.json",
-        "predicate": "bindsNoneOf",
-        "object": "prefLabel, definition, inScheme, notation carry no _oldDocs.uri: zero of Concept's properties have an RDF term"
+        "predicate": "assignsNoTermTodayTo",
+        "object": "prefLabel, altLabel, definition, inScheme, notation: none carries an _oldDocs.uri in the schema's current definitions, so nothing published today (the schema alone, with no context and no shapes) assigns any of Concept's five properties an RDF term"
       },
       {
         "document": "jsonschema/definitions/Identifier.json",
-        "predicate": "bindsNoneOf",
-        "object": "schemaAgency, creator, issued, version, notation carry no _oldDocs.uri: zero of Identifier's properties have an RDF term"
+        "predicate": "assignsNoTermTodayTo",
+        "object": "schemaAgency, creator, issued, version, notation: none carries an _oldDocs.uri in the schema's current definitions, so nothing published today assigns any of Identifier's five properties an RDF term"
+      },
+      {
+        "document": "recovered-context.jsonld",
+        "predicate": "didBindAllFiveOf",
+        "object": "Concept, under the type-scoped context keyed skos:Concept: prefLabel -> skos:prefLabel, altLabel -> skos:altLabel, definition -> skos:definition, inScheme -> skos:inScheme (@id), notation -> skos:notation (@set). The schema's own remaining metadata assigns Concept no term at all; the profile's own deleted context assigned all five, before it was removed by the same pull request that removed the shapes"
+      },
+      {
+        "document": "recovered-context.jsonld",
+        "predicate": "didBindAllFiveOf",
+        "object": "Identifier, under the type-scoped context keyed adms:Identifier: schemaAgency -> adms:schemaAgency, creator -> dcterms:creator (@id), issued -> dcterms:issued, version -> dcterms:version, notation -> skos:notation"
       },
       {
         "document": "jsonschema/examples/Concept/good/complete_example.json",
-        "predicate": "instantiatesUncheckable",
-        "object": "prefLabel and definition values, present in the data, that no shape or context can reach"
+        "predicate": "reachableOnlyUnderRealContext",
+        "object": "prefLabel and altLabel values present in the data: unreachable by anything published today (no context, no shapes); once expanded against recovered-context.jsonld with @type rewritten to the CURIE the schema's own _oldDocs.rdfClass already names (demo/dcat_conformance.py, no invented binding), the node becomes a SHACL focus node and the file conforms with 0 violations, while jsonschema/examples/Concept/good/minimal_object.json fires 1 violation under the same recovered context"
       },
       {
         "document": "jsonschema/examples/Identifier/good/complete_example.json",
-        "predicate": "instantiatesUncheckable",
-        "object": "schemaAgency and creator values, present in the data, that no shape or context can reach"
+        "predicate": "reachableOnlyUnderRealContext",
+        "object": "schemaAgency and creator values present in the data: unreachable by anything published today; once expanded against recovered-context.jsonld with the same mechanical @type rewrite, the node becomes a SHACL focus node and the file fires 1 violation, where as-published it fired none because nothing could be checked"
       }
     ]
   },
   {
-    "id": "conformance-4-deleted-shapes-fire-on-bound-examples",
+    "id": "conformance-4-recovered-files-disagree-on-org-prefix",
+    "subject": "dcat-us:Organization",
+    "kind": "conformance",
+    "claims": [
+      {
+        "document": "recovered-context.jsonld",
+        "predicate": "bindsPrefix",
+        "object": "org: to http://www.w3c.org/ns/org# (line 18 of the recovered file)"
+      },
+      {
+        "document": "recovered-shapes.ttl",
+        "predicate": "bindsPrefix",
+        "object": "org: to http://www.w3.org/ns/org#, the W3C Organization Ontology namespace, no 'c' in w3c"
+      },
+      {
+        "document": "jsonschema/definitions/Organization.json",
+        "predicate": "declaresRdfClass",
+        "object": "org:Organization, in _oldDocs.rdfClass, matching recovered-shapes.ttl's prefix, not recovered-context.jsonld's"
+      },
+      {
+        "document": "recovered-shapes.ttl",
+        "predicate": "quantifiedImpactOfSubstitutingCorrectPrefix",
+        "object": "with recovered-context.jsonld's own org: prefix replaced by recovered-shapes.ttl's (diagnostic only, not applied to any other figure in this file): SHACL violations over the real-context-typed corpus rise from 147 to 153, focus nodes from 183 to 194 (demo/dcat_conformance_measurements.json, recoveredFilesOrgPrefixTypoImpactDiagnosticOnly)"
+      }
+    ]
+  },
+  {
+    "id": "conformance-5-deleted-shapes-fire-on-bound-examples",
     "subject": "dcat-us:pr-120",
     "kind": "conformance",
     "claims": [
       {
         "document": "pr-120-record.md",
         "predicate": "deletes",
-        "object": "shacl/dcat-us_3.0_shacl_shapes.ttl, at commit aaa3ff4a, in favour of the JSON Schema alone"
+        "object": "shacl/dcat-us_3.0_shacl_shapes.ttl, at commit aaa3ff4a, and context/dcat-us-3.0.jsonld, at commit 04acd5c2, in favour of the JSON Schema alone"
       },
       {
         "document": "recovered-shapes.ttl",
         "predicate": "unchangedFileValidatesAsPublishedCorpusAs",
-        "object": "conforms=true, 0 violations, 0 focus nodes: the shapes select nothing to check against the 115 examples as published"
+        "object": "conforms=true, 0 violations, 0 focus nodes, whether checked against the as-published corpus or against the same corpus expanded with recovered-context.jsonld injected verbatim: the shapes select nothing to check either way"
       },
       {
         "document": "recovered-shapes.ttl",
-        "predicate": "sameUnchangedFileValidatesBoundCorpusAs",
-        "object": "conforms=false, 272 violations, 228 focus nodes, once the schema-implied binding is applied to the same 115 examples"
+        "predicate": "validatesSchemaDerivedBoundCorpusAs",
+        "object": "conforms=false, 228 focus nodes, but the violation count itself is not stable across the reconstruction's own two variants: 178 violations under the declared binding, 272 under the observed binding (which relaxes 22 terms the corpus publishes as prose rather than IRIs), a spread of 94 from one schema-residue reconstruction alone"
+      },
+      {
+        "document": "recovered-shapes.ttl",
+        "predicate": "validatesRealContextTypedCorpusAs",
+        "object": "conforms=false, 147 violations, 183 focus nodes, measured against the profile's own recovered context rather than a reconstruction. Lower than either reconstruction figure for a specific, checked reason: the real context has no cross-class default term bindings, and the schema's title for the Catalog class ('DCAT-US 3 Catalog') does not match the bare '@type': 'Catalog' every Catalog example actually publishes, so a literal CURIE rewrite leaves Catalog-typed nodes, and everything nested inside them, outside the real context's reach; the schema-derived reconstruction does not have this gap, because it defines every property term globally regardless of which class's scope activates"
       },
       {
         "document": "jsonschema/examples/Dataset/good/complete_example.json",
         "predicate": "firesViolations",
-        "object": "35, once bound (sh:datatype and sh:minCount failures on dcterms/foaf/dcat properties)"
+        "object": "35 under the schema-derived observed binding, 15 under the real recovered context typed"
       },
       {
         "document": "jsonschema/examples/Catalog/good/complete_example.json",
         "predicate": "firesViolations",
-        "object": "19, once bound"
+        "object": "19 under the schema-derived observed binding; 0 under the real recovered context typed, for the reason given above (the file's own top-level node never becomes a reachable focus node under that context, so nothing nested inside it is checked either)"
       },
       {
         "document": "jsonschema/examples/Distribution/good/complete_example.json",
         "predicate": "firesViolations",
-        "object": "14, once bound"
+        "object": "14 under the schema-derived observed binding, 5 under the real recovered context typed"
       }
     ]
   }

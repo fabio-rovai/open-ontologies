@@ -1,0 +1,1317 @@
+{
+    "@context": {
+        "@version": 1.1,
+        "@protected": true,
+        "adms": "http://www.w3.org/ns/adms#",
+        "cnt": "http://www.w3.org/2011/content#",
+        "dash": "http://datashapes.org/dash#",
+        "dcat": "http://www.w3.org/ns/dcat#",
+        "dcatap": "http://data.europa.eu/r5r/",
+        "dcat-us": "http://data.resources.gov/ontology/dcat-us#",
+        "dcat-us-shp": "http://data.resources.gov/shapes/dcat-us#",
+        "dcterms": "http://purl.org/dc/terms/",
+        "dqv": "http://www.w3.org/ns/dqv#",
+        "foaf": "http://xmlns.com/foaf/0.1/",
+        "gsp": "http://www.opengis.net/ont/geosparql#",
+        "locn": "http://www.w3.org/ns/locn#",
+        "odrs": "http://schema.theodi.org/odrs#",
+        "org": "http://www.w3c.org/ns/org#",
+        "owl": "http://www.w3.org/2002/07/owl#",
+        "prov": "http://www.w3.org/ns/prov#",
+        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "schema": "http://schema.org/",
+        "sh": "http://www.w3.org/ns/shacl#",
+        "skos": "http://www.w3.org/2004/02/skos/core#",
+        "sdmx-attribute": "http://purl.org/linked-data/sdmx/2009/attribute#",
+        "spdx": "http://spdx.org/rdf/terms#",
+        "vcard": "http://www.w3.org/2006/vcard/ns#",
+        "adms:Identifier": {
+            "@id": "adms:Identifier",
+            "@context": {
+                "schemaAgency": "http://www.w3.org/ns/adms#schemaAgency",
+                "creator": {
+                    "@id": "dcterms:creator",
+                    "@type": "@id"
+                },
+                "issued": {
+                    "@id": "dcterms:issued"
+                },
+                "version": "http://purl.org/dc/terms/version",
+                "notation": "http://www.w3.org/2004/02/skos/core#notation"
+            }
+        },
+        "dcat-us:AccessRestriction": {
+            "@id": "dcat-us:AccessRestriction",
+            "@context": {
+                "restrictionNoteMap": {
+                    "@id": "http://data.resources.gov/ontology/dcat-us#restrictionNote",
+                    "@container": "@language"
+                },
+                "restrictionNote": "http://data.resources.gov/ontology/dcat-us#restrictionNote",
+                "restrictionStatus": {
+                    "@id": "dcat-us:restrictionStatus",
+                    "@type": "@id"
+                },
+                "specificRestriction": {
+                    "@id": "dcat-us:specificRestriction",
+                    "@type": "@id"
+                }
+            }
+        },
+        "dcat-us:CUIRestriction": {
+            "@id": "dcat-us:CUIRestriction",
+            "@context": {
+                "cuiBannerMarking": "http://data.resources.gov/ontology/dcat-us#cuiBannerMarking",
+                "designationIndicator": "http://data.resources.gov/ontology/dcat-us#designationIndicator",
+                "requiredIndicatorPerAuthority": {
+                    "@id": "dcat-us:requiredIndicatorPerAuthority",
+                    "@type": "http://www.w3.org/2001/XMLSchema#string",
+                    "@container": "@set"
+                }
+            }
+        },
+        "dcat-us:GeographicBoundingBox": {
+            "@id": "dcat-us:GeographicBoundingBox",
+            "@context": {
+                "eastBoundingLongitude": {
+                    "@id": "dcat-us:eastBoundingLongitude",
+                    "@type": "http://www.w3.org/2001/XMLSchema#decimal"
+                },
+                "northBoundingLatitude": {
+                    "@id": "dcat-us:northBoundingLatitude",
+                    "@type": "http://www.w3.org/2001/XMLSchema#decimal"
+                },
+                "southBoundingLatitude": {
+                    "@id": "dcat-us:southBoundingLatitude",
+                    "@type": "http://www.w3.org/2001/XMLSchema#decimal"
+                },
+                "westBoundingLongitude": {
+                    "@id": "dcat-us:westBoundingLongitude",
+                    "@type": "http://www.w3.org/2001/XMLSchema#decimal"
+                }
+            }
+        },
+        "dcat-us:LiabilityStatement": {
+            "@id": "dcat-us:LiabilityStatement",
+            "@context": {
+                "labelMap": {
+                    "@id": "http://www.w3.org/2000/01/rdf-schema#label",
+                    "@container": "@language"
+                },
+                "label": "http://www.w3.org/2000/01/rdf-schema#label"
+            }
+        },
+        "dcat-us:UseRestriction": {
+            "@id": "dcat-us:UseRestriction",
+            "@context": {
+                "restrictionNoteMap": {
+                    "@id": "http://data.resources.gov/ontology/dcat-us#restrictionNote",
+                    "@container": "@language"
+                },
+                "restrictionNote": "http://data.resources.gov/ontology/dcat-us#restrictionNote",
+                "restrictionStatus": {
+                    "@id": "dcat-us:restrictionStatus",
+                    "@type": "@id"
+                },
+                "specificRestriction": {
+                    "@id": "dcat-us:specificRestriction",
+                    "@type": "@id"
+                }
+            }
+        },
+        "dcat:Catalog": {
+            "@id": "dcat:Catalog",
+            "@context": {
+                "catalog": {
+                    "@id": "dcat:catalog",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "contactPoint": {
+                    "@id": "dcat:contactPoint",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "dataset": {
+                    "@id": "dcat:dataset",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "keywordMap": {
+                    "@id": "http://www.w3.org/ns/dcat#keyword",
+                    "@container": "@language"
+                },
+                "keyword": "http://www.w3.org/ns/dcat#keyword",
+                "record": {
+                    "@id": "dcat:record",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "service": {
+                    "@id": "dcat:service",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "theme": {
+                    "@id": "dcat:theme",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "themeTaxonomy": {
+                    "@id": "dcat:themeTaxonomy",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "accessRights": {
+                    "@id": "dcterms:accessRights",
+                    "@type": "@id"
+                },
+                "conformsTo": {
+                    "@id": "dcterms:conformsTo",
+                    "@type": "@id"
+                },
+                "creator": {
+                    "@id": "dcterms:creator",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "descriptionMap": {
+                    "@id": "http://purl.org/dc/terms/description",
+                    "@container": "@language"
+                },
+                "description": "http://purl.org/dc/terms/description",
+                "hasPart": {
+                    "@id": "dcterms:hasPart",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "identifier": {
+                    "@id": "dcterms:identifier",
+                    "@container": "@set"
+                },
+                "issued": {
+                    "@id": "dcterms:issued"
+                },
+                "language": {
+                    "@id": "dcterms:language",
+                    "@type": "@id",
+                    "@container": "@set",
+                    "@context": {
+                        "@base": "http://id.loc.gov/vocabulary/iso639-1/"
+                    }
+                },
+                "license": {
+                    "@id": "dcterms:license",
+                    "@type": "@id"
+                },
+                "modified": {
+                    "@id": "dcterms:modified"
+                },
+                "publisher": {
+                    "@id": "dcterms:publisher",
+                    "@type": "@id"
+                },
+                "rights": {
+                    "@id": "dcterms:rights",
+                    "@type": "@id"
+                },
+                "rightsHolder": {
+                    "@id": "dcterms:rightsHolder",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "spatial": {
+                    "@id": "dcterms:spatial",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "subject": {
+                    "@id": "dcterms:subject",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "temporal": {
+                    "@id": "dcterms:temporal",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "titleMap": {
+                    "@id": "http://purl.org/dc/terms/title",
+                    "@container": "@language"
+                },
+                "title": "http://purl.org/dc/terms/title",
+                "category": {
+                    "@id": "dcterms:type",
+                    "@type": "@id"
+                },
+                "homepage": {
+                    "@id": "foaf:homepage",
+                    "@type": "@id"
+                },
+                "qualifiedAttribution": {
+                    "@id": "prov:qualifiedAttribution",
+                    "@type": "@id",
+                    "@container": "@set"
+                }
+            }
+        },
+        "dcat:CatalogRecord": {
+            "@id": "dcat:CatalogRecord",
+            "@context": {
+                "status": {
+                    "@id": "adms:status",
+                    "@type": "@id"
+                },
+                "conformsTo": {
+                    "@id": "dcterms:conformsTo",
+                    "@type": "@id"
+                },
+                "description": {
+                    "@id": "dcterms:description",
+                    "@container": "@set"
+                },
+                "issued": {
+                    "@id": "dcterms:issued",
+                    "@container": "@set"
+                },
+                "language": {
+                    "@id": "dcterms:language",
+                    "@type": "@id",
+                    "@container": "@set",
+                    "@context": {
+                        "@base": "http://id.loc.gov/vocabulary/iso639-1/"
+                    }
+                },
+                "modified": {
+                    "@id": "dcterms:modified"
+                },
+                "source": {
+                    "@id": "dcterms:source",
+                    "@type": "@id"
+                },
+                "titleMap": {
+                    "@id": "http://purl.org/dc/terms/title",
+                    "@container": "@language"
+                },
+                "title": "http://purl.org/dc/terms/title",
+                "primaryTopic": {
+                    "@id": "foaf:primaryTopic",
+                    "@type": "@id"
+                }
+            }
+        },
+        "dcat:DataService": {
+            "@id": "dcat:DataService",
+            "@context": {
+                "contactPoint": {
+                    "@id": "dcat:contactPoint",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "endpointDescription": {
+                    "@id": "dcat:endpointDescription",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "endpointURL": {
+                    "@id": "dcat:endpointURL",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "keywordMap": {
+                    "@id": "http://www.w3.org/ns/dcat#keyword",
+                    "@container": "@language"
+                },
+                "keyword": "http://www.w3.org/ns/dcat#keyword",
+                "servesDataset": {
+                    "@id": "dcat:servesDataset",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "spatialResolutionInMeters": {
+                    "@id": "dcat:spatialResolutionInMeters",
+                    "@type": "http://www.w3.org/2001/XMLSchema#decimal",
+                    "@container": "@set"
+                },
+                "temporalResolution": {
+                    "@id": "dcat:temporalResolution",
+                    "@container": "@set"
+                },
+                "theme": {
+                    "@id": "dcat:theme",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "geographicBoundingBox": {
+                    "@id": "dcat-us:geographicBoundingBox",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "accessRights": {
+                    "@id": "dcterms:accessRights",
+                    "@type": "@id"
+                },
+                "conformsTo": {
+                    "@id": "dcterms:conformsTo",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "created": {
+                    "@id": "dcterms:created"
+                },
+                "creator": {
+                    "@id": "dcterms:creator",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "descriptionMap": {
+                    "@id": "http://purl.org/dc/terms/description",
+                    "@container": "@language"
+                },
+                "description": "http://purl.org/dc/terms/description",
+                "identifier": {
+                    "@id": "dcterms:identifier",
+                    "@container": "@set"
+                },
+                "language": {
+                    "@id": "dcterms:language",
+                    "@type": "@id",
+                    "@container": "@set",
+                    "@context": {
+                        "@base": "http://id.loc.gov/vocabulary/iso639-1/"
+                    }
+                },
+                "license": {
+                    "@id": "dcterms:license",
+                    "@type": "@id"
+                },
+                "modified": {
+                    "@id": "dcterms:modified"
+                },
+                "publisher": {
+                    "@id": "dcterms:publisher",
+                    "@type": "@id"
+                },
+                "rights": {
+                    "@id": "dcterms:rights",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "rightsHolder": {
+                    "@id": "dcterms:rightsHolder",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "spatial": {
+                    "@id": "dcterms:spatial",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "temporal": {
+                    "@id": "dcterms:temporal",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "titleMap": {
+                    "@id": "http://purl.org/dc/terms/title",
+                    "@container": "@language"
+                },
+                "title": "http://purl.org/dc/terms/title",
+                "category": {
+                    "@id": "dcterms:type",
+                    "@type": "@id"
+                },
+                "hasQualityMeasurement": {
+                    "@id": "dqv:hasQualityMeasurement",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "hasPolicy": {
+                    "@id": "odrl:hasPolicy",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "qualifiedAttribution": {
+                    "@id": "prov:qualifiedAttribution",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "wasUsedBy": {
+                    "@id": "prov:wasUsedBy",
+                    "@type": "@id",
+                    "@container": "@set"
+                }
+            }
+        },
+        "dcat:Dataset": {
+            "@id": "dcat:Dataset",
+            "@context": {
+                "otherIdentifier": {
+                    "@id": "adms:identifier",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "sample": {
+                    "@id": "adms:sample",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "status": {
+                    "@id": "adms:status",
+                    "@type": "@id"
+                },
+                "supportedSchema": {
+                    "@id": "adms:supportedSchema",
+                    "@type": "@id"
+                },
+                "versionNotes": "http://www.w3.org/ns/adms#versionNotes",
+                "contactPoint": {
+                    "@id": "dcat:contactPoint",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "distribution": {
+                    "@id": "dcat:distribution",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "first": {
+                    "@id": "dcat:first",
+                    "@type": "@id"
+                },
+                "hasCurrentVersion": {
+                    "@id": "dcat:hasCurrentVersion",
+                    "@type": "@id"
+                },
+                "hasVersion": {
+                    "@id": "dcat:hasVersion",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "inSeries": {
+                    "@id": "dcat:inSeries",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "keywordMap": {
+                    "@id": "http://www.w3.org/ns/dcat#keyword",
+                    "@container": "@language"
+                },
+                "keyword": "http://www.w3.org/ns/dcat#keyword",
+                "landingPage": {
+                    "@id": "dcat:landingPage",
+                    "@type": "@id"
+                },
+                "previousVersion": {
+                    "@id": "dcat:previousVersion",
+                    "@type": "@id"
+                },
+                "qualifiedRelation": {
+                    "@id": "dcat:qualifiedRelation",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "spatialResolutionInMeters": {
+                    "@id": "dcat:spatialResolutionInMeters",
+                    "@type": "http://www.w3.org/2001/XMLSchema#decimal"
+                },
+                "temporalResolution": {
+                    "@id": "dcat:temporalResolution",
+                    "@type": "http://www.w3.org/2001/XMLSchema#duration"
+                },
+                "theme": {
+                    "@id": "dcat:theme",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "version": "http://www.w3.org/ns/dcat#version",
+                "describedBy": {
+                    "@id": "dcat-us:describedBy",
+                    "@type": "@id"
+                },
+                "geographicBoundingBox": {
+                    "@id": "dcat-us:geographicBoundingBox",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "liabilityStatement": {
+                    "@id": "dcat-us:liabilityStatement",
+                    "@type": "@id"
+                },
+                "metadataDistribution": {
+                    "@id": "dcat-us:metadataDistribution",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "purposeMap": {
+                    "@id": "http://data.resources.gov/ontology/dcat-us#purpose",
+                    "@container": "@language"
+                },
+                "purpose": "http://data.resources.gov/ontology/dcat-us#purpose",
+                "accessRights": {
+                    "@id": "dcterms:accessRights",
+                    "@type": "@id"
+                },
+                "accrualPeriodicity": {
+                    "@id": "dcterms:accrualPeriodicity",
+                    "@type": "@id",
+                    "@context": {
+                        "@base": "http://purl.org/cld/freq/"
+                    }
+                },
+                "conformsTo": {
+                    "@id": "dcterms:conformsTo",
+                    "@type": "@id"
+                },
+                "contributor": {
+                    "@id": "dcterms:contributor",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "created": {
+                    "@id": "dcterms:created"
+                },
+                "creator": {
+                    "@id": "dcterms:creator",
+                    "@type": "@id"
+                },
+                "descriptionMap": {
+                    "@id": "http://purl.org/dc/terms/description",
+                    "@container": "@language"
+                },
+                "description": "http://purl.org/dc/terms/description",
+                "hasPart": {
+                    "@id": "dcterms:hasPart",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "identifier": {
+                    "@id": "dcterms:identifier",
+                    "@container": "@set"
+                },
+                "isReferencedBy": {
+                    "@id": "dcterms:isReferencedBy",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "issued": {
+                    "@id": "dcterms:issued"
+                },
+                "language": {
+                    "@id": "dcterms:language",
+                    "@type": "@id",
+                    "@container": "@set",
+                    "@context": {
+                        "@base": "http://id.loc.gov/vocabulary/iso639-1/"
+                    }
+                },
+                "modified": {
+                    "@id": "dcterms:modified"
+                },
+                "provenance": {
+                    "@id": "dcterms:provenance",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "publisher": {
+                    "@id": "dcterms:publisher",
+                    "@type": "@id"
+                },
+                "relation": {
+                    "@id": "dcterms:relation",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "replaces": {
+                    "@id": "dcterms:replaces",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "rights": {
+                    "@id": "dcterms:rights",
+                    "@type": "@id"
+                },
+                "rightsHolder": {
+                    "@id": "dcterms:rightsHolder",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "source": {
+                    "@id": "dcterms:source",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "spatial": {
+                    "@id": "dcterms:spatial",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "subject": {
+                    "@id": "dcterms:subject",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "temporal": {
+                    "@id": "dcterms:temporal",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "titleMap": {
+                    "@id": "http://purl.org/dc/terms/title",
+                    "@container": "@language"
+                },
+                "title": "http://purl.org/dc/terms/title",
+                "category": {
+                    "@id": "dcterms:type",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "hasQualityMeasurement": {
+                    "@id": "dqv:hasQualityMeasurement",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "page": {
+                    "@id": "foaf:page",
+                    "@type": "@id"
+                },
+                "qualifiedAttribution": {
+                    "@id": "prov:qualifiedAttribution",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "wasAttributedTo": {
+                    "@id": "prov:wasAttributedTo",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "wasGeneratedBy": {
+                    "@id": "prov:wasGeneratedBy",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "wasUsedBy": {
+                    "@id": "prov:wasUsedBy",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "image": {
+                    "@id": "schema:image",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "scopeNoteMap": {
+                    "@id": "http://www.w3.org/2004/02/skos/core#scopeNote",
+                    "@container": "@language"
+                },
+                "scopeNote": "http://www.w3.org/2004/02/skos/core#scopeNote"
+            }
+        },
+        "dcat:DatasetSeries": {
+            "@id": "dcat:DatasetSeries",
+            "@context": {
+                "contactPoint": {
+                    "@id": "dcat:contactPoint",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "first": {
+                    "@id": "dcat:first",
+                    "@type": "@id"
+                },
+                "last": {
+                    "@id": "dcat:last",
+                    "@type": "@id"
+                },
+                "seriesMember": {
+                    "@id": "dcat:seriesMember",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "accrualPeriodicity": {
+                    "@id": "dcterms:accrualPeriodicity",
+                    "@type": "@id",
+                    "@context": {
+                        "@base": "http://purl.org/cld/freq/"
+                    }
+                },
+                "descriptionMap": {
+                    "@id": "http://purl.org/dc/terms/description",
+                    "@container": "@language"
+                },
+                "description": "http://purl.org/dc/terms/description",
+                "issued": {
+                    "@id": "dcterms:issued"
+                },
+                "modified": {
+                    "@id": "dcterms:modified"
+                },
+                "publisher": {
+                    "@id": "dcterms:publisher",
+                    "@type": "@id"
+                },
+                "spatial": {
+                    "@id": "dcterms:spatial",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "temporal": {
+                    "@id": "dcterms:temporal",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "titleMap": {
+                    "@id": "http://purl.org/dc/terms/title",
+                    "@container": "@language"
+                },
+                "title": "http://purl.org/dc/terms/title"
+            }
+        },
+        "dcat:Distribution": {
+            "@id": "dcat:Distribution",
+            "@context": {
+                "representationTechnique": {
+                    "@id": "adms:representationTechnique",
+                    "@type": "@id"
+                },
+                "status": {
+                    "@id": "adms:status",
+                    "@type": "@id"
+                },
+                "characterEncoding": {
+                    "@id": "cnt:characterEncoding",
+                    "@container": "@set"
+                },
+                "accessService": {
+                    "@id": "dcat:accessService",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "accessURL": {
+                    "@id": "dcat:accessURL",
+                    "@type": "@id"
+                },
+                "byteSize": {
+                    "@id": "dcat:byteSize",
+                    "@type": "http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+                },
+                "compressFormat": {
+                    "@id": "dcat:compressFormat",
+                    "@type": "@id"
+                },
+                "downloadURL": {
+                    "@id": "dcat:downloadURL",
+                    "@type": "@id"
+                },
+                "mediaType": {
+                    "@id": "dcat:mediaType",
+                    "@type": "@id",
+                    "@context": {
+                        "@base": "https://www.iana.org/assignments/media-types/"
+                    }
+                },
+                "packageFormat": {
+                    "@id": "dcat:packageFormat",
+                    "@type": "@id"
+                },
+                "spatialResolutionInMeters": {
+                    "@id": "dcat:spatialResolutionInMeters",
+                    "@type": "http://www.w3.org/2001/XMLSchema#decimal"
+                },
+                "temporalResolution": {
+                    "@id": "dcat:temporalResolution",
+                    "@type": "http://www.w3.org/2001/XMLSchema#duration"
+                },
+                "availability": {
+                    "@id": "dcatap:availability",
+                    "@type": "@id"
+                },
+                "accessRestriction": {
+                    "@id": "dcat-us:accessRestriction",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "cuiRestriction": {
+                    "@id": "dcat-us:cuiRestriction",
+                    "@type": "@id"
+                },
+                "describedBy": {
+                    "@id": "dcat-us:describedBy",
+                    "@type": "@id"
+                },
+                "useRestriction": {
+                    "@id": "dcat-us:useRestriction",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "accessRights": {
+                    "@id": "dcterms:accessRights",
+                    "@type": "@id"
+                },
+                "conformsTo": {
+                    "@id": "dcterms:conformsTo",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "descriptionMap": {
+                    "@id": "http://purl.org/dc/terms/description",
+                    "@container": "@language"
+                },
+                "description": "http://purl.org/dc/terms/description",
+                "format": {
+                    "@id": "dcterms:format",
+                    "@type": "@id"
+                },
+                "identifier": {
+                    "@id": "dcterms:identifier",
+                    "@container": "@set"
+                },
+                "issued": {
+                    "@id": "dcterms:issued"
+                },
+                "language": {
+                    "@id": "dcterms:language",
+                    "@type": "@id",
+                    "@container": "@set",
+                    "@context": {
+                        "@base": "http://id.loc.gov/vocabulary/iso639-1/"
+                    }
+                },
+                "license": {
+                    "@id": "dcterms:license",
+                    "@type": "@id"
+                },
+                "modified": {
+                    "@id": "dcterms:modified"
+                },
+                "rights": {
+                    "@id": "dcterms:rights",
+                    "@type": "@id"
+                },
+                "titleMap": {
+                    "@id": "http://purl.org/dc/terms/title",
+                    "@container": "@language"
+                },
+                "title": "http://purl.org/dc/terms/title",
+                "hasQualityMeasurement": {
+                    "@id": "dqv:hasQualityMeasurement",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "page": {
+                    "@id": "foaf:page",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "image": {
+                    "@id": "schema:image",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "checksum": {
+                    "@id": "spdx:checksum",
+                    "@type": "@id"
+                }
+            }
+        },
+        "dcat:Relationship": {
+            "@id": "dcat:Relationship",
+            "@context": {
+                "hadRole": {
+                    "@id": "dcat:hadRole",
+                    "@type": "@id"
+                },
+                "relation": {
+                    "@id": "dcterms:relation",
+                    "@type": "@id"
+                }
+            }
+        },
+        "dcterms:LicenseDocument": {
+            "@id": "dcterms:LicenseDocument",
+            "@context": {
+                "licenseText": "http://spdx.org/rdf/terms#licenseText"
+            }
+        },
+        "dcterms:Location": {
+            "@id": "dcterms:Location",
+            "@context": {
+                "bbox": {
+                    "@id": "dcat:bbox"
+                },
+                "centroid": {
+                    "@id": "dcat:centroid"
+                },
+                "identifier": {
+                    "@id": "dcterms:identifier",
+                    "@container": "@set"
+                },
+                "geometry": {
+                    "@id": "locn:geometry"
+                },
+                "inScheme": {
+                    "@id": "skos:inScheme",
+                    "@type": "@id"
+                },
+                "altLabelMap": {
+                    "@id": "http://www.w3.org/2004/02/skos/core#altLabel",
+                    "@container": "@language"
+                },
+                "altLabel": "http://www.w3.org/2004/02/skos/core#altLabel",
+                "prefLabelMap": {
+                    "@id": "http://www.w3.org/2004/02/skos/core#prefLabel",
+                    "@container": "@language"
+                },
+                "prefLabel": "http://www.w3.org/2004/02/skos/core#prefLabel"
+            }
+        },
+        "dcterms:MediaType": {
+            "@id": "dcterms:MediaType",
+            "@context": {
+                "labelMap": {
+                    "@id": "http://www.w3.org/2000/01/rdf-schema#label",
+                    "@container": "@language"
+                },
+                "label": "http://www.w3.org/2000/01/rdf-schema#label"
+            }
+        },
+        "dcterms:PeriodOfTime": {
+            "@id": "dcterms:PeriodOfTime",
+            "@context": {
+                "endDate": {
+                    "@id": "dcat:endDate"
+                },
+                "startDate": {
+                    "@id": "dcat:startDate"
+                }
+            }
+        },
+        "dcterms:ProvenanceStatement": {
+            "@id": "dcterms:ProvenanceStatement",
+            "@context": {
+                "labelMap": {
+                    "@id": "http://www.w3.org/2000/01/rdf-schema#label",
+                    "@container": "@language"
+                },
+                "label": "http://www.w3.org/2000/01/rdf-schema#label"
+            }
+        },
+        "dcterms:RightsStatement": {
+            "@id": "dcterms:RightsStatement",
+            "@context": {
+                "attributionTextMap": {
+                    "@id": "http://schema.theodi.org/odrs#attributionText",
+                    "@container": "@language"
+                },
+                "attributionText": "http://schema.theodi.org/odrs#attributionText"
+            }
+        },
+        "dcterms:Standard": {
+            "@id": "dcterms:Standard",
+            "@context": {
+                "created": {
+                    "@id": "dcterms:created"
+                },
+                "descriptionMap": {
+                    "@id": "http://purl.org/dc/terms/description",
+                    "@container": "@language"
+                },
+                "description": "http://purl.org/dc/terms/description",
+                "identifier": {
+                    "@id": "dcterms:identifier",
+                    "@container": "@set"
+                },
+                "issued": {
+                    "@id": "dcterms:issued"
+                },
+                "modified": {
+                    "@id": "dcterms:modified"
+                },
+                "titleMap": {
+                    "@id": "http://purl.org/dc/terms/title",
+                    "@container": "@language"
+                },
+                "title": "http://purl.org/dc/terms/title",
+                "category": {
+                    "@id": "dcterms:type",
+                    "@type": "@id"
+                },
+                "inScheme": {
+                    "@id": "skos:inScheme",
+                    "@type": "@id"
+                }
+            }
+        },
+        "dqv:Metric": {
+            "@id": "dqv:Metric",
+            "@context": {
+                "expectedDataType": {
+                    "@id": "dqv:expectedDataType",
+                    "@type": "@id"
+                },
+                "inDimension": {
+                    "@id": "dqv:inDimension",
+                    "@type": "@id"
+                }
+            }
+        },
+        "dqv:QualityMeasurement": {
+            "@id": "dqv:QualityMeasurement",
+            "@context": {
+                "isMeasurementOf": {
+                    "@id": "dqv:isMeasurementOf",
+                    "@type": "@id"
+                },
+                "value": "http://www.w3.org/ns/dqv#value",
+                "unitMeasure": {
+                    "@id": "sdmx-attribute:unitMeasure",
+                    "@type": "@id"
+                }
+            }
+        },
+        "foaf:Agent": {
+            "@id": "foaf:Agent",
+            "@context": {
+                "category": {
+                    "@id": "dcterms:type",
+                    "@type": "@id"
+                },
+                "name": "http://xmlns.com/foaf/0.1/name"
+            }
+        },
+        "foaf:Document": {
+            "@id": "foaf:Document",
+            "@context": {
+                "creators": {
+                    "@id": "dc:creator",
+                    "@container": "@set"
+                },
+                "publishers": "http://purl.org/dc/elements/1.1/publisher",
+                "mediaType": {
+                    "@id": "dcat:mediaType",
+                    "@type": "@id",
+                    "@container": "@set",
+                    "@context": {
+                        "@base": "https://www.iana.org/assignments/media-types/"
+                    }
+                },
+                "abstractMap": {
+                    "@id": "http://purl.org/dc/terms/abstract",
+                    "@container": "@language"
+                },
+                "abstract": "http://purl.org/dc/terms/abstract",
+                "bibliographicCitation": "http://purl.org/dc/terms/bibliographicCitation",
+                "conformsTo": {
+                    "@id": "dcterms:conformsTo",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "creator": {
+                    "@id": "dcterms:creator",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "descriptionMap": {
+                    "@id": "http://purl.org/dc/terms/description",
+                    "@container": "@language"
+                },
+                "description": "http://purl.org/dc/terms/description",
+                "identifier": {
+                    "@id": "dcterms:identifier",
+                    "@container": "@set"
+                },
+                "issued": {
+                    "@id": "dcterms:issued"
+                },
+                "publisher": {
+                    "@id": "dcterms:publisher",
+                    "@type": "@id"
+                },
+                "titleMap": {
+                    "@id": "http://purl.org/dc/terms/title",
+                    "@container": "@language"
+                },
+                "title": "http://purl.org/dc/terms/title",
+                "category": {
+                    "@id": "dcterms:type",
+                    "@type": "@id"
+                }
+            }
+        },
+        "foaf:Person": {
+            "@id": "foaf:Person",
+            "@context": {
+                "givenName": "http://xmlns.com/foaf/0.1/givenName",
+				"familyName": "http://xmlns.com/foaf/0.1/familyname",
+                "name": "http://xmlns.com/foaf/0.1/name",
+                "memberOf": {
+                    "@id": "org:memberOf",
+                    "@type": "@id",
+                    "@container": "@set"
+                }
+            }
+        },
+        "locn:Address": {
+            "@id": "locn:Address",
+            "@context": {
+                "adminUnitL1": "http://www.w3.org/ns/locn#adminUnitL1",
+                "adminUnitL2": "http://www.w3.org/ns/locn#adminUnitL2",
+                "postCode": "http://www.w3.org/ns/locn#postCode",
+                "postName": "http://www.w3.org/ns/locn#postName",
+                "thoroughfare": "http://www.w3.org/ns/locn#thoroughfare"
+            }
+        },
+        "org:Organization": {
+            "@id": "org:Organization",
+            "@context": {
+                "name": "http://xmlns.com/foaf/0.1/name",
+                "subOrganizationOf": {
+                    "@id": "org:subOrganizationOf",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "altLabelMap": {
+                    "@id": "http://www.w3.org/2004/02/skos/core#altLabel",
+                    "@container": "@language"
+                },
+                "altLabel": "http://www.w3.org/2004/02/skos/core#altLabel",
+                "notation": {
+                    "@id": "skos:notation",
+                    "@container": "@set"
+                },
+                "prefLabelMap": {
+                    "@id": "http://www.w3.org/2004/02/skos/core#prefLabel",
+                    "@container": "@language"
+                },
+                "prefLabel": "http://www.w3.org/2004/02/skos/core#prefLabel"
+            }
+        },
+        "prov:Activity": {
+            "@id": "prov:Activity",
+            "@context": {
+                "category": {
+                    "@id": "dcterms:type",
+                    "@type": "@id"
+                },
+                "labelMap": {
+                    "@id": "http://www.w3.org/2000/01/rdf-schema#label",
+                    "@container": "@language"
+                },
+                "label": "http://www.w3.org/2000/01/rdf-schema#label"
+            }
+        },
+        "prov:Attribution": {
+            "@id": "prov:Attribution",
+            "@context": {
+                "hadRole": {
+                    "@id": "dcat:hadRole",
+                    "@type": "@id"
+                },
+                "agent": {
+                    "@id": "prov:agent",
+                    "@type": "@id"
+                }
+            }
+        },
+        "skos:Concept": {
+            "@id": "skos:Concept",
+            "@context": {
+                "altLabelMap": {
+                    "@id": "http://www.w3.org/2004/02/skos/core#altLabel",
+                    "@container": "@language"
+                },
+                "altLabel": "http://www.w3.org/2004/02/skos/core#altLabel",
+                "definitionMap": {
+                    "@id": "http://www.w3.org/2004/02/skos/core#definition",
+                    "@container": "@language"
+                },
+                "definition": "http://www.w3.org/2004/02/skos/core#definition",
+                "inScheme": {
+                    "@id": "skos:inScheme",
+                    "@type": "@id"
+                },
+                "notation": {
+                    "@id": "skos:notation",
+                    "@container": "@set"
+                },
+                "prefLabelMap": {
+                    "@id": "http://www.w3.org/2004/02/skos/core#prefLabel",
+                    "@container": "@language"
+                },
+                "prefLabel": "http://www.w3.org/2004/02/skos/core#prefLabel"
+            }
+        },
+        "skos:ConceptScheme": {
+            "@id": "skos:ConceptScheme",
+            "@context": {
+                "version": "http://www.w3.org/ns/dcat#version",
+                "created": {
+                    "@id": "dcterms:created"
+                },
+                "descriptionMap": {
+                    "@id": "http://purl.org/dc/terms/description",
+                    "@container": "@language"
+                },
+                "description": "http://purl.org/dc/terms/description",
+                "issued": {
+                    "@id": "dcterms:issued"
+                },
+                "modified": {
+                    "@id": "dcterms:modified"
+                },
+                "titleMap": {
+                    "@id": "http://purl.org/dc/terms/title",
+                    "@container": "@language"
+                },
+                "title": "http://purl.org/dc/terms/title"
+            }
+        },
+        "spdx:Checksum": {
+            "@id": "spdx:Checksum",
+            "@context": {
+                "algorithm": {
+                    "@id": "spdx:algorithm",
+                    "@type": "@id"
+                },
+                "checksumValue": {
+                    "@id": "spdx:checksumValue",
+                    "@type": "http://www.w3.org/2001/XMLSchema#hexBinary"
+                }
+            }
+        },
+        "vcard:Address": {
+            "@id": "vcard:Address",
+            "@context": {
+                "country-name": "http://www.w3.org/2006/vcard/ns#country-name",
+                "locality": "http://www.w3.org/2006/vcard/ns#locality",
+                "postal-code": "http://www.w3.org/2006/vcard/ns#postal-code",
+                "region": "http://www.w3.org/2006/vcard/ns#region",
+                "street-address": "http://www.w3.org/2006/vcard/ns#street-address"
+            }
+        },
+        "vcard:Kind": {
+            "@id": "vcard:Kind",
+            "@context": {
+                "address": {
+                    "@id": "vcard:address",
+                    "@type": "@id",
+                    "@container": "@set"
+                },
+                "hasEmail": {
+                    "@id": "vcard:hasEmail",
+                    "@type": "@id"
+                },
+                "family-name": "http://www.w3.org/2006/vcard/ns#family-name",
+                "fn": "http://www.w3.org/2006/vcard/ns#fn",
+                "given-name": "http://www.w3.org/2006/vcard/ns#given-name",
+                "organization-name": "http://www.w3.org/2006/vcard/ns#organization-name",
+                "tel": {
+                    "@id": "vcard:tel",
+                    "@type": "@id"
+                },
+                "title": "http://www.w3.org/2006/vcard/ns#title"
+            }
+        }
+    }
+}

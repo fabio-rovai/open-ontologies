@@ -274,7 +274,15 @@ def main() -> int:
 
     print(f"\n{BOLD}{'PASS' if not failures else str(failures) + ' CHECK(S) FAILED'}{OFF}"
           f"  {DIM}{conform}/{len(graphs)} graphs conform, "
-          f"{len(contradictions)} contradictions across documents{OFF}\n")
+          f"{len(contradictions)} contradictions across documents{OFF}")
+    print(f"{DIM}CHECK 6 only re-derives disjointness contradictions in the pipeline ontology "
+          f"above; it is not wired to this script's exit code, and finds none here by "
+          f"construction (see docs/superpowers/plans/2026-08-24-studio-public-port.md, "
+          f"'PIVOT, 25 August 2026'). The findings this demonstration actually reports live "
+          f"in demo/precomputed/findings.json, computed independently by "
+          f"demo/dcat_conformance.py and re-derived every time 'make demo-verify' runs -- "
+          f"see its own output above, or run 'python3 -m pytest demo/tests/"
+          f"test_dcat_conformance.py' directly.{OFF}\n")
     return failures
 
 

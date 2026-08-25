@@ -30,6 +30,13 @@
     "source_url": "https://github.com/GSA/dcat-us/blob/aaa3ff4a/shacl/dcat-us_3.0_shacl_shapes.ttl"
   },
   {
+    "file": "recovered-context.jsonld",
+    "retrieved": "2026-08-25",
+    "sha256": "7d4e498fa5ff7d4f9e2fedd1ac95644960604ef79a3e98fdc618a8d1d57ad51c",
+    "source_url": "https://github.com/GSA/dcat-us/blob/04acd5c25579dd70a86a436b30a33e0784965cc4/context/dcat-us-3.0.jsonld",
+    "note": "pull request 120 (https://github.com/GSA/dcat-us/pull/120, see pr-120-record.md) deleted two files, not one: shacl/dcat-us_3.0_shacl_shapes.ttl (recovered above as recovered-shapes.ttl) and context/dcat-us-3.0.jsonld, the profile's actual, historically published JSON-LD context. This is the second deleted file, recovered from the pull request's base commit 04acd5c25579dd70a86a436b30a33e0784965cc4 the same way, verified byte-identical to a fresh 'git show 04acd5c2...:context/dcat-us-3.0.jsonld'. Read by demo/dcat_conformance.py alongside the schema-derived reconstruction; see demo/README.md for how the two differ."
+  },
+  {
     "file": "pr-120-record.md",
     "retrieved": "2026-08-25",
     "sha256": "8ec47d7578b9f798fb3c9ba1ca953fbf7f0644ceca84bacf0ab05896231f3300",

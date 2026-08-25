@@ -8,7 +8,9 @@
   "corpusTriples": {
     "asPublished": 73,
     "withDeclaredBinding": 1381,
-    "withObservedBinding": 1383
+    "withObservedBinding": 1383,
+    "withRealContextTyped": 997,
+    "withRealContextVerbatim": 73
   },
   "examples": {
     "asPublished": {
@@ -313,6 +315,212 @@
         "null_example.json"
       ],
       "zeroTripleFiles": 10
+    },
+    "withRealContextTyped": {
+      "dcatPredicateTriples": 184,
+      "distinctPredicates": 114,
+      "errors": [],
+      "files": 115,
+      "topPredicates": [
+        [
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          230
+        ],
+        [
+          "http://purl.org/dc/terms/title",
+          82
+        ],
+        [
+          "http://purl.org/dc/terms/description",
+          57
+        ],
+        [
+          "http://www.w3.org/2004/02/skos/core#prefLabel",
+          37
+        ],
+        [
+          "http://purl.org/dc/terms/identifier",
+          31
+        ],
+        [
+          "http://www.w3.org/2004/02/skos/core#inScheme",
+          29
+        ],
+        [
+          "http://xmlns.com/foaf/0.1/name",
+          28
+        ],
+        [
+          "http://www.w3.org/2004/02/skos/core#notation",
+          26
+        ],
+        [
+          "http://www.w3.org/ns/dcat#contactPoint",
+          26
+        ],
+        [
+          "http://purl.org/dc/terms/publisher",
+          25
+        ],
+        [
+          "http://www.w3.org/ns/dcat#keyword",
+          24
+        ],
+        [
+          "http://www.w3.org/2004/02/skos/core#definition",
+          23
+        ],
+        [
+          "http://purl.org/dc/terms/issued",
+          15
+        ],
+        [
+          "http://purl.org/dc/terms/type",
+          13
+        ],
+        [
+          "http://www.w3.org/ns/dcat#downloadURL",
+          13
+        ],
+        [
+          "http://purl.org/dc/terms/modified",
+          12
+        ],
+        [
+          "http://www.w3.org/2004/02/skos/core#altLabel",
+          11
+        ],
+        [
+          "http://www.w3.org/ns/adms#schemaAgency",
+          11
+        ],
+        [
+          "http://www.w3.org/ns/dcat#mediaType",
+          11
+        ],
+        [
+          "http://www.w3.org/ns/dcat#startDate",
+          11
+        ],
+        [
+          "http://www.w3.org/ns/dcat#endDate",
+          10
+        ],
+        [
+          "http://www.w3.org/ns/dcat#hadRole",
+          9
+        ],
+        [
+          "http://purl.org/dc/terms/format",
+          8
+        ],
+        [
+          "http://purl.org/dc/terms/language",
+          8
+        ],
+        [
+          "http://purl.org/dc/terms/relation",
+          8
+        ]
+      ],
+      "triples": 1069,
+      "zeroTripleFileNames": [
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_object_example.json",
+        "minimal_string_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json"
+      ],
+      "zeroTripleFiles": 39
+    },
+    "withRealContextVerbatim": {
+      "dcatPredicateTriples": 0,
+      "distinctPredicates": 1,
+      "errors": [],
+      "files": 115,
+      "topPredicates": [
+        [
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          76
+        ]
+      ],
+      "triples": 76,
+      "zeroTripleFileNames": [
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_object_example.json",
+        "minimal_string_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json"
+      ],
+      "zeroTripleFiles": 39
     }
   },
   "lenientTermCount": 22,
@@ -341,6 +549,36 @@
     "unitMeasure"
   ],
   "measured": "2026-08-25, this repository, no network, no model call",
+  "realContextBaseCommit": "04acd5c25579dd70a86a436b30a33e0784965cc4",
+  "realContextBindsConceptProperties": [
+    "altLabel",
+    "altLabelMap",
+    "definition",
+    "definitionMap",
+    "inScheme",
+    "notation",
+    "prefLabel",
+    "prefLabelMap"
+  ],
+  "realContextBindsIdentifierProperties": [
+    "creator",
+    "issued",
+    "notation",
+    "schemaAgency",
+    "version"
+  ],
+  "recoveredFilesOrgPrefixCheck": {
+    "agree": false,
+    "recoveredContextOrgPrefix": "http://www.w3c.org/ns/org#",
+    "recoveredShapesOrgPrefix": "http://www.w3.org/ns/org#"
+  },
+  "recoveredFilesOrgPrefixTypoImpactDiagnosticOnly": {
+    "description": "legacyShapesOverRealContextTypedCorpus, with recovered-context.jsonld's own 'org:' prefix replaced by recovered-shapes.ttl's, diagnostic only",
+    "focusNodes": 194,
+    "focusNodesDelta": 11,
+    "violations": 153,
+    "violationsDelta": 6
+  },
   "shacl": {
     "legacyShapesOverDeclaredBoundCorpus": {
       "bySeverity": {
@@ -419,6 +657,54 @@
       "violations": 272
     },
     "legacyShapesOverPublishedCorpus": {
+      "bySeverity": {},
+      "conforms": true,
+      "dataTriples": 73,
+      "focusNodes": 0,
+      "matchedClassCount": 0,
+      "matchedClasses": [],
+      "shapeTriples": 4043,
+      "targetClassCount": 34,
+      "violations": 0
+    },
+    "legacyShapesOverRealContextTypedCorpus": {
+      "bySeverity": {
+        "Violation": 147
+      },
+      "conforms": false,
+      "dataTriples": 997,
+      "focusNodes": 183,
+      "matchedClassCount": 23,
+      "matchedClasses": [
+        "http://data.resources.gov/ontology/dcat-us#AccessRestriction",
+        "http://data.resources.gov/ontology/dcat-us#UseRestriction",
+        "http://purl.org/dc/terms/Location",
+        "http://purl.org/dc/terms/PeriodOfTime",
+        "http://purl.org/dc/terms/Standard",
+        "http://spdx.org/rdf/terms#Checksum",
+        "http://www.w3.org/2004/02/skos/core#Concept",
+        "http://www.w3.org/2004/02/skos/core#ConceptScheme",
+        "http://www.w3.org/2006/vcard/ns#Kind",
+        "http://www.w3.org/ns/adms#Identifier",
+        "http://www.w3.org/ns/dcat#CatalogRecord",
+        "http://www.w3.org/ns/dcat#DataService",
+        "http://www.w3.org/ns/dcat#Dataset",
+        "http://www.w3.org/ns/dcat#DatasetSeries",
+        "http://www.w3.org/ns/dcat#Distribution",
+        "http://www.w3.org/ns/dcat#Relationship",
+        "http://www.w3.org/ns/dqv#Metric",
+        "http://www.w3.org/ns/dqv#QualityMeasurement",
+        "http://www.w3.org/ns/locn#Address",
+        "http://www.w3.org/ns/prov#Activity",
+        "http://www.w3.org/ns/prov#Attribution",
+        "http://xmlns.com/foaf/0.1/Agent",
+        "http://xmlns.com/foaf/0.1/Document"
+      ],
+      "shapeTriples": 4043,
+      "targetClassCount": 34,
+      "violations": 147
+    },
+    "legacyShapesOverRealContextVerbatimCorpus": {
       "bySeverity": {},
       "conforms": true,
       "dataTriples": 73,
