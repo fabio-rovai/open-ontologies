@@ -1,4 +1,4 @@
-.PHONY: build test lint audit bench bench-pizza bench-ontoaxiom bench-mushroom bench-vision bench-reasoner bench-oaei docker clean demo demo-verify
+.PHONY: build test lint audit bench bench-pizza bench-ontoaxiom bench-mushroom bench-vision bench-reasoner bench-oaei docker clean demo demo-verify demo-verify-pipeline
 
 # ─── Development ─────────────────────────────────────────────────────────────
 
@@ -90,11 +90,31 @@ demo:
 	python3 demo/bundle_fixtures.py --in demo/precomputed --out demo/precomputed/bundle.json
 	cd demo/precomputed && shasum -a 256 *.json | sort > MANIFEST.sha256
 
+# demo-verify is the command a sceptic runs: it must work on a fresh clone,
+# with no model server, no engine process, and no prior `make demo` run.
+# demo/verify.py needs demo/derived/_ontology.ttl (written by `make demo`,
+# which calls a local model) and a running engine over MCP, neither of which
+# a fresh clone has, so it is NOT part of this target -- see
+# demo-verify-pipeline below. Everything demo-verify does runs the
+# conformance script and its tests first (dcat_conformance.py has no network
+# access and no model call of its own), so the published numbers in
+# demo/precomputed/findings.json are re-derived, not merely checked as bytes
+# that have not moved; the checksum check after it additionally guards every
+# other precomputed artifact against silent drift.
 demo-verify:
-	python3 demo/verify.py
-	cd demo/precomputed && shasum -a 256 -c MANIFEST.sha256
 	python3 demo/dcat_conformance.py
 	python3 -m pytest demo/tests/test_dcat_conformance.py -q
+	cd demo/precomputed && shasum -a 256 -c MANIFEST.sha256
+
+# demo-verify-pipeline re-checks the document-to-ontology pipeline itself
+# (parse, stats, lint, enforce, vocab, reason) against whatever is currently
+# under demo/derived/. Unlike demo-verify, this needs state that only `make
+# demo` produces (demo/derived/_ontology.ttl) and a running engine reachable
+# over MCP -- ontology_from_docs.py's call_model() also expects a local model
+# server at ONTO_LLM_BASE_URL (default http://localhost:8081/v1). It is a
+# separate target precisely so a fresh clone can still run demo-verify.
+demo-verify-pipeline:
+	python3 demo/verify.py
 
 # ─── Cleanup ─────────────────────────────────────────────────────────────────
 

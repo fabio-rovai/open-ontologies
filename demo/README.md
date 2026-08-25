@@ -90,8 +90,26 @@ make demo
 
 `make demo` runs the pipeline end to end against the corpus in
 `demo/corpus/dcat-us`: read, tokenise, derive, merge, reconcile, populate,
-verify, and scan for contradictions. Each stage can also be run on its own,
-for example:
+verify. It does not scan for contradictions as part of this target;
+`contradiction_scan.py` is a separate script, targets a different bundle
+layout than this corpus uses, and is not wired into `make demo` (see the
+Makefile's own comment on the `demo` target). What `make demo` does call --
+`ontology_from_docs.py`'s own Stage 6 and `verify.py`'s Check 6 -- both search
+for disjointness contradictions and find none on this corpus by construction;
+see "The conformance finding" below for what this demonstration actually
+reports instead.
+
+`make demo` calls a local model server for the DERIVE, POPULATE and REFINE
+stages: `demo/ontology_from_docs.py` talks to `ONTO_LLM_BASE_URL` (default
+`http://localhost:8081/v1`) and to the engine binary over MCP at `ONTO_ENGINE`
+(default `http://127.0.0.1:8137`). Neither is started for you; without both
+reachable, `make demo` fails partway through STAGE 3/4/5. `make demo-verify`
+needs neither: it re-derives the published conformance figures from
+committed inputs only, so it is the command to run on a fresh clone.
+`make demo-verify-pipeline` re-checks the pipeline's own parse/stats/lint/
+enforce/vocab/reason state under `demo/derived/`, and does need both a prior
+`make demo` run and the model server above; it is a separate target for
+exactly that reason. Each stage can also be run on its own, for example:
 
 ```bash
 python3 demo/ontology_from_docs.py --corpus demo/corpus/dcat-us
@@ -113,13 +131,14 @@ pipeline's contradiction scanner detects provenance-split typing conflicts
 disagreement is not that shape: it is a README's conformance claim
 contradicted by the artifacts published alongside it. That finding is
 established by a validator, not the model, and lives in
-`demo/dcat_conformance.py`. `make demo-verify` runs it (and its tests) as
-part of the verify target, so the command a sceptic runs re-derives the
-figures below rather than only checking that committed bytes have not moved.
+`demo/dcat_conformance.py`. `make demo-verify` runs it (and its tests) FIRST,
+before checking any committed bytes, so the command a sceptic runs on a fresh
+clone re-derives the figures below rather than only checking that they have
+not moved -- and it needs no model and no prior state to do so.
 
 The script reads only files committed under `demo/corpus/dcat-us/`: the full
 GSA/dcat-us `jsonschema/definitions/` and `jsonschema/examples/` tree
-(`demo/corpus/dcat-us/jsonschema/`, vendored separately from the seven
+(`demo/corpus/dcat-us/jsonschema/`, vendored separately from the eight
 documents the pipeline above reads), `recovered-shapes.ttl`, and
 `recovered-context.jsonld`. Pull request 120 deleted two files, not one:
 the SHACL shapes and the profile's only published JSON-LD `@context`
@@ -165,3 +184,15 @@ which alone moves the real-context count by several more violations if
 corrected. `demo/tests/test_dcat_conformance.py::
 test_shacl_violation_counts_disagree_across_methods` pins the disagreement,
 not a winner.
+
+An earlier, already-public figure for the same deleted-shapes-plus-binding
+measurement is 287 (`case-studies/dcat-us-binding/README.md`, a separate,
+standalone repository's pySHACL run against its own generated binding). That
+binding's triple/predicate/DCAT/empty-file counts match this script's
+`observed` binding exactly (1,510 / 123 / 228 / 10), but its violation count
+does not: 287 there against 272 here, on the same shapes and the same bound
+corpus. The gap is investigated, not adjusted: it is not severity filtering
+and the two runs reach the identical 228 focus nodes, so the cause is still
+open. Combined with this script's own three internal methods (178 / 272 /
+147), that is four legitimate-looking counts for what sounds like one
+question, and none of the four should be quoted as settled.

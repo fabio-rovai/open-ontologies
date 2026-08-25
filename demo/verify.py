@@ -277,12 +277,12 @@ def main() -> int:
           f"{len(contradictions)} contradictions across documents{OFF}")
     print(f"{DIM}CHECK 6 only re-derives disjointness contradictions in the pipeline ontology "
           f"above; it is not wired to this script's exit code, and finds none here by "
-          f"construction (see docs/superpowers/plans/2026-08-24-studio-public-port.md, "
-          f"'PIVOT, 25 August 2026'). The findings this demonstration actually reports live "
-          f"in demo/precomputed/findings.json, computed independently by "
-          f"demo/dcat_conformance.py and re-derived every time 'make demo-verify' runs -- "
-          f"see its own output above, or run 'python3 -m pytest demo/tests/"
-          f"test_dcat_conformance.py' directly.{OFF}\n")
+          f"construction (see .superpowers/sdd/progress.md, 'PIVOT, 25 August 2026'). The "
+          f"findings this demonstration actually reports live in "
+          f"demo/precomputed/findings.json, computed independently by "
+          f"demo/dcat_conformance.py. This script (verify.py) does not run that check --"
+          f"run 'make demo-verify' (no model, no engine, works on a fresh clone) or "
+          f"'python3 -m pytest demo/tests/test_dcat_conformance.py' directly to see it.{OFF}\n")
     return failures
 
 
