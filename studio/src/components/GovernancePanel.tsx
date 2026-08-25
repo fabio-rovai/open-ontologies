@@ -30,7 +30,12 @@ interface TokenKind {
   count: number;
 }
 
-const VAULT_PROVIDER = 'Skyflow';
+// demo/tokenisation.py's ONTO_VAULT defaults to "local" (LocalVault, a JSON
+// file under demo/derived/_vault.json), not a hosted vendor: this must match
+// that default, not the swappable options it also supports (Skyflow,
+// Databunker), or this panel would name a provider this demonstration never
+// actually runs.
+const VAULT_PROVIDER = 'Local JSON (demo only)';
 const NS = 'https://w3id.org/dcat-us-demo#';
 
 export function GovernancePanel() {

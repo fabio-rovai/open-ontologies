@@ -17,7 +17,6 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import type { Provider, ToolSpec, ToolCall, ToolOutcome, TurnResult } from './types.js';
-import { displayModel } from './alias.js';
 
 /** Default model. Override with ONTO_LLM_MODEL. */
 const DEFAULT_MODEL = 'claude-opus-5';
@@ -58,7 +57,7 @@ export class AnthropicProvider implements Provider {
   }
 
   async describe(): Promise<string> {
-    return displayModel(this.model);
+    return this.model;
   }
 
   setSystem(system: string): void {

@@ -1,19 +1,22 @@
 /**
  * Viewer roles offered in the UI.
  *
- * These mirror `src-tauri/sidecars/agent/acl.ts`, which is the component that
- * actually enforces them. The duplication is deliberate: the frontend and the
- * sidecar are separate processes with separate build graphs, and a shared
- * module between them would mean bundling sidecar code into the web build.
+ * Nothing in the sidecar's live chat loop currently enforces these: the
+ * agent sidecar's retrieval path (graphrag.ts) takes no role parameter, so a
+ * live chat session is not filtered by role today. This module and
+ * `GovernancePanel.tsx` (which renders it) show what access control WOULD
+ * withhold, computed live from the corpus's own :aclGroup / :classification
+ * triples via `resolveVisibility` below, not a claim that retrieval is
+ * currently gated by it. An earlier version of this module's docstring
+ * claimed a sidecar module (`acl.ts`) enforced these roles; nothing imported
+ * that module except its own test, so nothing actually enforced anything,
+ * and it has been removed rather than left as a claim this codebase could
+ * not back up.
  *
- * DENY BY DEFAULT, on both sides of that duplication. An id sent from here
- * that the sidecar does not recognise must be denied there, not treated as
- * unrestricted, and this module's own `resolveVisibility` below must fail the
- * same way: an unrecognised role id or an empty group list withholds every
- * document, so the two lists cannot silently drift into one filtering and the
- * other not. Defaulting either side to full access on a mismatch would still
- * "work" in the sense of not crashing, which is exactly what makes it
- * dangerous: it would visibly stop filtering while looking like it was.
+ * DENY BY DEFAULT regardless: an unrecognised role id or an empty group list
+ * withholds every document rather than defaulting to full access, because a
+ * silent fallback to "everything visible" would look identical to filtering
+ * having run, which is exactly what makes it dangerous.
  */
 
 export interface RoleOption {
@@ -118,8 +121,10 @@ export interface StoreOption {
   available: boolean;
 }
 
+// 'aws-semantic' / 'AWS semantic platform' has been removed: it named no
+// real hosted product. Amazon Neptune is AWS's actual graph/RDF offering and
+// stays as a genuinely disclosed-but-unavailable option.
 export const STORE_OPTIONS: StoreOption[] = [
   { id: 'embedded', label: 'Embedded engine', available: true },
   { id: 'neptune', label: 'Amazon Neptune', available: false },
-  { id: 'aws-semantic', label: 'AWS semantic platform', available: false },
 ];

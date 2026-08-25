@@ -14,7 +14,6 @@
 
 import { spawn } from 'child_process';
 import type { Provider, ToolSpec, ToolOutcome, TurnResult } from './types.js';
-import { displayModel } from './alias.js';
 
 export class ClaudeCliProvider implements Provider {
   readonly name = 'claude-cli';
@@ -31,7 +30,7 @@ export class ClaudeCliProvider implements Provider {
   }
 
   async describe(): Promise<string> {
-    return displayModel(this.model ?? 'claude-cli');
+    return this.model ?? 'claude-cli';
   }
 
   setSystem(system: string): void {

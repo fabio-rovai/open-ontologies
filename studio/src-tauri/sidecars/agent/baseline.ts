@@ -16,6 +16,16 @@
  * module docstring), and nothing here manufactures it. Callers that want the
  * comparison surface, not just this one side of it, combine this module's
  * output with graphrag.ts's own, and leave the verdict to a person.
+ *
+ * NOT CURRENTLY WIRED. index.ts's stdin/stdout protocol has no message type
+ * that calls this, and studio/src/lib/compare-source.ts's live
+ * getCompareSource() throws rather than reaching it ("No live comparison is
+ * implemented for..."). That is an intentional, disclosed capability gap,
+ * not an oversight discovered here: wiring this in would mean adding a
+ * request type to the sidecar protocol and a matching Tauri command, real
+ * cross-process plumbing this module alone does not decide. Until that
+ * lands, this stays a correct, unit-tested implementation with no caller,
+ * exercised only by baseline.test.ts.
  */
 
 const STOP = new Set(

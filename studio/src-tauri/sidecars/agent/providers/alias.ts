@@ -1,18 +1,6 @@
 /**
- * Model display aliasing and provider selection.
- *
- * What the UI shows about which model is serving a request is a presentation
- * decision, not a technical one. In a client setting the specific vendor and
- * weights are often not what the conversation should be about, and naming them
- * invites a debate that is beside the point.
- *
- * Set ONTO_MODEL_LABEL to display a codename instead of the real identifier.
- * Nothing about routing changes: this affects the label only.
+ * Provider selection.
  */
-export function displayModel(real: string): string {
-  const label = process.env.ONTO_MODEL_LABEL;
-  return label && label.trim() ? label.trim() : real;
-}
 
 import type { Provider } from './types.js';
 import { AnthropicProvider } from './anthropic.js';

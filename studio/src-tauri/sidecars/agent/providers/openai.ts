@@ -11,7 +11,6 @@
  */
 
 import type { Provider, ToolSpec, ToolCall, ToolOutcome, TurnResult } from './types.js';
-import { displayModel } from './alias.js';
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
@@ -59,7 +58,7 @@ export class OpenAICompatibleProvider implements Provider {
   }
 
   async describe(): Promise<string> {
-    return displayModel(await this.resolveModel());
+    return this.resolveModel();
   }
 
   setSystem(system: string): void {

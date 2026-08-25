@@ -6,6 +6,7 @@ import { Graph3D } from './Graph3D';
 import { ChatPanel } from './ChatPanel';
 import { PropertyInspector } from './PropertyInspector';
 import { LineagePanel } from './LineagePanel';
+import { GovernancePanel } from './GovernancePanel';
 import * as mcp from '../lib/mcp-client';
 
 /**
@@ -27,6 +28,7 @@ export function LiveChrome({ children }: { children: React.ReactNode }) {
   const [graphMode, setGraphMode] = useState<'2d' | '3d'>('2d');
   const [showInspector, setShowInspector] = useState(false);
   const [showLineage, setShowLineage] = useState(false);
+  const [showGovernance, setShowGovernance] = useState(false);
   const [selectedNode, setSelectedNode] = useState<{ id: string; label: string; uri: string } | null>(null);
   const [projectName, setProjectName] = useState('studio-live');
   const [savingAs, setSavingAs] = useState(false);
@@ -181,6 +183,12 @@ export function LiveChrome({ children }: { children: React.ReactNode }) {
                            color: showLineage ? 'var(--bg-primary)' : 'var(--text-secondary)' }}>
             Lineage
           </button>
+          <button onClick={() => setShowGovernance(g => !g)}
+                  className="text-xs px-2 py-1 rounded"
+                  style={{ background: showGovernance ? 'var(--accent)' : 'var(--bg-panel)',
+                           color: showGovernance ? 'var(--bg-primary)' : 'var(--text-secondary)' }}>
+            Governance
+          </button>
         </div>
       </div>
 
@@ -202,6 +210,13 @@ export function LiveChrome({ children }: { children: React.ReactNode }) {
           <div className="w-72 border-l flex flex-col overflow-hidden"
                style={{ borderColor: 'var(--border)', background: 'var(--bg-panel)' }}>
             <LineagePanel />
+          </div>
+        )}
+
+        {showGovernance && (
+          <div className="w-72 border-l overflow-hidden"
+               style={{ borderColor: 'var(--border)', background: 'var(--bg-panel)' }}>
+            <GovernancePanel />
           </div>
         )}
 
