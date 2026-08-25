@@ -12,7 +12,7 @@ export interface GraphView {
   edges: { source: string; target: string }[]
 }
 export type Decision = { kind: 'accept' | 'reject'; note?: string }
-export interface Chunk { type: 'text' | 'tool_call'; value: string }
+export interface Chunk { type: 'text' | 'tool_call' | 'unscripted'; value: string }
 
 export interface DemoSource {
   corpus(): Promise<Document[]>

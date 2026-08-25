@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { createReplaySource } from '../replay-source'
+import { createReplaySource, type ReplayFixtures } from '../replay-source'
+import type { Chunk } from '../demo-source'
 
-const fixtures = {
+const fixtures: ReplayFixtures = {
   corpus: [{ id: 'README', title: 'README', text: 'an implementation of the W3C DCAT standard' }],
   graph: { classes: [{ iri: 'ex:Dataset' }], properties: [], edges: [] },
   findings: [
@@ -33,6 +34,27 @@ describe('ReplaySource', () => {
     expect(fixtures.findings).toHaveLength(1)
   })
 
+  it('does not hand out live references into the claim fixtures', async () => {
+    const src = createReplaySource(fixtures)
+    const found = await src.findings()
+    found[0].claims[0].object = 'mutated-in-place'
+    expect(fixtures.findings[0].claims[0].object).toBe('dcat-conformant')
+  })
+
+  it('does not hand out a live reference into the corpus fixtures', async () => {
+    const src = createReplaySource(fixtures)
+    const found = await src.corpus()
+    found[0].title = 'mutated-in-place'
+    expect(fixtures.corpus[0].title).toBe('README')
+  })
+
+  it('does not hand out a live reference into the graph fixtures', async () => {
+    const src = createReplaySource(fixtures)
+    const found = await src.graph()
+    found.classes[0].label = 'mutated-in-place'
+    expect(fixtures.graph.classes[0].label).toBeUndefined()
+  })
+
   it('streams a scripted answer', async () => {
     const src = createReplaySource(fixtures)
     const out: string[] = []
@@ -40,10 +62,12 @@ describe('ReplaySource', () => {
     expect(out.join('')).toContain('disagree')
   })
 
-  it('answers unknown questions without throwing', async () => {
+  it('marks an unscripted answer with a distinct chunk type instead of relying on wording', async () => {
     const src = createReplaySource(fixtures)
-    const out: string[] = []
-    for await (const chunk of src.ask('unscripted question')) out.push(chunk.value)
-    expect(out.join('')).not.toHaveLength(0)
+    const chunks: Chunk[] = []
+    for await (const chunk of src.ask('unscripted question')) chunks.push(chunk)
+    expect(chunks).toHaveLength(1)
+    expect(chunks[0].type).toBe('unscripted')
+    expect(chunks[0].value.length).toBeGreaterThan(0)
   })
 })
