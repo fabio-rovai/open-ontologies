@@ -182,6 +182,15 @@
       "title": "[DCAT-US Schema v3.0](https://github.com/GSA/dcat-us/)"
     },
     {
+      "file": "recovered-context.jsonld",
+      "id": "recovered-context",
+      "retrieved": "2026-08-25",
+      "sha256": "7d4e498fa5ff7d4f9e2fedd1ac95644960604ef79a3e98fdc618a8d1d57ad51c",
+      "source_url": "https://github.com/GSA/dcat-us/blob/04acd5c25579dd70a86a436b30a33e0784965cc4/context/dcat-us-3.0.jsonld",
+      "text": "{\n    \"@context\": {\n        \"@version\": 1.1,\n        \"@protected\": true,\n        \"adms\": \"http://www.w3.org/ns/adms#\",\n        \"cnt\": \"http://www.w3.org/2011/content#\",\n        \"dash\": \"http://datashapes.org/dash#\",\n        \"dcat\": \"http://www.w3.org/ns/dcat#\",\n        \"dcatap\": \"http://data.europa.eu/r5r/\",\n        \"dcat-us\": \"http://data.resources.gov/ontology/dcat-us#\",\n        \"dcat-us-shp\": \"http://data.resources.gov/shapes/dcat-us#\",\n        \"dcterms\": \"http://purl.org/dc/terms/\",\n        \"dqv\": \"http://www.w3.org/ns/dqv#\",\n        \"foaf\": \"http://xmlns.com/foaf/0.1/\",\n        \"gsp\": \"http://www.opengis.net/ont/geosparql#\",\n        \"locn\": \"http://www.w3.org/ns/locn#\",\n        \"odrs\": \"http://schema.theodi.org/odrs#\",\n        \"org\": \"http://www.w3c.org/ns/org#\",\n        \"owl\": \"http://www.w3.org/2002/07/owl#\",\n        \"prov\": \"http://www.w3.org/ns/prov#\",\n        \"rdf\": \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\",\n        \"rdfs\": \"http://www.w3.org/2000/01/rdf-schema#\",\n        \"schema\": \"http://schema.org/\",\n        \"sh\": \"http://www.w3.org/ns/shacl#\",\n        \"skos\": \"http://www.w3.org/2004/02/skos/core#\",\n        \"sdmx-attribute\": \"http://purl.org/linked-data/sdmx/2009/attribute#\",\n        \"spdx\": \"http://spdx.org/rdf/terms#\",\n        \"vcard\": \"http://www.w3.org/2006/vcard/ns#\",\n        \"adms:Identifier\": {\n            \"@id\": \"adms:Identifier\",\n            \"@context\": {\n                \"schemaAgency\": \"http://www.w3.org/ns/adms#schemaAgency\",\n                \"creator\": {\n                    \"@id\": \"dcterms:creator\",\n                    \"@type\": \"@id\"\n                },\n                \"issued\": {\n                    \"@id\": \"dcterms:issued\"\n                },\n                \"version\": \"http://purl.org/dc/terms/version\",\n                \"notation\": \"http://www.w3.org/2004/02/skos/core#notation\"\n            }\n        },\n        \"dcat-us:AccessRestriction\": {\n            \"@id\": \"dcat-us:AccessRestriction\",\n            \"@context\": {\n                \"restrictionNoteMap\": {\n                    \"@id\": \"http://data.resources.gov/ontology/dcat-us#restrictionNote\",\n                    \"@container\": \"@language\"\n                },\n                \"restrictionNote\": \"http://data.resources.gov/ontology/dcat-us#restrictionNote\",\n                \"restrictionStatus\": {\n                    \"@id\": \"dcat-us:restrictionStatus\",\n                    \"@type\": \"@id\"\n                },\n                \"specificRestriction\": {\n                    \"@id\": \"dcat-us:specificRestriction\",\n                    \"@type\": \"@id\"\n                }\n            }\n        },\n        \"dcat-us:CUIRestriction\": {\n            \"@id\": \"dcat-us:CUIRestriction\",\n            \"@context\": {\n                \"cuiBannerMarking\": \"http://data.resources.gov/ontology/dcat-us#cuiBannerMarking\",\n                \"designationIndicator\": \"http://data.resources.gov/ontology/dcat-us#designationIndicator\",\n                \"requiredIndicatorPerAuthority\": {\n                    \"@id\": \"dcat-us:requiredIndicatorPerAuthority\",\n                    \"@type\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"@container\": \"@set\"\n                }\n            }\n        },\n        \"dcat-us:GeographicBoundingBox\": {\n            \"@id\": \"dcat-us:GeographicBoundingBox\",\n            \"@context\": {\n                \"eastBoundingLongitude\": {\n                    \"@id\": \"dcat-us:eastBoundingLongitude\",\n                    \"@type\": \"http://www.w3.org/2001/XMLSchema#decimal\"\n                },\n                \"northBoundingLatitude\": {\n                    \"@id\": \"dcat-us:northBoundingLatitude\",\n                    \"@type\": \"http://www.w3.org/2001/XMLSchema#decimal\"\n                },\n                \"southBoundingLatitude\": {\n                    \"@id\": \"dcat-us:southBoundingLatitude\",\n                    \"@type\": \"http://www.w3.org/2001/XMLSchema#decimal\"\n                },\n                \"westBoundingLongitude\": {\n                    \"@id\": \"dcat-us:westBoundingLongitude\",\n                    \"@type\": \"http://www.w3.org/2001/XMLSchema#decimal\"\n                }\n            }\n        },\n        \"dcat-us:LiabilityStatement\": {\n            \"@id\": \"dcat-us:LiabilityStatement\",\n            \"@context\": {\n                \"labelMap\": {\n                    \"@id\": \"http://www.w3.org/2000/01/rdf-schema#label\",\n                    \"@container\": \"@language\"\n                },\n                \"label\": \"http://www.w3.org/2000/01/rdf-schema#label\"\n            }\n        },\n        \"dcat-us:UseRestriction\": {\n            \"@id\": \"dcat-us:UseRestriction\",\n            \"@context\": {\n                \"restrictionNoteMap\": {\n                    \"@id\": \"http://data.resources.gov/ontology/dcat-us#restrictionNote\",\n                    \"@container\": \"@language\"\n                },\n                \"restrictionNote\": \"http://data.resources.gov/ontology/dcat-us#restrictionNote\",\n                \"restrictionStatus\": {\n                    \"@id\": \"dcat-us:restrictionStatus\",\n                    \"@type\": \"@id\"\n                },\n                \"specificRestriction\": {\n                    \"@id\": \"dcat-us:specificRestriction\",\n                    \"@type\": \"@id\"\n                }\n            }\n        },\n        \"dcat:Catalog\": {\n            \"@id\": \"dcat:Catalog\",\n            \"@context\": {\n                \"catalog\": {\n                    \"@id\": \"dcat:catalog\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"contactPoint\": {\n                    \"@id\": \"dcat:contactPoint\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"dataset\": {\n                    \"@id\": \"dcat:dataset\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"keywordMap\": {\n                    \"@id\": \"http://www.w3.org/ns/dcat#keyword\",\n                    \"@container\": \"@language\"\n                },\n                \"keyword\": \"http://www.w3.org/ns/dcat#keyword\",\n                \"record\": {\n                    \"@id\": \"dcat:record\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"service\": {\n                    \"@id\": \"dcat:service\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"theme\": {\n                    \"@id\": \"dcat:theme\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"themeTaxonomy\": {\n                    \"@id\": \"dcat:themeTaxonomy\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"accessRights\": {\n                    \"@id\": \"dcterms:accessRights\",\n                    \"@type\": \"@id\"\n                },\n                \"conformsTo\": {\n                    \"@id\": \"dcterms:conformsTo\",\n                    \"@type\": \"@id\"\n                },\n                \"creator\": {\n                    \"@id\": \"dcterms:creator\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"descriptionMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/description\",\n                    \"@container\": \"@language\"\n                },\n                \"description\": \"http://purl.org/dc/terms/description\",\n                \"hasPart\": {\n                    \"@id\": \"dcterms:hasPart\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"identifier\": {\n                    \"@id\": \"dcterms:identifier\",\n                    \"@container\": \"@set\"\n                },\n                \"issued\": {\n                    \"@id\": \"dcterms:issued\"\n                },\n                \"language\": {\n                    \"@id\": \"dcterms:language\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\",\n                    \"@context\": {\n                        \"@base\": \"http://id.loc.gov/vocabulary/iso639-1/\"\n                    }\n                },\n                \"license\": {\n                    \"@id\": \"dcterms:license\",\n                    \"@type\": \"@id\"\n                },\n                \"modified\": {\n                    \"@id\": \"dcterms:modified\"\n                },\n                \"publisher\": {\n                    \"@id\": \"dcterms:publisher\",\n                    \"@type\": \"@id\"\n                },\n                \"rights\": {\n                    \"@id\": \"dcterms:rights\",\n                    \"@type\": \"@id\"\n                },\n                \"rightsHolder\": {\n                    \"@id\": \"dcterms:rightsHolder\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"spatial\": {\n                    \"@id\": \"dcterms:spatial\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"subject\": {\n                    \"@id\": \"dcterms:subject\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"temporal\": {\n                    \"@id\": \"dcterms:temporal\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"titleMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/title\",\n                    \"@container\": \"@language\"\n                },\n                \"title\": \"http://purl.org/dc/terms/title\",\n                \"category\": {\n                    \"@id\": \"dcterms:type\",\n                    \"@type\": \"@id\"\n                },\n                \"homepage\": {\n                    \"@id\": \"foaf:homepage\",\n                    \"@type\": \"@id\"\n                },\n                \"qualifiedAttribution\": {\n                    \"@id\": \"prov:qualifiedAttribution\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                }\n            }\n        },\n        \"dcat:CatalogRecord\": {\n            \"@id\": \"dcat:CatalogRecord\",\n            \"@context\": {\n                \"status\": {\n                    \"@id\": \"adms:status\",\n                    \"@type\": \"@id\"\n                },\n                \"conformsTo\": {\n                    \"@id\": \"dcterms:conformsTo\",\n                    \"@type\": \"@id\"\n                },\n                \"description\": {\n                    \"@id\": \"dcterms:description\",\n                    \"@container\": \"@set\"\n                },\n                \"issued\": {\n                    \"@id\": \"dcterms:issued\",\n                    \"@container\": \"@set\"\n                },\n                \"language\": {\n                    \"@id\": \"dcterms:language\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\",\n                    \"@context\": {\n                        \"@base\": \"http://id.loc.gov/vocabulary/iso639-1/\"\n                    }\n                },\n                \"modified\": {\n                    \"@id\": \"dcterms:modified\"\n                },\n                \"source\": {\n                    \"@id\": \"dcterms:source\",\n                    \"@type\": \"@id\"\n                },\n                \"titleMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/title\",\n                    \"@container\": \"@language\"\n                },\n                \"title\": \"http://purl.org/dc/terms/title\",\n                \"primaryTopic\": {\n                    \"@id\": \"foaf:primaryTopic\",\n                    \"@type\": \"@id\"\n                }\n            }\n        },\n        \"dcat:DataService\": {\n            \"@id\": \"dcat:DataService\",\n            \"@context\": {\n                \"contactPoint\": {\n                    \"@id\": \"dcat:contactPoint\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"endpointDescription\": {\n                    \"@id\": \"dcat:endpointDescription\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"endpointURL\": {\n                    \"@id\": \"dcat:endpointURL\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"keywordMap\": {\n                    \"@id\": \"http://www.w3.org/ns/dcat#keyword\",\n                    \"@container\": \"@language\"\n                },\n                \"keyword\": \"http://www.w3.org/ns/dcat#keyword\",\n                \"servesDataset\": {\n                    \"@id\": \"dcat:servesDataset\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"spatialResolutionInMeters\": {\n                    \"@id\": \"dcat:spatialResolutionInMeters\",\n                    \"@type\": \"http://www.w3.org/2001/XMLSchema#decimal\",\n                    \"@container\": \"@set\"\n                },\n                \"temporalResolution\": {\n                    \"@id\": \"dcat:temporalResolution\",\n                    \"@container\": \"@set\"\n                },\n                \"theme\": {\n                    \"@id\": \"dcat:theme\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"geographicBoundingBox\": {\n                    \"@id\": \"dcat-us:geographicBoundingBox\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"accessRights\": {\n                    \"@id\": \"dcterms:accessRights\",\n                    \"@type\": \"@id\"\n                },\n                \"conformsTo\": {\n                    \"@id\": \"dcterms:conformsTo\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"created\": {\n                    \"@id\": \"dcterms:created\"\n                },\n                \"creator\": {\n                    \"@id\": \"dcterms:creator\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"descriptionMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/description\",\n                    \"@container\": \"@language\"\n                },\n                \"description\": \"http://purl.org/dc/terms/description\",\n                \"identifier\": {\n                    \"@id\": \"dcterms:identifier\",\n                    \"@container\": \"@set\"\n                },\n                \"language\": {\n                    \"@id\": \"dcterms:language\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\",\n                    \"@context\": {\n                        \"@base\": \"http://id.loc.gov/vocabulary/iso639-1/\"\n                    }\n                },\n                \"license\": {\n                    \"@id\": \"dcterms:license\",\n                    \"@type\": \"@id\"\n                },\n                \"modified\": {\n                    \"@id\": \"dcterms:modified\"\n                },\n                \"publisher\": {\n                    \"@id\": \"dcterms:publisher\",\n                    \"@type\": \"@id\"\n                },\n                \"rights\": {\n                    \"@id\": \"dcterms:rights\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"rightsHolder\": {\n                    \"@id\": \"dcterms:rightsHolder\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"spatial\": {\n                    \"@id\": \"dcterms:spatial\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"temporal\": {\n                    \"@id\": \"dcterms:temporal\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"titleMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/title\",\n                    \"@container\": \"@language\"\n                },\n                \"title\": \"http://purl.org/dc/terms/title\",\n                \"category\": {\n                    \"@id\": \"dcterms:type\",\n                    \"@type\": \"@id\"\n                },\n                \"hasQualityMeasurement\": {\n                    \"@id\": \"dqv:hasQualityMeasurement\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"hasPolicy\": {\n                    \"@id\": \"odrl:hasPolicy\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"qualifiedAttribution\": {\n                    \"@id\": \"prov:qualifiedAttribution\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"wasUsedBy\": {\n                    \"@id\": \"prov:wasUsedBy\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                }\n            }\n        },\n        \"dcat:Dataset\": {\n            \"@id\": \"dcat:Dataset\",\n            \"@context\": {\n                \"otherIdentifier\": {\n                    \"@id\": \"adms:identifier\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"sample\": {\n                    \"@id\": \"adms:sample\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"status\": {\n                    \"@id\": \"adms:status\",\n                    \"@type\": \"@id\"\n                },\n                \"supportedSchema\": {\n                    \"@id\": \"adms:supportedSchema\",\n                    \"@type\": \"@id\"\n                },\n                \"versionNotes\": \"http://www.w3.org/ns/adms#versionNotes\",\n                \"contactPoint\": {\n                    \"@id\": \"dcat:contactPoint\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"distribution\": {\n                    \"@id\": \"dcat:distribution\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"first\": {\n                    \"@id\": \"dcat:first\",\n                    \"@type\": \"@id\"\n                },\n                \"hasCurrentVersion\": {\n                    \"@id\": \"dcat:hasCurrentVersion\",\n                    \"@type\": \"@id\"\n                },\n                \"hasVersion\": {\n                    \"@id\": \"dcat:hasVersion\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"inSeries\": {\n                    \"@id\": \"dcat:inSeries\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"keywordMap\": {\n                    \"@id\": \"http://www.w3.org/ns/dcat#keyword\",\n                    \"@container\": \"@language\"\n                },\n                \"keyword\": \"http://www.w3.org/ns/dcat#keyword\",\n                \"landingPage\": {\n                    \"@id\": \"dcat:landingPage\",\n                    \"@type\": \"@id\"\n                },\n                \"previousVersion\": {\n                    \"@id\": \"dcat:previousVersion\",\n                    \"@type\": \"@id\"\n                },\n                \"qualifiedRelation\": {\n                    \"@id\": \"dcat:qualifiedRelation\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"spatialResolutionInMeters\": {\n                    \"@id\": \"dcat:spatialResolutionInMeters\",\n                    \"@type\": \"http://www.w3.org/2001/XMLSchema#decimal\"\n                },\n                \"temporalResolution\": {\n                    \"@id\": \"dcat:temporalResolution\",\n                    \"@type\": \"http://www.w3.org/2001/XMLSchema#duration\"\n                },\n                \"theme\": {\n                    \"@id\": \"dcat:theme\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"version\": \"http://www.w3.org/ns/dcat#version\",\n                \"describedBy\": {\n                    \"@id\": \"dcat-us:describedBy\",\n                    \"@type\": \"@id\"\n                },\n                \"geographicBoundingBox\": {\n                    \"@id\": \"dcat-us:geographicBoundingBox\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"liabilityStatement\": {\n                    \"@id\": \"dcat-us:liabilityStatement\",\n                    \"@type\": \"@id\"\n                },\n                \"metadataDistribution\": {\n                    \"@id\": \"dcat-us:metadataDistribution\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"purposeMap\": {\n                    \"@id\": \"http://data.resources.gov/ontology/dcat-us#purpose\",\n                    \"@container\": \"@language\"\n                },\n                \"purpose\": \"http://data.resources.gov/ontology/dcat-us#purpose\",\n                \"accessRights\": {\n                    \"@id\": \"dcterms:accessRights\",\n                    \"@type\": \"@id\"\n                },\n                \"accrualPeriodicity\": {\n                    \"@id\": \"dcterms:accrualPeriodicity\",\n                    \"@type\": \"@id\",\n                    \"@context\": {\n                        \"@base\": \"http://purl.org/cld/freq/\"\n                    }\n                },\n                \"conformsTo\": {\n                    \"@id\": \"dcterms:conformsTo\",\n                    \"@type\": \"@id\"\n                },\n                \"contributor\": {\n                    \"@id\": \"dcterms:contributor\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"created\": {\n                    \"@id\": \"dcterms:created\"\n                },\n                \"creator\": {\n                    \"@id\": \"dcterms:creator\",\n                    \"@type\": \"@id\"\n                },\n                \"descriptionMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/description\",\n                    \"@container\": \"@language\"\n                },\n                \"description\": \"http://purl.org/dc/terms/description\",\n                \"hasPart\": {\n                    \"@id\": \"dcterms:hasPart\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"identifier\": {\n                    \"@id\": \"dcterms:identifier\",\n                    \"@container\": \"@set\"\n                },\n                \"isReferencedBy\": {\n                    \"@id\": \"dcterms:isReferencedBy\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"issued\": {\n                    \"@id\": \"dcterms:issued\"\n                },\n                \"language\": {\n                    \"@id\": \"dcterms:language\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\",\n                    \"@context\": {\n                        \"@base\": \"http://id.loc.gov/vocabulary/iso639-1/\"\n                    }\n                },\n                \"modified\": {\n                    \"@id\": \"dcterms:modified\"\n                },\n                \"provenance\": {\n                    \"@id\": \"dcterms:provenance\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"publisher\": {\n                    \"@id\": \"dcterms:publisher\",\n                    \"@type\": \"@id\"\n                },\n                \"relation\": {\n                    \"@id\": \"dcterms:relation\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"replaces\": {\n                    \"@id\": \"dcterms:replaces\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"rights\": {\n                    \"@id\": \"dcterms:rights\",\n                    \"@type\": \"@id\"\n                },\n                \"rightsHolder\": {\n                    \"@id\": \"dcterms:rightsHolder\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"source\": {\n                    \"@id\": \"dcterms:source\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"spatial\": {\n                    \"@id\": \"dcterms:spatial\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"subject\": {\n                    \"@id\": \"dcterms:subject\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"temporal\": {\n                    \"@id\": \"dcterms:temporal\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"titleMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/title\",\n                    \"@container\": \"@language\"\n                },\n                \"title\": \"http://purl.org/dc/terms/title\",\n                \"category\": {\n                    \"@id\": \"dcterms:type\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"hasQualityMeasurement\": {\n                    \"@id\": \"dqv:hasQualityMeasurement\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"page\": {\n                    \"@id\": \"foaf:page\",\n                    \"@type\": \"@id\"\n                },\n                \"qualifiedAttribution\": {\n                    \"@id\": \"prov:qualifiedAttribution\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"wasAttributedTo\": {\n                    \"@id\": \"prov:wasAttributedTo\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"wasGeneratedBy\": {\n                    \"@id\": \"prov:wasGeneratedBy\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"wasUsedBy\": {\n                    \"@id\": \"prov:wasUsedBy\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"image\": {\n                    \"@id\": \"schema:image\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"scopeNoteMap\": {\n                    \"@id\": \"http://www.w3.org/2004/02/skos/core#scopeNote\",\n                    \"@container\": \"@language\"\n                },\n                \"scopeNote\": \"http://www.w3.org/2004/02/skos/core#scopeNote\"\n            }\n        },\n        \"dcat:DatasetSeries\": {\n            \"@id\": \"dcat:DatasetSeries\",\n            \"@context\": {\n                \"contactPoint\": {\n                    \"@id\": \"dcat:contactPoint\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"first\": {\n                    \"@id\": \"dcat:first\",\n                    \"@type\": \"@id\"\n                },\n                \"last\": {\n                    \"@id\": \"dcat:last\",\n                    \"@type\": \"@id\"\n                },\n                \"seriesMember\": {\n                    \"@id\": \"dcat:seriesMember\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"accrualPeriodicity\": {\n                    \"@id\": \"dcterms:accrualPeriodicity\",\n                    \"@type\": \"@id\",\n                    \"@context\": {\n                        \"@base\": \"http://purl.org/cld/freq/\"\n                    }\n                },\n                \"descriptionMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/description\",\n                    \"@container\": \"@language\"\n                },\n                \"description\": \"http://purl.org/dc/terms/description\",\n                \"issued\": {\n                    \"@id\": \"dcterms:issued\"\n                },\n                \"modified\": {\n                    \"@id\": \"dcterms:modified\"\n                },\n                \"publisher\": {\n                    \"@id\": \"dcterms:publisher\",\n                    \"@type\": \"@id\"\n                },\n                \"spatial\": {\n                    \"@id\": \"dcterms:spatial\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"temporal\": {\n                    \"@id\": \"dcterms:temporal\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"titleMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/title\",\n                    \"@container\": \"@language\"\n                },\n                \"title\": \"http://purl.org/dc/terms/title\"\n            }\n        },\n        \"dcat:Distribution\": {\n            \"@id\": \"dcat:Distribution\",\n            \"@context\": {\n                \"representationTechnique\": {\n                    \"@id\": \"adms:representationTechnique\",\n                    \"@type\": \"@id\"\n                },\n                \"status\": {\n                    \"@id\": \"adms:status\",\n                    \"@type\": \"@id\"\n                },\n                \"characterEncoding\": {\n                    \"@id\": \"cnt:characterEncoding\",\n                    \"@container\": \"@set\"\n                },\n                \"accessService\": {\n                    \"@id\": \"dcat:accessService\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"accessURL\": {\n                    \"@id\": \"dcat:accessURL\",\n                    \"@type\": \"@id\"\n                },\n                \"byteSize\": {\n                    \"@id\": \"dcat:byteSize\",\n                    \"@type\": \"http://www.w3.org/2001/XMLSchema#nonNegativeInteger\"\n                },\n                \"compressFormat\": {\n                    \"@id\": \"dcat:compressFormat\",\n                    \"@type\": \"@id\"\n                },\n                \"downloadURL\": {\n                    \"@id\": \"dcat:downloadURL\",\n                    \"@type\": \"@id\"\n                },\n                \"mediaType\": {\n                    \"@id\": \"dcat:mediaType\",\n                    \"@type\": \"@id\",\n                    \"@context\": {\n                        \"@base\": \"https://www.iana.org/assignments/media-types/\"\n                    }\n                },\n                \"packageFormat\": {\n                    \"@id\": \"dcat:packageFormat\",\n                    \"@type\": \"@id\"\n                },\n                \"spatialResolutionInMeters\": {\n                    \"@id\": \"dcat:spatialResolutionInMeters\",\n                    \"@type\": \"http://www.w3.org/2001/XMLSchema#decimal\"\n                },\n                \"temporalResolution\": {\n                    \"@id\": \"dcat:temporalResolution\",\n                    \"@type\": \"http://www.w3.org/2001/XMLSchema#duration\"\n                },\n                \"availability\": {\n                    \"@id\": \"dcatap:availability\",\n                    \"@type\": \"@id\"\n                },\n                \"accessRestriction\": {\n                    \"@id\": \"dcat-us:accessRestriction\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"cuiRestriction\": {\n                    \"@id\": \"dcat-us:cuiRestriction\",\n                    \"@type\": \"@id\"\n                },\n                \"describedBy\": {\n                    \"@id\": \"dcat-us:describedBy\",\n                    \"@type\": \"@id\"\n                },\n                \"useRestriction\": {\n                    \"@id\": \"dcat-us:useRestriction\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"accessRights\": {\n                    \"@id\": \"dcterms:accessRights\",\n                    \"@type\": \"@id\"\n                },\n                \"conformsTo\": {\n                    \"@id\": \"dcterms:conformsTo\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"descriptionMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/description\",\n                    \"@container\": \"@language\"\n                },\n                \"description\": \"http://purl.org/dc/terms/description\",\n                \"format\": {\n                    \"@id\": \"dcterms:format\",\n                    \"@type\": \"@id\"\n                },\n                \"identifier\": {\n                    \"@id\": \"dcterms:identifier\",\n                    \"@container\": \"@set\"\n                },\n                \"issued\": {\n                    \"@id\": \"dcterms:issued\"\n                },\n                \"language\": {\n                    \"@id\": \"dcterms:language\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\",\n                    \"@context\": {\n                        \"@base\": \"http://id.loc.gov/vocabulary/iso639-1/\"\n                    }\n                },\n                \"license\": {\n                    \"@id\": \"dcterms:license\",\n                    \"@type\": \"@id\"\n                },\n                \"modified\": {\n                    \"@id\": \"dcterms:modified\"\n                },\n                \"rights\": {\n                    \"@id\": \"dcterms:rights\",\n                    \"@type\": \"@id\"\n                },\n                \"titleMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/title\",\n                    \"@container\": \"@language\"\n                },\n                \"title\": \"http://purl.org/dc/terms/title\",\n                \"hasQualityMeasurement\": {\n                    \"@id\": \"dqv:hasQualityMeasurement\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"page\": {\n                    \"@id\": \"foaf:page\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"image\": {\n                    \"@id\": \"schema:image\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"checksum\": {\n                    \"@id\": \"spdx:checksum\",\n                    \"@type\": \"@id\"\n                }\n            }\n        },\n        \"dcat:Relationship\": {\n            \"@id\": \"dcat:Relationship\",\n            \"@context\": {\n                \"hadRole\": {\n                    \"@id\": \"dcat:hadRole\",\n                    \"@type\": \"@id\"\n                },\n                \"relation\": {\n                    \"@id\": \"dcterms:relation\",\n                    \"@type\": \"@id\"\n                }\n            }\n        },\n        \"dcterms:LicenseDocument\": {\n            \"@id\": \"dcterms:LicenseDocument\",\n            \"@context\": {\n                \"licenseText\": \"http://spdx.org/rdf/terms#licenseText\"\n            }\n        },\n        \"dcterms:Location\": {\n            \"@id\": \"dcterms:Location\",\n            \"@context\": {\n                \"bbox\": {\n                    \"@id\": \"dcat:bbox\"\n                },\n                \"centroid\": {\n                    \"@id\": \"dcat:centroid\"\n                },\n                \"identifier\": {\n                    \"@id\": \"dcterms:identifier\",\n                    \"@container\": \"@set\"\n                },\n                \"geometry\": {\n                    \"@id\": \"locn:geometry\"\n                },\n                \"inScheme\": {\n                    \"@id\": \"skos:inScheme\",\n                    \"@type\": \"@id\"\n                },\n                \"altLabelMap\": {\n                    \"@id\": \"http://www.w3.org/2004/02/skos/core#altLabel\",\n                    \"@container\": \"@language\"\n                },\n                \"altLabel\": \"http://www.w3.org/2004/02/skos/core#altLabel\",\n                \"prefLabelMap\": {\n                    \"@id\": \"http://www.w3.org/2004/02/skos/core#prefLabel\",\n                    \"@container\": \"@language\"\n                },\n                \"prefLabel\": \"http://www.w3.org/2004/02/skos/core#prefLabel\"\n            }\n        },\n        \"dcterms:MediaType\": {\n            \"@id\": \"dcterms:MediaType\",\n            \"@context\": {\n                \"labelMap\": {\n                    \"@id\": \"http://www.w3.org/2000/01/rdf-schema#label\",\n                    \"@container\": \"@language\"\n                },\n                \"label\": \"http://www.w3.org/2000/01/rdf-schema#label\"\n            }\n        },\n        \"dcterms:PeriodOfTime\": {\n            \"@id\": \"dcterms:PeriodOfTime\",\n            \"@context\": {\n                \"endDate\": {\n                    \"@id\": \"dcat:endDate\"\n                },\n                \"startDate\": {\n                    \"@id\": \"dcat:startDate\"\n                }\n            }\n        },\n        \"dcterms:ProvenanceStatement\": {\n            \"@id\": \"dcterms:ProvenanceStatement\",\n            \"@context\": {\n                \"labelMap\": {\n                    \"@id\": \"http://www.w3.org/2000/01/rdf-schema#label\",\n                    \"@container\": \"@language\"\n                },\n                \"label\": \"http://www.w3.org/2000/01/rdf-schema#label\"\n            }\n        },\n        \"dcterms:RightsStatement\": {\n            \"@id\": \"dcterms:RightsStatement\",\n            \"@context\": {\n                \"attributionTextMap\": {\n                    \"@id\": \"http://schema.theodi.org/odrs#attributionText\",\n                    \"@container\": \"@language\"\n                },\n                \"attributionText\": \"http://schema.theodi.org/odrs#attributionText\"\n            }\n        },\n        \"dcterms:Standard\": {\n            \"@id\": \"dcterms:Standard\",\n            \"@context\": {\n                \"created\": {\n                    \"@id\": \"dcterms:created\"\n                },\n                \"descriptionMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/description\",\n                    \"@container\": \"@language\"\n                },\n                \"description\": \"http://purl.org/dc/terms/description\",\n                \"identifier\": {\n                    \"@id\": \"dcterms:identifier\",\n                    \"@container\": \"@set\"\n                },\n                \"issued\": {\n                    \"@id\": \"dcterms:issued\"\n                },\n                \"modified\": {\n                    \"@id\": \"dcterms:modified\"\n                },\n                \"titleMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/title\",\n                    \"@container\": \"@language\"\n                },\n                \"title\": \"http://purl.org/dc/terms/title\",\n                \"category\": {\n                    \"@id\": \"dcterms:type\",\n                    \"@type\": \"@id\"\n                },\n                \"inScheme\": {\n                    \"@id\": \"skos:inScheme\",\n                    \"@type\": \"@id\"\n                }\n            }\n        },\n        \"dqv:Metric\": {\n            \"@id\": \"dqv:Metric\",\n            \"@context\": {\n                \"expectedDataType\": {\n                    \"@id\": \"dqv:expectedDataType\",\n                    \"@type\": \"@id\"\n                },\n                \"inDimension\": {\n                    \"@id\": \"dqv:inDimension\",\n                    \"@type\": \"@id\"\n                }\n            }\n        },\n        \"dqv:QualityMeasurement\": {\n            \"@id\": \"dqv:QualityMeasurement\",\n            \"@context\": {\n                \"isMeasurementOf\": {\n                    \"@id\": \"dqv:isMeasurementOf\",\n                    \"@type\": \"@id\"\n                },\n                \"value\": \"http://www.w3.org/ns/dqv#value\",\n                \"unitMeasure\": {\n                    \"@id\": \"sdmx-attribute:unitMeasure\",\n                    \"@type\": \"@id\"\n                }\n            }\n        },\n        \"foaf:Agent\": {\n            \"@id\": \"foaf:Agent\",\n            \"@context\": {\n                \"category\": {\n                    \"@id\": \"dcterms:type\",\n                    \"@type\": \"@id\"\n                },\n                \"name\": \"http://xmlns.com/foaf/0.1/name\"\n            }\n        },\n        \"foaf:Document\": {\n            \"@id\": \"foaf:Document\",\n            \"@context\": {\n                \"creators\": {\n                    \"@id\": \"dc:creator\",\n                    \"@container\": \"@set\"\n                },\n                \"publishers\": \"http://purl.org/dc/elements/1.1/publisher\",\n                \"mediaType\": {\n                    \"@id\": \"dcat:mediaType\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\",\n                    \"@context\": {\n                        \"@base\": \"https://www.iana.org/assignments/media-types/\"\n                    }\n                },\n                \"abstractMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/abstract\",\n                    \"@container\": \"@language\"\n                },\n                \"abstract\": \"http://purl.org/dc/terms/abstract\",\n                \"bibliographicCitation\": \"http://purl.org/dc/terms/bibliographicCitation\",\n                \"conformsTo\": {\n                    \"@id\": \"dcterms:conformsTo\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"creator\": {\n                    \"@id\": \"dcterms:creator\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"descriptionMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/description\",\n                    \"@container\": \"@language\"\n                },\n                \"description\": \"http://purl.org/dc/terms/description\",\n                \"identifier\": {\n                    \"@id\": \"dcterms:identifier\",\n                    \"@container\": \"@set\"\n                },\n                \"issued\": {\n                    \"@id\": \"dcterms:issued\"\n                },\n                \"publisher\": {\n                    \"@id\": \"dcterms:publisher\",\n                    \"@type\": \"@id\"\n                },\n                \"titleMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/title\",\n                    \"@container\": \"@language\"\n                },\n                \"title\": \"http://purl.org/dc/terms/title\",\n                \"category\": {\n                    \"@id\": \"dcterms:type\",\n                    \"@type\": \"@id\"\n                }\n            }\n        },\n        \"foaf:Person\": {\n            \"@id\": \"foaf:Person\",\n            \"@context\": {\n                \"givenName\": \"http://xmlns.com/foaf/0.1/givenName\",\n\t\t\t\t\"familyName\": \"http://xmlns.com/foaf/0.1/familyname\",\n                \"name\": \"http://xmlns.com/foaf/0.1/name\",\n                \"memberOf\": {\n                    \"@id\": \"org:memberOf\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                }\n            }\n        },\n        \"locn:Address\": {\n            \"@id\": \"locn:Address\",\n            \"@context\": {\n                \"adminUnitL1\": \"http://www.w3.org/ns/locn#adminUnitL1\",\n                \"adminUnitL2\": \"http://www.w3.org/ns/locn#adminUnitL2\",\n                \"postCode\": \"http://www.w3.org/ns/locn#postCode\",\n                \"postName\": \"http://www.w3.org/ns/locn#postName\",\n                \"thoroughfare\": \"http://www.w3.org/ns/locn#thoroughfare\"\n            }\n        },\n        \"org:Organization\": {\n            \"@id\": \"org:Organization\",\n            \"@context\": {\n                \"name\": \"http://xmlns.com/foaf/0.1/name\",\n                \"subOrganizationOf\": {\n                    \"@id\": \"org:subOrganizationOf\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"altLabelMap\": {\n                    \"@id\": \"http://www.w3.org/2004/02/skos/core#altLabel\",\n                    \"@container\": \"@language\"\n                },\n                \"altLabel\": \"http://www.w3.org/2004/02/skos/core#altLabel\",\n                \"notation\": {\n                    \"@id\": \"skos:notation\",\n                    \"@container\": \"@set\"\n                },\n                \"prefLabelMap\": {\n                    \"@id\": \"http://www.w3.org/2004/02/skos/core#prefLabel\",\n                    \"@container\": \"@language\"\n                },\n                \"prefLabel\": \"http://www.w3.org/2004/02/skos/core#prefLabel\"\n            }\n        },\n        \"prov:Activity\": {\n            \"@id\": \"prov:Activity\",\n            \"@context\": {\n                \"category\": {\n                    \"@id\": \"dcterms:type\",\n                    \"@type\": \"@id\"\n                },\n                \"labelMap\": {\n                    \"@id\": \"http://www.w3.org/2000/01/rdf-schema#label\",\n                    \"@container\": \"@language\"\n                },\n                \"label\": \"http://www.w3.org/2000/01/rdf-schema#label\"\n            }\n        },\n        \"prov:Attribution\": {\n            \"@id\": \"prov:Attribution\",\n            \"@context\": {\n                \"hadRole\": {\n                    \"@id\": \"dcat:hadRole\",\n                    \"@type\": \"@id\"\n                },\n                \"agent\": {\n                    \"@id\": \"prov:agent\",\n                    \"@type\": \"@id\"\n                }\n            }\n        },\n        \"skos:Concept\": {\n            \"@id\": \"skos:Concept\",\n            \"@context\": {\n                \"altLabelMap\": {\n                    \"@id\": \"http://www.w3.org/2004/02/skos/core#altLabel\",\n                    \"@container\": \"@language\"\n                },\n                \"altLabel\": \"http://www.w3.org/2004/02/skos/core#altLabel\",\n                \"definitionMap\": {\n                    \"@id\": \"http://www.w3.org/2004/02/skos/core#definition\",\n                    \"@container\": \"@language\"\n                },\n                \"definition\": \"http://www.w3.org/2004/02/skos/core#definition\",\n                \"inScheme\": {\n                    \"@id\": \"skos:inScheme\",\n                    \"@type\": \"@id\"\n                },\n                \"notation\": {\n                    \"@id\": \"skos:notation\",\n                    \"@container\": \"@set\"\n                },\n                \"prefLabelMap\": {\n                    \"@id\": \"http://www.w3.org/2004/02/skos/core#prefLabel\",\n                    \"@container\": \"@language\"\n                },\n                \"prefLabel\": \"http://www.w3.org/2004/02/skos/core#prefLabel\"\n            }\n        },\n        \"skos:ConceptScheme\": {\n            \"@id\": \"skos:ConceptScheme\",\n            \"@context\": {\n                \"version\": \"http://www.w3.org/ns/dcat#version\",\n                \"created\": {\n                    \"@id\": \"dcterms:created\"\n                },\n                \"descriptionMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/description\",\n                    \"@container\": \"@language\"\n                },\n                \"description\": \"http://purl.org/dc/terms/description\",\n                \"issued\": {\n                    \"@id\": \"dcterms:issued\"\n                },\n                \"modified\": {\n                    \"@id\": \"dcterms:modified\"\n                },\n                \"titleMap\": {\n                    \"@id\": \"http://purl.org/dc/terms/title\",\n                    \"@container\": \"@language\"\n                },\n                \"title\": \"http://purl.org/dc/terms/title\"\n            }\n        },\n        \"spdx:Checksum\": {\n            \"@id\": \"spdx:Checksum\",\n            \"@context\": {\n                \"algorithm\": {\n                    \"@id\": \"spdx:algorithm\",\n                    \"@type\": \"@id\"\n                },\n                \"checksumValue\": {\n                    \"@id\": \"spdx:checksumValue\",\n                    \"@type\": \"http://www.w3.org/2001/XMLSchema#hexBinary\"\n                }\n            }\n        },\n        \"vcard:Address\": {\n            \"@id\": \"vcard:Address\",\n            \"@context\": {\n                \"country-name\": \"http://www.w3.org/2006/vcard/ns#country-name\",\n                \"locality\": \"http://www.w3.org/2006/vcard/ns#locality\",\n                \"postal-code\": \"http://www.w3.org/2006/vcard/ns#postal-code\",\n                \"region\": \"http://www.w3.org/2006/vcard/ns#region\",\n                \"street-address\": \"http://www.w3.org/2006/vcard/ns#street-address\"\n            }\n        },\n        \"vcard:Kind\": {\n            \"@id\": \"vcard:Kind\",\n            \"@context\": {\n                \"address\": {\n                    \"@id\": \"vcard:address\",\n                    \"@type\": \"@id\",\n                    \"@container\": \"@set\"\n                },\n                \"hasEmail\": {\n                    \"@id\": \"vcard:hasEmail\",\n                    \"@type\": \"@id\"\n                },\n                \"family-name\": \"http://www.w3.org/2006/vcard/ns#family-name\",\n                \"fn\": \"http://www.w3.org/2006/vcard/ns#fn\",\n                \"given-name\": \"http://www.w3.org/2006/vcard/ns#given-name\",\n                \"organization-name\": \"http://www.w3.org/2006/vcard/ns#organization-name\",\n                \"tel\": {\n                    \"@id\": \"vcard:tel\",\n                    \"@type\": \"@id\"\n                },\n                \"title\": \"http://www.w3.org/2006/vcard/ns#title\"\n            }\n        }\n    }\n}",
+      "title": "http://purl.org/dc/terms/title"
+    },
+    {
       "file": "recovered-shapes.ttl",
       "id": "recovered-shapes",
       "retrieved": "2026-08-25",
@@ -247,7 +256,7 @@
         },
         {
           "document": "jsonschema/definitions/Dataset.json",
-          "object": "115 files expand to 76 triples total, 1 distinct predicate (rdf:type), 0 dcat: triples, 38 files empty, 1 parse error (demo/dcat_conformance.py, no context)",
+          "object": "115 files expand to 76 triples total (summed per file, demo/dcat_conformance_measurements.json's examples.asPublished.triples; merged into one graph, exact-duplicate triples across files collapse to 73, corpusTriples.asPublished), 1 distinct predicate (rdf:type), 0 dcat: triples, 38 files empty, 1 file whose root is not a JSON object -- not a parse error, the JSON itself is valid: jsonschema/examples/Identifier/good/minimal_string_example.json's entire content is the JSON string \"dataset-12345\" (demo/dcat_conformance.py, no context)",
           "predicate": "measuredAsPublished"
         },
         {
@@ -385,24 +394,104 @@
   "graph": {
     "classes": [
       {
+        "iri": "Address",
+        "label": "Address"
+      },
+      {
         "iri": "Agent",
         "label": "Agent"
+      },
+      {
+        "iri": "Attribution",
+        "label": "Attribution"
+      },
+      {
+        "iri": "Author",
+        "label": "Author"
       },
       {
         "iri": "Catalog",
         "label": "Catalog"
       },
       {
+        "iri": "Commit",
+        "label": "Commit"
+      },
+      {
         "iri": "Concept",
         "label": "Concept"
       },
       {
-        "iri": "ContactPoint",
-        "label": "ContactPoint"
+        "iri": "ConformanceRequirement",
+        "label": "Conformance Requirement"
+      },
+      {
+        "iri": "DataService",
+        "label": "Data Service"
       },
       {
         "iri": "Dataset",
         "label": "Dataset"
+      },
+      {
+        "iri": "Distribution",
+        "label": "Distribution"
+      },
+      {
+        "iri": "Document",
+        "label": "Document"
+      },
+      {
+        "iri": "File",
+        "label": "File"
+      },
+      {
+        "iri": "Identifier",
+        "label": "Identifier"
+      },
+      {
+        "iri": "Implementation",
+        "label": "Implementation"
+      },
+      {
+        "iri": "JsonSchema",
+        "label": "JSON Schema"
+      },
+      {
+        "iri": "Kind",
+        "label": "Kind"
+      },
+      {
+        "iri": "Location",
+        "label": "Location"
+      },
+      {
+        "iri": "MetadataCatalog",
+        "label": "Metadata Catalog"
+      },
+      {
+        "iri": "MetadataElement",
+        "label": "Metadata Element"
+      },
+      {
+        "iri": "MetadataStandard",
+        "label": "Metadata Standard"
+      },
+      {
+        "iri": "PeriodOfTime",
+        "label": "Period of Time"
+      },
+      {
+        "iri": "Profile",
+        "label": "Profile"
+      },
+      {
+        "iri": "PullRequest",
+        "label": "Pull Request"
+      },
+      {
+        "iri": "Repository",
+        "label": "Repository"
       },
       {
         "iri": "Section",
@@ -410,357 +499,601 @@
       },
       {
         "iri": "Standard",
-        "label": "DCAT-TOK_LOCATION_d733c4931ba1 v3.0 Schema"
+        "label": "Standard"
+      },
+      {
+        "iri": "Status",
+        "label": "Status"
       }
     ],
     "edges": [
       {
-        "source": "API_Support",
-        "target": "DOC_examples_sample"
+        "source": "AccessRestriction01",
+        "target": "DOC_recovered_context"
       },
       {
-        "source": "Agent",
-        "target": "DOC_profile_readme"
-      },
-      {
-        "source": "Agent_001",
-        "target": "DOC_catalog_schema"
-      },
-      {
-        "source": "Aggregate_Catalog",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "Annual_Budget_Data",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "Budget_Data_Team",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "Budget_Sub_Catalog",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_1",
-        "target": "Agent_001"
-      },
-      {
-        "source": "CLAIM_1",
-        "target": "DOC_catalog_schema"
-      },
-      {
-        "source": "CLAIM_10",
-        "target": "Budget_Data_Team"
-      },
-      {
-        "source": "CLAIM_10",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_11",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_11",
-        "target": "HR_Data_Team"
-      },
-      {
-        "source": "CLAIM_12",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_12",
-        "target": "Office_of_Management_and_Budget"
-      },
-      {
-        "source": "CLAIM_13",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_13",
-        "target": "Office_of_Personnel_Management"
-      },
-      {
-        "source": "CLAIM_14",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_14",
-        "target": "Federal_Data_API"
-      },
-      {
-        "source": "CLAIM_15",
-        "target": "API_Support"
-      },
-      {
-        "source": "CLAIM_15",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_16",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_16",
-        "target": "Data_Quality_Assurance_Team"
-      },
-      {
-        "source": "CLAIM_17",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_17",
-        "target": "Related_Agency_Catalog"
-      },
-      {
-        "source": "CLAIM_18",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_18",
-        "target": "Partner_Dataset"
-      },
-      {
-        "source": "CLAIM_19",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_19",
-        "target": "Partner_Support"
-      },
-      {
-        "source": "CLAIM_2",
-        "target": "DOC_catalog_schema"
-      },
-      {
-        "source": "CLAIM_2",
-        "target": "Standard_001"
-      },
-      {
-        "source": "CLAIM_20",
-        "target": "Budget_Sub_Catalog"
-      },
-      {
-        "source": "CLAIM_20",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_21",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_21",
-        "target": "Quarterly_Budget_Reports"
-      },
-      {
-        "source": "CLAIM_22",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_22",
-        "target": "Finance_Team"
-      },
-      {
-        "source": "CLAIM_23",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_23",
-        "target": "Treasury_Department"
-      },
-      {
-        "source": "CLAIM_24",
-        "target": "Catalog_Record"
-      },
-      {
-        "source": "CLAIM_24",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_25",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_25",
-        "target": "Government_Administration"
-      },
-      {
-        "source": "CLAIM_26",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_26",
-        "target": "Public_Services"
-      },
-      {
-        "source": "CLAIM_27",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_27",
-        "target": "Federal_Data_Categories"
-      },
-      {
-        "source": "CLAIM_28",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_28",
-        "target": "Public_Administration"
-      },
-      {
-        "source": "CLAIM_29",
-        "target": "Aggregate_Catalog"
-      },
-      {
-        "source": "CLAIM_29",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_3",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_3",
-        "target": "Federal_Data_Management_Office"
-      },
-      {
-        "source": "CLAIM_30",
-        "target": "DCAT_US_3_0"
-      },
-      {
-        "source": "CLAIM_30",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_31",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_31",
-        "target": "National_Climate_Observations_2024"
-      },
-      {
-        "source": "CLAIM_32",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_32",
-        "target": "National_Climate_Data_Center"
-      },
-      {
-        "source": "CLAIM_33",
-        "target": "Climate_Data_Support_Team"
-      },
-      {
-        "source": "CLAIM_33",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_34",
-        "target": "Climate_Observations_CSV"
-      },
-      {
-        "source": "CLAIM_34",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_35",
-        "target": "Climate_Observations_JSON"
-      },
-      {
-        "source": "CLAIM_35",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_36",
+        "source": "Address",
         "target": "Agent"
       },
       {
+        "source": "Address01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Agent",
+        "target": "Agent"
+      },
+      {
+        "source": "Agent01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Attribution",
+        "target": "Agent"
+      },
+      {
+        "source": "Attribution01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Author",
+        "target": "Status"
+      },
+      {
+        "source": "Author01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_1",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_1",
+        "target": "PullRequest"
+      },
+      {
+        "source": "CLAIM_10",
+        "target": "ConformanceRequirement"
+      },
+      {
+        "source": "CLAIM_10",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_11",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_11",
+        "target": "PullRequest"
+      },
+      {
+        "source": "CLAIM_12",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_12",
+        "target": "Implementation"
+      },
+      {
+        "source": "CLAIM_13",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_13",
+        "target": "Profile"
+      },
+      {
+        "source": "CLAIM_14",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_14",
+        "target": "Standard"
+      },
+      {
+        "source": "CLAIM_15",
+        "target": "ConformanceRequirement"
+      },
+      {
+        "source": "CLAIM_15",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_16",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_16",
+        "target": "PullRequest"
+      },
+      {
+        "source": "CLAIM_17",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_17",
+        "target": "Implementation"
+      },
+      {
+        "source": "CLAIM_18",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_18",
+        "target": "Profile"
+      },
+      {
+        "source": "CLAIM_19",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_19",
+        "target": "Standard"
+      },
+      {
+        "source": "CLAIM_2",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_2",
+        "target": "Implementation"
+      },
+      {
+        "source": "CLAIM_20",
+        "target": "ConformanceRequirement"
+      },
+      {
+        "source": "CLAIM_20",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_21",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_21",
+        "target": "PullRequest"
+      },
+      {
+        "source": "CLAIM_22",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_22",
+        "target": "Implementation"
+      },
+      {
+        "source": "CLAIM_23",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_23",
+        "target": "Profile"
+      },
+      {
+        "source": "CLAIM_24",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_24",
+        "target": "Standard"
+      },
+      {
+        "source": "CLAIM_25",
+        "target": "ConformanceRequirement"
+      },
+      {
+        "source": "CLAIM_25",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_26",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_26",
+        "target": "Dataset07"
+      },
+      {
+        "source": "CLAIM_27",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_27",
+        "target": "PublishedDataset07"
+      },
+      {
+        "source": "CLAIM_28",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_28",
+        "target": "DatasetSeries01"
+      },
+      {
+        "source": "CLAIM_29",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_29",
+        "target": "Distribution01"
+      },
+      {
+        "source": "CLAIM_3",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_3",
+        "target": "Profile"
+      },
+      {
+        "source": "CLAIM_30",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_30",
+        "target": "File01"
+      },
+      {
+        "source": "CLAIM_31",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_31",
+        "target": "Organization01"
+      },
+      {
+        "source": "CLAIM_32",
+        "target": "Agent01"
+      },
+      {
+        "source": "CLAIM_32",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_33",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_33",
+        "target": "Identifier01"
+      },
+      {
+        "source": "CLAIM_34",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_34",
+        "target": "License01"
+      },
+      {
+        "source": "CLAIM_35",
+        "target": "AccessRestriction01"
+      },
+      {
+        "source": "CLAIM_35",
+        "target": "DOC_recovered_context"
+      },
+      {
         "source": "CLAIM_36",
-        "target": "DOC_profile_readme"
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_36",
+        "target": "UseRestriction01"
       },
       {
         "source": "CLAIM_37",
-        "target": "DOC_profile_readme"
+        "target": "DOC_recovered_context"
       },
       {
         "source": "CLAIM_37",
-        "target": "Standard"
+        "target": "LiabilityStatement01"
       },
       {
         "source": "CLAIM_38",
-        "target": "DOC_profile_readme"
+        "target": "DOC_recovered_context"
       },
       {
         "source": "CLAIM_38",
-        "target": "Standard"
+        "target": "MetadataStandard01"
       },
       {
         "source": "CLAIM_39",
-        "target": "DOC_profile_readme"
+        "target": "DOC_recovered_context"
       },
       {
         "source": "CLAIM_39",
+        "target": "MetadataElement01"
+      },
+      {
+        "source": "CLAIM_4",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_4",
         "target": "Standard"
       },
       {
-        "source": "CLAIM_4",
-        "target": "DOC_examples_sample"
-      },
-      {
-        "source": "CLAIM_4",
-        "target": "Data_Governance_Team"
+        "source": "CLAIM_40",
+        "target": "DOC_recovered_context"
       },
       {
         "source": "CLAIM_40",
-        "target": "ConceptScheme"
+        "target": "Profile01"
       },
       {
-        "source": "CLAIM_40",
-        "target": "DOC_profile_readme"
+        "source": "CLAIM_41",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_41",
+        "target": "JsonSchema01"
+      },
+      {
+        "source": "CLAIM_42",
+        "target": "ConceptScheme01"
+      },
+      {
+        "source": "CLAIM_42",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_43",
+        "target": "Concept01"
+      },
+      {
+        "source": "CLAIM_43",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_44",
+        "target": "ControlledVocabulary01"
+      },
+      {
+        "source": "CLAIM_44",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_45",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_45",
+        "target": "DataService01"
+      },
+      {
+        "source": "CLAIM_46",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_46",
+        "target": "DataCatalog01"
+      },
+      {
+        "source": "CLAIM_47",
+        "target": "CatalogRecord01"
+      },
+      {
+        "source": "CLAIM_47",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_48",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_48",
+        "target": "MetadataCatalog01"
+      },
+      {
+        "source": "CLAIM_49",
+        "target": "Commit01"
+      },
+      {
+        "source": "CLAIM_49",
+        "target": "DOC_recovered_context"
       },
       {
         "source": "CLAIM_5",
-        "target": "DOC_examples_sample"
+        "target": "ConformanceRequirement"
       },
       {
         "source": "CLAIM_5",
-        "target": "Federal_Data_Support_Center"
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "CLAIM_50",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_50",
+        "target": "PullRequest01"
+      },
+      {
+        "source": "CLAIM_51",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_51",
+        "target": "Repository01"
+      },
+      {
+        "source": "CLAIM_52",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_52",
+        "target": "Relationship01"
+      },
+      {
+        "source": "CLAIM_53",
+        "target": "Attribution01"
+      },
+      {
+        "source": "CLAIM_53",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_54",
+        "target": "Author01"
+      },
+      {
+        "source": "CLAIM_54",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_55",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_55",
+        "target": "Location01"
+      },
+      {
+        "source": "CLAIM_56",
+        "target": "Address01"
+      },
+      {
+        "source": "CLAIM_56",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_57",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_57",
+        "target": "Kind01"
+      },
+      {
+        "source": "CLAIM_58",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_58",
+        "target": "PeriodOfTime01"
+      },
+      {
+        "source": "CLAIM_59",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_59",
+        "target": "Status01"
       },
       {
         "source": "CLAIM_6",
-        "target": "DOC_examples_sample"
+        "target": "DOC_dataset_schema"
       },
       {
         "source": "CLAIM_6",
-        "target": "Federal_Data_Management_Office"
+        "target": "PullRequest"
+      },
+      {
+        "source": "CLAIM_60",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_60",
+        "target": "Implementation01"
+      },
+      {
+        "source": "CLAIM_61",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_61",
+        "target": "Theme01"
+      },
+      {
+        "source": "CLAIM_62",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_62",
+        "target": "ThemeTaxonomy01"
+      },
+      {
+        "source": "CLAIM_63",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_63",
+        "target": "Language01"
+      },
+      {
+        "source": "CLAIM_64",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_64",
+        "target": "Rights01"
+      },
+      {
+        "source": "CLAIM_65",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_65",
+        "target": "RightsHolder01"
+      },
+      {
+        "source": "CLAIM_66",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_66",
+        "target": "Publisher01"
+      },
+      {
+        "source": "CLAIM_67",
+        "target": "Creator01"
+      },
+      {
+        "source": "CLAIM_67",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_68",
+        "target": "ContactPoint01"
+      },
+      {
+        "source": "CLAIM_68",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_69",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "CLAIM_69",
+        "target": "Service01"
       },
       {
         "source": "CLAIM_7",
-        "target": "Annual_Budget_Data"
+        "target": "DOC_dataset_schema"
       },
       {
         "source": "CLAIM_7",
-        "target": "DOC_examples_sample"
+        "target": "Implementation"
       },
       {
         "source": "CLAIM_8",
-        "target": "DOC_examples_sample"
+        "target": "DOC_dataset_schema"
       },
       {
         "source": "CLAIM_8",
-        "target": "Employment_Statistics"
+        "target": "Profile"
       },
       {
         "source": "CLAIM_9",
-        "target": "DOC_examples_sample"
+        "target": "DOC_dataset_schema"
       },
       {
         "source": "CLAIM_9",
-        "target": "Federal_Budget_Data_Series"
+        "target": "Standard"
       },
       {
         "source": "Catalog",
@@ -780,10 +1113,6 @@
       },
       {
         "source": "Catalog",
-        "target": "ContactPoint"
-      },
-      {
-        "source": "Catalog",
         "target": "DataService"
       },
       {
@@ -796,55 +1125,119 @@
       },
       {
         "source": "Catalog",
+        "target": "Distribution"
+      },
+      {
+        "source": "Catalog",
         "target": "Identifier"
+      },
+      {
+        "source": "Catalog",
+        "target": "Kind"
+      },
+      {
+        "source": "Catalog",
+        "target": "MetadataCatalog"
       },
       {
         "source": "Catalog",
         "target": "Standard"
       },
       {
-        "source": "Catalog_Record",
-        "target": "DOC_examples_sample"
+        "source": "CatalogRecord01",
+        "target": "DOC_recovered_context"
       },
       {
-        "source": "Climate_Data_Support_Team",
-        "target": "DOC_examples_sample"
+        "source": "Commit",
+        "target": "Author"
       },
       {
-        "source": "Climate_Observations_CSV",
-        "target": "DOC_examples_sample"
+        "source": "Commit",
+        "target": "Status"
       },
       {
-        "source": "Climate_Observations_JSON",
-        "target": "DOC_examples_sample"
+        "source": "Commit01",
+        "target": "DOC_recovered_context"
       },
       {
-        "source": "ConceptScheme",
+        "source": "Concept",
         "target": "Agent"
       },
       {
-        "source": "ConceptScheme",
+        "source": "Concept",
+        "target": "Document"
+      },
+      {
+        "source": "Concept",
+        "target": "Kind"
+      },
+      {
+        "source": "Concept01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "ConceptScheme01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "ConformanceRequirement",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "ContactPoint01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "ControlledVocabulary01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Creator01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "DOC_catalog_schema",
+        "target": "Agent"
+      },
+      {
+        "source": "DOC_catalog_schema",
+        "target": "Catalog"
+      },
+      {
+        "source": "DOC_catalog_schema",
+        "target": "CatalogRecord"
+      },
+      {
+        "source": "DOC_catalog_schema",
+        "target": "Concept"
+      },
+      {
+        "source": "DOC_catalog_schema",
         "target": "ConceptScheme"
       },
       {
-        "source": "ConceptScheme",
-        "target": "DOC_profile_readme"
-      },
-      {
-        "source": "DCAT_US_3_0",
-        "target": "DOC_examples_sample"
+        "source": "DOC_catalog_schema",
+        "target": "DataService"
       },
       {
         "source": "DOC_catalog_schema",
-        "target": "Agent_001"
+        "target": "Dataset"
       },
       {
         "source": "DOC_catalog_schema",
-        "target": "SEC_catalog_schema_0"
+        "target": "DatasetSeries"
       },
       {
         "source": "DOC_catalog_schema",
-        "target": "Standard_001"
+        "target": "Kind"
+      },
+      {
+        "source": "DOC_catalog_schema",
+        "target": "Section"
+      },
+      {
+        "source": "DOC_catalog_schema",
+        "target": "Standard"
       },
       {
         "source": "DOC_dataset_schema",
@@ -852,1623 +1245,163 @@
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_0"
+        "target": "Catalog"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_1"
+        "target": "CatalogRecord"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_10"
+        "target": "Commit"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_100"
+        "target": "Concept"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_101"
+        "target": "ControlledVocabulary"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_102"
+        "target": "DataService"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_103"
+        "target": "Dataset"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_104"
+        "target": "DatasetSeries"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_105"
+        "target": "Distribution"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_106"
+        "target": "Identifier"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_107"
+        "target": "JsonSchema"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_108"
+        "target": "Kind"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_109"
+        "target": "MetadataCatalog"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_11"
+        "target": "MetadataElement"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_110"
+        "target": "Organization"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_111"
+        "target": "Section"
       },
       {
         "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_112"
+        "target": "status"
       },
       {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_113"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_114"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_115"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_116"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_117"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_118"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_119"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_12"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_120"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_121"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_122"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_123"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_124"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_125"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_126"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_127"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_128"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_129"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_13"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_130"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_131"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_132"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_133"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_134"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_135"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_136"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_137"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_138"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_139"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_14"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_140"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_141"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_142"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_143"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_144"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_145"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_146"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_147"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_148"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_149"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_15"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_150"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_151"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_152"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_153"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_154"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_155"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_156"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_157"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_158"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_159"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_16"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_160"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_161"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_162"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_163"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_164"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_165"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_166"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_167"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_168"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_169"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_17"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_170"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_171"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_172"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_173"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_174"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_175"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_176"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_177"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_178"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_179"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_18"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_180"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_181"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_182"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_183"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_184"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_185"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_186"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_187"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_188"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_189"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_19"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_190"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_191"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_192"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_193"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_194"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_195"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_196"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_197"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_198"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_199"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_2"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_20"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_200"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_201"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_202"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_203"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_204"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_205"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_206"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_207"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_208"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_209"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_21"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_210"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_211"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_212"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_213"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_214"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_215"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_216"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_217"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_218"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_219"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_22"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_220"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_221"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_222"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_223"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_224"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_225"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_226"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_227"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_228"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_229"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_23"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_230"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_24"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_25"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_26"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_27"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_28"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_29"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_3"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_30"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_31"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_32"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_33"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_34"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_35"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_36"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_37"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_38"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_39"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_4"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_40"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_41"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_42"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_43"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_44"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_45"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_46"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_47"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_48"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_49"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_5"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_50"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_51"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_52"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_53"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_54"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_55"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_56"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_57"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_58"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_59"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_6"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_60"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_61"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_62"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_63"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_64"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_65"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_66"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_67"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_68"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_69"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_7"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_70"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_71"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_72"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_73"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_74"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_75"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_76"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_77"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_78"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_79"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_8"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_80"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_81"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_82"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_83"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_84"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_85"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_86"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_87"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_88"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_89"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_9"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_90"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_91"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_92"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_93"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_94"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_95"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_96"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_97"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_98"
-      },
-      {
-        "source": "DOC_dataset_schema",
-        "target": "SEC_dataset_schema_99"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "Agent_neilmb"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_1"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_10"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_100"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_101"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_102"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_103"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_104"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_105"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_106"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_107"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_108"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_109"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_11"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_110"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_111"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_112"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_113"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_114"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_115"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_116"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_117"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_118"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_119"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_12"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_120"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_121"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_122"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_123"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_124"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_125"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_126"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_127"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_128"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_129"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_13"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_130"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_131"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_132"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_133"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_134"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_135"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_136"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_137"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_138"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_139"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_14"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_140"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_141"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_142"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_143"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_144"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_145"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_146"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_147"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_148"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_149"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_15"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_150"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_151"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_152"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_153"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_154"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_155"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_156"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_157"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_158"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_159"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_16"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_160"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_161"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_162"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_163"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_164"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_165"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_166"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_167"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_168"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_169"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_17"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_170"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_171"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_172"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_18"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_19"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_2"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_20"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_21"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_22"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_23"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_24"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_25"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_26"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_27"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_28"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_29"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_3"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_30"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_31"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_32"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_33"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_34"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_35"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_36"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_37"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_38"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_39"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_4"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_40"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_41"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_42"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_43"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_44"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_45"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_46"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_47"
+        "source": "DOC_examples_sample",
+        "target": "AGENT_data_governance_team"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_48"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_49"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_5"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_50"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_51"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_52"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_53"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_54"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_55"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_56"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_57"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_58"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_59"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_6"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_60"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_61"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_62"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_63"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_64"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_65"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_66"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_67"
+        "source": "DOC_examples_sample",
+        "target": "AGENT_federal_data_management_office"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_68"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_69"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_7"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_70"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_71"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_72"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_73"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_74"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_75"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_76"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_77"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_78"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_79"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_8"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_80"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_81"
-      },
-      {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_82"
+        "source": "DOC_examples_sample",
+        "target": "ATTRIBUTION_data_quality_team"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_83"
+        "source": "DOC_examples_sample",
+        "target": "CATALOG_RECORD_1"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_84"
+        "source": "DOC_examples_sample",
+        "target": "CATALOG_budget_subcatalog"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_85"
+        "source": "DOC_examples_sample",
+        "target": "CATALOG_federal_data_catalog"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_86"
+        "source": "DOC_examples_sample",
+        "target": "CATALOG_related_agency_catalog"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_87"
+        "source": "DOC_examples_sample",
+        "target": "CATEGORY_aggregate_catalog"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_88"
+        "source": "DOC_examples_sample",
+        "target": "DATASERVICE_federal_data_api"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_89"
+        "source": "DOC_examples_sample",
+        "target": "DATASET_SERIES_federal_budget_data_series"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_9"
+        "source": "DOC_examples_sample",
+        "target": "DATASET_annual_budget_data"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_90"
+        "source": "DOC_examples_sample",
+        "target": "DATASET_employment_statistics"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_91"
+        "source": "DOC_examples_sample",
+        "target": "ID_federal_data_catalog"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_92"
+        "source": "DOC_examples_sample",
+        "target": "KIND_federal_data_support_center"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_93"
+        "source": "DOC_examples_sample",
+        "target": "LOCATION_tok_location_10218a7d18c3"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_94"
+        "source": "DOC_examples_sample",
+        "target": "PERIOD_1"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_95"
+        "source": "DOC_examples_sample",
+        "target": "STANDARD_dcat_us_3"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_96"
+        "source": "DOC_examples_sample",
+        "target": "THEME_government_administration"
       },
       {
-        "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_97"
+        "source": "DOC_examples_sample",
+        "target": "THEME_public_services"
       },
       {
         "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_98"
+        "target": "neilmb"
       },
       {
         "source": "DOC_pr_120_record",
-        "target": "SEC_pr_120_record_99"
+        "target": "status"
       },
       {
         "source": "DOC_profile_readme",
-        "target": "Agent"
+        "target": "LICENCE_CC0"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "ORG_1"
       },
       {
         "source": "DOC_profile_readme",
@@ -2476,7 +1409,91 @@
       },
       {
         "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_10"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_100"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_11"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_12"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_13"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_14"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_15"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_16"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_17"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_18"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_19"
+      },
+      {
+        "source": "DOC_profile_readme",
         "target": "SEC_profile_readme_2"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_20"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_21"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_22"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_23"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_24"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_25"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_26"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_27"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_28"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_29"
       },
       {
         "source": "DOC_profile_readme",
@@ -2484,103 +1501,691 @@
       },
       {
         "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_30"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_31"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_32"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_33"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_34"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_35"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_36"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_37"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_38"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_39"
+      },
+      {
+        "source": "DOC_profile_readme",
         "target": "SEC_profile_readme_4"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_40"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_41"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_42"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_43"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_44"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_45"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_46"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_47"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_48"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_49"
       },
       {
         "source": "DOC_profile_readme",
         "target": "SEC_profile_readme_5"
       },
       {
-        "source": "Data_Governance_Team",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_50"
       },
       {
-        "source": "Data_Quality_Assurance_Team",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_51"
       },
       {
-        "source": "Employment_Statistics",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_52"
       },
       {
-        "source": "Federal_Budget_Data_Series",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_53"
       },
       {
-        "source": "Federal_Data_API",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_54"
       },
       {
-        "source": "Federal_Data_Categories",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_55"
       },
       {
-        "source": "Federal_Data_Management_Office",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_56"
       },
       {
-        "source": "Federal_Data_Support_Center",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_57"
       },
       {
-        "source": "Finance_Team",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_58"
       },
       {
-        "source": "Government_Administration",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_59"
       },
       {
-        "source": "HR_Data_Team",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_6"
       },
       {
-        "source": "National_Climate_Data_Center",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_60"
       },
       {
-        "source": "National_Climate_Observations_2024",
-        "target": "Climate_Data_Support_Team"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_61"
       },
       {
-        "source": "National_Climate_Observations_2024",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_62"
       },
       {
-        "source": "National_Climate_Observations_2024",
-        "target": "National_Climate_Data_Center"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_63"
       },
       {
-        "source": "Office_of_Management_and_Budget",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_64"
       },
       {
-        "source": "Office_of_Personnel_Management",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_65"
       },
       {
-        "source": "Partner_Dataset",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_66"
       },
       {
-        "source": "Partner_Support",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_67"
       },
       {
-        "source": "Public_Administration",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_68"
       },
       {
-        "source": "Public_Services",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_69"
       },
       {
-        "source": "Quarterly_Budget_Reports",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_7"
       },
       {
-        "source": "Related_Agency_Catalog",
-        "target": "DOC_examples_sample"
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_70"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_71"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_72"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_73"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_74"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_75"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_76"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_77"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_78"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_79"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_8"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_80"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_81"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_82"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_83"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_84"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_85"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_86"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_87"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_88"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_89"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_9"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_90"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_91"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_92"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_93"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_94"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_95"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_96"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_97"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_98"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "SEC_profile_readme_99"
+      },
+      {
+        "source": "DOC_profile_readme",
+        "target": "https://github.com/GSA/dcat-us/"
+      },
+      {
+        "source": "DataCatalog01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "DataService",
+        "target": "Agent"
+      },
+      {
+        "source": "DataService",
+        "target": "CatalogedResource"
+      },
+      {
+        "source": "DataService",
+        "target": "DatasetSeries"
+      },
+      {
+        "source": "DataService",
+        "target": "Distribution"
+      },
+      {
+        "source": "DataService01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Dataset",
+        "target": "Agent"
+      },
+      {
+        "source": "Dataset",
+        "target": "CatalogedResource"
+      },
+      {
+        "source": "Dataset",
+        "target": "Concept"
+      },
+      {
+        "source": "Dataset",
+        "target": "ControlledVocabulary"
+      },
+      {
+        "source": "Dataset",
+        "target": "DataService"
+      },
+      {
+        "source": "Dataset",
+        "target": "DatasetSeries"
+      },
+      {
+        "source": "Dataset",
+        "target": "Distribution"
+      },
+      {
+        "source": "Dataset",
+        "target": "Document"
+      },
+      {
+        "source": "Dataset",
+        "target": "Identifier"
+      },
+      {
+        "source": "Dataset",
+        "target": "Implementation"
+      },
+      {
+        "source": "Dataset",
+        "target": "JsonSchema"
+      },
+      {
+        "source": "Dataset",
+        "target": "Kind"
+      },
+      {
+        "source": "Dataset",
+        "target": "MetadataElement"
+      },
+      {
+        "source": "Dataset",
+        "target": "MetadataStandard"
+      },
+      {
+        "source": "Dataset07",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "DatasetSeries01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Distribution",
+        "target": "Agent"
+      },
+      {
+        "source": "Distribution",
+        "target": "Concept"
+      },
+      {
+        "source": "Distribution",
+        "target": "ControlledVocabulary"
+      },
+      {
+        "source": "Distribution",
+        "target": "Document"
+      },
+      {
+        "source": "Distribution",
+        "target": "Identifier"
+      },
+      {
+        "source": "Distribution",
+        "target": "Implementation"
+      },
+      {
+        "source": "Distribution",
+        "target": "JsonSchema"
+      },
+      {
+        "source": "Distribution",
+        "target": "Kind"
+      },
+      {
+        "source": "Distribution",
+        "target": "MetadataElement"
+      },
+      {
+        "source": "Distribution",
+        "target": "MetadataStandard"
+      },
+      {
+        "source": "Distribution01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Document",
+        "target": "Agent"
+      },
+      {
+        "source": "Document",
+        "target": "Kind"
+      },
+      {
+        "source": "File",
+        "target": "Author"
+      },
+      {
+        "source": "File",
+        "target": "Commit"
+      },
+      {
+        "source": "File",
+        "target": "Repository"
+      },
+      {
+        "source": "File",
+        "target": "Status"
+      },
+      {
+        "source": "File01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Identifier",
+        "target": "Agent"
+      },
+      {
+        "source": "Identifier",
+        "target": "Concept"
+      },
+      {
+        "source": "Identifier",
+        "target": "Document"
+      },
+      {
+        "source": "Identifier",
+        "target": "Kind"
+      },
+      {
+        "source": "Identifier01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Implementation",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "Implementation",
+        "target": "MetadataStandard"
+      },
+      {
+        "source": "Implementation01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "JsonSchema",
+        "target": "Implementation"
+      },
+      {
+        "source": "JsonSchema",
+        "target": "MetadataStandard"
+      },
+      {
+        "source": "JsonSchema01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Kind",
+        "target": "Agent"
+      },
+      {
+        "source": "Kind01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Language01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "LiabilityStatement01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "License01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Location",
+        "target": "Agent"
+      },
+      {
+        "source": "Location01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "MetadataCatalog",
+        "target": "Author"
+      },
+      {
+        "source": "MetadataCatalog",
+        "target": "Commit"
+      },
+      {
+        "source": "MetadataCatalog",
+        "target": "File"
+      },
+      {
+        "source": "MetadataCatalog",
+        "target": "Repository"
+      },
+      {
+        "source": "MetadataCatalog",
+        "target": "Status"
+      },
+      {
+        "source": "MetadataCatalog01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "MetadataElement",
+        "target": "MetadataStandard"
+      },
+      {
+        "source": "MetadataElement01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "MetadataStandard",
+        "target": "Standard"
+      },
+      {
+        "source": "MetadataStandard01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Organization01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "PeriodOfTime",
+        "target": "Agent"
+      },
+      {
+        "source": "PeriodOfTime01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Profile",
+        "target": "Catalog"
+      },
+      {
+        "source": "Profile",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "Profile",
+        "target": "DataService"
+      },
+      {
+        "source": "Profile",
+        "target": "Dataset"
+      },
+      {
+        "source": "Profile",
+        "target": "DatasetSeries"
+      },
+      {
+        "source": "Profile",
+        "target": "Distribution"
+      },
+      {
+        "source": "Profile01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "PublishedDataset07",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Publisher01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "PullRequest",
+        "target": "Author"
+      },
+      {
+        "source": "PullRequest",
+        "target": "Commit"
+      },
+      {
+        "source": "PullRequest",
+        "target": "DOC_dataset_schema"
+      },
+      {
+        "source": "PullRequest",
+        "target": "File"
+      },
+      {
+        "source": "PullRequest",
+        "target": "MetadataCatalog"
+      },
+      {
+        "source": "PullRequest",
+        "target": "Repository"
+      },
+      {
+        "source": "PullRequest",
+        "target": "Status"
+      },
+      {
+        "source": "PullRequest01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Relationship01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Repository",
+        "target": "Author"
+      },
+      {
+        "source": "Repository",
+        "target": "Commit"
+      },
+      {
+        "source": "Repository",
+        "target": "Status"
+      },
+      {
+        "source": "Repository01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "Rights01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "RightsHolder01",
+        "target": "DOC_recovered_context"
       },
       {
         "source": "SEC_w3c_dcat_conformance_4",
@@ -2588,7 +2193,91 @@
       },
       {
         "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_10"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_100"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_11"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_12"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_13"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_14"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_15"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_16"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_17"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_18"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_19"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
         "target": "SEC_w3c_dcat_conformance_4_2"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_20"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_21"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_22"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_23"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_24"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_25"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_26"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_27"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_28"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_29"
       },
       {
         "source": "SEC_w3c_dcat_conformance_4",
@@ -2596,31 +2285,335 @@
       },
       {
         "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_30"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_31"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_32"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_33"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_34"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_35"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_36"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_37"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_38"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_39"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
         "target": "SEC_w3c_dcat_conformance_4_4"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_40"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_41"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_42"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_43"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_44"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_45"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_46"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_47"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_48"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_49"
       },
       {
         "source": "SEC_w3c_dcat_conformance_4",
         "target": "SEC_w3c_dcat_conformance_4_5"
       },
       {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_50"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_51"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_52"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_53"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_54"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_55"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_56"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_57"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_58"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_59"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_6"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_60"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_61"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_62"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_63"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_64"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_65"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_66"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_67"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_68"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_69"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_7"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_70"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_71"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_72"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_73"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_74"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_75"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_76"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_77"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_78"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_79"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_8"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_80"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_81"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_82"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_83"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_84"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_85"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_86"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_87"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_88"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_89"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_9"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_90"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_91"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_92"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_93"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_94"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_95"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_96"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_97"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_98"
+      },
+      {
+        "source": "SEC_w3c_dcat_conformance_4",
+        "target": "SEC_w3c_dcat_conformance_4_99"
+      },
+      {
+        "source": "Service01",
+        "target": "DOC_recovered_context"
+      },
+      {
         "source": "Standard",
         "target": "Agent"
       },
       {
         "source": "Standard",
-        "target": "DOC_profile_readme"
+        "target": "DOC_dataset_schema"
       },
       {
-        "source": "Standard",
-        "target": "Standard"
+        "source": "Status01",
+        "target": "DOC_recovered_context"
       },
       {
-        "source": "Standard_001",
-        "target": "DOC_catalog_schema"
+        "source": "Theme01",
+        "target": "DOC_recovered_context"
       },
       {
-        "source": "Treasury_Department",
-        "target": "DOC_examples_sample"
+        "source": "ThemeTaxonomy01",
+        "target": "DOC_recovered_context"
+      },
+      {
+        "source": "UseRestriction01",
+        "target": "DOC_recovered_context"
       },
       {
         "source": "accessRights",
@@ -2628,43 +2621,483 @@
       },
       {
         "source": "accessRights",
+        "target": "Dataset"
+      },
+      {
+        "source": "accessRights",
         "target": "string"
       },
       {
-        "source": "conformsTo",
+        "source": "hasAccessPolicy",
         "target": "Catalog"
       },
       {
-        "source": "conformsTo",
-        "target": "Standard"
+        "source": "hasAccessPolicy",
+        "target": "string"
       },
       {
-        "source": "contactPoint",
+        "source": "hasAccessProtocol",
         "target": "Catalog"
       },
       {
-        "source": "contactPoint",
-        "target": "ContactPoint"
+        "source": "hasAccessProtocol",
+        "target": "string"
       },
       {
-        "source": "creator",
+        "source": "hasAccessURL",
+        "target": "Distribution"
+      },
+      {
+        "source": "hasAccessURL",
+        "target": "Document"
+      },
+      {
+        "source": "hasAccessURL",
+        "target": "anyURI"
+      },
+      {
+        "source": "hasAccessURL",
+        "target": "string"
+      },
+      {
+        "source": "hasAgent",
         "target": "Agent"
       },
       {
-        "source": "creator",
-        "target": "Catalog"
+        "source": "hasAgent",
+        "target": "Attribution"
       },
       {
-        "source": "description",
-        "target": "Catalog"
+        "source": "hasAltLabel",
+        "target": "Concept"
       },
       {
-        "source": "description",
+        "source": "hasAuthor",
+        "target": "Author"
+      },
+      {
+        "source": "hasAuthor",
+        "target": "PullRequest"
+      },
+      {
+        "source": "hasByteSize",
+        "target": "Concept"
+      },
+      {
+        "source": "hasByteSize",
+        "target": "Distribution"
+      },
+      {
+        "source": "hasByteSize",
         "target": "string"
+      },
+      {
+        "source": "hasCatalog",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasCategory",
+        "target": "Concept"
+      },
+      {
+        "source": "hasCategory",
+        "target": "Dataset"
+      },
+      {
+        "source": "hasCharacterEncoding",
+        "target": "Concept"
+      },
+      {
+        "source": "hasCharacterEncoding",
+        "target": "Distribution"
+      },
+      {
+        "source": "hasCommit",
+        "target": "Commit"
+      },
+      {
+        "source": "hasCommit",
+        "target": "Repository"
+      },
+      {
+        "source": "hasConformsTo",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasConformsTo",
+        "target": "Standard"
+      },
+      {
+        "source": "hasContactPoint",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasContactPoint",
+        "target": "Dataset"
+      },
+      {
+        "source": "hasContactPoint",
+        "target": "Kind"
+      },
+      {
+        "source": "hasControlledVocabulary",
+        "target": "Profile"
+      },
+      {
+        "source": "hasControlledVocabulary",
+        "target": "string"
+      },
+      {
+        "source": "hasCountryName",
+        "target": "Address"
+      },
+      {
+        "source": "hasCountryName",
+        "target": "string"
+      },
+      {
+        "source": "hasCreator",
+        "target": "Agent"
+      },
+      {
+        "source": "hasCreator",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasCreator",
+        "target": "Dataset"
+      },
+      {
+        "source": "hasDataService",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasDataService",
+        "target": "DataService"
+      },
+      {
+        "source": "hasDataset",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasDataset",
+        "target": "Dataset"
+      },
+      {
+        "source": "hasDatasetSeries",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasDatasetSeries",
+        "target": "DatasetSeries"
+      },
+      {
+        "source": "hasDescription",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasDescription",
+        "target": "Concept"
+      },
+      {
+        "source": "hasDescription",
+        "target": "Document"
+      },
+      {
+        "source": "hasDescription",
+        "target": "MetadataStandard"
+      },
+      {
+        "source": "hasDescription",
+        "target": "string"
+      },
+      {
+        "source": "hasDistribution",
+        "target": "Dataset"
+      },
+      {
+        "source": "hasDistribution",
+        "target": "Distribution"
+      },
+      {
+        "source": "hasDownloadURL",
+        "target": "Distribution"
+      },
+      {
+        "source": "hasDownloadURL",
+        "target": "Document"
+      },
+      {
+        "source": "hasDownloadURL",
+        "target": "string"
+      },
+      {
+        "source": "hasEmail",
+        "target": "Kind"
+      },
+      {
+        "source": "hasEmail",
+        "target": "string"
+      },
+      {
+        "source": "hasFN",
+        "target": "Kind"
+      },
+      {
+        "source": "hasFN",
+        "target": "string"
+      },
+      {
+        "source": "hasFormat",
+        "target": "Concept"
+      },
+      {
+        "source": "hasFormat",
+        "target": "Distribution"
+      },
+      {
+        "source": "hasFormat",
+        "target": "string"
+      },
+      {
+        "source": "hasHasPart",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasIdentifier",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasIdentifier",
+        "target": "Dataset"
+      },
+      {
+        "source": "hasIdentifier",
+        "target": "Identifier"
+      },
+      {
+        "source": "hasIdentifier",
+        "target": "string"
+      },
+      {
+        "source": "hasIssued",
+        "target": "Concept"
+      },
+      {
+        "source": "hasIssued",
+        "target": "Distribution"
+      },
+      {
+        "source": "hasJsonSchema",
+        "target": "JsonSchema"
+      },
+      {
+        "source": "hasJsonSchema",
+        "target": "MetadataStandard"
+      },
+      {
+        "source": "hasLanguage",
+        "target": "Concept"
+      },
+      {
+        "source": "hasLanguage",
+        "target": "Dataset"
+      },
+      {
+        "source": "hasLicense",
+        "target": "Concept"
+      },
+      {
+        "source": "hasLicense",
+        "target": "Dataset"
+      },
+      {
+        "source": "hasLicense",
+        "target": "MetadataStandard"
+      },
+      {
+        "source": "hasLicense",
+        "target": "string"
+      },
+      {
+        "source": "hasLocality",
+        "target": "Address"
+      },
+      {
+        "source": "hasLocality",
+        "target": "string"
+      },
+      {
+        "source": "hasMedia",
+        "target": "Concept"
+      },
+      {
+        "source": "hasMedia",
+        "target": "Distribution"
+      },
+      {
+        "source": "hasMediaType",
+        "target": "Distribution"
+      },
+      {
+        "source": "hasMediaType",
+        "target": "string"
+      },
+      {
+        "source": "hasMetadata",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasMetadata",
+        "target": "string"
+      },
+      {
+        "source": "hasMetadataCatalog",
+        "target": "Author"
+      },
+      {
+        "source": "hasMetadataCatalog",
+        "target": "MetadataCatalog"
+      },
+      {
+        "source": "hasMetadataElement",
+        "target": "Dataset"
+      },
+      {
+        "source": "hasMetadataElement",
+        "target": "MetadataElement"
+      },
+      {
+        "source": "hasModified",
+        "target": "Concept"
+      },
+      {
+        "source": "hasModified",
+        "target": "Distribution"
+      },
+      {
+        "source": "hasName",
+        "target": "Agent"
+      },
+      {
+        "source": "hasName",
+        "target": "string"
+      },
+      {
+        "source": "hasNotation",
+        "target": "Concept"
+      },
+      {
+        "source": "hasNotation",
+        "target": "Identifier"
+      },
+      {
+        "source": "hasOrganizationName",
+        "target": "Kind"
+      },
+      {
+        "source": "hasOrganizationName",
+        "target": "string"
+      },
+      {
+        "source": "hasOtherIdentifier",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasOtherIdentifier",
+        "target": "Identifier"
       },
       {
         "source": "hasPart",
         "target": "Catalog"
+      },
+      {
+        "source": "hasPostalCode",
+        "target": "Address"
+      },
+      {
+        "source": "hasPostalCode",
+        "target": "string"
+      },
+      {
+        "source": "hasPrefLabel",
+        "target": "Concept"
+      },
+      {
+        "source": "hasPrimaryTopic",
+        "target": "CatalogRecord"
+      },
+      {
+        "source": "hasPrimaryTopic",
+        "target": "Dataset"
+      },
+      {
+        "source": "hasPublisher",
+        "target": "Agent"
+      },
+      {
+        "source": "hasPublisher",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasPublisher",
+        "target": "Dataset"
+      },
+      {
+        "source": "hasQualifiedAttribution",
+        "target": "Attribution"
+      },
+      {
+        "source": "hasQualifiedAttribution",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasRDFDescription",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasRDFDescription",
+        "target": "string"
+      },
+      {
+        "source": "hasRDFSyntax",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasRDFSyntax",
+        "target": "string"
+      },
+      {
+        "source": "hasRecord",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasRecord",
+        "target": "CatalogRecord"
+      },
+      {
+        "source": "hasRegion",
+        "target": "Address"
+      },
+      {
+        "source": "hasRegion",
+        "target": "string"
+      },
+      {
+        "source": "hasRequiredField",
+        "target": "Profile"
+      },
+      {
+        "source": "hasRequiredField",
+        "target": "string"
+      },
+      {
+        "source": "hasRights",
+        "target": "Concept"
+      },
+      {
+        "source": "hasRights",
+        "target": "Dataset"
       },
       {
         "source": "hasSection",
@@ -2683,6 +3116,58 @@
         "target": "string"
       },
       {
+        "source": "hasService",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasService",
+        "target": "DataService"
+      },
+      {
+        "source": "hasSpatial",
+        "target": "Dataset"
+      },
+      {
+        "source": "hasSpatial",
+        "target": "Location"
+      },
+      {
+        "source": "hasStatus",
+        "target": "File"
+      },
+      {
+        "source": "hasStatus",
+        "target": "Status"
+      },
+      {
+        "source": "hasStreetAddress",
+        "target": "Address"
+      },
+      {
+        "source": "hasStreetAddress",
+        "target": "string"
+      },
+      {
+        "source": "hasTemporal",
+        "target": "Dataset"
+      },
+      {
+        "source": "hasTemporal",
+        "target": "PeriodOfTime"
+      },
+      {
+        "source": "hasTheme",
+        "target": "Catalog"
+      },
+      {
+        "source": "hasTheme",
+        "target": "Concept"
+      },
+      {
+        "source": "hasTheme",
+        "target": "Dataset"
+      },
+      {
         "source": "hasThemeTaxonomy",
         "target": "Catalog"
       },
@@ -2691,94 +3176,286 @@
         "target": "ConceptScheme"
       },
       {
-        "source": "identifier",
+        "source": "hasTitle",
         "target": "Catalog"
       },
       {
-        "source": "identifier",
+        "source": "hasTitle",
+        "target": "Concept"
+      },
+      {
+        "source": "hasTitle",
+        "target": "Document"
+      },
+      {
+        "source": "hasTitle",
         "target": "string"
       },
       {
-        "source": "issued",
-        "target": "Catalog"
+        "source": "hasVersion",
+        "target": "Concept"
       },
       {
-        "source": "issued",
+        "source": "hasVersion",
+        "target": "Dataset"
+      },
+      {
+        "source": "hasVersion",
+        "target": "Identifier"
+      },
+      {
+        "source": "hasVersion",
+        "target": "MetadataStandard"
+      },
+      {
+        "source": "hasVersion",
         "target": "string"
       },
       {
-        "source": "keyword",
-        "target": "Catalog"
+        "source": "liabilityStatement",
+        "target": "Dataset"
       },
       {
-        "source": "keyword",
+        "source": "liabilityStatement",
         "target": "string"
       },
       {
-        "source": "language",
-        "target": "Catalog"
+        "source": "purpose",
+        "target": "Dataset"
       },
       {
-        "source": "language",
+        "source": "purpose",
         "target": "string"
       },
       {
-        "source": "license",
-        "target": "Catalog"
+        "source": "versionNotes",
+        "target": "Dataset"
       },
       {
-        "source": "license",
+        "source": "versionNotes",
         "target": "string"
-      },
-      {
-        "source": "modified",
-        "target": "Catalog"
-      },
-      {
-        "source": "modified",
-        "target": "string"
-      },
-      {
-        "source": "otherIdentifier",
-        "target": "Catalog"
-      },
-      {
-        "source": "otherIdentifier",
-        "target": "string"
-      },
-      {
-        "source": "publisher",
-        "target": "Agent"
-      },
-      {
-        "source": "publisher",
-        "target": "Catalog"
       }
     ],
     "properties": [
       {
         "iri": "accessRights",
-        "label": "accessRights"
+        "label": "access rights"
       },
       {
-        "iri": "conformsTo",
-        "label": "conformsTo"
+        "iri": "hasAccessPolicy",
+        "label": "has access policy"
       },
       {
-        "iri": "contactPoint",
-        "label": "contactPoint"
+        "iri": "hasAccessProtocol",
+        "label": "has access protocol"
       },
       {
-        "iri": "creator",
-        "label": "creator"
+        "iri": "hasAccessURL",
+        "label": "has access URL"
       },
       {
-        "iri": "description",
-        "label": "description"
+        "iri": "hasAgent",
+        "label": "has agent"
+      },
+      {
+        "iri": "hasAltLabel",
+        "label": "has alt label"
+      },
+      {
+        "iri": "hasAuthor",
+        "label": "has author"
+      },
+      {
+        "iri": "hasByteSize",
+        "label": "has byte size"
+      },
+      {
+        "iri": "hasCatalog",
+        "label": "has catalog"
+      },
+      {
+        "iri": "hasCategory",
+        "label": "has category"
+      },
+      {
+        "iri": "hasCharacterEncoding",
+        "label": "has character encoding"
+      },
+      {
+        "iri": "hasCommit",
+        "label": "has commit"
+      },
+      {
+        "iri": "hasConformsTo",
+        "label": "has conforms to"
+      },
+      {
+        "iri": "hasContactPoint",
+        "label": "has contact point"
+      },
+      {
+        "iri": "hasControlledVocabulary",
+        "label": "has controlled vocabulary"
+      },
+      {
+        "iri": "hasCountryName",
+        "label": "has country name"
+      },
+      {
+        "iri": "hasCreator",
+        "label": "has creator"
+      },
+      {
+        "iri": "hasDataService",
+        "label": "has data service"
+      },
+      {
+        "iri": "hasDataset",
+        "label": "has dataset"
+      },
+      {
+        "iri": "hasDatasetSeries",
+        "label": "has dataset series"
+      },
+      {
+        "iri": "hasDescription",
+        "label": "has description"
+      },
+      {
+        "iri": "hasDistribution",
+        "label": "has distribution"
+      },
+      {
+        "iri": "hasDownloadURL",
+        "label": "has download URL"
+      },
+      {
+        "iri": "hasEmail",
+        "label": "has email"
+      },
+      {
+        "iri": "hasFN",
+        "label": "has FN"
+      },
+      {
+        "iri": "hasFormat",
+        "label": "has format"
+      },
+      {
+        "iri": "hasHasPart",
+        "label": "has part"
+      },
+      {
+        "iri": "hasIdentifier",
+        "label": "has identifier"
+      },
+      {
+        "iri": "hasIssued",
+        "label": "has issued"
+      },
+      {
+        "iri": "hasJsonSchema",
+        "label": "has JSON schema"
+      },
+      {
+        "iri": "hasLanguage",
+        "label": "has language"
+      },
+      {
+        "iri": "hasLicense",
+        "label": "has license"
+      },
+      {
+        "iri": "hasLocality",
+        "label": "has locality"
+      },
+      {
+        "iri": "hasMedia",
+        "label": "has media type"
+      },
+      {
+        "iri": "hasMediaType",
+        "label": "has media type"
+      },
+      {
+        "iri": "hasMetadata",
+        "label": "has metadata"
+      },
+      {
+        "iri": "hasMetadataCatalog",
+        "label": "has metadata catalog"
+      },
+      {
+        "iri": "hasMetadataElement",
+        "label": "has metadata element"
+      },
+      {
+        "iri": "hasModified",
+        "label": "has modified"
+      },
+      {
+        "iri": "hasName",
+        "label": "has name"
+      },
+      {
+        "iri": "hasNotation",
+        "label": "has notation"
+      },
+      {
+        "iri": "hasOrganizationName",
+        "label": "has organization name"
+      },
+      {
+        "iri": "hasOtherIdentifier",
+        "label": "has other identifier"
       },
       {
         "iri": "hasPart",
-        "label": "hasPart"
+        "label": "has part"
+      },
+      {
+        "iri": "hasPostalCode",
+        "label": "has postal code"
+      },
+      {
+        "iri": "hasPrefLabel",
+        "label": "has pref label"
+      },
+      {
+        "iri": "hasPrimaryTopic",
+        "label": "has primary topic"
+      },
+      {
+        "iri": "hasPublisher",
+        "label": "has publisher"
+      },
+      {
+        "iri": "hasQualifiedAttribution",
+        "label": "has qualified attribution"
+      },
+      {
+        "iri": "hasRDFDescription",
+        "label": "has RDF description"
+      },
+      {
+        "iri": "hasRDFSyntax",
+        "label": "has RDF syntax"
+      },
+      {
+        "iri": "hasRecord",
+        "label": "has record"
+      },
+      {
+        "iri": "hasRegion",
+        "label": "has region"
+      },
+      {
+        "iri": "hasRequiredField",
+        "label": "has required field"
+      },
+      {
+        "iri": "hasRights",
+        "label": "has rights"
       },
       {
         "iri": "hasSection",
@@ -2789,40 +3466,52 @@
         "label": "has section number"
       },
       {
+        "iri": "hasService",
+        "label": "has service"
+      },
+      {
+        "iri": "hasSpatial",
+        "label": "has spatial"
+      },
+      {
+        "iri": "hasStatus",
+        "label": "has status"
+      },
+      {
+        "iri": "hasStreetAddress",
+        "label": "has street address"
+      },
+      {
+        "iri": "hasTemporal",
+        "label": "has temporal"
+      },
+      {
+        "iri": "hasTheme",
+        "label": "has theme"
+      },
+      {
         "iri": "hasThemeTaxonomy",
-        "label": "hasThemeTaxonomy"
+        "label": "has theme taxonomy"
       },
       {
-        "iri": "identifier",
-        "label": "identifier"
+        "iri": "hasTitle",
+        "label": "has title"
       },
       {
-        "iri": "issued",
-        "label": "issued"
+        "iri": "hasVersion",
+        "label": "has version"
       },
       {
-        "iri": "keyword",
-        "label": "keyword"
+        "iri": "liabilityStatement",
+        "label": "liability statement"
       },
       {
-        "iri": "language",
-        "label": "language"
+        "iri": "purpose",
+        "label": "purpose"
       },
       {
-        "iri": "license",
-        "label": "license"
-      },
-      {
-        "iri": "modified",
-        "label": "modified"
-      },
-      {
-        "iri": "otherIdentifier",
-        "label": "otherIdentifier"
-      },
-      {
-        "iri": "publisher",
-        "label": "publisher"
+        "iri": "versionNotes",
+        "label": "version notes"
       }
     ]
   }
