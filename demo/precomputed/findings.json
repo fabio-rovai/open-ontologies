@@ -49,7 +49,7 @@
       {
         "document": "jsonschema/definitions/Dataset.json",
         "predicate": "measuredAsPublished",
-        "object": "115 files expand to 76 triples total, 1 distinct predicate (rdf:type), 0 dcat: triples, 38 files empty, 1 parse error (demo/dcat_conformance.py, no context)"
+        "object": "115 files expand to 76 triples total (summed per file, demo/dcat_conformance_measurements.json's examples.asPublished.triples; merged into one graph, exact-duplicate triples across files collapse to 73, corpusTriples.asPublished), 1 distinct predicate (rdf:type), 0 dcat: triples, 38 files empty, 1 file whose root is not a JSON object -- not a parse error, the JSON itself is valid: jsonschema/examples/Identifier/good/minimal_string_example.json's entire content is the JSON string \"dataset-12345\" (demo/dcat_conformance.py, no context)"
       },
       {
         "document": "recovered-shapes.ttl",

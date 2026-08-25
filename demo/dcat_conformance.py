@@ -415,6 +415,65 @@ def measure(
     }
 
 
+def _rel_key(path: Path) -> str:
+    """'<Class>/good/<file>.json', unique across the corpus.
+
+    Bare filenames are NOT unique: "minimal_example.json", "null_example.json"
+    and "typical_example.json" each recur under many different classes'
+    good/ directories, so keying per-file results by path.name alone would
+    silently collide and overwrite entries.
+    """
+    return "/".join(path.parts[-3:])
+
+
+def per_file_triples(
+    files: list[Path], context: dict | None, base: str = BASE, retype: dict[str, str] | None = None
+) -> dict[str, int]:
+    """Triples produced by each file on its own, keyed by '<Class>/good/<file>'.
+
+    Distinct from measure()['triples'] (the same per-file counts summed) and
+    from len(merge_corpus(...)) (all files' triples merged into one
+    rdflib.Graph, where exact-duplicate triples across files collapse: two
+    files that both mint the same manufactured relative IRI and type it the
+    same way contribute only one triple to the merged graph, not two). This
+    is what a reader checking one specific example file in isolation would
+    reproduce by hand.
+    """
+    out: dict[str, int] = {}
+    for path in files:
+        g, err = expand_file(path, context, base, retype)
+        out[_rel_key(path)] = 0 if err else len(g)
+    return out
+
+
+def per_file_shacl_violations(
+    files: list[Path], shapes_path: Path, context: dict | None,
+    base: str = BASE, retype: dict[str, str] | None = None,
+) -> dict[str, dict]:
+    """SHACL violations for each file's own triples, validated on its own.
+
+    Each good example is a self-contained record: no file's triples name a
+    subject that another file also describes. Validating one file's expanded
+    graph alone therefore reproduces what a reader would see running only
+    that file through pySHACL, not an artefact of merging the whole corpus
+    into one graph first.
+    """
+    out: dict[str, dict] = {}
+    for path in files:
+        g, err = expand_file(path, context, base, retype)
+        key = _rel_key(path)
+        if err:
+            out[key] = {"violations": None, "focusNodes": 0, "conforms": None, "error": err}
+            continue
+        result = run_shacl(shapes_path, g)
+        out[key] = {
+            "violations": result["violations"],
+            "focusNodes": result["focusNodes"],
+            "conforms": result["conforms"],
+        }
+    return out
+
+
 def merge_corpus(
     files: list[Path], context: dict | None, base: str = BASE, retype: dict[str, str] | None = None
 ) -> Graph:
@@ -579,6 +638,23 @@ def main() -> int:
         "focusNodesDelta": shacl_org_fixed["focusNodes"] - shacl_real_typed["focusNodes"],
     }
 
+    # --- Per-file breakdown ---
+    # demo/precomputed/findings.json quotes per-file triple and violation
+    # figures for specific example files (Catalog, Dataset, Distribution,
+    # Concept, Identifier). Those are computed here, not eyeballed from the
+    # aggregate numbers above, and pinned by
+    # demo/tests/test_dcat_conformance.py so a reader running this script
+    # reproduces exactly what findings.json quotes.
+    per_file_published = per_file_triples(good_files, None)
+    per_file_observed_violations = per_file_shacl_violations(good_files, SHAPES_PATH, observed)
+    per_file_real_typed_violations = per_file_shacl_violations(good_files, SHAPES_PATH, real_context, retype=retype_map)
+
+    per_file = {
+        "asPublishedTriples": per_file_published,
+        "withObservedBindingViolations": {k: v["violations"] for k, v in per_file_observed_violations.items()},
+        "withRealContextTypedViolations": {k: v["violations"] for k, v in per_file_real_typed_violations.items()},
+    }
+
     result = {
         "measured": "2026-08-25, this repository, no network, no model call",
         "commit": COMMIT_SHA,
@@ -591,6 +667,7 @@ def main() -> int:
         "recoveredFilesOrgPrefixTypoImpactDiagnosticOnly": org_prefix_impact,
         "lenientTermCount": len(lenient_terms),
         "lenientTerms": sorted(lenient_terms),
+        "perFile": per_file,
         "examples": {
             "asPublished": as_published,
             "withDeclaredBinding": with_declared,

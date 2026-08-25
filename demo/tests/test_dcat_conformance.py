@@ -28,6 +28,8 @@ from demo.dcat_conformance import (
     load_shapes_namespaces,
     measure,
     merge_corpus,
+    per_file_shacl_violations,
+    per_file_triples,
     run_shacl,
     scan_bare_values,
     title_to_rdf_class,
@@ -172,6 +174,54 @@ def test_shacl_violation_counts_disagree_across_methods():
     # THE count.
     counts = {bound_declared["violations"], bound_observed["violations"], bound_real_typed["violations"]}
     assert len(counts) == 3
+
+
+def test_per_file_figures_quoted_in_findings_json_are_reproducible():
+    """demo/precomputed/findings.json quotes per-file triple and violation
+    counts for specific example files (findings 1, 3 and 5). Those numbers
+    must be exactly what per_file_triples() / per_file_shacl_violations()
+    compute, not hand-typed approximations: this test is the thing a
+    sceptical reader runs to check them.
+    """
+    classes = load_classes(DEFINITIONS)
+    namespaces = load_shapes_namespaces(SHAPES_PATH)
+    files = _good_files()
+    lenient_terms = scan_bare_values(files, classes)
+    observed = build_context(classes, namespaces, lenient_terms=lenient_terms)
+    real_context = load_real_context(REAL_CONTEXT_PATH)
+    retype_map = title_to_rdf_class(classes)
+
+    as_published = per_file_triples(files, None)
+    # Finding 1: Catalog and Dataset each expand to 1 triple as published
+    # (rdf:type of a manufactured IRI, no @context).
+    assert as_published["Catalog/good/complete_example.json"] == 1
+    assert as_published["Dataset/good/complete_example.json"] == 1
+
+    observed_violations = per_file_shacl_violations(files, SHAPES_PATH, observed)
+    real_typed_violations = per_file_shacl_violations(files, SHAPES_PATH, real_context, retype=retype_map)
+
+    # Finding 5: firesViolations, observed binding vs. real context typed.
+    assert observed_violations["Dataset/good/complete_example.json"]["violations"] == 35
+    assert real_typed_violations["Dataset/good/complete_example.json"]["violations"] == 15
+    assert observed_violations["Catalog/good/complete_example.json"]["violations"] == 19
+    assert real_typed_violations["Catalog/good/complete_example.json"]["violations"] == 0
+    assert observed_violations["Distribution/good/complete_example.json"]["violations"] == 14
+    assert real_typed_violations["Distribution/good/complete_example.json"]["violations"] == 5
+
+    # Finding 3: Concept/Identifier reachability under the real context.
+    assert real_typed_violations["Concept/good/complete_example.json"]["violations"] == 0
+    assert real_typed_violations["Concept/good/minimal_object.json"]["violations"] == 1
+    assert real_typed_violations["Identifier/good/complete_example.json"]["violations"] == 1
+
+
+def test_per_file_keys_are_unique_across_reused_filenames():
+    # "minimal_example.json", "null_example.json" and "typical_example.json"
+    # each recur under many classes' good/ directories. A per-file mapping
+    # keyed by bare filename would silently collide; keying by
+    # '<Class>/good/<file>' must not.
+    files = _good_files()
+    result = per_file_triples(files, None)
+    assert len(result) == len(files) == 115
 
 
 def test_recovered_files_disagree_on_org_prefix():
