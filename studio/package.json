@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "prepare-engine": "node ./scripts/prepare-engine.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:web": "VITE_DEMO_MODE=replay tsc && VITE_DEMO_MODE=replay vite build --base ./ --outDir dist-web && mkdir -p dist-web/precomputed && cp ../demo/precomputed/bundle.json dist-web/precomputed/bundle.json"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",
