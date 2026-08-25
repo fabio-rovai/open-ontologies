@@ -98,6 +98,31 @@ describe('LiveSource', () => {
     await expect(src.findings()).rejects.toThrow('Cannot read shapes file')
   })
 
+  // src/shacl.rs (~lines 552-567) deliberately returns conforms: null with a
+  // warning when the shapes graph selects zero focus nodes, rather than lying
+  // with conforms: true over nothing. This is precisely the profile-as-
+  // published case this demonstration exists to show. Before this fix,
+  // findings() read only report.violations, defaulted to [], and returned an
+  // empty array here -- rendering as "no findings", indistinguishable from a
+  // real clean pass.
+  it('throws on a vacuous SHACL result (conforms: null) rather than reporting it as clean', async () => {
+    const callTool = vi.fn(async () =>
+      JSON.stringify({
+        conforms: null,
+        violation_count: 0,
+        violations: [],
+        focus_nodes: 0,
+        warning:
+          'no focus nodes matched: all 34 shape(s) target classes absent from the data, so conformance is undetermined. See unmatched_shapes.',
+      }),
+    )
+    const sparqlQuery = vi.fn(async () => sparqlJson([]))
+    const src = createLiveSource({ sparqlQuery, callTool })
+
+    await expect(src.findings()).rejects.toThrow(/undetermined/i)
+    await expect(src.findings()).rejects.toThrow(/focus node/i)
+  })
+
   // corpus_documents is not a real MCP tool, and no Tauri command in
   // corpus.rs (corpus_presets, ingest_corpus, read_store, list_graphs,
   // read_decisions, revert_type, list_saved, pick_ontology_file) returns

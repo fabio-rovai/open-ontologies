@@ -63,6 +63,7 @@ interface ShaclReport {
   conforms?: boolean | null
   violation_count?: number
   violations?: ShaclViolation[]
+  focus_nodes?: number
   warning?: string
 }
 
@@ -120,6 +121,20 @@ export function createLiveSource(deps: LiveDeps): DemoSource {
       const report = JSON.parse(raw) as ShaclReport
       if (report.error) {
         throw new Error(`SHACL validation failed: ${report.error}`)
+      }
+      // The engine deliberately reports `conforms: null` (src/shacl.rs, the
+      // block just above `report["conforms"] = serde_json::Value::Null`) when
+      // the shapes graph selects zero focus nodes: reporting `conforms: true`
+      // over nothing checked would be exactly the lie this demonstration
+      // exists to expose, and this is precisely the profile-as-published
+      // case (0 focus nodes). Returning [] here would render as "no
+      // findings" in the panel -- indistinguishable from a genuine clean
+      // pass -- so an undetermined result throws instead of going quiet.
+      if (report.conforms === null || report.conforms === undefined) {
+        throw new Error(
+          `SHACL validation is undetermined, not clean: conforms is null with ` +
+            `${report.focus_nodes ?? 0} focus node(s). ${report.warning ?? 'The shapes graph selected nothing in the data.'}`,
+        )
       }
       const violations = report.violations ?? []
 
