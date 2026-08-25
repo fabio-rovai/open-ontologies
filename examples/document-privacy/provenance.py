@@ -12,7 +12,7 @@ store usually loses: which document asserted each subject. This helper takes
 per-document graphs and emits it.
 
     from provenance import emit_provenance
-    store_tail = emit_provenance({"SOP-201": ttl_1, "REF-601": ttl_2})
+    store_tail = emit_provenance({"DOC-201": ttl_1, "DOC-601": ttl_2})
     # append store_tail to the merged store before loading
 """
 

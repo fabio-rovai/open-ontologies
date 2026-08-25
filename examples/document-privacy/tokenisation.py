@@ -126,7 +126,7 @@ class CompositeDetector:
 
     Neither half is sufficient alone, which the test output makes obvious:
     Presidio finds names, dates and locations that no pattern will catch, and
-    misses domain identifiers like REF-20481 because it has no reason to know
+    misses domain identifiers like DOC-20481 because it has no reason to know
     they are sensitive. Regex catches those and nothing else.
 
     Overlaps resolve to the longer span, so a Presidio PERSON covering a name
@@ -407,7 +407,7 @@ if __name__ == "__main__":
     piped = "" if sys.stdin.isatty() else sys.stdin.read()
     sample = piped.strip() or (
         "Dr Alice Morgan (alice.morgan@example.com, +44 20 7946 0958) reviewed "
-        "batch REF-20481 on 3 March. Contact Prof Brian Hale for the audit."
+        "batch DOC-20481 on 3 March. Contact Prof Brian Hale for the audit."
     )
     t = build()
     print(f"tokeniser: {t.description}\n")

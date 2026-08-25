@@ -62,6 +62,6 @@ between the documents that disagree.
 
 ```python
 from provenance import emit_provenance
-tail = emit_provenance({"SOP-201": ttl_1, "REF-601": ttl_2})
+tail = emit_provenance({"DOC-201": ttl_1, "DOC-601": ttl_2})
 # append to the merged store before loading
 ```
