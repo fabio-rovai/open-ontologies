@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useEngine } from '../hooks/useEngine';
+import { useDemoStore } from '../state/demo-store';
 import { TreeView } from './TreeView';
 import { Graph3D } from './Graph3D';
 import { ChatPanel } from './ChatPanel';
@@ -7,14 +8,25 @@ import { PropertyInspector } from './PropertyInspector';
 import { LineagePanel } from './LineagePanel';
 import * as mcp from '../lib/mcp-client';
 
-type ViewMode = 'tree';
-
-export function Layout() {
+/**
+ * Desktop-only chrome: everything here needs a running engine and a live
+ * agent sidecar, neither of which exists in the static web build. AppShell
+ * lazy-loads this only when the source kind is "live", so none of it (or
+ * the Tauri-coupled hooks it pulls in, useEngine and useChat via ChatPanel)
+ * is ever evaluated in the replay bundle.
+ *
+ * The demonstration surfaces themselves (corpus, findings, resolution,
+ * compare, the 3D graph) are NOT reimplemented here: this wraps them, it
+ * does not duplicate them. AppShell renders that shared body and passes it
+ * in as `children`; this component adds the ontology-authoring chrome
+ * around it (chat, save/open, inspector, lineage, the 2D tree view) that
+ * has no offline equivalent.
+ */
+export function LiveChrome({ children }: { children: React.ReactNode }) {
   const [showChat, setShowChat] = useState(true);
   const [graphMode, setGraphMode] = useState<'2d' | '3d'>('2d');
   const [showInspector, setShowInspector] = useState(false);
   const [showLineage, setShowLineage] = useState(false);
-  const [_viewMode, _setViewMode] = useState<ViewMode>('tree');
   const [selectedNode, setSelectedNode] = useState<{ id: string; label: string; uri: string } | null>(null);
   const [projectName, setProjectName] = useState('studio-live');
   const [savingAs, setSavingAs] = useState(false);
@@ -22,17 +34,36 @@ export function Layout() {
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const saveInputRef = useRef<HTMLInputElement>(null);
   const { status, stats, connect } = useEngine();
+  const graph = useDemoStore((s) => s.graph);
+  const refreshGraph = useDemoStore((s) => s.refreshGraph);
 
   useEffect(() => {
     connect();
   }, [connect]);
 
-  // Auto-show inspector when a node is selected
+  // Chat-driven ontology mutations (onto_load, onto_apply, ...) happen over
+  // the agent sidecar, entirely outside the demo-store. Graph3D no longer
+  // queries the engine itself, so it needs telling when something changed.
+  // useChat.ts and PropertyInspector already call window.__refreshGraph
+  // after a mutation; this keeps that same contract rather than inventing
+  // a second one, and now points it at the store instead of a component's
+  // own local reload.
+  useEffect(() => {
+    const w = window as unknown as { __refreshGraph?: () => void };
+    const prev = w.__refreshGraph;
+    w.__refreshGraph = () => { prev?.(); refreshGraph(); };
+    const onLineageRefresh = () => refreshGraph();
+    window.addEventListener('lineage-refresh', onLineageRefresh);
+    return () => {
+      window.removeEventListener('lineage-refresh', onLineageRefresh);
+      w.__refreshGraph = prev;
+    };
+  }, [refreshGraph]);
+
   useEffect(() => {
     if (selectedNode) setShowInspector(true);
   }, [selectedNode]);
 
-  // Global keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'j') {
@@ -50,6 +81,7 @@ export function Layout() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectName]);
 
   function openSaveAs() {
@@ -75,14 +107,12 @@ export function Layout() {
 
   return (
     <div className="h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
-      {/* Toolbar */}
       <div className="h-10 flex items-center px-4 border-b gap-3"
            style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)' }}>
         <span className="text-sm font-semibold shrink-0" style={{ color: 'var(--accent)' }}>
           Open Ontologies
         </span>
 
-        {/* Project name / save-as input */}
         {savingAs ? (
           <div className="flex items-center gap-1">
             <input
@@ -103,7 +133,7 @@ export function Layout() {
                     style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}>Save</button>
             <button onClick={() => setSavingAs(false)}
                     className="text-xs px-2 py-0.5 rounded"
-                    style={{ background: 'var(--bg-panel)', color: 'var(--text-secondary)' }}>✕</button>
+                    style={{ background: 'var(--bg-panel)', color: 'var(--text-secondary)' }}>&#10005;</button>
           </div>
         ) : (
           <button
@@ -112,7 +142,6 @@ export function Layout() {
             style={{ background: 'var(--bg-panel)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
             title="Save as… (⌘S)"
           >
-            <span>💾</span>
             <span style={{ color: 'var(--text-primary)' }}>{projectName}.ttl</span>
           </button>
         )}
@@ -122,7 +151,6 @@ export function Layout() {
         )}
 
         <div className="ml-auto flex gap-2">
-          {/* View mode toggle */}
           <div className="w-px mx-1" style={{ background: 'var(--border)' }} />
           <div className="flex items-center rounded text-xs overflow-hidden"
                style={{ border: '1px solid var(--border)' }}>
@@ -156,30 +184,20 @@ export function Layout() {
         </div>
       </div>
 
-      {/* Main area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Graph canvas */}
         <div className="flex-1 relative">
           {graphMode === '2d'
             ? <TreeView onNodeSelect={setSelectedNode} />
-            : <Graph3D onNodeSelect={setSelectedNode} />}
+            : <Graph3D graph={graph} onNodeSelect={setSelectedNode} />}
         </div>
 
-        {/* Inspector panel */}
         {showInspector && (
           <div className="w-72 border-l overflow-hidden"
                style={{ borderColor: 'var(--border)', background: 'var(--bg-panel)' }}>
-            <PropertyInspector
-              node={selectedNode}
-              onGraphChanged={() => {
-                const refresh = (window as unknown as Record<string, () => void>).__refreshGraph;
-                if (refresh) refresh();
-              }}
-            />
+            <PropertyInspector node={selectedNode} onGraphChanged={refreshGraph} />
           </div>
         )}
 
-        {/* Lineage panel */}
         {showLineage && (
           <div className="w-72 border-l flex flex-col overflow-hidden"
                style={{ borderColor: 'var(--border)', background: 'var(--bg-panel)' }}>
@@ -187,7 +205,13 @@ export function Layout() {
           </div>
         )}
 
-        {/* Chat panel */}
+        {/* The shared demonstration body (corpus / findings / resolution /
+            compare), the same tree the replay build renders. */}
+        <div className="w-96 border-l overflow-hidden flex flex-col"
+             style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)' }}>
+          {children}
+        </div>
+
         {showChat && (
           <div className="w-96 border-l flex flex-col"
                style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)' }}>
@@ -196,7 +220,6 @@ export function Layout() {
         )}
       </div>
 
-      {/* Status bar */}
       <div className="h-6 flex items-center px-4 text-xs border-t gap-4"
            style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)',
                     color: 'var(--text-secondary)' }}>
@@ -210,7 +233,6 @@ export function Layout() {
           <span>{stats.triples} triples | {stats.classes} classes | {stats.properties} properties</span>
         )}
       </div>
-
     </div>
   );
 }
