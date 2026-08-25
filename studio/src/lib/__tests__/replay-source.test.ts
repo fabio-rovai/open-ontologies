@@ -27,7 +27,12 @@ describe('ReplaySource', () => {
     expect(found[0].claims.map((c) => c.document)).toEqual(['README', 'examples'])
   })
 
-  it('records a resolution in session state without mutating fixtures', async () => {
+  // resolve() itself keeps no ledger (see replay-source.ts: the caller,
+  // useDemoStore, is the actual record of a resolution). What this test
+  // verifies is narrower and is exactly what it asserts: resolve() resolves
+  // without throwing, and does not mutate the committed fixtures as a side
+  // effect.
+  it('resolves without mutating the committed fixtures', async () => {
     const src = createReplaySource(fixtures)
     await src.resolve('f1', { kind: 'accept' })
     expect(await src.findings()).toHaveLength(1)

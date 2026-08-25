@@ -169,7 +169,7 @@ mod tests {
     static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     #[test]
-    fn mcp_call_site_builds_its_url_from_the_configured_port_resolver() {
+    fn mcp_endpoint_composes_with_the_live_env_backed_port_resolver() {
         const VAR: &str = "OPEN_ONTOLOGIES_STUDIO_PORT";
         const DISTINCTIVE_PORT: &str = "48213";
 
@@ -189,10 +189,17 @@ mod tests {
             }
         }
 
-        // This exercises the actual call site in do_mcp_call
-        // (`.post(mcp_endpoint(engine::engine_port()))`), not just the pure
-        // helper: it proves the URL is built from the real port resolver, so
-        // re-inlining a literal at that call site would fail this test.
+        // This calls the same two functions do_mcp_call's real call site
+        // composes (`mcp_endpoint(engine::engine_port())`), with
+        // engine_port() reading a live, env-overridden value rather than a
+        // literal passed in by hand, as the first test above does. It does
+        // NOT call do_mcp_call itself, so it does not exercise that call
+        // site directly: if do_mcp_call's `.post(...)` line were changed to
+        // build its URL a different way (or inline a literal), this test
+        // would keep passing regardless, because it never invokes that
+        // function. What this proves is narrower: engine::engine_port()'s
+        // env-var override reaches mcp_endpoint() correctly when composed
+        // the same way that call site composes them.
         assert_eq!(endpoint, "http://127.0.0.1:48213/mcp");
     }
 }

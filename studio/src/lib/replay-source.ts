@@ -1,4 +1,4 @@
-import type { Chunk, Claim, Contradiction, Decision, DemoSource, Document, GraphView } from './demo-source'
+import type { Chunk, Claim, Contradiction, DemoSource, Document, GraphView } from './demo-source'
 
 // A later artifact bundle carries a fifth key ('compare') alongside the
 // four this replay reads. The index signature makes that tolerance
@@ -28,8 +28,6 @@ const cloneGraph = (g: GraphView): GraphView => ({
 })
 
 export function createReplaySource(fixtures: ReplayFixtures): DemoSource {
-  const ledger: { id: string; decision: Decision }[] = []
-
   return {
     async corpus() {
       return fixtures.corpus.map(cloneDocument)
@@ -40,9 +38,15 @@ export function createReplaySource(fixtures: ReplayFixtures): DemoSource {
     async findings() {
       return fixtures.findings.map(cloneContradiction)
     },
-    async resolve(id, decision) {
-      ledger.push({ id, decision })
-    },
+    // DemoSource.resolve() returns void by design (live-source.ts's
+    // implementation throws instead, since no engine tool resolves a
+    // finding by id yet), and the caller already keeps its own record: the
+    // ledger a resolution shows up in is useDemoStore's `ledger` state
+    // (demo-store.ts's resolve() appends to it after this call succeeds),
+    // not anything this function needs to track. An earlier version of this
+    // function wrote to an internal `ledger` array that nothing ever read
+    // back out; it has been removed rather than left as write-only state.
+    async resolve(_id, _decision) {},
     async *ask(question) {
       const scripted = fixtures.chat[question.trim().toLowerCase()] ?? fixtures.chat[question]
       if (scripted) {

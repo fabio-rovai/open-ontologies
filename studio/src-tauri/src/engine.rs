@@ -118,11 +118,12 @@ fn clear_stale_port(port: u16) {
     }
 }
 
-// Kept in sync by hand with the matching DEFAULT_ENGINE_PORT constant in
-// sidecars/agent/index.ts. That copy is a fallback for running the sidecar
-// standalone; in the normal path this Rust value always wins because
-// spawn_agent_sidecar sets OPEN_ONTOLOGIES_STUDIO_PORT before the sidecar
-// ever reads it, so the two never need to agree at runtime, only in source.
+// Kept in sync by hand with the matching ENGINE_PORT constant in
+// sidecars/agent/index.ts (`const ENGINE_PORT = process.env.OPEN_ONTOLOGIES_STUDIO_PORT ?? '8137'`).
+// That copy is a fallback for running the sidecar standalone; in the normal
+// path this Rust value always wins because spawn_agent_sidecar sets
+// OPEN_ONTOLOGIES_STUDIO_PORT before the sidecar ever reads it, so the two
+// never need to agree at runtime, only in source.
 const DEFAULT_ENGINE_PORT: u16 = 8137;
 
 fn parse_port(raw: Option<&str>) -> u16 {
