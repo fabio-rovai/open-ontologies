@@ -60,14 +60,32 @@ export function ComparePanel({ result, onAsk, questions = [], pending }: Compare
               {result.question}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <AnswerColumn label="Grounded (ontology)" answer={result.grounded} />
-              <AnswerColumn label="Baseline (plain retrieval)" answer={result.baseline} />
-            </div>
+            {/* status is an explicit discriminant (compare-source.ts): a
+                failed or unscripted comparison renders as a status line, not
+                under either column's heading, so it can never read as a
+                grounded win with an empty baseline. */}
+            {result.status !== 'ok' ? (
+              <div
+                className="text-sm p-3 rounded"
+                style={{
+                  background: 'var(--bg-panel)',
+                  color: result.status === 'error' ? 'var(--error)' : 'var(--text-secondary)',
+                }}
+              >
+                {result.status === 'error' ? `Comparison failed: ${result.grounded.answer}` : result.grounded.answer}
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <AnswerColumn label="Grounded (ontology)" answer={result.grounded} />
+                  <AnswerColumn label="Baseline (plain retrieval)" answer={result.baseline} />
+                </div>
 
-            <div className="text-xs p-2 rounded" style={{ background: 'var(--bg-panel)', color: 'var(--text-secondary)' }}>
-              {result.divergence ?? 'No divergence recorded: this question was not in the scripted set.'}
-            </div>
+                <div className="text-xs p-2 rounded" style={{ background: 'var(--bg-panel)', color: 'var(--text-secondary)' }}>
+                  {result.divergence ?? 'No divergence recorded: this question was not in the scripted set.'}
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

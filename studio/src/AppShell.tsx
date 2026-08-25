@@ -4,9 +4,10 @@ import { CorpusPanel } from './components/CorpusPanel'
 import { FindingsPanel } from './components/FindingsPanel'
 import { ResolutionPanel } from './components/ResolutionPanel'
 import { ComparePanel } from './components/ComparePanel'
+import { ScriptedChatPanel } from './components/ScriptedChatPanel'
 import { Graph3D } from './components/Graph3D'
 import { chooseSourceKind } from './lib/source-factory'
-import { getCompareSource, type CompareResult } from './lib/compare-source'
+import { getCompareSource, compareError, type CompareResult } from './lib/compare-source'
 import './App.css'
 
 // Desktop-only chrome (chat over the agent sidecar, engine status, save/open,
@@ -21,7 +22,7 @@ const LiveChrome = lazy(() => import('./components/LiveChrome').then((m) => ({ d
 const isLive =
   chooseSourceKind(import.meta.env as unknown as Record<string, string | undefined>) === 'live'
 
-type Tab = 'findings' | 'corpus' | 'compare'
+type Tab = 'findings' | 'corpus' | 'compare' | 'chat'
 
 /**
  * The tabbed sidebar: findings + resolution, corpus, and the grounded-vs-
@@ -38,6 +39,9 @@ function DemoPanels() {
   const ledger = useDemoStore((s) => s.ledger)
   const select = useDemoStore((s) => s.select)
   const resolve = useDemoStore((s) => s.resolve)
+  const chat = useDemoStore((s) => s.chat)
+  const chatPending = useDemoStore((s) => s.chatPending)
+  const ask = useDemoStore((s) => s.ask)
   // Surfaced here too, not only in ReplayBody's header: DemoPanels is also
   // embedded inside LiveChrome, which has no header banner of its own, and
   // a rejected resolve() (see live-source.ts: no engine tool resolves a
@@ -48,22 +52,29 @@ function DemoPanels() {
   const [compareResult, setCompareResult] = useState<CompareResult | null>(null)
   const [comparePending, setComparePending] = useState(false)
   const [compareQuestions, setCompareQuestions] = useState<string[]>([])
+  const [chatQuestions, setChatQuestions] = useState<string[]>([])
 
-  // The scripted question list for the compare picker. CompareSource has no
-  // "list questions" method by design (see compare-source.ts: it answers
-  // one question at a time), so this reads the same precomputed bundle
-  // replay mode's CompareSource reads internally, purely to populate the
-  // picker. Live mode has no scripted set (getCompareSource() throws
-  // there), so the picker stays empty and the panel explains why on ask.
+  // The scripted question lists for the compare and chat pickers. Neither
+  // CompareSource nor DemoSource has a "list questions" method by design
+  // (compare-source.ts answers one question at a time; ask() in
+  // demo-source.ts streams chunks for one question), so this reads the same
+  // precomputed bundle replay mode's sources read internally, purely to
+  // populate the pickers. Live mode has no scripted set for either (a live
+  // compare throws, and live ask() throws -- see compare-source.ts and
+  // live-source.ts), so both pickers stay empty there and each panel
+  // explains why on ask.
   useEffect(() => {
     let cancelled = false
     if (!isLive) {
       fetch('./precomputed/bundle.json')
         .then((r) => r.json())
-        .then((bundle: { compare?: Record<string, unknown> }) => {
+        .then((bundle: { compare?: Record<string, unknown>; chat?: Record<string, unknown> }) => {
           if (cancelled) return
           if (bundle.compare && typeof bundle.compare === 'object') {
             setCompareQuestions(Object.keys(bundle.compare))
+          }
+          if (bundle.chat && typeof bundle.chat === 'object') {
+            setChatQuestions(Object.keys(bundle.chat))
           }
         })
         .catch(() => {})
@@ -80,12 +91,11 @@ function DemoPanels() {
       const result = await src.compare(q)
       setCompareResult(result)
     } catch (e) {
-      setCompareResult({
-        question: q,
-        grounded: { answer: e instanceof Error ? e.message : String(e), citations: [] },
-        baseline: { answer: '', citations: [] },
-        divergence: null,
-      })
+      // status: 'error' is an explicit discriminant (compare-source.ts's
+      // compareError): ComparePanel renders it as a status line, never under
+      // the "Grounded" column heading, so a failed comparison cannot read as
+      // a grounded win with no baseline answer.
+      setCompareResult(compareError(q, e))
     } finally {
       setComparePending(false)
     }
@@ -96,7 +106,7 @@ function DemoPanels() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex border-b text-xs shrink-0" style={{ borderColor: 'var(--border)' }}>
-        {(['findings', 'corpus', 'compare'] as Tab[]).map((t) => (
+        {(['findings', 'corpus', 'compare', 'chat'] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -138,6 +148,9 @@ function DemoPanels() {
             questions={compareQuestions}
             pending={comparePending}
           />
+        )}
+        {tab === 'chat' && (
+          <ScriptedChatPanel chat={chat} pending={chatPending} onAsk={ask} questions={chatQuestions} />
         )}
       </div>
     </div>
@@ -188,6 +201,24 @@ function ReplayBody() {
   )
 }
 
+// While LiveChrome's lazy chunk is still loading, the desktop app has an
+// engine, a model and a network -- it just has not finished loading its own
+// chrome yet. ReplayBody's header claims the opposite ("Offline replay: no
+// engine, no model, no network"), which briefly lies to a live session on
+// every load. This fallback is genuinely neutral instead.
+function LoadingShell() {
+  return (
+    <div
+      className="h-screen flex items-center justify-center"
+      style={{ background: 'var(--bg-primary)' }}
+    >
+      <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+        Loading&hellip;
+      </span>
+    </div>
+  )
+}
+
 /**
  * The single entry point for the whole studio interface. Both build targets
  * mount this and nothing else: it decides which chrome to add around the
@@ -206,7 +237,7 @@ export function AppShell() {
   if (!isLive) return <ReplayBody />
 
   return (
-    <Suspense fallback={<ReplayBody />}>
+    <Suspense fallback={<LoadingShell />}>
       <LiveChrome>
         <DemoPanels />
       </LiveChrome>

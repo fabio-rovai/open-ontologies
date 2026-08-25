@@ -3,8 +3,20 @@ import { chooseSourceKind } from './source-factory'
 // Deliberately a separate interface from DemoSource (see demo-source.ts).
 // Tasks 9 through 11 stay untouched, and the comparison is an optional demo
 // surface layered on top rather than a fifth core method.
+//
+// `status` is an explicit discriminant, the same fix Chunk got for its
+// 'unscripted' variant: 'ok' is a real grounded-vs-baseline answer pair from
+// compare.json, 'unscripted' is a question outside the scripted set (the
+// replay fallback below), and 'error' is a comparison that failed to run at
+// all (AppShell.tsx's handleAsk catch). Before this field existed, a failed
+// comparison built a result with the exception message in grounded.answer
+// and an empty baseline -- structurally identical to a real answer, so
+// ComparePanel rendered it under the "Grounded" heading with the baseline
+// showing no answer, which reads as a grounded win. Callers must render on
+// `status`, not by inspecting whether the strings happen to be empty.
 export interface CompareResult {
   question: string
+  status: 'ok' | 'unscripted' | 'error'
   grounded: { answer: string; citations: string[] }
   baseline: { answer: string; citations: string[] }
   divergence: string | null
@@ -14,15 +26,38 @@ export interface CompareSource {
   compare(question: string): Promise<CompareResult>
 }
 
-export type CompareFixtures = Record<string, CompareResult>
+// The single place a failed comparison becomes a CompareResult, used by
+// AppShell.tsx's handleAsk catch block. Before this existed, that catch
+// block built the failure result inline: the exception message went into
+// grounded.answer with baseline left empty, a shape structurally identical
+// to a real answer. ComparePanel then rendered it under the "Grounded"
+// heading with the baseline column showing "(no answer)" -- a comparison
+// failure reading as a grounded win. Extracted as a pure function so the
+// discriminant is unit-testable without a DOM/component test harness (this
+// repo has neither jsdom nor React Testing Library configured).
+export function compareError(question: string, error: unknown): CompareResult {
+  return {
+    question,
+    status: 'error',
+    grounded: { answer: error instanceof Error ? error.message : String(error), citations: [] },
+    baseline: { answer: '', citations: [] },
+    divergence: null,
+  }
+}
+
+// Fixtures on disk (compare.json, via bundle.json) predate the `status`
+// field and carry no such key; every fixture is a real answer pair, so it
+// is always 'ok'.
+export type CompareFixtures = Record<string, Omit<CompareResult, 'status'>>
 
 export function createReplayCompareSource(fixtures: CompareFixtures): CompareSource {
   return {
     async compare(question: string): Promise<CompareResult> {
       const hit = fixtures[question] ?? fixtures[question.trim().toLowerCase()]
-      if (hit) return hit
+      if (hit) return { ...hit, status: 'ok' }
       return {
         question,
+        status: 'unscripted',
         grounded: {
           answer: 'This question is not scripted in the offline replay.',
           citations: [],
