@@ -97,4 +97,45 @@ describe('LiveSource', () => {
 
     await expect(src.findings()).rejects.toThrow('Cannot read shapes file')
   })
+
+  // corpus_documents is not a real MCP tool, and no Tauri command in
+  // corpus.rs (corpus_presets, ingest_corpus, read_store, list_graphs,
+  // read_decisions, revert_type, list_saved, pick_ontology_file) returns
+  // document text either. A live source has no honest way to answer this,
+  // so it must say so rather than returning [] (which would read as "empty
+  // corpus" instead of "no tool reaches the content").
+  it('throws from corpus(): no tool or command returns document text', async () => {
+    const callTool = vi.fn(async () => '[]')
+    const sparqlQuery = vi.fn(async () => sparqlJson([]))
+    const src = createLiveSource({ sparqlQuery, callTool })
+
+    await expect(src.corpus()).rejects.toThrow(/no tool or tauri command/i)
+    expect(callTool).not.toHaveBeenCalled()
+  })
+
+  // onto_apply applies a plan (plan_id, mode); it has no finding/decision
+  // parameters and nothing else resolves a SHACL finding by id.
+  it('throws from resolve(): onto_apply has no finding/decision parameters', async () => {
+    const callTool = vi.fn(async () => '{}')
+    const sparqlQuery = vi.fn(async () => sparqlJson([]))
+    const src = createLiveSource({ sparqlQuery, callTool })
+
+    await expect(src.resolve('shacl:ex:conformance|path|minCount|0', { kind: 'accept' })).rejects.toThrow(
+      /onto_apply/,
+    )
+    expect(callTool).not.toHaveBeenCalled()
+  })
+
+  // agent_ask is not a real MCP tool. Real chat runs through the agent
+  // sidecar (chat.rs / useChat.ts), a completely different transport this
+  // source's LiveDeps (sparqlQuery, callTool) has no path to.
+  it('throws from ask(): chat runs through the agent sidecar, not an MCP tool', async () => {
+    const callTool = vi.fn(async () => '{}')
+    const sparqlQuery = vi.fn(async () => sparqlJson([]))
+    const src = createLiveSource({ sparqlQuery, callTool })
+
+    const iterator = src.ask('does this profile conform?')[Symbol.asyncIterator]()
+    await expect(iterator.next()).rejects.toThrow(/agent sidecar/i)
+    expect(callTool).not.toHaveBeenCalled()
+  })
 })

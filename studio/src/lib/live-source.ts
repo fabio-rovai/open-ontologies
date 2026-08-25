@@ -68,8 +68,24 @@ interface ShaclReport {
 
 export function createLiveSource(deps: LiveDeps): DemoSource {
   return {
+    // No MCP tool named corpus_documents exists (see src/server.rs's tool
+    // list), and none of the Tauri commands the desktop shell exposes for
+    // corpus work (corpus_presets, ingest_corpus, read_store, list_graphs,
+    // read_decisions, revert_type, list_saved, pick_ontology_file, in
+    // studio/src-tauri/src/corpus.rs) return document text either:
+    // read_store returns the merged ontology store, list_graphs returns
+    // per-document vocabulary file PATHS, and neither is the Document{id,
+    // title, text} shape this method promises. Returning an empty array or
+    // documents with a blank text field would look like "a corpus with no
+    // content" rather than "no tool reaches the content", so this throws
+    // instead of manufacturing that.
     async corpus(): Promise<Document[]> {
-      return JSON.parse(await deps.callTool('corpus_documents'))
+      throw new Error(
+        'The live engine exposes no tool or Tauri command that returns document text ' +
+          '(no "corpus_documents" MCP tool exists, and none of corpus.rs\'s commands ' +
+          'read individual document bodies). The corpus panel can only be populated ' +
+          'from the precomputed replay bundle today.',
+      )
     },
 
     async graph(): Promise<GraphView> {
@@ -134,14 +150,39 @@ export function createLiveSource(deps: LiveDeps): DemoSource {
       })
     },
 
+    // onto_apply (src/server.rs) applies a PLAN produced by onto_plan: its
+    // only inputs are plan_id and mode ("safe" | "force" | "migrate"). It has
+    // no "finding"/"decision" parameters, and nothing else on the engine or
+    // in corpus.rs's Tauri commands accepts a SHACL finding id (the shape
+    // findings() now returns, "shacl:<focus_node>|<path>|<constraint>|<i>")
+    // together with an accept/reject verdict. corpus.rs's revert_type comes
+    // closest, but it reverts a typing decision keyed by (doc, subject,
+    // from, to) from the old contradiction-scan demonstration, not a
+    // conformance finding keyed by id. There is no honest call to make here.
     async resolve(id: string, decision: Decision): Promise<void> {
-      await deps.callTool('onto_apply', { finding: id, decision: decision.kind })
-      await deps.callTool('onto_save')
+      throw new Error(
+        `No engine tool or Tauri command resolves a conformance finding by id. onto_apply ` +
+          `applies a plan (plan_id, mode), not a finding decision, and corpus.rs's ` +
+          `revert_type reverts a typing correction keyed by document/subject, not a finding ` +
+          `id. Cannot resolve "${id}" with decision "${decision.kind}".`,
+      )
     },
 
-    async *ask(question: string): AsyncIterable<Chunk> {
-      const answer = await deps.callTool('agent_ask', { question })
-      yield { type: 'text', value: answer }
+    // No "agent_ask" MCP tool exists. Chat is not an MCP call at all: it runs
+    // through the agent sidecar process, driven by the Tauri commands
+    // send_chat_message / reset_chat (studio/src-tauri/src/chat.rs) and
+    // consumed via the "agent-message" event stream in
+    // studio/src/hooks/useChat.ts, which ChatPanel already wires up directly
+    // and outside of DemoSource. LiveDeps only carries the MCP surface
+    // (sparqlQuery, callTool), which has no path to that sidecar, so there is
+    // no honest way to answer a question from here.
+    async *ask(_question: string): AsyncIterable<Chunk> {
+      throw new Error(
+        'Chat does not run through DemoSource in live mode. There is no "agent_ask" MCP ' +
+          'tool; real chat goes through the agent sidecar (send_chat_message / ' +
+          '"agent-message" events, see chat.rs and useChat.ts) and the desktop app talks ' +
+          'to it directly via the useChat hook and ChatPanel, not through this method.',
+      )
     },
   }
 }
