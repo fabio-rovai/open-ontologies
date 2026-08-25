@@ -126,8 +126,10 @@ class CompositeDetector:
 
     Neither half is sufficient alone, which the test output makes obvious:
     Presidio finds names, dates and locations that no pattern will catch, and
-    misses domain identifiers like batch 20481 because it has no reason to know
-    they are sensitive. Regex catches those and nothing else.
+    misses domain identifiers like DOC-20481 because it has no reason to know
+    they are sensitive. Regex catches those (the ID pattern above requires a
+    2-4 letter prefix and a hyphen, so a bare number like "batch 20481" would
+    not match either detector) and nothing else.
 
     Overlaps resolve to the longer span, so a Presidio PERSON covering a name
     wins over a narrower pattern hit on part of it.

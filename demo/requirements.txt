@@ -1,4 +1,9 @@
 presidio-analyzer>=2.2
 pytest>=8.0
-rdflib>=7.0
-pyshacl>=0.25
+# Pinned exactly, not >=: every headline number in demo/dcat_conformance_measurements.json
+# and demo/precomputed/findings.json depends on rdflib's JSON-LD expansion and pyshacl's
+# validation behaviour, both of which have changed conformance/violation counts across
+# releases before. These are the exact versions that produced the committed figures
+# (see demo/dcat_conformance_measurements.json's own "measured" field for the date/commit).
+rdflib==7.6.0
+pyshacl==0.40.1

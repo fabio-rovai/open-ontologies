@@ -1,4 +1,5 @@
-"""Combine the pipeline's four artifacts into the single object ReplaySource loads."""
+"""Combine the pipeline's five artifacts (PARTS below) into the single object
+ReplaySource and CompareSource load: corpus, graph, findings, chat, compare."""
 import argparse
 import json
 from pathlib import Path

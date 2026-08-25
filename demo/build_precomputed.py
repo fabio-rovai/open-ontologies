@@ -1,10 +1,23 @@
 #!/usr/bin/env python3
 """
-Package the pipeline's derived output into the artifacts Task 8 owns:
-corpus.json, graph.json, findings.json, chat.json. (compare.json is built
-separately by build_compare.py because it needs a human read of the raw
-grounded/baseline generations before the divergence field can be written
-honestly.)
+Package the pipeline's derived output into the artifacts this script owns:
+corpus.json, graph.json, chat.json. (compare.json is built separately by
+build_compare.py because it needs a human read of the raw grounded/baseline
+generations before the divergence field can be written honestly.)
+
+findings.json is NOT one of this script's outputs, and this script must
+never write it. The demonstration's findings are the five DCAT-US conformance
+findings computed by demo/dcat_conformance.py and pinned by
+demo/tests/test_dcat_conformance.py; demo/precomputed/findings.json is
+curated by hand from that script's measurements (see demo/README.md, "The
+conformance finding"). An earlier version of this script called a disjointness
+/ provenance scan (build_findings(), below, kept for reference and re-use but
+never invoked from main()) and wrote its result over findings.json
+unconditionally; that scan returns zero findings on this corpus, so running
+`make demo` silently replaced the real findings with an empty list and then
+re-signed the emptied file into MANIFEST.sha256. demo/tests/
+test_build_precomputed.py guards this: it proves main() leaves an existing
+findings.json byte-for-byte untouched.
 
 Shapes match studio/src/lib/demo-source.ts's DemoSource / ReplayFixtures
 types exactly (committed in cb4a62e, after this script's first draft was
@@ -14,6 +27,7 @@ written against a guessed shape):
     graph.json    -> GraphView             { classes, properties, edges }
     findings.json -> Contradiction[]       { id, subject, kind, claims }
                      claims: Claim[]       { document, predicate, object }
+                     (curated by hand from dcat_conformance.py; not written here)
     chat.json     -> Record<question, Chunk[]>   Chunk { type, value }
 
 Consumes demo/corpus/dcat-us/ (for provenance) and demo/derived/ (written by
@@ -187,15 +201,19 @@ def sources_of() -> dict[tuple[str, str], set[str]]:
 
 
 def build_findings() -> list[dict]:
-    """Structural, disjointness-based contradictions: the SAME subject IRI
-    typed into two classes the ontology declares mutually exclusive, by two
-    DIFFERENT documents.
+    """NOT CALLED from main() and NOT a source of demo/precomputed/findings.json.
 
-    This is the honest mechanism, not a padded one: it is exactly the query
-    ontology_from_docs.py's own Stage 6 and verify.py's Check 6 already run
-    against this exact store. Whatever it returns -- including nothing -- is
-    what genuinely got extracted and reasoned over, not what would look good
-    in a demo.
+    Structural, disjointness-based contradictions: the SAME subject IRI typed
+    into two classes the ontology declares mutually exclusive, by two
+    DIFFERENT documents. This is exactly the query ontology_from_docs.py's
+    own Stage 6 and verify.py's Check 6 already run against this exact store,
+    and it returns zero findings on the DCAT-US corpus (see the pivot
+    documented in .superpowers/sdd/progress.md): the corpus's disagreement is
+    a claim-versus-evidence conformance mismatch, not a provenance-split
+    typing conflict, so this mechanism has nothing to find here. Kept for
+    reference and for corpora where it would apply; wiring it back into
+    main()'s findings.json write is exactly the regression
+    demo/tests/test_build_precomputed.py guards against.
     """
     rows = sparql(P + """SELECT DISTINCT ?subject ?a ?b WHERE {
       ?subject a ?a, ?b . FILTER(STR(?a) < STR(?b))
@@ -276,11 +294,16 @@ def main() -> None:
     print(f"graph.json: {len(graph['classes'])} classes, {len(graph['properties'])} properties, "
           f"{len(graph['edges'])} edges")
 
-    findings = build_findings()
-    (args.out / "findings.json").write_text(
-        json.dumps(findings, indent=2, sort_keys=True, ensure_ascii=False) + "\n")
-    multi = sum(1 for f in findings if len({c["document"] for c in f["claims"]}) >= 2)
-    print(f"findings.json: {len(findings)} findings, {multi} cite >=2 distinct documents")
+    findings_path = args.out / "findings.json"
+    if findings_path.exists():
+        existing = json.loads(findings_path.read_text())
+        print(f"findings.json: left untouched, {len(existing)} findings already on disk "
+              f"(curated by hand from demo/dcat_conformance.py -- this script never writes "
+              f"findings.json; see its module docstring)")
+    else:
+        print(f"findings.json: SKIPPED, none on disk yet -- run demo/dcat_conformance.py and "
+              f"hand-curate demo/precomputed/findings.json from its measurements "
+              f"(demo/dcat_conformance_measurements.json), per demo/README.md")
 
     compare_path = args.out / "compare.json"
     if compare_path.exists():

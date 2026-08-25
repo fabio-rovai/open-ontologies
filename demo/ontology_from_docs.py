@@ -1214,12 +1214,16 @@ def main():
     # A real corpus is not one file type. Task 7's DCAT-US corpus is
     # markdown, JSON Schema and SHACL Turtle side by side (a schema-only
     # profile, its recovered RDF binding, and the W3C text that defines what
-    # binding it would need); a glob for .docx-or-.md alone silently drops
-    # four of the seven documents and, with them, the corpus's central
-    # disagreement. MANIFEST.json is provenance metadata, not a document.
+    # binding it would need), plus the recovered JSON-LD @context vendored
+    # afterwards; a glob missing any one of these extensions silently drops
+    # documents and, with them, the corpus's central disagreement. This is
+    # the same class of bug twice: .docx-or-.md alone once dropped four of
+    # seven documents (fixed in the pivot); .jsonld was still missing when
+    # recovered-context.jsonld was vendored later, silently dropping the
+    # eighth. MANIFEST.json is provenance metadata, not a document.
     docs = sorted(p for p in corpus.iterdir()
                   if p.is_file() and p.name != "MANIFEST.json"
-                  and p.suffix in (".docx", ".md", ".json", ".ttl"))
+                  and p.suffix in (".docx", ".md", ".json", ".jsonld", ".ttl"))
     if not docs:
         sys.exit(f"no documents in {corpus}")
 
