@@ -19,6 +19,44 @@ continuous integration keeps the two from drifting apart.
 zustand, 3d-force-graph, Node 20 or later for the sidecar, Python 3.11 or later with pytest
 for the pipeline, vitest for the frontend.
 
+## PIVOT, 25 August 2026: the demonstration changes, the port does not
+
+Task 8 ran the document-to-ontology pipeline over the DCAT-US corpus and produced **zero
+contradictions**, confirmed three independent ways. The diagnosis is a shape mismatch in the
+corpus choice, not a defect in the pipeline or the model.
+
+The contradiction scanner detects provenance-split typing conflicts: two documents typing the
+same individual incompatibly. DCAT-US's disagreement is not that shape. It is a claim against
+evidence, a README asserting conformance that the published artifacts do not exhibit. Measured
+extraction per document makes this concrete: the three JSON Schemas yielded 11, 17 and 19
+classes, while `profile-readme.md`, `w3c-dcat-conformance.md`, `pr-120-record.md` and
+`recovered-shapes.ttl` each yielded zero. The disagreement lives entirely in the documents that
+extracted nothing.
+
+**The demonstration is therefore no longer the contradiction scan.** It is the validator finding
+already established and filed against the profile: 115 published examples expanding to 76
+triples with one predicate and no DCAT at all, and 287 SHACL violations once the binding the
+schema already implies is actually applied. That finding needs no model, is reproducible from
+committed inputs, and states the thesis more sharply than the pipeline ever would: a standard
+that cannot demonstrate the conformance it claims.
+
+What this changes:
+
+- **Task 8** is superseded. `demo/precomputed/findings.json` is empty and must be regenerated
+  from the validator run rather than the pipeline. The `corpus`, `graph` and `compare` artifacts
+  remain useful and stay.
+- **Tasks 9, 10, 11** are unaffected. The `DemoSource` shape does not change; only what fills
+  `findings()` changes.
+- **Task 12 and 12A** are unaffected in structure. The findings panel now cites shapes and
+  example files rather than disagreeing prose documents.
+- **The pipeline port itself stands.** Tasks 5, 6, 6A and 6B remain correct and committed. The
+  pipeline is a real capability of this repository; it simply is not what this particular
+  demonstration shows.
+- **The comparison from Task 8 is retained and must stay honest.** On one of its five questions
+  the grounded path hallucinated a publisher name while the plain baseline answered correctly
+  from source. That result is not to be quietly dropped. Either show it, or drop the comparison
+  surface entirely; do not curate it into a clean win.
+
 ## Global Constraints
 
 - The source branch is referenced throughout as `$INTERNAL`. Set it once per shell:
