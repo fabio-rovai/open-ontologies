@@ -1,0 +1,31 @@
+{
+  "commit": "7a6e803fb94ee9903e7e7405ec4afcc8da13383f",
+  "measured": "2026-08-25, this repository, no network, no model call",
+  "runs": [
+    {
+      "conformsRaw": true,
+      "corpusDescription": "115 GSA/dcat-us good examples, exactly as published, checked against the profile's own recovered SHACL shapes",
+      "dataTriples": 73,
+      "focusNodes": 0,
+      "id": "as-published",
+      "label": "Corpus as published",
+      "matchedClassCount": 0,
+      "reason": "0 of 34 target classes in the shapes file matched anything in the data, so nothing was checked. Reporting conforms=true here would be the same claim the engine's own SHACL tool refuses to make (src/shacl.rs): a validator that selects nothing to check has not determined conformance.",
+      "targetClassCount": 34,
+      "verdict": "undetermined"
+    },
+    {
+      "conformsRaw": false,
+      "corpusDescription": "the same 115 examples, the same unchanged shapes file, with the schema-derived RDF binding applied (demo/dcat_conformance.py)",
+      "dataTriples": 1383,
+      "focusNodes": 228,
+      "id": "schema-derived-binding",
+      "label": "Corpus with schema-derived binding applied",
+      "matchedClassCount": 24,
+      "reason": null,
+      "targetClassCount": 34,
+      "verdict": "fails"
+    }
+  ],
+  "shapesFile": "recovered-shapes.ttl"
+}

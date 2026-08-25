@@ -9,7 +9,7 @@ jobs:
         run: cd demo/precomputed && shasum -a 256 -c MANIFEST.sha256
       # MANIFEST.sha256 only proves each committed file matches its OWN
       # recorded checksum; it says nothing about whether bundle.json still
-      # reflects a real merge of the other four parts. A part and the bundle
+      # reflects a real merge of the other five parts. A part and the bundle
       # could drift apart together (edit findings.json, forget to
       # regenerate bundle.json, re-run shasum so both individually still
       # check out) and this job would still pass. Regenerating bundle.json

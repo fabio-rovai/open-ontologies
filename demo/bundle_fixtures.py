@@ -1,10 +1,11 @@
-"""Combine the pipeline's five artifacts (PARTS below) into the single object
-ReplaySource and CompareSource load: corpus, graph, findings, chat, compare."""
+"""Combine the pipeline's six artifacts (PARTS below) into the single object
+ReplaySource, CompareSource and ValidationSource load: corpus, graph,
+findings, chat, compare, validation."""
 import argparse
 import json
 from pathlib import Path
 
-PARTS = ("corpus", "graph", "findings", "chat", "compare")
+PARTS = ("corpus", "graph", "findings", "chat", "compare", "validation")
 
 
 def bundle(indir: Path) -> dict:

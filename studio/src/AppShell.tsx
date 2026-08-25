@@ -5,9 +5,11 @@ import { FindingsPanel } from './components/FindingsPanel'
 import { ResolutionPanel } from './components/ResolutionPanel'
 import { ComparePanel } from './components/ComparePanel'
 import { ScriptedChatPanel } from './components/ScriptedChatPanel'
+import { ValidationPanel } from './components/ValidationPanel'
 import { Graph3D } from './components/Graph3D'
 import { chooseSourceKind } from './lib/source-factory'
 import { getCompareSource, compareError, type CompareResult } from './lib/compare-source'
+import { getValidationSource, type ValidationFixtures } from './lib/validation-source'
 import './App.css'
 
 // Desktop-only chrome (chat over the agent sidecar, engine status, save/open,
@@ -22,7 +24,7 @@ const LiveChrome = lazy(() => import('./components/LiveChrome').then((m) => ({ d
 const isLive =
   chooseSourceKind(import.meta.env as unknown as Record<string, string | undefined>) === 'live'
 
-type Tab = 'findings' | 'corpus' | 'compare' | 'chat'
+type Tab = 'findings' | 'corpus' | 'compare' | 'validation' | 'chat'
 
 /**
  * The tabbed sidebar: findings + resolution, corpus, and the grounded-vs-
@@ -53,6 +55,9 @@ function DemoPanels() {
   const [comparePending, setComparePending] = useState(false)
   const [compareQuestions, setCompareQuestions] = useState<string[]>([])
   const [chatQuestions, setChatQuestions] = useState<string[]>([])
+  const [validationFixtures, setValidationFixtures] = useState<ValidationFixtures | null>(null)
+  const [validationError, setValidationError] = useState<string | null>(null)
+  const [validationPending, setValidationPending] = useState(false)
 
   // The scripted question lists for the compare and chat pickers. Neither
   // CompareSource nor DemoSource has a "list questions" method by design
@@ -84,6 +89,31 @@ function DemoPanels() {
     }
   }, [])
 
+  // The validation panel's two runs are static: there is no question to
+  // ask, so they load once on mount rather than on a user action, the way
+  // graph and findings load in demo-store.ts. In live mode getValidationSource()
+  // throws immediately (see validation-source.ts), and that message is
+  // shown as-is rather than swallowed, the same honesty compare-source.ts's
+  // live branch already applies.
+  useEffect(() => {
+    let cancelled = false
+    setValidationPending(true)
+    getValidationSource()
+      .then((src) => src.runs())
+      .then((fixtures) => {
+        if (!cancelled) setValidationFixtures(fixtures)
+      })
+      .catch((e) => {
+        if (!cancelled) setValidationError(e instanceof Error ? e.message : String(e))
+      })
+      .finally(() => {
+        if (!cancelled) setValidationPending(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const handleAsk = useCallback(async (q: string) => {
     setComparePending(true)
     try {
@@ -106,7 +136,7 @@ function DemoPanels() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex border-b text-xs shrink-0" style={{ borderColor: 'var(--border)' }}>
-        {(['findings', 'corpus', 'compare', 'chat'] as Tab[]).map((t) => (
+        {(['findings', 'corpus', 'compare', 'validation', 'chat'] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -148,6 +178,9 @@ function DemoPanels() {
             questions={compareQuestions}
             pending={comparePending}
           />
+        )}
+        {tab === 'validation' && (
+          <ValidationPanel fixtures={validationFixtures} error={validationError} pending={validationPending} />
         )}
         {tab === 'chat' && (
           <ScriptedChatPanel chat={chat} pending={chatPending} onAsk={ask} questions={chatQuestions} />

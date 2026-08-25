@@ -87,6 +87,7 @@ demo:
 	python3 demo/ontology_from_docs.py --corpus demo/corpus/dcat-us --workers 2
 	python3 demo/corpus_text.py
 	python3 demo/build_precomputed.py --out demo/precomputed
+	python3 demo/build_validation.py --out demo/precomputed
 	python3 demo/bundle_fixtures.py --in demo/precomputed --out demo/precomputed/bundle.json
 	cd demo/precomputed && shasum -a 256 *.json | sort > MANIFEST.sha256
 
