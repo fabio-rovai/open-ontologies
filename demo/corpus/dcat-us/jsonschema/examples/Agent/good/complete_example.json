@@ -1,0 +1,16 @@
+{
+  "@id": "https://example.gov/agents/data-steward-001",
+  "@type": "Agent",
+  "name": "U.S. Department of Commerce Data Stewardship Office",
+  "category": [
+    {
+      "@id": "https://example.gov/concepts/government-agency",
+      "@type": "Concept",
+      "prefLabel": "Government Agency",
+      "altLabel": "Federal Agency",
+      "definition": "A government organization responsible for public administration and policy implementation.",
+      "notation": ["GOV-AGY", "FA"],
+      "inScheme": { "title": "Minimal concept scheme" }
+    }
+  ]
+}

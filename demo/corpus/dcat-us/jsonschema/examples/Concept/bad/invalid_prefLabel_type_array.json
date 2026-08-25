@@ -1,0 +1,5 @@
+{
+  "_comment": "INVALID: 'prefLabel' must be a string, not an array",
+  "@type": "Concept",
+  "prefLabel": ["Label One", "Label Two"]
+}

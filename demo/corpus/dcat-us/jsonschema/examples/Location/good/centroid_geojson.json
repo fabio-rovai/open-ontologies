@@ -1,0 +1,9 @@
+{
+  "@id": "https://example.gov/locations/statue-of-liberty",
+  "@type": "Location",
+  "prefLabel": "Statue of Liberty",
+  "centroid": {
+    "type": "Point",
+    "coordinates": [-74.0445, 40.6892]
+  }
+}

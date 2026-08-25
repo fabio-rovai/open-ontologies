@@ -1,0 +1,60 @@
+{
+  "@id": "https://example.gov/locations/washington-dc",
+  "@type": "Location",
+  "prefLabel": "Washington, D.C.",
+  "altLabel": "DC",
+  "identifier": {
+    "@id": "https://example.gov/identifiers/geonames-4140963",
+    "@type": "Identifier",
+    "notation": "4140963",
+    "schemaAgency": "GeoNames"
+  },
+  "otherIdentifier": [
+    {
+      "@id": "https://example.gov/identifiers/fips-11001",
+      "@type": "Identifier",
+      "notation": "11001",
+      "schemaAgency": "FIPS"
+    },
+    "https://www.wikidata.org/wiki/Q61"
+  ],
+  "bbox": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [-77.119759, 38.791645],
+        [-76.909393, 38.791645],
+        [-76.909393, 38.99538],
+        [-77.119759, 38.99538],
+        [-77.119759, 38.791645]
+      ]
+    ]
+  },
+  "centroid": {
+    "type": "Point",
+    "coordinates": [-77.0369, 38.9072]
+  },
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [-77.0402, 38.7916],
+        [-76.9094, 38.8921],
+        [-76.9115, 38.9355],
+        [-76.9286, 38.9784],
+        [-77.0024, 38.9657],
+        [-77.0389, 38.9939],
+        [-77.0672, 38.9687],
+        [-77.0782, 38.9143],
+        [-77.1198, 38.9342],
+        [-77.1198, 38.8456],
+        [-77.0402, 38.7916]
+      ]
+    ]
+  },
+  "inScheme": {
+    "@id": "https://www.geonames.org/",
+    "@type": "ConceptScheme",
+    "title": "GeoNames"
+  }
+}

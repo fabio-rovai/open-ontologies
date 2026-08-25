@@ -1,0 +1,13 @@
+{
+  "@id": "https://example.gov/quality-measurements/completeness-001",
+  "@type": "QualityMeasurement",
+  "isMeasurementOf": {
+    "@id": "https://example.gov/metrics/data-completeness-001",
+    "@type": "Metric",
+    "definition": "The percentage of expected data values that are present in the dataset.",
+    "expectedDataType": "xsd:decimal",
+    "inDimension": "https://example.gov/concepts/completeness-dimension"
+  },
+  "value": "98.5",
+  "unitMeasure": "percent"
+}

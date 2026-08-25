@@ -1,0 +1,12 @@
+{
+  "@id": "https://example.gov/agents/invalid-agent",
+  "@type": "Agent",
+  "name": "Valid Agent Name",
+  "category": [
+    {
+      "@id": "https://example.gov/concepts/government-agency",
+      "@type": "Concept",
+      "inScheme": "https://example.gov/concept-schemes/organization-types"
+    }
+  ]
+}

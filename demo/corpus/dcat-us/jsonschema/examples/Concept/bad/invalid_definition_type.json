@@ -1,0 +1,8 @@
+{
+  "_comment": "INVALID: 'definition' must be null or string, not an object",
+  "@type": "Concept",
+  "prefLabel": "Environment",
+  "definition": {
+    "text": "This should be a plain string"
+  }
+}

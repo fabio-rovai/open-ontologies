@@ -3,7 +3,13 @@ export interface Claim { document: string; predicate: string; object: string }
 export interface Contradiction {
   id: string
   subject: string
-  kind: 'provenance-split' | 'disjointness' | 'typing'
+  // 'provenance-split' and 'typing': two documents type the same individual
+  // incompatibly. 'disjointness': a reasoner-caught axiom violation.
+  // 'conformance': a claim contradicted by the artifacts published alongside
+  // it, e.g. a README asserting a standard the corpus does not exhibit,
+  // established by a validator run rather than the document-to-ontology
+  // pipeline. Every kind still cites real documents in its claims.
+  kind: 'provenance-split' | 'disjointness' | 'typing' | 'conformance'
   claims: Claim[]
 }
 export interface GraphView {

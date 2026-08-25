@@ -1,0 +1,7 @@
+{
+  "@id": "https://example.gov/locations/new-york-city",
+  "@type": "Location",
+  "prefLabel": "New York City",
+  "identifier": "https://www.geonames.org/5128581/",
+  "inScheme": { "title": "Minimal concept scheme" }
+}

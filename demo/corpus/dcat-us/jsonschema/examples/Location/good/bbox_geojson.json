@@ -1,0 +1,17 @@
+{
+  "@id": "https://example.gov/locations/yellowstone",
+  "@type": "Location",
+  "prefLabel": "Yellowstone National Park",
+  "bbox": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [-111.056, 44.132],
+        [-109.831, 44.132],
+        [-109.831, 45.102],
+        [-111.056, 45.102],
+        [-111.056, 44.132]
+      ]
+    ]
+  }
+}

@@ -1,1 +1,125 @@
-[]
+[
+  {
+    "id": "conformance-1-readme-vs-examples",
+    "subject": "dcat-us:profile",
+    "kind": "conformance",
+    "claims": [
+      {
+        "document": "profile-readme.md",
+        "predicate": "claims",
+        "object": "implementation of the W3C DCAT standard"
+      },
+      {
+        "document": "w3c-dcat-conformance.md",
+        "predicate": "requires",
+        "object": "conforming data use the dcat: vocabulary (W3C DCAT 3, section 4)"
+      },
+      {
+        "document": "jsonschema/examples/Catalog/good/complete_example.json",
+        "predicate": "expandsAsPublishedTo",
+        "object": "1 triple: rdf:type of a manufactured IRI, no @context present, 0 dcat: predicates"
+      },
+      {
+        "document": "jsonschema/examples/Dataset/good/complete_example.json",
+        "predicate": "expandsAsPublishedTo",
+        "object": "1 triple: rdf:type of a manufactured IRI, no @context present, 0 dcat: predicates"
+      }
+    ]
+  },
+  {
+    "id": "conformance-2-corpus-wide-expansion",
+    "subject": "dcat-us:jsonschema-examples-good",
+    "kind": "conformance",
+    "claims": [
+      {
+        "document": "jsonschema/MANIFEST.json",
+        "predicate": "enumerates",
+        "object": "115 good example files across 26 classes under jsonschema/examples/<Class>/good/"
+      },
+      {
+        "document": "profile-readme.md",
+        "predicate": "publishesNoContextFor",
+        "object": "the JSON Schema definitions in jsonschema/definitions/ carry no @context key"
+      },
+      {
+        "document": "jsonschema/definitions/Dataset.json",
+        "predicate": "measuredAsPublished",
+        "object": "115 files expand to 76 triples total, 1 distinct predicate (rdf:type), 0 dcat: triples, 38 files empty, 1 parse error (demo/dcat_conformance.py, no context)"
+      },
+      {
+        "document": "recovered-shapes.ttl",
+        "predicate": "measuredWithBinding",
+        "object": "the same 115 files, with the context demo/dcat_conformance.py derives from _oldDocs, expand to 1510 triples, 123 distinct predicates, 228 dcat: triples, 10 files empty, 0 errors"
+      }
+    ]
+  },
+  {
+    "id": "conformance-3-unbound-heavily-instantiated-classes",
+    "subject": "dcat-us:Concept,dcat-us:Identifier",
+    "kind": "conformance",
+    "claims": [
+      {
+        "document": "jsonschema/definitions/Concept.json",
+        "predicate": "declaresRdfClass",
+        "object": "skos:Concept, in _oldDocs.rdfClass, with prefLabel, definition, inScheme, notation as properties"
+      },
+      {
+        "document": "jsonschema/definitions/Concept.json",
+        "predicate": "bindsNoneOf",
+        "object": "prefLabel, definition, inScheme, notation carry no _oldDocs.uri: zero of Concept's properties have an RDF term"
+      },
+      {
+        "document": "jsonschema/definitions/Identifier.json",
+        "predicate": "bindsNoneOf",
+        "object": "schemaAgency, creator, issued, version, notation carry no _oldDocs.uri: zero of Identifier's properties have an RDF term"
+      },
+      {
+        "document": "jsonschema/examples/Concept/good/complete_example.json",
+        "predicate": "instantiatesUncheckable",
+        "object": "prefLabel and definition values, present in the data, that no shape or context can reach"
+      },
+      {
+        "document": "jsonschema/examples/Identifier/good/complete_example.json",
+        "predicate": "instantiatesUncheckable",
+        "object": "schemaAgency and creator values, present in the data, that no shape or context can reach"
+      }
+    ]
+  },
+  {
+    "id": "conformance-4-deleted-shapes-fire-on-bound-examples",
+    "subject": "dcat-us:pr-120",
+    "kind": "conformance",
+    "claims": [
+      {
+        "document": "pr-120-record.md",
+        "predicate": "deletes",
+        "object": "shacl/dcat-us_3.0_shacl_shapes.ttl, at commit aaa3ff4a, in favour of the JSON Schema alone"
+      },
+      {
+        "document": "recovered-shapes.ttl",
+        "predicate": "unchangedFileValidatesAsPublishedCorpusAs",
+        "object": "conforms=true, 0 violations, 0 focus nodes: the shapes select nothing to check against the 115 examples as published"
+      },
+      {
+        "document": "recovered-shapes.ttl",
+        "predicate": "sameUnchangedFileValidatesBoundCorpusAs",
+        "object": "conforms=false, 272 violations, 228 focus nodes, once the schema-implied binding is applied to the same 115 examples"
+      },
+      {
+        "document": "jsonschema/examples/Dataset/good/complete_example.json",
+        "predicate": "firesViolations",
+        "object": "35, once bound (sh:datatype and sh:minCount failures on dcterms/foaf/dcat properties)"
+      },
+      {
+        "document": "jsonschema/examples/Catalog/good/complete_example.json",
+        "predicate": "firesViolations",
+        "object": "19, once bound"
+      },
+      {
+        "document": "jsonschema/examples/Distribution/good/complete_example.json",
+        "predicate": "firesViolations",
+        "object": "14, once bound"
+      }
+    ]
+  }
+]

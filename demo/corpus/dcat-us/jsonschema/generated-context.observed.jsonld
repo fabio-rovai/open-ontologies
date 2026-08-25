@@ -1,0 +1,541 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "adms": "http://www.w3.org/ns/adms#",
+    "cnt": "http://www.w3.org/2011/content#",
+    "dash": "http://datashapes.org/dash#",
+    "dc": "http://purl.org/dc/elements/1.1/",
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "dcat-us": "http://data.resources.gov/ontology/dcat-us#",
+    "dcat-us-shp": "http://data.resources.gov/shapes/dcat-us#",
+    "dcatap": "http://data.europa.eu/r5r/",
+    "dcterms": "http://purl.org/dc/terms/",
+    "dqv": "http://www.w3.org/ns/dqv#",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "gsp": "http://www.opengis.net/ont/geosparql#",
+    "locn": "http://www.w3.org/ns/locn#",
+    "odrl": "http://www.w3.org/ns/odrl/2/",
+    "odrs": "http://schema.theodi.org/odrs#",
+    "org": "http://www.w3.org/ns/org#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "prov": "http://www.w3.org/ns/prov#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "schema": "https://schema.org/",
+    "sdmx-attribute": "http://purl.org/linked-data/sdmx/2009/attribute#",
+    "sh": "http://www.w3.org/ns/shacl#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "spdx": "http://spdx.org/rdf/terms#",
+    "vcard": "http://www.w3.org/2006/vcard/ns#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "AccessRestriction": "dcat-us:AccessRestriction",
+    "Activity": "prov:Activity",
+    "Address": "locn:Address",
+    "Agent": "foaf:Agent",
+    "Attribution": "prov:Attribution",
+    "CUIRestriction": "dcat-us:CuiRestriction",
+    "CatalogRecord": {
+      "@id": "dcat:CatalogRecord",
+      "@context": {
+        "conformsTo": {
+          "@id": "dcterms:conformsTo",
+          "@type": "@id"
+        },
+        "description": {
+          "@id": "dcterms:description",
+          "@container": "@set"
+        },
+        "issued": {
+          "@id": "dcterms:issued",
+          "@container": "@set"
+        }
+      }
+    },
+    "Checksum": "spdx:Checksum",
+    "Concept": "skos:Concept",
+    "ConceptScheme": "skos:ConceptScheme",
+    "DCAT-US 3 Catalog": {
+      "@id": "dcat:Catalog",
+      "@context": {
+        "conformsTo": {
+          "@id": "dcterms:conformsTo",
+          "@type": "@id"
+        }
+      }
+    },
+    "DataService": "dcat:DataService",
+    "Dataset": {
+      "@id": "dcat:Dataset",
+      "@context": {
+        "creator": {
+          "@id": "dcterms:creator",
+          "@type": "@id"
+        },
+        "relation": {
+          "@id": "dcterms:relation",
+          "@container": "@set"
+        },
+        "source": {
+          "@id": "dcterms:source",
+          "@container": "@set"
+        },
+        "version": "dcat:version"
+      }
+    },
+    "DatasetSeries": "dcat:DatasetSeries",
+    "Distribution": {
+      "@id": "dcat:Distribution",
+      "@context": {
+        "language": {
+          "@id": "dcterms:language",
+          "@container": "@set"
+        }
+      }
+    },
+    "Document": {
+      "@id": "foaf:Document",
+      "@context": {
+        "conformsTo": {
+          "@id": "dcterms:identifier",
+          "@type": "@id",
+          "@container": "@set"
+        },
+        "mediaType": "dcterms:mediaType",
+        "publisher": {
+          "@id": "dc:publisher",
+          "@container": "@set"
+        }
+      }
+    },
+    "Identifier": "adms:Identifier",
+    "Kind": {
+      "@id": "vcard:Kind",
+      "@context": {
+        "title": {
+          "@id": "vcard:title",
+          "@type": "xsd:string"
+        }
+      }
+    },
+    "Location": "dcterms:Location",
+    "Metric": "dqv:Metric",
+    "Organization": "org:Organization",
+    "PeriodOfTime": "dcterms:PeriodOfTime",
+    "QualityMeasurement": "dqv:QualityMeasurement",
+    "Relationship": "dcat:Relationship",
+    "Standard": {
+      "@id": "dcterms:Standard",
+      "@context": {
+        "created": {
+          "@id": "dcterms:created",
+          "@type": "xsd:date"
+        },
+        "identifier": {
+          "@id": "dcterms:identifier",
+          "@type": "xsd:string"
+        },
+        "modified": {
+          "@id": "dcterms:modified",
+          "@type": "xsd:date"
+        },
+        "title": {
+          "@id": "dcterms:title",
+          "@type": "xsd:string"
+        }
+      }
+    },
+    "UseRestriction": "dcat-us:UseRestriction",
+    "abstract": "dcterms:abstract",
+    "accessRestriction": {
+      "@id": "dcat-us:accessRestriction",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "accessRights": "dcterms:accessRights",
+    "accessService": {
+      "@id": "dcat:accessService",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "accessURL": {
+      "@id": "dcat:accessURL",
+      "@type": "@id"
+    },
+    "accrualPeriodicity": "dcterms:accrualPeriodicity",
+    "address": {
+      "@id": "vcard:address",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "agent": {
+      "@id": "prov:agent",
+      "@type": "@id"
+    },
+    "algorithm": "spdx:algorithm",
+    "altLabel": {
+      "@id": "skos:altLabel",
+      "@type": "xsd:string"
+    },
+    "bbox": "dcat:bbox",
+    "bibliographicCitation": "dcterms:bibliographicCitation",
+    "byteSize": {
+      "@id": "dcat:byteSize",
+      "@type": "xsd:nonNegativeInteger"
+    },
+    "catalog": {
+      "@id": "dcat:catalog",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "category": {
+      "@id": "dcterms:type",
+      "@container": "@set"
+    },
+    "centroid": "dcat:centroid",
+    "characterEncoding": {
+      "@id": "cnt:characterEncoding",
+      "@container": "@set"
+    },
+    "checksum": {
+      "@id": "spdx:checksum",
+      "@type": "@id"
+    },
+    "checksumValue": {
+      "@id": "spdx:checksumValue",
+      "@type": "xsd:hexBinary"
+    },
+    "compressFormat": "dcat:compressFormat",
+    "conformsTo": {
+      "@id": "dcterms:conformsTo",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "contactPoint": {
+      "@id": "dcat:contactPoint",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "contributor": {
+      "@id": "dcterms:contributor",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "country-name": "vcard:country-name",
+    "created": "dcterms:created",
+    "creator": {
+      "@id": "dcterms:creator",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "cuiBannerMarking": {
+      "@id": "dcat-us:cuiBannerMarking",
+      "@type": "xsd:string"
+    },
+    "cuiRestriction": {
+      "@id": "dcat-us:cuiRestriction",
+      "@type": "@id"
+    },
+    "dataset": {
+      "@id": "dcat:dataset",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "definition": "skos:definition",
+    "describedBy": {
+      "@id": "dcat-us:describedBy",
+      "@type": "@id"
+    },
+    "description": "dcterms:description",
+    "designationIndicator": {
+      "@id": "dcat-us:designationIndicator",
+      "@type": "xsd:string"
+    },
+    "distribution": {
+      "@id": "dcat:distribution",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "downloadURL": {
+      "@id": "dcat:downloadURL",
+      "@type": "@id"
+    },
+    "endDate": "dcat:endDate",
+    "endpointDescription": {
+      "@id": "dcat:endpointDescription",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "endpointURL": {
+      "@id": "dcat:endpointURL",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "expectedDataType": {
+      "@id": "dqv:expectedDataType",
+      "@type": "xsd:anySimpleType"
+    },
+    "family-name": {
+      "@id": "vcard:family-name",
+      "@type": "xsd:string"
+    },
+    "first": {
+      "@id": "dcat:first",
+      "@type": "@id"
+    },
+    "fn": {
+      "@id": "vcard:fn",
+      "@type": "xsd:string"
+    },
+    "format": "dcterms:format",
+    "geometry": "locn:geometry",
+    "given-name": {
+      "@id": "vcard:given-name",
+      "@type": "xsd:string"
+    },
+    "hadRole": "dcat:hadRole",
+    "hasEmail": {
+      "@id": "vcard:hasEmail",
+      "@type": "@id"
+    },
+    "hasPart": {
+      "@id": "dcterms:hasPart",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "hasQualityMeasurement": {
+      "@id": "dqv:hasQualityMeasurement",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "hasVersion": {
+      "@id": "dcat:hasVersion",
+      "@container": "@set"
+    },
+    "homepage": {
+      "@id": "foaf:homepage",
+      "@type": "@id"
+    },
+    "identifier": "dcterms:identifier",
+    "image": {
+      "@id": "schema:image",
+      "@type": "@id"
+    },
+    "inDimension": "dqv:inDimension",
+    "inScheme": {
+      "@id": "skos:inScheme",
+      "@type": "@id"
+    },
+    "isMeasurementOf": {
+      "@id": "dqv:isMeasurementOf",
+      "@type": "@id"
+    },
+    "isReferencedBy": {
+      "@id": "dcterms:isReferencedBy",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "issued": "dcterms:issued",
+    "keyword": {
+      "@id": "dcat:keyword",
+      "@container": "@set"
+    },
+    "label": {
+      "@id": "rdfs:label",
+      "@type": "xsd:string"
+    },
+    "landingPage": {
+      "@id": "dcat:landingPage",
+      "@type": "@id"
+    },
+    "language": {
+      "@id": "dcterms:language",
+      "@container": "@set"
+    },
+    "last": {
+      "@id": "dcat:last",
+      "@type": "@id"
+    },
+    "liabilityStatement": "dcat-us:liabilityStatement",
+    "license": {
+      "@id": "dcterms:license",
+      "@type": "@id"
+    },
+    "locality": "vcard:locality",
+    "mediaType": "dcat:mediaType",
+    "metadataDistribution": {
+      "@id": "dcat-us:metadataDistribution",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "modified": "dcterms:modified",
+    "name": {
+      "@id": "foaf:name",
+      "@type": "xsd:string"
+    },
+    "notation": {
+      "@id": "skos:notation",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "organization-name": {
+      "@id": "vcard:organization-name",
+      "@type": "xsd:string"
+    },
+    "otherIdentifier": {
+      "@id": "adms:identifier",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "packageFormat": "dcat:packageFormat",
+    "page": {
+      "@id": "foaf:page",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "postal-code": "vcard:postal-code",
+    "prefLabel": {
+      "@id": "skos:prefLabel",
+      "@type": "xsd:string"
+    },
+    "primaryTopic": {
+      "@id": "foaf:primaryTopic",
+      "@type": "@id"
+    },
+    "provenance": {
+      "@id": "dcterms:provenance",
+      "@container": "@set"
+    },
+    "publisher": {
+      "@id": "dcterms:publisher",
+      "@type": "@id"
+    },
+    "purpose": "dcat-us:purpose",
+    "qualifiedAttribution": {
+      "@id": "prov:qualifiedAttribution",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "qualifiedRelation": {
+      "@id": "dcat:qualifiedRelation",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "record": {
+      "@id": "dcat:record",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "region": "vcard:region",
+    "relation": "dcterms:relation",
+    "representationTechnique": {
+      "@id": "adms:representationTechnique",
+      "@type": "@id"
+    },
+    "requiredIndicatorPerAuthority": {
+      "@id": "dcat-us:requiredIndicatorPerAuthority",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "restrictionNote": "dcat-us:restrictionNote",
+    "restrictionStatus": "dcat-us:restrictionStatus",
+    "rights": {
+      "@id": "dcterms:rights",
+      "@container": "@set"
+    },
+    "rightsHolder": {
+      "@id": "dcterms:rightsHolder",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "sample": {
+      "@id": "adms:sample",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "scopeNote": "skos:scopeNote",
+    "seriesMember": {
+      "@id": "dcat:seriesMember",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "servesDataset": {
+      "@id": "dcat:servesDataset",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "service": {
+      "@id": "dcat:service",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "source": "dcterms:source",
+    "spatial": {
+      "@id": "dcterms:spatial",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "spatialResolutionInMeters": {
+      "@id": "dcat:spatialResolutionInMeters",
+      "@type": "xsd:decimal"
+    },
+    "specificRestriction": {
+      "@id": "dcat-us:specificRestriction",
+      "@type": "@id"
+    },
+    "startDate": "dcat:startDate",
+    "status": "adms:status",
+    "street-address": "vcard:street-address",
+    "subOrganizationOf": {
+      "@id": "org:subOrganizationOf",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "subject": {
+      "@id": "dcterms:subject",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "tel": "vcard:tel",
+    "temporal": {
+      "@id": "dcterms:temporal",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "temporalResolution": {
+      "@id": "dcat:temporalResolution",
+      "@type": "xsd:duration"
+    },
+    "theme": {
+      "@id": "dcat:theme",
+      "@container": "@set"
+    },
+    "themeTaxonomy": {
+      "@id": "dcat:themeTaxonomy",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "title": "dcterms:title",
+    "unitMeasure": "sdmx-attribute:unitMeasure",
+    "useRestriction": {
+      "@id": "dcat-us:useRestriction",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "value": "dqv:value",
+    "version": {
+      "@id": "dcat:version",
+      "@type": "xsd:string"
+    },
+    "versionNotes": "adms:versionNotes",
+    "wasGeneratedBy": {
+      "@id": "prov:wasGeneratedBy",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "wasUsedBy": {
+      "@id": "prov:wasUsedBy",
+      "@type": "@id",
+      "@container": "@set"
+    }
+  }
+}

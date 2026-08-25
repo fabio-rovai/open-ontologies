@@ -1,0 +1,6 @@
+{
+  "@id": "https://example.gov/activities/invalid-activity",
+  "@type": "Activity",
+  "label": 12345,
+  "category": null
+}

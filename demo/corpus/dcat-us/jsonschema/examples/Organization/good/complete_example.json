@@ -1,0 +1,15 @@
+{
+  "@id": "https://example.gov/organizations/census-bureau",
+  "@type": "Organization",
+  "name": "U.S. Census Bureau",
+  "prefLabel": "United States Census Bureau",
+  "altLabel": "Census Bureau",
+  "notation": ["USCB", "CB"],
+  "subOrganizationOf": [
+    {
+      "@id": "https://example.gov/organizations/doc",
+      "@type": "Organization",
+      "name": "U.S. Department of Commerce"
+    }
+  ]
+}

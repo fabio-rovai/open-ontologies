@@ -1,0 +1,10 @@
+{
+  "@id": "https://example.gov/concept-schemes/data-classification",
+  "@type": "ConceptScheme",
+  "title": "Federal Data Classification Scheme",
+  "description": "A controlled vocabulary for classifying federal government data assets by sensitivity and access requirements.",
+  "version": "2.0.1",
+  "created": "2020",
+  "issued": "2020",
+  "modified": "2024"
+}

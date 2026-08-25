@@ -1,0 +1,6 @@
+{
+  "@id": "https://example.gov/agents/invalid-agent",
+  "@type": "Agent",
+  "name": "Valid Agent Name",
+  "category": 12345
+}

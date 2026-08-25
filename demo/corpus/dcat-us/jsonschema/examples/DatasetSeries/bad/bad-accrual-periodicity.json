@@ -1,0 +1,6 @@
+{
+  "@type": "DatasetSeries",
+  "title": "Example Dataset Series",
+  "description": "A minimal dataset series example with invalid periodicity",
+  "accrualPeriodicity": "not-a-valid-periodicity"
+}

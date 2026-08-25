@@ -1,0 +1,14 @@
+{
+  "@id": "https://example.gov/locations/invalid-bbox-wrong-type",
+  "@type": "Location",
+  "prefLabel": "Invalid GeoJSON Bbox Type",
+  "bbox": {
+    "type": "Point",
+    "coordinates": [
+      [
+        [-77.119759, 38.791645],
+        [-76.909393, 38.791645]
+      ]
+    ]
+  }
+}

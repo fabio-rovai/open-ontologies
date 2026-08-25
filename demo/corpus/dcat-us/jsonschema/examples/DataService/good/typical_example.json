@@ -1,0 +1,35 @@
+{
+  "@type": "DataService",
+  "title": "Climate Data API",
+  "description": "RESTful API providing access to historical climate observations.",
+  "endpointURL": ["https://api.example.gov/climate/v1"],
+  "endpointDescription": ["https://api.example.gov/climate/v1/openapi.json"],
+  "contactPoint": [
+    {
+      "fn": "API Support Team",
+      "hasEmail": "mailto:api-support@example.gov"
+    }
+  ],
+  "publisher": {
+    "name": "National Climate Data Center"
+  },
+  "keyword": ["climate", "weather", "API"],
+  "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "servesDataset": [
+    {
+      "@id": "https://example.gov/datasets/climate-observations-2024",
+      "@type": "Dataset",
+      "title": "Climate Observations 2024",
+      "description": "Annual climate observation data.",
+      "contactPoint": {
+        "fn": "Climate Support",
+        "hasEmail": "mailto:climate@example.gov"
+      },
+      "publisher": {
+        "name": "National Climate Data Center"
+      },
+      "identifier": "https://example.gov/datasets/climate-observations-2024"
+    }
+  ],
+  "identifier": "https://example.gov/services/climate-api"
+}

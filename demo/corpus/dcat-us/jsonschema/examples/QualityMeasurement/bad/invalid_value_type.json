@@ -1,0 +1,8 @@
+{
+  "@id": "https://example.gov/quality-measurements/invalid",
+  "@type": "QualityMeasurement",
+  "isMeasurementOf": {
+    "label": "Completeness"
+  },
+  "value": 98.5
+}

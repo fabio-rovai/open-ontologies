@@ -1,0 +1,9 @@
+{
+  "@id": "https://example.gov/locations/invalid-centroid-type",
+  "@type": "Location",
+  "prefLabel": "Invalid Centroid Type",
+  "centroid": {
+    "type": "Polygon",
+    "coordinates": [-77.0369, 38.9072]
+  }
+}

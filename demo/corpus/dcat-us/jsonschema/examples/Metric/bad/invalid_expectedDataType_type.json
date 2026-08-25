@@ -1,0 +1,5 @@
+{
+  "@type": "Metric",
+  "expectedDataType": 123,
+  "inDimension": "https://www.w3.org/TR/vocab-dqv/#dqv:completeness"
+}

@@ -1,0 +1,14 @@
+{
+  "@id": "https://example.gov/identifiers/dataset-climate-001",
+  "@type": "Identifier",
+  "schemaAgency": "National Climate Data Center",
+  "notation": "NCDC-CLIMATE-2024-001",
+  "version": "1.0",
+  "issued": "2024-01-15",
+  "creator": {
+    "@id": "https://example.gov/organizations/ncdc",
+    "@type": "Organization",
+    "name": "National Climate Data Center",
+    "description": "The world's largest archive of weather data."
+  }
+}

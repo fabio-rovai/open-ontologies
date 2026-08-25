@@ -1,0 +1,5 @@
+{
+  "_comment": "INVALID: 'prefLabel' must be a string, not a number",
+  "@type": "Concept",
+  "prefLabel": 12345
+}

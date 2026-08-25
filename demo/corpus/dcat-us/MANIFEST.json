@@ -40,5 +40,13 @@
     "retrieved": "2026-08-25",
     "sha256": "bf2787f0aee005b7fe2e94e3f25d3f53a2f1def38d65e040ca4dc5b1ec229cff",
     "source_url": "https://www.w3.org/TR/vocab-dcat-3/#conformance"
+  },
+  {
+    "file": "jsonschema",
+    "retrieved": "2026-08-25",
+    "sha256": "6a865680ff78b3274fa97a55cc77082cc7de40abdcd3a26c5a7104ce87b56971",
+    "source_url": "https://github.com/GSA/dcat-us/tree/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema",
+    "role": "validator-input",
+    "note": "The full GSA/dcat-us jsonschema/ tree at commit 7a6e803fb94ee9903e7e7405ec4afcc8da13383f (HEAD as of retrieval, 2026-08-25, fetched by a fresh independent clone): 26 files under jsonschema/definitions/ and 191 under jsonschema/examples/<Class>/good|bad/ (115 good, 76 bad). Licensed CC0 1.0 as a work of the United States Government; see jsonschema/LICENSE.md, copied verbatim from the same commit. Per-file source URLs and checksums are in jsonschema/MANIFEST.json; the sha256 above is of that file. Read by demo/dcat_conformance.py, which is the only consumer; it supersedes examples-sample.json's five-file sample for the conformance recomputation. examples-sample.json is unchanged and still used by the document-to-ontology pipeline corpus."
   }
 ]

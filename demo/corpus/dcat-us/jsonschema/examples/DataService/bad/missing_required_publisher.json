@@ -1,0 +1,12 @@
+{
+  "@id": "https://example.gov/data-services/invalid",
+  "@type": "DataService",
+  "title": "Invalid Service",
+  "endpointURL": ["https://api.example.gov/invalid"],
+  "contactPoint": [
+    {
+      "fn": "Support Team",
+      "hasEmail": "mailto:support@example.gov"
+    }
+  ]
+}

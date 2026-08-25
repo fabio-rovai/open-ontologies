@@ -1,0 +1,6 @@
+{
+  "@id": "https://example.gov/agents/data-steward-001",
+  "@type": "Agent",
+  "name": "U.S. Department of Commerce Data Stewardship Office",
+  "category": ["Organization"]
+}

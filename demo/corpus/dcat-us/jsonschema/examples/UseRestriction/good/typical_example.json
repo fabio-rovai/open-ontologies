@@ -1,0 +1,6 @@
+{
+  "@type": "UseRestriction",
+  "restrictionStatus": "https://example.gov/concepts/unrestricted",
+  "specificRestriction": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "restrictionNote": "This data may be used for any purpose without restriction."
+}

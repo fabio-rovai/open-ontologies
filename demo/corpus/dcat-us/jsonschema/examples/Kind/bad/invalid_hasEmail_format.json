@@ -1,0 +1,6 @@
+{
+  "@id": "https://example.gov/contacts/invalid",
+  "@type": "Kind",
+  "fn": "Data Support Team",
+  "hasEmail": "support@example.gov"
+}

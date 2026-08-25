@@ -1,0 +1,7 @@
+{
+  "@id": "https://example.gov/attributions/invalid",
+  "@type": "Attribution",
+  "agent": {
+    "name": "Environmental Data Management Office"
+  }
+}

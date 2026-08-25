@@ -1,0 +1,6 @@
+{
+  "@id": "https://example.gov/catalog-records/invalid",
+  "@type": "CatalogRecord",
+  "title": "Missing Required Fields Record",
+  "modified": "2024-01-15"
+}

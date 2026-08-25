@@ -1,0 +1,15 @@
+{
+  "@id": "https://example.gov/concepts/environment",
+  "@type": "Concept",
+  "prefLabel": "Environment",
+  "altLabel": "Ecology",
+  "definition": "The natural world, including air, water, land, plants, and animals, especially as affected by human activity.",
+  "notation": ["ENV", "E01", "ENVI"],
+  "inScheme": {
+    "@id": "https://example.gov/concept-schemes/data-themes",
+    "@type": "ConceptScheme",
+    "version": "2.0",
+    "description": "DCAT-US approved themes for categorizing datasets",
+    "title": "Data Themes"
+  }
+}

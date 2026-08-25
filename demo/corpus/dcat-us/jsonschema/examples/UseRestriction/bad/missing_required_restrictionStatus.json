@@ -1,0 +1,5 @@
+{
+  "@id": "https://example.gov/restrictions/invalid",
+  "@type": "UseRestriction",
+  "restrictionNote": "Some restriction note without required restrictionStatus"
+}

@@ -1,0 +1,16 @@
+{
+  "@type": "Document",
+  "title": "Climate Data User Guide",
+  "description": "A guide for accessing and using the National Climate Data Center's data products.",
+  "accessURL": "https://example.gov/docs/climate-user-guide",
+  "mediaType": "application/pdf",
+  "identifier": "NCDC-UG-2024-001",
+  "issued": "2024-03-15",
+  "publisher": [
+    {
+      "@type": "Organization",
+      "name": "National Climate Data Center"
+    }
+  ],
+  "bibliographicCitation": "National Climate Data Center. (2024). Climate Data User Guide. Retrieved from https://example.gov/docs/climate-user-guide"
+}

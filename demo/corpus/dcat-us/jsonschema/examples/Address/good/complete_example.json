@@ -1,0 +1,9 @@
+{
+  "@id": "https://example.gov/addresses/hq-001",
+  "@type": "Address",
+  "country-name": "United States",
+  "locality": "Washington",
+  "postal-code": "20230",
+  "region": "DC",
+  "street-address": "1401 Constitution Ave NW"
+}

@@ -1,0 +1,5 @@
+{
+  "@type": "Relationship",
+  "hadRole": "isInputTo",
+  "relation": "https://example.gov/models/climate-prediction"
+}

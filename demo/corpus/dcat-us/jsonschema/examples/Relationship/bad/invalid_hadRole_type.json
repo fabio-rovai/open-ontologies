@@ -1,0 +1,5 @@
+{
+  "@type": "Relationship",
+  "hadRole": 123,
+  "relation": "https://example.gov/organizations/partner-agency"
+}

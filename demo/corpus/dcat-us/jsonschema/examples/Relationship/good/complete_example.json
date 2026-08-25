@@ -1,0 +1,6 @@
+{
+  "@id": "https://example.gov/relationships/dataset-001-data-provider",
+  "@type": "Relationship",
+  "hadRole": "dataProvider",
+  "relation": "https://example.gov/organizations/national-weather-service"
+}

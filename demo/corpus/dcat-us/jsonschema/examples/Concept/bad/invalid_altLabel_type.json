@@ -1,0 +1,6 @@
+{
+  "_comment": "INVALID: 'altLabel' must be null or string, not a number",
+  "@type": "Concept",
+  "prefLabel": "Environment",
+  "altLabel": 999
+}

@@ -1,0 +1,183 @@
+{
+  "@id": "https://example.gov/data-services/climate-api-001",
+  "@type": "DataService",
+  "title": "Climate Data REST API",
+  "description": "A RESTful API providing access to historical and real-time climate data including temperature, precipitation, and atmospheric conditions.",
+  "endpointURL": [
+    "https://api.example.gov/climate/v1",
+    "https://api.example.gov/climate/v2"
+  ],
+  "endpointDescription": ["https://api.example.gov/climate/docs/openapi.json"],
+  "contactPoint": [
+    {
+      "@id": "https://example.gov/contacts/climate-team-001",
+      "@type": "Kind",
+      "fn": "Climate Data Support Team",
+      "hasEmail": "mailto:climate-support@example.gov",
+      "organization-name": "National Climate Data Center",
+      "tel": "+1-555-123-4567",
+      "address": [
+        {
+          "@id": "https://example.gov/addresses/climate-office-001",
+          "country-name": "United States",
+          "locality": "Asheville",
+          "postal-code": "28801",
+          "region": "NC",
+          "street-address": "151 Patton Ave"
+        }
+      ]
+    }
+  ],
+  "publisher": {
+    "@id": "https://example.gov/agents/ncdc-001",
+    "@type": "Agent",
+    "name": "National Climate Data Center",
+    "category": [
+      {
+        "@id": "https://example.gov/concepts/federal-agency",
+        "@type": "Concept",
+        "prefLabel": "Federal Agency",
+        "definition": "An agency of the federal government of the United States.",
+        "inScheme": {
+          "@id": "https://example.gov/concept-schemes/organization-types",
+          "@type": "ConceptScheme",
+          "title": "Organization Types"
+        }
+      }
+    ]
+  },
+  "servesDataset": [
+    {
+      "@id": "https://example.gov/datasets/daily-climate-obs",
+      "@type": "Dataset",
+      "title": "Daily Climate Observations",
+      "description": "Daily observations of temperature, precipitation, and other climate variables.",
+      "contactPoint": [
+        {
+          "fn": "Climate Data Team",
+          "hasEmail": "mailto:climate-data@example.gov"
+        }
+      ],
+      "publisher": {
+        "name": "National Climate Data Center"
+      },
+      "identifier": "https://example.gov/datasets/served-dataset-001"
+    }
+  ],
+  "keyword": ["climate", "weather", "temperature", "API", "REST"],
+  "theme": [
+    {
+      "@id": "https://example.gov/concepts/climate-science",
+      "@type": "Concept",
+      "prefLabel": "Climate Science",
+      "definition": "The scientific study of climate and climate change.",
+      "inScheme": {
+        "@id": "https://example.gov/concept-schemes/science-domains",
+        "@type": "ConceptScheme",
+        "title": "Science Domains"
+      }
+    }
+  ],
+  "conformsTo": [
+    {
+      "@id": "https://example.gov/standards/ogc-api-features",
+      "@type": "Standard",
+      "title": "OGC API - Features",
+      "description": "OGC standard for accessing geospatial features via a Web API."
+    }
+  ],
+  "language": ["en", "es"],
+  "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "accessRights": "Public access with no restrictions",
+  "created": "2020-01-15",
+  "modified": "2024-03-20",
+  "spatialResolutionInMeters": "1000",
+  "temporalResolution": "P1D",
+  "spatial": [
+    {
+      "@id": "https://example.gov/locations/usa",
+      "@type": "Location",
+      "geometry": "POLYGON((-125 24, -66 24, -66 50, -125 50, -125 24))"
+    }
+  ],
+  "temporal": [
+    {
+      "@id": "https://example.gov/periods/1950-present",
+      "@type": "PeriodOfTime",
+      "startDate": "1950-01-01",
+      "endDate": "2024-12-31"
+    }
+  ],
+  "creator": [
+    {
+      "@id": "https://example.gov/agents/ncdc-team",
+      "@type": "Agent",
+      "name": "NCDC Development Team"
+    }
+  ],
+  "rights": [
+    "Data provided by the National Climate Data Center is in the public domain."
+  ],
+  "rightsHolder": [
+    {
+      "@id": "https://example.gov/organizations/noaa",
+      "@type": "Organization",
+      "name": "National Oceanic and Atmospheric Administration"
+    }
+  ],
+  "identifier": {
+    "@type": "Identifier",
+    "schemaAgency": "example.gov",
+    "notation": "CLIMATE-API-001"
+  },
+  "otherIdentifier": [
+    {
+      "@type": "Identifier",
+      "schemaAgency": "DOI",
+      "notation": "10.12345/climate-api"
+    }
+  ],
+  "accessRestriction": [
+    {
+      "@id": "https://example.gov/restrictions/none",
+      "@type": "AccessRestriction",
+      "restrictionNote": "No access restrictions apply to this data service.",
+      "restrictionStatus": {
+        "@id": "https://example.gov/concepts/unrestricted",
+        "@type": "Concept",
+        "prefLabel": "Unrestricted",
+        "definition": "No restrictions on access.",
+        "inScheme": {
+          "@id": "https://example.gov/concept-schemes/restriction-status",
+          "@type": "ConceptScheme",
+          "title": "Restriction Status"
+        }
+      }
+    }
+  ],
+  "cuiRestriction": {
+    "@id": "https://example.gov/cui-restrictions/none",
+    "@type": "CUIRestriction",
+    "cuiBannerMarking": "",
+    "designationIndicator": "",
+    "requiredIndicatorPerAuthority": []
+  },
+  "useRestriction": [
+    {
+      "@id": "https://example.gov/restrictions/attribution",
+      "@type": "UseRestriction",
+      "restrictionNote": "Attribution to the Climate Data Center is requested but not required.",
+      "restrictionStatus": {
+        "@id": "https://example.gov/concepts/unrestricted",
+        "@type": "Concept",
+        "prefLabel": "Unrestricted",
+        "definition": "No restrictions on use.",
+        "inScheme": {
+          "@id": "https://example.gov/concept-schemes/restriction-status",
+          "@type": "ConceptScheme",
+          "title": "Restriction Status"
+        }
+      }
+    }
+  ]
+}

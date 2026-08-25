@@ -1,0 +1,7 @@
+{
+  "@id": "https://example.gov/series/example-dataset-series-quarterly",
+  "@type": "DatasetSeries",
+  "title": "Example Dataset Series",
+  "description": "A minimal dataset series example with valid periodicity",
+  "accrualPeriodicity": "quarterly"
+}

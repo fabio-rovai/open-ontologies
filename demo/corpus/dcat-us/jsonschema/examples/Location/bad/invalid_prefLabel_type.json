@@ -1,0 +1,5 @@
+{
+  "@id": "https://example.gov/locations/invalid-preflabel",
+  "@type": "Location",
+  "prefLabel": ["Washington", "D.C."]
+}

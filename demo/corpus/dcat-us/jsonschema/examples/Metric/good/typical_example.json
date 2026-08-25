@@ -1,0 +1,6 @@
+{
+  "@type": "Metric",
+  "expectedDataType": "xsd:decimal",
+  "inDimension": "https://example.gov/dimensions/completeness",
+  "definition": "Percentage of non-null values in the dataset."
+}

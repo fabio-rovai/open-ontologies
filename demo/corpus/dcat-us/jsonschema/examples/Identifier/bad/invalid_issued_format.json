@@ -1,0 +1,6 @@
+{
+  "@id": "https://example.gov/identifiers/invalid",
+  "@type": "Identifier",
+  "notation": "VALID-001",
+  "issued": "not-a-valid-date"
+}

@@ -1,0 +1,6 @@
+{
+  "@id": "https://example.gov/periods/fiscal-year-2024",
+  "@type": "PeriodOfTime",
+  "startDate": "2023-10-01",
+  "endDate": "2024-09-30"
+}

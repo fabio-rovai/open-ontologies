@@ -1,0 +1,114 @@
+{
+  "@id": "https://example.gov/series/annual-climate-observations",
+  "@type": "DatasetSeries",
+  "title": "Annual Climate Observations",
+  "description": "A series of annual climate observation datasets from monitoring stations.",
+  "contactPoint": [
+    {
+      "fn": "Climate Data Support",
+      "hasEmail": "mailto:climate@example.gov"
+    }
+  ],
+  "publisher": {
+    "name": "National Climate Data Center"
+  },
+  "accrualPeriodicity": "annually",
+  "issued": "2000-01-15",
+  "modified": "2024-12-01",
+  "first": {
+    "@id": "https://example.gov/datasets/climate-observations-2000",
+    "@type": "Dataset",
+    "title": "Climate Observations 2000",
+    "description": "First year of climate observations.",
+    "contactPoint": {
+      "fn": "Climate Support",
+      "hasEmail": "mailto:climate@example.gov"
+    },
+    "publisher": {
+      "name": "National Climate Data Center"
+    },
+    "identifier": "https://example.gov/datasets/series-first"
+  },
+  "last": {
+    "@id": "https://example.gov/datasets/climate-observations-2024",
+    "@type": "Dataset",
+    "title": "Climate Observations 2024",
+    "description": "Latest year of climate observations.",
+    "contactPoint": {
+      "fn": "Climate Support",
+      "hasEmail": "mailto:climate@example.gov"
+    },
+    "publisher": {
+      "name": "National Climate Data Center"
+    },
+    "identifier": "https://example.gov/datasets/series-last"
+  },
+  "seriesMember": [
+    {
+      "@id": "https://example.gov/datasets/climate-observations-2022",
+      "@type": "Dataset",
+      "title": "Climate Observations 2022",
+      "description": "Climate observations for 2022.",
+      "contactPoint": {
+        "fn": "Climate Support",
+        "hasEmail": "mailto:climate@example.gov"
+      },
+      "publisher": {
+        "name": "National Climate Data Center"
+      },
+      "identifier": "https://example.gov/datasets/series-member-001"
+    },
+    {
+      "@id": "https://example.gov/datasets/climate-observations-2023",
+      "@type": "Dataset",
+      "title": "Climate Observations 2023",
+      "description": "Climate observations for 2023.",
+      "contactPoint": {
+        "fn": "Climate Support",
+        "hasEmail": "mailto:climate@example.gov"
+      },
+      "publisher": {
+        "name": "National Climate Data Center"
+      },
+      "identifier": "https://example.gov/datasets/series-member-002"
+    },
+    {
+      "@id": "https://example.gov/datasets/climate-observations-2024",
+      "@type": "Dataset",
+      "title": "Climate Observations 2024",
+      "description": "Climate observations for 2024.",
+      "contactPoint": {
+        "fn": "Climate Support",
+        "hasEmail": "mailto:climate@example.gov"
+      },
+      "publisher": {
+        "name": "National Climate Data Center"
+      },
+      "identifier": "https://example.gov/datasets/series-member-003"
+    }
+  ],
+  "spatial": [
+    {
+      "@type": "Location",
+      "bbox": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-125.0, 24.0],
+            [-66.0, 24.0],
+            [-66.0, 50.0],
+            [-125.0, 50.0],
+            [-125.0, 24.0]
+          ]
+        ]
+      }
+    }
+  ],
+  "temporal": [
+    {
+      "@type": "PeriodOfTime",
+      "startDate": "2000-01-01",
+      "endDate": "2024-12-31"
+    }
+  ]
+}

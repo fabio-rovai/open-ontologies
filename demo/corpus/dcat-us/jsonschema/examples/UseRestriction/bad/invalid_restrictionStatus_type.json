@@ -1,0 +1,5 @@
+{
+  "@id": "https://example.gov/restrictions/invalid",
+  "@type": "UseRestriction",
+  "restrictionStatus": 12345
+}

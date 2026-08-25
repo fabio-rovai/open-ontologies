@@ -1,0 +1,6 @@
+{
+  "@id": "https://example.gov/locations/invalid-location",
+  "@type": "Location",
+  "prefLabel": "Invalid Location",
+  "bbox": 12345
+}

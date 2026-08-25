@@ -1,0 +1,7 @@
+{
+  "@id": "https://example.gov/metrics/record-completeness",
+  "@type": "Metric",
+  "expectedDataType": "xsd:double",
+  "inDimension": "https://www.w3.org/TR/vocab-dqv/#dqv:completeness",
+  "definition": "The percentage of non-null values for required fields in a dataset. A value of 1.0 indicates 100% completeness."
+}

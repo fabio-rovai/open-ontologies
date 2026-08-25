@@ -1,0 +1,87 @@
+{
+  "@id": "https://example.gov/documents/climate-user-guide-001",
+  "@type": "Document",
+  "title": "Climate Data User Guide",
+  "description": "A comprehensive guide for accessing and using the National Climate Data Center's data products and services.",
+  "abstract": "This document provides detailed instructions for using climate data products, including API access, file formats, and data interpretation guidelines.",
+  "accessURL": "https://example.gov/docs/climate-user-guide",
+  "downloadURL": "https://example.gov/docs/climate-user-guide.pdf",
+  "mediaType": "application/pdf",
+  "bibliographicCitation": "National Climate Data Center. (2024). Climate Data User Guide. U.S. Department of Commerce.",
+  "issued": "2024-01-15",
+  "creator": [
+    {
+      "@id": "https://example.gov/contacts/doc-author-001",
+      "@type": "Kind",
+      "fn": "Dr. Jane Smith",
+      "hasEmail": "mailto:jane.smith@example.gov",
+      "given-name": "Jane",
+      "family-name": "Smith",
+      "organization-name": "National Climate Data Center",
+      "title": "Senior Climate Scientist"
+    }
+  ],
+  "corporateCreator": [
+    {
+      "@id": "https://example.gov/organizations/ncdc",
+      "@type": "Organization",
+      "name": "National Climate Data Center"
+    }
+  ],
+  "publisher": [
+    {
+      "@id": "https://example.gov/organizations/noaa",
+      "@type": "Organization",
+      "name": "National Oceanic and Atmospheric Administration"
+    }
+  ],
+  "conformsTo": [
+    {
+      "@id": "https://example.gov/standards/pdf-a",
+      "@type": "Standard",
+      "title": "PDF/A-3",
+      "description": "ISO 19005-3 - Document management -- Electronic document file format for long-term preservation."
+    }
+  ],
+  "identifier": {
+    "@type": "Identifier",
+    "schemaAgency": "example.gov",
+    "notation": "DOC-CLIMATE-GUIDE-001"
+  },
+  "otherIdentifier": [
+    {
+      "@type": "Identifier",
+      "schemaAgency": "DOI",
+      "notation": "10.12345/climate-guide-2024"
+    },
+    {
+      "@type": "Identifier",
+      "schemaAgency": "ISBN",
+      "notation": "978-0-123456-78-9"
+    }
+  ],
+  "category": [
+    {
+      "@id": "https://example.gov/concepts/user-guide",
+      "@type": "Concept",
+      "prefLabel": "User Guide",
+      "definition": "A document that provides instructions for using a product or service.",
+      "inScheme": {
+        "@id": "https://example.gov/concept-schemes/document-types",
+        "@type": "ConceptScheme",
+        "title": "Document Types"
+      }
+    },
+    {
+      "@id": "https://example.gov/concepts/technical-documentation",
+      "@type": "Concept",
+      "prefLabel": "Technical Documentation",
+      "definition": "Documentation describing technical aspects of a system or service.",
+      "inScheme": {
+        "@id": "https://example.gov/concept-schemes/document-types",
+        "@type": "ConceptScheme",
+        "title": "Document Types"
+      }
+    }
+  ]
+}

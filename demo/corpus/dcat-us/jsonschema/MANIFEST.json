@@ -1,0 +1,1304 @@
+[
+  {
+    "file": "definitions/AccessRestriction.json",
+    "retrieved": "2026-08-25",
+    "sha256": "86f42cb373dc3df1c870f74847d5b1e2054b0e709f285e051e41491a1f6cc812",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/AccessRestriction.json"
+  },
+  {
+    "file": "definitions/Activity.json",
+    "retrieved": "2026-08-25",
+    "sha256": "9459c82a914555abfc998d57c9e0004b8fefbe8b9c1321a39f05a12247532214",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Activity.json"
+  },
+  {
+    "file": "definitions/Address.json",
+    "retrieved": "2026-08-25",
+    "sha256": "a71eaee3e1cda731d7724bc5b880f1f7285a668f8250e34c7928c0d63503ab4b",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Address.json"
+  },
+  {
+    "file": "definitions/Agent.json",
+    "retrieved": "2026-08-25",
+    "sha256": "c3a8dd6103a0a72af12bbfcf8d8641df5deb71e505176bb6a6e112d1f3d4b636",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Agent.json"
+  },
+  {
+    "file": "definitions/Attribution.json",
+    "retrieved": "2026-08-25",
+    "sha256": "089eabc39498a08b9459bc8c44e5b8696c2e3055d747a58499cf5ae9df3cafd8",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Attribution.json"
+  },
+  {
+    "file": "definitions/CUIRestriction.json",
+    "retrieved": "2026-08-25",
+    "sha256": "c380e6ab8625c2cff2bab522ae47d0d9fe210c100304b81181e6c6e9236a3075",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/CUIRestriction.json"
+  },
+  {
+    "file": "definitions/Catalog.json",
+    "retrieved": "2026-08-25",
+    "sha256": "4788b835f8d122ec52e0ca6e5343bb9e39d7361ce6ba0c6e4bfcdec87473161a",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Catalog.json"
+  },
+  {
+    "file": "definitions/CatalogRecord.json",
+    "retrieved": "2026-08-25",
+    "sha256": "3520e634156fb0045a9735a67ba37f7fe18a295bfb6cbd4e505964c9d25f4205",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/CatalogRecord.json"
+  },
+  {
+    "file": "definitions/Checksum.json",
+    "retrieved": "2026-08-25",
+    "sha256": "fb2efdbfec4a620f065c1d16bfe3b2681d7a11203f3da7bc1e937bbf5a177a2d",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Checksum.json"
+  },
+  {
+    "file": "definitions/Concept.json",
+    "retrieved": "2026-08-25",
+    "sha256": "86fa9ce21ed5482df8325b5a99157fbd6592623315e14a734e6326be6aee9b2d",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Concept.json"
+  },
+  {
+    "file": "definitions/ConceptScheme.json",
+    "retrieved": "2026-08-25",
+    "sha256": "52e18b5f0d380f7321346c36688584df5e2cc3f627f17a65d6be631bce657414",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/ConceptScheme.json"
+  },
+  {
+    "file": "definitions/DataService.json",
+    "retrieved": "2026-08-25",
+    "sha256": "0aef863056fce337af53209cdf89efdd68061c09a9d79d8de480514745a9a428",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/DataService.json"
+  },
+  {
+    "file": "definitions/Dataset.json",
+    "retrieved": "2026-08-25",
+    "sha256": "936dfb3a882782e0f3a67aae61bf15466db302f8227f5a4f2ac99d4f44025c4f",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Dataset.json"
+  },
+  {
+    "file": "definitions/DatasetSeries.json",
+    "retrieved": "2026-08-25",
+    "sha256": "633d5543115fcb27fadd51faf1efd5a30e198477bb8f3ac402b48c6aae0f7def",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/DatasetSeries.json"
+  },
+  {
+    "file": "definitions/Distribution.json",
+    "retrieved": "2026-08-25",
+    "sha256": "c039f69f8e93e1f13b093a42a0310216bc95ae1a7bfefc8975e3a8fcbf9de2a8",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Distribution.json"
+  },
+  {
+    "file": "definitions/Document.json",
+    "retrieved": "2026-08-25",
+    "sha256": "d270d10e2e97524038aaa00bfdabf90db41609940dc2b054e0d0bcf6edab7172",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Document.json"
+  },
+  {
+    "file": "definitions/Identifier.json",
+    "retrieved": "2026-08-25",
+    "sha256": "7e8d769d3d6213a63c1bce867e8ab0369c4859d8778e10ce2b0cdab99face543",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Identifier.json"
+  },
+  {
+    "file": "definitions/Kind.json",
+    "retrieved": "2026-08-25",
+    "sha256": "06c11ceb9b1cd6646ce808676611e0cb4f4fc95f80b9dd3cf3a5f0027a3d6b54",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Kind.json"
+  },
+  {
+    "file": "definitions/Location.json",
+    "retrieved": "2026-08-25",
+    "sha256": "394363091f89b7eaddf33fc00917e825700deafe2d101c534a7631455b5ac830",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Location.json"
+  },
+  {
+    "file": "definitions/Metric.json",
+    "retrieved": "2026-08-25",
+    "sha256": "f0677522d162a9f89c78981e7617eb53e41a6a54106f5ab0599d05292ff9de58",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Metric.json"
+  },
+  {
+    "file": "definitions/Organization.json",
+    "retrieved": "2026-08-25",
+    "sha256": "18edc2eaadf8d600d8f1b4e2ec27e46562c2b6404779d92d88f6a65562a5f143",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Organization.json"
+  },
+  {
+    "file": "definitions/PeriodOfTime.json",
+    "retrieved": "2026-08-25",
+    "sha256": "16c2580806d91791842eed877f5d44053e1295ba0ded389e88491d5ceb58d14b",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/PeriodOfTime.json"
+  },
+  {
+    "file": "definitions/QualityMeasurement.json",
+    "retrieved": "2026-08-25",
+    "sha256": "b31bdfeaf59e9e087e2e21f1d94f4ff236777a66b75b98a2ea185e89607fcc21",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/QualityMeasurement.json"
+  },
+  {
+    "file": "definitions/Relationship.json",
+    "retrieved": "2026-08-25",
+    "sha256": "c2f470e8a900cffff02756e53b6d78c2725f6cba0e7197182da329a433f0b6f2",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Relationship.json"
+  },
+  {
+    "file": "definitions/Standard.json",
+    "retrieved": "2026-08-25",
+    "sha256": "17696088895efe91f409a5e27f4cbedce19cc4f0b3a6d2b6b9258489a8d762ca",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/Standard.json"
+  },
+  {
+    "file": "definitions/UseRestriction.json",
+    "retrieved": "2026-08-25",
+    "sha256": "dc32705962486f2170dd515c8f53b2e33e01cc3bc9943b93daa17a2282a8712e",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/definitions/UseRestriction.json"
+  },
+  {
+    "file": "examples/AccessRestriction/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "d1c854b542962b2d85209dfe0285374f28896b8b9cc9aa8fd42b06a4d88469d8",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/AccessRestriction/good/minimal_example.json"
+  },
+  {
+    "file": "examples/AccessRestriction/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "d08a329cb9488dd50c977b5a26b0b79577ca4a3d499e202d75a58737e672cc30",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/AccessRestriction/good/null_example.json"
+  },
+  {
+    "file": "examples/AccessRestriction/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "b526d6de66ec214177e585b1598688c4b40fd15e5b8b88b65c0a17042c090338",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/AccessRestriction/good/typical_example.json"
+  },
+  {
+    "file": "examples/Activity/bad/invalid_label_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "b033cf47ee5a844afd8e001bb09d93aa21153e71ee6219b4f7480306690fb61a",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Activity/bad/invalid_label_type.json"
+  },
+  {
+    "file": "examples/Activity/bad/missing_required_label.json",
+    "retrieved": "2026-08-25",
+    "sha256": "d2627b04363d6f06e423fcd975103b8f96bdba54a8089be97138127332c1401d",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Activity/bad/missing_required_label.json"
+  },
+  {
+    "file": "examples/Activity/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "7bbf761870d149fda07796c24afd2172adf8ac5f9d6e041de443424bcf1a6c1d",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Activity/good/complete_example.json"
+  },
+  {
+    "file": "examples/Activity/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "917cf354ca646e89dd18bdc8d13e3b589095fa688cd8a6039186ee2d1132bb56",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Activity/good/minimal_example.json"
+  },
+  {
+    "file": "examples/Activity/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "091b517524309bea26e3e2da6e17753d8df4adaac35e6f3100713fd1419e5c7f",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Activity/good/null_example.json"
+  },
+  {
+    "file": "examples/Activity/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "31c32068754790bcbe0762302e20318c37996479ae86e313016f815a117ad5ed",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Activity/good/typical_example.json"
+  },
+  {
+    "file": "examples/Address/bad/invalid_country_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "41cfc947a144fe5be8141747068dc35a74b316b3b1d273234f2ef34bcd3f657a",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Address/bad/invalid_country_type.json"
+  },
+  {
+    "file": "examples/Address/bad/invalid_postal_code_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "99ad16afc63e3bd2fbfeaca939f390d928ce17d5e9e762000ec920221350c1b1",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Address/bad/invalid_postal_code_type.json"
+  },
+  {
+    "file": "examples/Address/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "6aea4d74d2496b3b2e46c07ac9417b3ce0626c847d79d1c43c07d91767b6e667",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Address/good/complete_example.json"
+  },
+  {
+    "file": "examples/Address/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "3c8ce9b02728f2803aab5311ec557cbeb1966da284d230f7ea08e1b046168357",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Address/good/minimal_example.json"
+  },
+  {
+    "file": "examples/Address/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "51cb763403d8a2fc6007a4e952b8959ada5641fd9a00fe024f586cda686e6cf9",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Address/good/null_example.json"
+  },
+  {
+    "file": "examples/Address/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "81b932f75c59327ee43131c50c7e2396e18da511ffca58a86a02fc1d1851bef0",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Address/good/typical_example.json"
+  },
+  {
+    "file": "examples/Agent/bad/concept_missing_prefLabel.json",
+    "retrieved": "2026-08-25",
+    "sha256": "31e2f375eea8dadf2320f9e105128b142243ecdf3d1dcf206bdbeb1205d62982",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Agent/bad/concept_missing_prefLabel.json"
+  },
+  {
+    "file": "examples/Agent/bad/invalid_category_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "5963fa55457f807a6d429d525753624beba0e3d61c56133b815d9cb9f6c2e3c8",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Agent/bad/invalid_category_type.json"
+  },
+  {
+    "file": "examples/Agent/bad/invalid_name_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "e5803ead5814d5af05e1ca959c5b497c4ed116533f823ea08a1a38159f78ccac",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Agent/bad/invalid_name_type.json"
+  },
+  {
+    "file": "examples/Agent/bad/missing_required_name.json",
+    "retrieved": "2026-08-25",
+    "sha256": "9a16a12ef0c47bcb2482ec54ee107e4ea2f69ac59dcaf7869568a431e6e10adf",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Agent/bad/missing_required_name.json"
+  },
+  {
+    "file": "examples/Agent/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "96448f3f07e9b6451c1465f9ec93cfc5a7bdad61432393856f71bb79d0b2da29",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Agent/good/complete_example.json"
+  },
+  {
+    "file": "examples/Agent/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "7e0092ee653bad9121953f206b5a1aa83a88ae04eb1cfbe05132684888749d26",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Agent/good/minimal_example.json"
+  },
+  {
+    "file": "examples/Agent/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "cc02cd32bc75d00629cce4a77b4532512621251eea143ea4751ce8440de2b940",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Agent/good/null_example.json"
+  },
+  {
+    "file": "examples/Agent/good/simple_category_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "9cfeb1def7607768f1ecc720d8d38bc72403476906918986a62d553d7641eec2",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Agent/good/simple_category_example.json"
+  },
+  {
+    "file": "examples/Agent/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "e46652843daf230548090d58356a35f68a21f0917fda6d61a8586b601aec1af2",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Agent/good/typical_example.json"
+  },
+  {
+    "file": "examples/Attribution/bad/invalid_hadRole_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "26dd1d7652ac7b973dc568404366662029e6df61b92b7ce8afb0c5bca55816a2",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Attribution/bad/invalid_hadRole_type.json"
+  },
+  {
+    "file": "examples/Attribution/bad/missing_required_agent.json",
+    "retrieved": "2026-08-25",
+    "sha256": "545de9b387a6edc4901fd56e3856bc83cfe70d803388043bfeef2d8f85c060db",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Attribution/bad/missing_required_agent.json"
+  },
+  {
+    "file": "examples/Attribution/bad/missing_required_hadRole.json",
+    "retrieved": "2026-08-25",
+    "sha256": "829ae2eb6efb3f85029d733941874f708d055225e358b6bc9b811a4d217f9517",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Attribution/bad/missing_required_hadRole.json"
+  },
+  {
+    "file": "examples/Attribution/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "bb81ac73b86b3f2ed927cba186736cf4a427994e0613d83c9e9fc7fa1830d81b",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Attribution/good/complete_example.json"
+  },
+  {
+    "file": "examples/Attribution/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "e85d38a98f2023ec864691b896b3e014127c3ef035d9b1c9c6086b4168fd7365",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Attribution/good/minimal_example.json"
+  },
+  {
+    "file": "examples/Attribution/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "581a0ab228481e3c9005d14e5f39d98a73f6ff59e2c4d86b740c4c4198f2e441",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Attribution/good/typical_example.json"
+  },
+  {
+    "file": "examples/CUIRestriction/bad/invalid_cuiBannerMarking_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "8050ac82887a8c3904cc7628e6eae9da1cd5619320956a2bab9595c2017b34f1",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/CUIRestriction/bad/invalid_cuiBannerMarking_type.json"
+  },
+  {
+    "file": "examples/CUIRestriction/bad/missing_cuiBannerMarking.json",
+    "retrieved": "2026-08-25",
+    "sha256": "6688314be24227033953a7985c27f84e8609ae33aefed14bef900007a50fa4ad",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/CUIRestriction/bad/missing_cuiBannerMarking.json"
+  },
+  {
+    "file": "examples/CUIRestriction/bad/missing_designationIndicator.json",
+    "retrieved": "2026-08-25",
+    "sha256": "2cf89338c051f5282a24698fe42f1aaeed7b640d067a295163796b9fc3613cd5",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/CUIRestriction/bad/missing_designationIndicator.json"
+  },
+  {
+    "file": "examples/CUIRestriction/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "78b6ba2243d347f5d4395a402caf58670c71bd970c526258735f627cea95dc97",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/CUIRestriction/good/complete_example.json"
+  },
+  {
+    "file": "examples/CUIRestriction/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "9120083a0cf3913fad2b9c18f5bcb19562551b9b066ccd5d9093d3b80c76a5bd",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/CUIRestriction/good/minimal_example.json"
+  },
+  {
+    "file": "examples/CUIRestriction/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "d5ddbfe50fa63a5fb92ff0eccd1fd031c2fd57aa1c07ebb242d3d8b8e998bc39",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/CUIRestriction/good/null_example.json"
+  },
+  {
+    "file": "examples/CUIRestriction/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "0b7ca424f9b5d2302d0f48e40b79026308914c2b89b569cf289cb401af58a972",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/CUIRestriction/good/typical_example.json"
+  },
+  {
+    "file": "examples/Catalog/bad/invalid_dataset_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "4ee9854949b43147755bb09b090950e5e63ff73becce33d3529c0f44d3f271f7",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Catalog/bad/invalid_dataset_type.json"
+  },
+  {
+    "file": "examples/Catalog/bad/invalid_homepage_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "c78086a059de1800491bcab0b6437e564766bd7da9d39c7c0dd55d653aa7c57d",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Catalog/bad/invalid_homepage_type.json"
+  },
+  {
+    "file": "examples/Catalog/bad/invalid_issued_format.json",
+    "retrieved": "2026-08-25",
+    "sha256": "ecfc98517bdd1e68bc1045a5a8d63e00d135f792e0ea116d3ce0f6b80c7eb18e",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Catalog/bad/invalid_issued_format.json"
+  },
+  {
+    "file": "examples/Catalog/bad/invalid_language_format.json",
+    "retrieved": "2026-08-25",
+    "sha256": "46842fe36a93eb9768e8840a9f66535d5280b3aaa9bb9a364b463642f7a6a400",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Catalog/bad/invalid_language_format.json"
+  },
+  {
+    "file": "examples/Catalog/bad/missing_required_dataset.json",
+    "retrieved": "2026-08-25",
+    "sha256": "abb27fe2d18778c8463c8c57ecce861cc3c1592e9e67399583bb113683c5a234",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Catalog/bad/missing_required_dataset.json"
+  },
+  {
+    "file": "examples/Catalog/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "35d483db74b80c1d35fe09776f6e84d6b5421aa1529f62267dc65677f85958f4",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Catalog/good/complete_example.json"
+  },
+  {
+    "file": "examples/Catalog/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "0c1e007eff8e9ba82c10d999796ef26f30078f8339f4144fb240ec6afefb0823",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Catalog/good/minimal_example.json"
+  },
+  {
+    "file": "examples/Catalog/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "47e91fc951a3158bfbabdb54941d0016732a31a2eda5c0cfb498a53b33bc7925",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Catalog/good/typical_example.json"
+  },
+  {
+    "file": "examples/CatalogRecord/bad/invalid_modified_format.json",
+    "retrieved": "2026-08-25",
+    "sha256": "59bb056f64daf80e33a366f1aa2c056c208817ea9918073d50ac36720173702f",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/CatalogRecord/bad/invalid_modified_format.json"
+  },
+  {
+    "file": "examples/CatalogRecord/bad/missing_required_modified.json",
+    "retrieved": "2026-08-25",
+    "sha256": "b58ac5057579ad36e1f939495c92dae754993c6a3ab01bd112138b0b5338b819",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/CatalogRecord/bad/missing_required_modified.json"
+  },
+  {
+    "file": "examples/CatalogRecord/bad/missing_required_primaryTopic.json",
+    "retrieved": "2026-08-25",
+    "sha256": "7c6061094965f4e9091c7ef448433b894605a184617a754290ca101c7a0e6797",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/CatalogRecord/bad/missing_required_primaryTopic.json"
+  },
+  {
+    "file": "examples/CatalogRecord/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "133cb380b090ef6c14584271be27d617f469bf735583787d1cdd8719bf6ddb3d",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/CatalogRecord/good/complete_example.json"
+  },
+  {
+    "file": "examples/CatalogRecord/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "3e46e6e5c4f00800311eecd0c23298393971151bcfbba08133bc54a5d3784844",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/CatalogRecord/good/minimal_example.json"
+  },
+  {
+    "file": "examples/CatalogRecord/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "ed29618db71b1e867143490f01b17f5ecfaf8901c970e4173d3480d367570078",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/CatalogRecord/good/typical_example.json"
+  },
+  {
+    "file": "examples/Checksum/bad/invalid_algorithm_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "0a8cb461b99222f1b44f1124bdf3286a183d6a032bdd85fb07894347aeb26de2",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Checksum/bad/invalid_algorithm_type.json"
+  },
+  {
+    "file": "examples/Checksum/bad/missing_algorithm.json",
+    "retrieved": "2026-08-25",
+    "sha256": "52f2a7e26beaecf29870ae57ea9a305880ccfbfccfeb0d841e6394224f15be45",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Checksum/bad/missing_algorithm.json"
+  },
+  {
+    "file": "examples/Checksum/bad/missing_checksumValue.json",
+    "retrieved": "2026-08-25",
+    "sha256": "eb66182d1584b47c27f4d243c902fecc7ec63fbb1543711a6c2e48201efb3a88",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Checksum/bad/missing_checksumValue.json"
+  },
+  {
+    "file": "examples/Checksum/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "6fb067ce91c0b5f3eacd21a499f24715635288dd6da506d8547822c9832fda55",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Checksum/good/complete_example.json"
+  },
+  {
+    "file": "examples/Checksum/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "1ea3b53f8952bcd2e6d0067469436e64c2ad0633d65e3a9cb549b72eea403b3f",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Checksum/good/minimal_example.json"
+  },
+  {
+    "file": "examples/Checksum/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "d6a864187b2e113b8f53ee794b6f32ebfa9e992e1ab8bc94592c0f7b7e3b74de",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Checksum/good/null_example.json"
+  },
+  {
+    "file": "examples/Checksum/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "bf30f9d4f9432d7ce293a0d878e78ed9b97a2a2b643103dfc500e94493cfc531",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Checksum/good/typical_example.json"
+  },
+  {
+    "file": "examples/Concept/bad/empty_object.json",
+    "retrieved": "2026-08-25",
+    "sha256": "924c07efb9d205e5f36f9e7d061b1c789daf62a8802a4f980cf349bf3e4a696a",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Concept/bad/empty_object.json"
+  },
+  {
+    "file": "examples/Concept/bad/invalid_altLabel_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "e5a32ac2d992ef23fe7dcf392b4cf8d0593b3b7cb2553ddc09909d546265093c",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Concept/bad/invalid_altLabel_type.json"
+  },
+  {
+    "file": "examples/Concept/bad/invalid_definition_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "e5a2782c0c4f7303060bba59868a772c187ea27b1e4ae00d9196f28df21fe3db",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Concept/bad/invalid_definition_type.json"
+  },
+  {
+    "file": "examples/Concept/bad/invalid_inScheme_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "79020ef1968ff72e8952e571001375e3aeeff0468f64b918252cc339225c9192",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Concept/bad/invalid_inScheme_type.json"
+  },
+  {
+    "file": "examples/Concept/bad/invalid_notation_items_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "df1719ed58d108b711683179a3fa3c1317face45890768c6469fdcdd77d1843f",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Concept/bad/invalid_notation_items_type.json"
+  },
+  {
+    "file": "examples/Concept/bad/invalid_notation_type_string.json",
+    "retrieved": "2026-08-25",
+    "sha256": "eed7b7703612d9e45e40559b78431e279cf3ed6edaff743dff45cb485ec59ef1",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Concept/bad/invalid_notation_type_string.json"
+  },
+  {
+    "file": "examples/Concept/bad/invalid_prefLabel_type_array.json",
+    "retrieved": "2026-08-25",
+    "sha256": "922b05fac368de9b5646417ce99e9e6081578fa3697c193e2ee0c9aebe0594d2",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Concept/bad/invalid_prefLabel_type_array.json"
+  },
+  {
+    "file": "examples/Concept/bad/invalid_prefLabel_type_number.json",
+    "retrieved": "2026-08-25",
+    "sha256": "777572fdd6f323671b8924b4a74e81546f8ec623d9ab68469a2cefa0a73cf256",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Concept/bad/invalid_prefLabel_type_number.json"
+  },
+  {
+    "file": "examples/Concept/bad/missing_required_prefLabel.json",
+    "retrieved": "2026-08-25",
+    "sha256": "80dc2c89115840821f426732c55d48fa564af782306b7883d73be2cfd235cb20",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Concept/bad/missing_required_prefLabel.json"
+  },
+  {
+    "file": "examples/Concept/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "9e49838efb9913b50dc02252e969ce850a588869b7d08b09fc92345eaa03c2f8",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Concept/good/complete_example.json"
+  },
+  {
+    "file": "examples/Concept/good/minimal_object.json",
+    "retrieved": "2026-08-25",
+    "sha256": "542a48c57c8d6246d3587d9ac355c8f1cb170d44709028a1887b18b1cf19cabe",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Concept/good/minimal_object.json"
+  },
+  {
+    "file": "examples/Concept/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "b4bfc583dd8e1ed139994657b4cba641425580be19f524f7c4ddb79d17ee8f7f",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Concept/good/null_example.json"
+  },
+  {
+    "file": "examples/Concept/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "64fac0cd5bf1f2106a2755f28f1dfbef5d2a7ba19b72c4f5f58f277640530ad3",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Concept/good/typical_example.json"
+  },
+  {
+    "file": "examples/ConceptScheme/bad/invalid_date_format.json",
+    "retrieved": "2026-08-25",
+    "sha256": "658b7fdffed1655f11a7150f4066ecdab87f379cbe97977ee06a1fb7312d81fa",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/ConceptScheme/bad/invalid_date_format.json"
+  },
+  {
+    "file": "examples/ConceptScheme/bad/invalid_title_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "7bd52469fefb33de376184907444c2cf77ac3ecc7ef82fb4f9408bac861fd3c6",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/ConceptScheme/bad/invalid_title_type.json"
+  },
+  {
+    "file": "examples/ConceptScheme/bad/missing_title.json",
+    "retrieved": "2026-08-25",
+    "sha256": "287acf2b2783488e84bef404c9347126d27f15b06c3c1107657beb315bd6ec32",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/ConceptScheme/bad/missing_title.json"
+  },
+  {
+    "file": "examples/ConceptScheme/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "3739ded0275763ec85929209c856711720b5f289db500f7e0b6a6801c52c3b42",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/ConceptScheme/good/complete_example.json"
+  },
+  {
+    "file": "examples/ConceptScheme/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "1ee6fa922127e919e15a5805726752f783ecdac66b8b0d49a0be78b443c352a1",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/ConceptScheme/good/minimal_example.json"
+  },
+  {
+    "file": "examples/ConceptScheme/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "3a623ac2cdcf37603787de13a15b0d6c0881a6c4960e04a8aa0a320ebe1150fb",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/ConceptScheme/good/null_example.json"
+  },
+  {
+    "file": "examples/ConceptScheme/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "20161d096e13437ce3ddd4399952a5235e663cc8de4af32ded182f2524798b01",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/ConceptScheme/good/typical_example.json"
+  },
+  {
+    "file": "examples/DataService/bad/missing_required_contactPoint.json",
+    "retrieved": "2026-08-25",
+    "sha256": "9983e266f516df0dfdb8b2ee3207a4e1e483d6101b63e73b1bc4220f7413f75c",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/DataService/bad/missing_required_contactPoint.json"
+  },
+  {
+    "file": "examples/DataService/bad/missing_required_endpointURL.json",
+    "retrieved": "2026-08-25",
+    "sha256": "beaae60b9b32b97e8c5ff0bd6a2c5c620de603055d18429245250bb61211140c",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/DataService/bad/missing_required_endpointURL.json"
+  },
+  {
+    "file": "examples/DataService/bad/missing_required_publisher.json",
+    "retrieved": "2026-08-25",
+    "sha256": "bb0cf228aa4df9dadf0cf4af9b58c2112d88471cdfe5605d406152c32d351221",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/DataService/bad/missing_required_publisher.json"
+  },
+  {
+    "file": "examples/DataService/bad/missing_required_title.json",
+    "retrieved": "2026-08-25",
+    "sha256": "637c7ac25bf8c4141ed965124f6c538e30eddf9dce2326baf58b611f7c11f8f0",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/DataService/bad/missing_required_title.json"
+  },
+  {
+    "file": "examples/DataService/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "d4da2072f2c2f00cde552103c076678fcb708304aaa006281a1f327d425d02e0",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/DataService/good/complete_example.json"
+  },
+  {
+    "file": "examples/DataService/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "0aa426d5dce86c61efcdd1043d4095af0d3d3db3cf36f9480481fc17fa0eee37",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/DataService/good/minimal_example.json"
+  },
+  {
+    "file": "examples/DataService/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "05e1174db44204336e3aaa9a893ae9fdabb8085341031d9908ca9eb86311f761",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/DataService/good/null_example.json"
+  },
+  {
+    "file": "examples/DataService/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "aa651a44c1b3d71a7683d101127558a0cdc277306499c77a94504e507c0720b7",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/DataService/good/typical_example.json"
+  },
+  {
+    "file": "examples/Dataset/bad/bad-accrual-periodicity.json",
+    "retrieved": "2026-08-25",
+    "sha256": "46b1f619a1c08f176dd133492c52c36580d13bccd4d392793caff9f1dae7a7c1",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Dataset/bad/bad-accrual-periodicity.json"
+  },
+  {
+    "file": "examples/Dataset/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "5eebe307c09adc864c4bff6c7bec04409c57983773bef70d39547ac75e76364e",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Dataset/good/complete_example.json"
+  },
+  {
+    "file": "examples/Dataset/good/comprehensive-dataset.json",
+    "retrieved": "2026-08-25",
+    "sha256": "1b3229b1bc70d1cb89050c7332490d6bfb1a6f844e1a3f52d63fcf38e7082612",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Dataset/good/comprehensive-dataset.json"
+  },
+  {
+    "file": "examples/Dataset/good/good-accrual-periodicity.json",
+    "retrieved": "2026-08-25",
+    "sha256": "c94581d07a82816543e40cda2cfad784e02e15d219f9df07048aea102fc27290",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Dataset/good/good-accrual-periodicity.json"
+  },
+  {
+    "file": "examples/Dataset/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "ad7e36efc9b256d3ccc4552624db8224d4b392f86fd2087819439fbfb50e2547",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Dataset/good/minimal_example.json"
+  },
+  {
+    "file": "examples/Dataset/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "4639ceb8c9a09fc40b195e0b8bb1a930165995a2854839866b6551793cd8e9bf",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Dataset/good/null_example.json"
+  },
+  {
+    "file": "examples/Dataset/good/theme_full_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "309c697fdc3b969788460616400ef27827a52abded614568baf6866c66935e37",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Dataset/good/theme_full_example.json"
+  },
+  {
+    "file": "examples/Dataset/good/theme_simple_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "2aa5ddabcc4ee8ecb67dfbb8ce59bb04e4b6c9e313d31d6a298dc95d497d278b",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Dataset/good/theme_simple_example.json"
+  },
+  {
+    "file": "examples/Dataset/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "72e8ff3e2e86828e6eb8dfe48d6a487ed37352db797a9b2dbc5a499c8f8cadbb",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Dataset/good/typical_example.json"
+  },
+  {
+    "file": "examples/DatasetSeries/bad/bad-accrual-periodicity.json",
+    "retrieved": "2026-08-25",
+    "sha256": "cec53b5f14786689abe25ebe3346009755998408ca76aeda307c1679ad36e6f7",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/DatasetSeries/bad/bad-accrual-periodicity.json"
+  },
+  {
+    "file": "examples/DatasetSeries/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "858e40fcfa41656b44b721248b720853b50078126b1113f2b6c39d5a3caac404",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/DatasetSeries/good/complete_example.json"
+  },
+  {
+    "file": "examples/DatasetSeries/good/good-accrual-periodicity.json",
+    "retrieved": "2026-08-25",
+    "sha256": "a71216ea595fac203a27fac4c7cbd0a9d6fd9d10feaa9765b7e75ba7226f4306",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/DatasetSeries/good/good-accrual-periodicity.json"
+  },
+  {
+    "file": "examples/DatasetSeries/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "8c5f3629dca3e110808c83891390139f0b7e6fd38a33e6824532ac3cfe7d7e24",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/DatasetSeries/good/minimal_example.json"
+  },
+  {
+    "file": "examples/DatasetSeries/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "abf5aba1d3e56af0a70dc7058ad9917f0207a208e594880525db423edf24b157",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/DatasetSeries/good/null_example.json"
+  },
+  {
+    "file": "examples/DatasetSeries/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "c40e29cf00e0446ad91b05300481db960daa85596d82df1353e6534a0477f3d3",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/DatasetSeries/good/typical_example.json"
+  },
+  {
+    "file": "examples/Distribution/bad/invalid_byteSize_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "48ded7cb678ab7ecef4a6394eb9c37d2c3efa6826e42f63f8e909913e6980944",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Distribution/bad/invalid_byteSize_type.json"
+  },
+  {
+    "file": "examples/Distribution/bad/invalid_url_format.json",
+    "retrieved": "2026-08-25",
+    "sha256": "db3ee508c01c389d0db49dcb1561c1b28720e5bece587c762a49ffabd2109f08",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Distribution/bad/invalid_url_format.json"
+  },
+  {
+    "file": "examples/Distribution/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "396b43d56fb655bd5958af4da33a107cd19eeea0962d923d1a59aec9c965ca9a",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Distribution/good/complete_example.json"
+  },
+  {
+    "file": "examples/Distribution/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Distribution/good/minimal_example.json"
+  },
+  {
+    "file": "examples/Distribution/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "7a96e246a4239e54aef0df918112202e39afbd4c0e9e8183c990202b80060832",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Distribution/good/null_example.json"
+  },
+  {
+    "file": "examples/Distribution/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "584dba6c3b9e6d05d7d4b47226c389df1c320c1796bdfea7f7d0d0a5ba992b60",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Distribution/good/typical_example.json"
+  },
+  {
+    "file": "examples/Document/bad/invalid_title_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "55f8a8124ff7b2b9967e6a0147d08aa6c6c3c8941d184616f654966f84421fec",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Document/bad/invalid_title_type.json"
+  },
+  {
+    "file": "examples/Document/bad/missing_required_title.json",
+    "retrieved": "2026-08-25",
+    "sha256": "dbc16404ff53faf392b4130a3f104277b71edfe482389374737c519001949814",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Document/bad/missing_required_title.json"
+  },
+  {
+    "file": "examples/Document/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "97beb5e2334b91916692fd538df25b49b976a215f4c0324501dbcbe0d4c212e7",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Document/good/complete_example.json"
+  },
+  {
+    "file": "examples/Document/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "52c93c15d265175267be5e1655590b4cab6e594d15a70baf63eccf4b937bc7e8",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Document/good/minimal_example.json"
+  },
+  {
+    "file": "examples/Document/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "22db288e2ff2fd98780b42b461681f6f90abbd1c37f05b1bc88524ba191b4616",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Document/good/null_example.json"
+  },
+  {
+    "file": "examples/Document/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "a0ecec9222918e138dd9bc2925ea723bd44f96dc5dacd70d70fa9ed5b3dd56a2",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Document/good/typical_example.json"
+  },
+  {
+    "file": "examples/Identifier/bad/invalid_issued_format.json",
+    "retrieved": "2026-08-25",
+    "sha256": "3df54eb68fb66984207d57b5d5413c7ab4e370cf6800dafa4ba78b1a7ed4f55b",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Identifier/bad/invalid_issued_format.json"
+  },
+  {
+    "file": "examples/Identifier/bad/invalid_notation_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "c4a8efe7525ea4c9f6417ce05fcf80d6b31c25ea90b544a1314b1c4dee4a9684",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Identifier/bad/invalid_notation_type.json"
+  },
+  {
+    "file": "examples/Identifier/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "418e34494dd220c8e6eb953bc70c6c5b2bd78dbe58bfc2be0209bb47312e5b8f",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Identifier/good/complete_example.json"
+  },
+  {
+    "file": "examples/Identifier/good/minimal_object_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Identifier/good/minimal_object_example.json"
+  },
+  {
+    "file": "examples/Identifier/good/minimal_string_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "e6db8c0f11086675e8d2e1e7a96f79ce270a4d6e6afa5e2868d09bec0647a324",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Identifier/good/minimal_string_example.json"
+  },
+  {
+    "file": "examples/Identifier/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "b839a2f3426684c218b0a1fa9bcd5813a49d61280f694da55d9c18a2a7e8eeb4",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Identifier/good/null_example.json"
+  },
+  {
+    "file": "examples/Identifier/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "7c9de1fbb42a40d5d2a0587ef3774bb20b12e9e1e8c3ed8452a965ca104b1085",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Identifier/good/typical_example.json"
+  },
+  {
+    "file": "examples/Kind/bad/invalid_hasEmail_format.json",
+    "retrieved": "2026-08-25",
+    "sha256": "8abd8e4ba718eb1594457399418fb6a0fa8452126ea718914c01b957a3d940e6",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Kind/bad/invalid_hasEmail_format.json"
+  },
+  {
+    "file": "examples/Kind/bad/missing_required_fn.json",
+    "retrieved": "2026-08-25",
+    "sha256": "cf02d2470b8de00844d03a3188395eed02567b1f74f3451e80de0ad4793cef68",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Kind/bad/missing_required_fn.json"
+  },
+  {
+    "file": "examples/Kind/bad/missing_required_hasEmail.json",
+    "retrieved": "2026-08-25",
+    "sha256": "9cf616488eab39388b3dcaa80273831c782483b01049393694c84b8a7558a107",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Kind/bad/missing_required_hasEmail.json"
+  },
+  {
+    "file": "examples/Kind/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "77989a97aa5e7f039d80ad070253b667dc1d5efaeecf1fc65a44a07cf9987478",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Kind/good/complete_example.json"
+  },
+  {
+    "file": "examples/Kind/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "4fb98ef089f018bdf99bf611ab7872326265779cb49bae54b1f59446f7a0b3d0",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Kind/good/minimal_example.json"
+  },
+  {
+    "file": "examples/Kind/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "bd8a5f19c2f46280aefc49772e98ffa3ad84a9b7533184c375f52c93cbc5c790",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Kind/good/null_example.json"
+  },
+  {
+    "file": "examples/Kind/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "36eef0d8ad8008ab0aa06527ace0a0524b7e4aa13d0d78260c971ba8435f2497",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Kind/good/typical_example.json"
+  },
+  {
+    "file": "examples/Location/bad/invalid_bbox_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "4495691939bedb61d1819b7d6b1cd775378421b146c2ad421d604a3ff8d8c55b",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Location/bad/invalid_bbox_type.json"
+  },
+  {
+    "file": "examples/Location/bad/invalid_centroid_coordinates.json",
+    "retrieved": "2026-08-25",
+    "sha256": "39f5828d94d222d1cb17acfce6e919a66e7caf065c61de98e004586aa58d1b5e",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Location/bad/invalid_centroid_coordinates.json"
+  },
+  {
+    "file": "examples/Location/bad/invalid_centroid_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "7f31d9d0d534d333406a96dfcf9a1b05fe794b2da1a7d50350830e32e0a8c69b",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Location/bad/invalid_centroid_type.json"
+  },
+  {
+    "file": "examples/Location/bad/invalid_geojson_bbox_missing_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "77be2dc36d06b12cfb8ef4249ff123c16cbc1a4be35243c97d9246167f4b5f1a",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Location/bad/invalid_geojson_bbox_missing_type.json"
+  },
+  {
+    "file": "examples/Location/bad/invalid_geojson_bbox_wrong_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "91731e03f9c25440bfa767798633d362496807c240a7acb40a14dc6c841bf5e1",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Location/bad/invalid_geojson_bbox_wrong_type.json"
+  },
+  {
+    "file": "examples/Location/bad/invalid_prefLabel_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "6517dd6555f4ba876f949b7d30578b846641ecaad85f3cecb3910b9ca8df6eb0",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Location/bad/invalid_prefLabel_type.json"
+  },
+  {
+    "file": "examples/Location/good/bbox_geojson.json",
+    "retrieved": "2026-08-25",
+    "sha256": "62cf4749f9d4d1c971b18050fc6d31959347c8a96561b12e32adc30656085970",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Location/good/bbox_geojson.json"
+  },
+  {
+    "file": "examples/Location/good/bbox_wkt.json",
+    "retrieved": "2026-08-25",
+    "sha256": "9925b8bbcb10d07f7fbf2c2ac546b5d0489bf690b3b22d72a2750d8f5e1dc3b0",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Location/good/bbox_wkt.json"
+  },
+  {
+    "file": "examples/Location/good/centroid_geojson.json",
+    "retrieved": "2026-08-25",
+    "sha256": "df3aefbe45f316aa1f13df5449f26226223d3a4482639bf393d1c416ff574a67",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Location/good/centroid_geojson.json"
+  },
+  {
+    "file": "examples/Location/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "5f86b8b3a1733ee42d18453180fb33c684e70051c8fe4ac702b7d24cd43e7edd",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Location/good/complete_example.json"
+  },
+  {
+    "file": "examples/Location/good/geometry_geojson.json",
+    "retrieved": "2026-08-25",
+    "sha256": "26d045df23ec8b7399e238c0c344e4b71723bfda86783719a74c5e1c48321e58",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Location/good/geometry_geojson.json"
+  },
+  {
+    "file": "examples/Location/good/identifier_iri_reference.json",
+    "retrieved": "2026-08-25",
+    "sha256": "d99085a89f3f62f4222e0f89b8db94263ea0044f574a03131f862735a3d9841f",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Location/good/identifier_iri_reference.json"
+  },
+  {
+    "file": "examples/Location/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "2f9c6d34cf4b3aaf0cda4cb529f471ff9f8e1a65a635b26ecab816d1db658d30",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Location/good/minimal_example.json"
+  },
+  {
+    "file": "examples/Location/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "cffab461018459d8f21405d3fb69d19e532a034a2f30fb4284585d7adbb8f1a2",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Location/good/null_example.json"
+  },
+  {
+    "file": "examples/Location/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "ec08dc1364a9b4b7839b3dd30e096b114ccd2dd8af0edf223f65e199251831c9",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Location/good/typical_example.json"
+  },
+  {
+    "file": "examples/Metric/bad/invalid_expectedDataType_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "1d8d9176ae931d14da8cbc466c01a96d7f9585a185ca6864e6719cf2a731f726",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Metric/bad/invalid_expectedDataType_type.json"
+  },
+  {
+    "file": "examples/Metric/bad/missing_expectedDataType.json",
+    "retrieved": "2026-08-25",
+    "sha256": "9f6972c5cff24ac7a0dbd88996cb43d4bc827cbbf9e06393f7da517e0e5393bf",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Metric/bad/missing_expectedDataType.json"
+  },
+  {
+    "file": "examples/Metric/bad/missing_inDimension.json",
+    "retrieved": "2026-08-25",
+    "sha256": "6a3a824fbbad2cfa97427545a393ec71111ebcc12c8c3a6f9c3dd0e12e2f8613",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Metric/bad/missing_inDimension.json"
+  },
+  {
+    "file": "examples/Metric/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "536f762aac49f583e84f91f7c298565646ac258ae6fb50317d9f364803a574f2",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Metric/good/complete_example.json"
+  },
+  {
+    "file": "examples/Metric/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "ab5043ce99a00816f34fc254aba05810b23932381351d0ea1d3cd9b9a418e97a",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Metric/good/minimal_example.json"
+  },
+  {
+    "file": "examples/Metric/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "558e09909d115a1212d72af05f3daacb23b5a9daf0ac9738c785be151bc265cd",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Metric/good/null_example.json"
+  },
+  {
+    "file": "examples/Metric/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "dfacfec20ea402ccfa46fc57628fd3451af5debecc52a6e980e21a0364290797",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Metric/good/typical_example.json"
+  },
+  {
+    "file": "examples/Organization/bad/invalid_name_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "415047f433c74492a4e7fda0fa4641bc0d4298f3cc1b23d4e4eee4e0bc58d02f",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Organization/bad/invalid_name_type.json"
+  },
+  {
+    "file": "examples/Organization/bad/missing_name.json",
+    "retrieved": "2026-08-25",
+    "sha256": "c630399022c818b56363012886959228044cd916b039d2e6af3a70df076be68a",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Organization/bad/missing_name.json"
+  },
+  {
+    "file": "examples/Organization/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "147ade83a134a8e70694a997498571cec94b9e3f4bbd40238308a053a30f6e20",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Organization/good/complete_example.json"
+  },
+  {
+    "file": "examples/Organization/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "8830b76e4f34b33c7fe6d74afc0dee189ad931fd3f4ee16635b7064db0f7a13a",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Organization/good/minimal_example.json"
+  },
+  {
+    "file": "examples/Organization/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "2a2f5a10ef76968ddb45bfdef411f035fa1ab0455b8e8d193f50950180aded60",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Organization/good/null_example.json"
+  },
+  {
+    "file": "examples/Organization/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "7f37a1eda5042ee0aee5fdefa858d0546def92a3b6617a0b474f966066c90101",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Organization/good/typical_example.json"
+  },
+  {
+    "file": "examples/PeriodOfTime/bad/invalid_date_format.json",
+    "retrieved": "2026-08-25",
+    "sha256": "49f48cd36f1fb2857e989049ec71a9c642bfa42b894de38847527346c971e71e",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/PeriodOfTime/bad/invalid_date_format.json"
+  },
+  {
+    "file": "examples/PeriodOfTime/bad/invalid_date_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "bf924a121e0b66d7dc68615830b51acb404cca441d879cf8d32bcedfdf3be8d2",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/PeriodOfTime/bad/invalid_date_type.json"
+  },
+  {
+    "file": "examples/PeriodOfTime/bad/missing_date.json",
+    "retrieved": "2026-08-25",
+    "sha256": "a6f3c0e6e0817dc97636f468a2bce6dddc336076e58aa3da9588dd2d6b7081b8",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/PeriodOfTime/bad/missing_date.json"
+  },
+  {
+    "file": "examples/PeriodOfTime/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "415d253481b6ee79b38d3959be25d4c0fd4a00c4cb15123f6c058c1dc88a3aa2",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/PeriodOfTime/good/complete_example.json"
+  },
+  {
+    "file": "examples/PeriodOfTime/good/minimal_example_end_date_only.json",
+    "retrieved": "2026-08-25",
+    "sha256": "16d6fe94b82a9a8c43312977e5d754c4978e185c4ef94ee0780755e25586a29f",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/PeriodOfTime/good/minimal_example_end_date_only.json"
+  },
+  {
+    "file": "examples/PeriodOfTime/good/minimal_example_start_date_only.json",
+    "retrieved": "2026-08-25",
+    "sha256": "d989c145abea5d2ad808abca289cfea67429f1faaef3ac11570bf7be34c100e9",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/PeriodOfTime/good/minimal_example_start_date_only.json"
+  },
+  {
+    "file": "examples/PeriodOfTime/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "3499b1cdd5cd0c0fba83b0ea7744ac8a3709b79651f057371d2b4f1a58b98252",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/PeriodOfTime/good/null_example.json"
+  },
+  {
+    "file": "examples/PeriodOfTime/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "77b3cb8edbf87b8f60971f55dd67923ca8e8a0013d8cd5460fef586b943252a1",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/PeriodOfTime/good/typical_example.json"
+  },
+  {
+    "file": "examples/PeriodOfTime/good/year_month_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "7b559520ce9446bfe6ec7a32bd1f25aed04b788e8bf87d11d533c5b0f8de7bb5",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/PeriodOfTime/good/year_month_example.json"
+  },
+  {
+    "file": "examples/PeriodOfTime/good/year_only_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "acef379c5eb6b3df2cda8484ef8ce78aa23ed50113a6bb7c49d31b9601b92f82",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/PeriodOfTime/good/year_only_example.json"
+  },
+  {
+    "file": "examples/QualityMeasurement/bad/invalid_value_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "f55127a4a0167bdeb0703805dc148ca6347b0c264f75927bf908dbd5675ea6f8",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/QualityMeasurement/bad/invalid_value_type.json"
+  },
+  {
+    "file": "examples/QualityMeasurement/bad/missing_required_isMeasurementOf.json",
+    "retrieved": "2026-08-25",
+    "sha256": "b49cf3f73f19a8cb1fbf3da58c8d5925988d81058e8b938e251d8d03cdd22567",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/QualityMeasurement/bad/missing_required_isMeasurementOf.json"
+  },
+  {
+    "file": "examples/QualityMeasurement/bad/missing_required_value.json",
+    "retrieved": "2026-08-25",
+    "sha256": "b4e674f9598804723db5408e5c793a474597bb250bfe373ff0f988bed1d79689",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/QualityMeasurement/bad/missing_required_value.json"
+  },
+  {
+    "file": "examples/QualityMeasurement/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "8dec14d57cd05087e92d629297791e705d08d8bab7e7d30cf34b95e40eb40e9d",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/QualityMeasurement/good/complete_example.json"
+  },
+  {
+    "file": "examples/QualityMeasurement/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "b649fde0ef36c5b1342d8ff19926ed2c885944c38d906d0578a3419bfc7557f3",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/QualityMeasurement/good/minimal_example.json"
+  },
+  {
+    "file": "examples/QualityMeasurement/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "03a7d665ecb35901e4db4097a71c0b4cc3508219ae72787648ff437736e82039",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/QualityMeasurement/good/null_example.json"
+  },
+  {
+    "file": "examples/QualityMeasurement/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "026b44b60917e65dabf83ed8bf005283dde4f24bdaaa49ebaff60556ec5cd0fd",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/QualityMeasurement/good/typical_example.json"
+  },
+  {
+    "file": "examples/Relationship/bad/invalid_hadRole_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "f754754254e9baf163ee5f46b91975b0345f27bebc62fc7d4c11747a58607de5",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Relationship/bad/invalid_hadRole_type.json"
+  },
+  {
+    "file": "examples/Relationship/bad/missing_hadRole.json",
+    "retrieved": "2026-08-25",
+    "sha256": "d23bb47a2fada45cc34b8aa69500bf75d08297e1fc1a844037ebf7dcc8f30fbc",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Relationship/bad/missing_hadRole.json"
+  },
+  {
+    "file": "examples/Relationship/bad/missing_relation.json",
+    "retrieved": "2026-08-25",
+    "sha256": "33ac455abdeaf86a5e7857672e82fa3b6fc2bb8ac650449db6e2a75072422e95",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Relationship/bad/missing_relation.json"
+  },
+  {
+    "file": "examples/Relationship/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "d0326ecd5d2238df799bd05d7aa3c7319acc29d97963392ce7a1f6d3d90f8cc7",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Relationship/good/complete_example.json"
+  },
+  {
+    "file": "examples/Relationship/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "9c7c053195bda65bca0ab088e26a32e1ec0cd31374467997db6908e9b389c5e1",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Relationship/good/minimal_example.json"
+  },
+  {
+    "file": "examples/Relationship/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "5aed5b92cd66bce215212a64db0d40e85742b6fc6a5f094e0b8a0c0e926c9f80",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Relationship/good/null_example.json"
+  },
+  {
+    "file": "examples/Relationship/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "87ad227a63ad2be80f662d41a92f7ba001ec22ac037122065eb62c015271872c",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Relationship/good/typical_example.json"
+  },
+  {
+    "file": "examples/Standard/bad/invalid_issued_format.json",
+    "retrieved": "2026-08-25",
+    "sha256": "fa9304010ff31aff61d79ec81ea888285c255b1d4945d6550fcadcf33c9da493",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Standard/bad/invalid_issued_format.json"
+  },
+  {
+    "file": "examples/Standard/bad/invalid_title_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "b86bab1597c25f542b40b19a734b61b1bc08f57594fbedf117400a9f314928c5",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Standard/bad/invalid_title_type.json"
+  },
+  {
+    "file": "examples/Standard/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "ef416c060e77965e5b9f68fb571b037f350fbfa66cea0288923cb9cfc3b33363",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Standard/good/complete_example.json"
+  },
+  {
+    "file": "examples/Standard/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Standard/good/minimal_example.json"
+  },
+  {
+    "file": "examples/Standard/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "e71e37f2388351cfc803cc3da8e27a52058d1f69b5417d4b28b11933dcbb53d1",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Standard/good/null_example.json"
+  },
+  {
+    "file": "examples/Standard/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "885f1bc432c50446b436c5cd5979c63492db14a80fc9377ffae83142d612c3d7",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/Standard/good/typical_example.json"
+  },
+  {
+    "file": "examples/UseRestriction/bad/invalid_restrictionStatus_type.json",
+    "retrieved": "2026-08-25",
+    "sha256": "b027fa43350b433dcf1fc8cd0c59c6139834a8e88767afe502041016ad335389",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/UseRestriction/bad/invalid_restrictionStatus_type.json"
+  },
+  {
+    "file": "examples/UseRestriction/bad/missing_required_restrictionStatus.json",
+    "retrieved": "2026-08-25",
+    "sha256": "63a8ffbd9ed048fe5b73fe16f05e31a8a5671ce2fc0105bfc655107598df3f79",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/UseRestriction/bad/missing_required_restrictionStatus.json"
+  },
+  {
+    "file": "examples/UseRestriction/good/complete_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "9ed5ef4d33dfad78523d7cad4fff737b3500e2c1828adde7ca5cb12825acc700",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/UseRestriction/good/complete_example.json"
+  },
+  {
+    "file": "examples/UseRestriction/good/minimal_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "195f063528470ee20691b505103ff47630724330801a5f21bc4b7c3e223784b8",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/UseRestriction/good/minimal_example.json"
+  },
+  {
+    "file": "examples/UseRestriction/good/null_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "d08a329cb9488dd50c977b5a26b0b79577ca4a3d499e202d75a58737e672cc30",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/UseRestriction/good/null_example.json"
+  },
+  {
+    "file": "examples/UseRestriction/good/typical_example.json",
+    "retrieved": "2026-08-25",
+    "sha256": "899c51bbd842800a2da73fef692d2400a67dec9600e6c941f2a2363f182edad9",
+    "source_url": "https://raw.githubusercontent.com/GSA/dcat-us/7a6e803fb94ee9903e7e7405ec4afcc8da13383f/jsonschema/examples/UseRestriction/good/typical_example.json"
+  }
+]

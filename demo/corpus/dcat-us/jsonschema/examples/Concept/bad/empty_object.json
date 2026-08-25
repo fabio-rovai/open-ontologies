@@ -1,0 +1,4 @@
+{
+  "_comment": "INVALID: Empty object missing required 'prefLabel' property",
+  "@type": "Concept"
+}

@@ -1,0 +1,5 @@
+{
+  "@id": "https://example.gov/attributions/invalid",
+  "@type": "Attribution",
+  "hadRole": "Data Steward"
+}

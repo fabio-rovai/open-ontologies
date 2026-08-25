@@ -1,0 +1,7 @@
+{
+  "_comment": "INVALID: Object type Concept requires the 'prefLabel' property",
+  "@id": "https://resources.data.gov/concepts/invalid",
+  "@type": "Concept",
+  "altLabel": "Alternate Name",
+  "definition": "A concept without a preferred label"
+}

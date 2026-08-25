@@ -1,0 +1,433 @@
+{
+  "classes": 26,
+  "classesWithZeroBoundProperties": [
+    "Concept",
+    "Identifier"
+  ],
+  "commit": "7a6e803fb94ee9903e7e7405ec4afcc8da13383f",
+  "corpusTriples": {
+    "asPublished": 73,
+    "withDeclaredBinding": 1381,
+    "withObservedBinding": 1383
+  },
+  "examples": {
+    "asPublished": {
+      "dcatPredicateTriples": 0,
+      "distinctPredicates": 1,
+      "errors": [
+        {
+          "error": "example root is not a JSON object",
+          "file": "minimal_string_example.json"
+        }
+      ],
+      "files": 115,
+      "topPredicates": [
+        [
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          76
+        ]
+      ],
+      "triples": 76,
+      "zeroTripleFileNames": [
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_object_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json"
+      ],
+      "zeroTripleFiles": 38
+    },
+    "withDeclaredBinding": {
+      "dcatPredicateTriples": 228,
+      "distinctPredicates": 123,
+      "errors": [],
+      "files": 115,
+      "topPredicates": [
+        [
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          281
+        ],
+        [
+          "http://purl.org/dc/terms/title",
+          114
+        ],
+        [
+          "http://purl.org/dc/terms/description",
+          75
+        ],
+        [
+          "http://xmlns.com/foaf/0.1/name",
+          66
+        ],
+        [
+          "http://www.w3.org/2004/02/skos/core#prefLabel",
+          47
+        ],
+        [
+          "http://purl.org/dc/terms/identifier",
+          44
+        ],
+        [
+          "http://www.w3.org/2006/vcard/ns#fn",
+          43
+        ],
+        [
+          "http://www.w3.org/2006/vcard/ns#hasEmail",
+          43
+        ],
+        [
+          "http://www.w3.org/ns/dcat#contactPoint",
+          38
+        ],
+        [
+          "http://purl.org/dc/terms/publisher",
+          34
+        ],
+        [
+          "http://www.w3.org/2004/02/skos/core#notation",
+          34
+        ],
+        [
+          "http://www.w3.org/2004/02/skos/core#definition",
+          32
+        ],
+        [
+          "http://www.w3.org/2004/02/skos/core#inScheme",
+          31
+        ],
+        [
+          "http://www.w3.org/ns/dcat#keyword",
+          28
+        ],
+        [
+          "http://purl.org/dc/terms/issued",
+          17
+        ],
+        [
+          "http://purl.org/dc/terms/modified",
+          16
+        ],
+        [
+          "http://data.resources.gov/ontology/dcat-us#restrictionStatus",
+          15
+        ],
+        [
+          "http://purl.org/dc/terms/type",
+          15
+        ],
+        [
+          "http://www.w3.org/ns/dcat#downloadURL",
+          15
+        ],
+        [
+          "http://www.w3.org/ns/dcat#accessURL",
+          12
+        ],
+        [
+          "http://www.w3.org/ns/dcat#hadRole",
+          12
+        ],
+        [
+          "http://www.w3.org/ns/dcat#startDate",
+          12
+        ],
+        [
+          "http://data.resources.gov/ontology/dcat-us#restrictionNote",
+          11
+        ],
+        [
+          "http://purl.org/dc/terms/language",
+          11
+        ],
+        [
+          "http://www.w3.org/2004/02/skos/core#altLabel",
+          11
+        ]
+      ],
+      "triples": 1508,
+      "zeroTripleFileNames": [
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_object_example.json",
+        "minimal_string_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json"
+      ],
+      "zeroTripleFiles": 10
+    },
+    "withObservedBinding": {
+      "dcatPredicateTriples": 228,
+      "distinctPredicates": 123,
+      "errors": [],
+      "files": 115,
+      "topPredicates": [
+        [
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          281
+        ],
+        [
+          "http://purl.org/dc/terms/title",
+          114
+        ],
+        [
+          "http://purl.org/dc/terms/description",
+          75
+        ],
+        [
+          "http://xmlns.com/foaf/0.1/name",
+          66
+        ],
+        [
+          "http://www.w3.org/2004/02/skos/core#prefLabel",
+          47
+        ],
+        [
+          "http://purl.org/dc/terms/identifier",
+          44
+        ],
+        [
+          "http://www.w3.org/2006/vcard/ns#fn",
+          43
+        ],
+        [
+          "http://www.w3.org/2006/vcard/ns#hasEmail",
+          43
+        ],
+        [
+          "http://www.w3.org/ns/dcat#contactPoint",
+          38
+        ],
+        [
+          "http://purl.org/dc/terms/publisher",
+          34
+        ],
+        [
+          "http://www.w3.org/2004/02/skos/core#notation",
+          34
+        ],
+        [
+          "http://www.w3.org/2004/02/skos/core#definition",
+          32
+        ],
+        [
+          "http://www.w3.org/2004/02/skos/core#inScheme",
+          31
+        ],
+        [
+          "http://www.w3.org/ns/dcat#keyword",
+          28
+        ],
+        [
+          "http://purl.org/dc/terms/issued",
+          17
+        ],
+        [
+          "http://purl.org/dc/terms/modified",
+          16
+        ],
+        [
+          "http://data.resources.gov/ontology/dcat-us#restrictionStatus",
+          15
+        ],
+        [
+          "http://purl.org/dc/terms/type",
+          15
+        ],
+        [
+          "http://www.w3.org/ns/dcat#downloadURL",
+          15
+        ],
+        [
+          "http://www.w3.org/ns/dcat#accessURL",
+          12
+        ],
+        [
+          "http://www.w3.org/ns/dcat#hadRole",
+          12
+        ],
+        [
+          "http://www.w3.org/ns/dcat#startDate",
+          12
+        ],
+        [
+          "http://data.resources.gov/ontology/dcat-us#restrictionNote",
+          11
+        ],
+        [
+          "http://purl.org/dc/terms/language",
+          11
+        ],
+        [
+          "http://www.w3.org/2004/02/skos/core#altLabel",
+          11
+        ]
+      ],
+      "triples": 1510,
+      "zeroTripleFileNames": [
+        "minimal_example.json",
+        "minimal_example.json",
+        "minimal_object_example.json",
+        "minimal_string_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json",
+        "null_example.json"
+      ],
+      "zeroTripleFiles": 10
+    }
+  },
+  "lenientTermCount": 22,
+  "lenientTerms": [
+    "accessRights",
+    "accrualPeriodicity",
+    "algorithm",
+    "category",
+    "compressFormat",
+    "format",
+    "geometry",
+    "hadRole",
+    "inDimension",
+    "language",
+    "liabilityStatement",
+    "mediaType",
+    "packageFormat",
+    "provenance",
+    "relation",
+    "restrictionStatus",
+    "rights",
+    "source",
+    "status",
+    "tel",
+    "theme",
+    "unitMeasure"
+  ],
+  "measured": "2026-08-25, this repository, no network, no model call",
+  "shacl": {
+    "legacyShapesOverDeclaredBoundCorpus": {
+      "bySeverity": {
+        "Violation": 178
+      },
+      "conforms": false,
+      "dataTriples": 1381,
+      "focusNodes": 228,
+      "matchedClassCount": 24,
+      "matchedClasses": [
+        "http://data.resources.gov/ontology/dcat-us#AccessRestriction",
+        "http://data.resources.gov/ontology/dcat-us#UseRestriction",
+        "http://purl.org/dc/terms/Location",
+        "http://purl.org/dc/terms/PeriodOfTime",
+        "http://purl.org/dc/terms/Standard",
+        "http://spdx.org/rdf/terms#Checksum",
+        "http://www.w3.org/2004/02/skos/core#Concept",
+        "http://www.w3.org/2004/02/skos/core#ConceptScheme",
+        "http://www.w3.org/2006/vcard/ns#Kind",
+        "http://www.w3.org/ns/adms#Identifier",
+        "http://www.w3.org/ns/dcat#CatalogRecord",
+        "http://www.w3.org/ns/dcat#DataService",
+        "http://www.w3.org/ns/dcat#Dataset",
+        "http://www.w3.org/ns/dcat#DatasetSeries",
+        "http://www.w3.org/ns/dcat#Distribution",
+        "http://www.w3.org/ns/dcat#Relationship",
+        "http://www.w3.org/ns/dqv#Metric",
+        "http://www.w3.org/ns/dqv#QualityMeasurement",
+        "http://www.w3.org/ns/locn#Address",
+        "http://www.w3.org/ns/org#Organization",
+        "http://www.w3.org/ns/prov#Activity",
+        "http://www.w3.org/ns/prov#Attribution",
+        "http://xmlns.com/foaf/0.1/Agent",
+        "http://xmlns.com/foaf/0.1/Document"
+      ],
+      "shapeTriples": 4043,
+      "targetClassCount": 34,
+      "violations": 178
+    },
+    "legacyShapesOverObservedBoundCorpus": {
+      "bySeverity": {
+        "Violation": 272
+      },
+      "conforms": false,
+      "dataTriples": 1383,
+      "focusNodes": 228,
+      "matchedClassCount": 24,
+      "matchedClasses": [
+        "http://data.resources.gov/ontology/dcat-us#AccessRestriction",
+        "http://data.resources.gov/ontology/dcat-us#UseRestriction",
+        "http://purl.org/dc/terms/Location",
+        "http://purl.org/dc/terms/PeriodOfTime",
+        "http://purl.org/dc/terms/Standard",
+        "http://spdx.org/rdf/terms#Checksum",
+        "http://www.w3.org/2004/02/skos/core#Concept",
+        "http://www.w3.org/2004/02/skos/core#ConceptScheme",
+        "http://www.w3.org/2006/vcard/ns#Kind",
+        "http://www.w3.org/ns/adms#Identifier",
+        "http://www.w3.org/ns/dcat#CatalogRecord",
+        "http://www.w3.org/ns/dcat#DataService",
+        "http://www.w3.org/ns/dcat#Dataset",
+        "http://www.w3.org/ns/dcat#DatasetSeries",
+        "http://www.w3.org/ns/dcat#Distribution",
+        "http://www.w3.org/ns/dcat#Relationship",
+        "http://www.w3.org/ns/dqv#Metric",
+        "http://www.w3.org/ns/dqv#QualityMeasurement",
+        "http://www.w3.org/ns/locn#Address",
+        "http://www.w3.org/ns/org#Organization",
+        "http://www.w3.org/ns/prov#Activity",
+        "http://www.w3.org/ns/prov#Attribution",
+        "http://xmlns.com/foaf/0.1/Agent",
+        "http://xmlns.com/foaf/0.1/Document"
+      ],
+      "shapeTriples": 4043,
+      "targetClassCount": 34,
+      "violations": 272
+    },
+    "legacyShapesOverPublishedCorpus": {
+      "bySeverity": {},
+      "conforms": true,
+      "dataTriples": 73,
+      "focusNodes": 0,
+      "matchedClassCount": 0,
+      "matchedClasses": [],
+      "shapeTriples": 4043,
+      "targetClassCount": 34,
+      "violations": 0
+    }
+  }
+}

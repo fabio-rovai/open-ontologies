@@ -1,0 +1,18 @@
+{
+  "@id": "https://example.gov/activities/data-processing-001",
+  "@type": "Activity",
+  "label": "Data Processing and Quality Assurance",
+  "category": [
+    {
+      "@id": "https://example.gov/concepts/data-processing",
+      "@type": "Concept",
+      "prefLabel": "Data Processing",
+      "definition": "Activities related to processing and transforming raw data into usable formats.",
+      "inScheme": {
+        "@id": "https://example.gov/concept-schemes/activity-types",
+        "@type": "ConceptScheme",
+        "title": "Activity Types"
+      }
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "@id": "https://example.gov/catalog-records/climate-dataset-record-001",
+  "@type": "CatalogRecord",
+  "title": "Climate Data 2023 Catalog Record",
+  "description": [
+    "This catalog record describes the registration of the Climate Data 2023 dataset.",
+    "Contains metadata about when the dataset was added and last updated."
+  ],
+  "issued": ["2023-06-01"],
+  "modified": "2024-01-15T10:30:00Z",
+  "language": ["en", "es"],
+  "source": "Original metadata harvested from NOAA data portal",
+  "status": {
+    "@id": "https://example.gov/concepts/status-published",
+    "@type": "Concept",
+    "prefLabel": "Published",
+    "definition": "The catalog record has been published and is publicly available.",
+    "inScheme": {
+      "@id": "https://example.gov/concept-schemes/record-status",
+      "@type": "ConceptScheme",
+      "title": "Record Status"
+    }
+  },
+  "conformsTo": {
+    "@id": "https://example.gov/standards/dcat-us-3",
+    "@type": "Standard",
+    "title": "DCAT-US 3.0",
+    "description": "Data Catalog Vocabulary - United States Profile version 3.0"
+  },
+  "primaryTopic": "https://example.gov/datasets/climate-data-2023"
+}

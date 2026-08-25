@@ -1,0 +1,30 @@
+{
+  "@id": "https://example.gov/restrictions/use-restriction-001",
+  "@type": "UseRestriction",
+  "restrictionNote": "This data may be used for research purposes. Commercial use requires written permission from the data steward.",
+  "restrictionStatus": {
+    "@id": "https://example.gov/concepts/restricted-commercial",
+    "@type": "Concept",
+    "prefLabel": "Restricted - Commercial Use",
+    "altLabel": "Commercial Restriction",
+    "definition": "The resource has restrictions on commercial use but is available for research and non-commercial purposes.",
+    "notation": ["RST-COM"],
+    "inScheme": {
+      "@id": "https://example.gov/concept-schemes/restriction-status",
+      "@type": "ConceptScheme",
+      "title": "Restriction Status"
+    }
+  },
+  "specificRestriction": {
+    "@id": "https://example.gov/concepts/nara-restriction-copyright",
+    "@type": "Concept",
+    "prefLabel": "Copyright Restriction",
+    "definition": "Materials protected by copyright with limited use permissions.",
+    "notation": ["CR"],
+    "inScheme": {
+      "@id": "https://example.gov/concept-schemes/nara-restrictions",
+      "@type": "ConceptScheme",
+      "title": "NARA Restrictions"
+    }
+  }
+}

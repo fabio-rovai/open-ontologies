@@ -1,0 +1,6 @@
+{
+  "@id": "https://example.gov/locations/grand-canyon",
+  "@type": "Location",
+  "prefLabel": "Grand Canyon National Park",
+  "bbox": "POLYGON ((-114 35.9, -111.6 35.9, -111.6 36.5, -114 36.5, -114 35.9))"
+}

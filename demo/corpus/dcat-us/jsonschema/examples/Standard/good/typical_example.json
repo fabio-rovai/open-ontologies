@@ -1,0 +1,16 @@
+{
+  "@type": "Standard",
+  "title": "DCAT-US 3.0",
+  "description": "Data Catalog Vocabulary - United States Profile version 3.0",
+  "issued": "2024-01-15",
+  "identifier": {
+    "@type": "Identifier",
+    "notation": "DCAT-US-3.0",
+    "schemaAgency": "U.S. General Services Administration"
+  },
+  "inScheme": {
+    "@type": "ConceptScheme",
+    "title": "Federal Data Standards",
+    "description": "A collection of data standards used by federal agencies"
+  }
+}

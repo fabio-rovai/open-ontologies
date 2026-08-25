@@ -1,0 +1,15 @@
+{
+  "@id": "https://example.gov/series/example-dataset-series-null",
+  "accrualPeriodicity": null,
+  "contactPoint": null,
+  "description": "",
+  "first": null,
+  "issued": null,
+  "last": null,
+  "modified": null,
+  "publisher": null,
+  "seriesMember": null,
+  "spatial": null,
+  "temporal": null,
+  "title": ""
+}

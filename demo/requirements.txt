@@ -1,2 +1,4 @@
 presidio-analyzer>=2.2
 pytest>=8.0
+rdflib>=7.0
+pyshacl>=0.25

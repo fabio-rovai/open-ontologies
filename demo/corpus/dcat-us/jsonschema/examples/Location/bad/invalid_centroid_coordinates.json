@@ -1,0 +1,9 @@
+{
+  "@id": "https://example.gov/locations/invalid-centroid",
+  "@type": "Location",
+  "prefLabel": "Invalid Centroid",
+  "centroid": {
+    "type": "Point",
+    "coordinates": [-77.0369, 38.9072, 100, 200]
+  }
+}

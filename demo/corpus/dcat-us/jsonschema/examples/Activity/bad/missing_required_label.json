@@ -1,0 +1,12 @@
+{
+  "@id": "https://example.gov/activities/invalid-activity",
+  "@type": "Activity",
+  "category": [
+    {
+      "@id": "https://example.gov/concepts/data-collection",
+      "@type": "Concept",
+      "prefLabel": "Data Collection",
+      "inScheme": "https://example.gov/concept-schemes/activity-types"
+    }
+  ]
+}

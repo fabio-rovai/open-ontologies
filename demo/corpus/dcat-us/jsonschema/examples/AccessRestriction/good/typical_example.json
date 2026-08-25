@@ -1,0 +1,6 @@
+{
+  "@type": "AccessRestriction",
+  "restrictionStatus": "https://example.gov/concepts/restricted",
+  "specificRestriction": "https://www.archives.gov/cui/registry/category-list",
+  "restrictionNote": "Access restricted to authorized personnel only."
+}

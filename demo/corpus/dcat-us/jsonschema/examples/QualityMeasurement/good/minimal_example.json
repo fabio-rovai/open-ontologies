@@ -1,0 +1,7 @@
+{
+  "isMeasurementOf": {
+    "expectedDataType": "xsd:decimal",
+    "inDimension": "https://example.gov/concepts/completeness-dimension"
+  },
+  "value": "98.5"
+}

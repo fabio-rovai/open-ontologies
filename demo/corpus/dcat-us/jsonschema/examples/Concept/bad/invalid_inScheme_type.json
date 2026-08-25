@@ -1,0 +1,6 @@
+{
+  "_comment": "INVALID: 'inScheme' must be a ConceptScheme object or IRI string, not a number",
+  "@type": "Concept",
+  "prefLabel": "Environment",
+  "inScheme": 12345
+}

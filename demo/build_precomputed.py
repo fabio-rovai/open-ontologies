@@ -90,8 +90,16 @@ def build_corpus() -> list[dict]:
     manifest = json.loads((CORPUS / "MANIFEST.json").read_text())
     docs = []
     for entry in manifest:
+        # MANIFEST.json also records the vendored jsonschema/ tree that
+        # demo/dcat_conformance.py reads (role: "validator-input", a
+        # directory, not a document). Task 7's seven markdown/JSON/Turtle
+        # documents are the only entries this corpus is built from.
+        if entry.get("role") == "validator-input":
+            continue
         fname = entry["file"]
         path = CORPUS / fname
+        if not path.is_file():
+            continue
         text = path.read_text(encoding="utf-8", errors="ignore")
         docs.append({
             "id": pathlib.Path(fname).stem,

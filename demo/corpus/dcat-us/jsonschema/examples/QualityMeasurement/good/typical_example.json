@@ -1,0 +1,9 @@
+{
+  "@type": "QualityMeasurement",
+  "isMeasurementOf": {
+    "expectedDataType": "xsd:decimal",
+    "inDimension": "https://example.gov/dimensions/completeness"
+  },
+  "value": "98.5",
+  "unitMeasure": "percent"
+}

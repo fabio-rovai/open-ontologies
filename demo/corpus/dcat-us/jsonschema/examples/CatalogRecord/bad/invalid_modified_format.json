@@ -1,0 +1,7 @@
+{
+  "@id": "https://example.gov/catalog-records/invalid",
+  "@type": "CatalogRecord",
+  "title": "Invalid Date Format Record",
+  "modified": "January 15, 2024",
+  "primaryTopic": "https://example.gov/datasets/some-dataset"
+}

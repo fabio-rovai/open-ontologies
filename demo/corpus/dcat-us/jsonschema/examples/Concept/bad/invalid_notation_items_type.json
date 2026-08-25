@@ -1,0 +1,6 @@
+{
+  "_comment": "INVALID: 'notation' array items must be strings, not numbers",
+  "@type": "Concept",
+  "prefLabel": "Environment",
+  "notation": [1, 2, 3]
+}

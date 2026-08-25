@@ -1,0 +1,13 @@
+{
+  "title": "Climate Data API",
+  "endpointURL": ["https://api.example.gov/climate/v1"],
+  "contactPoint": [
+    {
+      "fn": "Climate Data Support Team",
+      "hasEmail": "mailto:climate-support@example.gov"
+    }
+  ],
+  "publisher": {
+    "name": "National Climate Data Center"
+  }
+}

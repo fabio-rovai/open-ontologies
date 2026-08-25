@@ -1,0 +1,22 @@
+{
+  "@id": "https://example.gov/contacts/climate-support-001",
+  "@type": "Kind",
+  "fn": "Dr. Jane Smith",
+  "given-name": "Jane",
+  "family-name": "Smith",
+  "hasEmail": "mailto:jane.smith@example.gov",
+  "tel": "+1-555-123-4567",
+  "organization-name": "National Climate Data Center",
+  "title": "Senior Climate Data Scientist",
+  "address": [
+    {
+      "@id": "https://example.gov/addresses/ncdc-main",
+      "@type": "Address",
+      "street-address": "151 Patton Avenue",
+      "locality": "Asheville",
+      "region": "NC",
+      "postal-code": "28801",
+      "country-name": "United States"
+    }
+  ]
+}

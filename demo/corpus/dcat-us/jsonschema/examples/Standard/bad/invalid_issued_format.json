@@ -1,0 +1,6 @@
+{
+  "@id": "https://example.gov/standards/invalid",
+  "@type": "Standard",
+  "title": "Valid Standard",
+  "issued": "not-a-valid-date"
+}

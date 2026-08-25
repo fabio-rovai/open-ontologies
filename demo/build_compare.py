@@ -40,7 +40,10 @@ P = ("PREFIX : <https://w3id.org/dcat-us-demo#>\n"
      "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n"
      "PREFIX prov: <http://www.w3.org/ns/prov#>\n")
 
-ALL_DOC_IDS = sorted(pathlib.Path(e["file"]).stem for e in json.loads(MANIFEST.read_text()))
+ALL_DOC_IDS = sorted(
+    pathlib.Path(e["file"]).stem for e in json.loads(MANIFEST.read_text())
+    if e.get("role") != "validator-input"
+)
 
 
 def cited_docs(answer: str, retrieved: list[str]) -> list[str]:

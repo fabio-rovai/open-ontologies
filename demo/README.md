@@ -104,3 +104,34 @@ Run the tests with:
 ```bash
 python -m pytest demo/tests/
 ```
+
+## The conformance finding
+
+`demo/precomputed/findings.json` is not produced by the pipeline above. The
+pipeline's contradiction scanner detects provenance-split typing conflicts
+(two documents typing the same individual incompatibly), and this corpus's
+disagreement is not that shape: it is a README's conformance claim
+contradicted by the artifacts published alongside it. That finding is
+established by a validator, not the model, and lives in
+`demo/dcat_conformance.py`.
+
+The script reads only files committed under `demo/corpus/dcat-us/`: the full
+GSA/dcat-us `jsonschema/definitions/` and `jsonschema/examples/` tree
+(`demo/corpus/dcat-us/jsonschema/`, vendored separately from the seven
+documents the pipeline above reads) and `recovered-shapes.ttl`, the SHACL
+shapes file GSA/dcat-us deleted in pull request 120. It derives a JSON-LD
+context from the RDF terms the JSON Schema's own `_oldDocs` blocks still
+carry, expands every published "good" example with and without that context,
+and validates both expansions against the deleted shapes with pySHACL.
+
+```bash
+python3 demo/dcat_conformance.py
+python3 -m pytest demo/tests/test_dcat_conformance.py
+```
+
+It writes `demo/corpus/dcat-us/jsonschema/generated-context.jsonld` (and an
+`.observed.jsonld` variant, lenient on the terms the corpus publishes as
+prose rather than IRIs), `demo/dcat_conformance_measurements.json` (every
+figure this script measures), and, by hand from those measurements,
+`demo/precomputed/findings.json`. No network call and no model call happen
+anywhere in this path.

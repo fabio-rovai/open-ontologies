@@ -1,0 +1,10 @@
+{
+  "@id": "https://example.gov/cui-restrictions/dataset-001",
+  "@type": "CUIRestriction",
+  "cuiBannerMarking": "CUI//SP-PRVCY//SP-LEGAL",
+  "designationIndicator": "DOC",
+  "requiredIndicatorPerAuthority": [
+    "Privacy Act of 1974",
+    "Federal Records Act"
+  ]
+}

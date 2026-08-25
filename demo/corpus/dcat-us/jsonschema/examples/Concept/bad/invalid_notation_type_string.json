@@ -1,0 +1,6 @@
+{
+  "_comment": "INVALID: 'notation' must be null or an array of strings, not a single string",
+  "@type": "Concept",
+  "prefLabel": "Environment",
+  "notation": "ENV"
+}

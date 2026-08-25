@@ -1,0 +1,5 @@
+{
+  "@type": "Location",
+  "prefLabel": "Continental United States",
+  "bbox": "POLYGON((-125 24, -66 24, -66 50, -125 50, -125 24))"
+}
