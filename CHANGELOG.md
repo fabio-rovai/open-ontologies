@@ -5,6 +5,26 @@ All notable changes to Open Ontologies are documented here.
 ## [Unreleased]
 
 ### Fixed
+- **The DL reasoner discovered entities by their typing declarations rather than
+  by the axioms that use them, and its headline `consistent` flag answered for
+  the TBox alone.** Three defects, one root cause, found from the outside by
+  probing the shipped binary with deliberately broken ontologies rather than by
+  reading the code. A class declared only through `rdfs:subClassOf`,
+  `owl:equivalentClass` or `owl:disjointWith` - never typed `owl:Class` - was
+  invisible to the satisfiability sweep, so an unsatisfiable class was reported
+  satisfiable by omission. An individual typed into a plain class - never typed
+  `owl:NamedIndividual`, which instance data in the wild almost never is - never
+  reached the ABox check, so the textbook inconsistency of one individual in two
+  disjoint classes sailed through. And even when the ABox check DID prove an
+  inconsistency, `reason owl-dl` published `"consistent": true` in the same JSON
+  object as the proof of false, because the flag was computed from the TBox
+  alone. Classes are now harvested from all three axiom positions, individuals
+  from any rdf:type pointing at a known class (with schema declarations
+  excluded, so a class never doubles as an individual), and the headline flag is
+  the conjunction of TBox and ABox verdicts, with `tbox_consistent` exposed
+  separately. The three-valued discipline is preserved: an undecided ABox still
+  defaults to consistent. The probes that exposed all three are preserved as
+  regressions in `tests/tableaux_discovery_test.rs`.
 - **Three more tools answered about the default graph alone, so their answers
   depended on the serialisation the data arrived in.** Same defect as the two
   halves of #108, found by loading identical content as Turtle and as TriG and

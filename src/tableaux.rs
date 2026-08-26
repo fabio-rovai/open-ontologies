@@ -409,6 +409,20 @@ impl OwlParser {
                     .map(move |(_, o)| (s.clone(), o.clone()))
             })
             .collect();
+        // A class is a class because axioms treat it as one, not because someone remembered
+        // to type it `owl:Class`. Real ontologies routinely declare a class only through
+        // rdfs:subClassOf / owl:equivalentClass / owl:disjointWith; gating discovery on the
+        // explicit typing silently dropped such classes from the satisfiability sweep, so an
+        // unsatisfiable class could be reported satisfiable by omission. Blank-node class
+        // expressions are excluded: only IRIs name checkable classes.
+        for (a, b) in &subclass_pairs {
+            for side in [a, b] {
+                if side.starts_with('<') && side != OWL_THING && side != OWL_NOTHING {
+                    let id = self.interner.intern(side);
+                    named_classes.insert(id);
+                }
+            }
+        }
         for (sub_str, sup_str) in subclass_pairs {
             let sub = self.parse_class_expr(&sub_str);
             let sup = self.parse_class_expr(&sup_str);
@@ -428,6 +442,14 @@ impl OwlParser {
                     .map(move |(_, o)| (s.clone(), o.clone()))
             })
             .collect();
+        for (a, b) in &equiv_pairs {
+            for side in [a, b] {
+                if side.starts_with('<') && side != OWL_THING && side != OWL_NOTHING {
+                    let id = self.interner.intern(side);
+                    named_classes.insert(id);
+                }
+            }
+        }
         for (a_str, b_str) in equiv_pairs {
             let a = self.parse_class_expr(&a_str);
             let b = self.parse_class_expr(&b_str);
@@ -457,18 +479,58 @@ impl OwlParser {
                     .map(move |(_, o)| (s.clone(), o.clone()))
             })
             .collect();
+        for (a, b) in &disjoint_raw {
+            for side in [a, b] {
+                if side.starts_with('<') && side != OWL_THING && side != OWL_NOTHING {
+                    let id = self.interner.intern(side);
+                    named_classes.insert(id);
+                }
+            }
+        }
         for (a_str, b_str) in disjoint_raw {
             let a = self.parse_class_expr(&a_str).to_nnf();
             let b = self.parse_class_expr(&b_str).to_nnf();
             disjoint_pairs.push((a, b));
         }
 
-        // Collect named individuals and their types + role assertions
-        let individual_subjects: Vec<String> = subject_types
-            .iter()
-            .filter(|(_, types)| types.iter().any(|t| t == OWL_NAMED_INDIVIDUAL))
-            .map(|(s, _)| s.clone())
-            .collect();
+        // Collect individuals and their types + role assertions.
+        //
+        // An individual is discovered two ways: the explicit `owl:NamedIndividual` typing,
+        // or an rdf:type pointing at a known class. Instance data in the wild almost never
+        // carries the explicit typing, and gating on it meant the ABox check received no
+        // individuals at all, so a textbook inconsistency - one individual typed into two
+        // disjoint classes - sailed through as consistent. Subjects that are themselves
+        // schema declarations are excluded, so a class or property never doubles as an
+        // individual by accident.
+        let schema_markers: [&str; 10] = [
+            OWL_CLASS,
+            OWL_OBJECT_PROPERTY,
+            OWL_TRANSITIVE,
+            "<http://www.w3.org/2002/07/owl#DatatypeProperty>",
+            "<http://www.w3.org/2002/07/owl#AnnotationProperty>",
+            "<http://www.w3.org/2002/07/owl#FunctionalProperty>",
+            "<http://www.w3.org/2002/07/owl#InverseFunctionalProperty>",
+            "<http://www.w3.org/2002/07/owl#SymmetricProperty>",
+            "<http://www.w3.org/2002/07/owl#Ontology>",
+            "<http://www.w3.org/2000/01/rdf-schema#Class>",
+        ];
+        let mut individual_subjects: Vec<String> = Vec::new();
+        for (subject, types) in &subject_types {
+            if types.iter().any(|t| schema_markers.contains(&t.as_str())) {
+                continue;
+            }
+            let explicit = types.iter().any(|t| t == OWL_NAMED_INDIVIDUAL);
+            let typed_by_known_class = types.iter().any(|t| {
+                t.starts_with('<') && {
+                    let id = self.interner.intern(t);
+                    named_classes.contains(&id)
+                }
+            });
+            if explicit || typed_by_known_class {
+                individual_subjects.push(subject.clone());
+            }
+        }
+        individual_subjects.sort_unstable();
         for ind_str in &individual_subjects {
             let ind_id = self.interner.intern(ind_str);
             let types = self.index.objects(ind_str, RDF_TYPE);
@@ -2051,9 +2113,15 @@ impl DlReasoner {
         let reasoner = Self::from_graph(graph)?;
         let initial_triples = graph.triple_count();
 
-        let consistent = reasoner.is_consistent();
+        let tbox_consistent = reasoner.is_consistent();
         let result = reasoner.classify_parallel();
         let abox_result = reasoner.check_abox();
+
+        // The headline flag answers for the whole knowledge base. Reporting the TBox alone
+        // while the ABox check has PROVEN an inconsistency in the same output is a false
+        // claim; the three-valued discipline is preserved because an undecided ABox already
+        // defaults to consistent inside check_abox.
+        let consistent = tbox_consistent && abox_result.consistent;
 
         // Collect explanations for unsatisfiable classes
         let mut explanations: Vec<serde_json::Value> = Vec::new();
@@ -2158,6 +2226,7 @@ impl DlReasoner {
             "algorithm": "tableaux",
             "description_logic": "SHOIQ",
             "consistent": consistent,
+            "tbox_consistent": tbox_consistent,
             "named_classes": reasoner.named_classes.len(),
             "unsatisfiable_classes": unsat_names,
             "complete": complete,
