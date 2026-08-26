@@ -64,8 +64,14 @@ fn strip_brackets(s: &str) -> &str {
 }
 
 /// Run a SELECT and collect the IRI values of one variable (literals/blanks skipped).
+///
+/// Reads every graph. The ontology's declared vocabulary is a fact about the
+/// store, not about one graph in it, and reading the default graph alone made
+/// an ontology loaded from TriG or N-Quads declare nothing: the check bailed
+/// with `ontology_terms: 0` and told the caller to load an ontology they had
+/// already loaded. See the graph-scope rule on issue #108.
 fn select_iris(graph: &Arc<GraphStore>, query: &str, var: &str) -> anyhow::Result<Vec<String>> {
-    let json_str = graph.sparql_select(query)?;
+    let json_str = graph.sparql_select_union(query)?;
     let parsed: serde_json::Value = serde_json::from_str(&json_str)?;
     let mut out = Vec::new();
     if let Some(rows) = parsed["results"].as_array() {

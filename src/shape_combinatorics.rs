@@ -65,7 +65,9 @@ pub fn enumerate(graph: &Arc<GraphStore>, class_iri: &str, max_size: usize) -> a
         "SELECT DISTINCT ?p WHERE {{ ?p <http://www.w3.org/2000/01/rdf-schema#domain> <{}> }} LIMIT 100",
         class_iri
     );
-    let js = graph.sparql_select(&q)?;
+    // Every graph: see `count_query`. A property is declared on the class
+    // wherever the declaration sits.
+    let js = graph.sparql_select_union(&q)?;
     let v: serde_json::Value = serde_json::from_str(&js)?;
     let rows = v["results"].as_array().cloned().unwrap_or_default();
     let mut props: Vec<String> = rows
@@ -207,8 +209,12 @@ pub fn induce_shapes(
     })
 }
 
+/// Reads every graph: the instances of a class are the store's instances,
+/// whichever graph they sit in. Over a dataset serialisation this counted
+/// zero and induction returned an empty lattice, indistinguishable from a
+/// class that genuinely has no instances (#108).
 fn count_query(graph: &Arc<GraphStore>, q: &str) -> anyhow::Result<u64> {
-    let js = graph.sparql_select(q)?;
+    let js = graph.sparql_select_union(q)?;
     let v: serde_json::Value = serde_json::from_str(&js).unwrap_or(serde_json::Value::Null);
     let n_str = v["results"][0]["n"].as_str().unwrap_or("0");
     // SPARQL aggregate values come as literal strings like

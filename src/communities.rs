@@ -280,7 +280,12 @@ impl Communities {
             FILTER(?p != <http://www.w3.org/2002/07/owl#disjointWith>) \
             FILTER(?p != <http://www.w3.org/2002/07/owl#equivalentClass>) \
         } LIMIT 20000";
-        let raw = self.graph.sparql_select(query)?;
+        // Every graph: which graph an entity relation sits in says nothing
+        // about whether it is a relation. Reading the default graph alone
+        // over a dataset serialisation reported zero communities and the
+        // note "no relations between named subjects and objects", which
+        // asserts a fact about the corpus that was not checked (#108).
+        let raw = self.graph.sparql_select_union(query)?;
         let parsed: serde_json::Value = serde_json::from_str(&raw)?;
         let rows = parsed
             .get("results")
@@ -302,7 +307,10 @@ impl Communities {
     /// rdfs:label per IRI, for skeletons a human can read.
     fn labels_of(&self, iris: &[String]) -> anyhow::Result<HashMap<String, String>> {
         let query = "SELECT ?s ?l WHERE { ?s <http://www.w3.org/2000/01/rdf-schema#label> ?l } LIMIT 20000";
-        let raw = self.graph.sparql_select(query)?;
+        // Every graph, for the same reason as `edges`: a label in a named
+        // graph is still that entity's label, and a skeleton naming members
+        // by their URI local name where a label exists is a worse report.
+        let raw = self.graph.sparql_select_union(query)?;
         let parsed: serde_json::Value = serde_json::from_str(&raw)?;
         let wanted: BTreeSet<&str> = iris.iter().map(|s| s.as_str()).collect();
         let mut out = HashMap::new();
