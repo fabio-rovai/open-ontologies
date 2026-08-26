@@ -147,6 +147,39 @@ All notable changes to Open Ontologies are documented here.
   behind no flag, carrying exactly the same rows until 2.0. Deprecated, not
   renamed: when lineage-backed supersession arrives it takes a new key, so no
   key ever names a different set on either side of a major version.
+- **A period that holds at no instant no longer overlaps anything** (#118).
+  `Period::overlaps` answered true for `[t, t)` against any period containing
+  `t`, and unconditionally against an open one, while `valid_at` was false at
+  every instant for it, so `onto_temporal_conflicts` filed such a graph as a
+  live contradiction where `onto_temporal_snapshot` excluded it everywhere; an
+  inverted `[t2, t1)` with `t2 > t1` was filed as `non_overlapping`, a graph
+  that holds nowhere presented beside a live one. The case that made it worth
+  fixing is the one parsing created: `validFrom "2024"^^xsd:gYear` beside
+  `validTo "2024-01-01"^^xsd:date` is two careful assertions from two systems
+  writing at different precision, invisible on inspection, and it resolved as
+  sound. The classification now happens once, where the bounds are read:
+  `Bounds::resolve` yields a third `GraphValidity` beside sound and
+  unreadable, the snapshot answers from the variant, `overlaps` from the flag
+  the period carries, `valid_at` is never asked about such a period, and the
+  two tools agree by construction. With no `valid_at` such a graph is in scope
+  like any other, because no instant was asked about and narrowing an
+  atemporal query silently is worse than answering it, so `onto_temporal_query`
+  with no `valid_at` still reads it; at any instant asked about it is excluded.
+  Validity is checked before the recorded side: with a `valid_at` given,
+  "holds at no instant" beats "not yet recorded then" whatever `as_of` is
+  passed, since only the first is a fact about the data rather than about the
+  query; with none given, the recorded reason is the only one that can apply.
+
+  Not `invalid`: both bounds parsed, and every reason in that array says a
+  bound could not be read. The graph is EXCLUDED at every instant asked about,
+  with a reason that says it holds at no instant and names which of the two it
+  is, since validFrom equalling validTo is sometimes intended and validTo
+  preceding validFrom almost never is. In
+  `conflicts` the pair lands in `non_overlapping`, a true statement that since
+  the rename above claims no correction, and the `note` says the bucket can
+  hold such a period. The recorded axis is not classified this way here:
+  `recordedUntil` before `recordedAt` is out-of-order recording (#109) and
+  lands separately.
 
 - **`open-ontologies-lite` no longer installs an MCP server with the library**
   (released as 0.5.0). `mcp` was a core dependency of a package that imports it

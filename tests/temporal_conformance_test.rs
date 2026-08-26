@@ -10,7 +10,7 @@
 //! anchors, not aspirations: a later change to the temporal semantics has to
 //! move a line here on purpose rather than drift silently.
 //!
-//! The file has three sections. The first pins semantics that are **intended**;
+//! The file has four sections. The first pins semantics that are **intended**;
 //! most of it uses a single lexical date form, since that is the shape those
 //! assertions are about, and none of it moved when bounds started being parsed.
 //! The second pinned what the code did for mixed-precision and malformed bounds
@@ -20,6 +20,9 @@
 //! so those tests now hold the new answer on the same lines, which is what the
 //! section was for. The third covers what parsing adds and could not be
 //! expressed before: coarse bounds, offsets, and bounds that must be refused.
+//! The fourth covers periods that hold at no instant (#118), led by the case
+//! parsing created: two readable bounds at different precisions naming one
+//! instant.
 //!
 //! Deliberately not feature-gated: a `#![cfg(feature = ...)]` on a test file
 //! that CI runs without that feature prints `running 0 tests` and reads as
@@ -554,6 +557,11 @@ fn the_note_claims_only_what_the_code_checks() {
     assert!(
         note.contains("undecided") && note.contains("could not be read"),
         "and must say why a pair can be in neither bucket: {note}"
+    );
+    assert!(
+        note.contains("holds at no instant") && note.contains("empty or inverted"),
+        "and must say the bucket holds a period with no instant inside it, and name \
+         both shapes, since the snapshot's reason is the only place they differ: {note}"
     );
     assert!(
         !note.contains("one period ends where the other begins"),
@@ -1121,4 +1129,486 @@ fn every_answer_names_the_semantics_that_produced_it() {
         let out: serde_json::Value = serde_json::from_str(&raw).unwrap();
         assert_eq!(out["semantics_version"], "temporal/2", "{out}");
     }
+}
+
+// ---------------------------------------------------------------------------
+// Section 4: periods that hold at no instant (#118)
+//
+// Two bounds that both read, and together name no instant: validFrom and
+// validTo naming the same instant is an empty period, validTo before validFrom
+// an inverted one. Neither is unreadable, so neither belongs in `invalid`,
+// whose every reason says a bound could not be read. `valid_at` was already
+// false everywhere for both; `overlaps` was not, so the snapshot excluded such
+// a graph at every instant while conflicts filed it as a contradiction partner.
+// The classification is now made once, where the bounds are read, and both
+// tools answer from it: excluded at every instant asked about, with a reason
+// naming the shape, and read like any other graph when no valid_at is given,
+// since no instant was asked about. The mixed-precision fixture leads because
+// it is the case parsing created: two careful assertions from two systems,
+// invisible on inspection.
+// ---------------------------------------------------------------------------
+
+/// "Valid for 2024" beside "until 1 January 2024". Each bound is what a
+/// careful system writes at its own precision, and the two together name one
+/// instant, so the period is empty. Nothing on the page says so.
+const EMPTY_MIXED_PRECISION: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:g_empty { ex:X a ex:Adherent . }
+ex:g_live  { ex:X a ex:Suspension . }
+
+{
+  ex:Adherent owl:disjointWith ex:Suspension .
+  ex:g_empty t:validFrom "2024"^^xsd:gYear ; t:validTo "2024-01-01"^^xsd:date .
+  ex:g_live  t:validFrom "2023-01-01" ; t:validTo "2025-01-01" .
+}
+"#;
+
+/// The same literal on both bounds: the shape that was visible before parsing.
+const EMPTY_SAME_LITERAL: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+
+ex:g_empty { ex:X a ex:Adherent . }
+ex:g_live  { ex:X a ex:Suspension . }
+
+{
+  ex:Adherent owl:disjointWith ex:Suspension .
+  ex:g_empty t:validFrom "2024-06-01" ; t:validTo "2024-06-01" .
+  ex:g_live  t:validFrom "2023-01-01" ; t:validTo "2025-01-01" .
+}
+"#;
+
+/// validTo six years before validFrom, beside a graph still true. Nothing
+/// checked `from < to`, so this read as a period ending in 2020 that a 2023
+/// assertion then corrected.
+const INVERTED: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+
+ex:g_inverted { ex:X a ex:Adherent . }
+ex:g_live     { ex:X a ex:Suspension . }
+
+{
+  ex:Adherent owl:disjointWith ex:Suspension .
+  ex:g_inverted t:validFrom "2026-01-01" ; t:validTo "2020-01-01" .
+  ex:g_live     t:validFrom "2023-01-01" .
+}
+"#;
+
+fn conflicts(t: &Temporal) -> serde_json::Value {
+    serde_json::from_str(&t.conflicts().unwrap()).unwrap()
+}
+
+/// The local parts of every graph named in any row of one conflicts bucket.
+fn partners(out: &serde_json::Value, bucket: &str) -> BTreeSet<String> {
+    out[bucket]
+        .as_array()
+        .unwrap_or_else(|| panic!("conflicts has no array `{bucket}`: {out}"))
+        .iter()
+        .flat_map(|row| row["graphs"].as_array().unwrap().iter())
+        .map(|g| {
+            let g = g.as_str().unwrap();
+            g.rsplit(['#', '/']).next().unwrap_or(g).to_string()
+        })
+        .collect()
+}
+
+#[test]
+fn an_empty_period_is_excluded_at_every_instant_with_a_reason_naming_it_empty() {
+    // The instant both bounds name, where a `<=` slip on either side would
+    // let the period hold for exactly one instant.
+    for (fixture, boundary) in [
+        (EMPTY_MIXED_PRECISION, "2024-01-01"),
+        (EMPTY_SAME_LITERAL, "2024-06-01"),
+    ] {
+        let t = temporal(fixture);
+        for valid_at in [Some("2023-06-01"), Some(boundary), Some("2030-01-01")] {
+            let snap = snapshot(&t, valid_at, None);
+            assert!(
+                !graphs(&snap, "in_scope").contains("g_empty"),
+                "a period with no instant inside it is in scope at none \
+                 (valid_at {valid_at:?}): {snap}"
+            );
+            assert!(
+                invalid_reason(&snap, "g_empty").is_none(),
+                "both bounds read, so nothing about it is unreadable: {snap}"
+            );
+            let why = reason(&snap, "g_empty");
+            assert!(
+                why.contains("holds at no instant") && why.contains("empty"),
+                "the reason says it holds nowhere and names the shape: {why}"
+            );
+            assert!(
+                !why.contains("inverted"),
+                "and does not name the other shape: {why}"
+            );
+        }
+        // With no valid_at no instant was asked about, and the graph is read
+        // like any other: in scope, excluded nowhere, unreadable nowhere.
+        let open = snapshot(&t, None, None);
+        assert!(
+            graphs(&open, "in_scope").contains("g_empty"),
+            "no instant asked about, so nothing for it to fail: {open}"
+        );
+        assert!(!graphs(&open, "excluded").contains("g_empty"), "{open}");
+        assert!(invalid_reason(&open, "g_empty").is_none(), "{open}");
+        // The live graph is unaffected either way.
+        let mid = snapshot(&t, Some("2024-01-01"), None);
+        assert!(graphs(&mid, "in_scope").contains("g_live"), "{mid}");
+        let late = snapshot(&t, Some("2030-01-01"), None);
+        assert_eq!(
+            reason(&late, "g_live"),
+            "not true at that instant",
+            "a sound period outside its interval keeps the generic reason: {late}"
+        );
+    }
+}
+
+#[test]
+fn an_inverted_period_is_named_inverted_and_is_not_a_correction() {
+    let t = temporal(INVERTED);
+    // 2022-06-01 lies between the two bounds: a reading that silently swapped
+    // them would put the graph in scope here.
+    for valid_at in [Some("2020-01-01"), Some("2022-06-01"), Some("2026-01-01")] {
+        let snap = snapshot(&t, valid_at, None);
+        assert!(
+            !graphs(&snap, "in_scope").contains("g_inverted"),
+            "valid_at {valid_at:?}: {snap}"
+        );
+        assert!(invalid_reason(&snap, "g_inverted").is_none(), "{snap}");
+        let why = reason(&snap, "g_inverted");
+        assert!(
+            why.contains("holds at no instant") && why.contains("inverted"),
+            "the reason names the shape that is almost always a mistake: {why}"
+        );
+        assert!(!why.contains("empty"), "{why}");
+    }
+    // With no valid_at no instant was asked about, and the graph is in scope
+    // like any other, the shape notwithstanding.
+    let open = snapshot(&t, None, None);
+    assert!(graphs(&open, "in_scope").contains("g_inverted"), "{open}");
+    assert!(!graphs(&open, "excluded").contains("g_inverted"), "{open}");
+    assert!(invalid_reason(&open, "g_inverted").is_none(), "{open}");
+    // In conflicts the pair shares no instant, which is true, and lands in
+    // the bucket that since #116 claims nothing more than that. It was filed
+    // there before this fix too; what changed is that the snapshot now says
+    // the graph holds nowhere instead of "not true at that instant", so the
+    // row cannot be read as a period ending in 2020 that 2023 corrected.
+    let out = conflicts(&t);
+    assert_eq!(out["contradiction_count"], 0, "{out}");
+    assert_eq!(out["non_overlapping_count"], 1, "{out}");
+    assert!(
+        partners(&out, "non_overlapping").contains("g_inverted"),
+        "{out}"
+    );
+    assert!(out.get("undecided_count").is_none(), "{out}");
+}
+
+#[test]
+fn a_period_that_holds_nowhere_is_never_a_contradiction_partner() {
+    let t = temporal(EMPTY_MIXED_PRECISION);
+    let out = conflicts(&t);
+    // `[2024-01-01, 2024-01-01)` lies inside `[2023-01-01, 2025-01-01)`, so a
+    // bound test alone answers "overlaps" and filed this as a live
+    // contradiction. A period with no instant inside it shares none.
+    assert_eq!(out["contradiction_count"], 0, "{out}");
+    assert_eq!(out["non_overlapping_count"], 1, "{out}");
+    assert_eq!(out["superseded_count"], 1, "{out}");
+    assert!(
+        out.get("undecided_count").is_none(),
+        "both bounds read, so the pair is classified: {out}"
+    );
+    assert!(
+        out["non_overlapping"][0]["periods"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|p| p == "2024 to 2024-01-01"),
+        "the row shows the bounds as asserted: {out}"
+    );
+    let note = out["note"].as_str().unwrap();
+    assert!(
+        note.contains("holds at no instant") && note.contains("onto_temporal_snapshot"),
+        "the note says the bucket can hold such a period, and where it is explained: {note}"
+    );
+}
+
+/// The defect in one assertion: the snapshot said the graph holds nowhere
+/// while conflicts said it overlapped a live one. Both outputs on the same
+/// store, for all three shapes.
+#[test]
+fn snapshot_and_conflicts_agree_about_a_period_that_holds_nowhere() {
+    for (fixture, graph, inside) in [
+        (EMPTY_MIXED_PRECISION, "g_empty", "2024-01-01"),
+        (EMPTY_SAME_LITERAL, "g_empty", "2024-06-01"),
+        (INVERTED, "g_inverted", "2024-01-01"),
+    ] {
+        let t = temporal(fixture);
+        let snap = snapshot(&t, Some(inside), None);
+        assert!(
+            reason(&snap, graph).contains("holds at no instant"),
+            "{fixture}: {snap}"
+        );
+        assert!(graphs(&snap, "in_scope").contains("g_live"), "{snap}");
+        let out = conflicts(&t);
+        assert_eq!(out["contradiction_count"], 0, "{fixture}: {out}");
+        assert!(
+            !partners(&out, "contradictions").contains(graph),
+            "a graph the snapshot excludes everywhere cannot disagree with anything: {out}"
+        );
+        assert!(partners(&out, "non_overlapping").contains(graph), "{out}");
+    }
+}
+
+/// The guard against over-eager classification: a touching pair has one
+/// bound in common ACROSS the two graphs, which is nothing like a period with
+/// no instant inside it, and a sound period is still in scope inside its
+/// interval and excluded outside it with the generic reason.
+#[test]
+fn a_sound_period_and_a_touching_pair_are_not_degenerate() {
+    let t = temporal(CONFLICT_SUPERSEDED);
+    let inside = snapshot(&t, Some("2025-01-01"), None);
+    assert!(graphs(&inside, "in_scope").contains("g_a"), "{inside}");
+    assert_eq!(
+        reason(&inside, "g_b"),
+        "not true at that instant",
+        "a sound period outside its interval keeps the generic reason: {inside}"
+    );
+    let at_bound = snapshot(&t, Some("2026-05-01"), None);
+    assert_eq!(reason(&at_bound, "g_a"), "not true at that instant");
+    assert!(graphs(&at_bound, "in_scope").contains("g_b"), "{at_bound}");
+    let out = conflicts(&t);
+    assert_eq!(out["contradiction_count"], 0, "{out}");
+    assert_eq!(out["non_overlapping_count"], 1, "{out}");
+    // And nothing in a store with no degenerate period says one holds nowhere.
+    for fixture in [
+        CELL_LINE,
+        CONFLICT_SUPERSEDED,
+        CONFLICT_OVERLAP,
+        COARSE_BOUNDS,
+    ] {
+        let snap = snapshot(&temporal(fixture), None, None);
+        assert!(
+            graphs(&snap, "excluded").is_empty(),
+            "every sound period is in scope with no valid_at: {snap}"
+        );
+    }
+}
+
+/// `query_at` runs over the snapshot's scope. With no valid_at no instant was
+/// asked about, so a graph that holds at no instant is read like any other:
+/// the query's output has no key that could say it was left out, and
+/// narrowing an atemporal query silently is the failure its reporting exists
+/// to remove. At any valid_at the graph is out of scope, and
+/// onto_temporal_snapshot at that instant is where the reason is.
+#[test]
+fn query_at_with_no_valid_at_reads_a_period_that_holds_nowhere_like_any_other() {
+    let t = temporal(EMPTY_MIXED_PRECISION);
+    let raw = t.query_at("{ ?s a ?type }", None, None).unwrap();
+    let out: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    assert!(
+        raw.contains("Adherent"),
+        "no instant asked about, so the graph that holds nowhere is read: {raw}"
+    );
+    assert!(
+        raw.contains("Suspension"),
+        "and so is the live graph beside it: {raw}"
+    );
+    assert_eq!(
+        out["graphs_in_scope"], 2,
+        "both graphs are in scope with no valid_at: {out}"
+    );
+    assert!(
+        out.get("invalid").is_none(),
+        "both of its bounds read, so it is not listed as unreadable either: {out}"
+    );
+    // At an instant the live graph holds at, the boundary instant included,
+    // the graph that holds nowhere is left out and the live one alone is read.
+    for valid_at in ["2023-06-01", "2024-01-01"] {
+        let raw = t.query_at("{ ?s a ?type }", Some(valid_at), None).unwrap();
+        let out: serde_json::Value = serde_json::from_str(&raw).unwrap();
+        assert!(
+            !raw.contains("Adherent"),
+            "valid_at {valid_at}: the graph that holds nowhere is not queried: {raw}"
+        );
+        assert!(raw.contains("Suspension"), "valid_at {valid_at}: {raw}");
+        assert_eq!(
+            out["graphs_in_scope"], 1,
+            "valid_at {valid_at}: g_live alone is in scope: {out}"
+        );
+    }
+}
+
+/// An empty period whose graph also carries a recordedAt, beside a live graph
+/// recorded at the same time. An `as_of` before that instant fails both on
+/// the recorded axis, and only one of them holds nowhere.
+const EMPTY_RECORDED_LATER: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+
+ex:g_empty { ex:X a ex:Adherent . }
+ex:g_live  { ex:X a ex:Suspension . }
+
+{
+  ex:Adherent owl:disjointWith ex:Suspension .
+  ex:g_empty t:validFrom "2024-06-01" ; t:validTo "2024-06-01" ; t:recordedAt "2024-07-01" .
+  ex:g_live  t:validFrom "2023-01-01" ; t:validTo "2025-01-01" ; t:recordedAt "2024-07-01" .
+}
+"#;
+
+/// With a valid_at given, the reason names the shape whatever `as_of` is
+/// passed: validity is checked first, and "not yet recorded then" is a fact
+/// about the query where "holds at no instant" is a fact about the data, the
+/// one to fix, so it is not hidden behind the first when both apply. With no
+/// valid_at the recorded side is the only question asked, and its reason the
+/// only one that can apply. The live graph beside it shows the recorded
+/// reason is still given where it is the only thing wrong.
+#[test]
+fn a_period_that_holds_nowhere_says_so_whatever_as_of_is_passed() {
+    let t = temporal(EMPTY_RECORDED_LATER);
+    // At the instant both bounds name and at one outside it, with an as_of
+    // before, at and after the recordedAt of both graphs.
+    for valid_at in [Some("2024-06-01"), Some("2024-01-01")] {
+        for as_of in [Some("2000-01-01"), Some("2024-07-01"), Some("2030-01-01")] {
+            let snap = snapshot(&t, valid_at, as_of);
+            let why = reason(&snap, "g_empty");
+            assert!(
+                why.contains("holds at no instant") && why.contains("empty"),
+                "valid_at {valid_at:?}, as_of {as_of:?}: the data fault wins over the \
+                 recorded axis: {why}"
+            );
+            assert!(
+                !why.contains("recorded"),
+                "valid_at {valid_at:?}, as_of {as_of:?}: and the recorded axis is not \
+                 mentioned: {why}"
+            );
+        }
+    }
+    // With no valid_at, an as_of before its recordedAt excludes it on the
+    // recorded side alone, as it would a sound graph; at or after it, the
+    // graph is in scope.
+    let early = snapshot(&t, None, Some("2000-01-01"));
+    assert_eq!(
+        reason(&early, "g_empty"),
+        "not yet recorded then",
+        "no instant asked about, so the recorded side is the only question: {early}"
+    );
+    for as_of in [Some("2024-07-01"), Some("2030-01-01")] {
+        let snap = snapshot(&t, None, as_of);
+        assert!(
+            graphs(&snap, "in_scope").contains("g_empty"),
+            "as_of {as_of:?}: {snap}"
+        );
+    }
+    assert_eq!(
+        reason(&early, "g_live"),
+        "not yet recorded then",
+        "a sound period before its recordedAt keeps the recorded reason: {early}"
+    );
+    let later = snapshot(&t, None, Some("2030-01-01"));
+    assert!(graphs(&later, "in_scope").contains("g_live"), "{later}");
+}
+
+/// An empty period beside a graph with no description at all.
+const EMPTY_BESIDE_TIMELESS: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+
+ex:g_empty    { ex:X a ex:Adherent . }
+ex:g_timeless { ex:X a ex:Suspension . }
+
+{
+  ex:Adherent owl:disjointWith ex:Suspension .
+  ex:g_empty t:validFrom "2024-06-01" ; t:validTo "2024-06-01" .
+}
+"#;
+
+/// A timeless partner is the case the bound test got most wrong: its period
+/// has open ends, so `[t, t)` overlapped it unconditionally. The pair shares
+/// no instant, the row shows the partner as open on both sides, and the
+/// snapshot keeps the timeless graph in scope beside the excluded one.
+#[test]
+fn a_period_that_holds_nowhere_beside_a_timeless_graph_is_not_a_contradiction() {
+    let t = temporal(EMPTY_BESIDE_TIMELESS);
+    let out = conflicts(&t);
+    assert_eq!(out["contradiction_count"], 0, "{out}");
+    assert_eq!(out["non_overlapping_count"], 1, "{out}");
+    assert!(out.get("undecided_count").is_none(), "{out}");
+    assert!(
+        out["non_overlapping"][0]["periods"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|p| p == "always to still true"),
+        "the undescribed partner is shown open on both sides: {out}"
+    );
+    let snap = snapshot(&t, Some("2024-06-01"), None);
+    assert!(graphs(&snap, "in_scope").contains("g_timeless"), "{snap}");
+    assert!(
+        reason(&snap, "g_empty").contains("holds at no instant"),
+        "{snap}"
+    );
+    let open = snapshot(&t, None, None);
+    assert_eq!(
+        graphs(&open, "in_scope"),
+        set(&["g_empty", "g_timeless"]),
+        "no instant asked about, so both are read: {open}"
+    );
+}
+
+/// An empty period beside a graph whose own bound could not be read.
+const EMPTY_BESIDE_UNREADABLE: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:g_empty { ex:X a ex:Adherent . }
+ex:g_bad   { ex:X a ex:Suspension . }
+
+{
+  ex:Adherent owl:disjointWith ex:Suspension .
+  ex:g_empty t:validFrom "2024-06-01" ; t:validTo "2024-06-01" .
+  ex:g_bad   t:validFrom "01/06/2024"^^xsd:string .
+}
+"#;
+
+/// Unreadable still wins: a period that holds nowhere shares no instant with
+/// anything, but "shares no instant" is a verdict on two periods, and an
+/// unreadable partner is not a period at all, so the pair stays undecided
+/// rather than being filed as non_overlapping on the strength of one side.
+#[test]
+fn a_period_that_holds_nowhere_beside_an_unreadable_one_is_still_undecided() {
+    let t = temporal(EMPTY_BESIDE_UNREADABLE);
+    let out = conflicts(&t);
+    assert_eq!(out["contradiction_count"], 0, "{out}");
+    assert_eq!(out["non_overlapping_count"], 0, "{out}");
+    assert_eq!(out["undecided_count"], 1, "{out}");
+    assert!(
+        out["undecided"][0]["reason"]
+            .as_str()
+            .unwrap()
+            .contains("could not be read"),
+        "{out}"
+    );
+    let snap = snapshot(&t, Some("2024-06-01"), None);
+    assert!(invalid_reason(&snap, "g_bad").is_some(), "{snap}");
+    assert!(invalid_reason(&snap, "g_empty").is_none(), "{snap}");
+    assert!(
+        reason(&snap, "g_empty").contains("holds at no instant"),
+        "{snap}"
+    );
+    // With no valid_at the unreadable graph stays out and the one that holds
+    // nowhere is in: the two verdicts do not depend on each other.
+    let open = snapshot(&t, None, None);
+    assert!(invalid_reason(&open, "g_bad").is_some(), "{open}");
+    assert!(graphs(&open, "in_scope").contains("g_empty"), "{open}");
 }

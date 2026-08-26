@@ -68,6 +68,17 @@
 //! because "we hold no valid-time claim about this" and "the claim is garbage"
 //! are different answers.
 //!
+//! Two readable bounds can still name no instant: `validFrom` and `validTo`
+//! naming the same instant is an empty period, `validTo` before `validFrom`
+//! an inverted one. Neither is unreadable, and neither is a period something
+//! can overlap. The classification is made once, when the bounds are read,
+//! and every comparison answers from it, so a graph the snapshot excludes at
+//! every instant asked about is never a contradiction partner in `conflicts`.
+//! It is excluded with a reason naming which of the two it is: an empty period
+//! is sometimes intended, and an inverted one almost never is, and the text is
+//! the only place that distinction can survive. With no `valid_at` it is read
+//! like any other graph, because no instant was asked about.
+//!
 //! ## Bounded scans
 //!
 //! Every query behind these tools is capped so a pathological store cannot
@@ -83,6 +94,7 @@
 
 use crate::graph::GraphStore;
 use chrono::{DateTime, Utc};
+use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
@@ -91,7 +103,9 @@ pub const NS: &str = "https://open-ontologies.org/temporal#";
 /// Which comparison semantics produced an answer.
 ///
 /// `temporal/1` was lexical string comparison of the bounds as written.
-/// `temporal/2` reads every bound as an instant on the UTC timeline. The same
+/// `temporal/2` reads every bound as an instant on the UTC timeline, and a
+/// period whose two bounds name no instant holds nowhere under it, in scope
+/// at no instant and overlapping nothing, where it used to overlap. The same
 /// store answers differently under the two, so anything that replays or
 /// records an answer, a snapshot manifest above all, has to carry this, or
 /// two answers that cannot both be right hash identically.
@@ -263,6 +277,40 @@ struct Period {
     to: Option<DateTime<Utc>>,
     recorded: Option<DateTime<Utc>>,
     until: Option<DateTime<Utc>>,
+    /// `Some` when the valid interval holds at no instant. Set once, where
+    /// the bounds are read, and consulted by every comparison: `overlaps`
+    /// compares two periods without seeing the `GraphValidity` each came
+    /// from, so the verdict has to travel on the period itself.
+    degenerate: Option<Degenerate>,
+}
+
+/// Why a period with two readable bounds holds at no instant.
+///
+/// Two variants rather than one, because the two are different facts about
+/// the data: an empty period is sometimes written on purpose, an inverted one
+/// almost never is, and the reason text is the only place that survives.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Degenerate {
+    /// `validFrom` and `validTo` name the same instant: `[t, t)` is empty.
+    Empty,
+    /// `validTo` names an instant before `validFrom`.
+    Inverted,
+}
+
+impl Degenerate {
+    /// The exclusion reason. Deliberately not the generic "not true at that
+    /// instant": that is accurate for a period that holds nowhere and useless,
+    /// because it reads as a period that holds somewhere else.
+    fn reason(self) -> &'static str {
+        match self {
+            Degenerate::Empty => {
+                "holds at no instant: validFrom and validTo name the same instant, an empty period"
+            }
+            Degenerate::Inverted => {
+                "holds at no instant: validTo precedes validFrom, an inverted period"
+            }
+        }
+    }
 }
 
 impl Period {
@@ -293,8 +341,17 @@ impl Period {
     }
 
     /// Do two validity periods share any instant. Half-open, so touching
-    /// intervals do not overlap.
+    /// intervals do not overlap, and a period that holds at no instant shares
+    /// none with anything: the bound test below would answer true for `[t, t)`
+    /// against any period containing `t`, and unconditionally against an open
+    /// one, while `valid_at` is false everywhere for it. The classification is
+    /// made when the bounds are read: `scope` answers from the variant, this
+    /// answers from the flag the period carries, and `valid_at` is never asked
+    /// about a period that holds nowhere, so the two cannot disagree.
     fn overlaps(&self, other: &Period) -> bool {
+        if self.degenerate.is_some() || other.degenerate.is_some() {
+            return false;
+        }
         let start_before_end = |a: Option<DateTime<Utc>>, b: Option<DateTime<Utc>>| match (a, b) {
             (Some(start), Some(end)) => start < end,
             _ => true, // an open end never closes the interval
@@ -311,8 +368,15 @@ impl Period {
 /// exactly how that happens.
 #[derive(Clone, Debug)]
 enum GraphValidity {
-    /// Every bound the graph asserts was readable.
+    /// Every bound the graph asserts was readable, and the period holds
+    /// somewhere.
     Sound(Period),
+    /// Every bound was readable, and together the valid bounds name no
+    /// instant. Not `Unreadable`: every reason in that bucket says a bound
+    /// could not be read, and a readable claim there would give the bucket a
+    /// second meaning. The period is kept so a row still shows the asserted
+    /// bounds; `kind` says which of the two shapes it is.
+    Degenerate { period: Period, kind: Degenerate },
     /// At least one bound was not. "We hold no valid-time claim about this"
     /// and "the claim is garbage" are different answers, and only the first
     /// one is timeless.
@@ -359,6 +423,15 @@ impl Bounds {
     /// it is a bound, and a bound that stayed a string beside three parsed
     /// ones would close the interval where its text sorts rather than where
     /// its instant falls.
+    ///
+    /// Then classify the valid interval, here and nowhere else. Two readable
+    /// bounds that name no instant between them make the graph `Degenerate`,
+    /// and every consumer answers from that verdict rather than rediscovering
+    /// it: a guard inside `overlaps` would be the same `None`-means-open
+    /// mistake the enum exists to prevent, one precision down. The recorded
+    /// axis is NOT classified this way: `recordedUntil` before `recordedAt`
+    /// is out-of-order recording (#109), which is a different question and
+    /// lands separately.
     fn resolve(self, graph: String) -> GraphValidity {
         let mut faults = Vec::new();
         let from = settle("validFrom", self.from, &mut faults);
@@ -368,7 +441,15 @@ impl Bounds {
         if !faults.is_empty() {
             return GraphValidity::Unreadable(faults);
         }
-        GraphValidity::Sound(Period {
+        let degenerate = match (&from, &to) {
+            (Some(f), Some(t)) => match f.instant.cmp(&t.instant) {
+                Ordering::Equal => Some(Degenerate::Empty),
+                Ordering::Greater => Some(Degenerate::Inverted),
+                Ordering::Less => None,
+            },
+            _ => None, // an open end always leaves instants inside
+        };
+        let period = Period {
             shown: Validity {
                 graph,
                 valid_from: from.as_ref().map(|b| b.lexical.clone()),
@@ -380,7 +461,12 @@ impl Bounds {
             to: to.map(|b| b.instant),
             recorded: recorded.map(|b| b.instant),
             until: until.map(|b| b.instant),
-        })
+            degenerate,
+        };
+        match degenerate {
+            Some(kind) => GraphValidity::Degenerate { period, kind },
+            None => GraphValidity::Sound(period),
+        }
     }
 }
 
@@ -1020,7 +1106,9 @@ impl Temporal {
         let mut invalid = Vec::new();
         let mut names = Vec::new();
         for g in &graphs {
-            match validities.get(g) {
+            // The readable period, and which shape it is when it holds at no
+            // instant. The two verdicts that are not a period answer here.
+            let (p, kind) = match validities.get(g) {
                 // Undescribed graphs are timeless and always in scope, so
                 // this vocabulary is additive to an existing store.
                 None => {
@@ -1028,35 +1116,60 @@ impl Temporal {
                         serde_json::json!({"graph": g, "reason": "no validity recorded, timeless"}),
                     );
                     names.push(g.clone());
+                    continue;
                 }
                 // Described, but the description could not be read. Never in
                 // scope and never timeless: "we hold no valid-time claim about
                 // this" and "the claim is garbage" are different answers.
-                Some(GraphValidity::Unreadable(faults)) => invalid.push(serde_json::json!({
-                    "graph": g,
-                    "reason": GraphValidity::fault_reason(faults),
-                })),
-                Some(GraphValidity::Sound(p)) => {
-                    let valid_ok = valid_at.is_none_or(|t| p.valid_at(t));
-                    // Which side of the recorded interval `as_of` fell on, not
-                    // merely that it fell outside: "recorded later" and "no
-                    // longer believed" are opposite facts about the assertion.
-                    let recorded_miss = as_of.and_then(|t| p.not_recorded_at(t));
-                    if valid_ok && recorded_miss.is_none() {
-                        in_scope.push(serde_json::json!({"graph": g, "valid": p.shown.describe()}));
-                        names.push(g.clone());
-                    } else {
-                        excluded.push(serde_json::json!({
-                            "graph": g,
-                            "valid": p.shown.describe(),
-                            "reason": if !valid_ok {
-                                "not true at that instant"
-                            } else {
-                                recorded_miss.unwrap_or("not yet recorded then")
-                            },
-                        }));
-                    }
+                Some(GraphValidity::Unreadable(faults)) => {
+                    invalid.push(serde_json::json!({
+                        "graph": g,
+                        "reason": GraphValidity::fault_reason(faults),
+                    }));
+                    continue;
                 }
+                Some(GraphValidity::Sound(p)) => (p, None),
+                // Readable, and holds at no instant. With no valid_at it is
+                // read like any other graph: no instant was asked about, and
+                // narrowing an atemporal query silently is worse than
+                // answering it. At any instant asked about it is excluded,
+                // with a reason naming which of the two shapes it is, since
+                // the row's `valid` shows bounds that can look perfectly
+                // ordinary at a glance; so onto_temporal_snapshot at any
+                // valid_at reports it once. From here on it takes the sound
+                // graph's path, validity first and the recorded side second:
+                // with a valid_at given, "holds at no instant" beats "not yet
+                // recorded then", because the first is a fact about the data
+                // and the second a fact about the query, and only the first
+                // is the thing to fix; with none given, the recorded side is
+                // the only question asked, and its reason the only one that
+                // can apply. `conflicts` is unaffected: `overlaps` answers
+                // false for such a period regardless.
+                Some(GraphValidity::Degenerate { period, kind }) => (period, Some(*kind)),
+            };
+            // A period that holds at no instant is never valid at one, and
+            // `valid_at` is not asked about it: the half-open test already
+            // answers false for `from >= to`, and the guard keeps that so
+            // even if a `<=` slip there let such a period hold for one
+            // instant.
+            let valid_ok = valid_at.is_none_or(|t| kind.is_none() && p.valid_at(t));
+            // Which side of the recorded interval `as_of` fell on, not merely
+            // that it fell outside: "recorded later" and "no longer believed"
+            // are opposite facts about the assertion.
+            let recorded_miss = as_of.and_then(|t| p.not_recorded_at(t));
+            if valid_ok && recorded_miss.is_none() {
+                in_scope.push(serde_json::json!({"graph": g, "valid": p.shown.describe()}));
+                names.push(g.clone());
+            } else {
+                excluded.push(serde_json::json!({
+                    "graph": g,
+                    "valid": p.shown.describe(),
+                    "reason": if !valid_ok {
+                        kind.map_or("not true at that instant", Degenerate::reason)
+                    } else {
+                        recorded_miss.unwrap_or("not yet recorded then")
+                    },
+                }));
             }
         }
 
@@ -1223,11 +1336,16 @@ impl Temporal {
         // open ends. An UNREADABLE one is not a period at all, and handing it
         // this value would make it overlap everything: the false
         // contradiction the truncation warning below is about, arriving
-        // through the data instead of through a cap.
+        // through the data instead of through a cap. A DEGENERATE one is a
+        // real period that holds at no instant: it is compared, and
+        // `overlaps` answers false for it, so the pair lands in
+        // non_overlapping, which is true and since #116 claims no correction.
         let timeless = Period::default();
         let period = |graph: &str| match validities.get(graph) {
             None => Some(&timeless),
-            Some(GraphValidity::Sound(p)) => Some(p),
+            Some(GraphValidity::Sound(p)) | Some(GraphValidity::Degenerate { period: p, .. }) => {
+                Some(p)
+            }
             Some(GraphValidity::Unreadable(_)) => None,
         };
 
@@ -1292,7 +1410,9 @@ impl Temporal {
                      read as instants on the UTC timeline, so a timezone offset is honoured; \
                      that is all that has been checked: it is not evidence that one replaced \
                      the other, and the bucket also holds pairs separated by a GAP (missing \
-                     coverage rather than history). undecided holds pairs where a graph's \
+                     coverage rather than history) and pairs where one period holds at no \
+                     instant, empty or inverted, which onto_temporal_snapshot reports once \
+                     with a reason naming which. undecided holds pairs where a graph's \
                      temporal metadata could not be read: an unreadable period is never \
                      treated as an open one, so such a pair is classified neither way. \
                      superseded is the same set as non_overlapping under a name that claimed \
@@ -1405,6 +1525,56 @@ ex:g_after  { ex:X a ex:Suspension . }
 
     fn json(raw: String) -> serde_json::Value {
         serde_json::from_str(&raw).expect("tool output is JSON")
+    }
+
+    /// Two raw valid bounds, as the validity scan would hand them over.
+    fn valid(from: &str, to: &str) -> Bounds {
+        Bounds {
+            from: vec![format!("\"{from}\"")],
+            to: vec![format!("\"{to}\"")],
+            ..Bounds::default()
+        }
+    }
+
+    /// The classification is made where the bounds are read, and nowhere
+    /// else: equal instants are an empty period, a `validTo` before its
+    /// `validFrom` an inverted one, and everything with an instant inside it
+    /// is sound. The period travels with the verdict, and carries it too, so
+    /// `overlaps` can answer from it without seeing the enum.
+    #[test]
+    fn resolve_classifies_a_period_that_holds_nowhere_once_when_it_is_read() {
+        for (from, to, kind) in [
+            ("2024-01-01", "2024-01-01", Degenerate::Empty),
+            // Two precisions naming one instant: the case parsing created.
+            ("2024", "2024-01-01", Degenerate::Empty),
+            ("2026-01-01", "2020-01-01", Degenerate::Inverted),
+        ] {
+            match valid(from, to).resolve("g".into()) {
+                GraphValidity::Degenerate { period, kind: k } => {
+                    assert_eq!(k, kind, "[{from}, {to})");
+                    assert_eq!(period.degenerate, Some(kind), "[{from}, {to})");
+                }
+                other => panic!("[{from}, {to}) should hold nowhere: {other:?}"),
+            }
+        }
+        for (from, to) in [("2024-01-01", "2025-01-01"), ("2024-01-01", "2024-01-02")] {
+            match valid(from, to).resolve("g".into()) {
+                GraphValidity::Sound(period) => assert_eq!(period.degenerate, None),
+                other => panic!("[{from}, {to}) holds somewhere: {other:?}"),
+            }
+        }
+        // The recorded axis is not classified here: a recordedUntil before
+        // its recordedAt is out-of-order recording (#109), a different
+        // question, and pinning it as sound makes that change deliberate.
+        let recorded = Bounds {
+            recorded: vec!["\"2026-01-01\"".to_string()],
+            until: vec!["\"2020-01-01\"".to_string()],
+            ..Bounds::default()
+        };
+        assert!(matches!(
+            recorded.resolve("g".into()),
+            GraphValidity::Sound(_)
+        ));
     }
 
     /// The overrides below are for tests. If one ever became the shipped
