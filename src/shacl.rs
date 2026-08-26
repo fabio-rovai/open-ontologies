@@ -813,11 +813,22 @@ fn graph_sparql_select(
     Ok(rows)
 }
 
-/// Check whether `iri` is declared as `owl:Class` or `rdfs:Class` in the graph.
+/// Check whether `iri` is declared as `owl:Class` or `rdfs:Class` anywhere in
+/// the store.
+///
+/// A declaration is a declaration wherever it lives. The bare pattern only
+/// sees the default graph, so an ontology loaded from TriG or N-Quads, whose
+/// declarations sit inside a `GRAPH` block, looked undeclared and every
+/// shape that referenced it was reported as `missing_target_class` or
+/// `missing_class_constraint`. The lookup therefore reads the union of the
+/// default graph and every named graph, unconditionally: there is no scope
+/// argument and no flag that narrows it back to the default graph.
 fn class_exists(graph: &Arc<GraphStore>, iri: &str) -> anyhow::Result<bool> {
     let query = format!(
         r#"SELECT ?x WHERE {{
-            <{iri}> a ?type .
+            {{ <{iri}> a ?type }}
+            UNION
+            {{ GRAPH ?g {{ <{iri}> a ?type }} }}
             FILTER(?type = <http://www.w3.org/2002/07/owl#Class>
                 || ?type = <http://www.w3.org/2000/01/rdf-schema#Class>)
         }} LIMIT 1"#
@@ -827,11 +838,17 @@ fn class_exists(graph: &Arc<GraphStore>, iri: &str) -> anyhow::Result<bool> {
 }
 
 /// Check whether `iri` is declared as an `owl:ObjectProperty`,
-/// `owl:DatatypeProperty`, or `rdf:Property` in the graph.
+/// `owl:DatatypeProperty`, or `rdf:Property` anywhere in the store.
+///
+/// Same rule as `class_exists`: the union of the default graph and every
+/// named graph, unconditionally, so a property declared inside a `GRAPH`
+/// block is not reported as `missing_path`.
 fn property_exists(graph: &Arc<GraphStore>, iri: &str) -> anyhow::Result<bool> {
     let query = format!(
         r#"SELECT ?x WHERE {{
-            <{iri}> a ?type .
+            {{ <{iri}> a ?type }}
+            UNION
+            {{ GRAPH ?g {{ <{iri}> a ?type }} }}
             FILTER(?type = <http://www.w3.org/2002/07/owl#ObjectProperty>
                 || ?type = <http://www.w3.org/2002/07/owl#DatatypeProperty>
                 || ?type = <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>)
