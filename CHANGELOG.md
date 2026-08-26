@@ -415,6 +415,78 @@ All notable changes to Open Ontologies are documented here.
   a third section covers what parsing adds.
 
 ### Added
+- **`temporal:supersedes` and `temporal:retracts`: lineage that is asserted,
+  never inferred** (#109). Three situations looked identical in the data: a
+  correction (one authority replacing its own assertion), a disagreement (two
+  sources) and a retraction (withdrawn, nothing put in its place).
+  `onto_temporal_conflicts` filed a correction that shares its predecessor's
+  valid period as a contradiction, and with no explicit `recordedUntil` the
+  predecessor stayed believed for ever. Both predicates are written on the
+  NEWER graph and name the graph it replaces or withdraws. `recordedUntil`
+  alone governs scope and an explicit bound is authoritative; where a graph
+  carries none, its closing bound is derived from the inbound link as the
+  successor's `recordedAt`, the earliest where there are several, since belief
+  ended at the first replacement and a later one does not revive it. Where
+  both are present and disagree the explicit value governs and the
+  disagreement is reported, not reconciled. Nothing is written: the derivation
+  is a join made when the validity map is read, inside `validities()`, so the
+  snapshot, the query and the conflict check share it by construction.
+
+  `onto_temporal_snapshot` and `onto_temporal_query` gain two keys, present
+  only when non-empty like `invalid`. `retracted` holds rows shaped like
+  `excluded`, with `reason: "retracted"`, `retracted_by` and `retracted_at`,
+  for graphs a `retracts` link recorded by `as_of` has withdrawn; a retracted
+  graph leaves `in_scope`, its triples are not read, and retraction is checked
+  before the bounds, so for a readable graph it beats every other reason,
+  a derived closing bound included; an unreadable graph stays in `invalid`,
+  whatever links name it. `lineage` holds one `{graph, reason, ...}` row per
+  thing the links could not settle: an explicit bound that disagrees with its
+  successor, a transaction interval that closes before it opens (a successor
+  recorded before its predecessor, reported as inverted and believed at no
+  instant, never clamped), a successor with no `recordedAt`, more than one
+  successor (reported whether the close was derived or asserted, in one row
+  shape: `closed_by` names the successor where the bound was derived, and
+  `recorded_until` the explicit bound where it was asserted, since no
+  successor closed a graph that closed itself), a retractor with no
+  `recordedAt` (which withdraws at every `as_of` given: a withdrawal at an
+  unknown time is still a withdrawal), a cycle, a link naming the graph
+  itself, an undescribed or unreadable graph, or a term that is not an IRI,
+  and a link asserted by a graph whose own description could not be read,
+  which closes and withdraws nothing and says so rather than vanishing with
+  its asserter. A link the pass rejects is pruned from the map it hands on,
+  so every consumer walks effective links only: a `supersedes` naming an
+  undescribed graph puts no pair in `corrections`, and the disjoint pair it
+  fails to link is the contradiction it is, the undescribed graph being
+  timeless. An excluded row whose closing bound was derived carries
+  `superseded_by`. With no `as_of` a derived bound is read as an asserted one
+  is: no instant was asked about on the recorded axis, so the graph is in
+  scope. With no `as_of` the recorded axis is not consulted for retraction
+  either: a retracted graph takes the ordinary path, in scope unless its
+  valid-time bounds exclude it, exactly like a graph closed by a
+  `recordedUntil`, explicit or derived. One rule for every recorded-time
+  fact. The alternative, an absent `as_of` read as "now" for the whole
+  recorded axis, is a one-line reversal that would then have to change
+  explicit `recordedUntil` too. `onto_temporal_conflicts` gains `corrections`
+  / `corrections_count`, present only when non-empty like `undecided`: pairs
+  where one graph supersedes the other, directly or through a chain, checked
+  before the overlap test, so such a pair is never a contradiction whatever
+  its periods, and the `note` says so. Retracted graphs are not treated
+  specially there. `temporal:authority` is description, not a key, and is
+  left for a follow-up.
+
+  Cap arithmetic: the validity scan counts rows over a six-way UNION now. A
+  store that writes neither predicate is unchanged. A graph carrying the four
+  bounds and one link costs five rows, both links six, so the 20,000-row cap
+  covers roughly 4,000 such graphs, or roughly 3,300 with both, against
+  roughly 5,000 fully bounded ones; a test proves the fifth row. The
+  `validities` truncation texts, on the snapshot, the query and the conflict
+  check, name the failure the shared cap adds: a `supersedes` or `retracts`
+  row cut while its asserter's bounds survived was never seen, so the graph
+  it named stays open or in scope although it is described, and a pair the
+  link would have made a correction is compared on its periods.
+  `semantics_version` stays `temporal/2`: the lineage predicates ship in the
+  same release as the parsed bounds, and a store without them answers as it
+  did.
 - **CLI: Daemon mode — persistent in-memory store across processes.** New `daemon start / stop / status` subcommand launches `serve-http` as a detached background process and writes its PID + URL to `~/.open-ontologies/daemon.json`. All 24 CLI commands that touch the `Arc<GraphStore>` (load, save, clear, stats, query, lint, reason, shacl, enforce, plan, apply, version, history, rollback, pull, push, ingest, drift, lock, monitor, monitor-clear, marketplace, and `batch`) automatically detect a live daemon and route their request to it via the new `/api/batch` HTTP endpoint — no flags, no code changes per-command. Use `--no-connect` to force local execution. Daemon liveness is checked with a bare `kill(pid, 0)` (Unix) / `tasklist` (Windows), rather than forking `/bin/kill` on the path the daemon exists to make fast; stale `daemon.json` files are removed automatically on the next command. New modules `src/daemon.rs` (PID file management + process control) and `src/connect.rs` (HTTP proxy client), and `libc` as a dependency for the liveness check.
 
   Commands are proxied in the structured form of `/api/batch` — `{"command": name, "args": [..]}`, one argument per array element — rather than as a command line the daemon re-tokenizes. The lossy round trip was the source of most of what is fixed below: an argument cannot be torn on a newline, mangled by a quoting rule, or resolved against the wrong directory once it is an array element that reaches the daemon exactly as clap parsed it. Path arguments are made absolute before they are sent, and an invocation carrying a flag the batch handler has no arm for is run locally rather than proxied without it. `daemon start` waits for the port to accept a connection instead of sleeping a fixed 600ms, so it neither burns the wait when the bind is fast nor reports success for a child that never bound.
