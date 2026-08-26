@@ -612,3 +612,128 @@ fn test_node_constraint_on_a_shape_without_target_is_not_a_gap() {
         "a targetless shape has nothing to evaluate: {v}"
     );
 }
+
+#[test]
+fn test_false_valued_controls_keep_a_boolean_verdict() {
+    // `sh:closed false` is the SHACL default and restricts nothing;
+    // `sh:deactivated false` says evaluate this shape, which this validator
+    // does. Both are honoured in full, so neither is a constraint that was
+    // missed and neither may suppress the verdict. A null verdict on a run
+    // where nothing went unevaluated is a false undetermined, and it costs
+    // the same as the false clean the complement exists to prevent.
+    //
+    // The value is read by value, not by lexical form, so "0"^^xsd:boolean is
+    // the same false as `false`. Reverting the guard to the name-only filter
+    // reddens every case here.
+    let store = store_with(NOT_DATA);
+    let cases = [
+        (
+            "canonical false",
+            r#"sh:closed false ; sh:deactivated false"#,
+        ),
+        (
+            "alternative lexical form",
+            r#"sh:closed "0"^^<http://www.w3.org/2001/XMLSchema#boolean>"#,
+        ),
+    ];
+    for (case, controls) in cases {
+        let shapes = format!(
+            r#"
+            @prefix sh: <http://www.w3.org/ns/shacl#> .
+            @prefix ex: <http://example.org/> .
+            ex:S a sh:NodeShape ; sh:targetClass ex:Thing ; {controls} ;
+                sh:property [ sh:path ex:p ; sh:minCount 1 ] .
+            "#
+        );
+        let report = ShaclValidator::validate(&store, &shapes).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&report).unwrap();
+        assert_eq!(v["conforms"], serde_json::Value::Bool(false), "{case}: {v}");
+        assert_eq!(v["violation_count"], 1, "{case}: {v}");
+        assert!(
+            v.get("skipped_constraints").is_none(),
+            "{case}: a false control was honoured, not skipped: {v}"
+        );
+    }
+}
+
+#[test]
+fn test_a_control_this_validator_cannot_read_stays_skipped() {
+    // The exemption is for a false BOOLEAN, not for the predicate. A value
+    // that is a plain string, or not a literal at all, is a value this
+    // validator cannot read and therefore cannot honour, so it must stay in
+    // skipped and suppress the verdict.
+    //
+    // Reverting the exemption to a name-only filter leaves this test green,
+    // and that is correct: it pins the boundary of the exemption, not the
+    // exemption itself. Dropping the isLiteral/datatype guard in front of the
+    // equality also leaves it green, which was measured rather than assumed.
+    // Oxigraph answers `"false"^^xsd:string = false` with false instead of
+    // the type error SPARQL 1.1 allows, so the guard changes no answer on
+    // this evaluator and cannot be mutation-covered here. The reason it stays
+    // in the query is in the comment beside it: on an evaluator that does
+    // raise, the error would propagate out of the FILTER, drop the solution
+    // and silently stop skipping the controls this test is about.
+    let store = store_with(NOT_DATA);
+    let cases = [
+        ("plain string", r#""false""#, "closed"),
+        (
+            "typed as a string",
+            r#""false"^^<http://www.w3.org/2001/XMLSchema#string>"#,
+            "closed",
+        ),
+        (
+            "an IRI, not a literal",
+            "<http://example.org/Maybe>",
+            "closed",
+        ),
+        ("deactivated as a string", r#""false""#, "deactivated"),
+    ];
+    for (case, value, predicate) in cases {
+        let shapes = format!(
+            r#"
+            @prefix sh: <http://www.w3.org/ns/shacl#> .
+            @prefix ex: <http://example.org/> .
+            ex:S a sh:NodeShape ; sh:targetClass ex:Thing ; sh:{predicate} {value} ;
+                sh:property [ sh:path ex:p ; sh:minCount 1 ] .
+            "#
+        );
+        let report = ShaclValidator::validate(&store, &shapes).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&report).unwrap();
+        assert!(
+            v["conforms"].is_null(),
+            "{case}: must not claim a verdict: {v}"
+        );
+        assert!(
+            skipped_names(&v, "http://example.org/S", &format!("{SH_NS}{predicate}")),
+            "{case}: an unreadable control must stay skipped: {v}"
+        );
+    }
+}
+
+#[test]
+fn test_a_true_control_is_still_skipped_beside_a_false_one() {
+    // The exemption is per value, not per shape and not per predicate. A
+    // shape carrying `sh:closed true` and `sh:deactivated false` has one
+    // construct that was not evaluated and one that was honoured, and the
+    // report must say exactly that: sh:closed skipped, sh:deactivated absent,
+    // verdict null. Exempting the predicate rather than the value reddens it.
+    let store = store_with(NOT_DATA);
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ; sh:targetClass ex:Thing ;
+            sh:closed true ; sh:deactivated false ;
+            sh:property [ sh:path ex:p ; sh:minCount 1 ] .
+    "#;
+    let report = ShaclValidator::validate(&store, shapes).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&report).unwrap();
+    assert!(v["conforms"].is_null(), "sh:closed true was not run: {v}");
+    assert!(
+        skipped_names(&v, "http://example.org/S", &format!("{SH_NS}closed")),
+        "sh:closed true must be recorded: {v}"
+    );
+    assert!(
+        !skipped_names(&v, "http://example.org/S", &format!("{SH_NS}deactivated")),
+        "sh:deactivated false was honoured and must not be recorded: {v}"
+    );
+}

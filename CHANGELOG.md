@@ -27,6 +27,16 @@ All notable changes to Open Ontologies are documented here.
   those are not constraints. A test now asserts the null verdict is reachable
   from the node shape, from a property shape and from a target, each naming
   its construct, so the next construct added has somewhere obvious to fail.
+  Two predicates are exempt at a false value and only at a false value:
+  `sh:closed false` is the SHACL default and restricts nothing, and
+  `sh:deactivated false` asks for the evaluation this validator performs, so
+  both are honoured in full and neither may suppress the verdict. A null on a
+  run where nothing went unevaluated is a false undetermined, and it costs
+  what the false clean costs, since a null that fires on a complete run
+  teaches the reader to ignore null. The value is read by value rather than by
+  lexical form, and a control whose value is not a boolean at all stays
+  skipped, because a value this validator cannot read is not one it can
+  honour (#108).
 - **`onto_shacl_check` reported a class or property declared inside a named
   graph as missing.** The three existence lookups behind `missing_target_class`,
   `missing_class_constraint` and `missing_path` ran a bare triple pattern, whose

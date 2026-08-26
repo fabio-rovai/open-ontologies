@@ -124,6 +124,42 @@ impl ShaclValidator {
         // evaluated and this validator evaluates it anyway, so the predicate
         // is not implemented and must reach skipped like any other.
         //
+        // Two predicates are exempt at a FALSE value, and only at a false
+        // value, because at that value there is nothing left to implement.
+        // `sh:closed false` is the SHACL default and imposes no closed-shape
+        // restriction; `sh:deactivated false` says evaluate this shape, which
+        // is exactly what this validator does. Both are honoured in full, so
+        // recording them suppresses the verdict on a run in which nothing was
+        // missed. That is a false undetermined, and it costs as much as the
+        // false clean this complement exists to prevent: a null that fires on
+        // a complete run teaches the reader to ignore null, which destroys
+        // the signal the third answer carries. The value is read by value and
+        // not by lexical form, so "0"^^xsd:boolean is false like any other
+        // spelling. `sh:deactivated true` is unaffected and still reaches
+        // skipped, for the reason above.
+        //
+        // The isLiteral/datatype pair in front of the equality is defensive
+        // and, measured on this evaluator, changes no answer today: oxigraph
+        // answers `"false"^^xsd:string = false` with false, so an unreadable
+        // control stays skipped with or without it. It is kept because SPARQL
+        // 1.1 does not require that. RDFterm-equal is a type error on two
+        // literals that are neither the same term nor comparable, an error
+        // inside FILTER drops the solution rather than failing loudly, and a
+        // dropped solution here means a control this validator cannot read
+        // never reaches skipped: the false clean, arriving through the one
+        // code path written to prevent it, on an evaluator upgrade nobody
+        // would think to test for. Testing isLiteral, then the datatype, then
+        // the equality keeps every operand of the conjunction false rather
+        // than errored, on any evaluator. Being unmutatable is the point of
+        // it, so do not delete it for want of a reddening test.
+        //
+        // `sh:ignoredProperties` is knowingly not exempt and is not
+        // whitelisted. It modifies `sh:closed` rather than constraining
+        // anything by itself, so wherever it has an effect the shape also
+        // carries `sh:closed true`, which is recorded here and suppresses the
+        // verdict anyway. Carrying it without that is a shape that asks for
+        // nothing, and reporting it costs a report nobody is reading.
+        //
         // The complement is restricted to the sh: namespace. A shape that is
         // also an rdfs:Class or owl:Class (an implicit class target) carries
         // the class's own axioms on the same subject (rdfs:subClassOf,
@@ -140,6 +176,7 @@ impl ShaclValidator {
             &shapes_store,
             r#"
             PREFIX sh: <http://www.w3.org/ns/shacl#>
+            PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             SELECT DISTINCT ?shape ?pred WHERE {
                 ?shape a sh:NodeShape ; ?pred ?o .
                 FILTER(STRSTARTS(STR(?pred), "http://www.w3.org/ns/shacl#") && ?pred NOT IN (
@@ -147,6 +184,8 @@ impl ShaclValidator {
                     sh:targetObjectsOf, sh:property, sh:sparql,
                     sh:message, sh:severity, sh:name, sh:description,
                     sh:order, sh:group
+                ) && !(?pred IN (sh:closed, sh:deactivated)
+                    && isLiteral(?o) && datatype(?o) = xsd:boolean && ?o = false
                 ))
             }
             "#,
