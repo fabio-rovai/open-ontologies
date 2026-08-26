@@ -1010,31 +1010,47 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_temporal_snapshot", description = "Which named graphs are in scope at a point in time, and which are excluded and why. Two independent clocks: valid_at asks what was TRUE then, as_of asks what was KNOWN then. Assertions live in named graphs described in the default graph with temporal:validFrom, validTo, recordedAt and recordedUntil; a graph with no description is timeless and always in scope. Both intervals are half-open, so an assertion whose recordedUntil has passed is excluded as no longer believed instead of being carried forward beside the correction that replaced it. The scans are capped: `complete` says whether they finished, and a run that was cut short also carries `truncated` and a `warning`, because a truncated validity scan makes this partition wrong rather than merely short.")]
+    #[tool(name = "onto_temporal_snapshot", description = "Which named graphs are in scope at a point in time, and which are excluded and why. Two independent clocks: valid_at asks what was TRUE then, as_of asks what was KNOWN then. Assertions live in named graphs described in the default graph with temporal:validFrom, validTo, recordedAt and recordedUntil; a graph with no description is timeless and always in scope. Both intervals are half-open, so an assertion whose recordedUntil has passed is excluded as no longer believed instead of being carried forward beside the correction that replaced it. Bounds on all four axes are read as instants on the UTC timeline from xsd:date, xsd:dateTime, xsd:gYearMonth or xsd:gYear; a less precise bound names the FIRST instant of its period, and a value with no timezone offset is UTC. A bound matching none of those, or two different instants on one axis, makes the graph INVALID: reported in `invalid` with a reason, never in scope and never timeless. The scans are capped: `complete` says whether they finished, and a run that was cut short also carries `truncated` and a `warning`, because a truncated validity scan makes this partition wrong rather than merely short.")]
     async fn onto_temporal_snapshot(&self, Parameters(input): Parameters<OntoTemporalSnapshotInput>) -> String {
         use crate::temporal::Temporal;
         match Temporal::new(self.graph.clone()).snapshot(input.valid_at.as_deref(), input.as_of.as_deref()) {
             Ok(json) => json,
+            // Renders the error by quote substitution only, with no JSON
+            // escaping, so a message on this path must never echo caller
+            // text: a backslash or a newline would break the JSON. That is
+            // why `temporal::argument` (the wrapper over `instant::argument`)
+            // does not quote the argument in its message.
             Err(e) => format!(r#"{{"error":"{}"}}"#, e.to_string().replace('"', "'")),
         }
     }
 
-    #[tool(name = "onto_temporal_query", description = "Run a SPARQL graph pattern against only the graphs in temporal scope: what the graph said at a given valid time, as known at a given recorded time. Pass the body of a WHERE clause as `pattern`. `complete` is false when the result list was cut at its cap or when the scope it ran over was, and `truncated` says which; only the second case is a wrong answer, and it carries a `warning`.")]
+    #[tool(name = "onto_temporal_query", description = "Run a SPARQL graph pattern against only the graphs in temporal scope: what the graph said at a given valid time, as known at a given recorded time. Pass the body of a WHERE clause as `pattern`. valid_at and as_of are read as instants on the UTC timeline (xsd:date, xsd:dateTime, xsd:gYearMonth or xsd:gYear; no offset means UTC) and an unreadable one is refused rather than ignored. Graphs whose own bounds could not be read are out of scope and listed in `invalid`. `complete` is false when the result list was cut at its cap or when the scope it ran over was, and `truncated` says which; only the second case is a wrong answer, and it carries a `warning`.")]
     async fn onto_temporal_query(&self, Parameters(input): Parameters<OntoTemporalQueryInput>) -> String {
         use crate::temporal::Temporal;
         match Temporal::new(self.graph.clone()).query_at(
             &input.pattern, input.valid_at.as_deref(), input.as_of.as_deref(),
         ) {
             Ok(json) => json,
+            // Renders the error by quote substitution only, with no JSON
+            // escaping, so a message on this path must never echo caller
+            // text: a backslash or a newline would break the JSON. That is
+            // why `temporal::argument` (the wrapper over `instant::argument`)
+            // does not quote the argument in its message.
             Err(e) => format!(r#"{{"error":"{}"}}"#, e.to_string().replace('"', "'")),
         }
     }
 
-    #[tool(name = "onto_temporal_conflicts", description = "Disjointness violations that claim OVERLAPPING validity, separated from those that do not. Without valid time a correction reads as a contradiction: an entity recorded one way until May and another after trips every check. This reports genuine disagreement about the same period as contradictions, and everything else as non_overlapping: pairs with no instant in common under LEXICAL comparison of their bounds. That is all that is checked -- it is not evidence that one assertion replaced another, and the bucket also holds pairs separated by a GAP, which is missing coverage rather than history. The `superseded` key carries the same set under a name that claimed more than was proven; it is deprecated and will be dropped at 2.0. The scans are capped: `complete` says whether they finished, and if the validity scan was cut a `warning` marks the classification unsound, because a pair compared without its periods can appear here as a contradiction when it is a correction.")]
+    #[tool(name = "onto_temporal_conflicts", description = "Disjointness violations that claim OVERLAPPING validity, separated from those that do not. Without valid time a correction reads as a contradiction: an entity recorded one way until May and another after trips every check. This reports genuine disagreement about the same period as contradictions, and everything else as non_overlapping: pairs with no instant in common, judged on their bounds read as instants on the UTC timeline, so a timezone offset is honoured. That is all that is checked -- it is not evidence that one assertion replaced another, and the bucket also holds pairs separated by a GAP, which is missing coverage rather than history. The `superseded` key carries the same set under a name that claimed more than was proven; it is deprecated and will be dropped at 2.0. A pair whose graph has temporal metadata that could not be read is in neither bucket: it goes to `undecided`, because an unreadable period is not an open one and treating it as timeless would make it overlap everything. The scans are capped: `complete` says whether they finished, and if the validity scan was cut a `warning` marks the classification unsound, because a pair compared without its periods can appear here as a contradiction when it is a correction.")]
     async fn onto_temporal_conflicts(&self) -> String {
         use crate::temporal::Temporal;
         match Temporal::new(self.graph.clone()).conflicts() {
             Ok(json) => json,
+            // Renders the error by quote substitution only, with no JSON
+            // escaping, so a message on this path must never echo caller
+            // text: a backslash or a newline would break the JSON. This
+            // handler takes no argument, so nothing caller-supplied reaches
+            // it today; the rule is stated so an argument added later
+            // inherits it.
             Err(e) => format!(r#"{{"error":"{}"}}"#, e.to_string().replace('"', "'")),
         }
     }

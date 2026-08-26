@@ -25,10 +25,10 @@
 //! {
 //!   :g1 t:validFrom "2024-01-01"^^xsd:date ;
 //!       t:validTo   "2026-05-01"^^xsd:date ;
-//!       t:recordedAt "2024-01-05"^^xsd:dateTime ;
-//!       t:recordedUntil "2026-05-02"^^xsd:dateTime .
+//!       t:recordedAt "2024-01-05T09:00:00Z"^^xsd:dateTime ;
+//!       t:recordedUntil "2026-05-02T09:00:00Z"^^xsd:dateTime .
 //!   :g2 t:validFrom "2026-05-01"^^xsd:date ;
-//!       t:recordedAt "2026-05-02"^^xsd:dateTime .
+//!       t:recordedAt "2026-05-02T09:00:00Z"^^xsd:dateTime .
 //! }
 //! ```
 //!
@@ -50,6 +50,24 @@
 //! that replaced it, and the audit question this module exists to answer stops
 //! being answerable after the first correction.
 //!
+//! ## Bounds are instants
+//!
+//! Every bound is read as an instant on the UTC timeline, from `xsd:date`,
+//! `xsd:dateTime`, `xsd:gYearMonth` or `xsd:gYear`. A less precise bound names
+//! the FIRST instant of the period it names, so `"2026-05-01"^^xsd:date` as a
+//! `validTo` excludes the whole of 1 May, and `"2026"^^xsd:gYear` as a
+//! `validFrom` starts at midnight on 1 January. A value with no timezone
+//! offset is UTC: XSD leaves such a value only partially ordered against one
+//! carrying an offset, and "indeterminate" is not an answer a register query
+//! can return.
+//!
+//! A bound that matches none of those grammars is not coerced into one, and a
+//! graph asserting two different instants on the same axis is not resolved to
+//! either of them: both make the graph INVALID. An invalid graph is reported
+//! with its reason and is never in scope; above all it is never timeless,
+//! because "we hold no valid-time claim about this" and "the claim is garbage"
+//! are different answers.
+//!
 //! ## Bounded scans
 //!
 //! Every query behind these tools is capped so a pathological store cannot
@@ -64,10 +82,20 @@
 //! also carry a `warning`.
 
 use crate::graph::GraphStore;
+use chrono::{DateTime, Utc};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 pub const NS: &str = "https://open-ontologies.org/temporal#";
+
+/// Which comparison semantics produced an answer.
+///
+/// `temporal/1` was lexical string comparison of the bounds as written.
+/// `temporal/2` reads every bound as an instant on the UTC timeline. The same
+/// store answers differently under the two, so anything that replays or
+/// records an answer, a snapshot manifest above all, has to carry this, or
+/// two answers that cannot both be right hash identically.
+pub const SEMANTICS_VERSION: &str = "temporal/2";
 
 pub struct Temporal {
     graph: Arc<GraphStore>,
@@ -143,6 +171,9 @@ struct Scan {
 struct Scope {
     in_scope: Vec<serde_json::Value>,
     excluded: Vec<serde_json::Value>,
+    /// Graphs whose validity metadata could not be read. In neither of the
+    /// two buckets above: an unreadable claim is not a claim we do not hold.
+    invalid: Vec<serde_json::Value>,
     /// The in-scope graph IRIs, in the same order as `in_scope`.
     graphs: Vec<String>,
     validity_scan: Capped,
@@ -162,11 +193,12 @@ impl Scope {
                 "validities",
                 "graphs whose validity rows fell past the limit were read as having no \
                  validity at all, so they are listed in scope as timeless even where their \
-                 period excludes them",
+                 period excludes them, and one whose metadata is unreadable is published as \
+                 timeless instead of invalid",
             ),
             self.graph_scan.report(
                 "all_graphs",
-                "graphs past the limit are missing from both in_scope and excluded",
+                "graphs past the limit are missing from in_scope, excluded and invalid alike",
             ),
         ]
         .into_iter()
@@ -182,7 +214,8 @@ impl Scope {
         if self.validity_scan.hit {
             parts.push(
                 "described graphs were read as timeless and put in scope, which is the \
-                 opposite of the truth for any graph whose period had ended",
+                 opposite of the truth for any graph whose period had ended, and unreadable \
+                 ones were published as timeless rather than invalid",
             );
         }
         if self.graph_scan.hit {
@@ -199,7 +232,7 @@ impl Scope {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Validity {
     pub graph: String,
     pub valid_from: Option<String>,
@@ -209,25 +242,51 @@ pub struct Validity {
 }
 
 impl Validity {
+    /// The ASSERTED lexical forms, not the instants they parse to: an answer
+    /// shows what the store says. What `"2024"` means as a bound is a rule,
+    /// and a rule belongs in the tool description, not on every row.
+    fn describe(&self) -> String {
+        let from = self.valid_from.as_deref().unwrap_or("always");
+        let to = self.valid_to.as_deref().unwrap_or("still true");
+        format!("{from} to {to}")
+    }
+}
+
+/// One graph's validity, read as instants on the UTC timeline.
+///
+/// The asserted lexical forms travel alongside so an answer keeps showing
+/// what the store says, while every comparison runs on the parsed instant.
+#[derive(Clone, Debug, Default)]
+struct Period {
+    shown: Validity,
+    from: Option<DateTime<Utc>>,
+    to: Option<DateTime<Utc>>,
+    recorded: Option<DateTime<Utc>>,
+    until: Option<DateTime<Utc>>,
+}
+
+impl Period {
     /// Was this true at `instant`, on the half-open interval.
-    fn valid_at(&self, instant: &str) -> bool {
-        self.valid_from.as_deref().is_none_or(|f| f <= instant)
-            && self.valid_to.as_deref().is_none_or(|t| instant < t)
+    fn valid_at(&self, instant: DateTime<Utc>) -> bool {
+        self.from.is_none_or(|f| f <= instant) && self.to.is_none_or(|t| instant < t)
     }
 
     /// Was this believed at `instant`, on the half-open recorded interval
-    /// `[recordedAt, recordedUntil)` — and if not, on which side it fell.
+    /// `[recordedAt, recordedUntil)`, and if not, on which side it fell.
     ///
     /// This is the two-sided form of what used to be `recorded_by`. Adding the
     /// closing bound gives the predicate a second way to fail, and the two are
     /// opposite facts about the assertion: one has not been recorded yet, the
     /// other is no longer believed. A bool would flatten them back together at
     /// the only place that has to tell them apart, so it returns the reason.
-    fn not_recorded_at(&self, instant: &str) -> Option<&'static str> {
-        if self.recorded_at.as_deref().is_some_and(|r| instant < r) {
+    /// Both bounds are instants like the valid-time pair: a closing bound
+    /// written with an offset or at coarse precision closes the interval where
+    /// that instant falls, not where its text sorts.
+    fn not_recorded_at(&self, instant: DateTime<Utc>) -> Option<&'static str> {
+        if self.recorded.is_some_and(|r| instant < r) {
             return Some("not yet recorded then");
         }
-        if self.recorded_until.as_deref().is_some_and(|u| u <= instant) {
+        if self.until.is_some_and(|u| u <= instant) {
             return Some("no longer recorded then");
         }
         None
@@ -235,19 +294,569 @@ impl Validity {
 
     /// Do two validity periods share any instant. Half-open, so touching
     /// intervals do not overlap.
-    fn overlaps(&self, other: &Validity) -> bool {
-        let start_before_end = |a: &Option<String>, b: &Option<String>| match (a, b) {
-            (Some(start), Some(end)) => start.as_str() < end.as_str(),
+    fn overlaps(&self, other: &Period) -> bool {
+        let start_before_end = |a: Option<DateTime<Utc>>, b: Option<DateTime<Utc>>| match (a, b) {
+            (Some(start), Some(end)) => start < end,
             _ => true, // an open end never closes the interval
         };
-        start_before_end(&self.valid_from, &other.valid_to)
-            && start_before_end(&other.valid_from, &self.valid_to)
+        start_before_end(self.from, other.to) && start_before_end(other.from, self.to)
+    }
+}
+
+/// A graph's validity metadata as the tools read it.
+///
+/// An enum rather than a struct with a flag, because every consumer has to
+/// answer the question: a graph whose metadata cannot be read must never be
+/// treated as timeless, and a `None` that silently means "open period" is
+/// exactly how that happens.
+#[derive(Clone, Debug)]
+enum GraphValidity {
+    /// Every bound the graph asserts was readable.
+    Sound(Period),
+    /// At least one bound was not. "We hold no valid-time claim about this"
+    /// and "the claim is garbage" are different answers, and only the first
+    /// one is timeless.
+    Unreadable(Vec<Fault>),
+}
+
+/// Why one bound could not be read.
+#[derive(Clone, Debug)]
+struct Fault {
+    field: &'static str,
+    reason: String,
+}
+
+impl GraphValidity {
+    /// One sentence naming every bound that could not be read.
+    fn fault_reason(faults: &[Fault]) -> String {
+        faults
+            .iter()
+            .map(|f| format!("{}: {}", f.field, f.reason))
+            .collect::<Vec<_>>()
+            .join("; ")
+    }
+}
+
+/// One readable bound: the instant every comparison uses, and the lexical
+/// form the answer shows.
+struct Bound {
+    lexical: String,
+    instant: DateTime<Utc>,
+}
+
+/// The raw terms one graph asserts on each axis, before they are read.
+#[derive(Default)]
+struct Bounds {
+    from: Vec<String>,
+    to: Vec<String>,
+    recorded: Vec<String>,
+    until: Vec<String>,
+}
+
+impl Bounds {
+    /// Read all four axes, and refuse the graph if any one of them cannot be
+    /// read. `recordedUntil` is settled by the same rule as the other three:
+    /// it is a bound, and a bound that stayed a string beside three parsed
+    /// ones would close the interval where its text sorts rather than where
+    /// its instant falls.
+    fn resolve(self, graph: String) -> GraphValidity {
+        let mut faults = Vec::new();
+        let from = settle("validFrom", self.from, &mut faults);
+        let to = settle("validTo", self.to, &mut faults);
+        let recorded = settle("recordedAt", self.recorded, &mut faults);
+        let until = settle("recordedUntil", self.until, &mut faults);
+        if !faults.is_empty() {
+            return GraphValidity::Unreadable(faults);
+        }
+        GraphValidity::Sound(Period {
+            shown: Validity {
+                graph,
+                valid_from: from.as_ref().map(|b| b.lexical.clone()),
+                valid_to: to.as_ref().map(|b| b.lexical.clone()),
+                recorded_at: recorded.as_ref().map(|b| b.lexical.clone()),
+                recorded_until: until.as_ref().map(|b| b.lexical.clone()),
+            },
+            from: from.map(|b| b.instant),
+            to: to.map(|b| b.instant),
+            recorded: recorded.map(|b| b.instant),
+            until: until.map(|b| b.instant),
+        })
+    }
+}
+
+/// Read every term asserted on one axis, and insist they agree.
+///
+/// Agreement is judged on the INSTANTS the terms name, not on their lexical
+/// forms. Two terms denoting the SAME instant are two spellings of one
+/// assertion (a bare `"2024-01-01"` beside `"2024-01-01"^^xsd:date` is what a
+/// half-finished migration leaves behind) and they invent no interval, so they
+/// resolve. So do a coarse bound and a fine one naming the same instant:
+/// `"2024"^^xsd:gYear` beside `"2024-01-01"^^xsd:date` is one assertion,
+/// because both name midnight on 1 January. Two terms denoting DIFFERENT
+/// instants resolve to nothing: picking one, or the min, or the max, would
+/// invent an interval nobody asserted. The form shown is the lexically first
+/// term after the sort; a row shows one form per bound.
+fn settle(field: &'static str, mut terms: Vec<String>, faults: &mut Vec<Fault>) -> Option<Bound> {
+    terms.sort(); // the query contracts no row order, so neither does the answer
+    let mut read: Vec<(String, DateTime<Utc>)> = Vec::new();
+    for term in &terms {
+        match instant::bound(term) {
+            Ok(instant) => read.push((plain(term), instant)),
+            Err(reason) => {
+                faults.push(Fault { field, reason });
+                return None;
+            }
+        }
+    }
+    let (lexical, instant) = read.first()?.clone();
+    let mut distinct: Vec<DateTime<Utc>> = read.iter().map(|(_, i)| *i).collect();
+    distinct.sort_unstable();
+    distinct.dedup();
+    if distinct.len() > 1 {
+        faults.push(Fault {
+            field,
+            reason: format!(
+                "{} distinct instants asserted ({}); which interval was meant is not \
+                 recoverable, and choosing one would invent an interval nobody asserted",
+                distinct.len(),
+                terms.join(", ")
+            ),
+        });
+        return None;
+    }
+    Some(Bound { lexical, instant })
+}
+
+/// Reading a temporal bound as an instant on the UTC timeline.
+///
+/// XSD leaves a timezone-less value only partially ordered against one that
+/// carries an offset. "Indeterminate" is not an answer a register query can
+/// return, so an absent offset is read as UTC and the order is total; the
+/// tool descriptions say so. A less precise bound names the FIRST instant of
+/// the period it names, which is what lexical comparison already gave for
+/// same-precision data, so a well-formed 1.2.0 dataset answers as it did.
+mod instant {
+    use chrono::{DateTime, NaiveDate, TimeDelta, Utc};
+
+    const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum Form {
+        DateTime,
+        Date,
+        GYearMonth,
+        GYear,
     }
 
-    fn describe(&self) -> String {
-        let from = self.valid_from.as_deref().unwrap_or("always");
-        let to = self.valid_to.as_deref().unwrap_or("still true");
-        format!("{from} to {to}")
+    /// The four grammars are pairwise disjoint, so at most one can match and
+    /// the order here is only a short-circuit.
+    const FORMS: [Form; 4] = [Form::DateTime, Form::Date, Form::GYearMonth, Form::GYear];
+
+    fn name(form: Form) -> &'static str {
+        match form {
+            Form::DateTime => "xsd:dateTime",
+            Form::Date => "xsd:date",
+            Form::GYearMonth => "xsd:gYearMonth",
+            Form::GYear => "xsd:gYear",
+        }
+    }
+
+    fn form_of(datatype: &str) -> Option<Form> {
+        match datatype.strip_prefix(XSD)? {
+            "date" => Some(Form::Date),
+            "dateTime" => Some(Form::DateTime),
+            "gYearMonth" => Some(Form::GYearMonth),
+            "gYear" => Some(Form::GYear),
+            _ => None,
+        }
+    }
+
+    /// A term as `sparql_select` renders it, split into lexical form and
+    /// datatype IRI. Nothing in the four grammars contains a character
+    /// N-Triples escapes, so an escaped lexical form fails the grammar rather
+    /// than needing to be unescaped.
+    fn split(term: &str) -> Result<(&str, Option<&str>), String> {
+        let trimmed = term.trim();
+        let Some(body) = trimmed.strip_prefix('"') else {
+            return Err(format!("{trimmed} is not a literal"));
+        };
+        if let Some(rest) = body.strip_suffix('>') {
+            let Some((lex, datatype)) = rest.rsplit_once("\"^^<") else {
+                return Err(format!("{trimmed} is not a literal"));
+            };
+            return Ok((lex, Some(datatype)));
+        }
+        if let Some((_, tag)) = body.rsplit_once("\"@") {
+            return Err(format!(
+                "a language-tagged literal (@{tag}) is not a temporal bound"
+            ));
+        }
+        let Some(lex) = body.strip_suffix('"') else {
+            return Err(format!("{trimmed} is not a literal"));
+        };
+        Ok((lex, None))
+    }
+
+    /// A bound as the store holds it.
+    ///
+    /// RDF 1.1 makes a simple literal and an `xsd:string`-typed literal with
+    /// the same lexical form THE SAME TERM (`datatype()` answers `xsd:string`
+    /// for both), so a bound cannot be rejected for "carrying" `xsd:string`:
+    /// the store holds no such fact to report. An untyped bound is therefore
+    /// read by SHAPE against all four grammars. `"01/05/2026"` matches none
+    /// and is rejected, by shape rather than by datatype, but rejected.
+    pub(super) fn bound(term: &str) -> Result<DateTime<Utc>, String> {
+        let (lex, datatype) = split(term)?;
+        let lex = lex.trim(); // XSD whiteSpace on these types is `collapse`
+        match datatype {
+            Some(iri) => match form_of(iri) {
+                // A declared temporal datatype whose value does not match it
+                // is mislabelled rather than unreadable: the crate's own
+                // module doc shipped `"2024-01-05"^^xsd:dateTime`, and reading
+                // it as the date it plainly is keeps every answer such a store
+                // already gave. The re-read stays inside the four grammars, so
+                // `"01/05/2026"` is still rejected whatever it claims to be.
+                Some(form) => at(lex, form).map(Ok).unwrap_or_else(|| {
+                    shape(lex).map_err(|_| {
+                        format!(
+                            "\"{lex}\" is not a valid {} and matches no other temporal type",
+                            name(form)
+                        )
+                    })
+                }),
+                None => Err(format!(
+                    "datatype <{iri}> is outside xsd:date, xsd:dateTime, xsd:gYearMonth and xsd:gYear"
+                )),
+            },
+            None => shape(lex),
+        }
+    }
+
+    /// A tool argument. It arrives as text rather than as an RDF term, so
+    /// there is no datatype to consult, and it goes through the same
+    /// grammars a bound does, so an argument and a bound can never disagree
+    /// about what an instant is.
+    pub(super) fn argument(text: &str) -> Result<DateTime<Utc>, String> {
+        shape(text.trim())
+    }
+
+    fn shape(lex: &str) -> Result<DateTime<Utc>, String> {
+        FORMS.iter().find_map(|&form| at(lex, form)).ok_or_else(|| {
+            format!(
+                "\"{lex}\" is not an xsd:date, xsd:dateTime, xsd:gYearMonth or xsd:gYear instant"
+            )
+        })
+    }
+
+    /// The first instant of the period `lex` names, on the UTC timeline.
+    /// `None` when the lexical form does not match the grammar, when the
+    /// fields are not a real date, or when the year is not representable.
+    fn at(lex: &str, form: Form) -> Option<DateTime<Utc>> {
+        let b = lex.as_bytes();
+        let (year, mut i) = year_frag(b)?;
+        let (mut month, mut day) = (1u32, 1u32);
+        let (mut hour, mut minute, mut second, mut nano) = (0u32, 0u32, 0u32, 0u32);
+        let mut next_day = false;
+
+        if !matches!(form, Form::GYear) {
+            i = byte(b, i, b'-')?;
+            let (m, j) = two(b, i, 1, 12)?;
+            month = m;
+            i = j;
+        }
+        if matches!(form, Form::Date | Form::DateTime) {
+            i = byte(b, i, b'-')?;
+            let (d, j) = two(b, i, 1, 31)?; // from_ymd_opt rejects 30 February
+            day = d;
+            i = j;
+        }
+        if matches!(form, Form::DateTime) {
+            i = byte(b, i, b'T')?;
+            // XSD's end-of-day form: 24:00:00 is the first instant of the next
+            // day. The store canonicalises it away, but an argument can carry
+            // it, and an argument must not be refused where a bound would not.
+            if b.get(i..).is_some_and(|rest| rest.starts_with(b"24:00:00")) {
+                next_day = true;
+                i = zero_fraction(b, i + 8)?;
+            } else {
+                let (h, j) = two(b, i, 0, 23)?;
+                hour = h;
+                i = byte(b, j, b':')?;
+                let (m, j) = two(b, i, 0, 59)?;
+                minute = m;
+                i = byte(b, j, b':')?;
+                let (s, j) = two(b, i, 0, 59)?; // :60 is not in the XSD lexical space
+                second = s;
+                let (n, j) = fraction(b, j)?;
+                nano = n;
+                i = j;
+            }
+        }
+        let offset = tz(b, i)?; // 0 when absent: no offset means UTC
+        let date = NaiveDate::from_ymd_opt(year, month, day)?;
+        let date = if next_day { date.succ_opt()? } else { date };
+        date.and_hms_nano_opt(hour, minute, second, nano)?
+            .and_utc()
+            .checked_sub_signed(TimeDelta::try_seconds(i64::from(offset))?)
+    }
+
+    /// XSD yearFrag: `'-'? ( [1-9][0-9]{3,} | '0'[0-9]{3} )`. No leading `+`,
+    /// which is why `"+2024"` is not a gYear, and is not one to the store
+    /// either, which passes it through unchanged.
+    fn year_frag(b: &[u8]) -> Option<(i32, usize)> {
+        let negative = b.first() == Some(&b'-');
+        let start = usize::from(negative);
+        let mut i = start;
+        while b.get(i).is_some_and(u8::is_ascii_digit) {
+            i += 1;
+        }
+        let digits = i - start;
+        if !(4..=9).contains(&digits) {
+            return None; // 9 keeps the parse inside i32 before from_ymd_opt sees it
+        }
+        if b[start] == b'0' && digits != 4 {
+            return None;
+        }
+        let magnitude: i64 = std::str::from_utf8(b.get(start..i)?).ok()?.parse().ok()?;
+        if negative && magnitude == 0 {
+            return None; // XSD 1.1 forbids -0000
+        }
+        let year = if negative { -magnitude } else { magnitude };
+        Some((i32::try_from(year).ok()?, i)) // from_ymd_opt caps the range
+    }
+
+    /// XSD allows unbounded fractional digits; chrono holds nanoseconds. A
+    /// value carrying more PRECISION than that is REFUSED rather than
+    /// truncated. Truncating would silently merge two instants a well-formed
+    /// store distinguishes, and these intervals are half-open, so the instants
+    /// that merge are exactly the ones a boundary test is asking about.
+    ///
+    /// Digits past the ninth are only extra precision when one of them is
+    /// NONZERO. A zero tail adds nothing: `.1234567890` is 123,456,789
+    /// nanoseconds exactly, the same instant `.123456789` names, and refusing
+    /// it would contradict `settle`, which resolves two spellings of one
+    /// instant precisely because they invent no interval. Fixed-width
+    /// formatters pad to a fixed digit count, so the tail is common in stores
+    /// nobody wrote by hand.
+    fn fraction(b: &[u8], i: usize) -> Option<(u32, usize)> {
+        if b.get(i) != Some(&b'.') {
+            return Some((0, i));
+        }
+        let (mut j, mut nano, mut scale) = (i + 1, 0u32, 100_000_000u32);
+        while let Some(d) = b.get(j).and_then(|&c| char::from(c).to_digit(10)) {
+            if scale == 0 {
+                if d != 0 {
+                    return None; // more precision asserted than can be compared
+                }
+            } else {
+                nano += d * scale;
+                scale /= 10;
+            }
+            j += 1;
+        }
+        if j == i + 1 {
+            return None; // a lone '.'
+        }
+        Some((nano, j))
+    }
+
+    /// The `('.' '0'+)?` XSD allows after `24:00:00`.
+    fn zero_fraction(b: &[u8], i: usize) -> Option<usize> {
+        let (nano, j) = fraction(b, i)?;
+        (nano == 0).then_some(j)
+    }
+
+    /// A trailing `Z` or `±hh:mm`, in seconds east of UTC. Absent means 0.
+    fn tz(b: &[u8], i: usize) -> Option<i32> {
+        let rest = b.get(i..)?;
+        if rest.is_empty() || rest == b"Z" {
+            return Some(0);
+        }
+        if rest.len() != 6 || rest[3] != b':' {
+            return None;
+        }
+        let sign = match rest[0] {
+            b'+' => 1,
+            b'-' => -1,
+            _ => return None,
+        };
+        let hours = two_digits(&rest[1..3])?;
+        let minutes = two_digits(&rest[4..6])?;
+        if minutes > 59 {
+            return None;
+        }
+        let total = i32::try_from(hours * 60 + minutes).ok()?;
+        if total > 14 * 60 {
+            return None; // XSD caps the offset at ±14:00
+        }
+        Some(sign * total * 60)
+    }
+
+    fn byte(b: &[u8], i: usize, want: u8) -> Option<usize> {
+        (b.get(i) == Some(&want)).then_some(i + 1)
+    }
+
+    fn two(b: &[u8], i: usize, lo: u32, hi: u32) -> Option<(u32, usize)> {
+        let value = two_digits(b.get(i..i + 2)?)?;
+        (lo..=hi).contains(&value).then_some((value, i + 2))
+    }
+
+    fn two_digits(pair: &[u8]) -> Option<u32> {
+        let tens = char::from(*pair.first()?).to_digit(10)?;
+        let units = char::from(*pair.get(1)?).to_digit(10)?;
+        Some(tens * 10 + units)
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        /// The instant a lexical form names, as `YYYY-MM-DDTHH:MM:SSZ`, or the
+        /// word "invalid". One row per rule, so a rule that changes moves one
+        /// line rather than a paragraph of prose.
+        fn read(text: &str) -> String {
+            match argument(text) {
+                Ok(i) => i.format("%Y-%m-%dT%H:%M:%S%.fZ").to_string(),
+                Err(_) => "invalid".to_string(),
+            }
+        }
+
+        #[test]
+        fn a_less_precise_form_names_the_first_instant_of_its_period() {
+            for (lexical, instant) in [
+                ("2024", "2024-01-01T00:00:00Z"),
+                ("2024-03", "2024-03-01T00:00:00Z"),
+                ("2024-03-05", "2024-03-05T00:00:00Z"),
+                ("2024-03-05T06:07:08", "2024-03-05T06:07:08Z"),
+                ("2024-03-05T06:07:08.25", "2024-03-05T06:07:08.250Z"),
+            ] {
+                assert_eq!(read(lexical), instant, "{lexical}");
+            }
+        }
+
+        #[test]
+        fn an_absent_offset_is_utc_and_a_present_one_is_applied() {
+            for (lexical, instant) in [
+                ("2024-03-05T06:00:00", "2024-03-05T06:00:00Z"),
+                ("2024-03-05T06:00:00Z", "2024-03-05T06:00:00Z"),
+                ("2024-03-05T06:00:00+02:00", "2024-03-05T04:00:00Z"),
+                ("2024-03-05T06:00:00-05:00", "2024-03-05T11:00:00Z"),
+                // The offset applies to the coarser forms too, and can move
+                // the instant into the previous day, month or year.
+                ("2024-03-05+02:00", "2024-03-04T22:00:00Z"),
+                ("2024-01+02:00", "2023-12-31T22:00:00Z"),
+                ("2024+02:00", "2023-12-31T22:00:00Z"),
+                // XSD's end-of-day form: the first instant of the next day.
+                ("2024-03-05T24:00:00Z", "2024-03-06T00:00:00Z"),
+            ] {
+                assert_eq!(read(lexical), instant, "{lexical}");
+            }
+        }
+
+        #[test]
+        fn everything_outside_the_four_grammars_is_refused() {
+            for lexical in [
+                "01/05/2026",                // the shape a spreadsheet exports
+                "2024-1-1",                  // XSD requires two digits
+                "20240101",                  // and the separators
+                "2024-13-01",                // month out of range
+                "2024-02-30",                // parses field by field, never happened
+                "2024-03-05T25:00:00Z",      // hour out of range
+                "2024-03-05T06:07",          // xsd:dateTime requires seconds
+                "2024-03-05T06:07:60Z",      // leap seconds are not in the lexical space
+                "2024-03-05T06:00:00+00:99", // minutes out of range
+                "2024-03-05T06:00:00+15:00", // XSD caps the offset at 14:00
+                "+2024",                     // yearFrag has no leading plus
+                "-0000",                     // XSD 1.1 forbids negative zero
+                "024",                       // fewer than four digits
+                "02024",                     // a leading zero is only for four
+                "",
+                "   ",
+                "tomorrow",
+                // Finer than a nanosecond: refused rather than truncated, so
+                // two instants a store distinguishes never silently merge.
+                "2024-03-05T06:00:00.0000000001Z",
+            ] {
+                assert_eq!(read(lexical), "invalid", "{lexical}");
+            }
+        }
+
+        #[test]
+        fn a_datatype_outside_the_four_is_refused_whatever_its_value_looks_like() {
+            let date = "\"2024-03-05\"^^<http://www.w3.org/2001/XMLSchema#date>";
+            assert!(bound(date).is_ok());
+            for term in [
+                "\"2024-03-05\"^^<http://www.w3.org/2001/XMLSchema#token>",
+                "\"2024-03-05\"^^<http://example.org/JulianDay>",
+                "\"2024-03-05\"@en",
+                "<http://example.org/not-a-literal>",
+            ] {
+                assert!(bound(term).is_err(), "{term}");
+            }
+        }
+
+        /// The crate's own module doc shipped `"2024-01-05"^^xsd:dateTime`,
+        /// which is a date wearing a dateTime datatype. Reading it as the date
+        /// it plainly is keeps every answer such a store already gave; the
+        /// re-read stays inside the four temporal grammars, so a value fitting
+        /// none of them is still refused whatever it claims to be.
+        #[test]
+        fn a_value_mislabelled_as_another_temporal_type_is_re_read_by_shape() {
+            let mislabelled = "\"2024-01-05\"^^<http://www.w3.org/2001/XMLSchema#dateTime>";
+            assert_eq!(
+                bound(mislabelled)
+                    .unwrap()
+                    .format("%Y-%m-%dT%H:%M:%SZ")
+                    .to_string(),
+                "2024-01-05T00:00:00Z"
+            );
+            let garbage = "\"01/05/2026\"^^<http://www.w3.org/2001/XMLSchema#dateTime>";
+            assert!(bound(garbage).is_err());
+        }
+
+        /// XSD's whiteSpace facet on these types is `collapse`, and a store
+        /// that keeps the padding must not answer differently from one that
+        /// does not, on either path.
+        #[test]
+        fn padding_is_collapsed_on_both_the_typed_and_the_bare_path() {
+            assert_eq!(read("  2024-03-05  "), "2024-03-05T00:00:00Z");
+            let padded = "\"  2024-03-05  \"^^<http://www.w3.org/2001/XMLSchema#date>";
+            assert!(bound(padded).is_ok());
+        }
+
+        /// A tenth fractional digit is only unrepresentable when it carries a
+        /// value. `.1234567890` is 123,456,789 nanoseconds exactly, the same
+        /// instant `.123456789` names, so refusing it made two spellings of
+        /// one instant answer differently, which is the thing `settle` exists
+        /// to prevent. Fixed-width formatters pad to a fixed digit count, so
+        /// the zero tail arrives from machines, not from typos.
+        #[test]
+        fn a_zero_tail_past_nanoseconds_is_the_same_instant_not_more_precision() {
+            let nine = read("2024-03-05T06:07:08.123456789Z");
+            assert_eq!(read("2024-03-05T06:07:08.1234567890Z"), nine);
+            assert_eq!(read("2024-03-05T06:07:08.12345678900000Z"), nine);
+            // The zero tail must not disturb a value that is entirely zeroes,
+            // nor the `('.' '0'+)?` XSD allows after 24:00:00.
+            assert_eq!(
+                read("2024-03-05T06:07:08.0000000000Z"),
+                read("2024-03-05T06:07:08Z")
+            );
+            assert!(bound("\"2024-03-05T24:00:00.0000000000Z\"").is_ok());
+        }
+
+        /// The negative control for the test above: a NONZERO digit past the
+        /// ninth is real precision this crate cannot compare, and truncating
+        /// it would merge two instants a well-formed store distinguishes.
+        /// Without this case the fix above would read as "accept any tail".
+        #[test]
+        fn a_nonzero_digit_past_nanoseconds_is_still_refused() {
+            assert!(bound("\"2024-03-05T06:07:08.1234567891Z\"").is_err());
+            assert!(bound("\"2024-03-05T06:00:00.0000000001Z\"").is_err());
+            // A nonzero digit further out still counts, however long the tail.
+            assert!(bound("\"2024-03-05T06:07:08.12345678900001Z\"").is_err());
+            // And 24:00:00 still admits only zeroes.
+            assert!(bound("\"2024-03-05T24:00:00.0000000001Z\"").is_err());
+        }
     }
 }
 
@@ -269,6 +878,31 @@ fn plain(value: &str) -> String {
 
 fn local(iri: &str) -> &str {
     iri.rsplit(['#', '/']).next().unwrap_or(iri)
+}
+
+/// Read a tool argument as an instant.
+///
+/// An argument that cannot be read is refused rather than dropped: treating it
+/// as "no bound" would answer a question nobody asked, with the whole store in
+/// scope and nothing saying why.
+///
+/// The message deliberately does not quote the argument back. The tool
+/// handlers render an `Err` into JSON by hand (`src/server.rs`, quote
+/// substitution only), so caller text reaching that path could emit a
+/// malformed response, and the caller has the value already. Store-side
+/// reasons do quote the offending bound, because those travel in the `invalid`
+/// array, which is built by serde_json and escaped properly.
+fn argument(name: &str, text: Option<&str>) -> anyhow::Result<Option<DateTime<Utc>>> {
+    text.map(|t| {
+        instant::argument(t).map_err(|_| {
+            anyhow::anyhow!(
+                "{name} is not readable as an instant: it must be an xsd:date, xsd:dateTime, \
+                 xsd:gYearMonth or xsd:gYear value, and a value carrying no timezone offset \
+                 is read as UTC"
+            )
+        })
+    })
+    .transpose()
 }
 
 impl Temporal {
@@ -314,7 +948,7 @@ impl Temporal {
 
     /// Every graph that carries validity metadata, and whether the scan that
     /// found them was complete.
-    fn validities(&self) -> anyhow::Result<(BTreeMap<String, Validity>, Capped)> {
+    fn validities(&self) -> anyhow::Result<(BTreeMap<String, GraphValidity>, Capped)> {
         let query = format!(
             "SELECT ?g ?from ?to ?rec ?until WHERE {{ \
              {{ ?g <{NS}validFrom> ?from }} UNION {{ ?g <{NS}validTo> ?to }} \
@@ -322,31 +956,35 @@ impl Temporal {
              UNION {{ ?g <{NS}recordedUntil> ?until }} }}"
         );
         let scan = self.rows(&query, self.limits.validity_scan)?;
-        let mut out: BTreeMap<String, Validity> = BTreeMap::new();
+        // 1.2.0 ASSIGNED each field here, so the last row of the UNION won
+        // and any other value vanished. Collect instead: a graph asserting
+        // two different instants on one axis is a data error, and resolving
+        // it by min, max or row order would invent an interval nobody
+        // asserted.
+        let mut terms: BTreeMap<String, Bounds> = BTreeMap::new();
         for row in &scan.rows {
             let Some(g) = row.get("g").and_then(|v| v.as_str()).map(plain) else {
                 continue;
             };
-            let entry = out.entry(g.clone()).or_insert(Validity {
-                graph: g,
-                valid_from: None,
-                valid_to: None,
-                recorded_at: None,
-                recorded_until: None,
-            });
-            if let Some(v) = row.get("from").and_then(|v| v.as_str()) {
-                entry.valid_from = Some(plain(v));
-            }
-            if let Some(v) = row.get("to").and_then(|v| v.as_str()) {
-                entry.valid_to = Some(plain(v));
-            }
-            if let Some(v) = row.get("rec").and_then(|v| v.as_str()) {
-                entry.recorded_at = Some(plain(v));
-            }
-            if let Some(v) = row.get("until").and_then(|v| v.as_str()) {
-                entry.recorded_until = Some(plain(v));
+            let entry = terms.entry(g).or_default();
+            for (key, slot) in [
+                ("from", &mut entry.from),
+                ("to", &mut entry.to),
+                ("rec", &mut entry.recorded),
+                ("until", &mut entry.until),
+            ] {
+                if let Some(v) = row.get(key).and_then(|v| v.as_str()) {
+                    let term = v.trim().to_string();
+                    if !slot.contains(&term) {
+                        slot.push(term);
+                    }
+                }
             }
         }
+        let out = terms
+            .into_iter()
+            .map(|(graph, bounds)| (graph.clone(), bounds.resolve(graph)))
+            .collect();
         Ok((out, scan.capped))
     }
 
@@ -369,12 +1007,17 @@ impl Temporal {
     /// `snapshot` renders this and `query_at` runs against it, so the two
     /// tools agree by construction and the truncation verdict reaches
     /// `query_at` as a value rather than through its own JSON output.
-    fn scope(&self, valid_at: Option<&str>, as_of: Option<&str>) -> anyhow::Result<Scope> {
+    fn scope(
+        &self,
+        valid_at: Option<DateTime<Utc>>,
+        as_of: Option<DateTime<Utc>>,
+    ) -> anyhow::Result<Scope> {
         let (validities, validity_scan) = self.validities()?;
         let (graphs, graph_scan) = self.all_graphs()?;
 
         let mut in_scope = Vec::new();
         let mut excluded = Vec::new();
+        let mut invalid = Vec::new();
         let mut names = Vec::new();
         for g in &graphs {
             match validities.get(g) {
@@ -386,19 +1029,26 @@ impl Temporal {
                     );
                     names.push(g.clone());
                 }
-                Some(v) => {
-                    let valid_ok = valid_at.is_none_or(|t| v.valid_at(t));
+                // Described, but the description could not be read. Never in
+                // scope and never timeless: "we hold no valid-time claim about
+                // this" and "the claim is garbage" are different answers.
+                Some(GraphValidity::Unreadable(faults)) => invalid.push(serde_json::json!({
+                    "graph": g,
+                    "reason": GraphValidity::fault_reason(faults),
+                })),
+                Some(GraphValidity::Sound(p)) => {
+                    let valid_ok = valid_at.is_none_or(|t| p.valid_at(t));
                     // Which side of the recorded interval `as_of` fell on, not
                     // merely that it fell outside: "recorded later" and "no
                     // longer believed" are opposite facts about the assertion.
-                    let recorded_miss = as_of.and_then(|t| v.not_recorded_at(t));
+                    let recorded_miss = as_of.and_then(|t| p.not_recorded_at(t));
                     if valid_ok && recorded_miss.is_none() {
-                        in_scope.push(serde_json::json!({"graph": g, "valid": v.describe()}));
+                        in_scope.push(serde_json::json!({"graph": g, "valid": p.shown.describe()}));
                         names.push(g.clone());
                     } else {
                         excluded.push(serde_json::json!({
                             "graph": g,
-                            "valid": v.describe(),
+                            "valid": p.shown.describe(),
                             "reason": if !valid_ok {
                                 "not true at that instant"
                             } else {
@@ -413,6 +1063,7 @@ impl Temporal {
         Ok(Scope {
             in_scope,
             excluded,
+            invalid,
             graphs: names,
             validity_scan,
             graph_scan,
@@ -421,7 +1072,9 @@ impl Temporal {
 
     /// Which graphs are in scope for a snapshot, and why.
     pub fn snapshot(&self, valid_at: Option<&str>, as_of: Option<&str>) -> anyhow::Result<String> {
-        let scope = self.scope(valid_at, as_of)?;
+        let at = argument("valid_at", valid_at)?;
+        let of = argument("as_of", as_of)?;
+        let scope = self.scope(at, of)?;
 
         let mut out = serde_json::json!({
             "ok": true,
@@ -430,8 +1083,12 @@ impl Temporal {
             "in_scope": scope.in_scope,
             "excluded": scope.excluded,
             "complete": scope.complete(),
+            "semantics_version": SEMANTICS_VERSION,
             "note": "Graphs without validity metadata are timeless and always in scope.",
         });
+        if !scope.invalid.is_empty() {
+            out["invalid"] = serde_json::Value::Array(scope.invalid.clone());
+        }
         if let Some(warning) = scope.warning() {
             out["warning"] = serde_json::Value::String(format!("{warning} See truncated."));
             out["truncated"] = serde_json::Value::Array(scope.cuts());
@@ -450,14 +1107,19 @@ impl Temporal {
         valid_at: Option<&str>,
         as_of: Option<&str>,
     ) -> anyhow::Result<String> {
-        let scope = self.scope(valid_at, as_of)?;
+        let at = argument("valid_at", valid_at)?;
+        let of = argument("as_of", as_of)?;
+        let scope = self.scope(at, of)?;
         // The scope this query runs over is the snapshot's scope, so the
         // snapshot's truncation is this query's truncation. Saying nothing
         // here would hide a wrong scope behind a tool that never mentions
-        // scans at all.
+        // scans at all. Same for the graphs left out as unreadable: a query
+        // that silently narrows what it read is the failure this reporting
+        // exists to remove.
         let mut cuts = scope.cuts();
         let scope_warning = scope.warning();
         let scope_complete = scope.complete();
+        let invalid = scope.invalid;
         let graphs = scope.graphs;
 
         if graphs.is_empty() {
@@ -465,8 +1127,12 @@ impl Temporal {
                 "ok": true,
                 "results": [],
                 "complete": scope_complete,
+                "semantics_version": SEMANTICS_VERSION,
                 "note": "no graphs in scope at that instant",
             });
+            if !invalid.is_empty() {
+                out["invalid"] = serde_json::Value::Array(invalid);
+            }
             if let Some(warning) = scope_warning {
                 out["warning"] = serde_json::Value::String(format!(
                     "{warning} An empty scope here may mean \"nothing among the graphs that \
@@ -502,7 +1168,11 @@ impl Temporal {
             "graphs_in_scope": graphs.len(),
             "results": scan.rows,
             "complete": scope_complete && !scan.capped.hit,
+            "semantics_version": SEMANTICS_VERSION,
         });
+        if !invalid.is_empty() {
+            out["invalid"] = serde_json::Value::Array(invalid);
+        }
         if !cuts.is_empty() {
             out["truncated"] = serde_json::Value::Array(cuts);
         }
@@ -549,33 +1219,48 @@ impl Temporal {
             self.limits.conflict_pairs,
         )?;
 
+        // An undescribed graph is timeless, which is a real period with two
+        // open ends. An UNREADABLE one is not a period at all, and handing it
+        // this value would make it overlap everything: the false
+        // contradiction the truncation warning below is about, arriving
+        // through the data instead of through a cap.
+        let timeless = Period::default();
+        let period = |graph: &str| match validities.get(graph) {
+            None => Some(&timeless),
+            Some(GraphValidity::Sound(p)) => Some(p),
+            Some(GraphValidity::Unreadable(_)) => None,
+        };
+
         let mut conflicts = Vec::new();
         let mut non_overlapping = Vec::new();
+        let mut undecided = Vec::new();
         for row in &scan.rows {
             let get = |k: &str| row.get(k).and_then(|v| v.as_str()).map(plain);
-            let (Some(s), Some(a), Some(b), Some(ga), Some(gb)) = (
-                get("s"), get("a"), get("b"), get("ga"), get("gb"),
-            ) else {
+            let (Some(s), Some(a), Some(b), Some(ga), Some(gb)) =
+                (get("s"), get("a"), get("b"), get("ga"), get("gb"))
+            else {
                 continue;
             };
             if ga == gb {
                 continue;
             }
 
-            let timeless = Validity {
-                graph: String::new(),
-                valid_from: None,
-                valid_to: None,
-                recorded_at: None,
-                recorded_until: None,
+            let (Some(va), Some(vb)) = (period(&ga), period(&gb)) else {
+                undecided.push(serde_json::json!({
+                    "subject": local(&s),
+                    "types": [local(&a), local(&b)],
+                    "graphs": [ga, gb],
+                    "reason": "one of these graphs has temporal metadata that could not be read \
+                               on at least one axis, so it is invalid and the pair was not \
+                               classified; see invalid in onto_temporal_snapshot",
+                }));
+                continue;
             };
-            let va = validities.get(&ga).unwrap_or(&timeless);
-            let vb = validities.get(&gb).unwrap_or(&timeless);
 
             let entry = serde_json::json!({
                 "subject": local(&s),
                 "types": [local(&a), local(&b)],
-                "periods": [va.describe(), vb.describe()],
+                "periods": [va.shown.describe(), vb.shown.describe()],
                 "graphs": [ga, gb],
             });
             if va.overlaps(vb) {
@@ -601,15 +1286,17 @@ impl Temporal {
             "superseded": non_overlapping,
             "superseded_count": non_overlapping.len(),
             "complete": !validity_scan.hit && !scan.capped.hit,
+            "semantics_version": SEMANTICS_VERSION,
             "note": "contradictions claim overlapping validity and genuinely disagree. \
-                     non_overlapping pairs have no instant in common UNDER LEXICAL \
-                     COMPARISON of their bounds, which is all that has been checked: it is \
-                     not evidence that one replaced the other, the bucket also holds pairs \
-                     separated by a GAP (missing coverage rather than history), and bounds \
-                     written with different timezone offsets are compared as text, so a \
-                     genuinely overlapping pair can land here until bounds are parsed as \
-                     instants. superseded is the same set under a name that claimed more \
-                     than was proven; it is deprecated and will be dropped at 2.0.",
+                     non_overlapping pairs have no instant in common, judged on their bounds \
+                     read as instants on the UTC timeline, so a timezone offset is honoured; \
+                     that is all that has been checked: it is not evidence that one replaced \
+                     the other, and the bucket also holds pairs separated by a GAP (missing \
+                     coverage rather than history). undecided holds pairs where a graph's \
+                     temporal metadata could not be read: an unreadable period is never \
+                     treated as an open one, so such a pair is classified neither way. \
+                     superseded is the same set as non_overlapping under a name that claimed \
+                     more than was proven; it is deprecated and will be dropped at 2.0.",
         });
 
         // A cut validity scan is not a smaller answer here, it is a wrong one:
@@ -634,6 +1321,10 @@ impl Temporal {
         .flatten()
         .collect();
 
+        if !undecided.is_empty() {
+            out["undecided"] = serde_json::Value::Array(undecided.clone());
+            out["undecided_count"] = serde_json::Value::from(undecided.len());
+        }
         if !cuts.is_empty() {
             out["truncated"] = serde_json::Value::Array(cuts);
         }
@@ -738,7 +1429,10 @@ ex:g_after  { ex:X a ex:Suspension . }
     }
 
     /// The contract for every store that never reaches a cap: one honest
-    /// `complete`, and not a key more than 1.2.0 emitted.
+    /// `complete`, and no report of a cut that did not happen. "Nothing else"
+    /// is about the cut. `semantics_version` is always present, and `invalid`
+    /// and `undecided` appear whenever they are non-empty; those keys say
+    /// nothing about caps and the conformance corpus pins them separately.
     #[test]
     fn a_run_that_was_never_cut_says_so_and_adds_nothing_else() {
         let t = Temporal::new(store(THREE));
