@@ -219,7 +219,7 @@ All notable changes to Open Ontologies are documented here.
 
 ### Changed
 - **Temporal bounds are read as instants on the UTC timeline, not compared as
-  text** (issue #95, ships as 1.3.0). `onto_temporal_snapshot`,
+  text** (issue #95). `onto_temporal_snapshot`,
   `onto_temporal_query` and `onto_temporal_conflicts` accept `xsd:date`,
   `xsd:dateTime`, `xsd:gYearMonth` and `xsd:gYear`; a less precise bound names
   the FIRST instant of the period it names, so `"2026-05-01"^^xsd:date` as a

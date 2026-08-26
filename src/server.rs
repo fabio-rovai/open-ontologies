@@ -1047,9 +1047,10 @@ impl OpenOntologiesServer {
             Ok(json) => json,
             // Renders the error by quote substitution only, with no JSON
             // escaping, so a message on this path must never echo caller
-            // text: a backslash or a newline would break the JSON. That is
-            // why `temporal::argument` (the wrapper over `instant::argument`)
-            // does not quote the argument in its message.
+            // text: a backslash or a newline would break the JSON. This
+            // handler takes no argument, so nothing caller-supplied reaches
+            // it today; the rule is stated so an argument added later
+            // inherits it.
             Err(e) => format!(r#"{{"error":"{}"}}"#, e.to_string().replace('"', "'")),
         }
     }

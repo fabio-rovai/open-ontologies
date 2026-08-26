@@ -5,9 +5,10 @@
 //! validity with an exclusive upper bound, open bounds, recorded-time
 //! visibility, timeless (undescribed) graphs, snapshot-scoped querying, and
 //! the overlap-versus-superseded split that is the whole point of carrying
-//! valid time. Every assertion holds on the code as shipped in 1.2.0, so these
-//! are behavioural anchors, not aspirations: a later change to the temporal
-//! semantics has to move a line here on purpose rather than drift silently.
+//! valid time. Every assertion holds on the code as it stands, `temporal/2`,
+//! the parsed-time semantics that #95 asked for, so these are behavioural
+//! anchors, not aspirations: a later change to the temporal semantics has to
+//! move a line here on purpose rather than drift silently.
 //!
 //! The file has three sections. The first pins semantics that are **intended**;
 //! most of it uses a single lexical date form, since that is the shape those
@@ -330,10 +331,11 @@ fn open_end_still_holds_in_the_far_future() {
 }
 
 /// The same shape as `CELL_LINE`, but written with the `xsd:date` and
-/// `xsd:dateTime` typed literals the tool documents on disk. `Temporal::plain`
-/// strips the datatype, so these must behave exactly like their lexical forms;
-/// this is the representation a regression in that stripping would break while
-/// the untyped fixtures stayed green.
+/// `xsd:dateTime` typed literals the tool documents on disk. A typed bound is
+/// read against the grammar its datatype names, an untyped one by shape alone,
+/// and both must land on the same instants; this is the representation a
+/// regression in the typed path would break while the untyped fixtures stayed
+/// green.
 const TYPED_LITERALS: &str = r#"
 @prefix ex:  <http://example.org/> .
 @prefix t:   <https://open-ontologies.org/temporal#> .
