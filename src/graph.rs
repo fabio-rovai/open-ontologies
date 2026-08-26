@@ -231,6 +231,20 @@ impl GraphStore {
         })
     }
 
+    /// Run a SELECT over the store's default graph.
+    ///
+    /// **Which of the two you want depends on who wrote the query.** A query
+    /// someone typed belongs here: they chose the dataset by writing `GRAPH`
+    /// or not writing it, and widening it under them would change the meaning
+    /// of what they wrote. A query this codebase authored to ask a question
+    /// about the store belongs in [`Self::sparql_select_union`], because the
+    /// answer to "what does this store declare" or "which instances are
+    /// there" must not depend on the file format the triples arrived in.
+    ///
+    /// Getting that backwards does not look like a bug. It looks like a clean
+    /// report over a store that holds nothing, which is how it survived in
+    /// four separate tools at once (#108). `tests/serialisation_invariance_test.rs`
+    /// is where a tool's answer is pinned against both serialisations.
     pub fn sparql_select(&self, query: &str) -> anyhow::Result<String> {
         self.select_with_dataset(query, false)
     }

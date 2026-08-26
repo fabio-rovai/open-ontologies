@@ -5,6 +5,19 @@ All notable changes to Open Ontologies are documented here.
 ## [Unreleased]
 
 ### Fixed
+- **Three more tools answered about the default graph alone, so their answers
+  depended on the serialisation the data arrived in.** Same defect as the two
+  halves of #108, found by loading identical content as Turtle and as TriG and
+  comparing the reports rather than by reading the code. `onto_vocab_check`
+  read zero declared terms from an ontology loaded as TriG or N-Quads and
+  bailed with a warning telling the caller to load an ontology they had already
+  loaded. `onto_communities` reported no communities and the note "no relations
+  between named subjects and objects", asserting a fact about the corpus it had
+  not checked. Shape induction counted no instances and returned an empty
+  lattice, indistinguishable from a class that genuinely has none. All three now
+  read the union of every graph. `tests/serialisation_invariance_test.rs` pins
+  the rule and names the modules still unmeasured, since roughly thirty run
+  internally authored SELECTs and only four have been checked (#108).
 - **`onto_shacl` validated the default graph and nothing else, so whether data
   was checked at all depended on the serialisation it arrived in.** Every
   data-side query ran through the store's default dataset specification, which
