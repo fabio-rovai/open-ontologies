@@ -10,7 +10,7 @@
 //! anchors, not aspirations: a later change to the temporal semantics has to
 //! move a line here on purpose rather than drift silently.
 //!
-//! The file has four sections. The first pins semantics that are **intended**;
+//! The file has five sections. The first pins semantics that are **intended**;
 //! most of it uses a single lexical date form, since that is the shape those
 //! assertions are about, and none of it moved when bounds started being parsed.
 //! The second pinned what the code did for mixed-precision and malformed bounds
@@ -22,7 +22,10 @@
 //! expressed before: coarse bounds, offsets, and bounds that must be refused.
 //! The fourth covers periods that hold at no instant (#118), led by the case
 //! parsing created: two readable bounds at different precisions naming one
-//! instant.
+//! instant. The fifth covers lineage that is asserted, never inferred (#109):
+//! `supersedes` and `retracts`, the closing bound derived from a successor and
+//! never written, the `retracted` bucket, the `lineage` reports and the
+//! `corrections` bucket, led by the issue's own example.
 //!
 //! Deliberately not feature-gated: a `#![cfg(feature = ...)]` on a test file
 //! that CI runs without that feature prints `running 0 tests` and reads as
@@ -266,15 +269,25 @@ fn recorded_interval_is_half_open_at_the_upper_bound() {
 /// the worst available default for a bound that exists to withdraw something.
 ///
 /// This test fails on `recordedUntil` before the UNION carries it, and it will
-/// fail the same way for the fifth predicate someone adds without wiring.
+/// fail the same way for the seventh predicate someone adds without wiring.
+/// Each predicate gets an object of its own type: the four bounds a date,
+/// the two lineage links a graph IRI, since a literal is not a legal object
+/// for them and would test the report rather than the map.
 #[test]
 fn every_temporal_predicate_takes_its_graph_out_of_the_timeless_bucket() {
-    for predicate in ["validFrom", "validTo", "recordedAt", "recordedUntil"] {
+    for (predicate, object) in [
+        ("validFrom", "\"2024-01-01\""),
+        ("validTo", "\"2024-01-01\""),
+        ("recordedAt", "\"2024-01-01\""),
+        ("recordedUntil", "\"2024-01-01\""),
+        ("supersedes", "ex:g_other"),
+        ("retracts", "ex:g_other"),
+    ] {
         let trig = format!(
             "@prefix ex: <http://example.org/> .\n\
              @prefix t:  <https://open-ontologies.org/temporal#> .\n\
              ex:g_only {{ ex:HEK293 a ex:AdherentCellLine . }}\n\
-             {{ ex:g_only t:{predicate} \"2024-01-01\" . }}\n"
+             {{ ex:g_only t:{predicate} {object} . }}\n"
         );
         let snap = snapshot(&temporal(&trig), None, None);
         let row = snap["in_scope"]
@@ -566,6 +579,11 @@ fn the_note_claims_only_what_the_code_checks() {
     assert!(
         !note.contains("one period ends where the other begins"),
         "adjacency is never established by `!overlaps`: {note}"
+    );
+    assert!(
+        note.contains("corrections") && note.contains("asserted and never inferred"),
+        "and must say what puts a pair in corrections, which is an asserted link and \
+         nothing about its periods: {note}"
     );
 }
 
@@ -1611,4 +1629,870 @@ fn a_period_that_holds_nowhere_beside_an_unreadable_one_is_still_undecided() {
     let open = snapshot(&t, None, None);
     assert!(invalid_reason(&open, "g_bad").is_some(), "{open}");
     assert!(graphs(&open, "in_scope").contains("g_empty"), "{open}");
+}
+
+// ---------------------------------------------------------------------------
+// Section 5: lineage that is asserted, never inferred (#109)
+//
+// `as_of` only narrowed forward, and nothing linked one version to the next:
+// a correction sharing its predecessor's valid period was filed as a
+// contradiction, and with no explicit recordedUntil the predecessor stayed
+// believed for ever. Two predicates on the NEWER graph carry the link:
+// `supersedes` names the graph it replaces, `retracts` the graph it withdraws
+// without replacing. recordedUntil alone governs scope; where a graph carries
+// none, its closing bound is DERIVED from the successor's recordedAt at query
+// time and never written, and where both are present and disagree the explicit
+// bound governs and the disagreement is reported. The issue's own example
+// leads.
+// ---------------------------------------------------------------------------
+
+/// The row for one graph in one snapshot bucket, named by its local part.
+/// Panics rather than returning an Option: every caller is asserting on the
+/// row, so a missing one is a failed test.
+fn bucket_row(snapshot: &serde_json::Value, bucket: &str, local: &str) -> serde_json::Value {
+    snapshot[bucket]
+        .as_array()
+        .unwrap_or_else(|| panic!("snapshot has no array `{bucket}`: {snapshot}"))
+        .iter()
+        .find(|row| row["graph"].as_str().is_some_and(|g| g.ends_with(local)))
+        .cloned()
+        .unwrap_or_else(|| panic!("`{local}` is not in `{bucket}`: {snapshot}"))
+}
+
+/// The lineage rows about one graph. Empty, not a panic, when the key is
+/// absent: a clean answer carries no `lineage` at all.
+fn lineage_about(snapshot: &serde_json::Value, local: &str) -> Vec<serde_json::Value> {
+    snapshot
+        .get("lineage")
+        .and_then(|l| l.as_array())
+        .map(|rows| {
+            rows.iter()
+                .filter(|row| row["graph"].as_str().is_some_and(|g| g.ends_with(local)))
+                .cloned()
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// Issue #109's own example: the correction shares its predecessor's valid
+/// period, the predecessor carries no recordedUntil, and the successor says
+/// which graph it replaces.
+const ISSUE_109: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+
+ex:g1 { ex:HEK293 a ex:AdherentCellLine . }
+ex:g2 { ex:HEK293 a ex:SuspensionCellLine . }
+
+{
+  ex:AdherentCellLine owl:disjointWith ex:SuspensionCellLine .
+  ex:g1 t:validFrom "2024-01-01" ; t:recordedAt "2024-01-05" .
+  ex:g2 t:validFrom "2024-01-01" ; t:recordedAt "2026-06-01" ; t:supersedes ex:g1 .
+}
+"#;
+
+#[test]
+fn a_successor_closes_its_predecessor_at_its_own_recorded_at() {
+    let t = temporal(ISSUE_109);
+    // After the correction was recorded: the predecessor is no longer
+    // believed, and the row says which graph closed it, since it carries no
+    // recordedUntil of its own that could.
+    let after = snapshot(&t, None, Some("2026-07-01"));
+    assert_eq!(graphs(&after, "in_scope"), set(&["g2"]), "{after}");
+    assert_eq!(reason(&after, "g1"), "no longer recorded then", "{after}");
+    assert!(
+        bucket_row(&after, "excluded", "g1")["superseded_by"]
+            .as_str()
+            .is_some_and(|g| g.ends_with("g2")),
+        "the derived bound names the graph it was derived from: {after}"
+    );
+    assert!(after.get("lineage").is_none(), "nothing to report: {after}");
+    // Before it: the predecessor was what was believed, and the successor
+    // had not arrived.
+    let before = snapshot(&t, None, Some("2025-01-01"));
+    assert_eq!(graphs(&before, "in_scope"), set(&["g1"]), "{before}");
+    assert_eq!(reason(&before, "g2"), "not yet recorded then", "{before}");
+    // With no as_of no instant was asked about on the recorded axis, and a
+    // derived bound is read exactly as an asserted recordedUntil is: both
+    // graphs are in scope, as `g_first` is in CORRECTED with no as_of. The
+    // derivation composes a bound; it does not change what the axis means.
+    let open = snapshot(&t, None, None);
+    assert_eq!(graphs(&open, "in_scope"), set(&["g1", "g2"]), "{open}");
+    assert!(graphs(&open, "excluded").is_empty(), "{open}");
+}
+
+#[test]
+fn a_correction_that_shares_its_predecessors_period_is_not_a_contradiction() {
+    let t = temporal(ISSUE_109);
+    let out = conflicts(&t);
+    // Both graphs claim [2024-01-01, open) for disjoint types. On the periods
+    // alone that is a contradiction, and it was filed as one; the link says
+    // it is a correction, and the link is the only thing that can.
+    assert_eq!(out["contradiction_count"], 0, "{out}");
+    assert_eq!(out["non_overlapping_count"], 0, "{out}");
+    assert_eq!(out["corrections_count"], 1, "{out}");
+    assert_eq!(partners(&out, "corrections"), set(&["g1", "g2"]), "{out}");
+    let link = out["corrections"][0]["supersedes"].as_array().unwrap();
+    assert!(
+        link[0].as_str().unwrap().ends_with("g2") && link[1].as_str().unwrap().ends_with("g1"),
+        "successor first, predecessor second: {out}"
+    );
+    let note = out["note"].as_str().unwrap();
+    assert!(
+        note.contains("corrections") && note.contains("whatever its periods"),
+        "the note says the periods are not consulted for such a pair: {note}"
+    );
+    // And a store with no link still has no corrections key at all.
+    let plain = conflicts(&temporal(CONFLICT_OVERLAP));
+    assert!(plain.get("corrections").is_none(), "{plain}");
+    assert!(plain.get("corrections_count").is_none(), "{plain}");
+}
+
+/// The predecessor carries its own recordedUntil, five months before the
+/// successor says it was recorded.
+const EXPLICIT_DISAGREES: &str = r#"
+@prefix ex: <http://example.org/> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+
+ex:g1 { ex:HEK293 a ex:AdherentCellLine . }
+ex:g2 { ex:HEK293 a ex:SuspensionCellLine . }
+
+{
+  ex:g1 t:validFrom "2024-01-01" ; t:recordedAt "2024-01-05" ; t:recordedUntil "2026-01-01" .
+  ex:g2 t:validFrom "2024-01-01" ; t:recordedAt "2026-06-01" ; t:supersedes ex:g1 .
+}
+"#;
+
+#[test]
+fn an_explicit_recorded_until_governs_and_its_disagreement_with_the_successor_is_reported() {
+    let t = temporal(EXPLICIT_DISAGREES);
+    // Between the two instants: the explicit bound has closed the interval,
+    // the successor has not arrived. A derivation that yielded to the
+    // successor would put g1 back in scope here.
+    let between = snapshot(&t, None, Some("2026-03-01"));
+    assert_eq!(
+        reason(&between, "g1"),
+        "no longer recorded then",
+        "{between}"
+    );
+    assert!(
+        bucket_row(&between, "excluded", "g1")
+            .get("superseded_by")
+            .is_none(),
+        "an asserted bound was not derived from anything: {between}"
+    );
+    assert_eq!(reason(&between, "g2"), "not yet recorded then", "{between}");
+    assert!(graphs(&between, "in_scope").is_empty(), "{between}");
+    // The inconsistency survives in the report, naming both instants and
+    // both graphs, and is reconciled nowhere.
+    let rows = lineage_about(&between, "g1");
+    assert_eq!(rows.len(), 1, "{between}");
+    let row = &rows[0];
+    assert!(
+        row["reason"]
+            .as_str()
+            .unwrap()
+            .contains("explicit recordedUntil disagrees"),
+        "{row}"
+    );
+    assert!(
+        row["reason"]
+            .as_str()
+            .unwrap()
+            .contains("explicit bound governs"),
+        "{row}"
+    );
+    assert!(row["successor"].as_str().unwrap().ends_with("g2"), "{row}");
+    assert_eq!(row["recorded_until"], "2026-01-01", "{row}");
+    assert_eq!(row["successor_recorded_at"], "2026-06-01", "{row}");
+    // Before the explicit bound the predecessor is believed, as asserted.
+    let early = snapshot(&t, None, Some("2025-06-01"));
+    assert_eq!(graphs(&early, "in_scope"), set(&["g1"]), "{early}");
+}
+
+/// Out-of-order recording: the successor says it was recorded five months
+/// BEFORE the predecessor it replaces.
+const OUT_OF_ORDER: &str = r#"
+@prefix ex: <http://example.org/> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+
+ex:g_old { ex:HEK293 a ex:AdherentCellLine . }
+ex:g_new { ex:HEK293 a ex:SuspensionCellLine . }
+
+{
+  ex:g_old t:validFrom "2024-01-01" ; t:recordedAt "2024-06-01" .
+  ex:g_new t:validFrom "2024-01-01" ; t:recordedAt "2024-01-01" ; t:supersedes ex:g_old .
+}
+"#;
+
+#[test]
+fn a_successor_recorded_before_its_predecessor_makes_an_inverted_interval_that_is_reported_not_clamped()
+ {
+    let t = temporal(OUT_OF_ORDER);
+    // Before, between, at and after the two instants: a clamp to an empty
+    // interval, or to `[recordedAt, recordedAt)`, would still exclude the
+    // graph everywhere, so the assertions below pin the REASON and the
+    // reported instants, which a clamp would change.
+    for as_of in ["2023-01-01", "2024-03-01", "2024-06-01", "2030-01-01"] {
+        let snap = snapshot(&t, None, Some(as_of));
+        let why = reason(&snap, "g_old");
+        assert!(
+            why.contains("believed at no instant") && why.contains("closes before it opens"),
+            "as_of {as_of}: the reason names the shape, not a side of the interval: {why}"
+        );
+        assert_eq!(
+            bucket_row(&snap, "excluded", "g_old")["valid"],
+            "2024-01-01 to still true",
+            "as_of {as_of}: the asserted bounds are shown untouched: {snap}"
+        );
+        let rows = lineage_about(&snap, "g_old");
+        assert_eq!(rows.len(), 1, "as_of {as_of}: {snap}");
+        let row = &rows[0];
+        assert!(
+            row["reason"]
+                .as_str()
+                .unwrap()
+                .contains("inverted transaction interval"),
+            "{row}"
+        );
+        assert_eq!(row["recorded_at"], "2024-06-01", "as asserted: {row}");
+        assert_eq!(
+            row["recorded_until"], "2024-01-01",
+            "as derived from the successor, not moved: {row}"
+        );
+        assert!(
+            row["superseded_by"].as_str().unwrap().ends_with("g_new"),
+            "{row}"
+        );
+    }
+    // The successor itself is believed from its own recordedAt.
+    let mid = snapshot(&t, None, Some("2024-03-01"));
+    assert_eq!(graphs(&mid, "in_scope"), set(&["g_new"]), "{mid}");
+    // With no as_of no instant was asked about, and the graph is read like
+    // any other, mirroring the rule for a valid period that holds nowhere.
+    let open = snapshot(&t, None, None);
+    assert_eq!(
+        graphs(&open, "in_scope"),
+        set(&["g_old", "g_new"]),
+        "{open}"
+    );
+    assert!(
+        !lineage_about(&open, "g_old").is_empty(),
+        "and the report is still there to read: {open}"
+    );
+}
+
+/// A correction of a correction: three versions, each superseding the last,
+/// of three pairwise disjoint types.
+const CHAIN: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+
+ex:g1 { ex:HEK293 a ex:AdherentCellLine . }
+ex:g2 { ex:HEK293 a ex:SuspensionCellLine . }
+ex:g3 { ex:HEK293 a ex:HybridCellLine . }
+
+{
+  ex:AdherentCellLine   owl:disjointWith ex:SuspensionCellLine , ex:HybridCellLine .
+  ex:SuspensionCellLine owl:disjointWith ex:HybridCellLine .
+  ex:g1 t:validFrom "2024-01-01" ; t:recordedAt "2024-01-05" .
+  ex:g2 t:validFrom "2024-01-01" ; t:recordedAt "2025-01-05" ; t:supersedes ex:g1 .
+  ex:g3 t:validFrom "2024-01-01" ; t:recordedAt "2026-01-05" ; t:supersedes ex:g2 .
+}
+"#;
+
+#[test]
+fn a_chain_of_supersedes_links_needs_no_special_machinery() {
+    let t = temporal(CHAIN);
+    // After the third version only it is believed, and each predecessor
+    // names its own direct successor: the bound is derived one hop at a time.
+    let late = snapshot(&t, None, Some("2026-06-01"));
+    assert_eq!(graphs(&late, "in_scope"), set(&["g3"]), "{late}");
+    for (graph, successor) in [("g1", "g2"), ("g2", "g3")] {
+        assert_eq!(reason(&late, graph), "no longer recorded then", "{late}");
+        assert!(
+            bucket_row(&late, "excluded", graph)["superseded_by"]
+                .as_str()
+                .is_some_and(|g| g.ends_with(successor)),
+            "{graph} is closed by {successor}: {late}"
+        );
+    }
+    assert!(
+        late.get("lineage").is_none(),
+        "a clean chain reports nothing: {late}"
+    );
+    // In the middle the second version is the one believed.
+    let mid = snapshot(&t, None, Some("2025-06-01"));
+    assert_eq!(graphs(&mid, "in_scope"), set(&["g2"]), "{mid}");
+    // Every pair is disjoint and every pair shares the whole period. The
+    // direct pairs are corrections by their own link, and the pair at the
+    // two ends of the chain is one through it: nothing in the data says g3
+    // supersedes g1, and nothing needs to.
+    let out = conflicts(&t);
+    assert_eq!(out["contradiction_count"], 0, "{out}");
+    assert_eq!(out["corrections_count"], 3, "{out}");
+    let ends = out["corrections"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| {
+            let graphs: BTreeSet<String> = row["graphs"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|g| g.as_str().unwrap().rsplit('/').next().unwrap().to_string())
+                .collect();
+            graphs == set(&["g1", "g3"])
+        })
+        .unwrap_or_else(|| panic!("the pair at the ends of the chain is a correction: {out}"));
+    let link = ends["supersedes"].as_array().unwrap();
+    assert!(
+        link[0].as_str().unwrap().ends_with("g3") && link[1].as_str().unwrap().ends_with("g1"),
+        "through the chain, g3 supersedes g1: {ends}"
+    );
+}
+
+/// One graph replaced twice, by two successors a year apart.
+const TWO_SUCCESSORS: &str = r#"
+@prefix ex: <http://example.org/> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+
+ex:g1 { ex:HEK293 a ex:AdherentCellLine . }
+ex:g2 { ex:HEK293 a ex:SuspensionCellLine . }
+ex:g3 { ex:HEK293 a ex:HybridCellLine . }
+
+{
+  ex:g1 t:validFrom "2024-01-01" ; t:recordedAt "2024-01-05" .
+  ex:g2 t:validFrom "2024-01-01" ; t:recordedAt "2025-01-05" ; t:supersedes ex:g1 .
+  ex:g3 t:validFrom "2024-01-01" ; t:recordedAt "2026-01-05" ; t:supersedes ex:g1 .
+}
+"#;
+
+#[test]
+fn the_earliest_of_two_successors_closes_the_graph_and_the_multiplicity_is_reported() {
+    let t = temporal(TWO_SUCCESSORS);
+    // Between the two replacements. Belief in g1 ended at the first, and the
+    // second does not revive it; a derivation that took the latest successor
+    // would put g1 back in scope here.
+    let between = snapshot(&t, None, Some("2025-06-01"));
+    assert_eq!(graphs(&between, "in_scope"), set(&["g2"]), "{between}");
+    assert_eq!(
+        reason(&between, "g1"),
+        "no longer recorded then",
+        "{between}"
+    );
+    assert!(
+        bucket_row(&between, "excluded", "g1")["superseded_by"]
+            .as_str()
+            .is_some_and(|g| g.ends_with("g2")),
+        "closed by the earliest: {between}"
+    );
+    let rows = lineage_about(&between, "g1");
+    assert_eq!(rows.len(), 1, "{between}");
+    let row = &rows[0];
+    assert!(
+        row["reason"]
+            .as_str()
+            .unwrap()
+            .contains("more than one graph"),
+        "{row}"
+    );
+    assert!(row["closed_by"].as_str().unwrap().ends_with("g2"), "{row}");
+    assert_eq!(row["successors"].as_array().unwrap().len(), 2, "{row}");
+}
+
+/// One graph replaced twice at the very instant its own recordedUntil names:
+/// the explicit bound agrees with both successors, so no disagreement, and
+/// neither successor closed anything.
+const TWO_SUCCESSORS_EXPLICIT_CLOSE: &str = r#"
+@prefix ex: <http://example.org/> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+
+ex:g1 { ex:HEK293 a ex:AdherentCellLine . }
+ex:g2 { ex:HEK293 a ex:SuspensionCellLine . }
+ex:g3 { ex:HEK293 a ex:HybridCellLine . }
+
+{
+  ex:g1 t:validFrom "2024-01-01" ; t:recordedAt "2024-01-05" ; t:recordedUntil "2026-06-01" .
+  ex:g2 t:validFrom "2024-01-01" ; t:recordedAt "2026-06-01" ; t:supersedes ex:g1 .
+  ex:g3 t:validFrom "2024-01-01" ; t:recordedAt "2026-06-01" ; t:supersedes ex:g1 .
+}
+"#;
+
+#[test]
+fn more_than_one_successor_is_reported_under_an_explicit_close_too() {
+    let t = temporal(TWO_SUCCESSORS_EXPLICIT_CLOSE);
+    let after = snapshot(&t, None, Some("2026-07-01"));
+    // The explicit bound closed the graph, and nothing was derived.
+    assert_eq!(reason(&after, "g1"), "no longer recorded then", "{after}");
+    assert!(
+        bucket_row(&after, "excluded", "g1")
+            .get("superseded_by")
+            .is_none(),
+        "{after}"
+    );
+    // Exactly one lineage row: the multiplicity. No disagreement, since both
+    // successors name the explicit instant, and a report that only spoke on
+    // the derived branch would leave nothing here at all.
+    let rows = lineage_about(&after, "g1");
+    assert_eq!(rows.len(), 1, "{after}");
+    let row = &rows[0];
+    let reason = row["reason"].as_str().unwrap();
+    assert!(reason.contains("more than one graph"), "{row}");
+    assert!(
+        reason.contains("explicit recordedUntil governs"),
+        "the row says which bound closed it: {row}"
+    );
+    assert!(!reason.contains("disagrees"), "{row}");
+    let successors: BTreeSet<String> = row["successors"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|s| s.as_str().unwrap().rsplit('/').next().unwrap().to_string())
+        .collect();
+    assert_eq!(successors, set(&["g2", "g3"]), "{row}");
+    // The row names the explicit bound, not a successor, as what closed it:
+    // `closed_by` is a graph on the derived branch and would be a lie here.
+    assert_eq!(row["recorded_until"], "2026-06-01", "{row}");
+    assert!(row.get("closed_by").is_none(), "{row}");
+}
+
+/// Two graphs each claiming to supersede the other.
+const CYCLE: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+
+ex:g_a { ex:HEK293 a ex:AdherentCellLine . }
+ex:g_b { ex:HEK293 a ex:SuspensionCellLine . }
+
+{
+  ex:AdherentCellLine owl:disjointWith ex:SuspensionCellLine .
+  ex:g_a t:validFrom "2024-01-01" ; t:recordedAt "2024-01-05" ; t:supersedes ex:g_b .
+  ex:g_b t:validFrom "2024-01-01" ; t:recordedAt "2025-01-05" ; t:supersedes ex:g_a .
+}
+"#;
+
+#[test]
+fn a_cycle_of_supersedes_links_is_reported_and_does_not_hang() {
+    let t = temporal(CYCLE);
+    // Returning at all is the first assertion. Each bound is still derived
+    // from the direct successor: g_a closes at g_b's recordedAt, and g_b at
+    // g_a's, which precedes its own and so is an inverted interval.
+    let snap = snapshot(&t, None, Some("2024-06-01"));
+    assert_eq!(graphs(&snap, "in_scope"), set(&["g_a"]), "{snap}");
+    assert!(
+        reason(&snap, "g_b").contains("believed at no instant"),
+        "{snap}"
+    );
+    let cycle = snap["lineage"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["reason"].as_str().is_some_and(|r| r.contains("cycle")))
+        .unwrap_or_else(|| panic!("the cycle is reported: {snap}"));
+    assert_eq!(cycle["cycle"].as_array().unwrap().len(), 2, "{cycle}");
+    // The conflict check walks the same links and stops too. Each graph
+    // asserts that it supersedes the other, so the pair is a correction.
+    let out = conflicts(&t);
+    assert_eq!(out["contradiction_count"], 0, "{out}");
+    assert_eq!(out["corrections_count"], 1, "{out}");
+}
+
+/// A withdrawal: `r` retracts `g1` a year after it was recorded, and puts
+/// nothing in its place. A timeless graph sits beside them for the query.
+const RETRACTED: &str = r#"
+@prefix ex: <http://example.org/> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+
+ex:g1        { ex:HEK293 a ex:AdherentCellLine . }
+ex:r         { ex:HEK293 ex:note "withdrawn" . }
+ex:g_species { ex:HEK293 ex:species ex:Human . }
+
+{
+  ex:g1 t:validFrom "2024-01-01" ; t:recordedAt "2024-01-05" .
+  ex:r  t:recordedAt "2025-01-01" ; t:retracts ex:g1 .
+}
+"#;
+
+#[test]
+fn a_retracted_graph_leaves_scope_from_the_retraction_and_stays_visible_in_its_own_bucket() {
+    let t = temporal(RETRACTED);
+    // Before the retraction was recorded, g1 takes the ordinary path.
+    let before = snapshot(&t, None, Some("2024-06-01"));
+    assert!(graphs(&before, "in_scope").contains("g1"), "{before}");
+    assert!(before.get("retracted").is_none(), "{before}");
+    // From the retraction on: in neither in_scope nor excluded, and the row
+    // names the graph that withdrew it and when.
+    let as_of = Some("2025-06-01");
+    let snap = snapshot(&t, None, as_of);
+    assert!(!graphs(&snap, "in_scope").contains("g1"), "{snap}");
+    assert!(
+        !graphs(&snap, "excluded").contains("g1"),
+        "a withdrawn claim did not fail a bound: {snap}"
+    );
+    let row = bucket_row(&snap, "retracted", "g1");
+    assert_eq!(row["reason"], "retracted", "{row}");
+    assert!(
+        row["retracted_by"].as_str().unwrap().ends_with("/r"),
+        "{row}"
+    );
+    assert_eq!(row["retracted_at"], "2025-01-01", "{row}");
+    assert_eq!(row["valid"], "2024-01-01 to still true", "{row}");
+    // And the query does not read its triples.
+    let raw = t.query_at("{ ?s a ?type }", None, as_of).unwrap();
+    assert!(
+        !raw.contains("AdherentCellLine"),
+        "a retracted graph is not queried: {raw}"
+    );
+    let out: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    assert_eq!(
+        bucket_row(&out, "retracted", "g1")["reason"],
+        "retracted",
+        "and the query says why it was left out: {out}"
+    );
+    // With no as_of the recorded axis is not consulted, for a retraction no
+    // more than for a recordedUntil, asserted or derived: one rule for every
+    // recorded-time fact. The graph takes the ordinary path and is in scope,
+    // and the query reads it.
+    let none = snapshot(&t, None, None);
+    assert!(graphs(&none, "in_scope").contains("g1"), "{none}");
+    assert!(none.get("retracted").is_none(), "{none}");
+    let raw = t.query_at("{ ?s a ?type }", None, None).unwrap();
+    assert!(
+        raw.contains("AdherentCellLine"),
+        "with no as_of the graph is read like any other: {raw}"
+    );
+    let out: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    assert!(out.get("retracted").is_none(), "{out}");
+    // Retraction is a fact about the assertion's standing and is asked
+    // first: at an instant the period does not hold at, the row is still in
+    // retracted rather than excluded as not true then. With no as_of the
+    // ordinary path answers, and that path excludes it as not true then.
+    let early = snapshot(&t, Some("2020-01-01"), as_of);
+    assert!(!graphs(&early, "excluded").contains("g1"), "{early}");
+    assert_eq!(
+        bucket_row(&early, "retracted", "g1")["reason"],
+        "retracted",
+        "{early}"
+    );
+    let early_none = snapshot(&t, Some("2020-01-01"), None);
+    assert_eq!(
+        reason(&early_none, "g1"),
+        "not true at that instant",
+        "{early_none}"
+    );
+    assert!(early_none.get("retracted").is_none(), "{early_none}");
+}
+
+/// Links that assert nothing readable: a successor naming a graph nobody
+/// described, a retractor with no recordedAt, and a literal where a graph
+/// IRI belongs.
+const UNSETTLED_LINKS: &str = r#"
+@prefix ex: <http://example.org/> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+
+ex:g1    { ex:HEK293 a ex:AdherentCellLine . }
+ex:g_x   { ex:HEK293 a ex:SuspensionCellLine . }
+ex:r     { ex:HEK293 ex:note "withdrawn" . }
+ex:g_lit { ex:HEK293 a ex:HybridCellLine . }
+
+{
+  ex:g1    t:validFrom "2024-01-01" ; t:recordedAt "2024-01-05" .
+  ex:g_x   t:recordedAt "2025-01-05" ; t:supersedes ex:nowhere .
+  ex:r     t:retracts ex:g1 .
+  ex:g_lit t:recordedAt "2025-01-05" ; t:supersedes "g1" .
+}
+"#;
+
+#[test]
+fn a_link_that_asserts_nothing_readable_is_reported_and_has_no_effect() {
+    let t = temporal(UNSETTLED_LINKS);
+    let snap = snapshot(&t, None, Some("2026-01-01"));
+    // An unknown target: reported, and nothing closed.
+    let rows = lineage_about(&snap, "g_x");
+    assert_eq!(rows.len(), 1, "{snap}");
+    assert!(
+        rows[0]["reason"]
+            .as_str()
+            .unwrap()
+            .contains("no temporal description"),
+        "{snap}"
+    );
+    assert!(
+        rows[0]["target"].as_str().unwrap().ends_with("nowhere"),
+        "{snap}"
+    );
+    assert!(graphs(&snap, "in_scope").contains("g_x"), "{snap}");
+    // A literal where a graph IRI belongs: reported, and g1 is not closed by
+    // it, which the retraction below is what takes g1 out of scope instead.
+    let rows = lineage_about(&snap, "g_lit");
+    assert_eq!(rows.len(), 1, "{snap}");
+    assert!(
+        rows[0]["reason"]
+            .as_str()
+            .unwrap()
+            .contains("not a graph IRI"),
+        "{snap}"
+    );
+    assert_eq!(
+        rows[0]["target"], "\"g1\"",
+        "the term is quoted as written: {snap}"
+    );
+    // An undated retractor: the withdrawal cannot be dated, is reported as
+    // such, and stands at every instant asked about, including one before
+    // g1 was recorded at all: a withdrawal at an unknown time is still a
+    // withdrawal. With no as_of no instant is asked about on the recorded
+    // axis, and the graph is in scope like one closed by a recordedUntil.
+    let rows = lineage_about(&snap, "g1");
+    assert_eq!(rows.len(), 1, "{snap}");
+    assert!(
+        rows[0]["reason"]
+            .as_str()
+            .unwrap()
+            .contains("cannot be dated"),
+        "{snap}"
+    );
+    for as_of in [Some("2026-01-01"), Some("2000-01-01")] {
+        let snap = snapshot(&t, None, as_of);
+        let row = bucket_row(&snap, "retracted", "g1");
+        assert!(
+            row["retracted_by"].as_str().unwrap().ends_with("/r"),
+            "as_of {as_of:?}: {row}"
+        );
+        assert!(row["retracted_at"].is_null(), "undated: {row}");
+        assert!(!graphs(&snap, "excluded").contains("g1"), "{snap}");
+    }
+    let none = snapshot(&t, None, None);
+    assert!(graphs(&none, "in_scope").contains("g1"), "{none}");
+    assert!(none.get("retracted").is_none(), "{none}");
+}
+
+/// Links asserted by graphs whose own description could not be read: a
+/// successor and a retractor, each with a recordedAt that is not a date.
+const UNREADABLE_LINKERS: &str = r#"
+@prefix ex: <http://example.org/> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+
+ex:g1 { ex:HEK293 a ex:AdherentCellLine . }
+ex:g2 { ex:HEK293 a ex:SuspensionCellLine . }
+ex:r  { ex:HEK293 ex:note "withdrawn" . }
+
+{
+  ex:g1 t:validFrom "2024-01-01" ; t:recordedAt "2024-01-05" .
+  ex:g2 t:recordedAt "garbage" ; t:supersedes ex:g1 .
+  ex:r  t:recordedAt "nope" ; t:retracts ex:g1 .
+}
+"#;
+
+#[test]
+fn a_link_asserted_by_an_unreadable_graph_is_reported_and_leaves_its_target_as_it_was() {
+    let t = temporal(UNREADABLE_LINKERS);
+    for as_of in [Some("2030-01-01"), None] {
+        let snap = snapshot(&t, None, as_of);
+        // The asserters are invalid for their own bounds, as before.
+        assert!(invalid_reason(&snap, "g2").is_some(), "{snap}");
+        assert!(invalid_reason(&snap, "/r").is_some(), "{snap}");
+        // Neither link takes effect: g1 is neither closed nor withdrawn.
+        assert_eq!(graphs(&snap, "in_scope"), set(&["g1"]), "{snap}");
+        assert!(snap.get("retracted").is_none(), "{snap}");
+        assert!(lineage_about(&snap, "g1").is_empty(), "{snap}");
+        // But neither is dropped silently: each asserter's row names the
+        // link and the graph it would have closed or withdrawn.
+        for (local, field) in [("g2", "supersedes"), ("/r", "retracts")] {
+            let rows = lineage_about(&snap, local);
+            assert_eq!(rows.len(), 1, "{local}: {snap}");
+            let reason = rows[0]["reason"].as_str().unwrap();
+            assert!(reason.starts_with(field), "{local}: {snap}");
+            assert!(reason.contains("could not be read"), "{local}: {snap}");
+            assert!(reason.contains("no effect"), "{local}: {snap}");
+            assert!(
+                rows[0]["target"].as_str().unwrap().ends_with("g1"),
+                "{local}: {snap}"
+            );
+        }
+    }
+}
+
+/// One graph both superseded and, later, retracted.
+const SUPERSEDED_AND_RETRACTED: &str = r#"
+@prefix ex: <http://example.org/> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+
+ex:g1 { ex:HEK293 a ex:AdherentCellLine . }
+ex:g2 { ex:HEK293 a ex:SuspensionCellLine . }
+ex:r  { ex:HEK293 ex:note "withdrawn" . }
+
+{
+  ex:g1 t:validFrom "2024-01-01" ; t:recordedAt "2024-01-05" .
+  ex:g2 t:validFrom "2024-01-01" ; t:recordedAt "2025-01-01" ; t:supersedes ex:g1 .
+  ex:r  t:recordedAt "2026-01-01" ; t:retracts ex:g1 .
+}
+"#;
+
+#[test]
+fn a_graph_both_superseded_and_retracted_is_retracted_once_the_retraction_is_recorded() {
+    let t = temporal(SUPERSEDED_AND_RETRACTED);
+    // Between the two: closed by its successor, and the row says so.
+    let between = snapshot(&t, None, Some("2025-06-01"));
+    assert_eq!(
+        reason(&between, "g1"),
+        "no longer recorded then",
+        "{between}"
+    );
+    assert!(
+        bucket_row(&between, "excluded", "g1")["superseded_by"]
+            .as_str()
+            .is_some_and(|g| g.ends_with("g2")),
+        "{between}"
+    );
+    assert!(between.get("retracted").is_none(), "{between}");
+    // From the retraction on: retraction is a fact about the assertion's
+    // standing and beats the derived closing bound, so the graph is in
+    // `retracted`, not `excluded`.
+    let snap = snapshot(&t, None, Some("2027-01-01"));
+    assert!(!graphs(&snap, "excluded").contains("g1"), "{snap}");
+    let row = bucket_row(&snap, "retracted", "g1");
+    assert!(
+        row["retracted_by"].as_str().unwrap().ends_with("/r"),
+        "{row}"
+    );
+    assert_eq!(row["retracted_at"], "2026-01-01", "{row}");
+    // With no as_of neither recorded-time fact is consulted, the derived
+    // bound no more than the retraction: the graph is in scope, in neither
+    // `excluded` nor `retracted`, as a graph closed by an explicit
+    // recordedUntil is.
+    let none = snapshot(&t, None, None);
+    assert!(graphs(&none, "in_scope").contains("g1"), "{none}");
+    assert!(!graphs(&none, "excluded").contains("g1"), "{none}");
+    assert!(none.get("retracted").is_none(), "{none}");
+}
+
+/// A graph that names itself on both predicates.
+const SELF_LINKS: &str = r#"
+@prefix ex: <http://example.org/> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+
+ex:g1 { ex:HEK293 a ex:AdherentCellLine . }
+
+{
+  ex:g1 t:validFrom "2024-01-01" ; t:recordedAt "2024-01-05" ;
+        t:supersedes ex:g1 ; t:retracts ex:g1 .
+}
+"#;
+
+#[test]
+fn a_link_naming_the_graph_itself_is_reported_and_neither_closes_nor_withdraws_it() {
+    let t = temporal(SELF_LINKS);
+    for as_of in [Some("2026-01-01"), None] {
+        let snap = snapshot(&t, None, as_of);
+        assert_eq!(graphs(&snap, "in_scope"), set(&["g1"]), "{snap}");
+        assert!(snap.get("retracted").is_none(), "{snap}");
+        let rows = lineage_about(&snap, "g1");
+        assert_eq!(rows.len(), 2, "one row per predicate: {snap}");
+        for row in &rows {
+            assert!(
+                row["reason"]
+                    .as_str()
+                    .unwrap()
+                    .contains("names the graph itself"),
+                "{snap}"
+            );
+            assert!(row["target"].as_str().unwrap().ends_with("g1"), "{snap}");
+        }
+    }
+}
+
+/// A predecessor whose valid period holds at no instant, superseded like any
+/// other.
+const DEGENERATE_PREDECESSOR: &str = r#"
+@prefix ex: <http://example.org/> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+
+ex:g1 { ex:HEK293 a ex:AdherentCellLine . }
+ex:g2 { ex:HEK293 a ex:SuspensionCellLine . }
+
+{
+  ex:g1 t:validFrom "2024-01-01" ; t:validTo "2024-01-01" ; t:recordedAt "2024-01-05" .
+  ex:g2 t:validFrom "2024-01-01" ; t:recordedAt "2025-01-01" ; t:supersedes ex:g1 .
+}
+"#;
+
+#[test]
+fn a_predecessor_that_holds_at_no_instant_is_still_closed_by_its_successor() {
+    let t = temporal(DEGENERATE_PREDECESSOR);
+    // With no valid_at the empty period is not asked about, and before the
+    // successor the graph is in scope like any other.
+    let before = snapshot(&t, None, Some("2024-06-01"));
+    assert!(graphs(&before, "in_scope").contains("g1"), "{before}");
+    // After it, the derived bound closes the graph and the row names the
+    // successor, exactly as for a sound predecessor.
+    let after = snapshot(&t, None, Some("2026-01-01"));
+    assert_eq!(reason(&after, "g1"), "no longer recorded then", "{after}");
+    assert!(
+        bucket_row(&after, "excluded", "g1")["superseded_by"]
+            .as_str()
+            .is_some_and(|g| g.ends_with("g2")),
+        "{after}"
+    );
+}
+
+/// A described graph asserts that it supersedes an undescribed one, and the
+/// two disagree on a disjoint pair. The undescribed graph carries no temporal
+/// description, so the link has no effect and the lineage pass says so; the
+/// undescribed graph is timeless, and a timeless period overlaps everything.
+const LINK_TO_AN_UNDESCRIBED_PARTNER: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+
+ex:g_b       { ex:HEK293 a ex:SuspensionCellLine . }
+ex:g_nowhere { ex:HEK293 a ex:AdherentCellLine . }
+
+{
+  ex:AdherentCellLine owl:disjointWith ex:SuspensionCellLine .
+  ex:g_b t:validFrom "2024-01-01" ; t:recordedAt "2026-06-01" ; t:supersedes ex:g_nowhere .
+}
+"#;
+
+#[test]
+fn a_link_the_lineage_pass_rejected_puts_no_pair_in_corrections() {
+    let t = temporal(LINK_TO_AN_UNDESCRIBED_PARTNER);
+    // The snapshot reports the link as having no effect, and the undescribed
+    // graph stays in scope as timeless beside its would-be successor.
+    let snap = snapshot(&t, None, Some("2027-01-01"));
+    let rows = lineage_about(&snap, "g_b");
+    assert_eq!(rows.len(), 1, "{snap}");
+    assert!(
+        rows[0]["reason"]
+            .as_str()
+            .unwrap()
+            .contains("no temporal description"),
+        "{snap}"
+    );
+    assert!(
+        rows[0]["target"].as_str().unwrap().ends_with("g_nowhere"),
+        "{snap}"
+    );
+    assert_eq!(
+        graphs(&snap, "in_scope"),
+        set(&["g_b", "g_nowhere"]),
+        "{snap}"
+    );
+    // So the conflict check may not walk that link: the pair overlaps on its
+    // periods and is a contradiction, not a correction. A walk over the raw
+    // assertions would file it as a correction on a link the same answer
+    // says closed nothing, and a genuine contradiction would be suppressed.
+    let out = conflicts(&t);
+    assert_eq!(out["contradiction_count"], 1, "{out}");
+    assert_eq!(
+        partners(&out, "contradictions"),
+        set(&["g_b", "g_nowhere"]),
+        "{out}"
+    );
+    assert!(out.get("corrections").is_none(), "{out}");
+    assert!(out.get("corrections_count").is_none(), "{out}");
+    assert_eq!(out["complete"], true, "{out}");
 }

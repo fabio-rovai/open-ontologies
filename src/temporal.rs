@@ -50,6 +50,36 @@
 //! that replaced it, and the audit question this module exists to answer stops
 //! being answerable after the first correction.
 //!
+//! ## Lineage is asserted, never inferred
+//!
+//! Two graphs claiming the same period can be a correction (one authority
+//! replaced its own assertion), a disagreement (two sources) or a retraction
+//! (withdrawn, nothing put in its place), and nothing in the periods tells
+//! the three apart. Two predicates carry the link, both written on the NEWER
+//! graph: `temporal:supersedes` names the graph it replaces, and
+//! `temporal:retracts` names the graph it withdraws without replacing. They
+//! answer different questions from `recordedUntil` and do not compete with
+//! it: `recordedUntil` alone governs scope, and an explicit bound is
+//! authoritative. Where a graph carries none, the bound is DERIVED from the
+//! link: belief in it ended at the `recordedAt` of the graph that supersedes
+//! it, the earliest one where there are several. Where both are present and
+//! disagree, the explicit value governs and the disagreement is reported
+//! under `lineage`, never reconciled. Nothing is written: the derivation is a
+//! join made when the validity map is read, so the snapshot, the query and
+//! the conflict check share it by construction.
+//!
+//! A retracted graph stays visible, in its own `retracted` bucket, from the
+//! instant the retraction was recorded. With no `as_of` the recorded axis is
+//! not consulted, for a retraction no more than for a `recordedUntil`, and
+//! the graph takes the ordinary path: one rule for every recorded-time fact,
+//! a closing bound asserted or derived and a withdrawal alike. In
+//! `conflicts` a disjointness
+//! pair where one graph supersedes the other, directly or through a chain, is
+//! a correction whatever its periods, and lands in `corrections` rather than
+//! `contradictions`. A successor recorded before its predecessor produces a
+//! transaction interval that closes before it opens: it is reported as
+//! inverted and believed at no instant, never clamped.
+//!
 //! ## Bounds are instants
 //!
 //! Every bound is read as an instant on the UTC timeline, from `xsd:date`,
@@ -109,6 +139,11 @@ pub const NS: &str = "https://open-ontologies.org/temporal#";
 /// store answers differently under the two, so anything that replays or
 /// records an answer, a snapshot manifest above all, has to carry this, or
 /// two answers that cannot both be right hash identically.
+///
+/// The lineage predicates, `supersedes` and `retracts`, are read under
+/// `temporal/2` as well: they ship in the same release as the parsed bounds
+/// and a store that does not write them answers exactly as it did without
+/// them, so they do not move the version on their own.
 pub const SEMANTICS_VERSION: &str = "temporal/2";
 
 pub struct Temporal {
@@ -116,11 +151,14 @@ pub struct Temporal {
     limits: Limits,
 }
 
-/// Validity ROWS, not graphs. The query is a four-way UNION, so a graph
-/// carrying validFrom, validTo, recordedAt and recordedUntil costs four rows:
-/// the cap is reached at roughly 5,000 fully described graphs, where a
-/// three-predicate store still reaches it at roughly 6,700. A store that never
-/// writes recordedUntil pays nothing for it — the cap counts rows, not graphs.
+/// Validity ROWS, not graphs. The query is a six-way UNION, so a graph
+/// carrying validFrom, validTo, recordedAt and recordedUntil costs four rows,
+/// and one that also asserts a `supersedes` link and a `retracts` link costs
+/// six: the cap is reached at roughly 5,000 fully bounded graphs, at roughly
+/// 4,000 where each also carries one lineage link, and at roughly 3,300 where
+/// each carries both, where a three-predicate store still reaches it at
+/// roughly 6,700. A store that never writes recordedUntil or a lineage link
+/// pays nothing for them; the cap counts rows, not graphs.
 const VALIDITY_SCAN_LIMIT: usize = 20_000;
 /// Distinct named graphs holding assertions.
 const GRAPH_SCAN_LIMIT: usize = 20_000;
@@ -188,6 +226,14 @@ struct Scope {
     /// Graphs whose validity metadata could not be read. In neither of the
     /// two buckets above: an unreadable claim is not a claim we do not hold.
     invalid: Vec<serde_json::Value>,
+    /// Graphs withdrawn by a `retracts` link recorded by the audit instant.
+    /// Not `excluded`: a retracted claim did not fail a bound, it was taken
+    /// back, and the row names the graph that took it back.
+    retracted: Vec<serde_json::Value>,
+    /// What the lineage links could not settle or settled with a remark:
+    /// an explicit bound that disagrees with its successor, a transaction
+    /// interval that closes before it opens, a link naming nothing readable.
+    lineage: Vec<serde_json::Value>,
     /// The in-scope graph IRIs, in the same order as `in_scope`.
     graphs: Vec<String>,
     validity_scan: Capped,
@@ -208,7 +254,10 @@ impl Scope {
                 "graphs whose validity rows fell past the limit were read as having no \
                  validity at all, so they are listed in scope as timeless even where their \
                  period excludes them, and one whose metadata is unreadable is published as \
-                 timeless instead of invalid",
+                 timeless instead of invalid; a supersedes or retracts row that fell past the \
+                 limit while its asserter's bounds did not was never seen, so the graph it \
+                 named stays open, never closed, or in scope, never withdrawn, although it is \
+                 described",
             ),
             self.graph_scan.report(
                 "all_graphs",
@@ -228,8 +277,10 @@ impl Scope {
         if self.validity_scan.hit {
             parts.push(
                 "described graphs were read as timeless and put in scope, which is the \
-                 opposite of the truth for any graph whose period had ended, and unreadable \
-                 ones were published as timeless rather than invalid",
+                 opposite of the truth for any graph whose period had ended, unreadable \
+                 ones were published as timeless rather than invalid, and a supersedes or \
+                 retracts row that fell past the limit was never seen, leaving the graph it \
+                 named open or in scope although it is described",
             );
         }
         if self.graph_scan.hit {
@@ -282,6 +333,78 @@ struct Period {
     /// compares two periods without seeing the `GraphValidity` each came
     /// from, so the verdict has to travel on the period itself.
     degenerate: Option<Degenerate>,
+    /// The links this graph asserts, and what the lineage pass derived from
+    /// the links that name it. Carried on the period so `scope`, `query_at`
+    /// and `conflicts` read one derivation rather than three.
+    lineage: Lineage,
+}
+
+/// The lineage a graph asserts, and what was derived from the lineage
+/// asserted about it. Asserted, never inferred: every field here traces to a
+/// `supersedes` or `retracts` triple somebody wrote.
+#[derive(Clone, Debug, Default)]
+struct Lineage {
+    /// The graphs this one asserts it replaces, as plain IRIs. As read, every
+    /// asserted target; once `derive_lineage` has run, the EFFECTIVE ones
+    /// only, a link it rejected surviving in its report row and nowhere
+    /// else, so no consumer can walk a link the report says had no effect.
+    supersedes: Vec<String>,
+    /// The graphs this one asserts it withdraws, as plain IRIs, pruned to
+    /// the effective ones by the same pass.
+    retracts: Vec<String>,
+    /// Terms on either predicate that are not IRIs, with the predicate each
+    /// sat on. Kept so the report can quote them; nothing else reads them.
+    not_iris: Vec<(&'static str, String)>,
+    /// The successor whose `recordedAt` closed this graph's transaction
+    /// interval, when the closing bound was derived rather than asserted.
+    /// `None` for an asserted bound and for an open interval alike.
+    until_derived_from: Option<String>,
+    /// The graphs that retract this one, earliest recorded first and the
+    /// undated ones last, so the first that qualifies at an instant is the
+    /// one to name.
+    retracted_by: Vec<Retractor>,
+}
+
+/// One graph that withdraws another, and when the withdrawal was recorded.
+#[derive(Clone, Debug)]
+struct Retractor {
+    graph: String,
+    recorded: Option<DateTime<Utc>>,
+    /// The asserted lexical form, for the row; `None` when the retracting
+    /// graph carries no `recordedAt`.
+    recorded_lexical: Option<String>,
+}
+
+/// On which side of the recorded interval an instant fell, when it fell
+/// outside. Three variants rather than a bool: "recorded later" and "no
+/// longer believed" are opposite facts about an assertion, and an interval
+/// that closes before it opens is a third, a fact about the data rather
+/// than about the instant asked about.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum RecordedMiss {
+    NotYet,
+    NoLonger,
+    /// `recordedUntil` precedes `recordedAt`, asserted or derived, so the
+    /// interval holds at no instant.
+    Nowhere,
+}
+
+impl RecordedMiss {
+    fn reason(self) -> &'static str {
+        match self {
+            RecordedMiss::NotYet => "not yet recorded then",
+            RecordedMiss::NoLonger => "no longer recorded then",
+            RecordedMiss::Nowhere => {
+                "believed at no instant: the transaction interval closes before it opens"
+            }
+        }
+    }
+
+    /// Whether the miss is on the closing side, where a derived bound is the
+    /// thing that closed it and the row should name the successor.
+    fn closed(self) -> bool {
+        !matches!(self, RecordedMiss::NotYet)
+    }
 }
 
 /// Why a period with two readable bounds holds at no instant.
@@ -330,14 +453,47 @@ impl Period {
     /// Both bounds are instants like the valid-time pair: a closing bound
     /// written with an offset or at coarse precision closes the interval where
     /// that instant falls, not where its text sorts.
-    fn not_recorded_at(&self, instant: DateTime<Utc>) -> Option<&'static str> {
+    ///
+    /// An interval that closes before it opens is asked first. The two checks
+    /// below already fail every instant for it, so the answer would be right
+    /// either way, and wrong to read: "not yet recorded then" for a graph
+    /// that was never believed at any instant sends the reader looking for
+    /// a later instant that does not exist.
+    fn not_recorded_at(&self, instant: DateTime<Utc>) -> Option<RecordedMiss> {
+        if self.inverted_recording() {
+            return Some(RecordedMiss::Nowhere);
+        }
         if self.recorded.is_some_and(|r| instant < r) {
-            return Some("not yet recorded then");
+            return Some(RecordedMiss::NotYet);
         }
         if self.until.is_some_and(|u| u <= instant) {
-            return Some("no longer recorded then");
+            return Some(RecordedMiss::NoLonger);
         }
         None
+    }
+
+    /// Whether the transaction interval closes before it opens. Judged on the
+    /// composed bound, so a derived `until` counts exactly as an asserted one.
+    fn inverted_recording(&self) -> bool {
+        match (self.recorded, self.until) {
+            (Some(r), Some(u)) => u < r,
+            _ => false,
+        }
+    }
+
+    /// The retraction that stands at `as_of`, if any: the earliest one
+    /// recorded by then, or an undated one, which stands at every instant
+    /// asked about. With no `as_of` there is none: no instant was asked about
+    /// on the recorded axis, so no recorded-time fact is consulted, a
+    /// retraction no more than a `recordedUntil`, asserted or derived. One
+    /// rule for every fact on that axis; reading an absent `as_of` as "now"
+    /// would have to change the explicit bound too.
+    fn retracted_as_of(&self, as_of: Option<DateTime<Utc>>) -> Option<&Retractor> {
+        let t = as_of?;
+        self.lineage
+            .retracted_by
+            .iter()
+            .find(|r| r.recorded.is_none_or(|at| at <= t))
     }
 
     /// Do two validity periods share any instant. Half-open, so touching
@@ -379,8 +535,14 @@ enum GraphValidity {
     Degenerate { period: Period, kind: Degenerate },
     /// At least one bound was not. "We hold no valid-time claim about this"
     /// and "the claim is garbage" are different answers, and only the first
-    /// one is timeless.
-    Unreadable(Vec<Fault>),
+    /// one is timeless. The links the graph asserted travel with the faults,
+    /// as `(predicate, target)` pairs, so the lineage pass can report that
+    /// each had no effect: a link dropped with its asserter would leave the
+    /// graph it names open with nothing saying why.
+    Unreadable {
+        faults: Vec<Fault>,
+        asserted: Vec<(&'static str, String)>,
+    },
 }
 
 /// Why one bound could not be read.
@@ -408,13 +570,37 @@ struct Bound {
     instant: DateTime<Utc>,
 }
 
-/// The raw terms one graph asserts on each axis, before they are read.
+/// The raw terms one graph asserts on each axis, before they are read, and
+/// the raw lineage terms beside them.
 #[derive(Default)]
 struct Bounds {
     from: Vec<String>,
     to: Vec<String>,
     recorded: Vec<String>,
     until: Vec<String>,
+    supersedes: Vec<String>,
+    retracts: Vec<String>,
+}
+
+/// Split one predicate's raw terms into the graph IRIs it names and the
+/// terms that name no graph. A literal on `supersedes` is a data error, and
+/// one that was silently dropped would leave a predecessor open for ever,
+/// which is the defect the predicate exists to close.
+fn links(
+    field: &'static str,
+    terms: Vec<String>,
+    not_iris: &mut Vec<(&'static str, String)>,
+) -> Vec<String> {
+    let mut iris = Vec::new();
+    for term in terms {
+        let t = term.trim();
+        if t.starts_with('<') && t.ends_with('>') {
+            iris.push(plain(t));
+        } else {
+            not_iris.push((field, term));
+        }
+    }
+    iris
 }
 
 impl Bounds {
@@ -430,17 +616,38 @@ impl Bounds {
     /// it: a guard inside `overlaps` would be the same `None`-means-open
     /// mistake the enum exists to prevent, one precision down. The recorded
     /// axis is NOT classified this way: `recordedUntil` before `recordedAt`
-    /// is out-of-order recording (#109), which is a different question and
-    /// lands separately.
+    /// is out-of-order recording (#109), which is a different question, and
+    /// the lineage pass reports it once the derived bound is known.
+    ///
+    /// The lineage terms ride on the period as plain IRIs, for the sound and
+    /// the degenerate verdict alike. An unreadable graph keeps its faults and
+    /// the links it asserted, as raw pairs: it is invalid already, and a link
+    /// asserted by a graph whose own description cannot be read closes
+    /// nothing, but the lineage pass reports it rather than losing it.
     fn resolve(self, graph: String) -> GraphValidity {
         let mut faults = Vec::new();
         let from = settle("validFrom", self.from, &mut faults);
         let to = settle("validTo", self.to, &mut faults);
         let recorded = settle("recordedAt", self.recorded, &mut faults);
         let until = settle("recordedUntil", self.until, &mut faults);
+        let mut not_iris = Vec::new();
+        let supersedes = links("supersedes", self.supersedes, &mut not_iris);
+        let retracts = links("retracts", self.retracts, &mut not_iris);
         if !faults.is_empty() {
-            return GraphValidity::Unreadable(faults);
+            let asserted = supersedes
+                .into_iter()
+                .map(|t| ("supersedes", t))
+                .chain(retracts.into_iter().map(|t| ("retracts", t)))
+                .chain(not_iris)
+                .collect();
+            return GraphValidity::Unreadable { faults, asserted };
         }
+        let lineage = Lineage {
+            supersedes,
+            retracts,
+            not_iris,
+            ..Lineage::default()
+        };
         let degenerate = match (&from, &to) {
             (Some(f), Some(t)) => match f.instant.cmp(&t.instant) {
                 Ordering::Equal => Some(Degenerate::Empty),
@@ -462,6 +669,7 @@ impl Bounds {
             recorded: recorded.map(|b| b.instant),
             until: until.map(|b| b.instant),
             degenerate,
+            lineage,
         };
         match degenerate {
             Some(kind) => GraphValidity::Degenerate { period, kind },
@@ -946,6 +1154,377 @@ mod instant {
     }
 }
 
+/// The readable period behind a verdict, if there is one.
+fn period_of(v: &GraphValidity) -> Option<&Period> {
+    match v {
+        GraphValidity::Sound(p) | GraphValidity::Degenerate { period: p, .. } => Some(p),
+        GraphValidity::Unreadable { .. } => None,
+    }
+}
+
+fn period_mut(v: &mut GraphValidity) -> Option<&mut Period> {
+    match v {
+        GraphValidity::Sound(p) | GraphValidity::Degenerate { period: p, .. } => Some(p),
+        GraphValidity::Unreadable { .. } => None,
+    }
+}
+
+/// The second pass over the validity map: what the lineage links imply.
+///
+/// A join made when the map is read, and never written back. Every consumer
+/// runs on the map this returns, so `scope`, `query_at` and `conflicts`
+/// cannot disagree about which bound closed a graph. The rules, in the order
+/// they run:
+///
+///   - A link whose target is the graph itself, a graph with no temporal
+///     description, a graph whose description could not be read, or not a
+///     graph IRI at all, has no effect and is reported. So does a link
+///     asserted BY a graph whose own description could not be read: the
+///     graph it names is neither closed nor withdrawn, and the row is the
+///     only place that says so, since the asserter's `invalid` row is about
+///     its bounds. Lineage is asserted, and a link that asserts nothing
+///     readable closes nothing. Such a link is then PRUNED from the map:
+///     the report row is the only place it survives, so the cycle walk here
+///     and the chain walk in `conflicts` follow effective links only and
+///     cannot file a pair as a correction on a link this pass rejected.
+///   - A graph with no explicit `recordedUntil` and at least one dated
+///     successor is closed at the EARLIEST successor's `recordedAt`. Belief
+///     in it ended at the first replacement; a second successor does not
+///     revive it. A successor with no `recordedAt` cannot date the
+///     replacement and is reported, leaving the bound as it was.
+///   - A graph WITH an explicit `recordedUntil` keeps it. A successor whose
+///     `recordedAt` names a different instant is reported as a disagreement,
+///     never reconciled: the explicit bound is the authority, the report is
+///     the place the inconsistency survives.
+///   - More than one dated successor is reported on either branch, in one
+///     row shape naming them all: `closed_by` names the successor whose
+///     `recordedAt` became the bound where it was derived, and
+///     `recorded_until` the explicit bound where it was asserted, since no
+///     successor closed a graph that closed itself.
+///   - A retracted graph carries its retractors, earliest first. One with no
+///     `recordedAt` is reported as undated, and stands at every instant
+///     asked about; with no `as_of` none is, and no retractor stands.
+///   - A cycle of `supersedes` links is reported once, and the derivation
+///     above is one hop per graph, so a cycle cannot loop it.
+///   - A transaction interval that closes before it opens, from an asserted
+///     bound or a derived one, is reported as inverted. Nothing is clamped:
+///     the row shows the asserted instants, and `not_recorded_at` answers
+///     that the graph was believed at no instant.
+///
+/// Reports are rows of `{graph, reason, ...}`; a row may carry the IRIs and
+/// instants it is about as fields, because each row is about one graph.
+fn derive_lineage(map: &mut BTreeMap<String, GraphValidity>) -> Vec<serde_json::Value> {
+    let mut reports: Vec<serde_json::Value> = Vec::new();
+
+    // The inbound index: which readable graphs name each graph, per predicate.
+    // A link from an unreadable graph joins no index and is reported here,
+    // on the asserter's side like every other link that has no effect.
+    //
+    // A link that joins no index is also PRUNED from the asserter's lineage,
+    // below, once this loop has finished reading the map. The report row is
+    // the only place a rejected link survives: `conflicts` used to walk the
+    // raw `supersedes` list and file a pair as a correction on a link this
+    // pass had just said had no effect, a contradiction suppressed by a
+    // link that closed nothing. Every consumer now walks effective links by
+    // construction, so none can disagree with the report.
+    let mut successors: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut retractors: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    // (asserter, effective supersedes, effective retracts), for asserters
+    // that lost at least one link.
+    let mut pruned: Vec<(String, Vec<String>, Vec<String>)> = Vec::new();
+    for (g, v) in map.iter() {
+        let p = match v {
+            GraphValidity::Sound(p) | GraphValidity::Degenerate { period: p, .. } => p,
+            GraphValidity::Unreadable { asserted, .. } => {
+                for (field, target) in asserted {
+                    reports.push(serde_json::json!({
+                        "graph": g,
+                        "reason": format!(
+                            "{field} is asserted by a graph whose own temporal description \
+                             could not be read; the link has no effect, and the graph it \
+                             names is neither closed nor withdrawn by it"
+                        ),
+                        "target": target,
+                    }));
+                }
+                continue;
+            }
+        };
+        let mut kept_supersedes: Vec<String> = Vec::new();
+        let mut kept_retracts: Vec<String> = Vec::new();
+        for (field, targets, index, kept) in [
+            (
+                "supersedes",
+                &p.lineage.supersedes,
+                &mut successors,
+                &mut kept_supersedes,
+            ),
+            (
+                "retracts",
+                &p.lineage.retracts,
+                &mut retractors,
+                &mut kept_retracts,
+            ),
+        ] {
+            for target in targets {
+                let fault = if target == g {
+                    Some("names the graph itself")
+                } else {
+                    match map.get(target) {
+                        None => Some(
+                            "names a graph that carries no temporal description, whether or not \
+                             it exists, so there is nothing to close or withdraw",
+                        ),
+                        Some(GraphValidity::Unreadable { .. }) => Some(
+                            "names a graph whose temporal description could not be read, which \
+                             is invalid already",
+                        ),
+                        Some(_) => None,
+                    }
+                };
+                match fault {
+                    Some(why) => reports.push(serde_json::json!({
+                        "graph": g,
+                        "reason": format!("{field} {why}; the link has no effect"),
+                        "target": target,
+                    })),
+                    None => {
+                        index.entry(target.clone()).or_default().push(g.clone());
+                        kept.push(target.clone());
+                    }
+                }
+            }
+        }
+        if kept_supersedes.len() != p.lineage.supersedes.len()
+            || kept_retracts.len() != p.lineage.retracts.len()
+        {
+            pruned.push((g.clone(), kept_supersedes, kept_retracts));
+        }
+        for (field, term) in &p.lineage.not_iris {
+            reports.push(serde_json::json!({
+                "graph": g,
+                "reason": format!("{field} names a term that is not a graph IRI; the link has no effect"),
+                "target": term,
+            }));
+        }
+    }
+    // From here on the map carries effective links only: a rejected one is
+    // in `reports` and nowhere else, so the cycle walk below and the chain
+    // walk in `conflicts` cannot follow it.
+    for (g, supersedes, retracts) in pruned {
+        if let Some(p) = map.get_mut(&g).and_then(period_mut) {
+            p.lineage.supersedes = supersedes;
+            p.lineage.retracts = retracts;
+        }
+    }
+
+    // Close each superseded graph from its successors. Collected first and
+    // applied after, since a successor is read from the same map.
+    let mut closings: Vec<(String, DateTime<Utc>, String)> = Vec::new();
+    for (x, succs) in &successors {
+        let Some(p) = map.get(x).and_then(period_of) else {
+            continue;
+        };
+        // (instant, lexical form, successor graph): sorted, the first is the
+        // earliest, ties broken by the text and then the IRI so the answer
+        // does not depend on row order.
+        let mut dated: Vec<(DateTime<Utc>, String, String)> = Vec::new();
+        for s in succs {
+            let Some(sp) = map.get(s).and_then(period_of) else {
+                continue;
+            };
+            match (sp.recorded, sp.shown.recorded_at.as_ref()) {
+                (Some(at), Some(lexical)) => dated.push((at, lexical.clone(), s.clone())),
+                _ => reports.push(serde_json::json!({
+                    "graph": x,
+                    "reason": "the graph that supersedes it carries no recordedAt, so the \
+                               replacement cannot be dated and this link leaves the \
+                               transaction interval as it was",
+                    "successor": s,
+                })),
+            }
+        }
+        dated.sort();
+        let Some((earliest, _, closer)) = dated.first().cloned() else {
+            continue;
+        };
+        let explicit = match (p.until, p.shown.recorded_until.as_ref()) {
+            (Some(explicit), Some(explicit_lexical)) => {
+                for (at, lexical, s) in &dated {
+                    if *at != explicit {
+                        reports.push(serde_json::json!({
+                            "graph": x,
+                            "reason": "explicit recordedUntil disagrees with the recordedAt of \
+                                       the graph that supersedes it; the explicit bound governs",
+                            "successor": s,
+                            "recorded_until": explicit_lexical,
+                            "successor_recorded_at": lexical,
+                        }));
+                    }
+                }
+                Some(explicit_lexical.clone())
+            }
+            _ => {
+                closings.push((x.clone(), earliest, closer.clone()));
+                None
+            }
+        };
+        // Multiplicity is a fact about the links, not about which bound
+        // closed the graph, so it is reported on both branches in one row
+        // shape: `closed_by` names the successor where the bound was derived,
+        // and `recorded_until` the explicit bound where it was asserted, so
+        // the row never names a successor as having closed what it did not.
+        if dated.len() > 1 {
+            let mut row = serde_json::json!({
+                "graph": x,
+                "reason": match explicit {
+                    Some(_) => "superseded by more than one graph; the explicit recordedUntil \
+                                governs, so none of them closed it, and a later successor does \
+                                not revive it",
+                    None => "superseded by more than one graph; belief in it ended at the \
+                             earliest recordedAt among them, and a later successor does not \
+                             revive it",
+                },
+                "successors": dated.iter().map(|(_, _, s)| s).collect::<Vec<_>>(),
+            });
+            match explicit {
+                Some(lexical) => row["recorded_until"] = serde_json::Value::from(lexical),
+                None => row["closed_by"] = serde_json::Value::from(closer.as_str()),
+            }
+            reports.push(row);
+        }
+    }
+
+    // Retractors, earliest recorded first and the undated ones last.
+    let mut withdrawals: Vec<(String, Vec<Retractor>)> = Vec::new();
+    for (x, rets) in &retractors {
+        let mut list: Vec<Retractor> = Vec::new();
+        for r in rets {
+            let Some(rp) = map.get(r).and_then(period_of) else {
+                continue;
+            };
+            if rp.recorded.is_none() {
+                reports.push(serde_json::json!({
+                    "graph": x,
+                    "reason": "retracted by a graph with no recordedAt, so the withdrawal cannot \
+                               be dated and stands at every as_of",
+                    "retracted_by": r,
+                }));
+            }
+            list.push(Retractor {
+                graph: r.clone(),
+                recorded: rp.recorded,
+                recorded_lexical: rp.shown.recorded_at.clone(),
+            });
+        }
+        list.sort_by(|a, b| match (a.recorded, b.recorded) {
+            (Some(x), Some(y)) => x.cmp(&y).then_with(|| a.graph.cmp(&b.graph)),
+            (Some(_), None) => Ordering::Less,
+            (None, Some(_)) => Ordering::Greater,
+            (None, None) => a.graph.cmp(&b.graph),
+        });
+        withdrawals.push((x.clone(), list));
+    }
+
+    // Cycles. Iterative rather than recursive: a chain can be as long as the
+    // map, and a worker thread's stack is not. The links are effective by
+    // construction, pruned above: every child is a readable graph in the
+    // map other than its parent, so the walk needs no guard against a
+    // self-link or a target that is not there.
+    fn children<'a>(map: &'a BTreeMap<String, GraphValidity>, g: &str) -> &'a [String] {
+        map.get(g)
+            .and_then(period_of)
+            .map(|p| p.lineage.supersedes.as_slice())
+            .unwrap_or(&[])
+    }
+    let mut done: BTreeSet<&str> = BTreeSet::new();
+    let mut cycles: BTreeSet<Vec<String>> = BTreeSet::new();
+    for start in map.keys() {
+        if done.contains(start.as_str()) {
+            continue;
+        }
+        let mut path: Vec<(&str, usize)> = vec![(start.as_str(), 0)];
+        while let Some(&(g, i)) = path.last() {
+            let Some(child) = children(map, g).get(i) else {
+                path.pop();
+                done.insert(g);
+                continue;
+            };
+            if let Some(frame) = path.last_mut() {
+                frame.1 = i + 1;
+            }
+            let c = child.as_str();
+            if done.contains(c) {
+                continue;
+            }
+            if let Some(k) = path.iter().position(|&(on_path, _)| on_path == c) {
+                cycles.insert(
+                    path[k..]
+                        .iter()
+                        .map(|(on_path, _)| on_path.to_string())
+                        .collect(),
+                );
+                continue;
+            }
+            path.push((c, 0));
+        }
+    }
+    for cycle in cycles {
+        reports.push(serde_json::json!({
+            "graph": cycle[0],
+            "reason": "supersedes links form a cycle, so no graph in it is the latest version; \
+                       each bound is still derived from the direct successor and the walk \
+                       stops here",
+            "cycle": cycle,
+        }));
+    }
+
+    for (x, at, closer) in closings {
+        if let Some(p) = map.get_mut(&x).and_then(period_mut) {
+            p.until = Some(at);
+            p.lineage.until_derived_from = Some(closer);
+        }
+    }
+    for (x, list) in withdrawals {
+        if let Some(p) = map.get_mut(&x).and_then(period_mut) {
+            p.lineage.retracted_by = list;
+        }
+    }
+
+    // Inverted transaction intervals, judged on the composed bound.
+    let mut inverted: Vec<serde_json::Value> = Vec::new();
+    for (g, v) in map.iter() {
+        let Some(p) = period_of(v) else { continue };
+        if !p.inverted_recording() {
+            continue;
+        }
+        let mut row = serde_json::json!({
+            "graph": g,
+            "reason": "the transaction interval closes before it opens: recordedUntil precedes \
+                       recordedAt, an inverted transaction interval; nothing was clamped, and \
+                       the graph is believed at no instant",
+            "recorded_at": p.shown.recorded_at,
+        });
+        match &p.lineage.until_derived_from {
+            Some(s) => {
+                row["superseded_by"] = serde_json::Value::from(s.as_str());
+                row["recorded_until"] = serde_json::Value::from(
+                    map.get(s)
+                        .and_then(period_of)
+                        .and_then(|sp| sp.shown.recorded_at.clone()),
+                );
+            }
+            None => row["recorded_until"] = serde_json::Value::from(p.shown.recorded_until.clone()),
+        }
+        inverted.push(row);
+    }
+    reports.extend(inverted);
+
+    // One graph's rows together, whatever rule produced them.
+    reports.sort_by(|a, b| a["graph"].as_str().cmp(&b["graph"].as_str()));
+    reports
+}
+
 /// Literal or IRI as SPARQL returns it, without its wrapping.
 fn plain(value: &str) -> String {
     let v = value.trim();
@@ -1032,14 +1611,26 @@ impl Temporal {
         })
     }
 
-    /// Every graph that carries validity metadata, and whether the scan that
-    /// found them was complete.
-    fn validities(&self) -> anyhow::Result<(BTreeMap<String, GraphValidity>, Capped)> {
+    /// Every graph that carries validity or lineage metadata, whether the scan
+    /// that found them was complete, and what the lineage pass reported.
+    ///
+    /// The lineage derivation runs here, on the map every consumer reads, so
+    /// a graph closed by its successor is closed for the snapshot, the query
+    /// and the conflict check alike.
+    fn validities(
+        &self,
+    ) -> anyhow::Result<(
+        BTreeMap<String, GraphValidity>,
+        Capped,
+        Vec<serde_json::Value>,
+    )> {
         let query = format!(
-            "SELECT ?g ?from ?to ?rec ?until WHERE {{ \
+            "SELECT ?g ?from ?to ?rec ?until ?sup ?ret WHERE {{ \
              {{ ?g <{NS}validFrom> ?from }} UNION {{ ?g <{NS}validTo> ?to }} \
              UNION {{ ?g <{NS}recordedAt> ?rec }} \
-             UNION {{ ?g <{NS}recordedUntil> ?until }} }}"
+             UNION {{ ?g <{NS}recordedUntil> ?until }} \
+             UNION {{ ?g <{NS}supersedes> ?sup }} \
+             UNION {{ ?g <{NS}retracts> ?ret }} }}"
         );
         let scan = self.rows(&query, self.limits.validity_scan)?;
         // 1.2.0 ASSIGNED each field here, so the last row of the UNION won
@@ -1058,6 +1649,8 @@ impl Temporal {
                 ("to", &mut entry.to),
                 ("rec", &mut entry.recorded),
                 ("until", &mut entry.until),
+                ("sup", &mut entry.supersedes),
+                ("ret", &mut entry.retracts),
             ] {
                 if let Some(v) = row.get(key).and_then(|v| v.as_str()) {
                     let term = v.trim().to_string();
@@ -1067,11 +1660,12 @@ impl Temporal {
                 }
             }
         }
-        let out = terms
+        let mut out: BTreeMap<String, GraphValidity> = terms
             .into_iter()
             .map(|(graph, bounds)| (graph.clone(), bounds.resolve(graph)))
             .collect();
-        Ok((out, scan.capped))
+        let lineage = derive_lineage(&mut out);
+        Ok((out, scan.capped, lineage))
     }
 
     /// Named graphs holding assertions, whether or not they are described.
@@ -1098,12 +1692,13 @@ impl Temporal {
         valid_at: Option<DateTime<Utc>>,
         as_of: Option<DateTime<Utc>>,
     ) -> anyhow::Result<Scope> {
-        let (validities, validity_scan) = self.validities()?;
+        let (validities, validity_scan, lineage) = self.validities()?;
         let (graphs, graph_scan) = self.all_graphs()?;
 
         let mut in_scope = Vec::new();
         let mut excluded = Vec::new();
         let mut invalid = Vec::new();
+        let mut retracted = Vec::new();
         let mut names = Vec::new();
         for g in &graphs {
             // The readable period, and which shape it is when it holds at no
@@ -1121,7 +1716,7 @@ impl Temporal {
                 // Described, but the description could not be read. Never in
                 // scope and never timeless: "we hold no valid-time claim about
                 // this" and "the claim is garbage" are different answers.
-                Some(GraphValidity::Unreadable(faults)) => {
+                Some(GraphValidity::Unreadable { faults, .. }) => {
                     invalid.push(serde_json::json!({
                         "graph": g,
                         "reason": GraphValidity::fault_reason(faults),
@@ -1147,6 +1742,25 @@ impl Temporal {
                 // false for such a period regardless.
                 Some(GraphValidity::Degenerate { period, kind }) => (period, Some(*kind)),
             };
+            // Retraction is asked first, once the graph is readable at all: an
+            // unreadable one answered above and stays invalid. It is a fact
+            // about the assertion's standing, not about the instant asked
+            // about, so it beats "not true at that instant" and both
+            // recorded-side reasons; a graph that is both superseded and
+            // retracted lands here. Before the retraction was recorded, and
+            // with no `as_of` at all, the graph takes the ordinary path: with
+            // no `as_of` the recorded axis is consulted for no fact, a
+            // retraction no more than a `recordedUntil`, asserted or derived.
+            if let Some(r) = p.retracted_as_of(as_of) {
+                retracted.push(serde_json::json!({
+                    "graph": g,
+                    "valid": p.shown.describe(),
+                    "reason": "retracted",
+                    "retracted_by": r.graph,
+                    "retracted_at": r.recorded_lexical,
+                }));
+                continue;
+            }
             // A period that holds at no instant is never valid at one, and
             // `valid_at` is not asked about it: the half-open test already
             // answers false for `from >= to`, and the guard keeps that so
@@ -1161,15 +1775,27 @@ impl Temporal {
                 in_scope.push(serde_json::json!({"graph": g, "valid": p.shown.describe()}));
                 names.push(g.clone());
             } else {
-                excluded.push(serde_json::json!({
+                let mut row = serde_json::json!({
                     "graph": g,
                     "valid": p.shown.describe(),
                     "reason": if !valid_ok {
                         kind.map_or("not true at that instant", Degenerate::reason)
                     } else {
-                        recorded_miss.unwrap_or("not yet recorded then")
+                        recorded_miss.map_or("not yet recorded then", RecordedMiss::reason)
                     },
-                }));
+                });
+                // A closing bound that was derived names the graph it was
+                // derived from: the row would otherwise say the interval had
+                // closed and show no recordedUntil that closed it.
+                let closed_by_successor = p
+                    .lineage
+                    .until_derived_from
+                    .as_deref()
+                    .filter(|_| valid_ok && recorded_miss.is_some_and(RecordedMiss::closed));
+                if let Some(s) = closed_by_successor {
+                    row["superseded_by"] = serde_json::Value::from(s);
+                }
+                excluded.push(row);
             }
         }
 
@@ -1177,6 +1803,8 @@ impl Temporal {
             in_scope,
             excluded,
             invalid,
+            retracted,
+            lineage,
             graphs: names,
             validity_scan,
             graph_scan,
@@ -1201,6 +1829,12 @@ impl Temporal {
         });
         if !scope.invalid.is_empty() {
             out["invalid"] = serde_json::Value::Array(scope.invalid.clone());
+        }
+        if !scope.retracted.is_empty() {
+            out["retracted"] = serde_json::Value::Array(scope.retracted.clone());
+        }
+        if !scope.lineage.is_empty() {
+            out["lineage"] = serde_json::Value::Array(scope.lineage.clone());
         }
         if let Some(warning) = scope.warning() {
             out["warning"] = serde_json::Value::String(format!("{warning} See truncated."));
@@ -1233,6 +1867,8 @@ impl Temporal {
         let scope_warning = scope.warning();
         let scope_complete = scope.complete();
         let invalid = scope.invalid;
+        let retracted = scope.retracted;
+        let lineage = scope.lineage;
         let graphs = scope.graphs;
 
         if graphs.is_empty() {
@@ -1245,6 +1881,12 @@ impl Temporal {
             });
             if !invalid.is_empty() {
                 out["invalid"] = serde_json::Value::Array(invalid);
+            }
+            if !retracted.is_empty() {
+                out["retracted"] = serde_json::Value::Array(retracted);
+            }
+            if !lineage.is_empty() {
+                out["lineage"] = serde_json::Value::Array(lineage);
             }
             if let Some(warning) = scope_warning {
                 out["warning"] = serde_json::Value::String(format!(
@@ -1286,6 +1928,12 @@ impl Temporal {
         if !invalid.is_empty() {
             out["invalid"] = serde_json::Value::Array(invalid);
         }
+        if !retracted.is_empty() {
+            out["retracted"] = serde_json::Value::Array(retracted);
+        }
+        if !lineage.is_empty() {
+            out["lineage"] = serde_json::Value::Array(lineage);
+        }
         if !cuts.is_empty() {
             out["truncated"] = serde_json::Value::Array(cuts);
         }
@@ -1318,8 +1966,17 @@ impl Temporal {
     /// missing coverage, not history, and reading it as a correction invents a
     /// continuity nobody asserted. Hence `non_overlapping`, and hence
     /// `superseded` being deprecated rather than redefined — see #110.
+    ///
+    /// The link the data did not carry, it now can. A pair where one graph
+    /// asserts that it supersedes the other, directly or through a chain of
+    /// `supersedes` links, is a correction whatever its periods: the issue's
+    /// own example is a correction that shares its predecessor's valid period
+    /// and was filed as a contradiction. Such a pair lands in `corrections`,
+    /// checked before the overlap test, and lineage that is asserted is the
+    /// only thing that puts it there. A retracted graph is not treated
+    /// specially here.
     pub fn conflicts(&self) -> anyhow::Result<String> {
-        let (validities, validity_scan) = self.validities()?;
+        let (validities, validity_scan, _lineage) = self.validities()?;
         let scan = self.rows(
             "PREFIX owl: <http://www.w3.org/2002/07/owl#> \
              PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \
@@ -1343,13 +2000,39 @@ impl Temporal {
         let timeless = Period::default();
         let period = |graph: &str| match validities.get(graph) {
             None => Some(&timeless),
-            Some(GraphValidity::Sound(p)) | Some(GraphValidity::Degenerate { period: p, .. }) => {
-                Some(p)
+            Some(v) => period_of(v),
+        };
+        // Does `from` supersede `to`, directly or through a chain. Walks only
+        // readable graphs in the map, each once, so a cycle ends the walk
+        // rather than the process. The links it follows are EFFECTIVE by
+        // construction: `derive_lineage` pruned every link it rejected (a
+        // self-link, an undescribed or unreadable target) from the map
+        // before handing it on, so a pair can land in `corrections` only on
+        // a link the snapshot's `lineage` does not report as having no
+        // effect. Reading the raw assertions here would let a link that
+        // closed nothing suppress a genuine contradiction.
+        let supersedes = |from: &str, to: &str| -> bool {
+            let mut seen: BTreeSet<&str> = BTreeSet::new();
+            let mut stack: Vec<&str> = vec![from];
+            while let Some(g) = stack.pop() {
+                if !seen.insert(g) {
+                    continue;
+                }
+                let Some(p) = validities.get(g).and_then(period_of) else {
+                    continue;
+                };
+                for s in &p.lineage.supersedes {
+                    if s == to {
+                        return true;
+                    }
+                    stack.push(s.as_str());
+                }
             }
-            Some(GraphValidity::Unreadable(_)) => None,
+            false
         };
 
         let mut conflicts = Vec::new();
+        let mut corrections = Vec::new();
         let mut non_overlapping = Vec::new();
         let mut undecided = Vec::new();
         for row in &scan.rows {
@@ -1375,13 +2058,26 @@ impl Temporal {
                 continue;
             };
 
-            let entry = serde_json::json!({
+            let mut entry = serde_json::json!({
                 "subject": local(&s),
                 "types": [local(&a), local(&b)],
                 "periods": [va.shown.describe(), vb.shown.describe()],
-                "graphs": [ga, gb],
+                "graphs": [&ga, &gb],
             });
-            if va.overlaps(vb) {
+            // Asserted lineage first: a pair one side of which replaces the
+            // other is a correction whatever the periods say, and the
+            // overlap test is never reached for it.
+            let link = if supersedes(&ga, &gb) {
+                Some([&ga, &gb])
+            } else if supersedes(&gb, &ga) {
+                Some([&gb, &ga])
+            } else {
+                None
+            };
+            if let Some([successor, predecessor]) = link {
+                entry["supersedes"] = serde_json::json!([successor, predecessor]);
+                corrections.push(entry);
+            } else if va.overlaps(vb) {
                 conflicts.push(entry);
             } else {
                 non_overlapping.push(entry);
@@ -1392,8 +2088,8 @@ impl Temporal {
         // unconditionally until 2.0 and behind no flag: an opt-out would be a
         // third response shape to document and test, and it would let a client
         // code against a shape no release guarantees. It is deprecated, not
-        // renamed — when lineage-backed supersession arrives it gets a NEW
-        // key, so that no key ever names a different set across a major
+        // renamed: lineage-backed supersession arrived as `corrections`, a
+        // NEW key, so that no key ever names a different set across a major
         // version. See #110.
         let mut out = serde_json::json!({
             "ok": true,
@@ -1415,6 +2111,10 @@ impl Temporal {
                      with a reason naming which. undecided holds pairs where a graph's \
                      temporal metadata could not be read: an unreadable period is never \
                      treated as an open one, so such a pair is classified neither way. \
+                     corrections are pairs where one graph asserts that it supersedes the \
+                     other, directly or through a chain of supersedes links, lineage that is \
+                     asserted and never inferred, and such a pair is never a contradiction \
+                     whatever its periods. \
                      superseded is the same set as non_overlapping under a name that claimed \
                      more than was proven; it is deprecated and will be dropped at 2.0.",
         });
@@ -1429,7 +2129,9 @@ impl Temporal {
                 "validities",
                 "pairs whose validity rows fell past the limit were compared as timeless, and \
                  a timeless period overlaps everything: superseded corrections can appear here \
-                 as contradictions",
+                 as contradictions; a supersedes row that fell past the limit while its \
+                 asserter's bounds did not was never seen, so the pair it links was compared \
+                 on its periods and can appear here as a contradiction too",
             ),
             scan.capped.report(
                 "conflict_pairs",
@@ -1441,6 +2143,10 @@ impl Temporal {
         .flatten()
         .collect();
 
+        if !corrections.is_empty() {
+            out["corrections"] = serde_json::Value::Array(corrections.clone());
+            out["corrections_count"] = serde_json::Value::from(corrections.len());
+        }
         if !undecided.is_empty() {
             out["undecided"] = serde_json::Value::Array(undecided.clone());
             out["undecided_count"] = serde_json::Value::from(undecided.len());
@@ -1451,8 +2157,9 @@ impl Temporal {
         if validity_scan.hit {
             out["warning"] = serde_json::Value::String(
                 "UNSOUND CLASSIFICATION: the validity scan hit its row limit, so some pairs \
-                 were compared without their periods. A correction can be reported here as a \
-                 contradiction, which is the one thing this tool exists to prevent; \
+                 were compared without their periods, or without the supersedes link that \
+                 would have pre-empted the comparison. A correction can be reported here as \
+                 a contradiction, which is the one thing this tool exists to prevent; \
                  contradiction_count is an upper bound over the pairs that were examined, and \
                  says nothing about any pair the candidate scan did not reach. See truncated."
                     .to_string(),
@@ -1670,6 +2377,51 @@ ex:g_after  { ex:X a ex:Suspension . }
         assert_eq!(snap["complete"], true, "four rows do: {snap}");
     }
 
+    /// The same graph, plus one `supersedes` link.
+    const FULLY_DESCRIBED_WITH_LINK: &str = r#"
+@prefix ex: <http://example.org/> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+
+ex:g1 { ex:X ex:p ex:one . }
+
+{
+  ex:g1 t:validFrom "2024-01-01" ; t:validTo "2026-01-01" ;
+        t:recordedAt "2024-01-05" ; t:recordedUntil "2026-01-06" ;
+        t:supersedes ex:g0 .
+}
+"#;
+
+    /// The row cost of a lineage link, proved the same way. The link is a
+    /// fifth UNION branch, so a graph carrying the four bounds and one
+    /// `supersedes` costs five rows and 20,000 rows cover roughly 4,000 such
+    /// graphs; with a `retracts` beside it, six rows and roughly 3,300. The
+    /// test above is untouched: a graph without a link still costs four.
+    #[test]
+    fn a_fully_described_graph_with_a_supersedes_link_costs_five_validity_rows() {
+        let cut = Temporal::with_limits(
+            store(FULLY_DESCRIBED_WITH_LINK),
+            Limits {
+                validity_scan: 4,
+                ..Limits::default()
+            },
+        );
+        let snap = json(cut.snapshot(None, None).unwrap());
+        assert_eq!(
+            snap["complete"], false,
+            "four rows no longer cover a graph that also asserts a link: {snap}"
+        );
+
+        let whole = Temporal::with_limits(
+            store(FULLY_DESCRIBED_WITH_LINK),
+            Limits {
+                validity_scan: 5,
+                ..Limits::default()
+            },
+        );
+        let snap = json(whole.snapshot(None, None).unwrap());
+        assert_eq!(snap["complete"], true, "five rows do: {snap}");
+    }
+
     /// The case that has to be loud. Every graph in the fixture is described,
     /// so a graph the snapshot calls timeless is provably a misclassification.
     #[test]
@@ -1693,6 +2445,29 @@ ex:g_after  { ex:X a ex:Suspension . }
         );
         assert_eq!(snap["truncated"][0]["scan"], "validities");
         assert_eq!(snap["truncated"][0]["limit"], 2);
+
+        // The validity UNION carries the lineage rows under the same cap, so
+        // both texts must name the failure that costs: a graph whose own
+        // bounds survived the cut but whose supersedes or retracts row did
+        // not closed or withdrew nothing, and the graph it named stays open
+        // or in scope although it is described. Neither text names a graph.
+        for text in [
+            snap["warning"].as_str().unwrap(),
+            snap["truncated"][0]["consequence"].as_str().unwrap(),
+        ] {
+            assert!(
+                text.contains("supersedes or retracts row"),
+                "a cut lineage row is a third way the scope is wrong: {text}"
+            );
+            assert!(
+                text.contains("described"),
+                "and it happens to a described graph, which is the point: {text}"
+            );
+            assert!(
+                !text.contains("http"),
+                "no graph IRI belongs in a cap text: {text}"
+            );
+        }
 
         // SPARQL does not order an unordered LIMIT, so WHICH graph lost its
         // description is not fixed — but exactly one did, whichever it was.
@@ -1823,6 +2598,21 @@ ex:g_after  { ex:X a ex:Suspension . }
         );
         assert_eq!(cut["truncated"][0]["scan"], "validities");
         assert_eq!(cut["truncated"][0]["limit"], 1);
+        // The supersedes rows share the cap with the bounds, so a link can be
+        // cut while both periods survive: the pair is then compared on
+        // periods the link was meant to pre-empt. Both texts say so, and
+        // neither names a graph.
+        let consequence = cut["truncated"][0]["consequence"].as_str().unwrap();
+        assert!(
+            consequence.contains("supersedes row") && consequence.contains("never seen"),
+            "a cut link is a second way a correction reads as a contradiction: {consequence}"
+        );
+        let warning = cut["warning"].as_str().unwrap();
+        assert!(warning.contains("without the supersedes link"), "{warning}");
+        assert!(
+            !consequence.contains("http") && !warning.contains("http"),
+            "{cut}"
+        );
     }
 
     /// The pair scan is the mild cap: fewer pairs examined, no claim turned
