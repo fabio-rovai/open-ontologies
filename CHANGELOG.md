@@ -5,6 +5,28 @@ All notable changes to Open Ontologies are documented here.
 ## [Unreleased]
 
 ### Fixed
+- **A constraint asserted on the node shape itself was never evaluated and
+  never reported, so `sh:closed true` over data carrying an undeclared
+  predicate returned `conforms: true`.** The check that routes unimplemented
+  constraints to `skipped_constraints` reached one `sh:property` hop below the
+  shape and no further: `sh:closed`, a node-level `sh:not`, `sh:nodeKind`,
+  `sh:and`, `sh:or`, `sh:xone`, `sh:in` and `sh:node` never bound the
+  predicate it inspects. A second complement now covers the shape node, with a
+  whitelist of the predicates the validator reads there (the target forms,
+  `sh:property`, `sh:sparql`) plus the annotation predicates, which are never
+  constraints, so any other `sh:` predicate lands in `skipped_constraints` and
+  the verdict becomes null. The shape is bound as a query variable and matched
+  to the discovered shape, not spliced into the query text: a shape written
+  `[] a sh:NodeShape` is a blank node, and a blank-node label inside a SPARQL
+  query is a wildcard, not a name. The complement runs once per shape rather
+  than once per target class, so a node constraint is recorded once.
+  `sh:deactivated` is among them on purpose: a deactivated shape is still
+  evaluated here, so the predicate is not honoured and must not read as if it
+  were. The complement is restricted to the `sh:` namespace, because an
+  implicit class target carries its own class axioms on the same subject and
+  those are not constraints. A test now asserts the null verdict is reachable
+  from the node shape, from a property shape and from a target, each naming
+  its construct, so the next construct added has somewhere obvious to fail.
 - **A daemon started with `[http] token` in config rejected every command it was
   meant to serve.** `serve-http` falls back to the config token and then enforces
   bearer auth, but `daemon start` recorded `token: null` in `daemon.json`

@@ -2,7 +2,7 @@ use crate::graph::GraphStore;
 use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::io::Cursor;
 use std::sync::Arc;
 
@@ -15,8 +15,11 @@ use std::sync::Arc;
 ///
 /// Any constraint the validator cannot execute is recorded in
 /// `skipped_constraints` and suppresses the conformance verdict: `conforms`
-/// becomes null rather than true. Reporting success for rules that were never
-/// run is the one failure mode this validator must not have.
+/// becomes null rather than true. That holds wherever the constraint sits:
+/// on a property shape (`sh:not`), on the node shape itself (`sh:closed`,
+/// `sh:nodeKind`, `sh:deactivated`) or in a target form that is not selected
+/// (`sh:targetNode`). Reporting success for rules that were never run is the
+/// one failure mode this validator must not have.
 pub struct ShaclValidator;
 
 impl ShaclValidator {
@@ -85,6 +88,82 @@ impl ShaclValidator {
         }
         let mut unmatched: Vec<serde_json::Value> = Vec::new();
         let mut focus_nodes_total: u64 = 0;
+
+        // A constraint asserted on the node shape itself (`sh:closed`, a
+        // node-level `sh:not`, `sh:nodeKind`, `sh:and`, `sh:or`, `sh:xone`,
+        // `sh:in`, `sh:node`) never reaches the per-property complement in
+        // the loop below, which starts one sh:property hop under the shape.
+        // Before this complement existed, `sh:closed true` over data carrying
+        // an undeclared predicate returned `conforms: true`.
+        //
+        // It covers every discovered shape in one query, for two reasons.
+        // First, the shape is bound as a variable and matched to the
+        // discovery row by its printed term, not spliced into the query text:
+        // a shape written `[] a sh:NodeShape` prints as `_:label`, and a
+        // blank-node label inside a SPARQL query is a non-distinguished
+        // variable, not a name, so splicing it enumerated every predicate in
+        // the shapes graph and routed the property shape's own sh:path to
+        // skipped. Second, discovery yields one row per (shape, target class)
+        // and a node constraint belongs to the shape, so running the
+        // complement per row recorded `sh:closed` once per target class. It
+        // is restricted to discovered shapes, like the property complement:
+        // a shape using a target form this validator lacks is already
+        // recorded as skipped, and a shape with no target selects no focus
+        // nodes under SHACL, so its constraints not running is what the
+        // specification asks for, not a gap.
+        //
+        // The whitelist is the predicates the validator reads on the shape
+        // node (the four target forms, of which the three not implemented
+        // are already recorded as skipped above and must not be counted
+        // twice, sh:property and sh:sparql) plus the annotation predicates,
+        // which are never constraints. Any other sh: predicate lands in
+        // skipped, even one a later change starts to evaluate, because a
+        // whitelist that tracks what is implemented drifts the first time
+        // someone adds a constraint and forgets the list. `sh:deactivated` is
+        // deliberately absent: SHACL says a deactivated shape must not be
+        // evaluated and this validator evaluates it anyway, so the predicate
+        // is not implemented and must reach skipped like any other.
+        //
+        // The complement is restricted to the sh: namespace. A shape that is
+        // also an rdfs:Class or owl:Class (an implicit class target) carries
+        // the class's own axioms on the same subject (rdfs:subClassOf,
+        // rdfs:label, owl:equivalentClass), and an unrestricted complement
+        // would report those as constraints and turn every such run
+        // undetermined. A constraint is by definition a predicate in the sh:
+        // namespace; a predicate from any other namespace on a shape node is
+        // an annotation or an axiom, never a constraint.
+        let discovered: HashSet<&str> = shapes
+            .iter()
+            .filter_map(|s| s.get("shape").map(String::as_str))
+            .collect();
+        let unknown_on_node = query_solutions(
+            &shapes_store,
+            r#"
+            PREFIX sh: <http://www.w3.org/ns/shacl#>
+            SELECT DISTINCT ?shape ?pred WHERE {
+                ?shape a sh:NodeShape ; ?pred ?o .
+                FILTER(STRSTARTS(STR(?pred), "http://www.w3.org/ns/shacl#") && ?pred NOT IN (
+                    sh:targetClass, sh:targetNode, sh:targetSubjectsOf,
+                    sh:targetObjectsOf, sh:property, sh:sparql,
+                    sh:message, sh:severity, sh:name, sh:description,
+                    sh:order, sh:group
+                ))
+            }
+            "#,
+        )?;
+        for row in &unknown_on_node {
+            let (Some(shape), Some(pred)) = (row.get("shape"), row.get("pred")) else {
+                continue;
+            };
+            if !discovered.contains(shape.as_str()) {
+                continue;
+            }
+            skipped.push(serde_json::json!({
+                "shape": strip_angle_brackets(shape),
+                "constraint": strip_angle_brackets(pred),
+                "reason": "node-shape constraint not implemented; it was not evaluated",
+            }));
+        }
 
         for shape in &shapes {
             let target_class = match shape.get("targetClass") {
@@ -538,6 +617,18 @@ impl ShaclValidator {
             }
         }
 
+        // A validator has three answers, not two. `true` means every constraint
+        // ran and none failed, `false` means one failed, and null means the
+        // question could not be answered. Every path that can select nothing
+        // or execute nothing has to reach the third answer: a target that
+        // selects nothing lands in `nothing_matched`, a target form that is
+        // not implemented lands in `skipped`, and a constraint that cannot
+        // execute lands in `skipped` whether it sits on a property shape or on
+        // the node shape itself. A construct added later that is neither
+        // evaluated nor routed to one of those is the false clean this module
+        // exists to prevent; the reachability test in tests/shacl_test.rs is
+        // where it should fail.
+        //
         // A shapes graph that declared shapes we could not discover must not be
         // reported as a pass. `shapes.is_empty()` used to fall through to
         // `conforms: violations.is_empty()`, which is `true` for an empty run.
