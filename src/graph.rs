@@ -232,12 +232,37 @@ impl GraphStore {
     }
 
     pub fn sparql_select(&self, query: &str) -> anyhow::Result<String> {
+        self.select_with_dataset(query, false)
+    }
+
+    /// Run a SELECT whose default graph is the union of every graph in the
+    /// store, named graphs included.
+    ///
+    /// The plain `sparql_select` leaves the evaluator on its default dataset
+    /// specification, which is the store's default graph alone. That is the
+    /// right dataset for a query someone wrote, since a caller who wants a
+    /// named graph writes `GRAPH`. It is the wrong one for a tool that asks a
+    /// question about the store rather than about a graph, because the answer
+    /// then depends on which serialisation the data arrived in: the same
+    /// triples loaded from Turtle are visible and loaded from TriG are not.
+    ///
+    /// `GRAPH ?g` still ranges over the named graphs here, so a query written
+    /// against the plain form keeps its meaning under this one.
+    pub fn sparql_select_union(&self, query: &str) -> anyhow::Result<String> {
+        self.select_with_dataset(query, true)
+    }
+
+    fn select_with_dataset(
+        &self,
+        query: &str,
+        union_default_graph: bool,
+    ) -> anyhow::Result<String> {
         let store = self.store.lock().unwrap();
-        match SparqlEvaluator::new()
-            .parse_query(query)?
-            .on_store(&store)
-            .execute()?
-        {
+        let mut prepared = SparqlEvaluator::new().parse_query(query)?;
+        if union_default_graph {
+            prepared.dataset_mut().set_default_graph_as_union();
+        }
+        match prepared.on_store(&store).execute()? {
             QueryResults::Solutions(solutions) => {
                 let vars: Vec<String> = solutions
                     .variables()

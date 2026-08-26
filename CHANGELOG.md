@@ -5,6 +5,22 @@ All notable changes to Open Ontologies are documented here.
 ## [Unreleased]
 
 ### Fixed
+- **`onto_shacl` validated the default graph and nothing else, so whether data
+  was checked at all depended on the serialisation it arrived in.** Every
+  data-side query ran through the store's default dataset specification, which
+  is the default graph alone, so an ontology and its instances loaded from
+  Turtle validated while the identical triples loaded from TriG or N-Quads
+  selected no focus nodes: `focus_nodes: 0`, `unmatched_shapes` populated, and
+  the `nothing_matched` null verdict. That is a truthful answer to a question
+  nobody asked, which is why it never arrived as a bug report. The data-side
+  queries now read the union of every graph in the store, added as
+  `GraphStore::sparql_select_union` so the plain `sparql_select` keeps the
+  dataset a hand-written query expects. `GRAPH ?g` still ranges over the named
+  graphs, so nothing written against the old form changes meaning.
+  **This can turn a null or a vacuous pass into a real `conforms: false`**,
+  which is the point: the violations were always there and were not being
+  looked at. Reports now carry `scope`, today always `all_graphs`, so a verdict
+  says what it selected over before temporal scoping makes that vary (#108).
 - **A constraint asserted on the node shape itself was never evaluated and
   never reported, so `sh:closed true` over data carrying an undeclared
   predicate returned `conforms: true`.** The check that routes unimplemented
