@@ -1015,6 +1015,11 @@ impl OpenOntologiesServer {
         use crate::temporal::Temporal;
         match Temporal::new(self.graph.clone()).snapshot(input.valid_at.as_deref(), input.as_of.as_deref()) {
             Ok(json) => json,
+            // Renders the error by quote substitution only, with no JSON
+            // escaping, so a message on this path must never echo caller
+            // text: a backslash or a newline would break the JSON. That is
+            // why `temporal::argument` (the wrapper over `instant::argument`)
+            // does not quote the argument in its message.
             Err(e) => format!(r#"{{"error":"{}"}}"#, e.to_string().replace('"', "'")),
         }
     }
@@ -1026,6 +1031,11 @@ impl OpenOntologiesServer {
             &input.pattern, input.valid_at.as_deref(), input.as_of.as_deref(),
         ) {
             Ok(json) => json,
+            // Renders the error by quote substitution only, with no JSON
+            // escaping, so a message on this path must never echo caller
+            // text: a backslash or a newline would break the JSON. That is
+            // why `temporal::argument` (the wrapper over `instant::argument`)
+            // does not quote the argument in its message.
             Err(e) => format!(r#"{{"error":"{}"}}"#, e.to_string().replace('"', "'")),
         }
     }
@@ -1035,6 +1045,11 @@ impl OpenOntologiesServer {
         use crate::temporal::Temporal;
         match Temporal::new(self.graph.clone()).conflicts() {
             Ok(json) => json,
+            // Renders the error by quote substitution only, with no JSON
+            // escaping, so a message on this path must never echo caller
+            // text: a backslash or a newline would break the JSON. That is
+            // why `temporal::argument` (the wrapper over `instant::argument`)
+            // does not quote the argument in its message.
             Err(e) => format!(r#"{{"error":"{}"}}"#, e.to_string().replace('"', "'")),
         }
     }

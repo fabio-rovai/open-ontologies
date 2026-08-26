@@ -93,10 +93,13 @@ All notable changes to Open Ontologies are documented here.
   history. The results now come back under `non_overlapping` /
   `non_overlapping_count`, and the `note` says what was checked instead of
   claiming adjacency the code never tested -- including the comparison that
-  backs it. Bounds are compared as text, so two periods written with different
-  timezone offsets can share an hour and still land in `non_overlapping`; the
-  note says so, and a conformance test pins it so the parsed-time work turns it
-  into a contradiction as a diff rather than a new assertion.
+  backs it. When this landed, bounds were still compared as text, so two
+  periods written with different timezone offsets could share an hour and
+  still land in `non_overlapping`; a conformance test pinned that so the
+  parsed-time work would turn it into a contradiction as a diff rather than a
+  new assertion. Bounds are now read as instants (see Changed below), offsets
+  are honoured, that test has flipped on the lines that held the old answer,
+  and the note says the comparison is on instants.
 
   `superseded` / `superseded_count` are still emitted, unconditionally and
   behind no flag, carrying exactly the same rows until 2.0. Deprecated, not
@@ -222,22 +225,26 @@ All notable changes to Open Ontologies are documented here.
   the FIRST instant of the period it names, so `"2026-05-01"^^xsd:date` as a
   `validTo` excludes the whole of 1 May and `"2026"^^xsd:gYear` as a
   `validFrom` starts at midnight on 1 January. A value with no timezone offset
-  is UTC — XSD leaves such a value only partially ordered against one that
+  is UTC: XSD leaves such a value only partially ordered against one that
   carries an offset, and "indeterminate" is not an answer a register query can
-  return. Every response now carries `semantics_version` (`temporal/2`), since
+  return. All four axes are read this way, `recordedUntil` included: a closing
+  bound written with an offset or at month precision closes the recorded
+  interval where its instant falls, not where its text sorts, and one that
+  matches no grammar makes the graph invalid by the same rule as the other
+  three. Every response now carries `semantics_version` (`temporal/2`), since
   the same store answers differently under the two readings and an answer that
   does not say which produced it cannot be replayed or hashed.
 
   A fractional second is refused only when a digit past the ninth is NONZERO.
   A zero tail is not extra precision: `.1234567890` is 123,456,789 nanoseconds
   exactly and names the instant `.123456789` names, so refusing it made two
-  spellings of one instant answer differently — the thing this change resolves
+  spellings of one instant answer differently, the thing this change resolves
   everywhere else. Fixed-width formatters pad to a fixed digit count, so the
   tail arrives from machines rather than from typos, and it reaches both the
   store bounds and the `valid_at` / `as_of` arguments. Bounds typed
   `^^xsd:dateTime` were shielded by the store's own canonicalisation; bare and
-  `xsd:string` bounds — the form this module documents as supported, and the
-  form the conformance corpus is written in — were not.
+  `xsd:string` bounds (the form this module documents as supported, and the
+  form the conformance corpus is written in) were not.
 
   **Same-precision data with four-digit years, no offsets and no sub-nanosecond
   fractions answers exactly as it did.** That is the constraint this was built
@@ -258,9 +265,9 @@ All notable changes to Open Ontologies are documented here.
   - **Years that are not four digits.** `"20241-01-01"` and `"-0044-03-15"` now
     order by year rather than by first character, so a graph bounded by one is
     in scope inside its own interval instead of nowhere.
-  - **Bounds that match none of the four grammars** — a foreign datatype, a
+  - **Bounds that match none of the four grammars** (a foreign datatype, a
     language tag, `"01/05/2026"`, `"2024-1-1"`, a calendar-impossible
-    `"2024-02-30"`, a fraction finer than a nanosecond — make the graph
+    `"2024-02-30"`, a fraction finer than a nanosecond) make the graph
     INVALID. It is reported in a new `invalid` array with a per-graph reason,
     excluded from `in_scope`, and above all NOT timeless: "we hold no
     valid-time claim about this" and "the claim is garbage" are different
@@ -268,33 +275,40 @@ All notable changes to Open Ontologies are documented here.
     `"01/05/2026"` sorted before every ISO value in the store and its graph
     read as valid since the beginning of time.
   - **Two different instants on one axis.** Previously the last row of the
-    validity query's three-way UNION won and the other value vanished, on an
-    order the query never contracted. The graph is now invalid and both values
-    are named — choosing one, or the min, or the max, would publish an interval
+    validity query's UNION won and the other value vanished, on an order the
+    query never contracted. The graph is now invalid and both values are
+    named: choosing one, or the min, or the max, would publish an interval
     nobody asserted. Two SPELLINGS of one instant (a bare `"2024-01-01"` beside
     `"2024-01-01"^^xsd:date`, which is what a half-finished migration leaves)
-    still resolve to that one instant: they invent nothing.
+    still resolve to that one instant: they invent nothing. So do a coarse
+    bound and a fine one naming the same instant, `"2024"^^xsd:gYear` beside
+    `"2024-01-01"^^xsd:date`, because agreement is judged on the instants and
+    not on the strings; the row shows the lexically first form.
   - **`valid_at` / `as_of` that cannot be read** are now refused rather than
     ignored. Silently dropping one answered a question nobody asked, with the
     whole store in scope and nothing saying why.
   - **`onto_temporal_conflicts`** gains `undecided` and `undecided_count` for
-    pairs where a graph's period could not be read. An unreadable period is not
-    an open one; treating it as timeless would make it overlap everything and
-    publish a correction as a live contradiction, which is the failure that
-    tool exists to prevent.
+    pairs where a graph's temporal metadata could not be read on at least one
+    axis, so the graph is invalid and the pair is classified neither way. An
+    unreadable period is not an open one; treating it as timeless would make it
+    overlap everything and publish a correction as a live contradiction, which
+    is the failure that tool exists to prevent. `non_overlapping` and the
+    deprecated `superseded` alias are unchanged, and the `note` now says the
+    disjointness check runs on instants, so an offset is honoured.
 
   A note on `xsd:string`: RDF 1.1 makes a simple literal and an
-  `xsd:string`-typed literal with the same lexical form the SAME term —
-  `datatype()` answers `xsd:string` for both — so a bound cannot be rejected
+  `xsd:string`-typed literal with the same lexical form the SAME term
+  (`datatype()` answers `xsd:string` for both), so a bound cannot be rejected
   for carrying that datatype: the store holds no such fact to report. Untyped
   bounds are read by shape against the four grammars, which rejects
   `"01/05/2026"` either way while leaving every store written with plain
   literals answering as before. A value wearing one of the four datatypes but
   matching another of them (the shape this crate's own module doc shipped for
-  `recordedAt`) is read as what it is. 6 grammar tests in `src/temporal.rs`, and
-  the conformance corpus in `tests/temporal_conformance_test.rs` goes from 16
-  tests to 23: the four cases pinned for this change flip on the lines that
-  held the old answer, and a third section covers what parsing adds.
+  `recordedAt`) is read as what it is. 8 grammar tests in `src/temporal.rs`, and
+  the conformance corpus in `tests/temporal_conformance_test.rs` goes from 24
+  tests to 34: the four cases pinned for this change, and the offset pair the
+  `non_overlapping` fix pinned, flip on the lines that held the old answer, and
+  a third section covers what parsing adds.
 
 ### Added
 - **CLI: Daemon mode — persistent in-memory store across processes.** New `daemon start / stop / status` subcommand launches `serve-http` as a detached background process and writes its PID + URL to `~/.open-ontologies/daemon.json`. All 24 CLI commands that touch the `Arc<GraphStore>` (load, save, clear, stats, query, lint, reason, shacl, enforce, plan, apply, version, history, rollback, pull, push, ingest, drift, lock, monitor, monitor-clear, marketplace, and `batch`) automatically detect a live daemon and route their request to it via the new `/api/batch` HTTP endpoint — no flags, no code changes per-command. Use `--no-connect` to force local execution. Daemon liveness is checked with a bare `kill(pid, 0)` (Unix) / `tasklist` (Windows), rather than forking `/bin/kill` on the path the daemon exists to make fast; stale `daemon.json` files are removed automatically on the next command. New modules `src/daemon.rs` (PID file management + process control) and `src/connect.rs` (HTTP proxy client), and `libc` as a dependency for the liveness check.

@@ -13,8 +13,8 @@
 //! most of it uses a single lexical date form, since that is the shape those
 //! assertions are about, and none of it moved when bounds started being parsed.
 //! The second pinned what the code did for mixed-precision and malformed bounds
-//! when they were compared as datatype-stripped text — behaviour that fell out
-//! of the implementation rather than being chosen — with each test naming what
+//! when they were compared as datatype-stripped text, behaviour that fell out
+//! of the implementation rather than being chosen, with each test naming what
 //! the parsed-time work (#95, item 4) would turn it into; that work has landed,
 //! so those tests now hold the new answer on the same lines, which is what the
 //! section was for. The third covers what parsing adds and could not be
@@ -353,19 +353,23 @@ fn typed_literals_behave_like_their_lexical_form() {
     let t = temporal(TYPED_LITERALS);
     // Inside the valid interval and after the (dateTime) record: in scope.
     assert!(
-        graphs(&snapshot(&t, Some("2024-06-01"), Some("2024-01-06")), "in_scope")
-            .contains("g_typed"),
+        graphs(
+            &snapshot(&t, Some("2024-06-01"), Some("2024-01-06")),
+            "in_scope"
+        )
+        .contains("g_typed"),
         "typed date/dateTime literals compare like their lexical form"
     );
     // The dateTime record is not yet visible one day before it was entered.
     assert!(
-        graphs(&snapshot(&t, Some("2024-06-01"), Some("2024-01-04")), "excluded")
-            .contains("g_typed")
+        graphs(
+            &snapshot(&t, Some("2024-06-01"), Some("2024-01-04")),
+            "excluded"
+        )
+        .contains("g_typed")
     );
     // Before the typed validFrom: excluded, exactly as an untyped fixture is.
-    assert!(
-        graphs(&snapshot(&t, Some("2023-01-01"), None), "excluded").contains("g_typed")
-    );
+    assert!(graphs(&snapshot(&t, Some("2023-01-01"), None), "excluded").contains("g_typed"));
 }
 
 #[test]
@@ -395,7 +399,9 @@ fn query_at_reports_an_empty_scope_rather_than_the_whole_store() {
     // No timeless graph here, and both described graphs begin in 2024, so an
     // instant in 2000 leaves nothing in scope.
     let t = temporal(CONFLICT_OVERLAP);
-    let raw = t.query_at("{ ?s a ?type }", Some("2000-01-01"), None).unwrap();
+    let raw = t
+        .query_at("{ ?s a ?type }", Some("2000-01-01"), None)
+        .unwrap();
     let out: serde_json::Value = serde_json::from_str(&raw).unwrap();
     assert_eq!(out["results"].as_array().unwrap().len(), 0);
     assert_eq!(out["note"], "no graphs in scope at that instant");
@@ -597,7 +603,7 @@ fn offset_bounds_are_compared_as_instants_so_a_real_overlap_is_a_contradiction()
 }
 
 // ---------------------------------------------------------------------------
-// Section 2 — the inputs parsed-time reading changes
+// Section 2: the inputs parsed-time reading changes
 //
 // Everything above pins semantics that are intended, and none of it moved.
 // What follows was pinned in 1.2.0 as ACCIDENTS of comparing datatype-stripped
@@ -641,9 +647,7 @@ fn a_less_precise_instant_names_the_first_moment_of_its_period() {
         "the date-typed instant is the upper bound itself, so it is excluded"
     );
     // Unchanged: a day inside the interval stays in scope.
-    assert!(
-        graphs(&snapshot(&t, Some("2026-04-30"), None), "in_scope").contains("g_mixed")
-    );
+    assert!(graphs(&snapshot(&t, Some("2026-04-30"), None), "in_scope").contains("g_mixed"));
 }
 
 /// A lower bound carrying a `+02:00` offset against an instant expressed in Z.
@@ -669,19 +673,27 @@ fn an_offset_bound_is_read_as_the_instant_it_denotes() {
     // so the bound read as later than it is and the instant fell outside.
     // NOW: the offset is applied and the instant is where it always was.
     assert!(
-        graphs(&snapshot(&t, Some("2026-04-30T23:00:00Z"), None), "in_scope").contains("g_off"),
+        graphs(
+            &snapshot(&t, Some("2026-04-30T23:00:00Z"), None),
+            "in_scope"
+        )
+        .contains("g_off"),
         "an hour past a +02:00 bound is inside the interval, whatever the text sorts like"
     );
     // Unchanged: an instant past both readings stays in scope.
     assert!(
-        graphs(&snapshot(&t, Some("2026-05-01T00:00:00Z"), None), "in_scope").contains("g_off")
+        graphs(
+            &snapshot(&t, Some("2026-05-01T00:00:00Z"), None),
+            "in_scope"
+        )
+        .contains("g_off")
     );
 }
 
 /// A bound carrying a non-ISO lexical form.
 ///
 /// It is written `^^xsd:string`, but RDF 1.1 makes that the SAME term as the
-/// bare literal `"01/05/2026"` — `datatype()` answers `xsd:string` for both —
+/// bare literal `"01/05/2026"` (`datatype()` answers `xsd:string` for both),
 /// so nothing downstream can reject it for its datatype. It is rejected for
 /// its shape, which is what makes the rule implementable at all.
 const STRING_TYPED_BOUND: &str = r#"
@@ -701,7 +713,7 @@ fn a_bound_matching_no_temporal_grammar_is_invalid_rather_than_coerced() {
     let t = temporal(STRING_TYPED_BOUND);
     // WAS ACCIDENTAL: `plain()` threw the datatype away, leaving "01/05/2026",
     // which sorts before every ISO value in the store, so the graph read as
-    // valid since the beginning of time — including in 1999.
+    // valid since the beginning of time, including in 1999.
     // NOW: the value matches none of the four grammars, so the graph is
     // INVALID: out of in_scope, reported with a reason, and above all NOT
     // timeless. "We hold no valid-time claim about this" and "the claim is
@@ -762,11 +774,11 @@ fn two_different_instants_on_one_axis_are_a_data_error_not_a_choice() {
 }
 
 // ---------------------------------------------------------------------------
-// Section 3 — what reading bounds as instants adds
+// Section 3: what reading bounds as instants adds
 //
 // The cases Section 2 does not reach: values that are readable but were never
 // comparable as text, and values that must be refused. Every fixture here is
-// data a real store produces — a half-finished migration, a coarse register
+// data a real store produces: a half-finished migration, a coarse register
 // bound, a mislabelled datatype, a typo.
 // ---------------------------------------------------------------------------
 
@@ -802,6 +814,57 @@ fn two_spellings_of_one_instant_are_one_assertion() {
     );
 }
 
+/// The same instant asserted at two precisions on one axis: a year beside
+/// the day that year begins on. A register that recorded "2024" and a later
+/// pass that wrote out the day it stands for is the shape this leaves.
+const TWO_PRECISIONS: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:g_coarse { ex:X a ex:A . }
+
+{
+  ex:g_coarse t:validFrom "2024"^^xsd:gYear , "2024-01-01"^^xsd:date .
+}
+"#;
+
+/// `settle` compares the INSTANTS the terms name, not their lexical forms:
+/// `"2024"` and `"2024-01-01"` are different strings naming one instant, so
+/// they are one assertion, exactly as two spellings at one precision are.
+///
+/// The displayed form is pinned as well. The row shows `2024`, the lexically
+/// first term after the sort, because a row carries one form per bound and
+/// showing both would need a shape change. This pins the current choice so a
+/// change to it is deliberate, not an endorsement of it.
+#[test]
+fn a_coarse_bound_and_a_fine_one_naming_the_same_instant_are_one_assertion() {
+    let t = temporal(TWO_PRECISIONS);
+    let snap = snapshot(&t, Some("2024-06-01"), None);
+    assert!(
+        graphs(&snap, "in_scope").contains("g_coarse"),
+        "a year and the day it begins on are one instant, so one interval: {snap}"
+    );
+    assert!(
+        invalid_reason(&snap, "g_coarse").is_none(),
+        "and nothing about it is a data error: {snap}"
+    );
+    let row = snap["in_scope"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| {
+            row["graph"]
+                .as_str()
+                .is_some_and(|g| g.ends_with("g_coarse"))
+        })
+        .unwrap_or_else(|| panic!("g_coarse is in scope: {snap}"));
+    assert_eq!(
+        row["valid"], "2024 to still true",
+        "the shown form is the lexically first term, `2024`: {row}"
+    );
+}
+
 /// Register data is often coarser than a day.
 const COARSE_BOUNDS: &str = r#"
 @prefix ex:  <http://example.org/> .
@@ -824,7 +887,7 @@ fn a_year_or_month_bound_names_the_first_instant_of_its_period() {
     // "2024" is 2024-01-01T00:00:00Z, so the first instant of 2024 is in.
     assert!(graphs(&snapshot(&t, Some("2024-01-01"), None), "in_scope").contains("g_year"));
     // "2026" as an upper bound is the first instant of 2026, and the interval
-    // is half-open — so 2025 is the last year in scope, not 2026.
+    // is half-open, so 2025 is the last year in scope, not 2026.
     assert!(graphs(&snapshot(&t, Some("2025-12-31"), None), "in_scope").contains("g_year"));
     assert!(graphs(&snapshot(&t, Some("2026-01-01"), None), "excluded").contains("g_year"));
     // Same rule one precision down.
@@ -853,7 +916,7 @@ fn a_value_wearing_the_wrong_temporal_datatype_is_still_read() {
     let t = temporal(MISLABELLED_DATATYPE);
     // "2024-01-05" is not in the lexical space of xsd:dateTime. The re-read
     // stays inside the four temporal grammars, so this resolves to the date it
-    // plainly is — while a value fitting none of them is still refused, which
+    // plainly is, while a value fitting none of them is still refused, which
     // is what `a_bound_matching_no_temporal_grammar_is_invalid…` pins.
     let snap = snapshot(&t, Some("2024-06-01"), Some("2024-01-05"));
     assert!(
@@ -863,7 +926,11 @@ fn a_value_wearing_the_wrong_temporal_datatype_is_still_read() {
     assert!(graphs(&snap, "in_scope").contains("g_doc"));
     // And the recorded-time cutoff still bites on the other side of it.
     assert!(
-        graphs(&snapshot(&t, Some("2024-06-01"), Some("2024-01-04")), "excluded").contains("g_doc")
+        graphs(
+            &snapshot(&t, Some("2024-06-01"), Some("2024-01-04")),
+            "excluded"
+        )
+        .contains("g_doc")
     );
 }
 
@@ -901,13 +968,17 @@ fn a_foreign_datatype_a_language_tag_and_an_impossible_date_are_all_invalid() {
     }
     // 30 February parses field by field and is still not a day: the calendar
     // check is what catches it, not the grammar.
-    assert!(invalid_reason(&snap, "g_never").unwrap().contains("2024-02-30"));
+    assert!(
+        invalid_reason(&snap, "g_never")
+            .unwrap()
+            .contains("2024-02-30")
+    );
 }
 
 #[test]
 fn an_unreadable_argument_is_refused_rather_than_ignored() {
     let t = temporal(CELL_LINE);
-    // Dropping it would answer a question nobody asked — the whole store in
+    // Dropping it would answer a question nobody asked: the whole store in
     // scope, with nothing saying why.
     assert!(t.snapshot(Some("01/05/2026"), None).is_err());
     assert!(t.snapshot(None, Some("last tuesday")).is_err());
@@ -915,6 +986,84 @@ fn an_unreadable_argument_is_refused_rather_than_ignored() {
     // And a readable one still works, at every precision.
     assert!(t.snapshot(Some("2026"), None).is_ok());
     assert!(t.snapshot(Some("2026-05-01T12:00:00+02:00"), None).is_ok());
+}
+
+/// The closing bound of the recorded interval, written three ways: one that
+/// nothing can read, one carrying an offset, and one at month precision.
+const RECORDED_UNTIL_FORMS: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:g_garbage { ex:X a ex:A . }
+ex:g_offset  { ex:Y a ex:A . }
+ex:g_month   { ex:Z a ex:A . }
+
+{
+  ex:g_garbage t:recordedAt "2024-01-05" ; t:recordedUntil "01/05/2026"^^xsd:string .
+  ex:g_offset  t:recordedAt "2024-01-05" ; t:recordedUntil "2026-05-02T00:00:00+02:00"^^xsd:dateTime .
+  ex:g_month   t:recordedAt "2024-01-05" ; t:recordedUntil "2026-05"^^xsd:gYearMonth .
+}
+"#;
+
+/// `recordedUntil` is the fourth parsed axis and fails the way the other three
+/// do: a value matching no temporal grammar makes the WHOLE graph invalid,
+/// with the reason naming the axis, rather than leaving the recorded interval
+/// open or the graph timeless. Whole-graph invalidation is the rule for every
+/// axis; there is no per-axis fault.
+#[test]
+fn an_unreadable_recorded_until_makes_the_graph_invalid_like_any_other_axis() {
+    let t = temporal(RECORDED_UNTIL_FORMS);
+    for as_of in [None, Some("2025-01-01")] {
+        let snap = snapshot(&t, None, as_of);
+        assert!(
+            !graphs(&snap, "in_scope").contains("g_garbage"),
+            "an unreadable closing bound must not leave the graph in scope (as_of {as_of:?})"
+        );
+        assert!(
+            !graphs(&snap, "excluded").contains("g_garbage"),
+            "nor in excluded, which claims the interval was read and had closed"
+        );
+        let reason = invalid_reason(&snap, "g_garbage")
+            .unwrap_or_else(|| panic!("g_garbage is reported unreadable: {snap}"));
+        assert!(
+            reason.contains("recordedUntil") && reason.contains("01/05/2026"),
+            "the reason names the axis and quotes the value: {reason}"
+        );
+    }
+}
+
+/// The closing bound is compared as the instant it names, not as text.
+/// `2026-05-02T00:00:00+02:00` is `2026-05-01T22:00:00Z`, so an audit at
+/// `23:00Z` on 1 May is already past it although the text says 2 May; and
+/// `"2026-05"` closes the interval at the first instant of May, not somewhere
+/// inside it.
+#[test]
+fn recorded_until_with_an_offset_or_at_coarse_precision_closes_at_its_instant() {
+    let t = temporal(RECORDED_UNTIL_FORMS);
+    let snap = snapshot(&t, None, Some("2026-05-01T23:00:00Z"));
+    assert_eq!(
+        reason(&snap, "g_offset"),
+        "no longer recorded then",
+        "22:00Z on 1 May has passed by 23:00Z, whatever the text sorts like: {snap}"
+    );
+    assert_eq!(
+        reason(&snap, "g_month"),
+        "no longer recorded then",
+        "May has begun, so a month-precision bound has closed: {snap}"
+    );
+    // Two hours earlier the offset bound has not closed yet.
+    let before = snapshot(&t, None, Some("2026-05-01T21:00:00Z"));
+    assert!(
+        graphs(&before, "in_scope").contains("g_offset"),
+        "21:00Z on 1 May is before 22:00Z: {before}"
+    );
+    // And the last second of April is still inside the month-bounded interval.
+    let april = snapshot(&t, None, Some("2026-04-30T23:59:59Z"));
+    assert!(
+        graphs(&april, "in_scope").contains("g_month"),
+        "April is before the first instant of May: {april}"
+    );
 }
 
 /// A disjointness pair where one side's period cannot be read.
@@ -939,10 +1088,12 @@ fn a_pair_whose_period_cannot_be_read_is_undecided_not_a_contradiction() {
     let t = temporal(UNREADABLE_IN_A_PAIR);
     let out: serde_json::Value = serde_json::from_str(&t.conflicts().unwrap()).unwrap();
     // An unreadable period is not an open one. Treating it as timeless would
-    // make it overlap everything and publish this pair as a live contradiction
-    // — the false positive the tool exists to prevent, arriving through the
-    // data instead of through a truncated scan.
+    // make it overlap everything and publish this pair as a live contradiction:
+    // the false positive the tool exists to prevent, arriving through the
+    // data instead of through a truncated scan. Nor is it a disjoint one, so
+    // the pair is in neither bucket.
     assert_eq!(out["contradiction_count"], 0, "{out}");
+    assert_eq!(out["non_overlapping_count"], 0, "{out}");
     assert_eq!(out["superseded_count"], 0, "{out}");
     assert_eq!(out["undecided_count"], 1, "{out}");
     assert!(
@@ -958,7 +1109,7 @@ fn a_pair_whose_period_cannot_be_read_is_undecided_not_a_contradiction() {
 fn every_answer_names_the_semantics_that_produced_it() {
     let t = temporal(CELL_LINE);
     // Two readings of the same store disagree, so an answer that does not say
-    // which one produced it cannot be replayed or hashed — which is what the
+    // which one produced it cannot be replayed or hashed, which is what the
     // snapshot manifest work needs from this PR.
     for raw in [
         t.snapshot(None, None).unwrap(),

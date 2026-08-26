@@ -64,7 +64,7 @@
 //! A bound that matches none of those grammars is not coerced into one, and a
 //! graph asserting two different instants on the same axis is not resolved to
 //! either of them: both make the graph INVALID. An invalid graph is reported
-//! with its reason and is never in scope — above all it is never timeless,
+//! with its reason and is never in scope; above all it is never timeless,
 //! because "we hold no valid-time claim about this" and "the claim is garbage"
 //! are different answers.
 //!
@@ -93,7 +93,7 @@ pub const NS: &str = "https://open-ontologies.org/temporal#";
 /// `temporal/1` was lexical string comparison of the bounds as written.
 /// `temporal/2` reads every bound as an instant on the UTC timeline. The same
 /// store answers differently under the two, so anything that replays or
-/// records an answer — a snapshot manifest above all — has to carry this, or
+/// records an answer, a snapshot manifest above all, has to carry this, or
 /// two answers that cannot both be right hash identically.
 pub const SEMANTICS_VERSION: &str = "temporal/2";
 
@@ -386,11 +386,16 @@ impl Bounds {
 
 /// Read every term asserted on one axis, and insist they agree.
 ///
-/// Two terms denoting the SAME instant are two spellings of one assertion — a
-/// bare `"2024-01-01"` beside `"2024-01-01"^^xsd:date` is what a half-finished
-/// migration leaves behind — and they invent no interval, so they resolve.
-/// Two terms denoting DIFFERENT instants resolve to nothing: picking one, or
-/// the min, or the max, would invent an interval nobody asserted.
+/// Agreement is judged on the INSTANTS the terms name, not on their lexical
+/// forms. Two terms denoting the SAME instant are two spellings of one
+/// assertion (a bare `"2024-01-01"` beside `"2024-01-01"^^xsd:date` is what a
+/// half-finished migration leaves behind) and they invent no interval, so they
+/// resolve. So do a coarse bound and a fine one naming the same instant:
+/// `"2024"^^xsd:gYear` beside `"2024-01-01"^^xsd:date` is one assertion,
+/// because both name midnight on 1 January. Two terms denoting DIFFERENT
+/// instants resolve to nothing: picking one, or the min, or the max, would
+/// invent an interval nobody asserted. The form shown is the lexically first
+/// term after the sort; a row shows one form per bound.
 fn settle(field: &'static str, mut terms: Vec<String>, faults: &mut Vec<Fault>) -> Option<Bound> {
     terms.sort(); // the query contracts no row order, so neither does the answer
     let mut read: Vec<(String, DateTime<Utc>)> = Vec::new();
@@ -429,7 +434,7 @@ fn settle(field: &'static str, mut terms: Vec<String>, faults: &mut Vec<Fault>) 
 /// return, so an absent offset is read as UTC and the order is total; the
 /// tool descriptions say so. A less precise bound names the FIRST instant of
 /// the period it names, which is what lexical comparison already gave for
-/// same-precision data — so a well-formed 1.2.0 dataset answers as it did.
+/// same-precision data, so a well-formed 1.2.0 dataset answers as it did.
 mod instant {
     use chrono::{DateTime, NaiveDate, TimeDelta, Utc};
 
@@ -495,8 +500,8 @@ mod instant {
     /// A bound as the store holds it.
     ///
     /// RDF 1.1 makes a simple literal and an `xsd:string`-typed literal with
-    /// the same lexical form THE SAME TERM — `datatype()` answers `xsd:string`
-    /// for both — so a bound cannot be rejected for "carrying" `xsd:string`:
+    /// the same lexical form THE SAME TERM (`datatype()` answers `xsd:string`
+    /// for both), so a bound cannot be rejected for "carrying" `xsd:string`:
     /// the store holds no such fact to report. An untyped bound is therefore
     /// read by SHAPE against all four grammars. `"01/05/2026"` matches none
     /// and is rejected, by shape rather than by datatype, but rejected.
@@ -528,7 +533,7 @@ mod instant {
     }
 
     /// A tool argument. It arrives as text rather than as an RDF term, so
-    /// there is no datatype to consult — and it goes through the same
+    /// there is no datatype to consult, and it goes through the same
     /// grammars a bound does, so an argument and a bound can never disagree
     /// about what an instant is.
     pub(super) fn argument(text: &str) -> Result<DateTime<Utc>, String> {
@@ -596,7 +601,7 @@ mod instant {
     }
 
     /// XSD yearFrag: `'-'? ( [1-9][0-9]{3,} | '0'[0-9]{3} )`. No leading `+`,
-    /// which is why `"+2024"` is not a gYear — and is not one to the store
+    /// which is why `"+2024"` is not a gYear, and is not one to the store
     /// either, which passes it through unchanged.
     fn year_frag(b: &[u8]) -> Option<(i32, usize)> {
         let negative = b.first() == Some(&b'-');
@@ -811,7 +816,7 @@ mod instant {
 
         /// XSD's whiteSpace facet on these types is `collapse`, and a store
         /// that keeps the padding must not answer differently from one that
-        /// does not — on either path.
+        /// does not, on either path.
         #[test]
         fn padding_is_collapsed_on_both_the_typed_and_the_bare_path() {
             assert_eq!(read("  2024-03-05  "), "2024-03-05T00:00:00Z");
@@ -820,8 +825,8 @@ mod instant {
         }
 
         /// A tenth fractional digit is only unrepresentable when it carries a
-        /// value. `.1234567890` is 123,456,789 nanoseconds exactly — the same
-        /// instant `.123456789` names — so refusing it made two spellings of
+        /// value. `.1234567890` is 123,456,789 nanoseconds exactly, the same
+        /// instant `.123456789` names, so refusing it made two spellings of
         /// one instant answer differently, which is the thing `settle` exists
         /// to prevent. Fixed-width formatters pad to a fixed digit count, so
         /// the zero tail arrives from machines, not from typos.
@@ -884,7 +889,7 @@ fn local(iri: &str) -> &str {
 /// The message deliberately does not quote the argument back. The tool
 /// handlers render an `Err` into JSON by hand (`src/server.rs`, quote
 /// substitution only), so caller text reaching that path could emit a
-/// malformed response — and the caller has the value already. Store-side
+/// malformed response, and the caller has the value already. Store-side
 /// reasons do quote the offending bound, because those travel in the `invalid`
 /// array, which is built by serde_json and escaped properly.
 fn argument(name: &str, text: Option<&str>) -> anyhow::Result<Option<DateTime<Utc>>> {
@@ -1216,7 +1221,7 @@ impl Temporal {
 
         // An undescribed graph is timeless, which is a real period with two
         // open ends. An UNREADABLE one is not a period at all, and handing it
-        // this value would make it overlap everything — the false
+        // this value would make it overlap everything: the false
         // contradiction the truncation warning below is about, arriving
         // through the data instead of through a cap.
         let timeless = Period::default();
@@ -1231,9 +1236,9 @@ impl Temporal {
         let mut undecided = Vec::new();
         for row in &scan.rows {
             let get = |k: &str| row.get(k).and_then(|v| v.as_str()).map(plain);
-            let (Some(s), Some(a), Some(b), Some(ga), Some(gb)) = (
-                get("s"), get("a"), get("b"), get("ga"), get("gb"),
-            ) else {
+            let (Some(s), Some(a), Some(b), Some(ga), Some(gb)) =
+                (get("s"), get("a"), get("b"), get("ga"), get("gb"))
+            else {
                 continue;
             };
             if ga == gb {
@@ -1245,8 +1250,9 @@ impl Temporal {
                     "subject": local(&s),
                     "types": [local(&a), local(&b)],
                     "graphs": [ga, gb],
-                    "reason": "one of these graphs has validity metadata that could not be read, \
-                               so whether the two claims share a period is unknown",
+                    "reason": "one of these graphs has temporal metadata that could not be read \
+                               on at least one axis, so it is invalid and the pair was not \
+                               classified; see invalid in onto_temporal_snapshot",
                 }));
                 continue;
             };
@@ -1423,7 +1429,10 @@ ex:g_after  { ex:X a ex:Suspension . }
     }
 
     /// The contract for every store that never reaches a cap: one honest
-    /// `complete`, and no report of a cut that did not happen.
+    /// `complete`, and no report of a cut that did not happen. "Nothing else"
+    /// is about the cut. `semantics_version` is always present, and `invalid`
+    /// and `undecided` appear whenever they are non-empty; those keys say
+    /// nothing about caps and the conformance corpus pins them separately.
     #[test]
     fn a_run_that_was_never_cut_says_so_and_adds_nothing_else() {
         let t = Temporal::new(store(THREE));
