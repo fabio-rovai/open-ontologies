@@ -5,6 +5,16 @@ All notable changes to Open Ontologies are documented here.
 ## [Unreleased]
 
 ### Fixed
+- **`onto_shacl_check` reported a class or property declared inside a named
+  graph as missing.** The three existence lookups behind `missing_target_class`,
+  `missing_class_constraint` and `missing_path` ran a bare triple pattern, whose
+  default dataset is the default graph only, so an ontology loaded from TriG or
+  N-Quads, where every declaration sits in a `GRAPH` block, produced one issue
+  per referenced term while the same data in Turtle produced none. A declaration
+  is a declaration wherever it lives: the lookups now read the union of the
+  default graph and every named graph, unconditionally, with no scope argument
+  and no new response key. A class declared in no graph at all is still flagged
+  (#108).
 - **A daemon started with `[http] token` in config rejected every command it was
   meant to serve.** `serve-http` falls back to the config token and then enforces
   bearer auth, but `daemon start` recorded `token: null` in `daemon.json`
