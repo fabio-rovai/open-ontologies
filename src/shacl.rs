@@ -686,6 +686,14 @@ impl ShaclValidator {
             "violations": violations,
             "focus_nodes": focus_nodes_total,
             "unmatched_shapes": unmatched,
+            // A verdict that does not say what it selected over cannot be
+            // replayed or compared against the next one, and this value is
+            // about to stop being the only one: temporal scoping arrives as
+            // an argument, and the moment two runs of the same shapes over
+            // the same store can differ, an unlabelled report is a number
+            // without units. Naming it now means the key does not appear for
+            // the first time on the run where it matters.
+            "scope": "all_graphs",
         });
         if nothing_matched && skipped.is_empty() {
             // Every shape targeted a class with no instances in the data, so
@@ -920,11 +928,29 @@ fn query_solutions(
 
 /// Run a SPARQL SELECT against the main `GraphStore` and return results
 /// as a vec of maps, using the existing `sparql_select` JSON output.
+///
+/// Every data-side query in this module runs over the union of every graph in
+/// the store. It used to run over the store's default graph alone, which made
+/// the verdict depend on the serialisation the data arrived in: an ontology
+/// and its instances loaded from Turtle validated, and the identical triples
+/// loaded from TriG selected no focus nodes at all and came back as
+/// `nothing_matched` with a null verdict. That is the right answer to a
+/// question nobody asked, and it is why the defect never arrived as a bug
+/// report.
+///
+/// Reading every graph is the only default that cannot silently drop data.
+/// The alternative, selecting instances from the graphs in temporal scope, is
+/// the opposite direction: it can only remove focus nodes, so it can turn a
+/// `conforms: false` into a `true` by dropping the data that failed. That
+/// belongs behind an argument someone passes on purpose, never behind the
+/// no-argument path. See the graph-scope rule on issue #108: a declaration is
+/// read from every graph because a declaration is context-free, and instance
+/// data is scoped because it is not.
 fn graph_sparql_select(
     graph: &Arc<GraphStore>,
     query: &str,
 ) -> anyhow::Result<Vec<HashMap<String, String>>> {
-    let json_str = graph.sparql_select(query)?;
+    let json_str = graph.sparql_select_union(query)?;
     let parsed: serde_json::Value = serde_json::from_str(&json_str)?;
     let mut rows = Vec::new();
     if let Some(results) = parsed["results"].as_array() {

@@ -1,5 +1,6 @@
 use open_ontologies::graph::GraphStore;
 use open_ontologies::shacl::ShaclValidator;
+use oxigraph::io::RdfFormat;
 use std::sync::Arc;
 
 fn make_store_with_data() -> Arc<GraphStore> {
@@ -736,4 +737,113 @@ fn test_a_true_control_is_still_skipped_beside_a_false_one() {
         !skipped_names(&v, "http://example.org/S", &format!("{SH_NS}deactivated")),
         "sh:deactivated false was honoured and must not be recorded: {v}"
     );
+}
+
+fn store_from_trig(dataset: &str) -> Arc<GraphStore> {
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_content(dataset, RdfFormat::TriG)
+        .expect("load TriG");
+    store
+}
+
+const ONE_SHAPE: &str = r#"
+    @prefix sh: <http://www.w3.org/ns/shacl#> .
+    @prefix ex: <http://example.org/> .
+    ex:S a sh:NodeShape ; sh:targetClass ex:Thing ;
+        sh:property [ sh:path ex:p ; sh:minCount 1 ] .
+"#;
+
+#[test]
+fn test_instance_data_in_a_named_graph_is_validated() {
+    // Every data-side query ran over the store's default graph alone, so the
+    // verdict depended on the serialisation the data arrived in. The same
+    // triples in Turtle validated and in TriG selected no focus nodes at all,
+    // and the report said `nothing_matched` with a null verdict: the right
+    // answer to a question nobody asked, which is why this never arrived as a
+    // bug report. Reverting `sparql_select_union` to `sparql_select` reddens
+    // this test.
+    let store = store_from_trig(
+        r#"
+        @prefix ex: <http://example.org/> .
+        ex:data { ex:a a ex:Thing . }
+        "#,
+    );
+    let report = ShaclValidator::validate(&store, ONE_SHAPE).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&report).unwrap();
+    assert_eq!(v["focus_nodes"], 1, "the instance must be selected: {v}");
+    assert_eq!(
+        v["conforms"],
+        serde_json::Value::Bool(false),
+        "ex:a has no ex:p, so this is a violation and not an absence: {v}"
+    );
+    assert_eq!(v["violation_count"], 1, "report: {v}");
+    assert!(
+        v["unmatched_shapes"]
+            .as_array()
+            .is_some_and(|a| a.is_empty()),
+        "the shape matched, so it is not unmatched: {v}"
+    );
+}
+
+#[test]
+fn test_data_split_across_graphs_is_one_dataset_and_not_many() {
+    // The union is the RDF merge of every graph read as one default graph, not
+    // the same query run once per graph. A focus node typed in one graph whose
+    // required value sits in another must satisfy sh:minCount: per-graph
+    // evaluation would report a violation here, because neither graph carries
+    // both halves. This is the case that tells the two readings apart, and the
+    // one that would make a fix look like it worked while quietly reporting
+    // violations nobody has.
+    let store = store_from_trig(
+        r#"
+        @prefix ex: <http://example.org/> .
+        ex:types  { ex:a a ex:Thing . }
+        ex:values { ex:a ex:p "present" . }
+        "#,
+    );
+    let report = ShaclValidator::validate(&store, ONE_SHAPE).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&report).unwrap();
+    assert_eq!(v["focus_nodes"], 1, "report: {v}");
+    assert_eq!(
+        v["conforms"],
+        serde_json::Value::Bool(true),
+        "the value is in the store, so the shape is satisfied: {v}"
+    );
+}
+
+#[test]
+fn test_the_default_graph_is_still_read() {
+    // Widening to the union must not trade one blindness for the other. A
+    // store loaded from Turtle puts everything in the default graph, which is
+    // the overwhelmingly common case, and it must answer exactly as before.
+    let store = store_from_trig(
+        r#"
+        @prefix ex: <http://example.org/> .
+        ex:a a ex:Thing .
+        ex:named { ex:b a ex:Thing ; ex:p "present" . }
+        "#,
+    );
+    let report = ShaclValidator::validate(&store, ONE_SHAPE).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&report).unwrap();
+    assert_eq!(v["focus_nodes"], 2, "both instances count: {v}");
+    assert_eq!(
+        v["violation_count"], 1,
+        "ex:a violates and ex:b does not: {v}"
+    );
+    assert_eq!(
+        v["violations"][0]["focus_node"], "http://example.org/a",
+        "the default-graph instance is the one that violates: {v}"
+    );
+}
+
+#[test]
+fn test_the_report_names_the_scope_it_selected_over() {
+    // A verdict that does not say what it selected over cannot be replayed or
+    // compared against the next one. The key is added before temporal scoping
+    // arrives rather than on the run where it first matters.
+    let store = store_from_trig("@prefix ex: <http://example.org/> . ex:a a ex:Thing .");
+    let report = ShaclValidator::validate(&store, ONE_SHAPE).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&report).unwrap();
+    assert_eq!(v["scope"], "all_graphs", "report: {v}");
 }
