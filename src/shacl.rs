@@ -237,7 +237,7 @@ impl ShaclValidator {
                 &format!(
                     r#"
                     PREFIX sh: <http://www.w3.org/ns/shacl#>
-                    SELECT ?prop ?path ?invPath ?minCount ?maxCount ?datatype ?class ?pattern ?hasValue ?message ?severity WHERE {{
+                    SELECT ?prop ?path ?invPath ?minCount ?maxCount ?datatype ?class ?pattern ?hasValue ?minInclusive ?maxInclusive ?minExclusive ?maxExclusive ?message ?severity WHERE {{
                         {} sh:property ?prop .
                         ?prop sh:path ?path .
                         OPTIONAL {{ ?path sh:inversePath ?invPath }}
@@ -247,6 +247,10 @@ impl ShaclValidator {
                         OPTIONAL {{ ?prop sh:datatype ?datatype }}
                         OPTIONAL {{ ?prop sh:pattern ?pattern }}
                         OPTIONAL {{ ?prop sh:hasValue ?hasValue }}
+                        OPTIONAL {{ ?prop sh:minInclusive ?minInclusive }}
+                        OPTIONAL {{ ?prop sh:maxInclusive ?maxInclusive }}
+                        OPTIONAL {{ ?prop sh:minExclusive ?minExclusive }}
+                        OPTIONAL {{ ?prop sh:maxExclusive ?maxExclusive }}
                         OPTIONAL {{ ?prop sh:message ?message }}
                         OPTIONAL {{ ?prop sh:severity ?severity }}
                     }}
@@ -271,6 +275,8 @@ impl ShaclValidator {
                         FILTER(?pred NOT IN (
                             sh:path, sh:minCount, sh:maxCount, sh:datatype,
                             sh:class, sh:pattern, sh:hasValue, sh:message, sh:severity,
+                            sh:minInclusive, sh:maxInclusive,
+                            sh:minExclusive, sh:maxExclusive,
                             sh:name, sh:description, sh:order, sh:group,
                             <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
                         ))
@@ -524,6 +530,46 @@ impl ShaclValidator {
                                 "constraint": "hasValue",
                                 "message": msg,
                             }));
+                        }
+                    }
+                }
+
+                // sh:minInclusive, sh:maxInclusive, sh:minExclusive and
+                // sh:maxExclusive. Each value node on the path must satisfy the
+                // comparison; a value that fails is one violation. The bound
+                // arrives from the shapes store in N-Triples form, which is
+                // valid SPARQL as-is, exactly as for sh:hasValue above.
+                for (key, op, label) in [
+                    ("minInclusive", "<", "sh:minInclusive"),
+                    ("maxInclusive", ">", "sh:maxInclusive"),
+                    ("minExclusive", "<=", "sh:minExclusive"),
+                    ("maxExclusive", ">=", "sh:maxExclusive"),
+                ] {
+                    if let Some(bound_raw) = prop.get(key) {
+                        let bound = bound_raw.trim();
+                        let query = format!(
+                            r#"SELECT ?focus ?val WHERE {{
+                                ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
+                                ?focus {path_expr} ?val .
+                                FILTER(?val {op} {bound})
+                            }}"#
+                        );
+                        let results = graph_sparql_select(graph, &query)?;
+                        for row in &results {
+                            if let Some(focus) = row.get("focus") {
+                                let msg = if message.is_empty() {
+                                    format!("Value violates {} {}", label, bound)
+                                } else {
+                                    message.clone()
+                                };
+                                violations.push(serde_json::json!({
+                                    "severity": severity,
+                                    "focus_node": strip_angle_brackets(focus),
+                                    "path": path,
+                                    "constraint": key,
+                                    "message": msg,
+                                }));
+                            }
                         }
                     }
                 }

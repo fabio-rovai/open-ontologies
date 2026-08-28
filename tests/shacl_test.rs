@@ -847,3 +847,90 @@ fn test_the_report_names_the_scope_it_selected_over() {
     let v: serde_json::Value = serde_json::from_str(&report).unwrap();
     assert_eq!(v["scope"], "all_graphs", "report: {v}");
 }
+
+// Range constraints. Before these were implemented, a shape carrying
+// sh:minInclusive or sh:maxInclusive was reported in skipped_constraints and
+// suppressed `conforms` to null, so a validator run could neither pass nor fail
+// on a numeric bound. Found while validating the trade remedy ontology, where a
+// resolution-cardinality bound was the whole point of the shape.
+
+fn store_with_numbers() -> Arc<GraphStore> {
+    let store = Arc::new(GraphStore::new());
+    let ttl = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a a ex:Thing ; ex:n 0 .
+        ex:b a ex:Thing ; ex:n 1 .
+        ex:c a ex:Thing ; ex:n 2 .
+        ex:d a ex:Thing ; ex:n 5 .
+        ex:e a ex:Thing ; ex:n -3 .
+    "#;
+    store.load_turtle(ttl, None).unwrap();
+    store
+}
+
+const RANGE_SHAPE: &str = r#"
+    @prefix sh: <http://www.w3.org/ns/shacl#> .
+    @prefix ex: <http://example.org/> .
+    ex:RangeShape a sh:NodeShape ;
+        sh:targetClass ex:Thing ;
+        sh:property [
+            sh:path ex:n ;
+            sh:minInclusive 1 ;
+            sh:maxInclusive 2 ;
+            sh:message "n must be between 1 and 2 inclusive" ;
+        ] .
+"#;
+
+#[test]
+fn test_shacl_inclusive_range_matches_pyshacl() {
+    let store = store_with_numbers();
+    let result = ShaclValidator::validate(&store, RANGE_SHAPE).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+
+    // pyshacl 0.40.1 flags exactly a, d and e on this fixture.
+    assert_eq!(parsed["conforms"], false);
+    assert_eq!(parsed["violation_count"].as_u64().unwrap(), 3);
+    let v = parsed["violations"].as_array().unwrap();
+    for expected in ["a", "d", "e"] {
+        assert!(
+            v.iter().any(|x| x["focus_node"].as_str().unwrap().ends_with(expected)),
+            "expected {} to violate the range", expected
+        );
+    }
+    assert!(!v.iter().any(|x| x["focus_node"].as_str().unwrap().ends_with("b")));
+    assert!(!v.iter().any(|x| x["focus_node"].as_str().unwrap().ends_with("c")));
+}
+
+#[test]
+fn test_shacl_range_constraints_are_no_longer_skipped() {
+    let store = store_with_numbers();
+    let result = ShaclValidator::validate(&store, RANGE_SHAPE).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    let skipped = parsed["skipped_constraints"].as_array();
+    if let Some(s) = skipped {
+        for item in s {
+            let c = item["constraint"].as_str().unwrap_or("");
+            assert!(!c.contains("Inclusive"), "range constraint still skipped: {}", c);
+            assert!(!c.contains("Exclusive"), "range constraint still skipped: {}", c);
+        }
+    }
+    // conforms must be a real boolean, never null, once nothing is skipped.
+    assert!(parsed["conforms"].is_boolean());
+}
+
+#[test]
+fn test_shacl_exclusive_range() {
+    let store = store_with_numbers();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:ExShape a sh:NodeShape ;
+            sh:targetClass ex:Thing ;
+            sh:property [ sh:path ex:n ; sh:minExclusive 1 ; sh:maxExclusive 5 ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    // Violations: 0, 1 (not > 1), 5 (not < 5) and -3. Passing: 2.
+    assert_eq!(parsed["conforms"], false);
+    assert_eq!(parsed["violation_count"].as_u64().unwrap(), 4);
+}
