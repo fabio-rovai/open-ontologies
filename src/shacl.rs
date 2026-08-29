@@ -535,15 +535,20 @@ impl ShaclValidator {
                 }
 
                 // sh:minInclusive, sh:maxInclusive, sh:minExclusive and
-                // sh:maxExclusive. Each value node on the path must satisfy the
-                // comparison; a value that fails is one violation. The bound
-                // arrives from the shapes store in N-Triples form, which is
-                // valid SPARQL as-is, exactly as for sh:hasValue above.
-                for (key, op, label) in [
-                    ("minInclusive", "<", "sh:minInclusive"),
-                    ("maxInclusive", ">", "sh:maxInclusive"),
-                    ("minExclusive", "<=", "sh:minExclusive"),
-                    ("maxExclusive", ">=", "sh:maxExclusive"),
+                // sh:maxExclusive. SHACL 4.6.1/4.6.2: a value node is a violation
+                // wherever the SATISFYING comparison does not return true. A type
+                // error (a string or date against a numeric bound) and NaN both
+                // "do not return true", so they are violations, not passes. We flag
+                // on the negated satisfying comparison wrapped in COALESCE(_, false):
+                // an errored comparison collapses to false, whose negation flags it,
+                // instead of an affirmative FILTER silently dropping the row. The
+                // bound arrives from the shapes store in N-Triples form, valid SPARQL
+                // as-is, exactly as for sh:hasValue above.
+                for (key, satisfy_op, label) in [
+                    ("minInclusive", ">=", "sh:minInclusive"),
+                    ("maxInclusive", "<=", "sh:maxInclusive"),
+                    ("minExclusive", ">", "sh:minExclusive"),
+                    ("maxExclusive", "<", "sh:maxExclusive"),
                 ] {
                     if let Some(bound_raw) = prop.get(key) {
                         let bound = bound_raw.trim();
@@ -551,7 +556,7 @@ impl ShaclValidator {
                             r#"SELECT ?focus ?val WHERE {{
                                 ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
                                 ?focus {path_expr} ?val .
-                                FILTER(?val {op} {bound})
+                                FILTER(!COALESCE(?val {satisfy_op} {bound}, false))
                             }}"#
                         );
                         let results = graph_sparql_select(graph, &query)?;

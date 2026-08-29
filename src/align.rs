@@ -64,7 +64,7 @@ impl AlignmentEngine {
             }
         "#;
 
-        let result = match store.sparql_select(query) {
+        let result = match store.sparql_select_union(query) {
             Ok(r) => r,
             Err(_) => return Vec::new(),
         };
@@ -158,7 +158,7 @@ impl AlignmentEngine {
 
     /// Helper: run a SPARQL SELECT and extract a single variable's values.
     fn extract_iris(store: &GraphStore, query: &str, var: &str) -> Vec<String> {
-        let result = match store.sparql_select(query) {
+        let result = match store.sparql_select_union(query) {
             Ok(r) => r,
             Err(_) => return Vec::new(),
         };
@@ -233,7 +233,7 @@ impl AlignmentEngine {
 
         let extract_restriction_sigs = |store: &GraphStore, class: &str| -> Vec<String> {
             let query = restriction_query(class);
-            let result = match store.sparql_select(&query) {
+            let result = match store.sparql_select_union(&query) {
                 Ok(r) => r,
                 Err(_) => return Vec::new(),
             };

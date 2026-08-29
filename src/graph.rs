@@ -574,7 +574,18 @@ impl GraphStore {
         auth: &SparqlAuth,
     ) -> anyhow::Result<String> {
         let update = match graph {
-            Some(g) => format!("INSERT DATA {{ GRAPH <{g}> {{ {content} }} }}"),
+            Some(g) => {
+                // The graph name is spliced into a SPARQL 1.1 Update sent verbatim to
+                // the remote endpoint, which parses it with no store in between. A
+                // value like `x> {} }; DROP ALL ; INSERT DATA { GRAPH <x` would close
+                // the GRAPH IRI and append arbitrary destructive operations. Validate
+                // it as an absolute IRI first; NamedNode::new rejects '>', whitespace,
+                // braces and quotes, so a value that survives cannot break out.
+                NamedNode::new(g).map_err(|e| {
+                    anyhow::anyhow!("graph is not a valid absolute IRI: {e}")
+                })?;
+                format!("INSERT DATA {{ GRAPH <{g}> {{ {content} }} }}")
+            }
             None => format!("INSERT DATA {{ {content} }}"),
         };
         let client = reqwest::Client::new();

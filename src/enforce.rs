@@ -419,7 +419,7 @@ impl Enforcer {
                         "ASK {{ <{}> <http://www.w3.org/2002/07/owl#disjointWith> <{}> }}",
                         children[i], children[j]
                     );
-                    if let Ok(result) = self.graph.sparql_select(&disjoint_query)
+                    if let Ok(result) = self.graph.sparql_select_union(&disjoint_query)
                         && !result.contains("true") {
                             all_disjoint = false;
                             break;
@@ -480,7 +480,7 @@ impl Enforcer {
             } GROUP BY ?class \
         }";
 
-        if let Ok(json) = self.graph.sparql_select(depth_query)
+        if let Ok(json) = self.graph.sparql_select_union(depth_query)
             && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
             && let Some(results) = parsed["results"].as_array()
             && let Some(first) = results.first()
@@ -518,7 +518,7 @@ impl Enforcer {
             } GROUP BY ?class \
         }";
 
-        if let Ok(json) = self.graph.sparql_select(avg_query)
+        if let Ok(json) = self.graph.sparql_select_union(avg_query)
             && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
             && let Some(results) = parsed["results"].as_array()
             && let Some(first) = results.first()
@@ -584,7 +584,7 @@ impl Enforcer {
 
     fn query_flat_hierarchy(&self, query: &str) -> Vec<(String, u64, Vec<String>)> {
         let mut results = Vec::new();
-        if let Ok(json) = self.graph.sparql_select(query)
+        if let Ok(json) = self.graph.sparql_select_union(query)
             && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
             && let Some(rows) = parsed["results"].as_array()
         {
@@ -621,7 +621,7 @@ impl Enforcer {
     }
 
     fn query_count(&self, query: &str) -> u64 {
-        if let Ok(json) = self.graph.sparql_select(query)
+        if let Ok(json) = self.graph.sparql_select_union(query)
             && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
             && let Some(results) = parsed["results"].as_array()
             && let Some(first) = results.first()
@@ -676,7 +676,7 @@ impl Enforcer {
     }
 
     fn query_iris(&self, query: &str, var: &str) -> Vec<String> {
-        if let Ok(json) = self.graph.sparql_select(query)
+        if let Ok(json) = self.graph.sparql_select_union(query)
             && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
                 && let Some(results) = parsed["results"].as_array() {
                     return results

@@ -61,6 +61,34 @@ pub fn is_daemon_alive(pid: u32) -> bool {
     }
 }
 
+/// Whether the process with `pid` looks like an open-ontologies daemon, by
+/// inspecting its command line for the `serve-http` subcommand every daemon is
+/// started with (see `start_daemon`). This is the identity check that keeps a
+/// recycled PID in a stale daemon.json from being signalled as if it were ours.
+#[cfg(unix)]
+fn pid_is_open_ontologies_daemon(pid: u32) -> bool {
+    std::process::Command::new("ps")
+        .args(["-p", &pid.to_string(), "-o", "command="])
+        .output()
+        .map(|o| String::from_utf8_lossy(&o.stdout).contains("serve-http"))
+        .unwrap_or(false)
+}
+
+#[cfg(not(unix))]
+fn pid_is_open_ontologies_daemon(pid: u32) -> bool {
+    std::process::Command::new("wmic")
+        .args([
+            "process",
+            "where",
+            &format!("ProcessId={pid}"),
+            "get",
+            "CommandLine",
+        ])
+        .output()
+        .map(|o| String::from_utf8_lossy(&o.stdout).contains("serve-http"))
+        .unwrap_or(false)
+}
+
 /// Start `serve-http` in the background and write daemon.json.
 /// Returns the `DaemonInfo` on success.
 pub fn start_daemon(
@@ -151,6 +179,19 @@ pub fn stop_daemon(data_dir: &str) -> anyhow::Result<()> {
         anyhow::bail!("daemon PID {} is not running (stale daemon.json removed)", info.pid);
     }
 
+    // A live PID is not proof it is OUR daemon. daemon.json survives a crash or
+    // reboot, and the OS recycles PIDs, so a stale record can point at an unrelated
+    // process. Verify the process is actually an open-ontologies daemon before
+    // signalling it, or `daemon stop` becomes a way to kill an arbitrary process.
+    if !pid_is_open_ontologies_daemon(info.pid) {
+        remove_daemon_info(data_dir);
+        anyhow::bail!(
+            "PID {} is running but is not an open-ontologies daemon; refusing to \
+             signal an unrelated process (stale daemon.json removed)",
+            info.pid
+        );
+    }
+
     #[cfg(unix)]
     {
         let status = std::process::Command::new("kill")
@@ -190,6 +231,15 @@ mod tests {
     fn a_pid_that_cannot_exist_is_not_alive() {
         // Above every platform's pid_max, so this is never a live process.
         assert!(!is_daemon_alive(u32::MAX - 1));
+    }
+
+    #[test]
+    fn an_unrelated_live_process_is_not_taken_for_the_daemon() {
+        // This test binary is alive but is not a `serve-http` daemon, so the
+        // identity check must reject it. This is exactly the recycled-PID case
+        // stop_daemon must refuse to kill.
+        assert!(is_daemon_alive(std::process::id()));
+        assert!(!pid_is_open_ontologies_daemon(std::process::id()));
     }
 
     #[test]

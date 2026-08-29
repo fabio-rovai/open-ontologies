@@ -349,10 +349,18 @@ impl CacheManager {
 
     /// Atomically write `content` to `path` (writes to `<path>.tmp` then renames).
     pub fn atomic_write(path: &Path, content: &str) -> Result<()> {
+        use std::sync::atomic::{AtomicU64, Ordering};
+        static TMP_SEQ: AtomicU64 = AtomicU64::new(0);
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).ok();
         }
-        let tmp = path.with_extension("nt.tmp");
+        // Unique temp name per write: a fixed `.nt.tmp` collides when two writers
+        // target the same cache path at once (two concurrent loads of one source, or
+        // a load racing an eviction snapshot), so one's partial write is renamed over
+        // the other and the reader gets a torn file. Process id plus a monotonic
+        // counter keeps each writer's temp private; the final rename stays atomic.
+        let seq = TMP_SEQ.fetch_add(1, Ordering::Relaxed);
+        let tmp = path.with_extension(format!("nt.{}.{}.tmp", std::process::id(), seq));
         fs::write(&tmp, content)
             .with_context(|| format!("write {}", tmp.display()))?;
         fs::rename(&tmp, path)

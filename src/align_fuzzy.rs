@@ -138,7 +138,7 @@ fn tnorm_n(values: &[f64], t: TNorm) -> f64 {
     if values.is_empty() {
         return 0.0;
     }
-    values
+    values[1..]
         .iter()
         .copied()
         .fold(values[0], |acc, x| tnorm(acc, x, t))
@@ -265,6 +265,20 @@ mod tests {
             sibling_overlap: sb,
             datatype_overlap: d,
         }
+    }
+
+    #[test]
+    fn tnorm_n_combines_each_value_once() {
+        // Min is idempotent so it hides a double-count; Product and Lukasiewicz expose it.
+        // Three equal 0.75 inputs under Product must be 0.75^3, not 0.75^4.
+        assert!((tnorm_n(&[0.75, 0.75, 0.75], TNorm::Product) - 0.421875).abs() < 1e-9);
+        // Product of three distinct values combines each exactly once.
+        assert!((tnorm_n(&[0.5, 0.4, 0.2], TNorm::Product) - 0.04).abs() < 1e-9);
+        // Lukasiewicz chain over three 0.8 inputs: max(0,1.6-1)=0.6 then max(0,1.4-1)=0.4.
+        assert!((tnorm_n(&[0.8, 0.8, 0.8], TNorm::Lukasiewicz) - 0.4).abs() < 1e-9);
+        // Single value is itself under every t-norm; empty is 0.
+        assert_eq!(tnorm_n(&[0.6], TNorm::Product), 0.6);
+        assert_eq!(tnorm_n(&[], TNorm::Product), 0.0);
     }
 
     #[test]

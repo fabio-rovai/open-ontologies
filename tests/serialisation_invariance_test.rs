@@ -231,3 +231,170 @@ fn shape_induction_reads_every_graph() {
         "the same instances must induce the same lattice"
     );
 }
+
+#[test]
+fn support_check_reads_claims_from_every_graph() {
+    // onto_support_check audits provenance: which claims cite no source, plus a
+    // verification task per sourced claim. Built on the default-graph select, it
+    // reported an empty spotless corpus for any TriG/N-Quads store.
+    use open_ontologies::state::StateDb;
+    use open_ontologies::support::SupportChecker;
+    let claim = "@prefix ex: <http://example.org/> . @prefix prov: <http://www.w3.org/ns/prov#> . \
+                 ex:claim1 ex:about ex:Bridge ; prov:wasDerivedFrom ex:src1 .";
+    let turtle = Arc::new(GraphStore::new());
+    turtle.load_turtle(claim, None).unwrap();
+    let trig = Arc::new(GraphStore::new());
+    trig.load_content(
+        "@prefix ex: <http://example.org/> . @prefix prov: <http://www.w3.org/ns/prov#> . \
+         ex:g { ex:claim1 ex:about ex:Bridge ; prov:wasDerivedFrom ex:src1 . }",
+        RdfFormat::TriG,
+    )
+    .unwrap();
+
+    let dt = tempfile::TempDir::new().unwrap();
+    let t: serde_json::Value = serde_json::from_str(
+        &SupportChecker::new(turtle, StateDb::open(&dt.path().join("s.db")).unwrap())
+            .check(None, 100)
+            .unwrap(),
+    )
+    .unwrap();
+    let dq = tempfile::TempDir::new().unwrap();
+    let q: serde_json::Value = serde_json::from_str(
+        &SupportChecker::new(trig, StateDb::open(&dq.path().join("s.db")).unwrap())
+            .check(None, 100)
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(t["claims_total"].as_u64(), Some(1), "turtle side must see the claim: {t}");
+    assert_eq!(t["claims_total"], q["claims_total"], "turtle {t}\ntrig {q}");
+    assert_eq!(t["tasks"], q["tasks"], "turtle {t}\ntrig {q}");
+}
+
+#[cfg(feature = "embeddings")]
+#[test]
+fn structural_embeddings_train_on_every_graph() {
+    // Poincare structural training reads the class hierarchy; on the default
+    // graph alone it trained on nothing for a TriG store, degrading
+    // onto_embed(structure)/onto_search/onto_similarity to noise with no error.
+    use open_ontologies::structembed::StructuralTrainer;
+    let onto = "ex:Animal a owl:Class . ex:Dog a owl:Class ; rdfs:subClassOf ex:Animal . \
+                ex:Cat a owl:Class ; rdfs:subClassOf ex:Animal .";
+    let prefixes = "@prefix ex: <http://example.org/> . @prefix owl: <http://www.w3.org/2002/07/owl#> . \
+                    @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .";
+    let turtle = Arc::new(GraphStore::new());
+    turtle.load_turtle(&format!("{prefixes} {onto}"), None).unwrap();
+    let trig = Arc::new(GraphStore::new());
+    trig.load_content(&format!("{prefixes} ex:g {{ {onto} }}"), RdfFormat::TriG).unwrap();
+
+    let t = StructuralTrainer::new(8, 5, 0.1).train(&turtle).unwrap();
+    let q = StructuralTrainer::new(8, 5, 0.1).train(&trig).unwrap();
+    assert_eq!(t.len(), 3, "turtle side must embed all three classes: {}", t.len());
+    assert_eq!(t.len(), q.len(), "turtle {} vs trig {}", t.len(), q.len());
+}
+
+#[test]
+fn align_extracts_target_classes_from_every_graph() {
+    // onto_align with target=None aligns a source ontology against the loaded
+    // store. Class extraction on the default graph alone saw zero target classes
+    // for a TriG store and reported nothing to align.
+    use open_ontologies::align::AlignmentEngine;
+    use open_ontologies::state::StateDb;
+    let target_onto = "ex:Dog a owl:Class ; rdfs:label \"Dog\" .";
+    let prefixes = "@prefix ex: <http://example.org/> . @prefix owl: <http://www.w3.org/2002/07/owl#> . \
+                    @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .";
+    let source = format!("{prefixes} ex:Dog2 a owl:Class ; rdfs:label \"Dog\" .");
+
+    let turtle = Arc::new(GraphStore::new());
+    turtle.load_turtle(&format!("{prefixes} {target_onto}"), None).unwrap();
+    let trig = Arc::new(GraphStore::new());
+    trig.load_content(&format!("{prefixes} ex:g {{ {target_onto} }}"), RdfFormat::TriG).unwrap();
+
+    let dt = tempfile::TempDir::new().unwrap();
+    let t: serde_json::Value = serde_json::from_str(
+        &AlignmentEngine::new(StateDb::open(&dt.path().join("s.db")).unwrap(), turtle)
+            .align(&source, None, 0.3, true)
+            .unwrap(),
+    )
+    .unwrap();
+    let dq = tempfile::TempDir::new().unwrap();
+    let q: serde_json::Value = serde_json::from_str(
+        &AlignmentEngine::new(StateDb::open(&dq.path().join("s.db")).unwrap(), trig)
+            .align(&source, None, 0.3, true)
+            .unwrap(),
+    )
+    .unwrap();
+    assert!(
+        t["total_candidates"].as_u64().unwrap_or(0) >= 1,
+        "turtle side must find the Dog/Dog2 candidate, or this proves nothing: {t}"
+    );
+    assert_eq!(t["total_candidates"], q["total_candidates"], "turtle {t}\ntrig {q}");
+}
+
+#[test]
+fn enforce_reads_design_pattern_data_from_every_graph() {
+    // onto_enforce checks design-pattern compliance with internally-authored
+    // SELECTs. On the default graph alone it saw no classes in a TriG store and
+    // reported a false clean (compliance 1.0, zero violations). The value_partition
+    // pack flags a parent whose >=2 children are not pairwise disjoint.
+    use open_ontologies::enforce::Enforcer;
+    use open_ontologies::state::StateDb;
+    let onto = "ex:Animal a owl:Class . \
+                ex:Dog a owl:Class ; rdfs:subClassOf ex:Animal . \
+                ex:Cat a owl:Class ; rdfs:subClassOf ex:Animal .";
+    let prefixes = "@prefix ex: <http://example.org/> . @prefix owl: <http://www.w3.org/2002/07/owl#> . \
+                    @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .";
+    let turtle = Arc::new(GraphStore::new());
+    turtle.load_turtle(&format!("{prefixes} {onto}"), None).unwrap();
+    let trig = Arc::new(GraphStore::new());
+    trig.load_content(&format!("{prefixes} ex:g {{ {onto} }}"), RdfFormat::TriG).unwrap();
+
+    let dt = tempfile::TempDir::new().unwrap();
+    let t: serde_json::Value = serde_json::from_str(
+        &Enforcer::new(StateDb::open(&dt.path().join("s.db")).unwrap(), turtle)
+            .enforce("value_partition").unwrap(),
+    ).unwrap();
+    let dq = tempfile::TempDir::new().unwrap();
+    let q: serde_json::Value = serde_json::from_str(
+        &Enforcer::new(StateDb::open(&dq.path().join("s.db")).unwrap(), trig)
+            .enforce("value_partition").unwrap(),
+    ).unwrap();
+    let tv = t["violations"].as_array().unwrap().len();
+    assert!(tv >= 1, "turtle side must find the non-disjoint partition, or this proves nothing: {t}");
+    assert_eq!(tv, q["violations"].as_array().unwrap().len(), "turtle {t}\ntrig {q}");
+    assert_eq!(t["compliance"], q["compliance"], "turtle {t}\ntrig {q}");
+}
+
+#[test]
+fn plan_blast_radius_reads_dependents_from_every_graph() {
+    // onto_plan's blast radius counts how many triples reference an IRI being
+    // removed. Computed over the default graph alone, it read zero dependents for
+    // a TriG store, so a removal that breaks references looked safe.
+    use open_ontologies::plan::Planner;
+    use open_ontologies::state::StateDb;
+    let onto = "ex:Building a owl:Class . \
+                ex:Bridge a owl:Class ; rdfs:subClassOf ex:Building . \
+                ex:height a owl:DatatypeProperty ; rdfs:domain ex:Building .";
+    let prefixes = "@prefix ex: <http://example.org/> . @prefix owl: <http://www.w3.org/2002/07/owl#> . \
+                    @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .";
+    // Proposed change removes ex:Building (still referenced by Bridge and height).
+    let new_turtle = format!("{prefixes} ex:Bridge a owl:Class .");
+
+    let turtle = Arc::new(GraphStore::new());
+    turtle.load_turtle(&format!("{prefixes} {onto}"), None).unwrap();
+    let trig = Arc::new(GraphStore::new());
+    trig.load_content(&format!("{prefixes} ex:g {{ {onto} }}"), RdfFormat::TriG).unwrap();
+
+    let dt = tempfile::TempDir::new().unwrap();
+    let t: serde_json::Value = serde_json::from_str(
+        &Planner::new(StateDb::open(&dt.path().join("s.db")).unwrap(), turtle)
+            .plan(&new_turtle).unwrap(),
+    ).unwrap();
+    let dq = tempfile::TempDir::new().unwrap();
+    let q: serde_json::Value = serde_json::from_str(
+        &Planner::new(StateDb::open(&dq.path().join("s.db")).unwrap(), trig)
+            .plan(&new_turtle).unwrap(),
+    ).unwrap();
+    let ta = t["blast_radius"]["triples_affected"].as_u64().unwrap();
+    assert!(ta >= 1, "turtle side must count Building's dependents, or this proves nothing: {t}");
+    assert_eq!(ta, q["blast_radius"]["triples_affected"].as_u64().unwrap(), "turtle {t}\ntrig {q}");
+}

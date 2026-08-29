@@ -346,3 +346,48 @@ fn recompile_named_garbage_collects_old_cache_file_when_sha_changes() {
         "old cache file should be cleaned up");
     assert!(std::path::Path::new(&new_a_cache).exists());
 }
+
+#[test]
+fn eviction_preserves_in_memory_mutations() {
+    // Idle-TTL eviction must not discard state derived in memory since load
+    // (materialised reasoning, SPARQL UPDATE, ingest). Before the fix it cleared
+    // the store and ensure_loaded reloaded the stale source compile cache.
+    let tmp = tempfile::tempdir().unwrap();
+    let path = tmp.path().join("a.ttl");
+    std::fs::write(&path, TTL_A).unwrap();
+    let db = StateDb::open(&tmp.path().join("s.db")).unwrap();
+    let graph = Arc::new(GraphStore::new());
+    let graph_ref = Arc::clone(&graph);
+    let cfg = CacheConfig {
+        enabled: true,
+        dir: tmp.path().join("cache").to_string_lossy().into_owned(),
+        idle_ttl_secs: 1,
+        evictor_interval_secs: 30,
+        auto_refresh: false,
+        hash_prefix_bytes: 64 * 1024,
+    };
+    let reg = OntologyRegistry::new(graph, db, cfg).unwrap();
+    reg.load_file(path.to_str().unwrap(), LoadOptions::default()).unwrap();
+    let base = graph_ref.triple_count();
+
+    // Mutate the live store the way onto_reason(materialize)/onto_ingest would.
+    graph_ref
+        .load_turtle(
+            "@prefix ex: <http://example.org/> . ex:derived a ex:Inferred .",
+            None,
+        )
+        .unwrap();
+    let mutated = graph_ref.triple_count();
+    assert_eq!(mutated, base + 1, "the mutation added one triple");
+
+    sleep(Duration::from_millis(1100));
+    assert!(reg.evictor_tick().unwrap(), "idle past TTL, must evict");
+    assert_eq!(graph_ref.triple_count(), 0, "evicted from memory");
+
+    reg.ensure_loaded().unwrap();
+    assert_eq!(
+        graph_ref.triple_count(),
+        mutated,
+        "the in-memory mutation must survive eviction, not be lost to the source cache"
+    );
+}

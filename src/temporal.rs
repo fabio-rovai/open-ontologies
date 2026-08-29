@@ -1593,10 +1593,28 @@ impl Temporal {
     /// dropped before returning, so an untruncated scan yields exactly the
     /// rows it yielded in 1.2.0.
     fn rows(&self, query: &str, cap: usize) -> anyhow::Result<Scan> {
+        self.rows_with(query, cap, false)
+    }
+
+    /// As `rows`, but evaluates against the union of all graphs so that a query's
+    /// UNGUARDED triple patterns (those not inside a `GRAPH` block) see every named
+    /// graph rather than the default graph alone. `GRAPH ?g` patterns still range
+    /// over named graphs under the union default, so a query that mixes graph-scoped
+    /// and schema-level patterns keeps the first and widens the second. Used by
+    /// `conflicts`, whose disjointWith/subClassOf* schema half is unguarded and may
+    /// live in a named graph.
+    fn rows_union(&self, query: &str, cap: usize) -> anyhow::Result<Scan> {
+        self.rows_with(query, cap, true)
+    }
+
+    fn rows_with(&self, query: &str, cap: usize, union: bool) -> anyhow::Result<Scan> {
         let probe = cap.saturating_add(1);
-        let raw = self
-            .graph
-            .sparql_select(&format!("{query} LIMIT {probe}"))?;
+        let limited = format!("{query} LIMIT {probe}");
+        let raw = if union {
+            self.graph.sparql_select_union(&limited)?
+        } else {
+            self.graph.sparql_select(&limited)?
+        };
         let parsed: serde_json::Value = serde_json::from_str(&raw)?;
         let mut rows: Vec<serde_json::Value> = parsed
             .get("results")
@@ -1630,7 +1648,7 @@ impl Temporal {
              UNION {{ ?g <{NS}recordedAt> ?rec }} \
              UNION {{ ?g <{NS}recordedUntil> ?until }} \
              UNION {{ ?g <{NS}supersedes> ?sup }} \
-             UNION {{ ?g <{NS}retracts> ?ret }} }}"
+             UNION {{ ?g <{NS}retracts> ?ret }} }} ORDER BY ?g"
         );
         let scan = self.rows(&query, self.limits.validity_scan)?;
         // 1.2.0 ASSIGNED each field here, so the last row of the UNION won
@@ -1670,8 +1688,10 @@ impl Temporal {
 
     /// Named graphs holding assertions, whether or not they are described.
     fn all_graphs(&self) -> anyhow::Result<(BTreeSet<String>, Capped)> {
+        // ORDER BY so that, if the scan is truncated at the cap, which graphs are
+        // dropped is deterministic rather than dependent on hash iteration order.
         let scan = self.rows(
-            "SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }",
+            "SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } } ORDER BY ?g",
             self.limits.graph_scan,
         )?;
         let graphs = scan
@@ -1903,13 +1923,23 @@ impl Temporal {
             .map(|g| format!("<{g}>"))
             .collect::<Vec<_>>()
             .join(" ");
+        // FROM NAMED confines the dataset to exactly the in-scope graphs. The body is
+        // the caller-supplied pattern, spliced as text; without this a crafted pattern
+        // could close the GRAPH block and open its own `GRAPH <out-of-scope>` (or a
+        // top-level group over the default graph), defeating temporal scope. With only
+        // FROM NAMED and no FROM, a graph the caller names that is not in scope has no
+        // triples in the dataset and the default graph is empty, so neither escape
+        // reads anything. The pattern is wrapped in its own braces rather than having a
+        // level stripped, so a legitimate top-level `{…} UNION {…}` stays well-formed.
+        let from_named = graphs
+            .iter()
+            .map(|g| format!("FROM NAMED <{g}>"))
+            .collect::<Vec<_>>()
+            .join(" ");
         let body = pattern.trim();
-        let body = body
-            .strip_prefix('{')
-            .and_then(|b| b.strip_suffix('}'))
-            .unwrap_or(body);
-        let wrapped =
-            format!("SELECT * WHERE {{ VALUES ?__g {{ {values} }} GRAPH ?__g {{ {body} }} }}");
+        let wrapped = format!(
+            "SELECT * {from_named} WHERE {{ VALUES ?__g {{ {values} }} GRAPH ?__g {{ {body} }} }}"
+        );
         let scan = self.rows(&wrapped, self.limits.query_rows)?;
         cuts.extend(scan.capped.report(
             "query_rows",
@@ -1977,7 +2007,13 @@ impl Temporal {
     /// specially here.
     pub fn conflicts(&self) -> anyhow::Result<String> {
         let (validities, validity_scan, _lineage) = self.validities()?;
-        let scan = self.rows(
+        // Union scope: the ABox halves stay graph-scoped via GRAPH ?ga/?gb, while
+        // the disjointWith/subClassOf* schema half is unguarded and must see every
+        // graph. Under the plain default dataset it read the default graph alone,
+        // so a store whose schema sits in a named graph (the normal per-version
+        // temporal layout, or any TriG/N-Quads schema graph) formed no pair and
+        // returned a clean zero contradictions.
+        let scan = self.rows_union(
             "PREFIX owl: <http://www.w3.org/2002/07/owl#> \
              PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \
              SELECT DISTINCT ?s ?a ?b ?ga ?gb WHERE { \
@@ -2232,6 +2268,58 @@ ex:g_after  { ex:X a ex:Suspension . }
 
     fn json(raw: String) -> serde_json::Value {
         serde_json::from_str(&raw).expect("tool output is JSON")
+    }
+
+    /// A crafted query_at pattern must not escape temporal scope. g_live is valid
+    /// at the query instant; g_expired stopped being valid in 2020. A pattern that
+    /// closes the GRAPH block and opens `GRAPH <g_expired>` (or a top-level group)
+    /// must read nothing from out-of-scope graphs, and a legitimate top-level UNION
+    /// must still parse.
+    const SCOPE_ESCAPE_FIXTURE: &str = r#"
+@prefix ex: <http://example.org/> .
+@prefix t:  <https://open-ontologies.org/temporal#> .
+ex:g_live    { ex:live_secret ex:says "IN_SCOPE" . }
+ex:g_expired { ex:expired_secret ex:says "OUT_OF_SCOPE" . }
+{
+  ex:g_live    t:validFrom "2020-01-01" .
+  ex:g_expired t:validFrom "2010-01-01" ; t:validTo "2020-01-01" .
+}
+"#;
+
+    #[test]
+    fn query_at_pattern_cannot_escape_temporal_scope() {
+        let t = Temporal::new(store(SCOPE_ESCAPE_FIXTURE));
+
+        let benign = json(t.query_at("{ ?s ?p ?o }", Some("2025-01-01"), None).unwrap());
+        let benign_str = benign.to_string();
+        assert!(benign_str.contains("IN_SCOPE"), "control: g_live must be in scope: {benign}");
+        assert!(!benign_str.contains("OUT_OF_SCOPE"), "control: g_expired excluded at 2025: {benign}");
+
+        // Escape attempt: close GRAPH ?__g, open an explicit out-of-scope GRAPH.
+        let escaped = json(
+            t.query_at(
+                "{ ?s ?p ?o } GRAPH <http://example.org/g_expired> { ?a ?b ?c }",
+                Some("2025-01-01"),
+                None,
+            )
+            .unwrap(),
+        );
+        assert!(
+            !escaped.to_string().contains("OUT_OF_SCOPE"),
+            "SCOPE ESCAPE: an out-of-scope graph was read through a crafted pattern: {escaped}"
+        );
+
+        // A legitimate top-level UNION must remain valid (no one-level brace strip).
+        let unioned = json(
+            t.query_at(
+                "{ ?s ?p ?o } UNION { ?s ?p ?o }",
+                Some("2025-01-01"),
+                None,
+            )
+            .unwrap(),
+        );
+        assert_eq!(unioned["ok"], true, "a top-level UNION must parse: {unioned}");
+        assert!(unioned.to_string().contains("IN_SCOPE"), "union must still return in-scope rows: {unioned}");
     }
 
     /// Two raw valid bounds, as the validity scan would hand them over.
@@ -2613,6 +2701,37 @@ ex:g1 { ex:X ex:p ex:one . }
             !consequence.contains("http") && !warning.contains("http"),
             "{cut}"
         );
+    }
+
+    /// A live contradiction whose disjointWith/subClassOf schema lives in a NAMED
+    /// graph, the normal layout for per-version temporal data. The ABox halves of
+    /// the conflicts query are GRAPH-scoped, but the TBox halves were unguarded and
+    /// so read the default graph alone: with the schema in a named graph the pair
+    /// never formed and the tool returned a clean zero. Overlapping periods, disjoint
+    /// types, no supersedes link, so exactly one contradiction.
+    const NAMED_SCHEMA_CONFLICT: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+
+ex:g_before { ex:X a ex:Adherent . ex:Adherent owl:disjointWith ex:Suspension . }
+ex:g_after  { ex:X a ex:Suspension . }
+
+{
+  ex:g_before t:validFrom "2024-01-01" ; t:validTo "2026-05-01" .
+  ex:g_after  t:validFrom "2025-01-01" .
+}
+"#;
+
+    #[test]
+    fn conflicts_reads_disjointness_schema_from_a_named_graph() {
+        let out = json(Temporal::new(store(NAMED_SCHEMA_CONFLICT)).conflicts().unwrap());
+        assert_eq!(
+            out["contradiction_count"], 1,
+            "a live contradiction with named-graph schema must be found, not silently zero: {out}"
+        );
+        assert_eq!(out["superseded_count"], 0, "{out}");
+        assert_eq!(out["complete"], true, "{out}");
     }
 
     /// The pair scan is the mild cap: fewer pairs examined, no claim turned

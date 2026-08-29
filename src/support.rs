@@ -98,7 +98,11 @@ impl SupportChecker {
     }
 
     fn rows(&self, query: &str) -> anyhow::Result<Vec<serde_json::Value>> {
-        let raw = self.graph.sparql_select(query)?;
+        // Every query here is an internally-authored question about the whole
+        // store (which claims cite no source, the source-of map, labels), so it
+        // must read the union of all graphs, not the default graph alone. See
+        // GraphStore::sparql_select.
+        let raw = self.graph.sparql_select_union(query)?;
         let parsed: serde_json::Value = serde_json::from_str(&raw)?;
         Ok(parsed
             .get("results")
