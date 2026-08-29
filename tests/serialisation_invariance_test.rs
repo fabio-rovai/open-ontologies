@@ -398,3 +398,39 @@ fn plan_blast_radius_reads_dependents_from_every_graph() {
     assert!(ta >= 1, "turtle side must count Building's dependents, or this proves nothing: {t}");
     assert_eq!(ta, q["blast_radius"]["triples_affected"].as_u64().unwrap(), "turtle {t}\ntrig {q}");
 }
+
+#[test]
+fn incremental_reasoner_reads_schema_from_every_graph() {
+    // onto_reason_incremental reads the TBox to know the rules, then derives the
+    // consequences of a delta. Reading the default graph alone, it saw no schema
+    // for a TriG/N-Quads store and derived nothing while reporting success.
+    use open_ontologies::reason_incremental::IncrementalReasoner;
+    let rdf_type = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>".to_string();
+    // Delta: a new individual typed ex:Dog. Schema ex:Dog rdfs:subClassOf ex:Animal
+    // must yield the inferred type ex:Animal.
+    let delta = vec![(
+        "<http://example.org/rex>".to_string(),
+        rdf_type,
+        "<http://example.org/Dog>".to_string(),
+    )];
+    let schema = "ex:Dog rdfs:subClassOf ex:Animal .";
+    let prefixes = "@prefix ex: <http://example.org/> . \
+                    @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .";
+
+    let turtle = Arc::new(GraphStore::new());
+    turtle.load_turtle(&format!("{prefixes} {schema}"), None).unwrap();
+    let trig = Arc::new(GraphStore::new());
+    trig.load_content(&format!("{prefixes} ex:g {{ {schema} }}"), RdfFormat::TriG).unwrap();
+
+    let t: serde_json::Value = serde_json::from_str(
+        &IncrementalReasoner::run(&turtle, &delta, false).unwrap(),
+    ).unwrap();
+    let q: serde_json::Value = serde_json::from_str(
+        &IncrementalReasoner::run(&trig, &delta, false).unwrap(),
+    ).unwrap();
+    assert_eq!(
+        t["inferred_count"].as_u64(), Some(1),
+        "turtle side must derive rex a Animal, or this proves nothing: {t}"
+    );
+    assert_eq!(t["inferred_count"], q["inferred_count"], "turtle {t}\ntrig {q}");
+}
