@@ -123,7 +123,12 @@ impl Schema {
         let truncated = std::cell::Cell::new(false);
         let pairs = |pred: &str| -> anyhow::Result<Vec<(String, String)>> {
             let q = format!("SELECT ?s ?o WHERE {{ ?s {pred} ?o }} LIMIT {SCAN_LIMIT}");
-            let raw = graph.sparql_select(&q)?;
+            // The schema is a question about the whole store: subclass/domain/range
+            // axioms may sit in any named graph (a TriG/N-Quads load, a per-version
+            // schema graph), so read the union, not the default graph alone. Reading
+            // the default graph made incremental reasoning derive nothing for a store
+            // whose schema was not in the default graph, and label it complete.
+            let raw = graph.sparql_select_union(&q)?;
             let parsed: serde_json::Value = serde_json::from_str(&raw)?;
             let rows: Vec<(String, String)> = parsed
                 .get("results")
@@ -146,7 +151,8 @@ impl Schema {
         };
         let typed = |cls: &str| -> anyhow::Result<HashSet<String>> {
             let q = format!("SELECT ?s WHERE {{ ?s {RDF_TYPE} {cls} }} LIMIT {SCAN_LIMIT}");
-            let raw = graph.sparql_select(&q)?;
+            // Property-characteristic declarations are schema, read from every graph.
+            let raw = graph.sparql_select_union(&q)?;
             let parsed: serde_json::Value = serde_json::from_str(&raw)?;
             let rows: HashSet<String> = parsed
                 .get("results")
@@ -252,8 +258,10 @@ impl IncrementalReasoner {
             } else {
                 format!("SELECT ?x WHERE {{ ?x {pred} {term} }} LIMIT 10000")
             };
+            // The neighbours of a delta term are instance edges that may live in any
+            // named graph, so this store-question reads the union too.
             graph
-                .sparql_select(&q)
+                .sparql_select_union(&q)
                 .ok()
                 .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok())
                 .and_then(|v| v.get("results").and_then(|r| r.as_array()).cloned())
