@@ -30,7 +30,8 @@ impl StructuralTrainer {
             }
         "#;
 
-        let result = match store.sparql_select(query) {
+        // The hierarchy is a question about the whole store, so read every graph.
+        let result = match store.sparql_select_union(query) {
             Ok(r) => r,
             Err(_) => return Vec::new(),
         };
@@ -61,7 +62,8 @@ impl StructuralTrainer {
             }
         "#;
 
-        let result = match store.sparql_select(query) {
+        // Class enumeration is a question about the whole store, so read every graph.
+        let result = match store.sparql_select_union(query) {
             Ok(r) => r,
             Err(_) => return Vec::new(),
         };

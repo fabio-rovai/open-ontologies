@@ -153,7 +153,7 @@ pub fn list_classes(graph: &Arc<GraphStore>) -> Vec<String> {
 }
 
 fn sparql_iri_list(graph: &Arc<GraphStore>, q: &str, var: &str) -> Vec<String> {
-    let js = match graph.sparql_select(q) {
+    let js = match graph.sparql_select_union(q) {
         Ok(s) => s,
         Err(_) => return Vec::new(),
     };

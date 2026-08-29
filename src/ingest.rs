@@ -367,41 +367,51 @@ impl DataIngester {
         }
     }
 
+    /// Read a whole text file into memory, refusing anything over the ingest cap.
+    /// Ingest reads the entire file at once, so an unbounded read is an
+    /// out-of-memory lever for any caller that can point the tool at a large file.
+    fn read_to_string_capped(path: &str) -> Result<String> {
+        const MAX_INGEST_BYTES: u64 = 512 * 1024 * 1024;
+        let meta =
+            fs::metadata(path).with_context(|| format!("Failed to stat file: {path}"))?;
+        if meta.len() > MAX_INGEST_BYTES {
+            anyhow::bail!(
+                "file {path} is {} bytes, over the {MAX_INGEST_BYTES}-byte ingest cap",
+                meta.len()
+            );
+        }
+        fs::read_to_string(path).with_context(|| format!("Failed to read file: {path}"))
+    }
+
     /// Dispatch to the correct parser based on detected format.
     /// For text formats, reads the file content first.
     pub fn parse_file(path: &str) -> Result<Vec<HashMap<String, String>>> {
         let format = Self::detect_format(path);
         match format {
             "csv" => {
-                let content = fs::read_to_string(path)
-                    .with_context(|| format!("Failed to read file: {path}"))?;
+                let content = Self::read_to_string_capped(path)?;
                 Self::parse_csv(&content)
             }
             "json" => {
-                let content = fs::read_to_string(path)
-                    .with_context(|| format!("Failed to read file: {path}"))?;
+                let content = Self::read_to_string_capped(path)?;
                 Self::parse_json(&content)
             }
             "ndjson" => {
-                let content = fs::read_to_string(path)
-                    .with_context(|| format!("Failed to read file: {path}"))?;
+                let content = Self::read_to_string_capped(path)?;
                 Self::parse_ndjson(&content)
             }
             "yaml" => {
-                let content = fs::read_to_string(path)
-                    .with_context(|| format!("Failed to read file: {path}"))?;
+                let content = Self::read_to_string_capped(path)?;
                 Self::parse_yaml(&content)
             }
             "xml" => {
-                let content = fs::read_to_string(path)
-                    .with_context(|| format!("Failed to read file: {path}"))?;
+                let content = Self::read_to_string_capped(path)?;
                 Self::parse_xml(&content)
             }
             "xlsx" => Self::parse_xlsx_file(path),
             "parquet" => Self::parse_parquet_file(path),
             _ => {
-                let content = fs::read_to_string(path)
-                    .with_context(|| format!("Failed to read file: {path}"))?;
+                let content = Self::read_to_string_capped(path)?;
                 Self::parse_csv(&content)
             }
         }

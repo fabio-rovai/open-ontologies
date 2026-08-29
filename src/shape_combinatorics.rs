@@ -83,6 +83,24 @@ pub fn enumerate(graph: &Arc<GraphStore>, class_iri: &str, max_size: usize) -> a
 
     let k = props.len();
     let cap = max_size.min(k);
+
+    // Guard the combinatorial blow-up BEFORE materialising anything. max_size is a
+    // caller-supplied usize with no upper bound, and a moderately wide class makes
+    // the subset count astronomical (C(100, 50) ≈ 1e29), each subset an allocated
+    // Vec — an out-of-memory kill from one tool call. Sum the binomials and refuse
+    // past a budget instead.
+    const SUBSET_BUDGET: u64 = 200_000;
+    let mut estimate: u64 = 0;
+    for size in 1..=cap {
+        estimate = estimate.saturating_add(binomial(k as u64, size as u64));
+        if estimate > SUBSET_BUDGET {
+            anyhow::bail!(
+                "shape enumeration for {class_iri} would produce more than {SUBSET_BUDGET} \
+                 subsets ({k} properties up to size {cap}); lower max_size"
+            );
+        }
+    }
+
     let mut subsets: Vec<Vec<String>> = vec![Vec::new()];
 
     for size in 1..=cap {
@@ -101,6 +119,23 @@ pub fn enumerate(graph: &Arc<GraphStore>, class_iri: &str, max_size: usize) -> a
         subsets_total: total,
         subsets,
     })
+}
+
+/// C(n, k) with a u128 intermediate, saturating to u64::MAX so an enormous
+/// binomial cannot overflow the budget check that guards enumeration.
+fn binomial(n: u64, k: u64) -> u64 {
+    if k > n {
+        return 0;
+    }
+    let k = k.min(n - k);
+    let mut result: u128 = 1;
+    for i in 1..=k {
+        result = result.saturating_mul((n - k + i) as u128) / (i as u128);
+        if result > u64::MAX as u128 {
+            return u64::MAX;
+        }
+    }
+    result as u64
 }
 
 /// Enumerate k-subsets of `items` in lexicographic order. Iterative
@@ -312,6 +347,41 @@ mod tests {
         )
         .unwrap();
         g
+    }
+
+    #[test]
+    fn binomial_is_exact_and_saturates() {
+        assert_eq!(binomial(3, 2), 3);
+        assert_eq!(binomial(100, 2), 4950);
+        assert_eq!(binomial(52, 5), 2_598_960);
+        assert_eq!(binomial(5, 9), 0);
+        // A huge central binomial saturates rather than overflowing.
+        assert_eq!(binomial(100, 50), u64::MAX);
+    }
+
+    #[test]
+    fn enumerate_refuses_a_combinatorial_blowup() {
+        // A class wide enough that the requested max_size explodes the lattice.
+        let g = Arc::new(GraphStore::new());
+        let mut ttl = String::from(
+            "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix ex: <http://ex.org/> .\n ex:Wide a owl:Class .\n",
+        );
+        for i in 0..40 {
+            ttl.push_str(&format!(
+                "ex:p{i} a owl:DatatypeProperty ; rdfs:domain ex:Wide .\n"
+            ));
+        }
+        g.load_turtle(&ttl, None).unwrap();
+        // C(40,20) alone is ~1.4e11: must refuse instead of allocating it.
+        let err = enumerate(&g, "http://ex.org/Wide", 20).unwrap_err();
+        assert!(
+            err.to_string().contains("more than"),
+            "must refuse the blow-up, got: {err}"
+        );
+        // A small max_size on the same wide class is fine.
+        assert!(enumerate(&g, "http://ex.org/Wide", 2).is_ok());
     }
 
     #[test]

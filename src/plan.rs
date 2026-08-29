@@ -607,7 +607,7 @@ impl Planner {
 
     fn extract_iris(&self, store: &GraphStore, query: &str, var: &str) -> HashSet<String> {
         let mut set = HashSet::new();
-        if let Ok(json) = store.sparql_select(query)
+        if let Ok(json) = store.sparql_select_union(query)
             && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
                 && let Some(results) = parsed["results"].as_array() {
                     for row in results {
@@ -626,7 +626,7 @@ impl Planner {
              {{ <{iri}> ?p ?o }} UNION {{ ?s <{iri}> ?o }} UNION {{ ?s ?p <{iri}> }} \
              }}"
         );
-        if let Ok(json) = self.graph.sparql_select(&query)
+        if let Ok(json) = self.graph.sparql_select_union(&query)
             && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json)
                 && let Some(results) = parsed["results"].as_array()
                     && let Some(first) = results.first()

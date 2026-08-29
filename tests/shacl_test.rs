@@ -934,3 +934,49 @@ fn test_shacl_exclusive_range() {
     assert_eq!(parsed["conforms"], false);
     assert_eq!(parsed["violation_count"].as_u64().unwrap(), 4);
 }
+
+// Red-team regression: a value node whose datatype cannot be compared to the bound
+// (a string against a numeric range, a date against an integer, or NaN) must be a
+// VIOLATION, not a silent pass. SHACL 4.6.1/4.6.2: a value where the satisfying
+// comparison "does not return true" is a validation result, and a type error does
+// not return true. The affirmative-only FILTER previously dropped these to conforms.
+#[test]
+fn test_shacl_range_flags_incomparable_values_not_silent_pass() {
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:ok       a ex:Thing ; ex:n 7 .
+            ex:low      a ex:Thing ; ex:n 1 .
+            ex:garbage  a ex:Thing ; ex:n "not a number" .
+            ex:dateval  a ex:Thing ; ex:n "2020-01-01"^^<http://www.w3.org/2001/XMLSchema#date> .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:RangeShape a sh:NodeShape ;
+            sh:targetClass ex:Thing ;
+            sh:property [ sh:path ex:n ; sh:minInclusive 5 ; sh:maxInclusive 10 ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    let flagged: Vec<String> = parsed["violations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|v| v["focus_node"].as_str().unwrap().to_string())
+        .collect();
+
+    assert_eq!(parsed["conforms"], false, "store must not conform: {parsed}");
+    // In-range numeric passes.
+    assert!(!flagged.iter().any(|f| f.ends_with("ok")), "ex:ok (7) is in range: {flagged:?}");
+    // Out-of-range numeric is caught (control that the check runs).
+    assert!(flagged.iter().any(|f| f.ends_with("low")), "ex:low (1) is below 5: {flagged:?}");
+    // The bug: incomparable values must be flagged, never silently pass.
+    assert!(flagged.iter().any(|f| f.ends_with("garbage")), "non-numeric value silently passed: {flagged:?}");
+    assert!(flagged.iter().any(|f| f.ends_with("dateval")), "date-vs-integer value silently passed: {flagged:?}");
+}

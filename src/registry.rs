@@ -234,10 +234,23 @@ impl OntologyRegistry {
             }
         }
 
+        // A source change discards in-memory mutations by design, so the stale
+        // eviction snapshot must go with them.
+        if refreshed {
+            let _ = std::fs::remove_file(Self::evict_snapshot_path(&cache_path));
+        }
+
         if needs_reload && !refreshed {
-            // Reload from N-Triples cache; fall back to source if cache file
-            // is missing for some reason.
-            if cache_path.exists() {
+            // Prefer the eviction snapshot: it holds the live state at eviction time
+            // (mutations included), where the compile cache holds only the source's
+            // compiled form. Consume it so it cannot go stale against a later load.
+            let evict_path = Self::evict_snapshot_path(&cache_path);
+            if evict_path.exists() {
+                let quads = std::fs::read_to_string(&evict_path)?;
+                self.graph.clear()?;
+                self.graph.load_nquads(&quads)?;
+                let _ = std::fs::remove_file(&evict_path);
+            } else if cache_path.exists() {
                 let quads = std::fs::read_to_string(&cache_path)?;
                 self.graph.clear()?;
                 self.graph.load_nquads(&quads)?;
@@ -275,12 +288,46 @@ impl OntologyRegistry {
         }
         let elapsed = entry.last_access.lock().unwrap().elapsed();
         if elapsed >= ttl {
-            // Clear the in-memory store to release memory; cache file remains.
+            // Write the LIVE in-memory state to an eviction snapshot before
+            // clearing. The compile cache holds only the source's compiled form, so
+            // reloading from it after eviction silently discards everything derived
+            // in memory since load: materialised reasoning, SPARQL UPDATE inserts,
+            // onto_ingest / onto_extend output. Serialising to N-Quads captures named
+            // graphs too, and ensure_loaded prefers this snapshot when restoring.
+            let evict_path = Self::evict_snapshot_path(&entry.cache_path);
+            match self.graph.serialize("nquads") {
+                Ok(quads) => {
+                    if let Err(e) = CacheManager::atomic_write(&evict_path, &quads) {
+                        // A snapshot we cannot write must not cause silent data loss:
+                        // leave the store in memory and try again on the next tick.
+                        eprintln!("eviction snapshot write failed, not evicting: {e}");
+                        return Ok(false);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("eviction snapshot serialise failed, not evicting: {e}");
+                    return Ok(false);
+                }
+            }
             self.graph.clear()?;
             *entry.evicted.lock().unwrap() = true;
             return Ok(true);
         }
         Ok(false)
+    }
+
+    /// Path of the eviction snapshot beside an entry's compile cache. Kept
+    /// distinct from the compile cache so a later plain `load_file` of the same
+    /// source never mistakes in-memory mutations for the source's compiled form.
+    fn evict_snapshot_path(cache_path: &Path) -> PathBuf {
+        let mut p = cache_path.to_path_buf();
+        let ext = p
+            .extension()
+            .and_then(|x| x.to_str())
+            .map(|x| format!("{x}.evicted"))
+            .unwrap_or_else(|| "evicted".to_string());
+        p.set_extension(ext);
+        p
     }
 
     /// Manually unload the active ontology (clear graph + drop active slot).

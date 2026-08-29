@@ -574,21 +574,21 @@ impl OpenOntologiesServer {
             match GraphStore::fetch_sparql_auth(&input.url, query, &auth).await {
                 Ok(content) => {
                     match self.graph.load_turtle(&content, None) {
-                        Ok(count) => format!(r#"{{"ok":true,"triples_loaded":{},"source":"{}"}}"#, count, input.url),
-                        Err(e) => format!(r#"{{"error":"Parse error: {}"}}"#, e),
+                        Ok(count) => serde_json::json!({"ok": true, "triples_loaded": count, "source": input.url}).to_string(),
+                        Err(e) => serde_json::json!({"error": format!("Parse error: {e}")}).to_string(),
                     }
                 }
-                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+                Err(e) => serde_json::json!({"error": e.to_string()}).to_string(),
             }
         } else {
             match GraphStore::fetch_url(&input.url).await {
                 Ok(content) => {
                     match self.graph.load_turtle(&content, None) {
-                        Ok(count) => format!(r#"{{"ok":true,"triples_loaded":{},"source":"{}"}}"#, count, input.url),
-                        Err(e) => format!(r#"{{"error":"Parse error: {}"}}"#, e),
+                        Ok(count) => serde_json::json!({"ok": true, "triples_loaded": count, "source": input.url}).to_string(),
+                        Err(e) => serde_json::json!({"error": format!("Parse error: {e}")}).to_string(),
                     }
                 }
-                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+                Err(e) => serde_json::json!({"error": e.to_string()}).to_string(),
             }
         }
     }
@@ -600,11 +600,11 @@ impl OpenOntologiesServer {
         match self.graph.serialize("ntriples") {
             Ok(content) => {
                 match GraphStore::push_sparql_auth(&input.endpoint, &content, input.graph.as_deref(), &auth).await {
-                    Ok(msg) => format!(r#"{{"ok":true,"message":"{}"}}"#, msg),
-                    Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+                    Ok(msg) => serde_json::json!({"ok": true, "message": msg}).to_string(),
+                    Err(e) => serde_json::json!({"error": e.to_string()}).to_string(),
                 }
             }
-            Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+            Err(e) => serde_json::json!({"error": e.to_string()}).to_string(),
         }
     }
 
@@ -1420,7 +1420,7 @@ impl OpenOntologiesServer {
 
     #[tool(name = "onto_shape_induce", description = "Kastor-style data-driven SHACL shape induction (#36, K-CAP 2025). For each property subset up to `max_size`, compute support (fraction of class instances having all properties) and confidence (fraction of any-instances-with-properties that are class members). Returns the top-k candidates ranked by `support × confidence`, each carrying a ready-to-use SHACL NodeShape Turtle block. Filter via `min_support` (default 0.1) and `min_confidence` (default 0.5).")]
     async fn onto_shape_induce(&self, Parameters(input): Parameters<OntoShapeInduceInput>) -> String {
-        let max = input.max_size.unwrap_or(3);
+        let max = input.max_size.unwrap_or(3).min(8); // hard cap: guards the combinatorial blow-up at the tool boundary
         let top_k = input.top_k.unwrap_or(10);
         let min_support = input.min_support.unwrap_or(0.1);
         let min_confidence = input.min_confidence.unwrap_or(0.5);
@@ -1433,7 +1433,7 @@ impl OpenOntologiesServer {
 
     #[tool(name = "onto_shape_combinatorics", description = "Enumerate the property-combination lattice for a class (#36, K-CAP 2025 Kastor). Returns subsets of the class's rdfs:domain properties up to `max_size` (default 3). Used by shape-induction algorithms to enumerate candidate SHACL shapes from data.")]
     async fn onto_shape_combinatorics(&self, Parameters(input): Parameters<OntoShapeCombinatoricsInput>) -> String {
-        let max = input.max_size.unwrap_or(3);
+        let max = input.max_size.unwrap_or(3).min(8); // hard cap: guards the combinatorial blow-up at the tool boundary
         match crate::shape_combinatorics::enumerate(&self.graph, &input.class_iri, max) {
             Ok(r) => serde_json::to_string(&r)
                 .unwrap_or_else(|e| format!(r#"{{"error":"serialization: {}"}}"#, e)),
@@ -2459,7 +2459,9 @@ impl OpenOntologiesServer {
             }
         "#;
 
-        let result = match self.graph.sparql_select(classes_query) {
+        // Enumerating the store's classes is a question about the whole store,
+        // so read the union of all graphs, not the default graph alone.
+        let result = match self.graph.sparql_select_union(classes_query) {
             Ok(r) => r,
             Err(e) => return format!(r#"{{"error":"{}"}}"#, e),
         };
