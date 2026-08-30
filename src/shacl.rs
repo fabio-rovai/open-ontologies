@@ -277,6 +277,7 @@ impl ShaclValidator {
                             sh:class, sh:pattern, sh:hasValue, sh:message, sh:severity,
                             sh:minInclusive, sh:maxInclusive,
                             sh:minExclusive, sh:maxExclusive,
+                            sh:or,
                             sh:name, sh:description, sh:order, sh:group,
                             <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
                         ))
@@ -293,6 +294,73 @@ impl ShaclValidator {
                         "reason": "constraint not implemented; it was not evaluated",
                     }));
                 }
+            }
+
+            // sh:or alternatives for this shape, collected once and keyed by path.
+            //
+            // They cannot be looked up per property shape the obvious way: a
+            // property shape is almost always a blank node, and a blank-node
+            // label written into a SPARQL query is a fresh variable rather than
+            // a reference to that node, so `?prop sh:or ...` with the label
+            // substituted matches every property shape in the file instead of
+            // one. Keying by path avoids naming the blank node at all.
+            let mut or_alternatives: HashMap<String, Vec<String>> = HashMap::new();
+            let mut or_unsupported: HashSet<String> = HashSet::new();
+            let or_rows = query_solutions(
+                &shapes_store,
+                &format!(
+                    r#"
+                    PREFIX sh: <http://www.w3.org/ns/shacl#>
+                    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                    SELECT ?path ?datatype ?class ?hasValue ?other WHERE {{
+                        {} sh:property ?prop .
+                        ?prop sh:path ?path .
+                        ?prop sh:or/rdf:rest*/rdf:first ?member .
+                        OPTIONAL {{ ?member sh:datatype ?datatype }}
+                        OPTIONAL {{ ?member sh:class ?class }}
+                        OPTIONAL {{ ?member sh:hasValue ?hasValue }}
+                        OPTIONAL {{
+                            ?member ?other ?_v .
+                            FILTER(?other NOT IN (sh:datatype, sh:class, sh:hasValue, rdf:type))
+                        }}
+                    }}
+                    "#,
+                    shape_iri
+                ),
+            )?;
+            for row in &or_rows {
+                let p = match row.get("path") {
+                    Some(p) => strip_angle_brackets(p),
+                    None => continue,
+                };
+                if row.get("other").is_some() {
+                    or_unsupported.insert(p);
+                    continue;
+                }
+                let clause = if let Some(dt) = row.get("datatype") {
+                    format!("DATATYPE(?val) = <{}>", strip_angle_brackets(dt))
+                } else if let Some(c) = row.get("class") {
+                    format!(
+                        "EXISTS {{ ?val <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{}> }}",
+                        strip_angle_brackets(c)
+                    )
+                } else if let Some(hv) = row.get("hasValue") {
+                    format!("?val = {}", hv.trim())
+                } else {
+                    or_unsupported.insert(p);
+                    continue;
+                };
+                or_alternatives.entry(p).or_default().push(clause);
+            }
+            for p in &or_unsupported {
+                or_alternatives.remove(p);
+                skipped.push(serde_json::json!({
+                    "shape": strip_angle_brackets(&shape_iri),
+                    "constraint": "sh:or",
+                    "path": p,
+                    "reason": "sh:or members use a constraint form that is not implemented; \
+                               the disjunction was not evaluated",
+                }));
             }
 
             // 4. For each constraint, run SPARQL queries against the main graph
@@ -497,6 +565,48 @@ impl ShaclValidator {
                                 "focus_node": strip_angle_brackets(focus),
                                 "path": path,
                                 "constraint": "pattern",
+                                "message": msg,
+                            }));
+                        }
+                    }
+                }
+
+                // sh:or over a property shape: each value on the path must
+                // satisfy at least one member of the list. The alternatives were
+                // collected for this shape above and are keyed by path.
+                //
+                // The general form nests arbitrary shapes and is not attempted.
+                // What is evaluated is the form that occurs in practice, a list
+                // of leaf alternatives each carrying exactly one of sh:datatype,
+                // sh:class or sh:hasValue. The motivating case is a date recorded
+                // at day, month or year precision: three sh:datatype members that
+                // no single constraint can express. A list containing any other
+                // form was sent to `skipped` above rather than evaluated, because
+                // a disjunction evaluated over only the alternatives that happened
+                // to be understood is not the disjunction that was written, and
+                // would report a violation for a value the shape permits.
+                if let Some(clauses) = or_alternatives.get(&path) {
+                    let disjunction = clauses.join(" || ");
+                    let query = format!(
+                        r#"SELECT ?focus ?val WHERE {{
+                            ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
+                            ?focus {path_expr} ?val .
+                            FILTER(!({disjunction}))
+                        }}"#
+                    );
+                    let results = graph_sparql_select(graph, &query)?;
+                    for row in &results {
+                        if let Some(focus) = row.get("focus") {
+                            let msg = if message.is_empty() {
+                                "Value satisfies none of the sh:or alternatives".to_string()
+                            } else {
+                                message.clone()
+                            };
+                            violations.push(serde_json::json!({
+                                "severity": severity,
+                                "focus_node": strip_angle_brackets(focus),
+                                "path": path,
+                                "constraint": "or",
                                 "message": msg,
                             }));
                         }
