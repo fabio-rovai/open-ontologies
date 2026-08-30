@@ -299,8 +299,17 @@ fn add_plan_owner_column(conn: &Connection) -> Result<()> {
     if column_exists(conn, "plans", "owner")? {
         return Ok(());
     }
-    conn.execute_batch("ALTER TABLE plans ADD COLUMN owner TEXT NOT NULL DEFAULT 'cli'")
-        .map_err(|e| anyhow::anyhow!("failed adding plans.owner: {e}"))?;
+    if let Err(e) =
+        conn.execute_batch("ALTER TABLE plans ADD COLUMN owner TEXT NOT NULL DEFAULT 'cli'")
+    {
+        // Another process opening the same database can add the column between
+        // the check above and this statement, and SQLite then rejects ours as a
+        // duplicate. That is the outcome we wanted, so only report the failure
+        // when the column really is still missing.
+        if !column_exists(conn, "plans", "owner").unwrap_or(false) {
+            return Err(anyhow::anyhow!("failed adding plans.owner: {e}"));
+        }
+    }
     Ok(())
 }
 
@@ -327,7 +336,16 @@ fn run_migrations(conn: &mut Connection) -> Result<()> {
     }
 
     for migration in MIGRATIONS.iter().filter(|m| m.version > current) {
-        let tx = conn.transaction()?;
+        // IMMEDIATE, not the default DEFERRED. Each migration reads
+        // (`column_exists`) before it writes, and a deferred transaction that
+        // takes its read snapshot and then tries to upgrade to a write is the
+        // one case SQLite refuses to retry: it returns SQLITE_BUSY straight
+        // away rather than calling the busy handler, because waiting there can
+        // deadlock. Two processes opening a cold database at once hit that
+        // window and one of them exited 1 with "database is locked" in about
+        // 2.5% of invocations. Taking the write lock at BEGIN is retried by the
+        // busy handler like any other lock.
+        let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
         for col in migration.columns {
             if !column_exists(&tx, col.table, col.column)? {
                 tx.execute_batch(col.ddl).map_err(|e| {
@@ -350,6 +368,56 @@ fn run_migrations(conn: &mut Connection) -> Result<()> {
     Ok(())
 }
 
+/// Put the database into WAL mode, tolerating other processes doing the same.
+///
+/// Converting a rollback-mode database to WAL takes an exclusive lock on the
+/// file, and SQLite fails that conversion with SQLITE_BUSY without consulting
+/// the busy handler, so the five second timeout rusqlite installs by default
+/// never applies to it. Every subcommand opens this database on the way in, so
+/// on a cold data directory any two of them starting at once both attempted the
+/// conversion and the loser exited 1 with "database is locked": roughly 40% of
+/// invocations under `xargs -P8`, and the cause of CI run 33334852611, where two
+/// test binaries shelling out to the CLI raced each other.
+///
+/// Read the mode before writing it, so the common warm case takes no lock at
+/// all, and retry the conversion itself with backoff.
+fn enable_wal(conn: &Connection) -> Result<()> {
+    const ATTEMPTS: u32 = 10;
+    let mut delay = std::time::Duration::from_millis(20);
+    for attempt in 0..ATTEMPTS {
+        let mode: String = conn.query_row("PRAGMA journal_mode", [], |r| r.get(0))?;
+        if mode.eq_ignore_ascii_case("wal") {
+            return Ok(());
+        }
+        match conn.pragma_update(None, "journal_mode", "WAL") {
+            Ok(()) => return Ok(()),
+            // Only the contended case is retried. A read-only file, a corrupt
+            // header or a database on a filesystem that cannot do WAL all fail
+            // here on the first attempt, as they should.
+            Err(e) if is_busy(&e) && attempt + 1 < ATTEMPTS => {
+                std::thread::sleep(delay);
+                delay = (delay * 2).min(std::time::Duration::from_millis(500));
+            }
+            Err(e) => return Err(e.into()),
+        }
+    }
+    // Unreachable: the final attempt above returns Ok or Err, never falls
+    // through. Reported as an error rather than a silent Ok so a future edit to
+    // the loop cannot turn "gave up" into "succeeded".
+    Err(anyhow::anyhow!(
+        "could not switch the state database to WAL after {ATTEMPTS} attempts"
+    ))
+}
+
+fn is_busy(e: &rusqlite::Error) -> bool {
+    matches!(
+        e,
+        rusqlite::Error::SqliteFailure(err, _)
+            if err.code == rusqlite::ErrorCode::DatabaseBusy
+                || err.code == rusqlite::ErrorCode::DatabaseLocked
+    )
+}
+
 /// Minimal SQLite state store for ontology versioning.
 #[derive(Clone)]
 pub struct StateDb {
@@ -359,7 +427,7 @@ pub struct StateDb {
 impl StateDb {
     pub fn open(path: &Path) -> Result<Self> {
         let mut conn = Connection::open(path)?;
-        conn.pragma_update(None, "journal_mode", "WAL")?;
+        enable_wal(&conn)?;
         conn.pragma_update(None, "foreign_keys", "ON")?;
         conn.pragma_update(None, "synchronous", "NORMAL")?;
         conn.execute_batch(SCHEMA)?;
