@@ -133,3 +133,72 @@ fn unsupported_member_form_skips_rather_than_narrowing() {
         "a skipped disjunction must not report violations: {r}"
     );
 }
+
+/// `sh:in`: the value must be one of an enumerated list of terms.
+#[test]
+fn sh_in_enumerates_permitted_values() {
+    let shapes = r#"
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix : <http://ex.org/> .
+:S a sh:NodeShape ; sh:targetClass :T ;
+  sh:property [ sh:path :status ; sh:in ( "ISSUED" "LAPSED" ) ] .
+"#;
+    let good = r#"
+@prefix : <http://ex.org/> .
+:a a :T ; :status "ISSUED" .
+:b a :T ; :status "LAPSED" .
+"#;
+    let r = validate(good, shapes);
+    assert_eq!(r["violation_count"], 0, "permitted values must pass: {r}");
+    assert_eq!(r["conforms"], true, "{r}");
+
+    let bad = r#"
+@prefix : <http://ex.org/> .
+:c a :T ; :status "RETIRED" .
+"#;
+    let r = validate(bad, shapes);
+    assert_eq!(r["violation_count"], 1, "{r}");
+    assert_eq!(r["violations"][0]["constraint"], "in");
+}
+
+/// `sh:nodeKind`: an identifier field typed as a literal where an IRI is required
+/// is one of the commonest register defects, so this must be caught rather than skipped.
+#[test]
+fn sh_node_kind_separates_iris_from_literals() {
+    let shapes = r#"
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix : <http://ex.org/> .
+:S a sh:NodeShape ; sh:targetClass :T ;
+  sh:property [ sh:path :ref ; sh:nodeKind sh:IRI ] .
+"#;
+    let r = validate(
+        "@prefix : <http://ex.org/> .\n:a a :T ; :ref <http://ex.org/target> .\n",
+        shapes,
+    );
+    assert_eq!(r["violation_count"], 0, "an IRI must pass: {r}");
+
+    let r = validate(
+        "@prefix : <http://ex.org/> .\n:b a :T ; :ref \"http://ex.org/target\" .\n",
+        shapes,
+    );
+    assert_eq!(r["violation_count"], 1, "a literal must fail: {r}");
+    assert_eq!(r["violations"][0]["constraint"], "nodeKind");
+}
+
+/// An unrecognised node kind must reach `skipped`, never pass silently.
+#[test]
+fn unrecognised_node_kind_is_skipped_not_passed() {
+    let shapes = r#"
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix : <http://ex.org/> .
+:S a sh:NodeShape ; sh:targetClass :T ;
+  sh:property [ sh:path :ref ; sh:nodeKind :NotARealKind ] .
+"#;
+    let r = validate("@prefix : <http://ex.org/> .\n:a a :T ; :ref \"x\" .\n", shapes);
+    let skipped = r["skipped_constraints"].as_array().cloned().unwrap_or_default();
+    assert!(
+        skipped.iter().any(|s| s["constraint"] == "sh:nodeKind"),
+        "an unrecognised node kind must be reported: {r}"
+    );
+    assert!(r["conforms"].is_null(), "verdict must be suppressed: {r}");
+}

@@ -237,7 +237,7 @@ impl ShaclValidator {
                 &format!(
                     r#"
                     PREFIX sh: <http://www.w3.org/ns/shacl#>
-                    SELECT ?prop ?path ?invPath ?minCount ?maxCount ?datatype ?class ?pattern ?hasValue ?minInclusive ?maxInclusive ?minExclusive ?maxExclusive ?message ?severity WHERE {{
+                    SELECT ?prop ?path ?invPath ?minCount ?maxCount ?datatype ?class ?pattern ?hasValue ?nodeKind ?minInclusive ?maxInclusive ?minExclusive ?maxExclusive ?message ?severity WHERE {{
                         {} sh:property ?prop .
                         ?prop sh:path ?path .
                         OPTIONAL {{ ?path sh:inversePath ?invPath }}
@@ -247,6 +247,7 @@ impl ShaclValidator {
                         OPTIONAL {{ ?prop sh:datatype ?datatype }}
                         OPTIONAL {{ ?prop sh:pattern ?pattern }}
                         OPTIONAL {{ ?prop sh:hasValue ?hasValue }}
+                        OPTIONAL {{ ?prop sh:nodeKind ?nodeKind }}
                         OPTIONAL {{ ?prop sh:minInclusive ?minInclusive }}
                         OPTIONAL {{ ?prop sh:maxInclusive ?maxInclusive }}
                         OPTIONAL {{ ?prop sh:minExclusive ?minExclusive }}
@@ -277,7 +278,7 @@ impl ShaclValidator {
                             sh:class, sh:pattern, sh:hasValue, sh:message, sh:severity,
                             sh:minInclusive, sh:maxInclusive,
                             sh:minExclusive, sh:maxExclusive,
-                            sh:or,
+                            sh:or, sh:in, sh:nodeKind,
                             sh:name, sh:description, sh:order, sh:group,
                             <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
                         ))
@@ -361,6 +362,33 @@ impl ShaclValidator {
                     "reason": "sh:or members use a constraint form that is not implemented; \
                                the disjunction was not evaluated",
                 }));
+            }
+
+            // sh:in alternatives, collected per shape and keyed by path for the
+            // same blank-node reason as sh:or above.
+            let mut in_alternatives: HashMap<String, Vec<String>> = HashMap::new();
+            let in_rows = query_solutions(
+                &shapes_store,
+                &format!(
+                    r#"
+                    PREFIX sh: <http://www.w3.org/ns/shacl#>
+                    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                    SELECT ?path ?member WHERE {{
+                        {} sh:property ?prop .
+                        ?prop sh:path ?path .
+                        ?prop sh:in/rdf:rest*/rdf:first ?member .
+                    }}
+                    "#,
+                    shape_iri
+                ),
+            )?;
+            for row in &in_rows {
+                if let (Some(p), Some(m)) = (row.get("path"), row.get("member")) {
+                    in_alternatives
+                        .entry(strip_angle_brackets(p))
+                        .or_default()
+                        .push(m.trim().to_string());
+                }
             }
 
             // 4. For each constraint, run SPARQL queries against the main graph
@@ -610,6 +638,90 @@ impl ShaclValidator {
                                 "message": msg,
                             }));
                         }
+                    }
+                }
+
+                // sh:in: the value must be one of an enumerated list of terms.
+                // Members arrive from the shapes store in N-Triples form, which is
+                // valid SPARQL as written, so no term needs rebuilding.
+                if let Some(members) = in_alternatives.get(&path) {
+                    let list = members.join(", ");
+                    let query = format!(
+                        r#"SELECT ?focus ?val WHERE {{
+                            ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
+                            ?focus {path_expr} ?val .
+                            FILTER(?val NOT IN ({list}))
+                        }}"#
+                    );
+                    let results = graph_sparql_select(graph, &query)?;
+                    for row in &results {
+                        if let Some(focus) = row.get("focus") {
+                            let msg = if message.is_empty() {
+                                "Value is not one of the permitted sh:in terms".to_string()
+                            } else {
+                                message.clone()
+                            };
+                            violations.push(serde_json::json!({
+                                "severity": severity,
+                                "focus_node": strip_angle_brackets(focus),
+                                "path": path,
+                                "constraint": "in",
+                                "message": msg,
+                            }));
+                        }
+                    }
+                }
+
+                // sh:nodeKind. A node kind this implementation does not recognise
+                // reaches skipped rather than passing: an unrecognised kind is not
+                // a satisfied one.
+                if let Some(nk_raw) = prop.get("nodeKind") {
+                    let nk = strip_angle_brackets(nk_raw);
+                    let kind = nk.rsplit('#').next().unwrap_or_default();
+                    let test = match kind {
+                        "IRI" => Some("isIRI(?val)".to_string()),
+                        "Literal" => Some("isLiteral(?val)".to_string()),
+                        "BlankNode" => Some("isBlank(?val)".to_string()),
+                        "BlankNodeOrIRI" => Some("(isBlank(?val) || isIRI(?val))".to_string()),
+                        "IRIOrLiteral" => Some("(isIRI(?val) || isLiteral(?val))".to_string()),
+                        "BlankNodeOrLiteral" => {
+                            Some("(isBlank(?val) || isLiteral(?val))".to_string())
+                        }
+                        _ => None,
+                    };
+                    match test {
+                        Some(t) => {
+                            let query = format!(
+                                r#"SELECT ?focus ?val WHERE {{
+                                    ?focus <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{target_class}> .
+                                    ?focus {path_expr} ?val .
+                                    FILTER(!{t})
+                                }}"#
+                            );
+                            let results = graph_sparql_select(graph, &query)?;
+                            for row in &results {
+                                if let Some(focus) = row.get("focus") {
+                                    let msg = if message.is_empty() {
+                                        format!("Value is not of node kind {}", kind)
+                                    } else {
+                                        message.clone()
+                                    };
+                                    violations.push(serde_json::json!({
+                                        "severity": severity,
+                                        "focus_node": strip_angle_brackets(focus),
+                                        "path": path,
+                                        "constraint": "nodeKind",
+                                        "message": msg,
+                                    }));
+                                }
+                            }
+                        }
+                        None => skipped.push(serde_json::json!({
+                            "shape": strip_angle_brackets(&shape_iri),
+                            "constraint": "sh:nodeKind",
+                            "path": path,
+                            "reason": "node kind not recognised; it was not evaluated",
+                        })),
                     }
                 }
 

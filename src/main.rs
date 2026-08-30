@@ -853,6 +853,25 @@ fn output_json(value: &serde_json::Value, pretty: bool) {
 
 /// Print a JSON string result, with optional pretty-printing.
 /// Handles the common pattern of domain functions returning String results.
+/// Print a tool result and fail the process if the payload carries an `error`.
+///
+/// `output_result` prints whatever it is handed and returns, so a command whose
+/// work failed still exited 0 while printing `{"error": ...}`. That is fine for a
+/// human reading the line and useless for a gate: `open-ontologies lint x.ttl ||
+/// exit 1` passed on exactly the input it exists to catch, because the shell was
+/// told success while the JSON said otherwise. Commands that can fail this way
+/// use this instead.
+fn output_result_checked(result: &str, pretty: bool) {
+    let failed = serde_json::from_str::<serde_json::Value>(result)
+        .ok()
+        .and_then(|v| v.get("error").cloned())
+        .is_some();
+    output_result(result, pretty);
+    if failed {
+        std::process::exit(1);
+    }
+}
+
 fn output_result(result: &str, pretty: bool) {
     if json_mode() || pretty {
         if pretty {
@@ -1875,7 +1894,7 @@ async fn async_main() -> anyhow::Result<()> {
             let new = std::fs::read_to_string(&new_path)?;
             let result = OntologyService::diff(&old, &new)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            output_result(&result, cli.pretty);
+            output_result_checked(&result, cli.pretty);
         }
         Commands::Lint { input } => {
             use open_ontologies::ontology::OntologyService;
@@ -1890,11 +1909,22 @@ async fn async_main() -> anyhow::Result<()> {
             // lint reasons over Turtle. Sniff the serialisation first, exactly as
             // validate does, so an RDF/XML document is converted rather than
             // handed to a Turtle parser that can only fail on it.
-            let content = GraphStore::content_as_turtle(&input, raw)
-                .unwrap_or_else(|e| format!("# could not read as RDF: {e}\n"));
+            // A parse failure must not become a Turtle comment. It used to:
+            // the fallback string is a valid Turtle document containing zero
+            // triples, so lint parsed it happily, found nothing to complain
+            // about, and reported `issue_count: 0` with exit 0 over a file it
+            // had never read. A clean bill of health for an unreadable document
+            // is the one answer this command must never give.
+            let content = match GraphStore::content_as_turtle(&input, raw) {
+                Ok(c) => c,
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                    std::process::exit(1);
+                }
+            };
             let result = OntologyService::lint_with_feedback(&content, Some(&db))
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            output_result(&result, cli.pretty);
+            output_result_checked(&result, cli.pretty);
         }
         Commands::Convert { path, to, output } => {
             let store = GraphStore::new();
@@ -2215,14 +2245,14 @@ async fn async_main() -> anyhow::Result<()> {
             let data_content = std::fs::read_to_string(&data)?;
             let result = open_ontologies::vocab_check::check_data_vocab(&graph, &data_content, &[])
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            output_result(&result, cli.pretty);
+            output_result_checked(&result, cli.pretty);
         }
         Commands::Reason { profile } => {
             use open_ontologies::reason::Reasoner;
             let (_db, graph) = setup(&cli.data_dir)?;
             let result = Reasoner::run(&graph, &profile, true)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            output_result(&result, cli.pretty);
+            output_result_checked(&result, cli.pretty);
         }
         Commands::Extend {
             data_path,
