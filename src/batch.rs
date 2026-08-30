@@ -99,7 +99,10 @@ impl BatchRunner {
             "lint" => self.exec_lint(&cmd.args),
             "reason" => self.exec_reason(&cmd.args),
             "shacl" => self.exec_shacl(&cmd.args),
-            "vocab_check" => self.exec_vocab_check(&cmd.args),
+            // The CLI subcommand is spelled with a hyphen and this arm accepted
+            // only the underscore, so every documented invocation was rejected
+            // as an unknown batch command while the implementation sat unused.
+            "vocab-check" | "vocab_check" => self.exec_vocab_check(&cmd.args),
             "diff" => self.exec_diff(&cmd.args),
             "convert" => self.exec_convert(&cmd.args),
             "enforce" => self.exec_enforce(&cmd.args),
@@ -223,7 +226,7 @@ impl BatchRunner {
             Some(p) => p,
             None => return json!({"error": "lint requires a file path"}),
         };
-        match std::fs::read_to_string(input) {
+        match crate::graph::GraphStore::read_as_turtle(input) {
             Ok(content) => {
                 let result = OntologyService::lint_with_feedback(&content, Some(&self.db))
                     .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
@@ -259,14 +262,25 @@ impl BatchRunner {
         }
     }
 
+    /// Closed-world vocabulary check against the loaded ontology.
+    ///
+    /// This function existed and was never reachable: no arm of the dispatch
+    /// match called it, so `batch` rejected `vocab-check` as an unknown command.
+    /// That mattered more than an ordinary gap, because the check needs a loaded
+    /// ontology, `load` does not persist in the default memory storage mode, and
+    /// `batch` is the only way to load and then operate in one process. The
+    /// command was therefore unreachable in its intended mode.
     fn exec_vocab_check(&self, args: &[String]) -> Value {
-        let data_path = match args.first() {
+        let data_path = match args.iter().find(|a| !a.starts_with("--")) {
             Some(p) => p,
-            None => return json!({"error": "vocab_check requires a data file path"}),
+            None => return json!({"error": "vocab-check requires a data file path"}),
         };
-        match std::fs::read_to_string(data_path) {
+        let extra: Vec<String> = Self::flag_value(args, "--namespaces")
+            .map(|v| v.split(',').map(|s| s.trim().to_string()).collect())
+            .unwrap_or_default();
+        match crate::graph::GraphStore::read_as_turtle(data_path) {
             Ok(data) => {
-                let result = crate::vocab_check::check_data_vocab(&self.graph, &data, &[])
+                let result = crate::vocab_check::check_data_vocab(&self.graph, &data, &extra)
                     .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
                 serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
             }

@@ -1880,13 +1880,18 @@ async fn async_main() -> anyhow::Result<()> {
         Commands::Lint { input } => {
             use open_ontologies::ontology::OntologyService;
             let (db, _graph) = setup(&cli.data_dir)?;
-            let content = if input == "-" {
+            let raw = if input == "-" {
                 let mut buf = String::new();
                 std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
                 buf
             } else {
                 std::fs::read_to_string(&input)?
             };
+            // lint reasons over Turtle. Sniff the serialisation first, exactly as
+            // validate does, so an RDF/XML document is converted rather than
+            // handed to a Turtle parser that can only fail on it.
+            let content = GraphStore::content_as_turtle(&input, raw)
+                .unwrap_or_else(|e| format!("# could not read as RDF: {e}\n"));
             let result = OntologyService::lint_with_feedback(&content, Some(&db))
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result(&result, cli.pretty);

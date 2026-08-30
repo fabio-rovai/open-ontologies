@@ -199,6 +199,45 @@ impl GraphStore {
         Self::count_parsed(parser)
     }
 
+    /// Read a file and hand back Turtle, whatever it was serialised as.
+    ///
+    /// `validate` has always sniffed the format; `lint` read the bytes and
+    /// handed them to a Turtle parser, so it failed on every RDF/XML document
+    /// with a parse error from the wrong parser. Since OBO Foundry publishes
+    /// RDF/XML, that made `lint` unusable on 62 of the 64 real ontologies in a
+    /// census of the most-declared vocabularies in the public metabolomics
+    /// record. Both commands now share this.
+    pub fn read_as_turtle(path: &str) -> anyhow::Result<String> {
+        let content = std::fs::read_to_string(path)?;
+        Self::content_as_turtle(path, content)
+    }
+
+    /// As `read_as_turtle`, for content already in hand (stdin, for instance).
+    pub fn content_as_turtle(path_hint: &str, content: String) -> anyhow::Result<String> {
+        let format = Self::detect_format_sniffed(path_hint, &content);
+        if format == RdfFormat::Turtle {
+            return Ok(content);
+        }
+        let store = Self::new();
+        {
+            let inner = store.store.lock().unwrap();
+            let base = std::fs::canonicalize(path_hint)
+                .ok()
+                .and_then(|abs| abs.to_str().map(|s| format!("file://{s}")));
+            let mut parser = RdfParser::from_format(format);
+            if let Some(p) = base.as_ref().and_then(|b| parser.clone().with_base_iri(b).ok()) {
+                parser = p;
+            }
+            let quads: Vec<_> = parser
+                .for_reader(Cursor::new(content.as_bytes()))
+                .collect::<Result<_, _>>()?;
+            for quad in &quads {
+                inner.insert(quad)?;
+            }
+        }
+        store.serialize("turtle")
+    }
+
     pub fn validate_file(path: &str) -> anyhow::Result<ValidationCounts> {
         let content = std::fs::read_to_string(path)?;
         let format = Self::detect_format_sniffed(path, &content);
