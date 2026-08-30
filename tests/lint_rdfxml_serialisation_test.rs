@@ -88,7 +88,12 @@ fn lint_reports_issues_on_rdfxml_rather_than_a_parse_error() {
     let dir = tempfile::tempdir().unwrap();
     let path = write(dir.path(), "o.owl", RDFXML);
 
+    // Own data dir: the binary opens `<data_dir>/open-ontologies.db` on every
+    // subcommand, so without this the test writes to the developer's real one
+    // and races the other test binaries that shell out to the CLI.
     let out = Command::new(env!("CARGO_BIN_EXE_open-ontologies"))
+        .arg("--data-dir")
+        .arg(dir.path().join("data"))
         .args(["lint", &path])
         .output()
         .expect("binary should run");
@@ -124,6 +129,8 @@ fn batch_accepts_vocab_check_under_both_spellings() {
     for spelling in ["vocab-check", "vocab_check"] {
         let script = format!("load {onto}\n{spelling} {data}\n");
         let mut child = Command::new(env!("CARGO_BIN_EXE_open-ontologies"))
+            .arg("--data-dir")
+            .arg(dir.path().join("data"))
             .args(["batch", "-"])
             .stdin(std::process::Stdio::piped())
             .stdout(std::process::Stdio::piped())

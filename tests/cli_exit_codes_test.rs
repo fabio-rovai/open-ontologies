@@ -12,8 +12,14 @@
 
 use std::process::Command;
 
-fn run(args: &[&str]) -> (i32, String) {
+/// Every invocation gets its own `--data-dir`, the same discipline `cli_test.rs`
+/// uses. Without it these tests open the developer's real
+/// `~/.open-ontologies/open-ontologies.db`, run migrations against it, and race
+/// every other process that has it open, including each other.
+fn run(dir: &std::path::Path, args: &[&str]) -> (i32, String) {
     let out = Command::new(env!("CARGO_BIN_EXE_open-ontologies"))
+        .arg("--data-dir")
+        .arg(dir.join("data"))
         .args(args)
         .output()
         .expect("binary should run");
@@ -39,7 +45,7 @@ const GOOD: &str = "@prefix : <http://ex.org/> .\n@prefix owl: <http://www.w3.or
 fn lint_fails_the_process_on_unparseable_turtle() {
     let d = tempfile::tempdir().unwrap();
     let f = write(d.path(), "g.ttl", GARBAGE);
-    let (code, out) = run(&["lint", &f]);
+    let (code, out) = run(d.path(), &["lint", &f]);
     assert_eq!(code, 1, "lint must exit non-zero. output: {out}");
     assert!(out.contains("error"), "output: {out}");
 }
@@ -49,7 +55,7 @@ fn lint_fails_the_process_on_unparseable_turtle() {
 fn lint_does_not_report_a_clean_bill_of_health_for_unreadable_rdfxml() {
     let d = tempfile::tempdir().unwrap();
     let f = write(d.path(), "broken.rdf", BROKEN_XML);
-    let (code, out) = run(&["lint", &f]);
+    let (code, out) = run(d.path(), &["lint", &f]);
     assert_eq!(code, 1, "lint must exit non-zero. output: {out}");
     assert!(
         !out.contains("\"issue_count\":0"),
@@ -62,7 +68,7 @@ fn lint_does_not_report_a_clean_bill_of_health_for_unreadable_rdfxml() {
 fn diff_fails_the_process_on_unparseable_input() {
     let d = tempfile::tempdir().unwrap();
     let f = write(d.path(), "g.ttl", GARBAGE);
-    let (code, out) = run(&["diff", &f, &f]);
+    let (code, out) = run(d.path(), &["diff", &f, &f]);
     assert_eq!(code, 1, "diff must exit non-zero. output: {out}");
 }
 
@@ -70,8 +76,8 @@ fn diff_fails_the_process_on_unparseable_input() {
 fn valid_input_still_succeeds() {
     let d = tempfile::tempdir().unwrap();
     let f = write(d.path(), "ok.ttl", GOOD);
-    let (code, out) = run(&["lint", &f]);
+    let (code, out) = run(d.path(), &["lint", &f]);
     assert_eq!(code, 0, "a readable ontology must still exit 0: {out}");
-    let (code, out) = run(&["diff", &f, &f]);
+    let (code, out) = run(d.path(), &["diff", &f, &f]);
     assert_eq!(code, 0, "two readable ontologies must still exit 0: {out}");
 }
