@@ -89,3 +89,18 @@ paper.
     `data/real-ncap-sample.ttl` reproduces records 292, per-item routes 292,
     fallbacks 0, triples 11,382, STAC items 292, and the built graph conforms
     to the commerce shapes.
+20. STAC schema validation (2 September 2026, stac-validator over the
+    repository's reports/stac/): catalog.json valid against the official
+    STAC 1.0.0 catalog schema; all 292 items valid against the STAC 1.0.0
+    item schema (292/292).
+21. Interim Baseline rights statement changed from rightsstatements.org
+    In Copyright to Copyright Not Evaluated (CNE/1.0, resolves 200), because
+    the sample includes 55 records held for the United States National
+    Archives whose copyright status only the institution can determine.
+22. RiC-O 1.1: rico:Rule is an owl:Class and rico:Mandate rdfs:subClassOf
+    rico:Rule (verified in RiC-O_1-1.rdf); Rule carries no URI-valued
+    reuse-terms property.
+23. CRMgeo citation verified via CrossRef (10.1007/s00799-016-0192-4):
+    Hiebel, Doerr, Eide, IJDL 18(4):271-279, 2017. cidoc-crm.org resolves.
+    WKT axis order verified longitude-first in data/real-ncap-sample.ttl
+    (Hong Kong sample: 114.14, 22.36).
