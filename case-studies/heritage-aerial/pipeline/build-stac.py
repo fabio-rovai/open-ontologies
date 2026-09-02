@@ -65,12 +65,13 @@ def item_id_for(props, index):
     return slugify(label)
 
 
-def to_rfc3339(date_str):
+def temporal_props(date_str):
     """
-    Convert an ISO date (YYYY-MM-DD, or YYYY-MM, or YYYY) into an RFC3339
-    UTC datetime string as required by STAC (properties.datetime).
-    NCAP dates are day/month/year precision; STAC needs a full instant, so we
-    anchor partial dates to the start of the period at 00:00:00Z.
+    Convert an ISO date (YYYY-MM-DD, YYYY-MM, or YYYY) into STAC temporal
+    properties WITHOUT manufacturing precision (ADR-0009). A full date maps to
+    properties.datetime; a month- or year-precision date maps to datetime null
+    with an explicit start_datetime/end_datetime interval spanning the period,
+    which is STAC's own way of stating a range rather than an instant.
     """
     if not date_str:
         return None
@@ -78,10 +79,18 @@ def to_rfc3339(date_str):
     m = re.match(r"^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$", date_str)
     if not m:
         return None
-    year = m.group(1)
-    month = m.group(2) or "01"
-    day = m.group(3) or "01"
-    return f"{year}-{month}-{day}T00:00:00Z"
+    year, month, day = m.group(1), m.group(2), m.group(3)
+    if day:
+        return {"datetime": f"{year}-{month}-{day}T00:00:00Z"}
+    if month:
+        import calendar
+        last = calendar.monthrange(int(year), int(month))[1]
+        return {"datetime": None,
+                "start_datetime": f"{year}-{month}-01T00:00:00Z",
+                "end_datetime": f"{year}-{month}-{last:02d}T23:59:59Z"}
+    return {"datetime": None,
+            "start_datetime": f"{year}-01-01T00:00:00Z",
+            "end_datetime": f"{year}-12-31T23:59:59Z"}
 
 
 def bbox_of(coordinates):
@@ -103,16 +112,14 @@ def build_item(feature, index):
 
     iid = item_id_for(props, index)
     bbox = bbox_of(geometry["coordinates"])
-    dt = to_rfc3339(props.get("date"))
-    if dt is None:
-        # STAC allows null datetime only if start/end supplied; NCAP always
-        # has a date, so treat missing datetime as a hard skip.
+    tprops = temporal_props(props.get("date"))
+    if tprops is None:
         return None, "unparseable date"
 
     source_url = props.get("source") or ""
 
     stac_props = {
-        "datetime": dt,
+        **tprops,
         # NAPH-native fields, namespaced so they survive a round-trip through
         # generic STAC tooling and remain machine-addressable.
         "naph:tier": props.get("tier"),
@@ -125,7 +132,10 @@ def build_item(feature, index):
         "license": "other",  # NCAP catalogue rights, see per-item licensing
     }
     # Drop keys that are None so items stay clean.
-    stac_props = {k: v for k, v in stac_props.items() if v is not None}
+    # Drop absent optional fields, but KEEP a null datetime: STAC expresses a
+    # partial-precision date as datetime null plus start/end interval bounds.
+    stac_props = {k: v for k, v in stac_props.items()
+                  if v is not None or k == "datetime"}
 
     assets = {}
     if source_url:
