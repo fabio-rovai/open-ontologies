@@ -58,3 +58,34 @@ paper.
     (Web Statement of Rights, Licensor URL), either being sufficient; Google
     recommends submitting a sitemap to keep results current.
 14. `https://schema.org/acquireLicensePage` → 200.
+
+## Additional probes, same day (2 September 2026)
+
+15. WHAIFinder FeatureServer live counts
+    (`.../Wisconsin_Historic_Aerial_Imagery/FeatureServer/0/query`):
+    total records 318,295; records with `map_scale_denom>0`: 106,597. Grouping
+    the scale-null records by `collection_identifier` returns modern digital
+    orthoimagery series (for example "Barron County 2024" 6,400, "Bayfield
+    County 2025" 6,392, "Marathon County 2025" 6,336, `doq_qq` 5,184), not
+    historic film.
+16. `https://docs.ogc.org/cs/25-004/25-004.html` → title "SpatioTemporal Asset
+    Catalog (STAC) Community Standard", Version: 1.1, dates 2025-09-09
+    (approval) and 2025-10-14 (publication). STAC 1.0.0 release date
+    2021-05-25 per the stac-spec releases.
+17. RiC-O 1.1 source (`RiC-O_1-1.rdf`, ICA-EGAD master, parsed with rdflib):
+    107 owl:Class declarations in the rico namespace;
+    `rico:isOrWasIncludedIn` domain = union(Record, RecordSet), range =
+    RecordSet; `rico:isOrWasComponentOf` domain = Instantiation, range =
+    Instantiation; `rico:IntellectualPropertyRightsRelation` and
+    `rico:LegalStatus` are owl:Classes; the only class name containing
+    "Right" is IntellectualPropertyRightsRelation.
+18. NCAP sample revalidation after the interim-rights disclosure edit
+    (pyshacl, advanced mode): with the adapter's interim rights statement
+    attached, conforms; with all `naph:hasRightsStatement` triples removed,
+    292 violations, every one on the rights constraint, none elsewhere.
+19. Commerce profile negative controls re-run inside the public repository
+    (`extensions/commerce/controls/run_controls.py`): licensable-no-offer
+    fails, offer-no-route fails, offer-with-route passes; rebuild from
+    `data/real-ncap-sample.ttl` reproduces records 292, per-item routes 292,
+    fallbacks 0, triples 11,382, STAC items 292, and the built graph conforms
+    to the commerce shapes.
