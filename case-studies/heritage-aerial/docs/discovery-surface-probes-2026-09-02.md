@@ -114,3 +114,14 @@ paper.
     Result: 75 frames, 4 sorties (PEGASUS-RN-H-0007/0008/0009/0012), dates
     1924-11-12 to 1924-11-13. Timings over three runs: 42 ms cold, 12 ms
     warm (curl time_total against localhost:3030/ds/sparql).
+25. STAC export corrected to honour declared date precision (2 Sep 2026):
+    year- and month-precision frames now serialise with datetime null plus
+    start_datetime/end_datetime interval bounds. Regenerated: 292 items, 0
+    skipped, 67 interval items; catalog and all 292 items valid against the
+    official STAC 1.0.0 schemas (stac-validator).
+26. NAPL both-ways sortie validation (pyshacl): with the synthesised sortie
+    aggregate, 40 records conform; with all partOfSortie triples removed,
+    exactly 40 violations, every one on the sortie constraint.
+27. WHAIFinder footprint construction verified in code: metres-to-degrees in
+    a local equirectangular frame, longitude step divided by cos(latitude)
+    (whaifinder_arcgis.py reconstruct_footprint).
