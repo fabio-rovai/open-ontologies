@@ -228,6 +228,10 @@ def emit_dataset(detail: dict) -> tuple:
         return "", 0
 
     short = safe_id(region) or ds_id[:8]
+    # DISCLOSURE: the CKAN source has no sortie concept. The adapter
+    # synthesises one collection-level naph:Sortie per dataset (a temporal-
+    # series aggregate) so mosaics can satisfy naph:partOfSortie; the
+    # "NAPL-TS/..." sortieReference values are adapter-minted, not NAPL's.
     sortie = f"ex:sortie-{short}"
     portal = f"https://open.canada.ca/data/en/dataset/{ds_id}"
 

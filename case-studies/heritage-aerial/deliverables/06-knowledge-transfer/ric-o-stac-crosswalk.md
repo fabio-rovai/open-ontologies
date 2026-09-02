@@ -38,9 +38,9 @@ Legend for the match column in the TTL: **=** `skos:exactMatch` (no scope differ
 | `naph:AerialPhotograph` | ~ `rico:Record` (> `rico:RecordResource`) | Item | `prov:Entity` | 3.1.1 Reference code; item-level unit of description |
 | `naph:Sortie` | ~ `rico:RecordSet` | Collection | (none) | Series / sub-series grouping |
 | `naph:Collection` | ~ `rico:RecordSet` | Catalog | (none) | Fonds |
-| `naph:CustodialInstitution` | ~ `rico:CorporateBody` (> `rico:Agent`) | (catalog provider) | `prov:Organization` | 3.1.4 Name of creator / holder |
+| `naph:CustodialInstitution` | ~ `rico:CorporateBody` (> `rico:Agent`) | (catalog provider) | `prov:Organization` | 3.2.1 Name of creator(s); holder has no ISAD(G) element (see ISDIAH) |
 | `naph:Frame` | > `rico:RecordPart`, > `rico:Identifier` | Item `id` | (none) | Component of the reference code |
-| `naph:DigitalSurrogate` | ~ `rico:Instantiation` | Asset | `prov:Entity` | 3.4.1 Conditions of access (surrogate) |
+| `naph:DigitalSurrogate` | ~ `rico:Instantiation` | Asset | `prov:Entity` | 3.5.2 Existence and location of copies |
 
 ### 2.2 Spatial / temporal
 
@@ -56,12 +56,12 @@ Legend for the match column in the TTL: **=** `skos:exactMatch` (no scope differ
 
 | NAPH term | RiC-O 1.1 | STAC 1.0.0 field | PROV-O | ISAD(G) legacy |
 |---|---|---|---|---|
-| `naph:hasProvenanceChain` | ~ `rico:hasOrganicProvenance` | (none) | `prov:wasGeneratedBy` | 3.2.1 Immediate source; 3.2.3 Archival history |
+| `naph:hasProvenanceChain` | ~ `rico:hasOrganicProvenance` | (none) | `prov:wasGeneratedBy` | 3.2.4 Immediate source of acquisition; 3.2.3 Archival history |
 | `naph:ProvenanceChain` | > `rico:hasOrganicProvenance` | (none) | ~ `prov:Bundle` | 3.2.3 Archival history |
-| `naph:custodian` | ~ `rico:hasOrHadHolder` | (catalog provider) | `prov:wasAttributedTo` | 3.1.4 Name of creator; 3.2.2 Holder |
-| `naph:hasDigitalSurrogate` | ~ `rico:hasOrHadInstantiation` | Asset link | `prov:wasDerivedFrom` | 3.4.1 Conditions of access |
+| `naph:custodian` | ~ `rico:hasOrHadHolder` | (catalog provider) | `prov:wasAttributedTo` | 3.2.1 Name of creator(s); holder has no ISAD(G) element |
+| `naph:hasDigitalSurrogate` | ~ `rico:hasOrHadInstantiation` | Asset link | `prov:wasDerivedFrom` | 3.5.2 Existence and location of copies |
 | `naph:hasCaptureEvent` | ~ `rico:isAssociatedWithEvent` | (none) | `prov:wasGeneratedBy` | 3.2.3 Archival history |
-| `naph:RightsStatement` | > `rico:Mandate` (RiC-O 1.1 has **no** Rights class) | `properties.license` | (none) | 3.4.2 Conditions governing reproduction |
+| `naph:RightsStatement` | > `rico:Mandate` (RiC-O 1.1 has no rights-statement class; IP rights are agent relations via rico:IntellectualPropertyRightsRelation) | `properties.license` | (none) | 3.4.2 Conditions governing reproduction |
 
 ### 2.4 Identifiers, subjects, form
 
@@ -69,8 +69,8 @@ Legend for the match column in the TTL: **=** `skos:exactMatch` (no scope differ
 |---|---|---|---|---|
 | `naph:hasIdentifier` | ~ `rico:hasOrHadIdentifier` | Item `id` | (none) | 3.1.1 Reference code |
 | `naph:sortieReference` | > `rico:hasOrHadIdentifier` | `properties.naph:sortie` | (none) | 3.1.1 Reference code (series segment) |
-| `naph:partOfSortie` | ~ `rico:isOrWasComponentOf` | `collection` link | (none) | Level-of-description linkage |
-| `naph:belongsToCollection` | ~ `rico:isOrWasComponentOf` | root/parent link | (none) | Fonds membership |
+| `naph:partOfSortie` | ~ `rico:isOrWasIncludedIn` | `collection` link | (none) | Level-of-description linkage |
+| `naph:belongsToCollection` | ~ `rico:isOrWasIncludedIn` | root/parent link | (none) | Fonds membership |
 | `naph:cameraType` | > `rico:hasDocumentaryFormType`, > `rico:hasCarrierType` | `properties.naph:camera` | (none) | 3.1.5 Extent and medium |
 | `naph:depicts` | ~ `rico:hasOrHadSubject` | (none) | (none) | 3.3.1 Scope and content |
 | `naph:placeAuthorityURI` | > `rico:isAssociatedWithPlace` | (none) | (none) | 3.3.1 Scope and content |
@@ -107,7 +107,7 @@ Each NCAP source field lands in a defined place across all three stacks:
 | `image_metadata.Camera` | `V` | `naph:cameraType` on `naph:CaptureEvent` | `rico:hasCarrierType` | `properties.naph:camera` | 3.1.5 |
 | `details.collection_context` | `Defence Geographic Centre` | custody note on `naph:ProvenanceChain` | `rico:hasOrganicProvenance` → `rico:CorporateBody` | (none) | **3.2.3 Archival history** |
 | `details.image_coordinates` | `POLYGON ((...EPSG:3857...))` | `naph:GeographicFootprint` / `naph:asWKT` (reprojected to WGS84) | `rico:hasOrHadCoordinates` → `rico:Coordinates` | `geometry` + `bbox` | (none, spatial gap in ISAD(G)) |
-| catalogue URL | `airphotofinder.ncap.org/image/797810` | `prov:hadPrimarySource` | (holder-provided access point) | Item `assets` | 3.4.1 Conditions of access |
+| catalogue URL | `airphotofinder.ncap.org/image/797810` | `prov:hadPrimarySource` | (holder-provided access point) | Item `assets` | 3.5.2 Existence and location of copies |
 
 Two structural observations fall straight out of the real data:
 
@@ -127,4 +127,4 @@ The net effect: an NCAP frame described once in NAPH can be served *simultaneous
 - **GeoSPARQL**, OGC GeoSPARQL (`http://www.opengis.net/ont/geosparql#`).
 - **ISAD(G)**, General International Standard Archival Description, 2nd ed., ICA. Legacy field references (3.1.1–3.4.2) are given for migration continuity; NCAP's own catalogue already emits an `ISAD(G)` reference code per record.
 
-**RiC-O terms that could NOT be verified and were therefore NOT asserted as matches:** two candidate RecordSet-membership properties, `rico:isPartOfRecordSet` and `rico:isMemberOf`, could not be confirmed in `RiC-O_1-1.rdf`; both were removed rather than guessed, and `naph:partOfSortie` / `naph:belongsToCollection` map instead to the confirmed `rico:isOrWasComponentOf`. Additionally, RiC-O 1.1 has **no** `Rights` class, rights/legal status is modelled through `rico:Mandate` and rights-holder relations, so `naph:RightsStatement` takes a `skos:closeMatch` to `dcterms:RightsStatement` (a genuine equivalent) and only a cautious `rdfs:seeAlso` to `rico:Mandate`.
+**RiC-O terms that could NOT be verified and were therefore NOT asserted as matches:** two candidate RecordSet-membership properties, `rico:isPartOfRecordSet` and `rico:isMemberOf`, could not be confirmed in `RiC-O_1-1.rdf`; both were removed rather than guessed, and `naph:partOfSortie` / `naph:belongsToCollection` map instead to the confirmed `rico:isOrWasIncludedIn`. Additionally, RiC-O 1.1 has **no** `Rights` class, rights/legal status is modelled through `rico:Mandate` and rights-holder relations, so `naph:RightsStatement` takes a `skos:closeMatch` to `dcterms:RightsStatement` (a genuine equivalent) and only a cautious `rdfs:seeAlso` to `rico:Mandate`.

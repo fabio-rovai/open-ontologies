@@ -1,0 +1,110 @@
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix odrl:    <http://www.w3.org/ns/odrl/2/> .
+@prefix naph:    <https://w3id.org/naph/ontology#> .
+@prefix naphc:   <https://w3id.org/naph/commerce#> .
+
+# =============================================================================
+# NAPH Commerce Profile: SHACL shapes
+#
+# One rule carries the whole profile:
+#
+#   If a record is declared Licensable, it MUST carry a resolvable route to
+#   acquire that licence.
+#
+# "Rights reserved" with no route is the failure mode this profile exists to
+# catch. It is indistinguishable, to a machine, from having no rights metadata
+# at all, and it costs the institution the licensing enquiry it wanted.
+# =============================================================================
+
+naphc:LicensableRecordShape a sh:NodeShape ;
+    sh:targetClass naph:AerialPhotograph ;
+    rdfs:label "Licensable record shape" ;
+
+    # A record declared licensable must carry an offer.
+    sh:sparql [
+        sh:message "Record is declared naphc:Licensable but carries no naphc:hasOffer. A licensable record without an offer is unreachable: an aggregator reads 'rights reserved' and drops it, and the licensing enquiry never arrives." ;
+        sh:prefixes naphc: ;
+        sh:select """
+            PREFIX naphc: <https://w3id.org/naph/commerce#>
+            SELECT $this WHERE {
+                $this naphc:availability naphc:Licensable .
+                FILTER NOT EXISTS { $this naphc:hasOffer ?o }
+            }
+        """
+    ] ;
+
+    sh:property [
+        sh:path naphc:availability ;
+        sh:maxCount 1 ;
+        sh:in ( naphc:Licensable naphc:OpenlyAvailable naphc:NotYetDigitised
+                naphc:AccessRestricted naphc:RightsUnresolved ) ;
+        sh:message "naphc:availability must be exactly one concept from the NAPH availability scheme." ;
+    ] .
+
+
+naphc:ReproductionOfferShape a sh:NodeShape ;
+    sh:targetClass naphc:ReproductionOffer ;
+    rdfs:label "Reproduction offer shape" ;
+
+    # The load-bearing constraint: an offer must be actionable.
+    sh:or (
+        [ sh:property [ sh:path naphc:orderEndpoint ;   sh:minCount 1 ] ]
+        [ sh:property [ sh:path naphc:enquiryEndpoint ; sh:minCount 1 ] ]
+    ) ;
+    sh:message "A ReproductionOffer must carry either naphc:orderEndpoint (a per-item route) or naphc:enquiryEndpoint (a collection-level fallback). An offer with no route is not an offer." ;
+
+    sh:property [
+        sh:path naphc:orderEndpoint ;
+        sh:datatype xsd:anyURI ;
+        sh:pattern "^https?://" ;
+        sh:message "naphc:orderEndpoint must be a resolvable http(s) URL." ;
+    ] ;
+
+    sh:property [
+        sh:path odrl:assigner ;
+        sh:minCount 1 ;
+        sh:message "An offer must name its assigner: the party entitled to issue the licence. Without it a downstream consumer cannot tell who to contract with." ;
+    ] ;
+
+    sh:property [
+        sh:path odrl:target ;
+        sh:minCount 1 ;
+        sh:message "An ODRL Offer must name the asset it applies to." ;
+    ] ;
+
+    sh:property [
+        sh:path odrl:permission ;
+        sh:minCount 1 ;
+        sh:message "An offer must state at least one permission, so that a consumer knows what is actually on sale." ;
+    ] ;
+
+    sh:property [
+        sh:path naphc:turnaround ;
+        sh:datatype xsd:duration ;
+        sh:maxCount 1 ;
+    ] ;
+
+    sh:property [
+        sh:path naphc:scanOnDemand ;
+        sh:datatype xsd:boolean ;
+        sh:maxCount 1 ;
+    ] .
+
+
+naphc:DiscoverySurfaceShape a sh:NodeShape ;
+    sh:targetClass naphc:DiscoverySurface ;
+    rdfs:label "Discovery surface shape" ;
+
+    sh:property [
+        sh:path naphc:metadataLicence ;
+        sh:minCount 1 ;
+        sh:message "A discovery surface must state the licence covering the catalogue metadata. Open metadata with reserved pixels is a coherent position, but only if the metadata licence is explicit." ;
+    ] ;
+
+    sh:property [
+        sh:path naphc:previewMaxPixels ;
+        sh:datatype xsd:integer ;
+        sh:maxCount 1 ;
+    ] .

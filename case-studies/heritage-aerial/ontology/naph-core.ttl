@@ -168,11 +168,13 @@ naph:capturedOn a owl:DatatypeProperty ;
 naph:coversArea a owl:ObjectProperty ;
     rdfs:domain naph:AerialPhotograph ;
     rdfs:range naph:GeographicFootprint ;
+    rdfs:subPropertyOf geo:hasGeometry ;
     rdfs:label "covers area" .
 
 naph:asWKT a owl:DatatypeProperty ;
     rdfs:domain naph:GeographicFootprint ;
     rdfs:range geo:wktLiteral ;
+    rdfs:subPropertyOf geo:asWKT ;
     rdfs:label "as WKT" ;
     rdfs:comment "Well-Known Text representation of the geographic footprint in WGS84." .
 

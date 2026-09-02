@@ -5,12 +5,29 @@ Copyright (c) 2026 Kampakis and Co Ltd, trading as The Tesseract Academy
 Ontology files (ontology/*.ttl) and documentation (docs/*.md, README.md):
   Licensed under CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/
 
-Sample data (data/*.ttl, pipeline/*.csv, pipeline/generated-from-csv.ttl,
-reports/iiif-collection-manifest.json):
+Sample data (data/sample-photographs.ttl, pipeline/*.csv,
+pipeline/generated-from-csv.ttl, reports/iiif-collection-manifest.json):
   Released into the public domain under CC0 1.0 —
   https://creativecommons.org/publicdomain/zero/1.0/
   These records are illustrative — modeled on publicly known characteristics
   of heritage collections — and make no claim of original archival data.
+
+Harvested-data derivatives (data/real-ncap-sample.ttl, data/real-napl-sample.ttl,
+data/real-whai-sample.ttl, reports/real-*.geojson, reports/real-iiif-collection.json,
+reports/stac/):
+  NOT covered by the CC0 dedication above, and not licensed by this repository.
+  - real-ncap-sample.ttl is an insubstantial extract (300 of roughly 1.14
+    million records, 0.026 per cent) derived from the NCAP Air Photo Finder
+    catalogue by a lawful user under regulation 19 of the Copyright and Rights
+    in Databases Regulations 1997. Rights in the catalogue remain with NCAP /
+    Historic Environment Scotland. The rights statement it carries is an
+    adapter-supplied interim statement, not asserted by NCAP.
+  - real-napl-sample.ttl contains information licensed under the Open
+    Government Licence - Canada
+    (https://open.canada.ca/en/open-government-licence-canada).
+  - real-whai-sample.ttl is derived from public-domain aerial survey records
+    published by the Wisconsin State Cartographer's Office without fee or use
+    restriction.
 
 Pipeline scripts (pipeline/*.py, demo/*.html):
   Licensed under MIT License (see below).

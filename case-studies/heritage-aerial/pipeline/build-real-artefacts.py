@@ -134,7 +134,7 @@ def build_iiif(rows: list) -> dict:
             "type": "Manifest",
             "label": {"en": [r["label"]]},
             "metadata": pairs,
-            "rights": "https://ncap.org.uk/copyright",
+            "rights": "http://rightsstatements.org/vocab/InC/1.0/",
             "requiredStatement": {
                 "label": {"en": ["Attribution"]},
                 "value": {"en": ["National Collection of Aerial Photography (NCAP), Historic Environment Scotland"]},

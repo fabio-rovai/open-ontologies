@@ -1,0 +1,8 @@
+# Negative control 1: a record declared Licensable with NO offer.
+# EXPECTED: SHACL validation FAILS (LicensableRecordShape sh:sparql rule).
+@prefix naph:  <https://w3id.org/naph/ontology#> .
+@prefix naphc: <https://w3id.org/naph/commerce#> .
+@prefix ex:    <https://w3id.org/naph/example/controls#> .
+
+ex:photo-c1 a naph:AerialPhotograph ;
+    naphc:availability naphc:Licensable .

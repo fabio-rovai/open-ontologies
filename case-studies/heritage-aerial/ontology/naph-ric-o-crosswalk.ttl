@@ -94,10 +94,11 @@ naph:DigitalSurrogate
 # SPATIAL / TEMPORAL
 # -----------------------------------------------------------------------------
 
-# The ground footprint is a GeoSPARQL geometry (exact, NAPH core already
-# subclasses geo:Geometry). RiC-O carries coordinates via rico:Coordinates.
+# The ground footprint is a GeoSPARQL geometry. closeMatch, not exactMatch:
+# NAPH core subclasses geo:Geometry, and a proper subclass has a narrower
+# scope by construction. RiC-O carries coordinates via rico:Coordinates.
 naph:GeographicFootprint
-    skos:exactMatch geo:Geometry ;
+    skos:closeMatch geo:Geometry ;
     rdfs:seeAlso rico:Coordinates ;
     rdfs:seeAlso stac:Geometry .
 
@@ -145,13 +146,17 @@ naph:hasIdentifier
 naph:sortieReference
     rdfs:seeAlso rico:hasOrHadIdentifier .
 
-# Frame membership -> component-of relation between record parts / resources.
+# Record-to-RecordSet inclusion. rico:isOrWasIncludedIn is the RiC-O 1.1
+# membership property (domain Record or RecordSet, range RecordSet; domain and
+# range verified against RiC-O_1-1.rdf). rico:isOrWasComponentOf was rejected:
+# its domain AND range are both rico:Instantiation, so it cannot relate a
+# Record to a RecordSet.
 naph:partOfSortie
-    skos:closeMatch rico:isOrWasComponentOf .
+    skos:closeMatch rico:isOrWasIncludedIn .
 
 # Collection membership.
 naph:belongsToCollection
-    skos:closeMatch rico:isOrWasComponentOf .
+    skos:closeMatch rico:isOrWasIncludedIn .
 
 # Custodian relation -> the record set has (or had) a holder.
 naph:custodian
@@ -171,9 +176,11 @@ naph:coversArea
     rdfs:seeAlso geo:hasGeometry ;
     rdfs:seeAlso stac:bbox .
 
-# WKT serialisation is exactly the GeoSPARQL property.
+# WKT serialisation. closeMatch, not exactMatch: naph:asWKT is domain-
+# restricted to footprints while geo:asWKT applies to any geometry; the
+# rdfs:subPropertyOf bridge in naph-core.ttl carries the formal semantics.
 naph:asWKT
-    skos:exactMatch geo:asWKT ;
+    skos:closeMatch geo:asWKT ;
     rdfs:seeAlso rico:hasOrHadCoordinates .
 
 # Digital surrogate -> instantiation of the record.
@@ -210,16 +217,21 @@ naph:placeAuthorityURI
 # UNVERIFIED / SCOPE-DIVERGENT RiC-O TERMS (flagged, not asserted as matches)
 #
 # No unconfirmed RiC-O IRIs are asserted anywhere in this file. Two candidate
-# RecordSet-membership properties (isPartOfRecordSet, isMemberOf) could NOT be
-# confirmed against RiC-O_1-1.rdf and were therefore REMOVED rather than
-# guessed; naph:partOfSortie / naph:belongsToCollection map instead to the
-# confirmed rico:isOrWasComponentOf.
+# RecordSet-membership properties (isPartOfRecordSet, isMemberOf) do not exist
+# in RiC-O 1.1 and were REMOVED rather than guessed; naph:partOfSortie /
+# naph:belongsToCollection map instead to rico:isOrWasIncludedIn, whose
+# presence, domain (Record or RecordSet) and range (RecordSet) were verified
+# against RiC-O_1-1.rdf.
 # Confirmed-present RiC-O terms used as matches: Record, RecordSet,
 # RecordResource, RecordPart, Instantiation, CorporateBody, Agent, Coordinates,
 # Activity, Event, Mandate, Identifier, hasOrHadIdentifier,
 # hasOrHadInstantiation, hasOrganicProvenance, hasOrHadHolder, hasCreationDate,
 # isAssociatedWithEvent, isAssociatedWithPlace, hasOrHadLocation,
 # hasOrHadCoordinates, hasDocumentaryFormType, hasCarrierType, hasOrHadSubject,
-# isOrWasComponentOf.
-# RiC-O 1.1 has NO Rights class, rights are handled via rico:Mandate.
+# isOrWasIncludedIn.
+# RiC-O 1.1 has no class for a rights STATEMENT as such: intellectual-property
+# rights are modelled as relations to a rights-holding agent
+# (rico:IntellectualPropertyRightsRelation), conditions of access and use are
+# free-text literals, and legal status is a categorisation (rico:LegalStatus).
+# None yields a URI-valued, machine-actionable statement on the record.
 # =============================================================================

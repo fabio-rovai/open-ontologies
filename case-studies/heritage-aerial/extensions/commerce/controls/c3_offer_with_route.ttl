@@ -1,0 +1,17 @@
+# Control 3: the same offer as control 2, with an order endpoint added.
+# EXPECTED: SHACL validation PASSES.
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix odrl:  <http://www.w3.org/ns/odrl/2/> .
+@prefix naph:  <https://w3id.org/naph/ontology#> .
+@prefix naphc: <https://w3id.org/naph/commerce#> .
+@prefix ex:    <https://w3id.org/naph/example/controls#> .
+
+ex:photo-c3 a naph:AerialPhotograph ;
+    naphc:availability naphc:Licensable ;
+    naphc:hasOffer ex:offer-c3 .
+
+ex:offer-c3 a naphc:ReproductionOffer ;
+    odrl:assigner ex:institution ;
+    odrl:target ex:photo-c3 ;
+    odrl:permission [ odrl:action odrl:reproduce ] ;
+    naphc:orderEndpoint "https://example.org/order/c3"^^xsd:anyURI .

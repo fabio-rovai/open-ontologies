@@ -1,0 +1,179 @@
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix odrl:    <http://www.w3.org/ns/odrl/2/> .
+@prefix schema:  <https://schema.org/> .
+@prefix naph:    <https://w3id.org/naph/ontology#> .
+@prefix naphc:   <https://w3id.org/naph/commerce#> .
+
+# =============================================================================
+# NAPH Commerce Profile
+#
+# Machine-readable licensing for rights-reserved collections.
+#
+# The NAPH Baseline rights requirement (Module C) is a STATUS vocabulary: it
+# records what the copyright position IS (rightsstatements.org, Creative
+# Commons, OGL, Crown Copyright). That is sufficient for an archive whose
+# rights answer was settled by policy above it, such as a government department
+# publishing under an open licence.
+#
+# It is NOT sufficient for an archive that funds its own digitisation by
+# licensing reproductions. For that archive, "rights reserved" is not the end
+# of the sentence. The useful machine-readable statement is:
+#
+#     rights reserved, AND licensable, AND here is the route to acquire it.
+#
+# Without the second and third clauses, an aggregator, a search engine or a
+# research pipeline reads "In Copyright" and drops the record. The collection
+# becomes invisible to exactly the automated discovery that would generate its
+# licensing demand. Restrictive rights metadata and absent rights metadata look
+# identical to a machine, which is a bad outcome for a licence-funded archive
+# and an avoidable one.
+#
+# This profile adds the missing clauses using ODRL 2.2 (W3C Recommendation,
+# 15 February 2018, http://www.w3.org/ns/odrl/2/) for the offer semantics and
+# schema.org for the commercial surface that search engines already parse.
+# Nothing here obliges an archive to open anything. It lets an archive state,
+# in machine-readable form, that the asset is available for licence and how to
+# begin that transaction.
+#
+# Status: proposed extension to NAPH, offered for comment.
+# =============================================================================
+
+naphc: a owl:Ontology ;
+    dcterms:title "NAPH Commerce Profile" ;
+    dcterms:description "Machine-readable licensing offers for rights-reserved aerial photography collections. Extends the NAPH rights module from status-only to status-plus-route-to-licence." ;
+    owl:imports <https://w3id.org/naph/ontology> ;
+    rdfs:seeAlso <http://www.w3.org/ns/odrl/2/> ;
+    dcterms:created "2026-08-21"^^xsd:date .
+
+
+# -----------------------------------------------------------------------------
+# 1. Availability: the missing axis
+#
+# Orthogonal to copyright status. A public-domain item may be unavailable
+# (not yet digitised); an in-copyright item may be readily licensable. Current
+# rights vocabularies conflate the two, which is why "In Copyright" reads to a
+# machine as "go away".
+# -----------------------------------------------------------------------------
+
+naphc:AvailabilityScheme a skos:ConceptScheme ;
+    skos:prefLabel "NAPH reproduction availability"@en ;
+    skos:definition "How a reproduction of this record may be obtained, independent of its copyright status."@en .
+
+naphc:Licensable a skos:Concept ;
+    skos:inScheme naphc:AvailabilityScheme ;
+    skos:prefLabel "Licensable"@en ;
+    skos:definition "A reproduction is available under a licence issued by the holding institution. Rights may be fully reserved. This is an invitation to transact, not a grant."@en .
+
+naphc:OpenlyAvailable a skos:Concept ;
+    skos:inScheme naphc:AvailabilityScheme ;
+    skos:prefLabel "Openly available"@en ;
+    skos:definition "A reproduction may be obtained and reused without a transaction, under an open licence or a public-domain determination."@en .
+
+naphc:NotYetDigitised a skos:Concept ;
+    skos:inScheme naphc:AvailabilityScheme ;
+    skos:prefLabel "Not yet digitised"@en ;
+    skos:definition "No digital surrogate exists. Scanning on demand may or may not be offered; use naphc:hasOffer to say so."@en .
+
+naphc:AccessRestricted a skos:Concept ;
+    skos:inScheme naphc:AvailabilityScheme ;
+    skos:prefLabel "Access restricted"@en ;
+    skos:definition "Reproduction is withheld for a reason other than copyright, such as an ongoing security classification, a donor condition, or a data-protection concern."@en .
+
+naphc:RightsUnresolved a skos:Concept ;
+    skos:inScheme naphc:AvailabilityScheme ;
+    skos:prefLabel "Rights unresolved"@en ;
+    skos:definition "The institution has not completed a rights determination for this item and does not assert one. Stating this explicitly is more useful to a downstream consumer than silence, and it is honest."@en .
+
+naphc:availability a owl:ObjectProperty ;
+    rdfs:label "availability"@en ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range naphc:AvailabilityScheme ;
+    rdfs:comment "Links a record to how a reproduction of it may be obtained. Orthogonal to naph:hasRightsStatement, which records copyright status."@en .
+
+
+# -----------------------------------------------------------------------------
+# 2. The offer: an ODRL Offer, so it is machine-actionable
+# -----------------------------------------------------------------------------
+
+naphc:ReproductionOffer a owl:Class ;
+    rdfs:label "Reproduction offer"@en ;
+    rdfs:subClassOf odrl:Offer ;
+    rdfs:comment "A standing offer by the holding institution to license a reproduction of a record. An ODRL Offer proposes a Rule over an Asset from an assigner; that is exactly the archival licensing relationship, and expressing it as ODRL means an aggregator can read the terms rather than guess them."@en .
+
+naphc:hasOffer a owl:ObjectProperty ;
+    rdfs:label "has offer"@en ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range naphc:ReproductionOffer ;
+    rdfs:comment "Links a record to a standing licensing offer."@en .
+
+naphc:orderEndpoint a owl:DatatypeProperty ;
+    rdfs:label "order endpoint"@en ;
+    rdfs:domain naphc:ReproductionOffer ;
+    rdfs:range xsd:anyURI ;
+    rdfs:comment "A resolvable URL at which a licence for this specific record can be requested or purchased. This is the single field that converts a discovery hit into a transaction, and it is the field most often missing from rights-reserved collections."@en .
+
+naphc:enquiryEndpoint a owl:DatatypeProperty ;
+    rdfs:label "enquiry endpoint"@en ;
+    rdfs:domain naphc:ReproductionOffer ;
+    rdfs:range xsd:anyURI ;
+    rdfs:comment "A resolvable URL or mailto for licensing enquiries, where no per-item order route exists. A collection-level fallback is acceptable and is still far better than nothing."@en .
+
+naphc:turnaround a owl:DatatypeProperty ;
+    rdfs:label "typical turnaround"@en ;
+    rdfs:domain naphc:ReproductionOffer ;
+    rdfs:range xsd:duration ;
+    rdfs:comment "Typical time from order to delivery, as an xsd:duration. Lets a researcher planning a study know whether the collection fits their timetable, which is a common reason collections are silently excluded from research designs."@en .
+
+naphc:scanOnDemand a owl:DatatypeProperty ;
+    rdfs:label "scan on demand"@en ;
+    rdfs:domain naphc:ReproductionOffer ;
+    rdfs:range xsd:boolean ;
+    rdfs:comment "Whether the institution will digitise this item to order when no surrogate exists. For a collection where most holdings are not yet scanned, this converts an apparent absence into an offer."@en .
+
+
+# -----------------------------------------------------------------------------
+# 3. Discovery surface: what may be shown for free
+#
+# The commercial logic that makes open metadata safe for a licence-funded
+# archive. Footprint, date and a low-resolution preview generate demand; the
+# deliverable raster is what is sold. Saying so explicitly, per record, lets an
+# aggregator index the collection confidently instead of avoiding it.
+# -----------------------------------------------------------------------------
+
+naphc:DiscoverySurface a owl:Class ;
+    rdfs:label "Discovery surface"@en ;
+    rdfs:comment "The subset of an item that the institution permits to be indexed, cached and displayed by third parties without a licence, for the purpose of discovery."@en .
+
+naphc:hasDiscoverySurface a owl:ObjectProperty ;
+    rdfs:domain naph:AerialPhotograph ;
+    rdfs:range naphc:DiscoverySurface .
+
+naphc:metadataLicence a owl:ObjectProperty ;
+    rdfs:label "metadata licence"@en ;
+    rdfs:domain naphc:DiscoverySurface ;
+    rdfs:comment "The licence under which the catalogue metadata, as distinct from the image, may be reused. Open metadata and reserved pixels is a coherent and common position, but it is only actionable if it is stated."@en .
+
+naphc:previewMaxPixels a owl:DatatypeProperty ;
+    rdfs:label "preview maximum pixels"@en ;
+    rdfs:domain naphc:DiscoverySurface ;
+    rdfs:range xsd:integer ;
+    rdfs:comment "Longest-edge pixel limit for a preview image that may be displayed by third parties without a licence."@en .
+
+naphc:previewURL a owl:DatatypeProperty ;
+    rdfs:domain naphc:DiscoverySurface ;
+    rdfs:range xsd:anyURI .
+
+
+# -----------------------------------------------------------------------------
+# 4. Alignment
+# -----------------------------------------------------------------------------
+
+naphc:orderEndpoint rdfs:seeAlso schema:potentialAction .
+naphc:ReproductionOffer rdfs:seeAlso schema:Offer .
+naphc:Licensable rdfs:seeAlso <http://rightsstatements.org/vocab/InC/1.0/> .

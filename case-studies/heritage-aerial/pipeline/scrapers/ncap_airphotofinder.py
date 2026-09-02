@@ -12,7 +12,28 @@ records and lifts them to the NAPH Baseline tier. It fetches metadata only; no
 image binaries are downloaded and no ordering/basket/account endpoints are
 touched. It is deliberately rate-limited and identifies itself in the
 User-Agent. It is intended as a good-faith interoperability demonstration, not a
-bulk-extraction tool: please respect NCAP's terms of website use and licensing.
+bulk-extraction tool.
+
+Scope and legal basis
+---------------------
+The sample is capped at ``MAX_RECORDS`` (500) records. The Air Photo Finder
+catalogue holds on the order of 1.14 million records, so a full-cap run reads
+well under 0.05% of it.
+
+Regulation 19(1) of the Copyright and Rights in Databases Regulations 1997
+entitles a lawful user of a database that has been made available to the public
+to extract or re-utilise *insubstantial* parts of its contents for any purpose,
+and regulation 19(2) makes void any term or condition purporting to prevent
+that. This adapter is written to stay squarely inside that entitlement: an
+insubstantial sample, metadata only, read-only public endpoints, rate-limited,
+self-identifying, with no ordering, basket or account endpoint touched and no
+image binary retrieved.
+
+No harvested catalogue records are redistributed in this repository. The
+published outputs are derived counts, proportions and NAPH-lifted exemplars.
+Rights in the underlying images and in the catalogue remain with NCAP and
+Historic Environment Scotland; anyone wanting a substantial extract, or any use
+of the imagery itself, should approach NCAP directly and license it.
 
 Key finding this adapter makes concrete
 ---------------------------------------
@@ -61,6 +82,11 @@ USER_AGENT = (
 # spread (WWI-era RN sorties through Cold-War reconnaissance) rather than
 # whatever the default sort returns first. Each window contributes records up to
 # the per-window cap until the global --limit is reached.
+#
+# Hard ceiling on any single run. This is a deliberate design limit, not a
+# tuning parameter: it keeps every harvest an insubstantial extract of the
+# ~1.14M-record catalogue (see the module docstring on regulation 19).
+MAX_RECORDS = 500
 DATE_WINDOWS = [
     ("1918-01-01", "1930-12-31"),   # interwar / early naval
     ("1939-01-01", "1945-12-31"),   # WWII
@@ -203,9 +229,16 @@ ex:NCAPCollection a naph:Collection ;
     rdfs:label "NCAP Holdings (Air Photo Finder)" ;
     naph:custodian ex:NCAP .
 
+# DISCLOSURE: the Air Photo Finder API payload carries no rights field (the
+# case study's central finding). So that the other five Baseline elements can
+# be exercised by SHACL, the adapter attaches ONE adapter-supplied,
+# collection-level interim rights statement to every record. It uses the
+# rightsstatements.org In Copyright URI (truthful for NCAP material) and is
+# NOT sourced from or asserted by NCAP; rights determination is NCAP's alone.
+# Validation results are reported both with and without this attachment.
 ex:rights-ncap a naph:RightsStatement ;
-    naph:rightsURI <https://ncap.org.uk/copyright> ;
-    naph:rightsLabel "NCAP catalogue rights — see per-item licensing" .
+    naph:rightsURI <http://rightsstatements.org/vocab/InC/1.0/> ;
+    naph:rightsLabel "In Copyright - adapter-supplied interim statement, not asserted by NCAP" .
 
 """
 
@@ -341,10 +374,19 @@ def harvest(limit: int, delay: float, raw_out: str | None) -> str:
 
 def main():
     p = argparse.ArgumentParser(description="Harvest a real NCAP Air Photo Finder sample into NAPH Turtle.")
-    p.add_argument("--limit", type=int, default=300, help="max records to harvest (default 300)")
+    p.add_argument("--limit", type=int, default=300,
+                   help=f"max records to harvest (default 300, hard cap {MAX_RECORDS})")
     p.add_argument("--delay", type=float, default=0.7, help="seconds between API requests (default 0.7)")
     p.add_argument("--raw-out", default=None, help="also write the raw API JSON here (for reproducibility)")
     args = p.parse_args()
+
+    # Enforced, not advisory: keep every run an insubstantial extract.
+    if args.limit > MAX_RECORDS:
+        print(f"# --limit {args.limit} exceeds the hard cap of {MAX_RECORDS}; "
+              f"harvesting {MAX_RECORDS}. This adapter deliberately does not "
+              f"support bulk extraction (see module docstring).", file=sys.stderr)
+        args.limit = MAX_RECORDS
+
     sys.stdout.write(harvest(args.limit, args.delay, args.raw_out))
 
 

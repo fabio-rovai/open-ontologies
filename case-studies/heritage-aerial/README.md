@@ -185,6 +185,41 @@ Ten illustrative photograph records distributed across the three tiers:
 
 **Note on the dataset:** these records are *modeled on the structure* of NCAP holdings: they use plausible sortie identifier formats, real squadron/aircraft pairings, real geographic coordinates, and rights statements aligned with rightsstatements.org. They are illustrative of what NCAP records *could look like* under the proposed standard, not assertions that these specific frames exist in the NCAP catalogue with these exact identifiers.
 
+## Data provenance and legal basis
+
+This case study is evaluated against three national aerial collections, all read
+from public, read-only endpoints. The legal position differs for each, and is
+stated here rather than left implicit.
+
+**Canada, NAPL open data.** Published by Natural Resources Canada under the Open
+Government Licence for Canada, which permits copying, modification and
+redistribution for any lawful purpose. This repository contains information
+licensed under the Open Government Licence for Canada.
+
+**United States, WHAIFinder.** The photography and its index are public-domain
+United States government work, published by the Wisconsin State Cartographer's
+Office without fee or use restriction.
+
+**United Kingdom, NCAP Air Photo Finder.** The harvest is deliberately an
+*insubstantial* extract: 300 records read against a catalogue of roughly 1.14
+million, and the adapter enforces a hard cap of 500 records per run. Regulation
+19(1) of the Copyright and Rights in Databases Regulations 1997 entitles a
+lawful user of a database made available to the public to extract or re-utilise
+insubstantial parts of its contents for any purpose, and regulation 19(2) makes
+void any term or condition purporting to prevent that.
+
+The adapter fetches catalogue metadata only. It downloads no image binaries and
+touches no ordering, basket or account endpoints. It is rate-limited and
+identifies itself in the User-Agent. It is not a bulk-extraction tool and the
+cap is enforced in code rather than documented as a convention.
+
+No harvested NCAP catalogue records are redistributed in this repository. What is
+published is derived counts and proportions, the NAPH-lifted exemplars, and the
+adapter source itself so that the measurements can be reproduced against the live
+catalogue. Rights in the underlying images and in the catalogue remain with NCAP
+and Historic Environment Scotland. Anyone needing a substantial extract, or any
+use of the imagery itself, should license it from NCAP directly.
+
 ## What this demonstrates
 
 **1. The cost of going from Baseline to Enhanced is small.** Most of the data already exists in NCAP: sortie metadata, squadron, aircraft, capture conditions are routinely recorded. The gap is structuring it (ISO dates, machine-readable fields, explicit provenance chains) rather than acquiring new information.

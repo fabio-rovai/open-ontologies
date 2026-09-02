@@ -1,0 +1,17 @@
+# Negative control 2: an offer with assigner, target and permission but NO
+# order or enquiry route.
+# EXPECTED: SHACL validation FAILS (ReproductionOfferShape sh:or rule).
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix odrl:  <http://www.w3.org/ns/odrl/2/> .
+@prefix naph:  <https://w3id.org/naph/ontology#> .
+@prefix naphc: <https://w3id.org/naph/commerce#> .
+@prefix ex:    <https://w3id.org/naph/example/controls#> .
+
+ex:photo-c2 a naph:AerialPhotograph ;
+    naphc:availability naphc:Licensable ;
+    naphc:hasOffer ex:offer-c2 .
+
+ex:offer-c2 a naphc:ReproductionOffer ;
+    odrl:assigner ex:institution ;
+    odrl:target ex:photo-c2 ;
+    odrl:permission [ odrl:action odrl:reproduce ] .
