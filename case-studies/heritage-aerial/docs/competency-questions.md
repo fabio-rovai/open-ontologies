@@ -2,6 +2,9 @@
 
 A standard is only valuable if it lets researchers answer questions the previous representation couldn't. This document defines a set of **competency questions** (research questions that should be answerable via SPARQL against any NAPH-compliant dataset) and demonstrates each one against the sample dataset.
 
+
+> Note: the query blocks below assume the prefix declarations of CQ1; when running a block standalone, prepend the full prefix header (naph, rdfs, xsd, geo, geof, prov, dcterms).
+
 Run via:
 
 ```bash

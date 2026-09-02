@@ -1,0 +1,302 @@
+[
+  {
+    "collection": "BC Geographic Warehouse - Digital Air Photos (air photo frame centroids, GeoBC AIMG)",
+    "country": "Canada",
+    "custodian": "Province of British Columbia - GeoBC / Ministry of Water, Land and Resource Stewardship",
+    "endpoint": "https://openmaps.gov.bc.ca/geo/pub/ows (layer WHSE_IMAGERY_AND_BASE_MAPS.AIMG_PHOTO_CENTROIDS_SP; companion layer AIMG_PHOTO_FLIGHTLINES_SP)",
+    "architecture": "WFS 2.0 (GeoServer; also WMS via same ows endpoint; CKAN catalogue at catalogue.data.gov.bc.ca)",
+    "auth": "none (public workspace, no key/OAuth)",
+    "approx_records": "1,670,471 photo centroids (WFS resultType=hits numberMatched, probed 2026-09-02)",
+    "elements": {
+      "identifier": "encoded: AIRP_ID, PHOTO_TAG (e.g. bc5291_072), OBJECTID",
+      "footprint": "derived: centroid point encoded; frame polygon computable from SCALE+FOCAL_LENGTH+FLYING_HEIGHT",
+      "date": "encoded: PHOTO_DATE (e.g. 1968-07-01Z) + PHOTO_YEAR + PHOTO_TIME",
+      "rights": "absent: no licence field in record; OGL-BC applies at dataset level",
+      "sortie": "encoded: FLIGHT_LINE_SEGMENT_ID, OPERATION_ID, FILM_ROLL, FLIGHT_LOG_URL; separate flightlines layer",
+      "collection_link": "encoded: FILM_RECORD_ID + OPERATION_TAG link frame to archive film roll/operation"
+    },
+    "licence_terms": "Open Government Licence - British Columbia (https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc); catalogue page https://catalogue.data.gov.bc.ca (search 'Digital Air Photos'); OGL-BC permits copying, modification, redistribution and commercial reuse with attribution, so bulk harvest/TDM is permitted; WFS openmaps service published explicitly for programmatic use. Licence URL itself not re-fetched this run.",
+    "feasibility": "high",
+    "notes": "Open WFS with hits/paging (STARTINDEX), rich per-frame metadata incl. dates, roll/frame, flight-line and film-record keys, plus thumbnail and flight-log URLs. THUMBNAIL_IMAGE_URL pattern (https://openmaps.gov.bc.ca/thumbs/<year>/<roll>/<roll>_<frame>_thumb.jpg) works as constructed. Companion layers AIMG_PHOTO_FLIGHTLINES_SP and AIMG_HIST_INDEX_MAPS_POLY/POINT also in GetCapabilities. Ontario half of candidate found nothing: Ontario GeoHub returned no historic air-photo index dataset (only modern DRAPE ortho index) and the old ws.lioservices.lrc.gov.on.ca ArcGIS host is dead (404/502). Frame corner coordinates would need derivation from scale/focal/height, not probed."
+  },
+  {
+    "collection": "Australian Historical Aerial Photography - Flight Lines and Photo Centres (Geoscience Australia / Digital Atlas of Australia)",
+    "country": "Australia",
+    "custodian": "Geoscience Australia (hosted on ArcGIS Online, owner 'aus_digitalatlas')",
+    "endpoint": "https://services-ap1.arcgis.com/ypkPEy1AmwPKGNNv/arcgis/rest/services/HAP_DAA_DIST_Mar26_gdb/FeatureServer",
+    "architecture": "ArcGIS REST FeatureServer (2 layers: 0=HAP_Photo_Centres points, 1=HAP_Flight_Lines polylines; capabilities Query+Extract; JSON/geoJSON/CSV export)",
+    "auth": "none (fully anonymous; no token required for query/extract)",
+    "approx_records": "1,192,731 photo-centre records (from returnCountOnly probe on layer 0); flight-line count not probed",
+    "elements": {
+      "identifier": "derived: composite FILM_NUMBER+RUN+FRAME; OBJECTID system-maintained, no GUID",
+      "footprint": "derived: photo-centre points only, no per-frame polygon footprint",
+      "date": "encoded: DATE_START/DATE_END date fields plus YEAR_START/YEAR_END",
+      "rights": "encoded: collection-level CC BY 4.0 in item licenseInfo; no per-record field",
+      "sortie": "encoded: FILM_NUMBER+RUN fields; dedicated HAP_Flight_Lines layer keyed on same",
+      "collection_link": "encoded: NLA_BIB_ID, NAA_ITEM_ID, PHOTO_SERIES link to NLA/NAA holdings"
+    },
+    "licence_terms": "Creative Commons Attribution 4.0 International (stated verbatim in the ArcGIS item's licenseInfo: 'License: Creative Commons Attribution 4.0 International Licence. Access rights: Open'), https://creativecommons.org/licenses/by/4.0/ ; GA copyright/terms page: https://www.ga.gov.au/copyright ; no explicit scraping/TDM clause seen on the item itself (general GA terms apply, UNVERIFIED for TDM specifics)",
+    "feasibility": "high",
+    "notes": "Anonymous ArcGIS REST with 2000 records/page pagination and bulk Extract (csv/geojson/sqlite), so ~600 paged queries harvest the full 1.19M-frame catalogue. Extra fields per record: CAMERA, FOCAL_LENG, AVE_HEIGHT, AVE_SCALE, OVERLAP, FILM_TYPE, SCANNED flag, AWS_FOLDER/AWS_FILENAME pointing at scanned-frame storage on AWS. GA's old on-prem services (services.ga.gov.au/gis/...) are decommissioned (404 'service decommissioned'); NSW alternative (portal.spatial.nsw.gov.au) exposes only a generic NSW_Imagery_Theme mosaic layer and its sixmaps/public folders demand tokens, so the GA ArcGIS Online FeatureServer is the correct machine endpoint."
+  },
+  {
+    "collection": "Crown Aerial Film Library / NZ Aerial Photo Footprints (1936-2008)",
+    "country": "New Zealand",
+    "custodian": "Toitu Te Whenua Land Information New Zealand (LINZ), via LINZ Data Service (Koordinates platform); Retrolens.nz is the viewing front-end for the same archive",
+    "endpoint": "https://data.linz.govt.nz/services/api/v1.x/layers/51002/ (Koordinates catalog/REST API); data layer is LDS layer 51002 'NZ Aerial Photo Footprints, Mainland NZ, (1936-2008) polygons'. WFS/WMS/vector-query also exposed via Koordinates services endpoints requiring a free API key (services;key=YOUR_KEY/wfs etc.) - UNVERIFIED in this run",
+    "architecture": "Koordinates proprietary REST JSON API (catalog + layer metadata); WFS/WMS/vector-query variants behind API key",
+    "auth": "None for catalog/layer metadata endpoints (verified, HTTP 200 without key); free API key required for feature-level vector queries, exports and WFS/WMS (per Koordinates/LDS docs, unverified)",
+    "approx_records": "701,840 photo-footprint polygons (feature_count field in the verified layer-detail JSON probe)",
+    "elements": {
+      "identifier": "encoded: 'sufi' stable unique feature id plus raw_filename",
+      "footprint": "encoded: polygon geometry field, estimated photo extent",
+      "date": "encoded: 'date' field per photo, 1936-2008 range",
+      "rights": "encoded: CC-BY 4.0 licence object at layer level",
+      "sortie": "encoded: survey + run + photo_no fields per photo",
+      "collection_link": "derived: all records defined as Crown Aerial Film Library; 'source'/'film' fields"
+    },
+    "licence_terms": "Data licence: Creative Commons Attribution 4.0 International (verified in probe: https://data.linz.govt.nz/license/attribution-4-0-international/). Platform use governed by LINZ Data Service terms of use (Koordinates-powered): https://www.linz.govt.nz/guidance/data-service - exact scraping/TDM clause not verified in this run; LDS generally permits automated access via the published API with an API key and attribution. Description explicitly states historical photos themselves are NOT downloadable via LDS; only footprints/metadata are, physical/scanned photos on request or via Retrolens.",
+    "feasibility": "high",
+    "notes": "Full per-photo metadata (survey, run, photo_no, camera, focal length, altitude, scale, photocentre lat/lon, film, scan status, filenames, date) exposed through the Koordinates API and WFS with a free key - bulk harvest of 700k footprints is a standard Koordinates export/paged-query job. Retrolens.nz front-end is a JS SPA and its internal API was not probed; LDS layer 51002 alone is sufficient for the evaluation. Only catalog-layer detail was probed; a keyed WFS GetCapabilities/vector-query was not run."
+  },
+  {
+    "collection": "Aerial Photography Explorer (APEX) - Historic England Archive digitised aerial photographs",
+    "country": "England (UK)",
+    "custodian": "Historic England (Historic England Archive)",
+    "endpoint": "https://services-eu1.arcgis.com/ZOdPfBS3aqqDYPUQ/arcgis/rest/services/New_Verticals_20250304_view/FeatureServer/0 (plus sibling layers Obliques_20260529_Full_view and Verticals_20260529_poly_Full_view under the same org)",
+    "architecture": "ArcGIS REST FeatureServer (hosted on ArcGIS Online, EU region; fronted by an ArcGIS Experience Builder app at experience.arcgis.com/experience/7d3d267491ca42b5acc7d2bdc72b03c6)",
+    "auth": "none (public, unauthenticated query access verified)",
+    "approx_records": "540,000+ digitised photos across all layers (per HE collection page, not from probe); single-layer count not probed",
+    "elements": {
+      "identifier": "encoded: filename e.g. raf_58_2152_v1_0046 plus OBJECTID",
+      "footprint": "encoded: polygon geometry, EPSG:27700 (OSGB36)",
+      "date": "encoded: date_flown epoch + date_flown_modified '29 April 1957'",
+      "rights": "encoded: free-text copyright field, no licence URI/code",
+      "sortie": "encoded: sortie_number e.g. RAF/58/2152",
+      "collection_link": "encoded: data_from e.g. 'RAF verticals' names source sub-collection"
+    },
+    "licence_terms": "No licence stated on the ArcGIS items (licenseInfo/termsOfUse empty). Images/metadata fall under HE Website Terms and Conditions (https://historicengland.org.uk/terms/website-terms-conditions/) and 'Using Images from the Historic England Archive' (https://historicengland.org.uk/images-books/archive/policies/using-images/): copyright Historic England, permission required for reuse; not released under OGL (unlike HE's separate Open Data Hub spatial datasets). No explicit scraping/TDM clause found; HE site returned 403 to plain curl, so treat bulk reuse as permission-required. Terms pages not directly fetched (403) - UNVERIFIED.",
+    "feasibility": "high",
+    "notes": "Technically trivial to harvest: unauthenticated FeatureServer with pagination, orderBy, full polygon footprints and a rich attribute set (frame_number, camera_position, sortie_number, library_number, date_flown, filename, copyright, year/month_flown, data_from, photographer, pilot). Config (fetched 2026-09) references layers dated 2026-05-29, so the service is actively maintained. Legal feasibility is the constraint: no open licence on the photo index metadata, so harvesting is fine for evaluation but redistribution would need HE permission."
+  },
+  {
+    "collection": "Danmark set fra luften (Denmark seen from the air) - historic aerial photography",
+    "country": "Denmark",
+    "custodian": "Royal Danish Library (Det Kgl. Bibliotek / KB)",
+    "endpoint": "https://www.kb.dk/cop/syndication/images/luftfo/2011/maj/luftfoto/subject203/ (COP OpenSearch/A9 syndication API; single records at .../luftfoto/object<ID>/; formats rss|kml|mods via ?format=; params bbo, notBefore/notAfter, itemsPerPage<=5000, page, type, query)",
+    "architecture": "Proprietary REST OpenSearch (A9) API returning RSS+MODS/XML or KML; also documented but unverified: OAI-PMH (oai.kb.dk, set oai:kb.dk:images:luftfo:2011:maj:luftfoto, prefixes mods/oai_dc/ese), public Solr index (public-index.kb.dk/solr/cop-editions), IIIF Image API (kb-images.kb.dk/*/info.json). Old domain danmarksetfraaluften.dk is NXDOMAIN; collection lives at www.kb.dk/danmarksetfraluften/ (NOT on soeg.kb.dk).",
+    "auth": "none",
+    "approx_records": "2,138,930 records, directly from probed <totalResults> (corroborated by KB docs: ~2.135M digitised; the full KB aerial holding of ~5.2M is mostly undigitised)",
+    "elements": {
+      "identifier": "encoded: recordIdentifier, local neg ID, DOMS GUID, IIIF URI all present in MODS",
+      "footprint": "encoded: georss/KML Point coords for crowdsourced-geolocated photos only; probed unlocated record had none; no polygon bbox, point only",
+      "date": "encoded: dateCreated w3cdtf plus notBefore/notAfter date model, also queryable",
+      "rights": "encoded: per-record accessCondition text; Solr rights_tsim links CC licence per docs",
+      "sortie": "derived: series prefix in local identifier (e.g. LLOXXXX-90_2417) groups frames of one flight; no explicit sortie field",
+      "collection_link": "encoded: creator/origin-collection name (e.g. Landinspektoerernes Luftfoto Opmaaling) plus OAI-PMH set membership"
+    },
+    "licence_terms": "Metadata CC0 1.0; images mostly CC BY-NC-ND 2.0, per KB's official API docs https://github.com/Det-Kongelige-Bibliotek/access-digital-objects (Licences & Legalese section). DSfL service page https://www.kb.dk/find-materiale/tjenester/danmark-set-fra-luften states photos may be used freely with credit to Det Kgl. Bibliotek and the photographer. No consolidated API/TDM terms page found; no scraping restrictions stated in docs.",
+    "feasibility": "high",
+    "notes": "Open unauthenticated REST + OAI-PMH, 5000 records/page, CC0 metadata, documented field model on GitHub. Frontend is a map crowdsourcing app at www.kb.dk/danmarksetfraluften/; machine access is via the COP syndication API (verified live), not the discovery system soeg.kb.dk. JSON format is generated client-side from KML (format=json returns 404); use format=rss/kml/mods. Docs are dated (2012-era) but the endpoint demonstrably works as of Sep 2026. Geolocation coverage is partial (crowdsourced, with correctness flags); unlocated records carry no coordinates. Solr and OAI-PMH endpoints referenced in docs were not probed (UNVERIFIED)."
+  },
+  {
+    "collection": "IGN 'Remonter le temps' / Geoportail historic aerial photographs (phototheque aerienne, PVA)",
+    "country": "France",
+    "custodian": "IGN France (Institut national de l'information geographique et forestiere)",
+    "endpoint": "https://data.geopf.fr/wfs (typename pva:dataset; viewer's own XHR pattern: /wfs?service=WFS&version=2.0.0&typeName=pva:dataset&request=GetFeature&cql_filter=INTERSECTS(geom,POINT(...))&outputFormat=json)",
+    "architecture": "OGC WFS 2.0 (GeoJSON output) on Geoplateforme; raster scans served separately via https://data.geopf.fr/wmts (ORTHOIMAGERY.ORTHOPHOTOS, BDORTHOHISTORIQUE layers)",
+    "auth": "none (open data, no API key)",
+    "approx_records": "26,078 mission/sortie footprints in pva:dataset (from WFS resultType=hits numberMatched); individual photo frames (cliches) number in the millions per IGN communication but were not counted via endpoint",
+    "elements": {
+      "identifier": "encoded: feature id + dataset_identifier e.g. 2606-0051",
+      "footprint": "encoded: MultiPolygon mission footprint, EPSG:3857",
+      "date": "encoded: date_mission e.g. 1956-12-31Z (year precision)",
+      "rights": "absent: no rights property in payload; site CGU states Etalab 2.0",
+      "sortie": "derived: layer IS the sortie; dataset_idta e.g. 1957_F 2606-2806_P_25000 encodes flight ref; per-photo to sortie link not probed (unknown)",
+      "collection_link": "absent: no archive-collection property in payload"
+    },
+    "licence_terms": "Remonter le temps CGU (embedded in site): 'Les cartes et photographies sont librement reutilisables selon la licence ouverte version 2.0 Etalab' with attribution (source + date of last update). Licence: https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf ; terms pages: https://remonterletemps.ign.fr/mentions-legales/ and /cgu (JS-rendered, text confirmed inside viewer bundle)",
+    "feasibility": "high",
+    "notes": "Open, unauthenticated OGC WFS with GeoJSON, CQL spatial filtering, property projection and hits counting. Viewer JS bundle reverse-engineered: config.json sets geopfUrl=https://data.geopf.fr, layerPva=pva. Properties seen on pva:dataset: dataset_identifier, resolution, support, dataset_idta, oblique, couleur, date_mission. Main caveat: pva:dataset is mission-level; the per-cliche layer used by the telecharger page (green photo points, north orientation, download links) needs one more discovery step (separate typename or WMS GetFeatureInfo, UNVERIFIED)."
+  },
+  {
+    "collection": "Fototeca Digital del CNIG (historic aerial photography of Spain)",
+    "country": "Spain",
+    "custodian": "Centro Nacional de Informacion Geografica (CNIG) / Instituto Geografico Nacional (IGN)",
+    "endpoint": "https://fototeca.cnig.es/fototeca/api/flight/search (proprietary REST JSON, POST); WMS 1.3.0: https://wms-fototeca.idee.es/fototeca?SERVICE=WMS&REQUEST=GetCapabilities; per-photo: https://fototeca.cnig.es/fototeca/api/photogram/get/{cod_fotograma}",
+    "architecture": "Proprietary REST JSON API (WildFly/Java backend, routes discovered in viewer JS: api/flight/search, api/photogram/get, api/flight/get, api/new/rss) + OGC WMS 1.3.0 (INSPIRE view service) for map layers",
+    "auth": "None for search/metadata/WMS; api/login and api/virtual_shop exist only for certification purchases",
+    "approx_records": "681 flights returned by a single flight/search probe (archive-wide, includes unpublished flights); archive total stated by CNIG as >1.7 million photograms (from ign.es description); individual photogram count not returned by any endpoint probed",
+    "elements": {
+      "identifier": "encoded: cod_fotograma_a/d per photo; codVuelo+nomVuelo per flight",
+      "footprint": "encoded: flight extension GeoJSON MultiPolygon; photo center xFotocentro/yFotocentro+epsg",
+      "date": "encoded: anio on flights; fecha_fotograma field on photogram records (per viewer JS)",
+      "rights": "absent: no licence field in records; global legal notice only; restrictions noted in free-text observaciones",
+      "sortie": "encoded: pasada (flight line) plus cod_vuelo/nom_vuelo linkage on photogram records",
+      "collection_link": "derived: via flight -> flight_group hierarchy; all items implicitly Archivo de la Fototeca CNIG"
+    },
+    "licence_terms": "RISP (reutilizacion de informacion del sector publico): reuse permitted with attribution, no distortion, cite update date; no machine-readable licence in records. Terms: https://www.ign.es/web/ign/portal/info-aviso-legal ; service-specific conditions embedded at https://fototeca.cnig.es/fototeca/api/help/html/es (vuelos Americanos belong to Ministerio de Defensa, view/print-only, no download; certification service is paid). No explicit TDM/scraping clause found.",
+    "feasibility": "high",
+    "notes": "Unauthenticated JSON API returned the entire 681-flight archive catalogue (with GeoJSON extents) in ONE POST - flight-level harvest is trivial. Photo-level harvest needs bbox-partitioned flight/search + photogram/get iteration or WMS GetFeatureInfo; undocumented but stable routes taken from viewer config (https://fototeca.cnig.es/fototeca/configuration.js). geojson_url https://fototeca-datos.cnig.es/datos_vuelos/ hints at per-flight GeoJSON files (UNVERIFIED). Image downloads (COG) for PNOA flights are via centrodedescargas.cnig.es; the fototeca viewer itself only prints PDFs/sells certificates. No OAI-PMH/IIIF/CKAN found."
+  },
+  {
+    "collection": "NARA National Archives Catalog - aerial photography descriptions incl. RG 373 (Defense aerial imagery)",
+    "country": "USA",
+    "custodian": "National Archives and Records Administration (NARA)",
+    "endpoint": "https://catalog.archives.gov/proxy/records/search (live, verified); documented API base https://catalog.archives.gov/api/v2/ (per usnationalarchives/Catalog-API GitHub, but /api/v2/* currently returns the SPA HTML fallback, not JSON, as of Sep 2026)",
+    "architecture": "Proprietary JSON over Elasticsearch (hits/total/_source structure, index 'nac-records4'); IIIF Image API level0 referenced in the viewer bundle for image delivery; official docs at https://github.com/usnationalarchives/Catalog-API",
+    "auth": "None required for read via /proxy/records/search (verified keyless). Documented /api/v2 requires x-api-key (email request to Catalog_API@nara.gov, 10,000 queries/month default)",
+    "approx_records": "486,839 hits for full-text q='aerial photographs' (probe response, body.hits.total.value); whole records index is multi-million. RG 373-specific count not probed (fielded recordGroup param is not accepted by the /proxy route and breaks routing)",
+    "elements": {
+      "identifier": "encoded: numeric naId per record plus internal uuid",
+      "footprint": "absent: no geometry/bbox fields in payload; geography only as textual/authority references",
+      "date": "encoded: inclusiveStartDate/EndDate with ISO logicalDate (seen on ancestor records; schema-level date fields)",
+      "rights": "encoded: useRestriction.status + accessRestriction.status (e.g. 'Unrestricted'); free-text status, not a license URI",
+      "sortie": "derived: no sortie field; sortie/can info only in title/variantControlNumbers free text",
+      "collection_link": "encoded: ancestors array with recordGroupNumber, series level, naIds - full hierarchy to RG"
+    },
+    "licence_terms": "Metadata and US-government digital images assumed public domain (work of federal government); check each record's Use Restrictions field for exceptions. Terms: https://github.com/usnationalarchives/Catalog-API ('How can I use NARA's data?') and NARA copyright FAQ https://www.archives.gov/legal/copyright.html. No explicit TDM/scraping prohibition found; keyed API rate-limited to 10k queries/month.",
+    "feasibility": "high",
+    "notes": "Keyless, paginated (limit/page), fielded Elasticsearch JSON with hierarchy and bulk-export support; only real gaps are zero geometry and unstructured sortie data. The documented /api/v2 endpoints silently serve the React SPA as of Sep 2026; the live viewer calls SEARCH_HOST + '/proxy/records/search'. Unknown query params cause a fallback to HTML rather than an error. Payload includes digitalObjects with direct S3/CloudFront objectUrl JPEG links and onlineResources. IIIF_HOST is configured in the SPA config (IIIF Image API 3 level0 cited in bundle), but a per-object IIIF info.json URL was not probed."
+  },
+  {
+    "collection": "UConn MAGIC / CT State Library historic Connecticut aerials (1934 Fairchild statewide survey)",
+    "country": "USA (Connecticut)",
+    "custodian": "Connecticut State Library (originals + CONTENTdm) with UConn MAGIC / CT ECO (map services)",
+    "endpoint": "https://cslib.contentdm.oclc.org/digital/api/search/collection/p4005coll10 (CONTENTdm JSON API; IIIF at /digital/iiif/, OAI-PMH at /oai/oai.php - both standard CONTENTdm, UNVERIFIED this session)",
+    "architecture": "CONTENTdm JSON API (proprietary REST), collection alias p4005coll10 'Aerial Photographs of Connecticut'. The officially registered UConn MAGIC GeoServer WMS (http://geoserver.lib.uconn.edu:8080/geoserver/MAGIC/wms) is DEAD - host no longer resolves as of Sep 2026.",
+    "auth": "none",
+    "approx_records": "8,762 photos dated 1934 Apr (facet count from probe; 8,883 total hits incl. 121 index-sheet items from 2006)",
+    "elements": {
+      "identifier": "encoded: CONTENTdm itemId + photo number in title (e.g. 00866)",
+      "footprint": "encoded: X Coord/Y Coord lon-lat centerpoint fields; no polygon bbox",
+      "date": "encoded: '1934 Apr.' month precision",
+      "rights": "derived: free-text rights field, no licence URI",
+      "sortie": "derived: only photo number; no flight-line/sortie field",
+      "collection_link": "encoded: Source field cites CT State Library State Archives RG 089:11a"
+    },
+    "licence_terms": "Rights text: 'Digital image (c) Connecticut State Library. All rights reserved. Images may be used for personal research or non-profit educational uses without prior permission.' Publication permission policy at http://ctstatelibrary.org/reproduction-publication/ (see also libguides.ctstatelibrary.org/hg/aerialphotos). No explicit TDM/API terms found.",
+    "feasibility": "high",
+    "notes": "Open, unauthenticated, paginated JSON API with per-item coordinates, date, rights, and archive linkage. MAGIC's own viewer pages still reference the dead GeoServer WMS; CT ECO's current historic-aerial pages redirect discovery to the CONTENTdm collection, which is the only live machine endpoint verified. Full 1934 series photo numbers map to towns via the State Library's town map locator pages (HTML, would need scraping for sortie reconstruction). PennPilot not probed (task allowed MAGIC as the candidate)."
+  },
+  {
+    "collection": "NOAA historic coastal/shoreline aerial imagery (Digital Coast / Data Access Viewer)",
+    "country": "USA",
+    "custodian": "NOAA Office for Coastal Management (OCM)",
+    "endpoint": "https://maps.coast.noaa.gov/arcgis/rest/services/DAV/DAV_footprints/FeatureServer/0/query",
+    "architecture": "ArcGIS REST (FeatureServer + MapServer pair; dataset/mission-level footprints). Related: per-dataset FGDC/ISO metadata via NOAA InPort (fisheries.noaa.gov/inport/item/<id>, XML variant UNVERIFIED), and ImageServers under /services/Imagery for raster delivery",
+    "auth": "none (open GET, f=json; note the separate HistoricAerialPhotos MapServer path returned HTTP 499 Token Required, so it is gated)",
+    "approx_records": "3,441 dataset-level footprint records (verified via returnCountOnly query; covers ALL DAV data types - lidar, imagery, elevation etc. - the historic-aerial-photo subset and individual-frame counts are unknown/unverified)",
+    "elements": {
+      "identifier": "encoded: numeric id plus dav_link and InPort item URL",
+      "footprint": "encoded: esriGeometryPolygon, WebMercator 3857",
+      "date": "derived: year embedded in title string only",
+      "rights": "absent: no rights/licence field in payload",
+      "sortie": "derived: layer itself is mission/sortie-level footprints",
+      "collection_link": "encoded: metadata field links to InPort archive record"
+    },
+    "licence_terms": "US federal data, public domain per NOAA open-data policy; no API key, no rate-limit terms observed on the REST endpoint. Site terms: https://www.noaa.gov/disclaimer (fetched; covers linking/endorsement). NOAA data-use/open-data policy page at https://www.noaa.gov/organization/information-technology/policy-oversight/data (UNVERIFIED, not fetched). InPort metadata likewise public federal records.",
+    "feasibility": "high",
+    "notes": "The probed endpoint is dataset-level, not frame-level: one polygon per acquisition mission/dataset, with only id, data_type, title, metadata (InPort URL), dav_link. Individual scanned-frame metadata (per-photo date, frame number, photo->sortie linkage) is not exposed here; it likely lives behind the Data Access Viewer UI or per-dataset download bundles, machine accessibility unknown. Frame-level harvest would need a second discovery pass. Dataset-level harvest is trivial: paginated ArcGIS queries, no auth, standard JSON."
+  },
+  {
+    "collection": "Norge i bilder",
+    "country": "Norway",
+    "custodian": "Kartverket (Norwegian Mapping Authority), with Statens vegvesen, NIBIO et al.",
+    "endpoint": "https://services.norgeibilder.no/arcgis/rest/services (TOKEN-SECURED: prosjekter/MapServer, ortofoto/ImageServer); open: https://backend-api.klienter-prod-k8s2.norgeibilder.no/projects/rss and https://wms.geonorge.no/skwms1/wms.georef_nib (WMS 1.3.0)",
+    "architecture": "ArcGIS REST (MapServer/ImageServer, token-gated) + proprietary JSON backend API (swagger at /swagger/index.html) + open RSS feed + OGC WMS metadata service",
+    "auth": "ArcGIS per-image services require a token (OAuth2/OIDC via auth2.geoid.no Keycloak realm 'geoid', NIB free user account); projects/rss and geonorge WMS are open, no auth",
+    "approx_records": "unknown (RSS exposes only the 20 latest flight projects, project ids up to ~5092 as of 2026-09; per-photo counts sit behind the token-gated ImageServer, not probed)",
+    "elements": {
+      "identifier": "encoded: numeric project guid in RSS; per-image ids behind auth",
+      "footprint": "derived: WMS renders Geovekst project coverage; per-image geometry in token-gated MapServer",
+      "date": "encoded: 'Fotodato' (capture date) per project in RSS",
+      "rights": "derived: service-level 'Copyright Statens kartverk 2007' only, no per-record licence",
+      "sortie": "encoded: RSS item IS the flight project; photo->nib_project_id link seen in viewer SQL behind auth",
+      "collection_link": "absent: no photo->archive-collection linkage observed in open payloads"
+    },
+    "licence_terms": "WMS GetCapabilities: Fees 'Norge digital', AccessConstraints 'Copyright Statens kartverk 2007' (service-level). No dedicated NIB TDM/scraping terms page located; geonorge/Kartverket open data is generally CC BY 4.0 / NLOD but this was NOT verified for NIB imagery, and NIB download/export flows are login-gated. Relevant pages: https://www.kartverket.no/en/api-and-data/order-geospatial-data and https://www.kartverket.no/en/about-kartverket/data-protection-policy (UNVERIFIED for TDM specifics)",
+    "feasibility": "medium",
+    "notes": "Viewer is a React SPA built on ArcGIS JS SDK 4.x. Open surfaces (RSS, WMS) give project/sortie-level metadata only (project name, ortofoto type, availability date, capture date, flying company). Rich per-photo metadata (centre coordinates, footprints, image URLs) lives in the token-gated ArcGIS ImageServer/MapServer, so full harvest requires a geoid.no account token; after that, standard ArcGIS query/exportImage harvesting applies. No OAI-PMH, IIIF, or CKAN endpoint found."
+  },
+  {
+    "collection": "Lantmateriet historic aerial photos / flygbildsarkiv (GeoLex layers Flygbilder 1929-1959, 1960-2002, 2003-)",
+    "country": "Sweden",
+    "custodian": "Lantmateriet (Swedish Land Survey)",
+    "endpoint": "https://api.lantmateriet.se/distribution/produkter/metabild/v2/flygbild/geometri (POST; sibling: .../metabild/v2/ortofoto/geometri; per-photo detail: .../metabild/v2/flygbild/{uuid}; thumbnails: .../tumnagel/v1/{bildId})",
+    "architecture": "proprietary JSON REST API (GeoJSON FeatureCollection responses), backend of the GeoLex viewer (geolex.lantmateriet.se); not WFS/WMS/ArcGIS/IIIF/OAI-PMH",
+    "auth": "Bearer token. A public token is embedded in the viewer's /settings response (metadata.token) and worked in the probe; it is a viewer token, not a registered API key, so its stability/terms are unofficial",
+    "approx_records": "millions; the same Lantmateriet archive is licensed to ArkivDigital as 4.7 million flygfoton (search-derived figure); GeoLex covers 1929-present. Not confirmed by the probe",
+    "elements": {
+      "identifier": "encoded: bildId plus flygbild UUID per viewer code; not seen in live payload",
+      "footprint": "derived: GeoJSON response, but images are exposed as center points (bildpunkter) per GeoLex guide, not full photo footprints",
+      "date": "encoded: capture year shown on map points and filterable via arsintervall param (viewer code + guide)",
+      "rights": "absent: no licence/rights field in the metadata service; reuse governed by product licence outside the payload",
+      "sortie": "unknown: detail view shows flyghojd (flight altitude) per guide, but no confirmed sortie/flight-line id in viewer code",
+      "collection_link": "absent: period layers (1929-1959 etc.) are view groupings, no archive-collection reference field observed"
+    },
+    "licence_terms": "Not open data. Lantmateriet open-data products are CC0 (https://www.lantmateriet.se/sv/geodata/vara-produkter/avgiftsfria-produkter/oppna-data/) but Flygbilder viewing/download requires a licence agreement and login; end-customer terms PDF: https://www2.lantmateriet.se/globalassets/geodata/geodataprodukter/slutkundsvillkor_off_anv.pdf. No explicit TDM/scraping clause located; bulk use of the viewer API is not covered by any published permission.",
+    "feasibility": "medium",
+    "notes": "Live, token-accessible GeoJSON API with spatial query and per-photo detail, but geometry-search only (no enumeration endpoint, area-size limits enforced), and licensed (non-CC0) content restricting redistribution. Endpoint discovery: viewer /settings returns flygbildServiceUrl/ortofotoServiceUrl/previewServiceUrl/metadata.token. Both probes returned HTTP 200 with a valid but EMPTY FeatureCollection for a Stockholm point - the coordinate order/CRS convention is unresolved, so a real payload sample is still UNVERIFIED; element classifications rely on viewer source code and the official guide (https://www.lantmateriet.se/sv/geotorget-produktstod/guider/hitta-flygbilder-och-ortofoton-i-geolex/). An official documented distribution API exists as the licensed product 'Flygbilder Nedladdning'. historiskakartor.lantmateriet.se is a separate React app not probed."
+  },
+  {
+    "collection": "Beeldbank WO2 aerial photographs (Netherlands; fallback after PDOK/luchtfoto.nl checks)",
+    "country": "Netherlands",
+    "custodian": "Beeldbank WO2 (NIOD-led network); platform by Picturae Memorix; source collections incl. NIOD, Nationaal Bevrijdingsmuseum Groesbeek",
+    "endpoint": "https://webservices.memorix.nl/mediabank/media?apiKey=0fb455be-299d-11e7-b953-1b039dafb90a&q=luchtfoto&rows=1&page=1",
+    "architecture": "Proprietary JSON (Picturae Memorix mediabank API) + DeepZoom DZI image delivery; geoserver.memorix.nl WMS referenced in viewer JS (unverified)",
+    "auth": "Public API key required (apiKey param); key is embedded verbatim in beeldbankwo2.nl HTML, so effectively no auth barrier",
+    "approx_records": "511 records for query 'luchtfoto' (from API pagination.total in probe); whole Beeldbank WO2 is larger",
+    "elements": {
+      "identifier": "encoded: UUID id plus numeric Beeldnummer asset_id",
+      "footprint": "absent: geodata/mapdata fields exist but empty on aerial records",
+      "date": "unknown: no date field in list payload; detail endpoint unprobed",
+      "rights": "absent: no licence field in payload; only watermark/iprestricted flags",
+      "sortie": "absent: no sortie/flight-line fields",
+      "collection_link": "encoded: Collectie field names holding institution"
+    },
+    "licence_terms": "No machine-readable licence in payload. Rights/terms pages: https://beeldbankwo2.nl/nl/over-ons/beeldrechten and https://beeldbankwo2.nl/disclaimer-nl (URLs verified to exist in site HTML; page content not read - image rights vary per holding collection; no explicit TDM/scraping clause verified)",
+    "feasibility": "medium",
+    "notes": "Clean paginated JSON API with embedded public key, but sparse per-record metadata (no date/rights/geo in list view) and only ~511 aerial photos, mostly oblique museum photos rather than systematic RAF sortie imagery. PDOK path is a dead end for historic imagery: PDOK 'Luchtfoto / Landelijke Voorziening Beeldmateriaal' is explicitly closed (gesloten) and covers orthomosaics 2016+, not wartime photography; guessed PDOK historic WMS URLs returned 404. luchtfoto.nl is a commercial Dotka Data WooCommerce shop selling Kadaster historic aerial photos; no public machine API found in page source - UNVERIFIED whether an internal JSON backend exists. The true Kadaster wartime RAF sortie archive appears to have no open machine endpoint as of Sept 2026."
+  },
+  {
+    "collection": "Tailte Eireann / Ordnance Survey Ireland historic aerial imagery via GeoHive",
+    "country": "Ireland",
+    "custodian": "Tailte Eireann (successor to OSi, GSI and Valuation Office)",
+    "endpoint": "https://utility.arcgis.com/usrsvcs/servers/<server-id>/rest/services/MapGenieImagery<epoch>ITM/MapServer (e.g. MapGenieImagery1995ITM, MapGenieImagery1996to2000ITM, MapGenieImagery2001to2005ITM, MapGenieImagery2006to2012ITM, MapGenieImagery2013to2018ITM) - token-gated; also GeoHive Hub search API https://www.geohive.ie/api/search/v1/collections/all/items (contains NO aerial-photography metadata collection)",
+    "architecture": "ArcGIS REST MapServer (orthophoto mosaic tile/raster services only, proxied via utility.arcgis.com); no per-photo FeatureServer, no WFS/WMS frame index, no IIIF, no OAI-PMH, no CKAN found",
+    "auth": "Yes - ArcGIS token (licensed MapGenie subscription) required for the imagery MapServices; anonymous access returns 403 GWM_0003. GeoHive Hub search API is open but has no aerial-photo content.",
+    "approx_records": "Not applicable for per-photo records (no such endpoint). Imagery sold commercially as ~20,000 orthorectified 2km tiles per series (source: tailte.ie map-shop page); mosaic services are raster mosaics, not per-frame records.",
+    "elements": {
+      "identifier": "absent: no per-photo records exposed",
+      "footprint": "absent: mosaics only, no frame polygons",
+      "date": "derived: epoch ranges in service names (1995, 1996-2000, etc.)",
+      "rights": "encoded: token-gating implies commercial MapGenie licence",
+      "sortie": "absent: no flight/sortie metadata anywhere found",
+      "collection_link": "absent: no archive collection linkage exposed"
+    },
+    "licence_terms": "Imagery is premium commercial data under the Tailte Eireann MapGenie licence (https://tailte.ie/services/mapgenie/); historic aerial imagery sold via map shop (https://tailte.ie/map-shop/professional-map-products/aerial-imagery-maps-and-data/). GeoHive open datasets are CC BY 4.0 but aerial photography is NOT among the open datasets. No scraping/TDM-friendly metadata feed found.",
+    "feasibility": "low",
+    "notes": "No public machine-readable per-photo metadata endpoint; imagery is licence-gated mosaics sold commercially. Verified: GeoHive Hub search API responds but returns zero aerial-photography items; Tailte Eireann ArcGIS org (osi.maps.arcgis.com, orgid FH5XCsx8rYXqnjF5) exposes only licensed MapGenie mosaic services; GeoHive Map Viewer webapp wires in exactly the six token-gated MapGenieImagery MapServers listed above; direct anonymous call to one returned 403 GWM_0003. data.tailte.ie does not resolve; arcgis.geohive.ie / services.geohive.ie do not exist."
+  },
+  {
+    "collection": "HistoricAerials.com (NETR / Nationwide Environmental Title Research) - commercial licensing exemplar",
+    "country": "United States",
+    "custodian": "Nationwide Environmental Title Research, LLC (NETRonline), Tempe, Arizona",
+    "endpoint": "https://www.historicaerials.com/api/available_layers (POST, form-encoded bbox n/e/s/w); companion endpoints seen in /js/viewer.js: /api/viewer_years, /api/geocode, /api/topo_ref, /api/townships; imagery tiles via UMN MapServer CGI at /mapper?map=/var/www/mapper/layers.map (UNVERIFIED for WMS GetCapabilities)",
+    "architecture": "proprietary JSON (PHP session-backed, viewer-internal XHR API); UMN MapServer mapserv for tiles; NO official public API, no ArcGIS REST, no OAI-PMH, no IIIF, no CKAN",
+    "auth": "no API key, but requires a live PHPSESSID session cookie plus Referer header (cookieless POST times out; cookieless GET returns HTTP 500); subscriber login only gates watermark-free downloads/purchases, not this endpoint",
+    "approx_records": "unknown - site markets 'largest online collection' of US historic aerials dating to the 1920s (about page), no published frame count; single probe returned 53 aerial year-mosaics (1953-2023) for one Phoenix, AZ bbox, i.e. mosaicked year layers, not individual frames",
+    "elements": {
+      "identifier": "derived: year plus quality code (e.g. [2023,'A']), no per-frame ID",
+      "footprint": "derived: record set defined by client-supplied bbox query, no geometry returned",
+      "date": "encoded: capture year only, no month/day",
+      "rights": "absent: no licence field in payload; rights only in site Terms page",
+      "sortie": "absent: no flight line or sortie linkage anywhere",
+      "collection_link": "absent: no archive/holding-collection reference"
+    },
+    "licence_terms": "Rights-managed commercial licensing: pay-per-image (jpeg/png/GeoTiff/prints) plus recurring subscriptions. Terms of Service: https://www.historicaerials.com/terms (effective 23 June 2026). Explicit anti-scraping clause: 'Use of products in a manner that gives you or any other person access to mass downloads or bulk feeds of any Content, including but not limited to numerical latitude or longitude coordinates, imagery, and visible map data is also prohibited.' All content copyright NETRonline or credited providers; no metadata licence granted; no TDM exception offered. Governing law: Arizona.",
+    "feasibility": "low",
+    "notes": "The internal JSON endpoint is real and verified, but it only enumerates which year-mosaics exist within a bbox (with A/B/D quality codes and topo map scales); it exposes no per-photograph metadata, footprints, sortie, or collection linkage. Records are mosaicked/georeferenced derivatives, not an archive catalogue. Terms expressly forbid bulk download of data and coordinates, so systematic harvesting would breach the ToS. Useful as a licensing-architecture exemplar only; treat as a no-API commercial walled garden. The MapServer CGI (/mapper) might answer a WMS GetCapabilities but was not probed - UNVERIFIED. Aerofilms/Britain from Above not probed - the NETR branch yielded a definitive answer first."
+  }
+]

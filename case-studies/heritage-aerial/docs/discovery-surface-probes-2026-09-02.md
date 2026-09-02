@@ -125,3 +125,26 @@ paper.
 27. WHAIFinder footprint construction verified in code: metres-to-degrees in
     a local equirectangular frame, longitude step divided by cos(latitude)
     (whaifinder_arcgis.py reconstruct_footprint).
+28. Competency-question execution (2 Sep 2026, Fuseki GeoSPARQL over the
+    merged 557-record graph; full prefix header prepended, since queries
+    CQ2-CQ8 in the shipped document omit prefixes declared in CQ1):
+    CQ1=2 rows (date-typed filter; year-precision records excluded by type),
+    CQ2=0 (no Edinburgh frames in sample), CQ3=222, CQ4=0, CQ5=0,
+    CQ6=557 at Baseline, CQ7=0, CQ8=0. Core-STAC evaluation over the
+    292-item UK export using core fields only: CQ1=67 (all via the interval
+    serialisation), CQ2=0 (bbox), CQ3 indeterminate (license "other" on
+    292/292); CQ4-CQ8 not expressible in core STAC.
+29. Reasoner check on naph-core: Pellet (owlready2) consistent, zero
+    unsatisfiable classes. HermiT refuses the ontology: xsd:date and
+    xsd:gYear are outside the OWL 2 DL datatype map
+    (UnsupportedDatatypeException).
+30. Generalisation survey basis: fifteen candidate collections in twelve
+    jurisdictions probed live 2 Sep 2026 by two independent runs (a
+    15-agent fleet and a separate curl-based session) agreeing on
+    feasibility for every collection both assessed; eleven with open
+    machine endpoints across at least eight further architectures. Raw
+    assessments: v2-collection-scout-claude.json, v2-collection-scout.json,
+    v2-scout-merged-verdict.md (published in the repository under
+    docs/survey-2026-09-02/). Headline live-probed counts: France IGN WFS
+    4,907,805 photo records / 26,078 missions; Historic England APEx
+    468,176; LINZ 701,840.
