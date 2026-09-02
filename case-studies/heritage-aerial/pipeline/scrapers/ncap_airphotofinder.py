@@ -233,12 +233,12 @@ ex:NCAPCollection a naph:Collection ;
 # case study's central finding). So that the other five Baseline elements can
 # be exercised by SHACL, the adapter attaches ONE adapter-supplied,
 # collection-level interim rights statement to every record. It uses the
-# rightsstatements.org In Copyright URI (truthful for NCAP material) and is
+# rightsstatements.org Copyright Not Evaluated URI (the honest statement for a mixed collection whose determination is the institution's to make) and is
 # NOT sourced from or asserted by NCAP; rights determination is NCAP's alone.
 # Validation results are reported both with and without this attachment.
 ex:rights-ncap a naph:RightsStatement ;
-    naph:rightsURI <http://rightsstatements.org/vocab/InC/1.0/> ;
-    naph:rightsLabel "In Copyright - adapter-supplied interim statement, not asserted by NCAP" .
+    naph:rightsURI <http://rightsstatements.org/vocab/CNE/1.0/> ;
+    naph:rightsLabel "Copyright Not Evaluated - adapter-supplied interim statement, not asserted by NCAP" .
 
 """
 

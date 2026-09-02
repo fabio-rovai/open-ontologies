@@ -26,7 +26,7 @@ ex:NCAPCollection a naph:Collection ;
 # NOTE: adapter-supplied interim rights statement (see harvester docstring);
 # the API payload itself carries no rights field. Not asserted by NCAP.
 ex:rights-ncap a naph:RightsStatement ;
-    naph:rightsURI <http://rightsstatements.org/vocab/InC/1.0/> ;
+    naph:rightsURI <http://rightsstatements.org/vocab/CNE/1.0/> ;
     naph:rightsLabel "NCAP catalogue rights — see per-item licensing" .
 
 # PEGASUS/RN/H/0007 frame 0001  (footprint 258478, ISAD(G) GB 551 NCAP/20-1-2-2)
