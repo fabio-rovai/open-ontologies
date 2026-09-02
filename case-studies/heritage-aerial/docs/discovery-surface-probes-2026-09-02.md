@@ -104,3 +104,13 @@ paper.
     Hiebel, Doerr, Eide, IJDL 18(4):271-279, 2017. cidoc-crm.org resolves.
     WKT axis order verified longitude-first in data/real-ncap-sample.ttl
     (Hong Kong sample: 114.14, 22.36).
+24. GeoSPARQL execution demonstrated (2 September 2026): Apache Jena
+    jena-fuseki-geosparql 5.1.0 (Maven Central jar, OpenJDK 26), loaded with
+    naph-core.ttl + the three validated samples (11,140 merged triples;
+    18,885 after the server's inference), spatial index built. Query:
+    photos whose footprint geof:sfIntersects
+    POLYGON((113.8 22.1, 114.5 22.1, 114.5 22.6, 113.8 22.6, 113.8 22.1))
+    with YEAR(capturedOn) in [1920, 1930], selecting photo, date, sortie.
+    Result: 75 frames, 4 sorties (PEGASUS-RN-H-0007/0008/0009/0012), dates
+    1924-11-12 to 1924-11-13. Timings over three runs: 42 ms cold, 12 ms
+    warm (curl time_total against localhost:3030/ds/sparql).

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NAPH print figure: three collections</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #1a1a1a; background: #fff; }
+  #map { position: absolute; inset: 0; background: #fff; }
+  .legend {
+    position: absolute; z-index: 1000; bottom: 26px; left: 16px;
+    background: rgba(255,255,255,0.96); padding: 14px 18px; border-radius: 4px;
+    border: 1px solid #999; font-size: 1.05em;
+  }
+  .legend .row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+  .legend .sw { width: 16px; height: 16px; display: inline-block; border: 1px solid rgba(0,0,0,0.4); }
+  .legend b { font-weight: 600; }
+  .legend .n { color: #444; font-size: 0.9em; }
+  .attribution-note { position: absolute; z-index: 1000; bottom: 4px; right: 6px;
+    font-size: 0.78em; color: #333; background: rgba(255,255,255,0.85); padding: 2px 6px; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="legend" id="legend"></div>
+<div class="attribution-note">Country boundaries: Natural Earth (public domain)</div>
+
+<script>
+const SETS = {
+  uk:     { file: "../reports/real-footprints.geojson",       color: "#1b7a75", label: "NCAP (United Kingdom)",       note: "292 frames, polygon footprints reprojected to WGS84" },
+  canada: { file: "../reports/real-napl-footprints.geojson",  color: "#a63226", label: "NAPL open data (Canada)",     note: "40 dated mosaics, native WGS84 polygons" },
+  usa:    { file: "../reports/real-whai-footprints.geojson",  color: "#c07600", label: "WHAIFinder (United States)",  note: "225 frames, footprints reconstructed from centre point and scale" },
+};
+
+const map = L.map("map", { zoomControl: false, attributionControl: false }).setView([30, -40], 3);
+const countries = fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json")
+  .then(r => r.json()).then(gj => {
+    L.geoJSON(gj, { style: { color: "#b5b5b5", weight: 0.6, fillColor: "#ececec", fillOpacity: 1 } }).addTo(map);
+  });
+
+function centroid(feat) {
+  const g = feat.geometry; let ring;
+  if (g.type === "Polygon") ring = g.coordinates[0];
+  else if (g.type === "Point") return [g.coordinates[1], g.coordinates[0]];
+  else ring = g.coordinates[0][0];
+  let x = 0, y = 0; ring.forEach(p => { x += p[0]; y += p[1]; });
+  return [y / ring.length, x / ring.length];
+}
+
+const layers = {};
+let pending = Object.keys(SETS).length;
+
+countries.then(() =>
+Object.entries(SETS).forEach(([key, s]) => {
+  fetch(s.file).then(r => r.json()).then(gj => {
+    const grp = L.featureGroup();
+    L.geoJSON(gj, {
+      style: { color: s.color, weight: 1.2, fillColor: s.color, fillOpacity: 0.3 },
+      pointToLayer: (f, ll) => L.circleMarker(ll, { radius: 4, color: s.color, fillColor: s.color, fillOpacity: 0.75, weight: 1 })
+    }).addTo(grp);
+    gj.features.forEach(f => {
+      if (f.geometry.type !== "Point")
+        L.circleMarker(centroid(f), { radius: 4, color: s.color, fillColor: s.color, fillOpacity: 0.9, weight: 0.8 }).addTo(grp);
+    });
+    grp.addTo(map);
+    layers[key] = grp;
+  }).catch(e => console.error(key, e)).finally(() => {
+    if (--pending === 0) finalize();
+  });
+}));
+
+function finalize() {
+  const leg = document.getElementById("legend");
+  leg.innerHTML = "";
+  Object.entries(SETS).forEach(([k, s]) => {
+    leg.innerHTML += `<div class="row"><span class="sw" style="background:${s.color}"></span>`
+      + `<span><b>${s.label}</b><br><span class="n">${s.note}</span></span></div>`;
+  });
+  const all = L.featureGroup(Object.values(layers));
+  try { map.fitBounds(all.getBounds().pad(0.05)); } catch (e) {}
+  document.body.setAttribute("data-ready", "1");
+}
+</script>
+</body>
+</html>
