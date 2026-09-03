@@ -44,6 +44,8 @@ const RDF_FIRST: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#first>";
 const RDF_REST: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#rest>";
 const RDF_NIL: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>";
 const RDFS_SUBCLASS: &str = "<http://www.w3.org/2000/01/rdf-schema#subClassOf>";
+const RDFS_DOMAIN: &str = "<http://www.w3.org/2000/01/rdf-schema#domain>";
+const RDFS_RANGE: &str = "<http://www.w3.org/2000/01/rdf-schema#range>";
 const RDFS_SUBPROP: &str = "<http://www.w3.org/2000/01/rdf-schema#subPropertyOf>";
 const OWL_CLASS: &str = "<http://www.w3.org/2002/07/owl#Class>";
 const OWL_THING: &str = "<http://www.w3.org/2002/07/owl#Thing>";
@@ -509,6 +511,58 @@ impl OwlParser {
             let a = self.parse_class_expr(&a_str).to_nnf();
             let b = self.parse_class_expr(&b_str).to_nnf();
             disjoint_pairs.push((a, b));
+        }
+
+        // Collect rdfs:domain / rdfs:range as GCIs.
+        //
+        // These are ordinary DL axioms and were previously not read at all, so every
+        // incoherence arising from a property's domain or range colliding with a
+        // disjointness axiom was reported satisfiable. Measured on the GCHQ-published
+        // hqdm.owl: HermiT finds 39 unsatisfiable classes, this reasoner found 0,
+        // because that file carries 265 domain and 260 range declarations and nothing
+        // consumed them. The failure direction is the dangerous one - it answers
+        // "satisfiable" when it cannot tell - so a coherence gate built on it passes
+        // everything.
+        //
+        //   domain(p, D)  =>  exists p.Top  [=  D
+        //   range(p, R)   =>  Top  [=  forall p.R
+        //
+        // Datatype ranges are skipped: xsd:* and rdfs:Literal are not concepts, and
+        // asserting Top [= forall p.xsd:string would be a type error, not an axiom.
+        let domain_range_raw: Vec<(String, String, bool)> = self
+            .index
+            .by_subject
+            .iter()
+            .flat_map(|(s, pairs)| {
+                pairs.iter().filter_map(move |(p, o)| {
+                    if p == RDFS_DOMAIN {
+                        Some((s.clone(), o.clone(), true))
+                    } else if p == RDFS_RANGE {
+                        Some((s.clone(), o.clone(), false))
+                    } else {
+                        None
+                    }
+                })
+            })
+            .collect();
+        for (prop_str, cls_str, is_domain) in domain_range_raw {
+            if cls_str.starts_with("<http://www.w3.org/2001/XMLSchema#")
+                || cls_str == "<http://www.w3.org/2000/01/rdf-schema#Literal>"
+                || cls_str == OWL_THING
+            {
+                continue;
+            }
+            let role = self.interner.intern(&prop_str);
+            let cls = self.parse_class_expr(&cls_str).to_nnf();
+            if cls_str.starts_with('<') && cls_str != OWL_NOTHING {
+                let id = self.interner.intern(&cls_str);
+                named_classes.insert(id);
+            }
+            if is_domain {
+                axioms.push((Concept::Exists(role, Box::new(Concept::Top)), cls));
+            } else {
+                axioms.push((Concept::Top, Concept::ForAll(role, Box::new(cls))));
+            }
         }
 
         // Collect individuals and their types + role assertions.

@@ -971,3 +971,129 @@ fn test_dl_description_logic_field() {
     assert_eq!(parsed["algorithm"], "tableaux");
     assert_eq!(parsed["profile_used"], "owl-dl");
 }
+
+// ── rdfs:domain / rdfs:range as GCIs ────────────────────────────────────
+//
+// Regression: these were not read at all, so any incoherence arising from a
+// property's domain or range colliding with a disjointness axiom was reported
+// satisfiable. The failure direction is the dangerous one, since a coherence
+// gate built on the reasoner then passes everything. Measured on the
+// GCHQ-published hqdm.owl, which carries 265 domain and 260 range axioms.
+//
+//   domain(p, D)  =>  exists p.Top  [=  D
+//   range(p, R)   =>  Top  [=  forall p.R
+
+fn unsat_names(ttl: &str) -> Vec<String> {
+    let store = Arc::new(GraphStore::new());
+    store.load_turtle(ttl, None).unwrap();
+    let result = Reasoner::run(&store, "owl-dl", false).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    parsed["unsatisfiable_classes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|v| v.as_str().unwrap_or_default().to_string())
+        .collect()
+}
+
+#[test]
+fn test_dl_domain_induced_unsatisfiability() {
+    // p has domain D. A is a B and uses p, so A is also a D. B and D are
+    // disjoint, therefore A is unsatisfiable.
+    let unsat = unsat_names(
+        r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix ex: <http://example.org/> .
+        ex:B a owl:Class . ex:D a owl:Class .
+        ex:p a owl:ObjectProperty ; rdfs:domain ex:D .
+        ex:B owl:disjointWith ex:D .
+        ex:A a owl:Class ; rdfs:subClassOf ex:B ,
+            [ a owl:Restriction ; owl:onProperty ex:p ; owl:someValuesFrom owl:Thing ] .
+    "#,
+    );
+    assert!(
+        unsat.iter().any(|u| u.ends_with("/A>")),
+        "domain axiom ignored: A must be unsatisfiable, got {unsat:?}"
+    );
+}
+
+#[test]
+fn test_dl_range_induced_unsatisfiability() {
+    // p has range R. A requires a p-successor in B. B and R are disjoint,
+    // therefore A is unsatisfiable.
+    let unsat = unsat_names(
+        r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix ex: <http://example.org/> .
+        ex:B a owl:Class . ex:R a owl:Class .
+        ex:p a owl:ObjectProperty ; rdfs:range ex:R .
+        ex:B owl:disjointWith ex:R .
+        ex:A a owl:Class ; rdfs:subClassOf
+            [ a owl:Restriction ; owl:onProperty ex:p ; owl:someValuesFrom ex:B ] .
+    "#,
+    );
+    assert!(
+        unsat.iter().any(|u| u.ends_with("/A>")),
+        "range axiom ignored: A must be unsatisfiable, got {unsat:?}"
+    );
+}
+
+#[test]
+fn test_dl_multiple_domains_conjoin() {
+    // Several rdfs:domain axioms on one property mean their INTERSECTION, so a
+    // class that uses the property lands in both disjoint domains at once.
+    let unsat = unsat_names(
+        r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix ex: <http://example.org/> .
+        ex:D1 a owl:Class . ex:D2 a owl:Class .
+        ex:D1 owl:disjointWith ex:D2 .
+        ex:p a owl:ObjectProperty ; rdfs:domain ex:D1 ; rdfs:domain ex:D2 .
+        ex:A a owl:Class ; rdfs:subClassOf
+            [ a owl:Restriction ; owl:onProperty ex:p ; owl:someValuesFrom owl:Thing ] .
+    "#,
+    );
+    assert!(
+        unsat.iter().any(|u| u.ends_with("/A>")),
+        "multiple domains must conjoin, got {unsat:?}"
+    );
+}
+
+#[test]
+fn test_dl_domain_range_no_false_positives() {
+    // The same shapes without the disjointness must stay satisfiable, so the
+    // new axioms cannot be turning a coherent ontology incoherent.
+    let unsat = unsat_names(
+        r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix ex: <http://example.org/> .
+        ex:B a owl:Class . ex:D a owl:Class . ex:R a owl:Class .
+        ex:p a owl:ObjectProperty ; rdfs:domain ex:D ; rdfs:range ex:R .
+        ex:A a owl:Class ; rdfs:subClassOf ex:B ,
+            [ a owl:Restriction ; owl:onProperty ex:p ; owl:someValuesFrom ex:R ] .
+    "#,
+    );
+    assert!(unsat.is_empty(), "no class should be unsatisfiable, got {unsat:?}");
+}
+
+#[test]
+fn test_dl_datatype_range_is_not_a_concept() {
+    // xsd:* and rdfs:Literal are datatypes, not concepts. Asserting
+    // Top [= forall p.xsd:string would be a type error rather than an axiom,
+    // so datatype ranges must be skipped without disturbing the rest.
+    let unsat = unsat_names(
+        r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+        @prefix ex: <http://example.org/> .
+        ex:A a owl:Class .
+        ex:q a owl:DatatypeProperty ; rdfs:domain ex:A ; rdfs:range xsd:string .
+    "#,
+    );
+    assert!(unsat.is_empty(), "datatype range must not break reasoning, got {unsat:?}");
+}
