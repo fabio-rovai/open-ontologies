@@ -1205,3 +1205,46 @@ fn test_dl_satisfiable_count_is_proven_only() {
         "a complete run must prove every class satisfiable"
     );
 }
+
+#[test]
+fn test_dl_absorbs_disjunctive_lhs() {
+    // (C1 or C2) [= D has a non-atomic left-hand side, so unabsorbed it becomes
+    // a disjunction on every node. Split into C1 [= D and C2 [= D it absorbs
+    // into concept_defs and fires only where it applies. Semantics must be
+    // unchanged: E [= C1 must still inherit D and clash with a disjoint X.
+    let unsat = unsat_names(
+        r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix ex: <http://example.org/> .
+        ex:U a owl:Class ; owl:equivalentClass [ a owl:Class ; owl:unionOf ( ex:C1 ex:C2 ) ] .
+        ex:U rdfs:subClassOf ex:D .
+        ex:D owl:disjointWith ex:X .
+        ex:A a owl:Class ; rdfs:subClassOf ex:C1 , ex:X .
+    "#,
+    );
+    assert!(
+        unsat.iter().any(|u| u.ends_with("/A>")),
+        "disjunctive-LHS absorption must preserve entailment, got {unsat:?}"
+    );
+}
+
+#[test]
+fn test_dl_absorbs_conjunctive_rhs() {
+    // C [= (D1 and D2) splits into C [= D1 and C [= D2. Both conjuncts must
+    // still be entailed after the split.
+    let unsat = unsat_names(
+        r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix ex: <http://example.org/> .
+        ex:A a owl:Class ; rdfs:subClassOf
+            [ a owl:Class ; owl:intersectionOf ( ex:D1 ex:D2 ) ] , ex:X .
+        ex:D2 owl:disjointWith ex:X .
+    "#,
+    );
+    assert!(
+        unsat.iter().any(|u| u.ends_with("/A>")),
+        "conjunctive-RHS absorption must preserve entailment, got {unsat:?}"
+    );
+}

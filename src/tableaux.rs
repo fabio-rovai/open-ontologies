@@ -291,6 +291,8 @@ impl OwlParser {
         let mut individual_anon_types: HashMap<u32, Vec<Concept>> = HashMap::new();
         let mut role_assertions: Vec<(u32, u32, u32)> = Vec::new();
         let mut data_assertions: Vec<(u32, u32, u32)> = Vec::new();
+        let mut role_domains: Vec<(u32, Concept)> = Vec::new();
+        let mut role_ranges: Vec<(u32, Concept)> = Vec::new();
 
         // Collect all subjects with their types for classification
         let mut subject_types: HashMap<String, Vec<String>> = HashMap::new();
@@ -560,9 +562,9 @@ impl OwlParser {
                 named_classes.insert(id);
             }
             if is_domain {
-                axioms.push((Concept::Exists(role, Box::new(Concept::Top)), cls));
+                role_domains.push((role, cls));
             } else {
-                axioms.push((Concept::Top, Concept::ForAll(role, Box::new(cls))));
+                role_ranges.push((role, cls));
             }
         }
 
@@ -655,6 +657,8 @@ impl OwlParser {
         ParseResult {
             interner: self.interner,
             axioms,
+            role_domains,
+            role_ranges,
             named_classes,
             thing_id,
             nothing_id,
@@ -816,6 +820,11 @@ struct ParseResult {
     inverse_roles: HashMap<u32, u32>,
     functional_roles: HashSet<u32>,
     inv_functional_roles: HashSet<u32>,
+    /// rdfs:domain / rdfs:range, kept as ROLE METADATA rather than GCIs.
+    /// Encoding them as axioms puts a non-atomic left-hand side into the GCI
+    /// list, which lands a disjunction on every node and multiplies branching.
+    role_domains: Vec<(u32, Concept)>,
+    role_ranges: Vec<(u32, Concept)>,
     individual_types: HashMap<u32, HashSet<u32>>,
     /// Individuals typed directly by an ANONYMOUS class expression
     /// (`:a rdf:type [ owl:Restriction … ]`, an intersection/union/complement).
@@ -850,6 +859,11 @@ struct ProcessedTBox {
     /// cardinality clashes whose fillers are related by subsumption rather than
     /// syntactically equal.
     class_closure: HashMap<u32, HashSet<u32>>,
+    /// Effective rdfs:domain per role, super-role constraints already folded in.
+    /// Applied to the SOURCE node when an edge is created.
+    role_domain: HashMap<u32, Vec<Concept>>,
+    /// Effective rdfs:range per role, likewise. Applied to the TARGET node.
+    role_range: HashMap<u32, Vec<Concept>>,
 }
 
 impl ProcessedTBox {
@@ -861,9 +875,50 @@ impl ProcessedTBox {
         inverse_roles: HashMap<u32, u32>,
         functional_roles: &HashSet<u32>,
         inv_functional_roles: &HashSet<u32>,
+        role_domains: &[(u32, Concept)],
+        role_ranges: &[(u32, Concept)],
     ) -> Self {
         let mut concept_defs: HashMap<u32, Vec<Concept>> = HashMap::new();
         let mut gcis: Vec<Concept> = Vec::new();
+
+        // ── GCI absorption ──────────────────────────────────────────────
+        //
+        // An axiom with a non-atomic left-hand side becomes ¬sub ⊔ sup and is
+        // added to EVERY node, so each one doubles the branching factor of the
+        // whole tableau. Two standard rewrites turn most of them into atomic
+        // left-hand sides, which absorb into concept_defs and fire only when
+        // the class actually appears in a label:
+        //
+        //   (C₁ ⊔ C₂) ⊑ D   ==>   C₁ ⊑ D  and  C₂ ⊑ D
+        //   C ⊑ (D₁ ⊓ D₂)   ==>   C ⊑ D₁  and  C ⊑ D₂
+        //
+        // The first is what hqdm.owl needs: `abstract_object ≡ class ⊔
+        // relationship` produces a disjunctive left-hand side that kept the
+        // whole ontology undecidable within budget.
+        let mut work: Vec<(Concept, Concept)> = axioms.to_vec();
+        let mut absorbed: Vec<(Concept, Concept)> = Vec::new();
+        let mut guard = 0usize;
+        while let Some((sub, sup)) = work.pop() {
+            guard += 1;
+            if guard > 100_000 {
+                absorbed.push((sub, sup));
+                continue;
+            }
+            match (&sub, &sup) {
+                (Concept::Or(parts), _) if !parts.is_empty() => {
+                    for part in parts {
+                        work.push((part.clone(), sup.clone()));
+                    }
+                }
+                (_, Concept::And(parts)) if !parts.is_empty() => {
+                    for part in parts {
+                        work.push((sub.clone(), part.clone()));
+                    }
+                }
+                _ => absorbed.push((sub, sup)),
+            }
+        }
+        let axioms: &[(Concept, Concept)] = &absorbed;
 
         for (sub, sup) in axioms {
             match sub {
@@ -927,6 +982,50 @@ impl ProcessedTBox {
             class_closure.insert(sub, seen);
         }
 
+        // Domain and range are role metadata, applied when an edge is created,
+        // NOT axioms. As GCIs they are `∃p.⊤ ⊑ D` and `⊤ ⊑ ∀p.R`, both with a
+        // non-atomic left-hand side, so both land a disjunction on every node
+        // and branching grows with the number of property declarations. hqdm.owl
+        // alone carries 525 of them.
+        //
+        // A constraint on a super-role binds its sub-roles, so each role's list
+        // is closed over its transitive super-roles once, here, rather than
+        // walked on every edge.
+        let mut super_of: HashMap<u32, HashSet<u32>> = HashMap::new();
+        for (&sub, sups) in sub_to_super {
+            let mut seen: HashSet<u32> = HashSet::new();
+            let mut stack: Vec<u32> = sups.iter().copied().collect();
+            while let Some(x) = stack.pop() {
+                if seen.insert(x)
+                    && let Some(next) = sub_to_super.get(&x)
+                {
+                    stack.extend(next.iter().copied());
+                }
+            }
+            super_of.insert(sub, seen);
+        }
+        let fold = |src: &[(u32, Concept)]| -> HashMap<u32, Vec<Concept>> {
+            let mut direct: HashMap<u32, Vec<Concept>> = HashMap::new();
+            for (r, c) in src {
+                direct.entry(*r).or_default().push(c.clone());
+            }
+            let mut out = direct.clone();
+            for (role, sups) in &super_of {
+                for sup in sups {
+                    if let Some(cs) = direct.get(sup) {
+                        out.entry(*role).or_default().extend(cs.iter().cloned());
+                    }
+                }
+            }
+            for v in out.values_mut() {
+                v.sort();
+                v.dedup();
+            }
+            out
+        };
+        let role_domain = fold(role_domains);
+        let role_range = fold(role_ranges);
+
         Self {
             concept_defs,
             gcis,
@@ -935,6 +1034,8 @@ impl ProcessedTBox {
             super_to_sub: super_to_sub_map,
             inverse_roles,
             class_closure,
+            role_domain,
+            role_range,
         }
     }
 }
@@ -1190,6 +1291,21 @@ impl Tableau {
     fn create_successor(&mut self, parent_id: u32, role: u32, filler: Concept) -> u32 {
         let succ = self.fresh_node(Some(parent_id), Some(role));
         self.add_label(succ, filler);
+
+        // rdfs:range binds the target, rdfs:domain binds the source. Doing it
+        // here keeps both out of the GCI list, so they cost one label each on
+        // the two nodes actually involved instead of a disjunction on every
+        // node in the tableau.
+        if let Some(rs) = self.tbox.role_range.get(&role).cloned() {
+            for c in rs {
+                self.add_label(succ, c);
+            }
+        }
+        if let Some(ds) = self.tbox.role_domain.get(&role).cloned() {
+            for c in ds {
+                self.add_label(parent_id, c);
+            }
+        }
 
         // Add GCIs to new node
         for gci in self.tbox.gcis.clone() {
@@ -1810,6 +1926,8 @@ impl DlReasoner {
             result.inverse_roles,
             &result.functional_roles,
             &result.inv_functional_roles,
+            &result.role_domains,
+            &result.role_ranges,
         ));
 
         Ok(Self {
