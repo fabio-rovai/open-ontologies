@@ -43,7 +43,12 @@ jobs:
         run: cargo clippy -- -D warnings
       - name: Audit
         run: |
-          cargo install cargo-audit
+          # --locked installs cargo-audit with its own published Cargo.lock.
+          # Without it cargo resolves transitive deps to latest, and
+          # tinyvec 1.13.0 no longer compiles on current stable
+          # ("`vec` is imported here, but it is a module, not a macro"),
+          # so the audit step fails for a reason unrelated to this repo.
+          cargo install cargo-audit --locked
           cargo audit
 
   # Windows is the only leg that rejects an unrepresentable path, and it rejects
