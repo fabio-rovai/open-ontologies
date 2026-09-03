@@ -70,6 +70,7 @@ const OWL_NAMED_INDIVIDUAL: &str = "<http://www.w3.org/2002/07/owl#NamedIndividu
 const OWL_MIN_CARD: &str = "<http://www.w3.org/2002/07/owl#minCardinality>";
 const OWL_MAX_CARD: &str = "<http://www.w3.org/2002/07/owl#maxCardinality>";
 const OWL_EXACT_CARD: &str = "<http://www.w3.org/2002/07/owl#cardinality>";
+const OWL_EXACT_QCARD: &str = "<http://www.w3.org/2002/07/owl#qualifiedCardinality>";
 const OWL_MIN_QCARD: &str = "<http://www.w3.org/2002/07/owl#minQualifiedCardinality>";
 const OWL_MAX_QCARD: &str = "<http://www.w3.org/2002/07/owl#maxQualifiedCardinality>";
 const OWL_ON_CLASS: &str = "<http://www.w3.org/2002/07/owl#onClass>";
@@ -770,8 +771,18 @@ impl OwlParser {
             && let Some(n) = parse_card_value(&val) {
                 return RawConcept::MaxCard(prop, n, Box::new(filler));
             }
-        // exactCardinality → ≥n R.C ⊓ ≤n R.C
-        if let Some(val) = self.index.object(node, OWL_EXACT_CARD)
+        // qualifiedCardinality / cardinality → ≥n R.C ⊓ ≤n R.C
+        //
+        // The qualified form was missing while min and max both had it, so an
+        // `owl:qualifiedCardinality` restriction fell through to Top: no
+        // successor was ever generated and nothing downstream of it could
+        // clash. That is how hqdm.owl's `defined_relationship` reads as
+        // satisfiable — its =1 member_of_kind successor, which rdfs:range and
+        // owl:onClass place in two disjoint classes, was never created.
+        if let Some(val) = self
+            .index
+            .object(node, OWL_EXACT_QCARD)
+            .or_else(|| self.index.object(node, OWL_EXACT_CARD))
             && let Some(n) = parse_card_value(&val) {
                 return RawConcept::And(vec![
                     RawConcept::MinCard(prop, n, Box::new(filler.clone())),
@@ -1972,6 +1983,17 @@ impl DlReasoner {
             .filter(|(_, v)| !v.is_unsat())
             .map(|(c, _)| *c)
             .collect();
+        // Reported separately from `satisfiable`. That vector deliberately carries
+        // the undetermined classes so they stay in the hierarchy for the
+        // subsumption sweep, but counting them as "satisfiable_found" in the
+        // output claims a proof that was never constructed. On a 234-class
+        // ontology where every class is undetermined, the old field read
+        // "satisfiable_found: 234", which is indistinguishable from a coherent
+        // result.
+        let proven_satisfiable = sat_results
+            .iter()
+            .filter(|(_, v)| matches!(v, Verdict::Satisfiable))
+            .count();
         let unsatisfiable: Vec<u32> = sat_results
             .iter()
             .filter(|(_, v)| v.is_unsat())
@@ -2054,7 +2076,7 @@ impl DlReasoner {
             agents: AgentMetrics {
                 satisfiability: AgentTaskMetrics {
                     tasks: classes.len(),
-                    results: satisfiable.len(),
+                    results: proven_satisfiable,
                     time_ms: sat_time.as_millis() as u64,
                 },
                 subsumption: AgentTaskMetrics {
@@ -2460,6 +2482,7 @@ impl DlReasoner {
                 "satisfiability_agent": {
                     "classes_checked": result.agents.satisfiability.tasks,
                     "satisfiable_found": result.agents.satisfiability.results,
+                    "undetermined": result.undetermined.len(),
                     "time_ms": result.agents.satisfiability.time_ms,
                 },
                 "subsumption_agent": {

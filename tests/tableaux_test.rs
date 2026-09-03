@@ -1147,3 +1147,61 @@ fn test_dl_cardinality_subsumption_no_false_positive() {
     );
     assert!(unsat.is_empty(), "must not fire on the reversed subsumption, got {unsat:?}");
 }
+
+#[test]
+fn test_dl_qualified_exact_cardinality_is_parsed() {
+    // owl:qualifiedCardinality had no branch: min and max both fell back from
+    // the qualified to the unqualified form, the exact case only ever checked
+    // owl:cardinality. An =1 R.C restriction therefore parsed as Top, no
+    // successor was generated, and nothing downstream could clash. This is the
+    // shape of hqdm.owl's defined_relationship: its =1 member_of_kind successor
+    // is placed in two disjoint classes, one by owl:onClass and one by
+    // rdfs:range.
+    let unsat = unsat_names(
+        r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+        @prefix ex: <http://example.org/> .
+        ex:A a owl:Class ; rdfs:subClassOf
+            [ a owl:Restriction ; owl:onProperty ex:p ;
+              owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass ex:C ] .
+        ex:p a owl:ObjectProperty ; rdfs:range ex:K .
+        ex:C rdfs:subClassOf ex:CR .
+        ex:K rdfs:subClassOf ex:CC .
+        ex:CC owl:disjointWith ex:CR .
+    "#,
+    );
+    assert!(
+        unsat.iter().any(|u| u.ends_with("/A>")),
+        "owl:qualifiedCardinality must generate a successor, got {unsat:?}"
+    );
+}
+
+#[test]
+fn test_dl_satisfiable_count_is_proven_only() {
+    // `satisfiable_found` must count PROVEN satisfiable classes. Undetermined
+    // ones are carried in the internal satisfiable vector so they stay in the
+    // hierarchy for the subsumption sweep, but reporting them as satisfiable
+    // makes an incomplete run indistinguishable from a coherent one.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix ex: <http://example.org/> .
+        ex:A a owl:Class . ex:B a owl:Class .
+    "#,
+            None,
+        )
+        .unwrap();
+    let result = Reasoner::run(&store, "owl-dl", false).unwrap();
+    let p: serde_json::Value = serde_json::from_str(&result).unwrap();
+    let agent = &p["agents"]["satisfiability_agent"];
+    assert_eq!(p["complete"], true, "this tiny ontology must complete");
+    assert_eq!(agent["undetermined"], 0);
+    assert_eq!(
+        agent["satisfiable_found"], agent["classes_checked"],
+        "a complete run must prove every class satisfiable"
+    );
+}
