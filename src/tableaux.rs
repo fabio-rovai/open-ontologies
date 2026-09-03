@@ -866,18 +866,34 @@ struct ProcessedTBox {
     role_range: HashMap<u32, Vec<Concept>>,
 }
 
+/// Role-level axioms, grouped so `ProcessedTBox::new` keeps a workable
+/// argument count as more role metadata (domains, ranges) is absorbed out of
+/// the GCI list.
+struct RoleAxioms<'a> {
+    transitive_roles: HashSet<u32>,
+    sub_to_super: &'a HashMap<u32, HashSet<u32>>,
+    inverse_roles: HashMap<u32, u32>,
+    functional_roles: &'a HashSet<u32>,
+    inv_functional_roles: &'a HashSet<u32>,
+    role_domains: &'a [(u32, Concept)],
+    role_ranges: &'a [(u32, Concept)],
+}
+
 impl ProcessedTBox {
     fn new(
         axioms: &[(Concept, Concept)],
         disjoint_pairs: &[(Concept, Concept)],
-        transitive_roles: HashSet<u32>,
-        sub_to_super: &HashMap<u32, HashSet<u32>>,
-        inverse_roles: HashMap<u32, u32>,
-        functional_roles: &HashSet<u32>,
-        inv_functional_roles: &HashSet<u32>,
-        role_domains: &[(u32, Concept)],
-        role_ranges: &[(u32, Concept)],
+        roles: RoleAxioms<'_>,
     ) -> Self {
+        let RoleAxioms {
+            transitive_roles,
+            sub_to_super,
+            inverse_roles,
+            functional_roles,
+            inv_functional_roles,
+            role_domains,
+            role_ranges,
+        } = roles;
         let mut concept_defs: HashMap<u32, Vec<Concept>> = HashMap::new();
         let mut gcis: Vec<Concept> = Vec::new();
 
@@ -1921,13 +1937,15 @@ impl DlReasoner {
         let tbox = Arc::new(ProcessedTBox::new(
             &result.axioms,
             &result.disjoint_pairs,
-            result.transitive_roles,
-            &result.sub_to_super,
-            result.inverse_roles,
-            &result.functional_roles,
-            &result.inv_functional_roles,
-            &result.role_domains,
-            &result.role_ranges,
+            RoleAxioms {
+                transitive_roles: result.transitive_roles,
+                sub_to_super: &result.sub_to_super,
+                inverse_roles: result.inverse_roles,
+                functional_roles: &result.functional_roles,
+                inv_functional_roles: &result.inv_functional_roles,
+                role_domains: &result.role_domains,
+                role_ranges: &result.role_ranges,
+            },
         ));
 
         Ok(Self {
