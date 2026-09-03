@@ -1097,3 +1097,53 @@ fn test_dl_datatype_range_is_not_a_concept() {
     );
     assert!(unsat.is_empty(), "datatype range must not break reasoning, got {unsat:?}");
 }
+
+#[test]
+fn test_dl_cardinality_clash_through_subsumption() {
+    // >=2 p.C against an INHERITED <=1 p.D with C [= D. Every C-successor is a
+    // D-successor, so the bound is violated. Syntactic filler comparison misses
+    // this because C and D are different concepts.
+    let unsat = unsat_names(
+        r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+        @prefix ex: <http://example.org/> .
+        ex:D a owl:Class . ex:C a owl:Class ; rdfs:subClassOf ex:D .
+        ex:p a owl:ObjectProperty .
+        ex:Sup a owl:Class ; rdfs:subClassOf
+            [ a owl:Restriction ; owl:onProperty ex:p ;
+              owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass ex:D ] .
+        ex:A a owl:Class ; rdfs:subClassOf ex:Sup ,
+            [ a owl:Restriction ; owl:onProperty ex:p ;
+              owl:minQualifiedCardinality "2"^^xsd:nonNegativeInteger ; owl:onClass ex:C ] .
+    "#,
+    );
+    assert!(
+        unsat.iter().any(|u| u.ends_with("/A>")),
+        "cardinality bound on a superclass must constrain subclasses, got {unsat:?}"
+    );
+}
+
+#[test]
+fn test_dl_cardinality_subsumption_no_false_positive() {
+    // Same shape with the subsumption REVERSED (D [= C, bound on the subclass)
+    // is satisfiable: a >=2 p.C requirement is not constrained by <=1 p.D when
+    // D is narrower than C.
+    let unsat = unsat_names(
+        r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+        @prefix ex: <http://example.org/> .
+        ex:C a owl:Class . ex:D a owl:Class ; rdfs:subClassOf ex:C .
+        ex:p a owl:ObjectProperty .
+        ex:A a owl:Class ; rdfs:subClassOf
+            [ a owl:Restriction ; owl:onProperty ex:p ;
+              owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass ex:D ] ,
+            [ a owl:Restriction ; owl:onProperty ex:p ;
+              owl:minQualifiedCardinality "2"^^xsd:nonNegativeInteger ; owl:onClass ex:C ] .
+    "#,
+    );
+    assert!(unsat.is_empty(), "must not fire on the reversed subsumption, got {unsat:?}");
+}

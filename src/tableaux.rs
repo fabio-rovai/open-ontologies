@@ -835,6 +835,10 @@ struct ProcessedTBox {
     super_to_sub: HashMap<u32, HashSet<u32>>,
     /// Inverse role mapping (bidirectional): R → R⁻ and R⁻ → R.
     inverse_roles: HashMap<u32, u32>,
+    /// Transitive closure of asserted Atom ⊑ Atom subsumption, used to decide
+    /// cardinality clashes whose fillers are related by subsumption rather than
+    /// syntactically equal.
+    class_closure: HashMap<u32, HashSet<u32>>,
 }
 
 impl ProcessedTBox {
@@ -884,6 +888,34 @@ impl ProcessedTBox {
             }
         }
 
+        // Transitive closure of asserted Atom ⊑ Atom subsumption. Needed because a
+        // cardinality bound stated on a superclass constrains its subclasses too,
+        // which a syntactic filler comparison cannot see.
+        let mut direct: HashMap<u32, HashSet<u32>> = HashMap::new();
+        for (sub, sup) in axioms {
+            if let (Concept::Atom(a), Concept::Atom(b)) = (sub, sup)
+                && a != b
+            {
+                direct.entry(*a).or_default().insert(*b);
+            }
+        }
+        let mut class_closure: HashMap<u32, HashSet<u32>> = HashMap::new();
+        for sub in direct.keys().copied().collect::<Vec<_>>() {
+            let mut seen: HashSet<u32> = HashSet::new();
+            let mut stack: Vec<u32> = direct
+                .get(&sub)
+                .map(|v| v.iter().copied().collect())
+                .unwrap_or_default();
+            while let Some(x) = stack.pop() {
+                if seen.insert(x)
+                    && let Some(next) = direct.get(&x)
+                {
+                    stack.extend(next.iter().copied());
+                }
+            }
+            class_closure.insert(sub, seen);
+        }
+
         Self {
             concept_defs,
             gcis,
@@ -891,6 +923,7 @@ impl ProcessedTBox {
             transitive_roles,
             super_to_sub: super_to_sub_map,
             inverse_roles,
+            class_closure,
         }
     }
 }
@@ -1559,7 +1592,54 @@ impl Tableau {
     }
 
     fn any_clash(&self) -> bool {
-        self.nodes.values().any(|n| !n.blocked && n.has_clash())
+        self.nodes
+            .values()
+            .any(|n| !n.blocked && (n.has_clash() || self.card_clash_via_hierarchy(n)))
+    }
+
+    /// ≥n1 R.C against ≤n2 R.D where n1 > n2 and C ⊑ D.
+    ///
+    /// `TNode::has_clash` only fires when the two fillers are syntactically equal
+    /// or the max's filler is ⊤. That misses the common shape where a class
+    /// asserts ≥2 R.C while inheriting ≤1 R.D from an ancestor with C ⊑ D: every
+    /// C-successor is also a D-successor, so the bound is violated and the class
+    /// is unsatisfiable.
+    ///
+    /// Measured on the GCHQ-published hqdm.owl, whose 39 unsatisfiable classes
+    /// are all of this shape. Ablating its cardinality axioms takes the count to
+    /// 0, while ablating rdfs:domain, rdfs:range or owl:disjointWith each leave
+    /// all 39 standing.
+    fn card_clash_via_hierarchy(&self, n: &TNode) -> bool {
+        let subsumed = |a: &Concept, b: &Concept| -> bool {
+            match (a, b) {
+                (Concept::Atom(x), Concept::Atom(y)) => {
+                    x == y
+                        || self
+                            .tbox
+                            .class_closure
+                            .get(x)
+                            .is_some_and(|anc| anc.contains(y))
+                }
+                _ => false,
+            }
+        };
+        for label in &n.labels {
+            let (r1, n1, f1) = match label {
+                Concept::MinCard(r, k, f) => (*r, *k, f.as_ref()),
+                Concept::Exists(r, f) => (*r, 1u32, f.as_ref()),
+                _ => continue,
+            };
+            for other in &n.labels {
+                if let Concept::MaxCard(r2, n2, f2) = other
+                    && r1 == *r2
+                    && n1 > *n2
+                    && subsumed(f1, f2)
+                {
+                    return true;
+                }
+            }
+        }
+        false
     }
 
     /// Subset blocking: node blocked by ancestor with ⊇ labels.
