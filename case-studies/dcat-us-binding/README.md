@@ -17,9 +17,20 @@ implementation of the World Wide Web Consortium's (W3C) DCAT standard". DCAT v3 
 
 The project inherited a website, a JSON Schema and a SHACL definition that were out of
 sync, with nobody left who knew which was authoritative, and collapsed to the JSON
-Schema as the single source of truth. The SHACL file was deleted in PR #120. What was
-never published is a JSON-LD context, so the JSON has no defined RDF interpretation at
-all.
+Schema as the single source of truth. The SHACL file was deleted in PR #120. The live
+repository publishes no JSON-LD context, so the JSON it ships has no defined RDF
+interpretation.
+
+A context for the profile does exist, at
+[DOI-DO/dcat-us](https://github.com/DOI-DO/dcat-us), 48,311 bytes alongside Turtle
+serialisations of every example. That repository is marked deprecated in its own README,
+which points to <https://resources.data.gov/resources/dcat-us3/>, and `GSA/dcat-us`
+re-checked at `main` on 4 September 2026 still publishes no context, JSON-LD, SHACL or
+Turtle artefact outside its `DEPRECATED/` tree. The measurement below is against the live
+repository. The deprecated context is worth reading as the control case rather than a
+counterexample: it is hand-maintained and it has drifted, declaring a namespace host that
+does not resolve and minting the W3C Organization Ontology under `w3c.org` instead of
+`w3.org`. A context generated from the schema cannot acquire either defect.
 
 ## The result
 
