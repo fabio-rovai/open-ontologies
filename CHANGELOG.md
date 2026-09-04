@@ -4,7 +4,41 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-04
+
+> `v1.2.1` was tagged from inside this range (`5208de8`) without a version bump
+> and without a section of its own, so the binary published as
+> `ghcr.io/fabio-rovai/open-ontologies:1.2.1` reports itself as 1.2.0. Its 114
+> commits are documented below rather than separately, and the bump that should
+> have accompanied that tag lands here.
+
 ### Fixed
+- **`reason` published inferences as assertions.** Materialised triples were
+  merged into the default graph with no marker, so an inference was
+  byte-identical in form to a statement a person had written and `save` wrote it
+  out: a source of 8 triples came back as 9, newly asserting
+  `<http://ex.org/ghost> a <http://ex.org/Person>`, true only under a range
+  entailment over a dangling reference. `InferenceTarget::Inferred`, reachable
+  as `onto_reason`'s `inference_graph` option, materialises into the named graph
+  `https://open-ontologies.org/graph/inferred` instead. A separate graph rather
+  than a marker triple, chosen on failure direction: a marker obliges every
+  consumer to filter and the one that forgets publishes an inference as an
+  assertion, while a separate graph means the consumer that forgets sees fewer
+  triples and never wrong ones. Naming the graph is not what closes it, since
+  `serialize` flattens named graphs for the triple formats by design; that one
+  graph is now withheld from Turtle, RDF/XML and N-Triples, and kept for TriG,
+  N-Quads and JSON-LD, which carry the name and lose nothing. Opt-in, default
+  unchanged. `owl-dl` refuses the target rather than merging into the default
+  graph while the caller believes otherwise. ADR in
+  `docs/decisions/0001-an-inference-is-not-an-assertion.md`.
+- **A soundness test read an unfinished reasoner run as a verdict.**
+  `is_consistent()` read `consistent` and ignored `complete`. Consistency starts
+  true and is falsified by finding a clash, so a run that hits a budget reports
+  `consistent: true` with `complete: false`, and reading only the first field
+  treats "I ran out of budget" as "I proved it". Two assertions failed once on a
+  loaded machine with a message accusing the reasoner of unsoundness; the engine
+  had set the flag correctly and the reading was wrong. The assertions are
+  unchanged in strength, and an unfinished run now fails saying what happened.
 - **The DL reasoner discovered entities by their typing declarations rather than
   by the axioms that use them, and its headline `consistent` flag answered for
   the TBox alone.** Three defects, one root cause, found from the outside by
@@ -435,6 +469,41 @@ All notable changes to Open Ontologies are documented here.
   a third section covers what parsing adds.
 
 ### Added
+- **`onto_defects`, and a `defects` CLI subcommand: the ontology is checked
+  against itself before any data is judged by it.** A self-contradicting
+  ontology makes every fact-level conclusion suspect, and a reasoner amplifies
+  whatever the declarations say. A different question from `onto_dl_check`:
+  satisfiability asks whether a model exists, these checks ask whether a pair of
+  declarations will manufacture contradictions once instances arrive, so a
+  property declared both transitive and functional is satisfiable and is still
+  reported. Eight kinds, decided from the TBox alone with no data:
+  `transitive_and_functional`, `symmetric_and_asymmetric`, `subclass_cycle`,
+  `sub_property_cycle`, `disjoint_with_ancestor`, `inherited_disjoint`,
+  `self_inverse`, `inverse_not_mutual`. Findings carry a severity, because a
+  sweep over the 153 readable ontologies in this repository returned 27 findings
+  of which 25 were the mildest kind, and reporting `inverse_not_mutual`, where
+  the entailment holds either way, beside a class that can have no instances
+  buries the finding that matters. Each kind is listed at most 50 times with the
+  true total under `truncated`. The subcommand exits non-zero on unparseable
+  input and returns JSON on a missing file.
+- **More SHACL constraint components, and all four target forms.** `sh:in`,
+  `sh:nodeKind`, `sh:not`, the length bounds, the string and pair constraints
+  and `sh:qualifiedValueShape` are evaluated rather than skipped, and focus
+  nodes are selected from `sh:targetClass` including the implicit class target,
+  `sh:targetNode`, `sh:targetSubjectsOf` and `sh:targetObjectsOf`. Shapes across
+  the estate leaned on components the engine could only skip, so real shapes
+  graphs got no verdict at all.
+- **`tools/shacl_differential.py`, a differential oracle against pyshacl.** A
+  validator is trusted on evidence, not on its own test suite. Both engines run
+  over the same (data, shapes) pairs and disagreement is ranked by severity: a
+  false clean, where we say conforms and pyshacl does not, is the one failure
+  mode the validator must not have; a false alarm makes the gate untrustworthy
+  in the other direction; an undetermined verdict is honest and is the work
+  list. Where both give a verdict the violation sets are compared as
+  (focus_node, path) pairs, because agreeing on the verdict is not the same as
+  agreeing on why.
+- **`docs/UPSTREAM_ISSUES.md`**, recording reproducible defects found in
+  dependencies, staged for a human to file rather than filed.
 - **`temporal:supersedes` and `temporal:retracts`: lineage that is asserted,
   never inferred** (#109). Three situations looked identical in the data: a
   correction (one authority replacing its own assertion), a disagreement (two
