@@ -256,6 +256,12 @@ pub struct OntoReasonInput {
     pub profile: Option<String>,
     /// If true (default), add inferred triples to the store. If false, dry-run only.
     pub materialize: Option<bool>,
+    /// If true, materialise into the inference graph
+    /// `https://open-ontologies.org/graph/inferred` instead of merging into the
+    /// default graph, so an inference can never be mistaken for an assertion and
+    /// `onto_save` to a triple format cannot publish one. Default false, which
+    /// keeps the historical behaviour. Not available for the `owl-dl` profile.
+    pub inference_graph: Option<bool>,
 }
 
 #[derive(Deserialize, JsonSchema)]

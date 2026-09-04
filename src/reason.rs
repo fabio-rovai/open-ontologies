@@ -62,6 +62,27 @@ impl Interner {
 ///                  sameAs, equivalentClass/Property)
 ///   "owl-rl-ext" — All above + someValuesFrom, allValuesFrom, hasValue,
 ///                  intersectionOf, unionOf
+/// The graph materialised inferences are written to when the caller asks for
+/// them to be kept apart from what was asserted.
+pub const INFERRED_GRAPH: &str = "https://open-ontologies.org/graph/inferred";
+
+/// Where `reason` puts the triples it materialises.
+///
+/// The choice is a failure-direction one, not a matter of taste. A marker
+/// triple on statements sitting in the default graph obliges every consumer to
+/// filter, and the one that forgets publishes an inference as an assertion. A
+/// separate graph fails the other way: a consumer that forgets sees fewer
+/// triples, never wrong ones.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum InferenceTarget {
+    /// Merge into the default graph beside the asserted statements. The
+    /// historical behaviour, kept so existing callers keep their contract.
+    DefaultGraph,
+    /// Keep them in [`INFERRED_GRAPH`], where nothing downstream can mistake
+    /// an inference for an assertion.
+    Inferred,
+}
+
 pub struct Reasoner;
 
 impl Reasoner {
@@ -70,8 +91,25 @@ impl Reasoner {
         profile: &str,
         materialize: bool,
     ) -> anyhow::Result<String> {
+        Self::run_with_target(graph, profile, materialize, InferenceTarget::DefaultGraph)
+    }
+
+    pub fn run_with_target(
+        graph: &Arc<GraphStore>,
+        profile: &str,
+        materialize: bool,
+        target: InferenceTarget,
+    ) -> anyhow::Result<String> {
         // Delegate OWL-DL to tableaux reasoner
         if profile == "owl-dl" {
+            if target == InferenceTarget::Inferred {
+                // Say so rather than materialise into the default graph while
+                // the caller believes the inferences were kept apart.
+                anyhow::bail!(
+                    "the owl-dl tableaux path does not yet write to {INFERRED_GRAPH}; \
+                     run it with the default target, or use owl-rl / owl-rl-ext"
+                );
+            }
             return crate::tableaux::DlReasoner::run(graph, materialize);
         }
 
@@ -435,18 +473,26 @@ impl Reasoner {
         // Materialize inferred triples
         if materialize && inferred_count > 0 {
             let original: HashSet<(u32, u32, u32)> = facts.iter().copied().collect();
-            let mut ntriples = String::new();
+            let mut lines = String::new();
             for &(s, p, o) in &triple_set {
                 if !original.contains(&(s, p, o)) {
-                    ntriples.push_str(interner.resolve(s));
-                    ntriples.push(' ');
-                    ntriples.push_str(interner.resolve(p));
-                    ntriples.push(' ');
-                    ntriples.push_str(interner.resolve(o));
-                    ntriples.push_str(" .\n");
+                    lines.push_str(interner.resolve(s));
+                    lines.push(' ');
+                    lines.push_str(interner.resolve(p));
+                    lines.push(' ');
+                    lines.push_str(interner.resolve(o));
+                    if target == InferenceTarget::Inferred {
+                        lines.push_str(" <");
+                        lines.push_str(INFERRED_GRAPH);
+                        lines.push('>');
+                    }
+                    lines.push_str(" .\n");
                 }
             }
-            graph.load_ntriples(&ntriples)?;
+            match target {
+                InferenceTarget::DefaultGraph => graph.load_ntriples(&lines)?,
+                InferenceTarget::Inferred => graph.load_nquads(&lines)?,
+            };
         }
 
         // Sample
@@ -468,6 +514,11 @@ impl Reasoner {
         });
         if !materialize {
             result["dry_run"] = serde_json::json!(true);
+        }
+        if target == InferenceTarget::Inferred {
+            // A caller cannot ask the inferences back unless it is told where
+            // they were put.
+            result["inference_graph"] = serde_json::json!(INFERRED_GRAPH);
         }
         Ok(result.to_string())
     }

@@ -419,7 +419,15 @@ impl GraphStore {
         // and for the triple formats we keep flattening. `supports_datasets`
         // owns the list upstream, so a format added later (JSON-LD is already
         // in it) is classified correctly rather than silently flattened.
+        //
+        // The inference graph is the one exception to that flattening. Merging
+        // materialised triples into the default graph is what let `save`
+        // publish `<ex:ghost> a <ex:Person>` as though a person had written it
+        // (flaw hunt D2, 30 Aug 2026). A triple format cannot say "this one was
+        // derived", so the only statement it can make honestly is the asserted
+        // one; the dataset formats keep the graph name and lose nothing.
         let carries_graph_name = rdf_format.supports_datasets();
+        let inferred_graph = GraphName::NamedNode(NamedNode::new(crate::reason::INFERRED_GRAPH)?);
         let mut buf = Vec::new();
         let mut serializer = RdfSerializer::from_format(rdf_format).for_writer(&mut buf);
         for quad in store.iter() {
@@ -427,6 +435,9 @@ impl GraphStore {
             if carries_graph_name {
                 serializer.serialize_quad(quad.as_ref())?;
             } else {
+                if quad.graph_name == inferred_graph {
+                    continue;
+                }
                 serializer.serialize_triple(quad.as_ref())?;
             }
         }
