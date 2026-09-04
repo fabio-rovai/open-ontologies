@@ -17,28 +17,29 @@ When building or modifying ontologies, follow this workflow. Claude decides whic
 
 ### Reason
 
-6. Call `onto_reason` with profile `rdfs` or `owl-rl` to materialize inferred triples (transitive subclass chains, domain/range propagation, equivalentClass expansion)
-7. Call `onto_stats` again to verify inferred triple counts are reasonable
+6. Call `onto_defects` FIRST. A reasoner amplifies whatever the declarations say, so a self-contradicting ontology makes every inference suspect. Fix what it reports before materializing anything
+7. Call `onto_reason` with profile `rdfs` or `owl-rl` to materialize inferred triples (transitive subclass chains, domain/range propagation, equivalentClass expansion)
+8. Call `onto_stats` again to verify inferred triple counts are reasonable
 
 ### Verify
 
-8. Call `onto_lint` to check for missing labels, comments, domains, ranges — fix any issues found
-9. Call `onto_enforce` with rule pack `generic` to check design pattern compliance — fix any violations
-10. Call `onto_query` with SPARQL to verify structure:
+9. Call `onto_lint` to check for missing labels, comments, domains, ranges — fix any issues found
+10. Call `onto_enforce` with rule pack `generic` to check design pattern compliance — fix any violations
+11. Call `onto_query` with SPARQL to verify structure:
     - Are all expected classes present?
     - Do subclass hierarchies match the spec?
     - Can competency questions be answered?
-11. If a reference ontology exists, call `onto_diff` to compare
+12. If a reference ontology exists, call `onto_diff` to compare
 
 ### Iterate
 
-12. If any step above reveals problems, fix the Turtle and restart from step 3
-13. This loop continues until validation passes, stats match, lint is clean, enforce has no violations, and SPARQL queries return expected results
+13. If any step above reveals problems, fix the Turtle and restart from step 3
+14. This loop continues until validation passes, stats match, lint is clean, enforce has no violations, and SPARQL queries return expected results
 
 ### Persist
 
-14. Call `onto_save` to write the final ontology to a .ttl file
-15. Call `onto_version` to save a named snapshot for rollback — always version after save
+15. Call `onto_save` to write the final ontology to a .ttl file
+16. Call `onto_version` to save a named snapshot for rollback — always version after save
 
 ### Key Principle
 
@@ -73,7 +74,8 @@ Claude dynamically decides the next tool call based on what the previous tool re
 | `onto_ossie_import` | To compile an Apache Ossie (incubating, formerly Open Semantic Interchange) ontology document into OWL 2 DL + SHACL and optionally load it, making a vendor semantic model reasonable/validatable for the first time. Reports the four constructs OWL 2 DL cannot express (`OneToOne` onto a `ValueType`, `ManyToOne` on arity>=3, `derived_by`, non-scalar `requires`) instead of dropping them |
 | `onto_shacl` | To validate loaded data against SHACL shapes (cardinality, datatypes, classes) |
 | `onto_vocab_check` | To closed-world-check generated DATA: flags any predicate/class used that is not declared in the loaded ontology (hallucinated terms). Catches what open-world SHACL silently passes. Run on LLM-generated Turtle before `onto_load` |
-| `onto_reason` | To run RDFS or OWL-RL inference, materializing inferred triples |
+| `onto_defects` | BEFORE trusting any fact-level result, and on every marketplace pack before adopting it. Checks the ONTOLOGY against itself with no data present: `transitive_and_functional`, `symmetric_and_asymmetric`, `subclass_cycle`, `sub_property_cycle`, `disjoint_with_ancestor`, `inherited_disjoint`, `self_inverse`, `inverse_not_mutual`. A different question from `onto_dl_check`: a transitive functional property is satisfiable and is still a trap, because the pair manufactures contradictions the moment instances arrive. Each kind is listed at most 50 times, with the full total under `truncated` |
+| `onto_reason` | To run RDFS or OWL-RL inference, materializing inferred triples. Pass `inference_graph: true` to keep them in `https://open-ontologies.org/graph/inferred` instead of the default graph, so nothing downstream can read an inference as an assertion and `onto_save` to Turtle/RDF-XML cannot publish one. Default false (unchanged behaviour); not available for `owl-dl` |
 | `onto_reason_incremental` | After adding facts to an already-materialised graph. Derives the consequences of the ADDED triples only (semi-naive evaluation, joining the delta against the closure), so the cost tracks what changed rather than the size of the store: effectively instant against a 1.9M-triple store where full re-materialisation takes seconds. Refuses schema axioms (subClassOf, domain, range, inverseOf, equivalentClass) with an explanation, because those change what the whole store entails: run `onto_reason` for them |
 | `onto_extend` | To run the full pipeline: ingest → SHACL validate → reason in one call |
 | `onto_import_schema` | To import a PostgreSQL or DuckDB database schema as an OWL ontology (requires `postgres` and/or `duckdb` features). Auto-dispatches on connection-string scheme. |

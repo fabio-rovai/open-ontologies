@@ -437,6 +437,14 @@ impl OpenOntologiesServer {
         }
     }
 
+    #[tool(name = "onto_defects", description = "Check the ONTOLOGY itself, before any data is judged against it. Reports eight kinds of self-contradicting or self-defeating declaration: transitive_and_functional, symmetric_and_asymmetric, subclass_cycle, sub_property_cycle, disjoint_with_ancestor, inherited_disjoint, self_inverse, inverse_not_mutual. This is a different question from onto_dl_check: a transitive functional property is satisfiable and is still a trap, because the pair manufactures contradictions as soon as instances arrive. Run it after onto_load and before trusting any fact-level result, and on every marketplace pack before adopting it. Each kind is listed at most 50 times; the full total is reported under `truncated`.")]
+    fn onto_defects(&self) -> String {
+        if let Err(e) = self.registry.ensure_loaded() {
+            return Self::err_json(format!("ensure_loaded: {e}"));
+        }
+        crate::defects::Defects::check(&self.graph).unwrap_or_else(Self::err_json)
+    }
+
     #[tool(name = "onto_stats", description = "Get statistics about the loaded ontology (triple count, classes, properties, individuals)")]
     fn onto_stats(&self) -> String {
         if let Err(e) = self.registry.ensure_loaded() {
@@ -1868,12 +1876,17 @@ impl OpenOntologiesServer {
         body.to_string()
     }
 
-    #[tool(name = "onto_reason", description = "Run inference over the loaded ontology. Profiles: 'rdfs' (subclass, domain/range), 'owl-rl' (+ transitive/symmetric/inverse, sameAs, equivalentClass), 'owl-rl-ext' (+ someValuesFrom, allValuesFrom, hasValue, intersectionOf, unionOf), 'owl-dl' (Full OWL2-DL SHOIQ tableaux: satisfiability, classification, qualified number restrictions with node merging, inverse/symmetric roles, functional properties, parallel agent-based classification, explanation traces, ABox reasoning). Materializes inferred triples.")]
+    #[tool(name = "onto_reason", description = "Run inference over the loaded ontology. Profiles: 'rdfs' (subclass, domain/range), 'owl-rl' (+ transitive/symmetric/inverse, sameAs, equivalentClass), 'owl-rl-ext' (+ someValuesFrom, allValuesFrom, hasValue, intersectionOf, unionOf), 'owl-dl' (Full OWL2-DL SHOIQ tableaux: satisfiability, classification, qualified number restrictions with node merging, inverse/symmetric roles, functional properties, parallel agent-based classification, explanation traces, ABox reasoning). Materializes inferred triples. Set `inference_graph` to keep them in a separate graph, where nothing downstream can read an inference as an assertion and a Turtle/RDF-XML save cannot publish one.")]
     async fn onto_reason(&self, Parameters(input): Parameters<OntoReasonInput>) -> String {
         use crate::reason::Reasoner;
         let profile = input.profile.as_deref().unwrap_or("rdfs");
         let materialize = input.materialize.unwrap_or(true);
-        Reasoner::run(&self.graph, profile, materialize)
+        let target = if input.inference_graph.unwrap_or(false) {
+            crate::reason::InferenceTarget::Inferred
+        } else {
+            crate::reason::InferenceTarget::DefaultGraph
+        };
+        Reasoner::run_with_target(&self.graph, profile, materialize, target)
             .unwrap_or_else(Self::err_json)
     }
 

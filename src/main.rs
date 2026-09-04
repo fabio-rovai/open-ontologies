@@ -348,6 +348,8 @@ enum Commands {
     Diff { old_path: String, new_path: String },
     /// Lint: check for missing labels, domains, ranges
     Lint { input: String },
+    /// Defects: check the ONTOLOGY against itself, before any data is judged by it
+    Defects { input: String },
     /// Convert between RDF formats
     Convert {
         path: String,
@@ -616,6 +618,7 @@ impl Commands {
             Commands::Stats => cmd("stats", vec![]),
             Commands::Query { query } => cmd("query", vec![query.clone()]),
             Commands::Lint { input } => cmd("lint", vec![absolutize(input)]),
+            Commands::Defects { input } => cmd("defects", vec![absolutize(input)]),
             Commands::Reason { profile } => {
                 cmd("reason", vec!["--profile".into(), profile.clone()])
             }
@@ -1893,6 +1896,45 @@ async fn async_main() -> anyhow::Result<()> {
             let old = std::fs::read_to_string(&old_path)?;
             let new = std::fs::read_to_string(&new_path)?;
             let result = OntologyService::diff(&old, &new)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            output_result_checked(&result, cli.pretty);
+        }
+        Commands::Defects { input } => {
+            use open_ontologies::defects::Defects;
+            let (_db, graph) = setup(&cli.data_dir)?;
+            let raw = if input == "-" {
+                let mut buf = String::new();
+                std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
+                buf
+            } else {
+                match std::fs::read_to_string(&input) {
+                    Ok(c) => c,
+                    Err(e) => {
+                        // JSON on every path, including this one. `lint` used to
+                        // answer a missing file with a bare `Error: No such file`,
+                        // so `open-ontologies lint f | jq` crashed on the case it
+                        // most needs to handle (flaw hunt D4).
+                        output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                        std::process::exit(1);
+                    }
+                }
+            };
+            // Sniff the serialisation rather than assume Turtle, and fail the
+            // process when the document cannot be read. A clean bill of health
+            // over a file that was never parsed is the one answer a checker must
+            // never give (flaw hunt D1).
+            let content = match GraphStore::content_as_turtle(&input, raw) {
+                Ok(c) => c,
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                    std::process::exit(1);
+                }
+            };
+            if let Err(e) = graph.load_turtle(&content, None) {
+                output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                std::process::exit(1);
+            }
+            let result = Defects::check(&graph)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result_checked(&result, cli.pretty);
         }
