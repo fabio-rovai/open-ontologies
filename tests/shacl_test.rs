@@ -263,9 +263,17 @@ const NOT_DATA: &str = r#"
 "#;
 
 #[test]
-fn test_sh_not_is_not_silently_ignored() {
-    // `sh:not` is not implemented. It must be reported as skipped, which
-    // suppresses the verdict, rather than passing silently.
+fn test_sh_not_is_evaluated() {
+    // This test has been through all three states of the constraint it guards.
+    // First `sh:not` was silently ignored and this data came back clean, which
+    // is the false clean that cost 198 real violations in the Scottish land
+    // register build. Then it was recorded as skipped, and the test asserted a
+    // null verdict: honest, but the rule still never ran. It is evaluated now,
+    // so the assertion is the violation itself.
+    //
+    // The false-clean guard has not been dropped, only moved: an unevaluated
+    // negation is still pinned by
+    // `shacl_not_test::a_nested_form_that_cannot_be_evaluated_still_reaches_skipped`.
     let store = store_with(NOT_DATA);
     let shapes = r#"
         @prefix sh: <http://www.w3.org/ns/shacl#> .
@@ -275,19 +283,26 @@ fn test_sh_not_is_not_silently_ignored() {
     "#;
     let report = ShaclValidator::validate(&store, shapes).unwrap();
     let v: serde_json::Value = serde_json::from_str(&report).unwrap();
-    assert!(v["conforms"].is_null(), "must not claim a pass: {v}");
-    assert!(
-        v["skipped_constraints"]
-            .as_array()
-            .is_some_and(|a| !a.is_empty()),
-        "sh:not must be recorded as skipped: {v}"
+    assert_eq!(
+        v["conforms"],
+        serde_json::json!(false),
+        "ex:a carries the forbidden value; pyshacl agrees: {v}"
     );
+    assert_eq!(v["violation_count"], serde_json::json!(1), "{v}");
+    assert_eq!(v["violations"][0]["focus_node"], "http://example.org/a");
+    assert_eq!(v["violations"][0]["constraint"], "not");
 }
 
 #[test]
-fn test_target_node_shape_does_not_report_a_pass() {
-    // `sh:targetNode` selects no focus nodes here, so the shapes graph yields
-    // nothing evaluable. Previously this reported conforms: true.
+fn test_target_node_shape_is_evaluated() {
+    // This test used to assert the opposite: `sh:targetNode` selected nothing,
+    // so the run had to come back null rather than claim a pass. That was the
+    // right answer while the form was unimplemented. It is implemented now, so
+    // the honest answer is a real verdict, and a null here would be the new
+    // defect. The invariant behind the old assertion is unchanged — never
+    // report a pass for something that was not evaluated — and it is still
+    // pinned, by `test_a_target_selecting_nothing_still_yields_no_verdict`
+    // below and by the vacuous-target suite.
     let store = store_with("@prefix ex: <http://example.org/> . ex:b a ex:Thing .");
     let shapes = r#"
         @prefix sh: <http://www.w3.org/ns/shacl#> .
@@ -297,7 +312,37 @@ fn test_target_node_shape_does_not_report_a_pass() {
     "#;
     let report = ShaclValidator::validate(&store, shapes).unwrap();
     let v: serde_json::Value = serde_json::from_str(&report).unwrap();
+    assert_eq!(v["focus_nodes"], serde_json::json!(1), "{v}");
+    assert_eq!(
+        v["conforms"],
+        serde_json::json!(false),
+        "ex:b has no ex:p, so the shape fails: {v}"
+    );
+    assert_eq!(v["violation_count"], serde_json::json!(1), "{v}");
+}
+
+#[test]
+fn test_a_target_selecting_nothing_still_yields_no_verdict() {
+    // The tri-state must stay reachable from a target now that all four target
+    // forms are evaluated. A form that is implemented can still select nothing,
+    // and a run that checked no nodes has not earned a pass.
+    let store = store_with("@prefix ex: <http://example.org/> . ex:b a ex:Thing .");
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ; sh:targetSubjectsOf ex:predicateNotInTheData ;
+            sh:property [ sh:path ex:p ; sh:minCount 1 ] .
+    "#;
+    let report = ShaclValidator::validate(&store, shapes).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&report).unwrap();
+    assert_eq!(v["focus_nodes"], serde_json::json!(0), "{v}");
     assert!(v["conforms"].is_null(), "must not claim a pass: {v}");
+    assert!(
+        v["unmatched_shapes"]
+            .as_array()
+            .is_some_and(|a| !a.is_empty()),
+        "the empty target must be named: {v}"
+    );
 }
 
 #[test]
@@ -386,12 +431,22 @@ fn test_node_shape_constraints_reach_the_tri_state_verdict() {
 }
 
 #[test]
-fn test_tri_state_verdict_is_reachable_from_node_shape_property_shape_and_target() {
+fn test_tri_state_verdict_is_reachable_from_node_shape_and_property_shape() {
     // A validator has three answers, not two, and every path that can select
     // nothing or execute nothing has to reach the third one. This pins that
-    // the null verdict is reachable from each of the three places a SHACL
+    // the null verdict is reachable from each place an unimplemented SHACL
     // construct can sit, each with its own skipped entry naming the construct,
     // so the next construct added has somewhere obvious to fail.
+    //
+    // There were three arms. The target arm is gone because all four core
+    // target forms are now evaluated, so no target form can produce a skipped
+    // entry any more; the target route to a null verdict is an empty target
+    // set, pinned by `test_a_target_selecting_nothing_still_yields_no_verdict`.
+    // The property arm names whichever constraint is currently unimplemented,
+    // so it has to be repointed each time one of them is implemented: off
+    // `sh:not`, then off `sh:minLength`, now on `sh:uniqueLang`. That churn is
+    // the test working, not the test being fragile — it fails the moment the
+    // constraint it names starts being evaluated.
     let store = store_with(NOT_DATA);
     let cases = [
         (
@@ -409,19 +464,9 @@ fn test_tri_state_verdict_is_reachable_from_node_shape_property_shape_and_target
             @prefix sh: <http://www.w3.org/ns/shacl#> .
             @prefix ex: <http://example.org/> .
             ex:S a sh:NodeShape ; sh:targetClass ex:Thing ;
-                sh:property [ sh:path ex:mech ; sh:not [ sh:hasValue ex:bad ] ] .
+                sh:property [ sh:path ex:mech ; sh:uniqueLang true ] .
             "#,
-            format!("{SH_NS}not"),
-        ),
-        (
-            "target",
-            r#"
-            @prefix sh: <http://www.w3.org/ns/shacl#> .
-            @prefix ex: <http://example.org/> .
-            ex:S a sh:NodeShape ; sh:targetNode ex:a ;
-                sh:property [ sh:path ex:mech ; sh:minCount 1 ] .
-            "#,
-            "sh:targetNode".to_string(),
+            format!("{SH_NS}uniqueLang"),
         ),
     ];
     for (place, shapes, construct) in cases {
