@@ -206,8 +206,25 @@ const RS_PREFIXES: &str = "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
     ex:D a owl:Class . ex:E a owl:Class . ex:D owl:disjointWith ex:E .\n\
     ex:r a owl:ObjectProperty . ex:s a owl:ObjectProperty ; owl:inverseOf ex:r .\n";
 
+/// Read the consistency verdict, refusing to accept one the reasoner never
+/// proved.
+///
+/// `consistent` starts true and is falsified by finding a clash, so an
+/// unfinished run reports `consistent: true` with `complete: false`. Reading
+/// the first field and ignoring the second treats "I ran out of budget" as
+/// "I proved it", which is the exact confusion `incomplete_runs_are_declared_in_the_output`
+/// exists to prevent, and it made these two tests fail intermittently on a
+/// loaded machine with a message accusing the reasoner of unsoundness. The
+/// engine was right; the reading was wrong. Fail on the unfinished run and say
+/// what actually happened.
 fn is_consistent(body: &str) -> bool {
-    classify(&format!("{RS_PREFIXES}{body}"))
+    let result = classify(&format!("{RS_PREFIXES}{body}"));
+    assert_ne!(
+        result.get("complete").and_then(|v| v.as_bool()),
+        Some(false),
+        "the reasoner hit a budget before finishing, so this run proves nothing          either way. Raise [reasoner] tableaux_max_nodes / tableaux_max_depth, or          give the run more time, rather than reading an unfinished run as a          verdict. Full result: {result}"
+    );
+    result
         .get("consistent")
         .and_then(|v| v.as_bool())
         .expect("consistent must be present")
