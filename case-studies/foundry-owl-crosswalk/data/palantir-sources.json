@@ -19,6 +19,15 @@
       "sha256": "381fdb658b5cbae6dcc47938474676095ffc3be1ed352db80c117ff3d7e7fb2d"
     },
     {
+      "file": "ies-common.ttl",
+      "url": "https://raw.githubusercontent.com/IES-Org/ont-ies/main/docs/specification/ies-common.ttl",
+      "repository": "IES-Org/ont-ies",
+      "licence": "OGL / see repository",
+      "note": "The UK Government Information Exchange Standard, version 5.0.3. The earlier dstl/IES4 repository was archived on 4 March 2025.",
+      "bytes": 264831,
+      "sha256": "f742233837b6f43d28c3cec201054dfc9a77b44cd5f19bf39d2233627e4b37e5"
+    },
+    {
       "file": "objectTypeV2.ts",
       "url": "https://raw.githubusercontent.com/palantir/osdk-ts/main/packages/shared.test/src/stubs/objectTypeV2.ts",
       "repository": "palantir/osdk-ts",

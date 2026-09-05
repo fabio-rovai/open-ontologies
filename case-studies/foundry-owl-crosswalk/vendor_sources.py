@@ -28,6 +28,13 @@ SOURCES = {
         "Apache-2.0",
         "Core wire models: the scalar property data types.",
     ),
+    "ies-common.ttl": (
+        "https://raw.githubusercontent.com/IES-Org/ont-ies/main/docs/specification/ies-common.ttl",
+        "IES-Org/ont-ies",
+        "OGL / see repository",
+        "The UK Government Information Exchange Standard, version 5.0.3. The "
+        "earlier dstl/IES4 repository was archived on 4 March 2025.",
+    ),
     "objectTypeV2.ts": (
         "https://raw.githubusercontent.com/palantir/osdk-ts/"
         "main/packages/shared.test/src/stubs/objectTypeV2.ts",

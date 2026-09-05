@@ -9,6 +9,7 @@ JSON that `foundry_owl.py` and `owl_to_foundry.py` produce. None is typed.
 | --- | --- | --- | ---: | --- |
 | `models.py` | palantir/foundry-platform-python | Apache-2.0 | 318020 | `2a54626dd6db96f3` |
 | `core_models.py` | palantir/foundry-platform-python | Apache-2.0 | 31972 | `381fdb658b5cbae6` |
+| `ies-common.ttl` | IES-Org/ont-ies | OGL / see repository | 264831 | `f742233837b6f43d` |
 | `objectTypeV2.ts` | palantir/osdk-ts | Apache-2.0 | 17690 | `5e7c841bf840c046` |
 | `linkTypes.ts` | palantir/osdk-ts | Apache-2.0 | 2356 | `e506ae26346101dd` |
 | `spts.ts` | palantir/osdk-ts | Apache-2.0 | 961 | `4ac97ec8c19968d5` |
@@ -72,15 +73,21 @@ construct checked against the fields that exist in Palantir's ontology model.
 
 | Ontology | Triples | Constructs used | Carried | Partial | No destination |
 | --- | ---: | ---: | ---: | ---: | ---: |
+| `ies-common.ttl` | 4039 | 8 | 1796 | 764 | 202 |
 | `ies4.ttl` | 3976 | 8 | 1789 | 760 | 200 |
 | `ies-core.ttl` | 1083 | 7 | 379 | 178 | 36 |
-| `ies-top.ttl` | 239 | 6 | 88 | 30 | 21 |
 | `boro-building-handcrafted.ttl` | 355 | 8 | 198 | 66 | 18 |
 | `pizza-reference.owl` | 2332 | 24 | 284 | 270 | 1241 |
 
 ![Axiom survival by ontology](axiom-survival.svg)
 
 ### Where each ontology loses its axioms
+
+**ies-common.ttl**
+
+| Construct | Assertions | Why it has no destination |
+| --- | ---: | --- |
+| `rdfs:subPropertyOf` | 202 | No field arranges properties in a hierarchy. |
 
 **ies4.ttl**
 
@@ -93,12 +100,6 @@ construct checked against the fields that exist in Palantir's ontology model.
 | Construct | Assertions | Why it has no destination |
 | --- | ---: | --- |
 | `rdfs:subPropertyOf` | 36 | No field arranges properties in a hierarchy. |
-
-**ies-top.ttl**
-
-| Construct | Assertions | Why it has no destination |
-| --- | ---: | --- |
-| `rdfs:subPropertyOf` | 21 | No field arranges properties in a hierarchy. |
 
 **boro-building-handcrafted.ttl**
 

@@ -122,7 +122,10 @@ def audit(graph: Graph, name: str) -> dict:
 
 def main() -> None:
     targets = sys.argv[1:] or [
+        str(HERE / "vendor" / "ies-common.ttl"),
         str(HERE.parents[1] / "benchmark" / "reference" / "ies4.ttl"),
+        str(HERE.parents[1] / "benchmark" / "reference" / "ies-core.ttl"),
+        str(HERE.parents[1] / "benchmark" / "reference" / "boro-building-handcrafted.ttl"),
         str(HERE.parents[1] / "benchmark" / "reference" / "pizza-reference.owl"),
     ]
     results = []

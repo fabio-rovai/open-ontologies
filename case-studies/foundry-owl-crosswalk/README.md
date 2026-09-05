@@ -31,10 +31,12 @@ enforceable.
 
 **OWL to Foundry.** Five real ontologies were parsed, their asserted constructs
 counted, and each construct checked against the fields that exist in Palantir's
-ontology model. IES4, the UK government Information Exchange Standard, loses its
-entire property hierarchy: 200 `rdfs:subPropertyOf` assertions have no
-destination. The pizza reference ontology, which uses OWL as a logic rather than
-as a vocabulary, strands 1,241 assertions.
+ontology model. The UK Government Information Exchange Standard, at its current
+version 5.0.3, loses its entire property hierarchy: 202 `rdfs:subPropertyOf`
+assertions have no destination. The archived IES4 loses 200 the same way, so
+this is a property of the standard's shape rather than of one release. The pizza
+reference ontology, which uses OWL as a logic rather than as a vocabulary,
+strands 1,241 assertions.
 
 The pattern is consistent. Foundry holds a taxonomy well. It has no field for a
 theory. The constructs with no destination are precisely the ones a reasoner
@@ -53,6 +55,10 @@ from Palantir's own Apache-2.0 licensed source:
 - `palantir/osdk-ts`, the fixtures Palantir uses to mock its own API, including
   an object type named `objectTypeWithAllPropertyTypes` that exercises the whole
   union.
+
+The ontologies audited in the other direction are vendored the same way. The
+Information Exchange Standard is taken from `IES-Org/ont-ies`, which is the
+maintained home of the standard since `dstl/IES4` was archived on 4 March 2025.
 
 Both are vendored under `vendor/` with URL, licence and SHA-256 recorded in
 [`data/palantir-sources.json`](data/palantir-sources.json). The property type
