@@ -1,0 +1,1115 @@
+@prefix ex: <https://ontology.tesseract.academy/foundry-crosswalk/> .
+@prefix fcx: <https://ontology.tesseract.academy/foundry-crosswalk/meta#> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex: a owl:Ontology ;
+    rdfs:label "Palantir OSDK shared test fixtures" ;
+    rdfs:comment "Assembled from the fixtures Palantir publishes in palantir/osdk-ts to mock the Foundry Ontology API." .
+
+ex:BarInterface a owl:Class ;
+    rdfs:label "Bar Interface" ;
+    rdfs:comment "Interface for Bar" ;
+    fcx:foundryRid "ri.interface.main.interface.2" .
+
+ex:BgaoNflPlayer.address.StructShape a sh:NodeShape ;
+    sh:property [ sh:datatype xsd:int ;
+            sh:maxCount 1 ;
+            sh:path ex:BgaoNflPlayer.address.zipCode ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:path ex:BgaoNflPlayer.address.city ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:path ex:BgaoNflPlayer.address.state ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:path ex:BgaoNflPlayer.address.addressLine1 ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:path ex:BgaoNflPlayer.address.addressLine2 ] ;
+    sh:targetClass ex:BgaoNflPlayer.address.Struct .
+
+ex:BgaoNflPlayer.addressArray.StructShape a sh:NodeShape ;
+    sh:property [ sh:datatype geo:wktLiteral ;
+            sh:maxCount 1 ;
+            sh:path ex:BgaoNflPlayer.addressArray.location ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:path ex:BgaoNflPlayer.addressArray.addressLine1 ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:path ex:BgaoNflPlayer.addressArray.addressLine2 ],
+        [ sh:datatype xsd:int ;
+            sh:maxCount 1 ;
+            sh:path ex:BgaoNflPlayer.addressArray.zipCode ],
+        [ sh:datatype geo:wktLiteral ;
+            sh:maxCount 1 ;
+            sh:path ex:BgaoNflPlayer.addressArray.city ] ;
+    sh:targetClass ex:BgaoNflPlayer.addressArray.Struct .
+
+ex:BgaoNflPlayerShape a sh:NodeShape ;
+    sh:property [ sh:datatype xsd:int ;
+            sh:maxCount 1 ;
+            sh:name "gamesPlayed" ;
+            sh:path ex:BgaoNflPlayer.gamesPlayed ],
+        [ sh:datatype xsd:int ;
+            sh:maxCount 1 ;
+            sh:name "number" ;
+            sh:path ex:BgaoNflPlayer.number ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "id" ;
+            sh:path ex:BgaoNflPlayer.id ],
+        [ sh:class ex:BgaoNflPlayer.addressArray.Struct ;
+            sh:name "addressArray" ;
+            sh:path ex:BgaoNflPlayer.addressArray ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:name "name" ;
+            sh:path ex:BgaoNflPlayer.name ],
+        [ sh:class ex:BgaoNflPlayer.address.Struct ;
+            sh:maxCount 1 ;
+            sh:name "address" ;
+            sh:path ex:BgaoNflPlayer.address ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:name "wikiUrl" ;
+            sh:path ex:BgaoNflPlayer.wikiUrl ] ;
+    sh:targetClass ex:BgaoNflPlayer .
+
+ex:Employee.employeeProfile.StructShape a sh:NodeShape ;
+    sh:property [ sh:datatype xsd:int ;
+            sh:maxCount 1 ;
+            sh:path ex:Employee.employeeProfile.yearsExperience ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:path ex:Employee.employeeProfile.bio ] ;
+    sh:targetClass ex:Employee.employeeProfile.Struct .
+
+ex:EmployeeShape a sh:NodeShape ;
+    sh:property [ sh:datatype xsd:date ;
+            sh:maxCount 1 ;
+            sh:name "startDate" ;
+            sh:path ex:Employee.startDate ],
+        [ sh:maxCount 1 ;
+            sh:name "employeeSensor" ;
+            sh:path ex:Employee.employeeSensor ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:name "office" ;
+            sh:path ex:Employee.office ],
+        [ sh:maxCount 1 ;
+            sh:name "employeeLocation" ;
+            sh:path ex:Employee.employeeLocation ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:name "class" ;
+            sh:path ex:Employee.class ],
+        [ sh:class ex:Employee ;
+            sh:name "peeps" ;
+            sh:path ex:link.Employee.peeps ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:name "skillSet" ;
+            sh:path ex:Employee.skillSet ],
+        [ sh:datatype xsd:double ;
+            sh:name "performanceScores" ;
+            sh:path ex:Employee.performanceScores ],
+        [ sh:class ex:Office ;
+            sh:maxCount 1 ;
+            sh:name "officeLink" ;
+            sh:path ex:link.Employee.officeLink ],
+        [ sh:class ex:Employee.employeeProfile.Struct ;
+            sh:maxCount 1 ;
+            sh:name "employeeProfile" ;
+            sh:path ex:Employee.employeeProfile ],
+        [ sh:class ex:Employee ;
+            sh:maxCount 1 ;
+            sh:name "lead" ;
+            sh:path ex:link.Employee.lead ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:name "fullName" ;
+            sh:path ex:Employee.fullName ],
+        [ sh:maxCount 1 ;
+            sh:name "skillSetEmbedding" ;
+            sh:path ex:Employee.skillSetEmbedding ],
+        [ sh:maxCount 1 ;
+            sh:name "employeeStatus" ;
+            sh:path ex:Employee.employeeStatus ],
+        [ sh:datatype xsd:int ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "employeeId" ;
+            sh:path ex:Employee.employeeId ],
+        [ sh:datatype xsd:string ;
+            sh:name "favoriteRestaurants" ;
+            sh:path ex:Employee.favoriteRestaurants ] ;
+    sh:targetClass ex:Employee .
+
+ex:FooInterface a owl:Class ;
+    rdfs:label "Foo Interface" ;
+    rdfs:comment "Interface for Foo" ;
+    fcx:foundryRid "ri.interface.main.interface.1" .
+
+ex:ObjectWithTimestampPrimaryKeyShape a sh:NodeShape ;
+    sh:property [ sh:datatype xsd:dateTime ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "timestamp" ;
+            sh:path ex:ObjectWithTimestampPrimaryKey.timestamp ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:name "value" ;
+            sh:path ex:ObjectWithTimestampPrimaryKey.value ] ;
+    sh:targetClass ex:ObjectWithTimestampPrimaryKey .
+
+ex:OfficeShape a sh:NodeShape ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "officeId" ;
+            sh:path ex:Office.officeId ],
+        [ sh:datatype xsd:int ;
+            sh:maxCount 1 ;
+            sh:name "capacity" ;
+            sh:path ex:Office.capacity ],
+        [ sh:datatype geo:wktLiteral ;
+            sh:maxCount 1 ;
+            sh:name "occupiedArea" ;
+            sh:path ex:Office.occupiedArea ],
+        [ sh:class ex:Office ;
+            sh:name "visitedOffices" ;
+            sh:path ex:link.Office.visitedOffices ],
+        [ sh:class ex:Employee ;
+            sh:name "occupants" ;
+            sh:path ex:link.Office.occupants ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:name "name" ;
+            sh:path ex:Office.name ],
+        [ sh:datatype geo:wktLiteral ;
+            sh:maxCount 1 ;
+            sh:name "entrance" ;
+            sh:path ex:Office.entrance ] ;
+    sh:targetClass ex:Office .
+
+ex:PersonShape a sh:NodeShape ;
+    sh:property [ sh:datatype xsd:int ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "id" ;
+            sh:path ex:Person.id ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:name "name" ;
+            sh:path ex:Person.name ] ;
+    sh:targetClass ex:Person .
+
+ex:TaskShape a sh:NodeShape ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:name "name" ;
+            sh:path ex:Task.name ],
+        [ sh:datatype xsd:int ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "id" ;
+            sh:path ex:Task.id ] ;
+    sh:targetClass ex:Task .
+
+ex:TodoShape a sh:NodeShape ;
+    sh:property [ sh:datatype xsd:int ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "id" ;
+            sh:path ex:Todo.id ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:name "text" ;
+            sh:path ex:Todo.text ] ;
+    sh:targetClass ex:Todo .
+
+ex:equipmentShape a sh:NodeShape ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "equipmentId" ;
+            sh:path ex:equipment.equipmentId ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:name "type" ;
+            sh:path ex:equipment.type ] ;
+    sh:targetClass ex:equipment .
+
+fcx:fidelity a owl:AnnotationProperty ;
+    rdfs:comment "How faithfully the Foundry type crossed into standards." .
+
+fcx:foundryDetail a owl:AnnotationProperty ;
+    rdfs:comment "Foundry type detail with no standards counterpart." .
+
+fcx:foundryElementType a owl:AnnotationProperty ;
+    rdfs:comment "The element type of a Foundry array property." .
+
+fcx:foundryRid a owl:AnnotationProperty ;
+    rdfs:comment "The Foundry resource identifier the term came from." .
+
+fcx:foundryType a owl:AnnotationProperty ;
+    rdfs:comment "The Foundry property type discriminator." .
+
+fcx:titleProperty a owl:AnnotationProperty ;
+    rdfs:comment "The Foundry display title property." .
+
+fcx:unmappable a owl:AnnotationProperty ;
+    rdfs:comment "Marks a term whose Foundry meaning has no standards counterpart." .
+
+ex:objectTypeWithAllPropertyTypesShape a sh:NodeShape ;
+    sh:property [ sh:name "attachmentArray" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.attachmentArray ],
+        [ sh:datatype xsd:string ;
+            sh:name "stringArray" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.stringArray ],
+        [ sh:datatype xsd:dateTime ;
+            sh:name "dateTimeArray" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.dateTimeArray ],
+        [ sh:datatype xsd:dateTime ;
+            sh:maxCount 1 ;
+            sh:name "dateTime" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.dateTime ],
+        [ sh:maxCount 1 ;
+            sh:name "vector" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.vector ],
+        [ sh:datatype xsd:decimal ;
+            sh:maxCount 1 ;
+            sh:name "decimal" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.decimal ],
+        [ sh:datatype xsd:long ;
+            sh:name "longArray" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.longArray ],
+        [ sh:datatype xsd:double ;
+            sh:maxCount 1 ;
+            sh:name "double" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.double ],
+        [ sh:datatype xsd:decimal ;
+            sh:name "decimalArray" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.decimalArray ],
+        [ sh:maxCount 1 ;
+            sh:name "attachment" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.attachment ],
+        [ sh:datatype xsd:date ;
+            sh:maxCount 1 ;
+            sh:name "date" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.date ],
+        [ sh:datatype geo:wktLiteral ;
+            sh:maxCount 1 ;
+            sh:name "geoPoint" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.geoPoint ],
+        [ sh:maxCount 1 ;
+            sh:name "attachment2" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.attachment2 ],
+        [ sh:datatype xsd:int ;
+            sh:maxCount 1 ;
+            sh:name "integer" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.integer ],
+        [ sh:datatype xsd:boolean ;
+            sh:maxCount 1 ;
+            sh:name "boolean" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.boolean ],
+        [ sh:datatype xsd:byte ;
+            sh:maxCount 1 ;
+            sh:name "byte" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.byte ],
+        [ sh:datatype xsd:date ;
+            sh:name "dateArray" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.dateArray ],
+        [ sh:class ex:objectTypeWithAllPropertyTypes ;
+            sh:maxCount 1 ;
+            sh:name "linkedObjectType" ;
+            sh:path ex:link.objectTypeWithAllPropertyTypes.linkedObjectType ],
+        [ sh:datatype xsd:boolean ;
+            sh:name "booleanArray" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.booleanArray ],
+        [ sh:maxCount 1 ;
+            sh:name "cipherText" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.cipherText ],
+        [ sh:datatype geo:wktLiteral ;
+            sh:name "geoShapeArray" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.geoShapeArray ],
+        [ sh:datatype xsd:long ;
+            sh:maxCount 1 ;
+            sh:name "long" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.long ],
+        [ sh:datatype xsd:byte ;
+            sh:name "byteArray" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.byteArray ],
+        [ sh:datatype xsd:short ;
+            sh:maxCount 1 ;
+            sh:name "short" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.short ],
+        [ sh:datatype xsd:short ;
+            sh:name "shortArray" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.shortArray ],
+        [ sh:maxCount 1 ;
+            sh:name "mediaReference" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.mediaReference ],
+        [ sh:datatype xsd:int ;
+            sh:name "integerArray" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.integerArray ],
+        [ sh:datatype geo:wktLiteral ;
+            sh:name "geoPointArray" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.geoPointArray ],
+        [ sh:datatype xsd:double ;
+            sh:name "doubleArray" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.doubleArray ],
+        [ sh:datatype xsd:float ;
+            sh:name "floatArray" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.floatArray ],
+        [ sh:datatype xsd:int ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "id" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.id ],
+        [ sh:datatype geo:wktLiteral ;
+            sh:maxCount 1 ;
+            sh:name "geoShape" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.geoShape ],
+        [ sh:datatype xsd:float ;
+            sh:maxCount 1 ;
+            sh:name "float" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.float ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:name "string" ;
+            sh:path ex:objectTypeWithAllPropertyTypes.string ] ;
+    sh:targetClass ex:objectTypeWithAllPropertyTypes .
+
+ex:spt.fooSpt a owl:DatatypeProperty ;
+    rdfs:label "Foo" ;
+    rdfs:comment "A foo" ;
+    rdfs:range xsd:string .
+
+ex:BgaoNflPlayer.address a owl:ObjectProperty ;
+    rdfs:label "address" ;
+    rdfs:domain ex:BgaoNflPlayer ;
+    rdfs:range ex:BgaoNflPlayer.address.Struct ;
+    fcx:fidelity "structural" ;
+    fcx:foundryType "struct" .
+
+ex:BgaoNflPlayer.address.addressLine1 a owl:DatatypeProperty ;
+    rdfs:label "addressLine1" ;
+    rdfs:domain ex:BgaoNflPlayer.address.Struct ;
+    rdfs:range xsd:string ;
+    fcx:foundryType "string" .
+
+ex:BgaoNflPlayer.address.addressLine2 a owl:DatatypeProperty ;
+    rdfs:label "addressLine2" ;
+    rdfs:domain ex:BgaoNflPlayer.address.Struct ;
+    rdfs:range xsd:string ;
+    fcx:foundryType "string" .
+
+ex:BgaoNflPlayer.address.city a owl:DatatypeProperty ;
+    rdfs:label "city" ;
+    rdfs:domain ex:BgaoNflPlayer.address.Struct ;
+    rdfs:range xsd:string ;
+    fcx:foundryType "string" .
+
+ex:BgaoNflPlayer.address.state a owl:DatatypeProperty ;
+    rdfs:label "state" ;
+    rdfs:domain ex:BgaoNflPlayer.address.Struct ;
+    rdfs:range xsd:string ;
+    fcx:foundryType "string" .
+
+ex:BgaoNflPlayer.address.zipCode a owl:DatatypeProperty ;
+    rdfs:label "zipCode" ;
+    rdfs:domain ex:BgaoNflPlayer.address.Struct ;
+    rdfs:range xsd:int ;
+    fcx:foundryType "integer" .
+
+ex:BgaoNflPlayer.addressArray a owl:ObjectProperty ;
+    rdfs:label "addressArray" ;
+    rdfs:domain ex:BgaoNflPlayer ;
+    rdfs:range ex:BgaoNflPlayer.addressArray.Struct ;
+    fcx:fidelity "structural" ;
+    fcx:foundryElementType "struct" ;
+    fcx:foundryType "array" .
+
+ex:BgaoNflPlayer.addressArray.addressLine1 a owl:DatatypeProperty ;
+    rdfs:label "addressLine1" ;
+    rdfs:domain ex:BgaoNflPlayer.addressArray.Struct ;
+    rdfs:range xsd:string ;
+    fcx:foundryType "string" .
+
+ex:BgaoNflPlayer.addressArray.addressLine2 a owl:DatatypeProperty ;
+    rdfs:label "addressLine2" ;
+    rdfs:domain ex:BgaoNflPlayer.addressArray.Struct ;
+    rdfs:range xsd:string ;
+    fcx:foundryType "string" .
+
+ex:BgaoNflPlayer.addressArray.city a owl:DatatypeProperty ;
+    rdfs:label "city" ;
+    rdfs:domain ex:BgaoNflPlayer.addressArray.Struct ;
+    rdfs:range geo:wktLiteral ;
+    fcx:foundryType "geoshape" .
+
+ex:BgaoNflPlayer.addressArray.location a owl:DatatypeProperty ;
+    rdfs:label "location" ;
+    rdfs:domain ex:BgaoNflPlayer.addressArray.Struct ;
+    rdfs:range geo:wktLiteral ;
+    fcx:foundryType "geopoint" .
+
+ex:BgaoNflPlayer.addressArray.zipCode a owl:DatatypeProperty ;
+    rdfs:label "zipCode" ;
+    rdfs:domain ex:BgaoNflPlayer.addressArray.Struct ;
+    rdfs:range xsd:int ;
+    fcx:foundryType "integer" .
+
+ex:BgaoNflPlayer.gamesPlayed a owl:DatatypeProperty ;
+    rdfs:label "gamesPlayed" ;
+    rdfs:domain ex:BgaoNflPlayer ;
+    rdfs:range xsd:int ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "integer" .
+
+ex:BgaoNflPlayer.name a owl:DatatypeProperty ;
+    rdfs:label "name" ;
+    rdfs:domain ex:BgaoNflPlayer ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:BgaoNflPlayer.number a owl:DatatypeProperty ;
+    rdfs:label "number" ;
+    rdfs:domain ex:BgaoNflPlayer ;
+    rdfs:range xsd:int ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "integer" .
+
+ex:BgaoNflPlayer.wikiUrl a owl:DatatypeProperty ;
+    rdfs:label "wikiUrl" ;
+    rdfs:domain ex:BgaoNflPlayer ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:Employee.class a owl:DatatypeProperty ;
+    rdfs:label "class" ;
+    rdfs:domain ex:Employee ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:Employee.employeeLocation a owl:DatatypeProperty ;
+    rdfs:label "employeeLocation" ;
+    rdfs:comment "Geotime series reference of the location of the employee",
+        "Not carried by the crosswalk. A handle onto a Geotime integration. The track is not in the export." ;
+    rdfs:domain ex:Employee ;
+    fcx:fidelity "none" ;
+    fcx:foundryType "geotimeSeriesReference" ;
+    fcx:unmappable true .
+
+ex:Employee.employeeProfile a owl:ObjectProperty ;
+    rdfs:label "employeeProfile" ;
+    rdfs:comment "Employee profile with main value being the bio" ;
+    rdfs:domain ex:Employee ;
+    rdfs:range ex:Employee.employeeProfile.Struct ;
+    fcx:fidelity "structural" ;
+    fcx:foundryType "struct" .
+
+ex:Employee.employeeProfile.bio a owl:DatatypeProperty ;
+    rdfs:label "bio" ;
+    rdfs:domain ex:Employee.employeeProfile.Struct ;
+    rdfs:range xsd:string ;
+    fcx:foundryType "string" .
+
+ex:Employee.employeeProfile.yearsExperience a owl:DatatypeProperty ;
+    rdfs:label "yearsExperience" ;
+    rdfs:domain ex:Employee.employeeProfile.Struct ;
+    rdfs:range xsd:int ;
+    fcx:foundryType "integer" .
+
+ex:Employee.employeeSensor a owl:DatatypeProperty ;
+    rdfs:label "employeeSensor" ;
+    rdfs:comment "Not carried by the crosswalk. A handle onto a Foundry time series, not a value. The series itself is not in the export.",
+        "TimeSeries sensor of the status of the employee" ;
+    rdfs:domain ex:Employee ;
+    fcx:fidelity "none" ;
+    fcx:foundryDetail "itemType={\"type\": \"string\"}" ;
+    fcx:foundryType "timeseries" ;
+    fcx:unmappable true .
+
+ex:Employee.employeeStatus a owl:DatatypeProperty ;
+    rdfs:label "employeeStatus" ;
+    rdfs:comment "Not carried by the crosswalk. A handle onto a Foundry time series, not a value. The series itself is not in the export.",
+        "TimeSeries of the status of the employee" ;
+    rdfs:domain ex:Employee ;
+    fcx:fidelity "none" ;
+    fcx:foundryDetail "itemType={\"type\": \"string\"}" ;
+    fcx:foundryType "timeseries" ;
+    fcx:unmappable true .
+
+ex:Employee.favoriteRestaurants a owl:DatatypeProperty ;
+    rdfs:label "favoriteRestaurants" ;
+    rdfs:domain ex:Employee ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryElementType "string" ;
+    fcx:foundryType "array" .
+
+ex:Employee.fullName a owl:DatatypeProperty ;
+    rdfs:label "fullName" ;
+    rdfs:domain ex:Employee ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:Employee.office a owl:DatatypeProperty ;
+    rdfs:label "office" ;
+    rdfs:comment """The unique "ID" of the employee's \\"primary\\" assigned office.
+ This is some more text.""" ;
+    rdfs:domain ex:Employee ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:Employee.performanceScores a owl:DatatypeProperty ;
+    rdfs:label "performanceScores" ;
+    rdfs:comment "Array of performance scores with reducers" ;
+    rdfs:domain ex:Employee ;
+    rdfs:range xsd:double ;
+    fcx:fidelity "direct" ;
+    fcx:foundryElementType "double" ;
+    fcx:foundryType "array" .
+
+ex:Employee.skillSet a owl:DatatypeProperty ;
+    rdfs:label "skillSet" ;
+    rdfs:comment "The skills of the employee" ;
+    rdfs:domain ex:Employee ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:Employee.skillSetEmbedding a owl:DatatypeProperty ;
+    rdfs:label "skillSetEmbedding" ;
+    rdfs:comment "Not carried by the crosswalk. An embedding. The export declares its dimension and sometimes the producing model, but no W3C datatype carries a vector, so both become annotations rather than a range.",
+        "Vectorized skill set" ;
+    rdfs:domain ex:Employee ;
+    fcx:fidelity "none" ;
+    fcx:foundryDetail "dimension=1536",
+        "embeddingModel={\"type\": \"lms\", \"value\": \"OPENAI_TEXT_EMBEDDING_ADA_002\"}" ;
+    fcx:foundryType "vector" ;
+    fcx:unmappable true .
+
+ex:Employee.startDate a owl:DatatypeProperty ;
+    rdfs:label "startDate" ;
+    rdfs:comment "The date the employee was hired (most recently, if they were re-hired)" ;
+    rdfs:domain ex:Employee ;
+    rdfs:range xsd:date ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "date" .
+
+ex:ObjectWithTimestampPrimaryKey.value a owl:DatatypeProperty ;
+    rdfs:label "value" ;
+    rdfs:domain ex:ObjectWithTimestampPrimaryKey ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:Office.capacity a owl:DatatypeProperty ;
+    rdfs:label "capacity" ;
+    rdfs:comment "The capacity of the Office" ;
+    rdfs:domain ex:Office ;
+    rdfs:range xsd:int ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "integer" .
+
+ex:Office.entrance a owl:DatatypeProperty ;
+    rdfs:label "entrance" ;
+    rdfs:domain ex:Office ;
+    rdfs:range geo:wktLiteral ;
+    fcx:fidelity "standard" ;
+    fcx:foundryType "geopoint" .
+
+ex:Office.name a owl:DatatypeProperty ;
+    rdfs:label "name" ;
+    rdfs:comment "The Name of the Office" ;
+    rdfs:domain ex:Office ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:Office.occupiedArea a owl:DatatypeProperty ;
+    rdfs:label "occupiedArea" ;
+    rdfs:comment "The occupied area of the Office" ;
+    rdfs:domain ex:Office ;
+    rdfs:range geo:wktLiteral ;
+    fcx:fidelity "standard" ;
+    fcx:foundryType "geoshape" .
+
+ex:Person.name a owl:DatatypeProperty ;
+    rdfs:label "name" ;
+    rdfs:domain ex:Person ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:Task.name a owl:DatatypeProperty ;
+    rdfs:label "name" ;
+    rdfs:domain ex:Task ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:Todo.text a owl:DatatypeProperty ;
+    rdfs:label "text" ;
+    rdfs:domain ex:Todo ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:equipment.type a owl:DatatypeProperty ;
+    rdfs:label "type" ;
+    rdfs:domain ex:equipment ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:link.Office.visitedOffices a owl:ObjectProperty ;
+    rdfs:label "Visited Offices" ;
+    rdfs:domain ex:Office ;
+    rdfs:range ex:Office ;
+    fcx:foundryRid "ri.a.b.c.visitedOffices" .
+
+ex:link.objectTypeWithAllPropertyTypes.linkedObjectType a owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:label "Linked Object Type" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range ex:objectTypeWithAllPropertyTypes ;
+    fcx:foundryRid "rid.link-type.832" .
+
+ex:objectTypeWithAllPropertyTypes.attachment a owl:DatatypeProperty ;
+    rdfs:label "attachment" ;
+    rdfs:comment "Not carried by the crosswalk. A resource identifier pointing into Foundry blob storage. The value does not resolve outside the platform." ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    fcx:fidelity "none" ;
+    fcx:foundryType "attachment" ;
+    fcx:unmappable true .
+
+ex:objectTypeWithAllPropertyTypes.attachment2 a owl:DatatypeProperty ;
+    rdfs:label "attachment2" ;
+    rdfs:comment "Not carried by the crosswalk. A resource identifier pointing into Foundry blob storage. The value does not resolve outside the platform." ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    fcx:fidelity "none" ;
+    fcx:foundryType "attachment" ;
+    fcx:unmappable true .
+
+ex:objectTypeWithAllPropertyTypes.attachmentArray a owl:DatatypeProperty ;
+    rdfs:label "attachmentArray" ;
+    rdfs:comment "Not carried by the crosswalk. A resource identifier pointing into Foundry blob storage. The value does not resolve outside the platform." ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    fcx:fidelity "none" ;
+    fcx:foundryElementType "attachment" ;
+    fcx:foundryType "array" ;
+    fcx:unmappable true .
+
+ex:objectTypeWithAllPropertyTypes.boolean a owl:DatatypeProperty ;
+    rdfs:label "boolean" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:boolean ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "boolean" .
+
+ex:objectTypeWithAllPropertyTypes.booleanArray a owl:DatatypeProperty ;
+    rdfs:label "booleanArray" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:boolean ;
+    fcx:fidelity "direct" ;
+    fcx:foundryElementType "boolean" ;
+    fcx:foundryType "array" .
+
+ex:objectTypeWithAllPropertyTypes.byte a owl:DatatypeProperty ;
+    rdfs:label "byte" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:byte ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "byte" .
+
+ex:objectTypeWithAllPropertyTypes.byteArray a owl:DatatypeProperty ;
+    rdfs:label "byteArray" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:byte ;
+    fcx:fidelity "direct" ;
+    fcx:foundryElementType "byte" ;
+    fcx:foundryType "array" .
+
+ex:objectTypeWithAllPropertyTypes.cipherText a owl:DatatypeProperty ;
+    rdfs:label "cipherText" ;
+    rdfs:comment "Not carried by the crosswalk. Ciphertext bound to a Foundry cipher channel. The channel reference is meaningless outside the platform." ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    fcx:fidelity "none" ;
+    fcx:foundryType "cipherText" ;
+    fcx:unmappable true .
+
+ex:objectTypeWithAllPropertyTypes.date a owl:DatatypeProperty ;
+    rdfs:label "date" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:date ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "date" .
+
+ex:objectTypeWithAllPropertyTypes.dateArray a owl:DatatypeProperty ;
+    rdfs:label "dateArray" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:date ;
+    fcx:fidelity "direct" ;
+    fcx:foundryElementType "date" ;
+    fcx:foundryType "array" .
+
+ex:objectTypeWithAllPropertyTypes.dateTime a owl:DatatypeProperty ;
+    rdfs:label "dateTime" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:dateTime ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "timestamp" .
+
+ex:objectTypeWithAllPropertyTypes.dateTimeArray a owl:DatatypeProperty ;
+    rdfs:label "dateTimeArray" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:dateTime ;
+    fcx:fidelity "direct" ;
+    fcx:foundryElementType "timestamp" ;
+    fcx:foundryType "array" .
+
+ex:objectTypeWithAllPropertyTypes.decimal a owl:DatatypeProperty ;
+    rdfs:label "decimal" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:decimal ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "decimal" .
+
+ex:objectTypeWithAllPropertyTypes.decimalArray a owl:DatatypeProperty ;
+    rdfs:label "decimalArray" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:decimal ;
+    fcx:fidelity "direct" ;
+    fcx:foundryElementType "decimal" ;
+    fcx:foundryType "array" .
+
+ex:objectTypeWithAllPropertyTypes.double a owl:DatatypeProperty ;
+    rdfs:label "double" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:double ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "double" .
+
+ex:objectTypeWithAllPropertyTypes.doubleArray a owl:DatatypeProperty ;
+    rdfs:label "doubleArray" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:double ;
+    fcx:fidelity "direct" ;
+    fcx:foundryElementType "double" ;
+    fcx:foundryType "array" .
+
+ex:objectTypeWithAllPropertyTypes.float a owl:DatatypeProperty ;
+    rdfs:label "float" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:float ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "float" .
+
+ex:objectTypeWithAllPropertyTypes.floatArray a owl:DatatypeProperty ;
+    rdfs:label "floatArray" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:float ;
+    fcx:fidelity "direct" ;
+    fcx:foundryElementType "float" ;
+    fcx:foundryType "array" .
+
+ex:objectTypeWithAllPropertyTypes.geoPoint a owl:DatatypeProperty ;
+    rdfs:label "geoPoint" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range geo:wktLiteral ;
+    fcx:fidelity "standard" ;
+    fcx:foundryType "geopoint" .
+
+ex:objectTypeWithAllPropertyTypes.geoPointArray a owl:DatatypeProperty ;
+    rdfs:label "geoPointArray" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range geo:wktLiteral ;
+    fcx:fidelity "standard" ;
+    fcx:foundryElementType "geopoint" ;
+    fcx:foundryType "array" .
+
+ex:objectTypeWithAllPropertyTypes.geoShape a owl:DatatypeProperty ;
+    rdfs:label "geoShape" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range geo:wktLiteral ;
+    fcx:fidelity "standard" ;
+    fcx:foundryType "geoshape" .
+
+ex:objectTypeWithAllPropertyTypes.geoShapeArray a owl:DatatypeProperty ;
+    rdfs:label "geoShapeArray" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range geo:wktLiteral ;
+    fcx:fidelity "standard" ;
+    fcx:foundryElementType "geoshape" ;
+    fcx:foundryType "array" .
+
+ex:objectTypeWithAllPropertyTypes.integer a owl:DatatypeProperty ;
+    rdfs:label "integer" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:int ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "integer" .
+
+ex:objectTypeWithAllPropertyTypes.integerArray a owl:DatatypeProperty ;
+    rdfs:label "integerArray" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:int ;
+    fcx:fidelity "direct" ;
+    fcx:foundryElementType "integer" ;
+    fcx:foundryType "array" .
+
+ex:objectTypeWithAllPropertyTypes.long a owl:DatatypeProperty ;
+    rdfs:label "long" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:long ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "long" .
+
+ex:objectTypeWithAllPropertyTypes.longArray a owl:DatatypeProperty ;
+    rdfs:label "longArray" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:long ;
+    fcx:fidelity "direct" ;
+    fcx:foundryElementType "long" ;
+    fcx:foundryType "array" .
+
+ex:objectTypeWithAllPropertyTypes.mediaReference a owl:DatatypeProperty ;
+    rdfs:label "mediaReference" ;
+    rdfs:comment "Not carried by the crosswalk. A reference into a Foundry media set. Does not resolve outside the platform." ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    fcx:fidelity "none" ;
+    fcx:foundryType "mediaReference" ;
+    fcx:unmappable true .
+
+ex:objectTypeWithAllPropertyTypes.short a owl:DatatypeProperty ;
+    rdfs:label "short" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:short ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "short" .
+
+ex:objectTypeWithAllPropertyTypes.shortArray a owl:DatatypeProperty ;
+    rdfs:label "shortArray" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:short ;
+    fcx:fidelity "direct" ;
+    fcx:foundryElementType "short" ;
+    fcx:foundryType "array" .
+
+ex:objectTypeWithAllPropertyTypes.string a owl:DatatypeProperty ;
+    rdfs:label "string" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:objectTypeWithAllPropertyTypes.stringArray a owl:DatatypeProperty ;
+    rdfs:label "stringArray" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryElementType "string" ;
+    fcx:foundryType "array" .
+
+ex:objectTypeWithAllPropertyTypes.vector a owl:DatatypeProperty ;
+    rdfs:label "vector" ;
+    rdfs:comment "Not carried by the crosswalk. An embedding. The export declares its dimension and sometimes the producing model, but no W3C datatype carries a vector, so both become annotations rather than a range." ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    fcx:fidelity "none" ;
+    fcx:foundryDetail "dimension=100" ;
+    fcx:foundryType "vector" ;
+    fcx:unmappable true .
+
+ex:BgaoNflPlayer.id a owl:DatatypeProperty ;
+    rdfs:label "id" ;
+    rdfs:domain ex:BgaoNflPlayer ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:Employee.employeeId a owl:DatatypeProperty ;
+    rdfs:label "employeeId" ;
+    rdfs:domain ex:Employee ;
+    rdfs:range xsd:int ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "integer" .
+
+ex:ObjectWithTimestampPrimaryKey.timestamp a owl:DatatypeProperty ;
+    rdfs:label "timestamp" ;
+    rdfs:domain ex:ObjectWithTimestampPrimaryKey ;
+    rdfs:range xsd:dateTime ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "timestamp" .
+
+ex:Office.officeId a owl:DatatypeProperty ;
+    rdfs:label "officeId" ;
+    rdfs:domain ex:Office ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:Person.id a owl:DatatypeProperty ;
+    rdfs:label "id" ;
+    rdfs:domain ex:Person ;
+    rdfs:range xsd:int ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "integer" .
+
+ex:Task.id a owl:DatatypeProperty ;
+    rdfs:label "id" ;
+    rdfs:domain ex:Task ;
+    rdfs:range xsd:int ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "integer" .
+
+ex:Todo.id a owl:DatatypeProperty ;
+    rdfs:label "id" ;
+    rdfs:domain ex:Todo ;
+    rdfs:range xsd:int ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "integer" .
+
+ex:equipment.equipmentId a owl:DatatypeProperty ;
+    rdfs:label "equipmentId" ;
+    rdfs:comment "The id of an equipment" ;
+    rdfs:domain ex:equipment ;
+    rdfs:range xsd:string ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "string" .
+
+ex:link.Employee.lead a owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:label "Lead" ;
+    rdfs:domain ex:Employee ;
+    rdfs:range ex:Employee ;
+    owl:inverseOf ex:link.Employee.peeps ;
+    fcx:foundryRid "rid.link-type.327" .
+
+ex:link.Employee.officeLink a owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:label "Office" ;
+    rdfs:domain ex:Employee ;
+    rdfs:range ex:Office ;
+    owl:inverseOf ex:link.Office.occupants ;
+    fcx:foundryRid "rid.link-type.324" .
+
+ex:link.Employee.peeps a owl:ObjectProperty ;
+    rdfs:label "Peeps" ;
+    rdfs:domain ex:Employee ;
+    rdfs:range ex:Employee ;
+    owl:inverseOf ex:link.Employee.lead ;
+    fcx:foundryRid "rid.link-type.327" .
+
+ex:link.Office.occupants a owl:ObjectProperty ;
+    rdfs:label "Office Occupants" ;
+    rdfs:domain ex:Office ;
+    rdfs:range ex:Employee ;
+    owl:inverseOf ex:link.Employee.officeLink ;
+    fcx:foundryRid "rid.link-type.324" .
+
+ex:objectTypeWithAllPropertyTypes.id a owl:DatatypeProperty ;
+    rdfs:label "id" ;
+    rdfs:domain ex:objectTypeWithAllPropertyTypes ;
+    rdfs:range xsd:int ;
+    fcx:fidelity "direct" ;
+    fcx:foundryType "integer" .
+
+ex:ObjectWithTimestampPrimaryKey a owl:Class ;
+    rdfs:label "ObjectWithTimestampPrimaryKey" ;
+    rdfs:comment "Object Type With Timestamp Primary Key" ;
+    owl:hasKey ( ex:ObjectWithTimestampPrimaryKey.timestamp ) ;
+    skos:altLabel "ObjectWithTimestampPrimaryKeys" ;
+    fcx:foundryRid "ri.ontology.main.object-type.32bb9402-9cab-4705-81bb-edb65a4a6806" ;
+    fcx:titleProperty "value" .
+
+ex:Person a owl:Class ;
+    rdfs:label "Person" ;
+    owl:hasKey ( ex:Person.id ) ;
+    skos:altLabel "Persons" ;
+    fcx:foundryRid "ri.person" ;
+    fcx:titleProperty "name" .
+
+ex:Task a owl:Class ;
+    rdfs:label "Task" ;
+    owl:hasKey ( ex:Task.id ) ;
+    skos:altLabel "Tasks" ;
+    fcx:foundryRid "ri.task" ;
+    fcx:titleProperty "name" .
+
+ex:Todo a owl:Class ;
+    rdfs:label "Todo" ;
+    owl:hasKey ( ex:Todo.id ) ;
+    skos:altLabel "ManyTodo" ;
+    fcx:foundryRid "ri.todo" ;
+    fcx:titleProperty "text" .
+
+ex:equipment a owl:Class ;
+    rdfs:label "Equipment" ;
+    owl:hasKey ( ex:equipment.equipmentId ) ;
+    skos:altLabel "Equipment" ;
+    fcx:foundryRid "ri.ontology.main.object-type.808ac022-89eb-4591-8b7e-1a912b9efb45" ;
+    fcx:titleProperty "type" .
+
+ex:Employee.employeeProfile.Struct a owl:Class ;
+    rdfs:label "employeeProfile struct" ;
+    rdfs:comment "Generated by the crosswalk. A Foundry struct is an inline record on Employee.employeeProfile; OWL has no inline record, so it becomes a class with its own shape." .
+
+ex:BgaoNflPlayer a owl:Class ;
+    rdfs:label "id" ;
+    owl:hasKey ( ex:BgaoNflPlayer.id ) ;
+    skos:altLabel "BgaoNflPlayers" ;
+    fcx:foundryRid "ri.nflplayer" ;
+    fcx:titleProperty "name" .
+
+ex:BgaoNflPlayer.address.Struct a owl:Class ;
+    rdfs:label "address struct" ;
+    rdfs:comment "Generated by the crosswalk. A Foundry struct is an inline record on BgaoNflPlayer.address; OWL has no inline record, so it becomes a class with its own shape." .
+
+ex:BgaoNflPlayer.addressArray.Struct a owl:Class ;
+    rdfs:label "addressArray struct" ;
+    rdfs:comment "Generated by the crosswalk. A Foundry struct is an inline record on BgaoNflPlayer.addressArray; OWL has no inline record, so it becomes a class with its own shape." .
+
+ex:Office a owl:Class ;
+    rdfs:label "Office" ;
+    rdfs:comment "A office in our Company" ;
+    owl:hasKey ( ex:Office.officeId ) ;
+    skos:altLabel "Office" ;
+    fcx:foundryRid "ri.ontology.main.object-type.404ac022-89eb-4591-8b7e-1a912b9efb45" ;
+    fcx:titleProperty "officeId" .
+
+ex:Employee a owl:Class ;
+    rdfs:label "Employee" ;
+    rdfs:comment """A full-time or part-time 
+
+ employee of our firm""" ;
+    owl:hasKey ( ex:Employee.employeeId ) ;
+    skos:altLabel "Employees" ;
+    fcx:foundryRid "ri.ontology.main.object-type.401ac022-89eb-4591-8b7e-0a912b9efb44" ;
+    fcx:titleProperty "fullName" .
+
+ex:objectTypeWithAllPropertyTypes a owl:Class ;
+    rdfs:label "objectTypeWithAllPropertyType" ;
+    rdfs:comment "An object type with all property types" ;
+    owl:hasKey ( ex:objectTypeWithAllPropertyTypes.id ) ;
+    skos:altLabel "objectTypeWithAllPropertyTypes" ;
+    fcx:foundryRid "ri.ontology.main.object-type.401ac022-89eb-4591-8b7e-0a912b9efb44" ;
+    fcx:titleProperty "string" .
+

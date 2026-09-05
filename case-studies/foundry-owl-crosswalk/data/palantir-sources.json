@@ -1,0 +1,58 @@
+{
+  "sources": [
+    {
+      "file": "models.py",
+      "url": "https://raw.githubusercontent.com/palantir/foundry-platform-python/develop/foundry_sdk/v2/ontologies/models.py",
+      "repository": "palantir/foundry-platform-python",
+      "licence": "Apache-2.0",
+      "note": "Wire model definitions for the v2 Ontologies API.",
+      "bytes": 318020,
+      "sha256": "2a54626dd6db96f32028b432ba4cb60b5f83ff116895a5bf98639cfc349feb39"
+    },
+    {
+      "file": "core_models.py",
+      "url": "https://raw.githubusercontent.com/palantir/foundry-platform-python/develop/foundry_sdk/v2/core/models.py",
+      "repository": "palantir/foundry-platform-python",
+      "licence": "Apache-2.0",
+      "note": "Core wire models: the scalar property data types.",
+      "bytes": 31972,
+      "sha256": "381fdb658b5cbae6dcc47938474676095ffc3be1ed352db80c117ff3d7e7fb2d"
+    },
+    {
+      "file": "objectTypeV2.ts",
+      "url": "https://raw.githubusercontent.com/palantir/osdk-ts/main/packages/shared.test/src/stubs/objectTypeV2.ts",
+      "repository": "palantir/osdk-ts",
+      "licence": "Apache-2.0",
+      "note": "Object type fixtures used by Palantir to mock the Foundry API.",
+      "bytes": 17690,
+      "sha256": "5e7c841bf840c046aee333aa9bd199e6fc0844f3a7b1b6c3778b146ff794e70c"
+    },
+    {
+      "file": "linkTypes.ts",
+      "url": "https://raw.githubusercontent.com/palantir/osdk-ts/main/packages/shared.test/src/stubs/linkTypes.ts",
+      "repository": "palantir/osdk-ts",
+      "licence": "Apache-2.0",
+      "note": "Link type fixtures used by Palantir to mock the Foundry API.",
+      "bytes": 2356,
+      "sha256": "e506ae26346101dd1f914f99b95356b3110b42da8fccf71c5c9ab15dd6f3ba94"
+    },
+    {
+      "file": "spts.ts",
+      "url": "https://raw.githubusercontent.com/palantir/osdk-ts/main/packages/shared.test/src/stubs/spts.ts",
+      "repository": "palantir/osdk-ts",
+      "licence": "Apache-2.0",
+      "note": "Shared property type fixture.",
+      "bytes": 961,
+      "sha256": "4ac97ec8c19968d562998cafda20024c6691d8ac90fe0900994f46c227f6067d"
+    },
+    {
+      "file": "interfaceTypes.ts",
+      "url": "https://raw.githubusercontent.com/palantir/osdk-ts/main/packages/shared.test/src/stubs/interfaceTypes.ts",
+      "repository": "palantir/osdk-ts",
+      "licence": "Apache-2.0",
+      "note": "Interface type fixtures.",
+      "bytes": 3990,
+      "sha256": "fd02f220d81349533e08a503ca910d8d1488dd5f3cb58e71304a72c7fb224920"
+    }
+  ]
+}

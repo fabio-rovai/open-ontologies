@@ -1,0 +1,460 @@
+{
+  "audits": [
+    {
+      "ontology": "ies4.ttl",
+      "triples": 3976,
+      "constructsUsed": 8,
+      "constructsByVerdict": {
+        "carried": 4,
+        "partial": 3,
+        "none": 1
+      },
+      "assertionsByVerdict": {
+        "carried": 1789,
+        "partial": 760,
+        "none": 200
+      },
+      "rows": [
+        {
+          "construct": "rdfs:label",
+          "assertions": 715,
+          "verdict": "carried",
+          "foundryDestination": "displayName",
+          "note": ""
+        },
+        {
+          "construct": "rdfs:comment",
+          "assertions": 715,
+          "verdict": "carried",
+          "foundryDestination": "description",
+          "note": ""
+        },
+        {
+          "construct": "rdfs:subClassOf",
+          "assertions": 574,
+          "verdict": "partial",
+          "foundryDestination": "InterfaceType.extendsInterfaces / implementsInterfaces",
+          "note": "Interfaces may extend interfaces. One object type may not subclass another."
+        },
+        {
+          "construct": "rdfs:subPropertyOf",
+          "assertions": 200,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "No field arranges properties in a hierarchy."
+        },
+        {
+          "construct": "rdfs:domain",
+          "assertions": 198,
+          "verdict": "carried",
+          "foundryDestination": "ObjectTypeV2.properties",
+          "note": "A property belongs to the object type that declares it."
+        },
+        {
+          "construct": "owl:ObjectProperty",
+          "assertions": 161,
+          "verdict": "carried",
+          "foundryDestination": "LinkTypeSideV2",
+          "note": "A link between two object types."
+        },
+        {
+          "construct": "rdfs:range",
+          "assertions": 143,
+          "verdict": "partial",
+          "foundryDestination": "PropertyV2.dataType / LinkTypeSideV2.objectTypeApiName",
+          "note": "Carried for the types in the Foundry union only."
+        },
+        {
+          "construct": "owl:DatatypeProperty",
+          "assertions": 43,
+          "verdict": "partial",
+          "foundryDestination": "PropertyV2.dataType",
+          "note": "Carried only when the range maps to a Foundry property type."
+        }
+      ]
+    },
+    {
+      "ontology": "ies-core.ttl",
+      "triples": 1083,
+      "constructsUsed": 7,
+      "constructsByVerdict": {
+        "carried": 4,
+        "partial": 2,
+        "none": 1
+      },
+      "assertionsByVerdict": {
+        "carried": 379,
+        "partial": 178,
+        "none": 36
+      },
+      "rows": [
+        {
+          "construct": "rdfs:label",
+          "assertions": 212,
+          "verdict": "carried",
+          "foundryDestination": "displayName",
+          "note": ""
+        },
+        {
+          "construct": "rdfs:subClassOf",
+          "assertions": 144,
+          "verdict": "partial",
+          "foundryDestination": "InterfaceType.extendsInterfaces / implementsInterfaces",
+          "note": "Interfaces may extend interfaces. One object type may not subclass another."
+        },
+        {
+          "construct": "rdfs:comment",
+          "assertions": 137,
+          "verdict": "carried",
+          "foundryDestination": "description",
+          "note": ""
+        },
+        {
+          "construct": "rdfs:subPropertyOf",
+          "assertions": 36,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "No field arranges properties in a hierarchy."
+        },
+        {
+          "construct": "rdfs:range",
+          "assertions": 34,
+          "verdict": "partial",
+          "foundryDestination": "PropertyV2.dataType / LinkTypeSideV2.objectTypeApiName",
+          "note": "Carried for the types in the Foundry union only."
+        },
+        {
+          "construct": "rdfs:domain",
+          "assertions": 29,
+          "verdict": "carried",
+          "foundryDestination": "ObjectTypeV2.properties",
+          "note": "A property belongs to the object type that declares it."
+        },
+        {
+          "construct": "owl:ObjectProperty",
+          "assertions": 1,
+          "verdict": "carried",
+          "foundryDestination": "LinkTypeSideV2",
+          "note": "A link between two object types."
+        }
+      ]
+    },
+    {
+      "ontology": "ies-top.ttl",
+      "triples": 239,
+      "constructsUsed": 6,
+      "constructsByVerdict": {
+        "carried": 3,
+        "partial": 2,
+        "none": 1
+      },
+      "assertionsByVerdict": {
+        "carried": 88,
+        "partial": 30,
+        "none": 21
+      },
+      "rows": [
+        {
+          "construct": "rdfs:label",
+          "assertions": 41,
+          "verdict": "carried",
+          "foundryDestination": "displayName",
+          "note": ""
+        },
+        {
+          "construct": "rdfs:comment",
+          "assertions": 39,
+          "verdict": "carried",
+          "foundryDestination": "description",
+          "note": ""
+        },
+        {
+          "construct": "rdfs:subClassOf",
+          "assertions": 23,
+          "verdict": "partial",
+          "foundryDestination": "InterfaceType.extendsInterfaces / implementsInterfaces",
+          "note": "Interfaces may extend interfaces. One object type may not subclass another."
+        },
+        {
+          "construct": "rdfs:subPropertyOf",
+          "assertions": 21,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "No field arranges properties in a hierarchy."
+        },
+        {
+          "construct": "rdfs:domain",
+          "assertions": 8,
+          "verdict": "carried",
+          "foundryDestination": "ObjectTypeV2.properties",
+          "note": "A property belongs to the object type that declares it."
+        },
+        {
+          "construct": "rdfs:range",
+          "assertions": 7,
+          "verdict": "partial",
+          "foundryDestination": "PropertyV2.dataType / LinkTypeSideV2.objectTypeApiName",
+          "note": "Carried for the types in the Foundry union only."
+        }
+      ]
+    },
+    {
+      "ontology": "boro-building-handcrafted.ttl",
+      "triples": 355,
+      "constructsUsed": 8,
+      "constructsByVerdict": {
+        "carried": 4,
+        "partial": 3,
+        "none": 1
+      },
+      "assertionsByVerdict": {
+        "carried": 198,
+        "partial": 66,
+        "none": 18
+      },
+      "rows": [
+        {
+          "construct": "rdfs:label",
+          "assertions": 83,
+          "verdict": "carried",
+          "foundryDestination": "displayName",
+          "note": ""
+        },
+        {
+          "construct": "rdfs:comment",
+          "assertions": 83,
+          "verdict": "carried",
+          "foundryDestination": "description",
+          "note": ""
+        },
+        {
+          "construct": "rdfs:subClassOf",
+          "assertions": 44,
+          "verdict": "partial",
+          "foundryDestination": "InterfaceType.extendsInterfaces / implementsInterfaces",
+          "note": "Interfaces may extend interfaces. One object type may not subclass another."
+        },
+        {
+          "construct": "rdfs:domain",
+          "assertions": 18,
+          "verdict": "carried",
+          "foundryDestination": "ObjectTypeV2.properties",
+          "note": "A property belongs to the object type that declares it."
+        },
+        {
+          "construct": "rdfs:range",
+          "assertions": 18,
+          "verdict": "partial",
+          "foundryDestination": "PropertyV2.dataType / LinkTypeSideV2.objectTypeApiName",
+          "note": "Carried for the types in the Foundry union only."
+        },
+        {
+          "construct": "rdfs:subPropertyOf",
+          "assertions": 18,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "No field arranges properties in a hierarchy."
+        },
+        {
+          "construct": "owl:ObjectProperty",
+          "assertions": 14,
+          "verdict": "carried",
+          "foundryDestination": "LinkTypeSideV2",
+          "note": "A link between two object types."
+        },
+        {
+          "construct": "owl:DatatypeProperty",
+          "assertions": 4,
+          "verdict": "partial",
+          "foundryDestination": "PropertyV2.dataType",
+          "note": "Carried only when the range maps to a Foundry property type."
+        }
+      ]
+    },
+    {
+      "ontology": "pizza-reference.owl",
+      "triples": 2332,
+      "constructsUsed": 24,
+      "constructsByVerdict": {
+        "none": 15,
+        "partial": 3,
+        "carried": 6
+      },
+      "assertionsByVerdict": {
+        "none": 1241,
+        "partial": 270,
+        "carried": 284
+      },
+      "rows": [
+        {
+          "construct": "owl:disjointWith",
+          "assertions": 796,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "No field asserts that two types cannot share a member."
+        },
+        {
+          "construct": "rdfs:subClassOf",
+          "assertions": 259,
+          "verdict": "partial",
+          "foundryDestination": "InterfaceType.extendsInterfaces / implementsInterfaces",
+          "note": "Interfaces may extend interfaces. One object type may not subclass another."
+        },
+        {
+          "construct": "owl:Restriction",
+          "assertions": 188,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "No field carries a class defined by a condition on a property."
+        },
+        {
+          "construct": "owl:someValuesFrom",
+          "assertions": 155,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "Existential restriction has no Foundry field."
+        },
+        {
+          "construct": "owl:Class",
+          "assertions": 143,
+          "verdict": "carried",
+          "foundryDestination": "ObjectTypeV2 / InterfaceType",
+          "note": "A class becomes an object type or an interface."
+        },
+        {
+          "construct": "rdfs:label",
+          "assertions": 96,
+          "verdict": "carried",
+          "foundryDestination": "displayName",
+          "note": ""
+        },
+        {
+          "construct": "owl:allValuesFrom",
+          "assertions": 26,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "Universal restriction has no Foundry field."
+        },
+        {
+          "construct": "rdfs:comment",
+          "assertions": 25,
+          "verdict": "carried",
+          "foundryDestination": "description",
+          "note": ""
+        },
+        {
+          "construct": "owl:unionOf",
+          "assertions": 25,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "No field defines a class as a union."
+        },
+        {
+          "construct": "owl:equivalentClass",
+          "assertions": 15,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "No field asserts that two types have the same members."
+        },
+        {
+          "construct": "owl:intersectionOf",
+          "assertions": 15,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "No field defines a class as an intersection."
+        },
+        {
+          "construct": "owl:ObjectProperty",
+          "assertions": 8,
+          "verdict": "carried",
+          "foundryDestination": "LinkTypeSideV2",
+          "note": "A link between two object types."
+        },
+        {
+          "construct": "rdfs:range",
+          "assertions": 7,
+          "verdict": "partial",
+          "foundryDestination": "PropertyV2.dataType / LinkTypeSideV2.objectTypeApiName",
+          "note": "Carried for the types in the Foundry union only."
+        },
+        {
+          "construct": "rdfs:domain",
+          "assertions": 6,
+          "verdict": "carried",
+          "foundryDestination": "ObjectTypeV2.properties",
+          "note": "A property belongs to the object type that declares it."
+        },
+        {
+          "construct": "owl:inverseOf",
+          "assertions": 6,
+          "verdict": "carried",
+          "foundryDestination": "LinkTypeSideV2.linkTypeRid",
+          "note": "Two link sides sharing a rid are inverse."
+        },
+        {
+          "construct": "owl:hasValue",
+          "assertions": 6,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "Value restriction has no Foundry field."
+        },
+        {
+          "construct": "owl:FunctionalProperty",
+          "assertions": 4,
+          "verdict": "partial",
+          "foundryDestination": "LinkTypeSideV2.cardinality = ONE",
+          "note": "Carried for links; a functional datatype property has no field."
+        },
+        {
+          "construct": "rdfs:subPropertyOf",
+          "assertions": 4,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "No field arranges properties in a hierarchy."
+        },
+        {
+          "construct": "owl:InverseFunctionalProperty",
+          "assertions": 3,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "No field declares a property inverse functional."
+        },
+        {
+          "construct": "owl:complementOf",
+          "assertions": 3,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "No field defines a class as a complement."
+        },
+        {
+          "construct": "owl:TransitiveProperty",
+          "assertions": 2,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "No field declares a property transitive."
+        },
+        {
+          "construct": "owl:minCardinality",
+          "assertions": 1,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "Minimum cardinality has no Foundry field."
+        },
+        {
+          "construct": "owl:oneOf",
+          "assertions": 1,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "No field defines a class by enumeration."
+        },
+        {
+          "construct": "owl:AllDifferent",
+          "assertions": 1,
+          "verdict": "none",
+          "foundryDestination": "",
+          "note": "No field asserts mutual difference."
+        }
+      ]
+    }
+  ]
+}

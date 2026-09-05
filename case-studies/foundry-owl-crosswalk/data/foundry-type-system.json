@@ -1,0 +1,93 @@
+{
+  "count": 22,
+  "types": [
+    {
+      "model": "DateType",
+      "discriminator": "date"
+    },
+    {
+      "model": "StructType",
+      "discriminator": "struct"
+    },
+    {
+      "model": "StringType",
+      "discriminator": "string"
+    },
+    {
+      "model": "ByteType",
+      "discriminator": "byte"
+    },
+    {
+      "model": "DoubleType",
+      "discriminator": "double"
+    },
+    {
+      "model": "GeoPointType",
+      "discriminator": "geopoint"
+    },
+    {
+      "model": "GeotimeSeriesReferenceType",
+      "discriminator": "geotimeSeriesReference"
+    },
+    {
+      "model": "IntegerType",
+      "discriminator": "integer"
+    },
+    {
+      "model": "FloatType",
+      "discriminator": "float"
+    },
+    {
+      "model": "GeoShapeType",
+      "discriminator": "geoshape"
+    },
+    {
+      "model": "LongType",
+      "discriminator": "long"
+    },
+    {
+      "model": "BooleanType",
+      "discriminator": "boolean"
+    },
+    {
+      "model": "CipherTextType",
+      "discriminator": "cipherText"
+    },
+    {
+      "model": "MarkingType",
+      "discriminator": "marking"
+    },
+    {
+      "model": "AttachmentType",
+      "discriminator": "attachment"
+    },
+    {
+      "model": "MediaReferenceType",
+      "discriminator": "mediaReference"
+    },
+    {
+      "model": "TimeseriesType",
+      "discriminator": "timeseries"
+    },
+    {
+      "model": "OntologyObjectArrayType",
+      "discriminator": "array"
+    },
+    {
+      "model": "ShortType",
+      "discriminator": "short"
+    },
+    {
+      "model": "VectorType",
+      "discriminator": "vector"
+    },
+    {
+      "model": "DecimalType",
+      "discriminator": "decimal"
+    },
+    {
+      "model": "TimestampType",
+      "discriminator": "timestamp"
+    }
+  ]
+}

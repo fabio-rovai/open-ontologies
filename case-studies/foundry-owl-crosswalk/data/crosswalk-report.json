@@ -1,0 +1,106 @@
+{
+  "objectTypes": 9,
+  "properties": 68,
+  "linkSides": 6,
+  "interfaces": 2,
+  "sharedPropertyTypes": 1,
+  "inversePairs": 2,
+  "keyAxioms": 9,
+  "objectTypesWithoutDescription": 5,
+  "propertiesWithoutDescription": 55,
+  "propertiesByFidelity": {
+    "direct": 49,
+    "structural": 3,
+    "none": 10,
+    "standard": 6
+  },
+  "lossyProperties": [
+    {
+      "objectType": "Employee",
+      "property": "employeeStatus",
+      "foundryType": "timeseries",
+      "elementType": null,
+      "reason": "A handle onto a Foundry time series, not a value. The series itself is not in the export."
+    },
+    {
+      "objectType": "Employee",
+      "property": "employeeSensor",
+      "foundryType": "timeseries",
+      "elementType": null,
+      "reason": "A handle onto a Foundry time series, not a value. The series itself is not in the export."
+    },
+    {
+      "objectType": "Employee",
+      "property": "employeeLocation",
+      "foundryType": "geotimeSeriesReference",
+      "elementType": null,
+      "reason": "A handle onto a Geotime integration. The track is not in the export."
+    },
+    {
+      "objectType": "Employee",
+      "property": "skillSetEmbedding",
+      "foundryType": "vector",
+      "elementType": null,
+      "reason": "An embedding. The export declares its dimension and sometimes the producing model, but no W3C datatype carries a vector, so both become annotations rather than a range."
+    },
+    {
+      "objectType": "objectTypeWithAllPropertyTypes",
+      "property": "attachment",
+      "foundryType": "attachment",
+      "elementType": null,
+      "reason": "A resource identifier pointing into Foundry blob storage. The value does not resolve outside the platform."
+    },
+    {
+      "objectType": "objectTypeWithAllPropertyTypes",
+      "property": "attachment2",
+      "foundryType": "attachment",
+      "elementType": null,
+      "reason": "A resource identifier pointing into Foundry blob storage. The value does not resolve outside the platform."
+    },
+    {
+      "objectType": "objectTypeWithAllPropertyTypes",
+      "property": "attachmentArray",
+      "foundryType": "array",
+      "elementType": "attachment",
+      "reason": "A resource identifier pointing into Foundry blob storage. The value does not resolve outside the platform."
+    },
+    {
+      "objectType": "objectTypeWithAllPropertyTypes",
+      "property": "mediaReference",
+      "foundryType": "mediaReference",
+      "elementType": null,
+      "reason": "A reference into a Foundry media set. Does not resolve outside the platform."
+    },
+    {
+      "objectType": "objectTypeWithAllPropertyTypes",
+      "property": "vector",
+      "foundryType": "vector",
+      "elementType": null,
+      "reason": "An embedding. The export declares its dimension and sometimes the producing model, but no W3C datatype carries a vector, so both become annotations rather than a range."
+    },
+    {
+      "objectType": "objectTypeWithAllPropertyTypes",
+      "property": "cipherText",
+      "foundryType": "cipherText",
+      "elementType": null,
+      "reason": "Ciphertext bound to a Foundry cipher channel. The channel reference is meaningless outside the platform."
+    }
+  ],
+  "droppedConstructs": [
+    {
+      "construct": "actionType",
+      "countInExport": 0,
+      "reason": "A Foundry action is a permissioned state change with parameters, validation and side effects. OWL describes what holds, not what may be done, so no axiom carries it."
+    },
+    {
+      "construct": "queryType",
+      "countInExport": 0,
+      "reason": "A Foundry query is a named function. SPARQL can express a query but the ontology has no place to declare one."
+    },
+    {
+      "construct": "valueType",
+      "countInExport": 0,
+      "reason": "A Foundry value type is a reusable semantic constraint. The nearest OWL construct is a datatype restriction, which cannot carry the Foundry formatting and validation metadata."
+    }
+  ]
+}

@@ -9,6 +9,8 @@ data/
 !case-studies/modip-plastics-kg/data/**
 !case-studies/robot-safety-security-crosswalk/data/
 !case-studies/robot-safety-security-crosswalk/data/**
+!case-studies/foundry-owl-crosswalk/data/
+!case-studies/foundry-owl-crosswalk/data/**
 # OntoAxiom ground truth + scored results — the benchmark claims are unverifiable without them
 !benchmark/ontoaxiom/data/
 !benchmark/ontoaxiom/data/**
