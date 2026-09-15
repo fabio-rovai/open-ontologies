@@ -885,12 +885,19 @@ fn test_the_default_graph_is_still_read() {
 #[test]
 fn test_the_report_names_the_scope_it_selected_over() {
     // A verdict that does not say what it selected over cannot be replayed or
-    // compared against the next one. The key is added before temporal scoping
-    // arrives rather than on the run where it first matters.
+    // compared against the next one. This used to assert the bare string
+    // `all_graphs`, a placeholder put in before temporal scoping arrived so
+    // the key would not appear for the first time on the run where it
+    // mattered. That run has arrived (#108), so the key now carries the
+    // manifest and this asserts the manifest.
     let store = store_from_trig("@prefix ex: <http://example.org/> . ex:a a ex:Thing .");
     let report = ShaclValidator::validate(&store, ONE_SHAPE).unwrap();
     let v: serde_json::Value = serde_json::from_str(&report).unwrap();
-    assert_eq!(v["scope"], "all_graphs", "report: {v}");
+    assert_eq!(v["scope"]["selector"], "whole-store", "report: {v}");
+    assert_eq!(v["scope"]["default_graph"], true, "report: {v}");
+    // A whole-store run lists no graph names: "every graph" is already the
+    // complete answer, and a list would go stale against a store that grew.
+    assert!(v["scope"].get("graphs").is_none(), "report: {v}");
 }
 
 // Range constraints. Before these were implemented, a shape carrying

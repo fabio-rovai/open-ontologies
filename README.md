@@ -262,6 +262,18 @@ counts. Two are irreducible, because they are about an execution and not a funct
 Those are property-tested end to end, which is not proved.
 [docs/trusted-computing-base.md](docs/trusted-computing-base.md) says which is which.
 
+**A certificate says nothing about which graph it is about.** The checkers read `asserted.tsv`
+and cannot ask where those triples came from. Every certified path used to read the whole store,
+so on a register that keeps several versions of an entity in several named graphs, a run reasoned
+over the union of every version: a state that held at no instant. The certificate over such a run
+is VALID — the derivations do follow, `oo-cert` accepts it, and a `cax-dw` refutation drawn from
+two versions that never coexisted is accepted by `oo-refute` — and the answer is still wrong,
+because the graph is. A run over a store that uses the temporal vocabulary now refuses unless the
+caller names an instant (`valid_at` / `as_of`) or asks for every version by name, and every
+certificate directory carries `scope.tsv`, the record of which graphs were read. **No Lean checker
+reads that file.** It is evidence for a person; the blind spot itself is not closed and cannot be
+by this layer.
+
 **The bridge to the specification is a theorem, and what stands in its place now is smaller and a
 different kind of thing.** An OWL 2 RDF-Based interpretation is a Lean structure in its own right:
 the parts of RBS Table 5.1 the rules reach, and RDF 1.1 Semantics section 5's truth clause with its

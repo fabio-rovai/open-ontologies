@@ -237,6 +237,56 @@ impl IncrementalReasoner {
     /// Derive and materialise the consequences of `delta` against the closure
     /// already in the store, without reading the store into memory.
     pub fn run(graph: &Arc<GraphStore>, delta: &[Triple], materialize: bool) -> anyhow::Result<String> {
+        Self::run_scoped(graph, delta, materialize, false)
+    }
+
+    /// As [`run`](Self::run), with the #108 scope gate.
+    ///
+    /// This path reads the store through `sparql_select_union`, so it has the
+    /// SHACL-side selection rather than the reasoner's, and it materialises
+    /// into the default graph. Over a bi-temporal store that is the same
+    /// defect `onto_reason` was gated for, arriving through a second door, and
+    /// leaving it open would have made the gate on `onto_reason` a suggestion.
+    ///
+    /// There is no snapshot form here. Aligning the incremental reader with
+    /// the full one is #108's own "not this issue", and a tool that accepted
+    /// `valid_at` and ignored it would be worse than one that has no such
+    /// argument. So the gate is binary: over a store that uses the temporal
+    /// vocabulary, this refuses unless `all_versions` says the union of every
+    /// version is what the caller meant, and the message points at
+    /// `onto_reason` for the snapshot.
+    pub fn run_scoped(
+        graph: &Arc<GraphStore>,
+        delta: &[Triple],
+        materialize: bool,
+        all_versions: bool,
+    ) -> anyhow::Result<String> {
+        let request = if all_versions {
+            crate::temporal::ScopeRequest::AllVersions
+        } else {
+            crate::temporal::ScopeRequest::Unscoped
+        };
+        let resolved = crate::temporal::resolve(graph, &request);
+        if let Ok((_, manifest)) = &resolved
+            && manifest.store_has_versions()
+            && materialize
+        {
+            anyhow::bail!(
+                "a run over a versioned store does not materialise. This path writes its \
+                 conclusions into the DEFAULT graph, which is timeless and therefore in scope at \
+                 every instant, so a closure drawn from every version at once would become an \
+                 axiom of every snapshot. Run with materialize=false"
+            );
+        }
+        if let Err(e) = resolved {
+            anyhow::bail!(
+                "{e}\n\nNote for this tool: incremental reasoning has no snapshot form. It reads \
+                 the union of every graph and materialises into the default graph, so over a \
+                 versioned store it computes the closure of a state that held at no instant and \
+                 writes it in beside the assertions. Run onto_reason with valid_at / as_of for a \
+                 snapshot, or pass all_versions=true here to say the union is what you meant"
+            );
+        }
         if let Err(reason) = Self::applies_to(delta) {
             return Ok(serde_json::json!({
                 "ok": false,
