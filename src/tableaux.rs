@@ -3772,113 +3772,130 @@ fn name_is_safe(s: &str) -> bool {
 
 // ── Serialisation ───────────────────────────────────────────────────────
 
-fn write_concept(out: &mut String, interner: &Interner, c: &Concept) {
+/// The ONE place a name enters either file, and therefore the one place the
+/// guard has to be.
+///
+/// TCB-26 used to read: "the `names` vector is built by walking every axiom
+/// variant, every role in `model.rext` and every class in `model.cext`.
+/// Individuals in `model.ind` are covered only because `DlAxiom::Indiv(i)` is
+/// emitted for every individual that reaches the model. That is an argument
+/// about two separate loops agreeing, not a check." The separate loop is gone.
+/// A name is checked as it is written, so "the guard covers every name that is
+/// written" is true by construction: there is no other way to write one.
+///
+/// `bad` records the FIRST refused name and the caller refuses the whole
+/// certificate. It is a sink rather than a `Result` so the serialisers stay
+/// total and keep their shape; a certificate is written only after the caller
+/// has looked at it.
+fn push_name(out: &mut String, interner: &Interner, id: u32, bad: &mut Option<String>) {
+    let s = interner.resolve(id);
+    if !name_is_safe(s) && bad.is_none() {
+        *bad = Some(s.to_string());
+    }
+    out.push_str(s);
+}
+
+fn write_concept(out: &mut String, interner: &Interner, c: &Concept, bad: &mut Option<String>) {
     match c {
         Concept::Top => out.push_str("top"),
         Concept::Bottom => out.push_str("bot"),
         Concept::Atom(a) => {
             out.push_str("atom ");
-            out.push_str(interner.resolve(*a));
+            push_name(out, interner, *a, bad);
         }
         Concept::NegAtom(a) => {
             out.push_str("not atom ");
-            out.push_str(interner.resolve(*a));
+            push_name(out, interner, *a, bad);
         }
         // `lean/Dl` has binary conjunction and disjunction, so the n-ary OWL
         // constructors are folded right-associatively here. An empty list is the
         // unit of the connective, which is how `RawConcept::to_nnf` already
         // reads it.
-        Concept::And(cs) => write_nary(out, interner, cs, "and", &Concept::Top),
-        Concept::Or(cs) => write_nary(out, interner, cs, "or", &Concept::Bottom),
+        Concept::And(cs) => write_nary(out, interner, cs, "and", &Concept::Top, bad),
+        Concept::Or(cs) => write_nary(out, interner, cs, "or", &Concept::Bottom, bad),
         Concept::Exists(r, f) => {
             out.push_str("some ");
-            out.push_str(interner.resolve(*r));
+            push_name(out, interner, *r, bad);
             out.push(' ');
-            write_concept(out, interner, f);
+            write_concept(out, interner, f, bad);
         }
         Concept::ForAll(r, f) => {
             out.push_str("all ");
-            out.push_str(interner.resolve(*r));
+            push_name(out, interner, *r, bad);
             out.push(' ');
-            write_concept(out, interner, f);
+            write_concept(out, interner, f, bad);
         }
         Concept::MinCard(r, n, f) => {
             out.push_str("min ");
             out.push_str(&n.to_string());
             out.push(' ');
-            out.push_str(interner.resolve(*r));
+            push_name(out, interner, *r, bad);
             out.push(' ');
-            write_concept(out, interner, f);
+            write_concept(out, interner, f, bad);
         }
         Concept::MaxCard(r, n, f) => {
             out.push_str("max ");
             out.push_str(&n.to_string());
             out.push(' ');
-            out.push_str(interner.resolve(*r));
+            push_name(out, interner, *r, bad);
             out.push(' ');
-            write_concept(out, interner, f);
+            write_concept(out, interner, f, bad);
         }
     }
 }
 
-fn write_nary(out: &mut String, interner: &Interner, cs: &[Concept], op: &str, unit: &Concept) {
+fn write_nary(
+    out: &mut String,
+    interner: &Interner,
+    cs: &[Concept],
+    op: &str,
+    unit: &Concept,
+    bad: &mut Option<String>,
+) {
     match cs.split_first() {
-        None => write_concept(out, interner, unit),
-        Some((head, [])) => write_concept(out, interner, head),
+        None => write_concept(out, interner, unit, bad),
+        Some((head, [])) => write_concept(out, interner, head, bad),
         Some((head, rest)) => {
             out.push_str(op);
             out.push(' ');
-            write_concept(out, interner, head);
+            write_concept(out, interner, head, bad);
             out.push(' ');
-            write_nary(out, interner, rest, op, unit);
+            write_nary(out, interner, rest, op, unit, bad);
         }
     }
 }
 
-fn concept_string(interner: &Interner, c: &Concept) -> String {
+fn concept_string(interner: &Interner, c: &Concept, bad: &mut Option<String>) -> String {
     let mut s = String::new();
-    write_concept(&mut s, interner, c);
+    write_concept(&mut s, interner, c, bad);
     s
 }
 
-fn axiom_line(interner: &Interner, a: &DlAxiom) -> String {
-    let cs = |c: &Concept| concept_string(interner, c);
-    let r = |id: &u32| interner.resolve(*id).to_string();
+fn axiom_line(interner: &Interner, a: &DlAxiom, bad: &mut Option<String>) -> String {
+    // Every name in the line goes through `push_name`, including the ones that
+    // are not inside a concept, so `bad` is set by the time the line exists.
+    let cs = |c: &Concept, bad: &mut Option<String>| concept_string(interner, c, bad);
+    let r = |id: &u32, bad: &mut Option<String>| {
+        let mut s = String::new();
+        push_name(&mut s, interner, *id, bad);
+        s
+    };
     match a {
-        DlAxiom::Sub(c, d) => format!("sub\t{}\t{}", cs(c), cs(d)),
-        DlAxiom::Disjoint(c, d) => format!("disjoint\t{}\t{}", cs(c), cs(d)),
-        DlAxiom::Domain(role, c) => format!("domain\t{}\t{}", r(role), cs(c)),
-        DlAxiom::Range(role, c) => format!("range\t{}\t{}", r(role), cs(c)),
-        DlAxiom::SubRole(a1, b1) => format!("subrole\t{}\t{}", r(a1), r(b1)),
-        DlAxiom::Trans(role) => format!("trans\t{}", r(role)),
-        DlAxiom::Sym(role) => format!("sym\t{}", r(role)),
-        DlAxiom::Inv(a1, b1) => format!("inv\t{}\t{}", r(a1), r(b1)),
-        DlAxiom::InvFunc(role) => format!("invfunc\t{}", r(role)),
-        DlAxiom::Inst(i, c) => format!("inst\t{}\t{}", r(i), cs(c)),
-        DlAxiom::Rel(a1, role, b1) => format!("rel\t{}\t{}\t{}", r(a1), r(role), r(b1)),
-        DlAxiom::Indiv(i) => format!("indiv\t{}", r(i)),
-        DlAxiom::NonEmpty(c) => format!("nonempty\t{}", cs(c)),
-    }
-}
-
-/// Every name a concept mentions, for the safety check.
-fn concept_names(interner: &Interner, c: &Concept, out: &mut Vec<String>) {
-    match c {
-        Concept::Top | Concept::Bottom => {}
-        Concept::Atom(a) | Concept::NegAtom(a) => out.push(interner.resolve(*a).to_string()),
-        Concept::And(cs) | Concept::Or(cs) => {
-            for c in cs {
-                concept_names(interner, c, out);
-            }
+        DlAxiom::Sub(c, d) => format!("sub\t{}\t{}", cs(c, bad), cs(d, bad)),
+        DlAxiom::Disjoint(c, d) => format!("disjoint\t{}\t{}", cs(c, bad), cs(d, bad)),
+        DlAxiom::Domain(role, c) => format!("domain\t{}\t{}", r(role, bad), cs(c, bad)),
+        DlAxiom::Range(role, c) => format!("range\t{}\t{}", r(role, bad), cs(c, bad)),
+        DlAxiom::SubRole(a1, b1) => format!("subrole\t{}\t{}", r(a1, bad), r(b1, bad)),
+        DlAxiom::Trans(role) => format!("trans\t{}", r(role, bad)),
+        DlAxiom::Sym(role) => format!("sym\t{}", r(role, bad)),
+        DlAxiom::Inv(a1, b1) => format!("inv\t{}\t{}", r(a1, bad), r(b1, bad)),
+        DlAxiom::InvFunc(role) => format!("invfunc\t{}", r(role, bad)),
+        DlAxiom::Inst(i, c) => format!("inst\t{}\t{}", r(i, bad), cs(c, bad)),
+        DlAxiom::Rel(a1, role, b1) => {
+            format!("rel\t{}\t{}\t{}", r(a1, bad), r(role, bad), r(b1, bad))
         }
-        Concept::Exists(r, f) | Concept::ForAll(r, f) => {
-            out.push(interner.resolve(*r).to_string());
-            concept_names(interner, f, out);
-        }
-        Concept::MinCard(r, _, f) | Concept::MaxCard(r, _, f) => {
-            out.push(interner.resolve(*r).to_string());
-            concept_names(interner, f, out);
-        }
+        DlAxiom::Indiv(i) => format!("indiv\t{}", r(i, bad)),
+        DlAxiom::NonEmpty(c) => format!("nonempty\t{}", cs(c, bad)),
     }
 }
 
@@ -4378,71 +4395,23 @@ impl DlReasoner {
             ind,
         };
 
-        // Every name that will appear in either file has to survive the round
-        // trip. `owl:hasValue` is approximated by an atom named after the
-        // individual, and that individual can be a literal with a space in it.
-        let mut names: Vec<String> = Vec::new();
-        for a in &axioms {
-            match a {
-                DlAxiom::Sub(c, d) | DlAxiom::Disjoint(c, d) => {
-                    concept_names(&self.interner, c, &mut names);
-                    concept_names(&self.interner, d, &mut names);
-                }
-                DlAxiom::Domain(r, c) | DlAxiom::Range(r, c) => {
-                    names.push(self.interner.resolve(*r).to_string());
-                    concept_names(&self.interner, c, &mut names);
-                }
-                DlAxiom::Inst(i, c) => {
-                    names.push(self.interner.resolve(*i).to_string());
-                    concept_names(&self.interner, c, &mut names);
-                }
-                DlAxiom::NonEmpty(c) => concept_names(&self.interner, c, &mut names),
-                DlAxiom::SubRole(x, y) | DlAxiom::Inv(x, y) => {
-                    names.push(self.interner.resolve(*x).to_string());
-                    names.push(self.interner.resolve(*y).to_string());
-                }
-                DlAxiom::Trans(r) | DlAxiom::Sym(r) | DlAxiom::InvFunc(r) => {
-                    names.push(self.interner.resolve(*r).to_string())
-                }
-                DlAxiom::Rel(x, r, y) => {
-                    names.push(self.interner.resolve(*x).to_string());
-                    names.push(self.interner.resolve(*r).to_string());
-                    names.push(self.interner.resolve(*y).to_string());
-                }
-                DlAxiom::Indiv(i) => names.push(self.interner.resolve(*i).to_string()),
-            }
-        }
-        for &(role, _) in model.rext.keys() {
-            names.push(self.interner.resolve(role).to_string());
-        }
-        for &class in model.cext.keys() {
-            names.push(self.interner.resolve(class).to_string());
-        }
-        if let Some(bad) = names.iter().find(|n| !name_is_safe(n)) {
-            return Ok(ModelOutcome::Refused(format!(
-                "the name {bad:?} carries whitespace, so it would not survive the \
-                 tab-and-space separated format; nothing was written"
-            )));
-        }
-
-        // The gate. A certificate that will not check is worse than no
-        // certificate, so the emitter runs the same semantics the checker does
-        // and refuses when it does not hold.
-        if let Err(why) = model.well_formed(&axioms) {
-            return Ok(ModelOutcome::Refused(format!(
-                "the folded completion graph is not a finite interpretation: {why}"
-            )));
-        }
-        if let Some(bad) = axioms.iter().find(|a| !model.holds(a)) {
-            return Ok(ModelOutcome::Refused(format!(
-                "the folded completion graph does not satisfy the axiom `{}`",
-                axiom_line(&self.interner, bad).replace('\t', " ")
-            )));
-        }
+        // Every name that appears in either file has to survive the round trip.
+        // `owl:hasValue` is approximated by an atom named after the individual,
+        // and that individual can be a literal with a space in it.
+        //
+        // The check is AT THE POINT OF WRITING. It used to be a separate walk
+        // over every axiom variant plus `model.rext` and `model.cext`, with
+        // individuals in `model.ind` covered only because `DlAxiom::Indiv(i)`
+        // happens to be emitted for every individual that reaches the model:
+        // TCB-26, an argument about two loops agreeing rather than a check.
+        // Building the text first and letting `push_name` record the first
+        // refusal makes the coverage question disappear, because `push_name` is
+        // the only way a name reaches either buffer.
+        let mut bad: Option<String> = None;
 
         let mut axiom_text = String::new();
         for a in &axioms {
-            axiom_text.push_str(&axiom_line(&self.interner, a));
+            axiom_text.push_str(&axiom_line(&self.interner, a, &mut bad));
             axiom_text.push('\n');
         }
 
@@ -4462,7 +4431,9 @@ impl DlReasoner {
         classes.sort_unstable();
         for (c, ms) in classes {
             for m in ms {
-                model_text.push_str(&format!("class\t{}\tn{m}\n", self.interner.resolve(c)));
+                model_text.push_str("class\t");
+                push_name(&mut model_text, &self.interner, c, &mut bad);
+                model_text.push_str(&format!("\tn{m}\n"));
             }
         }
         let mut edge_lines: Vec<(u32, u32, u32)> = Vec::new();
@@ -4474,12 +4445,41 @@ impl DlReasoner {
         edge_lines.sort_unstable();
         let edge_count = edge_lines.len();
         for (x, r, y) in edge_lines {
-            model_text.push_str(&format!("edge\tn{x}\t{}\tn{y}\n", self.interner.resolve(r)));
+            model_text.push_str(&format!("edge\tn{x}\t"));
+            push_name(&mut model_text, &self.interner, r, &mut bad);
+            model_text.push_str(&format!("\tn{y}\n"));
         }
         let mut ind_lines: Vec<(u32, u32)> = model.ind.iter().map(|(&i, &n)| (i, n)).collect();
         ind_lines.sort_unstable();
         for (i, n) in ind_lines {
-            model_text.push_str(&format!("ind\t{}\tn{n}\n", self.interner.resolve(i)));
+            model_text.push_str("ind\t");
+            push_name(&mut model_text, &self.interner, i, &mut bad);
+            model_text.push_str(&format!("\tn{n}\n"));
+        }
+
+        // Nothing has been written yet, so a refusal here writes nothing. The
+        // order is the order it always was: the name guard decides before the
+        // semantics gate does.
+        if let Some(bad) = bad {
+            return Ok(ModelOutcome::Refused(format!(
+                "the name {bad:?} carries whitespace, so it would not survive the \
+                 tab-and-space separated format; nothing was written"
+            )));
+        }
+
+        // The gate. A certificate that will not check is worse than no
+        // certificate, so the emitter runs the same semantics the checker does
+        // and refuses when it does not hold.
+        if let Err(why) = model.well_formed(&axioms) {
+            return Ok(ModelOutcome::Refused(format!(
+                "the folded completion graph is not a finite interpretation: {why}"
+            )));
+        }
+        if let Some(bad) = axioms.iter().find(|a| !model.holds(a)) {
+            return Ok(ModelOutcome::Refused(format!(
+                "the folded completion graph does not satisfy the axiom `{}`",
+                axiom_line(&self.interner, bad, &mut None).replace('\t', " ")
+            )));
         }
 
         std::fs::create_dir_all(dir)?;
@@ -4769,6 +4769,64 @@ mod certificate_boundary_tests {
         }
     }
 
+    /// TCB-26, as a statement about this file rather than about a run.
+    ///
+    /// The guard covers every name that is written because `push_name` is the
+    /// only thing that writes one. This reads the source of the two writers and
+    /// requires it: no `interner.resolve` may append to a certificate buffer.
+    /// It is a crude check and it is the one that matches the claim. The
+    /// previous arrangement — a `names` vector built by one loop and the files
+    /// written by another — could not be checked this way at all, which is why
+    /// TCB-26 was listed as trusted rather than tested.
+    #[test]
+    fn tcb_26_only_push_name_writes_a_name() {
+        // Normalise line endings before any of the anchors below are matched.
+        // git on Windows checks this file out with CRLF by default, and the
+        // `fn emit(\n` anchor wants a newline immediately after the paren, so
+        // without this the anchor misses, `expect` fires, and the test fails on
+        // Windows alone while passing on Linux and macOS. It did exactly that.
+        let src = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/tableaux.rs"))
+            .expect("this file is readable")
+            .replace("\r\n", "\n");
+
+        // The two regions that build certificate text: the serialisers, and the
+        // emitter that assembles `axioms.tsv` and `model.tsv` out of them.
+        let ser_start = src.find("// ── Serialisation ──").expect("the serialisation section");
+        let ser_end = src[ser_start..]
+            .find("\n// ── The finite interpretation")
+            .expect("the section after it")
+            + ser_start;
+        let emit_start = src.find("    fn emit(\n").expect("the emitter");
+        let emit_end = src[emit_start..]
+            .find("\n    /// Certify that `class_iri` is satisfiable")
+            .expect("the method after it")
+            + emit_start;
+        let regions = [&src[ser_start..ser_end], &src[emit_start..emit_end]];
+        assert!(regions[0].contains("fn push_name("), "the guard left the serialisers");
+        assert!(regions[1].contains("axioms.tsv"), "the emitter region is not the emitter");
+
+        let mut offenders: Vec<&str> = Vec::new();
+        for region in regions {
+            for line in region.lines() {
+                let t = line.trim();
+                if !t.contains("resolve(") || t.starts_with("//") {
+                    continue;
+                }
+                // The one inside `push_name`, and the one that names an
+                // individual in an ERROR MESSAGE rather than in a line.
+                if t == "let s = interner.resolve(id);" || t == "self.interner.resolve(i)" {
+                    continue;
+                }
+                offenders.push(line);
+            }
+        }
+        assert!(
+            offenders.is_empty(),
+            "a name reaches a certificate buffer without passing `push_name`:\n{}",
+            offenders.join("\n")
+        );
+    }
+
     proptest! {
         #![proptest_config(ProptestConfig { cases: 512, ..ProptestConfig::default() })]
 
@@ -4800,13 +4858,23 @@ mod certificate_boundary_tests {
             let mut interner = Interner::new();
             let ids: Vec<u32> = ns.iter().map(|n| interner.intern(n)).collect();
             let c = build(&sh, &ids);
-            let s = concept_string(&interner, &c);
-            if ns.iter().all(|n| name_is_safe(n)) {
+            let mut bad = None;
+            let s = concept_string(&interner, &c, &mut bad);
+            // The condition is now the GUARD's verdict, not the test author's
+            // recollection of which names the concept happens to mention. That
+            // is TCB-26: `push_name` is the only way a name reaches the buffer,
+            // so `bad` is set exactly when the buffer carries an unsafe one.
+            if bad.is_none() {
                 prop_assert_eq!(
                     s.split(' ').count(), tokens(&c),
                     "token count drifted from the shape: {:?}", s
                 );
                 prop_assert!(!s.contains('\t') && !s.contains('\n') && !s.contains('\r'));
+            } else {
+                prop_assert!(
+                    ns.iter().any(|n| !name_is_safe(n)),
+                    "the guard refused {:?} but every name is safe", s
+                );
             }
         }
 
@@ -4834,8 +4902,14 @@ mod certificate_boundary_tests {
                 (DlAxiom::NonEmpty(c), 2),
             ];
             for (a, want) in cases {
-                let line = axiom_line(&interner, &a);
-                if name_is_safe(&n) {
+                let mut bad = None;
+                let line = axiom_line(&interner, &a, &mut bad);
+                // Every one of these variants mentions the generated name, so
+                // the guard's verdict and the name's safety have to agree. That
+                // is the TCB-26 claim: no variant writes a name the guard did
+                // not see, and none reports one it did not write.
+                prop_assert_eq!(bad.is_none(), name_is_safe(&n), "{:?}", line);
+                if bad.is_none() {
                     prop_assert_eq!(
                         line.split('\t').count(), want,
                         "{:?} is not {} tab-separated fields", line, want

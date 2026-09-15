@@ -20,16 +20,28 @@ audit:
 # own toolchain, so this is NOT part of `check`: it is minutes per harness and
 # a developer without Kani installed must still be able to run the gates.
 # `cargo test` covers the same statements by sampling.
-# `parse_pat_and_render_are_inverse` is deliberately NOT here. It is a fourth
-# harness in the same module and it does not terminate: no verdict at 14 minutes
-# and 9.5GB, worse when the input is constrained, because `parse_pat` returns
-# `anyhow::Result` and CBMC flattens the error-formatting machinery whether or
-# not the refusal paths are reachable. The harness carries the measurements and
-# what would close it. A target that hangs is worse than one that is honest
-# about its coverage.
+# Every harness in `src/reason.rs` is here, which was not true before 15
+# September 2026: `parse_pat_and_render_are_inverse` did not terminate (no
+# verdict at 14 minutes and 9.5GB, worse when the input was constrained) because
+# `parse_pat` returns `anyhow::Result` and CBMC flattens the error-formatting
+# machinery whether or not the refusal paths are reachable. Lifting the
+# classification into the pure `pat_of` closed it: it is now
+# `pat_of_and_render_are_inverse_*` and it verifies in about four seconds.
 verify:
-	cargo kani --harness asserted_line_round_trips
-	cargo kani --harness triple_fields_append_exactly_three
+	cargo kani --harness asserted_line_round_trips_at_0
+	cargo kani --harness asserted_line_round_trips_at_1
+	cargo kani --harness asserted_line_round_trips_at_2
+	cargo kani --harness asserted_line_round_trips_at_3
+	cargo kani --harness asserted_line_round_trips_at_4
+	cargo kani --harness triple_fields_append_exactly_three_at_0
+	cargo kani --harness triple_fields_append_exactly_three_at_2
+	cargo kani --harness triple_fields_append_exactly_three_at_3
+	cargo kani --harness triple_fields_append_exactly_three_at_4
+	cargo kani --harness term_guard_admits_no_separator_at_3
+	cargo kani --harness term_guard_admits_no_separator_at_6
+	cargo kani --harness term_guard_separates_the_three_spellings
+	cargo kani --harness pat_of_and_render_are_inverse_at_2
+	cargo kani --harness pat_of_and_render_are_inverse_at_3
 	cargo kani --harness writable_triple_decides_both_positions
 
 check: lint test audit

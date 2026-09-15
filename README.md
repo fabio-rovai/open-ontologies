@@ -107,13 +107,13 @@ carries a certificate per claim. See [decision 0007](docs/decisions/0007-a-slice
 Every line above is worth less if this section is missing, so it is here rather than in a file
 nobody opens. These are the load-bearing limits, and none of them is hypothetical.
 
-**The Rust engine is almost entirely unverified.** The theorems are conditional: they say that IF
-the asserted graph is what the certificate claims and IF the derivation steps are the ones taken,
-THEN the conclusions hold. Everything to the left of that is a serialiser, a parser and an
-interner, and if they misrepresent the run, a valid proof certifies the wrong thing. That boundary
-is named property by property in [docs/trusted-computing-base.md](docs/trusted-computing-base.md),
-property-tested, and partly bounded-model-checked. It is not verified. This work verified the
-joint, not the machine.
+**The Rust engine is not verified.** The theorems are conditional on it reporting the run
+faithfully. That boundary is twenty-nine properties: `make verify` bounded-model-checks six, and
+five are enforced by the engine rather than observed of a dependency, two properties being in both
+counts. Two are irreducible, because they are about an execution and not a function: that
+`asserted.tsv` is the graph reasoned over, and that `derivations.tsv` covers every triple added.
+Those are property-tested end to end, which is not proved.
+[docs/trusted-computing-base.md](docs/trusted-computing-base.md) says which is which.
 
 **The bridge to the specification is prose, not a theorem.** Fourteen rule arms used to be
 assumed rather than derived, and they are now derived, each with an empty axiom footprint, over a

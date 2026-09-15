@@ -18,13 +18,20 @@ at the top of each round for exactly that reason, and the test below runs the sa
 graph through two interpreters with different `PYTHONHASHSEED` and demands
 identical bytes.
 
-SCOPE. This is the one that matters most. The Rust `run_horn` flattens every named
-graph into `asserted.tsv` (`src/reason.rs:2170`, `graph.all_triples()`), so a store
-that holds a previous materialisation in the inferred graph turns derived triples
-into ASSERTIONS. The checker cannot detect it: the soundness theorem is
-conditional on the assertions, and it is TOLD what they are. The result is a green
-absolute verdict about a graph nobody asserted. This package defaults to the
-default graph alone and refuses the inferred graph outright.
+SCOPE. This is the one that matters most. Until 15 September 2026 the Rust
+`run_horn` flattened every named graph into `asserted.tsv`, so a store holding a
+previous materialisation in the inferred graph turned derived triples into
+ASSERTIONS. The checker could not detect it: the soundness theorem is conditional
+on the assertions, and it is TOLD what they are, so the result was a green
+absolute verdict about a graph nobody asserted. It now reads
+`src/reason.rs:1105`, `graph.triples_outside(&[INFERRED_GRAPH])`, and the
+inferred graph is out of scope.
+
+The two engines still differ in HOW, and the difference is deliberate. Rust
+EXCLUDES the inferred graph; this package REFUSES a run that would read it. Both
+keep a derived triple out of the asserted set, and refusing is the stricter of
+the two, so a graph this package accepts is one the Rust engine would also have
+scoped correctly.
 """
 
 import os

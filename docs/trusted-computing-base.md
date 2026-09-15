@@ -13,6 +13,15 @@ The point of writing it down is that an unwritten trusted base cannot be reviewe
 finishes this page should be able to say how much of the engine is verified (almost none of it) and
 which specific, small pieces carry the weight (the ones below).
 
+**Where this stands on 15 September 2026.** Of the twenty-nine properties, six are PROVED by bounded
+model checking rather than sampled: TCB-1, TCB-2, TCB-3, TCB-4, TCB-5 and TCB-20. Five moved from
+something this repository OBSERVED to something it ENFORCES: TCB-4 and TCB-5 are now a refusal at
+the certificate writer rather than a fact about `oxrdf` and `oxiri`; TCB-8 across runs was a DEFECT
+pinned by a test and is fixed for the named inference graph; TCB-14 is derived from one rule table
+instead of hand-written at thirty-one call sites; TCB-26 is checked at the point of writing instead
+of by a second loop. The two lists overlap at TCB-4 and TCB-5, so nine distinct properties changed
+level. What is left irreducible is two things, and they are named at the end.
+
 ## What the Lean side never sees
 
 The checkers are pure functions of files on disk. They read `asserted.tsv`, `derivations.tsv`,
@@ -48,19 +57,35 @@ functions.
 ### Serialisation: the format cannot be forged from inside a term
 
 All six files are tab-separated, carry arbitrary RDF terms, and have no escaping layer of their own.
-`src/reason.rs` writes terms with `push('\t')` between them and `push('\n')` at the end of a line,
-and nothing in that code inspects a term. `lean/OOCert/Parse.lean` states the assumption that makes
-this safe, in a comment rather than a theorem:
+`lean/OOCert/Parse.lean` states the assumption that makes this safe, in a comment rather than a
+theorem:
 
 > Tabs and newlines cannot occur inside an N-Triples term (they are escaped), so splitting on them is
 > exact.
 
-That sentence is the whole of the escaping argument, and it is a claim about a third-party crate.
-The terms come from `oxrdf`'s `Display`, through `GraphStore::all_triples`, which calls
-`quad.subject.to_string()` and friends. `oxrdf 0.3.3` escapes `\t`, `\n`, `\r`, `"` and `\` inside a
-literal's lexical form (`print_quoted_str` in `literal.rs`), and does **not** escape anything inside
-an IRI: `NamedNodeRef`'s `Display` is `write!(f, "<{}>", self.as_str())`. Nothing in this repository
-re-checks either half.
+Until 15 September 2026 that sentence was the whole of the escaping argument, and it was a claim
+about a third-party crate. The terms come from `oxrdf`'s `Display`, through the store readers, which
+call `quad.subject.to_string()` and friends. `oxrdf 0.3.3` escapes
+`\t`, `\n`, `\r`, `"` and `\` inside a literal's lexical form (`print_quoted_str` in `literal.rs`),
+and does **not** escape anything inside an IRI: `NamedNodeRef`'s `Display` is
+`write!(f, "<{}>", self.as_str())`, so the only thing standing between a tab and `asserted.tsv` was
+that `oxiri` refused to parse the IRI. That is a dependency's behaviour observed rather than
+enforced, and an upgrade could change it.
+
+**This repository now enforces it.** `term_fits_the_format` in `src/reason.rs` is the predicate, and
+the two writers `push_asserted_line` and `push_triple_fields` are the only functions that append a
+term to a certificate buffer. A term is written only if it is non-empty, carries no `\t`, `\n` or
+`\r`, and is in one of the three N-Triples spellings (`<iri>`, `_:blank`, or a quoted literal). A
+term that is not means no certificate: the writer returns `Err(Position)`, the caller turns that into
+an error naming the term, and nothing is written. The check happens before anything is appended, so a
+refusal cannot leave half a line in the buffer.
+
+The refusing direction is the point. Escaping at the writer would be the other way to close it, and
+it would need `lean/OOCert/Parse.lean` and `Shacl.Parse` to learn the same escaping, which is a
+change to the verified side for a case that cannot arise from a well-formed store. Refusing needs
+nothing from the checkers and fails safe: the engine declines to make a claim rather than making one
+a reader cannot trust. The cost is liveness, and it is real: if `oxrdf` ever started emitting a raw
+tab inside a literal, this engine would stop writing certificates instead of writing forgeable ones.
 
 - **TCB-1 (field integrity, asserted).** Every line of `asserted.tsv` splits on `\t` into exactly
   three fields, and the number of lines equals the number of triples the run started from. A term
@@ -72,12 +97,16 @@ re-checks either half.
   `2 + 2 * binds + 3 * (1 + body)` fields, with `binds` and `body` read from the line's own header
   and from `rules.tsv`.
 - **TCB-4 (no separator in any term).** No term written to any certificate file contains `\t`,
-  `\n` or `\r`. This is the property TCB-1 to TCB-3 exist to detect the failure of; stated
-  separately because it is the one that has to survive an `oxrdf` upgrade.
+  `\n` or `\r`. **Enforced** by `term_fits_the_format` at the writer and **proved** by
+  `kani_harnesses::term_guard_admits_no_separator_at_3` and `_at_6`, which state it over a symbolic
+  index rather than restating the implementation's own scan, and by the writer harnesses, which
+  prove the writer returns `Ok` exactly when all three terms pass.
 - **TCB-5 (term spellings do not collide).** A literal whose lexical form is `<http://example/x>`
-  and the IRI `<http://example/x>` must not have the same spelling in a certificate file. They do
-  not, because a literal is quoted, but the two checkers compare terms as opaque strings and would
-  be unable to tell them apart if they ever agreed.
+  and the IRI `<http://example/x>` must not have the same spelling in a certificate file. **Enforced**
+  by the same predicate, whose leading-byte condition makes the kind of a term a function of its
+  first byte, and **proved** by `kani_harnesses::term_guard_separates_the_three_spellings`: an
+  accepted term is exactly one of the three kinds, and two accepted terms of different kinds are
+  different strings. That is what entitles both checkers to compare terms as opaque strings.
 
 ### The asserted graph
 
@@ -88,16 +117,23 @@ re-checks either half.
   triple that was in the store at the start of the run. This is the unsafe direction. An extra line
   is an axiom nobody asserted, and every conclusion resting on it is certified against a graph that
   does not exist.
-- **TCB-8 (no inference leaks into the assertions, within a run).** No conclusion of
-  `derivations.tsv` appears in `asserted.tsv`. The engine reaches a fixpoint in one pass and
-  captures `facts` before materialising, so this holds within a run.
-  **Across runs it does not hold and cannot be made to hold by this layer.** Materialising into the
-  default graph turns run N's conclusions into run N+1's assertions, and `asserted.tsv` has no
-  column that says "derived". `docs/lean-certificates.md` states this under "Known limitations" and
-  decision 0001 is the mitigation (`inference_graph: true` keeps them in a named graph). Note that
-  `GraphStore::all_triples` iterates `store.iter()` over every graph, so inferences parked in
-  `https://open-ontologies.org/graph/inferred` by an earlier run are read back as assertions by a
-  later certified run. The separation protects `save`, not the certificate.
+- **TCB-8 (no inference leaks into the assertions).** No conclusion of `derivations.tsv` appears in
+  `asserted.tsv`. Within a run this holds because the engine reaches a fixpoint in one pass and
+  captures `facts` before materialising.
+  **Across runs, the half that was a defect is fixed and the half that is a caller's choice is
+  not.** The defect: `GraphStore::all_triples` iterates `store.iter()` over every graph, so
+  inferences that `inference_graph: true` parked in `https://open-ontologies.org/graph/inferred`
+  under decision 0001 were read back as assertions by the next certified run. The separation
+  protected `save` and not the certificate, and a test asserted that failure rather than the
+  property. Both certified paths now read `GraphStore::triples_outside(&[INFERRED_GRAPH])`, and both
+  report `graphs_read` and `graphs_excluded` in their JSON, so a certificate says which graphs it is
+  about and that claim can be checked against the store.
+  What remains is `InferenceTarget::DefaultGraph`, which merges conclusions into the default graph
+  beside the assertions because the caller asked for that. After the merge nothing distinguishes
+  them, `asserted.tsv` has no column that says "derived", and no layer above the store can recover
+  the distinction. `tests/certificate_boundary_proptest.rs::tcb_8_across_runs_only_the_default_graph_leaks`
+  asserts the fix for the named graph and the leak for the merged one, in one test, so neither half
+  can change without the documentation being forced to change with it.
 - **TCB-9 (the store is a set, the file is a list).** A triple present in two named graphs is
   written twice, because `all_triples` flattens quads. Duplicate lines are harmless to soundness
   (the Lean side builds a `HashSet`) but `asserted` in the JSON report counts lines, not distinct
@@ -110,7 +146,11 @@ re-checks either half.
   uncertified triple sitting in the store under the certificate's cover. Structurally this holds
   because the single `emit` closure is the only path that pushes a candidate, and it records the
   first derivation of anything not already in the closure, but nothing outside that reading enforces
-  it.
+  it. The reading is shorter than it was: `emit` now computes the conclusion from the rule table for
+  twenty-seven of the thirty-one sites, so a site cannot push a triple its rule does not license,
+  and a site that passed a conclusion and premises that did not correspond is no longer expressible.
+  It is still a reading of a loop plus a property test comparing conclusions against the store's
+  before and after.
 - **TCB-11 (one line per inference).** `derivations.len() == inferred_count`. A conclusion is
   recorded the first time it is derived and never again.
 - **TCB-12 (premises precede conclusions).** Every premise of the step on line `i` is either in
@@ -124,10 +164,21 @@ re-checks either half.
   accepted by `OOCert.Rule.ofName?`. An unknown name is a parse error, so this is fail-safe, but a
   rule renamed on one side and not the other silently stops the corpus test from covering it.
 - **TCB-14 (the premise order matches the rule's arm).** `OOCert.checkStep` pattern-matches the
-  premises positionally per rule. The emitter passes them in a hand-written order at each of the
-  thirty-one `emit` call sites. A wrong order is a rejection, not a false pass, and
-  `tests/lean_certificate_test.rs` covers every rule, but nothing derives the order from a single
-  source.
+  premises positionally per rule. **The emitter no longer chooses the order.** Twenty-seven of the
+  thirty-one call sites now fire as `Fired::Bound(rule, binding)`: the site supplies the terms and
+  the premise list AND the conclusion are computed from that rule's row in `BUILTIN_RULES`
+  (`src/reason.rs`), which is one table. A site has no order to get wrong.
+  The remaining four are the list rules `cls-int1`, `cls-int2`, `cls-uni` and `cls-oo`, whose
+  premises are a constructor triple plus an RDF list chain as long as the list; the checker matches
+  those with `takeChain` rather than positionally, so they are not a fixed pattern on either side
+  and they keep an explicit premise vector.
+  That leaves one question: is `BUILTIN_RULES` the checker's table? `tests/premise_order_test.rs`
+  answers it by parsing the `checkStep` ARMS out of `lean/OOCert/Rules.lean` (the code, not the
+  prose table in its docstring), rebuilding each arm's pattern from its premise list, its `x = y` and
+  `x = V.foo` conjuncts and its `st.conclusion = ⟨..⟩`, and comparing the two up to renaming of
+  variables. A disagreement in order, in arity, in which position is fixed, or in which vocabulary
+  term is fixed, fails `cargo test`. Checked by refutation both ways: swapping `rdfs2`'s two premises
+  fails it, and writing `scm-avf2`'s conclusion the natural way round fails it twice.
 
 ### The interner
 
@@ -181,10 +232,17 @@ tabs.
   contains a space, tab, carriage return or newline, and the emitter refuses to write a certificate
   if any name fails. This is the only explicit injection guard in the codebase, and it is in the
   right place.
-- **TCB-26 (the guard covers every name that is written).** The `names` vector is built by walking
-  every axiom variant, every role in `model.rext` and every class in `model.cext`. Individuals in
-  `model.ind` are covered only because `DlAxiom::Indiv(i)` is emitted for every individual that
-  reaches the model. That is an argument about two separate loops agreeing, not a check.
+- **TCB-26 (the guard covers every name that is written).** It used to be an argument about two
+  separate loops agreeing: a `names` vector built by walking every axiom variant plus `model.rext`
+  and `model.cext`, with individuals in `model.ind` covered only because `DlAxiom::Indiv(i)` happens
+  to be emitted for every individual that reaches the model. **The separate loop is gone.**
+  `push_name` is the only function that appends a name to either buffer; it applies `name_is_safe`
+  as it writes and records the first refusal, and the emitter refuses the whole certificate before
+  anything reaches disk. Coverage is therefore not a question: there is no other way to write a
+  name. `tableaux::certificate_boundary_tests::tcb_26_only_push_name_writes_a_name` reads the
+  source of the serialisers and of the emitter and fails if any other `resolve` reaches a
+  certificate buffer, and the TCB-25 property tests now condition on the GUARD's verdict rather
+  than on the test author's recollection of which names a variant mentions.
 - **TCB-27 (the emitter refuses rather than lies).** Before writing, the emitter runs the same
   semantics the checker runs (`model.well_formed`, then `model.holds` on every axiom) and refuses
   on failure. A certificate that will not check is worse than no certificate.
@@ -208,28 +266,35 @@ Lean parser is a second, independent RDF reader.
 
 ## Status
 
-| property | checked by | how |
-|---|---|---|
-| TCB-1 | `tests/certificate_boundary_proptest.rs`, `src/reason.rs` | property, end to end and on the writer |
-| TCB-2, TCB-3 | same | property |
-| TCB-4 | `tests/certificate_boundary_proptest.rs` | property, plus two deterministic tests: the parser refuses a separator inside an IRI, and Turtle's long-string form (which carries RAW control characters) comes back escaped |
-| TCB-5 | proptest | property |
-| TCB-6, TCB-7 | proptest | `asserted.tsv` is re-read through the N-Triples parser into a fresh store and compared |
-| TCB-8 | proptest | property within a run; the across-run failure is pinned by a test that asserts the DEFECT, so the day it changes the documentation is forced to change |
-| TCB-9 | deterministic test | a quad in two named graphs is two lines |
-| TCB-10, TCB-11 | proptest | conclusions compared against the store's before and after |
-| TCB-12 | proptest | both the built-in and the Horn path |
-| TCB-13 | proptest | the name list is read out of `lean/OOCert/Rules.lean` at test time |
-| **TCB-14** | `tests/lean_certificate_test.rs` | the real checker, over every rule. **Not** re-derived here |
-| TCB-15, TCB-16, TCB-17 | `src/reason.rs` unit property tests | the interner is private |
-| TCB-18 | in the code, and proptest | the engine re-parses what it wrote and refuses on mismatch |
-| TCB-19, TCB-21 | proptest, plus the REAL checker | property against a transcription of `OOCert.HornParse` in the test file, because a Lean process per case is not a property test. The transcription's fidelity is then an assumption, so one deterministic test puts the adversarial shapes (a numeric rule name, a non-ASCII one, a `??x` variable, a literal spelled exactly like an IRI as a constant, a blank node, an empty-bodied rule) through `oo-horn check` itself and requires the conditional verdict |
-| TCB-20, TCB-22 | proptest | render and parse are inverse, and no rendered line is empty |
-| TCB-23, TCB-24 | proptest | the substitution is re-applied from `rules.tsv` independently of the engine |
-| TCB-25 | `src/tableaux.rs` unit property tests | `name_is_safe`, `concept_string` token counts, `axiom_line` field counts |
-| **TCB-26** | nothing | the argument that `names` covers `model.ind` is two loops agreeing |
-| TCB-27 | in the code | `tests/dl_model_certificate_test.rs` exercises it; not property-tested |
-| **TCB-28, TCB-29** | nothing here | the SHACL boundary is different in kind, see below |
+The `level` column is the point of this table. **proved** means a bounded model checker verified the
+statement over every input up to a stated bound; **enforced** means the engine refuses rather than
+relies on something being true; **property** means a generator samples it; **argued** means a reading
+of the code with nothing checking it. Nothing here is unbounded-verified, and a reader quoting
+"proved" off this table without the bound in the section below is misquoting it.
+
+| property | level | checked by | how |
+|---|---|---|---|
+| TCB-1 | **proved** + property | five Kani harnesses, `tests/certificate_boundary_proptest.rs`, `src/reason.rs` | the byte layout at term lengths 0 to 4, plus the property end to end and on the writer |
+| TCB-2, TCB-3 | **proved** + property | four Kani harnesses, same tests | as above at lengths 0, 2, 3 and 4 |
+| TCB-4 | **proved** + **enforced** | `kani_harnesses::term_guard_admits_no_separator_at_3` and `_at_6`, `term_fits_the_format` | the writers refuse a term carrying a separator; the harness states "no separator anywhere" over a symbolic index. Two deterministic tests remain: the parser refuses a separator inside an IRI, and Turtle's long-string form (which carries RAW control characters) comes back escaped |
+| TCB-5 | **proved** + **enforced** | `kani_harnesses::term_guard_separates_the_three_spellings` | an accepted term is exactly one of the three N-Triples kinds, and the kind is its leading byte |
+| TCB-6, TCB-7 | property | proptest | `asserted.tsv` is re-read through the N-Triples parser into a fresh store and compared |
+| TCB-8 | **enforced** + property | `GraphStore::triples_outside`, proptest | the certified paths do not read `INFERRED_GRAPH` and report the graphs they did read; within a run the property is sampled; the DefaultGraph merge is pinned in the same test as the leak it still is |
+| TCB-9 | deterministic test | | a quad in two named graphs is two lines |
+| TCB-10, TCB-11 | property | proptest | conclusions compared against the store's before and after |
+| TCB-12 | property | proptest | both the built-in and the Horn path |
+| TCB-13 | property | proptest | the name list is read out of `lean/OOCert/Rules.lean` at test time |
+| TCB-14 | **enforced** | `BUILTIN_RULES`, `tests/premise_order_test.rs` | 27 of 31 sites get the order from one table; that table is compared with the `checkStep` arms parsed out of `Rules.lean`. `tests/lean_certificate_test.rs` still runs the real checker over the corpus |
+| TCB-15, TCB-16, TCB-17 | property | `src/reason.rs` unit property tests | the interner is private |
+| TCB-18 | **enforced** + property | in the code, and proptest | the engine re-parses what it wrote and refuses on mismatch |
+| TCB-19, TCB-21 | property | proptest, plus the REAL checker | property against a transcription of `OOCert.HornParse` in the test file, because a Lean process per case is not a property test. The transcription's fidelity is then an assumption, so one deterministic test puts the adversarial shapes (a numeric rule name, a non-ASCII one, a `??x` variable, a literal spelled exactly like an IRI as a constant, a blank node, an empty-bodied rule) through `oo-horn check` itself and requires the conditional verdict |
+| TCB-20 | **proved** + property | `kani_harnesses::pat_of_and_render_are_inverse_at_2` and `_at_3`, proptest | `pat_of` and `Pat::render` are inverse over every byte pattern at two and three bytes. This is the harness the previous version of this page reported as NOT TERMINATING |
+| TCB-22 | property | proptest | the rule index is a position in a list rendered in the same order, and no rendered line is empty |
+| TCB-23, TCB-24 | property | proptest | the substitution is re-applied from `rules.tsv` independently of the engine |
+| TCB-25 | **enforced** + property | `name_is_safe`, `src/tableaux.rs` unit property tests | the emitter refuses; `concept_string` token counts and `axiom_line` field counts are sampled |
+| TCB-26 | **enforced** | `push_name`, `tcb_26_only_push_name_writes_a_name` | the guard is the write, and a source-level test fails if any other `resolve` reaches a certificate buffer |
+| TCB-27 | **enforced** | in the code | the emitter runs the checker's own semantics and refuses; `tests/dl_model_certificate_test.rs` exercises it |
+| **TCB-28, TCB-29** | nothing here | | the SHACL boundary is different in kind, see below |
 
 The generators build adversarial graphs (literals holding tabs, newlines, carriage returns, quotes
 and backslashes; a lexical form spelled exactly like an IRI; a lexical form spelled exactly like a
@@ -242,48 +307,78 @@ leg puts the adversarial shapes through `oo-horn check` itself. Until 15 Septemb
 invoked it: the `build` job ran it with no lake and it skipped, and the `lean` job, which has lake,
 never named it. It is now a strict leg of the `lean` job under `OO_REQUIRE_FIXTURES=1`, so the
 skip is a failure there, and so are `reason_rl_coverage_test`, `rule_syntax_frontend_test` and
-`reason_horn_emit_test`, which were in the same position. `docs/ci-gates.md` is the table of which
-gate runs where, and Kani is still in no job at all, which is why the section below reports its
-results rather than pointing at a build.
+`reason_horn_emit_test`, which were in the same position. `tests/premise_order_test.rs` needs no
+toolchain at all, because it READS `lean/OOCert/Rules.lean` rather than building it, so TCB-14 is
+gated in every job that runs `cargo test`. `docs/ci-gates.md` is the table of which gate runs where,
+and Kani is still in no job at all, which is why the section below reports its results rather than
+pointing at a build.
 
 ### Bounded model checking
 
 Kani 0.67.0 installed and ran here, on `nightly-2025-11-21-aarch64-apple-darwin`, over the whole
-crate. Three harnesses in `src/reason.rs` prove the serialisation properties over every byte pattern
-at a fixed shape, rather than over the patterns a generator drew. A fourth was written and does not
-terminate; it is reported below rather than quietly dropped. `make verify` runs the three. None are
-part of `make check`, because Kani pulls its own toolchain and the same statements are sampled by
+crate. Fifteen harnesses in `src/reason.rs` prove the serialisation properties over every byte
+pattern at a stated length, rather than over the patterns a generator drew. `make verify` runs all
+fifteen; it used to run three of four, because the fourth did not terminate. None are part of
+`make check`, because Kani pulls its own toolchain and the same statements are sampled by
 `cargo test` for anyone without it.
 
 | harness | property | result |
 |---|---|---|
-| `asserted_line_round_trips` | TCB-1 | SUCCESSFUL, 1476 checks, 0 failed, 12.8s |
-| `triple_fields_append_exactly_three` | TCB-2, TCB-3 | SUCCESSFUL, 1485 checks, 0 failed, 32.5s |
-| `writable_triple_decides_both_positions` | the guard that fixed the defect below | SUCCESSFUL, 198 checks, 0 failed, 1.6s |
-| `parse_pat_and_render_are_inverse` | TCB-20 | **NO VERDICT.** Abandoned at 14 minutes and 9.5 GB |
+| `asserted_line_round_trips_at_0` | TCB-1, TCB-4 | SUCCESSFUL, 646 checks, 0 failed, 3.6s |
+| `asserted_line_round_trips_at_1` | TCB-1, TCB-4 | SUCCESSFUL, 652 checks, 0 failed, 5.4s |
+| `asserted_line_round_trips_at_2` | TCB-1, TCB-4 | SUCCESSFUL, 652 checks, 0 failed, 6.3s |
+| `asserted_line_round_trips_at_3` | TCB-1, TCB-4 | SUCCESSFUL, 652 checks, 0 failed, 7.0s |
+| `asserted_line_round_trips_at_4` | TCB-1, TCB-4 | SUCCESSFUL, 652 checks, 0 failed, 7.8s |
+| `triple_fields_append_exactly_three_at_0` | TCB-2, TCB-3, TCB-4 | SUCCESSFUL, 647 checks, 0 failed, 3.5s |
+| `triple_fields_append_exactly_three_at_2` | TCB-2, TCB-3, TCB-4 | SUCCESSFUL, 653 checks, 0 failed, 6.2s |
+| `triple_fields_append_exactly_three_at_3` | TCB-2, TCB-3, TCB-4 | SUCCESSFUL, 653 checks, 0 failed, 7.0s |
+| `triple_fields_append_exactly_three_at_4` | TCB-2, TCB-3, TCB-4 | SUCCESSFUL, 653 checks, 0 failed, 7.7s |
+| `term_guard_admits_no_separator_at_3` | TCB-4 | SUCCESSFUL, 131 checks, 0 failed, 0.3s |
+| `term_guard_admits_no_separator_at_6` | TCB-4 | SUCCESSFUL, 131 checks, 0 failed, 0.4s |
+| `term_guard_separates_the_three_spellings` | TCB-5 | SUCCESSFUL, 264 checks, 0 failed, 1.1s |
+| `pat_of_and_render_are_inverse_at_2` | TCB-20 | SUCCESSFUL, 585 checks, 0 failed, 4.2s |
+| `pat_of_and_render_are_inverse_at_3` | TCB-20 | SUCCESSFUL, 585 checks, 0 failed, 4.6s |
+| `writable_triple_decides_both_positions` | the guard that fixed the defect below | SUCCESSFUL, 198 checks, 0 failed, 0.5s |
 
-**The one that failed to run.** `parse_pat` returns `anyhow::Result` and every refusal formats a
-message naming the line and the position, so the function body carries the whole formatting
-machinery. CBMC flattens a function before it solves, so an `assume` that makes the refusal paths
-infeasible is a constraint for the solver and not a cut in the program: constraining the input made
-it worse, not better. Measured, with nothing else competing: four unconstrained ASCII bytes, no
-verdict at 7 minutes and 3.0 GB; two bytes, no verdict at 8 minutes and 2.8 GB; two bytes with the
-first constrained to the three spellings the function accepts, no verdict at 14 minutes and 9.5 GB.
-It is excluded from `make verify`, because a target that hangs is worse than one that is honest
-about its coverage, and the property is sampled instead (1024 cases on the function, plus whole
-rule tables in the integration suite). What would close it is lifting the classification out of
-`parse_pat` into a pure `Option<Pat>` function, leaving the messages where they are. That is a
-refactor of shipped code and it was not made here.
+15 harnesses, 7754 checks, 0 failed, 66s of solver time in total.
 
-**What the bounds are, and they are real.** In the three that verify, terms are a FIXED three bytes,
-each byte unconstrained ASCII. The length is fixed rather than symbolic because a symbolic length
-makes every offset in the line symbolic and every slice bound a case split: at two bytes per term
-with a symbolic length, CBMC reached fifteen gigabytes without a verdict. So the harnesses prove
-every byte pattern at one shape, and the property tests sample the shapes, including the empty
-string. Neither alone is the whole claim, and anyone quoting "verified" off this table without the
-bound is misquoting it.
+**What changed on 15 September 2026.**
 
-Two other costs were paid down rather than hidden, because both are the kind of thing that makes a
+- **The writers now decide, so the harnesses prove the decision.** They used to `assume` that no
+  term carried a separator, because nothing in this repository enforced it: it was a fact about
+  `oxrdf` and `oxiri`. `term_fits_the_format` is now the predicate and the writers return
+  `Err(Position)`, so the assumption became a branch of the function under test: the harnesses prove
+  `Ok` exactly when all three terms pass, the byte layout when it is `Ok`, and an untouched buffer
+  when it is not.
+- **The harness that did not terminate, terminates.** The previous version of this page reported
+  `parse_pat_and_render_are_inverse` as NO VERDICT, abandoned at 14 minutes and 9.5 GB, and named
+  what would close it: "lifting the classification out of `parse_pat` into a pure `Option<Pat>`
+  function, leaving the messages where they are. That is a refactor of shipped code and it was not
+  made here." It was made here. `pat_of` is that function, `parse_pat` is now `pat_of` plus the same
+  three messages, and `Pat::render` builds its string instead of `format!`-ing it for the same
+  reason. The harness verifies in about four seconds. The measurements that motivated it are kept on
+  the harness in the source, because the next person to write one against an `anyhow`-returning
+  function should not have to rediscover why it is hard.
+- **A bound that was too low was found by raising it.** The byte-scan loops run `3N+3` or `3N+4`
+  times, so at four bytes per term the second needs seventeen unwindings and had sixteen. CBMC
+  reported `1 of 653 failed (652 undetermined)`, which is its own unwinding assertion, and it was
+  found
+  because `cargo kani --harness NAME` selects by SUBSTRING, so the bare name ran all five length
+  instantiations together and one of them failed inside a run reported under another heading. Every
+  harness now has a full name ending in its length, and the bound is 24. A verification target that
+  reports a failure under the wrong name is worse than one that does not run.
+
+**What the bounds are, and they are real.** Terms are a FIXED number of bytes, each byte
+unconstrained ASCII, and the harnesses are instantiated at several lengths rather than one: 0, 1, 2,
+3 and 4 for the asserted line, 0, 2, 3 and 4 for the triple fields, 3 and 6 for the term guard, 2 and
+3 for the rule-table position. The length is fixed rather than symbolic because a symbolic `n` makes
+every offset in the line symbolic and every slice bound a case split, and the cost compounds across
+three terms: two bytes per term with a symbolic length reached fifteen gigabytes without a verdict.
+So these prove every byte pattern at each of those lengths, and the property tests sample the
+lengths beyond them. Neither alone is the whole claim, and anyone quoting "verified" off this table
+without the bound is misquoting it.
+
+Two costs were paid down rather than hidden, because both are the kind of thing that makes a
 verification effort quietly measure the wrong function:
 
 - `core::str::from_utf8` put CBMC inside `run_utf8_validation` once per buffer: seventeen minutes and
@@ -298,10 +393,11 @@ verification effort quietly measure the wrong function:
   splitter needs and all it needs. The `split` formulation is kept as a property test, where it is
   free.
 
-The pattern in all three is the same, and it is the thing to take away from this section: twice, the
-first formulation of a harness measured a function nobody asked about. A verification effort that
-does not check what it is actually measuring produces a green result about the wrong thing, which is
-the failure mode this whole layer exists to attack.
+The pattern in all of these is one thing, and it is what to take away from this section: three
+times, the first formulation of a harness measured a function nobody asked about, and once a green
+result was reported under the wrong harness's name. A verification effort that does not check what
+it is actually measuring produces a green result about the wrong thing, which is the failure mode
+this whole layer exists to attack.
 
 ### What this found
 
@@ -340,65 +436,72 @@ central guard is the fix; the property test is what found the sites.
 
 ## What is still trusted after all of this
 
-This is the part that matters, and it is longer than the part that is checked. Nothing below is
-verified. Each entry says what would close it.
+This is the part that matters. Nothing below is verified. Each entry says what would close it. It
+was ten entries on 14 September 2026 and it is six, because four of them were closed rather than
+re-worded: the two that rested on `oxrdf` and `oxiri`, the premise order, and the DL name guard's
+coverage.
 
-1. **`oxrdf`'s escaping is the entire escaping layer.** `asserted.tsv` is safe because
-   `print_quoted_str` turns a tab inside a literal into `\t`. This repository has no escaper of its
-   own and never inspects a term. TCB-4 pins the behaviour a test can observe, which means an
-   upgrade that changed it would fail loudly; it does not mean it cannot change, and it does not
-   cover a term that reaches the store by a route the tests do not exercise.
-   *To close it:* escape at the certificate writer rather than relying on the term's `Display`, or
-   change the format to one that cannot be forged by its payload (length-prefixed, or JSON Lines).
-   Both are changes to `lean/`'s parsers as well, which is why neither was done here.
-2. **`oxiri`'s IRI validation is why a separator cannot reach an IRI.** `NamedNodeRef`'s `Display`
-   is `write!(f, "<{}>", self.as_str())` with no escaping at all, so the only thing standing between
-   a tab and `asserted.tsv` is that the parser refused to build the IRI. Tens of thousands of lines
-   of parsing sit behind that sentence and none of it is verified here.
-   *To close it:* check the term at the writer, as in (1). The check is four lines; the reason it is
-   not there is that it would be a second place the question is decided.
-3. **TCB-14, the premise ORDER per rule.** `OOCert.checkStep` matches premises positionally, arm by
-   arm, and the emitter passes them in a hand-written order at thirty-one call sites. The two agree
-   because `tests/lean_certificate_test.rs` walks every rule and the checker accepts. Nothing
-   derives one from the other, so a rule added with the wrong order fails at the checker rather than
-   at compile time. *To close it:* generate both sides from one table, which is what the Horn path
-   already does and the built-in path does not.
-4. **TCB-26, the DL name guard's coverage.** `name_is_safe` is applied to a `names` vector built by
-   one loop; the files are written by another. Individuals in `model.ind` are covered only because
-   `DlAxiom::Indiv(i)` happens to be emitted for every individual that reaches the model.
-   *To close it:* check at the point of writing, not in a separate pass.
-5. **TCB-8 across runs.** Materialising into the default graph turns an inference into the next
-   run's assertion, and `asserted.tsv` has no column that says "derived". `inference_graph: true`
-   does not fix it either: `GraphStore::all_triples` reads every named graph, so a later certified
-   run sees them as assertions. The separation protects `save`; it does not protect the certificate.
-   *To close it:* have the certified path read the asserted graph only, and say in the certificate
-   which graphs it read.
-6. **Materialisation is not atomic, and that is now latent rather than fixed.** `GraphStore::
-   load_lines` runs `for quad in parser { store.insert(&quad?)?; }`, so a parse error partway
-   through a batch leaves everything before it inserted and propagates the error. That is what
-   turned the `rdfs7` defect from a crash into uncertified triples in the store. `writable_triple`
-   removes the only way the reasoner could hand it an unparseable line, so the path is unreachable
-   TODAY; the hazard is still there for any future caller.
+1. **TCB-6 and TCB-7, that `asserted.tsv` IS the store's contents.** The engine reads the store,
+   interns what it reads, and writes the interned strings back out. Nothing between the store and
+   the file checks that the file is the store. `tests/certificate_boundary_proptest.rs` re-reads
+   `asserted.tsv` through the N-Triples parser into a fresh store and compares the two, over
+   adversarial graphs, which is the strongest thing a test can do here and is not a proof. This is
+   the unsafe direction: an extra line is an axiom nobody asserted, and every conclusion resting on
+   it is certified against a graph that does not exist.
+   *To close it:* nothing pure-functional reaches it. It is a statement about an execution over a
+   store, so it needs either a verified store or a checker that can see the store, and neither
+   exists.
+2. **TCB-10, that `derivations.tsv` covers every triple the run added.** A triple materialised
+   without a line covering it sits in the store under the certificate's cover. The argument is that
+   the single `emit` closure is the only path that pushes a candidate and records the first
+   derivation of anything not already in the closure. That argument is now shorter than it was,
+   because `emit` computes the conclusion from the rule table rather than taking one from the call
+   site, so a site cannot push a triple the table does not license. It is still a reading of a loop
+   plus a property test comparing conclusions against the store's before and after.
+   *To close it:* the same obstacle as (1). It is a property of the run, not of a function.
+3. **TCB-19 and TCB-21, that the two rule-table parsers agree.** `parse_rules` in Rust and
+   `OOCert.HornParse.parseRules` in Lean are independent implementations of one grammar. The
+   property test runs against a transcription of the Lean parser, and one deterministic test puts
+   the adversarial shapes through `oo-horn check` itself. Measurement, not proof. TCB-18 and TCB-20
+   are closed around it, because the engine re-parses what it wrote and refuses on mismatch and
+   `pat_of`/`render` are proved inverse, so what is left is exactly the cross-language half.
+   *To close it:* generate both parsers from one grammar, or verify the Rust one against the Lean
+   one as a refinement. Neither was done here.
+4. **TCB-8 under `InferenceTarget::DefaultGraph`.** Merging conclusions into the default graph is
+   what the caller asked for and it loses the distinction; a later certified run over that store is
+   conditional on a graph that includes inferences. The named-graph path no longer has this problem.
+   *To close it:* there is nothing to close in this layer. The caller chooses, and
+   `inference_graph: true` is the choice that keeps the certificate honest.
+5. **Materialisation is not atomic, and that is latent rather than fixed.** `GraphStore::load_lines`
+   runs `for quad in parser { store.insert(&quad?)?; }`, so a parse error partway through a batch
+   leaves everything before it inserted and propagates the error. That is what turned the `rdfs7`
+   defect from a crash into uncertified triples in the store. `writable_triple` removes the only way
+   the reasoner could hand it an unparseable line, so the path is unreachable TODAY; the hazard is
+   still there for any future caller.
    *To close it:* insert into a transaction, or build the batch through a serialiser that cannot
    produce an unparseable line rather than through string concatenation.
-7. **The reasoner's completeness.** The checker proves each recorded step is a sound instance of a
-   rule it knows. It says nothing about whether the engine found every inference, so a certificate
-   is evidence about what was derived and not about what follows.
-8. **The SHIQ tableaux reasoner.** Model certificates cover positive satisfiability answers only.
-   Unsatisfiability and inconsistency carry no certificate at all, and those are the answers a
-   consistency check is usually asked for.
-9. **The Rust SHACL validator (TCB-28, TCB-29).** Not certified. `oo-shacl` is a second, verified
-   evaluator that the Rust one is measured against; a measurement is not a proof, and the two read
-   RDF with two different parsers whose agreement is by construction on both sides rather than by a
-   check.
-10. **Everything between the store and the certificate that is not a term:** the SPARQL layer, the
-   MCP server, the CLI, the daemon, the file I/O, the roughly fifty thousand lines of `src/`. The
-   Kani harnesses cover four pure functions totalling about twenty lines. That is the correct
-   proportion to report: this work verified the joint, not the machine.
+6. **Everything that is not the certificate boundary at all.** The reasoner's COMPLETENESS: the
+   checker proves each recorded step is a sound instance of a rule it knows and says nothing about
+   whether the engine found every inference, so a certificate is evidence about what was derived and
+   not about what follows. The SHIQ tableaux reasoner: model certificates cover positive
+   satisfiability answers only, and unsatisfiability and inconsistency carry no certificate at all.
+   The Rust SHACL validator (TCB-28, TCB-29): not certified, measured against a second verified
+   evaluator, and the two read RDF with two different parsers whose agreement is by construction on
+   both sides rather than by a check. And the SPARQL layer, the MCP server, the CLI, the daemon, the
+   file I/O, the roughly fifty thousand lines of `src/`. The Kani harnesses cover five pure
+   functions totalling about sixty lines. That is the correct proportion to report: this work
+   verified the joint, not the machine.
 
-The honest summary is that the trusted base is four things: the serialisation of a term, the
+The honest summary is that the trusted base used to be four things: the serialisation of a term, the
 identity of the asserted graph, the completeness of the derivation record, and the identity of the
-rule table. Those are now property-tested and, for the pure parts, bounded-model-checked. Every one
-of them still rests on a dependency's behaviour that this repository observes rather than enforces.
-The engine is not verified. It was never going to be, and a report that read as though it were
-would be the same defect this project exists to attack.
+rule table. The serialisation of a term is no longer one of them: it is enforced here and proved
+over every byte pattern at the bounds below, rather than observed of a dependency. The identity of
+the rule table is most of the way off the list: the engine re-parses what it wrote and refuses on
+mismatch, and the render-parse round trip is proved; what is left is two independent parsers of one
+grammar, which is a different kind of risk from an engine misreporting its own run.
+
+**So it is two things.** That `asserted.tsv` is the graph the engine reasoned over, and that
+`derivations.tsv` covers every triple it added. Both are statements about an execution rather than
+about a function, which is why no amount of bounded model checking reaches them, and both are
+property-tested end to end against the store. The engine is not verified. It was never going to be,
+and a report that read as though it were would be the same defect this project exists to attack.
