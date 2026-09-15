@@ -74,8 +74,15 @@ repeated binding key meant, so one kernel refused the shape and the other answer
 its lookup happened to do. A key bound twice to different values is satisfied by no substitution
 at all, so there were never two readings, only two ways of discarding half the certificate. Closed
 by [decision 0008](docs/decisions/0008-a-binding-is-data-and-evidence-admits-one-reading.md), and
-the differential now reports zero divergent rows over a corpus four times deeper in the property
-its induction rests on. Every one of those had passed every test that existed before.
+the two kernels now return the same answer on every row of a corpus of 2,075 certificates, 484 of
+which exercise the ordering property both inductions rest on, against 123 before that corpus was
+deepened. Every one of those had passed every test that existed before.
+
+The claim that the two kernels agree was, until 15 September 2026, checked by nothing here. No
+workflow installed the second kernel, so the test that requires zero divergence skipped in the one
+job that ran it and was invoked by no job that could have made it strict, and a skipped test
+reports `ok`. CI runs both kernels over the whole corpus on every pull request now, and
+[docs/ci-gates.md](docs/ci-gates.md) is the table of which other gates do and do not fire.
 
 ## What is actually proved
 
@@ -136,14 +143,11 @@ condition and is certified; the other sixteen are detected and deliberately carr
 A model is a finite object and can be checked, which is why satisfiability can be certified and
 unsatisfiability cannot.
 
-**The proofs are ahead of the published release.** The verified layer described here is on `main`
-and is newer than the last tagged release. If you installed from a release binary, you do not have
-it.
-
-**Governance.** `main` requires the CI, Lean, SHACL-conformance and Python checks to pass, and
-refuses force pushes and deletion. Those rules do not currently apply to repository admins, so
-they are a safety net and not a control. Commits from this point are SSH-signed; everything before
-is not, and a signature says who pushed a commit, never that its claims are true.
+**Governance.** `main` requires the CI, Lean, SHACL-conformance and Python checks to pass, refuses
+force pushes and deletion, and applies to administrators too. Commits are not signed: a signing key
+was set up and then removed, because a passphrase-less key on a laptop is forgeable by anyone with
+disk access, and a forgeable assurance signal is worse than none in a repository that makes
+verification claims.
 
 **The scope is wider than the idea.** The one genuinely new thing here is proof-carrying reasoning:
 an engine that hands you evidence a separate verified checker accepts. The tool count, the Studio,

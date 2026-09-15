@@ -95,9 +95,9 @@ refused. The defect was in the FORMAT, which never said what a repeated key mean
 incomplete binding means, and only a second implementation could have surfaced it.
 
 That gap is now CLOSED. `docs/decisions/0008-a-binding-is-data-and-evidence-admits-one-reading.md`
-refuses both shapes, the Lean moved and no Isabelle theory was touched, and the same corpus now
-reports zero divergent rows: 349 accepted by both, 904 rejected by both, 465 unparseable on both.
-The 47 moved into rejected-by-both and nowhere else.
+refuses both shapes, the Lean moved and no Isabelle theory was touched, and the 47 moved into
+rejected-by-both and nowhere else. The per-bucket counts that decision was measured against are
+in the decision record, dated, and describe the corpus as it was that day.
 
 Those 1,718 certificates were one step deep. Sixty of the 61 base certificates contained no step
 citing an earlier step's conclusion, so on those the checkers' ordering logic had nothing to
@@ -107,11 +107,27 @@ two-step fixture.
 On 15 September 2026 the corpus gained generated chains and fans, six mutations a flat
 certificate cannot express, and two hand-built adversarial certificates. It is now 2,075 rows
 reaching depth 19 and fan-out 12, of which 484 exercise the ordering discipline rather than 123.
-The disagreement count went from 47 to 54 and did not change in kind: every new row the two
-kernels parted company on was the same D1 duplicate-key shape, and nothing was left unexplained.
 Depth found no new divergence, which is a result about the two formalisations and not a null
 one — the property their inductions are built on was, until then, barely tested against data
 that could violate it.
+
+**Read the numbers in the two paragraphs above as history, because for a day they were read as a
+description.** The 47-of-1,718 and the zero that replaced it were both measured on the shallow
+corpus. A later count of 54 disagreements over the deep one was measured on a branch cut before
+the binding fix, and is not repeated here for that reason. The two pieces of work were authored
+eleven minutes apart and merged separately, so the combination nobody had run was the deep corpus
+under the FIXED checker, which is exactly the combination the README asserted a result for. It
+has now been run, on this tree and in CI, and the two kernels return the same answer on every
+one of the 2,075 rows. The 54 moved into rejected-by-both and nowhere else, the accepted and
+unparseable counts did not move at all, and the per-bucket figures are in
+[decision 0008](decisions/0008-a-binding-is-data-and-evidence-admits-one-reading.md), dated, next
+to the shallow pair they repeat the shape of.
+
+The reason none of this was caught is worth more than the numbers. The test that requires zero
+divergence needs Poly/ML as well as lake, no workflow installed Poly/ML, so it skipped in the one
+job that ran it and was invoked by no job that could have made it strict. A skipped test reports
+`ok`. [docs/ci-gates.md](ci-gates.md) now states which gates fire and is itself held to the
+workflows by a test.
 
 The adversarial review of that comparison established four things about the Lean layer that the
 Lean's own build could never have shown, and they are the current work rather than a footnote:

@@ -63,8 +63,24 @@ for looking at one row. The real comparison is a Rust test:
 
 It builds both checkers, generates certificates with the ENGINE over every ontology the
 repository ships, mutates and fuzzes them, and runs both kernels over the lot. It skips
-loudly (`common::skip_unless`) when either proof assistant is missing, and
-`OO_REQUIRE_FIXTURES=1` turns that skip into a failure.
+loudly (`common::skip_unless`) when either half is missing, and `OO_REQUIRE_FIXTURES=1`
+turns that skip into a failure.
+
+**CI runs it, and did not until 15 September 2026.** Until then no workflow installed
+Poly/ML, so the file skipped in the only job that ran it and was invoked by no job that
+could have made it strict, while `README.md` quoted the result of the comparison on its
+front page. What CI installs is not Isabelle: the exported checker is COMMITTED as
+`driver/oo_horn_generated.ML`, so the only missing piece is a compiler for it, and
+Isabelle publishes Poly/ML on its own as a 39 MB component. That is a `POLYDIR` away from
+running anywhere, including here:
+
+    curl -O https://isabelle.in.tum.de/components/polyml-5.9.2-2.tar.gz
+    tar xzf polyml-5.9.2-2.tar.gz
+    POLYDIR=$PWD/polyml-5.9.2-2/x86_64-linux cargo test --test cross_kernel_differential_test
+
+A full Isabelle2025-2 is still what `export.sh` needs to REGENERATE that ML from the
+theories, and what `isabelle build -d isabelle -c OOHorn` needs to check the proofs. CI
+does neither, and says so in `docs/ci-gates.md`.
 
 ## What the differential found, and what it changed
 
@@ -153,25 +169,28 @@ These theories were written from the W3C sources without reading the Lean, and a
 edited to agree with the one it is checking is worth nothing. If the two disagree again
 somewhere else, that is a new finding and it belongs in a report before it belongs in a patch.
 
-The corpus is now 349 accepted by both, 904 rejected by both, 465 unparseable on both, and
-ZERO divergent. The 47 that diverged moved into the rejected column and nowhere else: 857 plus
-47 is 904, and the accepted and unparseable counts did not move at all.
+The corpus reports ZERO divergent rows, and the 47 that used to diverge moved into the
+rejected column and nowhere else. The per-bucket counts that used to be written out here are
+not, for the reason given at the top of this section: the corpus grew again the same day and
+they were stale before anyone read them. The test prints them, and
+`docs/decisions/0008-a-binding-is-data-and-evidence-admits-one-reading.md` carries the pair it
+was measured against, dated.
 
-The analysis that used to excuse a disagreement is now a gate that can fail. 286 rows of the
-corpus carry a binding malformed in one of the two ways, the 47 among them, and the corpus test
-requires BOTH kernels to refuse every one. The other 239 were already rejected by both for some
-other reason, which is why the gate is checked on every row rather than only on the ones that
-disagree: a check that ran only on divergences could be satisfied by silence.
+The analysis that used to excuse a disagreement is now a gate that can fail. The rows of the
+corpus that carry a binding malformed in one of the two ways, the 47 among them, must be
+refused by BOTH kernels, and the corpus test requires it. Most of them were already rejected by
+both for some other reason, which is why the gate is checked on every row rather than only on
+the ones that disagree: a check that ran only on divergences could be satisfied by silence.
 
 A binding for a variable the cited rule never mentions is still ACCEPTED on both sides
 (`probe_extrabind`). It is never consulted, so there was no second reading to remove.
 
-### What agreement on all 1,718 rows is evidence of
+### What agreement on every row is evidence of
 
-It was 1,671 rows before decision 0008 and it is all 1,718 after, and the increase is worth
-exactly nothing on its own: it was bought by making one checker refuse more, which is the
-cheapest way there is to buy agreement. What the number is worth is fixed by the floor the
-corpus test asserts, that at least twenty certificates are ACCEPTED by both.
+The rows that agree went up when decision 0008 landed, and the increase is worth exactly
+nothing on its own: it was bought by making one checker refuse more, which is the cheapest way
+there is to buy agreement. What the number is worth is fixed by the floor the corpus test
+asserts, that at least twenty certificates are ACCEPTED by both.
 
 Checking a Horn certificate is purely syntactic. Neither kernel consults its semantics, so
 two checkers built on contradictory model theories agree on every certificate and every
