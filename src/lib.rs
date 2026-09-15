@@ -4,6 +4,11 @@ pub mod batch;
 pub mod connect;
 pub mod daemon;
 pub mod output;
+// The pure core of the certificate boundary. PRIVATE on purpose: these are
+// the definitions `reason` and `tableaux` call, not a public API, and
+// `aeneas/oo-boundary` reaches the file itself with `#[path]` rather than
+// through this crate. See `docs/aeneas-boundary.md`.
+mod boundary_core;
 pub mod borderline_loop;
 pub mod buffer;
 pub mod cache;
