@@ -2106,7 +2106,14 @@ impl Reasoner {
                 // has accepted a refutation. Nothing here may say that, or an
                 // engine opinion and a machine-checked result share a string
                 // and a consumer cannot tell them apart.
-                "verdict": "clash_found_by_this_engine",
+                //
+                // The word comes from `verdict::EngineRefutation`, whose
+                // vocabulary is asserted disjoint from
+                // `verdict::CHECKER_OWNED_WORDS`, and which has no certified
+                // variant to reach for: nothing in the Rust tree runs
+                // `oo-refute`, so there is no evidence any code here could
+                // mint.
+                "verdict": crate::verdict::EngineRefutation::ClashFoundByThisEngine,
                 "checked_by_lean": false,
                 "clash_count": clashes.len(),
                 "by_rule": by_rule,
@@ -2181,8 +2188,9 @@ impl Reasoner {
                                 "prefix": ids.len(),
                                 "premises": c.premises.iter().map(show).collect::<Vec<_>>(),
                                 // Written, not checked. The word for a checked
-                                // one is `oo-refute`'s to say.
-                                "verdict": "refutation_written_not_yet_checked",
+                                // one is `oo-refute`'s to say, and this crate
+                                // has no vocabulary that can say it.
+                                "verdict": crate::verdict::EngineRefutation::RefutationWrittenNotYetChecked,
                                 "check_with": format!(
                                     "cd lean && lake exe oo-refute check {a} {r}",
                                     a = dir.join("asserted.tsv").display(),

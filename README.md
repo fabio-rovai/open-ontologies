@@ -257,10 +257,12 @@ Restart, and the `onto_*` tools are available. Cursor, Windsurf, Zed and VS Code
 ## What is in the box
 
 **114 tools** to build, validate, query, diff, lint, version, reason over, align, plan, certify
-and govern RDF and OWL, over an in-memory Oxigraph store. A default build advertises all 114 tools.
-Eight need an optional Cargo feature and return an error without it: four need `embeddings`, two
-need `plugins`, two need `postgres` or `duckdb`. The published binaries and the GHCR image are
-built with the default feature set, so they do not carry those eight.
+and govern RDF and OWL, over an in-memory Oxigraph store. A default build advertises 106 tools.
+Eight need an optional Cargo feature: four need `embeddings`, two need `plugins`, two need
+`postgres` or `duckdb`. A build without the feature does not advertise them at all, because a
+tool that appears in `tools/list` and is guaranteed to fail is a promise the binary cannot keep.
+The published binaries and the GHCR image are built with the default feature set, so they do not
+carry those eight. A build with `--features embeddings,plugins,sql` has the full 114.
 
 The Python package `open-ontologies-lite` now reasons as well, in pure Python with no Rust
 toolchain, and its certificates are checked by the same Lean binaries. It is a second engine, and

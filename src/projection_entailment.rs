@@ -62,6 +62,7 @@
 use crate::graph::GraphStore;
 use crate::projection_check::{check_projection_loss, ProjectionLossReport};
 use crate::reason::{InferenceTarget, Reasoner};
+use crate::verdict::{CheckerBinary, CheckerRun, Certified};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -629,10 +630,54 @@ impl CertificateIndex {
 // The checker
 // ───────────────────────────────────────────────────────────────────────────
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// An acceptance. The fields are private and the only constructor is
+/// [`Accepted::from_run`], which takes a [`Certified`] — and that type has no
+/// public constructor at all, so this struct cannot be built by a caller that
+/// did not run a checker and read a zero exit code.
+///
+/// It serialises as the two fields it always had, flattened under the `status`
+/// tag by serde's internally-tagged newtype-variant handling, so the wire
+/// format is byte-for-byte what it was.
+#[derive(Clone, Debug)]
+pub struct Accepted {
+    certified: Certified,
+    stdout: String,
+}
+
+impl Accepted {
+    fn from_run(certified: Certified, stdout: String) -> Accepted {
+        Accepted { certified, stdout }
+    }
+    /// The evidence, so a downstream verdict carries the token this run
+    /// earned rather than re-asserting the acceptance on its own authority.
+    pub fn certified(&self) -> Certified {
+        self.certified
+    }
+    pub fn theorem(&self) -> &'static str {
+        self.certified.theorem()
+    }
+    pub fn stdout(&self) -> &str {
+        &self.stdout
+    }
+}
+
+impl Serialize for Accepted {
+    /// `{"theorem": ..., "stdout": ...}`, exactly the two fields the struct
+    /// variant carried, so the tagged enum above still writes
+    /// `{"status":"accepted","theorem":...,"stdout":...}`.
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeStruct as _;
+        let mut st = s.serialize_struct("Accepted", 2)?;
+        st.serialize_field("theorem", self.certified.theorem())?;
+        st.serialize_field("stdout", &self.stdout)?;
+        st.end()
+    }
+}
+
+#[derive(Clone, Debug, Serialize)]
 #[serde(tag = "status", rename_all = "snake_case")]
 pub enum CheckerStatus {
-    Accepted { theorem: &'static str, stdout: String },
+    Accepted(Accepted),
     /// Exit 1. This module built the slice, so a rejection is a defect HERE or
     /// in the emitter. It is never a downgrade to an unchecked verdict.
     Rejected { stdout: String },
@@ -656,7 +701,7 @@ impl CheckerStatus {
     }
     pub fn word(&self) -> &'static str {
         match self {
-            CheckerStatus::Accepted { .. } => "accepted",
+            CheckerStatus::Accepted(_) => "accepted",
             CheckerStatus::Rejected { .. } => "rejected",
             CheckerStatus::Unreadable { .. } => "unreadable",
             CheckerStatus::Absent { .. } => "absent",
@@ -715,6 +760,11 @@ pub fn run_oo_cert(checker: Option<&Path>, asserted: &Path, derivations: &Path) 
 
 /// The ONE place a checked verdict is produced, and it has just read an exit
 /// code off a Lean binary.
+///
+/// "The one place" is no longer a promise in a comment. The acceptance it
+/// returns carries a [`Certified`], and [`crate::verdict::CheckerRun::spawn`]
+/// is the only thing in the crate that can mint one, so a second place would
+/// have to run a checker too.
 pub fn run_checker(
     kind: CertKind,
     checker: Option<&Path>,
@@ -744,8 +794,8 @@ pub fn run_checker(
             cmd.arg("check").arg(r).arg(asserted).arg(derivations);
         }
     }
-    let out = match cmd.output() {
-        Ok(o) => o,
+    let run = match CheckerRun::spawn(&CheckerBinary::found_at(bin.clone()), cmd) {
+        Ok(r) => r,
         Err(e) => {
             return CheckerStatus::Absent {
                 what: format!("{} could not be run: {e}", bin.display()),
@@ -753,23 +803,25 @@ pub fn run_checker(
             };
         }
     };
-    let text = format!(
-        "{}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
-    match out.status.code() {
-        Some(0) => CheckerStatus::Accepted {
-            theorem: match kind {
-                CertKind::OoCert => "OOCert.certificate_sound",
-                CertKind::OoHorn => "OOCert.horn_certificate_sound",
+    let text = run.output();
+    // The theorem name is handed to the evidence rather than to the report, so
+    // a status with no acceptance behind it has no way to name one.
+    let theorem = match kind {
+        CertKind::OoCert => "OOCert.certificate_sound",
+        CertKind::OoHorn => "OOCert.horn_certificate_sound",
+    };
+    match run.accepted(theorem) {
+        Some(cert) => CheckerStatus::Accepted(Accepted::from_run(cert, text)),
+        // `lean/Main.lean` reserves 1 for a rejection and 2 for a file it
+        // could not read. Anything else is not a verdict in either direction.
+        None => match run.exit() {
+            1 => CheckerStatus::Rejected { stdout: text },
+            2 => CheckerStatus::Unreadable { stdout: text },
+            // `{:?}` on the raw `Option`, byte for byte what this arm has
+            // always printed: `None` for a signal death, `Some(n)` otherwise.
+            _ => CheckerStatus::Unreadable {
+                stdout: format!("{} exited with {:?}\n{text}", bin.display(), run.code()),
             },
-            stdout: text,
-        },
-        Some(1) => CheckerStatus::Rejected { stdout: text },
-        Some(2) => CheckerStatus::Unreadable { stdout: text },
-        other => CheckerStatus::Unreadable {
-            stdout: format!("{} exited with {:?}\n{text}", bin.display(), other),
         },
     }
 }
@@ -778,14 +830,26 @@ pub fn run_checker(
 // Verdicts
 // ───────────────────────────────────────────────────────────────────────────
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+/// The per-goal verdict.
+///
+/// The two CHECKED variants carry a [`Certified`], which has no public
+/// constructor, so neither can be named on a path that did not run the Lean
+/// checker. `Deserialize` is deliberately not implemented: reading
+/// `"preserved_checked"` out of somebody else's JSON is not the same act as
+/// earning it, and a derive would be a public constructor for both.
+///
+/// ```compile_fail
+/// use open_ontologies::projection_entailment::GoalVerdict;
+/// use open_ontologies::verdict::Certified;
+/// let v = GoalVerdict::PreservedChecked(Certified { theorem: "OOCert.certificate_sound" });
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GoalVerdict {
     /// `P` entails `q`, machine-checked over `P`'s own asserted graph.
-    PreservedChecked,
+    PreservedChecked(Certified),
     /// The same, but the run evaluated a SUPPLIED Horn table. True in every
     /// model of `P` that ALSO satisfies those rules. Never shortened.
-    PreservedUnderSuppliedRulesChecked,
+    PreservedUnderSuppliedRulesChecked(Certified),
     /// `q` is literally in the slice. Verified by set membership over the
     /// canonical spelling. Not a theorem and it does not pretend to be.
     PreservedAsserted,
@@ -810,15 +874,35 @@ pub enum GoalVerdict {
 }
 
 impl GoalVerdict {
+    /// The wire word. Byte-identical to what `#[serde(rename_all =
+    /// "snake_case")]` used to derive, and the single source of the string now
+    /// that the two checked variants carry a payload serde would otherwise
+    /// have wrapped in an object.
+    pub fn word(self) -> &'static str {
+        match self {
+            GoalVerdict::PreservedChecked(_) => "preserved_checked",
+            GoalVerdict::PreservedUnderSuppliedRulesChecked(_) => {
+                "preserved_under_supplied_rules_checked"
+            }
+            GoalVerdict::PreservedAsserted => "preserved_asserted",
+            GoalVerdict::PreservedUnchecked => "preserved_unchecked",
+            GoalVerdict::LostUnderProfileUnchecked => "lost_under_profile_unchecked",
+            GoalVerdict::UngroundedInSource => "ungrounded_in_source",
+            GoalVerdict::ProjectionOnly => "projection_only",
+            GoalVerdict::CertificateRejected => "certificate_rejected",
+            GoalVerdict::Refused => "refused",
+        }
+    }
     /// The theorem a verdict names, or `"none"`. A verdict with no theorem must
     /// never render a string containing "checked", and the suite asserts that
     /// over the SERIALISED report rather than over this function, because the
     /// enum is where the discipline is easy and the serialisation is where it
-    /// leaks.
+    /// leaks. The name now comes OUT OF THE EVIDENCE rather than out of a
+    /// match arm, so a run that never ran the checker cannot name a theorem.
     pub fn warrant(self) -> &'static str {
         match self {
-            GoalVerdict::PreservedChecked => "OOCert.certificate_sound",
-            GoalVerdict::PreservedUnderSuppliedRulesChecked => "OOCert.horn_certificate_sound",
+            GoalVerdict::PreservedChecked(c)
+            | GoalVerdict::PreservedUnderSuppliedRulesChecked(c) => c.theorem(),
             _ => "none",
         }
     }
@@ -828,19 +912,19 @@ impl GoalVerdict {
     pub fn is_preserved(self) -> bool {
         matches!(
             self,
-            GoalVerdict::PreservedChecked
-                | GoalVerdict::PreservedUnderSuppliedRulesChecked
+            GoalVerdict::PreservedChecked(_)
+                | GoalVerdict::PreservedUnderSuppliedRulesChecked(_)
                 | GoalVerdict::PreservedAsserted
                 | GoalVerdict::PreservedUnchecked
         )
     }
     pub fn means(self) -> &'static str {
         match self {
-            GoalVerdict::PreservedChecked =>
+            GoalVerdict::PreservedChecked(_) =>
                 "the projection entails this goal: true in every model of the projection under the \
                  semantics in lean/OOCert/Semantics.lean. Machine-checked by oo-cert over the \
                  projection's own asserted.tsv",
-            GoalVerdict::PreservedUnderSuppliedRulesChecked =>
+            GoalVerdict::PreservedUnderSuppliedRulesChecked(_) =>
                 "true in every model of the projection THAT ALSO SATISFIES the supplied rule \
                  table. The rules are assumed and never checked; a rule reading 'every supplier \
                  is compliant' produces certificates that check green for ever. Never shorten \
@@ -873,6 +957,28 @@ impl GoalVerdict {
     }
 }
 
+impl Serialize for GoalVerdict {
+    /// A bare string, exactly as `#[serde(rename_all = "snake_case")]` wrote
+    /// it before the checked variants grew a payload.
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        s.serialize_str(self.word())
+    }
+}
+
+/// So the suite can go on asserting against the wire word without being able
+/// to build a checked variant to compare with.
+impl PartialEq<&str> for GoalVerdict {
+    fn eq(&self, other: &&str) -> bool {
+        self.word() == *other
+    }
+}
+
+impl std::fmt::Display for GoalVerdict {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.word())
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GoalCertificate {
     pub dir: String,
@@ -883,7 +989,12 @@ pub struct GoalCertificate {
     pub check_with: String,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// Not `Deserialize`: it carries a [`GoalVerdict`], whose checked variants
+/// are evidence and not words. Reading `"preserved_checked"` out of somebody
+/// else's JSON is not the same act as earning it, and a derive here would be a
+/// public constructor for the certified state. Reports are read back as
+/// `serde_json::Value`, which is what every caller in the tree already does.
+#[derive(Clone, Debug, Serialize)]
 pub struct GoalReport {
     pub id: String,
     pub as_written: String,
@@ -1123,7 +1234,8 @@ impl Default for Opts {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// Not `Deserialize`, for the reason on [`GoalReport`].
+#[derive(Clone, Debug, Serialize)]
 pub struct PreservationReport {
     pub format: &'static str,
     /// One sentence a reader cannot miss, first in the JSON after the format.
@@ -1380,7 +1492,7 @@ pub fn check_entailment_preservation(
                     if prj_cert.kind() == CertKind::OoHorn { Some(&rules_path) } else { None },
                 );
                 let v = match &status {
-                    CheckerStatus::Accepted { .. } => {
+                    CheckerStatus::Accepted(a) => {
                         certificate = Some(GoalCertificate {
                             dir: out.parent().unwrap_or(&out).display().to_string(),
                             format: if prj_cert.kind() == CertKind::OoHorn { "oo-horn/1" } else { "oo-cert/1" },
@@ -1388,10 +1500,13 @@ pub fn check_entailment_preservation(
                             asserted: prj_cert.asserted_count(),
                             check_with: check_command(&prj_cert, &out),
                         });
+                        // The token this goal's own checker run produced. It
+                        // carries the theorem, so the warrant printed beside
+                        // the verdict cannot drift from the run that earned it.
                         if prj_cert.kind() == CertKind::OoHorn {
-                            GoalVerdict::PreservedUnderSuppliedRulesChecked
+                            GoalVerdict::PreservedUnderSuppliedRulesChecked(a.certified())
                         } else {
-                            GoalVerdict::PreservedChecked
+                            GoalVerdict::PreservedChecked(a.certified())
                         }
                     }
                     CheckerStatus::Rejected { stdout } => {
@@ -1466,7 +1581,10 @@ pub fn check_entailment_preservation(
     // ── Counts and the verdict on the run ───────────────────────────────
     let count = |f: fn(GoalVerdict) -> bool| per_goal.iter().filter(|g| f(g.verdict)).count();
     let preserved_checked = count(|v| {
-        matches!(v, GoalVerdict::PreservedChecked | GoalVerdict::PreservedUnderSuppliedRulesChecked)
+        matches!(
+            v,
+            GoalVerdict::PreservedChecked(_) | GoalVerdict::PreservedUnderSuppliedRulesChecked(_)
+        )
     });
     let preserved_asserted = count(|v| v == GoalVerdict::PreservedAsserted);
     let preserved_unchecked = count(|v| v == GoalVerdict::PreservedUnchecked);

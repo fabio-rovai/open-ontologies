@@ -64,6 +64,47 @@ All notable changes to Open Ontologies are documented here.
   already said the numbers belong in the test output, three sections before writing them out.
 
 ### Changed
+- **A certified verdict is now unconstructible without the evidence, so laundering one is a
+  compile error rather than a test failure.** The discipline that `model_checked` requires
+  `checker_exit == 0`, that `preserved_checked` requires an accepted `oo-cert` run, and that
+  `checked` requires a zero exit code off a Lean binary, used to be carried by comments saying
+  "the ONE place this word is produced" and by tests that walked a serialised report looking for
+  a checked word with nothing behind it. Those tests were right and they still run. They were
+  also incomplete by construction: a new module that formatted `"model_checked"` in a new place
+  passed every one of them until somebody noticed and pointed a guard at it. `src/verdict.rs`
+  now holds the whole certified vocabulary. `Certified` has a private field and no constructor,
+  `CheckerRun` has private fields and one constructor that SPAWNS the checker and reads its exit
+  status, and `CheckerRun::accepted` is the only function in the crate that returns a `Certified`
+  and returns `None` on any non-zero exit. Every certified variant carries one:
+  `FolVerdict::ModelChecked`, `GoalVerdict::PreservedChecked`,
+  `GoalVerdict::PreservedUnderSuppliedRulesChecked`, `ClosureVerdict::Checked`,
+  `Warrant::Checked`, `CheckerStatus::Accepted` and `OwlReading`. The theorem name travels
+  inside the token rather than beside it, so `OOCert.certificate_sound`,
+  `OOCert.horn_certificate_sound` and `Fol.satisfiable_of_check` are unspeakable on a path that
+  did not run a checker either. Six `compile_fail` doctests run under `cargo test` and fail if
+  any of that stops being true; the induced error is E0451, "field `theorem` of struct
+  `Certified` is private". None of these types implements `Deserialize`, because parsing
+  `"preserved_checked"` out of somebody else's JSON is not the same act as earning it and a
+  derive would be a public constructor for the certified state; reports are read back as
+  `serde_json::Value`, which is what every caller already did. The WIRE FORMAT is unchanged:
+  `Serialize` is hand-written to emit the same bare string the derive emitted, verified
+  byte-for-byte against a binary built from the previous commit over `preserve`, `fol-model`,
+  `closure-diff`, `reason`, `reason --rules`, `rules-import` and three MCP `tools/call`
+  responses.
+- **The MCP server no longer advertises eight tools it cannot serve.** `onto_plugin_list`,
+  `onto_plugin_call`, `onto_embed`, `onto_hnsw_build`, `onto_search`, `onto_similarity`,
+  `onto_import_schema` and `onto_sql_ingest` each have a body that is
+  `#[cfg(not(feature = ...))] { return "Compiled without X feature" }`, so on a default build
+  every call to one of them fails for every input. They were listed in `tools/list` anyway: a
+  client read a description about embeddings or a Postgres URL, called the tool, and got an
+  error that had nothing to do with what it asked. `toolfilter::remove_unavailable` now drops
+  their routes before the operator's own filter and independently of its mode, so a default
+  build advertises 106 of the 114 registered tools and says which eight are missing and which
+  Cargo feature brings each one back. The server's instructions string used to state two
+  hand-typed totals, 114 and 112, neither of which was the number the router advertised, and to
+  promise that the eight WERE advertised; it is formatted from `tool_router.list_all()` now, so
+  there is no literal left to go stale.
+
 - **The bridge to the specification was prose. It is a theorem.** `lean/OOCert/Conforming.lean`
   formalises an OWL 2 RDF-Based interpretation in core Lean as `OOCert.Interpretation`: the parts
   of RBS Table 5.1, with `IR` as the carrier type so that the table's `IP ⊆ IR`, `IC ⊆ IR`,

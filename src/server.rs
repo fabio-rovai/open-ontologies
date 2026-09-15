@@ -130,8 +130,26 @@ impl OpenOntologiesServer {
             }
         };
 
-        // Apply tool filter by removing routes from the router.
+        // A tool this build cannot serve is not advertised. This runs BEFORE
+        // the operator's filter and does not consult it: a description in
+        // `tools/list` is a promise, and eight of the registered tools are
+        // behind a Cargo feature whose absence turns every call into
+        // "Compiled without X feature". See `toolfilter::FEATURE_GATED_TOOLS`.
         let mut tool_router = Self::tool_router();
+        let unavailable = crate::toolfilter::remove_unavailable(&mut tool_router);
+        if !unavailable.is_empty() {
+            tracing::info!(
+                "not advertising {} tools this build cannot serve: {}",
+                unavailable.len(),
+                unavailable
+                    .iter()
+                    .map(|(t, f)| format!("{t} (needs --features {f})"))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            );
+        }
+
+        // Apply tool filter by removing routes from the router.
         let removed = tool_filter.apply(&mut tool_router);
         if !removed.is_empty() {
             tracing::info!("tool filter removed {} tools: {:?}", removed.len(), removed);
@@ -3003,8 +3021,38 @@ impl OpenOntologiesServer {
 #[tool_handler(router = self.tool_router)]
 #[prompt_handler(router = self.prompt_router)]
 impl ServerHandler for OpenOntologiesServer {
+    /// The instructions string states the count it MEASURES.
+    ///
+    /// It used to state two, 114 and 112, neither of which was the number the
+    /// router advertised, and the second sentence promised that the eight
+    /// feature-gated tools were advertised and would "return an error without
+    /// it". They are not advertised any more, so the sentence is now about
+    /// what is missing and why, and both numbers are read off the router the
+    /// client is about to call.
     fn get_info(&self) -> ServerInfo {
+        let advertised = self.tool_router.list_all().len();
+        let withheld = crate::toolfilter::unavailable_in_this_build();
+        let tail = if withheld.is_empty() {
+            String::new()
+        } else {
+            format!(
+                " {} further tools are compiled in but NOT advertised, because this build \
+                 lacks the Cargo feature each one needs and a tool that is guaranteed to fail \
+                 should not appear in tools/list: {}. Rebuild with the feature to get them.",
+                withheld.len(),
+                crate::toolfilter::FEATURE_GATED_TOOLS
+                    .iter()
+                    .filter(|(t, _)| withheld.contains(t))
+                    .map(|(t, f)| format!("{t} (--features {f})"))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        };
         ServerInfo::new(ServerCapabilities::builder().enable_tools().enable_prompts().build())
-            .with_instructions("Open Ontologies: AI-native ontology engine, an RDF/OWL/SPARQL MCP server with 114 tools and 6 workflow prompts for ontology engineering, validation, comparison, alignment, data ingestion, and exploration. All 112 tools are advertised in a default build; 8 of them require an optional Cargo feature (embeddings, plugins, postgres or duckdb) and return an error without it.")
+            .with_instructions(format!(
+                "Open Ontologies: AI-native ontology engine, an RDF/OWL/SPARQL MCP server with \
+                 {advertised} tools and 6 workflow prompts for ontology engineering, validation, \
+                 comparison, alignment, data ingestion, and exploration.{tail}"
+            ))
     }
 }
