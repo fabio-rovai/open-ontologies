@@ -42,6 +42,16 @@ fn total_claims(n: usize) -> Vec<(&'static str, &'static str, String)> {
         // while three others had been corrected. A gate that covers three of four places
         // is a gate that makes the fourth harder to notice.
         ("src/server.rs", "the MCP server's instructions string", format!("MCP server with {n} tools")),
+        // The same string says the total TWICE, and the second copy went stale
+        // at 112 while the first was corrected to 114. The shapes in
+        // `no_stale_tool_count_survives_anywhere` did not cover this phrasing,
+        // so neither test noticed. Added on 15 September 2026, with the shape,
+        // when a new tool made the count move again.
+        (
+            "src/server.rs",
+            "the MCP server's default-build sentence",
+            format!("All {n} tools are advertised in a default build"),
+        ),
     ]
 }
 
@@ -83,8 +93,13 @@ fn no_stale_tool_count_survives_anywhere() {
 
     // The shapes a total is written in here. Any number in one of them that is not the
     // measured count is a leftover from a partial edit.
-    let shapes: [(&str, &str); 4] =
-        [("**", " tools**"), ("advertises all ", " tools."), ("", " tools organized by function"), ("ToolGroups[\"", " Tools\"]")];
+    let shapes: [(&str, &str); 5] = [
+        ("**", " tools**"),
+        ("advertises all ", " tools."),
+        ("", " tools organized by function"),
+        ("ToolGroups[\"", " Tools\"]"),
+        ("All ", " tools are advertised"),
+    ];
 
     let mut stale = Vec::new();
     for (prefix, suffix) in shapes {

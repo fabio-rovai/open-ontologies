@@ -1,0 +1,60 @@
+# Preprocessing class: FSSSSMSSSSSNFFN.
+# Configuration: G-E--_302_C18_F1_URBAN_RG_S04BN
+# No SInE strategy applied
+# Search class: FHHNF-FFSS00-SFFFFFNN
+# Configuration: SAT001_MinMin_p005000_rr_RG
+# Initializing proof state
+# Scanning for AC axioms
+#
+#cnf(i_0_3, plain, (thing('i:http://example.org/socrates'))).
+##
+#cnf(i_0_8, negated_conjecture, (~'c:http://example.org/Mortal'('i:http://example.org/socrates'))).
+#
+#cnf(i_0_2, plain, (thing(esk1_0))).
+#
+#cnf(i_0_6, plain, ('c:http://example.org/Greek'('i:http://example.org/socrates'))).
+#
+#cnf(i_0_1, plain, (~lit(X1)|~thing(X1))).
+#
+#cnf(i_0_5, plain, ('c:http://example.org/Mortal'(X1)|~'c:http://example.org/Person'(X1)|~thing(X1))).
+#
+#cnf(i_0_4, plain, ('c:http://example.org/Person'(X1)|~'c:http://example.org/Greek'(X1)|~thing(X1))).
+# Presaturation interreduction done
+#
+#cnf(i_0_8, negated_conjecture, (~'c:http://example.org/Mortal'('i:http://example.org/socrates'))).
+#
+#cnf(i_0_1, plain, (~lit(X1)|~thing(X1))).
+#
+#cnf(i_0_3, plain, (thing('i:http://example.org/socrates'))).
+#
+#cnf(i_0_2, plain, (thing(esk1_0))).
+#
+#cnf(i_0_6, plain, ('c:http://example.org/Greek'('i:http://example.org/socrates'))).
+#
+#cnf(i_0_5, plain, ('c:http://example.org/Mortal'(X1)|~'c:http://example.org/Person'(X1)|~thing(X1))).
+#
+#cnf(i_0_9, negated_conjecture, (~'c:http://example.org/Person'('i:http://example.org/socrates'))).
+#
+#cnf(i_0_4, plain, ('c:http://example.org/Person'(X1)|~'c:http://example.org/Greek'(X1)|~thing(X1))).
+
+# Proof found!
+# SZS status Theorem
+# SZS output start CNFRefutation
+fof(goal_classAssertion, conjecture, (thing('i:http://example.org/socrates')&'c:http://example.org/Mortal'('i:http://example.org/socrates')), file('/private/tmp/claude-501/-Users-fabio/87492980-7d66-415a-9b2e-d382a61063d3/scratchpad/wt-tstp/tests/fixtures/tstp/problem.p', goal_classAssertion)).
+fof(ind_typing_1, axiom, thing('i:http://example.org/socrates'), file('/private/tmp/claude-501/-Users-fabio/87492980-7d66-415a-9b2e-d382a61063d3/scratchpad/wt-tstp/tests/fixtures/tstp/problem.p', ind_typing_1)).
+fof(owl_2_subClassOf, axiom, ![X1]:((thing(X1)=>('c:http://example.org/Person'(X1)=>'c:http://example.org/Mortal'(X1)))), file('/private/tmp/claude-501/-Users-fabio/87492980-7d66-415a-9b2e-d382a61063d3/scratchpad/wt-tstp/tests/fixtures/tstp/problem.p', owl_2_subClassOf)).
+fof(owl_1_subClassOf, axiom, ![X1]:((thing(X1)=>('c:http://example.org/Greek'(X1)=>'c:http://example.org/Person'(X1)))), file('/private/tmp/claude-501/-Users-fabio/87492980-7d66-415a-9b2e-d382a61063d3/scratchpad/wt-tstp/tests/fixtures/tstp/problem.p', owl_1_subClassOf)).
+fof(owl_3_classAssertion, axiom, (thing('i:http://example.org/socrates')&'c:http://example.org/Greek'('i:http://example.org/socrates')), file('/private/tmp/claude-501/-Users-fabio/87492980-7d66-415a-9b2e-d382a61063d3/scratchpad/wt-tstp/tests/fixtures/tstp/problem.p', owl_3_classAssertion)).
+fof(c_0_5, negated_conjecture, ~((thing('i:http://example.org/socrates')&'c:http://example.org/Mortal'('i:http://example.org/socrates'))), inference(assume_negation,[status(cth)],[goal_classAssertion])).
+fof(c_0_6, negated_conjecture, (~thing('i:http://example.org/socrates')|~'c:http://example.org/Mortal'('i:http://example.org/socrates')), inference(fof_nnf,[status(thm)],[inference(fof_nnf,[status(thm)],[c_0_5])])).
+cnf(c_0_7, negated_conjecture, (~thing('i:http://example.org/socrates')|~'c:http://example.org/Mortal'('i:http://example.org/socrates')), inference(split_conjunct,[status(thm)],[c_0_6])).
+cnf(c_0_8, plain, (thing('i:http://example.org/socrates')), inference(split_conjunct,[status(thm)],[ind_typing_1])).
+fof(c_0_9, plain, ![X5]:((~thing(X5)|(~'c:http://example.org/Person'(X5)|'c:http://example.org/Mortal'(X5)))), inference(fof_nnf,[status(thm)],[inference(variable_rename,[status(thm)],[inference(fof_nnf,[status(thm)],[owl_2_subClassOf])])])).
+cnf(c_0_10, negated_conjecture, (~'c:http://example.org/Mortal'('i:http://example.org/socrates')), inference(cn,[status(thm)],[inference(rw,[status(thm)],[c_0_7, c_0_8])])).
+cnf(c_0_11, plain, ('c:http://example.org/Mortal'(X1)|~thing(X1)|~'c:http://example.org/Person'(X1)), inference(split_conjunct,[status(thm)],[c_0_9])).
+fof(c_0_12, plain, ![X4]:((~thing(X4)|(~'c:http://example.org/Greek'(X4)|'c:http://example.org/Person'(X4)))), inference(fof_nnf,[status(thm)],[inference(variable_rename,[status(thm)],[inference(fof_nnf,[status(thm)],[owl_1_subClassOf])])])).
+cnf(c_0_13, negated_conjecture, (~'c:http://example.org/Person'('i:http://example.org/socrates')), inference(cn,[status(thm)],[inference(rw,[status(thm)],[inference(spm,[status(thm)],[c_0_10, c_0_11]), c_0_8])])).
+cnf(c_0_14, plain, ('c:http://example.org/Person'(X1)|~thing(X1)|~'c:http://example.org/Greek'(X1)), inference(split_conjunct,[status(thm)],[c_0_12])).
+cnf(c_0_15, plain, ('c:http://example.org/Greek'('i:http://example.org/socrates')), inference(split_conjunct,[status(thm)],[owl_3_classAssertion])).
+cnf(c_0_16, negated_conjecture, ($false), inference(cn,[status(thm)],[inference(rw,[status(thm)],[inference(rw,[status(thm)],[inference(spm,[status(thm)],[c_0_13, c_0_14]), c_0_15]), c_0_8])]), ['proof']).
+# SZS output end CNFRefutation

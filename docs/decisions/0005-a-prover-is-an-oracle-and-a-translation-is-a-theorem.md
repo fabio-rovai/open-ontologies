@@ -217,3 +217,155 @@ and they point opposite ways, so both are written down rather than left to a rea
   action and not one to take on someone's behalf. The old ITTF free-standards site closed in 2025;
   the catalogue pages are reachable at `committee.iso.org` when `www.iso.org` returns 403. Until
   that is done, every clause cited here is scoped to the edition and the text actually read.
+
+## Addendum, 15 September 2026 · The oracle's answer is now an object, and it is still an oracle
+
+Nothing above is retracted. Item 5 stands word for word: an ATP verdict is an oracle opinion and
+is labelled as one everywhere it appears. What has changed is that the opinion is no longer a
+single word. Both installed provers will print the derivation they found, a derivation is a finite
+object, and `src/tstp.rs` reads one back and re-checks what can honestly be re-checked. The
+capability is `fol-prove`, `onto_fol_prove` and a second column in `tools/fol_differential.py`, and
+the rest of this addendum is the boundary between what it now establishes and what it still
+assumes.
+
+### What is now evidence
+
+1. **The prover refuted OUR problem.** Every leaf of the derivation is matched against the problem
+   file the exporter wrote: by the name the prover's own `file(…,NAME)` annotation gives, by the
+   PARSED formula, and by the ROLE. All three matter and none is a formality. The name catches a
+   prover pointed at a stale or different file. The formula catches a file that has since been
+   edited under the same names. The role catches a conjecture presented as an axiom, which would
+   make the refutation say nothing about entailment while looking perfect. This is the cheapest of
+   the three things below and by a distance the most valuable, because until it existed an `AGREE`
+   row in the differential simply assumed it.
+2. **The derivation is a well-founded DAG ending in the empty clause.** Every parent reference
+   resolves to a node that exists, no name is used twice, the parent relation is acyclic, and the
+   node nothing else cites is `$false`. Nodes the empty clause does not depend on are counted and
+   excluded from every tally, because counting them would report work the refutation does not rest
+   on.
+3. **Some steps are recomputed.** `resolution`, `subsumption_resolution` and its forward and
+   backward spellings, `factoring`, `duplicate_literal_removal`, `flattening`,
+   `trivial_inequality_removal`, `equality_resolution`, and `negated_conjecture` /
+   `assume_negation`. Each is replayed from its premises with a syntactic unifier with an occurs
+   check, and the conclusion must agree up to a bijective renaming of variables.
+4. **Whether the conjecture was used at all.** `what_was_refuted` is
+   `axioms_and_the_negated_conjecture` or `axioms_alone`, and the second is not a success: it means
+   the exported theory is inconsistent on its own, which is the `ContradictoryAxioms` case item 5's
+   differential already had to separate by hand.
+
+### What remains an oracle, in full
+
+- **The calculus.** Even a derivation whose every step is recomputed is a derivation in a calculus
+  whose soundness is written down nowhere in `lean/`. `Fol.satisfiable_of_check` has a theorem
+  behind it; this has a Rust program behind it, and the difference is the same one decision 0006
+  item 1 draws between the two directions.
+- **The replayer itself.** `src/tstp.rs` is ordinary unverified Rust with ordinary tests. A defect
+  in the unifier makes a wrong step look right. The tests below are what stands between that and a
+  false green, and they are tests rather than a proof.
+- **Clausification, and everything downstream of it.** `cnf_transformation`,
+  `ennf_transformation`, `nnf_transformation`, `skolemize`, `distribute`,
+  `true_and_false_elimination`, `variable_rename`, `shift_quantors`, `split_conjunct`, every
+  AVATAR rule, and every SAT-solver step are NOT checked. They are named, counted and given a
+  reason in `steps_unchecked`, and on a real proof they are the majority.
+- **Introduced definitions.** AVATAR invents propositional symbols and prints them as
+  `introduced(definition, …)` leaves. They are not from the problem and are not derived from it.
+  Nothing here checks that the extension is conservative, so an introduced leaf is counted as
+  unchecked and keeps the strongest word out of reach.
+- **E's nested inference records.** E writes an inference record inline in a parent position, and
+  such a record carries a rule and parents but NO FORMULA. Neither it nor the step it feeds can be
+  replayed, and both are reported with that reason rather than with the generic one.
+- **The SZS status line.** Echoed into `szs_status`, labelled untrusted in the report's own JSON,
+  and used to decide nothing.
+
+### The verdict vocabulary, and the rule it turns on
+
+Eight words, and the ladder is the point:
+
+```
+problem_unparsed                    the TPTP problem could not be read
+derivation_unparsed                 the output is not a TSTP derivation. Usually: no proof option
+no_refutation_offered               no empty clause. A satisfiable problem, a timeout, a give-up
+derivation_rejected                 THE CHECKER SAID NO. Dangling parent, cycle, or a leaf that is
+                                    not a formula of the problem
+refutation_step_not_reconstructed   a step whose rule IS implemented did not reconstruct
+refutation_structure_checked        structure holds, NO step replayed
+refutation_partially_replayed       structure holds, SOME steps replayed. The normal outcome
+refutation_fully_replayed           structure holds, EVERY step replayed. STILL NOT unsatisfiable
+```
+
+**An unchecked step prevents the strongest word, and so does an introduced leaf.** That rule is
+mechanical, it is the reason the ladder has three rungs instead of a boolean, and
+`tests/tstp_derivation_test.rs::one_unchecked_step_prevents_the_strongest_word` takes a fully
+replayed derivation, renames exactly one step's rule to `cnf_transformation`, changes nothing else,
+and requires the verdict to drop. If that test ever passes without the drop, the vocabulary has
+stopped meaning anything.
+
+### A failed reconstruction gets its own word, and that is not a hedge
+
+A step whose rule is implemented, whose premises and conclusion are clause-shaped, and which still
+does not reconstruct is EITHER a defect in the derivation OR a gap in this checker. Reporting it as
+"unchecked" would let a forged step hide behind a rule name. Reporting it as "rejected" would
+accuse someone else's prover on this module's word alone. So it is
+`refutation_step_not_reconstructed`, it names the step, it prints what was expected and what was
+found, and it exits non-zero. That is item 5's own discipline, one layer down: the tool reports the
+disagreement and does not adjudicate it.
+
+### Subsumption resolution is checked as binary resolution, and that is exact rather than lax
+
+Vampire prints `forward_subsumption_resolution` for a step whose premises are `C ∨ L` and
+`D ∨ ¬L'` and whose conclusion is `C`, under `D'σ ⊆ C`. The binary resolvent of those premises is
+`C ∪ D'σ`, and `D'σ ⊆ C` makes that exactly `C`. One check therefore covers both rules and neither
+is weakened by it. The same identity is why the check still passes on AVATAR's printed clauses,
+where the side premise's assertion literals are carried into the conclusion and the classical side
+condition does not hold of the printed form.
+
+### Measured, on the day it was written
+
+FOAF, `owl-rl-ext`, 181 claimed entailments, one problem per entailment, exported from an
+unreasoned store the way item 7 requires.
+
+| prover | goals refuted | steps replayed | leaves matched | rejected | not reconstructed |
+|---|---:|---:|---|---:|---:|
+| Vampire 5.1.0 | 181 | 1279 of 3314 | 534, all `identical` | 0 | 0 |
+| E 3.2.5 | 181 | 181 of 4644 | 534, all `alpha_equivalent` | 0 | 0 |
+
+Every one of the 362 runs came back `refutation_partially_replayed`. The two provers differ by an
+order of magnitude in how much is replayable and the reason is structural rather than a matter of
+quality: Vampire prints each inference as its own annotated formula with a formula attached, while
+E nests inference records inside parent positions and those carry no formula. The ontology-alone
+run, with no conjecture, came back `no_refutation_offered` from both, which is what a consistent
+ontology should produce and is the control that the checker is not simply saying yes.
+
+`alpha_equivalent` against `identical` is not cosmetic. E renames the bound variables of every
+axiom it reads, so a leaf check that demanded byte identity of the parsed AST would reject every E
+proof of every problem. The three levels — `identical`, `alpha_equivalent`,
+`associativity_normalised` — are reported separately so that how much normalisation a leaf needed
+is visible rather than absorbed.
+
+### What this does not change
+
+- **`AGREE` still means what it meant.** A checked derivation adds that the prover was answering
+  about the file we gave it. It does not make the answer a proof, and the differential's summary
+  says so in the same paragraph as the new counts.
+- **The model direction is still the only certified one.** Decision 0006 is unaffected in every
+  particular. `model_checked` rests on `Fol.satisfiable_of_check`; nothing in this addendum rests
+  on any theorem at all.
+- **Nothing here touches the translation correspondence.** Item 2 stands: `src/tptp.rs` is a
+  transcription of `OwlLean/Translation.lean` pinned by tests and not proved, and a checked
+  derivation over the emitted file says nothing about whether the file is the right file to have
+  emitted.
+
+### Still not done, in this layer
+
+- **Superposition and demodulation are not replayed.** They are the steps that do the work on any
+  problem with equality, and replaying one needs a term ordering, which is a project rather than a
+  function. Until then every equality-heavy proof will sit near the bottom of the ladder.
+- **Clausification is not checked and there is no cheap way to check it.** The honest alternative
+  is to ask the prover for the clause set and check that the clause set is equisatisfiable with the
+  problem, which needs the same machinery.
+- **Nothing runs this in CI.** It needs a prover on `PATH` and the differential skips loudly
+  without one, exactly as item "Still not done" above already records for the differential itself.
+  The recorded fixtures under `tests/fixtures/tstp/` run everywhere; the live run skips.
+- **The variant check is backtracking with a budget.** A clause larger than the budget is reported
+  as unchecked with that reason, which is honest and is also a place a forger could aim at. The
+  budget is 200,000 pairings and no real step has come near it.
