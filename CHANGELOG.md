@@ -4,6 +4,65 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+- **A front-page claim was gated by a test that ran nowhere, and now runs in CI.** `README.md`
+  reported that the cross-kernel differential "reports zero divergent rows", and
+  `tests/cross_kernel_differential_test.rs` does require exactly that and fails on any row at
+  all. No workflow ran it. Its `skip()` wants lake AND Poly/ML: the `build` job has neither, so
+  it skipped there, and the `lean` job, which has lake, invoked the file from no leg. A skipped
+  test reports `ok`. `docs/ci-gates.md` listed this under "What is still open" and decision 0008
+  carried a "Not run in CI" bullet, so it was known, written down, and unable to fail.
+
+  What CI installs is NOT Isabelle, and the old reasoning that it would have to be is what kept
+  this open. `isabelle/driver/oo_horn_generated.ML` is committed, so the missing piece was a
+  compiler for it: Isabelle publishes Poly/ML as a 39 MB component, pinned here by SHA-256,
+  cached, and the same 5.9.2-2 build that generated that file, so CI and the developer machine
+  run one compiler and not two. Not `apt-get install polyml`, which was checked rather than
+  assumed because `prover9` having no apt candidate on noble broke this job once already: Ubuntu
+  noble carries 5.7.1 and ships `/usr/bin/poly` and `libpolymain.a` with no `libpolyml.a`, so
+  there is nothing to link against, and both `poly_dir()` and `build_native.sh` now say so by
+  name rather than failing in the linker. `isabelle/build_native.sh` was macOS-only, looking for
+  `libgmp.dylib` and an app bundle under `/Applications`; it now takes `POLYDIR`, finds gmp in
+  either shape or as the bundled versioned copy, adds `-lpthread -lm -ldl` on Linux only because
+  macOS has no libdl to pass, and prints the linker's stderr on failure instead of discarding it.
+
+- **The `build` job could not fail on a failing test, and this branch proved it by accident.**
+  `cargo test -- --nocapture 2>&1 | tee cargo-test.log` in a `run:` block is `bash -e` without
+  `pipefail`, so the step's exit status was `tee`'s. The first CI run of this work carried a test
+  that failed: the Linux leg printed `test result: FAILED. 2 passed; 1 failed` in its own log and
+  reported SUCCESS, while the Windows leg, whose default shell keeps cargo's exit code, failed on
+  the same test. The job that runs the whole suite on two platforms was not a gate on one of them.
+  `shell: bash` and `set -o pipefail`, which is what the skip-counter step below it already does
+  and for the same reason.
+
+- **A skip in CI is now a failure even in a file no job invokes.** `common::skip_unless` already
+  panicked under `OO_REQUIRE_FIXTURES=1` and twenty legs already set it, so no second variable is
+  added: a second name for an existing mechanism is a second thing to forget. What that mechanism
+  cannot see is a test file that runs nowhere, which is what this defect was.
+  `tests/ci_gate_coverage_test.rs` requires every `tests/*.rs` with a skip path to be strict in
+  some workflow or on a written exception list with its reason, refuses an exception for a file
+  that no longer skips or that is strict after all, holds `docs/ci-gates.md`'s table against what
+  the workflows actually say, and fails on any test printing the `SKIPPED_FIXTURE:` marker by hand
+  rather than through the helper. Five files are excepted, each because CI deliberately does not
+  carry what they need. It does NOT make every file strict: a contributor without Poly/ML must
+  still be able to run `cargo test` and get a pass, and can.
+
+- **The corpus figures in the documents are derived rather than typed.** Three documents quoted
+  this corpus and none of them had measured the tree they were committed to. The 47-of-1,718 and
+  the zero that replaced it were measured on the shallow corpus; the 54-of-2,075 was measured on a
+  branch cut before the binding fix. The two were authored eleven minutes apart and merged
+  separately, so the combination nobody ran was the deep corpus under the fixed checker, which is
+  the combination the README asserted a result for. Measured now, in CI: **2,075 certificates, 402
+  accepted by both, 1,134 rejected by both, 539 unparseable on both, and ZERO divergent**, with 332
+  rows carrying a binding decision 0008 refuses and both kernels refusing every one. The shape of
+  the shallow result repeats exactly: 1,080 plus 54 is 1,134, and the accepted and unparseable
+  counts did not move. `the_corpus_exercises_prefix_visibility_at_depth` now formats the corpus
+  size, its depth, its fan-out and its prefix-visibility count out of the measurement and fails if
+  `README.md` or `docs/reasoning-systems-inventory.md` says anything else, so a growing corpus
+  fails until the prose is corrected and a correction that reaches one document out of two fails
+  as well. `isabelle/README.md`'s per-bucket counts are deleted rather than corrected: that file
+  already said the numbers belong in the test output, three sections before writing them out.
+
 ### Changed
 - **A binding is data, and a certificate that admits two readings is refused.** Running the
   Lean checker in `lean/OOCert/Horn.lean` and the independent Isabelle/HOL one in `isabelle/`
@@ -59,10 +118,14 @@ All notable changes to Open Ontologies are documented here.
   after: 2,075 certificates, base depths 0:61 1:5 3:1 6:1 7:1 19:1, maximum
   fan-out 12, and 484 rows exercising the discipline (258 resting on it to be
   accepted, 226 that it must reject). Depth is the longest chain of citations,
-  so an n-step chain reports n-1. The two kernels return the same answer on
-  2,021 of the 2,075 and part company on 54: every one of those is the D1
+  so an n-step chain reports n-1. The two kernels returned the same answer on
+  2,021 of the 2,075 and parted company on 54: every one of those is the D1
   duplicate-key divergence that was already pinned, none is new in kind, and
-  NONE is unexplained. Depth found no fresh disagreement, which is a result
+  NONE is unexplained. **That count was measured on this branch, which was cut
+  before the binding fix above landed, and it is history rather than a
+  description: on the merged tree the figure is ZERO, and the 54 moved into
+  rejected-by-both exactly as the 47 did. See the Fixed section at the top.**
+  Depth found no fresh disagreement, which is a result
   about the two formalisations rather than a null one, because the property
   their inductions are built on had until now barely been shown data that could
   violate it. `the_corpus_exercises_prefix_visibility_at_depth` prints the

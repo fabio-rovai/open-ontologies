@@ -18,10 +18,15 @@
 - **Written**: 2026-09-14
 - **Related**: decision 0003 (a rule is data, and an assumption is not a fact), whose format this
   amends; decision 0002 (an inference carries a certificate)
-- **Not run in CI.** The differential needs Isabelle2025-2 and Poly/ML, which the workflow does not
-  install, so `cargo test --test cross_kernel_differential_test` is a LOCAL gate and the 47-to-0
-  number is reproduced by running it, not by a green badge. `lean_horn_certificate_test` and
-  `reason_horn_emit_test` do run in CI and carry the Lean-side and producer-side halves.
+- **Run in CI since 15 September 2026, and not before.** This bullet used to say the opposite, and
+  it was right: the differential was a LOCAL gate, because no workflow installed the second kernel,
+  so the file skipped in the one job that ran it and was invoked by no job that could have made it
+  strict. It needed Poly/ML rather than Isabelle2025-2, which is the thing that was wrong with the
+  old reasoning: `isabelle/driver/oo_horn_generated.ML` is committed, so a 39 MB component installs
+  it. The `lean` job now runs the file under `OO_REQUIRE_FIXTURES=1`, and
+  `tests/ci_gate_coverage_test.rs` fails if any test file that can skip ever again runs nowhere.
+  `lean_horn_certificate_test` and `reason_horn_emit_test` carry the Lean-side and producer-side
+  halves and always did.
 
 ## The problem
 
@@ -223,6 +228,32 @@ unparseable counts did not move. The 286 is larger than 47 because most rows car
 binding were already rejected by both kernels for some other reason; the gate runs on every row
 rather than only on the ones that disagree, because a check that ran only on divergences could be
 satisfied by silence. It splits 89 D1 and 197 D2.
+
+### Re-measured on the deep corpus, 15 September 2026
+
+The pair above is the SHALLOW corpus, which is what existed on the day this decision was written.
+The corpus was deepened hours later, on a branch cut before this decision landed, and the two
+pieces of work were merged separately: the pair that nobody had run was the deep corpus under the
+fixed checker, and that is the pair the README stated a result for. Run in CI, which now installs
+the second kernel:
+
+Before, over 2,075 certificates (70 base, 1,585 mutated, 420 fuzzed, same seed):
+
+    both accept:      402
+    both reject:      1,080
+    both exit 2:      539
+    known divergence: 54
+
+After:
+
+    both accept:      402
+    both reject:      1,134
+    both exit 2:      539
+    divergent:        0
+    malformed binding, refused by both (decision 0008): 332
+
+The shape repeats exactly: 1,080 plus 54 is 1,134, and the accepted and unparseable counts did not
+move. Depth changed the size of every column and changed nothing about the decision.
 
 One detail worth stating rather than rounding off: **all 47 corpus divergences were D1.** D2's
 three certificates are committed probes with their own tests and are not members of the generated
