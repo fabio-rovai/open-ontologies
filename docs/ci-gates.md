@@ -10,8 +10,10 @@ needs, skipped every test in the file, and exited 0.
 This page is the answer to "does a green tick mean this ran?", so that nobody has
 to work it out again from six workflow files and the thirty-four test files that
 can skip — twenty-five Rust, nine Python. It is a statement about CI
-configuration, which changes; the date it was last checked is at the bottom, and
-the way to re-check it is at the bottom too.
+configuration, which changes. Its Rust half is now checked by a test rather than
+by hand (`tests/ci_gate_coverage_test.rs`), because the by-hand version went
+stale exactly where it mattered; the Python half still carries a date at the
+bottom, and the way to re-check it is there too.
 
 ## The convention
 
@@ -28,6 +30,11 @@ helper to be written and a per-call-site rule would miss the next one. A skip
 that is deliberate rather than missing (there is one, the twelve-minute
 full-corpus differential) carries `@pytest.mark.oo_opt_in` and is exempt. The
 marker is greppable; a reason string is not.
+
+That mechanism only bites on a test that RUNS, which leaves the hole it cannot
+see: a file no job invokes at all. `tests/ci_gate_coverage_test.rs` closes it by
+reconciling this page's table against `tests/` and `.github/workflows/` on every
+run. See "Re-checking this page" at the bottom.
 
 Two tool scripts mirror the variable under their own names because they are CLIs
 rather than test suites, and say so where they define it:
@@ -65,7 +72,7 @@ job invokes the file at all.
 | `reason_rl_coverage_test.rs` | lake | `lean` job | **strict** |
 | `rule_syntax_frontend_test.rs` | lake | `lean` job | **strict** |
 | `reason_horn_emit_test.rs` | lake + `tests/fixtures/horn/` (in tree) | `lean` job | **strict** |
-| `cross_kernel_differential_test.rs` | lake **and** Isabelle2025-2 + Poly/ML | lake only | **skips** — the Isabelle half is installed by no job; it cannot be made strict without an Isabelle step |
+| `cross_kernel_differential_test.rs` | lake **and** Poly/ML | `lean` job | **strict** |
 | `clinical_test.rs` | `data/crosswalks.parquet` | nothing — `data/` is gitignored | **skips** |
 | `embed_test.rs` | ONNX model in `~/.open-ontologies/models/` | `features/depth` compiles it; no job runs `open-ontologies init` | **skips** |
 | `embedding_e2e_test.rs` | same ONNX model + tokenizer | same | **skips** |
@@ -93,10 +100,6 @@ The other seven files under `python/tests/` have no skip path.
 
 ## What is still open, and why
 
-- **`cross_kernel_differential_test.rs`.** No job installs Isabelle, so the
-  second kernel is never exercised in CI. Making this strict means adding an
-  Isabelle2025-2 step, which is a large download; it has not been done, and until
-  it is, the Isabelle half of the cross-kernel claim rests on local runs.
 - **`clinical_test.rs`, `embed_test.rs`, `embedding_e2e_test.rs`.** All three
   want an artefact the repository deliberately does not carry: a licensed
   crosswalk table and a model download. Closing them means a job that fetches
@@ -130,16 +133,33 @@ The other seven files under `python/tests/` have no skip path.
 
 ## Re-checking this page
 
+The Rust half of this page no longer needs re-checking by hand, because a page
+that has to be re-checked by hand is a page that goes stale. This one did: the
+row for `cross_kernel_differential_test.rs` said the second kernel ran nowhere
+in CI while `README.md` reported the result of that comparison in its opening
+pages, and nothing connected the two.
+
+`tests/ci_gate_coverage_test.rs` is the mechanism. It reads `tests/*.rs` for a
+skip path, reads `.github/workflows/` for every `cargo test --test NAME` run
+under `OO_REQUIRE_FIXTURES=1`, and fails when a file that can skip is neither
+strict anywhere nor on a written exception list carrying the reason. It then
+checks the Rust table above against the same two sources, so a row saying
+**strict** for a leg no workflow runs is a test failure rather than a sentence.
+It runs in the `lean` job and needs no toolchain of its own.
+
+What it deliberately does not do is force every file to be strict. A contributor
+without Poly/ML, without a licensed crosswalk table and without a downloaded
+embedding model must still be able to run `cargo test` and get a pass. The
+property is that CI cannot skip in silence, not that a laptop cannot skip at all.
+
+The Python half is still by hand:
+
 ```bash
-# every Rust file that can skip — 25, and the table has 25 rows
-grep -ln 'skip_unless\|SKIPPED_FIXTURE' tests/*.rs
-# every Python file that can skip — 10 hits, of which conftest.py is the
+# every Python file that can skip: 10 hits, of which conftest.py is the
 # mechanism and not a test, so 9, and the table has 9 rows
 grep -rln 'pytest.skip\|importorskip\|skipif' python/tests/*.py
 # every leg CI makes strict
 grep -rn 'OO_REQUIRE_FIXTURES=1' .github/workflows/
 ```
 
-The three lists have to reconcile against the table above. Last checked against
-`.github/workflows/` on 15 September 2026, by running each of the three commands
-and counting.
+Last checked against `.github/workflows/` on 15 September 2026.
