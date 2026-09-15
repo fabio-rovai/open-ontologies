@@ -132,6 +132,16 @@ flowchart LR
   C -->|forged| X["refused, exit 1"]
 ```
 
+## The whole thing in sixteen seconds
+
+<p align="center">
+  <img src="docs/assets/worked-example.gif" alt="A terminal replaying three English sentences becoming Turtle, being reasoned over, the certificate accepted by the Lean checker, then one conclusion forged and the same checker rejecting it" width="100%">
+</p>
+
+Three sentences in. Three inferences out. The checker accepts the proof, then one conclusion is
+forged with the premises left untouched and the same checker refuses it, naming the rule. Every line
+in that recording is real output, not a mock-up. The commands are below if you want to run it.
+
 ## Run it on your own ontology
 
 Those fixtures ship with the repository. Here is the same thing starting from a file you wrote.
