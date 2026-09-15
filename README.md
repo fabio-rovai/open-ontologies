@@ -134,7 +134,11 @@ Isabelle witness has not had the same treatment.
 an "unsatisfiable" from any prover is testimony, not a certificate. One clash rule has a semantic
 condition and is certified; the other sixteen are detected and deliberately carry no certificate.
 A model is a finite object and can be checked, which is why satisfiability can be certified and
-unsatisfiability cannot.
+unsatisfiability cannot. The testimony does now come with an exhibit: `fol-prove` reads the
+derivation Vampire or E prints, matches every leaf against the problem this engine emitted, checks
+the DAG, and recomputes the resolution-family steps, naming and counting every step it could not.
+Over FOAF that was 1279 of Vampire's 3314 steps and 181 of E's 4644. It is evidence about what the
+prover was answering about; it is not a proof, and no verdict word there says it is.
 
 **The proofs are ahead of the published release.** The verified layer described here is on `main`
 and is newer than the last tagged release. If you installed from a release binary, you do not have
@@ -239,8 +243,8 @@ Restart, and the `onto_*` tools are available. Cursor, Windsurf, Zed and VS Code
 
 ## What is in the box
 
-**114 tools** to build, validate, query, diff, lint, version, reason over, align, plan, certify
-and govern RDF and OWL, over an in-memory Oxigraph store. A default build advertises all 114 tools.
+**115 tools** to build, validate, query, diff, lint, version, reason over, align, plan, certify
+and govern RDF and OWL, over an in-memory Oxigraph store. A default build advertises all 115 tools.
 Eight need an optional Cargo feature and return an error without it: four need `embeddings`, two
 need `plugins`, two need `postgres` or `duckdb`. The published binaries and the GHCR image are
 built with the default feature set, so they do not carry those eight.
