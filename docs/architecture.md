@@ -121,7 +121,7 @@ the built-in table earns. Details in
 The theorem is conditional, and what it is conditional on is the Rust writing
 down the truth: the asserted graph the certificate names, and the steps it
 records. That boundary is small, it is the whole trusted base of this layer, and
-it is enumerated as twenty-nine checkable properties in
+it is enumerated as thirty checkable properties in
 [docs/trusted-computing-base.md](docs/trusted-computing-base.md), with what
 checks each and what is still trusted. Read it before relying on a certificate.
 

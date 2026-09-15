@@ -255,7 +255,7 @@ Every line above is worth less if this section is missing, so it is here rather 
 nobody opens. These are the load-bearing limits, and none of them is hypothetical.
 
 **The Rust engine is not verified.** The theorems are conditional on it reporting the run
-faithfully. That boundary is twenty-nine properties: `make verify` bounded-model-checks six, and
+faithfully. That boundary is thirty properties: `make verify` bounded-model-checks six, and
 five are enforced by the engine rather than observed of a dependency, two properties being in both
 counts. Two are irreducible, because they are about an execution and not a function: that
 `asserted.tsv` is the graph reasoned over, and that `derivations.tsv` covers every triple added.
@@ -435,6 +435,7 @@ a Protégé-style inspector. No JVM. No Protégé.
 | Architecture | [docs/architecture.md](docs/architecture.md) |
 | Derivation certificates and the Lean checkers | [docs/lean-certificates.md](docs/lean-certificates.md) |
 | What the Lean proofs assume about the Rust | [docs/trusted-computing-base.md](docs/trusted-computing-base.md) |
+| Aeneas at the Rust/Lean boundary: what it proves, and what it costs | [docs/aeneas-boundary.md](docs/aeneas-boundary.md) |
 | Which gates a green CI tick actually ran | [docs/ci-gates.md](docs/ci-gates.md) |
 | First-order export, TPTP and Common Logic | [docs/first-order-export.md](docs/first-order-export.md) |
 | Every reasoning system, and why each was used or refused | [docs/reasoning-systems-inventory.md](docs/reasoning-systems-inventory.md) |

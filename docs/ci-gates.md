@@ -124,9 +124,19 @@ The other seven files under `python/tests/` have no skip path.
 - **The `features/breadth` job runs no tests** (`test: false`); it is
   `cargo check` plus clippy across all features. That is deliberate and is not a
   skip, but it does mean an all-features build is type-checked and never run.
-- **Kani.** `make verify` runs three bounded-model-checking harnesses. No job
+- **Kani.** `make verify` runs fifteen bounded-model-checking harnesses. No job
   installs Kani, so none of them runs in CI. `docs/trusted-computing-base.md`
-  says so where it reports their results.
+  says so where it reports their results. (The count was three until 15
+  September 2026 and this line had not followed it.)
+- **Aeneas.** `aeneas/run.sh` re-translates `src/boundary_core.rs` into
+  `aeneas/lean/OOBoundary/Generated.lean` and fails if the model moved, and
+  `cd aeneas/lean && lake build` checks the theorems about it. NEITHER runs in
+  any job, and neither is reachable from `make check`, `cargo build`,
+  `cargo test` or `lean/`'s `lake build`. The first needs a 130 MB release
+  tarball and a pinned rustc nightly; the second needs Lean v4.31.0 and a 7.6 GB
+  `.lake` including Mathlib. `docs/aeneas-boundary.md` reports what they produced
+  when they were run here, which is the same arrangement Kani is under and for
+  the same reason: a gate nobody can run locally is not a gate.
 - **The Makefile and CI have drifted.** No workflow invokes `make`. `make check`
   is `lint test audit`, and its `test` is a bare `cargo test` with no
   `OO_REQUIRE_FIXTURES`, so a local `make check` is the permissive run whatever
