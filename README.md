@@ -74,7 +74,7 @@ repeated binding key meant, so one kernel refused the shape and the other answer
 its lookup happened to do. A key bound twice to different values is satisfied by no substitution
 at all, so there were never two readings, only two ways of discarding half the certificate. Closed
 by [decision 0008](docs/decisions/0008-a-binding-is-data-and-evidence-admits-one-reading.md), and
-the two kernels now return the same answer on every row of a corpus of 2,075 certificates, 484 of
+the two kernels now return the same answer on every row of a corpus of 2,405 certificates, 484 of
 which exercise the ordering property both inductions rest on, against 123 before that corpus was
 deepened. Every one of those had passed every test that existed before.
 
