@@ -50,6 +50,26 @@ pub enum ReadScope {
 }
 
 impl ReadScope {
+    /// The graph names this scope admits, for a certificate to record.
+    ///
+    /// A certificate that does not say which graphs it read cannot be checked
+    /// against the store it claims to be about, so both reading paths report
+    /// this: the one that excludes named graphs by name, and this one, which
+    /// names the set it selected.
+    pub fn graphs_read(&self) -> Vec<String> {
+        match self {
+            ReadScope::AllGraphs => vec!["(every graph in the store)".to_string()],
+            ReadScope::Graphs { default_graph, named } => {
+                let mut v = Vec::with_capacity(named.len() + 1);
+                if *default_graph {
+                    v.push("(default graph)".to_string());
+                }
+                v.extend(named.iter().cloned());
+                v
+            }
+        }
+    }
+
     /// True when this scope is the whole store.
     pub fn is_all_graphs(&self) -> bool {
         matches!(self, ReadScope::AllGraphs)
@@ -801,22 +821,21 @@ impl GraphStore {
 
     /// Extract all triples as (subject, predicate, object) string tuples.
     ///
-<<<<<<< HEAD
     /// Reads EVERY graph and drops the graph name. That is the right answer for
     /// a single-version store and the wrong one for a store that keeps several
     /// versions of the same entity in several named graphs, where the union is
-    /// a state that held at no instant. [`triples_in_scope`](Self::triples_in_scope)
-    /// is the form that reads a stated set of graphs; this one is what
-    /// [`ReadScope::AllGraphs`] means and is kept unchanged so a run that asks
-    /// for every graph gets byte-identical input to the one it always got.
-=======
-    /// EVERY graph, the default one and every named one, flattened. A caller
-    /// that is going to treat what it gets back as ASSERTED wants
-    /// [`triples_outside`](Self::triples_outside) instead: this method cannot
-    /// tell an assertion from a triple some earlier run of the reasoner parked
-    /// in a named graph, and the certificate layer's soundness theorem is
-    /// conditional on the assertions.
->>>>>>> origin/main
+    /// a state that held at no instant.
+    ///
+    /// A caller that is going to treat what it gets back as ASSERTED wants one
+    /// of the two narrower forms instead, because this method cannot tell an
+    /// assertion from a triple some earlier run of the reasoner parked in a
+    /// named graph, and the certificate layer's soundness theorem is
+    /// conditional on the assertions:
+    /// [`triples_outside`](Self::triples_outside) excludes named graphs by
+    /// name, and [`triples_in_scope`](Self::triples_in_scope) reads a stated
+    /// set. This one is what [`ReadScope::AllGraphs`] means and is kept
+    /// unchanged so a run that asks for every graph gets byte-identical input
+    /// to the one it always got.
     pub fn all_triples(&self) -> anyhow::Result<Vec<(String, String, String)>> {
         let store = &self.store;
         let mut triples = Vec::new();
@@ -830,7 +849,6 @@ impl GraphStore {
         Ok(triples)
     }
 
-<<<<<<< HEAD
     /// The triples of exactly the graphs a scope names, in the spelling
     /// [`all_triples`](Self::all_triples) yields.
     ///
@@ -939,7 +957,8 @@ impl GraphStore {
             out.push(rows);
         }
         Ok(out)
-=======
+    }
+
     /// Every triple in the store EXCEPT those in the named graphs listed, in
     /// the same spelling [`all_triples`](Self::all_triples) yields, together
     /// with the names of the graphs that were read.
@@ -980,7 +999,6 @@ impl GraphStore {
             ));
         }
         Ok((triples, read.into_iter().collect()))
->>>>>>> origin/main
     }
 
     /// Copy one named graph of this store into a fresh store's DEFAULT graph,

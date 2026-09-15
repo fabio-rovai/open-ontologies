@@ -1200,7 +1200,6 @@ impl Reasoner {
         let include_owl = profile_used == "owl-rl" || profile_used == "owl-rl-ext";
         let include_ext = profile_used == "owl-rl-ext";
 
-<<<<<<< HEAD
         // Extract and intern the triples of the graphs THIS RUN MAY READ. For
         // `ReadScope::AllGraphs` that is `all_triples()` and the same bytes as
         // before; for a snapshot it is the default graph plus the in-scope
@@ -1208,19 +1207,7 @@ impl Reasoner {
         // list, so the certificate is about the graph the scope selected and
         // `scope.tsv` says which one that was.
         let raw_triples = graph.triples_in_scope(scope)?;
-=======
-        // Extract and intern the ASSERTED triples.
-        //
-        // Every graph except [`INFERRED_GRAPH`], which is where this same
-        // function parks its own conclusions when the caller asks for them to
-        // be kept apart. Reading them back would make run N's conclusions run
-        // N+1's axioms, and `asserted.tsv` has no column that says "derived",
-        // so the certificate would be conditional on a graph that was never
-        // asserted. Until 15 September 2026 it did exactly that and the defect
-        // was pinned by a test rather than fixed; TCB-8 in
-        // `docs/trusted-computing-base.md` has the history.
-        let (raw_triples, graphs_read) = graph.triples_outside(&[INFERRED_GRAPH])?;
->>>>>>> origin/main
+        let graphs_read = scope.graphs_read();
         let mut interner = Interner::new();
         let mut facts: Vec<(u32, u32, u32)> = Vec::with_capacity(raw_triples.len());
         for (s, p, o) in &raw_triples {
@@ -2851,14 +2838,8 @@ impl Reasoner {
             );
         }
 
-<<<<<<< HEAD
         let raw_triples = graph.triples_in_scope(&scope)?;
-=======
-        // The asserted triples, every graph except the one the built-in path
-        // parks its own conclusions in. See TCB-8; this path materialises
-        // nothing itself (decision 0003) but it reads the same store.
-        let (raw_triples, graphs_read) = graph.triples_outside(&[INFERRED_GRAPH])?;
->>>>>>> origin/main
+        let graphs_read = scope.graphs_read();
         let mut interner = Interner::new();
         let mut facts: Vec<Fact> = Vec::with_capacity(raw_triples.len());
         for (s, p, o) in &raw_triples {
