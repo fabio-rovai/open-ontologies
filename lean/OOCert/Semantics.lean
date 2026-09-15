@@ -127,20 +127,22 @@ restates it over `W3CModel`. The state of each is recorded at the theorem itself
 as well as here, because a summary that lives in one file is a summary that goes
 stale, and this one did.
 
-Nine statements in this repository are a `¬ Entails` or a `¬ Unsat`. Five are
-restated over `W3CModel`, four are not, and the four say which field stops them.
+Nine statements in this repository are a `¬ Entails` or a `¬ Unsat`. ALL NINE are
+now restated over `W3CModel`. Four of them transferred with their existing
+witness graph unchanged; four needed a finite structure built for them; one is a
+lemma and follows by unfolding.
 
 | result | over `W3CModel` | where |
 |---|---|---|
-| `not_everything_is_entailed` | yes | `not_everything_is_w3c_entailed` |
-| `the_natural_avf2_direction_is_not_entailed` | yes | `the_natural_avf2_direction_is_not_w3c_entailed`, the one that needed a structure built for it |
+| `not_everything_is_entailed` | yes | `not_everything_is_w3c_entailed`, same witness graph |
+| `the_natural_avf2_direction_is_not_entailed` | yes | `the_natural_avf2_direction_is_not_w3c_entailed`, on `live` |
 | `an_unlisted_individual_is_not_entailed` | yes | `an_unlisted_individual_is_not_w3c_entailed`, same witness graph |
 | `membership_in_one_member_does_not_give_the_intersection` | yes | `membership_in_one_member_is_not_w3c_enough`, same witness graph |
 | `mix_not_absolutely_entailed` | yes | `mix_not_absolutely_w3c_entailed`, in `Mixed.lean`, same witness graph |
-| `the_old_svf_derivation_is_not_entailed` | no | `onp_typ` fails; checked at `svf_witness_misses_the_restriction_typing` |
-| `feed_is_not_refuted` | no | `sc_fwd` fails; checked at `feed_closure_misses_the_class_typing`, and `¬ Unsat` runs the wrong way |
-| `and_the_old_verdict_does_not_notice` | no | `sc_fwd` fails on `grazeClosure` for the same reason |
-| `not_unsat_of_joint_model` | no | a lemma with a hypothesis rather than a witness, same direction problem |
+| `the_old_svf_derivation_is_not_entailed` | yes | `the_old_svf_derivation_is_not_w3c_entailed`, on `svfI` |
+| `feed_is_not_refuted` | yes | `feed_is_not_w3c_refuted`, on `refI false`, and it is `¬ W3CUnsat`, which is STRONGER than `¬ Unsat` rather than weaker |
+| `and_the_old_verdict_does_not_notice` | yes | `the_old_verdict_does_not_notice_over_w3c`, on `refI true` |
+| `not_unsat_of_joint_model` | yes | `not_w3cUnsat_of_joint_w3c_model`, by unfolding |
 
 Two further negatives, `Mixed.lean`'s `mix_relative_is_not_everything` and
 `HornWitness.lean`'s `demo_not_everything_entailed`, are `¬ EntailsR`: statements

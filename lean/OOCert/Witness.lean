@@ -298,32 +298,35 @@ theorem svf_witness_is_a_model : Model (herbrand svfWitness) svfPremises where
 /-- **The old rule was unsound.** `C ⊑ ∃p.D` together with `x p y` and `y ∈ D` does not entail
 `x ∈ C`. The reasoner derived exactly this until 13 September 2026.
 
-**This is the one non-entailment in this file that does NOT transfer to the
-`W3CModel` class**, and the field that stops it is checked rather than
-argued: `W3CWitness.lean`'s `svf_witness_misses_the_restriction_typing`.
+**This is the one non-entailment in this file whose own witness is not a
+`W3CModel`**, and the field that stops it is checked rather than argued.
 
 `onp_typ` is RBS Table 5.3's `owl:onProperty` row, whose first conjunct is
 `z ∈ ICEXT(owl:Restriction)`. `svfWitness` carries `R owl:onProperty p` and types
 `R` as nothing at all, so the antecedent holds and the consequent fails.
 `svf_typ` fails the same way on `R owl:someValuesFrom D`, and `sc_fwd`, Table 5.8
 row 1 forward, fails on `C rdfs:subClassOf R` because `IC` is empty here, no
-triple having `rdfs:Class` as its object.
+triple having `rdfs:Class` as its object. None of those three fields mentions
+`IP`, so the escape that works for the other three witnesses in this repository,
+choosing `IP := fun _ => False` to make the backward conditions vacuous, does not
+apply.
 
-None of those three fields mentions `IP`, so the escape that works for the other
-three witnesses in this repository, choosing `IP := fun _ => False` to make the
-backward conditions vacuous, does not apply. A conforming replacement is a
-hand-built finite structure of the kind `W3CWitness.lean` builds.
+That is a fact about THIS witness and it was once written up as though it were a
+fact about the statement. It is not: a witness that is not a `W3CModel` is a
+reason to build one. `W3CWitness.lean`'s `svfI` is that structure and
+`the_old_svf_derivation_is_not_w3c_entailed` is the resulting theorem, which is
+strictly stronger than this one.
 
-An earlier version of this paragraph gave a different and wrong reason: that
-bridge coherence forces every predicate the witness uses into `IP` and `sp_bwd`
-then demands reflexive `rdfs:subPropertyOf` triples. Bridge coherence is a
-property `W3CWitness.lean`'s model has, not a field of `W3CModel`, and `IP` is
-free.
+An earlier version of this paragraph gave a different and wrong reason for the
+witness failing: that bridge coherence forces every predicate the witness uses
+into `IP` and `sp_bwd` then demands reflexive `rdfs:subPropertyOf` triples.
+Bridge coherence is a property `W3CWitness.lean`'s models have, not a field of
+`W3CModel`, and `IP` is free.
 
 **The claim itself is not in doubt and must not be withdrawn on the strength of
-this note.** `tests/reason_rl_ext_soundness_test.rs` pins a real defect; what is
-open is whether a conforming interpretation also refutes it, and nothing here
-suggests it does not. -/
+this note.** `tests/reason_rl_ext_soundness_test.rs` pins a real defect, and the
+question that used to be open here, whether a structure meeting the quoted table
+cells also refutes it, is answered yes by `svfI`. -/
 theorem the_old_svf_derivation_is_not_entailed :
     ¬ Entails svfPremises ⟨tx, V.type, tC⟩ := fun h =>
   absurd (h (herbrand svfWitness) svf_witness_is_a_model)
@@ -470,11 +473,11 @@ theorem the_avf2_direction_the_table_gives_is_entailed :
 `C1 rdfs:subClassOf C2` here, which is what copying `scm-avf1` gives, would be
 making a claim this model refutes.
 
-**This one has a conforming replacement built for it**, and it is the only one
-in the repository that needed a new structure rather than a re-reading of the
-one it already had: `W3CWitness.lean`'s
+**This one has a conforming replacement built for it**, and it was the first of
+the four that needed a new structure rather than a re-reading of the one it
+already had: `W3CWitness.lean`'s
 `the_natural_avf2_direction_is_not_w3c_entailed` refutes the same triple from the
-same premises with a twenty-six-element bridge-coherent structure that meets the
+same premises with a thirty-five-element bridge-coherent structure that meets the
 quoted cells of Tables 5.2, 5.3, 5.6, 5.8, 5.9, 5.12 and 5.13.
 
 `herbrand avfWitness` is not such a structure. `avfWitness` contains no `rdf:type`
