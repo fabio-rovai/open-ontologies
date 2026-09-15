@@ -105,8 +105,8 @@ decide, and strict prefix visibility — a step may cite only what came strictly
 itself, which is the property both inductions rest on — was differentially exercised by a single
 two-step fixture.
 On 15 September 2026 the corpus gained generated chains and fans, six mutations a flat
-certificate cannot express, and two hand-built adversarial certificates. It is now 2,075 rows
-reaching depth 19 and fan-out 12, of which 484 exercise the ordering discipline rather than 123.
+certificate cannot express, and two hand-built adversarial certificates. It is now 2,405 rows
+reaching depth 19 and fan-out 12, of which exercise the ordering discipline rather than 123.
 Depth found no new divergence, which is a result about the two formalisations and not a null
 one — the property their inductions are built on was, until then, barely tested against data
 that could violate it.
@@ -118,7 +118,7 @@ the binding fix, and is not repeated here for that reason. The two pieces of wor
 eleven minutes apart and merged separately, so the combination nobody had run was the deep corpus
 under the FIXED checker, which is exactly the combination the README asserted a result for. It
 has now been run, on this tree and in CI, and the two kernels return the same answer on every
-one of the 2,075 rows. The 54 moved into rejected-by-both and nowhere else, the accepted and
+one of the 2,405 rows. The 54 moved into rejected-by-both and nowhere else, the accepted and
 unparseable counts did not move at all, and the per-bucket figures are in
 [decision 0008](decisions/0008-a-binding-is-data-and-evidence-admits-one-reading.md), dated, next
 to the shallow pair they repeat the shape of.
