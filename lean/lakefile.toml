@@ -1,6 +1,6 @@
 name = "oocert"
 version = "0.1.0"
-defaultTargets = ["OOCert", "oo-cert", "oo-horn", "Shacl", "oo-shacl", "oo-refute", "Dl", "oo-dlmodel", "Fol", "oo-folmodel"]
+defaultTargets = ["OOCert", "oo-cert", "oo-horn", "Shacl", "oo-shacl", "oo-refute", "Dl", "oo-dlmodel", "Fol", "oo-folmodel", "Institution"]
 
 # Every library and executable here is in defaultTargets on purpose. A target
 # left out of the default set is not built by a bare `lake build`, which is what
@@ -64,3 +64,13 @@ name = "Fol"
 [[lean_exe]]
 name = "oo-folmodel"
 root = "FolMain"
+
+# The institution layer: what a logic is, what a translation between two logics
+# is, and the satisfaction condition that neither may be built without. A
+# separate library from `OOCert` because `Main.lean` imports `OOCert` and this
+# has no run-time part: it is theorems over the model classes the other
+# libraries already define, it pulls in `Fol`, and no executable reads it. In
+# defaultTargets, like everything else here, for the reason at the top of this
+# file.
+[[lean_lib]]
+name = "Institution"

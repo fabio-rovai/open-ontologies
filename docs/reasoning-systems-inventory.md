@@ -32,6 +32,8 @@ perverse.
 | SMT-LIB 2 | Interchange | Under construction. |
 | RIF Core, SWRL | Rule languages | Front ends under construction. |
 | CertifyingDatalog | Prior art | Not a dependency. The Horn layer is our analogue. |
+| Hets | Heterogeneous tool set | Declined as a dependency. Its institution and comorphism core is reimplemented small and machine-checked here. Below. |
+| DOL | Specification language | Parsing deliberately deferred. Decision 0009 says why. |
 
 Anything marked under construction is on an unmerged branch and is not a capability yet. This
 document will be wrong the moment that changes, so treat the branch state as authoritative.
@@ -205,6 +207,40 @@ assumptions the certificate carries and never facts it establishes.
 CertifyingDatalog, presented at ITP 2025, is the closest published prior art and is not a dependency.
 It certifies Datalog derivations in Lean; our Horn layer is the analogue reached independently, and the
 comparison is worth making in any write-up rather than avoided.
+
+## Hets, institutions, and the part that was worth taking
+
+The Heterogeneous Tool Set is the engineering that goes with Goguen and Burstall's institutions. Its
+value is breadth: dozens of logics, and translations between them, in one program. Its comorphisms
+are Haskell type-class instances supplying a signature map, a sentence map and a model map, and the
+satisfaction condition that makes those three a translation of logics is discharged in the
+literature rather than by the program. Decision 0005 already said as much, "Hets proves its
+OWL-to-CASL comorphism on paper", and nobody here has read the Hets source, so that is a statement
+about its published design and not a code review.
+
+It is declined as a dependency for the obvious reasons and one that matters more. The obvious ones:
+it is a Haskell program, nothing in this CI builds Haskell, and running it would add a large
+unverified tool to the trust surface. The one that matters: what it would add is exactly the thing
+this project does not accept on testimony. An unchecked satisfaction condition is the same category
+of claim as an unchecked refutation, and decision 0005 already rules on that category.
+
+What was taken is the idea, which is public and is the only part that carries weight.
+`lean/OOCert/Institution.lean` and `lean/OOCert/Comorphism.lean` state an institution and a
+comorphism in core Lean with the satisfaction condition as a FIELD, so neither can be constructed
+without a proof of it, and `lean/OOCert/InstitutionRdf.lean` and `lean/OOCert/InstitutionFol.lean`
+discharge it for three institutions and two comorphisms built out of model classes this repository
+already had. That is three logics against Hets's dozens, and it is three logics whose translations
+are machine-checked rather than argued. The trade is breadth for evidence and it is the same trade
+this project makes everywhere else.
+
+Reflection is kept apart from preservation in the types, because the two are different theorems and
+only the first is free. `lean/OOCert/InstitutionWitness.lean` exhibits a comorphism between two of
+these institutions that preserves entailment and provably does not reflect it, so the separation is
+measured here rather than warned about.
+
+DOL, the language for saying "interpret this specification into that one along this comorphism", is
+not parsed and will not be until there is more than one proved comorphism for it to distribute over.
+Building the notation before the table it indexes would be a front end onto two rows.
 
 ## Interchange formats
 

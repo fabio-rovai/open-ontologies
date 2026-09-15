@@ -492,6 +492,22 @@ coverage.
    functions totalling about sixty lines. That is the correct proportion to report: this work
    verified the joint, not the machine.
 
+## What the institution layer does not move
+
+`lean/OOCert/Institution.lean` and the four modules with it prove that two translations between
+logics satisfy their satisfaction conditions, and decision 0009 says what that buys. It buys nothing
+on this page, and the reason is worth stating because the two things sound alike.
+
+The comorphism proved in `lean/OOCert/InstitutionFol.lean` runs between two LEAN developments: the
+RDF interpretations of `OOCert/Semantics.lean` and the first-order structures of
+`Fol/Semantics.lean`. It is not `src/tptp.rs`'s translation and says nothing about it. Decision 0005
+item 2 is unchanged: the correspondence between the Rust emitter and the Lean translation is pinned
+by hand-computed tests and is not proved, and the emitted file still says so.
+
+The layer has no run-time part at all. It writes no file, reads no file, produces no certificate and
+no verdict word, and no executable imports it, which is why it is a separate `lean_lib` from
+`OOCert`. Nothing in the property list above changes, no `TCB-*` identifier is retired, and the
+count of trusted properties is what it was.
 The honest summary is that the trusted base used to be four things: the serialisation of a term, the
 identity of the asserted graph, the completeness of the derivation record, and the identity of the
 rule table. The serialisation of a term is no longer one of them: it is enforced here and proved
