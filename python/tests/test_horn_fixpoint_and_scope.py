@@ -24,7 +24,7 @@ previous materialisation in the inferred graph turned derived triples into
 ASSERTIONS. The checker could not detect it: the soundness theorem is conditional
 on the assertions, and it is TOLD what they are, so the result was a green
 absolute verdict about a graph nobody asserted. It now reads
-`src/reason.rs:1105`, `graph.triples_outside(&[INFERRED_GRAPH])`, and the
+`src/reason.rs:2745`, `graph.triples_outside(&[INFERRED_GRAPH])`, and the
 inferred graph is out of scope.
 
 The two engines still differ in HOW, and the difference is deliberate. Rust

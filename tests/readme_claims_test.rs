@@ -83,8 +83,20 @@ fn no_stale_tool_count_survives_anywhere() {
 
     // The shapes a total is written in here. Any number in one of them that is not the
     // measured count is a leftover from a partial edit.
-    let shapes: [(&str, &str); 4] =
-        [("**", " tools**"), ("advertises all ", " tools."), ("", " tools organized by function"), ("ToolGroups[\"", " Tools\"]")];
+    //
+    // `All N tools are advertised` is the fifth shape and it was added on 15 September 2026,
+    // after the gate missed exactly the drift it exists to catch: the instructions string in
+    // `src/server.rs` said "MCP server with 114 tools" and, one sentence later, "All 112 tools
+    // are advertised in a default build". The first copy was covered by `total_claims` and the
+    // second by no shape at all, so the file disagreed with ITSELF while the suite stayed green.
+    // A gate that covers four of five places makes the fifth harder to notice.
+    let shapes: [(&str, &str); 5] = [
+        ("**", " tools**"),
+        ("advertises all ", " tools."),
+        ("", " tools organized by function"),
+        ("ToolGroups[\"", " Tools\"]"),
+        ("All ", " tools are advertised"),
+    ];
 
     let mut stale = Vec::new();
     for (prefix, suffix) in shapes {

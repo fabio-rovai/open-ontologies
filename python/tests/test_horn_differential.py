@@ -26,7 +26,7 @@ WHAT IS COMPARED, AND WHAT IS NOT.
 The assertion is SET EQUALITY OF DERIVED TRIPLES against the Rust `run_horn`, over
 the same `builtin_rules.tsv`. Byte identity of the two `horn.tsv` files is NOT a
 goal and must not be asserted: the Rust emitter sorts interned `u32` triples
-(`src/reason.rs:2757`, `all.sort_unstable()` over `Vec<(u32,u32,u32)>`), so its
+(`src/reason.rs:2815`, `all.sort_unstable()` over `Vec<(u32,u32,u32)>`), so its
 line order is first-appearance order in the store, not lexicographic order.
 Reproducing it from Python would mean reimplementing the interner and betting on
 identical store-iteration order across two bindings, to buy nothing the set

@@ -308,12 +308,17 @@ pub struct OntoReasonInput {
 
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoFolExportInput {
-    /// Directory to write the export to. `ontology.p` (TPTP) or
-    /// `ontology.clif` lands here, plus one problem per goal under `goals/`.
+    /// Directory to write the export to. `ontology.p` (TPTP), `ontology.clif`
+    /// or `ontology.cgif` lands here, plus one problem per goal under
+    /// `goals/`.
     pub out_dir: String,
-    /// `tptp` (FOF, what E and Vampire read) or `clif` (ISO/IEC 24707 Common
-    /// Logic Interchange Format, restricted to the first-order-equivalent
-    /// fragment). Default `tptp`. Both are renderings of ONE translation.
+    /// `tptp` (FOF, what E and Vampire read), `clif` (ISO/IEC 24707 Common
+    /// Logic Interchange Format), `cgif` (ISO/IEC 24707 Conceptual Graph
+    /// Interchange Format, the SECOND Common Logic dialect, emitted as CORE
+    /// CGIF in a compact sub-dialect and taking no flags of its own),
+    /// `smtlib` or `ladr`. Default `tptp`. All five are renderings of ONE
+    /// translation, and the two Common Logic ones are restricted to the
+    /// first-order-equivalent fragment of it.
     pub format: Option<String>,
     /// A TSV of triples to ask as conjectures, one problem file per line. The
     /// `derivations.tsv` written by `onto_reason` with `certificate_dir` is
