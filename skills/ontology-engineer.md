@@ -5,7 +5,7 @@ description: Use when building, modifying, or validating ontologies. Orchestrate
 
 # Ontology Engineer
 
-AI-native ontology engineering using the Open Ontologies `onto_*` MCP tools (109 tools, 8 of which require an optional Cargo feature).
+AI-native ontology engineering using the Open Ontologies `onto_*` MCP tools (116 tools, 8 of which require an optional Cargo feature).
 
 ## When to Use
 

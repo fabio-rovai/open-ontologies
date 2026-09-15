@@ -53,6 +53,109 @@ struct Derivation {
     premises: Vec<Fact>,
 }
 
+// ── Reading the derivation DAG back ─────────────────────────────────────────
+//
+// `derivations.tsv` records ONE step per inferred triple: the first time the
+// fixpoint reached it. That is the right thing for a certificate, because a
+// checker re-derives and one derivation is all it needs, and it is the WRONG
+// thing for explanation. A triple derived two independent ways has two
+// justifications and the certificate shows one of them; a provenance polynomial
+// with one monomial where the closure supports two is a false statement about
+// where the conclusion came from.
+//
+// So explanation does not read the file. It asks the fixpoint for every ground
+// rule instance it found applicable, which is the whole DAG rather than a
+// spanning forest of it. The capture is opt-in, costs one branch per candidate
+// triple on a run that did not ask for it, and is memory-proportional to the
+// number of applicable instances rather than to the number of conclusions.
+//
+// The instances collected are those applicable in the FIXPOINT closure. The
+// last round of the loop runs every rule over the complete closure and adds
+// nothing, so every instance applicable at the fixpoint fires at least once and
+// is recorded. Deduplication is by (rule, conclusion, premises).
+
+/// A triple in the store's own N-Triples spelling, byte-identical to what
+/// [`GraphStore::all_triples`] yields and to what `asserted.tsv` carries.
+pub type Spelled = crate::projection_entailment::Spelled;
+
+/// One ground rule instance the fixpoint found applicable: a rule, what it
+/// concluded, and the premises it read in the order
+/// `lean/OOCert/Rules.lean` documents for that rule.
+///
+/// Unlike a certificate line this is NOT unique per conclusion. Two instances
+/// with the same conclusion are two independent derivations of it, and that is
+/// exactly the fact [`crate::justify`] and [`crate::provenance`] exist to read.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RuleInstance {
+    pub rule: &'static str,
+    pub conclusion: Spelled,
+    pub premises: Vec<Spelled>,
+}
+
+/// One way the closure contradicts itself, spelled out for a consumer that has
+/// no interner.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ClashInstance {
+    pub rule: &'static str,
+    pub premises: Vec<Spelled>,
+    /// Whether `lean/OOCert/Refute.lean` holds a semantic condition for this
+    /// rule, so that a refutation naming it can be CHECKED rather than merely
+    /// asserted. Exactly one rule qualifies; see [`CLASH_RULES_CERTIFIABLE`].
+    pub certifiable: bool,
+}
+
+/// Everything one forward-chaining run knows about how it got where it got.
+///
+/// `closure` is what the run believes, `asserted` is what it started from, and
+/// `instances` is every ground rule application that connects the two. The
+/// three together are the derivation DAG: nodes are triples, and an instance is
+/// a hyperedge from its premises to its conclusion.
+#[derive(Clone, Debug)]
+pub struct DerivationGraph {
+    pub profile_used: String,
+    /// Every triple the run started from, in store order.
+    pub asserted: Vec<Spelled>,
+    /// Every triple the run ended with, asserted ones included.
+    pub closure: HashSet<Spelled>,
+    /// Every applicable ground rule instance, in the order the fixpoint first
+    /// found each one. That order is topological: a rule read its premises out
+    /// of the closure as it stood at the START of the round, so every premise
+    /// was concluded in a strictly earlier round or asserted.
+    pub instances: Vec<RuleInstance>,
+    /// False when the run stopped at the iteration cap instead of a fixpoint.
+    /// The closure is then a LOWER BOUND and every answer computed from it is
+    /// an answer about a partial closure.
+    pub fixpoint_reached: bool,
+    pub iterations: usize,
+    /// The clashes [`find_clashes`] found over the closure. Ten of the
+    /// seventeen OWL 2 RL rules that conclude `false` are looked for, so an
+    /// empty list is NOT a consistency result.
+    pub clashes: Vec<ClashInstance>,
+    /// Conclusions refused for being unserialisable, and therefore neither
+    /// materialised nor available as premises. A run with a non-zero count here
+    /// derived LESS than its rule table licenses.
+    pub refused_unserialisable: usize,
+}
+
+impl DerivationGraph {
+    /// Is this triple in the closure?
+    pub fn holds(&self, t: &Spelled) -> bool {
+        self.closure.contains(t)
+    }
+    /// Was this triple asserted rather than derived?
+    pub fn is_asserted(&self, t: &Spelled) -> bool {
+        self.asserted.iter().any(|a| a == t)
+    }
+}
+
+/// Collector threaded through the fixpoint when a caller asked for the DAG.
+#[derive(Default)]
+struct Capture {
+    seen: HashSet<(&'static str, Fact, Vec<Fact>)>,
+    instances: Vec<(&'static str, Fact, Vec<Fact>)>,
+    out: Option<DerivationGraph>,
+}
+
 
 // ── The rules that conclude `false` ─────────────────────────────────────────
 //
@@ -1065,6 +1168,52 @@ impl Reasoner {
         target: InferenceTarget,
         certificate_dir: Option<&std::path::Path>,
     ) -> anyhow::Result<String> {
+        Self::run_capturing(graph, profile, materialize, target, certificate_dir, None)
+    }
+
+    /// The whole derivation DAG of a run: every asserted triple, every triple
+    /// the fixpoint reached, and EVERY applicable ground rule instance rather
+    /// than one per conclusion.
+    ///
+    /// This is the substrate [`crate::justify`] and [`crate::provenance`] read.
+    /// Nothing is materialised and no certificate is written: the caller gets
+    /// the structure and decides what to do with it.
+    ///
+    /// Refuses `owl-dl` for the same reason `--certificate` does: the tableaux
+    /// path has no rule trace, so there is no DAG to hand back and an empty one
+    /// would read as "nothing was derived".
+    pub fn derivation_graph(
+        graph: &Arc<GraphStore>,
+        profile: &str,
+    ) -> anyhow::Result<DerivationGraph> {
+        if profile == "owl-dl" {
+            anyhow::bail!(
+                "the owl-dl tableaux path records no rule applications, so there is no derivation \
+                 DAG to explain from; run rdfs, owl-rl or owl-rl-ext"
+            );
+        }
+        let mut cap = Capture::default();
+        Self::run_capturing(
+            graph,
+            profile,
+            false,
+            InferenceTarget::DefaultGraph,
+            None,
+            Some(&mut cap),
+        )?;
+        cap.out.ok_or_else(|| {
+            anyhow::anyhow!("the reasoner returned without filling the derivation DAG; this is a bug")
+        })
+    }
+
+    fn run_capturing(
+        graph: &Arc<GraphStore>,
+        profile: &str,
+        materialize: bool,
+        target: InferenceTarget,
+        certificate_dir: Option<&std::path::Path>,
+        capture: Option<&mut Capture>,
+    ) -> anyhow::Result<String> {
         // Delegate OWL-DL to tableaux reasoner
         if profile == "owl-dl" {
             if certificate_dir.is_some() {
@@ -1195,7 +1344,13 @@ impl Reasoner {
         // per inferred triple and `derivations.len() == inferred_count` is an
         // invariant the tests pin. Nothing here runs unless a certificate was
         // asked for: the hot path pays one branch per candidate triple.
-        let certify = certificate_dir.is_some();
+        //
+        // A capture asks for the same premise lists, so it turns `certify` on
+        // too: the per-rule premise vectors are built behind that flag, and a
+        // DAG whose hyperedges carried no premises would be a set of
+        // disconnected nodes wearing the word "derivation".
+        let mut capture = capture;
+        let certify = certificate_dir.is_some() || capture.is_some();
         let mut derivations: Vec<Derivation> = Vec::new();
         let mut recorded: HashSet<Fact> = HashSet::new();
 
@@ -1376,6 +1531,7 @@ impl Reasoner {
             let interner_ref = &interner;
             let refused_ref = &mut refused;
             let samples_ref = &mut skipped_samples;
+            let mut cap_ref = capture.as_mut();
             let rv = &rule_vocab;
             let mut emit = |f: Fired| {
                 let (rule, t) = match &f {
@@ -1409,16 +1565,36 @@ impl Reasoner {
                     }
                     return;
                 }
-                if certify && !triple_set.contains(&t) && recorded.insert(t) {
-                    let premises: Vec<Fact> = match &f {
+                // Computed ONCE, because two consumers need it and they need
+                // the same value: the certificate records the first derivation
+                // of a triple, and the DAG records every one. Deriving it twice
+                // would let them disagree. Skipped entirely when neither asked,
+                // so a run that wants no certificate and no DAG pays one branch.
+                let premises: Vec<Fact> = if certify || cap_ref.is_some() {
+                    match &f {
                         Fired::Bound(r, b) => BUILTIN_RULES[*r as usize]
                             .body
                             .iter()
                             .map(|a| rv.fill(a, b))
                             .collect(),
                         Fired::Chained(_, _, ps) => ps.to_vec(),
-                    };
-                    derivations.push(Derivation { rule, conclusion: t, premises });
+                    }
+                } else {
+                    Vec::new()
+                };
+                if certify && !triple_set.contains(&t) && recorded.insert(t) {
+                    derivations.push(Derivation { rule, conclusion: t, premises: premises.clone() });
+                }
+                // The DAG, when one was asked for. Recorded whether or not the
+                // conclusion is new, because the SECOND way a triple can be
+                // derived is the whole point: it is a second justification and
+                // a second monomial, and a log that keeps only firsts cannot
+                // see either.
+                if let Some(cap) = cap_ref.as_mut() {
+                    let key = (rule, t, premises.clone());
+                    if cap.seen.insert(key.clone()) {
+                        cap.instances.push(key);
+                    }
                 }
                 new.push(t);
             };
@@ -2252,6 +2428,45 @@ impl Reasoner {
             }
 
             result["inconsistency"] = inconsistency;
+        }
+
+        // The DAG, spelled out, for a caller that has no interner. Built here
+        // rather than in the loop so that `clashes` and the fixpoint flag are
+        // the ones the run finished with.
+        if let Some(cap) = capture.as_mut() {
+            let spell = |f: &Fact| {
+                (
+                    interner.resolve(f.0).to_string(),
+                    interner.resolve(f.1).to_string(),
+                    interner.resolve(f.2).to_string(),
+                )
+            };
+            let instances: Vec<RuleInstance> = cap
+                .instances
+                .iter()
+                .map(|(rule, c, ps)| RuleInstance {
+                    rule,
+                    conclusion: spell(c),
+                    premises: ps.iter().map(&spell).collect(),
+                })
+                .collect();
+            cap.out = Some(DerivationGraph {
+                profile_used: profile_used.to_string(),
+                asserted: facts.iter().map(&spell).collect(),
+                closure: triple_set.iter().map(&spell).collect(),
+                instances,
+                fixpoint_reached,
+                iterations,
+                clashes: clashes
+                    .iter()
+                    .map(|c| ClashInstance {
+                        rule: c.rule,
+                        premises: c.premises.iter().map(&spell).collect(),
+                        certifiable: clash_is_certifiable(c.rule),
+                    })
+                    .collect(),
+                refused_unserialisable: refused.len(),
+            });
         }
 
         Ok(result.to_string())

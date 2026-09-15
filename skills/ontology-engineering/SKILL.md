@@ -5,7 +5,7 @@ description: Build, validate, and govern RDF/OWL ontologies using the Open Ontol
 
 # Ontology Engineering Workflow
 
-You have access to the Open Ontologies MCP server, which provides 109 tools for AI-native ontology engineering backed by an in-memory Oxigraph triple store. All 109 are available in a default build, but 8 require an optional Cargo feature and return an error without it: four need `embeddings`, two need `plugins`, and two need `postgres` or `duckdb`.
+You have access to the Open Ontologies MCP server, which provides 116 tools for AI-native ontology engineering backed by an in-memory Oxigraph triple store. All 116 are available in a default build, but 8 require an optional Cargo feature and return an error without it: four need `embeddings`, two need `plugins`, and two need `postgres` or `duckdb`.
 
 ## Core Workflow
 
