@@ -446,6 +446,81 @@ fn writable_triple(subject: &str, predicate: &str) -> bool {
     !subject.starts_with('"') && predicate.starts_with('<')
 }
 
+/// Which position of a certificate line refused to be written.
+///
+/// Deliberately a bare enum and not an `anyhow::Error`. The writers below are
+/// the functions the Kani harnesses at the bottom of this file prove things
+/// about, and a formatted error inside a function is what put CBMC inside the
+/// formatting machinery and killed the first `parse_pat` harness. The message a
+/// user reads is built by the caller, from this and the term.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Position {
+    Subject,
+    Predicate,
+    Object,
+}
+
+impl Position {
+    fn name(self) -> &'static str {
+        match self {
+            Position::Subject => "subject",
+            Position::Predicate => "predicate",
+            Position::Object => "object",
+        }
+    }
+}
+
+/// Whether a term can be written to a certificate file without forging it.
+///
+/// This is TCB-4 and TCB-5, enforced here rather than observed of `oxrdf`.
+///
+/// The files are tab separated with one record per line and have no escaping
+/// layer of their own, so a term carrying a tab gains a field, a term carrying a
+/// newline splits a record in two, and either forges a triple the store never
+/// held. Until 15 September 2026 the only thing standing between a tab and
+/// `asserted.tsv` was `oxrdf`'s `print_quoted_str` for a literal and `oxiri`
+/// refusing to parse for an IRI: `NamedNodeRef`'s `Display` is
+/// `write!(f, "<{}>", self.as_str())` and escapes nothing at all. That is a
+/// dependency's behaviour, pinned by a test that an upgrade would break loudly
+/// but that cannot make it hold. This function makes it hold, in the refusing
+/// direction: a term that does not fit the format means no certificate, not a
+/// certificate a reader cannot trust.
+///
+/// The leading-byte condition is TCB-5. A literal is quoted and an IRI is
+/// bracketed, so a literal whose lexical form is spelled exactly like an IRI
+/// cannot collide with that IRI in a file where the two checkers compare terms
+/// as opaque strings. Every term `GraphStore::all_triples` yields satisfies it
+/// (`oxrdf`'s `Display` brackets a `NamedNode`, prefixes a `BlankNode` with
+/// `_:` and quotes a `Literal`), and so does every constant `parse_pat` accepts,
+/// so this refuses nothing the engine has any business writing.
+fn term_fits_the_format(t: &str) -> bool {
+    if !field_fits_the_format(t) {
+        return false;
+    }
+    let b = t.as_bytes();
+    b[0] == b'<' || b[0] == b'"' || (b[0] == b'_' && b.len() > 1 && b[1] == b':')
+}
+
+/// The half of [`term_fits_the_format`] that is about the FORMAT and not about
+/// N-Triples: a field is non-empty and carries no separator.
+///
+/// `horn.tsv` also writes variable names, which are not terms and have no
+/// N-Triples spelling, and this is what they have to satisfy.
+fn field_fits_the_format(f: &str) -> bool {
+    let b = f.as_bytes();
+    if b.is_empty() {
+        return false;
+    }
+    let mut i = 0;
+    while i < b.len() {
+        if b[i] == b'\t' || b[i] == b'\n' || b[i] == b'\r' {
+            return false;
+        }
+        i += 1;
+    }
+    true
+}
+
 /// Append one line of `asserted.tsv`: `s TAB p TAB o NEWLINE`.
 ///
 /// This is the whole of that file's grammar, and it is the narrowest point of
@@ -455,24 +530,394 @@ fn writable_triple(subject: &str, predicate: &str) -> bool {
 /// in one function so that the claim "a line is exactly three fields" is a
 /// claim about one place, verified in `kani_harnesses` below rather than only
 /// sampled.
-fn push_asserted_line(out: &mut String, s: &str, p: &str, o: &str) {
+///
+/// Every term is checked BEFORE anything is appended, so a refusal leaves `out`
+/// byte for byte as it was. A writer that appended a subject and then refused
+/// the object would leave a half-line in the buffer, which is the same defect
+/// the non-atomic materialiser had.
+fn push_asserted_line(out: &mut String, s: &str, p: &str, o: &str) -> Result<(), Position> {
+    if !term_fits_the_format(s) {
+        return Err(Position::Subject);
+    }
+    if !term_fits_the_format(p) {
+        return Err(Position::Predicate);
+    }
+    if !term_fits_the_format(o) {
+        return Err(Position::Object);
+    }
     out.push_str(s);
     out.push('\t');
     out.push_str(p);
     out.push('\t');
     out.push_str(o);
     out.push('\n');
+    Ok(())
 }
 
 /// Append a triple as three further fields of a line already begun, the shape
-/// `derivations.tsv` and `horn.tsv` use after their header fields.
-fn push_triple_fields(out: &mut String, s: &str, p: &str, o: &str) {
+/// `derivations.tsv` and `horn.tsv` use after their header fields. Same guard
+/// and same all-or-nothing discipline as [`push_asserted_line`].
+fn push_triple_fields(out: &mut String, s: &str, p: &str, o: &str) -> Result<(), Position> {
+    if !term_fits_the_format(s) {
+        return Err(Position::Subject);
+    }
+    if !term_fits_the_format(p) {
+        return Err(Position::Predicate);
+    }
+    if !term_fits_the_format(o) {
+        return Err(Position::Object);
+    }
     out.push('\t');
     out.push_str(s);
     out.push('\t');
     out.push_str(p);
     out.push('\t');
     out.push_str(o);
+    Ok(())
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The built-in rules, as data
+//
+// TCB-14 used to read: "`OOCert.checkStep` pattern-matches the premises
+// positionally per rule. The emitter passes them in a hand-written order at
+// each of the thirty-one `emit` call sites. A wrong order is a rejection, not a
+// false pass, and `tests/lean_certificate_test.rs` covers every rule, but
+// nothing derives the order from a single source."
+//
+// This is the single source. Each rule is a pattern over numbered variables,
+// in the order `lean/OOCert/Rules.lean` matches them, and the emitter computes
+// both the premise list AND the conclusion from it. A call site supplies the
+// BINDING and nothing else, so it has no order to get wrong: the twenty-seven
+// fixed-arity rules cannot drift from the checker by a mistake at the site.
+// `tests/lean_certificate_test.rs` still runs the real checker over the corpus,
+// and `tests/premise_order_test.rs` parses the arms out of `Rules.lean` and
+// compares them with this table, so a change to either side that the other does
+// not follow fails at `cargo test` rather than at a user's certificate.
+//
+// The four list rules (`cls-int1`, `cls-int2`, `cls-uni`, `cls-oo`) are not
+// here. Their premises include an RDF list chain whose length is the length of
+// the list, so they are not a fixed pattern and the checker matches them with
+// `takeChain` rather than positionally. They keep an explicit premise vector
+// and say so at the site.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// A vocabulary term a built-in rule's pattern fixes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Kw {
+    Type,
+    SubClassOf,
+    SubPropertyOf,
+    Domain,
+    Range,
+    SameAs,
+    InverseOf,
+    TransitiveProperty,
+    SymmetricProperty,
+    EquivalentClass,
+    EquivalentProperty,
+    OnProperty,
+    SomeValuesFrom,
+    AllValuesFrom,
+    HasValue,
+}
+
+impl Kw {
+    /// The IRI, in the N-Triples spelling the store uses. Reading this out is
+    /// how `tests/premise_order_test.rs` maps a `V.foo` in the Lean source onto
+    /// a row of this table.
+    pub fn iri(self) -> &'static str {
+        match self {
+            Kw::Type => RDF_TYPE,
+            Kw::SubClassOf => RDFS_SUBCLASS,
+            Kw::SubPropertyOf => RDFS_SUBPROP,
+            Kw::Domain => RDFS_DOMAIN,
+            Kw::Range => RDFS_RANGE,
+            Kw::SameAs => OWL_SAMEAS,
+            Kw::InverseOf => OWL_INVERSE,
+            Kw::TransitiveProperty => OWL_TRANSITIVE,
+            Kw::SymmetricProperty => OWL_SYMMETRIC,
+            Kw::EquivalentClass => OWL_EQUIV_CLASS,
+            Kw::EquivalentProperty => OWL_EQUIV_PROP,
+            Kw::OnProperty => OWL_ON_PROPERTY,
+            Kw::SomeValuesFrom => OWL_SOME_VALUES,
+            Kw::AllValuesFrom => OWL_ALL_VALUES,
+            Kw::HasValue => OWL_HAS_VALUE,
+        }
+    }
+
+    /// The name `lean/OOCert/Semantics.lean` gives it, without the `V.`.
+    pub fn lean_name(self) -> &'static str {
+        match self {
+            Kw::Type => "type",
+            Kw::SubClassOf => "subClassOf",
+            Kw::SubPropertyOf => "subPropertyOf",
+            Kw::Domain => "domain",
+            Kw::Range => "range",
+            Kw::SameAs => "sameAs",
+            Kw::InverseOf => "inverseOf",
+            Kw::TransitiveProperty => "transitiveProperty",
+            Kw::SymmetricProperty => "symmetricProperty",
+            Kw::EquivalentClass => "equivalentClass",
+            Kw::EquivalentProperty => "equivalentProperty",
+            Kw::OnProperty => "onProperty",
+            Kw::SomeValuesFrom => "someValuesFrom",
+            Kw::AllValuesFrom => "allValuesFrom",
+            Kw::HasValue => "hasValue",
+        }
+    }
+}
+
+/// One position of a built-in rule's pattern: a slot in the binding, or a
+/// vocabulary term the rule fixes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Slot {
+    Var(usize),
+    Fixed(Kw),
+}
+
+const V0: Slot = Slot::Var(0);
+const V1: Slot = Slot::Var(1);
+const V2: Slot = Slot::Var(2);
+const V3: Slot = Slot::Var(3);
+const V4: Slot = Slot::Var(4);
+const TYPE: Slot = Slot::Fixed(Kw::Type);
+const SUBCLASS: Slot = Slot::Fixed(Kw::SubClassOf);
+const SUBPROP: Slot = Slot::Fixed(Kw::SubPropertyOf);
+const DOMAIN: Slot = Slot::Fixed(Kw::Domain);
+const RANGE: Slot = Slot::Fixed(Kw::Range);
+const SAMEAS: Slot = Slot::Fixed(Kw::SameAs);
+const INVERSE: Slot = Slot::Fixed(Kw::InverseOf);
+const TRANSITIVE: Slot = Slot::Fixed(Kw::TransitiveProperty);
+const SYMMETRIC: Slot = Slot::Fixed(Kw::SymmetricProperty);
+const EQ_CLASS: Slot = Slot::Fixed(Kw::EquivalentClass);
+const EQ_PROP: Slot = Slot::Fixed(Kw::EquivalentProperty);
+const ON_PROP: Slot = Slot::Fixed(Kw::OnProperty);
+const SVF: Slot = Slot::Fixed(Kw::SomeValuesFrom);
+const AVF: Slot = Slot::Fixed(Kw::AllValuesFrom);
+const HAS_VALUE: Slot = Slot::Fixed(Kw::HasValue);
+
+/// A built-in rule with a fixed premise arity, as a pattern.
+pub struct BuiltinRule {
+    /// The rule id written into `derivations.tsv`, which `OOCert.Rule.ofName?`
+    /// has to accept. Two rows may share a name: `scm-eqc1` and `scm-eqp1` each
+    /// license two conclusions from one premise, and the checker accepts
+    /// either.
+    pub name: &'static str,
+    /// Names for the binding slots, for readability and for the error a
+    /// mis-sized binding produces. The LENGTH is the arity.
+    pub vars: &'static [&'static str],
+    /// The premises, in the order the checker matches them.
+    pub body: &'static [[Slot; 3]],
+    pub head: [Slot; 3],
+}
+
+/// The rows of [`BUILTIN_RULES`], by name, so a call site names a rule rather
+/// than an index. `builtin_rule_table_is_indexed_by_its_enum` pins the
+/// correspondence.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Rl {
+    Rdfs2,
+    Rdfs3,
+    Rdfs5,
+    Rdfs7,
+    Rdfs9,
+    Rdfs11,
+    PrpTrp,
+    PrpSymp,
+    PrpInv1,
+    PrpInv2,
+    EqSym,
+    ScmEqc1Fwd,
+    ScmEqc1Rev,
+    ScmEqp1Fwd,
+    ScmEqp1Rev,
+    ClsSvf1,
+    ClsAvf,
+    ClsHv1,
+    ClsHv2,
+    ScmSvf1,
+    ScmSvf2,
+    ScmAvf1,
+    ScmAvf2,
+    ScmDom1,
+    ScmDom2,
+    ScmRng1,
+    ScmRng2,
+}
+
+impl Rl {
+    /// Every row, in table order. `each_row_is_at_its_own_index` pins that
+    /// `Rl::X as usize` really is the index of `X`'s row, which is the whole
+    /// basis of `BUILTIN_RULES[r as usize]`.
+    pub const ALL: &'static [Rl] = &[
+        Rl::Rdfs2, Rl::Rdfs3, Rl::Rdfs5, Rl::Rdfs7, Rl::Rdfs9, Rl::Rdfs11,
+        Rl::PrpTrp, Rl::PrpSymp, Rl::PrpInv1, Rl::PrpInv2, Rl::EqSym,
+        Rl::ScmEqc1Fwd, Rl::ScmEqc1Rev, Rl::ScmEqp1Fwd, Rl::ScmEqp1Rev,
+        Rl::ClsSvf1, Rl::ClsAvf, Rl::ClsHv1, Rl::ClsHv2,
+        Rl::ScmSvf1, Rl::ScmSvf2, Rl::ScmAvf1, Rl::ScmAvf2,
+        Rl::ScmDom1, Rl::ScmDom2, Rl::ScmRng1, Rl::ScmRng2,
+    ];
+}
+
+/// Every fixed-arity built-in rule, in `Rl` order.
+///
+/// Read this against the table in the module docstring of
+/// `lean/OOCert/Rules.lean`. They are the same table; `tests/premise_order_test.rs`
+/// checks that mechanically against the `checkStep` arms rather than against
+/// the prose.
+pub const BUILTIN_RULES: &[BuiltinRule] = &[
+    BuiltinRule { name: "rdfs2", vars: &["s", "p", "o", "c"],
+        body: &[[V0, V1, V2], [V1, DOMAIN, V3]], head: [V0, TYPE, V3] },
+    BuiltinRule { name: "rdfs3", vars: &["s", "p", "o", "c"],
+        body: &[[V0, V1, V2], [V1, RANGE, V3]], head: [V2, TYPE, V3] },
+    BuiltinRule { name: "rdfs5", vars: &["a", "b", "c"],
+        body: &[[V0, SUBPROP, V1], [V1, SUBPROP, V2]], head: [V0, SUBPROP, V2] },
+    BuiltinRule { name: "rdfs7", vars: &["s", "p", "o", "q"],
+        body: &[[V0, V1, V2], [V1, SUBPROP, V3]], head: [V0, V3, V2] },
+    BuiltinRule { name: "rdfs9", vars: &["x", "a", "b"],
+        body: &[[V0, TYPE, V1], [V1, SUBCLASS, V2]], head: [V0, TYPE, V2] },
+    BuiltinRule { name: "rdfs11", vars: &["a", "b", "c"],
+        body: &[[V0, SUBCLASS, V1], [V1, SUBCLASS, V2]], head: [V0, SUBCLASS, V2] },
+    BuiltinRule { name: "prp-trp", vars: &["p", "x", "y", "z"],
+        body: &[[V0, TYPE, TRANSITIVE], [V1, V0, V2], [V2, V0, V3]], head: [V1, V0, V3] },
+    BuiltinRule { name: "prp-symp", vars: &["p", "x", "y"],
+        body: &[[V0, TYPE, SYMMETRIC], [V1, V0, V2]], head: [V2, V0, V1] },
+    BuiltinRule { name: "prp-inv1", vars: &["p", "q", "x", "y"],
+        body: &[[V0, INVERSE, V1], [V2, V0, V3]], head: [V3, V1, V2] },
+    BuiltinRule { name: "prp-inv2", vars: &["p", "q", "x", "y"],
+        body: &[[V0, INVERSE, V1], [V2, V1, V3]], head: [V3, V0, V2] },
+    BuiltinRule { name: "eq-sym", vars: &["a", "b"],
+        body: &[[V0, SAMEAS, V1]], head: [V1, SAMEAS, V0] },
+    BuiltinRule { name: "scm-eqc1", vars: &["a", "b"],
+        body: &[[V0, EQ_CLASS, V1]], head: [V0, SUBCLASS, V1] },
+    BuiltinRule { name: "scm-eqc1", vars: &["a", "b"],
+        body: &[[V0, EQ_CLASS, V1]], head: [V1, SUBCLASS, V0] },
+    BuiltinRule { name: "scm-eqp1", vars: &["a", "b"],
+        body: &[[V0, EQ_PROP, V1]], head: [V0, SUBPROP, V1] },
+    BuiltinRule { name: "scm-eqp1", vars: &["a", "b"],
+        body: &[[V0, EQ_PROP, V1]], head: [V1, SUBPROP, V0] },
+    BuiltinRule { name: "cls-svf1", vars: &["r", "p", "c", "x", "y"],
+        body: &[[V0, ON_PROP, V1], [V0, SVF, V2], [V3, V1, V4], [V4, TYPE, V2]],
+        head: [V3, TYPE, V0] },
+    BuiltinRule { name: "cls-avf", vars: &["r", "p", "c", "x", "y"],
+        body: &[[V0, ON_PROP, V1], [V0, AVF, V2], [V3, TYPE, V0], [V3, V1, V4]],
+        head: [V4, TYPE, V2] },
+    BuiltinRule { name: "cls-hv1", vars: &["r", "p", "v", "x"],
+        body: &[[V0, ON_PROP, V1], [V0, HAS_VALUE, V2], [V3, TYPE, V0]],
+        head: [V3, V1, V2] },
+    BuiltinRule { name: "cls-hv2", vars: &["r", "p", "v", "x"],
+        body: &[[V0, ON_PROP, V1], [V0, HAS_VALUE, V2], [V3, V1, V2]],
+        head: [V3, TYPE, V0] },
+    BuiltinRule { name: "scm-svf1", vars: &["c1", "y1", "p", "c2", "y2"],
+        body: &[[V0, SVF, V1], [V0, ON_PROP, V2], [V3, SVF, V4], [V3, ON_PROP, V2],
+                [V1, SUBCLASS, V4]],
+        head: [V0, SUBCLASS, V3] },
+    BuiltinRule { name: "scm-svf2", vars: &["c1", "y", "p1", "c2", "p2"],
+        body: &[[V0, SVF, V1], [V0, ON_PROP, V2], [V3, SVF, V1], [V3, ON_PROP, V4],
+                [V2, SUBPROP, V4]],
+        head: [V0, SUBCLASS, V3] },
+    BuiltinRule { name: "scm-avf1", vars: &["c1", "y1", "p", "c2", "y2"],
+        body: &[[V0, AVF, V1], [V0, ON_PROP, V2], [V3, AVF, V4], [V3, ON_PROP, V2],
+                [V1, SUBCLASS, V4]],
+        head: [V0, SUBCLASS, V3] },
+    // The conclusion is the other way round, and it is the one place in this
+    // table where that is true. A universal restriction is antitone in its
+    // property, so `all p2 y` is the SMALLER class; writing this row the way
+    // `scm-svf2` is written gives a step no model supports, and
+    // `OOCert.the_natural_avf2_direction_is_not_entailed` is the refutation.
+    BuiltinRule { name: "scm-avf2", vars: &["c1", "y", "p1", "c2", "p2"],
+        body: &[[V0, AVF, V1], [V0, ON_PROP, V2], [V3, AVF, V1], [V3, ON_PROP, V4],
+                [V2, SUBPROP, V4]],
+        head: [V3, SUBCLASS, V0] },
+    BuiltinRule { name: "scm-dom1", vars: &["p", "c1", "c2"],
+        body: &[[V0, DOMAIN, V1], [V1, SUBCLASS, V2]], head: [V0, DOMAIN, V2] },
+    BuiltinRule { name: "scm-dom2", vars: &["p2", "c", "p1"],
+        body: &[[V0, DOMAIN, V1], [V2, SUBPROP, V0]], head: [V2, DOMAIN, V1] },
+    BuiltinRule { name: "scm-rng1", vars: &["p", "c1", "c2"],
+        body: &[[V0, RANGE, V1], [V1, SUBCLASS, V2]], head: [V0, RANGE, V2] },
+    BuiltinRule { name: "scm-rng2", vars: &["p2", "c", "p1"],
+        body: &[[V0, RANGE, V1], [V2, SUBPROP, V0]], head: [V2, RANGE, V1] },
+];
+
+/// The rule names the four list rules use. Not in [`BUILTIN_RULES`] because
+/// their premises are a variable-length chain, listed here so a test can assert
+/// that the two sets together are exactly the checker's rule set and that
+/// nothing fell between them.
+pub const CHAINED_RULES: &[&str] = &["cls-int1", "cls-int2", "cls-uni", "cls-oo"];
+
+/// The interned id of each vocabulary term a rule pattern can fix.
+struct RuleVocab {
+    type_: u32,
+    subclass: u32,
+    subprop: u32,
+    domain: u32,
+    range: u32,
+    sameas: u32,
+    inverse: u32,
+    transitive: u32,
+    symmetric: u32,
+    equiv_class: u32,
+    equiv_prop: u32,
+    on_property: u32,
+    svf: u32,
+    avf: u32,
+    has_value: u32,
+}
+
+/// What a rule site hands the emitter.
+///
+/// `Bound` is a row of [`BUILTIN_RULES`] plus the binding for its variables:
+/// the site chooses the terms, the table chooses the order and the conclusion.
+/// `Chained` is one of the four list rules, whose premises are a constructor
+/// triple, an RDF list chain of the list's own length, and the typings, and
+/// which therefore has no fixed pattern to be a row of.
+enum Fired<'a> {
+    Bound(Rl, &'a [u32]),
+    Chained(&'static str, Fact, &'a [Fact]),
+}
+
+impl RuleVocab {
+    fn id(&self, k: Kw) -> u32 {
+        match k {
+            Kw::Type => self.type_,
+            Kw::SubClassOf => self.subclass,
+            Kw::SubPropertyOf => self.subprop,
+            Kw::Domain => self.domain,
+            Kw::Range => self.range,
+            Kw::SameAs => self.sameas,
+            Kw::InverseOf => self.inverse,
+            Kw::TransitiveProperty => self.transitive,
+            Kw::SymmetricProperty => self.symmetric,
+            Kw::EquivalentClass => self.equiv_class,
+            Kw::EquivalentProperty => self.equiv_prop,
+            Kw::OnProperty => self.on_property,
+            Kw::SomeValuesFrom => self.svf,
+            Kw::AllValuesFrom => self.avf,
+            Kw::HasValue => self.has_value,
+        }
+    }
+
+    fn fill(&self, a: &[Slot; 3], b: &[u32]) -> Fact {
+        let one = |s: Slot| match s {
+            Slot::Var(i) => b[i],
+            Slot::Fixed(k) => self.id(k),
+        };
+        (one(a[0]), one(a[1]), one(a[2]))
+    }
+}
+
+/// The message a refused term produces. One place, so the four writers say the
+/// same thing, and outside the functions Kani reasons about.
+fn unwritable_term(file: &str, pos: Position, term: &str) -> anyhow::Error {
+    anyhow::anyhow!(
+        "internal: the {} of a triple bound for {file} is {term:?}, which does not fit the \
+         certificate format: a term must be non-empty, must carry no tab, newline or carriage \
+         return, and must be in N-Triples spelling (<iri>, _:blank or a quoted literal). Writing \
+         it would let the term forge a field or a record, so no certificate was written. See \
+         TCB-4 and TCB-5 in docs/trusted-computing-base.md",
+        pos.name()
+    )
 }
 
 /// Intern strings to u32 IDs for efficient reasoning.
@@ -647,8 +1092,17 @@ impl Reasoner {
         let include_owl = profile_used == "owl-rl" || profile_used == "owl-rl-ext";
         let include_ext = profile_used == "owl-rl-ext";
 
-        // Extract and intern all triples
-        let raw_triples = graph.all_triples()?;
+        // Extract and intern the ASSERTED triples.
+        //
+        // Every graph except [`INFERRED_GRAPH`], which is where this same
+        // function parks its own conclusions when the caller asks for them to
+        // be kept apart. Reading them back would make run N's conclusions run
+        // N+1's axioms, and `asserted.tsv` has no column that says "derived",
+        // so the certificate would be conditional on a graph that was never
+        // asserted. Until 15 September 2026 it did exactly that and the defect
+        // was pinned by a test rather than fixed; TCB-8 in
+        // `docs/trusted-computing-base.md` has the history.
+        let (raw_triples, graphs_read) = graph.triples_outside(&[INFERRED_GRAPH])?;
         let mut interner = Interner::new();
         let mut facts: Vec<(u32, u32, u32)> = Vec::with_capacity(raw_triples.len());
         for (s, p, o) in &raw_triples {
@@ -680,6 +1134,27 @@ impl Reasoner {
         let rdf_first = interner.intern(RDF_FIRST);
         let rdf_rest = interner.intern(RDF_REST);
         let rdf_nil = interner.intern(RDF_NIL);
+
+        // The same well-known ids, in the shape `BUILTIN_RULES` reads them.
+        // Every fixed term in every built-in rule pattern resolves through
+        // this, so a rule's vocabulary is not restated at its call site either.
+        let rule_vocab = RuleVocab {
+            type_: rdf_type,
+            subclass: rdfs_subclass,
+            subprop: rdfs_subprop,
+            domain: rdfs_domain,
+            range: rdfs_range,
+            sameas: owl_sameas,
+            inverse: owl_inverse,
+            transitive: owl_transitive,
+            symmetric: owl_symmetric,
+            equiv_class: owl_equiv_class,
+            equiv_prop: owl_equiv_prop,
+            on_property: owl_on_property,
+            svf: owl_some_values,
+            avf: owl_all_values,
+            has_value: owl_has_value,
+        };
 
         // The clash detector's vocabulary. Nothing below drives a rule in the
         // fixpoint: it is read once, after it, by `find_clashes`. Interning a
@@ -880,6 +1355,17 @@ impl Reasoner {
             // triple not already in the closure, with the premises in the
             // order the checker expects for that rule.
             //
+            // THE ORDER IS NOT THE CALL SITE'S. A fixed-arity rule fires as
+            // `Fired::Bound(rule, binding)`, and the conclusion and the premise
+            // list are both computed from that rule's row in `BUILTIN_RULES`,
+            // which is the table `tests/premise_order_test.rs` checks against
+            // the `checkStep` arms in `lean/OOCert/Rules.lean`. A site that got
+            // the order wrong used to produce a certificate the checker
+            // rejected for a reason no user could act on; there is now no order
+            // at a site to get wrong. The four list rules keep an explicit
+            // premise vector, because an RDF list chain is not a fixed pattern,
+            // and they say so where they fire.
+            //
             // It is also the one place that refuses a conclusion no RDF
             // serialiser can write. Four rules below guard the subject position
             // themselves and are left alone; this guard is central because the
@@ -890,7 +1376,27 @@ impl Reasoner {
             let interner_ref = &interner;
             let refused_ref = &mut refused;
             let samples_ref = &mut skipped_samples;
-            let mut emit = |t: Fact, rule: &'static str, premises: &[Fact]| {
+            let rv = &rule_vocab;
+            let mut emit = |f: Fired| {
+                let (rule, t) = match &f {
+                    Fired::Bound(r, b) => {
+                        let row = &BUILTIN_RULES[*r as usize];
+                        // A real assert and not a `debug_assert`. The cost is
+                        // one comparison beside two interner lookups the next
+                        // lines already do, and the alternative in a release
+                        // build is an index panic inside `fill` with nothing
+                        // naming the rule.
+                        assert_eq!(
+                            row.vars.len(),
+                            b.len(),
+                            "{} takes a binding of {} terms",
+                            row.name,
+                            row.vars.len()
+                        );
+                        (row.name, rv.fill(&row.head, b))
+                    }
+                    Fired::Chained(name, t, _) => (*name, *t),
+                };
                 let (s, p, _) = t;
                 if !writable_triple(interner_ref.resolve(s), interner_ref.resolve(p)) {
                     if refused_ref.insert(t) && samples_ref.len() < 3 {
@@ -904,7 +1410,15 @@ impl Reasoner {
                     return;
                 }
                 if certify && !triple_set.contains(&t) && recorded.insert(t) {
-                    derivations.push(Derivation { rule, conclusion: t, premises: premises.to_vec() });
+                    let premises: Vec<Fact> = match &f {
+                        Fired::Bound(r, b) => BUILTIN_RULES[*r as usize]
+                            .body
+                            .iter()
+                            .map(|a| rv.fill(a, b))
+                            .collect(),
+                        Fired::Chained(_, _, ps) => ps.to_vec(),
+                    };
+                    derivations.push(Derivation { rule, conclusion: t, premises });
                 }
                 new.push(t);
             };
@@ -916,8 +1430,7 @@ impl Reasoner {
                 if let Some(supers) = sub_to_super.get(&sub) {
                     for &sup in supers {
                         if sub != sup {
-                            emit((x, rdf_type, sup), "rdfs9",
-                                &[(x, rdf_type, sub), (sub, rdfs_subclass, sup)]);
+                            emit(Fired::Bound(Rl::Rdfs9, &[x, sub, sup]));
                         }
                     }
                 }
@@ -928,8 +1441,7 @@ impl Reasoner {
                 if let Some(cs) = sub_to_super.get(&b) {
                     for &c in cs {
                         if a != b && b != c && a != c {
-                            emit((a, rdfs_subclass, c), "rdfs11",
-                                &[(a, rdfs_subclass, b), (b, rdfs_subclass, c)]);
+                            emit(Fired::Bound(Rl::Rdfs11, &[a, b, c]));
                         }
                     }
                 }
@@ -939,7 +1451,7 @@ impl Reasoner {
             for &(prop, cls) in &domain_map {
                 for &(s, p, o) in triple_set.iter() {
                     if p == prop {
-                        emit((s, rdf_type, cls), "rdfs2", &[(s, p, o), (prop, rdfs_domain, cls)]);
+                        emit(Fired::Bound(Rl::Rdfs2, &[s, p, o, cls]));
                     }
                 }
             }
@@ -954,7 +1466,7 @@ impl Reasoner {
                     // behind it, and a SHACL shape targeting that class found
                     // no focus nodes. rdfs2 twelve lines up has no such guard.
                     if p == prop && !interner.resolve(o).starts_with('"') {
-                        emit((o, rdf_type, cls), "rdfs3", &[(s, p, o), (prop, rdfs_range, cls)]);
+                        emit(Fired::Bound(Rl::Rdfs3, &[s, p, o, cls]));
                     }
                 }
             }
@@ -968,8 +1480,7 @@ impl Reasoner {
                 if let Some(cs) = subp_to_super.get(&b) {
                     for &c in cs {
                         if a != b && b != c && a != c {
-                            emit((a, rdfs_subprop, c), "rdfs5",
-                                &[(a, rdfs_subprop, b), (b, rdfs_subprop, c)]);
+                            emit(Fired::Bound(Rl::Rdfs5, &[a, b, c]));
                         }
                     }
                 }
@@ -980,7 +1491,7 @@ impl Reasoner {
                 if sub != sup {
                     for &(s, p, o) in triple_set.iter() {
                         if p == sub {
-                            emit((s, sup, o), "rdfs7", &[(s, sub, o), (sub, rdfs_subprop, sup)]);
+                            emit(Fired::Bound(Rl::Rdfs7, &[s, sub, o, sup]));
                         }
                     }
                 }
@@ -1012,8 +1523,7 @@ impl Reasoner {
                         if let Some(zs) = by_subj.get(&y) {
                             for &z in zs {
                                 if x != z {
-                                    emit((x, tp, z), "prp-trp",
-                                        &[(tp, rdf_type, owl_transitive), (x, tp, y), (y, tp, z)]);
+                                    emit(Fired::Bound(Rl::PrpTrp, &[tp, x, y, z]));
                                 }
                             }
                         }
@@ -1024,7 +1534,7 @@ impl Reasoner {
                 for &sp in &symmetric_set {
                     for &(s, p, o) in triple_set.iter() {
                         if p == sp && !is_literal(o) {
-                            emit((o, sp, s), "prp-symp", &[(sp, rdf_type, owl_symmetric), (s, sp, o)]);
+                            emit(Fired::Bound(Rl::PrpSymp, &[sp, s, o]));
                         }
                     }
                 }
@@ -1036,10 +1546,10 @@ impl Reasoner {
                             continue;
                         }
                         if pred == p {
-                            emit((o, q, s), "prp-inv1", &[(p, owl_inverse, q), (s, p, o)]);
+                            emit(Fired::Bound(Rl::PrpInv1, &[p, q, s, o]));
                         }
                         if pred == q {
-                            emit((o, p, s), "prp-inv2", &[(p, owl_inverse, q), (s, q, o)]);
+                            emit(Fired::Bound(Rl::PrpInv2, &[p, q, s, o]));
                         }
                     }
                 }
@@ -1047,7 +1557,7 @@ impl Reasoner {
                 // eq-sym: sameAs symmetry
                 for &(s, p, o) in triple_set.iter() {
                     if p == owl_sameas && !is_literal(o) {
-                        emit((o, owl_sameas, s), "eq-sym", &[(s, owl_sameas, o)]);
+                        emit(Fired::Bound(Rl::EqSym, &[s, o]));
                     }
                 }
 
@@ -1061,15 +1571,15 @@ impl Reasoner {
                 // both steps under the rule that licenses them also frees the
                 // name for the real scm-eqc2 when it is implemented.
                 for &(a, b) in &equiv_class {
-                    emit((a, rdfs_subclass, b), "scm-eqc1", &[(a, owl_equiv_class, b)]);
-                    emit((b, rdfs_subclass, a), "scm-eqc1", &[(a, owl_equiv_class, b)]);
+                    emit(Fired::Bound(Rl::ScmEqc1Fwd, &[a, b]));
+                    emit(Fired::Bound(Rl::ScmEqc1Rev, &[a, b]));
                 }
 
                 // scm-eqp1, scm-eqp2: equivalentProperty → bidirectional subPropertyOf
                 // Same for scm-eqp1 and the name scm-eqp2.
                 for &(a, b) in &equiv_prop {
-                    emit((a, rdfs_subprop, b), "scm-eqp1", &[(a, owl_equiv_prop, b)]);
-                    emit((b, rdfs_subprop, a), "scm-eqp1", &[(a, owl_equiv_prop, b)]);
+                    emit(Fired::Bound(Rl::ScmEqp1Fwd, &[a, b]));
+                    emit(Fired::Bound(Rl::ScmEqp1Rev, &[a, b]));
                 }
 
                 // scm-dom1, scm-dom2, scm-rng1, scm-rng2: a declared domain or
@@ -1097,8 +1607,7 @@ impl Reasoner {
                     if let Some(supers) = sub_to_super.get(&c1) {
                         for &c2 in supers {
                             if c1 != c2 {
-                                emit((p, rdfs_domain, c2), "scm-dom1",
-                                    &[(p, rdfs_domain, c1), (c1, rdfs_subclass, c2)]);
+                                emit(Fired::Bound(Rl::ScmDom1, &[p, c1, c2]));
                             }
                         }
                     }
@@ -1111,8 +1620,7 @@ impl Reasoner {
                     }
                     for &(pd, c) in &domain_map {
                         if pd == p2 {
-                            emit((p1, rdfs_domain, c), "scm-dom2",
-                                &[(p2, rdfs_domain, c), (p1, rdfs_subprop, p2)]);
+                            emit(Fired::Bound(Rl::ScmDom2, &[p2, c, p1]));
                         }
                     }
                 }
@@ -1122,8 +1630,7 @@ impl Reasoner {
                     if let Some(supers) = sub_to_super.get(&c1) {
                         for &c2 in supers {
                             if c1 != c2 {
-                                emit((p, rdfs_range, c2), "scm-rng1",
-                                    &[(p, rdfs_range, c1), (c1, rdfs_subclass, c2)]);
+                                emit(Fired::Bound(Rl::ScmRng1, &[p, c1, c2]));
                             }
                         }
                     }
@@ -1136,8 +1643,7 @@ impl Reasoner {
                     }
                     for &(pr, c) in &range_map {
                         if pr == p2 {
-                            emit((p1, rdfs_range, c), "scm-rng2",
-                                &[(p2, rdfs_range, c), (p1, rdfs_subprop, p2)]);
+                            emit(Fired::Bound(Rl::ScmRng2, &[p2, c, p1]));
                         }
                     }
                 }
@@ -1177,12 +1683,7 @@ impl Reasoner {
 
                     for &(x, y) in &prop_pairs {
                         if filler_insts.contains(&y) {
-                            emit((x, rdf_type, restr), "cls-svf1", &[
-                                (restr, owl_on_property, prop),
-                                (restr, owl_some_values, filler),
-                                (x, prop, y),
-                                (y, rdf_type, filler),
-                            ]);
+                            emit(Fired::Bound(Rl::ClsSvf1, &[restr, prop, filler, x, y]));
                         }
                     }
                 }
@@ -1205,12 +1706,7 @@ impl Reasoner {
                     }
                     for &(x, p, y) in triple_set.iter() {
                         if p == prop && in_restr.contains(&x) {
-                            emit((y, rdf_type, filler), "cls-avf", &[
-                                (restr, owl_on_property, prop),
-                                (restr, owl_all_values, filler),
-                                (x, rdf_type, restr),
-                                (x, prop, y),
-                            ]);
+                            emit(Fired::Bound(Rl::ClsAvf, &[restr, prop, filler, x, y]));
                         }
                     }
                 }
@@ -1232,20 +1728,12 @@ impl Reasoner {
                 for &(prop, val, restr) in &hv_rules {
                     for &(x, c) in &type_idx {
                         if c == restr {
-                            emit((x, prop, val), "cls-hv1", &[
-                                (restr, owl_on_property, prop),
-                                (restr, owl_has_value, val),
-                                (x, rdf_type, restr),
-                            ]);
+                            emit(Fired::Bound(Rl::ClsHv1, &[restr, prop, val, x]));
                         }
                     }
                     for &(s, p, o) in triple_set.iter() {
                         if p == prop && o == val {
-                            emit((s, rdf_type, restr), "cls-hv2", &[
-                                (restr, owl_on_property, prop),
-                                (restr, owl_has_value, val),
-                                (s, prop, val),
-                            ]);
+                            emit(Fired::Bound(Rl::ClsHv2, &[restr, prop, val, s]));
                         }
                     }
                 }
@@ -1289,13 +1777,7 @@ impl Reasoner {
                         let Some(twos) = svf_by_pf.get(&(p, y2)) else { continue };
                         for &r2 in twos {
                             if r1 != r2 {
-                                emit((r1, rdfs_subclass, r2), "scm-svf1", &[
-                                    (r1, owl_some_values, y1),
-                                    (r1, owl_on_property, p),
-                                    (r2, owl_some_values, y2),
-                                    (r2, owl_on_property, p),
-                                    (y1, rdfs_subclass, y2),
-                                ]);
+                                emit(Fired::Bound(Rl::ScmSvf1, &[r1, y1, p, r2, y2]));
                             }
                         }
                     }
@@ -1309,13 +1791,7 @@ impl Reasoner {
                         let Some(twos) = svf_by_pf.get(&(p2, y)) else { continue };
                         for &r2 in twos {
                             if r1 != r2 {
-                                emit((r1, rdfs_subclass, r2), "scm-svf2", &[
-                                    (r1, owl_some_values, y),
-                                    (r1, owl_on_property, p1),
-                                    (r2, owl_some_values, y),
-                                    (r2, owl_on_property, p2),
-                                    (p1, rdfs_subprop, p2),
-                                ]);
+                                emit(Fired::Bound(Rl::ScmSvf2, &[r1, y, p1, r2, p2]));
                             }
                         }
                     }
@@ -1329,13 +1805,7 @@ impl Reasoner {
                         let Some(twos) = avf_by_pf.get(&(p, y2)) else { continue };
                         for &r2 in twos {
                             if r1 != r2 {
-                                emit((r1, rdfs_subclass, r2), "scm-avf1", &[
-                                    (r1, owl_all_values, y1),
-                                    (r1, owl_on_property, p),
-                                    (r2, owl_all_values, y2),
-                                    (r2, owl_on_property, p),
-                                    (y1, rdfs_subclass, y2),
-                                ]);
+                                emit(Fired::Bound(Rl::ScmAvf1, &[r1, y1, p, r2, y2]));
                             }
                         }
                     }
@@ -1359,13 +1829,7 @@ impl Reasoner {
                         let Some(twos) = avf_by_pf.get(&(p2, y)) else { continue };
                         for &r2 in twos {
                             if r1 != r2 {
-                                emit((r2, rdfs_subclass, r1), "scm-avf2", &[
-                                    (r1, owl_all_values, y),
-                                    (r1, owl_on_property, p1),
-                                    (r2, owl_all_values, y),
-                                    (r2, owl_on_property, p2),
-                                    (p1, rdfs_subprop, p2),
-                                ]);
+                                emit(Fired::Bound(Rl::ScmAvf2, &[r1, y, p1, r2, p2]));
                             }
                         }
                     }
@@ -1383,7 +1847,7 @@ impl Reasoner {
                             } else {
                                 Vec::new()
                             };
-                            emit((x, rdf_type, *cls), "cls-int1", &premises);
+                            emit(Fired::Chained("cls-int1", (x, rdf_type, *cls), &premises));
                         }
                     }
                 }
@@ -1409,7 +1873,7 @@ impl Reasoner {
                             Vec::new()
                         };
                         for &m in members {
-                            emit((x, rdf_type, m), "cls-int2", &premises);
+                            emit(Fired::Chained("cls-int2", (x, rdf_type, m), &premises));
                         }
                     }
                 }
@@ -1430,7 +1894,7 @@ impl Reasoner {
                     };
                     for &m in members {
                         if !is_literal(m) {
-                            emit((m, rdf_type, *cls), "cls-oo", &premises);
+                            emit(Fired::Chained("cls-oo", (m, rdf_type, *cls), &premises));
                         }
                     }
                 }
@@ -1447,7 +1911,7 @@ impl Reasoner {
                             } else {
                                 Vec::new()
                             };
-                            emit((x, rdf_type, *cls), "cls-uni", &premises);
+                            emit(Fired::Chained("cls-uni", (x, rdf_type, *cls), &premises));
                         }
                     }
                 }
@@ -1545,7 +2009,12 @@ impl Reasoner {
                     interner.resolve(s),
                     interner.resolve(p),
                     interner.resolve(o),
-                );
+                )
+                .map_err(|pos| unwritable_term("asserted.tsv", pos, interner.resolve(match pos {
+                    Position::Subject => s,
+                    Position::Predicate => p,
+                    Position::Object => o,
+                })))?;
             }
             std::fs::write(dir.join("asserted.tsv"), asserted)?;
 
@@ -1560,7 +2029,12 @@ impl Reasoner {
                         interner.resolve(s),
                         interner.resolve(p),
                         interner.resolve(o),
-                    );
+                    )
+                    .map_err(|pos| unwritable_term("derivations.tsv", pos, interner.resolve(match pos {
+                        Position::Subject => s,
+                        Position::Predicate => p,
+                        Position::Object => o,
+                    })))?;
                 }
                 lines.push('\n');
             }
@@ -1581,6 +2055,11 @@ impl Reasoner {
                 "asserted": facts.len(),
                 "derivations": derivations.len(),
                 "by_rule": by_rule,
+                // Which graphs the assertions came from, and which were held
+                // back. A certificate that does not say this cannot be checked
+                // against the store it claims to be about.
+                "graphs_read": graphs_read,
+                "graphs_excluded": [INFERRED_GRAPH],
                 "check_with": "cd lean && lake exe oo-cert <dir>/asserted.tsv <dir>/derivations.tsv",
             });
         }
@@ -1821,10 +2300,22 @@ impl Pat {
     /// The `rules.tsv` spelling: `?x` for a variable, the term itself for a
     /// constant. Inverse of the parse below, and byte-identical to
     /// `OOCert.HornParse.patStr`.
+    ///
+    /// The variable arm builds the string rather than `format!`-ing it, and the
+    /// reason is verification and not speed: `format!` drags the whole
+    /// `core::fmt` machinery into any function that calls it, and CBMC flattens
+    /// a function before it solves. With `format!` here,
+    /// `kani_harnesses::pat_of_and_render_are_inverse` measures the formatter.
+    /// The bytes it produces are the same either way.
     fn render(&self) -> String {
         match self {
             Pat::Const(c) => c.clone(),
-            Pat::Var(v) => format!("?{v}"),
+            Pat::Var(v) => {
+                let mut s = String::with_capacity(v.len() + 1);
+                s.push('?');
+                s.push_str(v);
+                s
+            }
         }
     }
 }
@@ -1873,15 +2364,38 @@ fn pat_vars<'a>(a: &'a AtomPat, out: &mut Vec<&'a str>) {
 /// constant that is not in N-Triples spelling can never equal a term the store
 /// holds, so a rule carrying one silently never fires. That is a typo, not a
 /// rule, and it is refused rather than run.
-fn parse_pat(field: &str, line: usize, which: &str) -> anyhow::Result<Pat> {
+/// The classification half of [`parse_pat`], with no error value and no
+/// formatting.
+///
+/// Split out on 15 September 2026 for one reason, and it is a verification
+/// reason rather than a style one. `parse_pat` returns `anyhow::Result` and
+/// every refusal formats a message naming the line and the position, so the
+/// function body carries the whole formatting machinery; CBMC flattens a
+/// function before it solves, so a Kani harness on `parse_pat` was measuring
+/// `format!` and never returned a verdict (14 minutes, 9.5 GB, and worse when
+/// the input was constrained). This function is pure, total and allocates only
+/// the `Pat` it returns, and `kani_harnesses::pat_of_and_render_are_inverse`
+/// proves TCB-20 over every byte pattern at a bound. The messages stayed where
+/// they were.
+fn pat_of(field: &str) -> Option<Pat> {
     if let Some(name) = field.strip_prefix('?') {
         if name.is_empty() {
-            anyhow::bail!("rules line {line}: {which} is '?' with no variable name");
+            return None;
         }
-        return Ok(Pat::Var(name.to_string()));
+        return Some(Pat::Var(name.to_string()));
     }
     if field.starts_with('<') || field.starts_with("_:") || field.starts_with('"') {
-        return Ok(Pat::Const(field.to_string()));
+        return Some(Pat::Const(field.to_string()));
+    }
+    None
+}
+
+fn parse_pat(field: &str, line: usize, which: &str) -> anyhow::Result<Pat> {
+    if let Some(p) = pat_of(field) {
+        return Ok(p);
+    }
+    if field == "?" {
+        anyhow::bail!("rules line {line}: {which} is '?' with no variable name");
     }
     if field.is_empty() {
         anyhow::bail!("rules line {line}: {which} is empty");
@@ -2167,7 +2681,10 @@ impl Reasoner {
             );
         }
 
-        let raw_triples = graph.all_triples()?;
+        // The asserted triples, every graph except the one the built-in path
+        // parks its own conclusions in. See TCB-8; this path materialises
+        // nothing itself (decision 0003) but it reads the same store.
+        let (raw_triples, graphs_read) = graph.triples_outside(&[INFERRED_GRAPH])?;
         let mut interner = Interner::new();
         let mut facts: Vec<Fact> = Vec::with_capacity(raw_triples.len());
         for (s, p, o) in &raw_triples {
@@ -2325,7 +2842,12 @@ impl Reasoner {
                 interner.resolve(s),
                 interner.resolve(p),
                 interner.resolve(o),
-            );
+            )
+            .map_err(|pos| unwritable_term("asserted.tsv", pos, interner.resolve(match pos {
+                Position::Subject => s,
+                Position::Predicate => p,
+                Position::Object => o,
+            })))?;
         }
         std::fs::write(certificate_dir.join("asserted.tsv"), asserted)?;
 
@@ -2337,10 +2859,24 @@ impl Reasoner {
             horn.push('\t');
             horn.push_str(&st.binds.len().to_string());
             for (v, term) in &st.binds {
+                // A variable name is not a term and has no N-Triples spelling,
+                // so it gets the format half of the guard. `parse_rules` cannot
+                // produce one carrying a separator, which is exactly why this
+                // is cheap: it enforces here what is argued there.
+                if !field_fits_the_format(v) {
+                    anyhow::bail!(
+                        "internal: the rule variable name {v:?} does not fit the certificate \
+                         format, so no certificate was written"
+                    );
+                }
+                let bound = interner.resolve(*term);
+                if !term_fits_the_format(bound) {
+                    return Err(unwritable_term("horn.tsv", Position::Object, bound));
+                }
                 horn.push('\t');
                 horn.push_str(v);
                 horn.push('\t');
-                horn.push_str(interner.resolve(*term));
+                horn.push_str(bound);
             }
             for &(s, p, o) in std::iter::once(&st.conclusion).chain(st.premises.iter()) {
                 push_triple_fields(
@@ -2348,7 +2884,12 @@ impl Reasoner {
                     interner.resolve(s),
                     interner.resolve(p),
                     interner.resolve(o),
-                );
+                )
+                .map_err(|pos| unwritable_term("horn.tsv", pos, interner.resolve(match pos {
+                    Position::Subject => s,
+                    Position::Predicate => p,
+                    Position::Object => o,
+                })))?;
             }
             horn.push('\n');
         }
@@ -2385,6 +2926,8 @@ impl Reasoner {
             "rules": rules.len(),
             "asserted_triples": facts.len(),
             "distinct_asserted_triples": asserted_count,
+            "graphs_read": graphs_read,
+            "graphs_excluded": [INFERRED_GRAPH],
             "derived_triples": steps.len(),
             "iterations": iterations,
             "fixpoint_reached": fixpoint,
@@ -2458,6 +3001,25 @@ mod boundary_tests {
     use super::*;
     use proptest::prelude::*;
 
+    /// `BUILTIN_RULES[r as usize]` is `r`'s row. Everything the emitter does
+    /// with the table rests on this one line of arithmetic, and a row inserted
+    /// in the middle without a matching enum variant would silently give every
+    /// rule after it the next rule's premises.
+    #[test]
+    fn each_row_is_at_its_own_index() {
+        assert_eq!(Rl::ALL.len(), BUILTIN_RULES.len());
+        for (i, r) in Rl::ALL.iter().enumerate() {
+            assert_eq!(*r as usize, i, "{r:?} is not at index {i}");
+        }
+        // The two rules that license two conclusions from one premise are the
+        // only names that appear twice.
+        let mut names: Vec<&str> = BUILTIN_RULES.iter().map(|r| r.name).collect();
+        names.sort_unstable();
+        let mut dups: Vec<&str> = names.windows(2).filter(|w| w[0] == w[1]).map(|w| w[0]).collect();
+        dups.dedup();
+        assert_eq!(dups, vec!["scm-eqc1", "scm-eqp1"]);
+    }
+
     /// Terms that carry no separator, so the writer's precondition holds and
     /// the round trip is the thing under test.
     fn term() -> impl Strategy<Value = String> {
@@ -2475,6 +3037,27 @@ mod boundary_tests {
 
     proptest! {
         #![proptest_config(ProptestConfig { cases: 1024, ..ProptestConfig::default() })]
+
+        /// Every slot a rule pattern mentions is within the arity it declares,
+        /// and every variable it declares is actually used. An unused slot is a
+        /// binding a call site has to invent a term for; an out-of-range slot
+        /// is a panic on a graph nobody happened to test.
+        #[test]
+        fn every_rule_slot_is_within_its_arity(i in 0usize..BUILTIN_RULES.len()) {
+            let r = &BUILTIN_RULES[i];
+            let mut seen = vec![false; r.vars.len()];
+            for a in r.body.iter().chain(std::iter::once(&r.head)) {
+                for s in a {
+                    if let Slot::Var(k) = s {
+                        prop_assert!(*k < r.vars.len(), "{} slot {k} of {}", r.name, r.vars.len());
+                        seen[*k] = true;
+                    }
+                }
+            }
+            for (k, used) in seen.iter().enumerate() {
+                prop_assert!(*used, "{} declares {} and never uses it", r.name, r.vars[k]);
+            }
+        }
 
         /// TCB-15 and TCB-16. The interner is a bijection between the strings it
         /// has seen and the ids it has issued. Every term in every certificate
@@ -2513,18 +3096,35 @@ mod boundary_tests {
             }
         }
 
-        /// TCB-1, as a statement about the writer alone. Given three terms that
-        /// carry no separator, the line splits back into exactly those three.
-        /// The Kani harness below proves the same thing over every input up to
-        /// a bound; this one runs in CI without a model checker installed.
+        /// TCB-1, as a statement about the writer alone. The writer accepts
+        /// exactly the terms that fit the format, and what it accepts splits
+        /// back into exactly those three terms. A refusal leaves the buffer
+        /// untouched.
+        ///
+        /// This used to be a statement about terms the generator kept
+        /// separator-free, because the writer took anything. The writer now
+        /// decides, so the test covers both verdicts. The Kani harnesses below
+        /// prove the same statement over every byte pattern up to a bound; this
+        /// one runs in CI without a model checker installed and samples the
+        /// lengths, including the empty string.
         #[test]
         fn tcb_1_an_asserted_line_splits_back_into_its_three_terms(
             s in term(), p in term(), o in term(),
         ) {
-            let mut out = String::new();
-            push_asserted_line(&mut out, &s, &p, &o);
+            let mut out = String::from("<a>\t<b>\t<c>\n");
+            let before = out.clone();
+            let r = push_asserted_line(&mut out, &s, &p, &o);
+            let fits = term_fits_the_format(&s)
+                && term_fits_the_format(&p)
+                && term_fits_the_format(&o);
+            prop_assert_eq!(r.is_ok(), fits);
+            if r.is_err() {
+                prop_assert_eq!(out, before, "a refused line left a fragment behind");
+                return Ok(());
+            }
             prop_assert!(out.ends_with('\n'));
-            let body = &out[..out.len() - 1];
+            let line = out.strip_prefix(&before).expect("the line was appended");
+            let body = &line[..line.len() - 1];
             prop_assert!(!body.contains('\n'));
             let f: Vec<&str> = body.split('\t').collect();
             prop_assert_eq!(f, vec![s.as_str(), p.as_str(), o.as_str()]);
@@ -2538,27 +3138,95 @@ mod boundary_tests {
         ) {
             let mut out = String::new();
             out.push_str(&head);
+            let mut written = 0usize;
             for (s, p, o) in &ts {
-                push_triple_fields(&mut out, s, p, o);
+                let fits = term_fits_the_format(s)
+                    && term_fits_the_format(p)
+                    && term_fits_the_format(o);
+                let before = out.clone();
+                let r = push_triple_fields(&mut out, s, p, o);
+                prop_assert_eq!(r.is_ok(), fits);
+                if r.is_err() {
+                    prop_assert_eq!(out.clone(), before);
+                } else {
+                    written += 1;
+                }
             }
             let f: Vec<&str> = out.split('\t').collect();
-            prop_assert_eq!(f.len(), 1 + 3 * ts.len());
+            prop_assert_eq!(f.len(), 1 + 3 * written);
             prop_assert_eq!(f[0], head.as_str());
-            for (i, (s, p, o)) in ts.iter().enumerate() {
+            let mut i = 0usize;
+            for (s, p, o) in ts.iter() {
+                if !(term_fits_the_format(s) && term_fits_the_format(p) && term_fits_the_format(o)) {
+                    continue;
+                }
                 prop_assert_eq!(f[1 + 3 * i], s.as_str());
                 prop_assert_eq!(f[2 + 3 * i], p.as_str());
                 prop_assert_eq!(f[3 + 3 * i], o.as_str());
+                i += 1;
+            }
+        }
+
+        /// TCB-4 and TCB-5, as a statement about the guard alone. A term the
+        /// guard accepts carries no separator and is in one of the three
+        /// N-Triples spellings, and two accepted terms of different spellings
+        /// are different strings, which is what lets the two checkers compare
+        /// terms as opaque strings.
+        ///
+        /// The Kani harness `term_guard_is_exact` proves this over every byte
+        /// pattern at a bound rather than over a sample.
+        #[test]
+        fn tcb_4_5_the_guard_decides_separators_and_spelling(a in term(), b in term()) {
+            for t in [&a, &b] {
+                if term_fits_the_format(t) {
+                    prop_assert!(!t.contains(['\t', '\n', '\r']));
+                    prop_assert!(!t.is_empty());
+                    prop_assert!(t.starts_with('<') || t.starts_with('"') || t.starts_with("_:"));
+                }
+            }
+            if term_fits_the_format(&a) && term_fits_the_format(&b) {
+                let kind = |t: &str| t.as_bytes()[0];
+                if kind(&a) != kind(&b) {
+                    prop_assert_ne!(&a, &b);
+                }
             }
         }
 
         /// TCB-20 at one rule position. `parse_pat` and `Pat::render` are
         /// inverse, so a constant never renders to something that reads back as
         /// a variable. `run_horn`'s re-parse guard rests on this.
+        ///
+        /// Both directions, and `pat_of` is the classifier `parse_pat` is now
+        /// built on, so this also pins that the refactor did not move the
+        /// boundary between accept and refuse.
         #[test]
         fn tcb_20_parse_pat_and_render_are_inverse(field in "[^\t\n\r]{0,8}") {
-            if let Ok(p) = parse_pat(&field, 1, "position") {
+            let via_pat_of = pat_of(&field);
+            prop_assert_eq!(
+                parse_pat(&field, 1, "position").ok(),
+                via_pat_of.clone(),
+                "parse_pat and pat_of disagree on {:?}", field
+            );
+            if let Some(p) = via_pat_of {
                 prop_assert_eq!(p.render(), field);
             }
+        }
+
+        /// TCB-20, the other direction: a pattern renders to a field that reads
+        /// back as the same pattern. This is the direction `rules_tsv` needs,
+        /// because it renders the table the checker then parses.
+        #[test]
+        fn tcb_20_render_then_parse_returns_the_pattern(
+            name in "[^\t\n\r]{1,8}",
+            c in prop_oneof![
+                Just("<http://e/a>".to_string()),
+                Just("\"lit\"".to_string()),
+                Just("_:b0".to_string()),
+            ],
+            is_var in any::<bool>(),
+        ) {
+            let p = if is_var { Pat::Var(name) } else { Pat::Const(c) };
+            prop_assert_eq!(pat_of(&p.render()), Some(p));
         }
     }
 }
@@ -2591,12 +3259,11 @@ mod kani_harnesses {
     /// A FIXED length rather than a symbolic one. A symbolic `n` makes every
     /// offset in the produced line symbolic, every slice bound a case split,
     /// and the cost compounds across three terms: two bytes per term with a
-    /// symbolic length reached fifteen gigabytes without a verdict. Fixing the
-    /// length leaves every BYTE unconstrained, which is the dimension that
-    /// matters here (a tab or a newline getting into a term), and moves the
-    /// length dimension to `boundary_tests`, which samples it including the
-    /// empty string. That is a real limitation of these proofs and it is stated
-    /// on each of them rather than left for a reader to infer.
+    /// symbolic length reached fifteen gigabytes without a verdict. The length
+    /// dimension is covered instead by INSTANTIATING the generic harnesses
+    /// below at several lengths, `0` included, so the claim is "every byte
+    /// pattern at each of these lengths" rather than "every byte pattern at one
+    /// length". That is still a bound and it is stated on each harness.
     fn any_ascii<const N: usize>(buf: &mut [u8; N]) -> &str {
         *buf = kani::any();
         for b in buf.iter() {
@@ -2608,56 +3275,49 @@ mod kani_harnesses {
         unsafe { core::str::from_utf8_unchecked(&buf[..]) }
     }
 
-    /// TCB-1, over every byte pattern rather than over a sample.
+    /// TCB-1 and TCB-4, over every byte pattern at length `N` rather than over
+    /// a sample, and with no assumption that the terms are separator-free.
     ///
-    /// For ANY three separator-free ASCII terms, `push_asserted_line` writes a
-    /// line carrying exactly two tabs and one newline, the newline last, with
-    /// the three terms at the offsets those separators imply. This is the
-    /// property a forged literal breaks, and the reason
-    /// `lean/OOCert/Parse.lean` is entitled to say that splitting is exact.
+    /// The writer now DECIDES that, so the harness proves the decision as well
+    /// as the layout: `push_asserted_line` returns `Ok` exactly when all three
+    /// terms fit the format, and when it does, the line it wrote carries
+    /// exactly two tabs and one newline, the newline last, with the three terms
+    /// at the offsets those separators imply. When it refuses, the buffer is
+    /// byte for byte what it was, so a refusal cannot leave half a line behind.
     ///
-    /// What it does NOT prove: that no term ever carries a separator. That is a
-    /// fact about `oxrdf` and `oxiri`, not about this function, and it is
-    /// pinned by test rather than proved.
+    /// Until 15 September 2026 this harness ASSUMED separator-freedom, because
+    /// nothing in this repository enforced it: it was a property of `oxrdf`'s
+    /// `Display` and of `oxiri` refusing to parse. The assumption is now a
+    /// branch of the function under test.
     ///
     /// The claim is about the BYTES, not about Rust's `split`. The reader is
     /// `OOCert.Parse.parseTriples`, which is Lean's `String.splitOn`, so a proof
-    /// about `str::split` would be a proof about the wrong splitter. What both
-    /// need is the layout: the line holds exactly two TAB bytes and exactly one
-    /// NEWLINE, that newline is last, and the three terms sit at the offsets
-    /// their lengths dictate. Any correct splitter recovers `s`, `p` and `o`
-    /// from that and from nothing less.
-    ///
-    /// Stating it that way is also what makes it verifiable. Asserting on
-    /// `body.split('\t')` instead put CBMC inside `CharSearcher` over a symbolic
-    /// buffer and ran ten minutes to two gigabytes without a verdict at two
-    /// bytes per term. The `split` formulation is kept as a property test in
-    /// `boundary_tests`, where it is free.
-    ///
-    /// Three bytes per term, each byte unconstrained ASCII, the LENGTH fixed.
-    /// See `any_ascii` for why the length is fixed and what that costs the
-    /// claim: `boundary_tests` samples the lengths, including the empty string,
-    /// and this proves every byte pattern at one shape. A bounded proof read as
-    /// an unbounded one is the defect this layer exists to attack, so the bound
-    /// is on the harness rather than in a footnote.
-    ///
-    /// `with_capacity` so the buffer never reallocates. CBMC models the
-    /// allocator, and a realloc is state that has nothing to do with the claim.
-    #[kani::proof]
-    #[kani::unwind(16)]
-    fn asserted_line_round_trips() {
-        const N: usize = 3;
+    /// about `str::split` would be a proof about the wrong splitter. Asserting
+    /// on `body.split('\t')` also put CBMC inside `CharSearcher` and ran ten
+    /// minutes to two gigabytes without a verdict. The `split` formulation is
+    /// kept as a property test in `boundary_tests`, where it is free.
+    fn asserted_line_layout<const N: usize>() {
         let (mut a, mut b, mut c) = ([0u8; N], [0u8; N], [0u8; N]);
         let s = any_ascii(&mut a);
         let p = any_ascii(&mut b);
         let o = any_ascii(&mut c);
-        kani::assume(!s.contains('\t') && !s.contains('\n'));
-        kani::assume(!p.contains('\t') && !p.contains('\n'));
-        kani::assume(!o.contains('\t') && !o.contains('\n'));
 
-        let mut out = String::with_capacity(4 * N);
-        push_asserted_line(&mut out, s, p, o);
-        let w = out.as_bytes();
+        // A non-empty buffer, so "nothing was appended" is a real claim and not
+        // "the buffer is still empty".
+        let mut out = String::with_capacity(4 * N + 8);
+        out.push('x');
+        let r = push_asserted_line(&mut out, s, p, o);
+
+        let fits =
+            term_fits_the_format(s) && term_fits_the_format(p) && term_fits_the_format(o);
+        assert!(r.is_ok() == fits);
+        if !fits {
+            assert!(out.len() == 1);
+            assert!(out.as_bytes()[0] == b'x');
+            return;
+        }
+
+        let w = &out.as_bytes()[1..];
 
         // Nothing added and nothing lost: three terms, two tabs, one newline.
         assert!(w.len() == 3 * N + 3);
@@ -2668,9 +3328,6 @@ mod kani_harnesses {
         assert!(w[3 * N + 2] == b'\n');
 
         // And nowhere else, so any correct splitter finds exactly three fields.
-        // The reader is `OOCert.Parse.parseTriples`, which is Lean's
-        // `String.splitOn`, so the claim has to be about the bytes rather than
-        // about Rust's `str::split`.
         let mut tabs = 0usize;
         let mut newlines = 0usize;
         let mut i = 0usize;
@@ -2697,25 +3354,66 @@ mod kani_harnesses {
         }
     }
 
-    /// TCB-2 and TCB-3. Three fields appended to a line already begun come back
-    /// as three fields, so a step's conclusion and its premises cannot run into
-    /// one another.
+    /// The empty term. Every position is refused and nothing is written.
     #[kani::proof]
-    #[kani::unwind(16)]
-    fn triple_fields_append_exactly_three() {
-        const N: usize = 3;
+    #[kani::unwind(24)]
+    fn asserted_line_round_trips_at_0() {
+        asserted_line_layout::<0>();
+    }
+
+    #[kani::proof]
+    #[kani::unwind(24)]
+    fn asserted_line_round_trips_at_1() {
+        asserted_line_layout::<1>();
+    }
+
+    #[kani::proof]
+    #[kani::unwind(24)]
+    fn asserted_line_round_trips_at_2() {
+        asserted_line_layout::<2>();
+    }
+
+    /// The length the original harness was fixed at. Renamed from
+    /// `asserted_line_round_trips` because `cargo kani --harness NAME` selects
+    /// by SUBSTRING: the bare name matched all five of these and ran them
+    /// together, which is how `_at_4` first failed inside a run reported under
+    /// another harness's heading. Every harness name here is now a full name.
+    #[kani::proof]
+    #[kani::unwind(24)]
+    fn asserted_line_round_trips_at_3() {
+        asserted_line_layout::<3>();
+    }
+
+    #[kani::proof]
+    #[kani::unwind(24)]
+    fn asserted_line_round_trips_at_4() {
+        asserted_line_layout::<4>();
+    }
+
+    /// TCB-2, TCB-3 and TCB-4. Three fields appended to a line already begun
+    /// come back as three fields, so a step's conclusion and its premises
+    /// cannot run into one another, and the writer refuses exactly the terms
+    /// that do not fit the format.
+    fn triple_fields_layout<const N: usize>() {
         let (mut a, mut b, mut c) = ([0u8; N], [0u8; N], [0u8; N]);
         let s = any_ascii(&mut a);
         let p = any_ascii(&mut b);
         let o = any_ascii(&mut c);
-        kani::assume(!s.contains('\t') && !p.contains('\t') && !o.contains('\t'));
-        kani::assume(!s.contains('\n') && !p.contains('\n') && !o.contains('\n'));
 
-        let mut out = String::with_capacity(4 * N + 4);
+        let mut out = String::with_capacity(4 * N + 8);
         out.push('r');
-        push_triple_fields(&mut out, s, p, o);
-        let w = out.as_bytes();
+        let r = push_triple_fields(&mut out, s, p, o);
 
+        let fits =
+            term_fits_the_format(s) && term_fits_the_format(p) && term_fits_the_format(o);
+        assert!(r.is_ok() == fits);
+        if !fits {
+            assert!(out.len() == 1);
+            assert!(out.as_bytes()[0] == b'r');
+            return;
+        }
+
+        let w = out.as_bytes();
         assert!(w.len() == 1 + 3 * N + 3);
         assert!(w[0] == b'r');
         assert!(w[1] == b'\t');
@@ -2744,6 +3442,94 @@ mod kani_harnesses {
         }
     }
 
+    #[kani::proof]
+    #[kani::unwind(24)]
+    fn triple_fields_append_exactly_three_at_0() {
+        triple_fields_layout::<0>();
+    }
+
+    #[kani::proof]
+    #[kani::unwind(24)]
+    fn triple_fields_append_exactly_three_at_2() {
+        triple_fields_layout::<2>();
+    }
+
+    #[kani::proof]
+    #[kani::unwind(24)]
+    fn triple_fields_append_exactly_three_at_3() {
+        triple_fields_layout::<3>();
+    }
+
+    #[kani::proof]
+    #[kani::unwind(24)]
+    fn triple_fields_append_exactly_three_at_4() {
+        triple_fields_layout::<4>();
+    }
+
+    /// TCB-4. A term the guard accepts carries NO separator, anywhere.
+    ///
+    /// Stated over a symbolic index rather than as a loop, so it is the
+    /// universally quantified claim the Lean parser needs and not a
+    /// restatement of the implementation's own scan. This is the property that
+    /// used to be an observation about `oxrdf`: the certificate writers are now
+    /// the place it is decided, and this is the proof that the decision is the
+    /// right one.
+    fn term_guard_admits_no_separator<const N: usize>() {
+        let mut buf = [0u8; N];
+        let t = any_ascii(&mut buf);
+        if !term_fits_the_format(t) {
+            return;
+        }
+        assert!(N > 0);
+        let i: usize = kani::any();
+        kani::assume(i < N);
+        let b = t.as_bytes()[i];
+        assert!(b != b'\t' && b != b'\n' && b != b'\r');
+    }
+
+    #[kani::proof]
+    #[kani::unwind(16)]
+    fn term_guard_admits_no_separator_at_3() {
+        term_guard_admits_no_separator::<3>();
+    }
+
+    #[kani::proof]
+    #[kani::unwind(24)]
+    fn term_guard_admits_no_separator_at_6() {
+        term_guard_admits_no_separator::<6>();
+    }
+
+    /// TCB-5. The spellings do not collide.
+    ///
+    /// An accepted term is an IRI, a blank node or a literal and never two of
+    /// them, the kind is decided by the leading byte, and two accepted terms of
+    /// different kinds are therefore different strings. That is what entitles
+    /// `oo-cert` and `oo-horn` to compare terms as opaque strings: a literal
+    /// whose lexical form is spelled exactly like an IRI cannot be that IRI,
+    /// because the literal is quoted and the IRI is bracketed.
+    #[kani::proof]
+    #[kani::unwind(16)]
+    fn term_guard_separates_the_three_spellings() {
+        let (mut x, mut y) = ([0u8; 3], [0u8; 3]);
+        let a = any_ascii(&mut x);
+        let b = any_ascii(&mut y);
+        kani::assume(term_fits_the_format(a));
+        kani::assume(term_fits_the_format(b));
+
+        let kinds = |t: &str| -> u8 {
+            (t.starts_with('<') as u8)
+                + (t.starts_with('"') as u8)
+                + (t.starts_with("_:") as u8)
+        };
+        // Exactly one kind, so the partition is a partition.
+        assert!(kinds(a) == 1);
+        assert!(kinds(b) == 1);
+
+        if a.as_bytes()[0] != b.as_bytes()[0] {
+            assert!(a != b);
+        }
+    }
+
     /// The guard that fixed the unwritable-predicate defect. For ANY pair of
     /// strings it decides both positions and never panics. The statement is
     /// small because the function is; its value is that the engine now has
@@ -2758,50 +3544,55 @@ mod kani_harnesses {
         assert!(ok == (s.as_bytes()[0] != b'"' && p.as_bytes()[0] == b'<'));
     }
 
-    /// TCB-20, one rule-table position at a time. `parse_pat` and
-    /// `Pat::render` are inverse, so a constant never renders to something that
-    /// reads back as a variable. Because `parse_pat` returns
-    /// `anyhow::Result`, this also proves it cannot panic on any input of the
-    /// bounded length.
-    /// TCB-20. **THIS HARNESS DOES NOT TERMINATE AND IS NOT IN `make verify`.**
-    /// It is kept because the attempt is worth more written down than deleted,
-    /// and because a reader who wants to finish it should not have to rediscover
-    /// why it is hard.
+    /// TCB-20. `pat_of` and `Pat::render` are inverse, so a constant never
+    /// renders to something that reads back as a variable and a variable name
+    /// never renders to something that reads back as a constant. `run_horn`'s
+    /// re-parse guard, and therefore the claim that the checker reads the table
+    /// the engine evaluated, rests on this.
     ///
-    /// Measured on this machine, with nothing else competing:
+    /// **This is the harness the previous version of this file reported as NOT
+    /// TERMINATING.** It targeted `parse_pat`, which returns `anyhow::Result`
+    /// and formats a message naming the line and the position on every refusal,
+    /// so the function body carried the whole formatting machinery. CBMC
+    /// flattens a function before it solves, so an `assume` that makes the
+    /// refusal paths infeasible is a constraint for the solver and not a cut in
+    /// the program: constraining the input made it worse, not better. Measured
+    /// then, with nothing else competing: four unconstrained ASCII bytes, no
+    /// verdict at 7 minutes and 3.0 GB; two bytes, no verdict at 8 minutes and
+    /// 2.8 GB; two bytes with the first constrained to the three spellings the
+    /// function accepts, no verdict at 14 minutes and 9.5 GB.
     ///
-    /// | input | outcome |
-    /// |---|---|
-    /// | 4 ASCII bytes, unconstrained | no verdict at 7 minutes, 3.0 GB |
-    /// | 2 ASCII bytes, unconstrained | no verdict at 8 minutes, 2.8 GB |
-    /// | 2 ASCII bytes, first byte constrained to `?`, `<` or `"` | no verdict at 14 minutes, 9.5 GB |
-    ///
-    /// The cost is not the input. `parse_pat` returns `anyhow::Result` and every
-    /// refusal formats a message naming the line and the position, so the
-    /// function body carries the whole formatting machinery, and CBMC flattens a
-    /// function before it solves: an `assume` that makes the refusals infeasible
-    /// is a constraint for the solver, not a cut in the program, so it does not
-    /// remove the work. Constraining the input made it WORSE, which is the
-    /// evidence for that reading.
-    ///
-    /// What would close it: lift the classification out of `parse_pat` into a
-    /// pure function returning an `Option<Pat>`, with `parse_pat` reduced to
-    /// that call plus the error messages. Then the harness targets a function
-    /// with no allocation and no formatting, and the messages stay where they
-    /// are. That is a refactor of shipped code and it was not made here.
-    ///
-    /// Until then the property is sampled, not proved:
-    /// `boundary_tests::tcb_20_parse_pat_and_render_are_inverse` over 1024 cases,
-    /// and `tests/certificate_boundary_proptest.rs` over whole rule tables.
-    #[kani::proof]
-    #[kani::unwind(8)]
-    fn parse_pat_and_render_are_inverse() {
-        let mut buf = [0u8; 2];
+    /// What that harness said would close it was "lifting the classification
+    /// out of `parse_pat` into a pure `Option<Pat>` function, leaving the
+    /// messages where they are". That is `pat_of`, and this is the harness. The
+    /// input is unconstrained, both verdicts are explored, and the refusal
+    /// branch is proved to be exactly the fields that are neither a named
+    /// variable nor an N-Triples term.
+    fn pat_of_and_render_are_inverse<const N: usize>() {
+        let mut buf = [0u8; N];
         let field = any_ascii(&mut buf);
-        kani::assume(!field.contains('\t') && !field.contains('\n'));
-        let head = field.as_bytes()[0];
-        kani::assume(head == b'?' || head == b'<' || head == b'"');
-        let p = parse_pat(field, 1, "position").expect("the accepted spellings parse");
-        assert!(p.render() == field);
+        let b = field.as_bytes();
+        let named_var = N > 1 && b[0] == b'?';
+        let nt_term = N > 0
+            && (b[0] == b'<' || b[0] == b'"' || (b[0] == b'_' && N > 1 && b[1] == b':'));
+        match pat_of(field) {
+            Some(p) => {
+                assert!(named_var || nt_term);
+                assert!(p.render() == field);
+            }
+            None => assert!(!named_var && !nt_term),
+        }
+    }
+
+    #[kani::proof]
+    #[kani::unwind(12)]
+    fn pat_of_and_render_are_inverse_at_2() {
+        pat_of_and_render_are_inverse::<2>();
+    }
+
+    #[kani::proof]
+    #[kani::unwind(12)]
+    fn pat_of_and_render_are_inverse_at_3() {
+        pat_of_and_render_are_inverse::<3>();
     }
 }

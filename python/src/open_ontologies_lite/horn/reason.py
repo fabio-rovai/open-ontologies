@@ -245,9 +245,10 @@ def _facts(store, graphs) -> tuple[list[Fact], list[str]]:
 
     The default is the DEFAULT GRAPH ALONE, which is where `OntologyEngine.load()`
     puts everything, so this package's own users lose nothing by it. The Rust
-    engine flattens every named graph here (`src/reason.rs:2170`,
-    `graph.all_triples()`), which is the defect above: a store holding a prior
-    materialisation turns derived triples into assertions.
+    engine flattens every named graph here EXCEPT the inferred one
+    (`src/reason.rs:1105`, `graph.triples_outside(&[INFERRED_GRAPH])`). Before
+    15 September 2026 it excepted nothing, which was the defect above: a store
+    holding a prior materialisation turned derived triples into assertions.
     """
     if graphs == "default":
         quads = list(store.quads_for_pattern(None, None, None, ox.DefaultGraph()))
@@ -442,8 +443,9 @@ def run_horn(
     the Lean checker decides whether it did.
 
     `graphs="default"` asserts only the default graph. `"all"` flattens every
-    graph the way the Rust engine does, and RAISES if the inferred graph is
-    present.
+    graph and RAISES if the inferred graph is present, which is stricter than the
+    Rust engine: that one excludes the inferred graph rather than refusing the
+    run.
 
     `max_iterations=None` runs to a genuine fixpoint. No cap is needed for
     termination: `parse_rules` refuses a head variable that does not occur in the

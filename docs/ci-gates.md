@@ -69,6 +69,7 @@ job invokes the file at all.
 | `gate_demonstration_test.rs` | lake | `lean` job | **strict** |
 | `w3c_shacl_conformance_test.rs` | vendored W3C SHACL suite (in tree) | `w3c-shacl` job | **strict** |
 | `certificate_boundary_proptest.rs` | lake | `lean` job | **strict** |
+| `premise_order_test.rs` | `lean/OOCert/Rules.lean` (in tree) | every job that runs `cargo test` | **runs everywhere**: it READS the Lean source rather than building it, so TCB-14 is gated without a toolchain |
 | `reason_rl_coverage_test.rs` | lake | `lean` job | **strict** |
 | `rule_syntax_frontend_test.rs` | lake | `lean` job | **strict** |
 | `reason_horn_emit_test.rs` | lake + `tests/fixtures/horn/` (in tree) | `lean` job | **strict** |

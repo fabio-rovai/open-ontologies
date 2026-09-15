@@ -748,10 +748,15 @@ Stated rather than discovered later.
 - **`asserted.tsv` is the store, not your file.** Quads are flattened, so a triple present in two
   named graphs appears on two lines. Literals are in the store's post-parse canonical spelling, so
   `"01"^^xsd:integer` is written `"1"^^xsd:integer`. The guarantee is relative to that file.
-- **Reasoning twice into one store.** The run now reaches a fixpoint, so a second run adds nothing,
-  but if you materialise into a store that already held inferences they appear in `asserted.tsv` as
-  assumptions with nothing marking them derived. Use `inference_graph: true` (decision 0001) when
-  that distinction matters.
+- **Reasoning twice into one store.** The run reaches a fixpoint, so a second run adds nothing. If
+  you materialise into the DEFAULT graph of a store that already held inferences, they appear in
+  `asserted.tsv` as assumptions with nothing marking them derived: the merge is what the caller
+  asked for and it is lossy. `inference_graph: true` (decision 0001) now fixes it rather than
+  mitigating it. The certified paths read `GraphStore::triples_outside(&[INFERRED_GRAPH])`, so a
+  later run does not read an earlier run's conclusions back as axioms, and the JSON reports
+  `graphs_read` and `graphs_excluded` so the certificate says which graphs it is about. Until 15
+  September 2026 `all_triples` read every named graph and the separation protected `save` and not
+  the certificate; TCB-8 in `docs/trusted-computing-base.md` has the history.
 - **No clash found is not consistency.** Seven of the seventeen clash rules are not looked for at
   all and eight of the ten that are cannot be certified, so a clean `reason` run means "none of the
   ten rules tried fired", never "this ontology is consistent". A rejected refutation means the same:
