@@ -408,8 +408,8 @@ theorem joint_model_of_closure {G : List Triple} {D : Triple → Prop}
 /-- A graph with a joint model is not refutable, so `refutation_sound` is not a
 theorem about an empty model class.
 
-**Relative to `Conditions` and `RefuteConditions`, and it does not transfer to
-the OWL 2 RDF-Based Semantics.** This note is here rather than only in
+**Relative to `Conditions` and `RefuteConditions`, and it is not itself the
+statement over the OWL 2 RDF-Based Semantics conditions.** This note is here rather than only in
 `Semantics.lean` because a caveat that lives in one file is a caveat that goes
 stale; until 15 September 2026 this one did, and this file was byte-identical to
 the version that predates `lean/OOCert/W3C.lean`.
@@ -421,9 +421,15 @@ useless way for this one: `refutation_sound`'s `Unsat G` does transfer, because
 every `W3CModel` of `G` is a `Model` of `G`, so an accepted refutation rules out
 conforming interpretations too. A `¬ Unsat` needs a `W3CModel` that also
 satisfies `RefuteConditions`, and neither this lemma nor
-`RefuteWitness.lean`'s `feed_is_not_refuted` supplies one. The obstruction for
-`feed` in particular is checked at
-`RefuteWitness.lean`'s `feed_closure_misses_the_class_typing`. -/
+`RefuteWitness.lean`'s `feed_is_not_refuted` supplies one.
+
+`RefuteWitness.lean` now does supply one, and this lemma is the shape it takes
+over there: `W3CUnsat` is `Unsat` over the smaller class, `w3cUnsat_of_unsat`
+is the transfer that does run, `not_w3cUnsat_of_joint_w3c_model` is this lemma's
+counterpart, and `feed_is_not_w3c_refuted` is the result. The obstruction that
+used to be recorded here, that `feedClosure` types nothing as an `rdfs:Class` and
+so `W3C.sc_fwd` fails on it, was a fact about the HERBRAND witness and not about
+the statement; a thirteen-element model built for it settles the statement. -/
 theorem not_unsat_of_joint_model {G : List Triple}
     (h : ∃ I : Interp, Model I G ∧ RefuteConditions I) : ¬ Unsat G := by
   obtain ⟨I, hM, hR⟩ := h

@@ -61,12 +61,15 @@ fourteen arms that used to be posited are steps inside its proof.
 `certificate_sound` keeps its exact statement and its exact axiom footprint.
 
 **`W3CModel` is not the same thing as a conforming interpretation, and no
-document in this repository may say that it is.** Two gaps separate them, both
-stated below and both stated again at `certificate_w3c_sound`: the reading of one
-as the other is prose rather than a theorem, and `W3C` omits every table row no
-rule consumes, so its class is strictly larger than the bridge image. Both run in
+document in this repository may say that it is.** Two gaps used to separate them.
+The first, that the reading of one as the other was prose rather than a theorem,
+is closed: `Conforming.lean` formalises the specification's interpretation and
+`OOCert.Conforming.toW3CModel` is that reading, proved. The second remains:
+`W3C` omits every table row no rule consumes, so its class is strictly larger
+than the image of the conforming interpretations under that map. Both gaps run in
 the safe direction for THIS theorem and neither runs in the safe direction for a
-non-entailment result.
+non-entailment result, so a refutation over `W3CModel` is still a statement about
+`W3CModel` and not about the specification.
 
 `IP` is a PARAMETER of this structure rather than a field of `Interp`, which is
 what makes the whole file additive. It stays completely free INSIDE the
@@ -84,11 +87,29 @@ remove those obligations, it MOVES them out of the proofs and into the bridge,
 and the bridge needs FIVE of them where Isabelle needs three. They are listed in
 the next section, because a cost that is paid somewhere else is still paid.
 
-## The bridge to a conforming interpretation, which is prose and not a theorem
+## The bridge to a conforming interpretation, WHICH IS NOW A THEOREM
 
-There is no Lean formalisation of an OWL 2 RDF-Based interpretation to quantify
-over, and building one is a different project, so this step is an argument and
-is marked as one.
+**Everything in this section describes the state of the layer before 15
+September 2026 and is superseded by `Conforming.lean`.** It is kept because the
+argument below is still the argument, and because the correction of one of its
+five assumed facts should stay next to the claim it corrects. What changed is
+that there is now a Lean formalisation of an OWL 2 RDF-Based interpretation to
+quantify over, `OOCert.Interpretation`, so the reading described here is
+`OOCert.Conforming.toW3C` and the five facts listed below are fields of
+`OOCert.Conforming`, quoted out of the axiomatic-triple tables and discharged
+rather than assumed. `OOCert.certificate_conforming_sound` is the sentence this
+file's `certificate_w3c_sound` says of itself that it is not yet.
+
+**One entry in the table below is wrong and the correction is recorded rather
+than silently applied.** The `I(rdfs:range) ∈ IP` row sources the fact to
+`rdfs:range rdfs:domain rdf:Property .` with the note "same", pointing at the row
+above it, which reads "whose truth puts its own predicate in `IP`". The predicate
+of that triple is `rdfs:domain`, so its truth gives `I(rdfs:domain) ∈ IP` and not
+`I(rdfs:range) ∈ IP`; reaching `rdfs:range` from it needs a further step through
+Table 5.8's `rdfs:domain` row, which the entry does not mention.
+`Conforming.lean` takes the fact from `rdf:type rdfs:range rdfs:Class .`
+instead, whose predicate IS `rdfs:range`, so one application of the truth clause
+settles it and no table is consulted.
 
 Given a conforming interpretation in the sense of OWL 2 RDF-Based Semantics
 section 5, take `D := IR`, `ι := I`, and
@@ -657,9 +678,11 @@ structure W3CModel (I : Interp) (IP : I.D → Prop) (G : List Triple) : Prop whe
 
 /-- **Every `W3CModel` is a `Model`.**
 
-Not "every conforming interpretation is a model here": that sentence needs the
-prose bridge and the five axiomatic-triple facts in the module docstring, and
-this theorem quantifies over `W3CModel`, which is a Lean structure.
+Not "every conforming interpretation is a model here": this theorem quantifies
+over `W3CModel`, which is a Lean structure. That sentence is
+`OOCert.Conforming.toModel` in `Conforming.lean`, which composes with this one
+and discharges the five axiomatic-triple facts the module docstring above
+assumes.
 
 Twelve of the twenty-three `Conditions` fields below are derivations rather than
 projections: `sc_trans`, `sp_trans`, `eqc`, `eqp`, `svf_sc`, `svf_sp`,
@@ -714,9 +737,9 @@ def W3CEntails (G : List Triple) (t : Triple) : Prop :=
 and not about a conforming interpretation. Everything `Entails` gives is true in
 every `W3CModel` of the graph, and the fourteen conditions that used to be
 posited are steps inside the proof of it. Reading that outward, to the
-specification's own interpretations, costs the prose bridge and the five
-axiomatic-triple facts in the module docstring; `certificate_w3c_sound` says so
-again where a reader will hit it.
+specification's own interpretations, is `OOCert.ConformingEntails.of_entails` in
+`Conforming.lean`, which used to be the prose bridge and the five
+axiomatic-triple facts in the module docstring above.
 
 The transfer runs in this direction and only this one. `Conditions` admits more
 interpretations than `W3C` does, so a claim true in all of them is true in all
@@ -724,15 +747,15 @@ of the smaller class. The converse fails: a `¬ Entails` result does NOT give
 `¬ W3CEntails`, because the model refuting the first need not be a `W3CModel`.
 
 What that does NOT mean is that every non-entailment here is stuck. It says only
-that each one needs its own proof, and four of the seven in this repository got
-one for free, because the interpretations they already used ARE `W3CModel`s once
-`IP` is instantiated to the empty predicate. `IP` is a free parameter of `W3C`
-and `sp_bwd`, `dom_bwd` and `rng_bwd` are the only fields that take an `IP`
-membership as a hypothesis, so `IP := fun _ => False` makes all three vacuous; a
-witness graph with no `rdfs:Class` typing makes `sc_bwd` vacuous too, because
-`I.IC` is then empty. `W3CWitness.lean` and `Mixed.lean` carry the four, and the
-three that do not transfer carry the field that fails, checked rather than
-asserted. -/
+that each one needs its own proof, and every one of them in this repository now
+has one. Four came for free, because the interpretations they already used ARE
+`W3CModel`s once `IP` is instantiated to the empty predicate. `IP` is a free
+parameter of `W3C` and `sp_bwd`, `dom_bwd` and `rng_bwd` are the only fields that
+take an `IP` membership as a hypothesis, so `IP := fun _ => False` makes all
+three vacuous; a witness graph with no `rdfs:Class` typing makes `sc_bwd` vacuous
+too, because `I.IC` is then empty. `W3CWitness.lean` and `Mixed.lean` carry those
+four. The rest needed a hand-built finite structure each, and `W3CWitness.lean`'s
+`svfI` and `RefuteWitness.lean`'s `refI` are those structures. -/
 theorem W3CEntails.of_entails {G : List Triple} {t : Triple} (h : Entails G t) :
     W3CEntails G t :=
   fun _ _ W => h _ W.toModel
@@ -743,16 +766,23 @@ now quantifies over every interpretation meeting the quoted table cells, rather
 than over the weaker set of conditions the Lean posited, and that the fourteen
 arms which used to be posited are steps inside the proof.
 
-**This is not yet the sentence "true in every conforming interpretation", and
-the difference is the bridge in the module docstring above, which is an argument
-and not a theorem.** `W3CModel` is a Lean structure; a conforming interpretation
-is an object of the specification's metatheory, and nothing here quantifies over
-those. The bridge says how to read one as the other, and it is checkable by
-hand, but it is prose. `W3CModel` is also strictly weaker than conformance,
-because `W3C` deliberately omits every table row no rule consumes, so its class
-is larger than the bridge image. Both gaps run in the safe direction for THIS
-theorem, since a larger class makes the conclusion stronger; neither runs in the
-safe direction for a non-entailment result. -/
+**This is not the sentence "true in every conforming interpretation", and that
+sentence is now `OOCert.certificate_conforming_sound` in `Conforming.lean`.**
+`W3CModel` is a Lean structure. Until 15 September 2026 nothing in this
+repository quantified over the specification's own interpretations, so the step
+between the two was the prose bridge in the module docstring above, plus five
+assumed facts; `Conforming.lean` builds `OOCert.Interpretation`, proves the
+bridge as `OOCert.Conforming.toW3C`, and carries the five facts as quoted
+axiomatic triples. This theorem is left exactly as it was, because it is what
+`W3CWitness.lean` and `Mixed.lean` consume and because a weaker statement that
+still holds is not a defect.
+
+`W3CModel` remains strictly weaker than conformance, because `W3C` deliberately
+omits every table row no rule consumes, so its class is larger than the image of
+the conforming interpretations under `toW3C`. That gap runs in the safe direction
+for THIS theorem, since a larger class makes the conclusion stronger; it does not
+run in the safe direction for a non-entailment result, and nothing about
+`Conforming.lean` changes that. -/
 theorem certificate_w3c_sound (G : List Triple) (steps : List Step)
     (h : checkCert G steps = true) :
     ∀ st ∈ steps, W3CEntails G st.conclusion :=
