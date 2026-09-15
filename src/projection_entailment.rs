@@ -121,12 +121,29 @@ fn has_blank(t: &Spelled) -> bool {
 /// that makes a re-parsed slice comparable, because the slice then carries real
 /// IRIs and nothing has to be matched.
 pub fn skolemise(g: &Arc<GraphStore>) -> anyhow::Result<(Arc<GraphStore>, BTreeMap<String, String>)> {
+    skolemise_with_prefix(g, SKOLEM_PREFIX)
+}
+
+/// [`skolemise`] under a caller-chosen prefix.
+///
+/// Two graphs skolemised SEPARATELY under the same prefix can collide: the map
+/// is `_:label ↦ prefix + label`, and two unrelated graphs both containing
+/// `_:b0` would then agree on an IRI that names two different things. Any
+/// caller that skolemises one graph and later merges another into it has to
+/// keep the two apart, and a distinct prefix is the only thing that does it.
+/// `_` is not a legal character-run separator in an N-Triples blank node label
+/// and `/` cannot appear in one at all, so a prefix ending in `/base/` cannot
+/// be produced by the default prefix over any label.
+pub fn skolemise_with_prefix(
+    g: &Arc<GraphStore>,
+    prefix: &str,
+) -> anyhow::Result<(Arc<GraphStore>, BTreeMap<String, String>)> {
     let mut map: BTreeMap<String, String> = BTreeMap::new();
     let mut nt = String::new();
     for (s, p, o) in g.all_triples()? {
         let mut one = |term: &str| -> String {
             if let Some(label) = term.strip_prefix("_:") {
-                let iri = format!("<{SKOLEM_PREFIX}{label}>");
+                let iri = format!("<{prefix}{label}>");
                 map.insert(iri.clone(), term.to_string());
                 iri
             } else {

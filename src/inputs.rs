@@ -417,6 +417,84 @@ pub struct OntoExtendInput {
 pub struct OntoPlanInput {
     /// New ontology as inline Turtle content
     pub new_turtle: String,
+    /// Also answer whether the change alters any consequence over the names the
+    /// store ALREADY uses, under the rule table in `conservativity_profile`.
+    /// Default false: it reasons both graphs to a fixpoint, so it costs seconds
+    /// rather than milliseconds. When it is false the plan says so rather than
+    /// staying silent.
+    #[serde(default)]
+    pub check_conservativity: Option<bool>,
+    /// Rule table for the conservativity check: `rdfs`, `owl-rl` (default) or
+    /// `owl-rl-ext`. `owl-dl` is refused, because the tableaux path emits no
+    /// rule trace and every row would be unchecked.
+    #[serde(default)]
+    pub conservativity_profile: Option<String>,
+    /// Where the conservativity check's two certificates land, so the run is
+    /// reproducible by hand. Defaults to a temporary directory.
+    #[serde(default)]
+    pub conservativity_out_dir: Option<String>,
+}
+
+/// Input for `onto_module_extract` — a locality module, not a slice.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoModuleExtractInput {
+    /// The IRIs the module must cover. Not optional and not defaulted: the
+    /// module over the empty signature is a real answer and never the wanted
+    /// one.
+    pub signature: Vec<String>,
+    /// `star` (the iterated ⊥⊤*, default and smallest), `bottom` or `top`.
+    #[serde(default)]
+    pub locality: Option<String>,
+    /// Re-attach `rdfs:label` / `rdfs:comment` for the terms the module keeps.
+    /// They are not part of the logical module and are counted separately.
+    #[serde(default)]
+    pub include_annotations: Option<bool>,
+    /// Reason the whole ontology and the module to a fixpoint and report every
+    /// conclusion over the signature the module does not reach, which must be
+    /// none. Writes both certificates here. Omit to skip the verification and
+    /// say so.
+    #[serde(default)]
+    pub verify_out_dir: Option<String>,
+    /// Rule table for the verification: `rdfs`, `owl-rl` or `owl-rl-ext`
+    /// (default).
+    #[serde(default)]
+    pub verify_profile: Option<String>,
+    /// How many of the conclusions the module does not reach are examined for
+    /// signature membership. Default 200,000. A verification computed from a
+    /// prefix of the difference is a SAMPLE, and `not_examined` says when the
+    /// bound bit, so a clean result over a truncated scan cannot read as a
+    /// clean result.
+    #[serde(default)]
+    pub verify_scan_rows: Option<usize>,
+    #[serde(default)]
+    pub max_rows: Option<usize>,
+}
+
+/// Input for `onto_conservative_check` — does adding these axioms change what
+/// the ontology already said?
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoConservativeCheckInput {
+    /// The proposed axioms, as Turtle.
+    pub extension_ttl: String,
+    /// Directory for both certificates and the report.
+    pub out_dir: String,
+    /// `delta` (default) reads `extension_ttl` as the axioms being ADDED.
+    /// `replacement` reads it as the whole proposed graph, the way `onto_plan`
+    /// receives it, and then reports any asserted triple of the base it drops.
+    /// This is not guessed: a delta that restates one base triple and a
+    /// replacement that dropped everything else look identical.
+    #[serde(default)]
+    pub mode: Option<String>,
+    /// `rdfs`, `owl-rl` (default) or `owl-rl-ext`. `owl-dl` is refused.
+    #[serde(default)]
+    pub profile: Option<String>,
+    /// How many new consequences are examined for signature membership. The
+    /// verdict is `undecided_scan_truncated` when there are more, because a
+    /// verdict computed from a prefix of the difference is not a verdict.
+    #[serde(default)]
+    pub scan_rows: Option<usize>,
+    #[serde(default)]
+    pub max_rows: Option<usize>,
 }
 
 #[derive(Deserialize, JsonSchema)]
