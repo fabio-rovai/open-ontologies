@@ -106,7 +106,7 @@ itself, which is the property both inductions rest on — was differentially exe
 two-step fixture.
 On 15 September 2026 the corpus gained generated chains and fans, six mutations a flat
 certificate cannot express, and two hand-built adversarial certificates. It is now 2,075 rows
-reaching depth 19 and fan-out 12, of which exercise the ordering discipline rather than 123.
+reaching depth 19 and fan-out 12, of which 484 exercise the ordering discipline rather than 123.
 Depth found no new divergence, which is a result about the two formalisations and not a null
 one — the property their inductions are built on was, until then, barely tested against data
 that could violate it.
