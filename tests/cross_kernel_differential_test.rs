@@ -106,14 +106,37 @@ fn lake_available() -> bool {
         .unwrap_or(false)
 }
 
+/// A Poly/ML library directory is one this test can actually LINK against, which is
+/// three files and not one. Ubuntu's `polyml` package is the reason the distinction is
+/// checked rather than assumed: it installs `/usr/bin/poly` and `libpolymain.a` and no
+/// `libpolyml.a` at all, so a search that stopped at `poly` would report the Isabelle
+/// half available and then fail in the linker with nothing saying what was missing.
+fn poly_usable(dir: &Path) -> bool {
+    dir.join("poly").exists()
+        && dir.join("libpolymain.a").exists()
+        && dir.join("libpolyml.a").exists()
+}
+
 /// The Isabelle side needs Poly/ML to link the exported checker, and the exported
 /// checker itself, which `isabelle/export.sh` writes out of the session and which is
 /// committed so this test does not need a full Isabelle build to run.
 ///
-/// The same search `isabelle/build_native.sh` does, and for the same reason: asking
-/// `isabelle getenv ISABELLE_HOME` is the only answer that is right on a machine that is
-/// not this one, and the macOS app bundle is only the fallback.
+/// The same search `isabelle/build_native.sh` does, in the same order and for the same
+/// reasons. `POLYDIR` wins, because it is the answer that is right on a machine nobody
+/// anticipated and it is how CI points at the Poly/ML component it unpacks. This test
+/// was macOS-only until 15 September 2026, and an `/Applications` scan is not a search
+/// on a Linux runner. Then `isabelle getenv ISABELLE_HOME`, then the macOS app bundle,
+/// then a `poly` on PATH with its libraries beside it.
 fn poly_dir() -> Option<PathBuf> {
+    // Whatever build_native.sh would link against, this test must agree with, or the
+    // skip decision and the build decision are made on different evidence.
+    if let Ok(dir) = std::env::var("POLYDIR")
+        && !dir.is_empty()
+    {
+        let dir = PathBuf::from(dir);
+        return poly_usable(&dir).then_some(dir);
+    }
+
     let arch = if cfg!(target_arch = "aarch64") { "arm64" } else { "x86_64" };
     let os = if cfg!(target_os = "macos") { "darwin" } else { "linux" };
     let platform = format!("{arch}-{os}");
@@ -138,14 +161,25 @@ fn poly_dir() -> Option<PathBuf> {
         for c in cs.flatten() {
             if c.file_name().to_string_lossy().starts_with("polyml-") {
                 let d = c.path().join(&platform);
-                if d.join("poly").exists() {
+                if poly_usable(&d) {
                     found.push(d);
                 }
             }
         }
     }
     found.sort();
-    found.pop()
+    if let Some(d) = found.pop() {
+        return Some(d);
+    }
+
+    // A from-source Poly/ML keeps its archives next to its binary.
+    let out = Command::new("sh").args(["-c", "command -v poly"]).output().ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let exe = PathBuf::from(String::from_utf8_lossy(&out.stdout).trim());
+    let dir = exe.parent()?.to_path_buf();
+    poly_usable(&dir).then_some(dir)
 }
 
 fn isabelle_available() -> bool {
@@ -165,10 +199,13 @@ fn skip() -> bool {
     }
     common::skip_unless(
         isabelle_available(),
-        "Poly/ML (bundled with Isabelle) and isabelle/driver/oo_horn_generated.ML, \
-         for the Isabelle half of the differential",
-        "install Isabelle2025-2 from https://isabelle.in.tum.de; the generated ML is \
-         committed, and isabelle/export.sh regenerates it from the session",
+        "Poly/ML and isabelle/driver/oo_horn_generated.ML, for the Isabelle half of the \
+         differential",
+        "the generated ML is committed, so the full Isabelle distribution is NOT needed: \
+         unpack https://isabelle.in.tum.de/components/polyml-5.9.2-2.tar.gz and set \
+         POLYDIR to its platform directory, which is what CI does. Installing \
+         Isabelle2025-2 also works and is what isabelle/export.sh needs to regenerate \
+         the ML from the session",
     )
 }
 
@@ -2108,6 +2145,12 @@ fn agreement_is_about_the_definitions_and_is_not_itself_a_proof() {
 /// This test prints the distribution and holds a floor under it. It deliberately does
 /// NOT require either proof assistant: the shape of the corpus is a fact about the
 /// files, and it should still be measurable on a machine that cannot run the kernels.
+///
+/// It also CHECKS THE DOCUMENTS that quote these figures against the figures, at the
+/// bottom, rather than in a test of its own. Generating this corpus means running the
+/// engine over every ontology the repository ships, three tests in this file already pay
+/// for that, and a fourth copy of the cost to compare two strings is not worth it. The
+/// reason the check exists at all is in the comment where it is made.
 #[test]
 fn the_corpus_exercises_prefix_visibility_at_depth() {
     let scratch = scratch_dir();
@@ -2169,7 +2212,92 @@ fn the_corpus_exercises_prefix_visibility_at_depth() {
          REJECTING half of the discipline is barely exercised"
     );
 
+    // ── the documents, against the corpus that was just counted ──────────────
+    //
+    // The house rule is that a figure next to the thing it describes must be DERIVED and
+    // never typed, and this corpus is the case that made the rule. Three documents quoted
+    // it, two different versions of it were measured on two branches eleven minutes apart
+    // and merged separately, and what landed on main was a README sentence reporting zero
+    // divergent rows next to an inventory reporting fifty-four, neither of them measured
+    // against the tree they were committed to. `isabelle/README.md` said so about itself
+    // and was left stale on purpose, because the work that found it was not allowed to
+    // touch that directory.
+    //
+    // The corpus TOTAL is the wrong thing to pin on its own: it moves whenever a Turtle
+    // file lands in one of the ten directories `source_graphs` reads, and a growing
+    // corpus is not a regression. What is checked instead is that every document quoting
+    // it quotes THIS measurement, so a corpus that grows fails until the prose is
+    // corrected, and a correction that reaches one document out of two fails as well.
+    // That is the shape `tests/readme_claims_test.rs` uses for the tool count.
+    //
+    // The divergence count is deliberately NOT here. It cannot be measured without both
+    // kernels, and `the_two_kernels_agree_on_the_whole_corpus` asserts it directly rather
+    // than in prose: the documents say the two agree, and that sentence is true exactly
+    // when that test passes.
+    let total = bases.len() + mutants.len() + fuzzed.len();
+    let exercising = uses + violates;
+    let claims: [(&str, &str, String); 2] = [
+        (
+            "README.md",
+            "the paragraph on what the discipline has caught",
+            format!(
+                "a corpus of {} certificates, {exercising} of which exercise the ordering \
+                 property",
+                commas(total)
+            ),
+        ),
+        (
+            "docs/reasoning-systems-inventory.md",
+            "the paragraph on corpus depth",
+            format!(
+                "{} rows reaching depth {deepest} and fan-out {widest}, of which \
+                 {exercising} exercise the ordering discipline",
+                commas(total)
+            ),
+        ),
+    ];
+
+    // Whitespace is collapsed on both sides before comparing. These documents are hard
+    // wrapped at about a hundred columns, so any phrase long enough to be worth checking
+    // straddles a line break, and a literal `contains` would fail on prose that is
+    // correct and pass on nothing. It is the claim being checked, not its typesetting.
+    let flatten = |s: &str| s.split_whitespace().collect::<Vec<_>>().join(" ");
+
+    let mut wrong = Vec::new();
+    for (file, where_, claim) in &claims {
+        let text = std::fs::read_to_string(repo().join(file))
+            .unwrap_or_else(|_| panic!("{file} must exist: a claim is checked against it"));
+        if !flatten(&text).contains(&flatten(claim)) {
+            wrong.push(format!("{file}, {where_}:\n    expected to find {claim:?}"));
+        }
+    }
+    assert!(
+        wrong.is_empty(),
+        "The corpus this file generates is {} certificates, {exercising} of them \
+         exercising prefix visibility, deepest base chain {deepest} and widest fan-out \
+         {widest}, and a document says otherwise.\n\n{}\n\nCorrect the document rather \
+         than this test: the corpus is the measurement and the prose is the claim. If a \
+         sentence was deliberately reworded, change the expected phrase here in the same \
+         commit and say why.",
+        commas(total),
+        wrong.join("\n\n")
+    );
+
     let _ = std::fs::remove_dir_all(&scratch);
+}
+
+/// Thousands separators, because the documents are written for people and a claim checked
+/// against `2075` would pass over prose that says `2,075`.
+fn commas(n: usize) -> String {
+    let s = n.to_string();
+    let mut out = String::with_capacity(s.len() + s.len() / 3);
+    for (i, c) in s.char_indices() {
+        if i > 0 && (s.len() - i).is_multiple_of(3) {
+            out.push(',');
+        }
+        out.push(c);
+    }
+    out
 }
 
 /// **Self-support, in the one form that isolates it.** A step whose only non-asserted
