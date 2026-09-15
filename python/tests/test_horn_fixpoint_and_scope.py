@@ -18,10 +18,12 @@ at the top of each round for exactly that reason, and the test below runs the sa
 graph through two interpreters with different `PYTHONHASHSEED` and demands
 identical bytes.
 
-SCOPE. This is the one that matters most. The Rust `run_horn` flattens every named
-graph into `asserted.tsv` (`src/reason.rs:2170`, `graph.all_triples()`), so a store
-that holds a previous materialisation in the inferred graph turns derived triples
-into ASSERTIONS. The checker cannot detect it: the soundness theorem is
+SCOPE. This is the one that matters most. Until 15 September 2026 the Rust
+`run_horn` flattened every named graph into `asserted.tsv`, so a store holding a
+previous materialisation in the inferred graph turned derived triples into
+ASSERTIONS. It now reads a SCOPE (`src/reason.rs:2335`,
+`graph.triples_in_scope(&scope)`) and writes `scope.tsv` naming every graph it
+read and every graph it excluded. The checker cannot detect it: the soundness theorem is
 conditional on the assertions, and it is TOLD what they are. The result is a green
 absolute verdict about a graph nobody asserted. This package defaults to the
 default graph alone and refuses the inferred graph outright.

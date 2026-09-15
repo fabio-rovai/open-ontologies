@@ -245,9 +245,12 @@ def _facts(store, graphs) -> tuple[list[Fact], list[str]]:
 
     The default is the DEFAULT GRAPH ALONE, which is where `OntologyEngine.load()`
     puts everything, so this package's own users lose nothing by it. The Rust
-    engine flattens every named graph here (`src/reason.rs:2170`,
-    `graph.all_triples()`), which is the defect above: a store holding a prior
-    materialisation turns derived triples into assertions.
+    engine reads a SCOPE here (`src/reason.rs:2335`,
+    `graph.triples_in_scope(&scope)`) and records which graphs it read. Before
+    15 September 2026 it flattened every named graph, which was the defect above:
+    a store holding a prior materialisation turned derived triples into
+    assertions. This package refuses such a run rather than scoping it, which is
+    the stricter of the two answers.
     """
     if graphs == "default":
         quads = list(store.quads_for_pattern(None, None, None, ox.DefaultGraph()))
