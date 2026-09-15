@@ -108,6 +108,18 @@ is named property by property in [docs/trusted-computing-base.md](docs/trusted-c
 property-tested, and partly bounded-model-checked. It is not verified. This work verified the
 joint, not the machine.
 
+**A certificate says nothing about which graph it is about.** The checkers read `asserted.tsv`
+and cannot ask where those triples came from. Every certified path used to read the whole store,
+so on a register that keeps several versions of an entity in several named graphs, a run reasoned
+over the union of every version: a state that held at no instant. The certificate over such a run
+is VALID — the derivations do follow, `oo-cert` accepts it, and a `cax-dw` refutation drawn from
+two versions that never coexisted is accepted by `oo-refute` — and the answer is still wrong,
+because the graph is. A run over a store that uses the temporal vocabulary now refuses unless the
+caller names an instant (`valid_at` / `as_of`) or asks for every version by name, and every
+certificate directory carries `scope.tsv`, the record of which graphs were read. **No Lean checker
+reads that file.** It is evidence for a person; the blind spot itself is not closed and cannot be
+by this layer.
+
 **The bridge to the specification is prose, not a theorem.** Fourteen rule arms used to be
 assumed rather than derived, and they are now derived, each with an empty axiom footprint, over a
 structure carrying the W3C conditions at full strength. What is still assumed is the reading that
