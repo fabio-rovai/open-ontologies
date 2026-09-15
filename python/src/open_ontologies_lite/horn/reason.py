@@ -245,12 +245,10 @@ def _facts(store, graphs) -> tuple[list[Fact], list[str]]:
 
     The default is the DEFAULT GRAPH ALONE, which is where `OntologyEngine.load()`
     puts everything, so this package's own users lose nothing by it. The Rust
-    engine reads a SCOPE here (`src/reason.rs:2335`,
-    `graph.triples_in_scope(&scope)`) and records which graphs it read. Before
-    15 September 2026 it flattened every named graph, which was the defect above:
-    a store holding a prior materialisation turned derived triples into
-    assertions. This package refuses such a run rather than scoping it, which is
-    the stricter of the two answers.
+    engine flattens every named graph here EXCEPT the inferred one
+    (`src/reason.rs:2855`, `graph.triples_in_scope(&scope)`). Before
+    15 September 2026 it excepted nothing, which was the defect above: a store
+    holding a prior materialisation turned derived triples into assertions.
     """
     if graphs == "default":
         quads = list(store.quads_for_pattern(None, None, None, ox.DefaultGraph()))
@@ -445,8 +443,9 @@ def run_horn(
     the Lean checker decides whether it did.
 
     `graphs="default"` asserts only the default graph. `"all"` flattens every
-    graph the way the Rust engine does, and RAISES if the inferred graph is
-    present.
+    graph and RAISES if the inferred graph is present, which is stricter than the
+    Rust engine: that one excludes the inferred graph rather than refusing the
+    run.
 
     `max_iterations=None` runs to a genuine fixpoint. No cap is needed for
     termination: `parse_rules` refuses a head variable that does not occur in the

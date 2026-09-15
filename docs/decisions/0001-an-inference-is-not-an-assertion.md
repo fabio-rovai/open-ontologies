@@ -60,7 +60,12 @@ subject is register integrity that is the wrong defect to be carrying.
 - **`onto_pack` writes sorted N-Triples.** A pack built after a reasoning run therefore now
   excludes the inferences. That is the safe direction and probably the right one, since a pack is
   a promotable artefact, but the manifest should say so rather than leaving it to be discovered.
-- **When the default flips**, `all_triples()` reads the whole store including named graphs, so a
-  second reasoning run consumes the first run's output as premises. OWL-RL is monotone, so the
-  closure is unchanged and `inferred_count` correctly reports zero new triples, but the reported
-  `initial_triples` then includes inferences and no longer means "what was asserted".
+- **`all_triples()` was the hole in this decision, and it is closed.** It reads the whole store
+  including named graphs, so a second reasoning run consumed the first run's output as premises:
+  OWL-RL is monotone, so the closure was unchanged and `inferred_count` correctly reported zero new
+  triples, but `initial_triples` then included inferences and no longer meant "what was asserted",
+  and `asserted.tsv` listed them as axioms. That made this decision protect `save` and not the
+  certificate, which is not what it says. Since 15 September 2026 both certified paths read
+  `GraphStore::triples_outside(&[INFERRED_GRAPH])` instead, and report `graphs_read` and
+  `graphs_excluded`. `all_triples()` is unchanged and still means every graph; its doc comment now
+  says which callers must not use it. See TCB-8 in `docs/trusted-computing-base.md`.

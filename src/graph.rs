@@ -133,6 +133,15 @@ impl SparqlAuth {
     }
 }
 
+/// What [`GraphStore::triples_outside`] returns: the triples, and the names of
+/// the graphs they came from.
+///
+/// The second half is not decoration. A certificate that says which graphs its
+/// assertions came from can be checked against the store; one that does not
+/// cannot, and `asserted.tsv` has no column that says "derived". See TCB-8 in
+/// `docs/trusted-computing-base.md`.
+pub type AssertedTriples = (Vec<(String, String, String)>, Vec<String>);
+
 /// In-memory RDF graph store backed by Oxigraph.
 ///
 /// The store is held directly rather than behind a `Mutex`. Oxigraph's `Store`
@@ -792,6 +801,7 @@ impl GraphStore {
 
     /// Extract all triples as (subject, predicate, object) string tuples.
     ///
+<<<<<<< HEAD
     /// Reads EVERY graph and drops the graph name. That is the right answer for
     /// a single-version store and the wrong one for a store that keeps several
     /// versions of the same entity in several named graphs, where the union is
@@ -799,6 +809,14 @@ impl GraphStore {
     /// is the form that reads a stated set of graphs; this one is what
     /// [`ReadScope::AllGraphs`] means and is kept unchanged so a run that asks
     /// for every graph gets byte-identical input to the one it always got.
+=======
+    /// EVERY graph, the default one and every named one, flattened. A caller
+    /// that is going to treat what it gets back as ASSERTED wants
+    /// [`triples_outside`](Self::triples_outside) instead: this method cannot
+    /// tell an assertion from a triple some earlier run of the reasoner parked
+    /// in a named graph, and the certificate layer's soundness theorem is
+    /// conditional on the assertions.
+>>>>>>> origin/main
     pub fn all_triples(&self) -> anyhow::Result<Vec<(String, String, String)>> {
         let store = &self.store;
         let mut triples = Vec::new();
@@ -812,6 +830,7 @@ impl GraphStore {
         Ok(triples)
     }
 
+<<<<<<< HEAD
     /// The triples of exactly the graphs a scope names, in the spelling
     /// [`all_triples`](Self::all_triples) yields.
     ///
@@ -920,6 +939,48 @@ impl GraphStore {
             out.push(rows);
         }
         Ok(out)
+=======
+    /// Every triple in the store EXCEPT those in the named graphs listed, in
+    /// the same spelling [`all_triples`](Self::all_triples) yields, together
+    /// with the names of the graphs that were read.
+    ///
+    /// See [`AssertedTriples`] for the pair it returns.
+    ///
+    /// This exists for the certified reasoning paths and it closes a real
+    /// defect. `onto_reason` with `inference_graph: true` parks its conclusions
+    /// in `https://open-ontologies.org/graph/inferred` so that nothing
+    /// downstream reads an inference as an assertion, but the reasoner is
+    /// itself downstream: `all_triples` reads every named graph, so a second
+    /// certified run listed the first run's conclusions in `asserted.tsv` as
+    /// axioms, with no column saying they were derived. The separation
+    /// protected `save` and not the certificate. See TCB-8 in
+    /// `docs/trusted-computing-base.md`.
+    ///
+    /// The graph names are returned because a certificate that says which
+    /// graphs it read is checkable against the store, and one that does not is
+    /// not. `<default>` is the unnamed graph.
+    pub fn triples_outside(&self, excluded: &[&str]) -> anyhow::Result<AssertedTriples> {
+        let mut triples = Vec::new();
+        let mut read: BTreeSet<String> = BTreeSet::new();
+        for quad in self.store.iter() {
+            let quad = quad?;
+            let name = match &quad.graph_name {
+                GraphName::DefaultGraph => "<default>".to_string(),
+                GraphName::NamedNode(n) => n.as_str().to_string(),
+                GraphName::BlankNode(b) => format!("_:{}", b.as_str()),
+            };
+            if excluded.iter().any(|e| *e == name) {
+                continue;
+            }
+            read.insert(name);
+            triples.push((
+                quad.subject.to_string(),
+                quad.predicate.to_string(),
+                quad.object.to_string(),
+            ));
+        }
+        Ok((triples, read.into_iter().collect()))
+>>>>>>> origin/main
     }
 
     /// Copy one named graph of this store into a fresh store's DEFAULT graph,

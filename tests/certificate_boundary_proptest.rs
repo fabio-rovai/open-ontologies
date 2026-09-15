@@ -1072,23 +1072,34 @@ fn tcb_9_a_quad_in_two_graphs_is_two_lines() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TCB-8, the part that does NOT hold
+// TCB-8 across runs: what was fixed, and what is irreducible
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Materialising into the default graph turns run N's conclusions into run
-/// N+1's assertions, and nothing in the certificate says which is which.
+/// A second certified run does not read the first run's conclusions back as
+/// assertions, when the caller asked for them to be kept apart.
 ///
-/// This test asserts the DEFECT, because it is real, documented in
-/// `docs/lean-certificates.md` and in decision 0001, and mitigated rather than
-/// fixed. A test that asserted the property would fail; a test that was absent
-/// would let someone believe the property holds. Pinning the failure means the
-/// day the behaviour changes, this fails and the documentation gets corrected.
+/// **This test used to assert the DEFECT.** `GraphStore::all_triples` read
+/// every named graph, so the inferences `inference_graph: true` parked in
+/// `https://open-ontologies.org/graph/inferred` came back in the next run's
+/// `asserted.tsv` as axioms, with no column saying they were derived. The
+/// separation protected `save` and not the certificate, and the second half of
+/// this test asserted that it did not work, so that the day it changed the
+/// documentation would be forced to change with it. It changed on 15 September
+/// 2026: the certified paths read `triples_outside(&[INFERRED_GRAPH])` and the
+/// certificate reports the graphs it read. The assertion is now the property.
+///
+/// The FIRST half still asserts the leak, because that half is not a defect and
+/// cannot be fixed here. `InferenceTarget::DefaultGraph` merges conclusions
+/// into the default graph beside the assertions, which is what the caller asked
+/// for, and after that nothing distinguishes them. That is the irreducible
+/// half of TCB-8 and it is why the fix is a fix of the named-graph path.
 #[test]
-fn tcb_8_across_runs_an_inference_becomes_an_assertion() {
+fn tcb_8_across_runs_only_the_default_graph_leaks() {
     let ttl = "<http://e/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://e/A> .\n\
                <http://e/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://e/B> .\n";
 
-    // Default graph: the inference comes back as an assertion.
+    // Default graph: the inference comes back as an assertion, because the
+    // caller asked for it to be merged and the merge is lossy.
     let g = Arc::new(GraphStore::new());
     g.load_ntriples(ttl).unwrap();
     let d1 = scratch("leak1");
@@ -1105,25 +1116,46 @@ fn tcb_8_across_runs_an_inference_becomes_an_assertion() {
         std::fs::read_to_string(d2.join("asserted.tsv")).unwrap().lines().map(str::to_string).collect();
     assert!(
         concluded.iter().any(|c| asserted2.contains(c)),
-        "the known limitation is gone; docs/lean-certificates.md and \
+        "the default-graph limitation is gone; docs/lean-certificates.md and \
          docs/trusted-computing-base.md TCB-8 must be corrected"
     );
 
-    // The named inference graph does not fix it either: `all_triples` reads
-    // every graph, so a later certified run still sees them as assertions. It
-    // protects `save`, not the certificate.
+    // The named inference graph DOES fix it. Not one conclusion of the first
+    // run appears among the second run's assertions, and the certificate says
+    // which graphs it read.
     let h = Arc::new(GraphStore::new());
     h.load_ntriples(ttl).unwrap();
     let d3 = scratch("leak3");
-    Reasoner::run_full(&h, "rdfs", true, InferenceTarget::Inferred, Some(&d3)).unwrap();
+    let r3 = Reasoner::run_full(&h, "rdfs", true, InferenceTarget::Inferred, Some(&d3)).unwrap();
+    let j3: serde_json::Value = serde_json::from_str(&r3).unwrap();
+    assert!(j3["inferred_count"].as_u64().unwrap() > 0, "run 1 must infer something");
     let d4 = scratch("leak4");
-    Reasoner::run_full(&h, "rdfs", true, InferenceTarget::Inferred, Some(&d4)).unwrap();
+    let r4 = Reasoner::run_full(&h, "rdfs", true, InferenceTarget::Inferred, Some(&d4)).unwrap();
+    let j4: serde_json::Value = serde_json::from_str(&r4).unwrap();
     let asserted4: BTreeSet<String> =
         std::fs::read_to_string(d4.join("asserted.tsv")).unwrap().lines().map(str::to_string).collect();
-    assert!(
-        concluded.iter().any(|c| asserted4.contains(c)),
-        "inference_graph now keeps derived triples out of a later asserted.tsv; \
-         TCB-8 must be corrected"
+    for c in &concluded {
+        assert!(
+            !asserted4.contains(c),
+            "the conclusion {c:?} of an earlier run is listed as an assertion of a later one; \
+             TCB-8 has regressed"
+        );
+    }
+    // The assertions of run 2 are exactly the assertions of run 1: the store
+    // grew, the asserted graph did not.
+    assert_eq!(
+        j4["certificate"]["asserted"], 2,
+        "the second run asserted more than the two triples that were loaded"
+    );
+    assert_eq!(
+        j4["certificate"]["graphs_excluded"][0],
+        "https://open-ontologies.org/graph/inferred"
+    );
+    assert_eq!(j4["certificate"]["graphs_read"][0], "<default>");
+    assert_eq!(
+        j4["certificate"]["graphs_read"].as_array().unwrap().len(),
+        1,
+        "run 2 read a graph run 1 did not"
     );
 
     for d in [&d1, &d2, &d3, &d4] {

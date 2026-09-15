@@ -21,12 +21,17 @@ identical bytes.
 SCOPE. This is the one that matters most. Until 15 September 2026 the Rust
 `run_horn` flattened every named graph into `asserted.tsv`, so a store holding a
 previous materialisation in the inferred graph turned derived triples into
-ASSERTIONS. It now reads a SCOPE (`src/reason.rs:2335`,
-`graph.triples_in_scope(&scope)`) and writes `scope.tsv` naming every graph it
-read and every graph it excluded. The checker cannot detect it: the soundness theorem is
-conditional on the assertions, and it is TOLD what they are. The result is a green
-absolute verdict about a graph nobody asserted. This package defaults to the
-default graph alone and refuses the inferred graph outright.
+ASSERTIONS. The checker could not detect it: the soundness theorem is conditional
+on the assertions, and it is TOLD what they are, so the result was a green
+absolute verdict about a graph nobody asserted. It now reads
+`src/reason.rs:2855`, `graph.triples_in_scope(&scope)`, and the
+inferred graph is out of scope.
+
+The two engines still differ in HOW, and the difference is deliberate. Rust
+EXCLUDES the inferred graph; this package REFUSES a run that would read it. Both
+keep a derived triple out of the asserted set, and refusing is the stricter of
+the two, so a graph this package accepts is one the Rust engine would also have
+scoped correctly.
 """
 
 import os
