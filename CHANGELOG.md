@@ -64,6 +64,57 @@ All notable changes to Open Ontologies are documented here.
   already said the numbers belong in the test output, three sections before writing them out.
 
 ### Changed
+- **The bridge to the specification was prose. It is a theorem.** `lean/OOCert/Conforming.lean`
+  formalises an OWL 2 RDF-Based interpretation in core Lean as `OOCert.Interpretation`: the parts
+  of RBS Table 5.1, with `IR` as the carrier type so that the table's `IP ⊆ IR`, `IC ⊆ IR`,
+  `ICEXT(x) ⊆ IR` and `IEXT(x) ⊆ IR × IR` hold by typing, plus `IS`, `IL`, the blank-node
+  assignment of RDF 1.1 Semantics section 5.1, and `ICEXT` and `IC` as definitions per section 9.
+  Truth is section 5's clause with its `I(p) is in IP` conjunct, stated as the specification
+  states it. `OOCert.Conforming` collects thirty fields, twenty-nine of them a quoted cell and the
+  thirtieth Table 5.1's `IR ≠ ∅`: Table 5.8 in both directions, Tables 5.9, 5.12 and 5.13 forward only, Table 5.6's
+  three restriction rows with the outer `if-then` and the consequent equality, the typing rows of
+  Tables 5.2 and 5.3, Tables 5.4 and 5.5 forward, and five axiomatic triples.
+  `OOCert.Conforming.toW3C` proves that every such interpretation carries `W3C` at full strength,
+  `OOCert.Conforming.toW3CModel` carries that to `W3CModel` including proving that every `Chain G`
+  list is a semantic sequence in the specification's sense, and
+  `OOCert.certificate_conforming_sound` is the sentence `certificate_w3c_sound`'s docstring says
+  of itself that it is not: a checked certificate's conclusions hold in every conforming
+  interpretation of the asserted graph. Its statement mentions no structure of this repository's
+  invention.
+  **The five `IP` memberships the old bridge assumed are discharged, not moved.** Each is a field
+  asserting one axiomatic triple whose own predicate is the wanted term, so the truth clause hands
+  the fact back as the triple's first conjunct: `rdf:type rdf:type rdf:Property .`,
+  `rdfs:Datatype rdfs:subClassOf rdfs:Class .`,
+  `rdfs:isDefinedBy rdfs:subPropertyOf rdfs:seeAlso .`,
+  `rdf:type rdfs:domain rdfs:Resource .` and `rdf:type rdfs:range rdfs:Class .`. Taking them at all
+  is licensed by RBS Definition 4.2, RBS section 4.2 and RDF 1.1 section 9, quoted in the file.
+  **One of the five was previously sourced to the wrong triple.** `W3C.lean`'s table gave
+  `I(rdfs:range) ∈ IP` the source `rdfs:range rdfs:domain rdf:Property .` "whose truth puts its own
+  predicate in `IP`"; that triple's predicate is `rdfs:domain`, so its truth gives
+  `I(rdfs:domain) ∈ IP` and reaching `rdfs:range` from it needs a further step the entry omits. The
+  fact is true and the route was wrong; the correction is recorded at both files rather than
+  applied silently.
+  `lean/OOCert/ConformingWitness.lean` exhibits a two-element interpretation satisfying every one
+  of those conditions, every RDF axiom of RDF 1.1 section 8 and every RDFS axiomatic triple of
+  section 9 (fifty-four, checked by `decide`), and three identity rows of RBS Table 5.2 that
+  `W3CWitness.lean`'s `live` records itself as violating. Table 5.8 is alive there in both
+  directions and CONSTRAINING: `IEXT(I(rdfs:subClassOf))` holds three of four possible pairs, the
+  missing one excluded by the forward direction and one of the present ones forced by the backward
+  direction, both checked. The eleven OWL-vocabulary extensions are empty there and
+  `two_dead_fields` says so as a theorem; `two_violates_these_known_rows` records the Table 5.2 row
+  it breaks. The file also carries one non-entailment and one entailment (`rdfs9` at an instance),
+  so `ConformingEntails` is neither empty nor everything.
+  **What is still not a theorem**, stated at the top of the file rather than at the bottom: that
+  `Conforming`'s field list is a SUBSET of the Recommendation's conditions. A subset is the safe
+  direction, which is why it is allowed, and a reader checks it cell by cell. One modelling
+  decision does NOT run in the safe direction and is named at its field: `IL` is total, following
+  RBS section 4.2's wording rather than RDF 1.1 section 5's, so interpretations in which a literal
+  fails to denote are outside the claim; closing that needs a term-occurrence lemma about
+  `checkStep` that nobody has written. One reading is load-bearing and flagged: RBS Table 5.4 at
+  `n = 0`, which `Rules.lean`'s `takeChain` and `Semantics.lean`'s `Model.int` already depend on.
+  `Conditions`, `Interp`, `Model`, `Entails` and `certificate_sound` are untouched, and
+  `Conforming.lean` pins all twenty-three fields of `Conditions` and all five of `Model` with
+  `#guard_msgs` on their constructors, so a change to any of them breaks the build.
 - **A binding is data, and a certificate that admits two readings is refused.** Running the
   Lean checker in `lean/OOCert/Horn.lean` and the independent Isabelle/HOL one in `isabelle/`
   over 1,718 certificates found 47 rows where the two disagreed, always in the same direction
@@ -295,7 +346,7 @@ All notable changes to Open Ontologies are documented here.
   would make the result unprovable and the mistake invisible.
 
 - **A live, non-degenerate model of those conditions, with its liveness compiled
-  into the build.** `lean/OOCert/W3CWitness.lean` builds a twenty-six-element
+  into the build.** `lean/OOCert/W3CWitness.lean` builds a thirty-five-element
   interpretation meeting the quoted cells of Tables 5.2, 5.3, 5.6, 5.8, 5.9,
   5.12 and 5.13, with every condition settled by the kernel's `decide`. A
   soundness theorem over a degenerate model class would prove less than the
@@ -307,13 +358,10 @@ All notable changes to Open Ontologies are documented here.
   non-empty and a proper subset of `IEXT(p2)`. `live_exercises_every_arm`: all
   fourteen derivations fire at concrete instances of this model, which is
   stronger than any field having something in its extension.
-  `live_fires_the_other_sixteen` and
-  `live_leaves_exactly_these_five_vacuous`: a satisfied antecedent for each of
-  the other sixteen fields of `W3C`, and the five that are not exercised, named,
-  none of which carries any of the fourteen arms. Sixteen plus five is the
-  twenty-one fields, so neither number can drift from the tables. `dom_bwd`
-  and `rng_bwd` are discharged over real pairs rather than vacuously, which the
-  second kernel's own witness does not manage.
+  `live_fires_every_field`: a satisfied antecedent for every one of the
+  twenty-one fields of `W3C`, so no condition holds for want of anything to
+  check. `dom_bwd` and `rng_bwd` are discharged over real pairs rather than
+  vacuously.
 
   **The first version of this model was vacuous exactly where its conditions
   bite, and the rebuild is recorded rather than quietly substituted.** It had
@@ -324,6 +372,63 @@ All notable changes to Open Ontologies are documented here.
   premise: `avfPremises` asserts `p1 rdfs:subPropertyOf p2`, which held only
   because `IEXT(p1)` was empty, and that emptiness was written into the liveness
   gate as though it were a feature.
+
+  **It took two rebuilds and the second corrected a claim about the
+  specification, not just about the model.** The first rebuild, at twenty-six
+  elements, left five fields still holding for want of anything to check:
+  `same_fwd`, `sym_fwd`, `trp_fwd`, `inv_fwd` and `hv_eq`. The note beside them
+  said four of the five were a budget problem and that the fifth, `owl:sameAs`,
+  "cannot be exercised by any model at all because the specification makes that
+  relation the diagonal". The premise is right and the conclusion does not
+  follow. RBS Table 5.9 row 1 is an `iff` whose right-hand side is `a₁ = a₂` over
+  unscoped variables, which the specification's conventions section reads as
+  ranging over IR, and RBS section 4.2 defines IR as "the universe of I, i.e., a
+  nonempty set", so a conforming interpretation's `owl:sameAs` extension is the
+  whole NON-EMPTY diagonal. The
+  model had it EMPTY, which no conforming interpretation does, and reported that
+  as a fact about the specification rather than a hole in the model. All five are
+  now exercised, `live_fires_every_field` pins that, and the residual limit is
+  one theorem about every interpretation rather than a list about this one:
+  `sameAs_has_no_off_diagonal_instance` says the condition can never be exercised
+  at `a ≠ b`. A second consequence of the same two cells meeting is recorded as
+  `sameAs_diagonal_needs_an_off_diagonal_subproperty`: a model that gives
+  `owl:sameAs` the diagonal cannot also have `IEXT(rdfs:subPropertyOf)` be the
+  diagonal, so a countermodel needs two distinct properties one below the other.
+  Both quotes were re-read in the raw HTML of the Recommendation on 15 September
+  2026.
+
+- **The second kernel's non-vacuity witness had the same defect and now has the
+  same treatment.** `isabelle/OO_NonVacuity.thy`'s `M3` was presented as "THE REAL
+  WITNESS" for all twenty-six conditions of `owl_rl_interp`. FIFTEEN of them held
+  in it only because the extension their antecedent reads is EMPTY: every
+  `owl:*` IRI it does not use denotes one junk element, so `c_sameAs_fwd`,
+  `c_eqc_fwd`, `c_eqp_fwd`, `c_inv_fwd`, `c_sym_fwd`, `c_trp_fwd`, `c_svf`,
+  `c_avf`, `c_hv`, `c_restr_IC`, `c_svf_typ`, `c_avf_typ`, `c_onp_typ`,
+  `c_dom_fwd` and `c_rng_fwd` were each discharged by a bare `by simp` off that
+  emptiness. `M3_leaves_these_extensions_empty` now states that limit as a
+  theorem instead of leaving it to be discovered, and `M3` itself is unchanged.
+
+  `M4` is the witness that exercises them: thirty-four elements, `owl_rl_interp`
+  and `wf_interp`, kernel proofs only, no `sorry`, no `oops`, and no `eval`, which
+  in Isabelle is the counterpart of the banned `native_decide`.
+  `M4_every_condition_has_a_live_antecedent` exhibits a satisfied antecedent for
+  each of the twenty-six, and `M4_exercises_every_derivation` applies each of the
+  fourteen derived monotonicity and subsumption lemmas of `OO_Builtin_Sound.thy`
+  at named elements of `M4`, which is the direct counterpart of the Lean's
+  `live_exercises_every_arm` and the same gate. `M4_is_live`,
+  `M4_is_bridge_coherent` and `M4_avf2_really_is_antitone` pin the rest.
+  `sameAs_is_exercised_only_on_the_diagonal` is the same residual limit the Lean
+  states, proved over an arbitrary interpretation rather than about this one. The
+  oracle audit in `OO_Audit.thy` now covers all of it: thirty-nine theorems, empty
+  oracle set, and a second block that fails the build if an `eval`-proved lemma
+  ever stops reporting one, so the gate is proved able to fail.
+
+  Two specification citations were corrected against the raw HTML while doing it,
+  and both had been repeated in the Lean. IR is defined in RBS section 4.2,
+  Vocabulary Interpretations, not 4.4. And Table 5.2 gives `owl:Restriction`,
+  `owl:SymmetricProperty` and `owl:TransitiveProperty` a row each whose second
+  column is `∈ IC`; both witnesses keep all three out of `IC` and say so, where a
+  draft had claimed the last two have no row in that table at all.
 
 - **Two more English claims turned into theorems, one of which was wrong.**
   `Witness.lean` asserted in prose that `saturated` also satisfies the new
@@ -388,9 +493,22 @@ All notable changes to Open Ontologies are documented here.
   (`and_the_old_verdict_does_not_notice`), now carry the field that fails as a
   `decide`-checked theorem: `svf_witness_misses_the_restriction_typing`,
   `feed_closure_misses_the_class_typing` and
-  `graze_closure_misses_the_class_typing`. Nine statements in the repository are
-  a `¬ Entails` or a `¬ Unsat`; five are now over `W3CModel` and four are not,
-  and `Semantics.lean` carries the complete table. The two `¬ EntailsR` results
+  `graze_closure_misses_the_class_typing`.
+
+  **Those three theorems were true and they were about the wrong thing, and they
+  are gone.** Each said the HERBRAND witness is not a `W3CModel`, which is a
+  reason to build a different structure rather than a reason the result is out of
+  reach. Three finite structures were built and all three results transfer:
+  `the_old_svf_derivation_is_not_w3c_entailed` on an eighteen-element model of
+  `svfPremises` whose `ICEXT(C)` is empty; `feed_is_not_w3c_refuted` and
+  `the_old_verdict_does_not_notice_over_w3c` on one thirteen-element carrier with
+  a single row switched, the row being `ICEXT(Herbivore)`, which is empty over
+  `feed` and `{leo}` over `graze`. `feed`'s result is stated as `¬ W3CUnsat`,
+  which is STRONGER than `¬ Unsat` rather than weaker, because `Unsat` is a
+  universal negative over the model class; `w3cUnsat_of_unsat` records the easy
+  direction, that a refutation rules out the conforming interpretations too.
+  ALL NINE `¬ Entails` and `¬ Unsat` statements in the repository are now over
+  `W3CModel`, and `Semantics.lean` carries the complete table. The two `¬ EntailsR` results
   are about a rule-relative relation with no `W3CModel` counterpart, nothing is
   claimed about them, and that is said rather than left to inference. The obstruction about `Der` and strictly
   negative occurrences survives, and says only that there is no general *closure

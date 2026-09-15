@@ -115,27 +115,37 @@ counts. Two are irreducible, because they are about an execution and not a funct
 Those are property-tested end to end, which is not proved.
 [docs/trusted-computing-base.md](docs/trusted-computing-base.md) says which is which.
 
-**The bridge to the specification is prose, not a theorem.** Fourteen rule arms used to be
-assumed rather than derived, and they are now derived, each with an empty axiom footprint, over a
-structure carrying the W3C conditions at full strength. What is still assumed is the reading that
-turns a conforming interpretation into one of ours, and five facts from the axiomatic-triple
-tables that reading needs. Formalising the specification side properly means building its whole
-interpretation structure in core Lean, and that has not been done.
+**The bridge to the specification is a theorem, and what stands in its place now is smaller and a
+different kind of thing.** An OWL 2 RDF-Based interpretation is a Lean structure in its own right:
+the parts of RBS Table 5.1 the rules reach, and RDF 1.1 Semantics section 5's truth clause with its
+`I(p) ∈ IP` conjunct. `OOCert.Conforming.toW3C` proves that every such interpretation carries the
+W3C conditions at full strength, and the five axiomatic-triple facts the old prose assumed are
+discharged inside that proof, from five triples of the RDF and RDFS axiomatic tables carried as
+quoted fields. `OOCert.certificate_conforming_sound` is then the sentence: a checked certificate's
+conclusions are true, in the specification's own sense of true, in every interpretation meeting
+those conditions that satisfies the asserted graph. One of the five facts was previously sourced to
+a triple whose predicate is the wrong one, which is why it is now taken from
+`rdf:type rdfs:range rdfs:Class .` instead.
+
+What is left is a containment, not a reading: the condition list is a SUBSET of the
+Recommendation's, which is the safe direction and is why it is allowed, and that it is a subset is
+checked cell by cell by a reader rather than by Lean. Two smaller things are named at the file.
+`IL` is total, following RBS section 4.2's wording, which excludes RDF 1.1 interpretations in which
+a literal fails to denote; that one does not run in the safe direction, and closing it needs a
+term-occurrence lemma about `checkStep` that nobody has written. And one reading is load-bearing:
+RBS Table 5.4 at `n = 0`, which the engine's `cls-int1` already depends on for empty lists.
 
 **Two kernels agreeing is weaker than it sounds.** They are theorems over model classes nobody has
 ordered in either direction, so "both said entailed" means less than a reader would naturally take
 it to mean. Lean's class is still larger than the specification's, so entailment transfers outward
-and non-entailment transfers only where it has been shown to: four of the negative results now
-carry over, and three do not, each of those three carrying the field that fails as a checked
-theorem.
+for free and non-entailment does not: each one needs its own witness in the smaller class, and
+every negative result about the built-in rules now has one.
 
 **A non-vacuity witness can be vacuous where it matters**, and ours was. It satisfied nine of
 twenty-one conditions only because the relevant extensions were empty, and six of the fourteen arms
 rested entirely on those, which is the failure mode that most resembles success. It is rebuilt, and
 the gate is now stronger than non-emptiness: every one of the fourteen derivations must fire at a
-concrete instance. Five conditions remain vacuous, they carry no arm, and one of them cannot be
-exercised by any model at all because the specification makes that relation the diagonal. The
-Isabelle witness has not had the same treatment.
+concrete instance, and every one of the twenty-one conditions must have a satisfied antecedent.
 
 **Negative answers are mostly unchecked opinion.** A refutation cannot be replayed in core Lean, so
 an "unsatisfiable" from any prover is testimony, not a certificate. One clash rule has a semantic
@@ -168,13 +178,16 @@ the specification's raw HTML, in [lean/OOCert/W3C.lean](lean/OOCert/W3C.lean), a
 those cells, rather than over the weaker conditions this Lean used to posit. Same certificates,
 same checker, and not one of those derivations depends on any axiom at all.
 
-One step short of that is still an argument rather than a theorem, and it is labelled as one in the
-file: reading a conforming interpretation as a Lean `Interp` is a bridge written in prose, because
-nothing in core Lean quantifies over the specification's metatheory. That bridge also assumes five
-`IP` memberships taken from the RDF and RDFS axiomatic-triple tables rather than from any cell the
-file quotes, and they are listed there as the assumption they are. So
-`certificate_w3c_sound` is not yet the sentence "true in every conforming interpretation", and no
-document here says it is.
+That step short of the specification has since been closed.
+[lean/OOCert/Conforming.lean](lean/OOCert/Conforming.lean) builds the specification's own
+interpretation in core Lean, so there is something to quantify over, and the reading that used to be
+prose is `OOCert.Conforming.toW3C`. The five `IP` memberships the old bridge assumed are fields of
+that structure, quoted out of the RDF and RDFS axiomatic-triple tables, and discharged in one step
+each by section 5's truth clause. `OOCert.certificate_conforming_sound` is the sentence
+`certificate_w3c_sound` said it was not yet, and
+[lean/OOCert/ConformingWitness.lean](lean/OOCert/ConformingWitness.lean) exhibits an interpretation
+satisfying every one of those conditions and every RDF and RDFS axiomatic triple, then names, as
+checked theorems, which conditions it leaves untested and which Table 5.2 row it breaks.
 
 The same review found the limit of that result. Entailment transfers outward and non-entailment does
 not, so a `¬ Entails` here is about this layer's model class unless something restates it over the

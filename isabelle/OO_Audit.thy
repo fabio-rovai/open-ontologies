@@ -40,7 +40,20 @@ ML \<open>
        @{thm M3_refutes_sameAs},
        @{thm entailment_is_not_trivial},
        @{thm entailment_is_not_trivial_empty},
-       @{thm the_IP_clause_has_content}]
+       @{thm the_IP_clause_has_content},
+       @{thm M4_is_a_model},
+       @{thm M4_wf},
+       @{thm M4_models_fixture_graph},
+       @{thm M4_sat_the_certified_conclusion},
+       @{thm M4_refutes_fresh_class},
+       @{thm entailment_is_not_trivial_M4},
+       @{thm M4_exercises_every_derivation},
+       @{thm M4_avf2_really_is_antitone},
+       @{thm M4_is_bridge_coherent},
+       @{thm sameAs_is_exercised_only_on_the_diagonal},
+       @{thm M3_leaves_these_extensions_empty},
+       @{thm M4_is_live},
+       @{thm M4_every_condition_has_a_live_antecedent}]
       @ @{thms M3_is_not_degenerate}
     val oracles = Thm_Deps.all_oracles ths
     val names = map (fn ((n, _), _) => n) oracles

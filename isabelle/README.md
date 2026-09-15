@@ -222,7 +222,7 @@ Three things the differential did settle, all of them corners neither side had a
 | `OO_Check.thy` | the executable checker and the built-in rule table. No semantics. |
 | `OO_Sound.thy` | `horn_certificate_sound` — the conditional verdict. |
 | `OO_Builtin_Sound.thy` | the 27 arms, and `entails_of_builtin` — the absolute verdict. |
-| `OO_NonVacuity.thy` | witness models; entailment is not the trivial relation. |
+| `OO_NonVacuity.thy` | witness models; entailment is not the trivial relation. `M4` is the witness in which every one of the 26 conditions has a satisfied antecedent and all fourteen derivations of `OO_Builtin_Sound.thy` fire. |
 | `OO_Parse.thy` | TSV field lists to datatypes. Executable. |
 | `OO_Pipeline.thy` | what the tool's own output means, end to end. |
 | `OO_Fixtures.thy` | the checker run on the real fixture bytes, as build gates. Uses `eval`; no soundness theorem depends on it. |
