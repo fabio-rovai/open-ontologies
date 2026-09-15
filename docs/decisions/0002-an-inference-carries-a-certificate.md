@@ -44,12 +44,19 @@ on the engine's author having thought of the bug.
    rest is the *if* direction of the corresponding W3C condition or a consequence of it. Weaker
    conditions admit more interpretations, so soundness here implies soundness over the
    conditions `lean/OOCert/W3C.lean` states, and since 15 September 2026 that implication is a
-   theorem (`OOCert.W3CEntails.of_entails`) rather than an argument in a docstring. It is NOT yet
-   the sentence "sound under the OWL 2 RDF-Based Semantics": the reading of a conforming
-   interpretation as a Lean `Interp` is prose, it assumes five `IP` memberships from the axiomatic
-   triple tables, and `W3CModel` omits every table row no rule consumes. `Model` reads a list
-   off the asserted graph through `Chain`, which is weaker than the specification's semantic
-   sequence relation and so keeps the model class larger.
+   theorem (`OOCert.W3CEntails.of_entails`) rather than an argument in a docstring. Since the same
+   day it reaches one layer further out: `lean/OOCert/Conforming.lean` formalises an OWL 2
+   RDF-Based interpretation in its own right, from RBS Table 5.1 and RDF 1.1 Semantics section 5's
+   truth clause, proves the reading that used to be prose as `OOCert.Conforming.toW3C`, and
+   discharges all five of the `IP` memberships the old bridge assumed from five quoted axiomatic
+   triples carried as fields. `OOCert.certificate_conforming_sound` is the resulting sentence.
+   What is still not a theorem is that the field list is a SUBSET of the Recommendation's
+   conditions, which a reader checks cell by cell; that a subset is the safe direction is the
+   reason it is allowed. One modelling decision does not run in the safe direction and is named
+   there: `IL` is total, per RBS section 4.2, so RDF 1.1 interpretations in which a literal fails
+   to denote are outside the claim. `Model` reads a list off the asserted graph through `Chain`,
+   which is weaker than the specification's semantic sequence relation and so keeps the model class
+   larger; `OOCert.Conforming.seq_of_chain` proves that comparison rather than asserting it.
 5. **The theorem is shown non-vacuous in the same directory.** A soundness result about an
    unsatisfiable semantics proves nothing, so `lean/OOCert/Witness.lean` exhibits a model of an
    arbitrary graph, exhibits a triple that is not entailed, and proves that the derivation

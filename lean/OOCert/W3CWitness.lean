@@ -20,10 +20,10 @@ and refutes nothing. `W3CModel.toModel` proved over an unsatisfiable or a
 degenerate `W3C` would be a theorem about nothing that LOOKED better than the
 assumption it replaced, which is a strictly worse defect than the one being
 repaired. The gate is therefore a NON-DEGENERATE model, and `live_is_live`,
-`live_exercises_every_arm` and `live_leaves_exactly_these_five_vacuous` below
-compile the liveness facts, their limits and the exact list of exceptions into
-the build, so that the next person to shorten this graph to fix a `decide`
-timeout breaks it rather than hollowing it out silently.
+`live_exercises_every_arm` and `live_fires_every_field` below compile the
+liveness facts and their limits into the build, so that the next person to
+shorten this graph to fix a `decide` timeout breaks it rather than hollowing it
+out silently.
 
 ## The first version of this file was vacuous where it mattered most, and this is the repair
 
@@ -58,36 +58,49 @@ reason. `A2`, `S1`, `S2`, `S3` and `q` are five further elements carrying the
 `live_exercises_every_arm` applies all fourteen derivations at concrete instances
 of this model, which is a strictly stronger gate than any field being non-empty.
 
-## What is still vacuous, and it is exactly the fields that carry no arm
+## Nothing is left vacuous, and getting there took two rebuilds
 
-Five of the twenty-one fields still hold because nothing is in the extension
-their antecedent reads: `same_fwd`, `sym_fwd`, `trp_fwd`, `inv_fwd` and `hv_eq`.
-`live_leaves_exactly_these_five_vacuous` is that list as a theorem, so that it
-cannot drift from the tables. None of the five carries any of the fourteen arms:
-`Soundness.lean` takes all five out of `Conditions` by projection.
+The 15 September 2026 rebuild closed the six dead arms and left five fields still
+holding for want of anything to check: `same_fwd`, `sym_fwd`, `trp_fwd`,
+`inv_fwd` and `hv_eq`, none of which carries any of the fourteen arms. The second
+rebuild closes those five too. `owl:sameAs`, `owl:inverseOf`, `owl:hasValue`,
+`owl:SymmetricProperty` and `owl:TransitiveProperty` had all been falling through
+the denotation table to the junk element `other`, whose extension is empty; they
+now denote elements of their own, and `r1`, `sy`, `tr` and `H1` are the property
+and restriction rows those five conditions read. `live_fires_every_field`
+exhibits a satisfied antecedent for each of the twenty-one.
 
-`same_fwd` cannot be exercised non-trivially by ANY model, and that is the
-specification's doing. RBS reads `(a₁, a₂) ∈ IEXT(I(owl:sameAs))` **iff**
-`a₁ = a₂`, so the only pairs a conforming interpretation may put there are
-diagonal and the only instance of the field is `a = a`. The other four are
-ordinary omissions that could be closed and are not: each needs its own
-vocabulary element plus a property or a restriction to hold it, and every
-condition here is quantified over the carrier three or four times, so the
-`decide` cost grows as the fourth power of the carrier. Twenty-six elements
-already cost about thirty seconds. The honest report is that these four are not
-exercised, not that they cannot be.
+The note that used to sit here said `same_fwd` "cannot be exercised
+non-trivially by ANY model", and as a statement about the extension being empty
+that is false. RBS Table 5.9 row 1 is an `iff` whose right-hand side is
+`a₁ = a₂` over unscoped variables, which the specification's conventions section
+reads as ranging over IR, and RBS section 4.2 defines IR as "the universe of I,
+i.e., a nonempty set". So a conforming interpretation's `owl:sameAs` extension is
+the whole NON-EMPTY diagonal, and a model that leaves it empty is not modelling
+that cell, it is failing to. What is true is the narrower statement
+`sameAs_has_no_off_diagonal_instance` proves: no interpretation meeting the cell
+has an instance at `a ≠ b`. The condition is exercised here, thirty-five times,
+and every instance is diagonal because the specification permits no other.
 
 ## The model
 
-Carrier: three individuals `alice`, `bob` and `carl`; seven classes, of which
-six are restrictions; three properties; twelve vocabulary denotations that have
-to be told apart; and one junk element `other` absorbing every remaining IRI.
-Twenty-six elements.
+Carrier: three individuals `alice`, `bob` and `carl`; eight classes, of which
+seven are restrictions; six properties; seventeen vocabulary denotations that
+have to be told apart; and one junk element `other` absorbing every remaining
+IRI. Thirty-five elements.
 
-ELEVEN rows are chosen and the conditions determine the other ten.
+SEVENTEEN rows are chosen and the conditions determine the other eleven.
 
 * `IEXT(p1) = IEXT(q) := {(alice, carl)}`, `IEXT(p2) := {(alice, bob),
   (alice, carl)}`, `ICEXT(Y) := {carl}`.
+* `IEXT(r1) := {(carl, alice)}`, the converse of `IEXT(p1)`, which is what
+  `owl:inverseOf` relates `p1` to; `IEXT(sy) := {(bob, carl), (carl, bob)}`,
+  symmetric and not transitive; `IEXT(tr) := {(alice, bob), (bob, carl),
+  (alice, carl)}`, transitive and not symmetric. `ICEXT(owl:SymmetricProperty)`
+  is `{sy}` and `ICEXT(owl:TransitiveProperty)` is `{tr}`, so the two conditions
+  are separated rather than met by one relation that satisfies both.
+* `owl:sameAs` gets the whole DIAGONAL, which is the only extension RBS
+  Table 5.9 row 1 permits and is not empty.
 * `owl:allValuesFrom` puts `C1 = ∀p1.Y`, `C2 = ∀p2.Y` and `A2 = ∀p2.C1`;
   `owl:someValuesFrom` puts `S1 = ∃p2.Y`, `S2 = ∃p2.C1` and `S3 = ∃p1.Y`;
   `owl:equivalentClass` relates `S1` and `S2`, whose class extensions are equal;
@@ -103,9 +116,11 @@ ELEVEN rows are chosen and the conditions determine the other ten.
   `(C2, C1)` into `IEXT(rdfs:subClassOf)`, which is what `scm-avf2` draws. The
   witness confirms both halves of the pair, where the Herbrand witness in
   `Witness.lean` asserts one and leaves the other out by hand.
-* `svf_eq` forces `ICEXT(S1) = ICEXT(S2) = ICEXT(S3) = {alice}`.
-* `IC := {C1, C2, A2, Y, S1, S2, S3}` through `ICEXT(rdfs:Class)`, and
-  `ICEXT(owl:Restriction)` is the six restrictions, a PROPER subset of `IC`
+* `svf_eq` forces `ICEXT(S1) = ICEXT(S2) = ICEXT(S3) = {alice}`, and `hv_eq`
+  forces `ICEXT(H1) = {alice}` as well: `H1` is the `p2`-values restriction on
+  `bob` and `alice` is the only element with `bob` as a `p2`-successor.
+* `IC := {C1, C2, A2, Y, S1, S2, S3, H1}` through `ICEXT(rdfs:Class)`, and
+  `ICEXT(owl:Restriction)` is the seven restrictions, a PROPER subset of `IC`
   per Table 5.2, because `Y` is a class and not a restriction.
   `owl:Restriction` itself is kept out of `IC`, so `sc_bwd` raises no obligation
   about it.
@@ -116,9 +131,13 @@ ELEVEN rows are chosen and the conditions determine the other ten.
   `rdfs:domain` and `rdfs:range` are themselves members of `IP` and so are
   subject to the very conditions they carry. The tables below are that fixpoint.
   `(p2, p1)` is NOT in `IEXT(rdfs:subPropertyOf)`, because `IEXT(p2)` is not
-  contained in `IEXT(p1)`, and the domain and range tables DIFFER, at the rows
-  for `p1`, `q`, `p2` and `rdf:type`, which is the model separating the two rows
-  of Table 5.8 rather than satisfying them both by accident.
+  contained in `IEXT(p1)`, and the domain and range tables DIFFER, including at
+  the rows for `p1`, `q`, `p2`, `r1`, `tr` and `rdf:type`, which is the model
+  separating the two rows of Table 5.8 rather than satisfying them both by
+  accident. `r1` is the
+  sharpest of those: it reaches `Y` on the domain side and the four
+  `{alice}`-extension restrictions on the range side, exactly the mirror image of
+  what `p1` does.
   `live_rng_bwd_is_exercised` pins one such separation, `(p2, C2)`, as a
   theorem: it is in the range extension and not in the domain extension.
 
@@ -129,7 +148,7 @@ subject of `IEXT(rdfs:subClassOf)` lies in `ICEXT(C1)` because `ICEXT(C1)` is
 everything, and Table 5.8's `rdfs:domain` row is an `iff`. RDF has no sortal
 separation, and this is what that costs.
 
-## `IP`, and why these thirteen
+## `IP`, and why these nineteen
 
 `IP` must contain every element with a non-empty extension, or the structure is
 not the image of any conforming interpretation under the bridge in `W3C.lean`
@@ -139,8 +158,9 @@ It is a property of THIS model and NOT a field of `W3CModel`, which is a
 distinction an earlier draft of this file lost, at some cost; see the section on
 the three transferred non-entailments below.
 
-The thirteen are `p1`, `p2`, `q` and the ten vocabulary denotations that carry
-pairs, and every one of them is in `IP` in any conforming interpretation:
+The nineteen are `p1`, `p2`, `q`, `r1`, `sy`, `tr` and the thirteen vocabulary
+denotations that carry pairs, and every one of them is in `IP` in any conforming
+interpretation:
 
 * `owl:allValuesFrom`, `owl:someValuesFrom`, `owl:onProperty`,
   `owl:equivalentClass` and `owl:equivalentProperty` by RBS Table 5.3 directly,
@@ -161,8 +181,11 @@ pairs, and every one of them is in `IP` in any conforming interpretation:
   `rdfs:subClassOf rdfs:domain rdfs:Class .`, whose truth puts
   `I(rdfs:subClassOf)` into `IP` through the forward direction of Table 5.8's
   `rdfs:domain` row.
+* `owl:sameAs`, `owl:inverseOf` and `owl:hasValue` by RBS Table 5.3, whose
+  second column reads "∈ IP" for all three.
 * `p1`, `p2` and `q` because `onp_typ` demands it of the first two and
-  `eqp_fwd` of the third.
+  `eqp_fwd` of the third; `r1` because `inv_fwd` demands it; and `sy` and `tr`
+  because they carry pairs and bridge coherence therefore demands it.
 
 All five axiomatic triples were re-read in the raw HTML of
 <https://www.w3.org/TR/rdf11-mt/> on 15 September 2026; they are the same five
@@ -190,9 +213,19 @@ must satisfy:
 * `owl:Thing | in IC | = IR`. Here `owl:Thing` denotes `other`, whose class
   extension is empty and is not the carrier.
 * `rdf:Property | in IC | = IP`. Here `rdf:Property` also denotes `other`, so
-  its class extension is empty rather than the thirteen-element `IP`.
+  its class extension is empty rather than the nineteen-element `IP`.
 * `rdfs:Resource | in IC | = IR`, and the RDF and RDFS axiomatic triple tables
   themselves, which are simply absent.
+* The SECOND column of three rows this model otherwise uses.
+  `owl:Restriction | in IC | subset of IC`,
+  `owl:SymmetricProperty | in IC | subset of IP` and
+  `owl:TransitiveProperty | in IC | subset of IP` each assert a membership as
+  well as an inclusion, and this model satisfies the inclusions and keeps all
+  three elements OUT of `IC`. That is deliberate and it is a departure:
+  `restr_IC` is the third column of the first of them, no field of `W3C` states
+  any of the three memberships, and putting `owl:Restriction` into `IC` would
+  raise `sc_bwd` obligations about it that nothing here needs. All three rows
+  were read in the raw HTML of the Recommendation on 15 September 2026.
 
 Closing that gap means formalising Table 5.2's forty-odd rows, the axiomatic
 triple tables, and the parts of the universe from Table 5.1, and then rebuilding
@@ -200,27 +233,33 @@ this model over them. That is a different project, and the honest report is that
 this witness gets closer to the specification than anything else here and does
 not arrive.
 
-## What it leaves untouched, corrected
+## What it leaves untouched, corrected twice
 
 An earlier version of this section said that this file "does NOT rehabilitate
 the other non-entailment results", and listed seven, on the ground that all of
 them "are discharged by Herbrand or saturated interpretations, and none of those
 is a `W3CModel`". That is false, it was false of one of the seven at the moment
 it was written, and the reason given for it was inverted. Four of the seven are
-`W3CModel`s with their witness graphs unchanged. `not_everything_is_w3c_entailed`
-was the one already proved below while the list called it open; the section after
-it proves two more; `Mixed.lean` proves the fourth. The three that do not
-transfer carry the field that fails, checked by `decide` rather than asserted.
+`W3CModel`s with their witness graphs unchanged.
+
+The next version said the remaining three could not transfer and pinned, as
+checked theorems, the field that fails in each. Those theorems were true and they
+were about the HERBRAND WITNESSES, not about the results. A witness that is not a
+`W3CModel` is a reason to build one, not a reason the statement is out of reach,
+and all three are reached now, each on a finite structure built for it:
+`the_old_svf_derivation_is_not_w3c_entailed` at the end of this file, and
+`feed_is_not_w3c_refuted` and `the_old_verdict_does_not_notice_over_w3c` in
+`RefuteWitness.lean`. Nothing in this repository now states a non-entailment
+about `Conditions` alone.
 -/
 namespace OOCert
 
 /-! ## The carrier -/
 
-/-- The twenty-six elements. `other` absorbs every IRI the model does not need to
-tell apart, and its extension and class extension are both empty, which is what
-makes every condition over a vocabulary term not named here hold vacuously. The
-five terms that stay in `other` are listed, with what it costs, under "What is
-still vacuous" in the module docstring. -/
+/-- The thirty-five elements. `other` absorbs every IRI the model does not need
+to tell apart, and its extension and class extension are both empty. Five terms
+used to stay in `other` and made their conditions hold vacuously; they have rows
+of their own now, and the module docstring says which and why. -/
 inductive LiveD where
   /-- An individual with a `p1`-successor and two `p2`-successors, and the only
   element outside `ICEXT(C2)`. -/
@@ -251,6 +290,10 @@ inductive LiveD where
   /-- `S3`, the existential restriction `∃p1.Y`. `S3` and `S1` order under
   `scm-svf2` because `p1` is below `p2`. -/
   | s3
+  /-- `H1`, the value restriction `∃p2.{bob}`. `owl:hasValue` needs a
+  restriction to hold it, and `hv_eq` then forces `ICEXT(H1) = {alice}`, because
+  `alice` is the only element with `bob` as a `p2`-successor. -/
+  | h1
   /-- `p1`, with the single pair `(alice, carl)`. -/
   | p1
   /-- `p2`, with `(alice, bob)` and `(alice, carl)`, so `IEXT(p1)` is a PROPER
@@ -259,6 +302,17 @@ inductive LiveD where
   /-- A second property with `IEXT(q) = IEXT(p1)`, exactly so that
   `owl:equivalentProperty` has a pair to relate. -/
   | q
+  /-- `r1`, with the single pair `(carl, alice)`, which is the CONVERSE of
+  `IEXT(p1)`. It exists so that `owl:inverseOf` relates two DISTINCT properties
+  rather than a symmetric one to itself. -/
+  | r1
+  /-- `sy`, with `(bob, carl)` and `(carl, bob)`. Symmetric and NOT transitive,
+  which is what keeps `sym_fwd` and `trp_fwd` separated by this model rather
+  than satisfied together by one relation that happens to be both. -/
+  | sy
+  /-- `tr`, with `(alice, bob)`, `(bob, carl)` and `(alice, carl)`. Transitive
+  and NOT symmetric. -/
+  | tr
   /-- `rdf:type`, whose extension IS `ICEXT`. -/
   | ty
   /-- `rdfs:subClassOf`. -/
@@ -279,6 +333,19 @@ inductive LiveD where
   | eqc
   /-- `owl:equivalentProperty`. -/
   | eqp
+  /-- `owl:sameAs`, whose extension is the DIAGONAL on the carrier. RBS Table
+  5.9 row 1 is an `iff` and its right-hand side is `a₁ = a₂`, so that is the
+  only extension a conforming interpretation may give it, and it is the whole
+  diagonal rather than nothing. -/
+  | sa
+  /-- `owl:inverseOf`. -/
+  | invo
+  /-- `owl:hasValue`. -/
+  | hv
+  /-- `owl:SymmetricProperty`, whose class extension is `{sy}`. -/
+  | symp
+  /-- `owl:TransitiveProperty`, whose class extension is `{tr}`. -/
+  | trp
   /-- `rdfs:Class`, whose class extension IS `IC` (Table 5.2, "= IC"). -/
   | cls
   /-- `owl:Restriction`, whose class extension is a PROPER subset of `IC`
@@ -294,8 +361,9 @@ namespace LiveD
 /-- The carrier as a list, so that quantification over it is decidable without
 Mathlib's `Fintype`. -/
 def all : List LiveD :=
-  [alice, bob, carl, c1, c2, a2, filler, s1, s2, s3, p1, p2, q,
-   ty, sco, spo, dm, rg, avf, svf, onp, eqc, eqp, cls, restr, other]
+  [alice, bob, carl, c1, c2, a2, filler, s1, s2, s3, h1, p1, p2, q, r1, sy, tr,
+   ty, sco, spo, dm, rg, avf, svf, onp, eqc, eqp, sa, invo, hv, symp, trp,
+   cls, restr, other]
 
 theorem mem_all (w : LiveD) : w ∈ all := by cases w <;> decide
 
@@ -316,25 +384,28 @@ end LiveD
 /-! ## The interpretation -/
 
 /-- The denotation table. Everything absent from it denotes `other`, so
-`owl:hasValue`, `owl:sameAs`, `owl:inverseOf`, `owl:SymmetricProperty`,
-`owl:TransitiveProperty`, `owl:intersectionOf`, `owl:unionOf`, `owl:oneOf`,
-`owl:Thing` and `rdf:Property` all land there together and their conditions hold
-vacuously. The first five of those are the fields this witness does not
-exercise, and `live_leaves_exactly_these_five_vacuous` pins that list so it
-cannot drift; the last five are where the model stops being a conforming
-interpretation, and the module docstring says so. -/
+`owl:intersectionOf`, `owl:unionOf`, `owl:oneOf`, `owl:Thing` and `rdf:Property`
+land there together with an empty extension. Those five are where the model
+stops being a conforming interpretation, and the module docstring says so.
+
+Every term whose row `W3C` states now has a row here. The 15 September 2026
+rebuild added the last five, `owl:sameAs`, `owl:inverseOf`, `owl:hasValue`,
+`owl:SymmetricProperty` and `owl:TransitiveProperty`, which used to fall through
+to `other` and made their five conditions hold for want of anything to check. -/
 def liveTable : List (Term × LiveD) :=
   [ (V.type, .ty), (V.subClassOf, .sco), (V.subPropertyOf, .spo),
     (V.domain, .dm), (V.range, .rg),
     (V.allValuesFrom, .avf), (V.someValuesFrom, .svf), (V.onProperty, .onp),
     (V.equivalentClass, .eqc), (V.equivalentProperty, .eqp),
+    (V.sameAs, .sa), (V.inverseOf, .invo), (V.hasValue, .hv),
+    (V.symmetricProperty, .symp), (V.transitiveProperty, .trp),
     (V.Class, .cls), (V.Restriction, .restr),
     (tC1, .c1), (tC2, .c2), (tY, .filler), (tp1, .p1), (tp2, .p2) ]
 
 /-- Terms denote their table entry, or `other`. -/
 def liveι (t : Term) : LiveD := (List.lookup t liveTable).getD .other
 
-/-- `IP`. The thirteen elements that carry pairs.
+/-- `IP`. The nineteen elements that carry pairs.
 
 Every one of them is in `IP` in any conforming interpretation, by RBS Table 5.3
 for `owl:allValuesFrom`, `owl:someValuesFrom` and `owl:onProperty`, by Table 5.9
@@ -344,37 +415,54 @@ rest; the citations are in the module docstring. Nothing else is in `IP`, which
 is what keeps `sp_bwd`, `dom_bwd` and `rng_bwd` from forcing schema triples about
 individuals. -/
 def isIP : LiveD → Bool
-  | .p1 | .p2 | .q | .ty | .sco | .spo | .dm | .rg
-  | .avf | .svf | .onp | .eqc | .eqp => true
+  | .p1 | .p2 | .q | .r1 | .sy | .tr | .ty | .sco | .spo | .dm | .rg
+  | .avf | .svf | .onp | .eqc | .eqp | .sa | .invo | .hv => true
+  | _ => false
+
+/-- `IC`, as a match rather than a disjunction chain. Every table below is
+written this way on purpose. A `||` chain costs one `whnf` frame per disjunct,
+four nested quantifiers over a thirty-five element carrier stack those frames,
+and the default `maxRecDepth` is reached before the proposition is decided; a
+pattern match compiles to a `casesOn` tree and costs constant depth. The tables
+are also easier to read this way, which is the smaller of the two reasons. -/
+def isIC : LiveD → Bool
+  | .c1 | .c2 | .a2 | .filler | .s1 | .s2 | .s3 | .h1 => true
+  | _ => false
+
+/-- `ICEXT(owl:Restriction)`: the seven restrictions. A PROPER subset of `IC`,
+because `Y` is a class and not a restriction, and RBS Table 5.2 writes a subset
+there and never an equality. -/
+def isRestriction : LiveD → Bool
+  | .c1 | .c2 | .a2 | .s1 | .s2 | .s3 | .h1 => true
   | _ => false
 
 /-- The property extensions, as a decidable relation.
 
-ELEVEN rows are chosen: `IEXT(p1)`, `IEXT(q)`, `IEXT(p2)`, `ICEXT(Y)`, the five
-constructor tables `owl:allValuesFrom`, `owl:someValuesFrom`, `owl:onProperty`,
-`owl:equivalentClass` and `owl:equivalentProperty`, and the two class extensions
-`ICEXT(rdfs:Class)` and `ICEXT(owl:Restriction)` that say which elements are
-classes and which are restrictions. The other TEN are determined. The class
-extensions of `C1`, `C2`, `A2`, `S1`, `S2` and `S3` are FORCED by Table 5.6, and
-`sco`, `spo`, `dm` and `rg` are the FIXPOINT that Table 5.8's two directions
-force from all of it. The fixpoint is
-mutual, because `sco`, `spo`, `dm` and `rg` are themselves in `IP` or `IC` and so
-appear on both sides of their own conditions. Nothing here can be adjusted
-without the build going red. -/
+SEVENTEEN rows are chosen: `IEXT(p1)`, `IEXT(q)`, `IEXT(p2)`, `IEXT(r1)`,
+`IEXT(sy)`, `IEXT(tr)`, `ICEXT(Y)`, the eight constructor tables
+`owl:allValuesFrom`, `owl:someValuesFrom`, `owl:onProperty`,
+`owl:equivalentClass`, `owl:equivalentProperty`, `owl:inverseOf`, `owl:hasValue`
+and `owl:sameAs`, and the four class extensions `ICEXT(rdfs:Class)`,
+`ICEXT(owl:Restriction)`, `ICEXT(owl:SymmetricProperty)` and
+`ICEXT(owl:TransitiveProperty)` that say which elements are classes, which are
+restrictions, and which properties are symmetric or transitive. The other ELEVEN
+are determined. The class extensions of `C1`, `C2`, `A2`, `S1`, `S2`, `S3` and
+`H1` are FORCED by Table 5.6, and `sco`, `spo`, `dm` and `rg` are the FIXPOINT
+that Table 5.8's two directions force from all of it. The fixpoint is mutual,
+because `sco`, `spo`, `dm` and `rg` are themselves in `IP` or `IC` and so appear
+on both sides of their own conditions. Nothing here can be adjusted without the
+build going red. -/
 def liveIext : LiveD → LiveD → LiveD → Bool
-  -- ICEXT(rdfs:Class) = IC = {C1, C2, A2, Y, S1, S2, S3}. Table 5.2's "= IC" row.
-  | .ty, x, .cls =>
-      x == .c1 || x == .c2 || x == .a2 || x == .filler || x == .s1 || x == .s2 || x == .s3
-  -- ICEXT(owl:Restriction) = the six restrictions, a PROPER subset of IC: Y is a
-  -- class and not a restriction. Table 5.2 writes a subset there, never an equality.
-  | .ty, x, .restr =>
-      x == .c1 || x == .c2 || x == .a2 || x == .s1 || x == .s2 || x == .s3
-  -- ICEXT(C1) is everything. FORCED: C1 is ∀p1.Y, IEXT(p1) = {(alice, carl)} and
+  -- ICEXT(rdfs:Class) = IC = {C1, C2, A2, Y, S1, S2, S3, H1}. Table 5.2's "= IC" row.
+  | .ty, x, .cls => isIC x
+  -- ICEXT(owl:Restriction), a PROPER subset of IC.
+  | .ty, x, .restr => isRestriction x
+  -- ICEXT(C1) is everything. FORCED: C1 is ALL p1.Y, IEXT(p1) = {(alice, carl)} and
   -- carl IS in ICEXT(Y), so alice qualifies and nothing else has a p1-successor.
   | .ty, _, .c1 => true
-  -- ICEXT(A2) is everything. FORCED: A2 is ∀p2.C1 and ICEXT(C1) is everything.
+  -- ICEXT(A2) is everything. FORCED: A2 is ALL p2.C1 and ICEXT(C1) is everything.
   | .ty, _, .a2 => true
-  -- ICEXT(C2) is everything but alice. FORCED: C2 is ∀p2.Y and alice has the
+  -- ICEXT(C2) is everything but alice. FORCED: C2 is ALL p2.Y and alice has the
   -- p2-successor bob, which is not in ICEXT(Y).
   | .ty, x, .c2 => x != .alice
   -- ICEXT(Y) = {carl}. NOT EMPTY, which is what makes alice's membership of
@@ -383,71 +471,126 @@ def liveIext : LiveD → LiveD → LiveD → Bool
   -- ICEXT(S1) = ICEXT(S2) = ICEXT(S3) = {alice}. FORCED by Table 5.6's
   -- someValuesFrom row: alice reaches carl by p1 and by p2, carl is in ICEXT(Y),
   -- and ICEXT(C1) is everything.
-  | .ty, x, .s1 => x == .alice
-  | .ty, x, .s2 => x == .alice
-  | .ty, x, .s3 => x == .alice
+  | .ty, x, .s1 | .ty, x, .s2 | .ty, x, .s3 => x == .alice
+  -- ICEXT(H1) = {alice}, FORCED by Table 5.6's hasValue row: H1 is the p2-values
+  -- restriction on bob, and alice is the only element with bob as a p2-successor.
+  | .ty, x, .h1 => x == .alice
+  -- ICEXT(owl:SymmetricProperty) = {sy} and ICEXT(owl:TransitiveProperty) = {tr}.
+  -- Two DIFFERENT properties: sy is not transitive and tr is not symmetric, so this
+  -- model separates the two conditions rather than meeting both with one relation
+  -- that happens to satisfy each.
+  | .ty, x, .symp => x == .sy
+  | .ty, x, .trp => x == .tr
   -- ICEXT of everything else is empty.
   | .ty, _, _ => false
   -- IEXT(rdfs:subClassOf): exactly the pairs of IC whose extensions nest.
   -- (C1, C2) is ABSENT, and that absence is the theorem at the end of the file.
-  | .sco, u, v =>
-      ((u == .c1 || u == .a2) && (v == .c1 || v == .a2)) ||
-      (u == .c2 && (v == .c1 || v == .a2 || v == .c2)) ||
-      (u == .filler && (v == .c1 || v == .a2 || v == .c2 || v == .filler)) ||
-      ((u == .s1 || u == .s2 || u == .s3) &&
-        (v == .c1 || v == .a2 || v == .s1 || v == .s2 || v == .s3))
+  | .sco, .c1, v | .sco, .a2, v => v == .c1 || v == .a2
+  | .sco, .c2, v => v == .c1 || v == .c2 || v == .a2
+  | .sco, .filler, v => v == .c1 || v == .c2 || v == .a2 || v == .filler
+  | .sco, .s1, v | .sco, .s2, v | .sco, .s3, v | .sco, .h1, v =>
+      v == .c1 || v == .a2 || v == .s1 || v == .s2 || v == .s3 || v == .h1
+  | .sco, _, _ => false
   -- IEXT(rdfs:subPropertyOf): exactly the pairs of IP whose extensions nest. The
-  -- diagonal; p1 and q both ways because their extensions are equal, and both
-  -- inside p2; owl:equivalentClass inside rdfs:subClassOf and
+  -- diagonal; p1 and q both ways because their extensions are equal, and both inside
+  -- p2; p1, q and p2 inside tr, which is forced because IEXT(tr) contains both of
+  -- alice's p2-pairs; owl:equivalentClass inside rdfs:subClassOf and
   -- owl:equivalentProperty inside rdfs:subPropertyOf, which are forced and not
   -- chosen. (p2, p1) is ABSENT, and that kind separation is what keeps scm-avf2
   -- antitone here.
-  | .spo, u, v =>
-      (isIP u && u == v) ||
-      ((u == .p1 || u == .q) && (v == .p1 || v == .q || v == .p2)) ||
-      (u == .eqc && v == .sco) ||
-      (u == .eqp && v == .spo)
-  -- IEXT(rdfs:domain): every p in IP and c in IC such that every subject of p
-  -- lies in ICEXT(c). p1, q and p2 have the single subject alice, so they reach
-  -- the three existential restrictions as well; rdf:type has every element as a
-  -- subject, because ICEXT(C1) is everything, so it reaches only C1 and A2; the
-  -- rest have subjects that are classes or properties and never alice.
-  | .dm, u, v =>
-      ((u == .p1 || u == .q || u == .p2) &&
-        (v == .c1 || v == .a2 || v == .s1 || v == .s2 || v == .s3)) ||
-      (u == .ty && (v == .c1 || v == .a2)) ||
-      ((u == .sco || u == .spo || u == .dm || u == .rg || u == .avf || u == .svf ||
-        u == .onp || u == .eqc || u == .eqp) && (v == .c1 || v == .a2 || v == .c2))
+  | .spo, .p1, v | .spo, .q, v => v == .p1 || v == .p2 || v == .q || v == .tr
+  | .spo, .p2, v => v == .p2 || v == .tr
+  | .spo, .r1, v => v == .r1
+  | .spo, .sy, v => v == .sy
+  | .spo, .tr, v => v == .tr
+  | .spo, .ty, v => v == .ty
+  | .spo, .sco, v => v == .sco
+  | .spo, .spo, v => v == .spo
+  | .spo, .dm, v => v == .dm
+  | .spo, .rg, v => v == .rg
+  | .spo, .avf, v => v == .avf
+  | .spo, .svf, v => v == .svf
+  | .spo, .onp, v => v == .onp
+  | .spo, .eqc, v => v == .sco || v == .eqc
+  | .spo, .eqp, v => v == .spo || v == .eqp
+  | .spo, .sa, v => v == .sa
+  | .spo, .invo, v => v == .invo
+  | .spo, .hv, v => v == .hv
+  | .spo, _, _ => false
+  -- IEXT(rdfs:domain): every p in IP and c in IC such that every subject of p lies
+  -- in ICEXT(c). p1, q and p2 have the single subject alice, so they reach the three
+  -- existential restrictions and H1 as well; r1's single subject is carl, which is
+  -- in ICEXT(Y), so r1 reaches Y where nothing else does; rdf:type, owl:sameAs and
+  -- tr have a subject outside ICEXT(C2), so they reach only C1 and A2; the rest have
+  -- subjects that are classes or properties and never alice.
+  | .dm, .p1, v | .dm, .p2, v | .dm, .q, v =>
+      v == .c1 || v == .a2 || v == .s1 || v == .s2 || v == .s3 || v == .h1
+  | .dm, .r1, v => v == .c1 || v == .c2 || v == .a2 || v == .filler
+  | .dm, .sy, v | .dm, .sco, v | .dm, .spo, v | .dm, .dm, v | .dm, .rg, v | .dm, .avf, v |
+    .dm, .svf, v | .dm, .onp, v | .dm, .eqc, v | .dm, .eqp, v | .dm, .invo, v | .dm, .hv, v =>
+      v == .c1 || v == .c2 || v == .a2
+  | .dm, .tr, v | .dm, .ty, v | .dm, .sa, v => v == .c1 || v == .a2
+  | .dm, _, _ => false
   -- IEXT(rdfs:range): the same with objects for subjects, and it DIFFERS from the
   -- domain table. p1 and q reach Y, because their only object carl is in ICEXT(Y)
-  -- while their only subject alice is not; and neither reaches S1, S2 or S3,
-  -- where the domain table does.
-  | .rg, u, v =>
-      ((u == .p1 || u == .q) && (v == .c1 || v == .a2 || v == .c2 || v == .filler)) ||
-      ((u == .p2 || u == .ty || u == .sco || u == .spo || u == .dm || u == .rg ||
-        u == .avf || u == .svf || u == .onp || u == .eqc || u == .eqp) &&
-        (v == .c1 || v == .a2 || v == .c2))
+  -- while their only subject alice is not; neither reaches S1, S2, S3 or H1, where
+  -- the domain table does; and r1 is the mirror image of that, reaching those four on
+  -- the range side and Y on the domain side.
+  | .rg, .p1, v | .rg, .q, v => v == .c1 || v == .c2 || v == .a2 || v == .filler
+  | .rg, .p2, v | .rg, .sy, v | .rg, .tr, v | .rg, .ty, v | .rg, .sco, v | .rg, .spo, v |
+    .rg, .dm, v | .rg, .rg, v | .rg, .avf, v | .rg, .svf, v | .rg, .onp, v | .rg, .eqc, v |
+    .rg, .eqp, v | .rg, .invo, v | .rg, .hv, v =>
+      v == .c1 || v == .c2 || v == .a2
+  | .rg, .r1, v => v == .c1 || v == .a2 || v == .s1 || v == .s2 || v == .s3 || v == .h1
+  | .rg, .sa, v => v == .c1 || v == .a2
+  | .rg, _, _ => false
   -- The graph's two universal restrictions, plus A2.
-  | .avf, u, v =>
-      (u == .c1 && v == .filler) || (u == .c2 && v == .filler) || (u == .a2 && v == .c1)
+  | .avf, .c1, v | .avf, .c2, v => v == .filler
+  | .avf, .a2, v => v == .c1
+  | .avf, _, _ => false
   -- The three existential restrictions.
-  | .svf, u, v =>
-      (u == .s1 && v == .filler) || (u == .s2 && v == .c1) || (u == .s3 && v == .filler)
+  | .svf, .s1, v | .svf, .s3, v => v == .filler
+  | .svf, .s2, v => v == .c1
+  | .svf, _, _ => false
   -- Each restriction is on exactly one property.
-  | .onp, u, v =>
-      ((u == .c1 || u == .s3) && v == .p1) ||
-      ((u == .c2 || u == .a2 || u == .s1 || u == .s2) && v == .p2)
+  | .onp, .c1, v | .onp, .s3, v => v == .p1
+  | .onp, .c2, v | .onp, .a2, v | .onp, .s1, v | .onp, .s2, v | .onp, .h1, v => v == .p2
+  | .onp, _, _ => false
   -- Two distinct classes with the same extension, so Table 5.9's class row has a
   -- pair to work on and scm-eqc1 is exercised on something other than a diagonal.
-  | .eqc, u, v => (u == .s1 && v == .s2) || (u == .s2 && v == .s1)
+  | .eqc, .s1, v => v == .s2
+  | .eqc, .s2, v => v == .s1
+  | .eqc, _, _ => false
   -- And two distinct properties with the same extension, for scm-eqp1.
-  | .eqp, u, v => (u == .p1 && v == .q) || (u == .q && v == .p1)
-  -- The asserted individual pairs. IEXT(p1) is NOT empty and is a PROPER subset
-  -- of IEXT(p2), which is what makes `p1 rdfs:subPropertyOf p2` hold here for a
-  -- reason rather than for want of anything to check.
-  | .p1, u, v => u == .alice && v == .carl
-  | .q, u, v => u == .alice && v == .carl
-  | .p2, u, v => u == .alice && (v == .bob || v == .carl)
+  | .eqp, .p1, v => v == .q
+  | .eqp, .q, v => v == .p1
+  | .eqp, _, _ => false
+  -- RBS Table 5.9 row 1 is an iff whose right-hand side is `a1 = a2`, and its
+  -- variables are unscoped, which the specification's own conventions read as
+  -- ranging over IR. So a conforming interpretation gives owl:sameAs the WHOLE
+  -- diagonal on the carrier, and never the empty relation the first version of this
+  -- model gave it.
+  | .sa, u, v => u == v
+  -- One inverse pair, on two DISTINCT properties: IEXT(r1) is the converse of
+  -- IEXT(p1) and neither is symmetric, so inv_fwd is exercised on a pair that is not
+  -- a property paired with itself.
+  | .invo, .p1, v => v == .r1
+  | .invo, _, _ => false
+  -- One value restriction: H1 is the p2-values restriction on bob.
+  | .hv, .h1, v => v == .bob
+  | .hv, _, _ => false
+  -- The asserted individual pairs. IEXT(p1) is NOT empty and is a PROPER subset of
+  -- IEXT(p2), which is what makes `p1 rdfs:subPropertyOf p2` hold here for a reason
+  -- rather than for want of anything to check.
+  | .p1, .alice, v | .q, .alice, v => v == .carl
+  | .p2, .alice, v => v == .bob || v == .carl
+  -- The converse of p1; a symmetric relation that is not transitive; and a
+  -- transitive one that is not symmetric.
+  | .r1, .carl, v => v == .alice
+  | .sy, .bob, v => v == .carl
+  | .sy, .carl, v => v == .bob
+  | .tr, .alice, v => v == .bob || v == .carl
+  | .tr, .bob, v => v == .carl
   -- Everything else, `other` included, is empty.
   | _, _, _ => false
 
@@ -470,6 +613,33 @@ instance : DecidablePred liveIP := fun x => decidable_of_iff (isIP x = true) Iff
 @[simp] theorem live_sc (u v : LiveD) : live.sc u v ↔ liveIext .sco u v = true := Iff.rfl
 @[simp] theorem live_sp (u v : LiveD) : live.sp u v ↔ liveIext .spo u v = true := Iff.rfl
 @[simp] theorem live_IC (u : LiveD) : live.IC u ↔ liveIext .ty u .cls = true := Iff.rfl
+
+/-! ## Two elaboration limits, and what they are and are not
+
+These are the only two `set_option` lines in `lean/`, so they get a reason.
+
+`sp_bwd`, `dom_bwd` and `rng_bwd` are quantified over the carrier FOUR times
+each, twice outside the implication and twice inside its universally quantified
+clause, so `decide` evaluates on the order of the fourth power of the carrier and
+nests the `Decidable` instances four deep on top of that.
+
+At twenty-six elements the old model sat inside both defaults, and that is
+measured rather than assumed: `git archive` of `lean/` at 0edfe44 into an empty
+directory, then `lake build` with no warm cache and no `set_option` anywhere,
+completes 105 jobs in about seventy seconds with no error. At thirty-five
+elements it does not, and the five conditions the second rebuild added are why
+the carrier grew.
+
+Neither option touches what is proved. `maxRecDepth` bounds how deeply the
+elaborator may recurse and `maxHeartbeats` how long it may run; a proof term that
+gets past them is checked by the same kernel on the same rules as one that does
+not, and the axiom tripwires at the end of this file are what guard soundness.
+What they do cost is build time. This is by a wide margin the longest single file
+in `lean/` to elaborate, and it accounts for most of a cold `lake build`. If that
+becomes intolerable the honest repair is a smaller carrier and a smaller claim,
+stated as such, and not a quieter gate. -/
+set_option maxRecDepth 20000
+set_option maxHeartbeats 2000000
 
 /-! ## The conditions, one decidable fact each
 
@@ -777,42 +947,58 @@ theorem live_exercises_every_arm :
    live_arm_svf_sc, live_arm_svf_sp, live_arm_avf_sc, live_arm_avf_sp,
    live_arm_dom_sc, live_arm_dom_sp, live_arm_rng_sc, live_arm_rng_sp⟩
 
-/-! ### And what is still vacuous, named rather than left to be discovered
+/-! ### And nothing is left vacuous, which took a second rebuild to get to
 
-Five of the twenty-one fields of `W3C` still hold in this model because nothing
-is in the extension their antecedent reads. Both halves of that sentence are
-theorems: `live_fires_the_other_sixteen` exhibits a satisfied antecedent for each
-of the other sixteen, and `live_leaves_exactly_these_five_vacuous` names the five.
-Sixteen plus five is twenty-one, so neither number can drift from the tables
-without the build going red. The five are exactly the fields that carry NONE of
-the fourteen arms: `Soundness.lean` consumes `same_fwd`,
-`sym_fwd`, `trp_fwd`, `inv_fwd` and `hv_eq` through projections out of
-`Conditions`, never through a derivation.
+Every one of the twenty-one fields of `W3C` has a SATISFIED ANTECEDENT in this
+model. `live_fires_every_field` is that sentence as a theorem, one exhibited
+antecedent per field, so the count cannot drift from the tables without the build
+going red.
 
-`same_fwd` is the one that cannot be exercised non-trivially at all, and that is
-the specification's doing rather than this model's: RBS Table 5.9's first row
-reads `( a₁ , a₂ ) ∈ IEXT(I(owl:sameAs))` **iff** `a₁ = a₂`, so the only pairs
-any conforming interpretation can put in that extension are diagonal ones and the
-only instance of the field is `a = a`.
+**The 15 September 2026 rebuild left five fields vacuous and said so; this is the
+second rebuild, which closes them.** The five were `same_fwd`, `sym_fwd`,
+`trp_fwd`, `inv_fwd` and `hv_eq`, and the note beside them said two things. The
+first was that closing the other four would cost more carrier than the `decide`
+budget allowed. That was a budget, not an obstruction, and it is paid here:
+`sy`, `tr`, `r1`, `H1` and the five vocabulary elements that had been falling
+through to `other` bring the carrier to thirty-five, the four conditions are
+exercised, and the two `set_option` lines earlier in the file are what that
+costs, with the reason written beside them.
 
-The other four are ordinary omissions and could be closed, at a price this file
-declines to pay: each needs its own vocabulary element plus a property or a
-restriction to hold it, and every condition here is quantified over the carrier
-three or four times, so the `decide` cost is quartic in the number of elements.
-Twenty-six elements already cost about ten seconds. The honest report is that
-these four are not exercised, not that they cannot be. -/
+The second thing it said was wrong, and it is the kind of wrong this file exists
+to catch. It said `same_fwd` "cannot be exercised non-trivially by ANY model at
+all because the specification makes that relation the diagonal". The premise is
+right and the conclusion does not follow. RBS Table 5.9 row 1 is
+`( a₁ , a₂ ) ∈ IEXT(I(owl:sameAs))` **iff** `a₁ = a₂`, the `iff` cell carrying
+`rowspan="6"`, and the specification's own conventions section reads an unscoped
+variable as ranging over IR: "If no explicit scope is given for a variable `x`
+... then `x` is unconstrained, which means x ∈ IR". So a conforming
+interpretation's `owl:sameAs` extension is the WHOLE diagonal on IR, and RBS
+section 4.2 defines IR as "the universe of I, i.e., a nonempty set", so that
+extension is never empty. The first version of this model gave `owl:sameAs` the
+EMPTY extension, which no
+conforming interpretation has, and then reported the emptiness as a fact about
+the specification rather than a defect in the model. Both quotes were re-read in
+the raw HTML of <https://www.w3.org/TR/owl2-rdf-based-semantics/> on 15 September
+2026.
 
-/-- **The other sixteen fields fire**, one satisfied antecedent each, so that
-"exactly these five" below is earned rather than asserted. Sixteen plus five is
-the twenty-one fields of `W3C`.
+What is true is narrower and is proved below rather than asserted:
+`same_fwd` has no instance at `a ≠ b` in any interpretation meeting that cell.
+`sameAs_has_no_off_diagonal_instance` is that theorem, and it is a statement
+about every interpretation rather than about this one, which is why it is stated
+over an arbitrary `Interp`. The condition can be exercised, it is exercised here
+at thirty-five instances, and every one of them is a diagonal pair. That is the
+whole of the residual limitation, and it is one line rather than five. -/
 
-`sc_fwd`, `sp_fwd`, `dom_fwd`, `rng_fwd`, `eqc_fwd`, `eqp_fwd`, `svf_eq`,
-`svf_typ`, `avf_eq`, `avf_typ`, `onp_typ` and `restr_IC` are given a pair in the
-extension their antecedent reads; `sc_bwd`, `sp_bwd`, `dom_bwd` and `rng_bwd` are
-given the whole antecedent, guards and universally quantified clause together,
-because those are the four whose hypotheses can be met for want of anything to
-check and were. -/
-theorem live_fires_the_other_sixteen_raw :
+/-- **All twenty-one fields fire**, one satisfied antecedent each. Nothing in
+`W3C` holds here for want of anything to check.
+
+`sc_fwd`, `sp_fwd`, `dom_fwd`, `rng_fwd`, `eqc_fwd`, `eqp_fwd`, `same_fwd`,
+`inv_fwd`, `sym_fwd`, `trp_fwd`, `svf_eq`, `svf_typ`, `avf_eq`, `avf_typ`,
+`hv_eq`, `onp_typ` and `restr_IC` are given a pair in the extension their
+antecedent reads; `sc_bwd`, `sp_bwd`, `dom_bwd` and `rng_bwd` are given the whole
+antecedent, guards and universally quantified clause together, because those are
+the four whose hypotheses can be met for want of anything to check and were. -/
+theorem live_fires_every_field_raw :
     liveIext .sco .c2 .c1 = true ∧
     (liveIext .ty .c2 .cls = true ∧ liveIext .ty .c1 .cls = true ∧
       ∀ x, liveIext .ty x .c2 = true → liveIext .ty x .c1 = true) ∧
@@ -827,14 +1013,20 @@ theorem live_fires_the_other_sixteen_raw :
       ∀ x y, liveIext .p2 x y = true → liveIext .ty y .c2 = true) ∧
     liveIext (liveι V.equivalentClass) .s1 .s2 = true ∧
     liveIext (liveι V.equivalentProperty) .p1 .q = true ∧
+    liveIext (liveι V.sameAs) .alice .alice = true ∧
+    liveIext (liveι V.inverseOf) .p1 .r1 = true ∧
+    liveIext .ty .sy (liveι V.symmetricProperty) = true ∧
+    liveIext .ty .tr (liveι V.transitiveProperty) = true ∧
     (liveIext (liveι V.someValuesFrom) .s1 .filler = true ∧
       liveIext (liveι V.onProperty) .s1 .p2 = true) ∧
     (liveIext (liveι V.allValuesFrom) .c1 .filler = true ∧
       liveIext (liveι V.onProperty) .c1 .p1 = true) ∧
+    (liveIext (liveι V.hasValue) .h1 .bob = true ∧
+      liveIext (liveι V.onProperty) .h1 .p2 = true) ∧
     liveIext .ty .c1 (liveι V.Restriction) = true := by decide
 
-/-- The same sixteen over `live`, by definitional unfolding. -/
-theorem live_fires_the_other_sixteen :
+/-- The same twenty-one over `live`, by definitional unfolding. -/
+theorem live_fires_every_field :
     live.sc .c2 .c1 ∧
     (live.IC .c2 ∧ live.IC .c1 ∧ ∀ x, live.cext .c2 x → live.cext .c1 x) ∧
     live.sp .p1 .p2 ∧
@@ -845,30 +1037,47 @@ theorem live_fires_the_other_sixteen :
     (liveIP .p2 ∧ live.IC .c2 ∧ ∀ x y, live.iext .p2 x y → live.cext .c2 y) ∧
     live.iext (live.ι V.equivalentClass) .s1 .s2 ∧
     live.iext (live.ι V.equivalentProperty) .p1 .q ∧
+    live.iext (live.ι V.sameAs) .alice .alice ∧
+    live.iext (live.ι V.inverseOf) .p1 .r1 ∧
+    live.cext (live.ι V.symmetricProperty) .sy ∧
+    live.cext (live.ι V.transitiveProperty) .tr ∧
     (live.iext (live.ι V.someValuesFrom) .s1 .filler ∧
       live.iext (live.ι V.onProperty) .s1 .p2) ∧
     (live.iext (live.ι V.allValuesFrom) .c1 .filler ∧
       live.iext (live.ι V.onProperty) .c1 .p1) ∧
+    (live.iext (live.ι V.hasValue) .h1 .bob ∧
+      live.iext (live.ι V.onProperty) .h1 .p2) ∧
     live.cext (live.ι V.Restriction) .c1 :=
-  live_fires_the_other_sixteen_raw
+  live_fires_every_field_raw
 
-theorem live_leaves_exactly_these_five_vacuous_raw :
-    (∀ a b : LiveD, ¬ liveIext (liveι V.sameAs) a b = true) ∧
-    (∀ p : LiveD, ¬ liveIext .ty p (liveι V.symmetricProperty) = true) ∧
-    (∀ p : LiveD, ¬ liveIext .ty p (liveι V.transitiveProperty) = true) ∧
-    (∀ p r : LiveD, ¬ liveIext (liveι V.inverseOf) p r = true) ∧
-    (∀ z a : LiveD, ¬ liveIext (liveι V.hasValue) z a = true) := by decide
+/-- RBS Table 5.9's `owl:sameAs` cell, both directions, as a property of an
+arbitrary interpretation. `W3C.same_fwd` is its left-to-right half and is all any
+rule consumes; this is the whole cell, and it is stated here rather than added to
+`W3C` because adding it would SHRINK the model class for no rule's benefit. -/
+def SameAsIsTheDiagonal (I : Interp) : Prop :=
+  ∀ a b : I.D, I.iext (I.ι V.sameAs) a b ↔ a = b
 
-/-- **The five fields this witness does not exercise**, pinned. Each carries none
-of the fourteen arms. Everything else in `W3C` has something in its extension
-here, and `live_exercises_every_arm` shows every arm firing. -/
-theorem live_leaves_exactly_these_five_vacuous :
-    (∀ a b : LiveD, ¬ live.iext (live.ι V.sameAs) a b) ∧
-    (∀ p : LiveD, ¬ live.cext (live.ι V.symmetricProperty) p) ∧
-    (∀ p : LiveD, ¬ live.cext (live.ι V.transitiveProperty) p) ∧
-    (∀ p r : LiveD, ¬ live.iext (live.ι V.inverseOf) p r) ∧
-    (∀ z a : LiveD, ¬ live.iext (live.ι V.hasValue) z a) :=
-  live_leaves_exactly_these_five_vacuous_raw
+/-- **The residual limitation on `same_fwd`, as a theorem about every
+interpretation rather than a remark about this one.**
+
+In any interpretation meeting the cell, `same_fwd`'s antecedent is met exactly on
+the diagonal, so the field can be exercised and can never be exercised at
+`a ≠ b`. That is a fact about the specification: the cell is an `iff` and its
+right-hand side is an equation, so there is nothing for a model builder to
+choose. It is NOT the claim an earlier draft of this file made, that the field
+cannot be exercised at all; it is exercised here thirty-five times. -/
+theorem sameAs_has_no_off_diagonal_instance {I : Interp} (h : SameAsIsTheDiagonal I)
+    {a b : I.D} (hne : a ≠ b) : ¬ I.iext (I.ι V.sameAs) a b :=
+  fun hab => hne ((h a b).mp hab)
+
+theorem live_sameAs_is_the_diagonal_raw :
+    ∀ a b : LiveD, liveIext (liveι V.sameAs) a b = true ↔ a = b := by decide
+
+/-- And this model meets the cell in BOTH directions, not just the forward half
+`W3C` states. The diagonal is what a conforming interpretation has there, so
+putting it in moves the model towards conformance rather than away from it. -/
+theorem live_sameAs_is_the_diagonal : SameAsIsTheDiagonal live :=
+  live_sameAs_is_the_diagonal_raw
 
 theorem live_c1_is_a_class : liveIext .ty .c1 .cls = true := by decide
 theorem live_c2_is_a_class : liveIext .ty .c2 .cls = true := by decide
@@ -888,8 +1097,10 @@ theorem live_p2_objects_are_c2 :
 theorem live_p2_is_not_a_domain_of_c2 : ¬ liveIext (liveι V.domain) .p2 .c2 = true := by decide
 
 /-- `dom_bwd` is discharged over a NON-EMPTY relation: the clause it demands is
-proved at `p2`'s two pairs and not by there being no pairs, which is the thing the
-second kernel's own witness fails to do for this condition. -/
+proved at `p2`'s two pairs and not by there being no pairs. The second kernel's
+`M3` does not manage that, which is what its own `M4` was built for;
+`isabelle/OO_NonVacuity.thy`'s `M4_ante_dom_bwd` is the counterpart of this
+theorem. -/
 theorem live_dom_bwd_is_exercised : live.iext (live.ι V.domain) .p2 .c1 :=
   live_w3c.dom_bwd .p2 .c1 live_p2_is_in_IP live_c1_is_a_class live_p2_subjects_are_c1
 
@@ -1104,21 +1315,26 @@ what makes `sc_bwd` vacuous. The claim also silently promoted
 `live_is_bridge_coherent`, which is an EXTRA property the `live` model happens
 to have, into a requirement of `W3CModel`, which it is not.
 
-FOUR of the seven results listed there transfer on the nose, with the existing
-witness graphs unchanged and nothing hand-built: two proved in this section, one
-in `Mixed.lean`, and one that was already proved further up THIS file at the
-moment the list called it open. The remaining three do not, and the reason is
-stated at each of them rather than generalised into a slogan.
+FOUR of the results listed there transfer on the nose, with the existing witness
+graphs unchanged and nothing hand-built: two proved in this section, one in
+`Mixed.lean`, and one that was already proved further up THIS file at the moment
+the list called it open. The rest needed a finite structure each, and have one.
 
-| result | transfers | why |
-|---|---|---|
-| `not_everything_is_entailed` | yes, and already did | `not_everything_is_w3c_entailed`, below |
-| `an_unlisted_individual_is_not_entailed` | yes | `an_unlisted_individual_is_not_w3c_entailed` |
-| `membership_in_one_member_does_not_give_the_intersection` | yes | `membership_in_one_member_is_not_w3c_enough` |
-| `mix_not_absolutely_entailed` | yes | `mix_not_absolutely_w3c_entailed`, in `Mixed.lean` |
-| `the_old_svf_derivation_is_not_entailed` | no | `svfWitness` has `R owl:onProperty p` with no `R rdf:type owl:Restriction`, so `onp_typ` fails on its first conjunct for EVERY choice of `IP` |
-| `feed_is_not_refuted` | no | `feed` carries `Lion rdfs:subClassOf Carnivore` and no `rdfs:Class` typing, so `sc_fwd` fails; and `¬ Unsat` runs the wrong way for transfer anyway |
-| `not_unsat_of_joint_model` | no | it is a lemma with a hypothesis rather than a witness, and the same direction problem |
+| result | how it transfers |
+|---|---|
+| `not_everything_is_entailed` | on its own witness: `not_everything_is_w3c_entailed`, below |
+| `an_unlisted_individual_is_not_entailed` | on its own witness: `an_unlisted_individual_is_not_w3c_entailed` |
+| `membership_in_one_member_does_not_give_the_intersection` | on its own witness: `membership_in_one_member_is_not_w3c_enough` |
+| `mix_not_absolutely_entailed` | on its own witness: `mix_not_absolutely_w3c_entailed`, in `Mixed.lean` |
+| `the_old_svf_derivation_is_not_entailed` | on `svfI`, built for it: `the_old_svf_derivation_is_not_w3c_entailed`, at the end of this file |
+| `feed_is_not_refuted` | on `refI false`, built for it: `feed_is_not_w3c_refuted`, in `RefuteWitness.lean` |
+| `and_the_old_verdict_does_not_notice` | on `refI true`, built for it: `the_old_verdict_does_not_notice_over_w3c`, in `RefuteWitness.lean` |
+| `not_unsat_of_joint_model` | by unfolding: `not_w3cUnsat_of_joint_w3c_model`, in `RefuteWitness.lean` |
+
+The three at the bottom of that table used to read "no", with the field that
+fails pinned as a checked theorem. Those theorems said the HERBRAND witness is
+not a `W3CModel`, which is true and is a reason to build a different structure
+rather than a reason the result is out of reach.
 
 The two `owl:oneOf` and `owl:intersectionOf` graphs go through because the list
 field of `W3CModel` is an `iff` and their witnesses satisfy it in both
@@ -1264,24 +1480,364 @@ theorem membership_in_one_member_is_not_w3c_enough :
   absurd (h (herbrand intWitness) (fun _ => False) int_witness_is_a_w3c_model)
     (by decide : (⟨tv, V.type, tK⟩ : Triple) ∉ intWitness)
 
-/-! ### And two that do not transfer, with the obstruction checked rather than argued
+/-! ### And the last of the seven transfers, on a countermodel built for it
 
-Both obstructions are independent of `IP`: the field that fails does not mention
-it. They are recorded as theorems so that a later reader who tries the same
-`IP := fun _ => False` trick is told why it stops, instead of rediscovering it. -/
+`the_old_svf_derivation_is_not_entailed` was the one non-entailment in
+`Witness.lean` that the empty-`IP` reading could not carry over. The obstruction
+was real and was recorded as a checked theorem: `svfWitness` carries
+`R owl:onProperty p` and types `R` as nothing at all, so RBS Table 5.3's
+`owl:onProperty` row fails on its first conjunct, `z ∈ ICEXT(owl:Restriction)`,
+for EVERY choice of `IP`, and `svf_typ` and `sc_fwd` fail beside it.
 
-/-- `svfWitness` carries `R owl:someValuesFrom D` and `R owl:onProperty p` and
-types `R` as nothing at all, so RBS Table 5.3's `owl:onProperty` row fails on its
-FIRST conjunct, `z ∈ ICEXT(owl:Restriction)`. No choice of `IP` repairs that,
-which is why `the_old_svf_derivation_is_not_entailed` stays a statement about
-the `Conditions` class. -/
-theorem svf_witness_misses_the_restriction_typing :
-    ((⟨tR, V.onProperty, tp⟩ : Triple) ∈ svfWitness) ∧
-      (⟨tR, V.type, V.Restriction⟩ : Triple) ∉ svfWitness := by decide
+What the obstruction showed was that the HERBRAND witness is not a `W3CModel`.
+It did not show that no `W3CModel` refutes the triple, and the note beside it
+said so: "what is open is whether a conforming interpretation also refutes it,
+and nothing here suggests it does not". It does. `svfI` below is a hand-built
+finite structure of the same kind as `live`, and it settles the question in the
+direction the note expected.
 
-/-! `feed`'s obstruction is the matching one and it is checked in
-`RefuteWitness.lean`, beside the theorem it blocks, because `feedClosure` lives
-there. -/
+The construction is the shortest one there is. `C rdfs:subClassOf R` needs
+`ICEXT(C) ⊆ ICEXT(R)`, and the EMPTY set is contained in everything, so
+`ICEXT(C) := ∅` satisfies the premise and refutes the conclusion at the same
+time. Everything else is then forced: `R` is `∃p.D`, `IEXT(p) = {(x, y)}` and
+`ICEXT(D) = {y}`, so Table 5.6 forces `ICEXT(R) = {x}`; `R` is typed
+`owl:Restriction` and `C`, `D`, `R` are typed `rdfs:Class`, which is what
+`svf_typ`, `onp_typ` and `restr_IC` demand and what the Herbrand witness could
+not supply; and the four `rdfs:*` tables are the fixpoint Table 5.8's two
+directions force from that.
+
+`q` is the one element here that no premise asks for, and the reason it is
+present is `sameAs_diagonal_needs_an_off_diagonal_subproperty` below. -/
+
+/-- **Two distinct properties, one below the other, are FORCED on any model that
+gives `owl:sameAs` the extension the specification gives it.**
+
+This is not a remark about model building, it is a consequence of two table cells
+meeting. Suppose `IEXT(rdfs:subPropertyOf)` were contained in the diagonal.
+Table 5.9 row 1 then makes it a subset of `IEXT(owl:sameAs)`, so Table 5.8 row 2
+BACKWARD puts the pair `(I(rdfs:subPropertyOf), I(owl:sameAs))` into
+`IEXT(rdfs:subPropertyOf)` itself, and the diagonal assumption collapses that
+pair, making the two IRIs denote the same thing.
+
+The practical effect is that a small countermodel cannot have both a
+`rdfs:subPropertyOf` extension that is exactly the diagonal on `IP` and a
+non-empty `owl:sameAs`, which is why `svfI` carries a second property `q` with
+`IEXT(q) = IEXT(p)`. Both are in `IP` by RBS Table 5.3, whose `I(E)` column reads
+"∈ IP" for `owl:sameAs` and for `owl:onProperty`, re-read in the raw HTML of
+<https://www.w3.org/TR/owl2-rdf-based-semantics/> on 15 September 2026. -/
+theorem sameAs_diagonal_needs_an_off_diagonal_subproperty {I : Interp} {IP : I.D → Prop}
+    (W : W3C I IP) (hd : SameAsIsTheDiagonal I)
+    (hsa : IP (I.ι V.sameAs)) (hspo : IP (I.ι V.subPropertyOf))
+    (hne : I.ι V.subPropertyOf ≠ I.ι V.sameAs)
+    (hdiag : ∀ a b, I.sp a b → a = b) : False :=
+  hne (hdiag _ _ (W.sp_bwd _ _ hspo hsa (fun x y hxy => (hd x y).mpr (hdiag x y hxy))))
+
+/-- The eighteen elements of the countermodel for `svfPremises`. Two individuals;
+three classes, of which one is a restriction; two properties with equal
+extensions; ten vocabulary denotations that have to be told apart; and one junk
+element. -/
+inductive SvfD where
+  /-- The subject of the asserted `x p y`, and the element the refuted triple
+  claims is a `C`. -/
+  | ex_x
+  /-- Its `p`-successor, and the only member of `ICEXT(D)`. -/
+  | ex_y
+  /-- `C`, whose class extension is EMPTY. That is the refutation: the premise
+  `C rdfs:subClassOf R` holds because the empty set is contained in `ICEXT(R)`,
+  and `x rdf:type C` fails because nothing is in `ICEXT(C)`. -/
+  | cC
+  /-- `D`, the filler, with `ICEXT(D) = {y}`. -/
+  | cD
+  /-- `R`, the restriction `∃p.D`, with `ICEXT(R) = {x}` FORCED by Table 5.6. -/
+  | cR
+  /-- `p`, with the single pair `(x, y)`. -/
+  | prop
+  /-- A second property with `IEXT(q) = IEXT(p)`, present only so that
+  `IEXT(rdfs:subPropertyOf)` is not the diagonal, which
+  `sameAs_diagonal_needs_an_off_diagonal_subproperty` shows is what a non-empty
+  `owl:sameAs` costs. -/
+  | qq
+  /-- `rdf:type`. -/
+  | ty
+  /-- `rdfs:subClassOf`. -/
+  | sco
+  /-- `rdfs:subPropertyOf`. -/
+  | spo
+  /-- `rdfs:domain`. -/
+  | dm
+  /-- `rdfs:range`. -/
+  | rg
+  /-- `owl:onProperty`. -/
+  | onp
+  /-- `owl:someValuesFrom`. -/
+  | svf
+  /-- `owl:sameAs`, carrying the diagonal, as Table 5.9 row 1 requires. -/
+  | sa
+  /-- `rdfs:Class`. -/
+  | cls
+  /-- `owl:Restriction`. -/
+  | restr
+  /-- Every other IRI, with both extensions empty. -/
+  | other
+deriving DecidableEq, Repr
+
+namespace SvfD
+
+/-- The carrier as a list, so quantification over it is decidable without
+Mathlib. -/
+def all : List SvfD :=
+  [ex_x, ex_y, cC, cD, cR, prop, qq, ty, sco, spo, dm, rg, onp, svf, sa, cls, restr, other]
+
+theorem mem_all (w : SvfD) : w ∈ all := by cases w <;> decide
+
+instance decForall (p : SvfD → Prop) [DecidablePred p] : Decidable (∀ w, p w) :=
+  decidable_of_iff (∀ w ∈ all, p w) ⟨fun h w => h w (mem_all w), fun h w _ => h w⟩
+
+instance decExists (p : SvfD → Prop) [DecidablePred p] : Decidable (∃ w, p w) :=
+  decidable_of_iff (∃ w ∈ all, p w)
+    ⟨fun ⟨w, _, h⟩ => ⟨w, h⟩, fun ⟨w, h⟩ => ⟨w, mem_all w, h⟩⟩
+
+end SvfD
+
+/-- The denotations. `owl:allValuesFrom`, `owl:hasValue`, `owl:inverseOf`,
+`owl:equivalentClass`, `owl:equivalentProperty`, `owl:SymmetricProperty`,
+`owl:TransitiveProperty` and the three list constructors all fall to `other`,
+whose extensions are empty; `svfPremises` mentions none of them and no rule
+consumes their rows here. `live` is the model that exercises them. -/
+def svfTable : List (Term × SvfD) :=
+  [ (V.type, .ty), (V.subClassOf, .sco), (V.subPropertyOf, .spo),
+    (V.domain, .dm), (V.range, .rg), (V.onProperty, .onp),
+    (V.someValuesFrom, .svf), (V.sameAs, .sa),
+    (V.Class, .cls), (V.Restriction, .restr),
+    (tC, .cC), (tD, .cD), (tR, .cR), (tp, .prop), (tx, .ex_x), (ty, .ex_y) ]
+
+/-- Terms denote their table entry, or `other`. -/
+def svfι (t : Term) : SvfD := (List.lookup t svfTable).getD .other
+
+/-- `IP`: the ten elements that carry pairs, so the structure is bridge-coherent
+in the sense `live_is_bridge_coherent` states. -/
+def svfIsIP : SvfD → Bool
+  | .prop | .qq | .ty | .sco | .spo | .dm | .rg | .onp | .svf | .sa => true
+  | _ => false
+
+/-- The extensions. SIX rows are chosen, `IEXT(p)`, `IEXT(q)`, `ICEXT(D)`,
+`owl:onProperty`, `owl:someValuesFrom` and the two class-typing rows; `ICEXT(C)`
+is chosen EMPTY, which is the refutation; `ICEXT(R)` is forced by Table 5.6, the
+`owl:sameAs` diagonal is forced by Table 5.9, and `sco`, `spo`, `dm` and `rg` are
+the fixpoint Table 5.8's two directions force. -/
+def svfIext : SvfD → SvfD → SvfD → Bool
+  -- ICEXT(rdfs:Class) = IC = {C, D, R}. All three have to be classes: sc_fwd
+  -- demands it of C and R, and svf_typ demands it of D.
+  | .ty, w, .cls => w == .cC || w == .cD || w == .cR
+  -- ICEXT(owl:Restriction) = {R}, a PROPER subset of IC. This is the typing the
+  -- Herbrand witness lacks and the reason that witness is not a W3CModel.
+  | .ty, w, .restr => w == .cR
+  -- ICEXT(R) = {x}, FORCED by Table 5.6: R is ∃p.D, x reaches y by p, y is a D,
+  -- and nothing else has a p-successor.
+  | .ty, w, .cR => w == .ex_x
+  -- ICEXT(D) = {y}, asserted by the graph.
+  | .ty, w, .cD => w == .ex_y
+  -- ICEXT of everything else, C INCLUDED, is empty.
+  | .ty, _, _ => false
+  -- IEXT(rdfs:subClassOf): the pairs of IC whose extensions nest. C is below
+  -- everything because its extension is empty, which is what makes the premise
+  -- true and the conclusion false at once.
+  | .sco, .cC, v => v == .cC || v == .cD || v == .cR
+  | .sco, .cD, v => v == .cD
+  | .sco, .cR, v => v == .cR
+  | .sco, _, _ => false
+  -- IEXT(rdfs:subPropertyOf): the pairs of IP whose extensions nest. p and q both
+  -- ways, because their extensions are equal, and the diagonal otherwise.
+  | .spo, .prop, v | .spo, .qq, v => v == .prop || v == .qq
+  | .spo, .ty, v => v == .ty
+  | .spo, .sco, v => v == .sco
+  | .spo, .spo, v => v == .spo
+  | .spo, .dm, v => v == .dm
+  | .spo, .rg, v => v == .rg
+  | .spo, .onp, v => v == .onp
+  | .spo, .svf, v => v == .svf
+  | .spo, .sa, v => v == .sa
+  | .spo, _, _ => false
+  -- IEXT(rdfs:domain) and IEXT(rdfs:range), and they DIFFER: p's only subject is
+  -- x, which is an R, and its only object is y, which is a D.
+  | .dm, .prop, v | .dm, .qq, v => v == .cR
+  | .dm, _, _ => false
+  | .rg, .prop, v | .rg, .qq, v => v == .cD
+  | .rg, _, _ => false
+  -- The restriction, on one property, with one filler.
+  | .onp, .cR, v => v == .prop
+  | .onp, _, _ => false
+  | .svf, .cR, v => v == .cD
+  | .svf, _, _ => false
+  -- RBS Table 5.9 row 1, which is an iff whose right-hand side is an equation.
+  | .sa, u, v => u == v
+  -- The asserted pair, and q's copy of it.
+  | .prop, .ex_x, v | .qq, .ex_x, v => v == .ex_y
+  -- Everything else is empty.
+  | _, _, _ => false
+
+/-- The interpretation. -/
+def svfI : Interp where
+  D := SvfD
+  ι := svfι
+  iext := fun p x y => svfIext p x y = true
+
+/-- `IP` as a predicate. -/
+def svfIP (x : SvfD) : Prop := svfIsIP x = true
+
+instance : DecidablePred svfIP := fun x => decidable_of_iff (svfIsIP x = true) Iff.rfl
+
+theorem svf_sc_fwd : ∀ a b : SvfD, svfIext .sco a b = true →
+    svfIext .ty a .cls = true ∧ svfIext .ty b .cls = true ∧
+    ∀ x, svfIext .ty x a = true → svfIext .ty x b = true := by decide
+
+theorem svf_sc_bwd : ∀ a b : SvfD, svfIext .ty a .cls = true → svfIext .ty b .cls = true →
+    (∀ x, svfIext .ty x a = true → svfIext .ty x b = true) → svfIext .sco a b = true := by decide
+
+theorem svf_sp_fwd : ∀ a b : SvfD, svfIext .spo a b = true →
+    svfIP a ∧ svfIP b ∧ ∀ x y, svfIext a x y = true → svfIext b x y = true := by decide
+
+theorem svf_sp_bwd : ∀ a b : SvfD, svfIP a → svfIP b →
+    (∀ x y, svfIext a x y = true → svfIext b x y = true) → svfIext .spo a b = true := by decide
+
+theorem svf_dom_fwd : ∀ p c : SvfD, svfIext (svfι V.domain) p c = true →
+    svfIP p ∧ svfIext .ty c .cls = true ∧
+    ∀ x y, svfIext p x y = true → svfIext .ty x c = true := by decide
+
+theorem svf_dom_bwd : ∀ p c : SvfD, svfIP p → svfIext .ty c .cls = true →
+    (∀ x y, svfIext p x y = true → svfIext .ty x c = true) →
+    svfIext (svfι V.domain) p c = true := by decide
+
+theorem svf_rng_fwd : ∀ p c : SvfD, svfIext (svfι V.range) p c = true →
+    svfIP p ∧ svfIext .ty c .cls = true ∧
+    ∀ x y, svfIext p x y = true → svfIext .ty y c = true := by decide
+
+theorem svf_rng_bwd : ∀ p c : SvfD, svfIP p → svfIext .ty c .cls = true →
+    (∀ x y, svfIext p x y = true → svfIext .ty y c = true) →
+    svfIext (svfι V.range) p c = true := by decide
+
+theorem svf_eqc_fwd : ∀ a b : SvfD, svfIext (svfι V.equivalentClass) a b = true →
+    svfIext .ty a .cls = true ∧ svfIext .ty b .cls = true ∧
+    ∀ x, (svfIext .ty x a = true ↔ svfIext .ty x b = true) := by decide
+
+theorem svf_eqp_fwd : ∀ a b : SvfD, svfIext (svfι V.equivalentProperty) a b = true →
+    svfIP a ∧ svfIP b ∧ ∀ x y, (svfIext a x y = true ↔ svfIext b x y = true) := by decide
+
+theorem svf_same_fwd : ∀ a b : SvfD, svfIext (svfι V.sameAs) a b = true → a = b := by decide
+
+theorem svf_inv_fwd : ∀ p r : SvfD, svfIext (svfι V.inverseOf) p r = true →
+    svfIP p ∧ svfIP r ∧ ∀ x y, (svfIext p x y = true ↔ svfIext r y x = true) := by decide
+
+theorem svf_sym_fwd : ∀ p : SvfD, svfIext .ty p (svfι V.symmetricProperty) = true →
+    ∀ x y, svfIext p x y = true → svfIext p y x = true := by decide
+
+theorem svf_trp_fwd : ∀ p : SvfD, svfIext .ty p (svfι V.transitiveProperty) = true →
+    ∀ x y z, svfIext p x y = true → svfIext p y z = true → svfIext p x z = true := by decide
+
+theorem svf_svf_eq : ∀ z c p : SvfD, svfIext (svfι V.someValuesFrom) z c = true →
+    svfIext (svfι V.onProperty) z p = true →
+    ∀ x, (svfIext .ty x z = true ↔ ∃ y, svfIext p x y = true ∧ svfIext .ty y c = true) := by
+  decide
+
+theorem svf_avf_eq : ∀ z c p : SvfD, svfIext (svfι V.allValuesFrom) z c = true →
+    svfIext (svfι V.onProperty) z p = true →
+    ∀ x, (svfIext .ty x z = true ↔ ∀ y, svfIext p x y = true → svfIext .ty y c = true) := by
+  decide
+
+theorem svf_hv_eq : ∀ z a p : SvfD, svfIext (svfι V.hasValue) z a = true →
+    svfIext (svfι V.onProperty) z p = true →
+    ∀ x, (svfIext .ty x z = true ↔ svfIext p x a = true) := by decide
+
+theorem svf_restr_IC : ∀ x : SvfD, svfIext .ty x (svfι V.Restriction) = true →
+    svfIext .ty x .cls = true := by decide
+
+theorem svf_svf_typ : ∀ z c : SvfD, svfIext (svfι V.someValuesFrom) z c = true →
+    svfIext .ty z (svfι V.Restriction) = true ∧ svfIext .ty c .cls = true := by decide
+
+theorem svf_avf_typ : ∀ z c : SvfD, svfIext (svfι V.allValuesFrom) z c = true →
+    svfIext .ty z (svfι V.Restriction) = true ∧ svfIext .ty c .cls = true := by decide
+
+theorem svf_onp_typ : ∀ z p : SvfD, svfIext (svfι V.onProperty) z p = true →
+    svfIext .ty z (svfι V.Restriction) = true ∧ svfIP p := by decide
+
+/-- Every asserted triple of `svfPremises` holds. -/
+theorem svf_facts :
+    ∀ t ∈ svfPremises, svfIext (svfι t.p) (svfι t.s) (svfι t.o) = true := by decide
+
+theorem svf_meets_the_w3c_conditions : W3C svfI svfIP where
+  sc_fwd := svf_sc_fwd
+  sc_bwd := svf_sc_bwd
+  sp_fwd := svf_sp_fwd
+  sp_bwd := svf_sp_bwd
+  dom_fwd := svf_dom_fwd
+  dom_bwd := svf_dom_bwd
+  rng_fwd := svf_rng_fwd
+  rng_bwd := svf_rng_bwd
+  eqc_fwd := svf_eqc_fwd
+  eqp_fwd := svf_eqp_fwd
+  same_fwd := svf_same_fwd
+  inv_fwd := svf_inv_fwd
+  sym_fwd := svf_sym_fwd
+  trp_fwd := svf_trp_fwd
+  svf_eq := svf_svf_eq
+  avf_eq := svf_avf_eq
+  hv_eq := svf_hv_eq
+  restr_IC := svf_restr_IC
+  svf_typ := svf_svf_typ
+  avf_typ := svf_avf_typ
+  onp_typ := svf_onp_typ
+
+/-- **A `W3CModel` of `svfPremises`.** The three list fields are vacuous because
+`svfPremises` carries no `owl:intersectionOf`, `owl:unionOf` or `owl:oneOf`
+triple. -/
+theorem svfI_is_a_w3c_model : W3CModel svfI svfIP svfPremises where
+  conds := svf_meets_the_w3c_conditions
+  facts := svf_facts
+  int_eq := fun c l _ hc =>
+    absurd hc (not_mem_pred svfPremises V.intersectionOf (by decide) c l)
+  uni_eq := fun c l _ hc => absurd hc (not_mem_pred svfPremises V.unionOf (by decide) c l)
+  oneOf_eq := fun c l _ hc => absurd hc (not_mem_pred svfPremises V.oneOf (by decide) c l)
+
+theorem svfI_is_live_raw :
+    (svfIext .ty .ex_x .cR = true ∧ svfIext .ty .ex_y .cD = true) ∧
+    (∀ w, ¬ svfIext .ty w .cC = true) ∧
+    (svfIext .prop .ex_x .ex_y = true) ∧
+    (svfIext .ty .cR (svfι V.Restriction) = true ∧
+      ¬ svfIext .ty .cD (svfι V.Restriction) = true) ∧
+    (svfIext .spo .prop .qq = true ∧ ¬ svfIext .spo .prop .ty = true) ∧
+    (∀ p x y : SvfD, svfIext p x y = true → svfIP p) := by decide
+
+/-- **The countermodel is not degenerate**, and the last two conjuncts are the
+ones that matter. `IEXT(rdfs:subPropertyOf)` is not the diagonal, which is what
+lets the `owl:sameAs` row be the diagonal rather than empty; and every predicate
+carrying a pair is in `IP`, so the structure is in the image of the bridge in
+`W3C.lean`, which the Herbrand witness this replaces is not. -/
+theorem svfI_is_live :
+    (svfI.cext .cR .ex_x ∧ svfI.cext .cD .ex_y) ∧
+    (∀ w, ¬ svfI.cext .cC w) ∧
+    svfI.iext .prop .ex_x .ex_y ∧
+    (svfI.cext (svfI.ι V.Restriction) .cR ∧ ¬ svfI.cext (svfI.ι V.Restriction) .cD) ∧
+    (svfI.sp .prop .qq ∧ ¬ svfI.sp .prop .ty) ∧
+    (∀ p x y : SvfD, svfI.iext p x y → svfIP p) :=
+  svfI_is_live_raw
+
+theorem svfI_refutes_the_conclusion : ¬ svfIext (svfι V.type) (svfι tx) (svfι tC) = true := by
+  decide
+
+/-- **The old `cls-svf1` derivation fails over the specification's model class
+too.** `C ⊑ ∃p.D` with `x p y` and `y ∈ D` does not entail `x ∈ C`, and this is
+now a statement about `W3CModel` rather than about `Semantics.lean`'s weaker
+`Conditions`.
+
+Read the module docstring before quoting it anywhere. `W3CModel`'s class is still
+LARGER than the bridge image of the conforming interpretations, because `W3C`
+omits every table row no rule consumes, so this is not a proof that the triple
+fails to be OWL 2 RDF-Based entailed. It is the strongest statement this
+development can make about the defect `tests/reason_rl_ext_soundness_test.rs`
+pins, and it is strictly stronger than the Herbrand result it stands beside. -/
+theorem the_old_svf_derivation_is_not_w3c_entailed :
+    ¬ W3CEntails svfPremises ⟨tx, V.type, tC⟩ := fun h =>
+  absurd (h svfI svfIP svfI_is_a_w3c_model) svfI_refutes_the_conclusion
 
 /-! ## Axioms, pinned
 
@@ -1313,13 +1869,17 @@ footprint below. -/
 #guard_msgs in
 #print axioms live_exercises_every_arm
 
-/-- info: 'OOCert.live_fires_the_other_sixteen' depends on axioms: [propext] -/
+/-- info: 'OOCert.live_fires_every_field' depends on axioms: [propext] -/
 #guard_msgs in
-#print axioms live_fires_the_other_sixteen
+#print axioms live_fires_every_field
 
-/-- info: 'OOCert.live_leaves_exactly_these_five_vacuous' depends on axioms: [propext] -/
+/-- info: 'OOCert.live_sameAs_is_the_diagonal' depends on axioms: [propext] -/
 #guard_msgs in
-#print axioms live_leaves_exactly_these_five_vacuous
+#print axioms live_sameAs_is_the_diagonal
+
+/-- info: 'OOCert.sameAs_has_no_off_diagonal_instance' does not depend on any axioms -/
+#guard_msgs in
+#print axioms sameAs_has_no_off_diagonal_instance
 
 /-- info: 'OOCert.scm_avf2_runs_one_way_under_the_specification' depends on axioms: [propext] -/
 #guard_msgs in
@@ -1355,5 +1915,23 @@ Quot.sound]
 /-- info: 'OOCert.membership_in_one_member_is_not_w3c_enough' depends on axioms: [propext] -/
 #guard_msgs in
 #print axioms membership_in_one_member_is_not_w3c_enough
+
+/-- info: 'OOCert.svfI_is_a_w3c_model' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms svfI_is_a_w3c_model
+
+/-- info: 'OOCert.svfI_is_live' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms svfI_is_live
+
+/-- info: 'OOCert.the_old_svf_derivation_is_not_w3c_entailed' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms the_old_svf_derivation_is_not_w3c_entailed
+
+/--
+info: 'OOCert.sameAs_diagonal_needs_an_off_diagonal_subproperty' does not depend on any axioms
+-/
+#guard_msgs in
+#print axioms sameAs_diagonal_needs_an_off_diagonal_subproperty
 
 end OOCert

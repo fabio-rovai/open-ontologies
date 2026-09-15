@@ -140,6 +140,15 @@ vacuous exactly where their conditions are strongest. Each of those is a case of
 claiming more than it had earned, which by this project's standards is the same category as a
 soundness bug.
 
+Three of those four are now closed and the fourth is narrower than it was. The eight arms are
+derived on both sides. Both non-vacuity witnesses are rebuilt and both carry a gate that fails if
+they are hollowed out later: `live_exercises_every_arm` and `live_fires_every_field` on the Lean
+side, `M4_exercises_every_derivation` and `M4_every_condition_has_a_live_antecedent` on the
+Isabelle. Every non-entailment in the Lean is now stated over the class carrying the quoted table
+cells as well, four of them on finite structures built for the purpose. What is NOT closed is the
+ordering of the two kernels' model classes, which nobody has established in either direction, so
+"both said entailed" still means less than it looks.
+
 What remains declined is the wider use. Reconstructing Vampire or E refutations through
 Isabelle's kernel would give this project kernel-checked refutations, which it lacks, at the cost
 of a second proof assistant in the trust surface for every user rather than for a cross-check.
