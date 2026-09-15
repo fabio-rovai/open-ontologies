@@ -21,8 +21,10 @@ perverse.
 | Mace4 | Finite model finder | Same. Its output is checkable; Prover9's is not. |
 | Prover9 | First-order prover | Declined. Unmaintained since 2011, refutations uncheckable. |
 | cvc5 | SMT solver | Not installed. Same role as Z3 when it is. |
-| Isabelle/HOL | Proof assistant | Built, as an independent second kernel. It disagreed with the Lean. Below. |
-| Dedukti | Logical framework | Declined. Reasons below. |
+| Isabelle/HOL | Proof assistant | Built, as an independent second FORMALISATION. It disagreed with the Lean. Below. |
+| Dedukti, Lambdapi | Logical framework | Declined twice, for portability and for re-checking. Reasons below. |
+| lean4export, nanoda | Lean export and external checker | Investigated, RUN, not adopted. `docs/independent-rechecking.md`. |
+| leanchecker | Ships in the Lean toolchain | Passes here. Not in CI yet. Not an external verifier. |
 | Duper, lean-smt | Lean automation | Declined. Both require Mathlib. |
 | Aeneas with Charon | Rust to Lean | Declined. Subset does not contain this codebase. |
 | Verus, Creusot, Prusti | Rust verification | Declined. Each needs the code rewritten in its subset. |
@@ -154,6 +156,16 @@ Isabelle's kernel would give this project kernel-checked refutations, which it l
 of a second proof assistant in the trust surface for every user rather than for a cross-check.
 That trade is still not being made, and the reasoning has not changed.
 
+One thing this bought and one thing it did not, because the two get confused. It bought independence
+of the SPEC READING: two definitions written from one standard, disagreeing where the standard was
+silent. It did NOT buy independence of the KERNEL. The Lean proofs are still checked by exactly one
+program, and the Isabelle proofs by exactly one other, and neither re-checks the other's proofs
+because they are proofs of different theorems about different definitions. Nothing anywhere
+re-checks a Lean proof.
+[docs/independent-rechecking.md](independent-rechecking.md) is the investigation of what that would
+take, including an export of this repository's own Lean and a run through an independent Rust
+checker.
+
 ## Dedukti, and why not
 
 Dedukti is a logical framework designed so that proofs from different systems can be expressed in one
@@ -164,6 +176,19 @@ libraries in several systems and want them to talk. We hold small certificates i
 by one small kernel, and adding a framework layer would enlarge the trusted base to buy portability
 nobody has asked for. If a second consumer of our certificates ever appears, this is the first thing
 to revisit.
+
+That paragraph answers the PORTABILITY question and it still stands. It does not answer the
+RE-CHECKING question, which is whether a Lean proof could be checked again in a different
+foundation, and that was investigated separately on 15 September 2026 with a different and firmer
+answer: no, not today, for reasons that are structural rather than a matter of polish. The only
+Lean-to-Dedukti translator pins Lean v4.18.0-rc1 against the v4.33.1 pinned here, needs a personal
+fork of Dedukti to terminate, and stubs out the constants it cannot handle, which converts the hard
+cases into postulates and would hand back a green result with nothing behind it. The onward step
+into Rocq or Agda does not exist: Lambdapi's exports run before elaboration and discard rewrite
+rules, and a Dedukti encoding of Lean's type theory IS a rewrite system. Evidence, versions and the
+authors' own statements are in
+[docs/independent-rechecking.md](independent-rechecking.md), which also records what DOES work,
+which is `lean4export` plus an independent checker written in Rust.
 
 ## Lean automation we do not use
 
