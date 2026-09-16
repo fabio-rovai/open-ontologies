@@ -1206,8 +1206,7 @@ impl Reasoner {
         // named graphs, and `asserted.tsv` below is written from exactly this
         // list, so the certificate is about the graph the scope selected and
         // `scope.tsv` says which one that was.
-        let raw_triples = graph.triples_in_scope(scope)?;
-        let graphs_read = scope.graphs_read();
+        let (raw_triples, graphs_read) = graph.triples_in_scope(scope)?;
         let mut interner = Interner::new();
         let mut facts: Vec<(u32, u32, u32)> = Vec::with_capacity(raw_triples.len());
         for (s, p, o) in &raw_triples {
@@ -2838,8 +2837,7 @@ impl Reasoner {
             );
         }
 
-        let raw_triples = graph.triples_in_scope(&scope)?;
-        let graphs_read = scope.graphs_read();
+        let (raw_triples, graphs_read) = graph.triples_in_scope(&scope)?;
         let mut interner = Interner::new();
         let mut facts: Vec<Fact> = Vec::with_capacity(raw_triples.len());
         for (s, p, o) in &raw_triples {

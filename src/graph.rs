@@ -860,19 +860,34 @@ impl GraphStore {
     /// A named graph the scope lists and the store does not hold contributes
     /// nothing and is NOT an error: a snapshot names the graphs that were in
     /// scope, and a graph can be in scope and empty.
-    pub fn triples_in_scope(
-        &self,
-        scope: &ReadScope,
-    ) -> anyhow::Result<Vec<(String, String, String)>> {
+    pub fn triples_in_scope(&self, scope: &ReadScope) -> anyhow::Result<AssertedTriples> {
         let ReadScope::Graphs {
             default_graph,
             named,
         } = scope
         else {
-            return self.all_triples();
+            // `AllGraphs` is every graph the caller may read, and that is still
+            // not every graph in the store: the inference graph is where this
+            // engine parks its OWN conclusions, and reading them back makes run
+            // N's conclusions run N+1's axioms with nothing in `asserted.tsv`
+            // saying they were derived. TCB-8.
+            //
+            // This used to be `all_triples()`, which is byte-identical to the
+            // historical behaviour and reintroduced that defect the moment a
+            // store held a previous materialisation.
+            // `tcb_8_across_runs_only_the_default_graph_leaks` caught it.
+            return self.triples_outside(&[crate::reason::INFERRED_GRAPH]);
         };
         let mut triples = Vec::new();
-        let mut take = |g: GraphNameRef<'_>| -> anyhow::Result<()> {
+        // The names actually read, in the order read, so a certificate records
+        // what it was built from rather than what was asked for. The two differ
+        // whenever a named graph in scope holds nothing.
+        let mut read: Vec<String> = Vec::new();
+        // Returns how many it took, so the caller can record the graph only
+        // when it actually contributed. Counting inside avoids reading
+        // `triples.len()` while the closure still holds it mutably.
+        let mut take = |g: GraphNameRef<'_>| -> anyhow::Result<usize> {
+            let mut n = 0usize;
             for quad in self.store.quads_for_pattern(None, None, None, Some(g)) {
                 let q = quad?;
                 triples.push((
@@ -880,17 +895,20 @@ impl GraphStore {
                     q.predicate.to_string(),
                     q.object.to_string(),
                 ));
+                n += 1;
             }
-            Ok(())
+            Ok(n)
         };
-        if *default_graph {
-            take(GraphNameRef::DefaultGraph)?;
+        if *default_graph && take(GraphNameRef::DefaultGraph)? > 0 {
+            read.push("<default>".to_string());
         }
         for g in named {
             let node = NamedNode::new(g).map_err(|e| anyhow::anyhow!("{g} is not an IRI: {e}"))?;
-            take(GraphNameRef::NamedNode(node.as_ref()))?;
+            if take(GraphNameRef::NamedNode(node.as_ref()))? > 0 {
+                read.push(g.clone());
+            }
         }
-        Ok(triples)
+        Ok((triples, read))
     }
 
     /// Run a SELECT over exactly the graphs a scope names.
