@@ -2238,7 +2238,11 @@ fn the_corpus_exercises_prefix_visibility_at_depth() {
     let exercising = uses + violates;
     let claims: [(&str, &str, String); 2] = [
         (
-            "README.md",
+            // Moved out of README.md on 15 September 2026. The front page keeps the
+            // claim and a link; the case histories live beside the rules they are
+            // evidence for, which is where a reader weighing the cost of the
+            // discipline will be.
+            "docs/decisions/README.md",
             "the paragraph on what the discipline has caught",
             format!(
                 "a corpus of {} certificates, {exercising} of which exercise the ordering \
