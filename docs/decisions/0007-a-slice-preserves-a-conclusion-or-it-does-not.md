@@ -113,6 +113,18 @@ preserves every claim asked of it, each with a Lean-checked certificate. Both ar
    where it leaks, and it carries no skip guard, so it is the one gate a machine without Lean still
    enforces.
 
+   The enum is now where the discipline is enforced as well as easy. `GoalVerdict::
+   PreservedChecked` and `PreservedUnderSuppliedRulesChecked` each carry a `verdict::Certified`,
+   which has a private field, no constructor, and exactly one producer in the crate:
+   `CheckerRun::accepted`, which returns `None` unless a process this crate spawned exited zero.
+   `CheckerStatus::Accepted` carries one too, so the acceptance those verdicts are read off cannot
+   be fabricated either, and `warrant` is now read OUT of the token rather than written beside it,
+   which makes `OOCert.certificate_sound` as unspeakable on an unchecked path as the verdict is.
+   `GoalVerdict` deliberately does not implement `Deserialize`: parsing `"preserved_checked"` out
+   of a report is not the same act as earning it, and a derive would be a public constructor for
+   the certified state. The serialisation guard above stays, because the type says nothing about
+   what `Serialize` writes, and that is exactly the half it was written to cover.
+
 8. **A negative carries no certificate in this layer, ever.** `q ∉ closure(P)` is the engine's
    opinion bounded by a rule table implementing 29 of OWL 2 RL's 78 rules, so the word is
    `lost_under_profile_unchecked`. Printing "the projection does not entail `q`" flat would do in the
@@ -251,3 +263,35 @@ test fails if the gate is disarmed on more than half the corpus.
 - **`closure_diff` has no Horn arm.** A supplied rule table is supported in the goal-directed form
   only. The closure-diff form would need to read `horn.tsv` on both sides and run `oo-horn check`,
   which is the same shape and is simply not written.
+
+## What happened next: decision 0011
+
+This record measures loss. It does not offer a way to AVOID loss, because
+`onto_segment_retrieve` is a hop-bounded neighbourhood walk and a neighbourhood has no theorem
+behind it, so the honest summary of the state this record leaves behind is that the damage is
+measured well and cannot be avoided. Decision 0011 adds the other half:
+`onto_module_extract` computes a syntactic locality module, which is a subset with a coverage
+theorem rather than a slice with a measurement, and there is nothing left to measure once you have
+one.
+
+Three things in this record change status as a result.
+
+1. **`lost_in_projection_vocabulary` is still the right headline FOR A SLICE**, and item 13's
+   gaming direction still stands. For a module the number is zero by construction, so it is not a
+   headline at all: `onto_module_extract` reports module size against ontology size and the
+   signature closure, and `module_fraction` is documented as a reading aid with no gaming direction
+   because nothing is tuned on it.
+
+2. **The machinery here is reused literally, twice.** `closure_diff` is called with the module as
+   the projection to VERIFY a module's coverage empirically, and it is called with the extension as
+   the source and the base as the projection to compute deductive conservativity. Neither reimplements
+   a closure, a certificate or a verdict word, so item 12's "exactly one place in the crate where
+   each verdict word is produced" survives both features.
+
+3. **`skolemise` gained a prefix parameter**, because the conservativity direction merges two graphs
+   and two graphs skolemised separately under the same prefix collide on `_:b0`. `skolemise` itself
+   is unchanged for every existing caller.
+
+The `not_compared` bucket, the disarming conditions, the datatype caveat and the "nothing about the
+negative side" limit all carry over unchanged, because both new features are built on exactly this
+code.

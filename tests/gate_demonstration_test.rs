@@ -350,7 +350,7 @@ fn every_gate_fires_on_its_own_broken_input() {
         );
         eprintln!("    SKIPPED: {}", r.source_certificate.skipped.clone().unwrap_or_default());
         assert_eq!(r.source_certificate.verdict, "rejected");
-        assert!(r.entailments_lost.iter().all(|e| e.warrant != cd::Warrant::Checked));
+        assert!(r.entailments_lost.iter().all(|e| !e.warrant.is_checked()));
     }
 
     // ── 13 ───────────────────────────────────────────────────────────────

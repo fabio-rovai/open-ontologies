@@ -130,8 +130,26 @@ impl OpenOntologiesServer {
             }
         };
 
-        // Apply tool filter by removing routes from the router.
+        // A tool this build cannot serve is not advertised. This runs BEFORE
+        // the operator's filter and does not consult it: a description in
+        // `tools/list` is a promise, and eight of the registered tools are
+        // behind a Cargo feature whose absence turns every call into
+        // "Compiled without X feature". See `toolfilter::FEATURE_GATED_TOOLS`.
         let mut tool_router = Self::tool_router();
+        let unavailable = crate::toolfilter::remove_unavailable(&mut tool_router);
+        if !unavailable.is_empty() {
+            tracing::info!(
+                "not advertising {} tools this build cannot serve: {}",
+                unavailable.len(),
+                unavailable
+                    .iter()
+                    .map(|(t, f)| format!("{t} (needs --features {f})"))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            );
+        }
+
+        // Apply tool filter by removing routes from the router.
         let removed = tool_filter.apply(&mut tool_router);
         if !removed.is_empty() {
             tracing::info!("tool filter removed {} tools: {:?}", removed.len(), removed);
@@ -443,6 +461,14 @@ impl OpenOntologiesServer {
             return Self::err_json(format!("ensure_loaded: {e}"));
         }
         crate::defects::Defects::check(&self.graph).unwrap_or_else(Self::err_json)
+    }
+
+    #[tool(name = "onto_dlp_boundary", description = "Ask which of YOUR axioms the rule engine can actually SEE, before trusting a reasoning result. A certificate from onto_reason is a sound proof about the axioms the rules read, and it says nothing at all about the ones no rule fires on. A user can reason, get a green machine-checked certificate, and never learn that a third of the TBox was invisible to the rule table. This is that second question, and it is in the same register as onto_defects: run it after onto_load and BEFORE trusting any onto_reason result. TWO DIMENSIONS THAT ARE NEVER MERGED, because one is a rewrite of your ontology and the other is a patch to this engine. (1) THE FRAGMENT: is the axiom expressible as Horn rules over triple patterns at all? The line drawn is OWL 2 RL's class grammar (OWL 2 Profiles section 4.3), and `outside` there is a fact about the LANGUAGE that would hold of a perfect OWL 2 RL engine: a disjunction in the consequent, an existential in the head, a cardinality restriction, a negation in the antecedent. Each such axiom is listed individually with the reason. (2) THIS ENGINE: is there a rule in the table that fires on it? owl:hasKey and owl:propertyChainAxiom are perfectly Horn, OWL 2 RL has prp-key and prp-spo2 for them, and this engine implements neither, so those axioms are INSIDE the fragment and still invisible. They are reported in `inside_the_fragment_but_a_rule_is_not_implemented` and never in `outside_the_fragment`. An axiom that splits soundly gets a third bucket of its own, `partially_inside_the_fragment`, because a bucket called `outside` holding an axiom the rules half evaluate would be false in its own name: `A subClassOf (B and Out)` keeps its `A subClassOf B` half, and an owl:equivalentClass with an existential on one side keeps the direction cls-svf1 evaluates. `not_fully_seen_by_the_rule_table` is the headline and carries the three causes separately, because they are fixed in three different places. A conjunction in the ANTECEDENT does not split, because dropping a conjunct from a rule body makes it fire more often. The rule-table figures (78 OWL 2 RL rules, 29 evaluated in the fixpoint, 10 more detected only as a clash, 7 that conclude false and are not looked for, and the names of the rest) are DERIVED from reason::RULES_EVALUATED and reason::CLASH_RULES_NOT_DETECTED rather than typed. Every triple in the store lands in an axiom bucket or in a counted `not_classified` bucket, so nothing is passed over in silence. This is NOT a consistency check and states no verdict about satisfiability.")]
+    fn onto_dlp_boundary(&self) -> String {
+        if let Err(e) = self.registry.ensure_loaded() {
+            return Self::err_json(format!("ensure_loaded: {e}"));
+        }
+        crate::dlp::DlpBoundary::check(&self.graph).unwrap_or_else(Self::err_json)
     }
 
     #[tool(name = "onto_stats", description = "Get statistics about the loaded ontology (triple count, classes, properties, individuals)")]
@@ -1530,7 +1556,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_segment_retrieve", description = "Retrieve a TBox-slice neighbourhood of seed IRIs for grounding LLM reasoning (#34, SEMANTiCS 2025 GrOWL-RAG). Walks `rdfs:subClassOf` / `subPropertyOf` / `domain` / `range` + `owl:equivalentClass` / `equivalentProperty` / `disjointWith` / `inverseOf` to `hops` depth (default 2). Returns the slice as Turtle plus IRI/triple counts and any frontier IRIs hit at the hop budget. Pairs with `graph_projection_lossy_check`: this retrieves, that audits. Pass `include_abox=true` to also pull instance triples for each seed.")]
+    #[tool(name = "onto_segment_retrieve", description = "Retrieve a TBox-slice neighbourhood of seed IRIs for grounding LLM reasoning (#34, SEMANTiCS 2025 GrOWL-RAG). Walks `rdfs:subClassOf` / `subPropertyOf` / `domain` / `range` + `owl:equivalentClass` / `equivalentProperty` / `disjointWith` / `inverseOf` to `hops` depth (default 2). Returns the slice as Turtle plus IRI/triple counts and any frontier IRIs hit at the hop budget. Pairs with `graph_projection_lossy_check`: this retrieves, that audits. Pass `include_abox=true` to also pull instance triples for each seed. A NEIGHBOURHOOD IS NOT A MODULE: the hop budget is a heuristic, so what this drops has to be measured afterwards by onto_closure_diff. When the question is 'give me the part of the ontology that matters for these IRIs' and losing an entailment over them is not acceptable, use onto_module_extract instead, which carries a coverage theorem rather than a loss report.")]
     async fn onto_segment_retrieve(&self, Parameters(input): Parameters<OntoSegmentRetrieveInput>) -> String {
         let hops = input.hops.unwrap_or(2);
         let include_abox = input.include_abox.unwrap_or(false);
@@ -1619,7 +1645,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_closure_diff", description = "Which CONCLUSIONS a projection preserves, with no goals supplied. Reasons the source and the slice to a fixpoint under the same rule table and reports closure(source) minus closure(projection), partitioned by whether every term of the lost conclusion occurs in the projection: lost_in_projection_vocabulary is the headline, because a conclusion over terms the slice never mentions cannot ground an answer the slice supports. Each lost row names the rule and the blocking premises the retriever dropped. Three warrant words, never collapsed: checked (a Lean-accepted certificate, OOCert.certificate_sound), asserted_in_source (a lookup, nothing was proved), engine_opinion (no checker looked, or it said no). Also runs the monotonicity gate and reports when the gate did NOT run and why, so an empty violation list can never mean 'we did not look'. Skolemises the source by default so blank-node-bearing triples can be compared at all. The offline form; graph_projection_entailment_check is the per-answer one.")]
+    #[tool(name = "onto_closure_diff", description = "Which CONCLUSIONS a projection preserves, with no goals supplied. Reasons the source and the slice to a fixpoint under the same rule table and reports closure(source) minus closure(projection), partitioned by whether every term of the lost conclusion occurs in the projection: lost_in_projection_vocabulary is the headline, because a conclusion over terms the slice never mentions cannot ground an answer the slice supports. Each lost row names the rule and the blocking premises the retriever dropped. Three warrant words, never collapsed: checked (a Lean-accepted certificate, OOCert.certificate_sound), asserted_in_source (a lookup, nothing was proved), engine_opinion (no checker looked, or it said no). Also runs the monotonicity gate and reports when the gate did NOT run and why, so an empty violation list can never mean 'we did not look'. Skolemises the source by default so blank-node-bearing triples can be compared at all. The offline form; graph_projection_entailment_check is the per-answer one. This MEASURES loss and is the right tool for a slice; a locality module from onto_module_extract has no loss to measure over its signature, and this is what verifies that.")]
     async fn onto_closure_diff(&self, Parameters(input): Parameters<OntoClosureDiffInput>) -> String {
         use crate::closure_diff as cd;
         let opts = cd::DiffOptions {
@@ -1631,6 +1657,85 @@ impl OpenOntologiesServer {
             seed_iris: input.seed_iris,
         };
         match cd::closure_diff(&self.graph, &input.projected_ttl, &opts) {
+            Ok(r) => serde_json::to_string(&r)
+                .unwrap_or_else(|e| Self::err_json(format!("serialization: {}", e))),
+            Err(e) => Self::err_json(e),
+        }
+    }
+
+    #[tool(name = "onto_module_extract", description = "A MODULE over a signature, not a slice: the smallest subset of the axioms syntactic locality can justify, such that every entailment of the WHOLE ontology over those IRIs is still an entailment of the subset. Where onto_segment_retrieve retrieves a neighbourhood and onto_closure_diff then MEASURES what it lost, this cannot lose anything over the signature, and the difference is a theorem rather than a metric: Cuenca Grau, Horrocks, Kazakov and Sattler, JAIR 31 (2008), for ⊥-locality, ⊤-locality and the iterated ⊥⊤*. THAT THEOREM IS CITED, NOT MACHINE-CHECKED: nothing under lean/ is about locality, so this names a paper and never names a Lean theorem — pass verify_out_dir to have the consequence measured instead, which reasons the ontology and the module to a fixpoint and reports every conclusion over the signature the module does not reach (which must be none). THE GUARANTEE COVERS these axiom types, each with a locality test written for it: SubClassOf, EquivalentClasses, DisjointClasses, DisjointUnion, SubPropertyOf, property chains, EquivalentProperties, DisjointProperties, domain, range, InverseProperties, the seven property characteristics (transitive, symmetric, asymmetric, reflexive, irreflexive, functional, inverse-functional), HasKey, class assertions, property assertions, negative property assertions, declarations and annotations, over class expressions built from intersection, union, complement, oneOf, someValuesFrom, allValuesFrom, hasValue, hasSelf and the six cardinality forms. INCLUDED CONSERVATIVELY, with no locality test, because no replacement can make them tautologies: owl:sameAs, owl:differentFrom, owl:AllDifferent, every unrecognised predicate in the RDF/RDFS/OWL/XSD namespaces, every blank-node structure whose shape is not one of the above, and every malformed rdf:List. Those are COUNTED AND NAMED in the report, so a module that is small and a module that was unreadable cannot look the same. Datatypes are never treated as class names, because replacing xsd:integer by ⊥ would make ∃hasAge.xsd:integer look local and drop the axiom. TWO PLACES WHERE OWL 2 AND THIS ENGINE'S RULE TABLE DISAGREE, both resolved towards the rule table: a declaration (X rdf:type owl:Class) is logically vacuous in OWL 2 and is a PREMISE of OWL 2 RL's scm-cls, and X rdf:type owl:Thing is a tautology in OWL 2 that the rule table does not regenerate, so both are kept whenever the term is in the signature. Annotation assertions (rdfs:label, rdfs:comment and the rest) are NOT in the logical module; the vacuity is checked rather than assumed, so an annotation predicate the ontology gives a domain, range, superproperty or equivalent is kept as a property assertion instead, and annotation_predicates_treated_as_vacuous lists what was dropped. Pass include_annotations to carry the labels along for reading; the logical module is the same either way.")]
+    async fn onto_module_extract(&self, Parameters(input): Parameters<OntoModuleExtractInput>) -> String {
+        use crate::module_extract as me;
+        let locality = match me::Locality::parse(input.locality.as_deref().unwrap_or("star")) {
+            Ok(l) => l,
+            Err(e) => return Self::err_json(e),
+        };
+        let opts = me::ModuleOptions {
+            signature: input.signature,
+            locality,
+            include_annotations: input.include_annotations.unwrap_or(false),
+            max_rows: input.max_rows.unwrap_or(200),
+        };
+        let report = match me::extract_module(&self.graph, &opts) {
+            Ok(r) => r,
+            Err(e) => return Self::err_json(e),
+        };
+        let mut body = match serde_json::to_value(&report) {
+            Ok(v) => v,
+            Err(e) => return Self::err_json(format!("serialization: {}", e)),
+        };
+        // A module that was never verified and a module that verified clean
+        // must not render the same, so the absence is a field.
+        body["verification"] = match input.verify_out_dir {
+            None => serde_json::json!({
+                "ran": false,
+                "skipped": "not requested. Pass verify_out_dir to reason the whole ontology and \
+                            the module to a fixpoint and report every conclusion over the \
+                            signature the module does not reach, which must be none.",
+            }),
+            Some(dir) => {
+                let diff = crate::closure_diff::DiffOptions {
+                    profile: input.verify_profile.unwrap_or_else(|| "owl-rl-ext".to_string()),
+                    out: std::path::PathBuf::from(dir),
+                    max_rows: opts.max_rows,
+                    ..Default::default()
+                };
+                match me::verify_module(
+                    &self.graph,
+                    &report,
+                    &diff,
+                    input.verify_scan_rows.unwrap_or(200_000),
+                ) {
+                    Ok(v) => {
+                        let mut v = serde_json::to_value(&v).unwrap_or_default();
+                        v["ran"] = serde_json::Value::Bool(true);
+                        v
+                    }
+                    Err(e) => serde_json::json!({
+                        "ran": false,
+                        "skipped": format!("the verification could not run: {e}"),
+                    }),
+                }
+            }
+        };
+        body.to_string()
+    }
+
+    #[tool(name = "onto_conservative_check", description = "Does adding these axioms change anything the ontology ALREADY said? Reasons base and base+extension to a fixpoint under one rule table and reports closure(base ∪ extension) minus closure(base), restricted to triples every name of which the base already used. Each row names the rule that produced it and the premises the base did not have, so the change can be judged on the derivation rather than on a verdict word. A NON-CONSERVATIVE EXTENSION IS A FINDING, NOT AN ERROR: changing what the ontology says about existing terms is often the intended change, and the point is that it should be intended rather than discovered later. BE CLEAR ABOUT THE FRAGMENT. The verdict field is conservativity_verdict with five words (conservative_under_rule_table, not_conservative_under_rule_table, undecided_scan_truncated, undecided_not_an_extension, undecided_engine_soundness_violation) and the boolean beside it is conservative_under_rule_table, null whenever the answer is undecided rather than false, because a reader takes false for a finding. The monotonicity gate runs on every call and its violation gets its OWN word: the base is a subset of the extended graph by construction and the rule table is monotone, so a conclusion the base reaches and the extension does not is an engine soundness bug, and folding it into not_conservative would send it to the ontology's author instead of the engine's. There is deliberately no field called `conservative`. What is computed is conservativity WITH RESPECT TO THE HORN RULE TABLE this engine evaluates, which derives only positive ground triples. It is NOT deductive conservativity in a description logic (ExpTime-complete for EL, 2ExpTime-complete for ALC, UNDECIDABLE for ALCQIO) and NOT model conservativity (undecidable already for EL). The asymmetry is the point: a new consequence reported here IS a real change to what this engine derives over the old names, while finding none establishes only that this rule table derives nothing new. onto_plan takes check_conservativity=true to run the same check as part of a plan, which is where it belongs.")]
+    async fn onto_conservative_check(&self, Parameters(input): Parameters<OntoConservativeCheckInput>) -> String {
+        use crate::conservativity as cx;
+        let mode = match cx::ExtensionMode::parse(input.mode.as_deref().unwrap_or("delta")) {
+            Ok(m) => m,
+            Err(e) => return Self::err_json(e),
+        };
+        let opts = cx::ConservativityOptions {
+            mode,
+            profile: input.profile.unwrap_or_else(|| "owl-rl".to_string()),
+            out: std::path::PathBuf::from(&input.out_dir),
+            scan_rows: input.scan_rows.unwrap_or(200_000),
+            max_rows: input.max_rows.unwrap_or(100),
+        };
+        match cx::conservativity_check(&self.graph, &input.extension_ttl, &opts) {
             Ok(r) => serde_json::to_string(&r)
                 .unwrap_or_else(|e| Self::err_json(format!("serialization: {}", e))),
             Err(e) => Self::err_json(e),
@@ -1980,7 +2085,7 @@ impl OpenOntologiesServer {
             .unwrap_or_else(Self::err_json)
     }
 
-    #[tool(name = "onto_fol_export", description = "Export the loaded ontology as first-order logic, so it can be handed to the automated-theorem-proving ecosystem. FOUR syntaxes over ONE translation: `tptp` (FOF, what E, Vampire and every other first-order prover read), `clif` (ISO/IEC 24707 Common Logic Interchange Format, restricted to the first-order-equivalent fragment: no sequence markers, fixed arity, no quantification into a predicate position), `smtlib` (SMT-LIB 2, what Z3 reads) and `ladr` (what Mace4 reads, with every symbol MANGLED and the table written beside it as symbols.tsv, because LADR reads a name beginning with u, v, w, x, y or z as a VARIABLE and has no quoting construct that survives an IRI). The last two are read by MODEL FINDERS, so they assert the NEGATED goal rather than declaring a conjecture: a countermodel to `G |= phi` is a model of `G + {not phi}`. With `smtlib`, omit `smt_domain` for the UNBOUNDED encoding, where `unsat` really is unsatisfiability, or set it to k for an enumeration carrier of exactly k elements, where a `sat` comes with a structure `oo-folmodel` can CHECK and an `unsat` establishes only that no model of size k exists. Every run also writes `problem.tsv`, the checker's own format, with its digest, so a solver result can be handed to `oo-folmodel` without going back through the engine; use onto_fol_model to do all of that in one call. The translation is the one a MACHINE-CHECKED ADEQUACY THEOREM is about: `OwlLean.adequacy` in the sibling owl-lean project, axioms propext + Classical.choice + Quot.sound, no sorry, no Mathlib. That theorem is why the emitted file means what it says. THE CORRESPONDENCE BETWEEN THIS EMITTER AND THAT LEAN IS PINNED BY TESTS AND IS NOT ITSELF PROVED. The output includes the background axioms (the two domains are disjoint, the object domain is non-empty) and the individual typing axioms `thing(a)`, whose ABSENCE REFUTES ADEQUACY OUTRIGHT (OwlLean.Refutations.adequacy_needs_ind_axioms). Constructs outside the fragment are NOT dropped silently: `exports_a_weaker_axiom_set` and `constructs_not_exported` name every one with its count and the reason, and `reduced_to_fragment` names every construct rewritten before translation. Pass `goals_file` (a TSV of triples, e.g. the `derivations.tsv` from onto_reason with certificate_dir, with goals_skip_columns=1) to also write one problem per conjecture. A PROVER'S VERDICT ON THESE FILES IS AN ORACLE OPINION AND NEVER A CERTIFICATE: checking a superposition refutation needs a verified first-order calculus with unification, which does not exist in core Lean. Use tools/fol_differential.py, which reports disagreement between this engine and an ATP and does not adjudicate it.")]
+    #[tool(name = "onto_fol_export", description = "Export the loaded ontology as first-order logic, so it can be handed to the automated-theorem-proving ecosystem. FIVE syntaxes over ONE translation: `tptp` (FOF, what E, Vampire and every other first-order prover read), `clif` (ISO/IEC 24707 Common Logic Interchange Format, restricted to the first-order-equivalent fragment: no sequence markers, fixed arity, no quantification into a predicate position), `cgif` (ISO/IEC 24707 Conceptual Graph Interchange Format, the SECOND of Common Logic's three dialects, in CORE CGIF and in the compact sub-dialect clause 7.1.1 names: no sequence markers, which clause 6.5 says is what takes Common Logic past first order, plus no `#?` type label and no actor. It takes no dialect or comment flag, because CGIF has one spelling of its operators and a lexical comment syntax of its own. `[]` is truth, `~[]` is falsity, conjunction is juxtaposition with no operator and an equation is a coreference concept `[: ?X0 ?X1]`, because CGIF has no `=`. CGIF conformance is pinned by a lexer, parser and checker transcribed from Annex B's EBNF IN THE TEST and NOT by an independent parser, because no installable CGIF parser exists, which is a weaker footing than the CLIF side and is reported rather than blurred. XCL, the third dialect, is still not emitted and the report names it in `common_logic_dialects_not_emitted`), `smtlib` (SMT-LIB 2, what Z3 reads) and `ladr` (what Mace4 reads, with every symbol MANGLED and the table written beside it as symbols.tsv, because LADR reads a name beginning with u, v, w, x, y or z as a VARIABLE and has no quoting construct that survives an IRI). The last two are read by MODEL FINDERS, so they assert the NEGATED goal rather than declaring a conjecture: a countermodel to `G |= phi` is a model of `G + {not phi}`. With `smtlib`, omit `smt_domain` for the UNBOUNDED encoding, where `unsat` really is unsatisfiability, or set it to k for an enumeration carrier of exactly k elements, where a `sat` comes with a structure `oo-folmodel` can CHECK and an `unsat` establishes only that no model of size k exists. Every run also writes `problem.tsv`, the checker's own format, with its digest, so a solver result can be handed to `oo-folmodel` without going back through the engine; use onto_fol_model to do all of that in one call. The translation is the one a MACHINE-CHECKED ADEQUACY THEOREM is about: `OwlLean.adequacy` in the sibling owl-lean project, axioms propext + Classical.choice + Quot.sound, no sorry, no Mathlib. That theorem is why the emitted file means what it says. THE CORRESPONDENCE BETWEEN THIS EMITTER AND THAT LEAN IS PINNED BY TESTS AND IS NOT ITSELF PROVED. The output includes the background axioms (the two domains are disjoint, the object domain is non-empty) and the individual typing axioms `thing(a)`, whose ABSENCE REFUTES ADEQUACY OUTRIGHT (OwlLean.Refutations.adequacy_needs_ind_axioms). Constructs outside the fragment are NOT dropped silently: `exports_a_weaker_axiom_set` and `constructs_not_exported` name every one with its count and the reason, and `reduced_to_fragment` names every construct rewritten before translation. Pass `goals_file` (a TSV of triples, e.g. the `derivations.tsv` from onto_reason with certificate_dir, with goals_skip_columns=1) to also write one problem per conjecture. A PROVER'S VERDICT ON THESE FILES IS AN ORACLE OPINION AND NEVER A CERTIFICATE: checking a superposition refutation needs a verified first-order calculus with unification, which does not exist in core Lean. Use tools/fol_differential.py, which reports disagreement between this engine and an ATP and does not adjudicate it.")]
     async fn onto_fol_export(&self, Parameters(input): Parameters<OntoFolExportInput>) -> String {
         let syntax = match crate::tptp::Syntax::parse(
             input.format.as_deref().unwrap_or("tptp"),
@@ -2082,14 +2187,38 @@ impl OpenOntologiesServer {
 
     // ── v2: Lifecycle tools ─────────────────────────────────────────────────
 
-    #[tool(name = "onto_plan", description = "Terraform-style plan: diff current store against proposed Turtle. Shows added/removed classes/properties, blast radius, risk score, and locked IRI violations.")]
+    #[tool(name = "onto_plan", description = "Terraform-style plan: diff current store against proposed Turtle. Shows added/removed classes/properties, blast radius, risk score, and locked IRI violations. All of that is about SHAPE. Pass check_conservativity=true for the one part that is about MEANING: whether the change alters any consequence over the names the store already uses, under the rule table in conservativity_profile. That is the check a shape diff cannot do — adding one rdfs:domain reclassifies every existing individual of that property while adding no class and removing nothing, so every other number in the plan stays green. It reasons both graphs to a fixpoint, so it is opt-in; when it is off the plan says so under `conservativity` rather than staying silent. Read the honesty note in onto_conservative_check before acting on the verdict: it is conservativity under a Horn rule table, not in a description logic.")]
     pub async fn onto_plan(&self, Parameters(input): Parameters<OntoPlanInput>) -> String {
         let planner = crate::plan::Planner::with_owner(
             self.db.clone(),
             self.graph.clone(),
             &self.session_id,
         );
-        match planner.plan(&input.new_turtle) {
+        // `onto_plan` receives the WHOLE proposed graph, so the mode is fixed
+        // here rather than exposed: reading a replacement as a delta would
+        // report a change that deletes half the ontology as an extension.
+        let conservativity = input.check_conservativity.unwrap_or(false).then(|| {
+            crate::conservativity::ConservativityOptions {
+                mode: crate::conservativity::ExtensionMode::Replacement,
+                profile: input.conservativity_profile.unwrap_or_else(|| "owl-rl".to_string()),
+                out: input
+                    .conservativity_out_dir
+                    .map(std::path::PathBuf::from)
+                    .unwrap_or_else(|| {
+                        // Per CALL, not per process. Two plans running at once
+                        // in one server would otherwise write their two
+                        // certificates into the same directory and each read
+                        // the other's.
+                        std::env::temp_dir().join(format!(
+                            "oo-plan-conservativity-{}-{:016x}",
+                            std::process::id(),
+                            crate::lineage::rand_id()
+                        ))
+                    }),
+                ..Default::default()
+            }
+        });
+        match planner.plan_checked(&input.new_turtle, conservativity) {
             Ok(result) => {
                 self.lineage().record(&self.session_id, "P", "plan", "computed");
                 result
@@ -3032,8 +3161,38 @@ impl OpenOntologiesServer {
 #[tool_handler(router = self.tool_router)]
 #[prompt_handler(router = self.prompt_router)]
 impl ServerHandler for OpenOntologiesServer {
+    /// The instructions string states the count it MEASURES.
+    ///
+    /// It used to state two, 114 and 112, neither of which was the number the
+    /// router advertised, and the second sentence promised that the eight
+    /// feature-gated tools were advertised and would "return an error without
+    /// it". They are not advertised any more, so the sentence is now about
+    /// what is missing and why, and both numbers are read off the router the
+    /// client is about to call.
     fn get_info(&self) -> ServerInfo {
+        let advertised = self.tool_router.list_all().len();
+        let withheld = crate::toolfilter::unavailable_in_this_build();
+        let tail = if withheld.is_empty() {
+            String::new()
+        } else {
+            format!(
+                " {} further tools are compiled in but NOT advertised, because this build \
+                 lacks the Cargo feature each one needs and a tool that is guaranteed to fail \
+                 should not appear in tools/list: {}. Rebuild with the feature to get them.",
+                withheld.len(),
+                crate::toolfilter::FEATURE_GATED_TOOLS
+                    .iter()
+                    .filter(|(t, _)| withheld.contains(t))
+                    .map(|(t, f)| format!("{t} (--features {f})"))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        };
         ServerInfo::new(ServerCapabilities::builder().enable_tools().enable_prompts().build())
-            .with_instructions("Open Ontologies: AI-native ontology engine, an RDF/OWL/SPARQL MCP server with 115 tools and 6 workflow prompts for ontology engineering, validation, comparison, alignment, data ingestion, and exploration. All 115 tools are advertised in a default build; 8 of them require an optional Cargo feature (embeddings, plugins, postgres or duckdb) and return an error without it.")
+            .with_instructions(format!(
+                "Open Ontologies: AI-native ontology engine, an RDF/OWL/SPARQL MCP server with \
+                 {advertised} tools and 6 workflow prompts for ontology engineering, validation, \
+                 comparison, alignment, data ingestion, and exploration.{tail}"
+            ))
     }
 }

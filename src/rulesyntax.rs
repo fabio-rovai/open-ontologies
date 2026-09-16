@@ -246,7 +246,14 @@ impl Import {
             // Provenance, not a verdict. Every rule here was written by a user
             // and discharged by nobody, so the only warrant a certificate over
             // this table can earn is the relativised one.
-            "verdict_this_table_is_eligible_for": "entailed_under_supplied_rules",
+            //
+            // This is the ONE place in the crate that names a checker-owned
+            // word outside an echo of the checker's own bytes, and it is not a
+            // verdict: the key says "is eligible for", `pronounced_by` says
+            // lean/ pronounces, and the constant lives in `verdict.rs` beside
+            // the list of words that belong to a checker so a reader who greps
+            // for the string lands on the paragraph that explains it.
+            "verdict_this_table_is_eligible_for": crate::verdict::ELIGIBLE_UNDER_SUPPLIED_RULES,
             "theorem": "OOCert.horn_certificate_sound",
             "means":
                 "a checked certificate over this table says every conclusion is true in every \

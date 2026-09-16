@@ -33,6 +33,24 @@ therefore survive the process that computed them: `plan` and `apply` are
 separate CLI invocations and separate MCP calls, and neither shares memory with
 the other. The 100 most recent plans are retained.
 
+### Conservativity: the one part of a plan that is about meaning
+
+Everything above is about SHAPE. A change that adds one `rdfs:domain` triple adds
+no class, removes nothing, has a blast radius of zero and scores `low`, while
+retyping every existing individual of that property. Pass
+`check_conservativity: true` and the plan also reports whether the change alters
+any consequence over the names the store already uses, with the rule and the
+premises the base lacked behind every row.
+
+It is opt-in because it reasons both graphs to a fixpoint, and when it is off the
+`conservativity` block is still there and reads `ran: false` with the reason: a
+missing block and a clean block look the same to a dashboard. It is never fatal;
+a check that cannot run leaves `conservativity.skipped` set and the plan is still
+returned. The verdict is a WORD rather than a boolean, and it is conservativity
+with respect to a Horn rule table rather than in a description logic, which
+[docs/modules-and-conservativity.md](modules-and-conservativity.md) states in
+full.
+
 ## Enforce
 
 Design pattern checks. Built-in packs: `generic` (orphan classes, missing labels), `boro` (IES4/BORO compliance), `value_partition` (disjointness). Custom SPARQL rules supported.

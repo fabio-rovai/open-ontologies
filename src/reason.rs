@@ -108,7 +108,12 @@ fn clash_is_certifiable(rule: &str) -> bool {
 /// The clash rules this engine does NOT look for, each with the reason. Listed
 /// so that "no clash found" is never read as "consistent": the honest reading
 /// of a clean run is that none of the rules below was even tried.
-const CLASH_RULES_NOT_DETECTED: &[(&str, &str)] = &[
+///
+/// `pub` because `src/dlp.rs` subtracts this list from the seventeen OWL 2 RL
+/// rules that conclude `false` to arrive at the ten that ARE detected. That
+/// number is then derived from this file rather than typed a second time
+/// somewhere else, which is the only way two copies of a figure stay equal.
+pub const CLASH_RULES_NOT_DETECTED: &[(&str, &str)] = &[
     ("cax-adc", "owl:AllDisjointClasses states its members in an RDF list, and this detector reads \
                  no lists. The pairwise owl:disjointWith spelling of the same axiom IS detected."),
     ("prp-adp", "owl:AllDisjointProperties states its members in an RDF list, and this detector \
@@ -122,6 +127,59 @@ const CLASH_RULES_NOT_DETECTED: &[(&str, &str)] = &[
     ("dt-not-type", "an ill-typed literal needs a datatype VALUE space. This engine, and the Lean \
                      semantics under it, read a literal as its N-Triples spelling and compare \
                      nothing by value, so there is no notion here of a literal outside its type."),
+];
+
+/// Every rule the forward-chaining fixpoint evaluates, with the profile that
+/// switches it on, spelled exactly as the `emit` call in this file spells it.
+///
+/// **This is the rule table, written down.** Twenty-nine names, and the figure
+/// "29 of OWL 2 RL's 78 rules" that six other files repeat is this list's
+/// length rather than a number somebody typed. `src/dlp.rs` reads it to decide
+/// whether an axiom a user wrote is one the rule engine can actually see, and
+/// `the_evaluated_rule_list_is_the_rules_this_file_emits` in
+/// `tests/dlp_boundary_test.rs` greps THIS FILE for its `emit` calls and fails
+/// if the two disagree. So a rule added below without an `emit`, or an `emit`
+/// added without a line here, is a test failure and not a silent drift.
+///
+/// The six RDFS spellings are OWL 2 RL rules under other names: `rdfs2` is
+/// `prp-dom`, `rdfs3` is `prp-rng`, `rdfs5` is `scm-spo`, `rdfs7` is
+/// `prp-spo1`, `rdfs9` is `cax-sco` and `rdfs11` is `scm-sco`. `src/dlp.rs`
+/// carries that map, because a user reading a W3C rule name has to be able to
+/// find it here.
+///
+/// The profile matters and is not decoration: a run at `rdfs` evaluates SIX of
+/// these and a report that said 29 to such a run would be describing a table
+/// the run never used.
+pub const RULES_EVALUATED: &[(&str, &str)] = &[
+    ("rdfs2", "rdfs"),
+    ("rdfs3", "rdfs"),
+    ("rdfs5", "rdfs"),
+    ("rdfs7", "rdfs"),
+    ("rdfs9", "rdfs"),
+    ("rdfs11", "rdfs"),
+    ("eq-sym", "owl-rl"),
+    ("prp-inv1", "owl-rl"),
+    ("prp-inv2", "owl-rl"),
+    ("prp-symp", "owl-rl"),
+    ("prp-trp", "owl-rl"),
+    ("scm-dom1", "owl-rl"),
+    ("scm-dom2", "owl-rl"),
+    ("scm-eqc1", "owl-rl"),
+    ("scm-eqp1", "owl-rl"),
+    ("scm-rng1", "owl-rl"),
+    ("scm-rng2", "owl-rl"),
+    ("cls-avf", "owl-rl-ext"),
+    ("cls-hv1", "owl-rl-ext"),
+    ("cls-hv2", "owl-rl-ext"),
+    ("cls-int1", "owl-rl-ext"),
+    ("cls-int2", "owl-rl-ext"),
+    ("cls-oo", "owl-rl-ext"),
+    ("cls-svf1", "owl-rl-ext"),
+    ("cls-uni", "owl-rl-ext"),
+    ("scm-avf1", "owl-rl-ext"),
+    ("scm-avf2", "owl-rl-ext"),
+    ("scm-svf1", "owl-rl-ext"),
+    ("scm-svf2", "owl-rl-ext"),
 ];
 
 /// The interned vocabulary [`find_clashes`] reads. Gathered into one value so
@@ -2106,7 +2164,14 @@ impl Reasoner {
                 // has accepted a refutation. Nothing here may say that, or an
                 // engine opinion and a machine-checked result share a string
                 // and a consumer cannot tell them apart.
-                "verdict": "clash_found_by_this_engine",
+                //
+                // The word comes from `verdict::EngineRefutation`, whose
+                // vocabulary is asserted disjoint from
+                // `verdict::CHECKER_OWNED_WORDS`, and which has no certified
+                // variant to reach for: nothing in the Rust tree runs
+                // `oo-refute`, so there is no evidence any code here could
+                // mint.
+                "verdict": crate::verdict::EngineRefutation::ClashFoundByThisEngine,
                 "checked_by_lean": false,
                 "clash_count": clashes.len(),
                 "by_rule": by_rule,
@@ -2181,8 +2246,9 @@ impl Reasoner {
                                 "prefix": ids.len(),
                                 "premises": c.premises.iter().map(show).collect::<Vec<_>>(),
                                 // Written, not checked. The word for a checked
-                                // one is `oo-refute`'s to say.
-                                "verdict": "refutation_written_not_yet_checked",
+                                // one is `oo-refute`'s to say, and this crate
+                                // has no vocabulary that can say it.
+                                "verdict": crate::verdict::EngineRefutation::RefutationWrittenNotYetChecked,
                                 "check_with": format!(
                                     "cd lean && lake exe oo-refute check {a} {r}",
                                     a = dir.join("asserted.tsv").display(),

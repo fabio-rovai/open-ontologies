@@ -12,7 +12,7 @@
 mod common;
 
 use open_ontologies::closure_diff as cd;
-use open_ontologies::closure_diff::{DiffOptions, Warrant};
+use open_ontologies::closure_diff::DiffOptions;
 use open_ontologies::graph::GraphStore;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -209,7 +209,7 @@ fn an_unchecked_run_never_prints_the_checked_word() {
         r.source_certificate
     );
     assert!(
-        r.entailments_lost.iter().all(|e| e.warrant != Warrant::Checked),
+        r.entailments_lost.iter().all(|e| !e.warrant.is_checked()),
         "an unchecked result printed the checked word"
     );
     let json = serde_json::to_string(&r).unwrap();
@@ -240,7 +240,7 @@ fn an_assertion_is_never_counted_as_checked() {
         r.lost_by_warrant
     );
     for e in &r.entailments_lost {
-        assert_eq!(e.theorem.is_some(), e.warrant == Warrant::Checked);
+        assert_eq!(e.theorem.is_some(), e.warrant.is_checked());
     }
 }
 
@@ -269,7 +269,7 @@ fn a_rejected_source_certificate_demotes_every_row() {
     assert_eq!(r.source_certificate.checker_exit, Some(1));
     assert_eq!(r.source_certificate.theorem, None);
     assert!(
-        r.entailments_lost.iter().all(|e| e.warrant != Warrant::Checked),
+        r.entailments_lost.iter().all(|e| !e.warrant.is_checked()),
         "a rejected certificate leaves nothing checked"
     );
     let json = serde_json::to_string(&r).unwrap();
@@ -302,7 +302,7 @@ fn the_monotonicity_gate_fires() {
 
     // And `from_parts` exists so the same hole can be built at the report level.
     let verdict = cd::CertificateVerdict {
-        verdict: "engine_opinion",
+        verdict: open_ontologies::verdict::ClosureVerdict::EngineOpinion,
         theorem: None,
         asserted: 1,
         derivations: 0,

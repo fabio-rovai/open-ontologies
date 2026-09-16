@@ -19,11 +19,16 @@
 //!
 //! Decision 0006 item 4 fixes five fields and five verdict words, and this
 //! module is where they are computed. The rules are mechanical, and
-//! `tests/fol_solver_verdict_test.rs` fails if any of them is ever relaxed:
+//! `tests/fol_solver_verdict_test.rs` fails if any of them is ever relaxed.
+//! Since the verdict-by-construction change they are also UNREPRESENTABLE
+//! otherwise: the verdict is a [`crate::verdict::FolVerdict`], its certified
+//! variant carries a [`crate::verdict::Certified`], and that type has no
+//! public constructor. The rules restated, with what now enforces each:
 //!
-//! 1. `model_checked` requires `checker_exit == 0`. There is exactly one place
-//!    in this file that writes that word and it is inside the branch that has
-//!    just read a zero exit code off `oo-folmodel`. No other path can reach it.
+//! 1. `model_checked` requires `checker_exit == 0`. It is not a string in this
+//!    file any more. `FolVerdict::ModelChecked` takes evidence that only
+//!    `CheckerRun::accepted` returns, and only on a zero exit code from a
+//!    process this crate spawned. A new code path cannot write that word.
 //! 2. `unsatisfiable_oracle` requires a run whose emitted problem carried NO
 //!    cardinality constraint. It is written only in the arm that reads the
 //!    unbounded probe's answer. A bounded run's `unsat` is
@@ -71,6 +76,11 @@ use std::time::{Duration, Instant};
 
 use crate::fol_model::{FiniteModel, IngestError, mace4, z3};
 use crate::tptp::{FolProblem, ladr, smtlib::SmtEncoding};
+use crate::verdict::{CheckerBinary, CheckerRun, FolVerdict, OwlReading};
+
+/// The Lean statement `oo-folmodel`'s acceptance discharges. It travels inside
+/// the evidence token, so a report cannot name it without an accepted run.
+const FOL_THEOREM: &str = "Fol.satisfiable_of_check";
 
 /// Which model finder to drive.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -217,10 +227,12 @@ pub struct Outcome {
     /// `null` means the checker was never run.
     pub checker_exit: Option<i32>,
     /// The one word. See the module docstring for the three mechanical rules.
-    pub verdict: &'static str,
+    /// A type, not a string: the certified variant carries the evidence.
+    pub verdict: FolVerdict,
     /// Non-null only when the CHECKER reported a negated goal AND the verdict
-    /// is `model_checked`.
-    pub owl_reading: Option<&'static str>,
+    /// is `model_checked`. Both halves are in the type: minting one takes the
+    /// checker's own report and the verdict's own `Certified`.
+    pub owl_reading: Option<OwlReading>,
 
     /// The theorem the certified verdict names, when there is one.
     pub theorem: Option<String>,
@@ -255,7 +267,7 @@ impl Outcome {
             solver_verdict: "unknown",
             encoding: "none".into(),
             checker_exit: None,
-            verdict: "unknown_oracle",
+            verdict: FolVerdict::UnknownOracle,
             owl_reading: None,
             theorem: None,
             cardinality_search: Vec::new(),
@@ -490,7 +502,7 @@ pub fn solve(problem: &FolProblem, opts: &SolveOptions, dir: &Path) -> anyhow::R
         solver_verdict: "unknown",
         encoding: "none".into(),
         checker_exit: None,
-        verdict: "unknown_oracle",
+        verdict: FolVerdict::UnknownOracle,
         owl_reading: None,
         theorem: None,
         cardinality_search: Vec::new(),
@@ -529,7 +541,7 @@ pub fn solve(problem: &FolProblem, opts: &SolveOptions, dir: &Path) -> anyhow::R
                     Err(e) => {
                         // The solver said sat and we could not read what it
                         // built. Not a fact about the ontology, and not quiet.
-                        out.verdict = "satisfiable_oracle";
+                        out.verdict = FolVerdict::SatisfiableOracle;
                         out.disagreement = Some(Disagreement {
                             severity: "STOP_THE_LINE",
                             what: "model_not_ingested",
@@ -547,7 +559,7 @@ pub fn solve(problem: &FolProblem, opts: &SolveOptions, dir: &Path) -> anyhow::R
                 };
                 out.dropped_symbols = model.dropped.clone();
                 if let Err(e) = model.covers(&problem.vocabulary(), opts.solver.name()) {
-                    out.verdict = "satisfiable_oracle";
+                    out.verdict = FolVerdict::SatisfiableOracle;
                     out.disagreement = Some(Disagreement {
                         severity: "STOP_THE_LINE",
                         what: "model_incomplete",
@@ -565,25 +577,29 @@ pub fn solve(problem: &FolProblem, opts: &SolveOptions, dir: &Path) -> anyhow::R
                 std::fs::write(&model_path, &model_tsv)?;
 
                 // ── The only place the certified word can be reached ──
-                let co = Command::new(&checker)
-                    .arg(dir.join("problem.tsv"))
-                    .arg(&model_path)
-                    .output()?;
-                let report = String::from_utf8_lossy(&co.stdout).trim().to_string();
+                //
+                // It is no longer "the only place" by inspection. `CheckerRun`
+                // is the only constructor of the evidence `FolVerdict::
+                // ModelChecked` requires, so this is the only place it CAN be
+                // reached, and a second one would have to run a checker too.
+                let mut cmd = Command::new(&checker);
+                cmd.arg(dir.join("problem.tsv")).arg(&model_path);
+                let run = CheckerRun::spawn(&CheckerBinary::found_at(checker.clone()), cmd)?;
+                let report = run.stdout().trim().to_string();
                 std::fs::write(dir.join("checker.json"), &report)?;
-                let exit = co.status.code().unwrap_or(-1);
+                let exit = run.exit();
                 out.checker_exit = Some(exit);
                 out.checker_report = Some(report.clone());
-                if exit == 0 {
-                    out.verdict = "model_checked";
-                    out.theorem = Some("Fol.satisfiable_of_check".to_string());
+                if let Some(cert) = run.accepted(FOL_THEOREM) {
+                    out.verdict = FolVerdict::ModelChecked(cert);
+                    out.theorem = Some(cert.theorem().to_string());
                     // Read the goal flag back off the CHECKER's report, not
-                    // off this side's intention.
-                    if report.contains("\"goal_negated_present\":true") {
-                        out.owl_reading = Some("not_entailed_under_unproved_translation");
-                    }
+                    // off this side's intention. The `cert` argument is the
+                    // "and the verdict is model_checked" half of the rule,
+                    // carried by the signature instead of by this comment.
+                    out.owl_reading = run.owl_reading(cert);
                 } else {
-                    out.verdict = "satisfiable_oracle";
+                    out.verdict = FolVerdict::SatisfiableOracle;
                     out.disagreement = Some(Disagreement {
                         severity: "STOP_THE_LINE",
                         what: "model_not_confirmed",
@@ -612,14 +628,14 @@ pub fn solve(problem: &FolProblem, opts: &SolveOptions, dir: &Path) -> anyhow::R
             out.solver_verdict = "unknown";
             out.encoding = SmtEncoding::Finite(*out.cardinality_search.last().unwrap_or(&hi)).name();
             out.bounded_search = format!("stopped: {why}");
-            out.verdict = "unknown_oracle";
+            out.verdict = FolVerdict::UnknownOracle;
         }
         None => {
             out.solver_verdict = "unsat";
             out.encoding = SmtEncoding::Finite(hi).name();
             out.bounded_search = format!("exhausted: no model of size {lo}..{hi}");
             // NOT unsatisfiability. Decision 0006 item 4.
-            out.verdict = "no_model_up_to_size_k";
+            out.verdict = FolVerdict::NoModelUpToSizeK;
         }
     }
 
@@ -640,14 +656,14 @@ pub fn solve(problem: &FolProblem, opts: &SolveOptions, dir: &Path) -> anyhow::R
             SolverSays::Unsat => {
                 out.solver_verdict = "unsat";
                 out.encoding = SmtEncoding::Unbounded.name();
-                out.verdict = "unsatisfiable_oracle";
+                out.verdict = FolVerdict::UnsatisfiableOracle;
             }
             SolverSays::Sat => {
                 out.solver_verdict = "sat";
                 out.encoding = SmtEncoding::Unbounded.name();
                 // Satisfiable, and with no finite model small enough to
                 // certify. Exactly the SHIQ finite-model-property case.
-                out.verdict = "satisfiable_oracle";
+                out.verdict = FolVerdict::SatisfiableOracle;
             }
             SolverSays::Unknown => {}
         }
@@ -678,7 +694,7 @@ pub fn outcome_json(o: &Outcome) -> serde_json::Value {
         "disagreement": o.disagreement,
         "skipped": o.skipped,
         "seconds": (o.seconds * 1000.0).round() / 1000.0,
-        "verdict_means": verdict_means(o.verdict),
+        "verdict_means": verdict_means(o.verdict.word()),
     })
 }
 
@@ -733,7 +749,7 @@ pub fn solve_export(
     // item 7 records happening in this repository already.
     let mut not_asked: Vec<serde_json::Value> = Vec::new();
     let mut counts: BTreeMap<&'static str, usize> = BTreeMap::new();
-    *counts.entry(ontology.verdict).or_default() += 1;
+    *counts.entry(ontology.verdict.word()).or_default() += 1;
     let mut stop_the_line = usize::from(ontology.disagreement.is_some());
 
     if let Some(path) = goals {
@@ -770,7 +786,7 @@ pub fn solve_export(
             };
             let gp = FolProblem::build(&read.axioms, Some(&ax))?;
             let g = solve(&gp, opts, &dir.join(format!("goal_{i:05}")))?;
-            *counts.entry(g.verdict).or_default() += 1;
+            *counts.entry(g.verdict.word()).or_default() += 1;
             if g.disagreement.is_some() {
                 stop_the_line += 1;
             }
