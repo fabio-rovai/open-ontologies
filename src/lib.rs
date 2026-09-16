@@ -19,6 +19,7 @@ pub mod communities;
 pub mod config;
 pub mod cq;
 pub mod defects;
+pub mod dlp;
 pub mod drift;
 pub mod dynamics;
 pub mod dynamics_bcplus;
@@ -30,7 +31,16 @@ pub mod pack;
 pub mod support;
 pub mod temporal;
 pub mod policy;
+/// Certified verdicts that cannot be spelled without the evidence. Every
+/// module that prints a verdict word takes its vocabulary from here.
+pub mod verdict;
 pub mod closure_diff;
+/// Deductive conservativity of an EXTENSION, under the rule table the engine
+/// evaluates and never under a stronger reading than that.
+pub mod conservativity;
+/// Syntactic locality modules (`⊥`, `⊤`, `⊥⊤*`): a subset of the axioms with a
+/// coverage theorem, as opposed to a slice with a measured loss.
+pub mod module_extract;
 pub mod projection_check;
 pub mod projection_entailment;
 pub mod shape_combinatorics;

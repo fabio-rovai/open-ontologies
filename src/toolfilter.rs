@@ -91,6 +91,10 @@ impl ToolFilter {
 
     /// Apply the filter to a `ToolRouter` by removing disallowed routes.
     /// Returns the list of removed tool names (for logging/inspection).
+    ///
+    /// This is the OPERATOR's filter. [`remove_unavailable`] runs first and is
+    /// not optional: a tool the build cannot serve is never advertised,
+    /// whatever the operator asked for.
     pub fn apply<S>(&self, router: &mut ToolRouter<S>) -> Vec<String>
     where
         S: Send + Sync + 'static,
@@ -118,6 +122,73 @@ impl ToolFilter {
         }
         removed
     }
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Tools this build cannot serve
+// ───────────────────────────────────────────────────────────────────────────
+
+/// The tools whose implementation is behind a Cargo feature, with the feature
+/// each one needs.
+///
+/// Eight of the registered tools have a body that is `#[cfg(not(feature =
+/// ...))] { return "Compiled without X feature" }`. Advertising one of those
+/// over `tools/list` is a promise the build cannot keep: a client reads the
+/// description, calls the tool, and gets an error that has nothing to do with
+/// its input. That is the same defect as a verdict claimed but not earned, one
+/// layer up — the advertisement and the capability have to agree, and the only
+/// honest way to make them agree is to stop advertising what cannot be served.
+///
+/// `onto_import_schema` and `onto_sql_ingest` need EITHER `postgres` or
+/// `duckdb`: they dispatch on the connection URL and the two schemes they
+/// accept are the two features. A build with one of them keeps both tools,
+/// because one scheme still works and the other reports a clear error about
+/// the scheme rather than about the tool.
+pub const FEATURE_GATED_TOOLS: &[(&str, &str)] = &[
+    ("onto_plugin_list", "plugins"),
+    ("onto_plugin_call", "plugins"),
+    ("onto_embed", "embeddings"),
+    ("onto_hnsw_build", "embeddings"),
+    ("onto_search", "embeddings"),
+    ("onto_similarity", "embeddings"),
+    ("onto_import_schema", "postgres or duckdb"),
+    ("onto_sql_ingest", "postgres or duckdb"),
+];
+
+/// Of those, the ones THIS build cannot serve. Empty when every feature is on.
+pub fn unavailable_in_this_build() -> Vec<&'static str> {
+    let mut out: Vec<&'static str> = Vec::new();
+    if !cfg!(feature = "plugins") {
+        out.extend(["onto_plugin_list", "onto_plugin_call"]);
+    }
+    if !cfg!(feature = "embeddings") {
+        out.extend(["onto_embed", "onto_hnsw_build", "onto_search", "onto_similarity"]);
+    }
+    if !cfg!(feature = "postgres") && !cfg!(feature = "duckdb") {
+        out.extend(["onto_import_schema", "onto_sql_ingest"]);
+    }
+    out.sort_unstable();
+    out
+}
+
+/// Remove every tool this build cannot serve from `router`, returning what was
+/// removed with the feature that would bring each one back.
+///
+/// Called before the operator's own filter and independently of its mode, so a
+/// `Mode::All` server still does not advertise a tool guaranteed to fail.
+pub fn remove_unavailable<S>(router: &mut ToolRouter<S>) -> Vec<(&'static str, &'static str)>
+where
+    S: Send + Sync + 'static,
+{
+    let gone = unavailable_in_this_build();
+    let mut removed = Vec::new();
+    for (name, feature) in FEATURE_GATED_TOOLS {
+        if gone.contains(name) {
+            router.remove_route(name);
+            removed.push((*name, *feature));
+        }
+    }
+    removed
 }
 
 /// Curated tool groups. Tool names must match the ones registered with

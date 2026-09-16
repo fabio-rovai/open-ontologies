@@ -294,7 +294,7 @@ fn a_bounded_unsat_is_not_unsatisfiability() {
     assert_eq!(at_one.encoding, "finite(1)");
     assert_eq!(at_one.unbounded, None, "no unbounded run happened");
     assert!(at_one.bounded_search.contains("exhausted"), "{at_one:?}");
-    assert!(verdict_means(at_one.verdict).contains("NOT"));
+    assert!(verdict_means(at_one.verdict.word()).contains("NOT"));
 
     let at_two = solve(&needs_two(), &opts(2), &d.join("k2")).expect("runs");
     assert_eq!(at_two.verdict, "model_checked", "{at_two:?}");
@@ -348,8 +348,11 @@ fn the_owl_reading_is_read_off_the_checkers_own_report() {
     let d = scratch("owl");
     let withgoal = solve(&not_entailed(), &opts(3), &d.join("goal")).expect("runs");
     assert_eq!(withgoal.verdict, "model_checked", "{withgoal:?}");
+    // `OwlReading` has no public constructor either: the word is compared, and
+    // the presence of the value is what says the checker reported a negated
+    // goal on a run it accepted.
     assert_eq!(
-        withgoal.owl_reading,
+        withgoal.owl_reading.map(|r| r.word()),
         Some("not_entailed_under_unproved_translation")
     );
     assert!(

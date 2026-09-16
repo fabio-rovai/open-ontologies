@@ -102,6 +102,58 @@ impl Planner {
 
     /// Compute a diff plan between current store and proposed new Turtle.
     pub fn plan(&self, new_turtle: &str) -> anyhow::Result<String> {
+        self.plan_checked(new_turtle, None)
+    }
+
+    /// [`Planner::plan`], optionally answering the semantic question as well as
+    /// the syntactic one.
+    ///
+    /// Everything else a plan reports is about SHAPE: which classes appear,
+    /// which disappear, how many triples move. None of it can tell you that
+    /// adding one `rdfs:domain` silently reclassified nine hundred existing
+    /// individuals, because that change adds no class and removes nothing. The
+    /// conservativity block is the only part of a plan that is about MEANING,
+    /// and it is opt-in because it reasons both graphs to a fixpoint, which is
+    /// seconds rather than milliseconds on a real store.
+    ///
+    /// It is never fatal. A plan whose conservativity check could not run says
+    /// so in `conservativity.skipped` and still returns the plan, because a
+    /// diagnostic that can block a plan is a diagnostic people turn off.
+    pub fn plan_checked(
+        &self,
+        new_turtle: &str,
+        conservativity: Option<crate::conservativity::ConservativityOptions>,
+    ) -> anyhow::Result<String> {
+        let mut result: serde_json::Value = serde_json::from_str(&self.plan_inner(new_turtle)?)?;
+        result["conservativity"] = match conservativity {
+            None => serde_json::json!({
+                "ran": false,
+                "skipped": "not requested. Pass check_conservativity=true to ask whether this \
+                            change alters any consequence over the names the store already uses, \
+                            under the rule table named in profile. It reasons both graphs to a \
+                            fixpoint, so it is not free.",
+            }),
+            Some(opts) => {
+                match crate::conservativity::conservativity_check(&self.graph, new_turtle, &opts) {
+                    Ok(r) => {
+                        let mut v = serde_json::to_value(&r)?;
+                        v["ran"] = serde_json::Value::Bool(true);
+                        v
+                    }
+                    Err(e) => serde_json::json!({
+                        "ran": false,
+                        "skipped": format!(
+                            "the conservativity check could not run, so this plan says nothing \
+                             about what the change means: {e}"
+                        ),
+                    }),
+                }
+            }
+        };
+        Ok(result.to_string())
+    }
+
+    fn plan_inner(&self, new_turtle: &str) -> anyhow::Result<String> {
         let current_classes = self.extract_classes_from_store(&self.graph);
         let current_properties = self.extract_properties_from_store(&self.graph);
 
