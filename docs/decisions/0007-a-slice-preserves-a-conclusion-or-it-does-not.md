@@ -113,6 +113,18 @@ preserves every claim asked of it, each with a Lean-checked certificate. Both ar
    where it leaks, and it carries no skip guard, so it is the one gate a machine without Lean still
    enforces.
 
+   The enum is now where the discipline is enforced as well as easy. `GoalVerdict::
+   PreservedChecked` and `PreservedUnderSuppliedRulesChecked` each carry a `verdict::Certified`,
+   which has a private field, no constructor, and exactly one producer in the crate:
+   `CheckerRun::accepted`, which returns `None` unless a process this crate spawned exited zero.
+   `CheckerStatus::Accepted` carries one too, so the acceptance those verdicts are read off cannot
+   be fabricated either, and `warrant` is now read OUT of the token rather than written beside it,
+   which makes `OOCert.certificate_sound` as unspeakable on an unchecked path as the verdict is.
+   `GoalVerdict` deliberately does not implement `Deserialize`: parsing `"preserved_checked"` out
+   of a report is not the same act as earning it, and a derive would be a public constructor for
+   the certified state. The serialisation guard above stays, because the type says nothing about
+   what `Serialize` writes, and that is exactly the half it was written to cover.
+
 8. **A negative carries no certificate in this layer, ever.** `q ∉ closure(P)` is the engine's
    opinion bounded by a rule table implementing 29 of OWL 2 RL's 78 rules, so the word is
    `lost_under_profile_unchecked`. Printing "the projection does not entail `q`" flat would do in the

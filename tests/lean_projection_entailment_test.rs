@@ -279,7 +279,7 @@ fn a_low_coverage_slice_can_preserve_every_claim() {
     );
     assert_eq!(r.exit_code, 0, "{}", r.headline);
     for gr in &r.per_goal {
-        assert_eq!(gr.verdict, GoalVerdict::PreservedChecked);
+        assert_eq!(gr.verdict, "preserved_checked");
         assert_eq!(gr.warrant, "OOCert.certificate_sound");
         let c = gr.certificate.as_ref().expect("a checked goal carries its certificate");
         assert!(c.check_with.contains("oo-cert"), "{c:?}");
@@ -344,7 +344,7 @@ fn a_preserved_claim_is_checked() {
         &format!("{PREFIXES}:a a :C .\n"),
         &opts("cell-preserved", &["http://ex.org/a".into()]),
     );
-    assert_eq!(r.per_goal[0].verdict, GoalVerdict::PreservedChecked, "{}", r.headline);
+    assert_eq!(r.per_goal[0].verdict, "preserved_checked", "{}", r.headline);
     assert_eq!(r.per_goal[0].warrant, "OOCert.certificate_sound");
     assert_eq!(r.exit_code, 0);
 }
@@ -401,7 +401,7 @@ fn an_asserted_goal_is_preserved_asserted_not_lost() {
     let gr = &r.per_goal[0];
     assert_eq!(gr.projection, Membership::Asserted, "{gr:?}");
     assert_eq!(gr.verdict, GoalVerdict::PreservedAsserted);
-    assert_ne!(gr.verdict, GoalVerdict::PreservedChecked, "a lookup is not a theorem");
+    assert_ne!(gr.verdict, "preserved_checked", "a lookup is not a theorem");
     assert_eq!(gr.warrant, "none", "and it names no theorem");
     assert!(gr.certificate.is_none());
     assert_eq!(r.exit_code, 0);
@@ -521,11 +521,11 @@ fn a_user_rule_run_never_earns_the_plain_preserved_word() {
     for gr in &r.per_goal {
         assert_ne!(
             gr.verdict,
-            GoalVerdict::PreservedChecked,
+            "preserved_checked",
             "a run over a SUPPLIED rule table must not report the plain preserved word: {json}"
         );
         if gr.verdict.is_checked() {
-            assert_eq!(gr.verdict, GoalVerdict::PreservedUnderSuppliedRulesChecked);
+            assert_eq!(gr.verdict, "preserved_under_supplied_rules_checked");
             assert_eq!(gr.warrant, "OOCert.horn_certificate_sound");
         }
     }
@@ -534,7 +534,7 @@ fn a_user_rule_run_never_earns_the_plain_preserved_word() {
         "the guard must not be vacuous: the goal has to be PRESERVED under the supplied table, \
          or this test would pass on a run that proved nothing.\n{json}"
     );
-    assert_eq!(r.per_goal[0].verdict, GoalVerdict::PreservedUnderSuppliedRulesChecked);
+    assert_eq!(r.per_goal[0].verdict, "preserved_under_supplied_rules_checked");
     assert!(
         r.rules_sha256.is_some(),
         "the table that was in force must be identified: {json}"
@@ -566,7 +566,7 @@ fn a_rejected_sub_certificate_stops_the_line() {
         &format!("{PREFIXES}:a a :C .\n"),
         &o,
     );
-    assert_eq!(honest.per_goal[0].verdict, GoalVerdict::PreservedChecked);
+    assert_eq!(honest.per_goal[0].verdict, "preserved_checked");
 
     // Now forge the projection's derivation file: a well-formed rdfs9 step
     // whose subClassOf premise is neither asserted nor derived earlier, with
@@ -606,7 +606,7 @@ fn a_rejected_sub_certificate_stops_the_line() {
         "a premise in neither asserted.tsv nor an earlier line must be rejected: {status:?}"
     );
     assert!(
-        !matches!(status, pe::CheckerStatus::Accepted { .. }),
+        !matches!(status, pe::CheckerStatus::Accepted(..)),
         "and it must NOT be downgraded to an accepted or unchecked result"
     );
 
@@ -651,7 +651,7 @@ fn a_rejected_slice_never_downgrades_to_preserved_unchecked() {
     );
     let v = r.per_goal[0].verdict;
     assert_ne!(v, GoalVerdict::PreservedUnchecked, "a rejection must NOT downgrade: {v:?}");
-    assert_ne!(v, GoalVerdict::PreservedChecked);
+    assert_ne!(v, "preserved_checked");
     assert!(!v.is_preserved(), "a rejected sub-certificate is not a preserved goal: {v:?}");
     assert_eq!(
         v,
@@ -1057,7 +1057,7 @@ fn a_named_graph_projection_is_compared_over_every_triple() {
     assert_eq!(r.subset.decided_over, "all triples", "{:?}", r.subset);
     assert!(r.subset.verified);
     assert_eq!(r.monotonicity.status, "armed");
-    assert_eq!(r.per_goal[0].verdict, GoalVerdict::PreservedChecked, "{}", r.headline);
+    assert_eq!(r.per_goal[0].verdict, "preserved_checked", "{}", r.headline);
 }
 
 /// An earlier `reason` run materialising into the store makes `asserted.tsv` a

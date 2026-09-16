@@ -86,6 +86,16 @@ finite model finder, and prints exactly the kind of object this layer can certif
    the checker itself reported `goal_negated_present` AND the verdict is `model_checked`, computed
    from what the checker read back rather than from the Rust side's intention.
 
+   The first and third are no longer rules a reviewer has to enforce. `verdict` is a
+   `verdict::FolVerdict` and `owl_reading` is a `verdict::OwlReading`, and the certified variant
+   of each carries a `verdict::Certified` whose field is private to `src/verdict.rs`. The only
+   function that returns one is `CheckerRun::accepted`, the only constructor of a `CheckerRun`
+   spawns the checker, and `accepted` returns `None` on any non-zero exit. So a code path that
+   has not run `oo-folmodel` cannot write either word: it is E0451, a privacy error, and
+   `compile_fail` doctests in `src/verdict.rs` fail if that stops being true. The second rule is
+   still enforced by reading, because "which question was asked" is a property of the SMT-LIB
+   this side emitted and not of anything the checker hands back.
+
    `no_model_up_to_size_k` exists because the obvious wiring is wrong and takes ten minutes. A
    finite-domain encoding that returns `unsat` has established that no model of that size exists,
    which is not unsatisfiability and is often not even evidence of it. The formula

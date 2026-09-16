@@ -35,14 +35,32 @@ fn exposed_tool_count() -> usize {
 fn total_claims(n: usize) -> Vec<(&'static str, &'static str, String)> {
     vec![
         ("README.md", "the lead paragraph", format!("**{n} tools**")),
-        ("README.md", "the default-build sentence", format!("A default build advertises all {n} tools.")),
+        (
+            "README.md",
+            "the default-build sentence",
+            format!("A default build advertises {} tools.", n - gated_tool_count()),
+        ),
         ("docs/architecture.md", "the architecture diagram", format!("ToolGroups[\"{n} Tools\"]")),
-        // Found by a merge conflict, not by this test: the MCP server tells every client
-        // its own tool count in its instructions string, and that copy was stale at 110
-        // while three others had been corrected. A gate that covers three of four places
-        // is a gate that makes the fourth harder to notice.
-        ("src/server.rs", "the MCP server's instructions string", format!("MCP server with {n} tools")),
     ]
+    // The MCP server's instructions string used to be checked here as a literal, and
+    // that row is gone on purpose. It stated TWO totals, 114 and 112, and neither was
+    // the number the router advertised: a hand-typed figure with a second hand-typed
+    // figure beside it, which is the disease this file exists to treat and not a case
+    // of it being caught. The string is now formatted from `tool_router.list_all()` at
+    // call time, so there is no literal left to go stale, and
+    // `the_instructions_string_states_the_count_it_advertises` below checks the live
+    // server instead of the source text.
+}
+
+/// How many registered tools a DEFAULT build does not advertise.
+///
+/// Derived from the same list `toolfilter::remove_unavailable` removes routes with, so
+/// the README's second number cannot drift from the server's behaviour. It is the whole
+/// list rather than `unavailable_in_this_build()` on purpose: the README's sentence is
+/// about a default build, which has none of the features, and reading it off THIS build
+/// would make the claim pass or fail depending on the flags the suite was run with.
+fn gated_tool_count() -> usize {
+    open_ontologies::toolfilter::FEATURE_GATED_TOOLS.len()
 }
 
 #[test]
@@ -81,13 +99,32 @@ fn no_stale_tool_count_survives_anywhere() {
         .collect::<Vec<_>>()
         .join("\n");
 
-    // The shapes a total is written in here. Any number in one of them that is not the
-    // measured count is a leftover from a partial edit.
-    let shapes: [(&str, &str); 4] =
-        [("**", " tools**"), ("advertises all ", " tools."), ("", " tools organized by function"), ("ToolGroups[\"", " Tools\"]")];
+    // The shapes a total is written in here, each with the number it must state. Two
+    // different totals are correct now: how many tools are REGISTERED, and how many a
+    // build with this feature set ADVERTISES. Conflating them is what produced a
+    // sentence claiming a default build advertised all 114 while eight of them could
+    // only return "Compiled without X feature".
+    let advertised = n - gated_tool_count();
+    let shapes: [(&str, &str, usize); 4] = [
+        ("**", " tools**", n),
+        ("advertises ", " tools.", advertised),
+        ("", " tools organized by function", n),
+        ("ToolGroups[\"", " Tools\"]", n),
+    ];
+
+    // The sentence that was wrong, named so a revert cannot pass quietly. There is no
+    // number a build can put in it that is true: the eight gated tools are registered
+    // and not advertised, so "all N" is false for every N.
+    assert!(
+        !readme.contains("advertises all "),
+        "\"advertises all N tools\" is back. It cannot be true: {} of the {n} registered \
+         tools are behind a Cargo feature and are not advertised by a build that lacks it. \
+         Say how many are advertised, not that all of them are.",
+        gated_tool_count().max(1)
+    );
 
     let mut stale = Vec::new();
-    for (prefix, suffix) in shapes {
+    for (prefix, suffix, n) in shapes {
         let mut rest = readme.as_str();
         while let Some(i) = rest.find(suffix) {
             let head = &rest[..i];

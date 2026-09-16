@@ -466,16 +466,21 @@ enum Commands {
     /// verdict on the output is an oracle opinion, never a certificate. A
     /// MODEL is the other case: see `fol-model`.
     Fol {
-        /// Output directory. `ontology.p`, `.clif`, `.smt2` or `.in` lands
-        /// here, plus one problem per goal under `goals/` when --goals is
+        /// Output directory. `ontology.p`, `.clif`, `.cgif`, `.smt2` or `.in`
+        /// lands here, plus one problem per goal under `goals/` when --goals is
         /// given. Every run also writes `problem.tsv`, the format the verified
         /// checker `oo-folmodel` reads, with its digest in the report.
         #[arg(long)]
         out: String,
-        /// `tptp` (FOF, what provers read), `clif` (ISO/IEC 24707 Common
-        /// Logic, restricted to the first-order-equivalent fragment),
-        /// `smtlib` (SMT-LIB 2, what Z3 reads) or `ladr` (what Mace4 reads,
-        /// with every symbol MANGLED and the table in `symbols.tsv`).
+        /// `tptp` (FOF, what provers read), `clif` or `cgif` (two of ISO/IEC
+        /// 24707 Common Logic's three dialects, both restricted to the
+        /// first-order-equivalent fragment), `smtlib` (SMT-LIB 2, what Z3
+        /// reads) or `ladr` (what Mace4 reads, with every symbol MANGLED and
+        /// the table in `symbols.tsv`).
+        ///
+        /// `cgif` is CORE CGIF in the compact sub-dialect clause 7.1.1 names:
+        /// no sequence markers, which is what clause 6.5 says takes Common
+        /// Logic past first order. It takes no dialect or comment flag.
         ///
         /// The last two assert the NEGATED goal rather than declaring a
         /// conjecture, because they are read by model finders and a

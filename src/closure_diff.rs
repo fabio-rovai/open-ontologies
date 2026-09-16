@@ -42,6 +42,7 @@ use crate::projection_entailment::{
     CertKind, CertificateIndex, CheckerStatus, CoverageProxy, Guards, Spelled, LAKE_INSTALL,
     STOP_THE_LINE,
 };
+use crate::verdict::{Certified, ClosureVerdict};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -56,8 +57,16 @@ pub type NtTriple = Spelled;
 // ───────────────────────────────────────────────────────────────────────────
 
 /// Why the source is entitled to a conclusion. NEVER COLLAPSED.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+///
+/// `Checked` carries the evidence, so the row below cannot wear the word on a
+/// run where nothing was checked:
+///
+/// ```compile_fail
+/// use open_ontologies::closure_diff::Warrant;
+/// use open_ontologies::verdict::Certified;
+/// let w = Warrant::Checked(Certified { theorem: "OOCert.certificate_sound" });
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Warrant {
     /// The triple IS in the asserted graph. No rule fired, nothing was proved,
     /// and nothing needed to be: a lookup, not an entailment claim. Listed
@@ -68,7 +77,7 @@ pub enum Warrant {
     /// A derivation step for it appears in a certificate `oo-cert` ACCEPTED.
     /// `OOCert.certificate_sound` applies. The only word that may be spoken
     /// when a machine-checked theorem stands behind the row.
-    Checked,
+    Checked(Certified),
     /// The engine says it derived this and no checker has looked: the checker
     /// was not built, was not run, or REJECTED the certificate.
     EngineOpinion,
@@ -78,16 +87,34 @@ impl Warrant {
     pub fn name(self) -> &'static str {
         match self {
             Warrant::AssertedInSource => "asserted_in_source",
-            Warrant::Checked => "checked",
+            Warrant::Checked(_) => "checked",
             Warrant::EngineOpinion => "engine_opinion",
         }
     }
-    /// The theorem, named only where one stands behind the word.
+    /// The theorem, named only where one stands behind the word. It comes out
+    /// of the evidence now, not out of a match arm, so an unchecked run has no
+    /// way to print it.
     pub fn theorem(self) -> Option<&'static str> {
         match self {
-            Warrant::Checked => Some("OOCert.certificate_sound"),
+            Warrant::Checked(c) => Some(c.theorem()),
             _ => None,
         }
+    }
+    pub fn is_checked(self) -> bool {
+        matches!(self, Warrant::Checked(_))
+    }
+}
+
+impl Serialize for Warrant {
+    /// The snake_case word the derive used to write, unchanged on the wire.
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        s.serialize_str(self.name())
+    }
+}
+
+impl PartialEq<&str> for Warrant {
+    fn eq(&self, other: &&str) -> bool {
+        self.name() == *other
     }
 }
 
@@ -122,13 +149,15 @@ pub fn comparability_of(t: &NtTriple, skolem_map: &BTreeMap<String, String>) -> 
 // What checked the closure this diff is computed from
 // ───────────────────────────────────────────────────────────────────────────
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct CertificateVerdict {
-    /// `"checked"` | `"engine_opinion"` | `"rejected"`. Exactly one place in
-    /// this file can produce `"checked"`, and it has just read a zero exit code
-    /// off the Lean binary. No other path reaches it.
-    pub verdict: &'static str,
-    /// `Some("OOCert.certificate_sound")` on `"checked"`, `None` otherwise.
+    /// `"checked"` | `"engine_opinion"` | `"rejected"`. The checked variant
+    /// carries the evidence a zero exit code minted, so no other path in this
+    /// file or any other can reach the word — it is not a `&'static str` any
+    /// more and there is nothing to assign.
+    pub verdict: ClosureVerdict,
+    /// `Some("OOCert.certificate_sound")` on `"checked"`, `None` otherwise,
+    /// and taken from the evidence rather than written beside it.
     pub theorem: Option<&'static str>,
     pub asserted: usize,
     pub derivations: usize,
@@ -156,11 +185,12 @@ impl CertificateVerdict {
         iterations: usize,
     ) -> Self {
         // The ONE place `"checked"` is produced. It requires an accepted run,
-        // which required exit code 0.
-        let (verdict, exit, skipped): (&'static str, Option<i32>, Option<String>) = match status {
-            CheckerStatus::Accepted { .. } => ("checked", Some(0), None),
+        // which required exit code 0 — and now the type says so: the arm below
+        // is the only one that has a `Certified` to put in the variant.
+        let (verdict, exit, skipped): (ClosureVerdict, Option<i32>, Option<String>) = match status {
+            CheckerStatus::Accepted(a) => (ClosureVerdict::Checked(a.certified()), Some(0), None),
             CheckerStatus::Rejected { stdout } => (
-                "rejected",
+                ClosureVerdict::Rejected,
                 Some(1),
                 Some(format!(
                     "the verified checker REJECTED this certificate, so nothing in this report is \
@@ -173,12 +203,12 @@ impl CertificateVerdict {
             // that distinction, and mapping 2 to "rejected" would turn a
             // missing file into a soundness finding.
             CheckerStatus::Unreadable { stdout } => (
-                "engine_opinion",
+                ClosureVerdict::EngineOpinion,
                 Some(2),
                 Some(format!("the checker could not read the certificate: {}", stdout.trim())),
             ),
             CheckerStatus::Absent { what, install } => (
-                "engine_opinion",
+                ClosureVerdict::EngineOpinion,
                 None,
                 Some(format!("{what}. {install}")),
             ),
@@ -186,15 +216,15 @@ impl CertificateVerdict {
             // this arm is unreachable here. It is still mapped to the weakest
             // word rather than left to a wildcard, because a wildcard is how a
             // new status silently becomes "checked" one refactor later.
-            CheckerStatus::NotNeeded { what } => ("engine_opinion", None, Some(what.clone())),
+            CheckerStatus::NotNeeded { what } => (ClosureVerdict::EngineOpinion, None, Some(what.clone())),
         };
         CertificateVerdict {
             verdict,
-            theorem: if verdict == "checked" { Some("OOCert.certificate_sound") } else { None },
+            theorem: verdict.theorem(),
             asserted,
             derivations,
             checker_report: match status {
-                CheckerStatus::Accepted { stdout, .. } => Some(stdout.clone()),
+                CheckerStatus::Accepted(a) => Some(a.stdout().to_string()),
                 _ => None,
             },
             checker_exit: exit,
@@ -206,7 +236,10 @@ impl CertificateVerdict {
     }
 
     fn warrant_for_derived(&self) -> Warrant {
-        if self.verdict == "checked" { Warrant::Checked } else { Warrant::EngineOpinion }
+        match self.verdict {
+            ClosureVerdict::Checked(c) => Warrant::Checked(c),
+            _ => Warrant::EngineOpinion,
+        }
     }
 }
 
@@ -215,7 +248,10 @@ impl CertificateVerdict {
 // ───────────────────────────────────────────────────────────────────────────
 
 /// A conclusion of the source that the projection does not reach.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// Not `Deserialize`: it carries a [`Warrant`], whose checked variant is
+/// evidence and not a word, so parsing one back out of JSON would be a public
+/// constructor for the certified state. Read a report as `serde_json::Value`.
+#[derive(Clone, Debug, Serialize)]
 pub struct LostEntailment {
     pub triple: NtTriple,
     pub warrant: Warrant,
@@ -292,7 +328,8 @@ pub const NOT_DERIVED_MEANS: &str =
 // The report
 // ───────────────────────────────────────────────────────────────────────────
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// Not `Deserialize`, for the reason on [`LostEntailment`].
+#[derive(Clone, Debug, Serialize)]
 pub struct ClosureDiffReport {
     pub format: &'static str,
     /// One sentence the reader cannot miss, first after `format` in the JSON
@@ -860,13 +897,42 @@ mod tests {
         assert_eq!(fnv1a64(b"foobar"), 0x8594_4171_f739_67e8);
     }
 
+    /// The acceptance row used to be written by hand:
+    ///
+    /// ```text
+    /// CheckerStatus::Accepted { theorem: "OOCert.certificate_sound", stdout: "{}".into() }
+    /// ```
+    ///
+    /// That line no longer compiles, and that is the point of this change.
+    /// `CheckerStatus::Accepted` now carries a `projection_entailment::
+    /// Accepted`, whose only constructor takes a `verdict::Certified`, which
+    /// nothing outside `src/verdict.rs` can build. A test that wants an
+    /// acceptance has to EARN one, so this one runs a process that exits zero
+    /// — which is exactly the condition the test is named after.
     #[test]
     fn a_checked_word_needs_exit_zero() {
+        let dir = std::env::temp_dir().join("oo-closure-diff-exit-zero");
+        std::fs::create_dir_all(&dir).unwrap();
+        let a = dir.join("asserted.tsv");
+        let d = dir.join("derivations.tsv");
+        std::fs::write(&a, "").unwrap();
+        std::fs::write(&d, "").unwrap();
+        // A script rather than `/bin/true`, which is `/usr/bin/true` on macOS
+        // and absent from `/bin` entirely. The suite found that itself. A `.sh`
+        // is not executable on Windows either, which CI then found.
+        let ok = dir.join(if cfg!(windows) { "exit0.cmd" } else { "exit0.sh" });
+        let body = if cfg!(windows) { "@echo off\r\nexit /b 0\r\n" } else { "#!/bin/sh\nexit 0\n" };
+        std::fs::write(&ok, body).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt as _;
+            std::fs::set_permissions(&ok, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
+        let accepted = pe::run_checker(CertKind::OoCert, Some(ok.as_path()), &a, &d, None);
+        assert!(matches!(accepted, CheckerStatus::Accepted(_)), "{accepted:?}");
+
         for (status, want) in [
-            (
-                CheckerStatus::Accepted { theorem: "OOCert.certificate_sound", stdout: "{}".into() },
-                "checked",
-            ),
+            (accepted, "checked"),
             (CheckerStatus::Rejected { stdout: "no".into() }, "rejected"),
             (CheckerStatus::Unreadable { stdout: "boom".into() }, "engine_opinion"),
             (
