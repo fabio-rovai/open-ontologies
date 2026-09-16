@@ -408,6 +408,14 @@ jobs:
         run: OO_REQUIRE_FIXTURES=1 cargo test --test shacl_core_verified_test -- --nocapture
       - name: Check the description-logic model certificates
         run: OO_REQUIRE_FIXTURES=1 cargo test --test dl_model_certificate_test -- --nocapture
+      - name: Pinpoint justifications, and check each one through the proved checker
+        # Strict rather than excepted. The only thing this file skips on is
+        # benchmark/reference/pizza-reference.owl, which ships with the
+        # repository, so on a full checkout there is nothing for it to miss and
+        # a skip here would mean the checkout is wrong.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test justify_test -- --nocapture
+      - name: Annotate the closure with provenance semirings
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test provenance_test -- --nocapture
       - name: Check the refutation certificates
         run: OO_REQUIRE_FIXTURES=1 cargo test --test lean_refutation_test -- --nocapture
       - name: Check the refutations THIS ENGINE writes, and that it cannot refute a consistent ontology
