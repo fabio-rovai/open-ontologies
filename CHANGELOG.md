@@ -4,6 +4,46 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Added
+- **A module carries a theorem; a slice carries a measurement.** `onto_module_extract` computes a
+  syntactic locality module over a signature: `⊥`, `⊤` or the iterated `⊥⊤*`, the standard OWL API
+  algorithm. Unlike `onto_segment_retrieve`, whose loss then has to be measured by
+  `onto_closure_diff`, a locality module CANNOT lose an entailment over its signature, and the
+  difference is a theorem rather than a metric (Cuenca Grau, Horrocks, Kazakov and Sattler, JAIR 31,
+  2008). That theorem is CITED and is not machine-checked, nothing under `lean/` being about
+  locality, so the report names a paper and never a Lean theorem, and
+  `the_module_report_never_names_a_lean_theorem` asserts that over the serialised report. What can
+  be checked is the consequence: `verify_out_dir` reasons the ontology and the module to a fixpoint
+  through the existing closure diff and reports every conclusion over the signature the module does
+  not reach, which must be none. Measured on `benchmark/reference/pizza-reference.owl`: 238 of 1,345
+  axioms and 510 of 2,332 triples, nothing unclassified, and zero of the 2,583 differences lost
+  over the signature. The locality test is written per
+  axiom type and an axiom that cannot be classified is INCLUDED rather than dropped, since any `M'`
+  with `M ⊆ M' ⊆ O` keeps the coverage property; the kinds and counts are in the payload so a small
+  module and an unreadable one cannot render the same. The negative test is the one that matters:
+  a naive slice keeping every triple that MENTIONS a signature term is five triples against the
+  module's four and has lost `Cat ⊑ LivingThing`, because the chain runs through an axiom that
+  mentions neither signature term. Running the verification found two places where the OWL 2 direct
+  semantics and this engine's rule table disagree, both now resolved towards the rule table, and one
+  of them (`X rdf:type owl:Thing`, a tautology the table does not regenerate) was not predicted.
+- **`onto_conservative_check`, and the same check inside `onto_plan`.** Does adding these axioms
+  change anything the ontology already said, over the names it already used? It is
+  `closure_diff` run in the extension direction: source `base ∪ extension`, projection `base`, and
+  the difference restricted to the old signature, with the rule and the premises the base lacked
+  already attached by the existing code. A non-conservative extension is a FINDING and never an
+  error, and every plan now carries a `conservativity` block that either has the answer or says it
+  did not look, because a missing block and a clean block read the same to a dashboard. This is the
+  only part of a plan that is about MEANING: one `rdfs:domain` triple retypes every existing
+  individual of that property while adding no class, removing nothing, and scoring `low` risk.
+  THE FRAGMENT IS NAMED IN THE PAYLOAD. What is computed is conservativity with respect to the Horn
+  rule table the engine evaluates. It is not deductive conservativity in a description logic
+  (ExpTime-complete for `EL`, 2ExpTime-complete for `ALC`, undecidable for `ALCQIO`) and not model
+  conservativity (undecidable already for `EL`), so the verdict field is `conservativity_verdict`
+  with four words, the boolean beside it is `conservative_under_rule_table` and is null when
+  undecided, and there is deliberately no field called `conservative`. See decision 0011.
+- `projection_entailment::skolemise_with_prefix`, so two graphs that are about to be merged can be
+  skolemised without `_:b0` on both sides becoming one IRI naming two different existentials.
+  `skolemise` is unchanged for every existing caller.
 ### Fixed
 - **A front-page claim was gated by a test that ran nowhere, and now runs in CI.** `README.md`
   reported that the cross-kernel differential "reports zero divergent rows", and
