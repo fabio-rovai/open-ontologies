@@ -3137,6 +3137,10 @@ impl ServerHandler for OpenOntologiesServer {
             )
         };
         ServerInfo::new(ServerCapabilities::builder().enable_tools().enable_prompts().build())
-            .with_instructions("Open Ontologies: AI-native ontology engine, an RDF/OWL/SPARQL MCP server with 116 tools and 6 workflow prompts for ontology engineering, validation, comparison, alignment, data ingestion, and exploration. All 116 tools are advertised in a default build; 8 of them require an optional Cargo feature (embeddings, plugins, postgres or duckdb) and return an error without it.")
+            .with_instructions(format!(
+                "Open Ontologies: AI-native ontology engine, an RDF/OWL/SPARQL MCP server with \
+                 {advertised} tools and 6 workflow prompts for ontology engineering, validation, \
+                 comparison, alignment, data ingestion, and exploration.{tail}"
+            ))
     }
 }
