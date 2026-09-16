@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560" font-family="ui-monospace,SFMono-Regular,Menlo,monospace">
+<style>
+  .t { font-size: 13px; }
+  .hdr { font-family: ui-sans-serif,-apple-system,Segoe UI,Roboto,sans-serif; }
+</style>
+<rect x="0" y="0" width="900" height="560" rx="10" fill="#0b1020"/>
+<rect x="0" y="0" width="900" height="44" rx="10" fill="#111827"/>
+<rect x="0" y="34" width="900" height="10" fill="#111827"/>
+<circle cx="22" cy="22" r="6" fill="#fb3b53"/>
+<circle cx="42" cy="22" r="6" fill="#fbbf24"/>
+<circle cx="62" cy="22" r="6" fill="#34d399"/>
+<text class="hdr" x="92" y="27" font-size="13" fill="#94a3b8">three sentences, reasoned over, and the proof checked</text>
+<text class="hdr" x="700" y="27" font-size="11" fill="#475569">loops every 18s</text>
+<text class="t" x="24" y="96" fill="#64748b" opacity="1"><tspan fill="#475569">$ </tspan>cat note.txt<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.0222;0.0322;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="115" fill="#e2e8f0" opacity="1"><tspan fill="#475569">  </tspan>Espresso is a kind of Coffee.<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.0556;0.0656;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="134" fill="#e2e8f0" opacity="1"><tspan fill="#475569">  </tspan>Coffee is a kind of Drink.<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.0722;0.0822;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="153" fill="#e2e8f0" opacity="1"><tspan fill="#475569">  </tspan>My cup is an Espresso.<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.0889;0.0989;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="172" fill="#64748b" opacity="1"><tspan fill="#475569">$ </tspan>open-ontologies validate coffee.ttl<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.1333;0.1433;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="191" fill="#38bdf8" opacity="1"><tspan fill="#475569">  </tspan>{"ok":true,"triples":3}<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.1667;0.1767;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="210" fill="#64748b" opacity="1"><tspan fill="#475569">$ </tspan>open-ontologies reason --profile rdfs --certificate ./cert<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.2111;0.2211;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="229" fill="#38bdf8" opacity="1"><tspan fill="#475569">  </tspan>{"inferred_count":3,"fixpoint_reached":true}<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.2556;0.2656;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="248" fill="#94a3b8" opacity="1"><tspan fill="#475569">  </tspan>myCup a Coffee      myCup a Drink      Espresso ⊑ Drink<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.2778;0.2878;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="267" fill="#64748b" opacity="1"><tspan fill="#475569">$ </tspan>cat cert/derivations.tsv<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.3333;0.3433;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="286" fill="#cbd5e1" opacity="1"><tspan fill="#475569">  </tspan>rdfs9   myCup rdf:type Coffee   ← myCup a Espresso , Espresso ⊑ Coffee<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.3667;0.3767;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="305" fill="#cbd5e1" opacity="1"><tspan fill="#475569">  </tspan>rdfs11  Espresso ⊑ Drink        ← Espresso ⊑ Coffee , Coffee ⊑ Drink<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.3833;0.3933;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="324" fill="#cbd5e1" opacity="1"><tspan fill="#475569">  </tspan>rdfs9   myCup rdf:type Drink    ← myCup a Coffee , Coffee ⊑ Drink<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.4000;0.4100;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="343" fill="#64748b" opacity="1"><tspan fill="#475569">$ </tspan>lake exe oo-cert cert/asserted.tsv cert/derivations.tsv<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.4556;0.4656;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="362" fill="#34d399" opacity="1"><tspan fill="#475569">  </tspan>{"ok":true,"asserted":3,"derivations":3,<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.5000;0.5100;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="381" fill="#34d399" opacity="1"><tspan fill="#475569">  </tspan>  "theorem":"OOCert.certificate_sound"}          exit 0<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.5167;0.5267;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="400" fill="#64748b" opacity="1"><tspan fill="#475569">$ </tspan># now forge one conclusion. premises untouched.<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.5778;0.5878;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="419" fill="#fbbf24" opacity="1"><tspan fill="#475569">  </tspan>sed -i 's/Drink/Beer/' cert/derivations.tsv<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.6111;0.6211;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="438" fill="#64748b" opacity="1"><tspan fill="#475569">$ </tspan>lake exe oo-cert cert/asserted.tsv cert/derivations.tsv<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.6556;0.6656;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="457" fill="#fb3b53" opacity="1"><tspan fill="#475569">  </tspan>{"ok":false,"first_rejected":2,"rule":"rdfs9",<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.7000;0.7100;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="476" fill="#fb3b53" opacity="1"><tspan fill="#475569">  </tspan>  "conclusion":"myCup rdf:type Beer",<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.7167;0.7267;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="495" fill="#fb3b53" opacity="1"><tspan fill="#475569">  </tspan>  "premises":["myCup a Coffee","Coffee ⊑ Drink"]}   exit 1<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.7333;0.7433;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<text class="t" x="24" y="514" fill="#94a3b8" opacity="1"><tspan fill="#475569">  </tspan>The premises are right there. They do not give you Beer.<animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" keyTimes="0;0.7889;0.7989;0.965;1" values="0;0;1;1;0" calcMode="linear"/></text>
+<rect x="24" y="522" width="8" height="14" fill="#34d399"><animate attributeName="opacity" dur="1s" repeatCount="indefinite" values="1;1;0;0" keyTimes="0;0.5;0.5;1"/></rect>
+</svg>

@@ -68,3 +68,6 @@ benchmark/handshake_gate/
 # binary linked against the Poly/ML runtime in whichever Isabelle installation was
 # found, so committing it would ship a file that runs on one machine.
 isabelle/build/
+
+# Claude Code agent worktrees: machine-local, never part of the repo.
+.claude/worktrees/
