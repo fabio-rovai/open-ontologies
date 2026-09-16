@@ -58,12 +58,18 @@ that talks to it.
 ## See it in action
 
 <p align="center">
-  <img src="docs/assets/certified-inference.svg" alt="A supplier ontology with asserted and derived edges, and the certificate the run produced" width="100%">
+  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/demo-certify.svg" alt="A terminal runs the Lean certificate checker while a supplier graph lights up beside it: three asserted edges in grey, three derived edges in green that the checker accepts, then one conclusion forged and the same checker refusing it in red" width="940">
 </p>
 
-Four triples in, three out. `ex:Northwind` was only ever asserted to be in a sanctioned
+Three triples in, three out. `ex:Northwind` was only ever asserted to be in a sanctioned
 jurisdiction; that it needs enhanced due diligence was *derived*, and the derivation is checkable by
 someone who does not trust you, your engine, or the model that wrote the ontology.
+
+The last few seconds are the part worth watching. One conclusion is forged, both of its premises are
+left exactly as they were, and the same checker refuses it and names the rule. Every line in that
+terminal is output `oo-horn` actually printed for the fixtures in
+[`tests/fixtures/horn/supplier/`](tests/fixtures/horn/supplier), and a test re-runs the checker and
+fails if the picture and the checker ever disagree.
 
 ## With a proof, and without one
 
