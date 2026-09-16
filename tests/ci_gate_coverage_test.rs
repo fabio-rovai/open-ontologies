@@ -59,6 +59,17 @@ fn this_file() -> &'static str {
 /// Keep this list in step with the "What is still open" section of `docs/ci-gates.md`.
 const NOT_STRICT_ON_PURPOSE: &[(&str, &str)] = &[
     (
+        "tstp_derivation_test.rs",
+        "34 of its 35 tests read derivations recorded in tests/fixtures/tstp/ and run \
+         everywhere. The 35th, `a_live_vampire_run_agrees_with_the_recorded_one`, wants \
+         vampire on PATH, and no workflow installs a first-order prover, so \
+         OO_REQUIRE_FIXTURES=1 on this file would fail rather than gate. The recorded \
+         half is not a substitute for the live half: it pins the checker against two real \
+         derivations, not against whatever the installed prover does today. A \
+         `brew install vampire` step, or its apt equivalent, is the smallest thing that \
+         would close this and let the file go strict",
+    ),
+    (
         "clinical_test.rs",
         "needs data/crosswalks.parquet, a licensed table the repository deliberately does \
          not carry and `data/` is gitignored",
