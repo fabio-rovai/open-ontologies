@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.fabio-rovai/open-ontologies",
   "title": "Open Ontologies",
-  "description": "AI-native ontology engineering MCP server: validate, query, diff, lint, version, and govern RDF/OWL ontologies with 109 tools and 6 workflow prompts via an Oxigraph triple store. All 109 tools ship in a default build; 8 need an optional Cargo feature (embeddings, plugins, postgres or duckdb).",
+  "description": "AI-native ontology engineering MCP server: validate, query, diff, lint, version, and govern RDF/OWL ontologies with 116 tools and 6 workflow prompts via an Oxigraph triple store. All 116 tools ship in a default build; 8 need an optional Cargo feature (embeddings, plugins, postgres or duckdb).",
   "version": "0.1.9",
   "packages": [
     {

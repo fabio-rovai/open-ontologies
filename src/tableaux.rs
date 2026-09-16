@@ -3766,8 +3766,16 @@ impl ModelOutcome {
 /// and blank node labels never do. A literal can, and `owl:hasValue` is
 /// approximated here by an atomic concept named after the individual, which may
 /// be a literal. Refusing is the only honest answer for one of those.
+///
+/// The body is `crate::boundary_core::name_is_safe_bytes`, which is the
+/// function Aeneas translates into Lean. `OOBoundary.name_is_safe_bytes_iff`
+/// proves it accepts a name IF AND ONLY IF the name is non-empty and carries
+/// none of those four bytes, for names of every length, which is what the
+/// proptest below can only sample. All four are ASCII and no ASCII byte occurs
+/// inside a multi-byte UTF-8 sequence, so the byte-level test and
+/// `str::contains` over a `char` array agree on every `&str`.
 fn name_is_safe(s: &str) -> bool {
-    !s.is_empty() && !s.contains([' ', '\t', '\n', '\r'])
+    crate::boundary_core::name_is_safe_bytes(s.as_bytes())
 }
 
 // ── Serialisation ───────────────────────────────────────────────────────

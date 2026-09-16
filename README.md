@@ -278,7 +278,7 @@ Every line above is worth less if this section is missing, so it is here rather 
 nobody opens. These are the load-bearing limits, and none of them is hypothetical.
 
 **The Rust engine is not verified.** The theorems are conditional on it reporting the run
-faithfully. That boundary is twenty-nine properties: `make verify` bounded-model-checks six, and
+faithfully. That boundary is thirty properties: `make verify` bounded-model-checks six, and
 five are enforced by the engine rather than observed of a dependency, two properties being in both
 counts. Two are irreducible, because they are about an execution and not a function: that
 `asserted.tsv` is the graph reasoned over, and that `derivations.tsv` covers every triple added.
@@ -372,6 +372,15 @@ this section said every conforming countermodel had to be hand-built; that was w
 correction is in [docs/lean-certificates.md](docs/lean-certificates.md) and in the changelog rather
 than edited out of sight.
 
+**A justification is minimal because re-running said so, not because anything proved it.**
+`onto_justify` answers which asserted triples a conclusion or a contradiction rests on, and of the
+three claims in that answer only one can be machine-checked. That a set SUFFICES is checkable, and
+is, when a certificate is written for it. That every element is NECESSARY comes from running the
+engine again without each one, and no theorem covers it. That the list is COMPLETE comes from
+Reiter's hitting-set tree, which is complete for a monotone oracle, and the engine has one corner
+that is not monotone, named in [docs/explanation.md](docs/explanation.md). Nothing in
+`onto_provenance` is machine-checked at all.
+
 The discipline matters more than the machinery, and it runs through all of it.
 
 A rule **you** supplied is an assumption the certificate carries, never a fact it establishes, so
@@ -432,8 +441,8 @@ Restart, and the `onto_*` tools are available. Cursor, Windsurf, Zed and VS Code
 
 ## What is in the box
 
-**118 tools** to build, validate, query, diff, lint, version, reason over, align, plan, certify
-and govern RDF and OWL, over an in-memory Oxigraph store. A default build advertises 110 tools.
+**120 tools** to build, validate, query, diff, lint, version, reason over, align, plan, certify
+and govern RDF and OWL, over an in-memory Oxigraph store. A default build advertises 112 tools.
 Eight need an optional Cargo feature and return an error without it: four need `embeddings`, two
 need `plugins`, two need `postgres` or `duckdb`. The published binaries and the GHCR image are
 built with the default feature set, so they do not carry those eight.
@@ -461,7 +470,9 @@ a Protégé-style inspector. No JVM. No Protégé.
 | Quickstart | [docs/quickstart.md](docs/quickstart.md) |
 | Architecture | [docs/architecture.md](docs/architecture.md) |
 | Derivation certificates and the Lean checkers | [docs/lean-certificates.md](docs/lean-certificates.md) |
+| Which axioms a conclusion rests on, and provenance semirings | [docs/explanation.md](docs/explanation.md) |
 | What the Lean proofs assume about the Rust | [docs/trusted-computing-base.md](docs/trusted-computing-base.md) |
+| Aeneas at the Rust/Lean boundary: what it proves, and what it costs | [docs/aeneas-boundary.md](docs/aeneas-boundary.md) |
 | Which gates a green CI tick actually ran | [docs/ci-gates.md](docs/ci-gates.md) |
 | First-order export, TPTP and Common Logic | [docs/first-order-export.md](docs/first-order-export.md) |
 | Every reasoning system, and why each was used or refused | [docs/reasoning-systems-inventory.md](docs/reasoning-systems-inventory.md) |

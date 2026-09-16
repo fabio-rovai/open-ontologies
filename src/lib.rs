@@ -4,6 +4,11 @@ pub mod batch;
 pub mod connect;
 pub mod daemon;
 pub mod output;
+// The pure core of the certificate boundary. PRIVATE on purpose: these are
+// the definitions `reason` and `tableaux` call, not a public API, and
+// `aeneas/oo-boundary` reaches the file itself with `#[path]` rather than
+// through this crate. See `docs/aeneas-boundary.md`.
+mod boundary_core;
 pub mod borderline_loop;
 pub mod buffer;
 pub mod cache;
@@ -76,6 +81,12 @@ pub mod plugins;
 pub mod poincare;
 pub mod reason;
 pub mod reason_incremental;
+/// Provenance semirings over the derivation DAG: what algebraic expression
+/// over the asserted triples a derived triple carries.
+pub mod provenance;
+/// Axiom pinpointing: the minimal sets of asserted triples responsible for a
+/// conclusion, or for a clash. Built over `provenance`'s DAG index.
+pub mod justify;
 /// Standard rule syntaxes (SWRL, RIF Core) into the Horn rule table
 /// `reason::run_horn` evaluates and `lean/`'s `oo-horn` checks.
 pub mod rulesyntax;
