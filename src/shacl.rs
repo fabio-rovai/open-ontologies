@@ -267,7 +267,23 @@ impl ShaclValidator {
 
         for (shape_term, kind, target_value) in &targets {
             let kind = *kind;
-            let focus_pattern = format!("{} .", target_pattern(kind, target_value, "focus"));
+            // A DISTINCT subquery, not a bare pattern. `sh:targetClass` compiles
+            // to `?focus rdf:type/rdfs:subClassOf* <target>`, which matches once
+            // per path, so a node typed as two subclasses of the target binds
+            // `?focus` twice and every constraint below checks it twice. The
+            // aggregate constraints hid it by grouping on `?focus`; the ones
+            // that select `?focus ?val` did not, and reported each violation
+            // once per path. Issue #168, found by a differential oracle against
+            // pySHACL.
+            //
+            // Fixed here rather than by collapsing results: SHACL 5.3.2 emits
+            // one result per solution and both implementations do, so
+            // deduplicating results would break agreement on cases where two
+            // identical results are both correct.
+            let focus_pattern = format!(
+                "{{ SELECT DISTINCT ?focus WHERE {{ {} . }} }}",
+                target_pattern(kind, target_value, "focus")
+            );
 
             // How many nodes does this shape actually apply to? A shape whose
             // target appears nowhere in the data evaluates every one of its

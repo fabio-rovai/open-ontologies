@@ -231,6 +231,43 @@ All notable changes to Open Ontologies are documented here.
   than letting it be assumed away.
 
 ### Added
+- **A conclusion can name the axioms responsible for it, and a derived triple carries an
+  algebraic expression over the asserted ones.** Two tools, `onto_justify` and
+  `onto_provenance`, over one substrate that already existed and that nothing read back.
+  `derivations.tsv` is a derivation DAG, but it records ONE step per inferred triple, the first
+  the fixpoint reached, which is right for a checker that re-derives and wrong for an explainer:
+  a triple derived two independent ways has two justifications and the file shows one. So
+  `Reasoner::derivation_graph` captures every applicable ground rule instance instead, opt-in,
+  at the cost of one branch per candidate triple on a run that did not ask for it.
+  `onto_justify` returns the MINIMAL sets of asserted triples responsible for a triple or for a
+  clash, and it keeps three claims apart under three words. SUFFICIENCY is re-run and, with
+  `certificate_dir`, machine-checkable: each justification gets a certified run over exactly its
+  own triples, so `lake exe oo-cert` verifies under `OOCert.certificate_sound` that the
+  conclusion follows from that subset. MINIMALITY is re-run without each element and is covered
+  by NO theorem. COMPLETENESS of the list is Reiter's hitting-set tree, bounded by
+  `max_justifications` and `max_oracle_calls`, with `truncated` naming the bound that fired, and
+  complete only for a monotone oracle: the engine's restriction and list vocabulary is read into
+  maps keyed by the node, so a node with two values for a functional position contributes one and
+  a justification can be MISSED there. None can be falsely reported, because each is re-run.
+  `candidate` CHECKS a set instead of searching for one, and a superset of a justification comes
+  back `not_a_justification_not_minimal` with the useless triples named. For a clash the verdict
+  explained is `clash_found_by_this_engine` and never the checker's
+  `unsatisfiable_under_disjointness`. `onto_provenance` evaluates six semirings over the same
+  DAG: `boolean`, `why`, `lineage`, `counting`, `tropical` (min-plus) and `trust` (max-min, and
+  the choice is named rather than left to be guessed). Recursion is reported rather than hidden:
+  `counting` diverges on a cycle, so round k counts proof trees of height at most k,
+  `depth_bound` rides beside the number, `value_is_exact` is false unless the iteration
+  stabilised on its own, and `cycle_in_support` names a triple on the cycle. Convergence is never
+  one word covering unrelated reasons, since `why`, `tropical` and `trust` converge by absorption
+  while `boolean` and `lineage` converge because their value lattices are finite. A negative
+  weight is refused for min-plus and a weight above 1.0 for max-min, each because it breaks the
+  semiring rather than because it is unusual; the second was found by a test that expected 5.0
+  and got 1.0. `why` truncation keeps the SMALLEST monomials, which is what keeps the survivors
+  an antichain, and a truncated run withdraws the claim that they are minimal supports. 35 tests
+  in `tests/justify_test.rs` and `tests/provenance_test.rs`, every fixture small enough that the
+  answer is known on paper. See
+  [decision 0009](docs/decisions/0009-a-conclusion-names-the-axioms-responsible-for-it.md) and
+  docs/explanation.md.
 - **Common Logic has three dialects and this engine emitted one, so `fol --format cgif` writes a
   second.** ISO/IEC 24707 defines CLIF, CGIF and XCL, and ISO/IEC 21838-1 clause 4.3 names all
   three as qualifying; emitting CLIF and calling the result Common Logic support was a partial

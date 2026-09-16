@@ -70,6 +70,21 @@ inside one.
   then the derivation steps that reached the clash in the same spelling as `derivations.tsv`, then
   one `refute TAB rule` line with the clash rule's premises. See the refutation section below.
 
+## What the file is NOT enough for
+
+`derivations.tsv` is a derivation DAG and it is tempting to read explanations out of it. Do not.
+It records ONE step per inferred triple, the first the fixpoint reached, which is exactly what a
+checker that re-derives needs and exactly wrong for the question "which of my axioms did this". A
+triple derived two independent ways has two justifications and the file shows one, so an
+explanation built from it would be specific, confident and false.
+
+`onto_justify` and `onto_provenance` therefore ask the reasoner for every applicable ground rule
+instance instead, and never open the file. See [docs/explanation.md](explanation.md) and
+[decision 0009](decisions/0009-a-conclusion-names-the-axioms-responsible-for-it.md). What the
+certificate IS enough for, those tools use: with `certificate_dir`, each justification gets its own
+certified run over its own triples, so `oo-cert` can verify that the conclusion really does follow
+from that subset. Minimality is not in the theorem and is re-run instead.
+
 ## What is proved
 
 `OOCert.certificate_sound` in `lean/OOCert/Soundness.lean`:

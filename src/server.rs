@@ -2085,7 +2085,87 @@ impl OpenOntologiesServer {
             .unwrap_or_else(Self::err_json)
     }
 
-    #[tool(name = "onto_fol_export", description = "Export the loaded ontology as first-order logic, so it can be handed to the automated-theorem-proving ecosystem. FIVE syntaxes over ONE translation: `tptp` (FOF, what E, Vampire and every other first-order prover read), `clif` (ISO/IEC 24707 Common Logic Interchange Format, restricted to the first-order-equivalent fragment: no sequence markers, fixed arity, no quantification into a predicate position), `cgif` (ISO/IEC 24707 Conceptual Graph Interchange Format, the SECOND of Common Logic's three dialects, in CORE CGIF and in the compact sub-dialect clause 7.1.1 names: no sequence markers, which clause 6.5 says is what takes Common Logic past first order, plus no `#?` type label and no actor. It takes no dialect or comment flag, because CGIF has one spelling of its operators and a lexical comment syntax of its own. `[]` is truth, `~[]` is falsity, conjunction is juxtaposition with no operator and an equation is a coreference concept `[: ?X0 ?X1]`, because CGIF has no `=`. CGIF conformance is pinned by a lexer, parser and checker transcribed from Annex B's EBNF IN THE TEST and NOT by an independent parser, because no installable CGIF parser exists, which is a weaker footing than the CLIF side and is reported rather than blurred. XCL, the third dialect, is still not emitted and the report names it in `common_logic_dialects_not_emitted`), `smtlib` (SMT-LIB 2, what Z3 reads) and `ladr` (what Mace4 reads, with every symbol MANGLED and the table written beside it as symbols.tsv, because LADR reads a name beginning with u, v, w, x, y or z as a VARIABLE and has no quoting construct that survives an IRI). The last two are read by MODEL FINDERS, so they assert the NEGATED goal rather than declaring a conjecture: a countermodel to `G |= phi` is a model of `G + {not phi}`. With `smtlib`, omit `smt_domain` for the UNBOUNDED encoding, where `unsat` really is unsatisfiability, or set it to k for an enumeration carrier of exactly k elements, where a `sat` comes with a structure `oo-folmodel` can CHECK and an `unsat` establishes only that no model of size k exists. Every run also writes `problem.tsv`, the checker's own format, with its digest, so a solver result can be handed to `oo-folmodel` without going back through the engine; use onto_fol_model to do all of that in one call. The translation is the one a MACHINE-CHECKED ADEQUACY THEOREM is about: `OwlLean.adequacy` in the sibling owl-lean project, axioms propext + Classical.choice + Quot.sound, no sorry, no Mathlib. That theorem is why the emitted file means what it says. THE CORRESPONDENCE BETWEEN THIS EMITTER AND THAT LEAN IS PINNED BY TESTS AND IS NOT ITSELF PROVED. The output includes the background axioms (the two domains are disjoint, the object domain is non-empty) and the individual typing axioms `thing(a)`, whose ABSENCE REFUTES ADEQUACY OUTRIGHT (OwlLean.Refutations.adequacy_needs_ind_axioms). Constructs outside the fragment are NOT dropped silently: `exports_a_weaker_axiom_set` and `constructs_not_exported` name every one with its count and the reason, and `reduced_to_fragment` names every construct rewritten before translation. Pass `goals_file` (a TSV of triples, e.g. the `derivations.tsv` from onto_reason with certificate_dir, with goals_skip_columns=1) to also write one problem per conjecture. A PROVER'S VERDICT ON THESE FILES IS AN ORACLE OPINION AND NEVER A CERTIFICATE: checking a superposition refutation needs a verified first-order calculus with unification, which does not exist in core Lean. Use tools/fol_differential.py, which reports disagreement between this engine and an ATP and does not adjudicate it.")]
+    #[tool(name = "onto_justify", description = "AXIOM PINPOINTING: which ASSERTED triples are responsible for a conclusion, or for a contradiction. Returns the MINIMAL sets (justifications, MinAs), not a support set: a set that is not minimal blames axioms that had nothing to do with the conclusion, and an engineer who deletes one and watches the conclusion survive learns to distrust the tool. Pass `triple` for a conclusion or `inconsistency: true` for the clash, never both. Pass `candidate` to CHECK a set someone else produced instead of searching: it comes back `minimal_justification`, `not_a_justification_not_minimal` with the removable triples named, or `not_a_justification_target_not_reached`. THREE DIFFERENT THINGS ARE CLAIMED HERE AND THEY CARRY THREE DIFFERENT WORDS. Sufficiency is re-run and CAN be machine-checked: every justification was produced by running the engine over exactly that subset, and with `certificate_dir` the run is repeated with a certificate so `lake exe oo-cert` verifies under OOCert.certificate_sound that the subset really does entail the conclusion. Minimality is re-run and is NOT machine-checked: for every element of every justification the engine is run again without it and the conclusion must be gone, which is a property of this engine verified by execution and no theorem. Completeness of the LIST is an algorithm's claim: all justifications are enumerated by Reiter's hitting-set tree over the same oracle, bounded by max_justifications (default 16) and max_oracle_calls (default 400), and `truncated` says when a bound fired and which one. Reiter's construction is complete for a MONOTONE oracle and this engine has one non-monotone corner: a restriction node or list node carrying two values for a functional position contributes one, chosen by hash order, so where that occurs a justification can be MISSED. No justification returned can be wrong, because each was re-run. The first justification costs no re-run at all, because the derivation DAG already carries it; everything after that is one full fixpoint per node, which is the entire cost of this tool on a large ontology. For `inconsistency` the verdict explained is `clash_found_by_this_engine` and NEVER the Lean checker's `unsatisfiable_under_disjointness`: ten of the seventeen OWL 2 RL rules that conclude false are looked for, so no clash found is not a consistency result. A justification is a statement about THIS engine's rule table, 29 of OWL 2 RL's 78 rules. `owl-dl` is refused rather than answered emptily.")]
+    async fn onto_justify(&self, Parameters(input): Parameters<OntoJustifyInput>) -> String {
+        let mut opts = crate::justify::JustifyOptions {
+            profile: input.profile.unwrap_or_else(|| "owl-rl".to_string()),
+            ..Default::default()
+        };
+        if let Some(n) = input.max_justifications {
+            opts.max_justifications = n.max(1);
+        }
+        if let Some(n) = input.max_oracle_calls {
+            opts.max_oracle_calls = n.max(1);
+        }
+        opts.certificate_dir = input
+            .certificate_dir
+            .as_deref()
+            .map(|d| std::path::PathBuf::from(expand_tilde(d)));
+        crate::justify::justify(
+            &self.graph,
+            input.triple.as_deref(),
+            input.inconsistency.unwrap_or(false),
+            input.candidate.as_deref(),
+            &opts,
+        )
+        .map(|v| v.to_string())
+        .unwrap_or_else(Self::err_json)
+    }
+
+    #[tool(name = "onto_provenance", description = "PROVENANCE SEMIRINGS: the algebraic expression over the ASSERTED triples that a derived triple carries. Green, Karvounarakis and Tannen's construction applied to this engine's rule table, evaluated over the full derivation DAG rather than over `derivations.tsv`, which records only the FIRST derivation of each triple and would give one monomial wherever the closure supports several. Six semirings: `boolean` (derivability), `why` (sets of sets of asserted triples, absorptive, whose minimal elements are the justifications), `lineage` (Which(X): the union of everything that contributes, which is NOT a justification and is usually far from minimal), `counting` (the number of proof trees), `tropical` (min-plus: the cheapest proof tree, summing leaf weights with multiplicity) and `trust` (max-min: the confidence of the best derivation, which is the confidence of its weakest premise). RECURSION IS WHERE PROVENANCE GOES WRONG QUIETLY AND THIS TOOL DOES NOT. Datalog is recursive, so a triple whose support contains a cycle has arbitrarily many proof trees and its counting annotation DIVERGES. `why`, `trust` and `tropical` are absorptive and converge; `boolean` and `lineage` are NOT absorptive and converge for a different reason, which is that their value lattices are finite, and the payload says which reason applies to which. `counting` does not converge, so round k of the iteration counts proof trees of HEIGHT AT MOST k, `depth_bound` (default 32) is reported beside the number, `value_is_exact` is false unless the iteration stabilised on its own, and `cycle_in_support` names a triple on the cycle when there is one. A saturated 128-bit counter is reported as saturated rather than as a count. `why` is worst-case exponential, so `max_monomials` (default 64) caps it; the monomials KEPT are the smallest, which is what keeps the survivors an antichain, and a truncated run WITHDRAWS the claim that its monomials are minimal supports rather than keeping it. min-plus refuses a negative weight because it is absorptive only for non-negative ones; max-min refuses a weight above 1.0 because its multiplicative identity is 1 and a larger weight would make a conjunction come out smaller than the algebra says. NOTHING HERE IS MACHINE-CHECKED. The Lean layer certifies that a derivation step is sound; no theorem says a monomial is minimal or that the list of them is complete. onto_justify verifies a support set by re-running the engine without each of its elements; this tool does algebra. `owl-dl` is refused.")]
+    async fn onto_provenance(&self, Parameters(input): Parameters<OntoProvenanceInput>) -> String {
+        let semirings = match input.semirings {
+            None => crate::provenance::Semiring::all(),
+            Some(names) => {
+                let mut out = Vec::new();
+                for n in &names {
+                    match crate::provenance::Semiring::parse(n) {
+                        Some(s) => out.push(s),
+                        None => {
+                            return serde_json::json!({
+                                "error": format!(
+                                    "unknown semiring {n:?}. One of: boolean, why, lineage, \
+                                     counting, tropical (min-plus), trust (max-min). Refusing \
+                                     rather than silently computing the ones it recognised, \
+                                     because a report missing the semiring the caller asked for \
+                                     looks exactly like one where that semiring said nothing"
+                                )
+                            })
+                            .to_string();
+                        }
+                    }
+                }
+                out
+            }
+        };
+        let mut weights = std::collections::BTreeMap::new();
+        for w in input.weights.unwrap_or_default() {
+            match crate::provenance::parse_triple(&w.triple) {
+                Ok(t) => {
+                    weights.insert(t, w.weight);
+                }
+                Err(e) => return Self::err_json(e),
+            }
+        }
+        let opts = crate::provenance::ProvenanceOptions {
+            profile: input.profile.unwrap_or_else(|| "owl-rl".to_string()),
+            semirings,
+            depth_bound: input
+                .depth_bound
+                .unwrap_or(crate::provenance::DEFAULT_DEPTH_BOUND)
+                .max(1),
+            max_monomials: input
+                .max_monomials
+                .unwrap_or(crate::provenance::DEFAULT_MAX_MONOMIALS)
+                .max(1),
+            weights,
+        };
+        crate::provenance::annotate(&self.graph, input.triple.as_deref(), &opts)
+            .map(|v| v.to_string())
+            .unwrap_or_else(Self::err_json)
+    }
+
+    #[tool(name = "onto_fol_export", description = "Export the loaded ontology as first-order logic, so it can be handed to the automated-theorem-proving ecosystem. FOUR syntaxes over ONE translation: `tptp` (FOF, what E, Vampire and every other first-order prover read), `clif` (ISO/IEC 24707 Common Logic Interchange Format, restricted to the first-order-equivalent fragment: no sequence markers, fixed arity, no quantification into a predicate position), `smtlib` (SMT-LIB 2, what Z3 reads) and `ladr` (what Mace4 reads, with every symbol MANGLED and the table written beside it as symbols.tsv, because LADR reads a name beginning with u, v, w, x, y or z as a VARIABLE and has no quoting construct that survives an IRI). The last two are read by MODEL FINDERS, so they assert the NEGATED goal rather than declaring a conjecture: a countermodel to `G |= phi` is a model of `G + {not phi}`. With `smtlib`, omit `smt_domain` for the UNBOUNDED encoding, where `unsat` really is unsatisfiability, or set it to k for an enumeration carrier of exactly k elements, where a `sat` comes with a structure `oo-folmodel` can CHECK and an `unsat` establishes only that no model of size k exists. Every run also writes `problem.tsv`, the checker's own format, with its digest, so a solver result can be handed to `oo-folmodel` without going back through the engine; use onto_fol_model to do all of that in one call. The translation is the one a MACHINE-CHECKED ADEQUACY THEOREM is about: `OwlLean.adequacy` in the sibling owl-lean project, axioms propext + Classical.choice + Quot.sound, no sorry, no Mathlib. That theorem is why the emitted file means what it says. THE CORRESPONDENCE BETWEEN THIS EMITTER AND THAT LEAN IS PINNED BY TESTS AND IS NOT ITSELF PROVED. The output includes the background axioms (the two domains are disjoint, the object domain is non-empty) and the individual typing axioms `thing(a)`, whose ABSENCE REFUTES ADEQUACY OUTRIGHT (OwlLean.Refutations.adequacy_needs_ind_axioms). Constructs outside the fragment are NOT dropped silently: `exports_a_weaker_axiom_set` and `constructs_not_exported` name every one with its count and the reason, and `reduced_to_fragment` names every construct rewritten before translation. Pass `goals_file` (a TSV of triples, e.g. the `derivations.tsv` from onto_reason with certificate_dir, with goals_skip_columns=1) to also write one problem per conjecture. A PROVER'S VERDICT ON THESE FILES IS AN ORACLE OPINION AND NEVER A CERTIFICATE: checking a superposition refutation needs a verified first-order calculus with unification, which does not exist in core Lean. Use tools/fol_differential.py, which reports disagreement between this engine and an ATP and does not adjudicate it.")]
     async fn onto_fol_export(&self, Parameters(input): Parameters<OntoFolExportInput>) -> String {
         let syntax = match crate::tptp::Syntax::parse(
             input.format.as_deref().unwrap_or("tptp"),
