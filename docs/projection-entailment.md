@@ -13,6 +13,11 @@ Lean checker accepts.
 This page is the how-to. The design and its limits are in
 [decision 0007](decisions/0007-a-slice-preserves-a-conclusion-or-it-does-not.md).
 
+Everything here MEASURES what a slice lost, which is the right thing to do to a retriever and the
+wrong thing to want from a subset. If what you need is a part of the ontology that cannot lose an
+entailment over a set of terms, extract a locality module instead:
+[docs/modules-and-conservativity.md](modules-and-conservativity.md).
+
 ## The number that cannot see the damage
 
 Measured on `benchmark/reference/pizza-reference.owl`, which this repository ships. Seeds are the

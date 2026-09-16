@@ -83,6 +83,13 @@ job invokes the file at all.
 `fol_model_ingest_test.rs` runs in the `lean` job under the same variable and has
 no skip path at all, which is why it is not in the table.
 
+`module_extract_test.rs` and `conservativity_test.rs` are absent for a different
+reason: they need nothing the tree does not already carry. Both run the reasoner
+and the closure diff with no checker on the path, take `engine_opinion` for the
+certificate verdict, and assert nothing that depends on Lean, so there is no skip
+path to make strict. `module_extract_test.rs` reads
+`benchmark/reference/pizza-reference.owl`, which is tracked.
+
 ### Python — `python/tests/*.py`
 
 | test file | needs | provided by | in CI |

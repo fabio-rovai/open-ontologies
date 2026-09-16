@@ -273,7 +273,7 @@ pub struct LostEntailment {
 
 /// The stop-the-line case: a conclusion of the projection that is not a
 /// conclusion of the source.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct MonotonicityViolation {
     pub triple: NtTriple,
     pub projection_rule: Option<String>,
@@ -289,7 +289,7 @@ pub struct MonotonicityViolation {
 /// and it still did not derive the conclusion. That is an INCOMPLETENESS bug in
 /// the engine or a certificate-recording bug. Deriving less is the sound
 /// direction (decision 0002 item 8), so this is WARN and never stop-the-line.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ReachableButNotDerived {
     pub triple: NtTriple,
     pub rule: Option<String>,

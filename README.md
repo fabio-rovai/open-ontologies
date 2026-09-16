@@ -259,6 +259,19 @@ is a proxy that rises as the slice grows, so a retriever tuned on it learns to f
 than the right thing. Entailment preservation is the property, it is decidable here, and it
 carries a certificate per claim. See [decision 0007](docs/decisions/0007-a-slice-preserves-a-conclusion-or-it-does-not.md).
 
+Measuring the loss is the second-best answer. The best one is a subset that cannot lose anything,
+and `onto_module_extract` computes one: a syntactic locality module over a signature, where every
+entailment of the whole ontology over those terms is still an entailment of the subset. That
+guarantee is a theorem of Cuenca Grau, Horrocks, Kazakov and Sattler, JAIR 31 (2008), and it is
+CITED rather than machine-checked, because nothing under [lean/](lean/) is about locality. The
+report says exactly that, names no theorem of this project, and offers to measure the consequence
+instead: reason the ontology and the module to a fixpoint and report every conclusion over the
+signature the module does not reach. On this repository's own pizza ontology that is 238 of 1,345
+axioms, and zero lost out of 2,583 differences examined. `onto_conservative_check` is the same
+machinery pointed at the lifecycle: does adding these axioms change any consequence over the names
+the ontology already used? See
+[decision 0011](docs/decisions/0011-a-module-carries-a-theorem-and-a-slice-carries-a-measurement.md).
+
 ## What is NOT proved
 
 Every line above is worth less if this section is missing, so it is here rather than in a file
@@ -415,13 +428,11 @@ Restart, and the `onto_*` tools are available. Cursor, Windsurf, Zed and VS Code
 
 ## What is in the box
 
-**115 tools** to build, validate, query, diff, lint, version, reason over, align, plan, certify
-and govern RDF and OWL, over an in-memory Oxigraph store. A default build advertises 107 tools.
-Eight need an optional Cargo feature: four need `embeddings`, two need `plugins`, two need
-`postgres` or `duckdb`. A build without the feature does not advertise them at all, because a
-tool that appears in `tools/list` and is guaranteed to fail is a promise the binary cannot keep.
-The published binaries and the GHCR image are built with the default feature set, so they do not
-carry those eight. A build with `--features embeddings,plugins,sql` has the full 115.
+**117 tools** to build, validate, query, diff, lint, version, reason over, align, plan, certify
+and govern RDF and OWL, over an in-memory Oxigraph store. A default build advertises 109 tools.
+Eight need an optional Cargo feature and return an error without it: four need `embeddings`, two
+need `plugins`, two need `postgres` or `duckdb`. The published binaries and the GHCR image are
+built with the default feature set, so they do not carry those eight.
 
 The Python package `open-ontologies-lite` now reasons as well, in pure Python with no Rust
 toolchain, and its certificates are checked by the same Lean binaries. It is a second engine, and
@@ -456,6 +467,7 @@ a Protégé-style inspector. No JVM. No Protégé.
 | Schema alignment | [docs/alignment.md](docs/alignment.md) |
 | Data pipeline | [docs/data-pipeline.md](docs/data-pipeline.md) |
 | Ontology lifecycle | [docs/lifecycle.md](docs/lifecycle.md) |
+| Locality modules and conservative extensions | [docs/modules-and-conservativity.md](docs/modules-and-conservativity.md) |
 | Semantic embeddings | [docs/embeddings.md](docs/embeddings.md) |
 | Clinical crosswalks | [docs/clinical.md](docs/clinical.md) |
 | IES support | [ecosystem](docs/ies-ecosystem.md) · [alignment](docs/ies-alignment.md) · [SPARQL examples](docs/ies-examples.md) |

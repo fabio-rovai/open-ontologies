@@ -27,6 +27,19 @@ const PROPOSED: &str = r#"
     ex:Organizacion a owl:Class .
 "#;
 
+/// Every field of `OntoPlanInput` except the turtle. Spelled once so adding an
+/// option to the tool does not mean editing every call site, and spelled
+/// EXPLICITLY rather than through `Default`, so a new option has to be given a
+/// value here and cannot arrive switched on by accident.
+fn plan_defaults() -> OntoPlanInput {
+    OntoPlanInput {
+        new_turtle: String::new(),
+        check_conservativity: None,
+        conservativity_profile: None,
+        conservativity_out_dir: None,
+    }
+}
+
 fn server() -> (tempfile::TempDir, OpenOntologiesServer, Arc<GraphStore>) {
     let tmp = tempfile::tempdir().unwrap();
     let db = StateDb::open(&tmp.path().join("state.db")).unwrap();
@@ -44,6 +57,7 @@ async fn onto_apply_sees_the_plan_onto_plan_computed() {
         &server
             .onto_plan(Parameters(OntoPlanInput {
                 new_turtle: PROPOSED.to_string(),
+                ..plan_defaults()
             }))
             .await,
     )
@@ -74,6 +88,7 @@ async fn onto_apply_accepts_an_explicit_plan_id() {
         &server
             .onto_plan(Parameters(OntoPlanInput {
                 new_turtle: PROPOSED.to_string(),
+                ..plan_defaults()
             }))
             .await,
     )
