@@ -424,8 +424,8 @@ Restart, and the `onto_*` tools are available. Cursor, Windsurf, Zed and VS Code
 
 ## What is in the box
 
-**116 tools** to build, validate, query, diff, lint, version, reason over, align, plan, certify
-and govern RDF and OWL, over an in-memory Oxigraph store. A default build advertises all 116 tools.
+**117 tools** to build, validate, query, diff, lint, version, reason over, align, plan, certify
+and govern RDF and OWL, over an in-memory Oxigraph store. A default build advertises 109 tools.
 Eight need an optional Cargo feature and return an error without it: four need `embeddings`, two
 need `plugins`, two need `postgres` or `duckdb`. The published binaries and the GHCR image are
 built with the default feature set, so they do not carry those eight.

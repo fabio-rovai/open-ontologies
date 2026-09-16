@@ -1,9 +1,9 @@
 # First-order export, and what an ATP verdict is worth
 
 The engine can hand an ontology to the automated-theorem-proving ecosystem, in TPTP FOF, in
-ISO/IEC 24707 CLIF, in SMT-LIB 2 and in LADR. The translation it emits is the one a machine-checked
-adequacy theorem is about, so a reader of the file can cite a kernel-checked result about what it
-means.
+ISO/IEC 24707 CLIF, in ISO/IEC 24707 CGIF, in SMT-LIB 2 and in LADR. The translation it emits is
+the one a machine-checked adequacy theorem is about, so a reader of the file can cite a
+kernel-checked result about what it means.
 
 This page is the how-to. The design and its limits are in
 [decision 0005](decisions/0005-a-prover-is-an-oracle-and-a-translation-is-a-theorem.md) for the
@@ -36,6 +36,11 @@ printf 'load ontology.ttl\nfol --out /tmp/fol --format tptp\n' \
 printf 'load ontology.ttl\nfol --out /tmp/fol --format clif --clif-dialect iso\n' \
   | open-ontologies --no-connect --data-dir /tmp/store batch -
 
+# ISO/IEC 24707 CGIF, the second Common Logic dialect. CORE CGIF, and a compact
+# sub-dialect of it. No dialect or comment flag: there is one spelling.
+printf 'load ontology.ttl\nfol --out /tmp/fol --format cgif\n' \
+  | open-ontologies --no-connect --data-dir /tmp/store batch -
+
 # SMT-LIB 2, for Z3. Omit --smt-domain for the UNBOUNDED encoding, where `unsat`
 # really is unsatisfiability; give it k for an enumeration carrier of exactly k
 # elements, where a `sat` comes with a structure the verified checker can check.
@@ -61,7 +66,7 @@ one of those files therefore says the conjecture is NOT entailed. The negation h
 `FolProblem::checker_entries`, and `problem.tsv` is a fold over the same list, which is the
 mechanical reason the solver cannot be asked a different question from the one the checker checks.
 
-`ontology.p` (or `ontology.clif`) lands in the directory. With `--goals FILE`, where FILE is a TSV
+`ontology.p` (or `ontology.clif`, or `ontology.cgif`) lands in the directory. With `--goals FILE`, where FILE is a TSV
 whose first three columns are a triple, one problem per goal lands under `goals/` with a
 `goals.json` manifest. `derivations.tsv` from `reason --certificate` is the intended input; it puts
 the rule in column one, so pass `--goals-skip-columns 1`.
@@ -267,8 +272,10 @@ character in CLIF and is Common Lisp's convention, not CLIF's.
 
 ### The exactly semantically conformant subdialect
 
-ISO/IEC 24707 first edition Annex A.4.2, verbatim: "The subdialect of CLIF which does not use
-numerals or quoted strings is exactly semantically conformant". A numeral and a quoted string are
+ISO/IEC 24707 Annex A.4.2, verbatim, in the **2018 second edition** and identically in the first:
+"The subdialect of CLIF which does not use numerals or quoted strings is exactly semantically
+conformant, as can be shown by inverting the above construction of J from I". A numeral and a
+quoted string are
 interpreted names, and a text containing them constrains its own interpretations in a way abstract
 Common Logic does not. Stay out of them and CLIF entailment and Common Logic entailment coincide,
 so the adequacy theorem's biconditional needs no qualification at the CLIF end.
@@ -283,10 +290,11 @@ The property is checked rather than asserted:
 `clif_stays_in_the_exactly_conformant_subdialect` walks every emitted sentence, skips the comment
 annotations, and fails on a bare decimal or a single-quoted string.
 
-Nothing here is claimed about the second edition's Annex A.3, which this project has not read. In
-particular this page does not say that Common Logic requires infinite universes; abstract Common
-Logic requires only non-emptiness, and the infinite-universe requirement is CLIF-specific, appears
-in the withdrawn first edition, and sits awkwardly beside A.4.2 in that same edition.
+**This page used to say that nobody here had read the second edition.** That stopped being true on
+15 September 2026 and the sentence has been removed rather than left standing; see the limitations
+section for what the second edition turned out to say. In particular this page does not say that
+Common Logic requires infinite universes: abstract Common Logic requires only non-emptiness
+(clause 4.2), and the infinite-universe requirement is CLIF-specific.
 
 ### The two dialects, and what actually reads them
 
@@ -386,6 +394,184 @@ strongest available argument that a fragment gate and an external parser check a
 normative corpus published by a standards body does not survive contact with either of the two
 parsers that read its language.
 
+## CGIF, the second Common Logic dialect
+
+ISO/IEC 24707 defines **three** dialects: CLIF (Annex A), CGIF (Annex B) and XCL (Annex C). This
+engine emitted one of them and called the result Common Logic support. That is the shape of
+overclaim this project spends its time finding in other people's work, so `--format cgif` closes
+half of it. XCL is still absent, and the export report says so in a field
+(`common_logic_dialects_not_emitted`) rather than leaving a reader to assume otherwise.
+
+It matters for the same reason CLIF does. ISO/IEC 21838-1:2021 clause 4.3 asks that a top-level
+ontology be available through an axiomatisation in a language conforming to ISO/IEC 24707, and its
+note names CLIF, CGIF and XCL as the three that qualify. CGIF is not a lesser member of that list:
+Annex B.4 states that core CGIF, extended CGIF and the abstract CG syntax are all "fully conformant
+CL dialects in the sense that every CL sentence can be translated to a semantically equivalent
+sentence in each of them".
+
+### Core, not extended, and what that costs
+
+Annex B specifies two concrete syntaxes. **Core CGIF (B.2) is what this emitter writes.** B.3.1's
+own list of what extended CGIF adds is: type labels and type expressions on concepts, universal
+quantifiers, the Boolean contexts `[If: … [Then: …]]`, `[Either: [Or: …]]` and `[Equiv: [Iff: …]]`,
+concepts inside an arc sequence, and importing a text into a text. None of that is emitted.
+
+Core costs exactly one thing in readability, and B.1.2 states the reduction itself: "The concept
+`[Go:*x]`, for example, becomes an untyped concept `[*x]` and a conceptual relation `(Go ?x)`."
+So a class membership is written `("c:http://e/A" ?X0)` and not `[A: *x]`. Taking that reduction
+means the file needs no Annex B.3 rewrite pass before anything can read it.
+
+### The encoding, production by production
+
+| `Form` | CGIF | clause |
+|---|---|---|
+| `App1(p,t)` | `(p t)` | B.2.7 `ordinaryRelation` |
+| `App2(p,t,u)` | `(p t u)` | B.2.7, at arity two |
+| `Eq(t,u)` | `[: t u]` | B.2.5 `coreferenceConcept`. **CGIF has no `=`** |
+| `Tru` | `[]` | B.2.5: "an empty context `[ ]` is translated to CLIF as `(and)`, which is true by definition" |
+| `Fls` | `~[]` | B.2.8: "The negation of the blank CG, written `~[ ]`, is always false" |
+| `Neg(g)` | `~[ g ]` | B.2.8 `negation = "~", context` |
+| `And(g,h)` | `g h` | juxtaposition. B.2.6 makes a CG's nodes a conjunction and gives it no operator |
+| `Or(g,h)` | `~[ ~[g] ~[h] ]` | B.3.5's own `eitherOr` rewrite into core |
+| `Imp(g,h)` | `~[ g ~[h] ]` | B.3.5's own `ifThen` rewrite into core |
+| `All(n,g)` | `~[ [*Xn] ~[g] ]` | B.3.7: a CG with universal concepts becomes "a nest of two negations" |
+| `Ex(n,g)` | `[ [*Xn] g ]` | B.2.6: a CG with existential concepts is `∃names.` over the rest |
+
+The three derived forms are not this project's encoding choices. B.3.5 and B.3.7 are rewrite rules
+FROM extended CGIF INTO core, and the right-hand sides above are what those rules produce.
+
+**Equality is the one that surprises people.** There is no equality relation in CGIF and there
+could not be: `=` is a CLIF reserved token and a CGIF `identifier` must begin with a letter. B.2.5
+gives `[: ?x Cicero Tully ?abcd]` as translating to `(and (= x Cicero) (= x Tully) (= x abcd))`.
+One caveat travels with that and is written down rather than smoothed over: B.2.5 defines the
+references as a SET, so `[: n n]` denotes `(and)`, truth, rather than `n = n`. The two agree in
+every model, and the only axiom that could produce one is a self-`owl:sameAs`, which is a tautology
+either way.
+
+### Every binder gets a context of its own
+
+B.2.10: "If a concept x with a defining label with name n is directly contained in some context c,
+then c shall not contain any concept other than x with a defining label with the same CG name n."
+
+`OwlLean.trAx` restarts its variable counter per axiom and calls `tr c 0 2` and `tr d 0 2` for an
+axiom's antecedent and its consequent, so two `[*X2]` really can arise in one sentence. Renumbering
+them is not available: `owl-lean` uses named variables rather than de Bruijn indices precisely so
+that freshness is a proof obligation, and an exporter that renumbered would be emitting a different
+formula. So an existential is written `[ [*Xn] … ]` rather than as a bare `[*Xn]` juxtaposed with
+its body, and each sentence is wrapped in a context of its own. No context then directly contains
+two defining labels at all, whatever the counter did.
+
+**B.2.10 is self-contradictory about shadowing** and the emitter does not depend on the answer. It
+says both that a context "shall not contain any concept other than x with a defining label with the
+same CG name n" — where *contains* is transitive — and, in the next sentence, that a nested context
+may redeclare one. `no_defining_label_is_ever_shadowed` checks that the emitted text is legal under
+either reading.
+
+### The restriction, in the standard's own vocabulary
+
+Clause 7.1.1 names three sub-dialects and the emitted text is all three:
+
+| clause 7.1.1 term | verbatim | ours |
+|---|---|---|
+| compact sub-dialect | "a dialect that does not recognize sequence markers" | no `[*...x]`, no `?...x` |
+| unstructured sub-dialect | "a dialect that does not recognize titlings and importation statements" | neither is emitted |
+| single domain sub-dialect | "a dialect that does not recognize domain restrictions" | none is emitted |
+
+The first is the one that matters, and clause 6.5 says why: Common Logic with sequence markers "is
+not compact, and therefore not first-order". `OwlLean.adequacy` is about plain first-order logic,
+so a text using one would sit outside the theorem.
+
+Two further exclusions have no clause-7 name and would leave first-order logic just as surely. **No
+`#?` type label**, which B.2.7's own comment says is how "CGIF supports the CL ability to quantify
+over relations and functions" — the CGIF spelling of the thing the CLIF restriction already
+excludes. And **no actor**, B.2.1, which is how a CL function is written; `OwlLean.FOL`'s `FSig`
+has P1, P2 and Const and no function symbol of positive arity, so `Form` cannot express one.
+
+### Interpreted names, and the exception CGIF does not need
+
+A.4.2's "exactly semantically conformant" result is stated for **CLIF** and Annex B states no
+analogue for CGIF. This page therefore does not borrow the label. What the emitter does is hold the
+property: no numeral and no single-quoted string stands anywhere in the text, checked by
+`cgif_uses_no_interpreted_name`.
+
+CGIF holds it with **no exception to declare**, where CLIF needs one. A CLIF label has to ride on
+`cl:comment`, whose argument is a quoted string by definition, so the CLIF page above has to carve
+comment annotations out of the claim. B.2.4 makes a CGIF comment a LEXICAL construct, `/* … */`,
+which is not a name at all.
+
+The same clause is why a comment can be **refused**: "The string enclosed by the delimiters `/*`
+and `*/` shall not contain a substring `*/`", and no escape is defined. Rewriting the text would
+emit a different comment and dropping it would lose the label that says which axiom a sentence is,
+so `to_cgif` returns an `UnwritableComment` and writes no file. That path is reachable rather than
+theoretical: an earlier draft of the CGIF header named the delimiters literally and tripped it on
+every run.
+
+### Names
+
+B.1.1's `identifier` is `letter, {letter | digit | "_"}` — no colon, no slash, no dot, no hyphen —
+and B.1.1 states the consequence: "the category CGname requires that all CLIF name sequences except
+those in the CGIF category identifier shall be enclosed in quotes". So every IRI is a double-quoted
+enclosed name, **including the text's own name**, where the CLIF writer emits a bare IRI because
+Macleod's lexer has no double-quote token. The two writers share `clif::enclosed` rather than each
+having its own, because B.1.1 defines `CGname` to include CLIF's `enclosedname` category.
+
+`X0`, `thing` and `lit` are identifiers. A defining label here is `Xn` and a constant here begins
+`i:`, so the two can never collide, which B.2.10's last clause forbids outright: "No constant with
+CG name n shall be in the scope associated with some concept with a defining label with CG name n."
+
+`letter` is used in that production and **never defined anywhere in ISO/IEC 24707:2018**. That is a
+defect in the standard, not a reading of it. The emitter produces ASCII letters only and the
+checker reads it that way, and the choice is written down here rather than assumed.
+
+### How CGIF conformance is checked, and how that differs from CLIF
+
+**By our own checker, not by an independent parser.** This is the weaker of the two footings in
+this document and the difference is stated rather than blurred.
+
+For CLIF, two external parsers were run over five exports and the table above records what they do,
+including that both return an EMPTY theory from the wrapped comment shape ISO's own BFO files use.
+Nothing of that kind exists for CGIF. There is no `cgif` package on PyPI; py-typedlogic, which
+reads the CLIF output, has no CGIF front end; Macleod reads CLIF. So conformance here is pinned by
+the lexer, parser and checker in `tests/fol_cgif_export_test.rs`, transcribed from Annex B's EBNF
+with the clause cited at each rule.
+
+What that transcription is worth: it is a SECOND reading of the grammar, written against the
+emitter rather than with it, so a shape both agree on is a shape two readings of Annex B agree on.
+It is not an independent implementation and this page does not call it one.
+
+Alongside the syntax check there is a **round trip**. Every sentence is read back into a `Form` and
+must equal the formula it was built from, up to the two rewrites core CGIF forces: implication and
+disjunction have no operators (B.3.5 defines both by the rewrite), and conjunction is "an unordered
+set of concepts, conceptual relations, negations, and comments" (B.2.6) rather than a binary
+connective, so the associativity of an `And` tree cannot survive. Both sides are normalised by
+those two facts and by nothing else.
+
+One source was deliberately NOT used. `jfsowa.com/cg/annexb.htm` is a **pre-publication draft** of
+the same annex, not the published standard, and the 2018 Foreword says "the list of syntactic
+errors that have already been identified in the Defect Report has been fixed". Measured differences
+that would have mattered: the draft's `equiv` rewrite emits `~[` where the published text emits
+`[`, turning a conjunction of two implications into a tautology; its `nestedOrs` termination test
+drops the last disjunct; its `text` name slot is `constant` rather than `CGname`; and its B.4 says
+"[This section is incomplete.]" where the published B.4 carries the complete Table B.1.
+
+### Defects found in ISO/IEC 24707:2018 itself
+
+Listed because a checker written from a standard inherits the standard's gaps, and a reader of the
+emitted file should know which lines rest on a reading rather than on a rule.
+
+| clause | what |
+|---|---|
+| B.1.1 | `letter` is used in `identifier` and defined nowhere in the document |
+| B.2.10 | the no-duplicate clause uses *contains* transitively and the next sentence licenses shadowing; the two cannot both hold |
+| B.3.1 / Table B.1 E17 | "the ability to import text into a text" is listed as a feature and no production defines it; only `[cg_Imports N]` in the table hints at the syntax |
+| B.3.9 | cross-references "A.3" for module elimination; A.3 in this edition is CLIF semantics |
+| Table B.1 E6, E19 | write a coreference concept and a text without the `:` that B.2.5 and B.2.11 make mandatory |
+| B.1.1 | `CGname`'s second branch is subsumed by its fourth, so the rule is ambiguous (harmless) |
+| B.1.4.1 | "zero or more characters of white space may occur" at every comma is false for two adjacent identifiers |
+| B.2.5 vs B.3.6 | `[]` is truth under core and `∃x.⊤` under extended. Both true given clause 4.2's non-empty universe, and not the same graph |
+| B.2.11 vs B.3.6 | `text` and an extended `concept` both match `[Proposition: N …]` with different readings, and `text` is not a member of `CG` while Table B.1 E19 can generate nested texts |
+| B.2.5 | `existentialConcept` admits `[*7]` and `[*'str']`, which A.2.3.8's `bvar` cannot bind. The checker refuses them |
+
 ## Known limitations
 
 Stated rather than discovered later.
@@ -405,12 +591,28 @@ Stated rather than discovered later.
   with that reason.
 - **Nothing runs the differential in CI.** It needs a prover on `PATH` and skips loudly without
   one. A CI leg that installs E is not wired.
-- **Nobody here has read ISO/IEC 24707:2018 or either part of ISO/IEC 21838.** All three are priced
-  at CHF 0, 70 pages for 24707, but downloading them needs a free ISO account, which is an owner
-  action. The old ITTF free-standards site closed in 2025; catalogue pages are reachable at
-  `committee.iso.org` when `www.iso.org` returns 403. Every clause cited on this page is scoped to
-  the edition and the text actually read, and the second edition's Annex A.3 has not been read at
-  all.
+- **CGIF conformance is pinned by our own checker and not by an independent parser.** There is no
+  installable CGIF parser to differ from: no `cgif` package on PyPI, no CGIF front end in
+  py-typedlogic, and Macleod reads CLIF. The CLIF claims on this page rest on two external parsers
+  disagreeing with us in recorded ways; the CGIF claims rest on a second reading of Annex B's EBNF
+  in `tests/fol_cgif_export_test.rs`. That is a real difference in footing and it is not narrowed
+  by calling both "checked".
+- **XCL is not emitted.** ISO/IEC 24707 has three dialects and two are written here. The report
+  says which, in `common_logic_dialects_emitted` and `common_logic_dialects_not_emitted`, so a
+  reader is not left to infer that "Common Logic support" means all three.
+- **ISO/IEC 24707:2018 HAS now been read; neither part of ISO/IEC 21838 has.** This item said the
+  opposite until 15 September 2026, and the claim it made about ACCESS was wrong as well as stale:
+  24707:2018 is in ISO's *Publicly Available Standards* list and needs no account at all, only a
+  click-through licence, which is a POST with a cookie jar rather than an owner action. It was
+  downloaded (`standards.iso.org/ittf/PubliclyAvailableStandards/c066249_ISO_IEC_24707_2018.zip`,
+  sha256 `e920b0c43a932e1ad0e2c76d3501f56e2b11ee5547265b14aeb69a5866eae5e3`) and Annexes A and B
+  were read in full for the CGIF work. Three things follow. A.4.2's exactly-conformant sentence is
+  in the second edition verbatim, so the CLIF claim above no longer needs its edition caveat. The
+  2007 first edition is **no longer in the PAS list**, so the URL Sowa and Wikipedia cite now
+  fails; 2018 cancels and replaces it. And ISO/IEC 21838-1 and -2 are still unread, so every claim
+  on this page sourced to them is still scoped to the text actually read, including that clause
+  4.3's "shall be available" modality comes from the Russian identical adoption and not from the
+  English.
 - **Only E has actually been run.** Every number on this page comes from E 3.2.5. The Vampire
   branch of the prover detection has never executed, because Vampire is not installed here; its
   argument vector and its SZS parsing are written from the documented interface and are untested.

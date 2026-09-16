@@ -106,10 +106,14 @@
 //! So: single quotes in TPTP, double quotes in CLIF, for the same IRI, for
 //! opposite reasons.
 //!
-//! # Two serialisers, one translation
+//! # Several serialisers, one translation
 //!
-//! [`Form`] is computed once. [`tptp`] and [`clif`] are renderings of it and
-//! contain no OWL-specific logic at all; each is a fold over `Form`. CLIF is
+//! [`Form`] is computed once. [`fof`], [`clif`], [`cgif`], [`smtlib`] and
+//! [`ladr`] are renderings of it and contain no OWL-specific logic at all;
+//! each is a fold over `Form`. Two of them are Common Logic dialects: ISO/IEC
+//! 24707 defines CLIF, CGIF and XCL, and emitting one and calling that Common
+//! Logic support is a partial claim. CGIF is emitted in its CORE dialect and
+//! in the compact sub-dialect clause 7.1.1 names; see [`cgif`]. CLIF is
 //! restricted to the first-order-equivalent fragment of Common Logic on
 //! purpose: no sequence markers, fixed arity at every position, no
 //! quantification into a predicate position. Common Logic is NOT plain
@@ -1036,6 +1040,35 @@ impl FolProblem {
         s.push_str(")\n");
         s
     }
+
+    /// ISO/IEC 24707 CGIF, core dialect, in a compact sub-dialect.
+    ///
+    /// The third of Common Logic's three dialects to be emitted here, over the
+    /// same [`FolProblem::formulas`] the TPTP and CLIF writers walk. The text
+    /// is a B.2.11 `text`: `"[", [comment], "Proposition", ":", [CGname], CG,
+    /// [endComment], "]"`, which is what Table B.1's row E20 maps a named
+    /// `(cl:text N …)` to, so the CGIF file is the standard's own image of the
+    /// CLIF file rather than a second convention.
+    ///
+    /// Unlike the CLIF writer this has no dialect flag and no comment-placement
+    /// flag. There is one spelling of the CGIF operators, and B.2.4 gives
+    /// comments a lexical syntax of their own, so the `cl:comment` trap that
+    /// made the CLIF writer's default a measured decision does not arise:
+    /// nothing has to be put INSIDE a comment for a label to attach to it.
+    pub fn to_cgif(&self, name: &str) -> Result<String, cgif::UnwritableComment> {
+        let mut s = String::new();
+        let _ = writeln!(s, "[Proposition: {}", cgif::text_name(name));
+        let header = cgif::comment(&header_text(self.conjecture.is_some(), CGIF_STYLE))?;
+        for line in header.lines() {
+            let _ = writeln!(s, "  {line}");
+        }
+        for (label, role, f) in self.formulas() {
+            let _ = writeln!(s, "  {}", cgif::comment(&format!("{label} ({role})"))?);
+            let _ = writeln!(s, "  {}", cgif::sentence(f));
+        }
+        s.push_str("]\n");
+        Ok(s)
+    }
 }
 
 /// The header every serialiser carries, with each line prefixed by the
@@ -1160,6 +1193,60 @@ const CLIF_NOTES: &[&str] = &{
 };
 
 const CLIF_STYLE: HeaderStyle = HeaderStyle { extra: CLIF_NOTES, goal: ORACLE_GOAL };
+
+/// The CGIF paragraphs of the header.
+const CGIF_NOTES: &[&str] = &[
+    "",
+    "CGIF, ISO/IEC 24707 Annex B. This is CORE CGIF, not extended CGIF. A core",
+    "concept has no type field, so a class membership is an ordinary relation",
+    "`(\"c:IRI\" ?X0)` and not `[C: *x]`; B.1.2 gives that reduction itself.",
+    "Nothing here uses a type label, a type expression, `@every`, `[If: ...",
+    "[Then: ...]]`, `[Either: [Or: ...]]`, `[Equiv: [Iff: ...]]`, a concept in an",
+    "arc sequence, or an import. B.4 states that core CGIF is a fully conformant",
+    "Common Logic dialect on its own.",
+    "",
+    "THE COMPACT SUB-DIALECT. Clause 7.1.1: \"A compact sub-dialect is a dialect",
+    "that does not recognize sequence markers.\" This text is one, and that is the",
+    "restriction that matters: clause 6.5 says Common Logic with sequence markers",
+    "\"is not compact, and therefore not first-order\", and the adequacy theorem is",
+    "about plain first-order logic. No `[*...x]` and no `?...x` appears, in either",
+    "position B.2.5 and B.2.3 allow one. By the same clause this text is also an",
+    "unstructured sub-dialect (no titlings, no importation) and a single domain",
+    "sub-dialect (no domain restrictions). Two further exclusions have no clause-7",
+    "name: no `#?` type label, which B.2.7 says is how CGIF quantifies over",
+    "relations, and no actor, which is how B.2.1 writes a function.",
+    "",
+    "THE ENCODING. `[]` is truth and `~[]` is falsity (B.2.5, B.2.8). Conjunction",
+    "is juxtaposition and has no operator (B.2.6). An equation is a coreference",
+    "concept `[: ?X0 ?X1]` (B.2.5); CGIF has no `=`. Implication is `~[A ~[B]]`",
+    "and disjunction is `~[~[A] ~[B]]`, which are B.3.5's own `ifThen` and",
+    "`eitherOr` rewrites into core. A universal is `~[[*X0] ~[...]]`, which is",
+    "B.3.7's \"nest of two negations\".",
+    "",
+    "EVERY BINDER HAS A CONTEXT OF ITS OWN, and every sentence is bracketed.",
+    "B.2.10 forbids two defining labels with one name in one context, and the",
+    "translation reuses variable indices between an axiom's antecedent and its",
+    "consequent. Renumbering them would emit a different formula, so each binder",
+    "is given a context instead. No defining label in this text stands in the",
+    "scope of another with the same name, so nothing here depends on B.2.10's",
+    "shadowing sentence, which contradicts the sentence before it.",
+    "",
+    "NAMES. B.1.1's `identifier` is letters, digits and underscore, so every IRI",
+    "is a DOUBLE-QUOTED enclosed name, the text's own name included. `X0`, `thing`",
+    "and `lit` are identifiers. A defining label is `Xn` and a constant begins",
+    "`i:`, so the two can never collide, which B.2.10 forbids outright.",
+    "",
+    "INTERPRETED NAMES. No numeral and no single-quoted string stands anywhere in",
+    "this text. A.4.2 states the `exactly semantically conformant` result for",
+    "CLIF and Annex B states no analogue for CGIF, so the property is held here",
+    "and the label is not borrowed. CGIF needs no exception for its comments: B.2.4",
+    "makes a comment a LEXICAL construct, delimited rather than quoted, which is",
+    "not what a CLIF `cl:comment` can be. Its own delimiters are the one string a",
+    "comment may not contain, and B.2.4 gives no escape for them, so a comment",
+    "carrying one is REFUSED by this exporter rather than rewritten.",
+];
+
+const CGIF_STYLE: HeaderStyle = HeaderStyle { extra: CGIF_NOTES, goal: ORACLE_GOAL };
 
 /// The SMT-LIB paragraphs.
 const SMTLIB_NOTES: &[&str] = &[
@@ -1566,7 +1653,14 @@ pub mod clif {
     /// The kind prefixes come from [`super::sym`], the same module the TPTP
     /// and SMT-LIB serialisers read, for the same reason: `OwlP1` and `OwlP2`
     /// are disjoint sums in the Lean.
-    fn enclosed(image: &str) -> String {
+    ///
+    /// `pub` because [`super::cgif`] writes the SAME construct and must not
+    /// write its own. That is not convenience: ISO/IEC 24707:2018 B.1.1 defines
+    /// `CGname` as `identifier | '"', (namesequence - identifier), '"' |
+    /// numeral | enclosedname | quotedstring`, where `enclosedname` is A.2.2's
+    /// category, CLIF's. The two syntaxes quote a name the same way because the
+    /// standard says they do, and a second copy here could only ever drift.
+    pub fn enclosed(image: &str) -> String {
         let mut s = String::with_capacity(image.len() + 4);
         s.push('"');
         for ch in image.chars() {
@@ -1700,7 +1794,286 @@ pub mod clif {
     }
 }
 
-// ── Serialiser 3: SMT-LIB 2 ─────────────────────────────────────────────────
+// ── Serialiser 3: ISO/IEC 24707 CGIF ────────────────────────────────────────
+
+/// CGIF rendering of [`Form`]: **core CGIF**, in a compact sub-dialect.
+///
+/// ISO/IEC 24707 Common Logic has three dialects, and Common Logic conformance
+/// is a claim about the language and not about one serialisation of it. This
+/// engine emitted CLIF only, which made its Common Logic support partial in a
+/// way nothing said out loud. This module is the second of the three. XCL,
+/// Annex C, is still not emitted and is named in the docs as absent.
+///
+/// # Core, not extended, and what that costs
+///
+/// B.3.1 lists what extended CGIF adds to core: type labels and type
+/// expressions on concepts, `@every` for universal quantification, the Boolean
+/// contexts `[If: … [Then: …]]`, `[Either: [Or: …]]` and
+/// `[Equiv: [Iff: …]]`, concepts in an arc sequence, actors with zero or
+/// several output arcs, and importing a text into a text. **None of that is
+/// emitted here.** Everything below is core CGIF (B.2), which B.4 states is a
+/// fully conformant CL dialect in its own right: "every CL sentence can be
+/// translated to a semantically equivalent sentence in each of them".
+///
+/// Core costs exactly one thing in readability. A core concept has no type
+/// field, so `[Cat: *x]` is not available and a class membership is written as
+/// an ordinary relation. B.1.2 gives that reduction itself: "The concept
+/// `[Go:*x]`, for example, becomes an untyped concept `[*x]` and a conceptual
+/// relation `(Go ?x)`." That reduction is the whole difference, and taking it
+/// means the file needs no Annex B.3 rewrite pass to be read.
+///
+/// # The restriction, in the standard's own vocabulary
+///
+/// Clause 7.1.1 names three sub-dialects, and this emitter is all three:
+///
+/// * a **compact sub-dialect**, "a dialect that does not recognize sequence
+///   markers". That is the restriction that matters: clause 6.5 says Common
+///   Logic with sequence markers "is not compact, and therefore not
+///   first-order", and the adequacy theorem is about plain first-order logic.
+///   No `[*...x]` and no `?...x` is emitted, in either position the grammar
+///   allows one (B.2.5's `existentialConcept`, B.2.3's `arcSequence`).
+/// * an **unstructured sub-dialect**, "a dialect that does not recognize
+///   titlings and importation statements".
+/// * a **single domain sub-dialect**, "a dialect that does not recognize
+///   domain restrictions".
+///
+/// Two further exclusions have no clause-7 name and are listed because they
+/// would leave first-order logic just as surely:
+///
+/// * **no `#?` type label.** B.2.7's `ordinaryRelation` admits `["#", "?"],
+///   CGname`, and its own comment says why: "By allowing the type label of a
+///   conceptual relation to be a bound label, CGIF supports the CL ability to
+///   quantify over relations and functions." That is quantifying into a
+///   predicate position, and it is the CGIF spelling of the thing the CLIF
+///   restriction already excludes.
+/// * **no actors.** B.2.1's `actor` is how a CL FUNCTION is written. `OwlLean.
+///   FOL`'s `FSig` has P1, P2 and Const and no function symbol of positive
+///   arity, so [`Form`] cannot express one and none is emitted.
+///
+/// [`Form`] cannot express any of the five, which is the structural reason the
+/// restriction holds; `cgif_stays_in_the_compact_first_order_sub_dialect` in
+/// `tests/fol_cgif_export_test.rs` is the check that it still does.
+///
+/// # The core encoding, production by production
+///
+/// | `Form` | CGIF | why |
+/// |---|---|---|
+/// | `App1(p,t)` | `(p t)` | B.2.7 `ordinaryRelation` |
+/// | `App2(p,t,u)` | `(p t u)` | the same, at arity two |
+/// | `Eq(t,u)` | `[: t u]` | B.2.5 `coreferenceConcept`. CGIF has NO equality relation |
+/// | `Tru` | `[]` | B.2.5: "an empty context `[ ]` is translated to CLIF as `(and)`, which is true by definition" |
+/// | `Fls` | `~[]` | B.2.8: "The negation of the blank CG, written `~[ ]`, is always false" |
+/// | `Neg(g)` | `~[ g ]` | B.2.8 `negation = "~", context` |
+/// | `And(g,h)` | `g h` | juxtaposition. B.2.6 makes a CG's nodes a conjunction |
+/// | `Or(g,h)` | `~[ ~[g] ~[h] ]` | B.3.5's own `eitherOr` rewrite into core |
+/// | `Imp(g,h)` | `~[ g ~[h] ]` | B.3.5's own `ifThen` rewrite into core |
+/// | `All(n,g)` | `~[ [*Xn] ~[g] ]` | B.3.7's `@every` rewrite: a nest of two negations |
+/// | `Ex(n,g)` | `[ [*Xn] g ]` | B.2.6: a CG with existential concepts is `∃names. rest` |
+///
+/// The three derived forms are not this project's inventions. B.3.5 gives
+/// `ifThen` as `"~[", CG(ante), "~[", CG(conse), "]", "]"` and `eitherOr` as a
+/// negation containing one `~[…]` per disjunct, and B.3.7 says of a CG
+/// containing universal concepts that "the output string shall be a nest of two
+/// negations. The outer context shall contain the translations of all the
+/// universal concepts, and the inner context shall contain the translations of
+/// all other nodes". This module emits what the standard's own rewrite rules
+/// produce.
+///
+/// # Every binder gets its own context, and why that is not decoration
+///
+/// B.2.10: "If a concept x with a defining label with name n is directly
+/// contained in some context c, then c shall not contain any concept other than
+/// x with a defining label with the same CG name n." Two things follow, and
+/// both bite.
+///
+/// **An existential is emitted as `[ [*Xn] … ]` and never as a bare `[*Xn]`
+/// juxtaposed with its body.** `OwlLean.trAx` restarts its variable counter for
+/// each axiom and reuses indices between an axiom's antecedent and its
+/// consequent (`tr c 0 2` and `tr d 0 2` are both called at 2), so two `[*X2]`
+/// really can arise in one sentence. Giving each binder a context of its own
+/// means no context ever directly contains two defining labels at all, whatever
+/// the counter did.
+///
+/// Renumbering would also have fixed it and is forbidden: `owl-lean` uses named
+/// variables rather than de Bruijn indices precisely so that freshness is a
+/// proof obligation, and an exporter that renumbered would be emitting a
+/// different formula.
+///
+/// **Each sentence is wrapped in a context of its own** for the same reason at
+/// the file level, so nothing a sentence binds can reach the next sentence.
+/// `[ s ]` is `(and s)`, which is `s`.
+///
+/// **Shadowing is avoided rather than relied on.** B.2.10 says both that a
+/// context "shall not contain any concept other than x with a defining label
+/// with the same CG name n" — where *contains* is transitive — and, in the very
+/// next sentence, that a nested context may redeclare one. The two cannot both
+/// hold. This emitter never produces a defining label inside the scope of
+/// another with the same name, so it does not depend on which reading is right,
+/// and `no_defining_label_is_ever_shadowed` is the check.
+///
+/// # Names
+///
+/// B.1.1's `identifier = letter, {letter | digit | "_"}` is far narrower than
+/// CLIF's `namecharsequence`: no colon, no slash, no dot, no hyphen. An IRI is
+/// therefore ALWAYS written as a double-quoted enclosed name, including in the
+/// text's name slot, where the CLIF writer emits a bare IRI for Macleod's sake.
+/// B.1.1 states the rule: "the category CGname requires that all CLIF name
+/// sequences except those in the CGIF category identifier shall be enclosed in
+/// quotes".
+///
+/// `X0`, `X1`, … and the bare `thing` and `lit` are legal identifiers. Every
+/// other image out of [`sym`] carries a colon and is enclosed. Those two facts
+/// together are why a defining label can never collide with a constant, which
+/// B.2.10's last clause forbids outright: "No constant with CG name n shall be
+/// in the scope associated with some concept with a defining label with CG name
+/// n." A defining label here is `Xn`; a constant here begins `i:`.
+///
+/// # Interpreted names
+///
+/// A.4.2 says of CLIF, in the 2018 edition as in the first, that "The
+/// subdialect of CLIF which does not use numerals or quoted strings is exactly
+/// semantically conformant". Annex B states **no** analogue for CGIF, so this
+/// module does not borrow the label. What it does is hold the property: no
+/// numeral and no single-quoted string stands anywhere in this output.
+///
+/// CGIF gets that for free where CLIF could not. A CLIF label has to ride on
+/// `cl:comment`, whose argument is a quoted string, so the CLIF writer needs a
+/// named exception for its comments. B.2.4 makes a CGIF comment a LEXICAL
+/// construct, `/* … */`, which is not a name at all, so the CGIF output holds
+/// the property with no exception to declare.
+pub mod cgif {
+    use super::{Form, P1, P2, Term, clif, sym};
+
+    /// The delimiter that may not appear inside a comment.
+    ///
+    /// B.2.4: "The string enclosed by the delimiters `/*` and `*/` shall not
+    /// contain a substring `*/`." There is no escape for it, so a text that
+    /// contained one could not be commented at all. Nothing this emitter puts
+    /// in a comment can contain it — the header is a constant and a label is
+    /// `background_1 (axiom)` — and `no_emitted_comment_can_close_itself_early`
+    /// is the check rather than the assumption.
+    pub const COMMENT_CLOSE: &str = "*/";
+
+    /// A comment text this exporter cannot write, with the reason.
+    ///
+    /// Returned rather than escaped or dropped, which is the rule
+    /// [`super::UnwritableSymbol`] already follows for SMT-LIB and LADR: a
+    /// dropped comment loses the label that says which axiom a sentence is,
+    /// and a rewritten one is a different comment. B.2.4 gives no escape for
+    /// the closing delimiter, so there is no third option.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct UnwritableComment {
+        pub text: String,
+        pub why: &'static str,
+    }
+
+    impl std::fmt::Display for UnwritableComment {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "the comment {:?} cannot be written in CGIF: {}", self.text, self.why)
+        }
+    }
+
+    impl std::error::Error for UnwritableComment {}
+
+    /// Whether a string may be written inside a CGIF comment.
+    pub fn comment_is_writable(text: &str) -> bool {
+        !text.contains(COMMENT_CLOSE)
+    }
+
+    /// A `/* … */` comment. B.2.4 permits one "intermixed with the concepts and
+    /// conceptual relations of any conceptual graph", which is where every
+    /// comment in the emitted file stands.
+    ///
+    /// This is also exactly what ISO/IEC 24707 B.4's Table B.1 maps a CLIF
+    /// `(cl:comment 'string' P)` to: "A comment and a CG: `"/*"`, 'string',
+    /// `"*/"`, cl2cg(P)". So the CGIF file's label shape is the standard's own
+    /// image of the CLIF file's label shape, rather than a second convention.
+    pub fn comment(text: &str) -> Result<String, UnwritableComment> {
+        if !comment_is_writable(text) {
+            return Err(UnwritableComment {
+                text: text.to_string(),
+                why: "ISO/IEC 24707 B.2.4: \"The string enclosed by the delimiters `/*` and \
+                      `*/` shall not contain a substring `*/`\", and the standard defines no \
+                      escape for it. Rewriting the text would emit a different comment and \
+                      dropping it would lose the label that says which axiom the sentence is",
+            });
+        }
+        Ok(format!("/*{text}*/"))
+    }
+
+    /// A text name. Always a double-quoted enclosed name.
+    ///
+    /// Unlike the CLIF writer, which emits a bare IRI because Macleod's lexer
+    /// has no double-quote token, this has no choice: B.1.1's `identifier`
+    /// admits letters, digits and underscore only, so no IRI is one.
+    pub fn text_name(iri: &str) -> String {
+        clif::enclosed(iri)
+    }
+
+    fn p1(p: &P1) -> String {
+        match p {
+            P1::Thing => "thing".to_string(),
+            P1::Lit => "lit".to_string(),
+            other => clif::enclosed(&sym::p1(other)),
+        }
+    }
+
+    fn p2(p: &P2) -> String {
+        clif::enclosed(&sym::p2(p))
+    }
+
+    /// An arc: B.2.9's `reference = ["?"], CGname`. A bound coreference label
+    /// carries the `?`; a constant carries nothing.
+    fn arc(t: &Term) -> String {
+        match t {
+            Term::Var(n) => format!("?X{n}"),
+            Term::Const(a) => clif::enclosed(&sym::constant(a)),
+        }
+    }
+
+    /// Render a formula as a CG: a sequence of one or more nodes, whose
+    /// conjunction B.2.6 makes the meaning of the graph.
+    ///
+    /// `And` is the only arm that returns more than one node, which is not an
+    /// implementation detail: conjunction has no operator in CGIF. Sowa puts it
+    /// plainly and B.2.6 says it formally — "A conceptual graph consists of an
+    /// unordered set of concepts, conceptual relations, negations, and
+    /// comments", and a CG's meaning is the conjunction of its nodes.
+    pub fn graph(f: &Form) -> String {
+        match f {
+            Form::App1(p, t) => format!("({} {})", p1(p), arc(t)),
+            Form::App2(p, t, u) => format!("({} {} {})", p2(p), arc(t), arc(u)),
+            // B.2.5: a coreference concept is "translated to a conjunction of
+            // equations". With two references that conjunction is one equation.
+            // CGIF has no `=` and could not have one: `=` is a CLIF reserved
+            // token and a CGIF identifier must begin with a letter.
+            Form::Eq(t, u) => format!("[: {} {}]", arc(t), arc(u)),
+            Form::Tru => "[]".to_string(),
+            Form::Fls => "~[]".to_string(),
+            Form::Neg(g) => format!("~[{}]", graph(g)),
+            Form::And(g, h) => format!("{} {}", graph(g), graph(h)),
+            Form::Or(g, h) => format!("~[~[{}] ~[{}]]", graph(g), graph(h)),
+            Form::Imp(g, h) => format!("~[{} ~[{}]]", graph(g), graph(h)),
+            Form::All(n, g) => format!("~[[*X{n}] ~[{}]]", graph(g)),
+            Form::Ex(n, g) => format!("[[*X{n}] {}]", graph(g)),
+        }
+    }
+
+    /// One formula as a single node: `[ CG ]`.
+    ///
+    /// The bracket is a B.2.5 `context`, whose meaning is the conjunction of
+    /// what it holds, so it changes nothing about the theory. It buys two
+    /// things. A formula whose root is `And` is several nodes and would
+    /// otherwise spread across the text's own graph, so the label comment in
+    /// front of it would attach to the first node and not to the formula. And
+    /// the context bounds every quantifier the formula opens, so no sentence
+    /// can reach into the next one.
+    pub fn sentence(f: &Form) -> String {
+        format!("[{}]", graph(f))
+    }
+}
+
+// ── Serialiser 4: SMT-LIB 2 ─────────────────────────────────────────────────
 
 /// SMT-LIB 2 rendering of [`Form`]. The third printer over the same [`Form`],
 /// and no more OWL-specific than the other two.
@@ -1839,7 +2212,7 @@ pub mod smtlib {
     }
 }
 
-// ── Serialiser 4: LADR, for Mace4 ───────────────────────────────────────────
+// ── Serialiser 5: LADR, for Mace4 ───────────────────────────────────────────
 
 /// LADR rendering of [`Form`], for Mace4, the finite model finder that ships
 /// with Prover9.
@@ -2092,7 +2465,7 @@ pub mod ladr {
     }
 }
 
-// ── Serialiser 5: the checker format ────────────────────────────────────────
+// ── Serialiser 6: the checker format ────────────────────────────────────────
 
 /// `problem.tsv`, the file `oo-folmodel` reads, and the digest that binds a
 /// model file to it.
@@ -3589,8 +3962,13 @@ pub fn triple_as_axiom(
 
 // ── The export itself ───────────────────────────────────────────────────────
 
-/// Output syntax. Two serialisers over one translation, never two
+/// Output syntax. FIVE serialisers over ONE translation, never five
 /// translations.
+///
+/// Two of the five are Common Logic dialects. ISO/IEC 24707 defines three —
+/// CLIF, CGIF and XCL — and emitting one of them and calling the support
+/// "Common Logic" is the kind of partial claim this repository exists to stop
+/// making. XCL is still absent and is named as absent in the report.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Syntax {
     /// TPTP FOF, the format every first-order prover reads and the one the
@@ -3601,6 +3979,12 @@ pub enum Syntax {
     /// syntax for the same first-order content, and the one ISO/IEC 21838-2
     /// publishes BFO in.
     Clif(ClifDialect, ClifComments),
+    /// ISO/IEC 24707 Conceptual Graph Interchange Format, CORE dialect, in
+    /// the compact sub-dialect clause 7.1.1 names. The second of Common
+    /// Logic's three dialects this engine emits; XCL, Annex C, is still not
+    /// emitted. There is no dialect flag: unlike CLIF, CGIF has one spelling
+    /// of its operators and a lexical comment syntax of its own.
+    Cgif,
     /// SMT-LIB 2, the format the SAT/SMT family reads. The goal is asserted
     /// NEGATED, because this is the syntax a MODEL comes back out of and a
     /// model is the thing this repository can certify.
@@ -3625,6 +4009,7 @@ impl Syntax {
                 ClifDialect::parse(dialect.unwrap_or("iso"))?,
                 ClifComments::parse(comments.unwrap_or("standalone"))?,
             )),
+            "cgif" | "cg" | "conceptual-graph" => Ok(Syntax::Cgif),
             "smtlib" | "smt" | "smt2" | "smt-lib" => Ok(Syntax::Smtlib(match domain {
                 None => smtlib::SmtEncoding::Unbounded,
                 Some(0) => anyhow::bail!(
@@ -3635,8 +4020,8 @@ impl Syntax {
             })),
             "ladr" | "mace4" | "prover9" => Ok(Syntax::Ladr),
             other => anyhow::bail!(
-                "unknown first-order syntax {other:?}; expected `tptp`, `clif`, `smtlib` or \
-                 `ladr`"
+                "unknown first-order syntax {other:?}; expected `tptp`, `clif`, `cgif`, \
+                 `smtlib` or `ladr`"
             ),
         }
     }
@@ -3644,6 +4029,7 @@ impl Syntax {
         match self {
             Syntax::Tptp => "p",
             Syntax::Clif(..) => "clif",
+            Syntax::Cgif => "cgif",
             Syntax::Smtlib(_) => "smt2",
             Syntax::Ladr => "in",
         }
@@ -3652,6 +4038,7 @@ impl Syntax {
         match self {
             Syntax::Tptp => "tptp",
             Syntax::Clif(..) => "clif",
+            Syntax::Cgif => "cgif",
             Syntax::Smtlib(_) => "smtlib",
             Syntax::Ladr => "ladr",
         }
@@ -3680,6 +4067,7 @@ impl Syntax {
         Ok(match self {
             Syntax::Tptp => problem.to_tptp(),
             Syntax::Clif(d, c) => problem.to_clif(d, c, name),
+            Syntax::Cgif => problem.to_cgif(name)?,
             Syntax::Smtlib(e) => problem.to_smtlib(e)?,
             Syntax::Ladr => {
                 let tab = ladr::SymbolTable::build(problem)?;
@@ -3816,6 +4204,18 @@ pub fn export(
         "clif_dialect": syntax.dialect().map(|d| d.name()),
         "clif_comments": syntax.comments().map(|c| c.name()),
         "clif_text_name": syntax.dialect().map(|_| ontology_iri.clone()),
+        // CGIF has no dialect FLAG, and it does have a dialect: core rather
+        // than extended, and a compact sub-dialect of that. Reported as a value
+        // so a consumer never has to read the header to learn which.
+        "cgif_dialect": (syntax == Syntax::Cgif).then_some("core"),
+        "cgif_sub_dialect": (syntax == Syntax::Cgif).then_some(
+            "compact (no sequence markers, ISO/IEC 24707 clause 7.1.1), unstructured (no \
+             titlings or importation) and single domain (no domain restrictions). Also no `#?` \
+             type label, which is how B.2.7 quantifies over relations, and no actor, which is \
+             how B.2.1 writes a function"),
+        "cgif_text_name": (syntax == Syntax::Cgif).then(|| ontology_iri.clone()),
+        "common_logic_dialects_emitted": ["clif", "cgif"],
+        "common_logic_dialects_not_emitted": ["xcl (ISO/IEC 24707 Annex C, the XML dialect)"],
         "smt_encoding": syntax.encoding().map(|e| e.name()),
         "dir": dir.display().to_string(),
         "ontology_file": main.display().to_string(),

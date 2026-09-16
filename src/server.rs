@@ -130,8 +130,26 @@ impl OpenOntologiesServer {
             }
         };
 
-        // Apply tool filter by removing routes from the router.
+        // A tool this build cannot serve is not advertised. This runs BEFORE
+        // the operator's filter and does not consult it: a description in
+        // `tools/list` is a promise, and eight of the registered tools are
+        // behind a Cargo feature whose absence turns every call into
+        // "Compiled without X feature". See `toolfilter::FEATURE_GATED_TOOLS`.
         let mut tool_router = Self::tool_router();
+        let unavailable = crate::toolfilter::remove_unavailable(&mut tool_router);
+        if !unavailable.is_empty() {
+            tracing::info!(
+                "not advertising {} tools this build cannot serve: {}",
+                unavailable.len(),
+                unavailable
+                    .iter()
+                    .map(|(t, f)| format!("{t} (needs --features {f})"))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            );
+        }
+
+        // Apply tool filter by removing routes from the router.
         let removed = tool_filter.apply(&mut tool_router);
         if !removed.is_empty() {
             tracing::info!("tool filter removed {} tools: {:?}", removed.len(), removed);
@@ -443,6 +461,14 @@ impl OpenOntologiesServer {
             return Self::err_json(format!("ensure_loaded: {e}"));
         }
         crate::defects::Defects::check(&self.graph).unwrap_or_else(Self::err_json)
+    }
+
+    #[tool(name = "onto_dlp_boundary", description = "Ask which of YOUR axioms the rule engine can actually SEE, before trusting a reasoning result. A certificate from onto_reason is a sound proof about the axioms the rules read, and it says nothing at all about the ones no rule fires on. A user can reason, get a green machine-checked certificate, and never learn that a third of the TBox was invisible to the rule table. This is that second question, and it is in the same register as onto_defects: run it after onto_load and BEFORE trusting any onto_reason result. TWO DIMENSIONS THAT ARE NEVER MERGED, because one is a rewrite of your ontology and the other is a patch to this engine. (1) THE FRAGMENT: is the axiom expressible as Horn rules over triple patterns at all? The line drawn is OWL 2 RL's class grammar (OWL 2 Profiles section 4.3), and `outside` there is a fact about the LANGUAGE that would hold of a perfect OWL 2 RL engine: a disjunction in the consequent, an existential in the head, a cardinality restriction, a negation in the antecedent. Each such axiom is listed individually with the reason. (2) THIS ENGINE: is there a rule in the table that fires on it? owl:hasKey and owl:propertyChainAxiom are perfectly Horn, OWL 2 RL has prp-key and prp-spo2 for them, and this engine implements neither, so those axioms are INSIDE the fragment and still invisible. They are reported in `inside_the_fragment_but_a_rule_is_not_implemented` and never in `outside_the_fragment`. An axiom that splits soundly gets a third bucket of its own, `partially_inside_the_fragment`, because a bucket called `outside` holding an axiom the rules half evaluate would be false in its own name: `A subClassOf (B and Out)` keeps its `A subClassOf B` half, and an owl:equivalentClass with an existential on one side keeps the direction cls-svf1 evaluates. `not_fully_seen_by_the_rule_table` is the headline and carries the three causes separately, because they are fixed in three different places. A conjunction in the ANTECEDENT does not split, because dropping a conjunct from a rule body makes it fire more often. The rule-table figures (78 OWL 2 RL rules, 29 evaluated in the fixpoint, 10 more detected only as a clash, 7 that conclude false and are not looked for, and the names of the rest) are DERIVED from reason::RULES_EVALUATED and reason::CLASH_RULES_NOT_DETECTED rather than typed. Every triple in the store lands in an axiom bucket or in a counted `not_classified` bucket, so nothing is passed over in silence. This is NOT a consistency check and states no verdict about satisfiability.")]
+    fn onto_dlp_boundary(&self) -> String {
+        if let Err(e) = self.registry.ensure_loaded() {
+            return Self::err_json(format!("ensure_loaded: {e}"));
+        }
+        crate::dlp::DlpBoundary::check(&self.graph).unwrap_or_else(Self::err_json)
     }
 
     #[tool(name = "onto_stats", description = "Get statistics about the loaded ontology (triple count, classes, properties, individuals)")]
@@ -3083,7 +3109,33 @@ impl OpenOntologiesServer {
 #[tool_handler(router = self.tool_router)]
 #[prompt_handler(router = self.prompt_router)]
 impl ServerHandler for OpenOntologiesServer {
+    /// The instructions string states the count it MEASURES.
+    ///
+    /// It used to state two, 114 and 112, neither of which was the number the
+    /// router advertised, and the second sentence promised that the eight
+    /// feature-gated tools were advertised and would "return an error without
+    /// it". They are not advertised any more, so the sentence is now about
+    /// what is missing and why, and both numbers are read off the router the
+    /// client is about to call.
     fn get_info(&self) -> ServerInfo {
+        let advertised = self.tool_router.list_all().len();
+        let withheld = crate::toolfilter::unavailable_in_this_build();
+        let tail = if withheld.is_empty() {
+            String::new()
+        } else {
+            format!(
+                " {} further tools are compiled in but NOT advertised, because this build \
+                 lacks the Cargo feature each one needs and a tool that is guaranteed to fail \
+                 should not appear in tools/list: {}. Rebuild with the feature to get them.",
+                withheld.len(),
+                crate::toolfilter::FEATURE_GATED_TOOLS
+                    .iter()
+                    .filter(|(t, _)| withheld.contains(t))
+                    .map(|(t, f)| format!("{t} (--features {f})"))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        };
         ServerInfo::new(ServerCapabilities::builder().enable_tools().enable_prompts().build())
             .with_instructions("Open Ontologies: AI-native ontology engine, an RDF/OWL/SPARQL MCP server with 116 tools and 6 workflow prompts for ontology engineering, validation, comparison, alignment, data ingestion, and exploration. All 116 tools are advertised in a default build; 8 of them require an optional Cargo feature (embeddings, plugins, postgres or duckdb) and return an error without it.")
     }

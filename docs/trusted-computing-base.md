@@ -437,9 +437,17 @@ central guard is the fix; the property test is what found the sites.
 ## What is still trusted after all of this
 
 This is the part that matters. Nothing below is verified. Each entry says what would close it. It
-was ten entries on 14 September 2026 and it is six, because four of them were closed rather than
-re-worded: the two that rested on `oxrdf` and `oxiri`, the premise order, and the DL name guard's
-coverage.
+was ten entries on 14 September 2026 and the first six below are what survived, because four of the
+ten were closed rather than re-worded: the two that rested on `oxrdf` and `oxiri`, the premise
+order, and the DL name guard's coverage.
+
+Entries 7, 8 and 9 are new on 15 September 2026, and they are not a regression. They are the
+foundation this page had been standing on without naming. Everything above concerns the gap between
+the Rust engine and the Lean side. Entries 7 to 9 concern what sits UNDER the Lean side, which is
+the single largest trusted component in the system and was missing from a document whose whole
+purpose is to enumerate what is trusted. A page that lists `oxrdf`'s escaping as a trust assumption
+and omits the proof checker that every theorem on this page depends on was understating its own
+trusted base by a wide margin, and the omission is recorded here rather than quietly repaired.
 
 1. **TCB-6 and TCB-7, that `asserted.tsv` IS the store's contents.** The engine reads the store,
    interns what it reads, and writes the interned strings back out. Nothing between the store and
@@ -491,7 +499,119 @@ coverage.
    file I/O, the roughly fifty thousand lines of `src/`. The Kani harnesses cover five pure
    functions totalling about sixty lines. That is the correct proportion to report: this work
    verified the joint, not the machine.
+7. **The Lean 4 kernel's soundness.** `lean/lean-toolchain` pins `leanprover/lean4:v4.33.1`. Every
+   theorem in `lean/`, all 15,288 lines of it across 51 files, is a claim only under the assumption
+   that that kernel accepts exactly the proofs that are proofs. Nothing in this repository checks
+   the kernel. The kernel is a C++ program of several thousand lines implementing a type theory
+   whose metatheory is studied but whose implementation carries no machine-checked correctness
+   proof, and it is the LAST thing in the chain: if it accepts a bad term, no test above it can
+   tell, because every test above it is itself stated as a Lean theorem checked by the same kernel.
+   The pin is not arbitrary and the version is worth knowing. v4.33.1 is the release that closed a
+   run of genuine kernel soundness bugs found in the July and August 2026 bug hunt, among them
+   `is_def_eq` caching that was not order independent and an `is_prop` check that did not require a
+   sort. That history is the argument for taking this entry seriously rather than against it: the
+   kernel had exploitable soundness defects two months ago, they were found by people writing bogus
+   proofs directly in the export format, and the fix arrived in the version pinned here.
+   *To close it:* re-check the proofs in a checker that is not this kernel. That is a real option
+   today and it is not free. `docs/independent-rechecking.md` investigates it, including a run of
+   this repository's own proofs through an independent Rust checker, and says what it costs.
+8. **The elaborator, the toolchain, and what a green build actually asserts.** `lake build` in
+   `lean/` reports success on 105 jobs with no warnings and no errors. What that sentence means is
+   narrower than it reads. The kernel checks terms; it does not check the source. Between the two
+   sits the elaborator, which turns tactic scripts and notation into terms, and which is a much
+   larger and less scrutinised program than the kernel. A green build is therefore a claim by the
+   Lean toolchain about its own output, evaluated by that same toolchain, and it says the kernel
+   accepted the terms the elaborator produced. It does not say the elaborator produced terms
+   corresponding to the theorem statements a reader sees, because the STATEMENT is elaborated too.
+   What reduces that surface is real and none of it removes it. `lean/lake-manifest.json` lists
+   zero packages, so the build takes no external dependency and no Mathlib: the trusted Lean code
+   is core Lean plus this directory. `lean/` declares no `axiom`, contains no `unsafe`, no
+   `@[implemented_by]` and no `@[extern]`, which are the usual routes for smuggling an unchecked
+   fact into an environment. And the toolchain is version pinned. What is NOT pinned is the
+   toolchain's bytes: `lean-toolchain` names a version, elan resolves that name over the network at
+   build time, and there is no checksum in this repository that would notice a substituted binary.
+   CI compounds this by using `leanprover/lean-action@v1` with `use-github-cache: true`, so the
+   thing that runs in CI is a cached artefact this repository does not hash.
+   *To close it:* the elaboration gap is closed by replaying the compiled environment through the
+   kernel from a clean state, which is what the `leanchecker` binary shipped in the toolchain does
+   and which this repository does not run in CI. Running it was tried and it passes, and the
+   details and its limits are in `docs/independent-rechecking.md`. The toolchain-bytes gap is
+   closed by hash-pinning the toolchain, which nothing here does.
+9. **The axiom footprint, and the 44 theorems no pin reaches.** The repository standardises on
+   `[propext, Classical.choice, Quot.sound]`. Trusting those three means trusting propositional
+   extensionality, the axiom of choice in its Lean form, and the soundness of quotient types.
+   They are the standard classical axioms of Lean's ambient theory, they are believed consistent,
+   and that belief is a result about a model of the theory that is not proved anywhere in this
+   repository and is not the kind of thing this repository could prove about itself.
+   The pin is ENFORCED, not conventional, and it is worth saying exactly how. `lean/` carries 121
+   `#print axioms` lines and every single one of them sits under a `#guard_msgs` docstring, so a
+   footprint that stops matching is a build ERROR rather than a message nobody reads. That was
+   tested rather than assumed, on this toolchain, one case at a time:
 
+   | case | what `lean` does |
+   |---|---|
+   | a pin that no longer matches | error, exit 1 |
+   | a `sorry` under a pin | error, exit 1, footprint reported as `[sorryAx]` |
+   | a `native_decide` under a pin | error, exit 1 |
+   | a `sorry` with no pin above it | WARNING, exit 0 |
+
+   The last row is the one that matters and it is taken up below. The `native_decide` row needs a
+   caveat and a correction. On this toolchain `native_decide` produces a per-declaration axiom named
+   `<theorem>._native.native_decide.ax_1_1` and not the `Lean.ofReduceBool` that several comments
+   in `lean/` still name, so the prose is stale even though the guard still catches it. And
+   `native_decide` is banned by the pin and by convention only: no grep, test or CI step anywhere
+   in this repository refuses the token, so it is caught where a pin reaches and nowhere else.
+   Where a pin does not reach is the real content of this entry. The pins are transitive, so one
+   pin on a top-level soundness theorem covers every lemma under it, and that covers most of the
+   directory. It does not cover all of it. Importing all 42 modules and taking the transitive
+   closure of every pinned name covers 506 of the 1,178 theorem-level constants, and leaves 44
+   HAND-WRITTEN theorems that no pin reaches: 18 in `OOCert/HornWitness.lean`, 10 in
+   `OOCert/RefuteWitness.lean`, 8 in `OOCert/Mixed.lean`, 3 in `Shacl/Witness.lean`, 2 in
+   `OOCert/W3CWitness.lean`, and one each in `Fol/Check.lean`, `Shacl/Agreement.lean` and
+   `Shacl/Eval.lean`. A `sorry` in any of those is a WARNING and `lake build` still exits 0, which
+   was also tested rather than assumed. That is the exact hole, and its shape is worse than its
+   size: most of the 44 are the `rejects_*` theorems and the agreement and witness results, which
+   is to say the negative and cross-checking claims. Those are precisely the theorems whose whole
+   value is demonstrating that the checker says no, and a vacuous one would not announce itself.
+   `Shacl.the_specification_agrees_with_both_runs` is in that list.
+   Several comments in this repository state the stronger claim and are wrong to. The `lean` job in
+   `.github/workflows/ci.yml` says the tripwire "fails the build on any `sorry`", and `Dl/All.lean`
+   and `Fol/All.lean` say a `sorry` "anywhere" fails `lake build`. The accurate sentence is that a
+   `sorry` fails the build wherever a pin reaches it, which is most of the directory and not all of
+   it. Those comments are left as they are here rather than edited, because correcting the prose
+   without closing the hole would make the gap harder to find, and the hole is what wants closing.
+   The good news is measured rather than assumed too. Collecting the axiom footprint of all 1,178
+   theorem-level constants, pinned or not, returns zero theorems using anything outside the three.
+   An independent Rust checker reached the same verdict from the other side and by a different
+   route: given the whole export and an allowlist, it reported `sorryAx` and `Lean.ofReduceBool`
+   among the axioms it SKIPPED as declared-but-unused, and accepted. So the hole is latent, not
+   live, TODAY.
+   One trap found while measuring this, recorded because it is the lakefile's own lesson repeating.
+   `lean/OOCert.lean` does not import `OOCert.Refute` or `OOCert.RefuteWitness`; those modules
+   reach the build only as dependencies of the `oo-refute` executable. Anything that walks the
+   library roots and expects to see the whole directory will silently miss the refutation layer and
+   13 of the 121 pins, which is what happened on the first pass here.
+   *To close it:* pin the remaining 44, or replace the hand-written pins with a check over the
+   whole environment, which is a dozen lines against `Environment.constants` and is what produced
+   the numbers above. Nothing closes the trust in the three axioms themselves, and nothing should
+   pretend to.
+
+## What the institution layer does not move
+
+`lean/OOCert/Institution.lean` and the four modules with it prove that two translations between
+logics satisfy their satisfaction conditions, and decision 0009 says what that buys. It buys nothing
+on this page, and the reason is worth stating because the two things sound alike.
+
+The comorphism proved in `lean/OOCert/InstitutionFol.lean` runs between two LEAN developments: the
+RDF interpretations of `OOCert/Semantics.lean` and the first-order structures of
+`Fol/Semantics.lean`. It is not `src/tptp.rs`'s translation and says nothing about it. Decision 0005
+item 2 is unchanged: the correspondence between the Rust emitter and the Lean translation is pinned
+by hand-computed tests and is not proved, and the emitted file still says so.
+
+The layer has no run-time part at all. It writes no file, reads no file, produces no certificate and
+no verdict word, and no executable imports it, which is why it is a separate `lean_lib` from
+`OOCert`. Nothing in the property list above changes, no `TCB-*` identifier is retired, and the
+count of trusted properties is what it was.
 The honest summary is that the trusted base used to be four things: the serialisation of a term, the
 identity of the asserted graph, the completeness of the derivation record, and the identity of the
 rule table. The serialisation of a term is no longer one of them: it is enforced here and proved
@@ -505,3 +625,12 @@ grammar, which is a different kind of risk from an engine misreporting its own r
 about a function, which is why no amount of bounded model checking reaches them, and both are
 property-tested end to end against the store. The engine is not verified. It was never going to be,
 and a report that read as though it were would be the same defect this project exists to attack.
+
+That count is about the CERTIFICATE BOUNDARY and it should never be quoted as though it were the
+whole trusted base. Under the boundary sit entries 7 to 9, and they do not shrink with more property
+tests, because they are not properties of this repository's code at all. They are the proof checker,
+the toolchain that runs it, and the axioms the proofs are stated over. A certificate accepted by
+`oo-cert` is worth exactly the soundness of the Lean kernel that checked `certificate_sound`, and
+this page should say so in the same breath as it says what the engine does not prove about itself.
+What can be done about that layer, what it would cost, and what was actually run, are in
+[docs/independent-rechecking.md](independent-rechecking.md).

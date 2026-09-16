@@ -64,6 +64,47 @@ All notable changes to Open Ontologies are documented here.
   already said the numbers belong in the test output, three sections before writing them out.
 
 ### Changed
+- **A certified verdict is now unconstructible without the evidence, so laundering one is a
+  compile error rather than a test failure.** The discipline that `model_checked` requires
+  `checker_exit == 0`, that `preserved_checked` requires an accepted `oo-cert` run, and that
+  `checked` requires a zero exit code off a Lean binary, used to be carried by comments saying
+  "the ONE place this word is produced" and by tests that walked a serialised report looking for
+  a checked word with nothing behind it. Those tests were right and they still run. They were
+  also incomplete by construction: a new module that formatted `"model_checked"` in a new place
+  passed every one of them until somebody noticed and pointed a guard at it. `src/verdict.rs`
+  now holds the whole certified vocabulary. `Certified` has a private field and no constructor,
+  `CheckerRun` has private fields and one constructor that SPAWNS the checker and reads its exit
+  status, and `CheckerRun::accepted` is the only function in the crate that returns a `Certified`
+  and returns `None` on any non-zero exit. Every certified variant carries one:
+  `FolVerdict::ModelChecked`, `GoalVerdict::PreservedChecked`,
+  `GoalVerdict::PreservedUnderSuppliedRulesChecked`, `ClosureVerdict::Checked`,
+  `Warrant::Checked`, `CheckerStatus::Accepted` and `OwlReading`. The theorem name travels
+  inside the token rather than beside it, so `OOCert.certificate_sound`,
+  `OOCert.horn_certificate_sound` and `Fol.satisfiable_of_check` are unspeakable on a path that
+  did not run a checker either. Six `compile_fail` doctests run under `cargo test` and fail if
+  any of that stops being true; the induced error is E0451, "field `theorem` of struct
+  `Certified` is private". None of these types implements `Deserialize`, because parsing
+  `"preserved_checked"` out of somebody else's JSON is not the same act as earning it and a
+  derive would be a public constructor for the certified state; reports are read back as
+  `serde_json::Value`, which is what every caller already did. The WIRE FORMAT is unchanged:
+  `Serialize` is hand-written to emit the same bare string the derive emitted, verified
+  byte-for-byte against a binary built from the previous commit over `preserve`, `fol-model`,
+  `closure-diff`, `reason`, `reason --rules`, `rules-import` and three MCP `tools/call`
+  responses.
+- **The MCP server no longer advertises eight tools it cannot serve.** `onto_plugin_list`,
+  `onto_plugin_call`, `onto_embed`, `onto_hnsw_build`, `onto_search`, `onto_similarity`,
+  `onto_import_schema` and `onto_sql_ingest` each have a body that is
+  `#[cfg(not(feature = ...))] { return "Compiled without X feature" }`, so on a default build
+  every call to one of them fails for every input. They were listed in `tools/list` anyway: a
+  client read a description about embeddings or a Postgres URL, called the tool, and got an
+  error that had nothing to do with what it asked. `toolfilter::remove_unavailable` now drops
+  their routes before the operator's own filter and independently of its mode, so a default
+  build advertises 106 of the 114 registered tools and says which eight are missing and which
+  Cargo feature brings each one back. The server's instructions string used to state two
+  hand-typed totals, 114 and 112, neither of which was the number the router advertised, and to
+  promise that the eight WERE advertised; it is formatted from `tool_router.list_all()` now, so
+  there is no literal left to go stale.
+
 - **The bridge to the specification was prose. It is a theorem.** `lean/OOCert/Conforming.lean`
   formalises an OWL 2 RDF-Based interpretation in core Lean as `OOCert.Interpretation`: the parts
   of RBS Table 5.1, with `IR` as the carrier type so that the table's `IP ⊆ IR`, `IC ⊆ IR`,
@@ -187,6 +228,57 @@ All notable changes to Open Ontologies are documented here.
   answer is known on paper. See
   [decision 0009](docs/decisions/0009-a-conclusion-names-the-axioms-responsible-for-it.md) and
   docs/explanation.md.
+- **Common Logic has three dialects and this engine emitted one, so `fol --format cgif` writes a
+  second.** ISO/IEC 24707 defines CLIF, CGIF and XCL, and ISO/IEC 21838-1 clause 4.3 names all
+  three as qualifying; emitting CLIF and calling the result Common Logic support was a partial
+  claim nothing said out loud. `onto_fol_export` now takes `cgif` as a fifth serialiser over the
+  SAME translation, so the file is not a second reading of the ontology. What is emitted is **core
+  CGIF** (Annex B.2, not the extended B.3 syntax: no type labels, no `@every`, no `[If: … [Then:
+  …]]`), in the sub-dialects clause 7.1.1 names: compact (no sequence markers, which clause 6.5
+  says is what takes Common Logic past first order), unstructured and single domain, plus no `#?`
+  type label and no actor. The encoding is the standard's own — `[]` is truth and `~[]` is falsity
+  (B.2.5, B.2.8), conjunction is juxtaposition with no operator (B.2.6), an equation is a
+  coreference concept `[: ?X0 ?X1]` because CGIF has no `=`, and implication, disjunction and the
+  universal are B.3.5's and B.3.7's own rewrites into core. Every binder is given a context of its
+  own, because `trAx` reuses variable indices between an axiom's antecedent and its consequent and
+  B.2.10 forbids two defining labels with one name in one context; renumbering was not available,
+  since `owl-lean` uses named variables precisely so that freshness is a proof obligation.
+  **Conformance here is pinned by our own checker and not by an independent parser, and the two
+  are not called the same thing.** The CLIF claims in `docs/first-order-export.md` rest on two
+  external parsers disagreeing with us in recorded ways; no installable CGIF parser exists, so the
+  CGIF claims rest on a lexer, parser and syntax checker transcribed from Annex B's EBNF in
+  `tests/fol_cgif_export_test.rs`, plus a round trip of every sentence back to the `Form` it came
+  from, exact up to the two rewrites core CGIF forces. A comment that would close itself early is
+  REFUSED with the clause and the reason rather than rewritten, which is the rule
+  `UnwritableSymbol` already follows; that path is reachable and an earlier draft of the CGIF
+  header tripped it on every run. XCL is still not emitted and the report says so in
+  `common_logic_dialects_not_emitted`.
+- **`onto_dlp_boundary`: which of YOUR axioms the rule table can actually see.** `onto_rules_import`
+  already polices the Description Logic Programs boundary on the way IN, refusing a non-Horn SWRL
+  or RIF construct by name and count. Nothing policed the other direction: a user could load an
+  ontology, reason, and receive a certificate the Lean checker accepts, with nothing anywhere
+  saying how much of the TBox the rules ever read. The certificate is sound about the fragment the
+  rules could see and silent about the rest, which is the same assurance-laundering shape with the
+  loss moved from the rule table to the ontology. The new tool classifies every schema axiom and
+  **keeps two failures apart that a single "not covered" bucket would destroy**: an axiom
+  `outside_the_fragment` is not Horn and no implementation effort changes that (disjunction in the
+  consequent, existential in the head, cardinality restriction, negation in the antecedent, each
+  listed per axiom with the reason), while an axiom `inside_the_fragment_but_a_rule_is_not_implemented`
+  IS Horn, has an OWL 2 RL rule, and is invisible only because this engine does not run it —
+  `owl:hasKey` (`prp-key`) and `owl:propertyChainAxiom` (`prp-spo2`) are the two that bite. One is
+  a rewrite of the ontology and the other a patch to `src/reason.rs`, and merging them tells the
+  reader to do the wrong thing. An axiom that splits soundly is `partially_inside`, and the
+  asymmetry is checked: a conjunction splits in a consequent and NOT in an antecedent, because
+  dropping a conjunct from a rule body makes it fire more often, which is unsound rather than
+  weaker. Where the abstract DLP line and OWL 2 RL's differ the difference is named rather than
+  smoothed over: `owl:ReflexiveProperty` is a Horn clause OWL 2 RL excludes as an axiom form, and
+  it carries `horn_but_outside_owl2_rl`. The figure six other files state as "29 of OWL 2 RL's 78
+  rules" is now DERIVED rather than typed: `reason::RULES_EVALUATED` is the 29, a test greps
+  `src/reason.rs` for its own `emit` calls and fails if the two disagree, and the 78-rule
+  transcription is cross-checked against the independently written list of seventeen
+  false-concluding rules already in that file — a list that said SIXTEEN until it was checked
+  against the W3C source. Every triple in the store lands in an axiom bucket or in a counted
+  `not_classified` one.
 
 - **The cross-kernel corpus was one step deep, and now goes to nineteen.**
   `tests/cross_kernel_differential_test.rs` ran the Lean and the Isabelle
@@ -482,6 +574,23 @@ All notable changes to Open Ontologies are documented here.
   pair of theorems rather than as a remark.
 
 ### Fixed
+- **`src/server.rs` disagreed with itself about the tool count, and the gate that exists to catch
+  that covered four of the five places it is written.** The MCP instructions string said "MCP
+  server with 114 tools" and, one sentence later, "All 112 tools are advertised in a default
+  build". `total_claims` in `tests/readme_claims_test.rs` covered the first and no shape covered
+  the second, so the file contradicted itself while the suite stayed green. The fifth shape is now
+  in `no_stale_tool_count_survives_anywhere`.
+- **`docs/first-order-export.md` said nobody here had read ISO/IEC 24707:2018, and the reason it
+  gave for that was wrong too.** The page said downloading it "needs a free ISO account, which is
+  an owner action". It does not: 24707:2018 is in ISO's *Publicly Available Standards* list behind
+  a click-through licence and no account at all. It has now been read (sha256
+  `e920b0c43a932e1ad0e2c76d3501f56e2b11ee5547265b14aeb69a5866eae5e3`), which retires two hedges
+  the page carried. A.4.2's exactly-conformant sentence is in the second edition VERBATIM, so the
+  CLIF claim no longer needs its first-edition caveat, and the sentence saying nothing was claimed
+  about the second edition is gone rather than left standing. The 2007 first edition is no longer
+  in the PAS list, so the URL Sowa and Wikipedia cite now fails. Neither part of ISO/IEC 21838 has
+  been read and every claim sourced to those is still scoped to the text actually read.
+
 - **Four claims the certificate layer made and had not earned, withdrawn rather
   than edited away.** (1) Soundness here does **not** carry over to the OWL 2
   Direct Semantics read through triples; nobody verified it, and it is false as

@@ -21,8 +21,10 @@ perverse.
 | Mace4 | Finite model finder | Same. Its output is checkable; Prover9's is not. |
 | Prover9 | First-order prover | Declined. Unmaintained since 2011, refutations uncheckable. |
 | cvc5 | SMT solver | Not installed. Same role as Z3 when it is. |
-| Isabelle/HOL | Proof assistant | Built, as an independent second kernel. It disagreed with the Lean. Below. |
-| Dedukti | Logical framework | Declined. Reasons below. |
+| Isabelle/HOL | Proof assistant | Built, as an independent second FORMALISATION. It disagreed with the Lean. Below. |
+| Dedukti, Lambdapi | Logical framework | Declined twice, for portability and for re-checking. Reasons below. |
+| lean4export, nanoda | Lean export and external checker | Investigated, RUN, not adopted. `docs/independent-rechecking.md`. |
+| leanchecker | Ships in the Lean toolchain | Passes here. Not in CI yet. Not an external verifier. |
 | Duper, lean-smt | Lean automation | Declined. Both require Mathlib. |
 | Aeneas with Charon | Rust to Lean | Declined. Subset does not contain this codebase. |
 | Verus, Creusot, Prusti | Rust verification | Declined. Each needs the code rewritten in its subset. |
@@ -32,6 +34,8 @@ perverse.
 | SMT-LIB 2 | Interchange | Under construction. |
 | RIF Core, SWRL | Rule languages | Front ends under construction. |
 | CertifyingDatalog | Prior art | Not a dependency. The Horn layer is our analogue. |
+| Hets | Heterogeneous tool set | Declined as a dependency. Its institution and comorphism core is reimplemented small and machine-checked here. Below. |
+| DOL | Specification language | Parsing deliberately deferred. Decision 0009 says why. |
 
 Anything marked under construction is on an unmerged branch and is not a capability yet. This
 document will be wrong the moment that changes, so treat the branch state as authoritative.
@@ -154,6 +158,16 @@ Isabelle's kernel would give this project kernel-checked refutations, which it l
 of a second proof assistant in the trust surface for every user rather than for a cross-check.
 That trade is still not being made, and the reasoning has not changed.
 
+One thing this bought and one thing it did not, because the two get confused. It bought independence
+of the SPEC READING: two definitions written from one standard, disagreeing where the standard was
+silent. It did NOT buy independence of the KERNEL. The Lean proofs are still checked by exactly one
+program, and the Isabelle proofs by exactly one other, and neither re-checks the other's proofs
+because they are proofs of different theorems about different definitions. Nothing anywhere
+re-checks a Lean proof.
+[docs/independent-rechecking.md](independent-rechecking.md) is the investigation of what that would
+take, including an export of this repository's own Lean and a run through an independent Rust
+checker.
+
 ## Dedukti, and why not
 
 Dedukti is a logical framework designed so that proofs from different systems can be expressed in one
@@ -164,6 +178,19 @@ libraries in several systems and want them to talk. We hold small certificates i
 by one small kernel, and adding a framework layer would enlarge the trusted base to buy portability
 nobody has asked for. If a second consumer of our certificates ever appears, this is the first thing
 to revisit.
+
+That paragraph answers the PORTABILITY question and it still stands. It does not answer the
+RE-CHECKING question, which is whether a Lean proof could be checked again in a different
+foundation, and that was investigated separately on 15 September 2026 with a different and firmer
+answer: no, not today, for reasons that are structural rather than a matter of polish. The only
+Lean-to-Dedukti translator pins Lean v4.18.0-rc1 against the v4.33.1 pinned here, needs a personal
+fork of Dedukti to terminate, and stubs out the constants it cannot handle, which converts the hard
+cases into postulates and would hand back a green result with nothing behind it. The onward step
+into Rocq or Agda does not exist: Lambdapi's exports run before elaboration and discard rewrite
+rules, and a Dedukti encoding of Lean's type theory IS a rewrite system. Evidence, versions and the
+authors' own statements are in
+[docs/independent-rechecking.md](independent-rechecking.md), which also records what DOES work,
+which is `lean4export` plus an independent checker written in Rust.
 
 ## Lean automation we do not use
 
@@ -205,6 +232,40 @@ assumptions the certificate carries and never facts it establishes.
 CertifyingDatalog, presented at ITP 2025, is the closest published prior art and is not a dependency.
 It certifies Datalog derivations in Lean; our Horn layer is the analogue reached independently, and the
 comparison is worth making in any write-up rather than avoided.
+
+## Hets, institutions, and the part that was worth taking
+
+The Heterogeneous Tool Set is the engineering that goes with Goguen and Burstall's institutions. Its
+value is breadth: dozens of logics, and translations between them, in one program. Its comorphisms
+are Haskell type-class instances supplying a signature map, a sentence map and a model map, and the
+satisfaction condition that makes those three a translation of logics is discharged in the
+literature rather than by the program. Decision 0005 already said as much, "Hets proves its
+OWL-to-CASL comorphism on paper", and nobody here has read the Hets source, so that is a statement
+about its published design and not a code review.
+
+It is declined as a dependency for the obvious reasons and one that matters more. The obvious ones:
+it is a Haskell program, nothing in this CI builds Haskell, and running it would add a large
+unverified tool to the trust surface. The one that matters: what it would add is exactly the thing
+this project does not accept on testimony. An unchecked satisfaction condition is the same category
+of claim as an unchecked refutation, and decision 0005 already rules on that category.
+
+What was taken is the idea, which is public and is the only part that carries weight.
+`lean/OOCert/Institution.lean` and `lean/OOCert/Comorphism.lean` state an institution and a
+comorphism in core Lean with the satisfaction condition as a FIELD, so neither can be constructed
+without a proof of it, and `lean/OOCert/InstitutionRdf.lean` and `lean/OOCert/InstitutionFol.lean`
+discharge it for three institutions and two comorphisms built out of model classes this repository
+already had. That is three logics against Hets's dozens, and it is three logics whose translations
+are machine-checked rather than argued. The trade is breadth for evidence and it is the same trade
+this project makes everywhere else.
+
+Reflection is kept apart from preservation in the types, because the two are different theorems and
+only the first is free. `lean/OOCert/InstitutionWitness.lean` exhibits a comorphism between two of
+these institutions that preserves entailment and provably does not reflect it, so the separation is
+measured here rather than warned about.
+
+DOL, the language for saying "interpret this specification into that one along this comorphism", is
+not parsed and will not be until there is more than one proved comorphism for it to distribute over.
+Building the notation before the table it indexes would be a front end onto two rows.
 
 ## Interchange formats
 
