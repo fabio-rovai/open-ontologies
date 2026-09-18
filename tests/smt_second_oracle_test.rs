@@ -380,17 +380,26 @@ fn cvc5_prints_a_structure_after_unknown_and_the_checker_rejects_it() {
         .find(|l| matches!(*l, "sat" | "unsat" | "unknown"))
         .unwrap_or("<none>");
 
-    if status != "unknown" {
-        // cvc5 got better, or the default strategy changed. That is a real
-        // result and not a failure, but it must be SEEN rather than pass as a
-        // green tick over a trap nobody re-measured.
-        eprintln!(
-            "NOTE: cvc5 answered {status:?} where 1.3.4 answered `unknown` on this problem. \
-             The `ingest only on sat` rule in fol_solve::attempt is unaffected, but the \
-             measurement in src/fol_model.rs's cvc5 module is now stale and should be redone."
-        );
-        return;
-    }
+    // cvc5 got better, or the default strategy changed. This used to print a
+    // note and return, which is a green tick over a trap nobody re-measured,
+    // and a note on a passing run is read by nobody. It fails instead, for a
+    // reason specific to how cvc5 reaches this machine: CI pins 1.3.4 by URL
+    // AND by sha256, so the pinned solver cannot change underneath this test.
+    // The only ways here are a deliberate bump of that pin, which is exactly
+    // when the measurement must be redone, and a developer running a different
+    // cvc5 locally, who should be told rather than reassured. Same discipline
+    // as `the_fixture_problem_is_what_this_exporter_emits`: a recorded
+    // measurement that no longer describes the tool is re-recorded, not
+    // tolerated.
+    assert_eq!(
+        status, "unknown",
+        "cvc5 answered {status:?} where 1.3.4 answered `unknown` on this problem, so this test \
+         no longer measures the trap it exists for. The `ingest only on sat` rule in \
+         fol_solve::attempt is unaffected and nothing is unsound. What is stale is the \
+         measurement in src/fol_model.rs's cvc5 module: re-record it against this cvc5, and \
+         update the pinned version and sha256 in .github/workflows/ci.yml to match whatever \
+         you measured."
+    );
 
     // It printed a structure anyway. Prove it, rather than asserting it.
     assert!(
