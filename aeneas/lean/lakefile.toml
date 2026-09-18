@@ -1,0 +1,27 @@
+# A SEPARATE Lake workspace, on purpose.
+#
+# `lean/` is core Lean only: no Mathlib, no external package, and every theorem
+# pinned to `[propext, Classical.choice, Quot.sound]` by a `#guard_msgs`-checked
+# `#print axioms`. This directory cannot live under that rule and does not
+# pretend to. Aeneas's Lean backend pins `leanprover/lean4:v4.31.0` and its
+# support library `require`s Mathlib, so importing it here would drag nine
+# packages and a different Lean into a build whose value is that it has none.
+#
+# So: its own `lean-toolchain`, its own manifest, its own `lake build`, and NO
+# path from `lean/lakefile.toml` to this one. `docs/aeneas-boundary.md` records
+# the trust regime this workspace runs under and how it differs.
+name = "ooboundary"
+version = "0.1.0"
+defaultTargets = ["OOBoundary"]
+
+# Pinned to the exact Aeneas commit that generated `OOBoundary/Generated.lean`.
+# A different commit is a different translation, and the whole claim here is
+# that the Lean model is the model of the Rust that was translated.
+[[require]]
+name = "aeneas"
+git = "https://github.com/AeneasVerif/aeneas"
+subDir = "backends/lean"
+rev = "505b6ca35217e7be5c96c3e2f8045edfbdf47291"
+
+[[lean_lib]]
+name = "OOBoundary"
