@@ -2730,8 +2730,25 @@ fn prebinding_violation(query: &str, var: &str) -> Option<String> {
                 Some(w) => &upper[at..at + w],
                 None => &upper[at..],
             };
-            if !head.contains('*') && !marks.iter().any(|m| head.contains(&m.to_ascii_uppercase())) {
-                return Some("a sub-SELECT that does not project the pre-bound variable".to_string());
+            // `SELECT *` used to be accepted here and must not be. A
+            // subquery's `*` projects the variables that subquery BINDS, and
+            // the pre-bound variable is bound outside it, so the substitution
+            // does not reach inward and the inner reference is simply unbound.
+            // The W3C suite settles it: `sparql/pre-binding/pre-binding-006`
+            // is exactly `{ SELECT * WHERE { FILTER ($this = ...) } }` and its
+            // expected result is `sht:Failure`, a refusal rather than a
+            // verdict.
+            //
+            // Accepting it produced a FALSE CLEAN rather than a wrong count.
+            // The query found no solution because `$this` was unbound, the run
+            // reported `conforms: true` with an empty `skipped_constraints`,
+            // and nothing in the report said a constraint had gone
+            // unevaluated (#192).
+            if !marks.iter().any(|m| head.contains(&m.to_ascii_uppercase())) {
+                return Some(
+                    "a sub-SELECT that does not project the pre-bound variable, and `SELECT *` does not project it because a subquery's `*` is what that subquery binds"
+                        .to_string(),
+                );
             }
             from = at + 6;
         }
