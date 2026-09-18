@@ -1,0 +1,3 @@
+<http://ex.org/Northwind>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://ex.org/SanctionedJurisdiction>
+<http://ex.org/SanctionedJurisdiction>	<http://www.w3.org/2000/01/rdf-schema#subClassOf>	<http://ex.org/HighRiskSupplier>
+<http://ex.org/HighRiskSupplier>	<http://www.w3.org/2000/01/rdf-schema#subClassOf>	<http://ex.org/NeedsEnhancedDueDiligence>
