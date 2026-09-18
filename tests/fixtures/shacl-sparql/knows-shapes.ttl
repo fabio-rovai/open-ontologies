@@ -1,0 +1,13 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ex: <http://example.org/> .
+ex:PersonShape a sh:NodeShape ;
+    sh:targetClass ex:Person ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "person has an acquaintance" ;
+        sh:prefixes ex: ;
+        sh:select """
+            SELECT $this
+            WHERE { $this <http://example.org/knows> ?x . }
+        """
+    ] .
