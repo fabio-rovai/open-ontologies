@@ -12,9 +12,9 @@ and whose benefit is not gets dropped the first time it is inconvenient.
 | [0006](0006-a-model-is-a-certificate-and-a-refutation-is-not.md) | A model is a certificate, and a refutation is not | Treating an exhausted bounded search as unsatisfiability |
 | [0007](0007-a-slice-preserves-a-conclusion-or-it-does-not.md) | A slice preserves a conclusion, or it does not | A retrieval slice quietly dropping the conclusion it was asked about |
 | [0008](0008-a-binding-is-data-and-evidence-admits-one-reading.md) | A binding is data, and evidence admits one reading | A certificate format admitting two readings, so two checkers disagree |
-| [0012](0012-a-blank-line-is-a-line-or-it-is-not.md) | A blank line is a line, or it is not, and the format never said which | The same failure again, found by a third kernel and still OPEN: two checkers reading one file differently because nobody wrote down what an empty line is |
 | [0012](0012-concurrency-lives-below-the-certificate.md) | Concurrency lives below the certificate, and a proof cannot follow it there | Adopting a program logic for a hazard that lives in a dependency, and calling the result assurance |
 | [0014](0014-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md) | A verifier that cannot read the code verifies a rewrite | Counting a green verifier as evidence about code it never read |
+| [0015](0015-a-blank-line-is-a-line-or-it-is-not.md) | A blank line is a line, or it is not, and the format never said which | The same failure again, found by a third kernel and still OPEN: two checkers reading one file differently because nobody wrote down what an empty line is |
 
 There is no 0004. The decision now numbered 0006 was drafted as 0004 on a branch that never merged,
 so the number never reached `main`. It is left as a hole rather than reused, because a reused number
@@ -50,7 +50,7 @@ Run beside the Lean checker over 1,593 rows it agreed on 1,269 and disagreed on 
 nothing unexplained: Lean skips an empty line in all three input files and Rocq refuses one. Neither
 is unsound, because an empty line is not a step, not a triple and not a rule. It is the same category
 of defect as decision 0008's and it is
-[decision 0012](0012-a-blank-line-is-a-line-or-it-is-not.md), which is OPEN rather than closed,
+[decision 0012](0015-a-blank-line-is-a-line-or-it-is-not.md), which is OPEN rather than closed,
 because which side should move is a question about the format and not about whoever wrote the third
 checker.
 

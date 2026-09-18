@@ -216,7 +216,7 @@ written. That part corroborates rather than discovers, and it is discounted acco
 
 Run beside the Lean checker over 1,593 rows the two agreed on 1,269 and disagreed on 324, with one
 cause and nothing unexplained: **Lean skips an empty line and Rocq refuses one**, in all three input
-files. Neither is unsound. [Decision 0012](decisions/0012-a-blank-line-is-a-line-or-it-is-not.md) is
+files. Neither is unsound. [Decision 0012](decisions/0015-a-blank-line-is-a-line-or-it-is-not.md) is
 OPEN, because which side should move is a question about the format.
 
 The more useful thing the comparison produced was not the divergence. A certificate citing rule

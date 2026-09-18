@@ -42,7 +42,7 @@
 //! one carriage return is refused by both. So the leniency does not cover the case that
 //! motivates leniency, which is a file checked out with CRLF endings, whose blank lines
 //! are `\r` and not empty. See
-//! `docs/decisions/0012-a-blank-line-is-a-line-or-it-is-not.md`.
+//! `docs/decisions/0015-a-blank-line-is-a-line-or-it-is-not.md`.
 //!
 //! **One defect, in the NEW checker, found by running it beside the old one.** A
 //! certificate citing rule `99999999999999999999` made the Rocq checker die of a
@@ -672,7 +672,7 @@ fn the_two_kernels_agree_except_on_one_named_cause() {
         divergent > 0,
         "the empty-line divergence reported in this file's header did not reproduce. \
          Either a checker changed, in which case delete the quarantine and say so in \
-         docs/decisions/0012, or the corpus stopped generating empty lines, in which \
+         docs/decisions/0015, or the corpus stopped generating empty lines, in which \
          case the generator is broken."
     );
 }

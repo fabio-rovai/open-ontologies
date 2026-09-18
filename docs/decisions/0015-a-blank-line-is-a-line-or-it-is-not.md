@@ -1,4 +1,4 @@
-# 0012 · A blank line is a line, or it is not, and the format never said which
+# 0015 · A blank line is a line, or it is not, and the format never said which
 
 - **Status**: OPEN. Reported, not closed. Nothing on either side has been changed to make
   the disagreement go away, and nothing should be until somebody decides what the format
