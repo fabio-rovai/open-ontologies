@@ -109,7 +109,7 @@ fn an_unloaded_registry_never_evicts() {
 
     // Well past `idle_ttl_secs`, so nothing below can be explained by the entry still
     // being fresh. There is no entry at all.
-    std::thread::sleep(std::time::Duration::from_millis(1_100 * TTL_SECS as u64));
+    std::thread::sleep(std::time::Duration::from_millis(1_100 * TTL_SECS));
 
     let evicted = registry.evictor_tick().expect("tick must not error");
     assert!(
@@ -134,7 +134,7 @@ fn the_dead_evictor_does_not_touch_the_shared_store() {
     let loaded = some_triples(&graph);
 
     let registry = evictor_registry(&scratch, graph.clone());
-    std::thread::sleep(std::time::Duration::from_millis(1_100 * TTL_SECS as u64));
+    std::thread::sleep(std::time::Duration::from_millis(1_100 * TTL_SECS));
     let _ = registry.evictor_tick().expect("tick must not error");
 
     assert_eq!(
@@ -169,7 +169,7 @@ fn a_registry_with_its_own_entry_does_evict() {
         .expect("load through the registry");
     assert!(graph.triple_count() > 0, "the load must populate the store");
 
-    std::thread::sleep(std::time::Duration::from_millis(1_100 * TTL_SECS as u64));
+    std::thread::sleep(std::time::Duration::from_millis(1_100 * TTL_SECS));
 
     let evicted = registry.evictor_tick().expect("tick must not error");
     assert!(
