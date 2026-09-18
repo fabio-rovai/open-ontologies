@@ -108,7 +108,7 @@ Record rule : Set := Rule { rname : string ; rbody : list tpat ; rhead : tpat }.
     the extracted checker built the number before it looked at it and died of a
     stack overflow, which OCaml reports with exit code 2, which is this tool's
     code for a parse error. So a crash was impersonating a verdict. The
-    differential against the Lean checker found it; see decision 0012.
+    differential against the Lean checker found it; see decision 0015.
 
     R-STEP-2. The binding's keys are BARE variable names with no [?] prefix,
     which is read off [tests/fixtures/horn/good.tsv]: the rule at index 4 uses

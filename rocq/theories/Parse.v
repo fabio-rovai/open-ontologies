@@ -44,7 +44,7 @@
     A crash was wearing a verdict's clothes. [take_tpats] and [take_pairs] now
     recurse on the FIELD LIST and decrement the count in binary, so a count
     larger than the fields available fails as fast as one that is one too big.
-    See R-STEP-3 and decision 0012.
+    See R-STEP-3 and decision 0015.
 
     R-PARSE-6. THE FIELD COUNT MUST BE EXACT. A rule line carries 2 + 3n + 3
     fields for a body of n atoms and no more; a triple line carries exactly 3. A

@@ -167,4 +167,4 @@ corpus built from `tests/fixtures/horn/` and systematic mutations of it, and cla
 every row. THE NUMBERS ARE NOT WRITTEN HERE. `cargo test --test
 rocq_kernel_differential_test -- --nocapture` prints them and is the only place they
 should be read from. What the comparison found, and what it means, is in
-`docs/decisions/0012-a-premise-list-is-evidence-or-it-is-decoration.md`.
+`docs/decisions/0015-a-blank-line-is-a-line-or-it-is-not.md`.

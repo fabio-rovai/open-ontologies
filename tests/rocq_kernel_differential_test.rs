@@ -984,3 +984,88 @@ fn the_fourteen_arms_that_need_a_backward_condition_are_the_fourteen_named() {
     assert_eq!(arms.len() - with_bwd.len(), 13);
 }
 
+/// Every decision record this directory cites exists, and every number it cites is that
+/// record's number.
+///
+/// This exists because it was needed, twice. `rocq/README.md` shipped a link to a record
+/// named `0012-a-premise-list-is-evidence-or-it-is-decoration`, a filename that has never
+/// existed, left over from a draft in which the record had a different name. Then the record
+/// itself was renumbered to 0015 when main gained a 0012 of its own, and three files under
+/// `rocq/` went on citing the old number, which by then named a DIFFERENT decision about
+/// concurrency. A stale cross-reference that resolves to the wrong record is worse than one
+/// that resolves to nothing, because nothing about it looks broken.
+///
+/// The example above is spelled without its `docs/decisions/` prefix ON PURPOSE. This file
+/// is scanned by the check it contains, so a literal path written here as an illustration is
+/// a path the check has to resolve, and the first run of this test failed on its own
+/// docstring. `ci_gate_coverage_test.rs` hit the same wall and solved it by excluding
+/// itself; excluding this file would stop it checking its own citation of 0015, which is a
+/// live reference, so the example is defanged instead.
+///
+/// Two things are checked, and the second is the one the renumber missed: that a cited path
+/// exists, and that a bare "decision NNNN" names a record that exists. Needs no toolchain.
+#[test]
+fn every_decision_this_directory_cites_exists() {
+    let decisions = repo().join("docs").join("decisions");
+    let numbers: std::collections::BTreeSet<String> = std::fs::read_dir(&decisions)
+        .expect("docs/decisions/ must be readable")
+        .filter_map(|e| e.ok())
+        .filter_map(|e| e.file_name().to_str().map(str::to_owned))
+        .filter(|n| n.ends_with(".md") && n.len() > 4)
+        .map(|n| n[..4].to_string())
+        .filter(|n| n.chars().all(|c| c.is_ascii_digit()))
+        .collect();
+    assert!(
+        numbers.len() > 5,
+        "only {} decision records found, so this scan is broken rather than the tree tidy",
+        numbers.len()
+    );
+
+    let mut sources: Vec<PathBuf> = vec![repo().join("tests").join("rocq_kernel_differential_test.rs")];
+    for dir in [repo().join("rocq"), repo().join("rocq").join("theories"), repo().join("rocq").join("driver")] {
+        let Ok(entries) = std::fs::read_dir(&dir) else { continue };
+        for e in entries.filter_map(|e| e.ok()) {
+            let p = e.path();
+            if p.is_file() {
+                sources.push(p);
+            }
+        }
+    }
+
+    let mut bad = Vec::new();
+    for src in &sources {
+        let Ok(text) = std::fs::read_to_string(src) else { continue };
+        let name = src.strip_prefix(repo()).unwrap_or(src).display().to_string();
+
+        // A cited PATH must resolve.
+        for (i, _) in text.match_indices("docs/decisions/") {
+            let rest = &text[i + "docs/decisions/".len()..];
+            let end = rest.find(['`', ']', ')', ' ', '\n', '"']).unwrap_or(rest.len());
+            let file = &rest[..end];
+            if file.ends_with(".md") && !decisions.join(file).exists() {
+                bad.push(format!("{name}: cites docs/decisions/{file}, which does not exist"));
+            }
+        }
+
+        // A bare "decision NNNN" must name a record that exists.
+        let lower = text.to_lowercase();
+        for (i, _) in lower.match_indices("decision ") {
+            let rest = &lower[i + "decision ".len()..];
+            let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+            if digits.len() == 4 && !numbers.contains(&digits) {
+                bad.push(format!("{name}: cites decision {digits}, and no such record exists"));
+            }
+        }
+    }
+
+    bad.sort();
+    bad.dedup();
+    assert!(
+        bad.is_empty(),
+        "Dangling or stale decision references:\n  {}\n\nA reference that resolves to the \
+         wrong record looks fine and says something false, which is why this checks the \
+         number and not only the link.",
+        bad.join("\n  ")
+    );
+}
+

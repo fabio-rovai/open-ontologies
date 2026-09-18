@@ -50,7 +50,7 @@ Run beside the Lean checker over 1,593 rows it agreed on 1,269 and disagreed on 
 nothing unexplained: Lean skips an empty line in all three input files and Rocq refuses one. Neither
 is unsound, because an empty line is not a step, not a triple and not a rule. It is the same category
 of defect as decision 0008's and it is
-[decision 0012](0015-a-blank-line-is-a-line-or-it-is-not.md), which is OPEN rather than closed,
+[decision 0015](0015-a-blank-line-is-a-line-or-it-is-not.md), which is OPEN rather than closed,
 because which side should move is a question about the format and not about whoever wrote the third
 checker.
 
