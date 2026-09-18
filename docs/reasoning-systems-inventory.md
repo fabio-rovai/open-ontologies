@@ -267,7 +267,7 @@ every call from `src/reason.rs` would cross a hand-written, unverified marshalli
 the precise boundary the work exists to shrink. Verifying about 127 lines by adding roughly 8,600
 unverified ones to the trusted base is the wrong direction. The file is kept as a specification and
 as the evidence, it is a gate nowhere, and
-[decision 0013](decisions/0013-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md) carries
+[decision 0014](decisions/0014-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md) carries
 the numbers and the terms.
 
 ## Iris, and the concurrency that is not ours

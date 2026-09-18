@@ -55,7 +55,7 @@ verify:
 # kept because it proves TCB-20's whole-line round trip with no length bound,
 # which neither of those can, and because writing it found that TCB-20 was
 # documented without the hypothesis it needs. See
-# docs/decisions/0013-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md.
+# docs/decisions/0014-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md.
 verify-dafny:
 	./dafny/run.sh
 

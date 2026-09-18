@@ -1,4 +1,4 @@
-# 0013. A verifier that cannot read the code verifies a rewrite
+# 0014. A verifier that cannot read the code verifies a rewrite
 
 Dafny is DECLINED as a dependency. `dafny/RuleTable.dfy` is KEPT, because it earned its place by
 finding something, and because a declined tool with nothing to show for the decision is the kind of

@@ -218,7 +218,7 @@ against a triple that is not the one the engine used.
   comes back identical, which is this hypothesis enforced at the only site that could violate it.
   The correction is therefore to this page and not to the engine. It was found by writing the
   property out in Dafny, where a theorem that needs a hypothesis cannot be stated without one:
-  `docs/decisions/0013-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md`.
+  `docs/decisions/0014-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md`.
 - **TCB-21 (`rules_tsv` and `ruleStr` agree byte for byte).** The Rust doc comment on `rules_tsv`
   asserts this of `OOCert.HornParse.ruleStr`. It matters because the JSON report publishes a SHA-256
   of the Rust rendering, and `oo-horn` decides `entailed` against `entailed_under_supplied_rules` by
@@ -301,7 +301,7 @@ of the code with nothing checking it. Nothing here is unbounded-verified, and a 
 | TCB-15, TCB-16, TCB-17 | property | `src/reason.rs` unit property tests | the interner is private |
 | TCB-18 | **enforced** + property | in the code, and proptest | the engine re-parses what it wrote and refuses on mismatch |
 | TCB-19, TCB-21 | property | proptest, plus the REAL checker | property against a transcription of `OOCert.HornParse` in the test file, because a Lean process per case is not a property test. The transcription's fidelity is then an assumption, so one deterministic test puts the adversarial shapes (a numeric rule name, a non-ASCII one, a `??x` variable, a literal spelled exactly like an IRI as a constant, a blank node, an empty-bodied rule) through `oo-horn check` itself and requires the conditional verdict |
-| TCB-20 | **proved** at a bound + property, and **proved unbounded of a MODEL** | `kani_harnesses::pat_of_and_render_are_inverse_at_2` and `_at_3`, proptest, `dafny/RuleTable.dfy` | `pat_of` and `Pat::render` are inverse over every byte pattern at two and three bytes. This is the harness the previous version of this page reported as NOT TERMINATING. The WHOLE-LINE statement, which Kani cannot afford because asserting over `body.split('\t')` puts CBMC inside `CharSearcher`, is proved with no length bound and no field-count bound in Dafny, OF A REIMPLEMENTATION AND NOT OF THIS RUST. That distinction is the whole of decision 0013 and the row means nothing without it |
+| TCB-20 | **proved** at a bound + property, and **proved unbounded of a MODEL** | `kani_harnesses::pat_of_and_render_are_inverse_at_2` and `_at_3`, proptest, `dafny/RuleTable.dfy` | `pat_of` and `Pat::render` are inverse over every byte pattern at two and three bytes. This is the harness the previous version of this page reported as NOT TERMINATING. The WHOLE-LINE statement, which Kani cannot afford because asserting over `body.split('\t')` puts CBMC inside `CharSearcher`, is proved with no length bound and no field-count bound in Dafny, OF A REIMPLEMENTATION AND NOT OF THIS RUST. That distinction is the whole of decision 0014 and the row means nothing without it |
 | TCB-22 | property | proptest | the rule index is a position in a list rendered in the same order, and no rendered line is empty |
 | TCB-23, TCB-24 | property | proptest | the substitution is re-applied from `rules.tsv` independently of the engine |
 | TCB-25 | **enforced** + property | `name_is_safe`, `src/tableaux.rs` unit property tests | the emitter refuses; `concept_string` token counts and `axiom_line` field counts are sampled |
@@ -496,7 +496,7 @@ trusted base by a wide margin, and the omission is recorded here rather than qui
    `Rc<Option<Rc<Pat>>>`, so reaching it from `src/reason.rs` needs an unverified marshalling layer
    at the exact boundary the exercise exists to shrink. It generates one of the two parsers and not
    the other, because there is no Lean backend, so it does not answer the cross-language question at
-   all. Decision 0013 has the measurements.
+   all. Decision 0014 has the measurements.
 4. **TCB-8 under `InferenceTarget::DefaultGraph`.** Merging conclusions into the default graph is
    what the caller asked for and it loses the distinction; a later certified run over that store is
    conditional on a graph that includes inferences. The named-graph path no longer has this problem.

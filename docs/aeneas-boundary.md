@@ -230,7 +230,7 @@ needs and all it needs.
   half is consequently the one serialisation property on
   `docs/trusted-computing-base.md` that still has no unbounded proof about this
   Rust. Dafny proves it unbounded about a REIMPLEMENTATION, which is a different
-  claim; decision 0013 measures what that is worth.
+  claim; decision 0014 measures what that is worth.
 - **Nothing was silently dropped.** The generated file has no `opaque`
   declaration, no `axiom` and no `sorry`: `grep -n "opaque\|axiom\|sorry"
   aeneas/lean/OOBoundary/Generated.lean` is empty. Aeneas reports eight opaque

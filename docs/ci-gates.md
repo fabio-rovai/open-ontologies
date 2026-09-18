@@ -163,7 +163,7 @@ The other seven files under `python/tests/` have no skip path.
   verify-dafny` is the only thing that does. It is in the same position as Kani and Aeneas and for
   the same reason. It also proves less than either of those: it is a REIMPLEMENTATION of the
   rule-table grammar rather than the shipped Rust, so nothing it reports is evidence about
-  `src/reason.rs`. Decision 0013 says why it is kept anyway.
+  `src/reason.rs`. Decision 0014 says why it is kept anyway.
 - **The Makefile and CI have drifted.** No workflow invokes `make`. `make check`
   is `lint test audit`, and its `test` is a bare `cargo test` with no
   `OO_REQUIRE_FIXTURES`, so a local `make check` is the permissive run whatever
