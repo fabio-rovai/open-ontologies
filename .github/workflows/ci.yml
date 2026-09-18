@@ -36,14 +36,13 @@ jobs:
           components: clippy
       - uses: Swatinem/rust-cache@v2
         with:
-          # Save the build cache even when the job fails. The default
-          # discards it, and the jobs here fail most often on a lint or
-          # a single test leg that runs AFTER everything is compiled, so
-          # the default threw away the expensive half of the work and
-          # made every fix-and-retry pay for it again. Measured on 18
-          # September 2026: two branches failed clippy after a full
-          # build, and the lean job rebuilt a release binary from cold
-          # for twelve minutes on a rerun that changed one line.
+          # Save the build cache even when the job fails. The default discards
+          # it, and these jobs fail most often on a lint or a single test leg
+          # that runs AFTER everything is compiled, so the default threw away
+          # the expensive half of the work and made every fix-and-retry pay for
+          # it again. Measured on 18 September 2026: two branches failed clippy
+          # after a full build, and the lean job rebuilt a release binary from
+          # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
       - name: Build
         run: cargo build
@@ -203,16 +202,14 @@ jobs:
           components: clippy
       - uses: Swatinem/rust-cache@v2
         with:
-          # Save the build cache even when the job fails. The default
-          # discards it, and the jobs here fail most often on a lint or
-          # a single test leg that runs AFTER everything is compiled, so
-          # the default threw away the expensive half of the work and
-          # made every fix-and-retry pay for it again. Measured on 18
-          # September 2026: two branches failed clippy after a full
-          # build, and the lean job rebuilt a release binary from cold
-          # for twelve minutes on a rerun that changed one line.
+          # Save the build cache even when the job fails. The default discards
+          # it, and these jobs fail most often on a lint or a single test leg
+          # that runs AFTER everything is compiled, so the default threw away
+          # the expensive half of the work and made every fix-and-retry pay for
+          # it again. Measured on 18 September 2026: two branches failed clippy
+          # after a full build, and the lean job rebuilt a release binary from
+          # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
-        with:
           # Keyed per leg: they build disjoint dependency trees, and sharing one
           # cache between them would thrash it on every run. Not `matrix.name` —
           # GitHub rejects cache keys containing commas, and the rejection is a
@@ -258,14 +255,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
-          # Save the build cache even when the job fails. The default
-          # discards it, and the jobs here fail most often on a lint or
-          # a single test leg that runs AFTER everything is compiled, so
-          # the default threw away the expensive half of the work and
-          # made every fix-and-retry pay for it again. Measured on 18
-          # September 2026: two branches failed clippy after a full
-          # build, and the lean job rebuilt a release binary from cold
-          # for twelve minutes on a rerun that changed one line.
+          # Save the build cache even when the job fails. The default discards
+          # it, and these jobs fail most often on a lint or a single test leg
+          # that runs AFTER everything is compiled, so the default threw away
+          # the expensive half of the work and made every fix-and-retry pay for
+          # it again. Measured on 18 September 2026: two branches failed clippy
+          # after a full build, and the lean job rebuilt a release binary from
+          # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
       - uses: actions/setup-python@v5
         with:
@@ -337,14 +333,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
-          # Save the build cache even when the job fails. The default
-          # discards it, and the jobs here fail most often on a lint or
-          # a single test leg that runs AFTER everything is compiled, so
-          # the default threw away the expensive half of the work and
-          # made every fix-and-retry pay for it again. Measured on 18
-          # September 2026: two branches failed clippy after a full
-          # build, and the lean job rebuilt a release binary from cold
-          # for twelve minutes on a rerun that changed one line.
+          # Save the build cache even when the job fails. The default discards
+          # it, and these jobs fail most often on a lint or a single test leg
+          # that runs AFTER everything is compiled, so the default threw away
+          # the expensive half of the work and made every fix-and-retry pay for
+          # it again. Measured on 18 September 2026: two branches failed clippy
+          # after a full build, and the lean job rebuilt a release binary from
+          # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
       # --release, not debug: tools/horn_differential.py looks for
       # target/release/open-ontologies and falls back only to PATH.
@@ -438,14 +433,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
-          # Save the build cache even when the job fails. The default
-          # discards it, and the jobs here fail most often on a lint or
-          # a single test leg that runs AFTER everything is compiled, so
-          # the default threw away the expensive half of the work and
-          # made every fix-and-retry pay for it again. Measured on 18
-          # September 2026: two branches failed clippy after a full
-          # build, and the lean job rebuilt a release binary from cold
-          # for twelve minutes on a rerun that changed one line.
+          # Save the build cache even when the job fails. The default discards
+          # it, and these jobs fail most often on a lint or a single test leg
+          # that runs AFTER everything is compiled, so the default threw away
+          # the expensive half of the work and made every fix-and-retry pay for
+          # it again. Measured on 18 September 2026: two branches failed clippy
+          # after a full build, and the lean job rebuilt a release binary from
+          # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
       - name: Certify every shipped ontology through the proved checker
         run: OO_REQUIRE_FIXTURES=1 cargo test --test lean_certificate_test -- --nocapture
@@ -742,14 +736,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
-          # Save the build cache even when the job fails. The default
-          # discards it, and the jobs here fail most often on a lint or
-          # a single test leg that runs AFTER everything is compiled, so
-          # the default threw away the expensive half of the work and
-          # made every fix-and-retry pay for it again. Measured on 18
-          # September 2026: two branches failed clippy after a full
-          # build, and the lean job rebuilt a release binary from cold
-          # for twelve minutes on a rerun that changed one line.
+          # Save the build cache even when the job fails. The default discards
+          # it, and these jobs fail most often on a lint or a single test leg
+          # that runs AFTER everything is compiled, so the default threw away
+          # the expensive half of the work and made every fix-and-retry pay for
+          # it again. Measured on 18 September 2026: two branches failed clippy
+          # after a full build, and the lean job rebuilt a release binary from
+          # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
       - name: Run the suite and hold the ratchet
         run: |
