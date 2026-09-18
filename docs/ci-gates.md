@@ -62,6 +62,7 @@ job invokes the file at all.
 | `lean_refutation_producer_test.rs` | lake + `oo-refute` | `lean` job | **strict** |
 | `lean_mixed_certificate_test.rs` | lake | `lean` job | **strict** |
 | `lean_horn_certificate_test.rs` | lake | `lean` job | **strict** |
+| `demo_asset_claims_test.rs` | lake | `lean` job | **strict** |
 | `lean_fol_model_test.rs` | lake + `oo-folmodel` + z3 | `lean` job | **strict** |
 | `fol_solver_verdict_test.rs` | z3 + `oo-folmodel` + the debug CLI | `lean` job | **strict** |
 | `lean_projection_entailment_test.rs` | lake | `lean` job | **strict** |
