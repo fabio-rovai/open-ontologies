@@ -28,6 +28,7 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 src="$here/RuleTable.dfy"
+interner="$here/Interner.dfy"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
@@ -39,16 +40,17 @@ fi
 echo "== dafny $(dafny --version)"
 echo
 
-echo "== 1. the specification verifies"
+echo "== 1. the specifications verify"
 dafny verify "$src"
+dafny verify "$interner"
 echo
 
 # Each mutation is a `sed`-able edit that removes something the proof depends on.
 # The third column is what it is meant to break, so a reader can tell a real
 # rejection from an incidental one.
-mutate () {
-  local name="$1" from="$2" to="$3" breaks="$4"
-  python3 - "$src" "$work/mut.dfy" "$from" "$to" <<'PY'
+mutate_in () {
+  local target="$1" name="$2" from="$3" to="$4" breaks="$5"
+  python3 - "$target" "$work/mut.dfy" "$from" "$to" <<'PY'
 import sys
 src, dst, old, new = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 s = open(src).read()
@@ -72,23 +74,57 @@ echo "== 2. the proof can fail"
 # docs/trusted-computing-base.md and it is FALSE unconditionally: a rule name
 # carrying a tab renders to a line that reads back as a different rule. Removing
 # the hypothesis that says otherwise must break the round-trip theorem.
-mutate "drop the tab-freeness of a rule name" \
+mutate_in "$src" "drop the tab-freeness of a rule name" \
   '    && NoByte(r.name, TAB)
 ' '' \
   "RuleStrRoundTrips and the counterexample lemmas"
 
 # The classification. `pat_of` must not treat a bare '?' as a constant, or a
 # variable and a constant stop being distinguishable by their first byte.
-mutate "let pat_of read a bare '?' as a constant" \
+mutate_in "$src" "let pat_of read a bare '?' as a constant" \
   'if |f| == 1 then None else Some(Var(f[1..]))' \
   'if |f| == 1 then Some(Const(f)) else Some(Var(f[1..]))' \
   "PatOfClassifies and VariablesAndConstantsDoNotCollide"
 
 # The empty-name refusal, which is what makes a parsed rule writable.
-mutate "drop the empty-name refusal from ParseRuleLine" \
+mutate_in "$src" "drop the empty-name refusal from ParseRuleLine" \
   'else if |fields[0]| == 0 then None' \
   'else if false then None' \
   "ParsedRulesAreWritable"
 
+
+# ---------------------------------------------------------------------------
+# Interner.dfy: TCB-15, TCB-16 and TCB-17, which Kani cannot reach at all.
+#
+# A harness over the real `Interner` returns 5108 of 5109 checks undetermined,
+# because `std`'s HashMap seeds RandomState through `CCRandomGenerateBytes`, a
+# foreign C function Kani does not model. Fixing the hasher removes that call
+# and the harness still fails, so the obstacle is HashMap rather than the seed
+# and no bound helps. These mutations are what stop this file being a
+# restatement of its own conclusion.
+
 echo
-echo "== done. The specification verifies and all three mutations were rejected."
+echo "== 3. the interner proof can fail"
+
+# Reuse an id instead of appending. This is the collision that would let a rule
+# fire on a premise nobody asserted, so injectivity must break.
+mutate_in "$interner" "let intern reuse identifier zero" \
+  'i.toId[s := |i.toStr|], i.toStr + [s]), |i.toStr|)' \
+  'i.toId[s := 0], i.toStr + [s]), 0)' \
+  "Injective and RoundTrip"
+
+# Drop the clause tying the map back to the sequence. Without it an id can
+# resolve to a string nobody interned under it.
+mutate_in "$interner" "drop the map-to-sequence agreement from Wf" \
+  'i.toStr[i.toId[s]] == s)' \
+  'true)' \
+  "RoundTrip"
+
+# Let a later intern rewrite the front of the sequence. Stability must break.
+mutate_in "$interner" "let a later intern rewrite the sequence" \
+  'i.toStr + [s]), |i.toStr|)' \
+  '[s] + i.toStr), |i.toStr|)' \
+  "RoundTripSurvives and StableAcrossManyInterns"
+
+echo
+echo "== done. Both specifications verify and all six mutations were rejected."
