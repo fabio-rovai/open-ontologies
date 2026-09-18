@@ -31,13 +31,23 @@ Over MCP, `onto_reason` takes `certificate_dir`. The response gains a `certifica
     "asserted": 1128,
     "derivations": 268,
     "by_rule": {"rdfs2": 41, "rdfs9": 190, "scm-eqc1": 3, "...": "..."},
-    "check_with": "cd lean && lake exe oo-cert <dir>/asserted.tsv <dir>/derivations.tsv"
+    "check_with": "cd lean && lake exe oo-cert <dir>/asserted.tsv <dir>/derivations.tsv",
+    "scope": {"selector": "whole-store", "default_graph": true, "complete": true, "...": "..."},
+    "scope_file": "/tmp/cert/scope.tsv"
   }
 }
 ```
 
 `derivations` always equals `inferred_count`: one line per inferred triple, recorded the first time
 it is derived.
+
+`scope` says which graphs the run READ, and `scope.tsv` carries the same thing as a file beside
+`asserted.tsv`. It exists because the checker cannot ask: `oo-cert` verifies that the derivations
+follow from the triples in front of it, which stays true whatever selected them, so a certificate
+over one snapshot of a bi-temporal register and a certificate over the union of every version are
+indistinguishable as files and only one is about a state that existed (#108). Over a store that
+uses the temporal vocabulary, `onto_reason` takes `valid_at` / `as_of` / `all_versions` and
+REFUSES a run that names none of them.
 
 ## Check it
 
@@ -63,7 +73,14 @@ Tab-separated. Terms are in N-Triples spelling, exactly as the engine's interner
 them, so a term is spelled identically wherever it appears and tabs and newlines cannot occur
 inside one.
 
-- `asserted.tsv`: one triple per line, `s TAB p TAB o`. Every triple the run started from.
+- `asserted.tsv`: one triple per line, `s TAB p TAB o`. Every triple the run started from — which
+  means every triple in the graphs the run SELECTED, and `scope.tsv` is where that is written down.
+- `scope.tsv`: `oo-scope/1`, then one `key TAB value` line per fact about the selection, with one
+  `graph` line per named graph read (`graph TAB *` for the whole store) and one
+  `excluded TAB graph TAB reason` line per graph deliberately not read. **No checker reads this
+  file.** It is there because none of them can: a certificate over a snapshot and a certificate
+  over the union of every version are indistinguishable as `asserted.tsv` + `derivations.tsv`, and
+  only one of them is about a state that existed (#108).
 - `derivations.tsv`: one step per line, `rule TAB s TAB p TAB o` for the conclusion, then the
   premises as further triples, in the order documented per rule in `lean/OOCert/Rules.lean`.
 - `refutation.tsv`, only when the run found a contradiction it can certify: the line `oo-refute/1`,
@@ -837,15 +854,24 @@ Stated rather than discovered later.
 - **`asserted.tsv` is the store, not your file.** Quads are flattened, so a triple present in two
   named graphs appears on two lines. Literals are in the store's post-parse canonical spelling, so
   `"01"^^xsd:integer` is written `"1"^^xsd:integer`. The guarantee is relative to that file.
-- **Reasoning twice into one store.** The run reaches a fixpoint, so a second run adds nothing. If
-  you materialise into the DEFAULT graph of a store that already held inferences, they appear in
-  `asserted.tsv` as assumptions with nothing marking them derived: the merge is what the caller
-  asked for and it is lossy. `inference_graph: true` (decision 0001) now fixes it rather than
-  mitigating it. The certified paths read `GraphStore::triples_outside(&[INFERRED_GRAPH])`, so a
-  later run does not read an earlier run's conclusions back as axioms, and the JSON reports
-  `graphs_read` and `graphs_excluded` so the certificate says which graphs it is about. Until 15
-  September 2026 `all_triples` read every named graph and the separation protected `save` and not
-  the certificate; TCB-8 in `docs/trusted-computing-base.md` has the history.
+- **`asserted.tsv` is the store the run SELECTED, and the checker cannot see the selection.** By
+  default that is every graph. Over a store that keeps several versions of an entity in several
+  named graphs, the union of every version is a state that held at no instant, and a certificate
+  over it is a valid proof about a graph that never existed — `oo-cert` accepts it, correctly, and
+  `oo-refute` will accept a `cax-dw` refutation drawn from two versions that never coexisted. That
+  is issue #108. Two things changed: a run over a store that uses the temporal vocabulary is
+  REFUSED unless the caller names an instant (`valid_at` / `as_of`) or asks for every version by
+  name (`all_versions`), and every certificate directory now gets `scope.tsv`, an `oo-scope/1`
+  record of which graphs the run read. **No Lean checker reads `scope.tsv`.** It is evidence for a
+  person, not a proof; see `docs/trusted-computing-base.md` items 11 to 13 for what it does not
+  cover.
+- **Reasoning twice into one store.** The run now reaches a fixpoint, so a second run adds nothing,
+  but if you materialise into a store that already held inferences they appear in `asserted.tsv` as
+  assumptions with nothing marking them derived. Use `inference_graph: true` (decision 0001) when
+  that distinction matters — and note that this separates the SAVE, not the certificate: an
+  unscoped run reads every named graph, the inference graph included. A SCOPED run does not: it
+  drops the inference graph from what it reads, records the drop in `scope.tsv`, and materialises
+  nothing of its own.
 - **No clash found is not consistency.** Seven of the seventeen clash rules are not looked for at
   all and eight of the ten that are cannot be certified, so a clean `reason` run means "none of the
   ten rules tried fired", never "this ontology is consistent". A rejected refutation means the same:

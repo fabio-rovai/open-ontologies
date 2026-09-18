@@ -33,16 +33,22 @@ see:
 - the store after the run, so they cannot tell whether a triple was materialised without a
   certificate line covering it;
 - the rule file the user passed, so they cannot tell whether `rules.tsv` is the table the engine
-  evaluated.
+  evaluated;
+- **which graphs the run selected**, so they cannot tell whether `asserted.tsv` is the graph anyone
+  meant. This one is different in kind from the other four, because there is no way to fail it:
+  every one of the others can make a checker REJECT a legitimate run, and this one cannot. A
+  certificate over the union of every version of a bi-temporal register is a true statement, valid
+  under `OOCert.certificate_sound`, about a state of the world that never existed. That is issue
+  #108, and `scope.tsv` (below) is the mitigation.
 
-Each of those four blind spots is a property below.
+Each of those five blind spots is a property below.
 
 ## The emission paths
 
 | path | entry point | files written | checker |
 |---|---|---|---|
-| built-in forward chaining | `Reasoner::run_full` (`src/reason.rs`) | `asserted.tsv`, `derivations.tsv` | `oo-cert` |
-| supplied Horn rules | `Reasoner::run_horn` (`src/reason.rs`) | `rules.tsv`, `asserted.tsv`, `horn.tsv` | `oo-horn` |
+| built-in forward chaining | `Reasoner::run_full` (`src/reason.rs`) | `asserted.tsv`, `derivations.tsv`, `scope.tsv` | `oo-cert` |
+| supplied Horn rules | `Reasoner::run_horn` (`src/reason.rs`) | `rules.tsv`, `asserted.tsv`, `horn.tsv`, `scope.tsv` | `oo-horn` |
 | DL model certificate | `DlReasoner::write_model_certificate` (`src/tableaux.rs`) | `axioms.tsv`, `model.tsv` | `oo-dlmodel` |
 | SHACL | no Rust emission | N-Triples handed to the Lean evaluator | `oo-shacl` |
 
@@ -110,13 +116,45 @@ tab inside a literal, this engine would stop writing certificates instead of wri
 
 ### The asserted graph
 
-- **TCB-6 (asserted is the graph, no drops).** Every triple in the store at the start of a certified
+- **TCB-6 (asserted is the graph, no drops).** Every triple in the SCOPE at the start of a certified
   run appears as a line in `asserted.tsv`. A dropped assertion makes the checker reject a legitimate
   step, so this direction is fail-safe, but it is still part of the claim the file makes.
 - **TCB-7 (asserted is the graph, no additions).** Every line of `asserted.tsv` corresponds to a
-  triple that was in the store at the start of the run. This is the unsafe direction. An extra line
+  triple that was in the SCOPE at the start of the run. This is the unsafe direction. An extra line
   is an axiom nobody asserted, and every conclusion resting on it is certified against a graph that
   does not exist.
+- **TCB-6a (the scope is recorded).** "The scope" in TCB-6 and TCB-7 means the graphs named by
+  `scope.tsv`, written into the certificate directory by the same block that writes
+  `asserted.tsv`. Until #108 the scope was always the whole store and was written down nowhere, so
+  TCB-6 and TCB-7 quantified over a set the reader had to assume. They now quantify over a set the
+  reader can see. `scope.tsv` is `oo-scope/1`, one `key TAB value` line per fact, with one `graph`
+  line per named graph read (or `graph\t*` for the whole store) and one `excluded` line per graph
+  deliberately not read. **No Lean checker reads it**, and calling it a certificate would be the
+  overclaim this page exists to prevent: it is a record, checkable by a person or a script against
+  the store, and its value is that the selection stops being invisible.
+- **TCB-8 (no inference leaks into the assertions, within a run).** No conclusion of
+  `derivations.tsv` appears in `asserted.tsv`. The engine reaches a fixpoint in one pass and
+  captures `facts` before materialising, so this holds within a run.
+  **Across runs it does not hold for an unscoped run and cannot be made to hold by this layer.**
+  Materialising into the default graph turns run N's conclusions into run N+1's assertions, and
+  `asserted.tsv` has no column that says "derived". `docs/lean-certificates.md` states this under
+  "Known limitations" and decision 0001 is the mitigation (`inference_graph: true` keeps them in a
+  named graph). Note that `GraphStore::all_triples` iterates `store.iter()` over every graph, so
+  inferences parked in `https://open-ontologies.org/graph/inferred` by an earlier run are read back
+  as assertions by a later UNSCOPED certified run. The separation protects `save`, not the
+  certificate.
+  A run over a VERSIONED store is the exception, on both halves. A scoped one reads through
+  `GraphStore::triples_in_scope`, which reads the graphs the scope names and no others, drops the
+  inference graph from that set and records the drop in `scope.tsv`. And no run over such a store
+  materialises at all, scoped or `all_versions`, so none of them creates a next-run assertion:
+  every graph a run could write to is in scope at every instant, which makes the write a poisoning
+  of every future snapshot rather than only of the next run.
+- **TCB-8a (the scope is the one that was asked for).** The graphs listed in `scope.tsv` are the
+  graphs `triples_in_scope` read, and for a snapshot they are exactly the `in_scope` set
+  `Temporal::snapshot` reports at the same instant, less the inference graph. This is a reading of
+  `Temporal::read_scope`, which calls the same `scope()` the snapshot tool calls, plus
+  `tests/temporal_scope_test.rs`, which pins the graph lists at two instants. Nothing derives one
+  from the other.
 - **TCB-8 (no inference leaks into the assertions).** No conclusion of `derivations.tsv` appears in
   `asserted.tsv`. Within a run this holds because the engine reaches a fixpoint in one pass and
   captures `facts` before materialising.
@@ -135,7 +173,8 @@ tab inside a literal, this engine would stop writing certificates instead of wri
   asserts the fix for the named graph and the leak for the merged one, in one test, so neither half
   can change without the documentation being forced to change with it.
 - **TCB-9 (the store is a set, the file is a list).** A triple present in two named graphs is
-  written twice, because `all_triples` flattens quads. Duplicate lines are harmless to soundness
+  written twice, because `all_triples` flattens quads — and so does `triples_in_scope`, where both
+  of those graphs are in the scope. Duplicate lines are harmless to soundness
   (the Lean side builds a `HashSet`) but `asserted` in the JSON report counts lines, not distinct
   triples. The Horn path reports both numbers; the built-in path reports only the line count.
 
@@ -462,6 +501,97 @@ purpose is to enumerate what is trusted. A page that lists `oxrdf`'s escaping as
 and omits the proof checker that every theorem on this page depends on was understating its own
 trusted base by a wide margin, and the omission is recorded here rather than quietly repaired.
 
+1. **`oxrdf`'s escaping is the entire escaping layer.** `asserted.tsv` is safe because
+   `print_quoted_str` turns a tab inside a literal into `\t`. This repository has no escaper of its
+   own and never inspects a term. TCB-4 pins the behaviour a test can observe, which means an
+   upgrade that changed it would fail loudly; it does not mean it cannot change, and it does not
+   cover a term that reaches the store by a route the tests do not exercise.
+   *To close it:* escape at the certificate writer rather than relying on the term's `Display`, or
+   change the format to one that cannot be forged by its payload (length-prefixed, or JSON Lines).
+   Both are changes to `lean/`'s parsers as well, which is why neither was done here.
+2. **`oxiri`'s IRI validation is why a separator cannot reach an IRI.** `NamedNodeRef`'s `Display`
+   is `write!(f, "<{}>", self.as_str())` with no escaping at all, so the only thing standing between
+   a tab and `asserted.tsv` is that the parser refused to build the IRI. Tens of thousands of lines
+   of parsing sit behind that sentence and none of it is verified here.
+   *To close it:* check the term at the writer, as in (1). The check is four lines; the reason it is
+   not there is that it would be a second place the question is decided.
+3. **TCB-14, the premise ORDER per rule.** `OOCert.checkStep` matches premises positionally, arm by
+   arm, and the emitter passes them in a hand-written order at thirty-one call sites. The two agree
+   because `tests/lean_certificate_test.rs` walks every rule and the checker accepts. Nothing
+   derives one from the other, so a rule added with the wrong order fails at the checker rather than
+   at compile time. *To close it:* generate both sides from one table, which is what the Horn path
+   already does and the built-in path does not.
+4. **TCB-26, the DL name guard's coverage.** `name_is_safe` is applied to a `names` vector built by
+   one loop; the files are written by another. Individuals in `model.ind` are covered only because
+   `DlAxiom::Indiv(i)` happens to be emitted for every individual that reaches the model.
+   *To close it:* check at the point of writing, not in a separate pass.
+5. **TCB-8 across runs, on the UNSCOPED path.** Materialising into the default graph turns an
+   inference into the next run's assertion, and `asserted.tsv` has no column that says "derived".
+   `inference_graph: true` does not fix it either: `GraphStore::all_triples` reads every named
+   graph, so a later certified run sees them as assertions. The separation protects `save`; it does
+   not protect the certificate. *Closed for a scoped run* (#108): `triples_in_scope` reads the
+   graphs the scope names, the inference graph is not one of them, the drop is recorded in
+   `scope.tsv`, and a scoped run materialises nothing. *Still open for an unscoped run,* which is
+   every run over a store that does not use the temporal vocabulary — that is, most of them. *To
+   close it there:* a scope argument that names the asserted graphs on a store with no temporal
+   metadata, which is `ReadScope::Graphs` with no selector in front of it and is not wired to any
+   tool today.
+6. **Materialisation is not atomic, and that is now latent rather than fixed.** `GraphStore::
+   load_lines` runs `for quad in parser { store.insert(&quad?)?; }`, so a parse error partway
+   through a batch leaves everything before it inserted and propagates the error. That is what
+   turned the `rdfs7` defect from a crash into uncertified triples in the store. `writable_triple`
+   removes the only way the reasoner could hand it an unparseable line, so the path is unreachable
+   TODAY; the hazard is still there for any future caller.
+   *To close it:* insert into a transaction, or build the batch through a serialiser that cannot
+   produce an unparseable line rather than through string concatenation.
+7. **The reasoner's completeness.** The checker proves each recorded step is a sound instance of a
+   rule it knows. It says nothing about whether the engine found every inference, so a certificate
+   is evidence about what was derived and not about what follows.
+8. **The SHIQ tableaux reasoner.** Model certificates cover positive satisfiability answers only.
+   Unsatisfiability and inconsistency carry no certificate at all, and those are the answers a
+   consistency check is usually asked for.
+9. **The Rust SHACL validator (TCB-28, TCB-29).** Not certified. `oo-shacl` is a second, verified
+   evaluator that the Rust one is measured against; a measurement is not a proof, and the two read
+   RDF with two different parsers whose agreement is by construction on both sides rather than by a
+   check.
+10. **Everything between the store and the certificate that is not a term:** the SPARQL layer, the
+   MCP server, the CLI, the daemon, the file I/O, the roughly fifty thousand lines of `src/`. The
+   Kani harnesses cover four pure functions totalling about twenty lines. That is the correct
+   proportion to report: this work verified the joint, not the machine.
+11. **The scope of a run is recorded, not checked.** `scope.tsv` says which graphs `asserted.tsv`
+   was built from. No Lean checker reads it; nothing compares it against the store; a caller who
+   ignores it is exactly as exposed as before #108. What changed is that the selection is now a
+   value the engine computed and wrote down, rather than a consequence of which method the code
+   happened to call, so a disagreement between the scope and the certificate is a thing a reviewer
+   CAN find. *To close it:* a checker that takes the store and `scope.tsv` and re-derives
+   `asserted.tsv`, which is a verified RDF store away and not a Lean file away.
+12. **A blank-node graph name makes a scoped run error rather than answer.** `Temporal`'s graph
+   scan binds `?g` inside `GRAPH ?g { … }`, which in oxigraph can bind a blank node, and both
+   consumers then build an IRI from it: the scoped reader returns `_:g1 is not an IRI: Invalid IRI
+   code point ':'` and `query_at` would splice `FROM NAMED <_:g1>` into a query that does not
+   parse. Measured on 15 September 2026 with `reason --valid-at` over a TriG file using `_:g1 { … }`.
+   This fails in the safe direction and is pre-existing rather than introduced by #108 — the
+   temporal query layer had it already — but a store loaded from TriG or N-Quads with unnamed
+   graphs cannot be scoped at all. *To close it:* carry graph names as terms rather than as
+   strings through `Temporal::all_graphs`, `ReadScope` and `query_at`.
+13. **The default graph enters a snapshot wholesale.** A scoped run reads the in-scope named graphs
+   plus the whole default graph, because that is where the schema lives and a snapshot of the ABox
+   with no TBox answers a question nobody asked. The default graph also holds the validity metadata
+   itself, so `temporal:validFrom` and its siblings are in the reasoner's closure and are counted as
+   triples of their graph IRIs by SHACL. On the shapes people write this is inert — the subjects are
+   graph IRIs, and the predicates carry no declared domain or range — and it is not inert in
+   principle: a shape targeting a class that a graph IRI belongs to, or an `rdfs:domain` asserted on
+   a temporal predicate, would see them. It is visible in `asserted.tsv` and pinned by
+   `tests/temporal_scope_test.rs`. *To close it:* an explicitly named schema graph, which decides
+   for the user where their schema lives, or a predicate-namespace filter, which decides that the
+   engine's vocabulary can never be domain data. Neither was worth taking on the user's behalf.
+
+The honest summary is that the trusted base is five things: the serialisation of a term, the
+identity of the asserted graph, the SELECTION of the asserted graph, the completeness of the
+derivation record, and the identity of the rule table. Those are now property-tested and, for the pure parts, bounded-model-checked. Every one
+of them still rests on a dependency's behaviour that this repository observes rather than enforces.
+The engine is not verified. It was never going to be, and a report that read as though it were
+would be the same defect this project exists to attack.
 1. **TCB-6 and TCB-7, that `asserted.tsv` IS the store's contents.** The engine reads the store,
    interns what it reads, and writes the interned strings back out. Nothing between the store and
    the file checks that the file is the store. `tests/certificate_boundary_proptest.rs` re-reads
