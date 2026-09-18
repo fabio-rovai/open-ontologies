@@ -438,6 +438,13 @@ jobs:
         # fact, and it is the reason this job exists rather than being folded
         # into the line above.
         run: OO_REQUIRE_FIXTURES=1 cargo test --test lean_horn_certificate_test -- --nocapture
+      - name: Check the README animation against the checker it depicts
+        # docs/assets/demo-certify.svg draws counts, a verdict word and a
+        # theorem name in the first screen of the README, and nothing about an
+        # SVG stops those drifting from the code. This re-runs oo-horn over the
+        # fixtures the picture is of and compares. It needs lake for the same
+        # reason every step above does.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test demo_asset_claims_test -- --nocapture
       - name: Install the model finders
         # Z3 reads SMT-LIB and is the only one of the two that can be asked the
         # UNBOUNDED question, which is the only route to `unsatisfiable_oracle`.
