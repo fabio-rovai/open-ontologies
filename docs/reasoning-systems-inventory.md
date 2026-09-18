@@ -37,6 +37,7 @@ about the file we gave it. The addendum to decision 0005 draws the new line.
 | Aeneas with Charon | Rust to Lean | Declined. Subset does not contain this codebase. |
 | Verus, Creusot, Prusti | Rust verification | Declined. Each needs the code rewritten in its subset. |
 | Iris, RefinedRust | Concurrent separation logic | Declined. The shared state is inside Oxigraph, and the certificate layer is pure. Below. |
+| Dafny 4.11.0 | Verification-aware language | Declined as a dependency, RUN and kept as a specification. It verifies a rewrite, not this code. Below. |
 | Kani | Rust bounded model checker | Being applied to the trusted boundary only. |
 | loom | Rust interleaving explorer | The right tool for the two latent lock defects. Not yet wired in. |
 | TPTP and TSTP | Interchange | Implemented, in both directions. TPTP out, TSTP back in and checked. |
@@ -244,6 +245,30 @@ took, THEN the conclusions follow. Everything to the left of that is the trusted
 it is a serialiser, a parser and an interner rather than fifty thousand lines. That boundary is what
 is being property-tested and, where it pays, model-checked with Kani. What remains trusted after that
 work will be named explicitly rather than left for a reader to infer.
+
+Dafny belongs in this section rather than beside Verus, and the difference is worth stating because
+it makes the objection stronger and not weaker. Verus, Creusot and Prusti verify Rust written in a
+dialect, so the artefact that ships is the artefact that was verified. Dafny does not verify Rust at
+all. It is a separate language that compiles to one, so the only way a Dafny theorem becomes a
+statement about this engine is if the engine runs Dafny's generated Rust.
+
+It was installed and run rather than argued about. `dafny/RuleTable.dfy` models the rule-table
+grammar of `src/reason.rs` over bytes and proves TCB-20's round trip with no bound on field length,
+field count or body size: 57 obligations, 0 errors, seven seconds. That is a real capability gap
+closed. Kani proves only the per-field half and only at field lengths of exactly two and three,
+because a symbolic length exhausted CBMC, and Aeneas cannot reach the function at all because `Pat`
+carries a `String`. Writing the property out also found that TCB-20 was stated on
+`docs/trusted-computing-base.md` without the hypothesis it needs, and is false without it.
+
+It is still declined, for a reason that was measured rather than predicted. Compiling the model
+emits 872 lines of Rust against a `dafny_runtime` of 8,590 lines pulling `num`, `once_cell` and
+`itertools`, and its entry point takes a `Sequence<u8>` and returns an `Rc<Option<Rc<Pat>>>`, so
+every call from `src/reason.rs` would cross a hand-written, unverified marshalling layer sitting at
+the precise boundary the work exists to shrink. Verifying about 127 lines by adding roughly 8,600
+unverified ones to the trusted base is the wrong direction. The file is kept as a specification and
+as the evidence, it is a gate nowhere, and
+[decision 0014](decisions/0014-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md) carries
+the numbers and the terms.
 
 ## Iris, and the concurrency that is not ours
 

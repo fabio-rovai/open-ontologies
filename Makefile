@@ -1,4 +1,4 @@
-.PHONY: build test lint audit verify bench bench-pizza bench-ontoaxiom bench-mushroom bench-vision bench-reasoner bench-oaei docker clean demo demo-verify demo-verify-pipeline
+.PHONY: build test lint audit verify verify-dafny bench bench-pizza bench-ontoaxiom bench-mushroom bench-vision bench-reasoner bench-oaei docker clean demo demo-verify demo-verify-pipeline
 
 # ─── Development ─────────────────────────────────────────────────────────────
 
@@ -43,6 +43,21 @@ verify:
 	cargo kani --harness pat_of_and_render_are_inverse_at_2
 	cargo kani --harness pat_of_and_render_are_inverse_at_3
 	cargo kani --harness writable_triple_decides_both_positions
+
+# Verify dafny/RuleTable.dfy, a Dafny model of the rule-table grammar in
+# src/reason.rs, and then mutate it three times and require every mutation to be
+# rejected. Needs `brew install dafny`; Dafny bundles its own Z3. About sixteen
+# seconds in total.
+#
+# NOT part of `check`, and read the next sentence before quoting any output of
+# it. The model is a REIMPLEMENTATION, so what verifies is the Dafny and not the
+# Rust, which is the opposite of the Kani harnesses above and of Aeneas. It is
+# kept because it proves TCB-20's whole-line round trip with no length bound,
+# which neither of those can, and because writing it found that TCB-20 was
+# documented without the hypothesis it needs. See
+# docs/decisions/0014-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md.
+verify-dafny:
+	./dafny/run.sh
 
 check: lint test audit
 

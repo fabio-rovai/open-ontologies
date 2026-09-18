@@ -220,6 +220,17 @@ needs and all it needs.
   `core::fmt` and `anyhow`. This is the same shape of obstacle that killed its
   Kani harness, and the same fix would serve both: lift the classification into
   a pure `Option<Pat>` function and leave the messages where they are.
+  **That fix was made, and it did not help here.** `pat_of` is that function, it
+  landed on 15 September 2026, and Kani verifies it. Aeneas still cannot take it,
+  for the unrelated reason at the top of this list: `pat_of` returns
+  `Option<Pat>` and `Pat` carries a `String`, so the obstacle is the string model
+  rather than the error formatting. Moving it into the byte discipline the rest
+  of this module uses would mean `Pat` over `Vec<u8>`, which changes the type
+  every rule-table call site names. That was not done, and TCB-20's whole-line
+  half is consequently the one serialisation property on
+  `docs/trusted-computing-base.md` that still has no unbounded proof about this
+  Rust. Dafny proves it unbounded about a REIMPLEMENTATION, which is a different
+  claim; decision 0014 measures what that is worth.
 - **Nothing was silently dropped.** The generated file has no `opaque`
   declaration, no `axiom` and no `sorry`: `grep -n "opaque\|axiom\|sorry"
   aeneas/lean/OOBoundary/Generated.lean` is empty. Aeneas reports eight opaque

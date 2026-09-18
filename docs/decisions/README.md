@@ -13,10 +13,15 @@ and whose benefit is not gets dropped the first time it is inconvenient.
 | [0007](0007-a-slice-preserves-a-conclusion-or-it-does-not.md) | A slice preserves a conclusion, or it does not | A retrieval slice quietly dropping the conclusion it was asked about |
 | [0008](0008-a-binding-is-data-and-evidence-admits-one-reading.md) | A binding is data, and evidence admits one reading | A certificate format admitting two readings, so two checkers disagree |
 | [0012](0012-concurrency-lives-below-the-certificate.md) | Concurrency lives below the certificate, and a proof cannot follow it there | Adopting a program logic for a hazard that lives in a dependency, and calling the result assurance |
+| [0014](0014-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md) | A verifier that cannot read the code verifies a rewrite | Counting a green verifier as evidence about code it never read |
 
 There is no 0004. The decision now numbered 0006 was drafted as 0004 on a branch that never merged,
 so the number never reached `main`. It is left as a hole rather than reused, because a reused number
 makes an old citation silently come to mean something else.
+
+This table has rows for 0009 to 0011 missing rather than absent. Those records exist in this
+directory, there are two numbered 0009, and nobody has written their rows. The gap is recorded here
+so that a reader does not conclude from the jump that the numbers were skipped the way 0004 was.
 
 ## What this discipline has caught
 
