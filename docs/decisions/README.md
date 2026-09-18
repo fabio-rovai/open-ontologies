@@ -12,17 +12,27 @@ and whose benefit is not gets dropped the first time it is inconvenient.
 | [0006](0006-a-model-is-a-certificate-and-a-refutation-is-not.md) | A model is a certificate, and a refutation is not | Treating an exhausted bounded search as unsatisfiability |
 | [0007](0007-a-slice-preserves-a-conclusion-or-it-does-not.md) | A slice preserves a conclusion, or it does not | A retrieval slice quietly dropping the conclusion it was asked about |
 | [0008](0008-a-binding-is-data-and-evidence-admits-one-reading.md) | A binding is data, and evidence admits one reading | A certificate format admitting two readings, so two checkers disagree |
+| [0009](0009-a-translation-between-logics-carries-its-satisfaction-condition.md) | A translation between logics carries its satisfaction condition | Moving a sentence between logics and assuming the truth came with it |
+| [0010](0010-the-input-is-a-value-and-not-a-store.md) | The input is a value and not a store | Certifying a run against a store that can change under it |
+| [0011](0011-a-module-carries-a-theorem-and-a-slice-carries-a-measurement.md) | A module carries a theorem, a slice carries a measurement | Reading a measured slice as though it carried the theorem a module does |
 | [0012](0012-concurrency-lives-below-the-certificate.md) | Concurrency lives below the certificate, and a proof cannot follow it there | Adopting a program logic for a hazard that lives in a dependency, and calling the result assurance |
 | [0014](0014-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md) | A verifier that cannot read the code verifies a rewrite | Counting a green verifier as evidence about code it never read |
 | [0015](0015-a-blank-line-is-a-line-or-it-is-not.md) | A blank line is a line, or it is not, and the format never said which | The same failure again, found by a third kernel and still OPEN: two checkers reading one file differently because nobody wrote down what an empty line is |
+| [0016](0016-a-conclusion-names-the-axioms-responsible-for-it.md) | A conclusion names the axioms responsible for it, and minimality is re-run | Presenting a justification as minimal when nothing re-ran it |
 
 There is no 0004. The decision now numbered 0006 was drafted as 0004 on a branch that never merged,
 so the number never reached `main`. It is left as a hole rather than reused, because a reused number
 makes an old citation silently come to mean something else.
 
-This table has rows for 0009 to 0011 missing rather than absent. Those records exist in this
-directory, there are two numbered 0009, and nobody has written their rows. The gap is recorded here
-so that a reader does not conclude from the jump that the numbers were skipped the way 0004 was.
+Every record in this directory has a row above, and `tests/decision_numbers_test.rs` fails if that
+stops being true, if two records take one number, or if a row points at a file that does not exist.
+
+There used to be two records numbered 0009, written in parallel on branches that could not see each
+other. Git does not catch that: the filenames differ, so both merge cleanly and the index gets a
+plausible row from each. The later of the two, on justification, is now 0016. It moved rather than
+the earlier one because a citation should keep meaning what it meant, and the earlier record had
+been on `main` longer. The same collision then happened three more times in one day between
+parallel branches, which is why the check exists rather than a note asking people to be careful.
 
 ## What this discipline has caught
 
