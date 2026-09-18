@@ -203,9 +203,22 @@ against a triple that is not the one the engine used.
   strictly stricter on three points, all in the refusing direction: it requires a constant to be in
   N-Triples spelling, it refuses a head variable not bound by the body, and it refuses a carriage
   return. Lean's `patOf` treats any field not starting with `?` as a constant.
-- **TCB-20 (render and parse are inverse).** `parse_rules(rules_tsv(r)) == r`. In particular a
-  constant never renders to something that reads back as a variable, and a variable name never
-  renders to something that reads back as a constant.
+- **TCB-20 (render and parse are inverse).** `parse_rules(rules_tsv(r)) == r` for every rule `r`
+  WHOSE FIELDS CAN BE WRITTEN: a non-empty name, and no tab or line feed in the name or in any
+  variable name. In particular a constant never renders to something that reads back as a variable,
+  and a variable name never renders to something that reads back as a constant.
+  **The hypothesis is not decoration, and this entry stated the property without it until 18
+  September 2026.** Nothing in `RulePattern` stops `name`, or the `String` inside a `Pat::Var`, from
+  carrying a tab. A rule that does renders to a line with more fields than it has positions, so it
+  reads back as a different rule or as an error, and neither is the identity.
+  It is LATENT rather than live, because only two places build a `RulePattern` and both are closed.
+  `parse_rules` itself builds one out of fields it obtained by splitting a line on tabs, so none of
+  them can contain one. `Import::accept` in `src/rulesyntax.rs`, which is where a user's RIF, SWRL or
+  Datalog arrives, renders the rule and re-parses it with `parse_rules` and refuses it unless it
+  comes back identical, which is this hypothesis enforced at the only site that could violate it.
+  The correction is therefore to this page and not to the engine. It was found by writing the
+  property out in Dafny, where a theorem that needs a hypothesis cannot be stated without one:
+  `docs/decisions/0014-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md`.
 - **TCB-21 (`rules_tsv` and `ruleStr` agree byte for byte).** The Rust doc comment on `rules_tsv`
   asserts this of `OOCert.HornParse.ruleStr`. It matters because the JSON report publishes a SHA-256
   of the Rust rendering, and `oo-horn` decides `entailed` against `entailed_under_supplied_rules` by
@@ -288,7 +301,7 @@ of the code with nothing checking it. Nothing here is unbounded-verified, and a 
 | TCB-15, TCB-16, TCB-17 | property | `src/reason.rs` unit property tests | the interner is private |
 | TCB-18 | **enforced** + property | in the code, and proptest | the engine re-parses what it wrote and refuses on mismatch |
 | TCB-19, TCB-21 | property | proptest, plus the REAL checker | property against a transcription of `OOCert.HornParse` in the test file, because a Lean process per case is not a property test. The transcription's fidelity is then an assumption, so one deterministic test puts the adversarial shapes (a numeric rule name, a non-ASCII one, a `??x` variable, a literal spelled exactly like an IRI as a constant, a blank node, an empty-bodied rule) through `oo-horn check` itself and requires the conditional verdict |
-| TCB-20 | **proved** + property | `kani_harnesses::pat_of_and_render_are_inverse_at_2` and `_at_3`, proptest | `pat_of` and `Pat::render` are inverse over every byte pattern at two and three bytes. This is the harness the previous version of this page reported as NOT TERMINATING |
+| TCB-20 | **proved** at a bound + property, and **proved unbounded of a MODEL** | `kani_harnesses::pat_of_and_render_are_inverse_at_2` and `_at_3`, proptest, `dafny/RuleTable.dfy` | `pat_of` and `Pat::render` are inverse over every byte pattern at two and three bytes. This is the harness the previous version of this page reported as NOT TERMINATING. The WHOLE-LINE statement, which Kani cannot afford because asserting over `body.split('\t')` puts CBMC inside `CharSearcher`, is proved with no length bound and no field-count bound in Dafny, OF A REIMPLEMENTATION AND NOT OF THIS RUST. That distinction is the whole of decision 0014 and the row means nothing without it |
 | TCB-22 | property | proptest | the rule index is a position in a list rendered in the same order, and no rendered line is empty |
 | TCB-23, TCB-24 | property | proptest | the substitution is re-applied from `rules.tsv` independently of the engine |
 | TCB-25 | **enforced** + property | `name_is_safe`, `src/tableaux.rs` unit property tests | the emitter refuses; `concept_string` token counts and `axiom_line` field counts are sampled |
@@ -475,6 +488,15 @@ trusted base by a wide margin, and the omission is recorded here rather than qui
    `pat_of`/`render` are proved inverse, so what is left is exactly the cross-language half.
    *To close it:* generate both parsers from one grammar, or verify the Rust one against the Lean
    one as a refinement. Neither was done here.
+   The FIRST of those was costed on 18 September 2026 rather than left as a suggestion, and the
+   number is discouraging. Dafny is the obvious candidate, since it verifies and then compiles, and
+   `dafny/RuleTable.dfy` proves the grammar's round trip unbounded in seven seconds. Compiling that
+   model to Rust emits 872 lines that call into a `dafny_runtime` of 8,590 lines, with `num`'s
+   bignums behind it, and its entry point takes a `Sequence<u8>` and returns an
+   `Rc<Option<Rc<Pat>>>`, so reaching it from `src/reason.rs` needs an unverified marshalling layer
+   at the exact boundary the exercise exists to shrink. It generates one of the two parsers and not
+   the other, because there is no Lean backend, so it does not answer the cross-language question at
+   all. Decision 0014 has the measurements.
 4. **TCB-8 under `InferenceTarget::DefaultGraph`.** Merging conclusions into the default graph is
    what the caller asked for and it loses the distinction; a later certified run over that store is
    conditional on a graph that includes inferences. The named-graph path no longer has this problem.

@@ -158,6 +158,13 @@ The other seven files under `python/tests/` have no skip path.
   `.lake` including Mathlib. `docs/aeneas-boundary.md` reports what they produced
   when they were run here, which is the same arrangement Kani is under and for
   the same reason: a gate nobody can run locally is not a gate.
+- **Dafny.** `dafny/run.sh` verifies `dafny/RuleTable.dfy` and then mutates it three times and
+  requires every mutation to be rejected, so the script fails both when the specification breaks and
+  when the proof turns out not to depend on what it claims to. No job runs it, and `make
+  verify-dafny` is the only thing that does. It is in the same position as Kani and Aeneas and for
+  the same reason. It also proves less than either of those: it is a REIMPLEMENTATION of the
+  rule-table grammar rather than the shipped Rust, so nothing it reports is evidence about
+  `src/reason.rs`. Decision 0014 says why it is kept anyway.
 - **The Makefile and CI have drifted.** No workflow invokes `make`. `make check`
   is `lint test audit`, and its `test` is a bare `cargo test` with no
   `OO_REQUIRE_FIXTURES`, so a local `make check` is the permissive run whatever
