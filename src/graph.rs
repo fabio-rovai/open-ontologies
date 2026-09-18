@@ -1004,26 +1004,6 @@ impl GraphStore {
         Ok(out)
     }
 
-    /// Every triple in the store EXCEPT those in the named graphs listed, in
-    /// the same spelling [`all_triples`](Self::all_triples) yields, together
-    /// with the names of the graphs that were read.
-    ///
-    /// See [`AssertedTriples`] for the pair it returns.
-    ///
-    /// This exists for the certified reasoning paths and it closes a real
-    /// defect. `onto_reason` with `inference_graph: true` parks its conclusions
-    /// in `https://open-ontologies.org/graph/inferred` so that nothing
-    /// downstream reads an inference as an assertion, but the reasoner is
-    /// itself downstream: `all_triples` reads every named graph, so a second
-    /// certified run listed the first run's conclusions in `asserted.tsv` as
-    /// axioms, with no column saying they were derived. The separation
-    /// protected `save` and not the certificate. See TCB-8 in
-    /// `docs/trusted-computing-base.md`.
-    ///
-    /// The graph names are returned because a certificate that says which
-    /// graphs it read is checkable against the store, and one that does not is
-    /// not. `<default>` is the unnamed graph.
-
     /// Read the store inside ONE transaction, so a concurrent write cannot be
     /// observed half applied.
     ///
@@ -1056,6 +1036,25 @@ impl GraphStore {
         out
     }
 
+    /// Every triple in the store EXCEPT those in the named graphs listed, in
+    /// the same spelling [`all_triples`](Self::all_triples) yields, together
+    /// with the names of the graphs that were read.
+    ///
+    /// See [`AssertedTriples`] for the pair it returns.
+    ///
+    /// This exists for the certified reasoning paths and it closes a real
+    /// defect. `onto_reason` with `inference_graph: true` parks its conclusions
+    /// in `https://open-ontologies.org/graph/inferred` so that nothing
+    /// downstream reads an inference as an assertion, but the reasoner is
+    /// itself downstream: `all_triples` reads every named graph, so a second
+    /// certified run listed the first run's conclusions in `asserted.tsv` as
+    /// axioms, with no column saying they were derived. The separation
+    /// protected `save` and not the certificate. See TCB-8 in
+    /// `docs/trusted-computing-base.md`.
+    ///
+    /// The graph names are returned because a certificate that says which
+    /// graphs it read is checkable against the store, and one that does not is
+    /// not. `<default>` is the unnamed graph.
     pub fn triples_outside(&self, excluded: &[&str]) -> anyhow::Result<AssertedTriples> {
         self.read_in_one_transaction(|txn| {
         let mut triples = Vec::new();
