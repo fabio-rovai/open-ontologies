@@ -77,6 +77,7 @@ job invokes the file at all.
 | `rule_syntax_frontend_test.rs` | lake | `lean` job | **strict** |
 | `reason_horn_emit_test.rs` | lake + `tests/fixtures/horn/` (in tree) | `lean` job | **strict** |
 | `cross_kernel_differential_test.rs` | lake **and** Poly/ML | `lean` job | **strict** |
+| `rocq_kernel_differential_test.rs` | lake **and** Rocq 9.2, which CI gets from the `rocq/rocq-prover:9.2.0` image because no Ubuntu repository carries it | `lean` job | **strict** |
 | `tstp_derivation_test.rs` | the recorded Vampire and E derivations in `tests/fixtures/tstp/` (in tree); ONE test also wants vampire on `PATH` | any job for the recorded part; no job installs a prover | **skips** — 34 of 35 need nothing, but the file cannot be made strict while the 35th wants a prover no job installs |
 | `tstp_cli_test.rs` | the same fixtures + the debug CLI | any job | **strict** |
 | `clinical_test.rs` | `data/crosswalks.parquet` | nothing — `data/` is gitignored | **skips** |

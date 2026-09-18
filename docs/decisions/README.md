@@ -14,6 +14,7 @@ and whose benefit is not gets dropped the first time it is inconvenient.
 | [0008](0008-a-binding-is-data-and-evidence-admits-one-reading.md) | A binding is data, and evidence admits one reading | A certificate format admitting two readings, so two checkers disagree |
 | [0012](0012-concurrency-lives-below-the-certificate.md) | Concurrency lives below the certificate, and a proof cannot follow it there | Adopting a program logic for a hazard that lives in a dependency, and calling the result assurance |
 | [0014](0014-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md) | A verifier that cannot read the code verifies a rewrite | Counting a green verifier as evidence about code it never read |
+| [0015](0015-a-blank-line-is-a-line-or-it-is-not.md) | A blank line is a line, or it is not, and the format never said which | The same failure again, found by a third kernel and still OPEN: two checkers reading one file differently because nobody wrote down what an empty line is |
 
 There is no 0004. The decision now numbered 0006 was drafted as 0004 on a branch that never merged,
 so the number never reached `main`. It is left as a hole rather than reused, because a reused number
@@ -42,6 +43,23 @@ readings, only two ways of discarding half the certificate. Closed by
 [decision 0008](0008-a-binding-is-data-and-evidence-admits-one-reading.md), and the two kernels now
 return the same answer on every row of a corpus of 2,075 certificates, 484 of which exercise the
 ordering property both inductions rest on, against 123 before that corpus was deepened.
+
+**A third kernel, and a second format question nobody had written down.** `rocq/` is an independent
+formalisation in Rocq 9.2, written from the specifications with `lean/OOCert/` and `isabelle/` unread.
+Run beside the Lean checker over 1,593 rows it agreed on 1,269 and disagreed on 324, one cause,
+nothing unexplained: Lean skips an empty line in all three input files and Rocq refuses one. Neither
+is unsound, because an empty line is not a step, not a triple and not a rule. It is the same category
+of defect as decision 0008's and it is
+[decision 0015](0015-a-blank-line-is-a-line-or-it-is-not.md), which is OPEN rather than closed,
+because which side should move is a question about the format and not about whoever wrote the third
+checker.
+
+The same run found something sharper in the new checker than in the format. A certificate citing rule
+`99999999999999999999` made it die of a stack overflow, and OCaml exits an uncaught exception with
+status 2, which is that tool's code for a parse error, so **the crash was reporting a verdict**. The
+only reason anybody looked is that one checker answered 1 where the other answered 2. That is the
+whole argument for differentials in one sentence, and it is worth more than the divergence it was
+looking for.
 
 That agreement was, until 15 September 2026, checked by nothing. No workflow installed the second
 kernel, so the test requiring zero divergence skipped, and a skipped test reports `ok`. CI runs both

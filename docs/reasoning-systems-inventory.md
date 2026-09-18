@@ -30,6 +30,7 @@ about the file we gave it. The addendum to decision 0005 draws the new line.
 | Prover9 | First-order prover | Declined. Unmaintained since 2011, refutations uncheckable. |
 | cvc5 | SMT solver | Not installed. Same role as Z3 when it is. |
 | Isabelle/HOL | Proof assistant | Built, as an independent second FORMALISATION. It disagreed with the Lean. Below. |
+| Rocq 9.2 | Proof assistant | Built, as an independent THIRD formalisation of the Horn layer only. It disagreed with the Lean too, about what a line is. Below. |
 | Dedukti, Lambdapi | Logical framework | Declined twice, for portability and for re-checking. Reasons below. |
 | lean4export, nanoda | Lean export and external checker | Investigated, RUN, not adopted. `docs/independent-rechecking.md`. |
 | leanchecker | Ships in the Lean toolchain | Passes here. Not in CI yet. Not an external verifier. |
@@ -196,6 +197,39 @@ re-checks a Lean proof.
 [docs/independent-rechecking.md](independent-rechecking.md) is the investigation of what that would
 take, including an export of this repository's own Lean and a run through an independent Rust
 checker.
+
+
+## Rocq, and what the third kernel found
+
+Rocq 9.2, the proof assistant formerly called Coq, is used for the same job Isabelle is used for and
+for a deliberately smaller slice of it: an independent THIRD formalisation of the Horn certificate
+checker, in `rocq/`, covering the Horn layer and nothing else. It builds with no `Admitted`, no
+`Axiom`, and an axiom footprint that comes back EMPTY rather than small: `Print Assumptions` reports
+all fifteen advertised theorems closed under the global context, with none of the three classical
+axioms the Lean layer pins. Its checker is extracted to OCaml so it can be run over the same bytes.
+
+The independence is real but weaker than Isabelle's, and `rocq/README.md` says exactly where it stops
+rather than leaving a reader to assume. Nothing under `lean/OOCert/` and no `.thy` file was opened;
+`lean/HMain.lean` was, for the command line and the two verdict words, and decision 0008 quotes Lean's
+`substOf` in its own text, so the two well-formedness conjuncts were known before the checker was
+written. That part corroborates rather than discovers, and it is discounted accordingly.
+
+Run beside the Lean checker over 1,593 rows the two agreed on 1,269 and disagreed on 324, with one
+cause and nothing unexplained: **Lean skips an empty line and Rocq refuses one**, in all three input
+files. Neither is unsound. [Decision 0015](decisions/0015-a-blank-line-is-a-line-or-it-is-not.md) is
+OPEN, because which side should move is a question about the format.
+
+The more useful thing the comparison produced was not the divergence. A certificate citing rule
+`99999999999999999999` made the Rocq checker die of a stack overflow, and OCaml exits an uncaught
+exception with status 2, which is that tool's code for a parse error, so the crash was reporting a
+verdict about the file. Nothing in the output said the checker had failed. The only reason anybody
+looked is that the two checkers differed by one in an exit code. Both halves are fixed: count fields
+are binary, and the driver now exits 70 on any exception so a crash cannot wear a verdict's clothes.
+
+What this does NOT do is cover any of the rest of `lean/`. The four non-Horn rules, the mixed
+certificate layer, refutations, the description-logic and first-order model certificates, SHACL and
+the institution material are all outside it, and `rocq/README.md` states the boundary in the negative
+for that reason.
 
 ## Dedukti, and why not
 

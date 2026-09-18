@@ -600,6 +600,61 @@ jobs:
         # distribution and the divergence count are PRINTED by the test and read
         # out of this log: no document is allowed to carry them by hand.
         run: POLYDIR=$HOME/polyml OO_REQUIRE_FIXTURES=1 cargo test --test cross_kernel_differential_test -- --nocapture
+      # THE THIRD KERNEL.
+      #
+      # `rocq/` is a third independent formalisation of the same Horn certificate
+      # checker, in Rocq 9.2, written from the specifications and the fixture data
+      # with nothing under `lean/OOCert/` or `isabelle/` opened.
+      # `tests/rocq_kernel_differential_test.rs` runs it beside the Lean one over a
+      # corpus of its own and requires them to agree except on one named cause,
+      # which is recorded in docs/decisions/0012.
+      #
+      # ROCQ 9.2 IS IN NO UBUNTU APT REPOSITORY, and this was checked rather than
+      # assumed, because `prover9` having no installation candidate on noble is what
+      # broke this job the first time it ran on main. There is no `rocq` package at
+      # all; noble ships `coq` 8.18, which cannot read `From Stdlib Require`, the
+      # form every theory here uses. Building from source with opam takes half an
+      # hour. The official container image is the route, and the version is asserted
+      # INSIDE the container so that a moved tag fails loudly rather than silently
+      # checking the proofs with a different prover.
+      #
+      # The workspace is made group and world writable first because the image runs
+      # as its own uid and the runner's checkout is owned by the runner's. The
+      # ownership is handed back afterwards so the Rust legs can read the binary.
+      - name: Build the third formalisation, and check its axiom footprint
+        run: |
+          set -euo pipefail
+          chmod -R a+rwX .
+          # BASH, not sh. build.sh uses arrays, and /bin/sh on the image is dash,
+          # which does not have them. The image's ENTRYPOINT is `opam exec --`, so
+          # rocq, ocamlopt and ocamlfind are already on PATH and no `opam env` dance
+          # is needed; the tool check below fails loudly if that ever stops being
+          # true, rather than leaving `make` to fail three screens later.
+          docker run --rm -v "$PWD:/work" -w /work rocq/rocq-prover:9.2.0 \
+            bash -c 'set -eu
+                     command -v rocq make ocamlopt
+                     rocq --version
+                     rocq --version | grep -q "version 9\.2" \
+                       || { echo "the image is not Rocq 9.2"; exit 1; }
+                     bash rocq/build.sh'
+          sudo chown -R "$(id -u):$(id -g)" rocq
+          ls -l rocq/build/oo-horn-rocq
+      # A gate nobody has watched fail is decoration. This breaks one Qed in a
+      # scratch copy and requires the audit to reject it, so the line above is
+      # known to be measuring something.
+      - name: Show the axiom gate failing on an admitted proof
+        run: |
+          set -euo pipefail
+          chmod -R a+rwX .
+          docker run --rm -v "$PWD:/work" -w /work rocq/rocq-prover:9.2.0 \
+            bash -c 'bash rocq/build.sh --prove-the-gate-can-fail'
+          sudo chown -R "$(id -u):$(id -g)" rocq
+      - name: Run the Lean and Rocq kernels over one corpus, and require them to agree
+        # --nocapture because the corpus size and every per-bucket count are PRINTED
+        # by the test and read out of this log. No document is allowed to carry them
+        # by hand; docs/decisions/0012 says so in the paragraph that carries a
+        # snapshot of them.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test rocq_kernel_differential_test -- --nocapture
       # And the gate on the gates. This one needs no toolchain; it fails when a
       # test file that can skip is run by no job under OO_REQUIRE_FIXTURES=1 and
       # is not on the written exception list. It is the mechanism the leg above
