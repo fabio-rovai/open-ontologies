@@ -1,7 +1,7 @@
 <!-- mcp-name: io.github.fabio-rovai/open-ontologies -->
 
 <p align="center">
-  <img src="docs/assets/logo.png" alt="Open Ontologies" width="300">
+  <img src="docs/assets/logo.png" alt="Open Ontologies" width="170">
 </p>
 
 <h1 align="center">Open Ontologies</h1>
@@ -37,7 +37,7 @@
 ---
 
 <p align="center">
-  <img src="docs/assets/studio-graph-dense.png" alt="A 3D knowledge graph of ies-core.ttl with grey asserted edges, green certified edges and red rejected ones, and a panel counting each" width="100%">
+  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.svg" alt="The IES core class hierarchy drawn as a graph. Grey edges were asserted by a person, green edges the engine derived and a Lean 4 proof accepted, and one red edge is a forged derivation the same checker refused." width="100%">
 </p>
 
 <p align="center">
