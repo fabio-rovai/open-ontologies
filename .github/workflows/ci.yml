@@ -571,6 +571,14 @@ jobs:
         # whose bounded search was exhausted must say `no_model_up_to_size_k`
         # and never `unsatisfiable_oracle`. See docs/decisions/0006 item 4.
         run: OO_REQUIRE_FIXTURES=1 cargo test --test fol_solver_verdict_test -- --nocapture
+      - name: Check the tableaux verdict against a CHECKED model, not an oracle
+        # The owl-dl path was the only layer with no live second opinion: its
+        # conformance expectations are sourced from frozen `HermiT:` comments
+        # and nothing re-runs HermiT, which is not installed here. This asks
+        # for a MODEL instead and hands it to oo-folmodel, so a consistent
+        # verdict is corroborated by a machine-checked theorem rather than by
+        # another reasoner agreeing. Uses the z3 this job already installs.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test dl_consistency_differential_test -- --nocapture
       - name: Check the model ingestion, both front ends
         run: OO_REQUIRE_FIXTURES=1 cargo test --test fol_model_ingest_test -- --nocapture
       - name: Build the release binary the SMT differential drives

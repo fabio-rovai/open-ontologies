@@ -42,7 +42,18 @@ fn disable_reasoner_timeouts() {
 
 // ── W3C-style Consistency Tests ─────────────────────────────────────────
 // Reference: OWL 2 Structural Specification §11 (consistency)
-// Oracle: HermiT 1.4.3
+// Oracle: HermiT 1.4.3, TRANSCRIBED. HermiT is not a dependency of this
+// repository, is not installed, and nothing here re-runs it, so every
+// `HermiT:` comment below is a record of an answer somebody obtained once.
+// The assertions ARE live and do gate this engine; what is frozen is where
+// the expected value came from.
+//
+// The live second opinion for this path is
+// `tests/dl_consistency_differential_test.rs`, which does not ask another
+// reasoner whether it agrees. It asks for a MODEL and hands it to
+// `oo-folmodel`, so a consistent verdict rests on a machine-checked theorem
+// rather than on agreement. Decision 0006 is why that is the stronger of the
+// two, and why the inconsistent direction stays an oracle opinion.
 
 #[test]
 fn w3c_consistent_empty_ontology() {

@@ -68,6 +68,7 @@ job invokes the file at all.
 | `lean_fol_model_test.rs` | lake + `oo-folmodel` + z3 | `lean` job | **strict** |
 | `fol_solver_verdict_test.rs` | z3 + `oo-folmodel` + the debug CLI | `lean` job | **strict** |
 | `smt_second_oracle_test.rs` | z3 **and** cvc5 1.3.4 + `oo-folmodel` + the release binary | `lean` job installs cvc5 by digest and builds the release binary | **strict** |
+| `dl_consistency_differential_test.rs` | z3 + `oo-folmodel` | `lean` job | **strict** |
 | `lean_projection_entailment_test.rs` | lake | `lean` job | **strict** |
 | `closure_diff_test.rs` | lake | `lean` job | **strict** |
 | `projection_monotonicity_corpus_test.rs` | lake | `lean` job | **strict** |
