@@ -97,7 +97,7 @@ explanation built from it would be specific, confident and false.
 
 `onto_justify` and `onto_provenance` therefore ask the reasoner for every applicable ground rule
 instance instead, and never open the file. See [docs/explanation.md](explanation.md) and
-[decision 0009](decisions/0009-a-conclusion-names-the-axioms-responsible-for-it.md). What the
+[decision 0009](decisions/0016-a-conclusion-names-the-axioms-responsible-for-it.md). What the
 certificate IS enough for, those tools use: with `certificate_dir`, each justification gets its own
 certified run over its own triples, so `oo-cert` can verify that the conclusion really does follow
 from that subset. Minimality is not in the theorem and is re-run instead.
