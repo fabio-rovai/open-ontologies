@@ -150,8 +150,9 @@ a `&[u8]`.
 The inventory question was whether Dafny reaches something Kani and Aeneas do not. It does, and the
 set is small. Of the thirty properties on the TCB page, Kani proves six at a bound and Aeneas removes
 the bound from the serialisation core. What is left unreached and pure is TCB-20's whole-line half,
-which this file has now proved, and the interner's TCB-15 to TCB-17, which Aeneas cannot reach
-because `Interner` is a `HashMap` and which Dafny would model as a `map` almost for free.
+for which this file supplies an unbounded proof ABOUT A MODEL and no proof about the Rust, and the
+interner's TCB-15 to TCB-17, which Aeneas cannot reach because `Interner` is a `HashMap` and which
+Dafny would model as a `map` almost for free.
 
 That second one is worth naming precisely so nobody has to rediscover it: an interner's bijectivity
 is nearly trivial in Dafny and genuinely out of reach for both of the other two. It is also the same
