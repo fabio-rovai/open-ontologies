@@ -92,6 +92,7 @@ pub mod justify;
 pub mod rulesyntax;
 pub mod registry;
 pub mod repo;
+pub mod canon;
 pub mod runtime;
 pub mod schema;
 pub mod segment_retrieve;

@@ -1,0 +1,902 @@
+{
+  "@context": {
+    "@base": "manifest",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "mf": "http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#",
+    "mq": "http://www.w3.org/2001/sw/DataAccess/tests/test-query#",
+    "rdfc": "https://w3c.github.io/rdf-canon/tests/vocab#",
+    "rdft": "http://www.w3.org/ns/rdftest#",
+    "id": "@id",
+    "type": "@type",
+    "action": {
+      "@id": "mf:action",
+      "@type": "@id"
+    },
+    "approval": {
+      "@id": "rdft:approval",
+      "@type": "@id"
+    },
+    "comment": "rdfs:comment",
+    "entries": {
+      "@id": "mf:entries",
+      "@type": "@id",
+      "@container": "@list"
+    },
+    "hashAlgorithm": "rdfc:hashAlgorithm",
+    "label": "rdfs:label",
+    "name": "mf:name",
+    "computationalComplexity": "rdfc:computationalComplexity",
+    "result": {
+      "@id": "mf:result",
+      "@type": "@id"
+    }
+  },
+  "id": "manifest",
+  "type": "mf:Manifest",
+  "label": "RDF Dataset Canonicalization (RDFC-1.0) Test Suite",
+  "comment": "Tests the 1.0 version of RDF Dataset Canonicalization and the generation of canonical maps.",
+  "entries": [
+    {
+      "id": "#test001c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "simple id",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test001-in.nq",
+      "result": "rdfc10/test001-rdfc10.nq"
+    },
+    {
+      "id": "#test002c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "duplicate property iri values",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test002-in.nq",
+      "result": "rdfc10/test002-rdfc10.nq"
+    },
+    {
+      "id": "#test003c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "bnode",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test003-in.nq",
+      "result": "rdfc10/test003-rdfc10.nq"
+    },
+    {
+      "id": "#test003m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "bnode (map test)",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test003-in.nq",
+      "result": "rdfc10/test003-rdfc10map.json"
+    },
+    {
+      "id": "#test004c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "bnode plus embed w/subject",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test004-in.nq",
+      "result": "rdfc10/test004-rdfc10.nq"
+    },
+    {
+      "id": "#test004m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "bnode plus embed w/subject (map test)",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test004-in.nq",
+      "result": "rdfc10/test004-rdfc10map.json"
+    },
+    {
+      "id": "#test005c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "bnode embed",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test005-in.nq",
+      "result": "rdfc10/test005-rdfc10.nq"
+    },
+    {
+      "id": "#test005m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "bnode embed (map test)",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test005-in.nq",
+      "result": "rdfc10/test005-rdfc10map.json"
+    },
+    {
+      "id": "#test006c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "multiple rdf types",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test006-in.nq",
+      "result": "rdfc10/test006-rdfc10.nq"
+    },
+    {
+      "id": "#test008c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "single subject complex",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test008-in.nq",
+      "result": "rdfc10/test008-rdfc10.nq"
+    },
+    {
+      "id": "#test009c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "multiple subjects - complex",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test009-in.nq",
+      "result": "rdfc10/test009-rdfc10.nq"
+    },
+    {
+      "id": "#test010c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "type",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test010-in.nq",
+      "result": "rdfc10/test010-rdfc10.nq"
+    },
+    {
+      "id": "#test011c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "type-coerced type",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test011-in.nq",
+      "result": "rdfc10/test011-rdfc10.nq"
+    },
+    {
+      "id": "#test013c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "type-coerced type, cycle",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test013-in.nq",
+      "result": "rdfc10/test013-rdfc10.nq"
+    },
+    {
+      "id": "#test014c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "check types",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test014-in.nq",
+      "result": "rdfc10/test014-rdfc10.nq"
+    },
+    {
+      "id": "#test016c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - dual link - embed",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test016-in.nq",
+      "result": "rdfc10/test016-rdfc10.nq"
+    },
+    {
+      "id": "#test016m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "blank node - dual link - embed (map test)",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test016-in.nq",
+      "result": "rdfc10/test016-rdfc10map.json"
+    },
+    {
+      "id": "#test017c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - dual link - non-embed",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test017-in.nq",
+      "result": "rdfc10/test017-rdfc10.nq"
+    },
+    {
+      "id": "#test017m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "blank node - dual link - non-embed (map test)",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test017-in.nq",
+      "result": "rdfc10/test017-rdfc10map.json"
+    },
+    {
+      "id": "#test018c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - self link",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test018-in.nq",
+      "result": "rdfc10/test018-rdfc10.nq"
+    },
+    {
+      "id": "#test018m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "blank node - self link (map test)",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test018-in.nq",
+      "result": "rdfc10/test018-rdfc10map.json"
+    },
+    {
+      "id": "#test019c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - disjoint self links",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test019-in.nq",
+      "result": "rdfc10/test019-rdfc10.nq"
+    },
+    {
+      "id": "#test020c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - diamond",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test020-in.nq",
+      "result": "rdfc10/test020-rdfc10.nq"
+    },
+    {
+      "id": "#test020m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "blank node - diamond (map test)",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test020-in.nq",
+      "result": "rdfc10/test020-rdfc10map.json"
+    },
+    {
+      "id": "#test021c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - circle of 2",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test021-in.nq",
+      "result": "rdfc10/test021-rdfc10.nq"
+    },
+    {
+      "id": "#test022c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - double circle of 2",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test022-in.nq",
+      "result": "rdfc10/test022-rdfc10.nq"
+    },
+    {
+      "id": "#test023c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - circle of 3",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test023-in.nq",
+      "result": "rdfc10/test023-rdfc10.nq"
+    },
+    {
+      "id": "#test024c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - double circle of 3 (0-1-2)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test024-in.nq",
+      "result": "rdfc10/test024-rdfc10.nq"
+    },
+    {
+      "id": "#test025c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - double circle of 3 (0-2-1)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test025-in.nq",
+      "result": "rdfc10/test025-rdfc10.nq"
+    },
+    {
+      "id": "#test026c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - double circle of 3 (1-0-2)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test026-in.nq",
+      "result": "rdfc10/test026-rdfc10.nq"
+    },
+    {
+      "id": "#test027c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - double circle of 3 (1-2-0)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test027-in.nq",
+      "result": "rdfc10/test027-rdfc10.nq"
+    },
+    {
+      "id": "#test028c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - double circle of 3 (2-1-0)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test028-in.nq",
+      "result": "rdfc10/test028-rdfc10.nq"
+    },
+    {
+      "id": "#test029c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - double circle of 3 (2-0-1)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test029-in.nq",
+      "result": "rdfc10/test029-rdfc10.nq"
+    },
+    {
+      "id": "#test030c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - point at circle of 3",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test030-in.nq",
+      "result": "rdfc10/test030-rdfc10.nq"
+    },
+    {
+      "id": "#test030m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "blank node - point at circle of 3 (map test)",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test030-in.nq",
+      "result": "rdfc10/test030-rdfc10map.json"
+    },
+    {
+      "id": "#test033c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "disjoint identical subgraphs (1)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test033-in.nq",
+      "result": "rdfc10/test033-rdfc10.nq"
+    },
+    {
+      "id": "#test034c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "disjoint identical subgraphs (2)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test034-in.nq",
+      "result": "rdfc10/test034-rdfc10.nq"
+    },
+    {
+      "id": "#test035c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "reordered w/strings (1)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test035-in.nq",
+      "result": "rdfc10/test035-rdfc10.nq"
+    },
+    {
+      "id": "#test036c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "reordered w/strings (2)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test036-in.nq",
+      "result": "rdfc10/test036-rdfc10.nq"
+    },
+    {
+      "id": "#test038c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "reordered 4 bnodes, reordered 2 properties (1)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test038-in.nq",
+      "result": "rdfc10/test038-rdfc10.nq"
+    },
+    {
+      "id": "#test039c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "reordered 4 bnodes, reordered 2 properties (2)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test039-in.nq",
+      "result": "rdfc10/test039-rdfc10.nq"
+    },
+    {
+      "id": "#test040c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "reordered 6 bnodes (1)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test040-in.nq",
+      "result": "rdfc10/test040-rdfc10.nq"
+    },
+    {
+      "id": "#test043c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "literal with language",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test043-in.nq",
+      "result": "rdfc10/test043-rdfc10.nq"
+    },
+    {
+      "id": "#test044c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "poison – evil (1)",
+      "comment": "A poison graph which is computable given defined limits.",
+      "computationalComplexity": "high",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test044-in.nq",
+      "result": "rdfc10/test044-rdfc10.nq"
+    },
+    {
+      "id": "#test045c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "poison – evil (2)",
+      "comment": "A poison graph which is computable given defined limits.",
+      "computationalComplexity": "high",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test045-in.nq",
+      "result": "rdfc10/test045-rdfc10.nq"
+    },
+    {
+      "id": "#test046c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "poison – evil (3)",
+      "comment": "A poison graph which is computable given defined limits.",
+      "computationalComplexity": "high",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test046-in.nq",
+      "result": "rdfc10/test046-rdfc10.nq"
+    },
+    {
+      "id": "#test047c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "deep diff (1)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test047-in.nq",
+      "result": "rdfc10/test047-rdfc10.nq"
+    },
+    {
+      "id": "#test047m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "deep diff (1) (map test)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test047-in.nq",
+      "result": "rdfc10/test047-rdfc10map.json"
+    },
+    {
+      "id": "#test048c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "deep diff (2)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test048-in.nq",
+      "result": "rdfc10/test048-rdfc10.nq"
+    },
+    {
+      "id": "#test048m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "deep diff (2) (map test)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test048-in.nq",
+      "result": "rdfc10/test048-rdfc10map.json"
+    },
+    {
+      "id": "#test053c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "@list",
+      "comment": "RDF Collections using rdf:first/rest ladders.",
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test053-in.nq",
+      "result": "rdfc10/test053-rdfc10.nq"
+    },
+    {
+      "id": "#test053m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "@list (map test)",
+      "comment": "RDF Collections using rdf:first/rest ladders.",
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test053-in.nq",
+      "result": "rdfc10/test053-rdfc10map.json"
+    },
+    {
+      "id": "#test054c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "t-graph",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test054-in.nq",
+      "result": "rdfc10/test054-rdfc10.nq"
+    },
+    {
+      "id": "#test055c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "simple reorder (1)",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test055-in.nq",
+      "result": "rdfc10/test055-rdfc10.nq"
+    },
+    {
+      "id": "#test055m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "simple reorder (1) (map test)",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test055-in.nq",
+      "result": "rdfc10/test055-rdfc10map.json"
+    },
+    {
+      "id": "#test056c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "simple reorder (2)",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test056-in.nq",
+      "result": "rdfc10/test056-rdfc10.nq"
+    },
+    {
+      "id": "#test056m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "simple reorder (2) (map test)",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test056-in.nq",
+      "result": "rdfc10/test056-rdfc10map.json"
+    },
+    {
+      "id": "#test057c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "unnamed graph",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test057-in.nq",
+      "result": "rdfc10/test057-rdfc10.nq"
+    },
+    {
+      "id": "#test057m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "unnamed graph (map test)",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test057-in.nq",
+      "result": "rdfc10/test057-rdfc10map.json"
+    },
+    {
+      "id": "#test058c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "unnamed graph with blank node objects",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test058-in.nq",
+      "result": "rdfc10/test058-rdfc10.nq"
+    },
+    {
+      "id": "#test059c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "n-quads parsing",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test059-in.nq",
+      "result": "rdfc10/test059-rdfc10.nq"
+    },
+    {
+      "id": "#test060c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "n-quads escaping",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test060-in.nq",
+      "result": "rdfc10/test060-rdfc10.nq"
+    },
+    {
+      "id": "#test060m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "n-quads escaping (map test)",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test060-in.nq",
+      "result": "rdfc10/test060-rdfc10map.json"
+    },
+    {
+      "id": "#test061c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "same literal value with multiple languages",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test061-in.nq",
+      "result": "rdfc10/test061-rdfc10.nq"
+    },
+    {
+      "id": "#test062c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "same literal value with multiple datatypes",
+      "comment": null,
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test062-in.nq",
+      "result": "rdfc10/test062-rdfc10.nq"
+    },
+    {
+      "id": "#test063c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - diamond (with _:b)",
+      "comment": "This duplicates #test020, but uses _:b as a blank node prefix",
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test063-in.nq",
+      "result": "rdfc10/test063-rdfc10.nq"
+    },
+    {
+      "id": "#test063m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "blank node - diamond (with _:b) (map test)",
+      "comment": "This duplicates #test020, but uses _:b as a blank node prefix",
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test063-in.nq",
+      "result": "rdfc10/test063-rdfc10map.json"
+    },
+    {
+      "id": "#test064c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - double circle of 3 (0-1-2, reversed)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test064-in.nq",
+      "result": "rdfc10/test064-rdfc10.nq"
+    },
+    {
+      "id": "#test065c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - double circle of 3 (0-2-1, reversed)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test065-in.nq",
+      "result": "rdfc10/test065-rdfc10.nq"
+    },
+    {
+      "id": "#test066c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - double circle of 3 (1-0-2, reversed)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test066-in.nq",
+      "result": "rdfc10/test066-rdfc10.nq"
+    },
+    {
+      "id": "#test067c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - double circle of 3 (1-2-0, reversed)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test067-in.nq",
+      "result": "rdfc10/test067-rdfc10.nq"
+    },
+    {
+      "id": "#test068c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - double circle of 3 (2-1-0, reversed)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test068-in.nq",
+      "result": "rdfc10/test068-rdfc10.nq"
+    },
+    {
+      "id": "#test069c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - double circle of 3 (2-0-1, reversed)",
+      "comment": null,
+      "computationalComplexity": "medium",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test069-in.nq",
+      "result": "rdfc10/test069-rdfc10.nq"
+    },
+    {
+      "id": "#test070c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "dataset - isomorphic default and iri named",
+      "comment": "Isomorphic graphs in default and IRI named graph",
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test070-in.nq",
+      "result": "rdfc10/test070-rdfc10.nq"
+    },
+    {
+      "id": "#test070m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "dataset - isomorphic default and iri named (map test)",
+      "comment": "Isomorphic graphs in default and IRI named graph",
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test070-in.nq",
+      "result": "rdfc10/test070-rdfc10map.json"
+    },
+    {
+      "id": "#test071c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "dataset - isomorphic default and node named",
+      "comment": "Isomorphic graphs in default and blank node named graph",
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test071-in.nq",
+      "result": "rdfc10/test071-rdfc10.nq"
+    },
+    {
+      "id": "#test071m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "dataset - isomorphic default and node named (map test)",
+      "comment": "Isomorphic graphs in default and blank node named graph",
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test071-in.nq",
+      "result": "rdfc10/test071-rdfc10map.json"
+    },
+    {
+      "id": "#test072c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "dataset - shared blank nodes",
+      "comment": "Blank nodes shared in default and named graph",
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test072-in.nq",
+      "result": "rdfc10/test072-rdfc10.nq"
+    },
+    {
+      "id": "#test072m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "dataset - shared blank nodes (map test)",
+      "comment": "Blank nodes shared in default and named graph",
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test072-in.nq",
+      "result": "rdfc10/test072-rdfc10map.json"
+    },
+    {
+      "id": "#test073c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "dataset - referencing graph name",
+      "comment": "Default graph with blank node shared with graph name",
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test073-in.nq",
+      "result": "rdfc10/test073-rdfc10.nq"
+    },
+    {
+      "id": "#test073m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "dataset - referencing graph name (map test)",
+      "comment": "Default graph with blank node shared with graph name",
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test073-in.nq",
+      "result": "rdfc10/test073-rdfc10map.json"
+    },
+    {
+      "id": "#test074c",
+      "type": "rdfc:RDFC10NegativeEvalTest",
+      "name": "poison - Clique Graph (negative test)",
+      "comment": "A 10-node Clique of blank node resources all inter-related.",
+      "computationalComplexity": "high",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test074-in.nq"
+    },
+    {
+      "id": "#test075c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "blank node - diamond (uses SHA-384)",
+      "comment": "Same as test020 except for using SHA-384",
+      "computationalComplexity": "low",
+      "hashAlgorithm": "SHA384",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test075-in.nq",
+      "result": "rdfc10/test075-rdfc10.nq"
+    },
+    {
+      "id": "#test075m",
+      "type": "rdfc:RDFC10MapTest",
+      "name": "blank node - diamond (uses SHA-384) (map test)",
+      "comment": "Same as test020 except for using SHA-384",
+      "computationalComplexity": "low",
+      "hashAlgorithm": "SHA384",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test075-in.nq",
+      "result": "rdfc10/test075-rdfc10map.json"
+    },
+    {
+      "id": "#test076c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "duplicate ground triple in input",
+      "comment": "The duplicate triples must be removed",
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test076-in.nq",
+      "result": "rdfc10/test076-rdfc10.nq"
+    },
+    {
+      "id": "#test077c",
+      "type": "rdfc:RDFC10EvalTest",
+      "name": "duplicate triple with blank node in input",
+      "comment": "The duplicate triples must be removed",
+      "computationalComplexity": "low",
+      "approval": "rdft:Approved",
+      "action": "rdfc10/test077-in.nq",
+      "result": "rdfc10/test077-rdfc10.nq"
+    }
+  ]
+}

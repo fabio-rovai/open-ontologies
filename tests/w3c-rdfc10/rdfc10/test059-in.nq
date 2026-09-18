@@ -1,0 +1,8 @@
+<urn:ex:s> <urn:ex:p> <urn:ex:o> <urn:ex:g> .
+_:s0 <urn:ex:p> _:o0 _:g0 .
+_:s1 <urn:ex:p> _:o1 _:g1 .
+_:s2 <urn:ex:p> _:o2 _:g2 .
+_:s3 <urn:ex:p> _:o3 _:g3 .
+_:s4 <urn:ex:p> _:o4 _:g4 .
+_:s5 <urn:ex:p> _:o5 _:g5 .
+_:s6 <urn:ex:p> <urn:ex:o> <urn:ex:g> .
