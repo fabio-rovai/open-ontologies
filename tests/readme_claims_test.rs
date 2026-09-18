@@ -219,3 +219,105 @@ fn every_theorem_the_readme_cites_exists() {
         missing.join("\n  ")
     );
 }
+
+/// **#165.** Every tool count in the tree, not the four phrasings someone
+/// remembered to list.
+///
+/// `no_stale_tool_count_survives_anywhere` matches four fixed shapes in three
+/// files. That is a list of the places a total was written when the list was
+/// made, and a total written any other way, or anywhere else, is invisible to
+/// it. Three were: `skills/ontology-engineer.md`,
+/// `skills/ontology-engineering/SKILL.md` and `python/README.md` all said 116
+/// while the server registered 119, and both existing tests passed over them.
+///
+/// So this asks the opposite question. It finds every `<N> tools` in the tracked
+/// tree and requires N to be a number this repository can justify: the
+/// registered total, what a default build advertises, or how many are feature
+/// gated. A new sentence in a new file is covered the day it is written, with
+/// no row to add.
+///
+/// **Historical files are exempt, and that is the point rather than a hole.**
+/// A changelog entry, a decision record and a dated design plan are records of
+/// what was true when they were written. Rewriting them to satisfy a current
+/// figure would destroy the history to make a test pass, which is the opposite
+/// of the discipline here. They are listed explicitly, with the reason, so the
+/// exemption is a decision and not an oversight.
+#[test]
+fn no_file_states_a_tool_count_this_build_cannot_justify() {
+    let n = exposed_tool_count();
+    let gated = gated_tool_count();
+    let justifiable = [n, n - gated, gated];
+
+    // Records of what was true at the time. Never rewritten to match today.
+    const HISTORICAL: [&str; 6] = [
+        "CHANGELOG.md",       // releases state what shipped in them
+        "docs/decisions/",    // decision records, including the counts they diagnose
+        "docs/plans/",        // dated design documents
+        "studio/docs/plans/", // the same, for the studio
+        "case-studies/",      // delivered work, quoted as delivered
+        "benchmark/",         // recorded measurements, and "tool calls" is not a total
+    ];
+
+    let files = std::process::Command::new("git")
+        .args(["ls-files", "*.md", "*.rs"])
+        .current_dir(repo())
+        .output()
+        .expect("git ls-files must run: without it this test would check nothing");
+    assert!(files.status.success(), "git ls-files failed, so this gate proved nothing");
+    let listing = String::from_utf8(files.stdout).expect("file list is UTF-8");
+    let paths: Vec<&str> = listing.lines().filter(|l| !l.trim().is_empty()).collect();
+    assert!(paths.len() > 50, "only {} tracked files found; the scan is not running", paths.len());
+
+    let mut wrong = Vec::new();
+    let mut checked = 0usize;
+    for rel in paths {
+        if HISTORICAL.iter().any(|h| rel.starts_with(h)) {
+            continue;
+        }
+        let Ok(text) = std::fs::read_to_string(repo().join(rel)) else { continue };
+        for (lineno, line) in text.lines().enumerate() {
+            for (i, _) in line.match_indices(" tool") {
+                let after = &line[i + " tool".len()..];
+                // " tools" or " tool " only; never " tool calls", which counts
+                // invocations rather than tools.
+                let plural = after.starts_with('s');
+                let rest = if plural { &after[1..] } else { after };
+                // A count is a whole word on both sides. Without this, a
+                // command line invoking the interpreter and a directory of
+                // scripts reads as a count: the digit belongs to `python3` and
+                // the word to `tools/`. This comment is worded to avoid
+                // tripping the very check below, which is itself the proof
+                // that the check reaches this file.
+                if rest.starts_with(|c: char| c.is_alphanumeric() || c == '_' || c == '/') {
+                    continue;
+                }
+                let head = &line[..i];
+                let digits: String = head.chars().rev().take_while(|c| c.is_ascii_digit()).collect();
+                if digits.is_empty() {
+                    continue;
+                }
+                let before = head[..head.len() - digits.len()].chars().next_back();
+                if before.is_some_and(|c| c.is_alphanumeric() || c == '_') {
+                    continue;
+                }
+                let found: usize = digits.chars().rev().collect::<String>().parse().expect("digits");
+                checked += 1;
+                if !justifiable.contains(&found) {
+                    wrong.push(format!("{rel}:{}: \"{found} tool\" ({})", lineno + 1, line.trim()));
+                }
+            }
+        }
+    }
+
+    assert!(checked > 0, "no tool count was examined anywhere, so this test cannot fail");
+    assert!(
+        wrong.is_empty(),
+        "{} tool count(s) state a number this build cannot justify. The server registers \
+         {n}, a default build advertises {}, and {gated} are feature gated:\n  {}\n\nIf the \
+         number is a historical record, the file belongs in HISTORICAL with a reason, not \
+         edited to match.",
+        wrong.len(),
+        n - gated,
+        wrong.join("\n  ")
+    );
+}

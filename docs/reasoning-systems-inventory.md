@@ -10,13 +10,21 @@ a calculus nobody has mechanised in core Lean here, so an unsatisfiability answe
 single asymmetry decides how each system below is used, and it explains rankings that otherwise look
 perverse.
 
+Since 15 September 2026 the testimony comes with an exhibit. Both provers will print the derivation
+they found, and `src/tstp.rs` reads it back: every leaf is matched against the problem this engine
+emitted, the DAG is checked for dangling parents and cycles, and the resolution-family steps are
+recomputed. That does not upgrade the testimony into a certificate and no word in the output says it
+does, because the calculus is not mechanised and the replayer is unverified Rust. What it removes is
+the part of the trust that was never about the prover's soundness at all: whether it was answering
+about the file we gave it. The addendum to decision 0005 draws the new line.
+
 ## Status at a glance
 
 | System | Kind | Status here |
 | --- | --- | --- |
 | Lean 4 | Proof assistant | The kernel. Every checker in this repository. |
-| E 3.2.5 | First-order prover | Used as a differential oracle. Never as an authority. |
-| Vampire 5.1.0 | First-order prover | Installed, same role as E. |
+| E 3.2.5 | First-order prover | Differential oracle. Never an authority. Its derivations are now read back and structurally checked. |
+| Vampire 5.1.0 | First-order prover | Same role as E, and the one whose derivations replay furthest. |
 | Z3 4.16.0 | SMT solver | Model-certificate layer, under construction. |
 | Mace4 | Finite model finder | Same. Its output is checkable; Prover9's is not. |
 | Prover9 | First-order prover | Declined. Unmaintained since 2011, refutations uncheckable. |
@@ -29,7 +37,7 @@ perverse.
 | Aeneas with Charon | Rust to Lean | Declined. Subset does not contain this codebase. |
 | Verus, Creusot, Prusti | Rust verification | Declined. Each needs the code rewritten in its subset. |
 | Kani | Rust bounded model checker | Being applied to the trusted boundary only. |
-| TPTP and TSTP | Interchange | Implemented. The execution format. |
+| TPTP and TSTP | Interchange | Implemented, in both directions. TPTP out, TSTP back in and checked. |
 | CLIF, ISO/IEC 24707 | Interchange | Implemented. The conformance format. |
 | SMT-LIB 2 | Interchange | Under construction. |
 | RIF Core, SWRL | Rule languages | Front ends under construction. |
@@ -54,6 +62,22 @@ against one public vocabulary the comparison disagreed with the engine on fifty-
 eighty-one claimed entailments, and every one was a real defect, including one in the exporter itself.
 That is the value, and it does not require trusting the prover at all.
 
+What both now also give us is a derivation to read. `fol-prove` and `onto_fol_prove` run the prover
+with its proof-printing option, parse the TSTP it emits, and report a verdict on the derivation
+separately from the verdict the prover reported on the problem. Measured over FOAF, one problem per
+claimed entailment: Vampire refuted all one hundred and eighty-one and one thousand two hundred and
+seventy-nine of its three thousand three hundred and fourteen steps were recomputed here, while E
+refuted all one hundred and eighty-one and only one hundred and eighty-one of its four thousand six
+hundred and forty-four steps were. Every one of the five hundred and thirty-four leaves matched the
+problem on both sides, and nothing was rejected.
+
+The gap between the two is structural rather than a matter of quality, and it is the most useful
+thing this measurement produced. Vampire prints each inference as its own annotated formula with the
+conclusion attached, so a step can be recomputed from its premises. E nests inference records inside
+parent positions, and a nested record carries a rule and parents but no formula, so neither it nor
+the step it feeds can be replayed at all. Anyone choosing a prover for a pipeline that wants to
+inspect its own evidence should know that before choosing.
+
 Prover9 is declined. Its author died in 2011, it has had no maintainer since, and its refutations are
 no more checkable than Vampire's. There is no version of the argument where an unmaintained prover
 beats a maintained one at the same job.
@@ -71,7 +95,9 @@ which is the only place in this architecture where an external tool's answer is 
 merely corroborated.
 
 Its unsat answers stay oracle answers. An unsat core is not a proof object we can replay, and the
-proof logs Z3 can emit would need the same mechanised calculus that the first-order case lacks.
+proof logs Z3 can emit would need the same mechanised calculus that the first-order case lacks. The
+structural treatment the first-order provers now get has no counterpart here yet: nothing reads Z3's
+proof logs, and doing so is a separate piece of work from reading TSTP.
 
 ## Isabelle, and what the second kernel found
 
@@ -269,7 +295,10 @@ Building the notation before the table it indexes would be a front end onto two 
 
 ## Interchange formats
 
-TPTP is the execution format, because it is the only one an installed solver will read. CLIF is the
+TPTP is the execution format, because it is the only one an installed solver will read, and TSTP is
+now read in the other direction: `src/tstp.rs` parses a prover's annotated-formula list, its
+`inference(RULE, [status], [parents])` records and its `file(…)` and `introduced(…)` provenance, and
+turns them into a DAG this engine can check against its own output. CLIF is the
 conformance format, because ISO/IEC 21838-1 requires a top-level ontology to carry an axiomatisation in
 a language conforming to ISO/IEC 24707 and the Basic Formal Ontology discharges that in CLIF. SMT-LIB
 is the model-finding format. All three are printers over one representation, and the correspondence

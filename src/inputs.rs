@@ -336,6 +336,73 @@ pub struct OntoReasonInput {
 }
 
 #[derive(Deserialize, JsonSchema)]
+pub struct OntoJustifyInput {
+    /// The conclusion to explain, as ONE N-Triples triple: `<s> <p> <o>`, with
+    /// full IRIs in angle brackets and literals in quotes. Prefixed names are
+    /// not read. A blank node may be written `_:label` and comes back the same
+    /// way. Give this or `inconsistency`, never both.
+    pub triple: Option<String>,
+    /// Explain the CLASH instead of a triple: which asserted triples are
+    /// responsible for the contradiction this engine found. The more valuable
+    /// question, because an inconsistent ontology entails everything and the
+    /// only useful answer is which axioms to remove.
+    pub inconsistency: Option<bool>,
+    /// A support set someone else produced, to be CHECKED rather than
+    /// searched for. Each entry is one N-Triples triple. The answer is one of
+    /// `minimal_justification`, `not_a_justification_not_minimal` (with the
+    /// removable triples named) or `not_a_justification_target_not_reached`.
+    pub candidate: Option<Vec<String>>,
+    /// `rdfs`, `owl-rl` (the default here, because a clash needs the OWL
+    /// rules) or `owl-rl-ext`. `owl-dl` is refused: the tableaux path records
+    /// no rule applications, so there is no derivation to walk. It must match
+    /// the profile whose conclusion you are asking about.
+    pub profile: Option<String>,
+    /// Stop after this many justifications. Default 16. A run that stops here
+    /// sets `truncated` and names the bound.
+    pub max_justifications: Option<usize>,
+    /// Stop after this many fixpoint re-runs. Default 400. Every node of the
+    /// hitting-set tree and every minimality check is one re-run, so this is
+    /// the real cost control.
+    pub max_oracle_calls: Option<usize>,
+    /// Write one derivation certificate per justification, over exactly that
+    /// justification's triples, so `lake exe oo-cert` can verify SUFFICIENCY
+    /// under `OOCert.certificate_sound`. Minimality is not covered by any
+    /// theorem and is verified by re-running the engine instead.
+    pub certificate_dir: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct ProvenanceWeight {
+    /// One N-Triples triple that must be ASSERTED in the store.
+    pub triple: String,
+    /// Its weight. Non-negative for `tropical`; in [0, 1] when `trust` is
+    /// asked for, because max-min's multiplicative identity is 1.
+    pub weight: f64,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoProvenanceInput {
+    /// The triple to annotate, as ONE N-Triples triple. Omit to get the shape
+    /// of the derivation DAG with nothing annotated.
+    pub triple: Option<String>,
+    /// `rdfs`, `owl-rl` (default) or `owl-rl-ext`. `owl-dl` is refused.
+    pub profile: Option<String>,
+    /// Which semirings to evaluate. Any of `boolean`, `why`, `lineage`,
+    /// `counting`, `tropical` (min-plus), `trust` (max-min). All of them by
+    /// default.
+    pub semirings: Option<Vec<String>>,
+    /// Maximum rounds of the annotated fixpoint, which is a bound on
+    /// derivation DEPTH: round k covers proof trees of height at most k.
+    /// Default 32. Only `counting` can fail to converge before it.
+    pub depth_bound: Option<usize>,
+    /// Maximum monomials kept per fact in the `why` semiring. Default 64. When
+    /// the cap bites, the SMALLEST monomials are kept and `truncated` is set.
+    pub max_monomials: Option<usize>,
+    /// Per-triple weights for `tropical` and `trust`. Absent means 1.0.
+    pub weights: Option<Vec<ProvenanceWeight>>,
+}
+
+#[derive(Deserialize, JsonSchema)]
 pub struct OntoFolExportInput {
     /// Directory to write the export to. `ontology.p` (TPTP), `ontology.clif`
     /// or `ontology.cgif` lands here, plus one problem per goal under
@@ -407,6 +474,30 @@ pub struct OntoFolModelInput {
     pub goals_file: Option<String>,
     /// Leading tab-separated columns to skip before the subject. Default 0.
     pub goals_skip_columns: Option<usize>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoFolProveInput {
+    /// Working directory. The problem, the prover's raw output and the report
+    /// land here, so a run is reproducible by hand from what it leaves behind.
+    /// Not needed when `problem` and `proof` are both given.
+    pub out_dir: Option<String>,
+    /// `vampire` (default) or `eprover`. Both are run WITH their
+    /// proof-printing option; a run without one returns a word and no
+    /// derivation, which is the state this tool exists to leave behind.
+    pub prover: Option<String>,
+    /// Seconds per prover invocation. Default 30.
+    pub timeout_secs: Option<u32>,
+    /// A TSV of triples to ask as conjectures, one run per line; the shape
+    /// `onto_reason` writes with `certificate_dir`.
+    pub goals_file: Option<String>,
+    /// Leading tab-separated columns to skip before the subject. Default 0.
+    pub goals_skip_columns: Option<usize>,
+    /// CHECK-ONLY: a TPTP problem file. With `proof`, no prover is run and no
+    /// store is read; the recorded pair is checked as it stands.
+    pub problem: Option<String>,
+    /// CHECK-ONLY: a file holding a prover's output for `problem`.
+    pub proof: Option<String>,
 }
 
 #[derive(Deserialize, JsonSchema)]

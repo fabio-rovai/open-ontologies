@@ -54,6 +54,8 @@ job invokes the file at all.
 | test file | needs | provided by | in CI |
 |---|---|---|---|
 | `lean_certificate_test.rs` | lake | `lean` job | **strict** |
+| `justify_test.rs` | `benchmark/reference/pizza-reference.owl`, which ships with the repository | `lean` job | **strict** |
+| `provenance_test.rs` | the same shipped ontology | `lean` job | **strict** |
 | `shacl_core_verified_test.rs` | lake + vendored W3C SHACL suite | `lean` job | **strict** |
 | `dl_model_certificate_test.rs` | lake + `oo-dlmodel` | `lean` job | **strict** |
 | `lean_refutation_test.rs` | lake + `oo-refute` | `lean` job | **strict** |
@@ -74,6 +76,8 @@ job invokes the file at all.
 | `rule_syntax_frontend_test.rs` | lake | `lean` job | **strict** |
 | `reason_horn_emit_test.rs` | lake + `tests/fixtures/horn/` (in tree) | `lean` job | **strict** |
 | `cross_kernel_differential_test.rs` | lake **and** Poly/ML | `lean` job | **strict** |
+| `tstp_derivation_test.rs` | the recorded Vampire and E derivations in `tests/fixtures/tstp/` (in tree); ONE test also wants vampire on `PATH` | any job for the recorded part; no job installs a prover | **skips** — 34 of 35 need nothing, but the file cannot be made strict while the 35th wants a prover no job installs |
+| `tstp_cli_test.rs` | the same fixtures + the debug CLI | any job | **strict** |
 | `clinical_test.rs` | `data/crosswalks.parquet` | nothing — `data/` is gitignored | **skips** |
 | `embed_test.rs` | ONNX model in `~/.open-ontologies/models/` | `features/depth` compiles it; no job runs `open-ontologies init` | **skips** |
 | `embedding_e2e_test.rs` | same ONNX model + tokenizer | same | **skips** |
@@ -108,6 +112,15 @@ The other seven files under `python/tests/` have no skip path.
 
 ## What is still open, and why
 
+- **No job installs a first-order prover.** `tools/fol_differential.py` skips
+  loudly without one and `FOL_DIFF_REQUIRE_ATP=1` turns that skip into a
+  failure, but no workflow sets it because no workflow installs E or Vampire.
+  The derivation checker added on 15 September 2026 is in the same position: its
+  recorded fixtures run everywhere, and `a_live_vampire_run_agrees_with_the_recorded_one`
+  skips. The recorded half is not a substitute for the live half, since it pins
+  the checker against two real derivations and not against whatever the
+  installed prover does today, so a `brew install vampire` step, or its apt
+  equivalent, is the smallest thing that would close this.
 - **`clinical_test.rs`, `embed_test.rs`, `embedding_e2e_test.rs`.** All three
   want an artefact the repository deliberately does not carry: a licensed
   crosswalk table and a model download. Closing them means a job that fetches
@@ -131,9 +144,19 @@ The other seven files under `python/tests/` have no skip path.
 - **The `features/breadth` job runs no tests** (`test: false`); it is
   `cargo check` plus clippy across all features. That is deliberate and is not a
   skip, but it does mean an all-features build is type-checked and never run.
-- **Kani.** `make verify` runs three bounded-model-checking harnesses. No job
+- **Kani.** `make verify` runs fifteen bounded-model-checking harnesses. No job
   installs Kani, so none of them runs in CI. `docs/trusted-computing-base.md`
-  says so where it reports their results.
+  says so where it reports their results. (The count was three until 15
+  September 2026 and this line had not followed it.)
+- **Aeneas.** `aeneas/run.sh` re-translates `src/boundary_core.rs` into
+  `aeneas/lean/OOBoundary/Generated.lean` and fails if the model moved, and
+  `cd aeneas/lean && lake build` checks the theorems about it. NEITHER runs in
+  any job, and neither is reachable from `make check`, `cargo build`,
+  `cargo test` or `lean/`'s `lake build`. The first needs a 130 MB release
+  tarball and a pinned rustc nightly; the second needs Lean v4.31.0 and a 7.6 GB
+  `.lake` including Mathlib. `docs/aeneas-boundary.md` reports what they produced
+  when they were run here, which is the same arrangement Kani is under and for
+  the same reason: a gate nobody can run locally is not a gate.
 - **The Makefile and CI have drifted.** No workflow invokes `make`. `make check`
   is `lint test audit`, and its `test` is a bare `cargo test` with no
   `OO_REQUIRE_FIXTURES`, so a local `make check` is the permissive run whatever

@@ -54,6 +54,109 @@ struct Derivation {
     premises: Vec<Fact>,
 }
 
+// ── Reading the derivation DAG back ─────────────────────────────────────────
+//
+// `derivations.tsv` records ONE step per inferred triple: the first time the
+// fixpoint reached it. That is the right thing for a certificate, because a
+// checker re-derives and one derivation is all it needs, and it is the WRONG
+// thing for explanation. A triple derived two independent ways has two
+// justifications and the certificate shows one of them; a provenance polynomial
+// with one monomial where the closure supports two is a false statement about
+// where the conclusion came from.
+//
+// So explanation does not read the file. It asks the fixpoint for every ground
+// rule instance it found applicable, which is the whole DAG rather than a
+// spanning forest of it. The capture is opt-in, costs one branch per candidate
+// triple on a run that did not ask for it, and is memory-proportional to the
+// number of applicable instances rather than to the number of conclusions.
+//
+// The instances collected are those applicable in the FIXPOINT closure. The
+// last round of the loop runs every rule over the complete closure and adds
+// nothing, so every instance applicable at the fixpoint fires at least once and
+// is recorded. Deduplication is by (rule, conclusion, premises).
+
+/// A triple in the store's own N-Triples spelling, byte-identical to what
+/// [`GraphStore::all_triples`] yields and to what `asserted.tsv` carries.
+pub type Spelled = crate::projection_entailment::Spelled;
+
+/// One ground rule instance the fixpoint found applicable: a rule, what it
+/// concluded, and the premises it read in the order
+/// `lean/OOCert/Rules.lean` documents for that rule.
+///
+/// Unlike a certificate line this is NOT unique per conclusion. Two instances
+/// with the same conclusion are two independent derivations of it, and that is
+/// exactly the fact [`crate::justify`] and [`crate::provenance`] exist to read.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RuleInstance {
+    pub rule: &'static str,
+    pub conclusion: Spelled,
+    pub premises: Vec<Spelled>,
+}
+
+/// One way the closure contradicts itself, spelled out for a consumer that has
+/// no interner.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ClashInstance {
+    pub rule: &'static str,
+    pub premises: Vec<Spelled>,
+    /// Whether `lean/OOCert/Refute.lean` holds a semantic condition for this
+    /// rule, so that a refutation naming it can be CHECKED rather than merely
+    /// asserted. Exactly one rule qualifies; see [`CLASH_RULES_CERTIFIABLE`].
+    pub certifiable: bool,
+}
+
+/// Everything one forward-chaining run knows about how it got where it got.
+///
+/// `closure` is what the run believes, `asserted` is what it started from, and
+/// `instances` is every ground rule application that connects the two. The
+/// three together are the derivation DAG: nodes are triples, and an instance is
+/// a hyperedge from its premises to its conclusion.
+#[derive(Clone, Debug)]
+pub struct DerivationGraph {
+    pub profile_used: String,
+    /// Every triple the run started from, in store order.
+    pub asserted: Vec<Spelled>,
+    /// Every triple the run ended with, asserted ones included.
+    pub closure: HashSet<Spelled>,
+    /// Every applicable ground rule instance, in the order the fixpoint first
+    /// found each one. That order is topological: a rule read its premises out
+    /// of the closure as it stood at the START of the round, so every premise
+    /// was concluded in a strictly earlier round or asserted.
+    pub instances: Vec<RuleInstance>,
+    /// False when the run stopped at the iteration cap instead of a fixpoint.
+    /// The closure is then a LOWER BOUND and every answer computed from it is
+    /// an answer about a partial closure.
+    pub fixpoint_reached: bool,
+    pub iterations: usize,
+    /// The clashes [`find_clashes`] found over the closure. Ten of the
+    /// seventeen OWL 2 RL rules that conclude `false` are looked for, so an
+    /// empty list is NOT a consistency result.
+    pub clashes: Vec<ClashInstance>,
+    /// Conclusions refused for being unserialisable, and therefore neither
+    /// materialised nor available as premises. A run with a non-zero count here
+    /// derived LESS than its rule table licenses.
+    pub refused_unserialisable: usize,
+}
+
+impl DerivationGraph {
+    /// Is this triple in the closure?
+    pub fn holds(&self, t: &Spelled) -> bool {
+        self.closure.contains(t)
+    }
+    /// Was this triple asserted rather than derived?
+    pub fn is_asserted(&self, t: &Spelled) -> bool {
+        self.asserted.iter().any(|a| a == t)
+    }
+}
+
+/// Collector threaded through the fixpoint when a caller asked for the DAG.
+#[derive(Default)]
+struct Capture {
+    seen: HashSet<(&'static str, Fact, Vec<Fact>)>,
+    instances: Vec<(&'static str, Fact, Vec<Fact>)>,
+    out: Option<DerivationGraph>,
+}
+
 
 // ── The rules that conclude `false` ─────────────────────────────────────────
 //
@@ -501,8 +604,16 @@ fn refutation_prefix(
 ///
 /// Terms arrive in their N-Triples spelling, so a literal begins with `"` and
 /// an IRI with `<`.
+///
+/// The body is `crate::boundary_core::writable_triple_bytes`, which is the
+/// function Aeneas translates into Lean. `OOBoundary.writable_triple_bytes_eq`
+/// proves it decides both positions for terms of EVERY length, which is the
+/// unbounded form of what `writable_triple_decides_both_positions` proves at a
+/// fixed four bytes. `str::starts_with` with an ASCII `char` and a leading-byte
+/// test agree on every `&str`, because no ASCII byte occurs inside a multi-byte
+/// UTF-8 sequence; `tcb_wrappers_agree_with_the_char_level_predicates` pins it.
 fn writable_triple(subject: &str, predicate: &str) -> bool {
-    !subject.starts_with('"') && predicate.starts_with('<')
+    crate::boundary_core::writable_triple_bytes(subject.as_bytes(), predicate.as_bytes())
 }
 
 /// Which position of a certificate line refused to be written.
@@ -512,12 +623,11 @@ fn writable_triple(subject: &str, predicate: &str) -> bool {
 /// about, and a formatted error inside a function is what put CBMC inside the
 /// formatting machinery and killed the first `parse_pat` harness. The message a
 /// user reads is built by the caller, from this and the term.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Position {
-    Subject,
-    Predicate,
-    Object,
-}
+///
+/// Defined in `crate::boundary_core` so that Aeneas translates it with the
+/// writers that return it, and re-exported here so `reason::Position` is still
+/// the path it always was.
+pub use crate::boundary_core::Position;
 
 impl Position {
     fn name(self) -> &'static str {
@@ -553,11 +663,7 @@ impl Position {
 /// `_:` and quotes a `Literal`), and so does every constant `parse_pat` accepts,
 /// so this refuses nothing the engine has any business writing.
 fn term_fits_the_format(t: &str) -> bool {
-    if !field_fits_the_format(t) {
-        return false;
-    }
-    let b = t.as_bytes();
-    b[0] == b'<' || b[0] == b'"' || (b[0] == b'_' && b.len() > 1 && b[1] == b':')
+    crate::boundary_core::term_fits_the_format(t.as_bytes())
 }
 
 /// The half of [`term_fits_the_format`] that is about the FORMAT and not about
@@ -566,18 +672,7 @@ fn term_fits_the_format(t: &str) -> bool {
 /// `horn.tsv` also writes variable names, which are not terms and have no
 /// N-Triples spelling, and this is what they have to satisfy.
 fn field_fits_the_format(f: &str) -> bool {
-    let b = f.as_bytes();
-    if b.is_empty() {
-        return false;
-    }
-    let mut i = 0;
-    while i < b.len() {
-        if b[i] == b'\t' || b[i] == b'\n' || b[i] == b'\r' {
-            return false;
-        }
-        i += 1;
-    }
-    true
+    crate::boundary_core::field_fits_the_format(f.as_bytes())
 }
 
 /// Append one line of `asserted.tsv`: `s TAB p TAB o NEWLINE`.
@@ -594,45 +689,20 @@ fn field_fits_the_format(f: &str) -> bool {
 /// byte for byte as it was. A writer that appended a subject and then refused
 /// the object would leave a half-line in the buffer, which is the same defect
 /// the non-atomic materialiser had.
-fn push_asserted_line(out: &mut String, s: &str, p: &str, o: &str) -> Result<(), Position> {
-    if !term_fits_the_format(s) {
-        return Err(Position::Subject);
-    }
-    if !term_fits_the_format(p) {
-        return Err(Position::Predicate);
-    }
-    if !term_fits_the_format(o) {
-        return Err(Position::Object);
-    }
-    out.push_str(s);
-    out.push('\t');
-    out.push_str(p);
-    out.push('\t');
-    out.push_str(o);
-    out.push('\n');
-    Ok(())
+///
+/// The buffer is a `Vec<u8>` and not a `String` because the body is
+/// `crate::boundary_core::push_asserted_line_bytes`, the function Aeneas
+/// translates. Nothing downstream notices: `std::fs::write` takes
+/// `AsRef<[u8]>`, and every byte appended here comes from a `&str`.
+fn push_asserted_line(out: &mut Vec<u8>, s: &str, p: &str, o: &str) -> Result<(), Position> {
+    crate::boundary_core::push_asserted_line_bytes(out, s.as_bytes(), p.as_bytes(), o.as_bytes())
 }
 
 /// Append a triple as three further fields of a line already begun, the shape
 /// `derivations.tsv` and `horn.tsv` use after their header fields. Same guard
 /// and same all-or-nothing discipline as [`push_asserted_line`].
-fn push_triple_fields(out: &mut String, s: &str, p: &str, o: &str) -> Result<(), Position> {
-    if !term_fits_the_format(s) {
-        return Err(Position::Subject);
-    }
-    if !term_fits_the_format(p) {
-        return Err(Position::Predicate);
-    }
-    if !term_fits_the_format(o) {
-        return Err(Position::Object);
-    }
-    out.push('\t');
-    out.push_str(s);
-    out.push('\t');
-    out.push_str(p);
-    out.push('\t');
-    out.push_str(o);
-    Ok(())
+fn push_triple_fields(out: &mut Vec<u8>, s: &str, p: &str, o: &str) -> Result<(), Position> {
+    crate::boundary_core::push_triple_fields_bytes(out, s.as_bytes(), p.as_bytes(), o.as_bytes())
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1140,6 +1210,48 @@ impl Reasoner {
         )
     }
 
+    /// The whole derivation DAG of a run: every asserted triple, every triple
+    /// the fixpoint reached, and EVERY applicable ground rule instance rather
+    /// than one per conclusion.
+    ///
+    /// This is the substrate [`crate::justify`] and [`crate::provenance`] read.
+    /// Nothing is materialised and no certificate is written: the caller gets
+    /// the structure and decides what to do with it.
+    ///
+    /// Refuses `owl-dl` for the same reason `--certificate` does: the tableaux
+    /// path has no rule trace, so there is no DAG to hand back and an empty one
+    /// would read as "nothing was derived".
+    ///
+    /// It asks for no scope, which is not the same as escaping the scope
+    /// gate: `ScopeRequest::Unscoped` still goes through
+    /// [`crate::temporal::resolve`], so over a versioned store naming no
+    /// instant this is REFUSED like any other run. A DAG over the union of
+    /// every version would explain a state that held at no instant.
+    pub fn derivation_graph(
+        graph: &Arc<GraphStore>,
+        profile: &str,
+    ) -> anyhow::Result<DerivationGraph> {
+        if profile == "owl-dl" {
+            anyhow::bail!(
+                "the owl-dl tableaux path records no rule applications, so there is no derivation \
+                 DAG to explain from; run rdfs, owl-rl or owl-rl-ext"
+            );
+        }
+        let mut cap = Capture::default();
+        Self::run_scoped_capturing(
+            graph,
+            profile,
+            false,
+            InferenceTarget::DefaultGraph,
+            None,
+            &ScopeRequest::Unscoped,
+            Some(&mut cap),
+        )?;
+        cap.out.ok_or_else(|| {
+            anyhow::anyhow!("the reasoner returned without filling the derivation DAG; this is a bug")
+        })
+    }
+
     /// [`run_full`](Self::run_full) over a stated set of graphs (#108).
     ///
     /// Every entry point above funnels here, so the scope gate cannot be
@@ -1176,6 +1288,30 @@ impl Reasoner {
         certificate_dir: Option<&std::path::Path>,
         request: &ScopeRequest,
     ) -> anyhow::Result<String> {
+        Self::run_scoped_capturing(
+            graph,
+            profile,
+            materialize,
+            target,
+            certificate_dir,
+            request,
+            None,
+        )
+    }
+
+    /// [`run_scoped`](Self::run_scoped) with somewhere to put the derivation
+    /// DAG. Private because `Capture` is, which is why the public form above
+    /// exists rather than this taking an `Option` nobody outside can build.
+    #[allow(clippy::too_many_arguments)]
+    fn run_scoped_capturing(
+        graph: &Arc<GraphStore>,
+        profile: &str,
+        materialize: bool,
+        target: InferenceTarget,
+        certificate_dir: Option<&std::path::Path>,
+        request: &ScopeRequest,
+        capture: Option<&mut Capture>,
+    ) -> anyhow::Result<String> {
         let (scope, manifest) = crate::temporal::resolve(graph, request)?;
         if !scope.is_all_graphs() && profile == "owl-dl" {
             anyhow::bail!(
@@ -1207,6 +1343,7 @@ impl Reasoner {
             certificate_dir,
             &scope,
             &manifest,
+            capture,
         )
     }
 
@@ -1219,6 +1356,7 @@ impl Reasoner {
         certificate_dir: Option<&std::path::Path>,
         scope: &crate::graph::ReadScope,
         manifest: &crate::temporal::ScopeManifest,
+        capture: Option<&mut Capture>,
     ) -> anyhow::Result<String> {
         // Delegate OWL-DL to tableaux reasoner
         if profile == "owl-dl" {
@@ -1357,7 +1495,13 @@ impl Reasoner {
         // per inferred triple and `derivations.len() == inferred_count` is an
         // invariant the tests pin. Nothing here runs unless a certificate was
         // asked for: the hot path pays one branch per candidate triple.
-        let certify = certificate_dir.is_some();
+        //
+        // A capture asks for the same premise lists, so it turns `certify` on
+        // too: the per-rule premise vectors are built behind that flag, and a
+        // DAG whose hyperedges carried no premises would be a set of
+        // disconnected nodes wearing the word "derivation".
+        let mut capture = capture;
+        let certify = certificate_dir.is_some() || capture.is_some();
         let mut derivations: Vec<Derivation> = Vec::new();
         let mut recorded: HashSet<Fact> = HashSet::new();
 
@@ -1538,6 +1682,7 @@ impl Reasoner {
             let interner_ref = &interner;
             let refused_ref = &mut refused;
             let samples_ref = &mut skipped_samples;
+            let mut cap_ref = capture.as_mut();
             let rv = &rule_vocab;
             let mut emit = |f: Fired| {
                 let (rule, t) = match &f {
@@ -1571,16 +1716,36 @@ impl Reasoner {
                     }
                     return;
                 }
-                if certify && !triple_set.contains(&t) && recorded.insert(t) {
-                    let premises: Vec<Fact> = match &f {
+                // Computed ONCE, because two consumers need it and they need
+                // the same value: the certificate records the first derivation
+                // of a triple, and the DAG records every one. Deriving it twice
+                // would let them disagree. Skipped entirely when neither asked,
+                // so a run that wants no certificate and no DAG pays one branch.
+                let premises: Vec<Fact> = if certify || cap_ref.is_some() {
+                    match &f {
                         Fired::Bound(r, b) => BUILTIN_RULES[*r as usize]
                             .body
                             .iter()
                             .map(|a| rv.fill(a, b))
                             .collect(),
                         Fired::Chained(_, _, ps) => ps.to_vec(),
-                    };
-                    derivations.push(Derivation { rule, conclusion: t, premises });
+                    }
+                } else {
+                    Vec::new()
+                };
+                if certify && !triple_set.contains(&t) && recorded.insert(t) {
+                    derivations.push(Derivation { rule, conclusion: t, premises: premises.clone() });
+                }
+                // The DAG, when one was asked for. Recorded whether or not the
+                // conclusion is new, because the SECOND way a triple can be
+                // derived is the whole point: it is a second justification and
+                // a second monomial, and a log that keeps only firsts cannot
+                // see either.
+                if let Some(cap) = cap_ref.as_mut() {
+                    let key = (rule, t, premises.clone());
+                    if cap.seen.insert(key.clone()) {
+                        cap.instances.push(key);
+                    }
                 }
                 new.push(t);
             };
@@ -2182,7 +2347,7 @@ impl Reasoner {
 
         if let Some(dir) = certificate_dir {
             std::fs::create_dir_all(dir)?;
-            let mut asserted = String::with_capacity(facts.len() * 96);
+            let mut asserted: Vec<u8> = Vec::with_capacity(facts.len() * 96);
             for &(s, p, o) in &facts {
                 push_asserted_line(
                     &mut asserted,
@@ -2199,10 +2364,10 @@ impl Reasoner {
             std::fs::write(dir.join("asserted.tsv"), asserted)?;
 
             let mut by_rule: std::collections::BTreeMap<&str, usize> = std::collections::BTreeMap::new();
-            let mut lines = String::with_capacity(derivations.len() * 256);
+            let mut lines: Vec<u8> = Vec::with_capacity(derivations.len() * 256);
             for d in &derivations {
                 *by_rule.entry(d.rule).or_default() += 1;
-                lines.push_str(d.rule);
+                lines.extend_from_slice(d.rule.as_bytes());
                 for &(s, p, o) in std::iter::once(&d.conclusion).chain(d.premises.iter()) {
                     push_triple_fields(
                         &mut lines,
@@ -2216,7 +2381,7 @@ impl Reasoner {
                         Position::Object => o,
                     })))?;
                 }
-                lines.push('\n');
+                lines.push(b'\n');
             }
             std::fs::write(dir.join("derivations.tsv"), lines)?;
 
@@ -2457,6 +2622,45 @@ impl Reasoner {
             }
 
             result["inconsistency"] = inconsistency;
+        }
+
+        // The DAG, spelled out, for a caller that has no interner. Built here
+        // rather than in the loop so that `clashes` and the fixpoint flag are
+        // the ones the run finished with.
+        if let Some(cap) = capture.as_mut() {
+            let spell = |f: &Fact| {
+                (
+                    interner.resolve(f.0).to_string(),
+                    interner.resolve(f.1).to_string(),
+                    interner.resolve(f.2).to_string(),
+                )
+            };
+            let instances: Vec<RuleInstance> = cap
+                .instances
+                .iter()
+                .map(|(rule, c, ps)| RuleInstance {
+                    rule,
+                    conclusion: spell(c),
+                    premises: ps.iter().map(&spell).collect(),
+                })
+                .collect();
+            cap.out = Some(DerivationGraph {
+                profile_used: profile_used.to_string(),
+                asserted: facts.iter().map(&spell).collect(),
+                closure: triple_set.iter().map(&spell).collect(),
+                instances,
+                fixpoint_reached,
+                iterations,
+                clashes: clashes
+                    .iter()
+                    .map(|c| ClashInstance {
+                        rule: c.rule,
+                        premises: c.premises.iter().map(&spell).collect(),
+                        certifiable: clash_is_certifiable(c.rule),
+                    })
+                    .collect(),
+                refused_unserialisable: refused.len(),
+            });
         }
 
         Ok(result.to_string())
@@ -3054,7 +3258,7 @@ impl Reasoner {
         }
         std::fs::write(certificate_dir.join("rules.tsv"), &canonical_rules)?;
 
-        let mut asserted = String::with_capacity(facts.len() * 96);
+        let mut asserted: Vec<u8> = Vec::with_capacity(facts.len() * 96);
         for &(s, p, o) in &facts {
             push_asserted_line(
                 &mut asserted,
@@ -3070,13 +3274,13 @@ impl Reasoner {
         }
         std::fs::write(certificate_dir.join("asserted.tsv"), asserted)?;
 
-        let mut horn = String::with_capacity(steps.len() * 256);
+        let mut horn: Vec<u8> = Vec::with_capacity(steps.len() * 256);
         let mut by_rule: Vec<usize> = vec![0; rules.len()];
         for st in &steps {
             by_rule[st.rule] += 1;
-            horn.push_str(&st.rule.to_string());
-            horn.push('\t');
-            horn.push_str(&st.binds.len().to_string());
+            horn.extend_from_slice(st.rule.to_string().as_bytes());
+            horn.push(b'\t');
+            horn.extend_from_slice(st.binds.len().to_string().as_bytes());
             for (v, term) in &st.binds {
                 // A variable name is not a term and has no N-Triples spelling,
                 // so it gets the format half of the guard. `parse_rules` cannot
@@ -3092,10 +3296,10 @@ impl Reasoner {
                 if !term_fits_the_format(bound) {
                     return Err(unwritable_term("horn.tsv", Position::Object, bound));
                 }
-                horn.push('\t');
-                horn.push_str(v);
-                horn.push('\t');
-                horn.push_str(bound);
+                horn.push(b'\t');
+                horn.extend_from_slice(v.as_bytes());
+                horn.push(b'\t');
+                horn.extend_from_slice(bound.as_bytes());
             }
             for &(s, p, o) in std::iter::once(&st.conclusion).chain(st.premises.iter()) {
                 push_triple_fields(
@@ -3110,7 +3314,7 @@ impl Reasoner {
                     Position::Object => o,
                 })))?;
             }
-            horn.push('\n');
+            horn.push(b'\n');
         }
         std::fs::write(certificate_dir.join("horn.tsv"), horn)?;
 
@@ -3340,7 +3544,7 @@ mod boundary_tests {
         fn tcb_1_an_asserted_line_splits_back_into_its_three_terms(
             s in term(), p in term(), o in term(),
         ) {
-            let mut out = String::from("<a>\t<b>\t<c>\n");
+            let mut out: Vec<u8> = "<a>\t<b>\t<c>\n".as_bytes().to_vec();
             let before = out.clone();
             let r = push_asserted_line(&mut out, &s, &p, &o);
             let fits = term_fits_the_format(&s)
@@ -3351,6 +3555,8 @@ mod boundary_tests {
                 prop_assert_eq!(out, before, "a refused line left a fragment behind");
                 return Ok(());
             }
+            let out = String::from_utf8(out).expect("every byte came from a &str");
+            let before = String::from_utf8(before).expect("every byte came from a &str");
             prop_assert!(out.ends_with('\n'));
             let line = out.strip_prefix(&before).expect("the line was appended");
             let body = &line[..line.len() - 1];
@@ -3365,8 +3571,8 @@ mod boundary_tests {
             head in "[a-z0-9-]{1,8}",
             ts in prop::collection::vec((term(), term(), term()), 1..4),
         ) {
-            let mut out = String::new();
-            out.push_str(&head);
+            let mut out: Vec<u8> = Vec::new();
+            out.extend_from_slice(head.as_bytes());
             let mut written = 0usize;
             for (s, p, o) in &ts {
                 let fits = term_fits_the_format(s)
@@ -3381,6 +3587,7 @@ mod boundary_tests {
                     written += 1;
                 }
             }
+            let out = String::from_utf8(out).expect("every byte came from a &str");
             let f: Vec<&str> = out.split('\t').collect();
             prop_assert_eq!(f.len(), 1 + 3 * written);
             prop_assert_eq!(f[0], head.as_str());
@@ -3419,6 +3626,46 @@ mod boundary_tests {
                     prop_assert_ne!(&a, &b);
                 }
             }
+        }
+
+        /// The `&str` wrappers agree with the `char`-level predicates they
+        /// replaced.
+        ///
+        /// `writable_triple`, `field_fits_the_format`, `term_fits_the_format`
+        /// and `name_is_safe` are now one line each, delegating to
+        /// `crate::boundary_core`, which is the file Aeneas translates into the
+        /// Lean model under `aeneas/`. The delegation is `as_bytes()` and the
+        /// argument that it changes nothing is that every byte those functions
+        /// look for is ASCII and no ASCII byte occurs inside a multi-byte UTF-8
+        /// sequence. That is an argument. This is the test: the ORIGINAL bodies
+        /// are written out here and required to agree with the shipped
+        /// wrappers on the same adversarial generator, including a combining
+        /// character, a NUL and a lexical form spelled like an IRI.
+        #[test]
+        fn tcb_wrappers_agree_with_the_char_level_predicates(t in term(), u in term()) {
+            for s in [&t, &u] {
+                // As `field_fits_the_format` was written before the extraction.
+                let field_before = !s.is_empty() && !s.contains(['\t', '\n', '\r']);
+                prop_assert_eq!(field_fits_the_format(s), field_before, "{:?}", s);
+
+                // As `term_fits_the_format` was written before the extraction.
+                let term_before = field_before && {
+                    let b = s.as_bytes();
+                    b[0] == b'<' || b[0] == b'"' || (b[0] == b'_' && b.len() > 1 && b[1] == b':')
+                };
+                prop_assert_eq!(term_fits_the_format(s), term_before, "{:?}", s);
+
+                // As `tableaux::name_is_safe` was written before the extraction.
+                let name_before = !s.is_empty() && !s.contains([' ', '\t', '\n', '\r']);
+                prop_assert_eq!(
+                    crate::boundary_core::name_is_safe_bytes(s.as_bytes()),
+                    name_before,
+                    "{:?}", s
+                );
+            }
+            // As `writable_triple` was written before the extraction.
+            let writable_before = !t.starts_with('"') && u.starts_with('<');
+            prop_assert_eq!(writable_triple(&t, &u), writable_before, "{:?} {:?}", t, u);
         }
 
         /// TCB-20 at one rule position. `parse_pat` and `Pat::render` are
@@ -3533,8 +3780,8 @@ mod kani_harnesses {
 
         // A non-empty buffer, so "nothing was appended" is a real claim and not
         // "the buffer is still empty".
-        let mut out = String::with_capacity(4 * N + 8);
-        out.push('x');
+        let mut out: Vec<u8> = Vec::with_capacity(4 * N + 8);
+        out.push(b'x');
         let r = push_asserted_line(&mut out, s, p, o);
 
         let fits =
@@ -3542,11 +3789,11 @@ mod kani_harnesses {
         assert!(r.is_ok() == fits);
         if !fits {
             assert!(out.len() == 1);
-            assert!(out.as_bytes()[0] == b'x');
+            assert!(out[0] == b'x');
             return;
         }
 
-        let w = &out.as_bytes()[1..];
+        let w = &out[1..];
 
         // Nothing added and nothing lost: three terms, two tabs, one newline.
         assert!(w.len() == 3 * N + 3);
@@ -3629,8 +3876,8 @@ mod kani_harnesses {
         let p = any_ascii(&mut b);
         let o = any_ascii(&mut c);
 
-        let mut out = String::with_capacity(4 * N + 8);
-        out.push('r');
+        let mut out: Vec<u8> = Vec::with_capacity(4 * N + 8);
+        out.push(b'r');
         let r = push_triple_fields(&mut out, s, p, o);
 
         let fits =
@@ -3638,11 +3885,11 @@ mod kani_harnesses {
         assert!(r.is_ok() == fits);
         if !fits {
             assert!(out.len() == 1);
-            assert!(out.as_bytes()[0] == b'r');
+            assert!(out[0] == b'r');
             return;
         }
 
-        let w = out.as_bytes();
+        let w = out.as_slice();
         assert!(w.len() == 1 + 3 * N + 3);
         assert!(w[0] == b'r');
         assert!(w[1] == b'\t');

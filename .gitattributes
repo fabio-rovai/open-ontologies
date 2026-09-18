@@ -19,6 +19,16 @@
 *.ttl text eol=lf
 *.trig text eol=lf
 
+# First-order problems and prover transcripts, for a third version of the same
+# reason. `the_fixture_problem_is_what_this_exporter_emits` compares the
+# recorded problem byte for byte against what `fol --format tptp` emits now,
+# because a proof of the old problem says nothing about a new one. The emitter
+# writes LF, so a CRLF checkout made that comparison fail on Windows alone, on
+# a file that is correct in the repository. The prover transcripts beside it
+# are recorded output and are pinned for the same reason.
+*.p     text eol=lf
+*.tstp  text eol=lf
+
 # ONE EXCEPTION, and it is the exception that proves the rule above. The
 # `probe_crlf_*` files in isabelle/fixtures-differential/ exist to feed the two
 # certificate checkers a file that DOES carry carriage returns, and to pin that

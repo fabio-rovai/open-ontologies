@@ -18,6 +18,13 @@ way: it needs a verified first-order calculus with unification, which does not e
 When E says `SZS status Theorem`, that carries exactly the weight of pyshacl agreeing with the
 SHACL validator, and nothing here calls it a proof.
 
+**And read what that word now comes with.** A prover will also print the DERIVATION it found, and a
+derivation is a finite object. `fol-prove` reads one back, matches every leaf against the problem
+this engine emitted, checks the DAG, and recomputes the resolution-family steps. It does not turn
+the opinion into a proof and no word in its output says otherwise. It does answer the question the
+opinion never could: whether the prover was answering about our file. See
+[reading the derivation back](#reading-the-derivation-back).
+
 **And read the asymmetry second.** A MODEL is the exact opposite of a refutation. It is a finite
 object, checking a formula against it is decidable, and `lean/Fol/` holds a verified evaluator for
 that, so the SATISFIABILITY direction CAN be certified. `fol --format smtlib` and
@@ -149,6 +156,87 @@ With no prover installed the run skips loudly with the install line and exits 0;
 in general, and a conclusion that does not follow often has only infinite countermodels, so a
 prover that cannot refute it has told you nothing either way. The tool never reads that as
 agreement.
+
+## Reading the derivation back
+
+```bash
+# Prove the loaded ontology's claimed entailments and CHECK every derivation.
+printf 'load ontology.ttl\nfol-prove --out /tmp/proofs --prover vampire --goals /tmp/cert/derivations.tsv --goals-skip-columns 1\n' \
+  | open-ontologies --no-connect --data-dir /tmp/store batch -
+
+# Or check a problem and a recorded prover output, with no store and no run.
+vampire --proof tptp problem.p > proof.tstp
+open-ontologies --no-connect fol-prove --problem problem.p --proof proof.tstp
+```
+
+Over MCP the tool is `onto_fol_prove`, with the same two modes.
+
+Three things are established, in increasing order of what they cost.
+
+**The prover refuted OUR problem.** Every leaf of the derivation is matched against the problem file
+three ways: by the name its own `file('…', NAME)` annotation gives, by the PARSED formula, and by
+the ROLE. Each catches something different. The name catches a prover pointed at a stale or
+different file. The formula catches a file edited since under the same names. The role catches a
+conjecture presented as an axiom, which would make the refutation say nothing about entailment while
+looking perfect. Until this existed, an `AGREE` row above simply assumed all three.
+
+**The derivation is a well-founded DAG ending in `$false`.** Every parent reference resolves, no
+name is used twice, the parent relation is acyclic, and the node nothing else cites is the empty
+clause. Nodes the empty clause does not depend on are counted separately and left out of every
+tally.
+
+**Some steps are recomputed.** `resolution`, `subsumption_resolution` and its forward and backward
+spellings, `factoring`, `duplicate_literal_removal`, `flattening`, `trivial_inequality_removal`,
+`equality_resolution`, and the negation of the conjecture. Each is replayed from its premises with a
+syntactic unifier with an occurs check, and the conclusion must agree up to a bijective renaming of
+variables. **Everything else is named and counted as unchecked**, with a reason: clausification,
+Skolemisation, AVATAR splitting, every SAT-solver step, and every step of E's whose premise is an
+inline inference record and therefore carries no formula.
+
+### The verdict is one of eight words
+
+| verdict | means |
+|---|---|
+| `problem_unparsed` | the TPTP problem could not be read. Not a statement about the prover |
+| `derivation_unparsed` | the output is not a TSTP derivation. Usually the proof option was missing |
+| `no_refutation_offered` | no empty clause. A satisfiable problem, a timeout or a give-up. Evidence of nothing |
+| `derivation_rejected` | THE CHECKER SAID NO: a dangling parent, a cycle, or a leaf that is not a formula of the problem. Exits 1 |
+| `refutation_step_not_reconstructed` | a step whose rule IS implemented did not reconstruct. EITHER the derivation is wrong OR this checker is incomplete, and it decides neither. Exits 1 |
+| `refutation_structure_checked` | structure holds, no step replayed |
+| `refutation_partially_replayed` | structure holds, some steps replayed. The normal outcome |
+| `refutation_fully_replayed` | structure holds, EVERY step replayed. Still not unsatisfiability |
+
+**An unchecked step prevents the strongest word**, and so does a leaf the prover invented. That is
+mechanical and it is the reason the ladder has three rungs rather than a boolean. Even
+`refutation_fully_replayed` is not a proof: the calculus's soundness is machine-checked nowhere in
+`lean/`, and the replayer is ordinary Rust.
+
+### Measured, over FOAF
+
+One problem per claimed entailment, 181 of them, exported from an unreasoned store.
+
+| prover | refuted | steps replayed | leaves matched | rejected | not reconstructed |
+|---|---:|---:|---|---:|---:|
+| Vampire 5.1.0 | 181 | 1279 of 3314 | 534, all `identical` | 0 | 0 |
+| E 3.2.5 | 181 | 181 of 4644 | 534, all `alpha_equivalent` | 0 | 0 |
+
+The order-of-magnitude gap is structural and worth knowing before choosing a prover for a pipeline
+that wants to inspect its own evidence. Vampire prints each inference as its own annotated formula
+with the conclusion attached; E nests inference records inside parent positions, and a nested record
+carries a rule and parents but no formula, so neither it nor the step it feeds can be replayed.
+
+`alpha_equivalent` against `identical` is not cosmetic either. E renames the bound variables of
+every axiom it reads, so a leaf check demanding byte identity of the parsed AST would reject every E
+proof of every problem. The three match levels — `identical`, `alpha_equivalent`,
+`associativity_normalised` — are reported separately so that how much normalisation a leaf needed is
+visible rather than absorbed.
+
+### What the differential does with it
+
+`tools/fol_differential.py` now runs each prover with its proof option and hands every derivation to
+the checker. Each row carries `proof_check` and `proof_steps` beside its `AGREE`, and a
+`PROOF_REJECTED` row exits 1. `--no-proof-check` turns it off, and a run with that flag reports what
+the prover SAID and nothing about what it said it about.
 
 ## What is proved, and where the proof stops
 
@@ -589,8 +677,14 @@ Stated rather than discovered later.
   must come from the same graph the export was built from, which is why the differential loads the
   certificate's own `asserted.tsv` rather than the source file twice. Otherwise the goal is refused
   with that reason.
-- **Nothing runs the differential in CI.** It needs a prover on `PATH` and skips loudly without
-  one. A CI leg that installs E is not wired.
+- **Nothing runs the differential in CI, and nothing runs the derivation check there either.** Both
+  need a prover on `PATH` and both skip loudly without one. The recorded Vampire and E derivations
+  under `tests/fixtures/tstp/` DO run everywhere, over a problem the test regenerates from the
+  exporter so the fixture cannot drift; the live run skips. A CI leg that installs a prover is not
+  wired.
+- **Superposition and demodulation are not replayed.** They are the steps that do the work on any
+  problem with equality, and replaying one needs a term ordering. Until then an equality-heavy proof
+  sits near the bottom of the ladder.
 - **CGIF conformance is pinned by our own checker and not by an independent parser.** There is no
   installable CGIF parser to differ from: no `cgif` package on PyPI, no CGIF front end in
   py-typedlogic, and Macleod reads CLIF. The CLIF claims on this page rest on two external parsers
@@ -613,11 +707,15 @@ Stated rather than discovered later.
   on this page sourced to them is still scoped to the text actually read, including that clause
   4.3's "shall be available" modality comes from the Russian identical adoption and not from the
   English.
-- **Only E has actually been run.** Every number on this page comes from E 3.2.5. The Vampire
-  branch of the prover detection has never executed, because Vampire is not installed here; its
-  argument vector and its SZS parsing are written from the documented interface and are untested.
-  Treat `--atp vampire` as unverified until someone runs it.
+- **Vampire has now been run, and this bullet used to say it had not.** Until 15 September 2026
+  every number on this page came from E 3.2.5 and the Vampire branch of the prover detection had
+  never executed. Vampire 5.1.0 is installed on this machine, `--atp vampire` has been run over
+  FOAF, and the measured table above is from both. What was found in the process: `--mode casc`
+  alone prints a proof in a display format, and `--proof tptp` is what makes it a TSTP derivation
+  the checker can read. The argument vector now carries it, and so does E's `--proof-object`.
 - **`AGREE` is evidence, not proof.** It means a second implementation reached the same conclusion.
+  A checked derivation beside it adds that the second implementation was reading our file. It does
+  not add a proof and the summary says so in the same paragraph as the counts.
 
 ## What it caught
 
