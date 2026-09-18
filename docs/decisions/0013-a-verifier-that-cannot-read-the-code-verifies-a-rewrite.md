@@ -183,9 +183,13 @@ is already the best covered.
 The last of those is worth one more sentence, because it is the clearest case. `evictor_tick` in
 `src/registry.rs` returns early unless the registry holds an active entry, and the only thing that
 sets one is `OntologyRegistry::load_file`, while `src/server.rs` loads through `GraphStore::load_file`
-instead. Nothing about that is a false theorem. Every function involved does what it says. The defect
-is which function the other one calls, and there is no property of a pure function whose proof would
-have caught it.
+instead, so in `serve-http` and daemon mode the evictor can never evict anything.
+`tests/registry_evictor_wiring_test.rs` pins it, and pins it as a defect rather than as behaviour:
+`an_unloaded_registry_never_evicts` fails the day somebody fixes the wiring, and says so.
+Nothing about that is a false theorem. Every function involved does what it says. The defect is which
+function the other one calls, and there is no property of a pure function whose proof would have
+caught it. Decision 0012 reached the same conclusion from the concurrency side on the same day, by a
+different route.
 
 ## What is kept, and on what terms
 
