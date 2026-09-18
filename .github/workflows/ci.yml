@@ -438,6 +438,13 @@ jobs:
         # fact, and it is the reason this job exists rather than being folded
         # into the line above.
         run: OO_REQUIRE_FIXTURES=1 cargo test --test lean_horn_certificate_test -- --nocapture
+      - name: Run the README's own example and check it says what the README says
+        # Issue #162. "Try the checker itself" prints three commands and the
+        # JSON each returned, and until now nothing re-ran them, so the page
+        # could drift from the checker silently. The commands and the expected
+        # fields are read out of README.md rather than copied into the test, so
+        # editing either side is what fails.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test readme_example_test -- --nocapture
       - name: Check the README animation against the checker it depicts
         # docs/assets/demo-certify.svg draws counts, a verdict word and a
         # theorem name in the first screen of the README, and nothing about an
