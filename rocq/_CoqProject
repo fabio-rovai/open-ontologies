@@ -1,0 +1,18 @@
+-Q theories OOCertRocq
+-arg -w -arg -notation-overridden
+-arg -w -arg -deprecated
+
+theories/Syntax.v
+theories/Semantics.v
+theories/Checker.v
+theories/Determinacy.v
+theories/Sound.v
+theories/Interp.v
+theories/Builtin.v
+theories/Parse.v
+theories/Run.v
+theories/Witness.v
+theories/FixtureData.v
+theories/Fixtures.v
+theories/Audit.v
+theories/Extract.v

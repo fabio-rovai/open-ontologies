@@ -71,3 +71,31 @@ isabelle/build/
 
 # Claude Code agent worktrees: machine-local, never part of the repo.
 .claude/worktrees/
+
+# rocq/ build artefacts. Nothing here is a source.
+#
+# theories/FixtureData.v is GENERATED from tests/fixtures/horn/ by
+# gen_fixture_data.sh on every build, deliberately rather than committed: a
+# committed copy of a fixture is a second file that can drift from the first, and
+# a kernel gate over a drifted copy is a gate over nothing.
+#
+# driver/rocq_horn_core.ml* is the extraction output and is NOT committed, which
+# is the opposite of what isabelle/driver/oo_horn_generated.ML does. The reason
+# the Isabelle export is committed is that regenerating it needs several
+# gigabytes of Isabelle; regenerating this one needs a container image CI already
+# pulls, so committing it would buy nothing and add an artefact no job rebuilds.
+rocq/build/
+rocq/theories/FixtureData.v
+rocq/theories/*.vo
+rocq/theories/*.vok
+rocq/theories/*.vos
+rocq/theories/*.glob
+rocq/theories/.*.aux
+rocq/Makefile.rocq
+rocq/Makefile.rocq.conf
+rocq/.Makefile.rocq.d
+rocq/driver/rocq_horn_core.ml
+rocq/driver/rocq_horn_core.mli
+rocq/driver/*.cmi
+rocq/driver/*.cmx
+rocq/driver/*.o
