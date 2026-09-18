@@ -76,6 +76,8 @@ job invokes the file at all.
 | `rule_syntax_frontend_test.rs` | lake | `lean` job | **strict** |
 | `reason_horn_emit_test.rs` | lake + `tests/fixtures/horn/` (in tree) | `lean` job | **strict** |
 | `cross_kernel_differential_test.rs` | lake **and** Poly/ML | `lean` job | **strict** |
+| `tstp_derivation_test.rs` | the recorded Vampire and E derivations in `tests/fixtures/tstp/` (in tree); ONE test also wants vampire on `PATH` | any job for the recorded part; no job installs a prover | **skips** — 34 of 35 need nothing, but the file cannot be made strict while the 35th wants a prover no job installs |
+| `tstp_cli_test.rs` | the same fixtures + the debug CLI | any job | **strict** |
 | `clinical_test.rs` | `data/crosswalks.parquet` | nothing — `data/` is gitignored | **skips** |
 | `embed_test.rs` | ONNX model in `~/.open-ontologies/models/` | `features/depth` compiles it; no job runs `open-ontologies init` | **skips** |
 | `embedding_e2e_test.rs` | same ONNX model + tokenizer | same | **skips** |
@@ -110,6 +112,15 @@ The other seven files under `python/tests/` have no skip path.
 
 ## What is still open, and why
 
+- **No job installs a first-order prover.** `tools/fol_differential.py` skips
+  loudly without one and `FOL_DIFF_REQUIRE_ATP=1` turns that skip into a
+  failure, but no workflow sets it because no workflow installs E or Vampire.
+  The derivation checker added on 15 September 2026 is in the same position: its
+  recorded fixtures run everywhere, and `a_live_vampire_run_agrees_with_the_recorded_one`
+  skips. The recorded half is not a substitute for the live half, since it pins
+  the checker against two real derivations and not against whatever the
+  installed prover does today, so a `brew install vampire` step, or its apt
+  equivalent, is the smallest thing that would close this.
 - **`clinical_test.rs`, `embed_test.rs`, `embedding_e2e_test.rs`.** All three
   want an artefact the repository deliberately does not carry: a licensed
   crosswalk table and a model download. Closing them means a job that fetches

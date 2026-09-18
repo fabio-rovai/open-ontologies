@@ -614,6 +614,31 @@ no verdict word, and no executable imports it, which is why it is a separate `le
 count of trusted properties is what it was.
 The honest summary is that the trusted base used to be four things: the serialisation of a term, the
 identity of the asserted graph, the completeness of the derivation record, and the identity of the
+rule table. Those are now property-tested and, for the pure parts, bounded-model-checked. Every one
+of them still rests on a dependency's behaviour that this repository observes rather than enforces.
+The engine is not verified. It was never going to be, and a report that read as though it were
+would be the same defect this project exists to attack.
+
+## What is deliberately not on this page: `src/tstp.rs`
+
+Added 15 September 2026, and it belongs here only to be excluded, because its name will otherwise
+suggest to a reader that it has a proof behind it.
+
+`src/tstp.rs` reads the TSTP derivation a first-order prover prints, matches every leaf against the
+problem this engine emitted, checks the DAG, and recomputes the resolution-family steps. It is the
+refutation direction's answer to `oo-folmodel`, and the analogy stops at the shape. `oo-folmodel` is
+a Lean program whose acceptance implies `Fol.Satisfiable` by a machine-checked theorem, so the
+question "what does its verdict assume about the Rust" is a real question with the answers above.
+`src/tstp.rs` is a Rust program whose acceptance implies nothing formally at all: the calculus it
+replays is mechanised nowhere in `lean/`, and the replayer is unverified.
+
+So it is not the trusted computing base OF anything. It is a second opinion about a third party's
+output, in the same category as the Rust SHACL validator in item 9 and in the opposite direction:
+there, a verified evaluator measures an unverified one; here, an unverified checker measures an
+unverified prover, and the result is evidence that a human can read rather than any kind of
+certificate. Its verdict vocabulary is built so that this cannot be mistaken, and the addendum to
+[decision 0005](decisions/0005-a-prover-is-an-oracle-and-a-translation-is-a-theorem.md) sets out
+what it does and does not establish, field by field.
 rule table. The serialisation of a term is no longer one of them: it is enforced here and proved
 over every byte pattern at the bounds below, rather than observed of a dependency. The identity of
 the rule table is most of the way off the list: the engine re-parses what it wrote and refuses on

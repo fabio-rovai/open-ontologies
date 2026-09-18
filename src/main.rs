@@ -589,6 +589,44 @@ enum Commands {
         checker: Option<String>,
     },
 
+    /// Run a prover, READ the derivation it prints, and re-check what can be re-checked
+    ///
+    /// A refutation is still an ORACLE OPINION (decision 0005) and nothing
+    /// here certifies one. What this adds is that the opinion stops being a
+    /// single word: the derivation is parsed, every leaf is matched against
+    /// the problem THIS engine emitted, the DAG is checked for dangling
+    /// parents and cycles, and the resolution-family steps are recomputed from
+    /// their premises. Every rule that was not replayed is named and counted.
+    /// Exits 1 if any derivation is rejected or any implemented step fails to
+    /// reconstruct.
+    FolProve {
+        /// Working directory. The problem, the prover's raw output and the
+        /// report land here, so a run is reproducible by hand.
+        #[arg(long, required_unless_present = "problem")]
+        out: Option<String>,
+        /// `vampire` (default) or `eprover`. Both are run WITH their
+        /// proof-printing option, because a run without one returns a word
+        /// and no derivation.
+        #[arg(long, default_value = "vampire")]
+        prover: String,
+        #[arg(long, default_value_t = 30)]
+        timeout_secs: u32,
+        /// A TSV of triples to ask as conjectures, one run per line; the shape
+        /// `fol --goals` takes.
+        #[arg(long)]
+        goals: Option<String>,
+        #[arg(long, default_value_t = 0)]
+        goals_skip_columns: usize,
+        /// CHECK-ONLY: a TPTP problem file. With --proof, no prover is run and
+        /// no store is read; the recorded pair is checked as it stands. This
+        /// is what tools/fol_differential.py calls.
+        #[arg(long, requires = "proof")]
+        problem: Option<String>,
+        /// CHECK-ONLY: a file holding a prover's output for --problem.
+        #[arg(long, requires = "problem")]
+        proof: Option<String>,
+    },
+
     /// Ask whether a retrieved slice still supports the claims an answer rests on
     ///
     /// Coverage is a proxy. This asks the property: for each goal, does the
@@ -863,7 +901,7 @@ impl Commands {
                 }
                 cmd("reason", a)
             }
-            Commands::Fol { out, format, smt_domain, clif_dialect, clif_comments, goals, goals_skip_columns } => {
+        Commands::Fol { out, format, smt_domain, clif_dialect, clif_comments, goals, goals_skip_columns } => {
                 let mut a = vec![
                     "--out".into(),
                     absolutize(out),
@@ -939,6 +977,31 @@ impl Commands {
                     a.push(absolutize(c));
                 }
                 cmd("fol-model", a)
+            }
+
+            Commands::FolProve { out, prover, timeout_secs, goals, goals_skip_columns, problem, proof } => {
+                // The check-only pair reads two files and no store, so there
+                // is nothing for the daemon to hold and proxying it would only
+                // add a hop.
+                if problem.is_some() || proof.is_some() {
+                    return None;
+                }
+                let Some(out) = out else { return None };
+                let mut a = vec![
+                    "--out".into(),
+                    absolutize(out),
+                    "--prover".into(),
+                    prover.clone(),
+                    "--timeout-secs".into(),
+                    timeout_secs.to_string(),
+                ];
+                if let Some(g) = goals {
+                    a.push("--goals".into());
+                    a.push(absolutize(g));
+                    a.push("--goals-skip-columns".into());
+                    a.push(goals_skip_columns.to_string());
+                }
+                cmd("fol-prove", a)
             }
 
             Commands::Preserve {
@@ -2795,6 +2858,63 @@ async fn async_main() -> anyhow::Result<()> {
                 std::process::exit(1);
             }
         }
+        Commands::FolProve {
+            out,
+            prover,
+            timeout_secs,
+            goals,
+            goals_skip_columns,
+            problem,
+            proof,
+        } => {
+            use open_ontologies::tstp::{ProveOptions, Prover, check_files, prove_export};
+            // The check-only pair never touches the store: it is two files and
+            // a checker, which is exactly what a differential already holding
+            // both needs.
+            if let (Some(pp), Some(dd)) = (problem.as_deref(), proof.as_deref()) {
+                let result =
+                    check_files(std::path::Path::new(pp), std::path::Path::new(dd))
+                        .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}).to_string());
+                output_result_checked(&result, cli.pretty);
+                let stop = serde_json::from_str::<serde_json::Value>(&result)
+                    .ok()
+                    .and_then(|v| v.get("stop_the_line").and_then(|n| n.as_u64()))
+                    .unwrap_or(0);
+                if stop > 0 {
+                    std::process::exit(1);
+                }
+                return Ok(());
+            }
+            let Some(out) = out else {
+                eprintln!("fol-prove needs --out DIR, or --problem FILE with --proof FILE");
+                std::process::exit(2);
+            };
+            let (_db, graph) = setup(&cli.data_dir)?;
+            let result = match Prover::parse(&prover) {
+                Ok(p) => {
+                    let opts = ProveOptions { prover: p, timeout_secs };
+                    prove_export(
+                        &graph,
+                        std::path::Path::new(&out),
+                        &opts,
+                        goals.as_deref().map(std::path::Path::new),
+                        goals_skip_columns,
+                    )
+                    .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}).to_string())
+                }
+                Err(e) => serde_json::json!({"error": e.to_string()}).to_string(),
+            };
+            output_result_checked(&result, cli.pretty);
+            // A rejected derivation means the prover refuted something other
+            // than the problem this engine emitted. That must fail a pipeline.
+            let stop = serde_json::from_str::<serde_json::Value>(&result)
+                .ok()
+                .and_then(|v| v.get("stop_the_line").and_then(|n| n.as_u64()))
+                .unwrap_or(0);
+            if stop > 0 {
+                std::process::exit(1);
+            }
+        }
         Commands::Fol { out, format, smt_domain, clif_dialect, clif_comments, goals, goals_skip_columns } => {
             let (_db, graph) = setup(&cli.data_dir)?;
             let result = match open_ontologies::tptp::Syntax::parse(
@@ -3338,6 +3458,24 @@ mod proxy_serialization_tests {
     }
 
     #[test]
+    fn the_check_only_form_of_fol_prove_is_not_proxied() {
+        // `--problem` with `--proof` reads two files and no store, so there is
+        // nothing for the daemon to hold. Proxying it would add a hop and, if
+        // the paths were relative, resolve them against the daemon's directory
+        // instead of the caller's.
+        let check_only = Commands::FolProve {
+            out: None,
+            prover: "vampire".into(),
+            timeout_secs: 30,
+            goals: None,
+            goals_skip_columns: 0,
+            problem: Some("p.p".into()),
+            proof: Some("d.tstp".into()),
+        };
+        assert!(check_only.to_batch_command().is_none());
+    }
+
+    #[test]
     fn a_flag_the_batch_handler_cannot_honour_keeps_the_command_local() {
         // The batch ingester has no `--format`, so proxying would have dropped it
         // in silence. Running locally honours it.
@@ -3372,6 +3510,7 @@ mod proxy_serialization_tests {
             Commands::Reason { profile: "rdfs".into(), certificate: None, rules: None },
             Commands::Fol { out: "/tmp/fol".into(), format: "tptp".into(), smt_domain: None, clif_dialect: "iso".into(), clif_comments: "standalone".into(), goals: None, goals_skip_columns: 0 },
             Commands::FolModel { out: "/tmp/folmodel".into(), solver: "z3".into(), max_domain: 16, timeout_secs: 30, unbounded_probe: true, goals: None, goals_skip_columns: 0, checker: None },
+            Commands::FolProve { out: Some("/tmp/folprove".into()), prover: "vampire".into(), timeout_secs: 30, goals: None, goals_skip_columns: 0, problem: None, proof: None },
             Commands::Shacl { shapes: "s.ttl".into() },
             Commands::Status,
             Commands::Pull { url: "http://example.org".into(), sparql: false, query: None },

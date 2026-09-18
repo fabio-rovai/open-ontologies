@@ -56,6 +56,20 @@ The verdicts, in order of severity:
                          exporter lists these; they are reproduced here.
   AGREE                - the ATP also finds the conclusion entailed.
 
+Since 15 September 2026 an AGREE row carries a second column, because "the
+prover said Theorem" is a word and the derivation behind it is an object.
+Each prover is run WITH its proof-printing option and the derivation it emits
+is handed to `open-ontologies fol-prove --problem F --proof G`, which parses
+it, matches every leaf against the problem file THIS engine wrote, checks the
+DAG for dangling parents and cycles, and recomputes the resolution-family
+steps. The result lands in `proof_check` and `proof_steps`.
+
+THAT IS STILL NOT A PROOF and AGREE still means what it meant. What the second
+column rules out is narrower and was, until it existed, simply assumed: that
+the prover was answering about the file we gave it. A `proof_check` of
+PROOF_REJECTED is a stop-the-line, exits 1, and means the derivation's leaves
+are not our formulas. See docs/decisions/0005, the addendum.
+
 Usage:
     python3 tools/fol_differential.py ONTOLOGY.ttl [--json out.json]
                                       [--profile owl-rl-ext] [--limit N]
@@ -85,20 +99,23 @@ BIN = os.environ.get(
 # status lines. Prover9 is deliberately NOT probed: it reads LADR, not TPTP,
 # and silently treating its input as TPTP would be exactly the kind of
 # unnoticed mismatch this tool exists to catch.
+# `--proof-object` and `--proof tptp` are not optional extras. Without them a
+# prover returns an SZS word and nothing else, and a word cannot be checked.
 ATPS = [
     {
         "name": "eprover",
-        "argv": lambda f, t: ["eprover", "--auto", "--tptp3-format", f"--cpu-limit={t}", f],
+        "argv": lambda f, t: ["eprover", "--auto", "--tptp3-format", "--proof-object",
+                              f"--cpu-limit={t}", f],
         "install": "brew install eprover   (or apt-get install eprover, or "
                    "https://github.com/eprover/eprover)",
     },
     {
-        # UNTESTED. Vampire was not installed on the machine this was written
-        # on, so this argument vector and the SZS parsing for it come from the
-        # documented interface and have never run. Said here rather than
-        # discovered by whoever first passes --atp vampire.
+        # Was UNTESTED until 15 September 2026, when Vampire 5.1.0 was
+        # installed and this vector was run: `--mode casc` prints its proof to
+        # a temporary file and then to stdout, and `--proof tptp` is what makes
+        # that proof a TSTP derivation rather than a display format.
         "name": "vampire",
-        "argv": lambda f, t: ["vampire", "--mode", "casc", "-t", str(t), f],
+        "argv": lambda f, t: ["vampire", "--mode", "casc", "--proof", "tptp", "-t", str(t), f],
         "install": "brew install vampire   (or https://github.com/vprover/vampire)",
     },
 ]
@@ -360,23 +377,66 @@ def unreachable_premise(goal, derivations, expressible, asserted):
 
 
 def ask(atp, problem, timeout):
-    """Run the prover and return (szs_status, detail). Never raises."""
+    """Run the prover and return (szs_status, detail, raw_output). Never raises.
+
+    The raw output is returned, not discarded, because the derivation is in it
+    and the derivation is the only checkable thing a prover produces.
+    """
     try:
         proc = subprocess.run(
             atp["argv"](str(problem), timeout),
             capture_output=True, text=True, timeout=timeout + 15,
         )
     except subprocess.TimeoutExpired:
-        return "Timeout", f"{atp['name']} exceeded {timeout + 15}s wall clock"
+        return "Timeout", f"{atp['name']} exceeded {timeout + 15}s wall clock", ""
     except OSError as exc:
-        return "InputError", f"{type(exc).__name__}: {exc}"
+        return "InputError", f"{type(exc).__name__}: {exc}", ""
     text = proc.stdout + proc.stderr
     found = SZS.findall(text)
     if not found:
         tail = text.strip().splitlines()[-3:]
-        return "InputError", "no SZS status line: " + " / ".join(tail)[:300]
+        return "InputError", "no SZS status line: " + " / ".join(tail)[:300], text
     # The LAST status is the verdict; E prints an input status first.
-    return found[-1], ""
+    return found[-1], "", text
+
+
+# The verdicts `fol-prove` can return, mapped to what this differential does
+# with them. A rejection is a stop-the-line: it means the prover's derivation
+# does not rest on the formulas this engine emitted, so the AGREE beside it is
+# about a different file.
+PROOF_STOP = {"derivation_rejected", "refutation_step_not_reconstructed"}
+
+
+def check_proof(problem, output, workdir, tag):
+    """Hand the derivation to the engine's TSTP checker.
+
+    Returns a dict with `verdict`, `steps_checked`, `steps_total` and
+    `leaves_match_problem`, or `None` if the checker could not be run. `None`
+    is reported as NOT_CHECKED and never as agreement: an absent check is the
+    absence of evidence, which is the failure mode this whole tool exists to
+    avoid.
+    """
+    if not output:
+        return None
+    proof_file = workdir / f"{tag}.tstp"
+    proof_file.write_text(output)
+    try:
+        proc = subprocess.run(
+            [BIN, "--no-connect", "fol-prove", "--problem", str(problem),
+             "--proof", str(proof_file)],
+            capture_output=True, text=True, timeout=120,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return {"verdict": "CHECKER_ERROR", "detail": f"{type(exc).__name__}: {exc}"}
+    for line in proc.stdout.splitlines():
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if "verdict" in row:
+            return row
+    return {"verdict": "CHECKER_ERROR",
+            "detail": (proc.stdout + proc.stderr).strip()[:300]}
 
 
 def classify(status):
@@ -415,6 +475,9 @@ def main():
     ap.add_argument("--timeout", type=int, default=int(os.environ.get("FOL_DIFF_TIMEOUT", 10)),
                     help="per-problem CPU limit in seconds (default 10)")
     ap.add_argument("--limit", type=int, help="only ask the first N goals")
+    ap.add_argument("--no-proof-check", action="store_true",
+                    help="do not read the derivations back. The run then reports what the "
+                         "prover SAID and nothing about what it said it about")
     ap.add_argument("--json")
     args = ap.parse_args()
 
@@ -476,8 +539,11 @@ def main():
         )
 
         rows = []
+        proofs = workdir / "proofs"
+        proofs.mkdir(exist_ok=True)
         for g in goals:
-            status, detail = ask(atp, fol_dir / "goals" / g["file"], args.timeout)
+            problem_file = fol_dir / "goals" / g["file"]
+            status, detail, output = ask(atp, problem_file, args.timeout)
             verdict, why = classify(status)
             if verdict == "CLAIMED_NOT_ENTAILED":
                 try:
@@ -502,19 +568,36 @@ def main():
                     )
             if detail:
                 why = f"{why} ({detail})" if why else detail
+            # The derivation is checked whenever the prover produced one, not
+            # only when it AGREED. A CLAIMED_NOT_ENTAILED row has no refutation
+            # to check and comes back `no_refutation_offered`, which is the
+            # honest reading of it.
+            check = check_proof(problem_file, output, proofs, pathlib.Path(g["file"]).stem) \
+                if not args.no_proof_check else None
+            proof_verdict = (check or {}).get("verdict", "NOT_CHECKED")
+            if proof_verdict in PROOF_STOP:
+                proof_verdict = "PROOF_REJECTED:" + proof_verdict
+            steps = f"{(check or {}).get('steps_checked', 0)}/{(check or {}).get('steps_total', 0)}"
             triple = " ".join(g["triple"])
             rows.append({
                 "file": g["file"], "triple": g["triple"], "axiom_form": g["axiom_form"],
                 "szs": status, "verdict": verdict, "detail": why,
+                "proof_check": proof_verdict, "proof_steps": steps,
+                "proof_leaves_match_problem": (check or {}).get("leaves_match_problem"),
             })
             print(f"{verdict:<22} {triple}\n{'':<22} {why}", flush=True)
+            if check is not None:
+                print(f"{'':<22} proof: {proof_verdict} ({steps} steps replayed)", flush=True)
 
         for n in not_asked:
             print(f"{'NOT_ASKED':<22} {' '.join(n['triple'])}\n{'':<22} {n['why']}", flush=True)
 
     counts = {}
+    proof_counts = {}
     for r in rows:
         counts[r["verdict"]] = counts.get(r["verdict"], 0) + 1
+        pv = r.get("proof_check", "NOT_CHECKED")
+        proof_counts[pv] = proof_counts.get(pv, 0) + 1
     counts["NOT_ASKED"] = len(not_asked)
 
     print("\n" + "=" * 72)
@@ -530,6 +613,19 @@ def main():
         "unification, which does not exist in core Lean.\nThe engine's own derivation "
         "certificate is the artefact that CAN be checked, with\n`cd lean && lake exe oo-cert`."
     )
+    if proof_counts:
+        print("\nDerivations read back (open-ontologies fol-prove):")
+        for kind, n in sorted(proof_counts.items()):
+            print(f"  {kind:<40} {n}")
+        print(
+            "This is NOT a proof and AGREE still means what it meant. What a checked "
+            "derivation\nrules out is that the prover was answering about a different file: "
+            "every leaf is matched\nagainst the problem this engine emitted, the DAG is "
+            "checked for dangling parents and cycles,\nand the resolution-family steps are "
+            "recomputed. Clausification is NOT checked and is named\nas unchecked in each "
+            "report."
+        )
+
     if counts.get("WEAKER_EXPORT"):
         print(
             "\nWEAKER_EXPORT is not a defect in the engine or in the prover. It is the "
@@ -543,11 +639,19 @@ def main():
     if args.json:
         with open(args.json, "w") as fh:
             json.dump({"atp": atp["name"], "rows": rows, "not_asked": not_asked,
-                       "counts": counts}, fh, indent=1)
+                       "counts": counts, "proof_counts": proof_counts}, fh, indent=1)
 
     # A conclusion the engine claims and the ATP refutes is the one result that
     # must fail a pipeline. An undetermined run is not a pass and not a failure.
-    return 1 if counts.get("CLAIMED_NOT_ENTAILED") or counts.get("ATP_ERROR") else 0
+    rejected = sum(n for k, n in proof_counts.items() if k.startswith("PROOF_REJECTED"))
+    if rejected:
+        print(
+            f"\n{rejected} derivation(s) REJECTED by the checker. That means the prover's own "
+            "proof does not\nrest on the formulas this engine emitted, so the verdict beside "
+            "it is about some other file.\nThis is a stop-the-line and it exits 1."
+        )
+    return 1 if (counts.get("CLAIMED_NOT_ENTAILED") or counts.get("ATP_ERROR")
+                 or rejected) else 0
 
 
 if __name__ == "__main__":

@@ -115,6 +115,9 @@ pub mod toolfilter;
 pub mod fol_model;
 pub mod fol_solve;
 pub mod tptp;
+/// Reading a prover's TSTP derivation and re-checking what can be re-checked.
+/// Decision 0005's addendum says exactly what this earns and what it does not.
+pub mod tstp;
 #[cfg(feature = "turbovec")]
 pub mod turbo_index;
 #[cfg(feature = "embeddings")]

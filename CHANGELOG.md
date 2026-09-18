@@ -231,6 +231,48 @@ All notable changes to Open Ontologies are documented here.
   than letting it be assumed away.
 
 ### Added
+- **A prover's refutation is read back and re-checked, and it is still an oracle opinion.**
+  `src/tstp.rs` parses the TSTP derivation Vampire or E prints, and `fol-prove` /
+  `onto_fol_prove` / a second column in `tools/fol_differential.py` report on it. Three things
+  are established and each costs more than the last. **The prover refuted OUR problem**: every
+  leaf is matched against the emitted problem file by the name its own `file('…', NAME)`
+  annotation gives, by the PARSED formula, and by the ROLE, so a prover pointed at a stale file,
+  a file edited since under the same names, or one whose conjecture was presented as an axiom is
+  caught. **The derivation is a well-founded DAG ending in `$false`**: every parent resolves, no
+  name is used twice, the relation is acyclic, and nodes the empty clause does not depend on are
+  counted and excluded. **Some steps are recomputed**: binary resolution, subsumption resolution
+  in its three spellings (whose conclusion IS the binary resolvent, because the side clause's
+  remainder is contained in the main clause's), factoring, duplicate literal removal, flattening,
+  trivial inequality removal, equality resolution, and the negation of the conjecture, each
+  replayed with a syntactic unifier with an occurs check and compared up to a bijective renaming
+  of variables. **Everything else is named and counted as unchecked with a reason**:
+  clausification, Skolemisation, AVATAR splitting, every SAT-solver step, and every step of E's
+  whose premise is an inline inference record and so carries no formula. Eight verdict words,
+  and **an unchecked step prevents the strongest one**, which is
+  `refutation_fully_replayed` and is still NOT `unsatisfiable`: the calculus's soundness is
+  machine-checked nowhere in `lean/` and the replayer is ordinary Rust. A step whose rule IS
+  implemented and still does not reconstruct gets its own word,
+  `refutation_step_not_reconstructed`, because filing it under "unchecked" would let a forged
+  step hide behind a rule name and filing it under "rejected" would accuse someone else's prover
+  on this module's word alone. Measured over FOAF, 181 claimed entailments, one problem each:
+  Vampire 5.1.0 refuted all 181 with 1279 of 3314 steps replayed, E 3.2.5 refuted all 181 with
+  181 of 4644, all 534 leaves matched on both sides, nothing rejected. The order-of-magnitude gap
+  is structural: Vampire attaches a conclusion to every inference, E nests inference records that
+  carry none. Negative tests take a genuine Vampire refutation apart one mutation at a time — a
+  changed leaf, a leaf naming a formula the problem lacks, a conjecture relabelled as an axiom, a
+  dangling parent, a cycle, a duplicated name, a resolvent that is not the resolvent, a forged
+  negated conjecture, a resolution needing a cyclic binding — and each must be caught by the field
+  meant to catch it. See the addendum to
+  [decision 0005](docs/decisions/0005-a-prover-is-an-oracle-and-a-translation-is-a-theorem.md).
+- **`--atp vampire` has actually been run.** `docs/first-order-export.md` said the Vampire branch
+  of the prover detection had never executed because Vampire was not installed. It is installed,
+  it has been run over FOAF, and the argument vector gained `--proof tptp`, without which
+  `--mode casc` prints a display format rather than a TSTP derivation. E's gained
+  `--proof-object` for the same reason.
+- **The MCP server's own tool count had gone stale in a second place.** Its instructions string
+  states the total twice and the second copy said 112 while the rest of the repository said 114.
+  No shape in `readme_claims_test.rs` covered that phrasing, so neither of its two tests noticed.
+  Both now do.
 - **A conclusion can name the axioms responsible for it, and a derived triple carries an
   algebraic expression over the asserted ones.** Two tools, `onto_justify` and
   `onto_provenance`, over one substrate that already existed and that nothing read back.
