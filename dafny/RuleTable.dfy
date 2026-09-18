@@ -21,7 +21,9 @@
 // every input: every field length, every field count, every rule table.
 //
 // WHAT IS MODELLED AND WHAT IS ASSUMED is the only thing that makes the result
-// mean anything, and it is stated in `docs/decisions/0012-*.md` rather than here.
+// mean anything, and it is stated in
+// `docs/decisions/0012-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md`
+// rather than here.
 // The short version: this is a REIMPLEMENTATION, so a theorem here is a theorem
 // about this file. It is not a theorem about `src/reason.rs`. The decision record
 // measures exactly what that is worth.
