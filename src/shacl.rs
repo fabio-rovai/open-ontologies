@@ -1839,10 +1839,22 @@ impl ShaclValidator {
         // and is not: SHACL 5.3.2 emits one result per SPARQL solution, so a
         // constraint returning several solutions for one focus node produces
         // several results that are identical wherever the extra solution binds
-        // nothing this report carries. pyshacl emits those too. On the
-        // 39-shape corpus from issue #132 both engines return 249 results over
-        // 245 distinct (focus node, shape) pairs, and deduplicating took this
-        // engine to 245 and broke an exact agreement.
+        // nothing this report carries. On the 39-shape corpus from issue #132
+        // both engines return 249 results over 245 distinct (focus node,
+        // shape) pairs, and deduplicating took this engine to 245 and broke an
+        // exact agreement.
+        //
+        // That corpus once justified the stronger claim that "pyshacl emits
+        // those too", and it does NOT hold in general. Measured on 17
+        // September 2026 over the six triples in
+        // tests/fixtures/shacl-sparql/: rdflib and this engine both return
+        // FOUR solutions for the constraint query, and pySHACL 0.40.1 emits
+        // TWO validation results from them while this engine emits four. The
+        // collapsing is in pySHACL's SHACL layer rather than in its SPARQL
+        // engine, so on identical solutions the two do not agree and this
+        // engine is the one following SHACL 5.2.1. The decision below is
+        // unchanged and one of its old reasons was wrong.
+        // tests/shacl_sparql_multiplicity_test.rs pins it.
         //
         // The real fix for the double-checked node is to take the union of a
         // shape's focus nodes across its target declarations rather than to
