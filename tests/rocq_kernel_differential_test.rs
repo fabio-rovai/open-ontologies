@@ -220,7 +220,15 @@ const ALIEN: &str = "<http://ex.invalid/never-derived>";
 
 /// Byte-level edits, applied to each of the three files in turn. These are the ones that
 /// ask lexical questions: what is a line, what is a field, what is the end of a file.
-fn byte_edits() -> Vec<(&'static str, fn(&[u8]) -> Vec<u8>)> {
+/// A named mutation of a file's bytes. Named because the differential reports
+/// which edit produced a divergence, and a row that cannot say what it did to
+/// the input is not a finding anyone can act on.
+type ByteEdit = (&'static str, fn(&[u8]) -> Vec<u8>);
+
+/// The same, for an edit that rewrites one step in place.
+type StepEdit = (&'static str, fn(&mut Step));
+
+fn byte_edits() -> Vec<ByteEdit> {
     fn trailing_blank(b: &[u8]) -> Vec<u8> {
         let mut v = b.to_vec();
         v.push(b'\n');
@@ -367,7 +375,7 @@ fn render_step(s: &Step) -> String {
 
 /// Structural edits to the FIRST step of a certificate. These are the ones that ask
 /// checking questions: what is a binding, what is a premise list, what is an index.
-fn step_edits() -> Vec<(&'static str, fn(&mut Step))> {
+fn step_edits() -> Vec<StepEdit> {
     fn permute_premises(s: &mut Step) {
         if s.prems.len() >= 2 {
             s.prems.swap(0, 1);
