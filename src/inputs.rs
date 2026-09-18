@@ -448,6 +448,30 @@ pub struct OntoFolModelInput {
 }
 
 #[derive(Deserialize, JsonSchema)]
+pub struct OntoFolProveInput {
+    /// Working directory. The problem, the prover's raw output and the report
+    /// land here, so a run is reproducible by hand from what it leaves behind.
+    /// Not needed when `problem` and `proof` are both given.
+    pub out_dir: Option<String>,
+    /// `vampire` (default) or `eprover`. Both are run WITH their
+    /// proof-printing option; a run without one returns a word and no
+    /// derivation, which is the state this tool exists to leave behind.
+    pub prover: Option<String>,
+    /// Seconds per prover invocation. Default 30.
+    pub timeout_secs: Option<u32>,
+    /// A TSV of triples to ask as conjectures, one run per line; the shape
+    /// `onto_reason` writes with `certificate_dir`.
+    pub goals_file: Option<String>,
+    /// Leading tab-separated columns to skip before the subject. Default 0.
+    pub goals_skip_columns: Option<usize>,
+    /// CHECK-ONLY: a TPTP problem file. With `proof`, no prover is run and no
+    /// store is read; the recorded pair is checked as it stands.
+    pub problem: Option<String>,
+    /// CHECK-ONLY: a file holding a prover's output for `problem`.
+    pub proof: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
 pub struct OntoDlExplainInput {
     /// IRI of the class to explain unsatisfiability for
     pub class_iri: String,

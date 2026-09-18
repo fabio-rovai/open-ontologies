@@ -13,7 +13,7 @@ The point of writing it down is that an unwritten trusted base cannot be reviewe
 finishes this page should be able to say how much of the engine is verified (almost none of it) and
 which specific, small pieces carry the weight (the ones below).
 
-**Where this stands on 15 September 2026.** Of the twenty-nine properties, six are PROVED by bounded
+**Where this stands on 15 September 2026.** Of the thirty properties, six are PROVED by bounded
 model checking rather than sampled: TCB-1, TCB-2, TCB-3, TCB-4, TCB-5 and TCB-20. Five moved from
 something this repository OBSERVED to something it ENFORCES: TCB-4 and TCB-5 are now a refusal at
 the certificate writer rather than a fact about `oxrdf` and `oxiri`; TCB-8 across runs was a DEFECT
@@ -614,6 +614,31 @@ no verdict word, and no executable imports it, which is why it is a separate `le
 count of trusted properties is what it was.
 The honest summary is that the trusted base used to be four things: the serialisation of a term, the
 identity of the asserted graph, the completeness of the derivation record, and the identity of the
+rule table. Those are now property-tested and, for the pure parts, bounded-model-checked. Every one
+of them still rests on a dependency's behaviour that this repository observes rather than enforces.
+The engine is not verified. It was never going to be, and a report that read as though it were
+would be the same defect this project exists to attack.
+
+## What is deliberately not on this page: `src/tstp.rs`
+
+Added 15 September 2026, and it belongs here only to be excluded, because its name will otherwise
+suggest to a reader that it has a proof behind it.
+
+`src/tstp.rs` reads the TSTP derivation a first-order prover prints, matches every leaf against the
+problem this engine emitted, checks the DAG, and recomputes the resolution-family steps. It is the
+refutation direction's answer to `oo-folmodel`, and the analogy stops at the shape. `oo-folmodel` is
+a Lean program whose acceptance implies `Fol.Satisfiable` by a machine-checked theorem, so the
+question "what does its verdict assume about the Rust" is a real question with the answers above.
+`src/tstp.rs` is a Rust program whose acceptance implies nothing formally at all: the calculus it
+replays is mechanised nowhere in `lean/`, and the replayer is unverified.
+
+So it is not the trusted computing base OF anything. It is a second opinion about a third party's
+output, in the same category as the Rust SHACL validator in item 9 and in the opposite direction:
+there, a verified evaluator measures an unverified one; here, an unverified checker measures an
+unverified prover, and the result is evidence that a human can read rather than any kind of
+certificate. Its verdict vocabulary is built so that this cannot be mistaken, and the addendum to
+[decision 0005](decisions/0005-a-prover-is-an-oracle-and-a-translation-is-a-theorem.md) sets out
+what it does and does not establish, field by field.
 rule table. The serialisation of a term is no longer one of them: it is enforced here and proved
 over every byte pattern at the bounds below, rather than observed of a dependency. The identity of
 the rule table is most of the way off the list: the engine re-parses what it wrote and refuses on
@@ -634,3 +659,56 @@ the toolchain that runs it, and the axioms the proofs are stated over. A certifi
 this page should say so in the same breath as it says what the engine does not prove about itself.
 What can be done about that layer, what it would cost, and what was actually run, are in
 [docs/independent-rechecking.md](independent-rechecking.md).
+
+<!-- ─────────────────────────────────────────────────────────────────────────
+     Everything below this line was added by the Aeneas work and is deliberately
+     kept as one self-contained section at the end of the file. It adds one
+     property (TCB-30) and does not edit any entry above it.
+     ───────────────────────────────────────────────────────────────────────── -->
+
+## Aeneas: the translation itself is now trusted, and that is a trade
+
+`docs/aeneas-boundary.md` is the full record. The short version belongs here because it adds an
+entry to the list above and takes nothing off it.
+
+The certificate boundary's pure core now lives in `src/boundary_core.rs`: seven functions and one
+enum over `u8`, `&[u8]`, `Vec<u8>`, `usize` and `bool`. `writable_triple`,
+`field_fits_the_format`, `term_fits_the_format`, `push_asserted_line` and `push_triple_fields` in
+`src/reason.rs`, and `name_is_safe` in `src/tableaux.rs`, are one-line wrappers over it.
+[Charon and Aeneas](https://github.com/AeneasVerif/aeneas) translate that file into a pure
+functional model in Lean 4, and `aeneas/lean/OOBoundary/Proofs.lean` proves things about the model
+for EVERY input rather than at a bound.
+
+- **TCB-30 (Aeneas's translation is faithful).** Every theorem in `aeneas/lean/` is a theorem about
+  `OOBoundary.boundary_core.*`, which is Aeneas's output, not about the Rust. If the translation is
+  wrong, the theorem is true of a function the engine does not run. Charon is a `rustc` driver and
+  Aeneas is an OCaml compiler from LLBC to a pure lambda calculus; together they are tens of
+  thousands of unverified lines, and Aeneas has no machine-checked soundness proof of its own
+  pipeline. This is the same shape of assumption as TCB-1's old reliance on `oxrdf`, moved one level
+  up.
+  *To close it:* nothing available today closes it. The partial mitigation in the tree is
+  `aeneas/run.sh`, which re-runs the translation and FAILS if the model moved, so a change to
+  `src/boundary_core.rs` cannot leave stale proofs in place unnoticed. A second mitigation that
+  costs nothing and is not implemented: translate to a second backend (Aeneas emits F\*, Coq and
+  HOL4 as well as Lean) and check that the two models agree, which would catch a backend bug though
+  not a front-end one.
+
+**Why this is worth doing anyway.** The trade is fifty thousand lines of unverified Rust for one
+unverified translator, on six functions that carry the whole serialisation half of this document.
+What it buys is the removal of the length bound. The Kani table above proves its statements for
+every byte pattern at a term length of at most four bytes, because a symbolic length made CBMC
+reach fifteen gigabytes without a verdict. The Lean theorems have no length bound and no
+shape bound.
+
+**What it does not buy, and this is the part to read twice.** `aeneas/lean/` is NOT `lean/`. It is a
+separate Lake workspace on a different Lean (v4.31.0 against v4.33.1) with ten packages including
+Mathlib against zero, and nothing in `make check` or in `lean/`'s `lake build` reaches it. The
+three-axiom pin on `lean/` is unchanged and still has no exceptions; `docs/aeneas-boundary.md`
+carries the axiom accounting for the other workspace separately, because a pin with an exception in
+it is not a pin.
+
+Measured there, and worth saying so that nobody guesses: all fourteen theorems in `aeneas/lean/`
+depend on exactly `[propext, Classical.choice, Quot.sound]` as well, pinned by
+`aeneas/lean/OOBoundary/Axioms.lean`. Mathlib brings packages, not axioms. What the axiom list does
+NOT measure is whether the model is the Rust, which is TCB-30, and that is the whole price of this
+work.

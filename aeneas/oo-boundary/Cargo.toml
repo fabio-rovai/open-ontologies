@@ -1,0 +1,24 @@
+# NOT a member of anything and NOT a dependency of the shipped crate.
+#
+# `cargo build` at the repository root never sees this file: the root
+# `Cargo.toml` has no `[workspace]` table, so a package in a subdirectory is its
+# own workspace and is built only when someone stands in this directory and asks
+# for it. `aeneas/run.sh` is the only thing that does, and nothing in `make
+# check` calls that. The Kani harnesses are kept out of the normal build the
+# same way and for the same reason.
+[package]
+name = "oo-boundary"
+version = "0.0.0"
+edition = "2024"
+publish = false
+license = "MIT"
+description = "Charon/Aeneas extraction target: the certificate boundary's pure core, verbatim."
+
+[lib]
+path = "src/lib.rs"
+
+# No dependencies, and there must never be one. Aeneas translates a subset of
+# safe Rust and stops at any type it does not model; a dependency here would
+# either fail to translate or translate to an opaque declaration, which is a
+# hole in the model that looks like a model.
+[dependencies]

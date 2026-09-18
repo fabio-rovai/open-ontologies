@@ -590,7 +590,7 @@ distinction this is about. See
 The theorem is conditional. It says that IF the asserted graph is `G` and IF these steps check,
 THEN the conclusions hold in every model of `G`. Everything to the left of that is the Rust writing
 down the truth, and the checker cannot see any of it: it reads files, not the store and not the
-run. `docs/trusted-computing-base.md` enumerates that boundary as twenty-nine checkable properties
+run. `docs/trusted-computing-base.md` enumerates that boundary as thirty checkable properties
 and says for each what checks it. Read it before relying on a certificate, because a certificate is
 a claim about a file and the file's relationship to the store is the part nobody proved.
 ## First-order model certificates: `oo-folmodel`

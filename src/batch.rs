@@ -130,6 +130,7 @@ impl BatchRunner {
             "fol" => self.exec_fol(&cmd.args),
             "rules-import" | "rules_import" => self.exec_rules_import(&cmd.args),
             "fol-model" | "fol_model" => self.exec_fol_model(&cmd.args),
+            "fol-prove" | "fol_prove" => self.exec_fol_prove(&cmd.args),
             "preserve" => self.exec_preserve(&cmd.args),
             "closure-diff" | "closure_diff" => self.exec_closure_diff(&cmd.args),
             "shacl" => self.exec_shacl(&cmd.args),
@@ -361,6 +362,54 @@ impl BatchRunner {
             file.as_deref().map(std::path::Path::new),
             out.as_deref().map(std::path::Path::new),
             allow_partial,
+        )
+        .unwrap_or_else(|e| json!({"error": e.to_string()}).to_string());
+        serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
+    }
+
+    /// Run a prover and re-check the derivation it prints. In-process for the
+    /// same reason `fol` is: the store is per process, so loading and proving
+    /// have to happen in one run.
+    ///
+    /// The check-only pair (`--problem` with `--proof`) is here too, because a
+    /// pipeline that already holds both files should not have to start a
+    /// second process to get a verdict on them.
+    fn exec_fol_prove(&self, args: &[String]) -> Value {
+        use crate::tstp::{ProveOptions, Prover, check_files, prove_export};
+        if let (Some(problem), Some(proof)) =
+            (Self::flag_value(args, "--problem"), Self::flag_value(args, "--proof"))
+        {
+            let result =
+                check_files(std::path::Path::new(&problem), std::path::Path::new(&proof))
+                    .unwrap_or_else(|e| json!({"error": e.to_string()}).to_string());
+            return serde_json::from_str(&result).unwrap_or(json!({"raw": result}));
+        }
+        let Some(out) = Self::flag_value(args, "--out") else {
+            return json!({"error":
+                "fol-prove requires --out DIR, or --problem FILE with --proof FILE"});
+        };
+        let prover = match Prover::parse(
+            &Self::flag_value(args, "--prover").unwrap_or("vampire".to_string()),
+        ) {
+            Ok(p) => p,
+            Err(e) => return json!({"error": e.to_string()}),
+        };
+        let opts = ProveOptions {
+            prover,
+            timeout_secs: Self::flag_value(args, "--timeout-secs")
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(30),
+        };
+        let goals = Self::flag_value(args, "--goals");
+        let skip: usize = Self::flag_value(args, "--goals-skip-columns")
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(0);
+        let result = prove_export(
+            &self.graph,
+            std::path::Path::new(&out),
+            &opts,
+            goals.as_deref().map(std::path::Path::new),
+            skip,
         )
         .unwrap_or_else(|e| json!({"error": e.to_string()}).to_string());
         serde_json::from_str(&result).unwrap_or(json!({"raw": result}))

@@ -1,0 +1,102 @@
+% Running in auto input_syntax mode. Trying TPTP
+% Refutation found. Thanks to Tanya!
+% SZS status Theorem for problem
+% SZS output start Proof for problem
+fof(f4,axiom,(
+  ! [X0] : (thing(X0) => ('c:http://example.org/Greek'(X0) => 'c:http://example.org/Person'(X0)))),
+  file('/private/tmp/claude-501/-Users-fabio/87492980-7d66-415a-9b2e-d382a61063d3/scratchpad/wt-tstp/tests/fixtures/tstp/problem.p','owl_1_subClassOf')).
+fof(f5,axiom,(
+  ! [X0] : (thing(X0) => ('c:http://example.org/Person'(X0) => 'c:http://example.org/Mortal'(X0)))),
+  file('/private/tmp/claude-501/-Users-fabio/87492980-7d66-415a-9b2e-d382a61063d3/scratchpad/wt-tstp/tests/fixtures/tstp/problem.p','owl_2_subClassOf')).
+fof(f6,axiom,(
+  thing('i:http://example.org/socrates') & 'c:http://example.org/Greek'('i:http://example.org/socrates')),
+  file('/private/tmp/claude-501/-Users-fabio/87492980-7d66-415a-9b2e-d382a61063d3/scratchpad/wt-tstp/tests/fixtures/tstp/problem.p','owl_3_classAssertion')).
+fof(f7,conjecture,(
+  thing('i:http://example.org/socrates') & 'c:http://example.org/Mortal'('i:http://example.org/socrates')),
+  file('/private/tmp/claude-501/-Users-fabio/87492980-7d66-415a-9b2e-d382a61063d3/scratchpad/wt-tstp/tests/fixtures/tstp/problem.p','goal_classAssertion')).
+fof(f8,negated_conjecture,(
+  ~(thing('i:http://example.org/socrates') & 'c:http://example.org/Mortal'('i:http://example.org/socrates'))),
+  inference(negated_conjecture,[status(cth)],[f7])).
+fof(f10,plain,(
+  ! [X0] : (('c:http://example.org/Person'(X0) | ~'c:http://example.org/Greek'(X0)) | ~thing(X0))),
+  inference(ennf_transformation,[],[f4])).
+fof(f11,plain,(
+  ! [X0] : ('c:http://example.org/Person'(X0) | ~'c:http://example.org/Greek'(X0) | ~thing(X0))),
+  inference(flattening,[],[f10])).
+fof(f12,plain,(
+  ! [X0] : (('c:http://example.org/Mortal'(X0) | ~'c:http://example.org/Person'(X0)) | ~thing(X0))),
+  inference(ennf_transformation,[],[f5])).
+fof(f13,plain,(
+  ! [X0] : ('c:http://example.org/Mortal'(X0) | ~'c:http://example.org/Person'(X0) | ~thing(X0))),
+  inference(flattening,[],[f12])).
+fof(f14,plain,(
+  ~thing('i:http://example.org/socrates') | ~'c:http://example.org/Mortal'('i:http://example.org/socrates')),
+  inference(ennf_transformation,[],[f8])).
+fof(f18,plain,(
+  ( ! [X0] : (~'c:http://example.org/Greek'(X0) | 'c:http://example.org/Person'(X0) | ~thing(X0)) )),
+  inference(cnf_transformation,[],[f11])).
+fof(f19,plain,(
+  ( ! [X0] : (~'c:http://example.org/Person'(X0) | 'c:http://example.org/Mortal'(X0) | ~thing(X0)) )),
+  inference(cnf_transformation,[],[f13])).
+fof(f20,plain,(
+  'c:http://example.org/Greek'('i:http://example.org/socrates')),
+  inference(cnf_transformation,[],[f6])).
+fof(f21,plain,(
+  thing('i:http://example.org/socrates')),
+  inference(cnf_transformation,[],[f6])).
+fof(f22,plain,(
+  ~thing('i:http://example.org/socrates') | ~'c:http://example.org/Mortal'('i:http://example.org/socrates')),
+  inference(cnf_transformation,[],[f14])).
+fof(f24,definition,(
+  spl1_1 <=> 'c:http://example.org/Mortal'('i:http://example.org/socrates')),
+  introduced(definition,[new_symbols(definition,[spl1_1])],[avatar_definition])).
+fof(f26,plain,(
+  ~'c:http://example.org/Mortal'('i:http://example.org/socrates') | spl1_1),
+  inference(avatar_component_clause,[],[f24])).
+fof(f28,definition,(
+  spl1_2 <=> thing('i:http://example.org/socrates')),
+  introduced(definition,[new_symbols(definition,[spl1_2])],[avatar_definition])).
+fof(f29,plain,(
+  thing('i:http://example.org/socrates') | ~spl1_2),
+  inference(avatar_component_clause,[],[f28])).
+fof(f31,plain,(
+  ~spl1_1 | ~spl1_2),
+  inference(avatar_split_clause,[],[f22,f28,f24])).
+fof(f32,plain,(
+  spl1_2),
+  inference(avatar_split_clause,[],[f21,f28])).
+fof(f33,plain,(
+  'c:http://example.org/Person'('i:http://example.org/socrates') | ~thing('i:http://example.org/socrates')),
+  inference(resolution,[],[f18,f20])).
+fof(f34,plain,(
+  'c:http://example.org/Person'('i:http://example.org/socrates') | ~spl1_2),
+  inference(forward_subsumption_resolution,[],[f33,f29])).
+fof(f35,plain,(
+  'c:http://example.org/Mortal'('i:http://example.org/socrates') | ~thing('i:http://example.org/socrates') | ~spl1_2),
+  inference(resolution,[],[f34,f19])).
+fof(f36,plain,(
+  ~thing('i:http://example.org/socrates') | (spl1_1 | ~spl1_2)),
+  inference(forward_subsumption_resolution,[],[f35,f26])).
+fof(f37,plain,(
+  $false | (spl1_1 | ~spl1_2)),
+  inference(forward_subsumption_resolution,[],[f36,f29])).
+fof(f38,plain,(
+  spl1_1 | ~spl1_2),
+  inference(avatar_contradiction_clause,[],[f37])).
+cnf(s1, plain, ~spl1_1 | ~spl1_2, inference(sat_conversion,[],[f31])).
+cnf(s2, plain, spl1_2, inference(sat_conversion,[],[f32])).
+cnf(s4, plain, spl1_1 | ~spl1_2, inference(sat_conversion,[],[f38])).
+cnf(s5, plain, spl1_1, inference(rat,[],[s4,s2])).
+cnf(s6, plain, $false, inference(rat,[],[s1,s2,s5])).
+fof(f39,plain,(
+  $false),
+  inference(avatar_sat_refutation,[],[s6])).
+% SZS output end Proof for problem
+% ------------------------------
+% Version: Vampire 5.1.0 (Release build, commit )
+% CaDiCaL version: 2.1.3
+% Termination reason: Refutation
+% Time elapsed: 0.001 s
+% Peak memory usage: 6 MB
+% ------------------------------
+% ------------------------------

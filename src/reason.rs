@@ -603,8 +603,16 @@ fn refutation_prefix(
 ///
 /// Terms arrive in their N-Triples spelling, so a literal begins with `"` and
 /// an IRI with `<`.
+///
+/// The body is `crate::boundary_core::writable_triple_bytes`, which is the
+/// function Aeneas translates into Lean. `OOBoundary.writable_triple_bytes_eq`
+/// proves it decides both positions for terms of EVERY length, which is the
+/// unbounded form of what `writable_triple_decides_both_positions` proves at a
+/// fixed four bytes. `str::starts_with` with an ASCII `char` and a leading-byte
+/// test agree on every `&str`, because no ASCII byte occurs inside a multi-byte
+/// UTF-8 sequence; `tcb_wrappers_agree_with_the_char_level_predicates` pins it.
 fn writable_triple(subject: &str, predicate: &str) -> bool {
-    !subject.starts_with('"') && predicate.starts_with('<')
+    crate::boundary_core::writable_triple_bytes(subject.as_bytes(), predicate.as_bytes())
 }
 
 /// Which position of a certificate line refused to be written.
@@ -614,12 +622,11 @@ fn writable_triple(subject: &str, predicate: &str) -> bool {
 /// about, and a formatted error inside a function is what put CBMC inside the
 /// formatting machinery and killed the first `parse_pat` harness. The message a
 /// user reads is built by the caller, from this and the term.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Position {
-    Subject,
-    Predicate,
-    Object,
-}
+///
+/// Defined in `crate::boundary_core` so that Aeneas translates it with the
+/// writers that return it, and re-exported here so `reason::Position` is still
+/// the path it always was.
+pub use crate::boundary_core::Position;
 
 impl Position {
     fn name(self) -> &'static str {
@@ -655,11 +662,7 @@ impl Position {
 /// `_:` and quotes a `Literal`), and so does every constant `parse_pat` accepts,
 /// so this refuses nothing the engine has any business writing.
 fn term_fits_the_format(t: &str) -> bool {
-    if !field_fits_the_format(t) {
-        return false;
-    }
-    let b = t.as_bytes();
-    b[0] == b'<' || b[0] == b'"' || (b[0] == b'_' && b.len() > 1 && b[1] == b':')
+    crate::boundary_core::term_fits_the_format(t.as_bytes())
 }
 
 /// The half of [`term_fits_the_format`] that is about the FORMAT and not about
@@ -668,18 +671,7 @@ fn term_fits_the_format(t: &str) -> bool {
 /// `horn.tsv` also writes variable names, which are not terms and have no
 /// N-Triples spelling, and this is what they have to satisfy.
 fn field_fits_the_format(f: &str) -> bool {
-    let b = f.as_bytes();
-    if b.is_empty() {
-        return false;
-    }
-    let mut i = 0;
-    while i < b.len() {
-        if b[i] == b'\t' || b[i] == b'\n' || b[i] == b'\r' {
-            return false;
-        }
-        i += 1;
-    }
-    true
+    crate::boundary_core::field_fits_the_format(f.as_bytes())
 }
 
 /// Append one line of `asserted.tsv`: `s TAB p TAB o NEWLINE`.
@@ -696,45 +688,20 @@ fn field_fits_the_format(f: &str) -> bool {
 /// byte for byte as it was. A writer that appended a subject and then refused
 /// the object would leave a half-line in the buffer, which is the same defect
 /// the non-atomic materialiser had.
-fn push_asserted_line(out: &mut String, s: &str, p: &str, o: &str) -> Result<(), Position> {
-    if !term_fits_the_format(s) {
-        return Err(Position::Subject);
-    }
-    if !term_fits_the_format(p) {
-        return Err(Position::Predicate);
-    }
-    if !term_fits_the_format(o) {
-        return Err(Position::Object);
-    }
-    out.push_str(s);
-    out.push('\t');
-    out.push_str(p);
-    out.push('\t');
-    out.push_str(o);
-    out.push('\n');
-    Ok(())
+///
+/// The buffer is a `Vec<u8>` and not a `String` because the body is
+/// `crate::boundary_core::push_asserted_line_bytes`, the function Aeneas
+/// translates. Nothing downstream notices: `std::fs::write` takes
+/// `AsRef<[u8]>`, and every byte appended here comes from a `&str`.
+fn push_asserted_line(out: &mut Vec<u8>, s: &str, p: &str, o: &str) -> Result<(), Position> {
+    crate::boundary_core::push_asserted_line_bytes(out, s.as_bytes(), p.as_bytes(), o.as_bytes())
 }
 
 /// Append a triple as three further fields of a line already begun, the shape
 /// `derivations.tsv` and `horn.tsv` use after their header fields. Same guard
 /// and same all-or-nothing discipline as [`push_asserted_line`].
-fn push_triple_fields(out: &mut String, s: &str, p: &str, o: &str) -> Result<(), Position> {
-    if !term_fits_the_format(s) {
-        return Err(Position::Subject);
-    }
-    if !term_fits_the_format(p) {
-        return Err(Position::Predicate);
-    }
-    if !term_fits_the_format(o) {
-        return Err(Position::Object);
-    }
-    out.push('\t');
-    out.push_str(s);
-    out.push('\t');
-    out.push_str(p);
-    out.push('\t');
-    out.push_str(o);
-    Ok(())
+fn push_triple_fields(out: &mut Vec<u8>, s: &str, p: &str, o: &str) -> Result<(), Position> {
+    crate::boundary_core::push_triple_fields_bytes(out, s.as_bytes(), p.as_bytes(), o.as_bytes())
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2236,7 +2203,7 @@ impl Reasoner {
 
         if let Some(dir) = certificate_dir {
             std::fs::create_dir_all(dir)?;
-            let mut asserted = String::with_capacity(facts.len() * 96);
+            let mut asserted: Vec<u8> = Vec::with_capacity(facts.len() * 96);
             for &(s, p, o) in &facts {
                 push_asserted_line(
                     &mut asserted,
@@ -2253,10 +2220,10 @@ impl Reasoner {
             std::fs::write(dir.join("asserted.tsv"), asserted)?;
 
             let mut by_rule: std::collections::BTreeMap<&str, usize> = std::collections::BTreeMap::new();
-            let mut lines = String::with_capacity(derivations.len() * 256);
+            let mut lines: Vec<u8> = Vec::with_capacity(derivations.len() * 256);
             for d in &derivations {
                 *by_rule.entry(d.rule).or_default() += 1;
-                lines.push_str(d.rule);
+                lines.extend_from_slice(d.rule.as_bytes());
                 for &(s, p, o) in std::iter::once(&d.conclusion).chain(d.premises.iter()) {
                     push_triple_fields(
                         &mut lines,
@@ -2270,7 +2237,7 @@ impl Reasoner {
                         Position::Object => o,
                     })))?;
                 }
-                lines.push('\n');
+                lines.push(b'\n');
             }
             std::fs::write(dir.join("derivations.tsv"), lines)?;
 
@@ -3116,7 +3083,7 @@ impl Reasoner {
         }
         std::fs::write(certificate_dir.join("rules.tsv"), &canonical_rules)?;
 
-        let mut asserted = String::with_capacity(facts.len() * 96);
+        let mut asserted: Vec<u8> = Vec::with_capacity(facts.len() * 96);
         for &(s, p, o) in &facts {
             push_asserted_line(
                 &mut asserted,
@@ -3132,13 +3099,13 @@ impl Reasoner {
         }
         std::fs::write(certificate_dir.join("asserted.tsv"), asserted)?;
 
-        let mut horn = String::with_capacity(steps.len() * 256);
+        let mut horn: Vec<u8> = Vec::with_capacity(steps.len() * 256);
         let mut by_rule: Vec<usize> = vec![0; rules.len()];
         for st in &steps {
             by_rule[st.rule] += 1;
-            horn.push_str(&st.rule.to_string());
-            horn.push('\t');
-            horn.push_str(&st.binds.len().to_string());
+            horn.extend_from_slice(st.rule.to_string().as_bytes());
+            horn.push(b'\t');
+            horn.extend_from_slice(st.binds.len().to_string().as_bytes());
             for (v, term) in &st.binds {
                 // A variable name is not a term and has no N-Triples spelling,
                 // so it gets the format half of the guard. `parse_rules` cannot
@@ -3154,10 +3121,10 @@ impl Reasoner {
                 if !term_fits_the_format(bound) {
                     return Err(unwritable_term("horn.tsv", Position::Object, bound));
                 }
-                horn.push('\t');
-                horn.push_str(v);
-                horn.push('\t');
-                horn.push_str(bound);
+                horn.push(b'\t');
+                horn.extend_from_slice(v.as_bytes());
+                horn.push(b'\t');
+                horn.extend_from_slice(bound.as_bytes());
             }
             for &(s, p, o) in std::iter::once(&st.conclusion).chain(st.premises.iter()) {
                 push_triple_fields(
@@ -3172,7 +3139,7 @@ impl Reasoner {
                     Position::Object => o,
                 })))?;
             }
-            horn.push('\n');
+            horn.push(b'\n');
         }
         std::fs::write(certificate_dir.join("horn.tsv"), horn)?;
 
@@ -3392,7 +3359,7 @@ mod boundary_tests {
         fn tcb_1_an_asserted_line_splits_back_into_its_three_terms(
             s in term(), p in term(), o in term(),
         ) {
-            let mut out = String::from("<a>\t<b>\t<c>\n");
+            let mut out: Vec<u8> = "<a>\t<b>\t<c>\n".as_bytes().to_vec();
             let before = out.clone();
             let r = push_asserted_line(&mut out, &s, &p, &o);
             let fits = term_fits_the_format(&s)
@@ -3403,6 +3370,8 @@ mod boundary_tests {
                 prop_assert_eq!(out, before, "a refused line left a fragment behind");
                 return Ok(());
             }
+            let out = String::from_utf8(out).expect("every byte came from a &str");
+            let before = String::from_utf8(before).expect("every byte came from a &str");
             prop_assert!(out.ends_with('\n'));
             let line = out.strip_prefix(&before).expect("the line was appended");
             let body = &line[..line.len() - 1];
@@ -3417,8 +3386,8 @@ mod boundary_tests {
             head in "[a-z0-9-]{1,8}",
             ts in prop::collection::vec((term(), term(), term()), 1..4),
         ) {
-            let mut out = String::new();
-            out.push_str(&head);
+            let mut out: Vec<u8> = Vec::new();
+            out.extend_from_slice(head.as_bytes());
             let mut written = 0usize;
             for (s, p, o) in &ts {
                 let fits = term_fits_the_format(s)
@@ -3433,6 +3402,7 @@ mod boundary_tests {
                     written += 1;
                 }
             }
+            let out = String::from_utf8(out).expect("every byte came from a &str");
             let f: Vec<&str> = out.split('\t').collect();
             prop_assert_eq!(f.len(), 1 + 3 * written);
             prop_assert_eq!(f[0], head.as_str());
@@ -3471,6 +3441,46 @@ mod boundary_tests {
                     prop_assert_ne!(&a, &b);
                 }
             }
+        }
+
+        /// The `&str` wrappers agree with the `char`-level predicates they
+        /// replaced.
+        ///
+        /// `writable_triple`, `field_fits_the_format`, `term_fits_the_format`
+        /// and `name_is_safe` are now one line each, delegating to
+        /// `crate::boundary_core`, which is the file Aeneas translates into the
+        /// Lean model under `aeneas/`. The delegation is `as_bytes()` and the
+        /// argument that it changes nothing is that every byte those functions
+        /// look for is ASCII and no ASCII byte occurs inside a multi-byte UTF-8
+        /// sequence. That is an argument. This is the test: the ORIGINAL bodies
+        /// are written out here and required to agree with the shipped
+        /// wrappers on the same adversarial generator, including a combining
+        /// character, a NUL and a lexical form spelled like an IRI.
+        #[test]
+        fn tcb_wrappers_agree_with_the_char_level_predicates(t in term(), u in term()) {
+            for s in [&t, &u] {
+                // As `field_fits_the_format` was written before the extraction.
+                let field_before = !s.is_empty() && !s.contains(['\t', '\n', '\r']);
+                prop_assert_eq!(field_fits_the_format(s), field_before, "{:?}", s);
+
+                // As `term_fits_the_format` was written before the extraction.
+                let term_before = field_before && {
+                    let b = s.as_bytes();
+                    b[0] == b'<' || b[0] == b'"' || (b[0] == b'_' && b.len() > 1 && b[1] == b':')
+                };
+                prop_assert_eq!(term_fits_the_format(s), term_before, "{:?}", s);
+
+                // As `tableaux::name_is_safe` was written before the extraction.
+                let name_before = !s.is_empty() && !s.contains([' ', '\t', '\n', '\r']);
+                prop_assert_eq!(
+                    crate::boundary_core::name_is_safe_bytes(s.as_bytes()),
+                    name_before,
+                    "{:?}", s
+                );
+            }
+            // As `writable_triple` was written before the extraction.
+            let writable_before = !t.starts_with('"') && u.starts_with('<');
+            prop_assert_eq!(writable_triple(&t, &u), writable_before, "{:?} {:?}", t, u);
         }
 
         /// TCB-20 at one rule position. `parse_pat` and `Pat::render` are
@@ -3585,8 +3595,8 @@ mod kani_harnesses {
 
         // A non-empty buffer, so "nothing was appended" is a real claim and not
         // "the buffer is still empty".
-        let mut out = String::with_capacity(4 * N + 8);
-        out.push('x');
+        let mut out: Vec<u8> = Vec::with_capacity(4 * N + 8);
+        out.push(b'x');
         let r = push_asserted_line(&mut out, s, p, o);
 
         let fits =
@@ -3594,11 +3604,11 @@ mod kani_harnesses {
         assert!(r.is_ok() == fits);
         if !fits {
             assert!(out.len() == 1);
-            assert!(out.as_bytes()[0] == b'x');
+            assert!(out[0] == b'x');
             return;
         }
 
-        let w = &out.as_bytes()[1..];
+        let w = &out[1..];
 
         // Nothing added and nothing lost: three terms, two tabs, one newline.
         assert!(w.len() == 3 * N + 3);
@@ -3681,8 +3691,8 @@ mod kani_harnesses {
         let p = any_ascii(&mut b);
         let o = any_ascii(&mut c);
 
-        let mut out = String::with_capacity(4 * N + 8);
-        out.push('r');
+        let mut out: Vec<u8> = Vec::with_capacity(4 * N + 8);
+        out.push(b'r');
         let r = push_triple_fields(&mut out, s, p, o);
 
         let fits =
@@ -3690,11 +3700,11 @@ mod kani_harnesses {
         assert!(r.is_ok() == fits);
         if !fits {
             assert!(out.len() == 1);
-            assert!(out.as_bytes()[0] == b'r');
+            assert!(out[0] == b'r');
             return;
         }
 
-        let w = out.as_bytes();
+        let w = out.as_slice();
         assert!(w.len() == 1 + 3 * N + 3);
         assert!(w[0] == b'r');
         assert!(w[1] == b'\t');

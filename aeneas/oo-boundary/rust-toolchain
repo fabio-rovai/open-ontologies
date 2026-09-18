@@ -1,0 +1,11 @@
+# Charon is a `rustc` driver: it links against `rustc_private` and therefore
+# pins the exact nightly it was built against. This file is what makes
+# `charon cargo` work in this directory and it is the ONLY place in the
+# repository that names a toolchain. The shipped crate has no `rust-toolchain`
+# and builds on stable, which is the point of keeping this crate separate.
+#
+# Keep in step with the `rust-toolchain` shipped inside the Charon release
+# named in `aeneas/run.sh`.
+[toolchain]
+channel = "nightly-2026-08-18"
+components = [ "rustc-dev", "llvm-tools", "rust-src" ]

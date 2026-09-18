@@ -4,6 +4,11 @@ pub mod batch;
 pub mod connect;
 pub mod daemon;
 pub mod output;
+// The pure core of the certificate boundary. PRIVATE on purpose: these are
+// the definitions `reason` and `tableaux` call, not a public API, and
+// `aeneas/oo-boundary` reaches the file itself with `#[path]` rather than
+// through this crate. See `docs/aeneas-boundary.md`.
+mod boundary_core;
 pub mod borderline_loop;
 pub mod buffer;
 pub mod cache;
@@ -110,6 +115,9 @@ pub mod toolfilter;
 pub mod fol_model;
 pub mod fol_solve;
 pub mod tptp;
+/// Reading a prover's TSTP derivation and re-checking what can be re-checked.
+/// Decision 0005's addendum says exactly what this earns and what it does not.
+pub mod tstp;
 #[cfg(feature = "turbovec")]
 pub mod turbo_index;
 #[cfg(feature = "embeddings")]

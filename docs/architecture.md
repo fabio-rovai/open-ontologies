@@ -24,7 +24,7 @@ flowchart TD
             REST["REST API\n/api/query · /api/update\n/api/save · /api/load · /api/lineage"]
         end
 
-        subgraph ToolGroups["119 Tools"]
+        subgraph ToolGroups["120 Tools"]
             direction LR
             Core["Core\nvalidate · load · save · clear\nstats · query · diff · lint\nconvert · status"]
             DataPipe["Data Pipeline\nmap · ingest · shacl\nreason · extend · import-schema"]
@@ -121,7 +121,7 @@ the built-in table earns. Details in
 The theorem is conditional, and what it is conditional on is the Rust writing
 down the truth: the asserted graph the certificate names, and the steps it
 records. That boundary is small, it is the whole trusted base of this layer, and
-it is enumerated as twenty-nine checkable properties in
+it is enumerated as thirty checkable properties in
 [docs/trusted-computing-base.md](docs/trusted-computing-base.md), with what
 checks each and what is still trusted. Read it before relying on a certificate.
 

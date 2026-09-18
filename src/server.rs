@@ -2222,6 +2222,35 @@ impl OpenOntologiesServer {
         .unwrap_or_else(Self::err_json)
     }
 
+    #[tool(name = "onto_fol_prove", description = "Run a first-order prover, READ the derivation it prints back, and RE-CHECK what can honestly be re-checked. This does NOT move the boundary decision 0005 draws: a refutation is an ORACLE OPINION and stays one, because checking a superposition proof needs a verified first-order calculus with unification that does not exist in core Lean, and the replayer here is ordinary UNVERIFIED Rust with no theorem behind it. What it adds is that the opinion stops being a single word. THREE THINGS ARE EARNED, in increasing cost: (1) THE PROVER REFUTED OUR PROBLEM: every leaf of the derivation is matched, by name AND by parsed formula AND by role, against the problem onto_fol_export emitted, so a prover pointed at a stale file, a different file, or one whose conjecture was smuggled in as an axiom is caught; (2) THE DERIVATION IS A WELL-FOUNDED DAG ENDING IN $false: every parent reference resolves, the parent relation is acyclic, and the node nothing cites is the empty clause; (3) SOME STEPS ARE REPLAYED: binary resolution (which is also exactly what a subsumption-resolution conclusion is), factoring, duplicate literal removal, trivial inequality removal, equality resolution, associative flattening and the negation of the conjecture are recomputed from their premises with a small unifier. EVERYTHING ELSE IS NAMED AND COUNTED AS UNCHECKED: clausification, Skolemisation, AVATAR splitting and every SAT-solver step are not checked and are never claimed to be. FIELDS THAT ARE NEVER COLLAPSED: `szs_status` (what the prover said about itself, echoed and untrusted), `derivation_wellformed`, `leaves_match_problem` with `leaf_match_levels` saying how much normalisation each leaf needed, `steps_checked` / `steps_unchecked` (by rule, with a count and a reason) / `steps_not_reconstructed`, `conjecture_used`, `what_was_refuted` (`axioms_and_the_negated_conjecture` or `axioms_alone`, the second meaning the axioms are inconsistent on their own), and `verdict`. THE VERDICT IS ONE OF EIGHT WORDS: `derivation_rejected` is THE CHECKER SAYING NO (a dangling parent, a cycle, or a leaf that is not a formula of the problem); `refutation_step_not_reconstructed` means a step whose rule IS implemented did not reconstruct, which is EITHER a defect in the derivation OR a gap in this checker and this tool decides neither; `refutation_structure_checked`, `refutation_partially_replayed` and `refutation_fully_replayed` are the replay ladder, AN UNCHECKED STEP PREVENTS THE STRONGEST WORD, and even the strongest is NOT `unsatisfiable` and NOT a Lean-checked anything; `no_refutation_offered`, `derivation_unparsed` and `problem_unparsed` are the non-answers. Needs vampire or eprover on PATH; its absence is reported loudly in `skipped` and never worked around. Pass `problem` and `proof` to check a recorded pair with no prover run and no store. The MODEL direction is the one that CAN be certified: see onto_fol_model and decision 0006.")]
+    async fn onto_fol_prove(&self, Parameters(input): Parameters<OntoFolProveInput>) -> String {
+        use crate::tstp::{ProveOptions, Prover, check_files, prove_export};
+        if let (Some(p), Some(d)) = (input.problem.as_deref(), input.proof.as_deref()) {
+            return check_files(std::path::Path::new(p), std::path::Path::new(d))
+                .unwrap_or_else(Self::err_json);
+        }
+        let Some(out_dir) = input.out_dir.as_deref() else {
+            return serde_json::json!({
+                "error": "onto_fol_prove needs out_dir, or `problem` with `proof` to check a \
+                          recorded pair"
+            })
+            .to_string();
+        };
+        let prover = match Prover::parse(input.prover.as_deref().unwrap_or("vampire")) {
+            Ok(p) => p,
+            Err(e) => return Self::err_json(e),
+        };
+        let opts = ProveOptions { prover, timeout_secs: input.timeout_secs.unwrap_or(30) };
+        prove_export(
+            &self.graph,
+            std::path::Path::new(out_dir),
+            &opts,
+            input.goals_file.as_deref().map(std::path::Path::new),
+            input.goals_skip_columns.unwrap_or(0),
+        )
+        .unwrap_or_else(Self::err_json)
+    }
+
     #[tool(name = "onto_dl_explain", description = "Explain why a class is unsatisfiable using DL tableaux reasoning. Returns an explanation trace showing the logical contradictions that make the class impossible to instantiate.")]
     async fn onto_dl_explain(&self, Parameters(input): Parameters<OntoDlExplainInput>) -> String {
         use crate::tableaux::DlReasoner;
