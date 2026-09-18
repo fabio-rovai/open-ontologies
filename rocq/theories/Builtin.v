@@ -24,6 +24,29 @@
     [scm-rng1] and [scm-rng2]. Every one of them concludes a [subClassOf],
     [subPropertyOf], [domain] or [range] triple, and nothing that only runs
     forwards can conclude one.
+
+    R-BLT-3. A QUALIFICATION THE COUNT NEEDS, OR IT IS SELECTIVE. Six other
+    conditions are ALSO stated as biconditionals in [Interp.v]: [C_eqc], [C_eqp],
+    [C_svf], [C_avf], [C_hv] and [C_sameAs]. Several arms consume the reverse
+    direction of those, [cls-svf1] and [cls-hv2] among them. They are not counted
+    in the fourteen, and the reason is a real distinction rather than a
+    convenience.
+
+    The RDFS conditions for [subClassOf], [subPropertyOf], [domain] and [range]
+    are stated by RDFS as implications, and reading them as biconditionals is a
+    CHANGE to what RDFS says. The conditions for [owl:someValuesFrom],
+    [owl:allValuesFrom], [owl:hasValue], [owl:equivalentClass],
+    [owl:equivalentProperty] and [owl:sameAs] are biconditionals because that is
+    what those constructors MEAN: a someValuesFrom restriction is the class of
+    things with such a value, not merely a subset of it, and [owl:sameAs] is
+    identity rather than something implied by identity. Reading them as one-way
+    implications would not be a weaker reading of the same condition, it would be
+    a different condition describing a different vocabulary.
+
+    So the fourteen is the count of arms that rest on a reading STRONGER than the
+    specification they come from. It is not the count of arms that use an [iff].
+    A reader who wants the second number can get it from the statements, which is
+    the point of writing them this way.
 *)
 
 From Stdlib Require Import String List Bool.

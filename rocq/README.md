@@ -111,7 +111,14 @@ disagree, that is a finding and it belongs in a report before it belongs in a pa
   same conditions as biconditionals, which is stronger, which makes the model class
   smaller and the absolute claim weaker than it looks. The fourteen arms that consume a
   backward condition are named in `Builtin.v` and each one carries the hypothesis in its
-  own statement, so the count is machine-checked rather than counted by hand.
+  own statement, so the count is checked against the source text by
+  `the_fourteen_arms_that_need_a_backward_condition_are_the_fourteen_named` rather than
+  counted by hand. `R-BLT-3` carries the qualification that count needs: six other
+  conditions are biconditionals too, and arms consume their reverse direction, but those
+  are biconditional because that is what `someValuesFrom` and `sameAs` MEAN rather than
+  because this development strengthened them. The fourteen is the count of arms resting on
+  a reading stronger than the specification they come from, which is the number that
+  matters, and it is not the count of arms that use an `iff`.
 * **A total denotation.** R-INT-2: interpretations in which some literal fails to denote
   are outside the claim.
 * **Extraction.** `Extract.v` uses no `Extract Inductive` and no `Extract Constant`, so

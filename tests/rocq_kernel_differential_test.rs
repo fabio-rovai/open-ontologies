@@ -898,3 +898,81 @@ fn a_user_rule_never_earns_the_absolute_verdict_in_rocq() {
          proves nothing: {text}"
     );
 }
+
+/// The fourteen, counted from the source text rather than from a comment.
+///
+/// `rocq/theories/Builtin.v` claims that exactly fourteen of the twenty-seven built-in
+/// arms consume a BACKWARD RDFS condition, and names them. That number is the size of the
+/// gap between what RDFS states and what the absolute verdict rests on, so it is quoted in
+/// `rocq/README.md` and in the pull request that added it. A number quoted in three places
+/// and checked in none is how a claim goes stale, and this repository has the receipts.
+///
+/// Each arm carries the conditions it uses as explicit hypotheses (`R-INT-4`), so the
+/// dependency is in the STATEMENT and this can be read off the file with a regular
+/// expression rather than inferred from a proof. Needs no toolchain: it reads the source.
+#[test]
+fn the_fourteen_arms_that_need_a_backward_condition_are_the_fourteen_named() {
+    let src = std::fs::read_to_string(repo().join("rocq").join("theories").join("Builtin.v"))
+        .expect("rocq/theories/Builtin.v must be readable");
+
+    // Every `Lemma arm_... : <statement>.` up to the `Proof.` that follows it.
+    let mut arms: Vec<(String, bool)> = Vec::new();
+    let mut rest = src.as_str();
+    while let Some(i) = rest.find("\nLemma arm_") {
+        let after = &rest[i + 1..];
+        let Some(colon) = after.find(" : ") else { break };
+        let name = after[..colon].trim_start_matches("Lemma ").to_string();
+        let Some(proof) = after.find("\nProof.") else { break };
+        let statement = &after[colon..proof];
+        arms.push((name, statement.contains("_bwd")));
+        rest = &after[proof..];
+    }
+
+    assert_eq!(
+        arms.len(),
+        27,
+        "found {} arms in Builtin.v, not 27. Either the built-in table changed, in which \
+         case docs and README need changing with it, or this scan broke.",
+        arms.len()
+    );
+
+    let with_bwd: Vec<&str> =
+        arms.iter().filter(|(_, b)| *b).map(|(n, _)| n.as_str()).collect();
+
+    let expected = [
+        "arm_rdfs5",
+        "arm_rdfs11",
+        "arm_scm_eqc1a",
+        "arm_scm_eqc1b",
+        "arm_scm_eqp1a",
+        "arm_scm_eqp1b",
+        "arm_scm_svf1",
+        "arm_scm_svf2",
+        "arm_scm_avf1",
+        "arm_scm_avf2",
+        "arm_scm_dom1",
+        "arm_scm_dom2",
+        "arm_scm_rng1",
+        "arm_scm_rng2",
+    ];
+
+    let mut got = with_bwd.clone();
+    got.sort_unstable();
+    let mut want = expected.to_vec();
+    want.sort_unstable();
+
+    assert_eq!(
+        got,
+        want,
+        "\nBuiltin.v's R-BLT-2 names fourteen arms that consume a backward RDFS condition. \
+         The statements say: {with_bwd:?}\n\nThis number is the size of the gap between \
+         what RDFS states and what the absolute verdict rests on, and it is quoted in \
+         rocq/README.md. Correct the prose, or correct the proof, but do not leave them \
+         disagreeing."
+    );
+
+    // The other thirteen must not be empty either, or `_bwd` could have stopped appearing
+    // for a reason that has nothing to do with the claim.
+    assert_eq!(arms.len() - with_bwd.len(), 13);
+}
+
