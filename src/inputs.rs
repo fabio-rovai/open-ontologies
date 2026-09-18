@@ -222,6 +222,19 @@ pub struct OntoShaclInput {
     pub shapes: String,
     /// If true, treat shapes as inline Turtle content
     pub inline: Option<bool>,
+    /// Validate the snapshot that was TRUE at this instant. Read like
+    /// `onto_temporal_snapshot`'s `valid_at`: `xsd:date`, `xsd:dateTime`,
+    /// `xsd:gYearMonth` or `xsd:gYear`, no offset meaning UTC.
+    pub valid_at: Option<String>,
+    /// Validate the snapshot that was KNOWN at this instant, the recorded-time
+    /// axis. Combines with `valid_at`; either may be given alone.
+    pub as_of: Option<String>,
+    /// Validate every version at once, over a store that has versions. A real
+    /// question ("does ANY version violate this shape") and a different one
+    /// from any snapshot's, so it is said out loud. Refused together with
+    /// `valid_at` or `as_of`. On a store that uses no temporal vocabulary this
+    /// changes nothing: every graph is read either way.
+    pub all_versions: Option<bool>,
 }
 
 #[derive(Deserialize, JsonSchema)]
@@ -304,6 +317,22 @@ pub struct OntoReasonInput {
     /// pronounces on that, and it distinguishes the built-in table from any
     /// other. See docs/decisions/0003.
     pub rules_file: Option<String>,
+    /// Reason over the snapshot that was TRUE at this instant. Read like
+    /// `onto_temporal_snapshot`'s `valid_at`: `xsd:date`, `xsd:dateTime`,
+    /// `xsd:gYearMonth` or `xsd:gYear`, no offset meaning UTC.
+    ///
+    /// No run over a versioned store materialises, and it refuses rather than
+    /// dropping the flag, because there is no graph in such a store that a
+    /// conclusion can be written to without becoming an axiom of every
+    /// snapshot. Pass `materialize: false`.
+    pub valid_at: Option<String>,
+    /// Reason over the snapshot that was KNOWN at this instant, the
+    /// recorded-time axis. Combines with `valid_at`; either may be given alone.
+    pub as_of: Option<String>,
+    /// Reason over every version at once, over a store that has versions.
+    /// Refused together with `valid_at` or `as_of`. On a store that uses no
+    /// temporal vocabulary this changes nothing.
+    pub all_versions: Option<bool>,
 }
 
 #[derive(Deserialize, JsonSchema)]
@@ -1507,6 +1536,12 @@ pub struct OntoReasonIncrementalInput {
     pub delta: String,
     /// Write the inferences into the store (default true)
     pub materialize: Option<bool>,
+    /// Reason over every version at once, over a store that has versions.
+    /// This path has NO snapshot form: it reads the union of every graph and
+    /// materialises into the default graph, so over a versioned store it is
+    /// refused unless this says the union is what you meant. Use `onto_reason`
+    /// with `valid_at` / `as_of` for a snapshot.
+    pub all_versions: Option<bool>,
 }
 
 #[derive(Deserialize, JsonSchema)]

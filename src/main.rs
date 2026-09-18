@@ -431,7 +431,21 @@ enum Commands {
         base_iri: Option<String>,
     },
     /// Validate against SHACL shapes
-    Shacl { shapes: String },
+    Shacl {
+        shapes: String,
+        /// Validate the snapshot that was TRUE at this instant (#108). Read as
+        /// an instant on the UTC timeline, like `temporal-snapshot --valid-at`.
+        #[arg(long)]
+        valid_at: Option<String>,
+        /// Validate the snapshot that was KNOWN at this instant.
+        #[arg(long)]
+        as_of: Option<String>,
+        /// Validate every version at once over a store that has versions. A
+        /// different question from any snapshot's, so it is said out loud;
+        /// refused together with --valid-at or --as-of.
+        #[arg(long)]
+        all_versions: bool,
+    },
     /// Closed-world vocab check: flag data terms not declared in the loaded ontology
     VocabCheck { data: String },
     /// Run inference (rdfs, owl-rl, owl-rl-ext, owl-dl)
@@ -457,6 +471,18 @@ enum Commands {
         /// table is the whole rule set for the run. Nothing is materialised.
         #[arg(long)]
         rules: Option<String>,
+        /// Reason over the snapshot that was TRUE at this instant (#108).
+        /// Passing any temporal scope argument makes the run a DRY one:
+        /// nothing may be written into a versioned store.
+        #[arg(long)]
+        valid_at: Option<String>,
+        /// Reason over the snapshot that was KNOWN at this instant.
+        #[arg(long)]
+        as_of: Option<String>,
+        /// Reason over every version at once over a store that has versions;
+        /// refused together with --valid-at or --as-of.
+        #[arg(long)]
+        all_versions: bool,
     },
     /// Export the loaded ontology as first-order logic, for a prover or a model finder
     ///
@@ -889,7 +915,14 @@ impl Commands {
             Commands::Query { query } => cmd("query", vec![query.clone()]),
             Commands::Lint { input } => cmd("lint", vec![absolutize(input)]),
             Commands::Defects { input } => cmd("defects", vec![absolutize(input)]),
-            Commands::Reason { profile, certificate, rules } => {
+            Commands::Reason {
+                profile,
+                certificate,
+                rules,
+                valid_at,
+                as_of,
+                all_versions,
+            } => {
                 let mut a = vec!["--profile".into(), profile.clone()];
                 if let Some(c) = certificate {
                     a.push("--certificate".into());
@@ -898,6 +931,17 @@ impl Commands {
                 if let Some(r) = rules {
                     a.push("--rules".into());
                     a.push(absolutize(r));
+                }
+                if let Some(v) = valid_at {
+                    a.push("--valid-at".into());
+                    a.push(v.clone());
+                }
+                if let Some(v) = as_of {
+                    a.push("--as-of".into());
+                    a.push(v.clone());
+                }
+                if *all_versions {
+                    a.push("--all-versions".into());
                 }
                 cmd("reason", a)
             }
@@ -1082,7 +1126,26 @@ impl Commands {
                 }
                 cmd("closure-diff", a)
             }
-            Commands::Shacl { shapes } => cmd("shacl", vec![absolutize(shapes)]),
+            Commands::Shacl {
+                shapes,
+                valid_at,
+                as_of,
+                all_versions,
+            } => {
+                let mut a = vec![absolutize(shapes)];
+                if let Some(v) = valid_at {
+                    a.push("--valid-at".into());
+                    a.push(v.clone());
+                }
+                if let Some(v) = as_of {
+                    a.push("--as-of".into());
+                    a.push(v.clone());
+                }
+                if *all_versions {
+                    a.push("--all-versions".into());
+                }
+                cmd("shacl", a)
+            }
             Commands::Status => cmd("status", vec![]),
             Commands::Pull { url, sparql, query } => {
                 let mut a = vec![url.clone()];
@@ -2768,12 +2831,24 @@ async fn async_main() -> anyhow::Result<()> {
                 }
             }
         }
-        Commands::Shacl { shapes } => {
+        Commands::Shacl {
+            shapes,
+            valid_at,
+            as_of,
+            all_versions,
+        } => {
             use open_ontologies::shacl::ShaclValidator;
             let (_db, graph) = setup(&cli.data_dir)?;
             let shapes_content = std::fs::read_to_string(&shapes)?;
-            let result = ShaclValidator::validate(&graph, &shapes_content)
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            let result = match open_ontologies::temporal::ScopeRequest::from_args(
+                valid_at.as_deref(),
+                as_of.as_deref(),
+                all_versions,
+            ) {
+                Ok(request) => ShaclValidator::validate_scoped(&graph, &shapes_content, &request)
+                    .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}).to_string()),
+                Err(e) => serde_json::json!({"error": e.to_string()}).to_string(),
+            };
             output_result(&result, cli.pretty);
         }
         Commands::VocabCheck { data } => {
@@ -2783,15 +2858,43 @@ async fn async_main() -> anyhow::Result<()> {
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result_checked(&result, cli.pretty);
         }
-        Commands::Reason { profile, certificate, rules } => {
+        Commands::Reason {
+            profile,
+            certificate,
+            rules,
+            valid_at,
+            as_of,
+            all_versions,
+        } => {
             use open_ontologies::reason::{InferenceTarget, Reasoner};
             let (_db, graph) = setup(&cli.data_dir)?;
+            let request = match open_ontologies::temporal::ScopeRequest::from_args(
+                valid_at.as_deref(),
+                as_of.as_deref(),
+                all_versions,
+            ) {
+                Ok(r) => r,
+                Err(e) => {
+                    output_result_checked(
+                        &serde_json::json!({"error": e.to_string()}).to_string(),
+                        cli.pretty,
+                    );
+                    return Ok(());
+                }
+            };
+            // Nothing may be written into a versioned store, so passing any
+            // temporal scope argument here makes the run a DRY one rather than
+            // a refusal on every scoped invocation. The report says `dry_run`.
+            // A run with no such argument keeps the CLI's historical `true`,
+            // and on a versioned store it is refused before it can write.
+            let materialize = matches!(request, open_ontologies::temporal::ScopeRequest::Unscoped);
             let result = match (rules.as_deref(), certificate.as_deref()) {
                 // A supplied table and somewhere to put the certificate.
-                (Some(rules_path), Some(dir)) => Reasoner::run_horn(
+                (Some(rules_path), Some(dir)) => Reasoner::run_horn_scoped(
                     &graph,
                     std::path::Path::new(rules_path),
                     std::path::Path::new(dir),
+                    &request,
                 )
                 .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}).to_string()),
                 // A supplied table and nowhere to put the certificate. The run
@@ -2804,14 +2907,15 @@ async fn async_main() -> anyhow::Result<()> {
                               and `lake exe oo-horn check` is what pronounces on it"
                 })
                 .to_string(),
-                (None, cert) => Reasoner::run_full(
+                (None, cert) => Reasoner::run_scoped(
                     &graph,
                     &profile,
-                    true,
+                    materialize,
                     InferenceTarget::DefaultGraph,
                     cert.map(std::path::Path::new),
+                    &request,
                 )
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e)),
+                .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}).to_string()),
             };
             output_result_checked(&result, cli.pretty);
         }
@@ -3507,11 +3611,16 @@ mod proxy_serialization_tests {
             Commands::Stats,
             Commands::Query { query: "SELECT ?s WHERE { ?s ?p ?o }".into() },
             Commands::Lint { input: "x.ttl".into() },
-            Commands::Reason { profile: "rdfs".into(), certificate: None, rules: None },
+            Commands::Reason { profile: "rdfs".into(), certificate: None, rules: None, valid_at: None, as_of: None, all_versions: false },
+            // The scoped form proxies too: a daemon-backed `reason --valid-at`
+            // that silently dropped the flag would run over every version and
+            // report a snapshot it did not have.
+            Commands::Reason { profile: "rdfs".into(), certificate: None, rules: None, valid_at: Some("2026-01-01".into()), as_of: None, all_versions: false },
             Commands::Fol { out: "/tmp/fol".into(), format: "tptp".into(), smt_domain: None, clif_dialect: "iso".into(), clif_comments: "standalone".into(), goals: None, goals_skip_columns: 0 },
             Commands::FolModel { out: "/tmp/folmodel".into(), solver: "z3".into(), max_domain: 16, timeout_secs: 30, unbounded_probe: true, goals: None, goals_skip_columns: 0, checker: None },
             Commands::FolProve { out: Some("/tmp/folprove".into()), prover: "vampire".into(), timeout_secs: 30, goals: None, goals_skip_columns: 0, problem: None, proof: None },
-            Commands::Shacl { shapes: "s.ttl".into() },
+            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: false },
+            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: true },
             Commands::Status,
             Commands::Pull { url: "http://example.org".into(), sparql: false, query: None },
             Commands::Push { endpoint: "http://example.org".into(), graph: None },

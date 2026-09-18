@@ -278,6 +278,24 @@ impl BatchRunner {
             .unwrap_or("rdfs".to_string());
         let certificate = Self::flag_value(args, "--certificate");
         let rules = Self::flag_value(args, "--rules");
+        // #108. Batch is the only entry point that can load and certify in one
+        // process, so it is the one a certified run over a versioned store
+        // actually uses. A batch runner that did not understand these flags
+        // would leave the gate with no way through on the path that needs it
+        // most.
+        let request = match crate::temporal::ScopeRequest::from_args(
+            Self::flag_value(args, "--valid-at").as_deref(),
+            Self::flag_value(args, "--as-of").as_deref(),
+            args.iter().any(|a| a == "--all-versions"),
+        ) {
+            Ok(r) => r,
+            Err(e) => return json!({"error": e.to_string()}),
+        };
+        // Nothing may be written into a versioned store, so passing any
+        // temporal scope argument makes the run a DRY one rather than a
+        // refusal on every scoped invocation. A run with no such argument
+        // keeps the historical `true` and is refused before it can write.
+        let materialize = matches!(request, crate::temporal::ScopeRequest::Unscoped);
         // `--rules FILE` evaluates a SUPPLIED Horn table instead of a built-in
         // profile and writes a certificate `oo-horn check` can verify. It needs
         // somewhere to put that certificate: a run over rules nobody has
@@ -285,10 +303,11 @@ impl BatchRunner {
         // certificate there would be nothing to check and the counts would
         // stand on the engine's word alone.
         let result = match (rules.as_deref(), certificate.as_deref()) {
-            (Some(rules_path), Some(dir)) => Reasoner::run_horn(
+            (Some(rules_path), Some(dir)) => Reasoner::run_horn_scoped(
                 &self.graph,
                 std::path::Path::new(rules_path),
                 std::path::Path::new(dir),
+                &request,
             )
             .unwrap_or_else(|e| json!({"error": e.to_string()}).to_string()),
             (Some(_), None) => json!({
@@ -297,14 +316,15 @@ impl BatchRunner {
                           `lake exe oo-horn check` is what pronounces on it"
             })
             .to_string(),
-            (None, cert) => Reasoner::run_full(
+            (None, cert) => Reasoner::run_scoped(
                 &self.graph,
                 &profile,
-                true,
+                materialize,
                 InferenceTarget::DefaultGraph,
                 cert.map(std::path::Path::new),
+                &request,
             )
-            .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e)),
+            .unwrap_or_else(|e| json!({"error": e.to_string()}).to_string()),
         };
         serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
     }
@@ -560,10 +580,19 @@ impl BatchRunner {
             Some(p) => p,
             None => return json!({"error": "shacl requires a shapes file path"}),
         };
+        let request = match crate::temporal::ScopeRequest::from_args(
+            Self::flag_value(args, "--valid-at").as_deref(),
+            Self::flag_value(args, "--as-of").as_deref(),
+            args.iter().any(|a| a == "--all-versions"),
+        ) {
+            Ok(r) => r,
+            Err(e) => return json!({"error": e.to_string()}),
+        };
         match std::fs::read_to_string(shapes_path) {
             Ok(shapes_content) => {
-                let result = ShaclValidator::validate(&self.graph, &shapes_content)
-                    .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                let result =
+                    ShaclValidator::validate_scoped(&self.graph, &shapes_content, &request)
+                        .unwrap_or_else(|e| json!({"error": e.to_string()}).to_string());
                 serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
             }
             Err(e) => json!({"error": e.to_string()}),

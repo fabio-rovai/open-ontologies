@@ -45,6 +45,66 @@ All notable changes to Open Ontologies are documented here.
   skolemised without `_:b0` on both sides becoming one IRI naming two different existentials.
   `skolemise` is unchanged for every existing caller.
 ### Fixed
+- **Reasoning and SHACL read every graph, so a bi-temporal store was judged over a state that
+  never existed (#108).** `Reasoner::run` read the store through `GraphStore::all_triples`, which
+  iterates every quad and drops the graph name, and `ShaclValidator::validate` read it through
+  `sparql_select_union`, which makes the default graph the union of every graph. Neither had an
+  argument that could change it. On the module's own example — `:HEK293` adherent until
+  2026-05-01 in `:g1`, suspension from 2026-05-01 in `:g2`, two half-open periods that MEET and
+  share no instant — `onto_temporal_conflicts` filed a correction and reported zero
+  contradictions, while `onto_reason` reported a `cax-dw` disjointness clash and `onto_shacl`
+  reported a `sh:maxCount` violation. Both verdicts were about a moment that never occurred.
+
+  This is the failure mode a certificate cannot catch, and that is why it was worth the size of
+  the change. Run with `certificate_dir`, the clash above wrote a `refutation.tsv` that `oo-refute
+  check` ACCEPTS: a machine-checked `unsatisfiable_under_disjointness` over two versions that
+  never coexisted. The certificate is not wrong. `OOCert.certificate_sound` quantifies over the
+  triples in `asserted.tsv`, they were all in the store, every derivation followed, and the Lean
+  checker is telling the truth. `asserted.tsv` was the wrong graph, and no checker in this
+  project can see that far.
+
+  Three things changed. **The scope is a value.** `crate::graph::ReadScope` says which graphs a
+  run may read; `GraphStore::triples_in_scope` and `sparql_select_scoped` read exactly those and
+  no others, by dataset selection rather than by copying, so cross-graph joins keep working and a
+  scoped run costs no extra memory. The named-graph restriction is applied to a query's available
+  named graphs as well as to its default graph, so a `sh:sparql` constraint cannot name its way
+  back out. **The scope is refused rather than guessed.** `onto_reason` and `onto_shacl` take
+  `valid_at`, `as_of` and `all_versions`; over a store that describes its named graphs with the
+  temporal vocabulary, a run with none of them is refused with a message naming the way out. A
+  store that uses no temporal vocabulary is unaffected under every request and answers exactly as
+  it did at 1.3.0. **This is a behaviour change for a bi-temporal store**: a call that used to
+  return a verdict now returns an error until the caller says which question it is asking.
+  **The scope is evidence.** Every report carries `scope`, and every certificate directory now
+  also gets `scope.tsv` (`oo-scope/1`), one line per graph read and one per graph deliberately
+  not read. No Lean checker reads it; it is a record a person or a script can check against the
+  store, and its value is that the selection is no longer invisible.
+
+  Four decisions the issue asked for, taken and visible in the manifest: membership is exactly the
+  snapshot's `in_scope` set; the default graph is in wholesale, because it holds the schema (and
+  therefore, admitted rather than hidden, the validity metadata lands in the reasoner's closure —
+  `docs/trusted-computing-base.md` item 13); a graph holding this engine's own materialised
+  inferences is dropped and the drop is recorded, which closes the across-run inference leak of
+  TCB item 5 for scoped runs; and NO run over a versioned store MATERIALISES, scoped or
+  `all_versions`, and it says so rather than dropping the flag. There is nowhere in such a store
+  that a conclusion can be written without becoming an axiom of every snapshot: the default graph
+  is in scope at every instant because it is timeless, and so is an inference graph carrying no
+  validity description. A snapshot's conclusions held at one instant and would be read at all of
+  them; an `all_versions` closure was drawn from a state that held at no instant, and writing that
+  in is this same leak arriving through the exit rather than the entrance. The CLI and the batch
+  runner make any invocation carrying a scope argument a dry run; over MCP, pass
+  `materialize: false`. A snapshot
+  that selects no graph returns `conforms: null` with its own reason instead of conforming
+  vacuously. A temporal description written into a named graph, where `Temporal::validities` cannot
+  read it, is refused rather than silently treated as an undescribed and therefore timeless store.
+  Scoped runs are not available for `owl-dl`, whose tableaux path still reads
+  `GraphStore::all_triples`, and asking for one is refused rather than ignored.
+  `onto_extend` chains both tools, takes no scope arguments of its own, and inherits the refusal:
+  over a versioned store it returns the error rather than a pipeline report, and the snapshot has
+  to be run through the two tools directly. `onto_reason_incremental` has no snapshot form either
+  — it reads the union through `sparql_select_union` and materialises into the default graph —
+  and is refused over a versioned store unless `all_versions: true` says the union was meant;
+  leaving it ungated would have made the gate on `onto_reason` a suggestion.
+  `tests/temporal_scope_test.rs` holds the reproduction and every gate.
 - **A front-page claim was gated by a test that ran nowhere, and now runs in CI.** `README.md`
   reported that the cross-kernel differential "reports zero divergent rows", and
   `tests/cross_kernel_differential_test.rs` does require exactly that and fails on any row at

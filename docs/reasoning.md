@@ -62,6 +62,28 @@ measurements are in
 | `onto_dl_explain` | Explain why a class is unsatisfiable (clash trace) |
 | `onto_dl_check` | Check if one class is subsumed by another |
 
+## Which graphs a run reads
+
+By default, all of them: the default graph and every named graph, flattened.
+That is the right dataset for a store that holds one version of everything,
+and the wrong one for a store that keeps several versions of an entity in
+several named graphs, where the union is a state that held at no instant.
+
+`reason` and `shacl` therefore take `--valid-at`, `--as-of` and
+`--all-versions` (`valid_at`, `as_of`, `all_versions` over MCP). Over a store
+that describes its named graphs with the temporal vocabulary
+(`https://open-ontologies.org/temporal#`), a run that names none of them is
+REFUSED rather than answered. A store that uses no temporal vocabulary is
+unaffected.
+
+A scoped run reads the in-scope named graphs plus the default graph and drops
+any graph holding this engine's own materialised inferences. NO run over a
+versioned store materialises, scoped or `--all-versions`: every graph it could
+write to is in scope at every instant, so a conclusion written there becomes an
+axiom of every snapshot. The CLI makes any run carrying a scope argument a dry
+one; over MCP, pass `materialize: false`. Every report carries `scope`, naming
+what was read. See [the temporal module](../src/temporal.rs) and issue #108.
+
 ## What the rule table cannot see, and the three reasons it cannot
 
 A certificate from `onto_reason` is a sound proof about **the axioms the rules
@@ -126,3 +148,8 @@ Every profile except `owl-dl` can emit a derivation certificate
 (`reason --certificate DIR`) that the checker in `lean/` verifies against a
 machine-checked soundness theorem. What is proved, what is not, and how to run
 it: [lean-certificates.md](lean-certificates.md).
+
+The certificate directory also gets `scope.tsv`, the record of which graphs
+`asserted.tsv` was built from. The Lean checker does not read it and cannot:
+it verifies the derivations against the triples in front of it, and cannot ask
+whether those triples are the graph anyone meant.
