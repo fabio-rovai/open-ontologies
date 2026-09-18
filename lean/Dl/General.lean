@@ -82,6 +82,15 @@ structure GModels {α : Type} (I : GInterp α) (A : List Axiom) : Prop where
   /-- The carrier is not empty, for the reason `WellFormed` gives: without it
   every subclass axiom holds vacuously and satisfiability would mean nothing. -/
   nonempty : ∃ x, I.dom x
+  /-- Roles the axioms mention do not lead out of the carrier.
+
+  The finite side carries the same clause as `WellFormed.rextInDom`, and for the
+  same reason: without it `GSat` could be evaluated at a point no axiom ever
+  constrains. It is also what the existential tableau rule needs, since the
+  witness it invents has to be a carrier element for the axioms to bite on it.
+  Restricted to mentioned roles exactly as the finite clause is, which is what
+  lets the bridge below supply it unchanged. -/
+  rextDom : ∀ r ∈ roleNames A, ∀ x y, I.dom x → I.rext r x y → I.dom y
   holds : ∀ a ∈ A, GHolds I a
 
 /-- `A` has NO model, of any size.
@@ -157,10 +166,12 @@ contradiction, and neither result would mean anything. -/
 theorem no_finite_model_of_unsatisfiable {A : List Axiom} (h : Unsatisfiable A) :
     ¬ Satisfiable A := by
   rintro ⟨I, hI⟩
-  refine h Name (GInterp.ofInterp I) ⟨?_, ?_⟩
+  refine h Name (GInterp.ofInterp I) ⟨?_, ?_, ?_⟩
   · cases hd : I.dom with
     | nil => exact absurd hd hI.wf.nonempty
     | cons a as => exact ⟨a, by simp [hd]⟩
+  · intro r hr x y hx hxy
+    exact hI.wf.rextInDom r hr x hx y hxy
   · intro ax hax
     have hh := hI.holds ax hax
     cases ax with
