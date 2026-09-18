@@ -13,6 +13,12 @@ and whose benefit is not gets dropped the first time it is inconvenient.
 | [0007](0007-a-slice-preserves-a-conclusion-or-it-does-not.md) | A slice preserves a conclusion, or it does not | A retrieval slice quietly dropping the conclusion it was asked about |
 | [0008](0008-a-binding-is-data-and-evidence-admits-one-reading.md) | A binding is data, and evidence admits one reading | A certificate format admitting two readings, so two checkers disagree |
 | [0012](0012-concurrency-lives-below-the-certificate.md) | Concurrency lives below the certificate, and a proof cannot follow it there | Adopting a program logic for a hazard that lives in a dependency, and calling the result assurance |
+| [0013](0013-a-second-oracle-can-contradict-and-cannot-confirm.md) | A second oracle can contradict, and cannot confirm | A second solver's agreement being read as corroboration of the one answer nothing can check |
+
+This table is not the whole set. Decisions 0009, 0010 and 0011 are in this directory and have no row
+here, and the number 0009 was used twice by two records written in parallel. Both are stated rather
+than quietly left for a reader to discover, because an index that looks complete and is not is worse
+than one that admits the gap.
 
 There is no 0004. The decision now numbered 0006 was drafted as 0004 on a branch that never merged,
 so the number never reached `main`. It is left as a hole rather than reused, because a reused number

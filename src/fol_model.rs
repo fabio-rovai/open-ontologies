@@ -137,6 +137,38 @@ impl std::fmt::Display for IngestError {
     }
 }
 
+impl IngestError {
+    /// Re-attribute the error to the solver whose output was actually being
+    /// read.
+    ///
+    /// Every arm carries the solver's name because the message has to say
+    /// whose output could not be read, and the SMT-LIB reader below is shared
+    /// between Z3 and cvc5 because both print standard `(get-model)` output.
+    /// Sharing the reader without this would print "could not parse z3's
+    /// model" over cvc5's bytes, which is a mis-attribution of exactly the kind
+    /// `Fol.covers` is labelled `attribution` to avoid. Naming the wrong tool
+    /// in a diagnostic is cheap to do and expensive to debug.
+    pub fn with_solver(self, solver: &'static str) -> IngestError {
+        match self {
+            IngestError::NoModel { saw, .. } => IngestError::NoModel { solver, saw },
+            IngestError::Syntax { at, why, .. } => IngestError::Syntax { solver, at, why },
+            IngestError::Uninterpreted { symbol, arity, .. } => {
+                IngestError::Uninterpreted { solver, symbol, arity }
+            }
+            IngestError::Unsupported { construct, context, .. } => {
+                IngestError::Unsupported { solver, construct, context }
+            }
+            IngestError::OutOfRange { symbol, index, domain, .. } => {
+                IngestError::OutOfRange { solver, symbol, index, domain }
+            }
+            IngestError::BadWidth { symbol, want, got, .. } => {
+                IngestError::BadWidth { solver, symbol, want, got }
+            }
+            IngestError::EmptyDomain { .. } => IngestError::EmptyDomain { solver },
+        }
+    }
+}
+
 impl std::error::Error for IngestError {}
 
 impl FiniteModel {
@@ -834,6 +866,88 @@ pub mod z3 {
         }
         m.self_check(SOLVER)?;
         Ok(m)
+    }
+}
+
+// ── Front end 1b: cvc5, the same SMT-LIB 2 surface syntax ───────────────────
+
+/// Reading cvc5's `(get-model)` output, which is the SAME format Z3 prints and
+/// is therefore read by the SAME parser above.
+///
+/// This module is four lines of delegation and a page of measured facts,
+/// because the interesting differences between the two solvers are not in the
+/// syntax and a reader who assumed they were would get every one of them wrong.
+///
+/// # Why the parser is shared rather than copied
+///
+/// `(define-fun NAME ((arg sort)…) RETURN-SORT BODY)` is SMT-LIB 2.6 and both
+/// solvers emit it. Measured on cvc5 1.3.4 and Z3 4.16.0 over the engine's own
+/// `finite(2)` export, the only differences in the bytes are cosmetic: cvc5
+/// names its parameters `_arg_1` or `$x1` where Z3 uses `x!0`, and cvc5 puts
+/// the body on the same line. The parser reads parameter names out of the file
+/// rather than assuming any of them, so neither spelling matters. A second
+/// parser here would be a second thing to keep correct for no gain.
+///
+/// # THE TRAP, and it is not a small one
+///
+/// **cvc5 prints a model block after `unknown`, and that block is not a
+/// model.** Measured on cvc5 1.3.4, default options, over a problem asserting
+/// `(forall ((X0 U)) (thing X0))` on a two-element datatype carrier: cvc5
+/// answered `unknown` and then printed `(define-fun thing ((_arg_1 U)) Bool
+/// false)`, a structure that falsifies an asserted axiom. Z3 in the same
+/// position prints `(error "model is not available")`.
+///
+/// So the status line is load-bearing in a way it is not for Z3, and
+/// [`crate::fol_solve::solve`] only ingests on `sat` for exactly this reason.
+/// If it ever ingested on `unknown` the verified checker would reject the
+/// structure, the run would report `satisfiable_oracle` with a
+/// `model_not_confirmed` disagreement, and the engine would be blaming cvc5 for
+/// a structure cvc5 never claimed was a model. That is a false stop-the-line,
+/// which costs as much credibility as a missed one.
+///
+/// # What cvc5 answers, and the flag that changes it
+///
+/// With default options cvc5 answers `unknown` on the engine's quantified
+/// problems, including ones whose carrier is a one-element datatype, because
+/// its default quantifier strategy is E-matching and E-matching is incomplete.
+/// `--finite-model-find` makes it answer. On the FINITE encoding that flag
+/// adds no assumption at all, since `(declare-datatypes ((U 0)) ((e0) … ))`
+/// already fixes a finite carrier of known size, so "look for a finite model"
+/// is the question the file asks. On the UNBOUNDED encoding it would be a
+/// different question, and reporting its answer under the unbounded file's name
+/// would be the `no_model_up_to_size_k` mistake of decision 0006 item 4 wearing
+/// a solver flag instead of a cardinality constraint.
+///
+/// # What is NOT read here
+///
+/// cvc5's unbounded model, exactly as Z3's unbounded model is not read. It
+/// prints its carrier elements as `(as @U_0 U)` and annotates the block with
+/// `; cardinality of U is 1`, so the values are qualified identifiers rather
+/// than the enumeration constructors `e0 … e(k-1)` this evaluator understands.
+/// Such a model reaches [`IngestError::Unsupported`], which names the construct
+/// rather than approximating it, and the run reports `satisfiable_oracle` with
+/// nothing certified. Decision 0006 already lists ingesting the unbounded
+/// encoding's models as open work; cvc5 does not close it and does not widen it.
+pub mod cvc5 {
+    use super::{FiniteModel, IngestError, Vocabulary};
+
+    pub const SOLVER: &str = "cvc5";
+
+    /// Turn cvc5's `(get-model)` output into a structure over `0 .. domain-1`.
+    ///
+    /// The provenance is rewritten on both the success and the failure path.
+    /// `FiniteModel::source` is echoed into `model.tsv`'s `source` line, which
+    /// decision 0006 item 6 records as untrusted and reported; untrusted is not
+    /// a licence to write the name of a solver that did not produce the file.
+    pub fn parse_model(
+        text: &str,
+        vocab: &Vocabulary,
+        domain: usize,
+    ) -> Result<FiniteModel, IngestError> {
+        match super::z3::parse_model(text, vocab, domain) {
+            Ok(m) => Ok(FiniteModel { source: SOLVER, ..m }),
+            Err(e) => Err(e.with_solver(SOLVER)),
+        }
     }
 }
 
