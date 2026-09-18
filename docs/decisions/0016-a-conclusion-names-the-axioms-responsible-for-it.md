@@ -1,4 +1,4 @@
-# 0009 · A conclusion names the axioms responsible for it, and minimality is re-run
+# 0016 · A conclusion names the axioms responsible for it, and minimality is re-run
 
 - **Status**: implemented · `src/justify.rs`, `src/provenance.rs`,
   `Reasoner::derivation_graph` · `onto_justify`, `onto_provenance` ·

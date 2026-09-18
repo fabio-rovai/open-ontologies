@@ -368,7 +368,7 @@ All notable changes to Open Ontologies are documented here.
   an antichain, and a truncated run withdraws the claim that they are minimal supports. 35 tests
   in `tests/justify_test.rs` and `tests/provenance_test.rs`, every fixture small enough that the
   answer is known on paper. See
-  [decision 0009](docs/decisions/0009-a-conclusion-names-the-axioms-responsible-for-it.md) and
+  [decision 0009](docs/decisions/0016-a-conclusion-names-the-axioms-responsible-for-it.md) and
   docs/explanation.md.
 - **Common Logic has three dialects and this engine emitted one, so `fol --format cgif` writes a
   second.** ISO/IEC 24707 defines CLIF, CGIF and XCL, and ISO/IEC 21838-1 clause 4.3 names all
