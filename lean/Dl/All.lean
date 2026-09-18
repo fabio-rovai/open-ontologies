@@ -1,5 +1,6 @@
 import Dl.Syntax
 import Dl.Semantics
+import Dl.General
 import Dl.Count
 import Dl.Check
 import Dl.Parse
