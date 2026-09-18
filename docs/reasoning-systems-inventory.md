@@ -36,7 +36,9 @@ about the file we gave it. The addendum to decision 0005 draws the new line.
 | Duper, lean-smt | Lean automation | Declined. Both require Mathlib. |
 | Aeneas with Charon | Rust to Lean | Declined. Subset does not contain this codebase. |
 | Verus, Creusot, Prusti | Rust verification | Declined. Each needs the code rewritten in its subset. |
+| Iris, RefinedRust | Concurrent separation logic | Declined. The shared state is inside Oxigraph, and the certificate layer is pure. Below. |
 | Kani | Rust bounded model checker | Being applied to the trusted boundary only. |
+| loom | Rust interleaving explorer | The right tool for the two latent lock defects. Not yet wired in. |
 | TPTP and TSTP | Interchange | Implemented, in both directions. TPTP out, TSTP back in and checked. |
 | CLIF, ISO/IEC 24707 | Interchange | Implemented. The conformance format. |
 | SMT-LIB 2 | Interchange | Under construction. |
@@ -242,6 +244,34 @@ took, THEN the conclusions follow. Everything to the left of that is the trusted
 it is a serialiser, a parser and an interner rather than fifty thousand lines. That boundary is what
 is being property-tested and, where it pays, model-checked with Kani. What remains trusted after that
 work will be named explicitly rather than left for a reader to infer.
+
+## Iris, and the concurrency that is not ours
+
+Iris is the higher-order concurrent separation logic built in Rocq, and the obvious reason to want it
+here is that the Rust side is plainly not pure: a store behind an `Arc`, fourteen process-global
+atomics in `src/runtime.rs`, three rayon fan-outs, and an MCP server that spawns every request as its
+own tokio task. That last fact is worth knowing on its own, since it means tool calls run in parallel
+in stdio mode and not only over HTTP.
+
+It is declined, and the argument is measured rather than asserted.
+[docs/concurrency-inventory.md](concurrency-inventory.md) names every piece of shared mutable state in
+the engine with a file and a line, and
+[decision 0012](decisions/0012-concurrency-lives-below-the-certificate.md) is the ruling.
+
+The short version has three parts. The one genuinely shared mutable object is
+`oxigraph::store::Store`, which synchronises itself inside a dependency backed by RocksDB, so there is
+no ordering property in our code to prove and no way for a Rocq proof to reach the one that matters.
+The concurrency we do write has nothing to establish: all fourteen atomics are independent scalars
+read relaxed, the rayon phases are read-only over frozen data with one monotone latch, and `Arc`,
+`Mutex` and `RwLock` were already verified in Iris by RustBelt, so we consume that theorem by using
+`std` rather than by re-proving it. And the subset objection that declined Aeneas, Verus, Creusot and
+Prusti in the section above applies harder to RefinedRust, whose subset is narrower still.
+
+The decisive evidence is empirical. The inventory went looking for a property worth proving and came
+back with three defects instead, none of which is a race: an evictor wired to a registry nothing loads
+into, so it can never fire; a missing critical section in `load_file`; and a missing read lease around
+long-running tools. `loom` and a two-thread test find the second and third. The first needs no
+concurrency tooling at all and is pinned by `tests/registry_evictor_wiring_test.rs`.
 
 ## Rule languages
 

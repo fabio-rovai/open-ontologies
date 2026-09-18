@@ -226,7 +226,7 @@ report["conforms"]           # None, because nothing was examined
 
 ## Relationship to the Rust engine
 
-This is the **Python layer** of the project. For the full engine (three-layer Dynamics/Causal/Planner architecture, HNSW semantic search, SHIQ tableaux reasoning, PDDL planning, governance, 116 tools), use the [Rust build](https://github.com/fabio-rovai/open-ontologies). HNSW semantic search there is a compile-time feature, so build with `--features embeddings`; the published binaries do not carry it. Same Oxigraph core; pick the weight class you need.
+This is the **Python layer** of the project. For the full engine (three-layer Dynamics/Causal/Planner architecture, HNSW semantic search, SHIQ tableaux reasoning, PDDL planning, governance, 120 tools), use the [Rust build](https://github.com/fabio-rovai/open-ontologies). HNSW semantic search there is a compile-time feature, so build with `--features embeddings`; the published binaries do not carry it. Same Oxigraph core; pick the weight class you need.
 
 ## License
 
