@@ -25,7 +25,7 @@ hand-written Rust, and that is a much larger decision than "add a verifier".
 Dafny 4.11.0, installed with `brew install dafny` on `arm64-apple-darwin`, using the Z3 it bundles.
 Homebrew also pulled Z3 4.16.0 as a formula dependency; nothing here invokes it directly.
 
-`dafny/RuleTable.dfy` is 674 lines modelling the rule-table grammar of `src/reason.rs` over bytes:
+`dafny/RuleTable.dfy` is 676 lines modelling the rule-table grammar of `src/reason.rs` over bytes:
 `Pat`, `AtomPat`, `RulePattern`, `pat_of`, `Pat::render`, `rules_tsv` for one line, and the part of
 `parse_rules` that decides which rule a line denotes. `dafny/run.sh` runs it.
 
@@ -40,9 +40,9 @@ Homebrew also pulled Z3 4.16.0 as a formula dependency; nothing here invokes it 
 | third-party crates that runtime pulls | `num`, `once_cell`, `itertools` |
 | Rust in `src/reason.rs` the model covers | about 127 lines |
 
-The last two rows are the decision. Shipping the verified artefact means adding roughly 8,600 lines
-of unverified Rust runtime, plus a bignum library, to the trusted computing base, in order to verify
-about 127 lines that are already inside it.
+The runtime row and the covered-lines row are the decision. Shipping the verified artefact means
+adding roughly 8,600 lines of unverified Rust runtime, plus a bignum library, to the trusted
+computing base, in order to verify about 127 lines that are already inside it.
 
 ## What it proved that nothing here proved before
 
