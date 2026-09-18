@@ -16,6 +16,101 @@ pub struct ValidationCounts {
     pub triples: usize,
 }
 
+/// The graphs one run may read.
+///
+/// Until #108 every verdict-producing path in this engine read the WHOLE
+/// store and had no vocabulary for saying so. The reasoner read it through
+/// [`GraphStore::all_triples`], which iterates every quad and drops the graph
+/// name; the SHACL validator read it through
+/// [`GraphStore::sparql_select_union`], which makes the default graph the
+/// union of every graph. On a single-version store those are the same set and
+/// the right one. On a store that keeps one entity's versions in one named
+/// graph each, they are a union of states that held at no instant, and a
+/// verdict over that union is neither what was true then nor what is true now.
+///
+/// The failure is invisible to every gate this project has, which is why it
+/// needed a type rather than a flag. A derivation certificate is a claim about
+/// the graph in `asserted.tsv`, and the Lean checker verifies exactly that
+/// claim; if the triples in `asserted.tsv` were selected by a scope nobody
+/// chose, the certificate is valid and the answer is wrong. Making the scope a
+/// value means a run can RECORD what it read, and a reader can audit the scope
+/// instead of assuming it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ReadScope {
+    /// The default graph and every named graph. The historical behaviour, and
+    /// what a store with no versioning means.
+    AllGraphs,
+    /// Exactly these graphs. `default_graph` says whether the store's default
+    /// graph is one of them; `named` lists the named graphs, in the order they
+    /// are to be read.
+    Graphs {
+        default_graph: bool,
+        named: Vec<String>,
+    },
+}
+
+impl ReadScope {
+    /// The graph names this scope admits, for a certificate to record.
+    ///
+    /// A certificate that does not say which graphs it read cannot be checked
+    /// against the store it claims to be about, so both reading paths report
+    /// this: the one that excludes named graphs by name, and this one, which
+    /// names the set it selected.
+    pub fn graphs_read(&self) -> Vec<String> {
+        match self {
+            ReadScope::AllGraphs => vec!["(every graph in the store)".to_string()],
+            ReadScope::Graphs { default_graph, named } => {
+                let mut v = Vec::with_capacity(named.len() + 1);
+                if *default_graph {
+                    v.push("(default graph)".to_string());
+                }
+                v.extend(named.iter().cloned());
+                v
+            }
+        }
+    }
+
+    /// True when this scope is the whole store.
+    pub fn is_all_graphs(&self) -> bool {
+        matches!(self, ReadScope::AllGraphs)
+    }
+
+    /// Point a prepared query's dataset at exactly this scope.
+    ///
+    /// Both halves matter. `set_default_graph` is what an UNGUARDED pattern
+    /// reads, which is every pattern the SHACL validator emits. Restricting
+    /// the available NAMED graphs to the same set is what stops a `GRAPH`
+    /// block a caller wrote — in a `sh:sparql` constraint, say — from reaching
+    /// a graph the scope excluded.
+    fn apply(
+        &self,
+        dataset: &mut oxigraph::sparql::QueryDatasetSpecification,
+    ) -> anyhow::Result<()> {
+        match self {
+            ReadScope::AllGraphs => dataset.set_default_graph_as_union(),
+            ReadScope::Graphs {
+                default_graph,
+                named,
+            } => {
+                let mut names: Vec<GraphName> = Vec::with_capacity(named.len() + 1);
+                if *default_graph {
+                    names.push(GraphName::DefaultGraph);
+                }
+                let mut available: Vec<NamedOrBlankNode> = Vec::with_capacity(named.len());
+                for g in named {
+                    let node =
+                        NamedNode::new(g).map_err(|e| anyhow::anyhow!("{g} is not an IRI: {e}"))?;
+                    names.push(GraphName::NamedNode(node.clone()));
+                    available.push(NamedOrBlankNode::NamedNode(node));
+                }
+                dataset.set_default_graph(names);
+                dataset.set_available_named_graphs(available);
+            }
+        }
+        Ok(())
+    }
+}
+
 /// Optional HTTP authentication for remote SPARQL endpoints.
 ///
 /// Enterprise triple stores gate their SPARQL Protocol endpoints behind auth:
@@ -384,7 +479,13 @@ impl GraphStore {
         if union_default_graph {
             prepared.dataset_mut().set_default_graph_as_union();
         }
-        match prepared.on_store(store).execute()? {
+        Self::render(prepared.on_store(store).execute()?)
+    }
+
+    /// The JSON every SELECT path in this module returns, so a scoped run and
+    /// an unscoped one differ in the dataset they read and in nothing else.
+    fn render(results: QueryResults) -> anyhow::Result<String> {
+        match results {
             QueryResults::Solutions(solutions) => {
                 let vars: Vec<String> = solutions
                     .variables()
@@ -720,12 +821,21 @@ impl GraphStore {
 
     /// Extract all triples as (subject, predicate, object) string tuples.
     ///
-    /// EVERY graph, the default one and every named one, flattened. A caller
-    /// that is going to treat what it gets back as ASSERTED wants
-    /// [`triples_outside`](Self::triples_outside) instead: this method cannot
-    /// tell an assertion from a triple some earlier run of the reasoner parked
-    /// in a named graph, and the certificate layer's soundness theorem is
-    /// conditional on the assertions.
+    /// Reads EVERY graph and drops the graph name. That is the right answer for
+    /// a single-version store and the wrong one for a store that keeps several
+    /// versions of the same entity in several named graphs, where the union is
+    /// a state that held at no instant.
+    ///
+    /// A caller that is going to treat what it gets back as ASSERTED wants one
+    /// of the two narrower forms instead, because this method cannot tell an
+    /// assertion from a triple some earlier run of the reasoner parked in a
+    /// named graph, and the certificate layer's soundness theorem is
+    /// conditional on the assertions:
+    /// [`triples_outside`](Self::triples_outside) excludes named graphs by
+    /// name, and [`triples_in_scope`](Self::triples_in_scope) reads a stated
+    /// set. This one is what [`ReadScope::AllGraphs`] means and is kept
+    /// unchanged so a run that asks for every graph gets byte-identical input
+    /// to the one it always got.
     pub fn all_triples(&self) -> anyhow::Result<Vec<(String, String, String)>> {
         let store = &self.store;
         let mut triples = Vec::new();
@@ -737,6 +847,134 @@ impl GraphStore {
             triples.push((s, p, o));
         }
         Ok(triples)
+    }
+
+    /// The triples of exactly the graphs a scope names, in the spelling
+    /// [`all_triples`](Self::all_triples) yields.
+    ///
+    /// The default graph comes first when it is in scope, then each named
+    /// graph in the order the scope lists them, so the line order of a
+    /// certificate written from this is a function of the scope and the store
+    /// rather than of iteration order.
+    ///
+    /// A named graph the scope lists and the store does not hold contributes
+    /// nothing and is NOT an error: a snapshot names the graphs that were in
+    /// scope, and a graph can be in scope and empty.
+    pub fn triples_in_scope(&self, scope: &ReadScope) -> anyhow::Result<AssertedTriples> {
+        let ReadScope::Graphs {
+            default_graph,
+            named,
+        } = scope
+        else {
+            // `AllGraphs` is every graph the caller may read, and that is still
+            // not every graph in the store: the inference graph is where this
+            // engine parks its OWN conclusions, and reading them back makes run
+            // N's conclusions run N+1's axioms with nothing in `asserted.tsv`
+            // saying they were derived. TCB-8.
+            //
+            // This used to be `all_triples()`, which is byte-identical to the
+            // historical behaviour and reintroduced that defect the moment a
+            // store held a previous materialisation.
+            // `tcb_8_across_runs_only_the_default_graph_leaks` caught it.
+            return self.triples_outside(&[crate::reason::INFERRED_GRAPH]);
+        };
+        let mut triples = Vec::new();
+        // The names actually read, in the order read, so a certificate records
+        // what it was built from rather than what was asked for. The two differ
+        // whenever a named graph in scope holds nothing.
+        let mut read: Vec<String> = Vec::new();
+        // Returns how many it took, so the caller can record the graph only
+        // when it actually contributed. Counting inside avoids reading
+        // `triples.len()` while the closure still holds it mutably.
+        let mut take = |g: GraphNameRef<'_>| -> anyhow::Result<usize> {
+            let mut n = 0usize;
+            for quad in self.store.quads_for_pattern(None, None, None, Some(g)) {
+                let q = quad?;
+                triples.push((
+                    q.subject.to_string(),
+                    q.predicate.to_string(),
+                    q.object.to_string(),
+                ));
+                n += 1;
+            }
+            Ok(n)
+        };
+        if *default_graph && take(GraphNameRef::DefaultGraph)? > 0 {
+            read.push("<default>".to_string());
+        }
+        for g in named {
+            let node = NamedNode::new(g).map_err(|e| anyhow::anyhow!("{g} is not an IRI: {e}"))?;
+            if take(GraphNameRef::NamedNode(node.as_ref()))? > 0 {
+                read.push(g.clone());
+            }
+        }
+        Ok((triples, read))
+    }
+
+    /// Run a SELECT over exactly the graphs a scope names.
+    ///
+    /// [`ReadScope::AllGraphs`] is [`sparql_select_union`](Self::sparql_select_union)
+    /// unchanged. A stated set of graphs becomes the query's default graph, so
+    /// an UNGUARDED pattern sees the union of those graphs and nothing else,
+    /// and the same set is the only one a `GRAPH` block can reach: without
+    /// [`set_available_named_graphs`] a `sh:sparql` constraint could name an
+    /// out-of-scope graph and read it, which is the escape `Temporal::query_at`
+    /// closes with `FROM NAMED` for the same reason.
+    ///
+    /// [`set_available_named_graphs`]: https://docs.rs/spareval
+    pub fn sparql_select_scoped(&self, query: &str, scope: &ReadScope) -> anyhow::Result<String> {
+        match scope {
+            ReadScope::AllGraphs => self.sparql_select_union(query),
+            ReadScope::Graphs { .. } => {
+                let mut prepared = SparqlEvaluator::new().parse_query(query)?;
+                scope.apply(prepared.dataset_mut())?;
+                Self::render(prepared.on_store(&self.store).execute()?)
+            }
+        }
+    }
+
+    /// [`sparql_select_union_prebound`](Self::sparql_select_union_prebound),
+    /// restricted to the graphs a scope names.
+    pub fn sparql_select_scoped_prebound(
+        &self,
+        query: &str,
+        var: &str,
+        terms: &[Term],
+        scope: &ReadScope,
+    ) -> anyhow::Result<Vec<Vec<std::collections::HashMap<String, String>>>> {
+        let store = &self.store;
+        let mut prepared = SparqlEvaluator::new().parse_query(query)?;
+        scope.apply(prepared.dataset_mut())?;
+        let variable = Variable::new(var)?;
+        let mut out = Vec::with_capacity(terms.len());
+        for term in terms {
+            let bound = prepared
+                .clone()
+                .substitute_variable(variable.clone(), term.clone());
+            let QueryResults::Solutions(solutions) = bound.on_store(store).execute()? else {
+                anyhow::bail!("pre-bound evaluation needs a SELECT query");
+            };
+            let vars: Vec<String> = solutions
+                .variables()
+                .iter()
+                .map(|v| v.as_str().to_string())
+                .collect();
+            let mut rows = Vec::new();
+            for solution in solutions {
+                let solution = solution?;
+                let mut row = std::collections::HashMap::new();
+                for v in &vars {
+                    if let Some(t) = solution.get(v.as_str()) {
+                        row.insert(v.clone(), t.to_string());
+                    }
+                }
+                row.entry(var.to_string())
+                    .or_insert_with(|| term.to_string());
+                rows.push(row);
+            }
+            out.push(rows);
+        }
+        Ok(out)
     }
 
     /// Every triple in the store EXCEPT those in the named graphs listed, in

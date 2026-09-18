@@ -109,6 +109,47 @@
 //! the only place that distinction can survive. With no `valid_at` it is read
 //! like any other graph, because no instant was asked about.
 //!
+//! ## Scope is an argument, not a default (#108)
+//!
+//! The two tools that produce VERDICTS, `onto_reason` and `onto_shacl`, used
+//! to read the whole store and had no argument that could change it. The
+//! reasoner read it through `GraphStore::all_triples`, which iterates every
+//! quad and drops the graph name; the validator read it through
+//! `sparql_select_union`, which makes the default graph the union of every
+//! graph. Over the store this module is about, that union is every version of
+//! every entity at once: a state that held at no instant. `onto_temporal_
+//! conflicts` filed the HEK293 example above as a correction, correctly, while
+//! `onto_reason` reported it as a disjointness clash and `onto_shacl` reported
+//! a cardinality violation, both of a moment that never occurred.
+//!
+//! What makes that worse than the defects already fixed here is that nothing
+//! in this project could catch it. A derivation certificate is a claim about
+//! the triples in `asserted.tsv`, and the Lean checker verifies exactly that
+//! claim; over the union of two versions it is a TRUE claim, and `oo-refute`
+//! will accept a machine-checked `cax-dw` refutation drawn from two versions
+//! that never coexisted. The certificate is valid and the graph is wrong, and
+//! a checker cannot see that far.
+//!
+//! So the scope became a value. `resolve` turns a caller's request into a
+//! `crate::graph::ReadScope` and a `ScopeManifest`, under these rules:
+//!
+//!   - a store that does not use this vocabulary reads everything, as before;
+//!   - `all_versions` reads everything and says so, whatever the descriptions
+//!     say, so it is settled before any of them is read;
+//!   - a store whose description sits in a NAMED graph, where `validities`
+//!     cannot read it, is REFUSED, because every described graph would
+//!     otherwise read as timeless and be in scope at every instant;
+//!   - a store that uses this vocabulary, with no instant named, is REFUSED,
+//!     because an honest refusal beats a confident answer over an arbitrary
+//!     scope;
+//!   - a snapshot reads the default graph plus the `in_scope` named graphs,
+//!     less any graph holding this engine's own materialised inferences, and
+//!     the manifest records every one of those decisions.
+//!
+//! The union is still reachable, by asking for it: `all_versions` is a real
+//! question ("does ANY version violate this shape") that was previously
+//! indistinguishable from not having thought about it.
+//!
 //! ## Bounded scans
 //!
 //! Every query behind these tools is capped so a pathological store cannot
@@ -122,7 +163,7 @@
 //! and an undescribed graph is timeless and always in scope. Those responses
 //! also carry a `warning`.
 
-use crate::graph::GraphStore;
+use crate::graph::{GraphStore, ReadScope};
 use chrono::{DateTime, Utc};
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
@@ -294,6 +335,340 @@ impl Scope {
              part of it is wrong.",
             parts.join(", and ")
         ))
+    }
+}
+
+/// What a caller asked a verdict-producing run to read (#108).
+///
+/// The three cases are not three settings of one knob. They are three
+/// different things a caller can mean, and the middle one used to be
+/// unsayable while the first two were spelled the same way.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ScopeRequest {
+    /// No instant named and no opinion offered. Over a store that does not use
+    /// the temporal vocabulary this is the whole store and always was. Over one
+    /// that does, it is REFUSED: see [`resolve`].
+    Unscoped,
+    /// A snapshot. At least one of the two bounds is given; an absent one is
+    /// the axis not being asked about, exactly as in `onto_temporal_snapshot`.
+    Snapshot {
+        valid_at: Option<String>,
+        as_of: Option<String>,
+    },
+    /// Every graph in the store, over a store that HAS versions, asked for
+    /// deliberately. A legitimate thing to want — "does any version of this
+    /// register violate the shape" is a real question — and a different
+    /// question from any snapshot's, so it is said out loud rather than
+    /// arrived at by omission.
+    AllVersions,
+}
+
+impl ScopeRequest {
+    /// Build from the three optional arguments the tools take.
+    ///
+    /// `all_versions` together with either bound is refused rather than
+    /// resolved by precedence: the two say different things about the same
+    /// run, and guessing which one the caller meant is the failure this type
+    /// exists to remove.
+    pub fn from_args(
+        valid_at: Option<&str>,
+        as_of: Option<&str>,
+        all_versions: bool,
+    ) -> anyhow::Result<Self> {
+        let instant = valid_at.is_some() || as_of.is_some();
+        match (all_versions, instant) {
+            (true, true) => anyhow::bail!(
+                "all_versions asks for every version at once and valid_at/as_of asks for one \
+                 instant. Those are different questions; pass one of them"
+            ),
+            (true, false) => Ok(ScopeRequest::AllVersions),
+            (false, true) => Ok(ScopeRequest::Snapshot {
+                valid_at: valid_at.map(str::to_string),
+                as_of: as_of.map(str::to_string),
+            }),
+            (false, false) => Ok(ScopeRequest::Unscoped),
+        }
+    }
+}
+
+/// Which graphs a run read, and how they were chosen.
+///
+/// This is the half of #108 that makes the rest defensible. A derivation
+/// certificate is a claim about the triples in `asserted.tsv`; the Lean
+/// checker verifies that claim and has no way to ask where those triples came
+/// from. A run that records its scope turns the selection into evidence that
+/// travels with the certificate, so "the certificate is valid and the graph is
+/// wrong" becomes a statement a reader can check rather than one they have to
+/// trust did not happen.
+#[derive(Clone, Debug)]
+pub struct ScopeManifest {
+    /// `whole-store`, `whole-store-all-versions` or `temporal-snapshot`.
+    pub selector: &'static str,
+    pub valid_at: Option<String>,
+    pub as_of: Option<String>,
+    /// Present only for a snapshot: the named graphs read, in read order.
+    pub graphs: Option<Vec<String>>,
+    /// Present only for a snapshot: named graphs deliberately not read, each
+    /// with the reason.
+    pub excluded: Vec<serde_json::Value>,
+    /// Whether the default graph is in the dataset. True in every scope this
+    /// engine builds: it holds the schema, and a snapshot of the ABox with no
+    /// TBox answers a different question from the one asked.
+    pub default_graph: bool,
+    /// False when a scan behind the selection hit its cap, which makes the
+    /// scope wrong rather than merely short.
+    pub complete: bool,
+    pub warning: Option<String>,
+}
+
+impl ScopeManifest {
+    /// Does this run read a store that keeps VERSIONS?
+    ///
+    /// True for a snapshot and for a deliberate whole-store run over a store
+    /// that uses the temporal vocabulary; false only for a store that does not
+    /// use it at all. It is the question "may this run write its conclusions
+    /// into the store", and the answer is no in both true cases: every graph
+    /// a run could write to is in scope at every instant — the default graph
+    /// because it is timeless, a named inference graph because it carries no
+    /// validity description — so a conclusion written there becomes an axiom
+    /// of every OTHER snapshot. That is true of a snapshot's conclusions, which
+    /// held at one instant, and of a whole-store run's, which held at none.
+    pub fn store_has_versions(&self) -> bool {
+        self.selector != "whole-store"
+    }
+
+    /// The whole store, which is what every run did before #108.
+    fn whole_store(selector: &'static str) -> Self {
+        Self {
+            selector,
+            valid_at: None,
+            as_of: None,
+            graphs: None,
+            excluded: Vec::new(),
+            default_graph: true,
+            complete: true,
+            warning: None,
+        }
+    }
+
+    /// The JSON a report and a certificate carry.
+    ///
+    /// A whole-store run lists no graph names on purpose: "every graph"
+    /// already is the complete answer, and a list would go stale against a
+    /// store that grew between the scan and the run without any reader being
+    /// able to tell.
+    pub fn to_json(&self) -> serde_json::Value {
+        let mut out = serde_json::json!({
+            "selector": self.selector,
+            "default_graph": self.default_graph,
+            "semantics_version": SEMANTICS_VERSION,
+            "complete": self.complete,
+        });
+        if let Some(graphs) = &self.graphs {
+            out["graphs"] = serde_json::json!(graphs);
+            out["graph_count"] = serde_json::json!(graphs.len());
+        } else {
+            out["note"] = serde_json::json!(
+                "every graph in the store, the default graph included. On a store that keeps \
+                 several versions of an entity in several named graphs this union is a state \
+                 that held at no instant."
+            );
+        }
+        if let Some(v) = &self.valid_at {
+            out["valid_at"] = serde_json::json!(v);
+        }
+        if let Some(v) = &self.as_of {
+            out["as_of"] = serde_json::json!(v);
+        }
+        if !self.excluded.is_empty() {
+            out["excluded"] = serde_json::Value::Array(self.excluded.clone());
+        }
+        if let Some(w) = &self.warning {
+            out["warning"] = serde_json::json!(w);
+        }
+        out
+    }
+
+    /// The tab-separated form written beside a certificate, so the scope
+    /// travels with `asserted.tsv` rather than only in a tool response that
+    /// nobody keeps.
+    pub fn to_tsv(&self) -> String {
+        let mut s = String::from("oo-scope/1\n");
+        s.push_str(&format!("selector\t{}\n", self.selector));
+        s.push_str(&format!("semantics_version\t{SEMANTICS_VERSION}\n"));
+        s.push_str(&format!("default_graph\t{}\n", self.default_graph));
+        s.push_str(&format!("complete\t{}\n", self.complete));
+        if let Some(v) = &self.valid_at {
+            s.push_str(&format!("valid_at\t{v}\n"));
+        }
+        if let Some(v) = &self.as_of {
+            s.push_str(&format!("as_of\t{v}\n"));
+        }
+        match &self.graphs {
+            Some(graphs) => {
+                for g in graphs {
+                    s.push_str(&format!("graph\t{g}\n"));
+                }
+            }
+            None => s.push_str("graph\t*\n"),
+        }
+        for row in &self.excluded {
+            let g = row.get("graph").and_then(|v| v.as_str()).unwrap_or("?");
+            let why = row.get("reason").and_then(|v| v.as_str()).unwrap_or("?");
+            s.push_str(&format!("excluded\t{g}\t{why}\n"));
+        }
+        s
+    }
+}
+
+/// The body of the query behind both the probe and the listing: anything the
+/// store says with one of the six temporal predicates.
+fn described_pattern() -> String {
+    format!(
+        "{{ ?g <{NS}validFrom> ?x }} UNION {{ ?g <{NS}validTo> ?x }} \
+         UNION {{ ?g <{NS}recordedAt> ?x }} UNION {{ ?g <{NS}recordedUntil> ?x }} \
+         UNION {{ ?g <{NS}supersedes> ?x }} UNION {{ ?g <{NS}retracts> ?x }}"
+    )
+}
+
+/// Does this store use the temporal vocabulary ANYWHERE, default graph or not?
+///
+/// Runs on every `onto_reason` and every `onto_shacl`, including the
+/// overwhelming majority that are over stores with no versions at all, so it
+/// is one query with no DISTINCT and no ORDER BY: both would force the whole
+/// result to be materialised before the LIMIT could apply, and the answer here
+/// is a boolean that the first row settles.
+fn uses_temporal_vocabulary(graph: &GraphStore) -> anyhow::Result<bool> {
+    let query = format!("SELECT ?g WHERE {{ {} }} LIMIT 1", described_pattern());
+    let parsed: serde_json::Value = serde_json::from_str(&graph.sparql_select_union(&query)?)?;
+    Ok(parsed
+        .get("results")
+        .and_then(|r| r.as_array())
+        .is_some_and(|rows| !rows.is_empty()))
+}
+
+/// Every graph the store DESCRIBES with the temporal vocabulary, whether or
+/// not the description is readable.
+///
+/// Read from the default graph, which is where `Temporal::validities` reads
+/// it, and separately from the union of every graph. The two differing is the
+/// one case that has to be loud: a description sitting in a named graph is
+/// invisible to the temporal layer, so the snapshot it would produce is not
+/// the snapshot the data describes, and answering anyway would be a confident
+/// answer over a scope the store contradicts.
+///
+/// "Graph" here is whatever the description's SUBJECT is, and nothing checks
+/// that it names a graph the store holds. A store that writes
+/// `temporal:validFrom` on a domain entity therefore trips the gate, is told
+/// so, and gets the same answer it always got once it names an instant. The
+/// alternative, intersecting with the named graphs that hold assertions, would
+/// let a described-but-currently-empty graph slip past the gate, and of the
+/// two directions only one of them is safe.
+fn described_graphs(graph: &GraphStore) -> anyhow::Result<(BTreeSet<String>, BTreeSet<String>)> {
+    let query = format!(
+        "SELECT DISTINCT ?g WHERE {{ {} }} ORDER BY ?g LIMIT {VALIDITY_SCAN_LIMIT}",
+        described_pattern()
+    );
+    let read = |raw: String| -> anyhow::Result<BTreeSet<String>> {
+        let parsed: serde_json::Value = serde_json::from_str(&raw)?;
+        Ok(parsed
+            .get("results")
+            .and_then(|r| r.as_array())
+            .map(|rows| {
+                rows.iter()
+                    .filter_map(|r| r.get("g").and_then(|v| v.as_str()).map(plain))
+                    .collect()
+            })
+            .unwrap_or_default())
+    };
+    let in_default = read(graph.sparql_select(&query)?)?;
+    let anywhere = read(graph.sparql_select_union(&query)?)?;
+    Ok((in_default, anywhere))
+}
+
+/// Resolve what a run should read, refusing rather than choosing (#108).
+///
+/// The contract, in the order the checks run:
+///
+///  * A store that does not use the temporal vocabulary reads the whole store
+///    under every request, and the answer is byte-identical to 1.3.0's.
+///  * `AllVersions` reads the whole store and says so in the manifest, so the
+///    union is a stated choice rather than a default. Settled first, because
+///    no fact about the descriptions can make that answer wrong.
+///  * A store whose temporal description sits outside the default graph is
+///    REFUSED, because the temporal layer reads validity from the default
+///    graph and would treat every described graph as timeless.
+///  * A bi-temporal store with no instant named is REFUSED. The union of every
+///    version is a state that held at no instant, and a verdict over it is
+///    neither what was true then nor what is true now.
+///  * A snapshot reads the default graph plus the in-scope named graphs, minus
+///    any graph holding this engine's own materialised inferences.
+pub fn resolve(
+    graph: &Arc<GraphStore>,
+    request: &ScopeRequest,
+) -> anyhow::Result<(ReadScope, ScopeManifest)> {
+    // The cheap half first: most stores do not use this vocabulary at all, and
+    // for those the gate is one bounded query and no behaviour change.
+    if !uses_temporal_vocabulary(graph)? {
+        return Ok((
+            ReadScope::AllGraphs,
+            ScopeManifest::whole_store("whole-store"),
+        ));
+    }
+    // `AllVersions` is settled before anything is read about the descriptions,
+    // and deliberately: it reads every graph whatever any description says, so
+    // no description can make its answer wrong, and refusing it for a
+    // description the temporal layer cannot reach would close the one escape
+    // hatch a store in that state has.
+    if matches!(request, ScopeRequest::AllVersions) {
+        return Ok((
+            ReadScope::AllGraphs,
+            ScopeManifest::whole_store("whole-store-all-versions"),
+        ));
+    }
+    let (in_default, anywhere) = described_graphs(graph)?;
+    let unreadable: Vec<&String> = anywhere.difference(&in_default).collect();
+    if !unreadable.is_empty() {
+        anyhow::bail!(
+            "temporal description out of reach: {n} graph(s) are described with the temporal \
+             vocabulary ({NS}) in a NAMED graph, and this engine reads validity from the DEFAULT \
+             graph only (see the module documentation of src/temporal.rs). Those descriptions do \
+             not reach onto_temporal_snapshot, so every one of those graphs would be treated as \
+             timeless and put in scope at every instant. Move the description into the default \
+             graph. First: {sample}",
+            n = unreadable.len(),
+            sample = unreadable
+                .iter()
+                .take(3)
+                .map(|g| g.as_str())
+                .collect::<Vec<_>>()
+                .join(", "),
+        );
+    }
+    match request {
+        // Answered above, before the descriptions were read at all.
+        ScopeRequest::AllVersions => Ok((
+            ReadScope::AllGraphs,
+            ScopeManifest::whole_store("whole-store-all-versions"),
+        )),
+        ScopeRequest::Unscoped => anyhow::bail!(
+            "temporal scope not specified. This store describes {n} named graph(s) with the \
+             temporal vocabulary ({NS}), so reading every graph means reading every version at \
+             once: a state that held at no instant, and a verdict over it is neither what was \
+             true then nor what is true now. Pass valid_at (what was TRUE then) and/or as_of \
+             (what was KNOWN then) to run over a snapshot, or all_versions=true to say that the \
+             union of every version is what you meant. Described graphs: {sample}",
+            n = in_default.len(),
+            sample = in_default
+                .iter()
+                .take(3)
+                .map(|g| g.as_str())
+                .collect::<Vec<_>>()
+                .join(", "),
+        ),
+        ScopeRequest::Snapshot { valid_at, as_of } => {
+            Temporal::new(graph.clone()).read_scope(valid_at.as_deref(), as_of.as_deref())
+        }
     }
 }
 
@@ -1861,6 +2236,82 @@ impl Temporal {
             out["truncated"] = serde_json::Value::Array(scope.cuts());
         }
         Ok(out.to_string())
+    }
+
+    /// The dataset a run at this instant may read, and the record of how it
+    /// was chosen (#108).
+    ///
+    /// Three decisions are taken here and each is visible in the manifest:
+    ///
+    ///  * **Membership** is exactly the snapshot's `in_scope` set. Nothing is
+    ///    added, and the two tools cannot drift because both call `scope()`.
+    ///  * **The default graph is in**, wholesale. It holds the schema, and a
+    ///    snapshot of the ABox with no TBox answers a question nobody asked;
+    ///    it also holds the validity metadata, which therefore enters the
+    ///    reasoner's closure and SHACL's focus-node counts. That is a real
+    ///    cost, stated in `docs/trusted-computing-base.md` rather than fixed
+    ///    here, because the alternatives (filtering by predicate namespace, or
+    ///    a named schema graph) each decide for the user where their schema
+    ///    lives.
+    ///  * **This engine's own inferences are out.** A named graph holding
+    ///    materialised inferences has no validity description, so it is
+    ///    timeless and in scope at every instant; reading it would make run
+    ///    N's conclusions run N+1's assertions inside the one path whose whole
+    ///    point is that `asserted.tsv` lists assertions. It is dropped and the
+    ///    drop is recorded, never silent.
+    ///
+    /// Nothing is copied: the manifest is a list of graph names, and both
+    /// readers (`GraphStore::triples_in_scope` for the reasoner, a dataset
+    /// specification for SPARQL) select rather than materialise, so a scoped
+    /// run costs no extra memory and cross-graph joins keep working.
+    pub fn read_scope(
+        &self,
+        valid_at: Option<&str>,
+        as_of: Option<&str>,
+    ) -> anyhow::Result<(ReadScope, ScopeManifest)> {
+        let at = argument("valid_at", valid_at)?;
+        let of = argument("as_of", as_of)?;
+        let mut scope = self.scope(at, of)?;
+
+        let mut excluded: Vec<serde_json::Value> = Vec::new();
+        excluded.extend(scope.excluded.iter().cloned());
+        excluded.extend(scope.invalid.iter().cloned());
+        excluded.extend(scope.retracted.iter().cloned());
+
+        let mut named = Vec::with_capacity(scope.graphs.len());
+        for g in std::mem::take(&mut scope.graphs) {
+            if g == crate::reason::INFERRED_GRAPH {
+                excluded.push(serde_json::json!({
+                    "graph": g,
+                    "reason": "materialised inferences from an earlier run, not assertions",
+                }));
+                continue;
+            }
+            named.push(g);
+        }
+
+        let warning = scope.warning().map(|w| {
+            format!(
+                "{w} This run READ that scope, so its verdict is about the wrong set of graphs."
+            )
+        });
+        let manifest = ScopeManifest {
+            selector: "temporal-snapshot",
+            valid_at: valid_at.map(str::to_string),
+            as_of: as_of.map(str::to_string),
+            graphs: Some(named.clone()),
+            excluded,
+            default_graph: true,
+            complete: scope.complete(),
+            warning,
+        };
+        Ok((
+            ReadScope::Graphs {
+                default_graph: true,
+                named,
+            },
+            manifest,
+        ))
     }
 
     /// Run a query against only the graphs in temporal scope.

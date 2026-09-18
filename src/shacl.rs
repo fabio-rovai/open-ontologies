@@ -1,4 +1,5 @@
-use crate::graph::GraphStore;
+use crate::graph::{GraphStore, ReadScope};
+use crate::temporal::{ScopeManifest, ScopeRequest};
 use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{Term, Variable};
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
@@ -48,7 +49,50 @@ impl ShaclValidator {
     /// can be read back as the findings table it is (#131). The keys that
     /// predate those (`constraint`, `focus_node`, `message`, `severity`,
     /// `path`) are unchanged.
+    ///
+    /// Reads the whole store. Over a store that uses the temporal vocabulary
+    /// that is now REFUSED rather than done silently — see
+    /// [`validate_scoped`](Self::validate_scoped), which this delegates to.
     pub fn validate(graph: &Arc<GraphStore>, shapes_ttl: &str) -> anyhow::Result<String> {
+        Self::validate_scoped(graph, shapes_ttl, &ScopeRequest::Unscoped)
+    }
+
+    /// [`validate`](Self::validate) over a stated set of graphs (#108).
+    ///
+    /// Every data-side query of the run is evaluated against exactly the
+    /// graphs the scope names. Before this, the union of every graph was the
+    /// only dataset available and no argument could change it, so a store
+    /// holding one entity's versions in one named graph each was validated
+    /// against the union of its versions: a `sh:maxCount 1` saw one value per
+    /// version at once and reported a violation that was wrong at every
+    /// instant.
+    ///
+    /// The scope reaches `sh:sparql` too. A constraint someone wrote can
+    /// contain a `GRAPH` block, so restricting the default graph alone would
+    /// leave an escape open; the dataset's available named graphs are
+    /// restricted to the same set, which is the same reason
+    /// `Temporal::query_at` wraps a caller's pattern in `FROM NAMED`.
+    ///
+    /// What is NOT scoped: `class_exists` and `property_exists`, which
+    /// `check_shapes` uses to decide whether a shape references something that
+    /// exists. A declaration is context-free and has the same answer at every
+    /// instant, so narrowing it would report a live shape as referencing a
+    /// missing class whenever the version that declared it fell out of scope.
+    pub fn validate_scoped(
+        graph: &Arc<GraphStore>,
+        shapes_ttl: &str,
+        request: &ScopeRequest,
+    ) -> anyhow::Result<String> {
+        let (scope, manifest) = crate::temporal::resolve(graph, request)?;
+        Self::validate_in_scope(graph, shapes_ttl, &scope, &manifest)
+    }
+
+    fn validate_in_scope(
+        graph: &Arc<GraphStore>,
+        shapes_ttl: &str,
+        scope: &ReadScope,
+        manifest: &ScopeManifest,
+    ) -> anyhow::Result<String> {
         // 1. Parse shapes Turtle into a temporary store
         let shapes_store = Store::new()?;
         let reader = Cursor::new(shapes_ttl.as_bytes());
@@ -290,7 +334,7 @@ impl ShaclValidator {
             // constraints against the empty set and contributes no violations,
             // which is indistinguishable in the report from a shape that checked
             // its nodes and found them sound.
-            let focus_count = count_focus_nodes(graph, &focus_pattern)?;
+            let focus_count = count_focus_nodes(graph, scope, &focus_pattern)?;
             focus_nodes_total += focus_count;
             if focus_count == 0 {
                 let mut entry = serde_json::json!({
@@ -745,7 +789,7 @@ impl ShaclValidator {
                             FILTER(!({disjunction}))
                         }}"#
                     );
-                    for row in &graph_sparql_select(graph, &query)? {
+                    for row in &graph_sparql_select(graph, scope, &query)? {
                         if let Some(focus) = row.get("focus") {
                             let msg = if node_message.is_empty() {
                                 "Node conforms to none of the sh:or member shapes".to_string()
@@ -857,7 +901,7 @@ impl ShaclValidator {
                         OPTIONAL {{ ?focus <{q_path}> ?val . FILTER({clause}) }}
                     }} GROUP BY ?focus"#
                 );
-                for result in &graph_sparql_select(graph, &query)? {
+                for result in &graph_sparql_select(graph, scope, &query)? {
                     let (Some(focus), Some(n_raw)) = (result.get("focus"), result.get("n")) else {
                         continue;
                     };
@@ -982,7 +1026,7 @@ impl ShaclValidator {
                                 OPTIONAL {{ ?focus {path_expr} ?val }}
                             }} GROUP BY ?focus HAVING (COUNT(DISTINCT ?val) < {min_count})"#
                         );
-                        let results = graph_sparql_select(graph, &query)?;
+                        let results = graph_sparql_select(graph, scope, &query)?;
                         for row in &results {
                             if let Some(focus) = row.get("focus") {
                                 let msg = if message.is_empty() {
@@ -1016,7 +1060,7 @@ impl ShaclValidator {
                             ?focus {path_expr} ?val .
                         }} GROUP BY ?focus HAVING (COUNT(DISTINCT ?val) > {max_count})"#
                     );
-                    let results = graph_sparql_select(graph, &query)?;
+                    let results = graph_sparql_select(graph, scope, &query)?;
                     for row in &results {
                         if let Some(focus) = row.get("focus") {
                             let msg = if message.is_empty() {
@@ -1054,7 +1098,7 @@ impl ShaclValidator {
                             }}
                         }}"#
                     );
-                    let results = graph_sparql_select(graph, &query)?;
+                    let results = graph_sparql_select(graph, scope, &query)?;
                     for row in &results {
                         if let Some(focus) = row.get("focus") {
                             let msg = if message.is_empty() {
@@ -1100,7 +1144,7 @@ impl ShaclValidator {
                             FILTER(DATATYPE(?val) != <{dt}>)
                         }}"#
                     );
-                    let results = graph_sparql_select(graph, &query)?;
+                    let results = graph_sparql_select(graph, scope, &query)?;
                     for row in &results {
                         if let Some(focus) = row.get("focus") {
                             let msg = if message.is_empty() {
@@ -1135,7 +1179,7 @@ impl ShaclValidator {
                             FILTER(!REGEX(STR(?val), "{escaped}"))
                         }}"#
                     );
-                    let results = graph_sparql_select(graph, &query)?;
+                    let results = graph_sparql_select(graph, scope, &query)?;
                     for row in &results {
                         if let Some(focus) = row.get("focus") {
                             let msg = if message.is_empty() {
@@ -1177,7 +1221,7 @@ impl ShaclValidator {
                             FILTER(!({disjunction}))
                         }}"#
                     );
-                    let results = graph_sparql_select(graph, &query)?;
+                    let results = graph_sparql_select(graph, scope, &query)?;
                     for row in &results {
                         if let Some(focus) = row.get("focus") {
                             let msg = if message.is_empty() {
@@ -1224,7 +1268,7 @@ impl ShaclValidator {
                             FILTER(isBlank(?val) || STRLEN(STR(?val)) {cmp} {bound})
                         }}"#
                     );
-                    for row in &graph_sparql_select(graph, &query)? {
+                    for row in &graph_sparql_select(graph, scope, &query)? {
                         if let Some(focus) = row.get("focus") {
                             let msg = if message.is_empty() {
                                 format!("Value is {wording} {bound} characters")
@@ -1267,7 +1311,7 @@ impl ShaclValidator {
                             FILTER(!(?val {ok_cmp} ?otherVal))
                         }}"#
                     );
-                    for row in &graph_sparql_select(graph, &query)? {
+                    for row in &graph_sparql_select(graph, scope, &query)? {
                         if let Some(focus) = row.get("focus") {
                             let msg = if message.is_empty() {
                                 format!("Value is not {ok_cmp} the value of <{other}>")
@@ -1300,7 +1344,7 @@ impl ShaclValidator {
                                     FILTER(!({expr}))
                                 }}"#
                             );
-                            for row in &graph_sparql_select(graph, &query)? {
+                            for row in &graph_sparql_select(graph, scope, &query)? {
                                 if let Some(focus) = row.get("focus") {
                                     let msg = if message.is_empty() {
                                         format!(
@@ -1344,7 +1388,7 @@ impl ShaclValidator {
                             FILTER({conjunction})
                         }}"#
                     );
-                    let results = graph_sparql_select(graph, &query)?;
+                    let results = graph_sparql_select(graph, scope, &query)?;
                     for row in &results {
                         if let Some(focus) = row.get("focus") {
                             let msg = if message.is_empty() {
@@ -1375,7 +1419,7 @@ impl ShaclValidator {
                             FILTER(?val NOT IN ({list}))
                         }}"#
                     );
-                    let results = graph_sparql_select(graph, &query)?;
+                    let results = graph_sparql_select(graph, scope, &query)?;
                     for row in &results {
                         if let Some(focus) = row.get("focus") {
                             let msg = if message.is_empty() {
@@ -1420,7 +1464,7 @@ impl ShaclValidator {
                                     FILTER(!{t})
                                 }}"#
                             );
-                            let results = graph_sparql_select(graph, &query)?;
+                            let results = graph_sparql_select(graph, scope, &query)?;
                             for row in &results {
                                 if let Some(focus) = row.get("focus") {
                                     let msg = if message.is_empty() {
@@ -1459,7 +1503,7 @@ impl ShaclValidator {
                             FILTER NOT EXISTS {{ ?focus {path_expr} {term} }}
                         }}"#
                     );
-                    let results = graph_sparql_select(graph, &query)?;
+                    let results = graph_sparql_select(graph, scope, &query)?;
                     for row in &results {
                         if let Some(focus) = row.get("focus") {
                             let msg = if message.is_empty() {
@@ -1503,7 +1547,7 @@ impl ShaclValidator {
                                 FILTER(!COALESCE(?val {satisfy_op} {bound}, false))
                             }}"#
                         );
-                        let results = graph_sparql_select(graph, &query)?;
+                        let results = graph_sparql_select(graph, scope, &query)?;
                         for row in &results {
                             if let Some(focus) = row.get("focus") {
                                 let msg = if message.is_empty() {
@@ -1608,6 +1652,7 @@ impl ShaclValidator {
             // be named in a VALUES clause; there is no VALUES clause any more.
             let focus_rows = graph_sparql_select(
                 graph,
+                scope,
                 &format!("SELECT ?this WHERE {{ {this_pattern} }}"),
             )?;
             let mut focus_terms: Vec<Term> = Vec::new();
@@ -1707,7 +1752,7 @@ impl ShaclValidator {
                     }));
                     continue;
                 }
-                match graph.sparql_select_union_prebound(&query, "this", &focus_terms) {
+                match graph.sparql_select_scoped_prebound(&query, "this", &focus_terms, scope) {
                     Ok(per_focus) => {
                         for (focus, rows) in focus_terms.iter().zip(per_focus) {
                             let focus_str = focus.to_string();
@@ -1811,14 +1856,31 @@ impl ShaclValidator {
             "focus_nodes": focus_nodes_total,
             "unmatched_shapes": unmatched,
             // A verdict that does not say what it selected over cannot be
-            // replayed or compared against the next one, and this value is
-            // about to stop being the only one: temporal scoping arrives as
-            // an argument, and the moment two runs of the same shapes over
-            // the same store can differ, an unlabelled report is a number
-            // without units. Naming it now means the key does not appear for
-            // the first time on the run where it matters.
-            "scope": "all_graphs",
+            // replayed or compared against the next one. This used to be the
+            // bare string `all_graphs`, placed before temporal scoping arrived
+            // so the key would not appear for the first time on the run where
+            // it mattered. It now carries the manifest, and the run it
+            // mattered on is here: two runs of the same shapes over the same
+            // store CAN differ, and the report says which graphs each read.
+            "scope": manifest.to_json(),
         });
+        if manifest.graphs.as_ref().is_some_and(Vec::is_empty) {
+            // A snapshot that selected no graph at all. Reporting `conforms:
+            // true` here would be the same class of non-answer as a shapes
+            // graph that targeted absent classes, and it reuses the same
+            // three-valued verdict with its own reason: the data was not
+            // examined and found clean, there was no data in scope to examine.
+            report["conforms"] = serde_json::Value::Null;
+            report["warning"] = serde_json::Value::String(
+                "no graphs in scope at that instant, so nothing was validated and conformance is \
+                 undetermined. See scope."
+                    .to_string(),
+            );
+            if !skipped.is_empty() {
+                report["skipped_constraints"] = serde_json::Value::Array(skipped);
+            }
+            return Ok(report.to_string());
+        }
         if nothing_matched && skipped.is_empty() {
             // Every shape targeted a class with no instances in the data, so
             // nothing was checked. Reporting `conforms: true` here would be the
@@ -1839,6 +1901,15 @@ impl ShaclValidator {
                 skipped.len()
             ));
             report["skipped_constraints"] = serde_json::Value::Array(skipped);
+        }
+        // A scope that was cut short is a WRONG set of graphs, not a short
+        // one, so it overrides whatever verdict the branches above reached
+        // rather than sitting quietly inside `scope`.
+        if let Some(w) = &manifest.warning {
+            report["warning"] = serde_json::Value::String(match report["warning"].as_str() {
+                Some(existing) => format!("{w} {existing}"),
+                None => w.clone(),
+            });
         }
 
         Ok(report.to_string())
@@ -2123,28 +2194,35 @@ fn query_solutions(
 /// Run a SPARQL SELECT ?shape against the main `GraphStore` and return results
 /// as a vec of maps, using the existing `sparql_select` JSON output.
 ///
-/// Every data-side query in this module runs over the union of every graph in
-/// the store. It used to run over the store's default graph alone, which made
-/// the verdict depend on the serialisation the data arrived in: an ontology
-/// and its instances loaded from Turtle validated, and the identical triples
-/// loaded from TriG selected no focus nodes at all and came back as
+/// Every data-side query in this module runs over the scope the run was given.
+/// It used to run over the store's default graph alone, which made the verdict
+/// depend on the serialisation the data arrived in: an ontology and its
+/// instances loaded from Turtle validated, and the identical triples loaded
+/// from TriG selected no focus nodes at all and came back as
 /// `nothing_matched` with a null verdict. That is the right answer to a
 /// question nobody asked, and it is why the defect never arrived as a bug
 /// report.
 ///
-/// Reading every graph is the only default that cannot silently drop data.
-/// The alternative, selecting instances from the graphs in temporal scope, is
-/// the opposite direction: it can only remove focus nodes, so it can turn a
-/// `conforms: false` into a `true` by dropping the data that failed. That
-/// belongs behind an argument someone passes on purpose, never behind the
-/// no-argument path. See the graph-scope rule on issue #108: a declaration is
-/// read from every graph because a declaration is context-free, and instance
-/// data is scoped because it is not.
+/// Reading every graph is the only DEFAULT that cannot silently drop data, and
+/// it is still the default. Narrowing to a temporal snapshot runs the opposite
+/// risk — it can only remove focus nodes, so it can turn a `conforms: false`
+/// into a `true` by dropping the data that failed — which is why it sits
+/// behind an argument someone passes on purpose and never behind the
+/// no-argument path. That argument has now landed (#108), and with it the
+/// third case the other two left out: over a store that HAS versions, the
+/// no-argument path is refused rather than answered, because reading every
+/// version at once is not a safe default either, it is a verdict about a state
+/// that held at no instant.
+///
+/// The graph-scope rule from #108 holds throughout: a declaration is read from
+/// every graph because a declaration is context-free (`class_exists`,
+/// `property_exists`), and instance data is scoped because it is not.
 fn graph_sparql_select(
     graph: &Arc<GraphStore>,
+    scope: &ReadScope,
     query: &str,
 ) -> anyhow::Result<Vec<HashMap<String, String>>> {
-    let json_str = graph.sparql_select_union(query)?;
+    let json_str = graph.sparql_select_scoped(query, scope)?;
     let parsed: serde_json::Value = serde_json::from_str(&json_str)?;
     let mut rows = Vec::new();
     if let Some(results) = parsed["results"].as_array() {
@@ -2174,6 +2252,11 @@ fn graph_sparql_select(
 /// default graph and every named graph, unconditionally: there is no scope
 /// argument and no flag that narrows it back to the default graph.
 fn class_exists(graph: &Arc<GraphStore>, iri: &str) -> anyhow::Result<bool> {
+    // No scope argument, deliberately, and #108 did not add one: a class
+    // declaration is context-free, so "is this IRI declared" has the same
+    // answer at every instant, and narrowing it to a snapshot would report a
+    // shape as referencing a missing class because the version that declared
+    // it is out of scope.
     let query = format!(
         r#"SELECT ?x WHERE {{
             {{ <{iri}> a ?type }}
@@ -2183,7 +2266,7 @@ fn class_exists(graph: &Arc<GraphStore>, iri: &str) -> anyhow::Result<bool> {
                 || ?type = <http://www.w3.org/2000/01/rdf-schema#Class>)
         }} LIMIT 1"#
     );
-    let results = graph_sparql_select(graph, &query)?;
+    let results = graph_sparql_select(graph, &ReadScope::AllGraphs, &query)?;
     Ok(!results.is_empty())
 }
 
@@ -2194,6 +2277,7 @@ fn class_exists(graph: &Arc<GraphStore>, iri: &str) -> anyhow::Result<bool> {
 /// named graph, unconditionally, so a property declared inside a `GRAPH`
 /// block is not reported as `missing_path`.
 fn property_exists(graph: &Arc<GraphStore>, iri: &str) -> anyhow::Result<bool> {
+    // Whole store, for the reason given on `class_exists`.
     let query = format!(
         r#"SELECT ?x WHERE {{
             {{ <{iri}> a ?type }}
@@ -2204,7 +2288,7 @@ fn property_exists(graph: &Arc<GraphStore>, iri: &str) -> anyhow::Result<bool> {
                 || ?type = <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>)
         }} LIMIT 1"#
     );
-    let results = graph_sparql_select(graph, &query)?;
+    let results = graph_sparql_select(graph, &ReadScope::AllGraphs, &query)?;
     Ok(!results.is_empty())
 }
 
@@ -2505,11 +2589,15 @@ fn target_pattern(kind: &str, value: &str, var: &str) -> String {
 /// `?focus`. Taking the pattern rather than a class is what lets all four target
 /// forms share one counter, and keeps `focus_nodes` in the report meaning the
 /// same thing whichever form selected them.
-fn count_focus_nodes(graph: &Arc<GraphStore>, focus_pattern: &str) -> anyhow::Result<u64> {
+fn count_focus_nodes(
+    graph: &Arc<GraphStore>,
+    scope: &ReadScope,
+    focus_pattern: &str,
+) -> anyhow::Result<u64> {
     let query = format!(
         r#"SELECT (COUNT(DISTINCT ?focus) AS ?cnt) WHERE {{ {focus_pattern} }}"#
     );
-    let rows = graph_sparql_select(graph, &query)?;
+    let rows = graph_sparql_select(graph, scope, &query)?;
     Ok(rows
         .first()
         .and_then(|row| row.get("cnt"))

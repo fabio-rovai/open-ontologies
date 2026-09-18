@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 use crate::graph::GraphStore;
+use crate::temporal::ScopeRequest;
 
 // Well-known IRIs
 const RDF_TYPE: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
@@ -1170,10 +1171,12 @@ impl Reasoner {
     /// Run the forward-chaining reasoner and, when `certificate_dir` is given,
     /// write a derivation certificate beside the result.
     ///
-    /// The certificate is two tab-separated files: `asserted.tsv`, every
-    /// triple the run started from, and `derivations.tsv`, one line per
-    /// inferred triple naming the rule that produced it and the premises the
-    /// rule read. `lean/` holds a checker for that format whose soundness is a
+    /// The certificate is three tab-separated files: `asserted.tsv`, every
+    /// triple the run started from, `derivations.tsv`, one line per inferred
+    /// triple naming the rule that produced it and the premises the rule read,
+    /// and `scope.tsv`, which graphs those triples were read from. The Lean
+    /// checker reads the first two and cannot read the third: see
+    /// [`run_scoped`](Self::run_scoped). `lean/` holds a checker for that format whose soundness is a
     /// machine-checked theorem (`OOCert.certificate_sound`): a certificate it
     /// accepts contains only triples entailed by the asserted graph under the
     /// RDF-based semantics of the vocabulary the rules use. The engine's own
@@ -1186,6 +1189,10 @@ impl Reasoner {
     /// (tests/reason_rl_ext_soundness_test.rs).
     ///
     /// Not available for `owl-dl`: the tableaux path has no rule trace.
+    ///
+    /// Reads the whole store. Over a store that uses the temporal vocabulary
+    /// that is now REFUSED rather than done silently — see
+    /// [`run_scoped`](Self::run_scoped), which this delegates to.
     pub fn run_full(
         graph: &Arc<GraphStore>,
         profile: &str,
@@ -1193,7 +1200,14 @@ impl Reasoner {
         target: InferenceTarget,
         certificate_dir: Option<&std::path::Path>,
     ) -> anyhow::Result<String> {
-        Self::run_capturing(graph, profile, materialize, target, certificate_dir, None)
+        Self::run_scoped(
+            graph,
+            profile,
+            materialize,
+            target,
+            certificate_dir,
+            &ScopeRequest::Unscoped,
+        )
     }
 
     /// The whole derivation DAG of a run: every asserted triple, every triple
@@ -1207,6 +1221,12 @@ impl Reasoner {
     /// Refuses `owl-dl` for the same reason `--certificate` does: the tableaux
     /// path has no rule trace, so there is no DAG to hand back and an empty one
     /// would read as "nothing was derived".
+    ///
+    /// It asks for no scope, which is not the same as escaping the scope
+    /// gate: `ScopeRequest::Unscoped` still goes through
+    /// [`crate::temporal::resolve`], so over a versioned store naming no
+    /// instant this is REFUSED like any other run. A DAG over the union of
+    /// every version would explain a state that held at no instant.
     pub fn derivation_graph(
         graph: &Arc<GraphStore>,
         profile: &str,
@@ -1218,12 +1238,13 @@ impl Reasoner {
             );
         }
         let mut cap = Capture::default();
-        Self::run_capturing(
+        Self::run_scoped_capturing(
             graph,
             profile,
             false,
             InferenceTarget::DefaultGraph,
             None,
+            &ScopeRequest::Unscoped,
             Some(&mut cap),
         )?;
         cap.out.ok_or_else(|| {
@@ -1231,12 +1252,110 @@ impl Reasoner {
         })
     }
 
-    fn run_capturing(
+    /// [`run_full`](Self::run_full) over a stated set of graphs (#108).
+    ///
+    /// Every entry point above funnels here, so the scope gate cannot be
+    /// evaded by picking an older signature. What the gate does is in
+    /// [`crate::temporal::resolve`]; what it means for THIS path is:
+    ///
+    ///  * A store with no temporal vocabulary is unaffected under every
+    ///    request, and produces the same bytes it produced at 1.3.0.
+    ///  * A bi-temporal store with no instant named is refused. Nothing else
+    ///    in this engine would have caught that run: the reasoner would have
+    ///    computed a correct closure over the union of every version, the
+    ///    certificate would have been a true statement about the graph in
+    ///    `asserted.tsv`, and the Lean checker would have accepted it. The
+    ///    graph in `asserted.tsv` is the thing that would have been wrong, and
+    ///    the checker cannot see that far.
+    ///  * NO run over a versioned store MATERIALISES, and it says so rather
+    ///    than dropping the flag. There is nowhere in such a store that a
+    ///    conclusion can be written without becoming an axiom of every
+    ///    snapshot: the default graph is in scope at every instant by being
+    ///    timeless, and so is a named inference graph that carries no validity
+    ///    description. That bites both ways round. A snapshot's conclusions
+    ///    held at ONE instant and would be read at all of them; an
+    ///    `all_versions` run's held at NONE, and writing those in is the leak
+    ///    this issue is about arriving through the exit rather than the
+    ///    entrance. The precedent is `rules_file`, refused for the same shape
+    ///    of reason.
+    ///  * The scope is recorded, in the report and, when a certificate is
+    ///    written, in `scope.tsv` beside `asserted.tsv`.
+    pub fn run_scoped(
         graph: &Arc<GraphStore>,
         profile: &str,
         materialize: bool,
         target: InferenceTarget,
         certificate_dir: Option<&std::path::Path>,
+        request: &ScopeRequest,
+    ) -> anyhow::Result<String> {
+        Self::run_scoped_capturing(
+            graph,
+            profile,
+            materialize,
+            target,
+            certificate_dir,
+            request,
+            None,
+        )
+    }
+
+    /// [`run_scoped`](Self::run_scoped) with somewhere to put the derivation
+    /// DAG. Private because `Capture` is, which is why the public form above
+    /// exists rather than this taking an `Option` nobody outside can build.
+    #[allow(clippy::too_many_arguments)]
+    fn run_scoped_capturing(
+        graph: &Arc<GraphStore>,
+        profile: &str,
+        materialize: bool,
+        target: InferenceTarget,
+        certificate_dir: Option<&std::path::Path>,
+        request: &ScopeRequest,
+        capture: Option<&mut Capture>,
+    ) -> anyhow::Result<String> {
+        let (scope, manifest) = crate::temporal::resolve(graph, request)?;
+        if !scope.is_all_graphs() && profile == "owl-dl" {
+            anyhow::bail!(
+                "the owl-dl tableaux path reads the whole store and has no scoped form yet \
+                 (src/tableaux.rs reads GraphStore::all_triples), so a snapshot argument here \
+                 would be accepted and ignored. Run rdfs, owl-rl or owl-rl-ext for a scoped run"
+            );
+        }
+        if manifest.store_has_versions() && materialize {
+            anyhow::bail!(
+                "a run over a versioned store does not materialise. There is nowhere in such a \
+                 store that a conclusion can be written without becoming an axiom of every \
+                 snapshot: the default graph is in scope at every instant because it is \
+                 timeless, and so is an inference graph carrying no validity description. That \
+                 bites both ways round. A SNAPSHOT's conclusions held at one instant and would \
+                 be read at all of them; a run over EVERY VERSION at once (all_versions) draws \
+                 its conclusions from a state that held at no instant, and writing those into \
+                 the timeless graph is the leak of #108 arriving through the exit rather than \
+                 the entrance. Run with materialize=false and read the inferences from the \
+                 report, or describe a destination graph with temporal:validFrom / validTo \
+                 yourself and load them into it"
+            );
+        }
+        Self::run_in_scope(
+            graph,
+            profile,
+            materialize,
+            target,
+            certificate_dir,
+            &scope,
+            &manifest,
+            capture,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn run_in_scope(
+        graph: &Arc<GraphStore>,
+        profile: &str,
+        materialize: bool,
+        target: InferenceTarget,
+        certificate_dir: Option<&std::path::Path>,
+        scope: &crate::graph::ReadScope,
+        manifest: &crate::temporal::ScopeManifest,
         capture: Option<&mut Capture>,
     ) -> anyhow::Result<String> {
         // Delegate OWL-DL to tableaux reasoner
@@ -1255,7 +1374,18 @@ impl Reasoner {
                      run it with the default target, or use owl-rl / owl-rl-ext"
                 );
             }
-            return crate::tableaux::DlReasoner::run(graph, materialize);
+            // Only ever reached with the whole store, since `run_scoped`
+            // refuses a snapshot here. It still says so: "the scope key is on
+            // every report" is a sentence a reader has to be able to rely on,
+            // and a tool that omits it on one profile makes its absence
+            // ambiguous between "read everything" and "older build".
+            let raw = crate::tableaux::DlReasoner::run(graph, materialize)?;
+            let mut parsed: serde_json::Value = serde_json::from_str(&raw)?;
+            if parsed.is_object() {
+                parsed["scope"] = manifest.to_json();
+                return Ok(parsed.to_string());
+            }
+            return Ok(raw);
         }
 
         let profile_used = match profile {
@@ -1266,17 +1396,13 @@ impl Reasoner {
         let include_owl = profile_used == "owl-rl" || profile_used == "owl-rl-ext";
         let include_ext = profile_used == "owl-rl-ext";
 
-        // Extract and intern the ASSERTED triples.
-        //
-        // Every graph except [`INFERRED_GRAPH`], which is where this same
-        // function parks its own conclusions when the caller asks for them to
-        // be kept apart. Reading them back would make run N's conclusions run
-        // N+1's axioms, and `asserted.tsv` has no column that says "derived",
-        // so the certificate would be conditional on a graph that was never
-        // asserted. Until 15 September 2026 it did exactly that and the defect
-        // was pinned by a test rather than fixed; TCB-8 in
-        // `docs/trusted-computing-base.md` has the history.
-        let (raw_triples, graphs_read) = graph.triples_outside(&[INFERRED_GRAPH])?;
+        // Extract and intern the triples of the graphs THIS RUN MAY READ. For
+        // `ReadScope::AllGraphs` that is `all_triples()` and the same bytes as
+        // before; for a snapshot it is the default graph plus the in-scope
+        // named graphs, and `asserted.tsv` below is written from exactly this
+        // list, so the certificate is about the graph the scope selected and
+        // `scope.tsv` says which one that was.
+        let (raw_triples, graphs_read) = graph.triples_in_scope(scope)?;
         let mut interner = Interner::new();
         let mut facts: Vec<(u32, u32, u32)> = Vec::with_capacity(raw_triples.len());
         for (s, p, o) in &raw_triples {
@@ -2175,8 +2301,26 @@ impl Reasoner {
             "fixpoint_reached": fixpoint_reached,
             "initial_triples": initial_size,
             "final_triples": triple_set.len(),
-            "sample_inferences": sample
+            "sample_inferences": sample,
+            // Which graphs this closure was computed over. Present on every
+            // run, scoped or not: a number with no units is what an unlabelled
+            // verdict is, and the run where the scope first matters must not
+            // be the run where the key first appears.
+            "scope": manifest.to_json(),
         });
+        if let Some(w) = &manifest.warning {
+            result["warning"] = serde_json::json!(w);
+        }
+        if manifest.graphs.as_ref().is_some_and(Vec::is_empty) {
+            // The default graph alone: the schema, and whatever else sits
+            // outside a named graph. A closure over that is a real answer to a
+            // question about the TBox and is NOT an answer about the data,
+            // and an `inferred_count` with nothing saying so reads as one.
+            result["warning"] = serde_json::json!(
+                "no graphs in scope at that instant: this closure was computed over the default \
+                 graph alone, so it says nothing about the assertions. See scope."
+            );
+        }
         if !materialize {
             result["dry_run"] = serde_json::json!(true);
         }
@@ -2250,6 +2394,16 @@ impl Reasoner {
             // is no such file.
             let _ = std::fs::remove_file(dir.join("refutation.tsv"));
 
+            // The scope, beside the files it selected. `asserted.tsv` is a
+            // list of triples with nothing in it that says where they came
+            // from, and the Lean checker has no way to ask: it verifies that
+            // the derivations follow from the triples in front of it, which
+            // stays true whatever scope chose them. A certificate over a
+            // snapshot and a certificate over the union of every version are
+            // indistinguishable as files, and only one of them is about a
+            // state that existed. This file is what tells them apart.
+            std::fs::write(dir.join("scope.tsv"), manifest.to_tsv())?;
+
             result["certificate"] = serde_json::json!({
                 "dir": dir.display().to_string(),
                 "format": "oo-cert/1",
@@ -2262,6 +2416,13 @@ impl Reasoner {
                 "graphs_read": graphs_read,
                 "graphs_excluded": [INFERRED_GRAPH],
                 "check_with": "cd lean && lake exe oo-cert <dir>/asserted.tsv <dir>/derivations.tsv",
+                "scope": manifest.to_json(),
+                "scope_file": dir.join("scope.tsv").display().to_string(),
+                "scope_means": "oo-cert verifies that every derivation follows from the triples \
+                                in asserted.tsv. It does not and cannot check that asserted.tsv \
+                                is the graph you meant to reason over. scope.tsv records which \
+                                graphs were read; a reader who cares whether this answer is \
+                                about a state that existed has to read it.",
             });
         }
 
@@ -2912,11 +3073,28 @@ impl Reasoner {
     /// table holds only in models that satisfy that table, and writing it in
     /// beside the assertions would lose exactly the distinction decision 0003
     /// is about.
+    ///
+    /// Reads the whole store; refused over a bi-temporal store with no instant
+    /// named, exactly as [`run_full`](Self::run_full) is. A certificate over a
+    /// user's own rule table has the same blind spot as one over the built-in
+    /// table and for the same reason: `oo-horn` verifies the steps against the
+    /// triples in `asserted.tsv` and cannot ask where they came from.
     pub fn run_horn(
         graph: &Arc<GraphStore>,
         rules_path: &std::path::Path,
         certificate_dir: &std::path::Path,
     ) -> anyhow::Result<String> {
+        Self::run_horn_scoped(graph, rules_path, certificate_dir, &ScopeRequest::Unscoped)
+    }
+
+    /// [`run_horn`](Self::run_horn) over a stated set of graphs (#108).
+    pub fn run_horn_scoped(
+        graph: &Arc<GraphStore>,
+        rules_path: &std::path::Path,
+        certificate_dir: &std::path::Path,
+        request: &ScopeRequest,
+    ) -> anyhow::Result<String> {
+        let (scope, manifest) = crate::temporal::resolve(graph, request)?;
         let rules_text = std::fs::read_to_string(rules_path)
             .map_err(|e| anyhow::anyhow!("cannot read rule table {}: {e}", rules_path.display()))?;
         let rules = parse_rules(&rules_text)
@@ -2929,10 +3107,7 @@ impl Reasoner {
             );
         }
 
-        // The asserted triples, every graph except the one the built-in path
-        // parks its own conclusions in. See TCB-8; this path materialises
-        // nothing itself (decision 0003) but it reads the same store.
-        let (raw_triples, graphs_read) = graph.triples_outside(&[INFERRED_GRAPH])?;
+        let (raw_triples, graphs_read) = graph.triples_in_scope(&scope)?;
         let mut interner = Interner::new();
         let mut facts: Vec<Fact> = Vec::with_capacity(raw_triples.len());
         for (s, p, o) in &raw_triples {
@@ -3207,8 +3382,18 @@ impl Reasoner {
                     "lean/, through `oo-horn check`, which decides what this run earned by \
                      comparing the table against the built-in one. This engine emits the \
                      certificate and states no verdict of its own",
-            }
+                "scope": manifest.to_json(),
+                "scope_file": certificate_dir.join("scope.tsv").display().to_string(),
+                "scope_means": "oo-horn verifies the steps against the triples in asserted.tsv. \
+                                It does not and cannot check that asserted.tsv is the graph you \
+                                meant. scope.tsv records which graphs were read.",
+            },
+            "scope": manifest.to_json(),
         });
+        std::fs::write(certificate_dir.join("scope.tsv"), manifest.to_tsv())?;
+        if let Some(w) = &manifest.warning {
+            result["warning"] = serde_json::json!(w);
+        }
         if !fixpoint {
             // An iteration cap reached with work still to do is not a fixpoint,
             // and a count from such a run is a lower bound. Say it in the

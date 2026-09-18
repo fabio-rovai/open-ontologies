@@ -1087,14 +1087,19 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_reason_incremental", description = "Derive the consequences of newly added triples WITHOUT recomputing the whole closure. Pass the added triples as N-Triples in `delta`; the engine joins them against the existing closure (semi-naive evaluation), so the work is proportional to what changed rather than to the size of the store. Use after adding facts to an already-materialised graph. Adding SCHEMA axioms (subClassOf, domain, range, inverseOf, equivalentClass) changes what the whole store entails and is refused with an explanation: run onto_reason for those.")]
+    #[tool(name = "onto_reason_incremental", description = "Derive the consequences of newly added triples WITHOUT recomputing the whole closure. Pass the added triples as N-Triples in `delta`; the engine joins them against the existing closure (semi-naive evaluation), so the work is proportional to what changed rather than to the size of the store. Use after adding facts to an already-materialised graph. Adding SCHEMA axioms (subClassOf, domain, range, inverseOf, equivalentClass) changes what the whole store entails and is refused with an explanation: run onto_reason for those. This path has NO snapshot form: it reads the union of every graph and materialises into the default graph, so over a store that describes its named graphs with the temporal vocabulary (https://open-ontologies.org/temporal#) it is REFUSED unless `all_versions: true` says the union of every version is what you meant. Use onto_reason with valid_at / as_of for a snapshot.")]
     async fn onto_reason_incremental(&self, Parameters(input): Parameters<OntoReasonIncrementalInput>) -> String {
         use crate::reason_incremental::{parse_ntriples, IncrementalReasoner};
         let delta = parse_ntriples(&input.delta);
         if delta.is_empty() {
             return r#"{"error":"delta parsed to no triples: expected N-Triples"}"#.to_string();
         }
-        match IncrementalReasoner::run(&self.graph, &delta, input.materialize.unwrap_or(true)) {
+        match IncrementalReasoner::run_scoped(
+            &self.graph,
+            &delta,
+            input.materialize.unwrap_or(true),
+            input.all_versions.unwrap_or(false),
+        ) {
             Ok(json) => json,
             Err(e) => Self::err_json(e),
         }
@@ -1242,7 +1247,7 @@ impl OpenOntologiesServer {
         result.to_string()
     }
 
-    #[tool(name = "onto_shacl", description = "Validate the loaded ontology data against SHACL shapes. Checks the core constraint components written under `sh:property`, including `sh:minCount`, `sh:maxCount`, `sh:datatype`, `sh:class`, `sh:nodeKind`, `sh:pattern`, `sh:in`, `sh:hasValue`, `sh:or` and `sh:not`, plus `sh:sparql`. A constraint it cannot execute is listed in `skipped_constraints` and the verdict is null rather than true. Returns a conformance report with violations, `focus_nodes` and `unmatched_shapes`.")]
+    #[tool(name = "onto_shacl", description = "Validate the loaded ontology data against SHACL shapes. Checks the core constraint components written under `sh:property`, including `sh:minCount`, `sh:maxCount`, `sh:datatype`, `sh:class`, `sh:nodeKind`, `sh:pattern`, `sh:in`, `sh:hasValue`, `sh:or` and `sh:not`, plus `sh:sparql`. A constraint it cannot execute is listed in `skipped_constraints` and the verdict is null rather than true. Returns a conformance report with violations, `focus_nodes` and `unmatched_shapes`, plus `scope`, which names the graphs the run READ. By default every graph in the store is read. Over a store that describes its named graphs with the temporal vocabulary (https://open-ontologies.org/temporal#) that union is a state that held at no instant, so a run with no instant named is REFUSED rather than answered: pass `valid_at` (what was TRUE then), `as_of` (what was KNOWN then) or `all_versions: true` to say the union is what you meant. A scoped run evaluates every data-side query, `sh:sparql` included, against the in-scope named graphs plus the default graph and nothing else. A snapshot that selects no graph returns `conforms: null` with its own reason rather than conforming vacuously. Class and property DECLARATION lookups are never scoped: a declaration is context-free and has the same answer at every instant.")]
     async fn onto_shacl(&self, Parameters(input): Parameters<OntoShaclInput>) -> String {
         use crate::shacl::ShaclValidator;
         let shapes = if input.inline.unwrap_or(false) {
@@ -1253,7 +1258,15 @@ impl OpenOntologiesServer {
                 Err(e) => return Self::err_json(format!("Cannot read shapes file: {}", e)),
             }
         };
-        ShaclValidator::validate(&self.graph, &shapes)
+        let request = match crate::temporal::ScopeRequest::from_args(
+            input.valid_at.as_deref(),
+            input.as_of.as_deref(),
+            input.all_versions.unwrap_or(false),
+        ) {
+            Ok(r) => r,
+            Err(e) => return Self::err_json(e),
+        };
+        ShaclValidator::validate_scoped(&self.graph, &shapes, &request)
             .unwrap_or_else(Self::err_json)
     }
 
@@ -2039,9 +2052,21 @@ impl OpenOntologiesServer {
         body.to_string()
     }
 
-    #[tool(name = "onto_reason", description = "Run inference over the loaded ontology. Profiles: 'rdfs' (subclass, domain/range), 'owl-rl' (+ transitive/symmetric/inverse, sameAs, equivalentClass), 'owl-rl-ext' (+ someValuesFrom, allValuesFrom, hasValue, intersectionOf, unionOf), 'owl-dl' (SHIQ tableaux: satisfiability, classification, qualified number restrictions with node merging, inverse/symmetric roles, functional properties, parallel agent-based classification, explanation traces, ABox reasoning. Nominals are not implemented: owl:oneOf is not read and owl:hasValue is approximated as an atomic concept, so an ontology that uses either returns undetermined classes rather than a classification. Datatype ranges are skipped). Materializes inferred triples. Set `inference_graph` to keep them in a separate graph, where nothing downstream can read an inference as an assertion and a Turtle/RDF-XML save cannot publish one. Pass `rules_file` to evaluate a SUPPLIED Horn rule table instead of a built-in profile: it needs `certificate_dir`, materialises nothing, and writes a certificate the proved-sound Lean checker verifies with `lake exe oo-horn check`. The verdict comes from that checker and not from here, because rules you supply are assumed and never checked: a conclusion then holds in every model of the asserted graph that ALSO satisfies your rules. With `certificate_dir` the run ALSO looks for a contradiction in the closure it reached, and writes refutation.tsv when it finds one the Lean refutation checker can judge: `lake exe oo-refute check`, or `oo-refute guard` which refuses the derivation certificate over a graph it can refute. Seventeen OWL 2 RL rules conclude false, ten are detected here and exactly ONE, cax-dw, is certifiable, because OOCert.RefuteConditions carries a semantic condition for that rule alone. The other nine are reported as `clash_found_by_this_engine` with no file written, and that word is not the checker's `unsatisfiable_under_disjointness`: an engine opinion and a machine-checked result never share a string here. cax-dw needs an INDIVIDUAL in two disjoint classes, so a TBox unsatisfiable with no individual asserted is invisible to this route; profile 'owl-dl' sees that case and its answer carries no certificate. No clash found is never a consistency result.")]
+    #[tool(name = "onto_reason", description = "Run inference over the loaded ontology. Profiles: 'rdfs' (subclass, domain/range), 'owl-rl' (+ transitive/symmetric/inverse, sameAs, equivalentClass), 'owl-rl-ext' (+ someValuesFrom, allValuesFrom, hasValue, intersectionOf, unionOf), 'owl-dl' (SHIQ tableaux: satisfiability, classification, qualified number restrictions with node merging, inverse/symmetric roles, functional properties, parallel agent-based classification, explanation traces, ABox reasoning. Nominals are not implemented: owl:oneOf is not read and owl:hasValue is approximated as an atomic concept, so an ontology that uses either returns undetermined classes rather than a classification. Datatype ranges are skipped). Materializes inferred triples. Set `inference_graph` to keep them in a separate graph, where nothing downstream can read an inference as an assertion and a Turtle/RDF-XML save cannot publish one. Pass `rules_file` to evaluate a SUPPLIED Horn rule table instead of a built-in profile: it needs `certificate_dir`, materialises nothing, and writes a certificate the proved-sound Lean checker verifies with `lake exe oo-horn check`. The verdict comes from that checker and not from here, because rules you supply are assumed and never checked: a conclusion then holds in every model of the asserted graph that ALSO satisfies your rules. With `certificate_dir` the run ALSO looks for a contradiction in the closure it reached, and writes refutation.tsv when it finds one the Lean refutation checker can judge: `lake exe oo-refute check`, or `oo-refute guard` which refuses the derivation certificate over a graph it can refute. Seventeen OWL 2 RL rules conclude false, ten are detected here and exactly ONE, cax-dw, is certifiable, because OOCert.RefuteConditions carries a semantic condition for that rule alone. The other nine are reported as `clash_found_by_this_engine` with no file written, and that word is not the checker's `unsatisfiable_under_disjointness`: an engine opinion and a machine-checked result never share a string here. cax-dw needs an INDIVIDUAL in two disjoint classes, so a TBox unsatisfiable with no individual asserted is invisible to this route; profile 'owl-dl' sees that case and its answer carries no certificate. No clash found is never a consistency result. Every report carries `scope`, the graphs the run READ, and a certificate directory also gets `scope.tsv`: the Lean checkers verify the steps against the triples in asserted.tsv and cannot ask where those triples came from, so a certificate over one snapshot and a certificate over the union of every version are indistinguishable as files and only one is about a state that existed. Over a store that describes its named graphs with the temporal vocabulary (https://open-ontologies.org/temporal#), a run with no instant named is REFUSED: pass `valid_at`, `as_of` or `all_versions: true`. NO run over a versioned store materialises and it says so, whether scoped or `all_versions`: the default graph and an undescribed inference graph are both in scope at every instant, so a conclusion written to either becomes an axiom of every snapshot, and an `all_versions` closure was drawn from a state that held at no instant. Pass `materialize: false`. A scoped run also drops any graph holding this engine's own materialised inferences from what it reads, and records the drop. Scoped runs are not available for 'owl-dl'.")]
     async fn onto_reason(&self, Parameters(input): Parameters<OntoReasonInput>) -> String {
         use crate::reason::Reasoner;
+        // Resolved before anything else: which graphs a run reads decides what
+        // its answer is about, so a request that cannot be honoured is refused
+        // rather than carried into a run that then reports a scope it did not
+        // have.
+        let request = match crate::temporal::ScopeRequest::from_args(
+            input.valid_at.as_deref(),
+            input.as_of.as_deref(),
+            input.all_versions.unwrap_or(false),
+        ) {
+            Ok(r) => r,
+            Err(e) => return Self::err_json(e),
+        };
         // A supplied Horn rule table takes a different path: it is evaluated
         // instead of a built-in profile, it materialises nothing, and the
         // response carries no verdict, because a rule the caller wrote is an
@@ -2066,10 +2091,11 @@ impl OpenOntologiesServer {
                 })
                 .to_string();
             }
-            return Reasoner::run_horn(
+            return Reasoner::run_horn_scoped(
                 &self.graph,
                 std::path::Path::new(rules_file),
                 std::path::Path::new(dir),
+                &request,
             )
             .unwrap_or_else(Self::err_json);
         }
@@ -2081,7 +2107,7 @@ impl OpenOntologiesServer {
             crate::reason::InferenceTarget::DefaultGraph
         };
         let dir = input.certificate_dir.as_deref().map(std::path::Path::new);
-        Reasoner::run_full(&self.graph, profile, materialize, target, dir)
+        Reasoner::run_scoped(&self.graph, profile, materialize, target, dir, &request)
             .unwrap_or_else(Self::err_json)
     }
 
@@ -2458,7 +2484,7 @@ impl OpenOntologiesServer {
         }).to_string()
     }
 
-    #[tool(name = "onto_extend", description = "Convenience pipeline: ingest data → validate with SHACL → run OWL reasoning, all in one call. Combines onto_ingest + onto_shacl + onto_reason.")]
+    #[tool(name = "onto_extend", description = "Convenience pipeline: ingest data → validate with SHACL → run OWL reasoning, all in one call. Combines onto_ingest + onto_shacl + onto_reason. It takes no temporal scope arguments and inherits the refusal from the two tools it chains: over a store that describes its named graphs with the temporal vocabulary (https://open-ontologies.org/temporal#), this returns the error rather than a pipeline report, and the snapshot has to be run through onto_shacl and onto_reason directly with valid_at / as_of.")]
     async fn onto_extend(&self, Parameters(input): Parameters<OntoExtendInput>) -> String {
         use crate::ingest::DataIngester;
         use crate::mapping::MappingConfig;
