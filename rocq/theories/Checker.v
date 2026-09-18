@@ -57,7 +57,7 @@ Fixpoint ainsts (b : list (string * term)) (l : list tpat) : option (list triple
 
     These are not soundness conditions. The theorem in [Sound.v] does not use
     either of them and would hold without them, which is stated there as
-    [horn_step_sound_without_wellformedness] so that the claim is checked rather
+    [horn_certificate_sound_without_wellformedness] so that the claim is checked rather
     than asserted. They are here because decision 0008 made them normative for
     the format, and because of what they buy that a soundness theorem cannot
     say: that the certificate means ONE thing.

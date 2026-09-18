@@ -50,7 +50,18 @@
     the model class is smaller and entailment over it is a WEAKER claim than
     entailment over the RDFS conditions alone. Adding [C_..._bwd] to the
     hypothesis list of a lemma is therefore never free, and the lemmas that need
-    it say so in their own statement. *)
+    it say so in their own statement.
+
+    WHERE THE BICONDITIONAL READING COMES FROM, AND WHAT WAS NOT DONE. It is
+    taken from this repository's own correction to decision 0002, which names
+    the connective in the OWL 2 RDF-Based Semantics table that carries
+    [rowspan="4"] in the specification's HTML and therefore states an [iff]
+    rather than the [if-then] RDFS alone gives. It was NOT re-checked cell by
+    cell against the Recommendation in this work. That check is one of the
+    things [rocq/README.md] lists as not covered, and it is the largest single
+    piece of prose the absolute theorem rests on. A reader who wants the
+    absolute verdict to mean what it says should do that reading before
+    trusting it. *)
 
 From Stdlib Require Import String List Bool.
 From OOCertRocq Require Import Syntax Semantics.

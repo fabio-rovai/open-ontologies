@@ -48,7 +48,8 @@ the exit codes and the two verdict words.
 
 **Not opened:** every file under `lean/OOCert/`, including `Horn.lean`, `HornBuiltin.lean`,
 `HornParse.lean` and `Parse.lean`, and every `.thy` file under `isabelle/`. No definition,
-no proof and no rule lemma from either was read.
+no proof and no rule lemma from either was read. Both directories were LISTED, which is how
+this paragraph can name the files it did not open, and a file name is not a definition.
 
 **Known leakage, stated because it is unavoidable and because a reader should discount
 for it:** decision 0008 quotes Lean's `substOf` and Isabelle's `distinct (map fst b)` in
