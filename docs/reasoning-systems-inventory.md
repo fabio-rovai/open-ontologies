@@ -104,8 +104,8 @@ structural treatment the first-order provers now get has no counterpart here yet
 proof logs, and doing so is a separate piece of work from reading TSTP.
 
 cvc5 1.3.4 was added as a SECOND SMT oracle on 18 September 2026, and the reason is worth stating
-precisely because the obvious reason is wrong. It is not there to make the satisfiable answers more
-trustworthy: those rest on a machine-checked theorem about a structure and a formula list, the
+precisely because the obvious reason is wrong. It is not there to strengthen the satisfiable
+answers: those rest on a machine-checked theorem about a structure and a formula list, the
 statement does not mention which program produced the structure, and a second producer therefore adds
 nothing to them. It is there because the UNSATISFIABLE answers have no defence inside this
 architecture at all. Nothing can check one, a wrong one would be published as `unsatisfiable_oracle`

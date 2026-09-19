@@ -239,13 +239,18 @@ fn sampling_the_first_frame_gives_the_whole_picture() {
 }
 
 #[test]
-fn the_four_beats_are_captioned_in_order() {
+fn the_five_steps_are_captioned_in_order() {
     let s = svg();
+    // Five now, not four. The provers got a step of their own: a reader was
+    // told the first-order family exists and never shown it do anything, and
+    // the difference between what Lean produces and what they produce is the
+    // most important distinction on the page.
     let beats = [
-        "1 · asserted by a person",
-        "2 · derived by the engine",
-        "3 · checked by Lean, and accepted",
-        "4 · forged, and refused",
+        "a person asserts",
+        "the engine derives",
+        "Lean checks the certificate, and accepts",
+        "four provers read a different file, and only opine",
+        "a line is forged, and the same checker refuses",
     ];
     let mut at = 0usize;
     for b in beats {
@@ -254,13 +259,142 @@ fn the_four_beats_are_captioned_in_order() {
         };
         at += i + b.len();
     }
-    // The resting caption is the first beat, so a still frame is captioned by
-    // what the reader is looking at rather than by whichever beat ran last.
-    let i = s.find("1 · asserted by a person").unwrap();
-    let open = s[..i].rfind("<text").unwrap();
+    // Every step is numbered on the rail, and the numbers are visible at rest
+    // so a still frame shows the sequence rather than one lonely word.
+    for n in 1..=beats.len() {
+        assert!(
+            s.contains(&format!(">{n}</text>")),
+            "the step rail is missing the number {n}; a reader cannot see where in the \
+             sequence the running step sits"
+        );
+    }
+}
+
+// ── The README's caption must match the asset it captions ──────────────
+//
+// It did not. The caption read "4 rejected" while the legend rendered
+// `REJECTED 1`, and the two had disagreed since the asset was redrawn. Nobody
+// noticed because nothing compared them: the counts test above checks the SVG
+// against a real run, and the README against nothing at all.
+//
+// A number on the front page is a claim, and a claim with no gate decays
+// silently. This is that gate.
+
+fn readme() -> String {
+    std::fs::read_to_string(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("README.md"),
+    )
+    .expect("README.md")
+}
+
+/// The legend counts, read out of the asset rather than out of the generator,
+/// because what ships is the file.
+fn legend_counts() -> (u64, u64, u64) {
+    let s = svg();
+    let one = |label: &str| -> u64 {
+        let i = s
+            .find(&format!(">{label}<"))
+            .unwrap_or_else(|| panic!("the asset has no {label} row"));
+        let tail = &s[i..(i + 400).min(s.len())];
+        let key = "text-anchor=\"end\">";
+        let j = tail
+            .find(key)
+            .unwrap_or_else(|| panic!("no count beside {label}"))
+            + key.len();
+        let k = tail[j..].find('<').expect("unterminated count") + j;
+        tail[j..k].parse().unwrap_or_else(|_| panic!("{label} count is not a number"))
+    };
+    (one("ASSERTED"), one("CERTIFIED"), one("REJECTED"))
+}
+
+#[test]
+fn the_readme_caption_states_the_counts_the_asset_renders() {
+    let (a, c, r) = legend_counts();
+    let expected = format!("{a} asserted, {c} certified, {r} rejected");
+    let readme = readme();
+    assert!(
+        readme.contains(&expected),
+        "the README caption and the asset's own legend disagree. The asset renders \
+         {expected:?}, and the README does not say that. Regenerate the asset and update \
+         the caption together, or the front page states a number the picture under it \
+         contradicts."
+    );
+}
+
+/// The headline number of the semantic plan, which is the first beat.
+///
+/// Derived from a run: a base of 900 individuals of one property, plus one
+/// `rdfs:domain` triple. Every shape number stays at zero and the conservativity
+/// check reports 901 new consequences. The figures below are asserted against a
+/// live run rather than trusted, because a headline nobody re-measures is the
+/// first thing to go stale.
+#[test]
+fn the_front_page_plan_figures_come_from_a_run() {
+    use open_ontologies::conservativity::{ConservativityOptions, ExtensionMode};
+    use open_ontologies::graph::GraphStore;
+    use open_ontologies::plan::Planner;
+    use open_ontologies::state::StateDb;
+    use std::sync::Arc;
+
+    const N: usize = 900;
+    let mut base = String::from(
+        "@prefix ex: <http://ex.org/> .\n\
+         @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         ex:Person a owl:Class .\n\
+         ex:hasParent a owl:ObjectProperty .\n",
+    );
+    for i in 0..N {
+        base.push_str(&format!("ex:p{i} ex:hasParent ex:q{i} .\n"));
+    }
+    let dir = std::env::temp_dir().join(format!("oo-readme-plan-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    let graph = Arc::new(GraphStore::new());
+    graph.load_turtle(&base, None).unwrap();
+    let planner = Planner::new(StateDb::open(&dir.join("state.db")).unwrap(), graph);
+    let proposal = format!("{base}ex:hasParent rdfs:domain ex:Person .\n");
+    let out = planner
+        .plan_checked(
+            &proposal,
+            Some(ConservativityOptions {
+                mode: ExtensionMode::Replacement,
+                profile: "owl-rl".to_string(),
+                out: dir.join("cert"),
+                scan_rows: 100_000,
+                max_rows: 1_000_000,
+            }),
+        )
+        .unwrap();
+    let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+    let _ = std::fs::remove_dir_all(&dir);
+
+    let readme = readme();
+    // The field names are the plan's own: `added_classes`, not `added.classes`.
+    // The first version of this read `added.classes`, got `None`, and reported
+    // zero through an `unwrap_or(0)` — a missing field and a measured zero
+    // looking identical, which is the measurement error this whole file exists
+    // to prevent.
+    let n_added = v["added_classes"].as_array().expect("added_classes").len();
+    let n_removed = v["removed_classes"].as_array().expect("removed_classes").len();
+    assert_eq!(n_added, 0, "the one-triple change added a class: {:?}", v["added_classes"]);
+    assert_eq!(n_removed, 0, "it removed one: {:?}", v["removed_classes"]);
+    assert_eq!(v["blast_radius"]["triples_affected"], serde_json::json!(0));
+    assert_eq!(v["risk_score"], serde_json::json!("low"));
     assert_eq!(
-        attr(&s[open..i], "opacity").as_deref(),
-        Some("1"),
-        "the first beat's caption must be the one a still frame shows"
+        v["conservativity"]["conservativity_verdict"],
+        serde_json::json!("not_conservative_under_rule_table")
+    );
+    let consequences = v["conservativity"]["new_consequences_total"]
+        .as_u64()
+        .expect("a count of new consequences");
+    assert!(
+        readme.contains(&format!("{consequences} consequences that were not there before")),
+        "the run reports {consequences} new consequences and the README headline does not \
+         say so. The front page number is the claim; this run is the measurement."
+    );
+    assert!(
+        readme.contains(&format!("new consequences      {consequences}")),
+        "the plan block on the front page does not state {consequences}"
     );
 }
