@@ -168,7 +168,7 @@ pub fn validate_verified(
                         run.stdout()
                     )
                 })?;
-            let token = run.accepted("Shacl.validate_spec").ok_or_else(|| {
+            let token = run.accepted_naming(&["Shacl.validate_spec"]).ok_or_else(|| {
                 anyhow::anyhow!("exit 0 did not yield a certificate token, which cannot happen")
             })?;
             let v = ShaclVerified::Checked(conforms, token);

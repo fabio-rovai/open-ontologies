@@ -669,7 +669,7 @@ pub fn solve(problem: &FolProblem, opts: &SolveOptions, dir: &Path) -> anyhow::R
                 let exit = run.exit();
                 out.checker_exit = Some(exit);
                 out.checker_report = Some(report.clone());
-                if let Some(cert) = run.accepted(FOL_THEOREM) {
+                if let Some(cert) = run.accepted_naming(&[FOL_THEOREM]) {
                     out.verdict = FolVerdict::ModelChecked(cert);
                     out.theorem = Some(cert.theorem().to_string());
                     // Read the goal flag back off the CHECKER's report, not

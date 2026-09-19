@@ -908,7 +908,8 @@ mod tests {
     /// Accepted`, whose only constructor takes a `verdict::Certified`, which
     /// nothing outside `src/verdict.rs` can build. A test that wants an
     /// acceptance has to EARN one, so this one runs a process that exits zero
-    /// — which is exactly the condition the test is named after.
+    /// AND prints the theorem name, the way `lean/Main.lean` does. Exit zero on
+    /// its own is checked below too: it mints nothing.
     #[test]
     fn a_checked_word_needs_exit_zero() {
         let dir = std::env::temp_dir().join("oo-closure-diff-exit-zero");
@@ -920,16 +921,32 @@ mod tests {
         // A script rather than `/bin/true`, which is `/usr/bin/true` on macOS
         // and absent from `/bin` entirely. The suite found that itself. A `.sh`
         // is not executable on Windows either, which CI then found.
+        let report = r#"{"verdict":"checked","theorem":"OOCert.certificate_sound"}"#;
         let ok = dir.join(if cfg!(windows) { "exit0.cmd" } else { "exit0.sh" });
-        let body = if cfg!(windows) { "@echo off\r\nexit /b 0\r\n" } else { "#!/bin/sh\nexit 0\n" };
+        let body = if cfg!(windows) {
+            format!("@echo off\r\necho {report}\r\nexit /b 0\r\n")
+        } else {
+            format!("#!/bin/sh\necho '{report}'\nexit 0\n")
+        };
         std::fs::write(&ok, body).unwrap();
+        // The same exit code with nothing on stdout: not an acceptance.
+        let mute = dir.join(if cfg!(windows) { "mute.cmd" } else { "mute.sh" });
+        let mute_body = if cfg!(windows) { "@echo off\r\nexit /b 0\r\n" } else { "#!/bin/sh\nexit 0\n" };
+        std::fs::write(&mute, mute_body).unwrap();
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt as _;
-            std::fs::set_permissions(&ok, std::fs::Permissions::from_mode(0o755)).unwrap();
+            for f in [&ok, &mute] {
+                std::fs::set_permissions(f, std::fs::Permissions::from_mode(0o755)).unwrap();
+            }
         }
         let accepted = pe::run_checker(CertKind::OoCert, Some(ok.as_path()), &a, &d, None);
         assert!(matches!(accepted, CheckerStatus::Accepted(_)), "{accepted:?}");
+        let unnamed = pe::run_checker(CertKind::OoCert, Some(mute.as_path()), &a, &d, None);
+        assert!(
+            matches!(unnamed, CheckerStatus::Unreadable { .. }),
+            "exit zero without a theorem name must not be an acceptance: {unnamed:?}"
+        );
 
         for (status, want) in [
             (accepted, "checked"),
