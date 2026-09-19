@@ -93,7 +93,7 @@ scales 3.6–4.3x).
 The compiled surface is **sound but deliberately incomplete**, and the API
 makes that impossible to ignore:
 
-- `Rejected` — a contradiction was derived; trustworthy, with a witness.
+- `Rejected` — a contradiction was derived, and the witness is returned with it.
 - `Undetermined` — nothing fired, which is NOT evidence of consistency. The
   undecided class pairs are returned as `residual_pairs`.
 - `Consistent` — only reachable after the residual is discharged by tier 2

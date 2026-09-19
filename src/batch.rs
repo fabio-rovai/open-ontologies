@@ -687,7 +687,22 @@ impl BatchRunner {
         match std::fs::read_to_string(file) {
             Ok(turtle) => {
                 let planner = crate::plan::Planner::new(self.db.clone(), self.graph.clone());
-                let result = planner.plan(&turtle)
+                // Conservativity ON by default, matching `onto_plan` and the
+                // `plan` subcommand. There were THREE plan entry points and
+                // flipping the default on one of them left the other two
+                // answering a different question from the same word, which is
+                // worse than leaving it off everywhere.
+                let opts = (!args.iter().any(|a| a == "--no-conservativity")).then(|| {
+                    crate::conservativity::ConservativityOptions {
+                        mode: crate::conservativity::ExtensionMode::Replacement,
+                        profile: "owl-rl".to_string(),
+                        out: std::env::temp_dir()
+                            .join(format!("oo-plan-conservativity-{}", std::process::id())),
+                        scan_rows: 10_000,
+                        max_rows: 1_000_000,
+                    }
+                });
+                let result = planner.plan_checked(&turtle, opts)
                     .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
                 serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
             }

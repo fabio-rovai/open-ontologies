@@ -740,7 +740,15 @@ enum Commands {
 
     // ─── Lifecycle ────────────────────────────────────────────────
     /// Plan changes: diff current vs proposed Turtle
-    Plan { file: String },
+    Plan {
+        file: String,
+        /// Skip the conservativity check, which is the only part of a plan
+        /// that is about MEANING and is ON by default since #196. It reasons
+        /// both graphs to a fixpoint, about 11 microseconds an individual, so
+        /// this is the thing to reach for on a store big enough that it hurts.
+        #[arg(long)]
+        no_conservativity: bool,
+    },
     /// Apply planned changes (safe or migrate)
     Apply {
         #[arg(default_value = "safe")]
@@ -1186,7 +1194,13 @@ impl Commands {
                 }
                 cmd("ingest", a)
             }
-            Commands::Plan { file } => cmd("plan", vec![absolutize(file)]),
+            Commands::Plan { file, no_conservativity } => {
+                let mut a = vec![absolutize(file)];
+                if *no_conservativity {
+                    a.push("--no-conservativity".into());
+                }
+                cmd("plan", a)
+            }
             Commands::Apply { mode, plan_id } => {
                 let mut a = vec![mode.clone()];
                 if let Some(p) = plan_id {
@@ -3138,12 +3152,25 @@ async fn async_main() -> anyhow::Result<()> {
         }
 
         // ─── Lifecycle ──────────────────────────────────────────────
-        Commands::Plan { file } => {
+        Commands::Plan { file, no_conservativity } => {
             let (db, graph) = setup(&cli.data_dir)?;
             let turtle = std::fs::read_to_string(&file)?;
             let planner = open_ontologies::plan::Planner::new(db, graph);
+            // On by default, matching `onto_plan`. A plan whose semantic half
+            // is switched off looks identical to one that found nothing, which
+            // is the confusion the whole conservativity block exists to end.
+            let opts = (!no_conservativity).then(|| {
+                open_ontologies::conservativity::ConservativityOptions {
+                    mode: open_ontologies::conservativity::ExtensionMode::Replacement,
+                    profile: "owl-rl".to_string(),
+                    out: std::env::temp_dir()
+                        .join(format!("oo-plan-conservativity-{}", std::process::id())),
+                    scan_rows: 10_000,
+                    max_rows: 1_000_000,
+                }
+            });
             let result = planner
-                .plan(&turtle)
+                .plan_checked(&turtle, opts)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result(&result, cli.pretty);
         }
@@ -3545,7 +3572,7 @@ mod proxy_serialization_tests {
     #[test]
     fn an_absolute_path_is_left_alone() {
         let abs = if cfg!(windows) { r"C:\onto\proposed.ttl" } else { "/onto/proposed.ttl" };
-        let (_, args) = args_of(&Commands::Plan { file: abs.into() });
+        let (_, args) = args_of(&Commands::Plan { file: abs.into(), no_conservativity: false });
         assert_eq!(args, vec![abs.to_string()]);
     }
 
@@ -3628,7 +3655,7 @@ mod proxy_serialization_tests {
             Commands::History,
             Commands::Rollback { label: "v1".into() },
             Commands::Ingest { path: "x.csv".into(), format: None, mapping: None, base_iri: None },
-            Commands::Plan { file: "p.ttl".into() },
+            Commands::Plan { file: "p.ttl".into(), no_conservativity: false },
             Commands::Apply { mode: "safe".into(), plan_id: None },
             Commands::Enforce { pack: "generic".into() },
             Commands::Monitor,

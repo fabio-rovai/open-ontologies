@@ -7,9 +7,9 @@
 <h1 align="center">Open Ontologies</h1>
 
 <p align="center">
-  <strong>An engineering and verification platform for trustworthy ontologies and knowledge graphs</strong><br>
-  Build, change and operate them with Terraform-style lifecycle management, and reason over them
-  with proof-carrying inference. Written in Rust. Ships as a single binary.
+  <strong>Plan a change to a production ontology, see every consequence before you apply it,<br>
+  and hand the reviewer a proof they can check without trusting you.</strong><br>
+  Written in Rust. Ships as a single binary.
 </p>
 
 <p align="center">
@@ -41,19 +41,49 @@
 </p>
 
 <p align="center">
-  <sub><b>150 asserted, 259 certified, 4 rejected.</b> Green edges the engine derived and a Lean 4
-  checker then <i>proved</i>. Red edges are forged lines the same checker refused, exit 1, with the
-  rule named. Every count is taken from the run, not written into the caption.</sub>
+  <sub><b>150 asserted, 259 certified, 1 rejected.</b> Green edges the engine derived and a Lean 4
+  checker then <i>proved</i>. The red edge is a forged line the same checker refused, exit 1, with
+  the rule named. Every count is taken from the run, not written into the caption.</sub>
 </p>
 
-**Ask a reasoner why it believes something and it will tell you to trust it.** This one hands you a
-proof, and refuses a forged one.
+### One triple. Nothing added, nothing removed, blast radius zero. 901 consequences that were not there before.
 
-Open Ontologies builds, changes and operates ontologies and knowledge graphs with Terraform-style
-lifecycle management, and reasons over them with proof-carrying inference. Every conclusion comes
-with a certificate that a separate checker, written in Lean 4 and proved sound, will either accept
-or reject. Written in Rust, ships as a single binary, speaks MCP to Claude, Cursor and anything else
-that talks to it.
+```
+$ printf 'load base.ttl\nplan proposed.ttl\n' | open-ontologies batch -
+#   the whole change:  ex:hasParent rdfs:domain ex:Person
+
+added_classes         0
+removed_classes       0
+blast_radius          0 triples affected
+risk_score            low
+                      ────────────────────────────────────────────
+conservativity        not_conservative_under_rule_table
+new consequences      901          rule table owl-rl, in 0.04s
+```
+
+Every number a shape diff can produce says this change is harmless. It retyped
+every individual the property already had. **That gap is what this is for**, and
+it is the part `git diff` cannot do, because the change is a single well-formed
+line and the text diff is one line long.
+
+**Then hand the reviewer the proof.** The run writes a certificate a third party
+re-verifies months later, with no running instance of this software and no
+network: `oo-cert asserted.tsv derivations.tsv`, exit 0, covered by
+`OOCert.certificate_sound`.
+
+**And it refuses a forged one.** Edit a conclusion into the derivation file and
+the same checker exits 1 and names the rule that does not hold. That is the red
+edge above, and it is the exhibit that makes the first two beats survive
+scrutiny rather than the headline.
+
+> **This is not an ontology editor.** If you want to draw class hierarchies, use
+> Protégé. This is what you run on the change before it reaches production.
+>
+> **Terraform-style, and deliberately so, but the plan is semantic rather than
+> syntactic.** A text diff is `git diff`, and you already have that.
+
+No JVM. No Protégé. Speaks MCP to Claude, Cursor and anything else that talks
+to it.
 
 ## See it in action
 
@@ -313,13 +343,27 @@ Add to `~/.claude/settings.json` for Claude Code, or to
 Restart, and the `onto_*` tools are available. Cursor, Windsurf, Zed and VS Code are in
 [docs/quickstart.md](docs/quickstart.md).
 
+## Stars
+
+<a href="https://star-history.com/#fabio-rovai/open-ontologies&Date">
+  <img src="https://api.star-history.com/svg?repos=fabio-rovai/open-ontologies&type=Date" alt="Star history" width="600">
+</a>
+
 ## What is in the box
 
-**120 tools** to build, validate, query, diff, lint, version, reason over, align, plan, certify
-and govern RDF and OWL, over an in-memory Oxigraph store. A default build advertises 112 tools.
-Eight need an optional Cargo feature and return an error without it: four need `embeddings`, two
-need `plugins`, two need `postgres` or `duckdb`. The published binaries and the GHCR image are
-built with the default feature set, so they do not carry those eight.
+**One loop:** `plan` a change, `apply` it, watch for `drift`, `certify` what was
+derived, `rollback` when it was wrong. That is the whole of the front page, and
+it is what this is for.
+
+Everything else — alignment, embeddings, PDDL planning, clinical crosswalks, the
+plugin marketplace, CIVeX — has its own documentation and keeps its own code. It
+is listed once, in [docs/tool-reference.md](docs/tool-reference.md), and not
+here. Surface area is not the argument.
+
+A few tools need an optional Cargo feature and return an error without it: four
+need `embeddings`, two need `plugins`, two need `postgres` or `duckdb`. The
+published binaries and the GHCR image are built with the default feature set, so
+they do not carry those eight.
 
 The Python package `open-ontologies-lite` now reasons as well, in pure Python with no Rust
 toolchain, and its certificates are checked by the same Lean binaries. It is a second engine, and
