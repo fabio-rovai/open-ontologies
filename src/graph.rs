@@ -232,9 +232,22 @@ impl GraphStore {
         // re-inserting a statement it already holds changes nothing and must not be
         // counted as a load.
         let before = store.len().unwrap_or(0);
+        // One transaction for the whole document, so a concurrent reader
+        // sees the store before this load or after it and never part way
+        // through. Parsing already happened above, which made a load
+        // all-or-nothing against a SYNTAX error (#93). It was not
+        // all-or-nothing against a concurrent READ: the inserts ran one at a
+        // time, so another session walking the store could capture a
+        // half-loaded ontology, and a certified session would then write an
+        // asserted.tsv describing it. Measured in
+        // tests/store_atomicity_test.rs. serve-http and daemon share one
+        // Arc<GraphStore> across every session, so the second party is not
+        // hypothetical.
+        let mut txn = store.start_transaction()?;
         for quad in &quads {
-            store.insert(quad)?;
+            txn.insert(quad);
         }
+        txn.commit()?;
         Ok(store.len().unwrap_or(before).saturating_sub(before))
     }
 
@@ -259,9 +272,12 @@ impl GraphStore {
         // re-inserting a statement it already holds changes nothing and must not be
         // counted as a load.
         let before = store.len().unwrap_or(0);
+        // Atomic for the reason given on the first loader above.
+        let mut txn = store.start_transaction()?;
         for quad in &quads {
-            store.insert(quad)?;
+            txn.insert(quad);
         }
+        txn.commit()?;
         Ok(store.len().unwrap_or(before).saturating_sub(before))
     }
 
@@ -290,9 +306,12 @@ impl GraphStore {
         // re-inserting a statement it already holds changes nothing and must not be
         // counted as a load.
         let before = store.len().unwrap_or(0);
+        // Atomic for the reason given on the first loader above.
+        let mut txn = store.start_transaction()?;
         for quad in &quads {
-            store.insert(quad)?;
+            txn.insert(quad);
         }
+        txn.commit()?;
         Ok(store.len().unwrap_or(before).saturating_sub(before))
     }
 
@@ -878,6 +897,13 @@ impl GraphStore {
             // `tcb_8_across_runs_only_the_default_graph_leaks` caught it.
             return self.triples_outside(&[crate::reason::INFERRED_GRAPH]);
         };
+        // One transaction for the WHOLE scope, not one per graph. A scoped run
+        // reads several named graphs and its certificate asserts they were
+        // read together; reading them under separate transactions would let a
+        // write land between two of them and produce an asserted set that
+        // existed at no instant, which is the defect this closes arriving one
+        // level down.
+        self.read_in_one_transaction(|txn| {
         let mut triples = Vec::new();
         // The names actually read, in the order read, so a certificate records
         // what it was built from rather than what was asked for. The two differ
@@ -888,7 +914,7 @@ impl GraphStore {
         // `triples.len()` while the closure still holds it mutably.
         let mut take = |g: GraphNameRef<'_>| -> anyhow::Result<usize> {
             let mut n = 0usize;
-            for quad in self.store.quads_for_pattern(None, None, None, Some(g)) {
+            for quad in txn.quads_for_pattern(None, None, None, Some(g)) {
                 let q = quad?;
                 triples.push((
                     q.subject.to_string(),
@@ -909,6 +935,7 @@ impl GraphStore {
             }
         }
         Ok((triples, read))
+        })
     }
 
     /// Run a SELECT over exactly the graphs a scope names.
@@ -977,6 +1004,38 @@ impl GraphStore {
         Ok(out)
     }
 
+    /// Read the store inside ONE transaction, so a concurrent write cannot be
+    /// observed half applied.
+    ///
+    /// Oxigraph 0.5 gives transactions the "repeatable read" isolation level:
+    /// the state a reader sees does not change for the duration. Without one,
+    /// `iter()` walks a store another thread may be writing to, and a
+    /// certified run can then record an `asserted.tsv` describing a graph that
+    /// existed at no instant. `tests/store_atomicity_test.rs` measures exactly
+    /// that: a reader caught a one-quad-at-a-time write half done 620 times,
+    /// and saw only the before and after states once the write was
+    /// transactional.
+    ///
+    /// This matters for TCB-6 and TCB-7, which say `asserted.tsv` IS the graph
+    /// reasoned over. The Lean checker cannot see a torn read: the file would
+    /// be internally consistent and would prove things about a graph nobody
+    /// ever had. `serve-http` and `daemon` share one `Arc<GraphStore>` across
+    /// every session, so the two writers are not hypothetical.
+    ///
+    /// The transaction is committed rather than rolled back because it writes
+    /// nothing, and committing an empty transaction is how Oxigraph ends one.
+    /// A failure to end it is returned rather than swallowed: a reader that
+    /// leaked a transaction would be a worse defect than the one this closes.
+    fn read_in_one_transaction<T>(
+        &self,
+        f: impl FnOnce(&oxigraph::store::Transaction<'_>) -> anyhow::Result<T>,
+    ) -> anyhow::Result<T> {
+        let txn = self.store.start_transaction()?;
+        let out = f(&txn);
+        txn.commit()?;
+        out
+    }
+
     /// Every triple in the store EXCEPT those in the named graphs listed, in
     /// the same spelling [`all_triples`](Self::all_triples) yields, together
     /// with the names of the graphs that were read.
@@ -997,9 +1056,10 @@ impl GraphStore {
     /// graphs it read is checkable against the store, and one that does not is
     /// not. `<default>` is the unnamed graph.
     pub fn triples_outside(&self, excluded: &[&str]) -> anyhow::Result<AssertedTriples> {
+        self.read_in_one_transaction(|txn| {
         let mut triples = Vec::new();
         let mut read: BTreeSet<String> = BTreeSet::new();
-        for quad in self.store.iter() {
+        for quad in txn.iter() {
             let quad = quad?;
             let name = match &quad.graph_name {
                 GraphName::DefaultGraph => "<default>".to_string(),
@@ -1016,7 +1076,8 @@ impl GraphStore {
                 quad.object.to_string(),
             ));
         }
-        Ok((triples, read.into_iter().collect()))
+            Ok((triples, read.into_iter().collect()))
+        })
     }
 
     /// Copy one named graph of this store into a fresh store's DEFAULT graph,

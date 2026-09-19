@@ -25,10 +25,10 @@ about the file we gave it. The addendum to decision 0005 draws the new line.
 | Lean 4 | Proof assistant | The kernel. Every checker in this repository. |
 | E 3.2.5 | First-order prover | Differential oracle. Never an authority. Its derivations are now read back and structurally checked. |
 | Vampire 5.1.0 | First-order prover | Same role as E, and the one whose derivations replay furthest. |
-| Z3 4.16.0 | SMT solver | Model-certificate layer, under construction. |
+| Z3 4.16.0 | SMT solver | Model-certificate layer. A checked model is a certificate; an unsat is testimony. |
 | Mace4 | Finite model finder | Same. Its output is checkable; Prover9's is not. |
 | Prover9 | First-order prover | Declined. Unmaintained since 2011, refutations uncheckable. |
-| cvc5 | SMT solver | Not installed. Same role as Z3 when it is. |
+| cvc5 1.3.4 | SMT solver | Installed and pinned. A SECOND oracle on the arm that had none: it cannot confirm an unsat and is the only thing that can contradict one. |
 | Isabelle/HOL | Proof assistant | Built, as an independent second FORMALISATION. It disagreed with the Lean. Below. |
 | Rocq 9.2 | Proof assistant | Built, as an independent THIRD formalisation of the Horn layer only. It disagreed with the Lean too, about what a line is. Below. |
 | Dedukti, Lambdapi | Logical framework | Declined twice, for portability and for re-checking. Reasons below. |
@@ -43,7 +43,7 @@ about the file we gave it. The addendum to decision 0005 draws the new line.
 | loom | Rust interleaving explorer | The right tool for the two latent lock defects. Not yet wired in. |
 | TPTP and TSTP | Interchange | Implemented, in both directions. TPTP out, TSTP back in and checked. |
 | CLIF, ISO/IEC 24707 | Interchange | Implemented. The conformance format. |
-| SMT-LIB 2 | Interchange | Under construction. |
+| SMT-LIB 2 | Interchange | Implemented. One emitter, read by both SMT solvers. |
 | RIF Core, SWRL | Rule languages | Front ends under construction. |
 | CertifyingDatalog | Prior art | Not a dependency. The Horn layer is our analogue. |
 | Hets | Heterogeneous tool set | Declined as a dependency. Its institution and comorphism core is reimplemented small and machine-checked here. Below. |
@@ -102,6 +102,24 @@ Its unsat answers stay oracle answers. An unsat core is not a proof object we ca
 proof logs Z3 can emit would need the same mechanised calculus that the first-order case lacks. The
 structural treatment the first-order provers now get has no counterpart here yet: nothing reads Z3's
 proof logs, and doing so is a separate piece of work from reading TSTP.
+
+cvc5 1.3.4 was added as a SECOND SMT oracle on 18 September 2026, and the reason is worth stating
+precisely because the obvious reason is wrong. It is not there to make the satisfiable answers more
+trustworthy: those rest on a machine-checked theorem about a structure and a formula list, the
+statement does not mention which program produced the structure, and a second producer therefore adds
+nothing to them. It is there because the UNSATISFIABLE answers have no defence inside this
+architecture at all. Nothing can check one, a wrong one would be published as `unsatisfiable_oracle`
+with a straight face, and every test of the layer exercises the other arm. A second solver cannot
+confirm an unsat, and it is the only thing that can contradict one.
+
+Both solvers read one file written by one emitter, `tools/smt_differential.py` runs them over the
+same problems and counts the disagreements, and the counts it produces belong to a version pair
+rather than to the tools in general, so cvc5 is pinned by version and by digest. The measured result,
+the argument, and what it is not evidence of are in
+[decision 0013](decisions/0013-a-second-oracle-can-contradict-and-cannot-confirm.md). Before anyone
+drives cvc5 by hand, note that it answers `unknown` on these problems unless it is asked for finite
+models, and that it prints a `(get-model)` block after `unknown` which is not a model. Both of those
+came out of the wiring rather than out of the measurement.
 
 ## Isabelle, and what the second kernel found
 

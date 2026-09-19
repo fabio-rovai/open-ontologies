@@ -74,7 +74,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
-use crate::fol_model::{FiniteModel, IngestError, mace4, z3};
+use crate::fol_model::{FiniteModel, IngestError, cvc5, mace4, z3};
 use crate::tptp::{FolProblem, ladr, smtlib::SmtEncoding};
 use crate::verdict::{CheckerBinary, CheckerRun, FolVerdict, OwlReading};
 
@@ -86,9 +86,24 @@ const FOL_THEOREM: &str = "Fol.satisfiable_of_check";
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Solver {
     /// Z3 over SMT-LIB 2. Carrier declared as an enumeration datatype, so a
-    /// `sat` comes with a structure of known size; also the only one of the
-    /// two that can be asked the unbounded question.
+    /// `sat` comes with a structure of known size; also one of the two that
+    /// can be asked the unbounded question.
     Z3,
+    /// cvc5 over the SAME SMT-LIB 2 this crate already emits, as a SECOND
+    /// oracle rather than a better one.
+    ///
+    /// It exists so that a `sat` or an `unsat` has somewhere to be contradicted
+    /// from. Decision 0006's line does not move an inch for it: a `sat` whose
+    /// model `oo-folmodel` accepts is a certificate whichever solver produced
+    /// it, and an `unsat` is an oracle opinion whichever solver produced it,
+    /// and two solvers agreeing on `unsat` is two opinions and not a proof.
+    ///
+    /// Measured on cvc5 1.3.4, and the reason
+    /// [`Solver::extra_args`] exists: with default options cvc5 answers
+    /// `unknown` on the engine's quantified problems, because its default
+    /// quantifier strategy is E-matching and E-matching is incomplete. See
+    /// [`crate::fol_model::cvc5`] for the model-block trap, which is worse.
+    Cvc5,
     /// Mace4 over LADR. A dedicated finite model finder, from the
     /// unmaintained Prover9 distribution whose REFUTATION half is uncheckable
     /// and whose MODEL half is exactly what this layer certifies.
@@ -99,19 +114,24 @@ impl Solver {
     pub fn parse(s: &str) -> anyhow::Result<Solver> {
         match s.to_ascii_lowercase().as_str() {
             "z3" | "smt" | "smtlib" => Ok(Solver::Z3),
+            "cvc5" | "cvc" => Ok(Solver::Cvc5),
             "mace4" | "ladr" => Ok(Solver::Mace4),
-            other => anyhow::bail!("unknown model finder {other:?}; expected `z3` or `mace4`"),
+            other => anyhow::bail!(
+                "unknown model finder {other:?}; expected `z3`, `cvc5` or `mace4`"
+            ),
         }
     }
     pub fn name(self) -> &'static str {
         match self {
             Solver::Z3 => "z3",
+            Solver::Cvc5 => "cvc5",
             Solver::Mace4 => "mace4",
         }
     }
     pub fn binary(self) -> &'static str {
         match self {
             Solver::Z3 => "z3",
+            Solver::Cvc5 => "cvc5",
             Solver::Mace4 => "mace4",
         }
     }
@@ -121,9 +141,39 @@ impl Solver {
         match self {
             Solver::Z3 => "install Z3: `brew install z3` (macOS) or \
                            https://github.com/Z3Prover/z3/releases",
+            // Pinned, and the version is in the sentence rather than left to
+            // `latest`. The disagreement counts this repository publishes are a
+            // property of a VERSION PAIR, so a reader who installs whatever is
+            // current is not reproducing the measurement.
+            Solver::Cvc5 => "install cvc5 1.3.4 from \
+                             https://github.com/cvc5/cvc5/releases/tag/cvc5-1.3.4 \
+                             (cvc5-macOS-arm64-static.zip or cvc5-Linux-x86_64-static.zip) \
+                             and put the binary on PATH",
             Solver::Mace4 => "install Mace4, which ships in the LADR/Prover9 distribution: \
                               `brew install prover9` (macOS) or \
                               https://www.cs.unm.edu/~mccune/prover9/",
+        }
+    }
+    /// Solver options beyond the problem file and the time limit.
+    ///
+    /// Only cvc5 has any, and the one it has is keyed on the ENCODING rather
+    /// than on the caller's wishes, which is the whole care in this function.
+    ///
+    /// `--finite-model-find` on the FINITE encoding adds no assumption:
+    /// `(declare-datatypes ((U 0)) ((e0) … ))` already fixes a finite carrier
+    /// of known size, so "look for a finite model" is precisely the question
+    /// the file asks, and without the flag cvc5 answers `unknown` on problems
+    /// it can decide. On the UNBOUNDED encoding the flag would change the
+    /// question, and an answer to a bounded question reported under an
+    /// unbounded file's name is the `no_model_up_to_size_k` mistake of decision
+    /// 0006 item 4 wearing a solver flag instead of a cardinality constraint.
+    /// The unbounded probe is the ONLY route to `unsatisfiable_oracle`, so
+    /// getting this wrong would corrupt the one verdict that must not be
+    /// cheapened.
+    pub fn extra_args(self, enc: SmtEncoding) -> Vec<String> {
+        match (self, enc) {
+            (Solver::Cvc5, SmtEncoding::Finite(_)) => vec!["--finite-model-find".to_string()],
+            _ => Vec::new(),
         }
     }
     /// The smallest carrier the finder can be asked about.
@@ -135,15 +185,20 @@ impl Solver {
     /// turn that into a fatal run rather than a skipped size.
     pub fn min_domain(self) -> u32 {
         match self {
-            Solver::Z3 => 1,
+            Solver::Z3 | Solver::Cvc5 => 1,
             Solver::Mace4 => 2,
         }
     }
     /// Whether the finder can be asked about an unbounded carrier at all.
     /// Mace4 cannot: it is a finite model finder and every run of it is
     /// bounded, so it can never produce `unsatisfiable_oracle`.
+    ///
+    /// cvc5 can, and the probe runs it with NO extra options for the reason
+    /// [`Solver::extra_args`] gives. Its `unknown` there is common and honest;
+    /// an `unknown` is not evidence in either direction and the verdict stays
+    /// whatever the bounded ladder established.
     pub fn can_probe_unbounded(self) -> bool {
-        matches!(self, Solver::Z3)
+        matches!(self, Solver::Z3 | Solver::Cvc5)
     }
     pub fn available(self) -> bool {
         which(self.binary()).is_some()
@@ -417,19 +472,40 @@ fn attempt(
 ) -> anyhow::Result<Attempt> {
     let limit = Duration::from_secs(opts.timeout_secs.max(1) as u64);
     match opts.solver {
-        Solver::Z3 => {
+        // ONE file for both SMT solvers, written by ONE emitter. The file name
+        // carries no solver in it for that reason: if the two were ever handed
+        // different bytes, a disagreement between them would be a fact about
+        // this function rather than about either solver, and that is the one
+        // thing a differential must not be able to measure.
+        Solver::Z3 | Solver::Cvc5 => {
             let enc = SmtEncoding::Finite(k);
             let file = dir.join(format!("problem_k{k}.smt2"));
             std::fs::write(&file, problem.to_smtlib(enc)?)?;
-            let mut cmd = Command::new("z3");
-            cmd.arg(format!("-T:{}", opts.timeout_secs.max(1))).arg(&file);
-            let (_, text, timed_out) =
-                run_limited(cmd, &dir.join(format!("z3_k{k}.out")), limit)?;
-            let says = if timed_out { SolverSays::Unknown } else { read_sat(&text) };
-            let model = match says {
-                SolverSays::Sat => {
-                    Some(z3::parse_model(&text, &problem.vocabulary(), k as usize))
+            let mut cmd = Command::new(opts.solver.binary());
+            match opts.solver {
+                Solver::Cvc5 => {
+                    cmd.arg(format!("--tlimit={}", opts.timeout_secs.max(1) as u64 * 1000));
                 }
+                _ => {
+                    cmd.arg(format!("-T:{}", opts.timeout_secs.max(1)));
+                }
+            }
+            cmd.args(opts.solver.extra_args(enc)).arg(&file);
+            let (_, text, timed_out) = run_limited(
+                cmd,
+                &dir.join(format!("{}_k{k}.out", opts.solver.name())),
+                limit,
+            )?;
+            let says = if timed_out { SolverSays::Unknown } else { read_sat(&text) };
+            // Ingest ONLY on `sat`, and for cvc5 that is load-bearing rather
+            // than tidy: it prints a `(get-model)` block after `unknown` too,
+            // and that block can falsify an asserted axiom. See
+            // `crate::fol_model::cvc5` for the measurement.
+            let model = match says {
+                SolverSays::Sat => Some(match opts.solver {
+                    Solver::Cvc5 => cvc5::parse_model(&text, &problem.vocabulary(), k as usize),
+                    _ => z3::parse_model(&text, &problem.vocabulary(), k as usize),
+                }),
                 _ => None,
             };
             Ok(Attempt { says, model, note: None })
@@ -495,7 +571,10 @@ pub fn solve(problem: &FolProblem, opts: &SolveOptions, dir: &Path) -> anyhow::R
             std::fs::write(dir.join("symbols.tsv"), ladr::table_tsv(&t))?;
             Some(t)
         }
-        Solver::Z3 => None,
+        // Neither SMT solver needs a symbol table: SMT-LIB has `|…|` quoting,
+        // so an IRI is written as itself and read back as itself. The table
+        // exists for LADR, which has no quoting construct at all.
+        Solver::Z3 | Solver::Cvc5 => None,
     };
 
     let mut out = Outcome {
@@ -643,11 +722,25 @@ pub fn solve(problem: &FolProblem, opts: &SolveOptions, dir: &Path) -> anyhow::R
     if opts.unbounded_probe && opts.solver.can_probe_unbounded() && last_unknown.is_none() {
         let file = dir.join("problem_unbounded.smt2");
         std::fs::write(&file, problem.to_smtlib(SmtEncoding::Unbounded)?)?;
-        let mut cmd = Command::new("z3");
-        cmd.arg(format!("-T:{}", opts.timeout_secs.max(1))).arg(&file);
+        let mut cmd = Command::new(opts.solver.binary());
+        match opts.solver {
+            Solver::Cvc5 => {
+                cmd.arg(format!("--tlimit={}", opts.timeout_secs.max(1) as u64 * 1000));
+            }
+            _ => {
+                cmd.arg(format!("-T:{}", opts.timeout_secs.max(1)));
+            }
+        }
+        // No `extra_args` here by construction rather than by omission:
+        // `Solver::extra_args` returns nothing for the unbounded encoding, and
+        // the reason is in its docstring. Passing --finite-model-find on this
+        // file would ask a bounded question and record the answer under the
+        // unbounded encoding's name, which is the one substitution that could
+        // turn `no_model_up_to_size_k` into `unsatisfiable_oracle` by accident.
+        cmd.args(opts.solver.extra_args(SmtEncoding::Unbounded)).arg(&file);
         let (_, text, timed_out) = run_limited(
             cmd,
-            &dir.join("z3_unbounded.out"),
+            &dir.join(format!("{}_unbounded.out", opts.solver.name())),
             Duration::from_secs(opts.timeout_secs.max(1) as u64),
         )?;
         let says = if timed_out { SolverSays::Unknown } else { read_sat(&text) };
