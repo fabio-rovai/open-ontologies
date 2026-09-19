@@ -783,6 +783,8 @@ def main(asserted_path, derivations_path, out_path):
               '</circle>')
 
     n_asserted = len(asserted)
+    # Counted from the rows, because the heading states it.
+    n_sub = sum(1 for r in asserted if r[1] == SUBCLASS)
     n_derived = len(derivations)
     rules = ", ".join(f"{r} x{c}" for r, c in sorted(by_rule.items(), key=lambda kv: -kv[1]))
     A(f'<text x="34" y="44" font-size="17" font-weight="800" fill="#f8fafc">'
@@ -816,11 +818,21 @@ def main(asserted_path, derivations_path, out_path):
           f'font-weight="700" fill="#475569" letter-spacing="1.4">{htxt.upper()}</text>')
     # And what the right-hand half is, which nothing said. A reader met a cloud
     # of unnamed dots and had to guess whether it was data, a result or decor.
-    # The wording ties it to the file on the left, so the two halves are one
-    # picture rather than two drawings that happen to share a canvas.
+    #
+    # It says SUBCLASS HIERARCHY and it counts TREES, and both words are the
+    # correction of a claim this heading used to make. It read "WHAT THE FILE
+    # CONTAINS - 139 CLASSES IN 6 DISJOINT PIECES", which is false. The file
+    # holds 1,083 triples over 22 predicates and this picture draws exactly one
+    # of them, the 144 `rdfs:subClassOf`. On that one predicate ies-core does
+    # fall into six pieces; on the file's own other relations three of them
+    # join up and it falls into four. The six are the top branches of one class
+    # hierarchy, each a tree with a single root except the largest, which has
+    # four. Reporting a consequence of the drawing as a property of the data is
+    # the mistake this whole figure is supposed to be an argument against.
     A(f'<text x="{(OL + OR_) / 2:.0f}" y="108" text-anchor="middle" font-size="9" '
       f'font-weight="700" fill="#475569" letter-spacing="1.4">'
-      f'WHAT THE FILE CONTAINS · {len(ont)} CLASSES IN {len(comps)} DISJOINT PIECES</text>')
+      f'SUBCLASS HIERARCHY · {len(ont)} CLASSES, {n_sub} subClassOf EDGES, '
+      f'{len(comps)} TREES</text>')
 
     # ── The step rail ──────────────────────────────────────────────────
     #

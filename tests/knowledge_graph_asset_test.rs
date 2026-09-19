@@ -470,3 +470,61 @@ fn the_asset_is_well_formed_markup() {
         "docs/assets/knowledge-graph.svg does not have balanced tags"
     );
 }
+
+/// The ontology heading must say which predicate it drew, and must not claim
+/// the FILE is in pieces.
+///
+/// It read "WHAT THE FILE CONTAINS - 139 CLASSES IN 6 DISJOINT PIECES". The
+/// file holds 1,083 triples over 22 predicates and this figure draws exactly
+/// one of them, `rdfs:subClassOf`. On that predicate ies-core falls into six
+/// pieces; on the file's own other relations three of them join up and it
+/// falls into four. The six are the top branches of one class hierarchy.
+/// Reporting a consequence of the drawing as a property of the data is the
+/// mistake this figure exists to argue against, so it is worth a guard rather
+/// than a careful author.
+#[test]
+fn the_ontology_heading_names_the_predicate_it_drew() {
+    let s = svg();
+
+    // Retracted wording, and anything else that claims the FILE is split.
+    for gone in ["WHAT THE FILE CONTAINS", "DISJOINT PIECES", "DISJOINT"] {
+        assert!(
+            !s.contains(gone),
+            "{gone:?} is back in the asset. The drawing is one predicate out of \
+             twenty-two, so it cannot speak for the file."
+        );
+    }
+
+    // And it has to declare its scope by naming the predicate.
+    assert!(
+        s.contains("subClassOf"),
+        "the ontology heading must name the predicate it drew, or a reader has \
+         no way to know the picture is a subclass skeleton rather than the file"
+    );
+
+    // The class count has to agree with the node count the subtitle states.
+    // Every node in the figure is either a class of the ontology or one of the
+    // ten things in the pipeline, so the difference is fixed and a stale
+    // literal on either side breaks it.
+    let nodes = drawn("view: ", " nodes and");
+    let classes: u64 = s
+        .split(" CLASSES")
+        .next()
+        .and_then(|before| {
+            before
+                .rsplit(|c: char| !c.is_ascii_digit())
+                .find(|t| !t.is_empty())
+                .and_then(|t| t.parse().ok())
+        })
+        .expect("the heading states a class count");
+    let pipeline = ["ies-core.ttl", "certificate", "problem.tsv", "forged line",
+                    "Lean 4", "Isabelle/HOL", "Vampire", "Z3", "Mace4"];
+    for name in pipeline {
+        assert!(s.contains(name), "the pipeline no longer names {name:?}");
+    }
+    assert_eq!(
+        nodes - classes,
+        10,
+        "the subtitle says {nodes} nodes and the heading says {classes} classes.          Every node is a class or one of the ten in the pipeline, so one of these          two numbers is stale."
+    );
+}

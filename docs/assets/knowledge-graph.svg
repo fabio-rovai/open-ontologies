@@ -256,7 +256,7 @@
 <text x="86" y="108" text-anchor="middle" font-size="9" font-weight="700" fill="#475569" letter-spacing="1.4">THE FILE</text>
 <text x="196" y="108" text-anchor="middle" font-size="9" font-weight="700" fill="#475569" letter-spacing="1.4">WHAT IT BECOMES</text>
 <text x="318" y="108" text-anchor="middle" font-size="9" font-weight="700" fill="#475569" letter-spacing="1.4">WHO READS IT</text>
-<text x="768" y="108" text-anchor="middle" font-size="9" font-weight="700" fill="#475569" letter-spacing="1.4">WHAT THE FILE CONTAINS · 139 CLASSES IN 6 DISJOINT PIECES</text>
+<text x="768" y="108" text-anchor="middle" font-size="9" font-weight="700" fill="#475569" letter-spacing="1.4">SUBCLASS HIERARCHY · 139 CLASSES, 144 subClassOf EDGES, 6 TREES</text>
 <line x1="34.0" y1="568.0" x2="1066.0" y2="568.0" stroke="#1e3a5f" stroke-width="1.5"/>
 <circle cy="568.0" r="4.5" fill="#e2e8f0" cx="137.2"><animate attributeName="cx" dur="18.0s" repeatCount="indefinite" values="137.2;343.6;550.0;756.4;962.8" keyTimes="0.0167;0.1722;0.3389;0.5167;0.7056" calcMode="linear"/></circle>
 <circle cx="137.2" cy="568.0" r="3" fill="#94a3b8" opacity="0.30"><animate attributeName="opacity" dur="18.0s" repeatCount="indefinite" values="0.30;0.30;1;1;0.30;0.30" keyTimes="0.0000;0.0333;0.0500;0.1722;0.1889;1.0000" calcMode="linear"/><animate attributeName="r" dur="18.0s" repeatCount="indefinite" values="3;3;5.5;5.5;3;3" keyTimes="0.0000;0.0333;0.0500;0.1722;0.1889;1.0000" calcMode="linear"/></circle>
