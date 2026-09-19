@@ -365,12 +365,21 @@ fn a_forged_refutation_is_rejected() {
 }
 
 #[test]
-fn an_uncertifiable_clash_is_never_written_as_a_refutation() {
-    // `OOCert.RefuteConditions` carries one field, for `cax-dw`. A refutation
-    // naming any other clash rule is refused by `oo-refute` with exit 2, which
-    // is a file that could not be judged rather than a graph that could not be
-    // refuted. The engine must therefore say it found a clash and write
-    // nothing, and the two outcomes must not share a word.
+fn every_clash_this_engine_finds_is_now_one_the_checker_can_judge() {
+    // THIS TEST CHANGED MEANING UNDER #163, and the change is the result.
+    //
+    // It used to assert that a graph clashing by `prp-irp`, `eq-diff1` and
+    // `cls-nothing2` produced NO refutation file, because `RefuteConditions`
+    // carried one field and `oo-refute` exited 2 on any other rule name. All
+    // three now have conditions, so the same graph is certified rather than
+    // merely reported, and there is no detectable-but-unjudgeable clash left to
+    // point the old assertion at: the ten rules this engine detects are exactly
+    // the ten it can certify.
+    //
+    // So the assertion is inverted rather than deleted, and it still guards the
+    // same failure. If a future detector is added without a condition in the
+    // Lean, `uncertifiable_rules_found` becomes non-empty, no file is written
+    // for it, and this test says which rule it was.
     let dir = scratch("uncertifiable");
     let r = reason(&ontology(UNCERTIFIABLE), "owl-rl", Some(&dir));
 
@@ -381,19 +390,30 @@ fn an_uncertifiable_clash_is_never_written_as_a_refutation() {
     }
     assert!(
         !by_rule.contains_key("cax-dw"),
-        "this ontology has no disjointness clash: {r}"
+        "this ontology has no disjointness clash, and the point is that it no longer needs \
+         one to be certified: {r}"
     );
     for c in r["inconsistency"]["clashes"].as_array().unwrap() {
-        assert_eq!(c["certifiable"], false, "no clash here is certifiable: {r}");
+        assert_eq!(
+            c["certifiable"], true,
+            "a clash this engine detects and the Lean cannot judge would be written to no \
+             file and reported under a different word. There is none today: {r}"
+        );
     }
-    assert_eq!(r["inconsistency"]["refutation"]["written"], false, "{r}");
-    assert!(
-        !dir.join("refutation.tsv").exists(),
-        "no refutation file may be written for a clash the checker cannot judge"
+    assert_eq!(
+        r["inconsistency"]["uncertifiable_rules_found"].as_array().map(|a| a.len()),
+        Some(0),
+        "{r}"
     );
-    let why = r["inconsistency"]["refutation"]["why"].as_str().unwrap();
-    assert!(why.contains("cax-dw"), "the reason must name the one rule that IS judged: {why}");
-    println!("UNCERTIFIABLE CLASH: {}", r["inconsistency"]["by_rule"]);
+    assert_eq!(r["inconsistency"]["refutation"]["written"], true, "{r}");
+    assert!(
+        dir.join("refutation.tsv").exists(),
+        "a refutation must now be written for a clash the checker can judge"
+    );
+    let (code, out, err) =
+        check_refutation(&dir.join("asserted.tsv"), &dir.join("refutation.tsv"));
+    assert_eq!(code, 0, "the checker must accept it: {out}{err}");
+    println!("CERTIFIED WITHOUT cax-dw: {}", r["inconsistency"]["by_rule"]);
 }
 
 #[test]
@@ -542,5 +562,98 @@ fn two_runs_reach_the_same_contradiction() {
         last(&a),
         last(&b),
         "two runs over one ontology must reach one contradiction"
+    );
+}
+
+// ── The two lists must agree (#163) ────────────────────────────────────
+//
+// The producer's gate and the checker's conditions are two lists in two
+// languages, and they were both length one, so nothing could drift. Widening
+// the checker to twelve rules and the producer to ten creates exactly the
+// failure this layer exists to prevent: a name in the Rust list with no field
+// in the Lean makes the engine write a file `oo-refute` exits 2 on.
+//
+// Read out of the source rather than restated here, so these tests measure the
+// code instead of a copy of it.
+
+fn rust_certifiable() -> Vec<String> {
+    let src = std::fs::read_to_string(repo().join("src/reason.rs")).expect("src/reason.rs");
+    let i = src
+        .find("const CLASH_RULES_CERTIFIABLE")
+        .expect("the producer's gate");
+    // From the `= &[`, not from the first `[`: the first one is inside the
+    // type annotation `&[&str]`, and reading that gave the list one member
+    // called "&str".
+    let eq = src[i..].find("= &[").expect("the list literal") + i;
+    let open = eq + 3;
+    let close = src[open..].find(']').expect("an end") + open;
+    src[open + 1..close]
+        .split(',')
+        .filter_map(|p| {
+            let p = p.trim().trim_matches('"');
+            (!p.is_empty()).then(|| p.to_string())
+        })
+        .collect()
+}
+
+fn lean_conditions() -> Vec<String> {
+    let src = std::fs::read_to_string(repo().join("lean/OOCert/Refute.lean"))
+        .expect("lean/OOCert/Refute.lean");
+    // `RefuteRule.name` is the mapping from constructor to the W3C rule name,
+    // and it is the thing `oo-refute` parses, so it is the authority here.
+    let i = src.find("def RefuteRule.name").expect("the rule names");
+    let end = src[i..].find("\n\ndef ").map(|e| e + i).unwrap_or(src.len());
+    src[i..end]
+        .lines()
+        .filter_map(|l| {
+            let l = l.trim();
+            let q = l.find("=> \"")? + 4;
+            let r = l[q..].find('"')? + q;
+            Some(l[q..r].to_string())
+        })
+        .collect()
+}
+
+#[test]
+fn every_rule_the_producer_certifies_has_a_condition_in_the_lean() {
+    let (rust, lean) = (rust_certifiable(), lean_conditions());
+    assert!(!rust.is_empty() && !lean.is_empty(), "the lists were not found: {rust:?} {lean:?}");
+    let missing: Vec<_> = rust.iter().filter(|r| !lean.contains(r)).collect();
+    assert!(
+        missing.is_empty(),
+        "the producer would write a refutation naming {missing:?}, and the Lean checker has \
+         no condition for it, so `oo-refute` would exit 2 on a file this engine wrote. Add \
+         the field to OOCert.RefuteConditions and the arm to OOCert.checkRefuteStep, or take \
+         the name out of CLASH_RULES_CERTIFIABLE."
+    );
+}
+
+/// The other direction is NOT an error, and the test says so rather than
+/// asserting equality: the Lean may hold a condition this engine never finds.
+/// `cls-maxqc1` and `cls-maxqc2` are exactly that today.
+#[test]
+fn a_rule_the_lean_can_check_but_the_producer_never_finds_is_declared() {
+    let (rust, lean) = (rust_certifiable(), lean_conditions());
+    let checkable_unfound: Vec<_> = lean.iter().filter(|l| !rust.contains(l)).collect();
+    let src = std::fs::read_to_string(repo().join("src/reason.rs")).expect("src/reason.rs");
+    for rule in &checkable_unfound {
+        assert!(
+            src.contains(&format!("(\"{rule}\"")),
+            "the Lean holds a condition for {rule} and this engine does not certify it, and \
+             CLASH_RULES_NOT_DETECTED does not say why. A capability nobody can reach and \
+             nobody has written down is indistinguishable from one that does not exist."
+        );
+    }
+    assert_eq!(
+        lean.len(),
+        12,
+        "the checker is meant to hold twelve conditions; it holds {}",
+        lean.len()
+    );
+    assert_eq!(
+        rust.len(),
+        10,
+        "the producer is meant to certify ten; it certifies {}",
+        rust.len()
     );
 }

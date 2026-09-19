@@ -458,8 +458,11 @@ enum Commands {
         ///
         /// When the run also finds a contradiction that the checker can judge,
         /// a refutation.tsv lands here too, for `lake exe oo-refute check`.
-        /// Only `cax-dw` is certifiable; other clash rules are reported in the
-        /// response as found by this engine and nothing is written for them.
+        /// Ten clash rules are certifiable and written; the rest are reported
+        /// in the response as found by this engine, with nothing written for
+        /// them. The Lean checker holds conditions for twelve, and the two
+        /// it can check that this engine never finds are named in
+        /// `CLASH_RULES_NOT_DETECTED`.
         #[arg(long)]
         certificate: Option<String>,
         /// Evaluate a SUPPLIED Horn rule table instead of a built-in profile,

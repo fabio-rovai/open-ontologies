@@ -59,23 +59,30 @@ or not, because `saturated` ignores disjointness. `Unsat G` is the statement
 that reading `owl:disjointWith` as disjointness leaves no models, which is what
 an OWL 2 RL consumer means by "inconsistent" and is not the same sentence.
 
-`RefuteConditions` carries exactly one field, because exactly one rule is
-implemented. The other sixteen fall into two groups, and the difference between
-them is the difference between work not done and work that cannot be done here.
+`RefuteConditions` carries TWELVE fields, one per certifiable rule: `cax-dw`,
+`cls-com`, `cls-nothing2`, `prp-irp`, `prp-asyp`, `prp-pdw`, `eq-diff1`,
+`prp-npa1`, `prp-npa2`, `cls-maxc1`, `cls-maxqc1` and `cls-maxqc2`. It carried
+one until #163, and the widening is the reason this paragraph reads differently
+from the rest of the file's history.
 
-FIFTEEN are missing and expressible. They are `eq-diff1`, `eq-diff2`,
-`eq-diff3`, `prp-irp`, `prp-asyp`, `prp-pdw`, `prp-adp`, `prp-npa1`,
-`prp-npa2`, `cls-nothing2`, `cls-com`, `cls-maxc1`, `cls-maxqc1`, `cls-maxqc2`
-and `cax-adc`. Each needs its own field on `RefuteConditions` and its own
-constructor on `RefuteRule`, and none of them is here. Adding one is ordinary
-work: the condition is a sentence about `I.iext` and `I.cext`, which `Interp`
-already provides, and the four list-valued ones (`eq-diff2`, `eq-diff3`,
-`prp-adp`, `cax-adc`) read their members through `Chain` as `Model` already
-does for `owl:intersectionOf`. The three cardinality rules (`cls-maxc1`,
-`cls-maxqc1`, `cls-maxqc2`) would match `"0"^^xsd:nonNegativeInteger` by its
-spelling, as this layer matches every other term. That is sound and it is not
-complete: a graph writing the same value some other way would be missed, which
-is a rejection and never a false pass.
+The three cardinality rules are here because the profile's cardinality clashes
+are the ZERO cases and nothing else. `cls-maxc1` fires on `owl:maxCardinality 0`
+plus a single edge, which needs the literal and no counting. A rule that had to
+COUNT successors could not be stated in this step format at all, so their
+presence is not evidence that counting arrived.
+
+They match `"0"^^xsd:nonNegativeInteger` by its spelling, as this layer matches
+every other term. That is sound and it is not complete: a graph writing the same
+value some other way is missed, which is a rejection and never a false pass.
+
+FOUR are missing and expressible: `cax-adc`, `prp-adp`, `eq-diff2` and
+`eq-diff3`. Each states its members in an `rdf:List`, and `RefuteStep.premises`
+is a fixed-length list of triples, so a premise of unbounded length has no
+spelling here. Adding them is ordinary work rather than new mathematics: `Model`
+already reads lists through `Chain` for `owl:intersectionOf`, and the step
+format would have to carry one. The PAIRWISE form of all four is covered
+already, by `cax-dw`, `prp-pdw` and `eq-diff1`, which is why they are worth
+calling not done rather than impossible.
 
 ONE is not missing. `dt-not-type` fires when the data value of a literal falls
 outside the value space of the datatype it is typed with, and `Semantics.lean`
@@ -139,20 +146,87 @@ engine's interner produces. -/
 namespace RV
 /-- `owl:disjointWith`. -/
 def disjointWith : Term := "<http://www.w3.org/2002/07/owl#disjointWith>"
+def complementOf : Term := "<http://www.w3.org/2002/07/owl#complementOf>"
+def nothing : Term := "<http://www.w3.org/2002/07/owl#Nothing>"
+def irreflexiveProperty : Term := "<http://www.w3.org/2002/07/owl#IrreflexiveProperty>"
+def asymmetricProperty : Term := "<http://www.w3.org/2002/07/owl#AsymmetricProperty>"
+def propertyDisjointWith : Term := "<http://www.w3.org/2002/07/owl#propertyDisjointWith>"
+def differentFrom : Term := "<http://www.w3.org/2002/07/owl#differentFrom>"
+def sourceIndividual : Term := "<http://www.w3.org/2002/07/owl#sourceIndividual>"
+def assertionProperty : Term := "<http://www.w3.org/2002/07/owl#assertionProperty>"
+def targetIndividual : Term := "<http://www.w3.org/2002/07/owl#targetIndividual>"
+def targetValue : Term := "<http://www.w3.org/2002/07/owl#targetValue>"
+def maxCardinality : Term := "<http://www.w3.org/2002/07/owl#maxCardinality>"
+def maxQualifiedCardinality : Term :=
+  "<http://www.w3.org/2002/07/owl#maxQualifiedCardinality>"
+def onClass : Term := "<http://www.w3.org/2002/07/owl#onClass>"
+def thing : Term := "<http://www.w3.org/2002/07/owl#Thing>"
+/-- The literal `"0"^^xsd:nonNegativeInteger`, in the spelling the rules use.
+
+The three cardinality rules of the profile that conclude `false` are the ZERO
+cases and nothing else, which is why they are here at all: `cls-maxc1` says a
+class with `owl:maxCardinality 0` on a property cannot have a member with that
+property, and deciding that needs no counting, only the literal. A rule that
+needed to COUNT successors could not be stated in this format. -/
+def zero : Term :=
+  "\"0\"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger>"
 end RV
 
 /-! ## The negative conditions -/
 
 /-- The conditions a model must satisfy for a REFUTATION to mean anything.
-Minimal by design: one field, for the one rule implemented.
+Twelve fields, one per certifiable clash rule.
 
-`dw` is the semantic reading of `owl:disjointWith`: if `(a, b)` is in the
-extension of `owl:disjointWith` then no domain element is in both class
-extensions. It is the *if* direction only, which is all `cax-dw` uses, and it is
-a consequence of the OWL 2 condition rather than a strengthening of it. -/
+Each is the *if* direction only, which is all the corresponding rule uses, and
+each is a consequence of the OWL 2 condition rather than a strengthening of it.
+Adding a field makes `RModel` HARDER to satisfy, so it makes `Unsat` easier to
+prove and `¬ Unsat` harder: the non-vacuity witness below has to discharge every
+one of them, which is the price of each rule and is paid there rather than
+asserted here.
+
+**Twelve of seventeen, and the five that are missing are missing for two
+different reasons.** `cax-adc`, `prp-adp`, `eq-diff2` and `eq-diff3` read an
+`rdf:List` of members, which this step format cannot carry: its premises are a
+fixed-length list of triples and a list of unbounded length is not one.
+`dt-not-type` needs a datatype value space, which this development does not
+have at all. The first four are NOT IMPLEMENTED and the fifth is NOT
+EXPRESSIBLE, and a reader who meets only the number would take those for the
+same claim. -/
 structure RefuteConditions (I : Interp) : Prop where
-  /-- cax-dw. -/
+  /-- cax-dw. Nothing is in two disjoint classes. -/
   dw : ∀ a b, I.iext (I.ι RV.disjointWith) a b → ∀ x, I.cext a x → I.cext b x → False
+  /-- cls-com. Nothing is in a class and its complement. -/
+  com : ∀ a b, I.iext (I.ι RV.complementOf) a b → ∀ x, I.cext a x → I.cext b x → False
+  /-- cls-nothing2. `owl:Nothing` is empty. -/
+  nothing : ∀ x, I.cext (I.ι RV.nothing) x → False
+  /-- prp-irp. An irreflexive property relates nothing to itself. -/
+  irp : ∀ p, I.cext (I.ι RV.irreflexiveProperty) p → ∀ x, I.iext p x x → False
+  /-- prp-asyp. An asymmetric property does not relate both ways. -/
+  asyp : ∀ p, I.cext (I.ι RV.asymmetricProperty) p → ∀ x y, I.iext p x y → I.iext p y x → False
+  /-- prp-pdw. Disjoint properties share no pair. -/
+  pdw : ∀ p q, I.iext (I.ι RV.propertyDisjointWith) p q →
+    ∀ x y, I.iext p x y → I.iext q x y → False
+  /-- eq-diff1. Nothing is both the same as and different from something. -/
+  diff : ∀ x y, I.iext (I.ι V.sameAs) x y → I.iext (I.ι RV.differentFrom) x y → False
+  /-- prp-npa1. A negative object property assertion is not satisfied. -/
+  npa1 : ∀ n i p j, I.iext (I.ι RV.sourceIndividual) n i →
+    I.iext (I.ι RV.assertionProperty) n p → I.iext (I.ι RV.targetIndividual) n j →
+    I.iext p i j → False
+  /-- prp-npa2. The same for a data value. -/
+  npa2 : ∀ n i p j, I.iext (I.ι RV.sourceIndividual) n i →
+    I.iext (I.ι RV.assertionProperty) n p → I.iext (I.ι RV.targetValue) n j →
+    I.iext p i j → False
+  /-- cls-maxc1. A `≤0` restriction has no member with the property. -/
+  maxc1 : ∀ c p, I.iext (I.ι RV.maxCardinality) c (I.ι RV.zero) →
+    I.iext (I.ι V.onProperty) c p → ∀ u v, I.cext c u → I.iext p u v → False
+  /-- cls-maxqc1. The qualified `≤0`, with the filler checked. -/
+  maxqc1 : ∀ c p k, I.iext (I.ι RV.maxQualifiedCardinality) c (I.ι RV.zero) →
+    I.iext (I.ι V.onProperty) c p → I.iext (I.ι RV.onClass) c k →
+    ∀ u v, I.cext c u → I.iext p u v → I.cext k v → False
+  /-- cls-maxqc2. The qualified `≤0` onto `owl:Thing`, where the filler is free. -/
+  maxqc2 : ∀ c p, I.iext (I.ι RV.maxQualifiedCardinality) c (I.ι RV.zero) →
+    I.iext (I.ι V.onProperty) c p → I.iext (I.ι RV.onClass) c (I.ι RV.thing) →
+    ∀ u v, I.cext c u → I.iext p u v → False
 
 /-- A model of `G` that ALSO respects disjointness. Named apart from `Model` so
 that no verdict can quietly move between the two classes. -/
@@ -170,13 +244,27 @@ theorem RModel.model {G : List Triple} {I : Interp} (h : RModel G I) : Model I G
 
 /-- The clash rules, one constructor per rule implemented. One so far. -/
 inductive RefuteRule
-  | caxDw
+  | caxDw | clsCom | clsNothing2 | prpIrp | prpAsyp | prpPdw | eqDiff1
+  | prpNpa1 | prpNpa2 | clsMaxc1 | clsMaxqc1 | clsMaxqc2
 deriving DecidableEq, Repr
 
 def RefuteRule.name : RefuteRule → String
   | .caxDw => "cax-dw"
+  | .clsCom => "cls-com"
+  | .clsNothing2 => "cls-nothing2"
+  | .prpIrp => "prp-irp"
+  | .prpAsyp => "prp-asyp"
+  | .prpPdw => "prp-pdw"
+  | .eqDiff1 => "eq-diff1"
+  | .prpNpa1 => "prp-npa1"
+  | .prpNpa2 => "prp-npa2"
+  | .clsMaxc1 => "cls-maxc1"
+  | .clsMaxqc1 => "cls-maxqc1"
+  | .clsMaxqc2 => "cls-maxqc2"
 
-def RefuteRule.all : List RefuteRule := [.caxDw]
+def RefuteRule.all : List RefuteRule :=
+  [.caxDw, .clsCom, .clsNothing2, .prpIrp, .prpAsyp, .prpPdw, .eqDiff1,
+   .prpNpa1, .prpNpa2, .clsMaxc1, .clsMaxqc1, .clsMaxqc2]
 
 def RefuteRule.ofName? (s : String) : Option RefuteRule :=
   RefuteRule.all.find? (fun r => r.name == s)
@@ -226,6 +314,50 @@ def checkRefuteStep (k : Triple → Bool) (rs : RefuteStep) : Bool :=
       dw = RV.disjointWith ∧ t1 = V.type ∧ c1' = c1 ∧
       x' = x ∧ t2 = V.type ∧ c2' = c2 ∧
       k ⟨c1, dw, c2⟩ ∧ k ⟨x, t1, c1'⟩ ∧ k ⟨x', t2, c2'⟩
+  | .clsCom, [⟨c1, co, c2⟩, ⟨x, t1, c1'⟩, ⟨x', t2, c2'⟩] =>
+      co = RV.complementOf ∧ t1 = V.type ∧ c1' = c1 ∧
+      x' = x ∧ t2 = V.type ∧ c2' = c2 ∧
+      k ⟨c1, co, c2⟩ ∧ k ⟨x, t1, c1'⟩ ∧ k ⟨x', t2, c2'⟩
+  | .clsNothing2, [⟨x, t1, n⟩] =>
+      t1 = V.type ∧ n = RV.nothing ∧ k ⟨x, t1, n⟩
+  | .prpIrp, [⟨p, t1, irp⟩, ⟨x, p', x'⟩] =>
+      t1 = V.type ∧ irp = RV.irreflexiveProperty ∧ p' = p ∧ x' = x ∧
+      k ⟨p, t1, irp⟩ ∧ k ⟨x, p', x'⟩
+  | .prpAsyp, [⟨p, t1, asy⟩, ⟨x, p1, y⟩, ⟨y', p2, x'⟩] =>
+      t1 = V.type ∧ asy = RV.asymmetricProperty ∧ p1 = p ∧ p2 = p ∧
+      y' = y ∧ x' = x ∧
+      k ⟨p, t1, asy⟩ ∧ k ⟨x, p1, y⟩ ∧ k ⟨y', p2, x'⟩
+  | .prpPdw, [⟨p1, pdw, p2⟩, ⟨x, q1, y⟩, ⟨x', q2, y'⟩] =>
+      pdw = RV.propertyDisjointWith ∧ q1 = p1 ∧ q2 = p2 ∧ x' = x ∧ y' = y ∧
+      k ⟨p1, pdw, p2⟩ ∧ k ⟨x, q1, y⟩ ∧ k ⟨x', q2, y'⟩
+  | .eqDiff1, [⟨x, sa, y⟩, ⟨x', df, y'⟩] =>
+      sa = V.sameAs ∧ df = RV.differentFrom ∧ x' = x ∧ y' = y ∧
+      k ⟨x, sa, y⟩ ∧ k ⟨x', df, y'⟩
+  | .prpNpa1, [⟨n, si, i⟩, ⟨n1, ap, p⟩, ⟨n2, ti, j⟩, ⟨i', p', j'⟩] =>
+      si = RV.sourceIndividual ∧ ap = RV.assertionProperty ∧
+      ti = RV.targetIndividual ∧ n1 = n ∧ n2 = n ∧ i' = i ∧ p' = p ∧ j' = j ∧
+      k ⟨n, si, i⟩ ∧ k ⟨n1, ap, p⟩ ∧ k ⟨n2, ti, j⟩ ∧ k ⟨i', p', j'⟩
+  | .prpNpa2, [⟨n, si, i⟩, ⟨n1, ap, p⟩, ⟨n2, tv, j⟩, ⟨i', p', j'⟩] =>
+      si = RV.sourceIndividual ∧ ap = RV.assertionProperty ∧
+      tv = RV.targetValue ∧ n1 = n ∧ n2 = n ∧ i' = i ∧ p' = p ∧ j' = j ∧
+      k ⟨n, si, i⟩ ∧ k ⟨n1, ap, p⟩ ∧ k ⟨n2, tv, j⟩ ∧ k ⟨i', p', j'⟩
+  | .clsMaxc1, [⟨c, mc, z⟩, ⟨c1, op, p⟩, ⟨u, t1, c2⟩, ⟨u', p', v⟩] =>
+      mc = RV.maxCardinality ∧ z = RV.zero ∧ op = V.onProperty ∧ c1 = c ∧
+      t1 = V.type ∧ c2 = c ∧ u' = u ∧ p' = p ∧
+      k ⟨c, mc, z⟩ ∧ k ⟨c1, op, p⟩ ∧ k ⟨u, t1, c2⟩ ∧ k ⟨u', p', v⟩
+  | .clsMaxqc1, [⟨c, mq, z⟩, ⟨c1, op, p⟩, ⟨c2, oc, f⟩, ⟨u, t1, c3⟩, ⟨u', p', v⟩,
+      ⟨v', t2, f'⟩] =>
+      mq = RV.maxQualifiedCardinality ∧ z = RV.zero ∧ op = V.onProperty ∧
+      oc = RV.onClass ∧ c1 = c ∧ c2 = c ∧ t1 = V.type ∧ c3 = c ∧ u' = u ∧
+      p' = p ∧ v' = v ∧ t2 = V.type ∧ f' = f ∧
+      k ⟨c, mq, z⟩ ∧ k ⟨c1, op, p⟩ ∧ k ⟨c2, oc, f⟩ ∧ k ⟨u, t1, c3⟩ ∧
+      k ⟨u', p', v⟩ ∧ k ⟨v', t2, f'⟩
+  | .clsMaxqc2, [⟨c, mq, z⟩, ⟨c1, op, p⟩, ⟨c2, oc, th⟩, ⟨u, t1, c3⟩, ⟨u', p', v⟩] =>
+      mq = RV.maxQualifiedCardinality ∧ z = RV.zero ∧ op = V.onProperty ∧
+      oc = RV.onClass ∧ th = RV.thing ∧ c1 = c ∧ c2 = c ∧ t1 = V.type ∧
+      c3 = c ∧ u' = u ∧ p' = p ∧
+      k ⟨c, mq, z⟩ ∧ k ⟨c1, op, p⟩ ∧ k ⟨c2, oc, th⟩ ∧ k ⟨u, t1, c3⟩ ∧
+      k ⟨u', p', v⟩
   | _, _ => false
 
 /-- The conclusions the prefix made available to the contradiction step. A
@@ -294,6 +426,10 @@ theorem checkRefuteStep_sound {G : List Triple} {k : Triple → Bool} {rs : Refu
   obtain ⟨rule, premises⟩ := rs
   unfold checkRefuteStep at h
   dsimp only at h
+  -- One case per rule, and every one is the same two moves: take the decided
+  -- side conditions apart, then hand the premises to the condition of
+  -- `RefuteConditions` that has exactly that shape. No case reasons about the
+  -- semantics; the reasoning is in the condition.
   cases rule
   case caxDw =>
     rcases premises with
@@ -302,6 +438,86 @@ theorem checkRefuteStep_sound {G : List Triple} {k : Triple → Bool} {rs : Refu
     obtain ⟨rfl, rfl, rfl, rfl, rfl, rfl, h1, h2, h3⟩ := h
     intro I hI
     exact hI.2.dw _ _ (hk _ h1 I hI) _ (hk _ h2 I hI) (hk _ h3 I hI)
+  case clsCom =>
+    rcases premises with
+      _ | ⟨⟨c1, co, c2⟩, _ | ⟨⟨x, t1, c1'⟩, _ | ⟨⟨x', t2, c2'⟩, _ | _⟩⟩⟩ <;>
+      simp only [decide_eq_true_eq, Bool.false_eq_true] at h
+    obtain ⟨rfl, rfl, rfl, rfl, rfl, rfl, h1, h2, h3⟩ := h
+    intro I hI
+    exact hI.2.com _ _ (hk _ h1 I hI) _ (hk _ h2 I hI) (hk _ h3 I hI)
+  case clsNothing2 =>
+    rcases premises with _ | ⟨⟨x, t1, n⟩, _ | _⟩ <;>
+      simp only [decide_eq_true_eq, Bool.false_eq_true] at h
+    obtain ⟨rfl, rfl, h1⟩ := h
+    intro I hI
+    exact hI.2.nothing _ (hk _ h1 I hI)
+  case prpIrp =>
+    rcases premises with _ | ⟨⟨p, t1, irp⟩, _ | ⟨⟨x, p', x'⟩, _ | _⟩⟩ <;>
+      simp only [decide_eq_true_eq, Bool.false_eq_true] at h
+    obtain ⟨rfl, rfl, rfl, rfl, h1, h2⟩ := h
+    intro I hI
+    exact hI.2.irp _ (hk _ h1 I hI) _ (hk _ h2 I hI)
+  case prpAsyp =>
+    rcases premises with
+      _ | ⟨⟨p, t1, asy⟩, _ | ⟨⟨x, p1, y⟩, _ | ⟨⟨y', p2, x'⟩, _ | _⟩⟩⟩ <;>
+      simp only [decide_eq_true_eq, Bool.false_eq_true] at h
+    obtain ⟨rfl, rfl, rfl, rfl, rfl, rfl, h1, h2, h3⟩ := h
+    intro I hI
+    exact hI.2.asyp _ (hk _ h1 I hI) _ _ (hk _ h2 I hI) (hk _ h3 I hI)
+  case prpPdw =>
+    rcases premises with
+      _ | ⟨⟨p1, pdw, p2⟩, _ | ⟨⟨x, q1, y⟩, _ | ⟨⟨x', q2, y'⟩, _ | _⟩⟩⟩ <;>
+      simp only [decide_eq_true_eq, Bool.false_eq_true] at h
+    obtain ⟨rfl, rfl, rfl, rfl, rfl, h1, h2, h3⟩ := h
+    intro I hI
+    exact hI.2.pdw _ _ (hk _ h1 I hI) _ _ (hk _ h2 I hI) (hk _ h3 I hI)
+  case eqDiff1 =>
+    rcases premises with _ | ⟨⟨x, sa, y⟩, _ | ⟨⟨x', df, y'⟩, _ | _⟩⟩ <;>
+      simp only [decide_eq_true_eq, Bool.false_eq_true] at h
+    obtain ⟨rfl, rfl, rfl, rfl, h1, h2⟩ := h
+    intro I hI
+    exact hI.2.diff _ _ (hk _ h1 I hI) (hk _ h2 I hI)
+  case prpNpa1 =>
+    rcases premises with
+      _ | ⟨⟨n, si, i⟩, _ | ⟨⟨n1, ap, p⟩, _ | ⟨⟨n2, ti, j⟩, _ | ⟨⟨i', p', j'⟩, _ | _⟩⟩⟩⟩ <;>
+      simp only [decide_eq_true_eq, Bool.false_eq_true] at h
+    obtain ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, h1, h2, h3, h4⟩ := h
+    intro I hI
+    exact hI.2.npa1 _ _ _ _ (hk _ h1 I hI) (hk _ h2 I hI) (hk _ h3 I hI) (hk _ h4 I hI)
+  case prpNpa2 =>
+    rcases premises with
+      _ | ⟨⟨n, si, i⟩, _ | ⟨⟨n1, ap, p⟩, _ | ⟨⟨n2, tv, j⟩, _ | ⟨⟨i', p', j'⟩, _ | _⟩⟩⟩⟩ <;>
+      simp only [decide_eq_true_eq, Bool.false_eq_true] at h
+    obtain ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, h1, h2, h3, h4⟩ := h
+    intro I hI
+    exact hI.2.npa2 _ _ _ _ (hk _ h1 I hI) (hk _ h2 I hI) (hk _ h3 I hI) (hk _ h4 I hI)
+  case clsMaxc1 =>
+    rcases premises with
+      _ | ⟨⟨c, mc, z⟩, _ | ⟨⟨c1, op, p⟩, _ | ⟨⟨u, t1, c2⟩, _ | ⟨⟨u', p', v⟩, _ | _⟩⟩⟩⟩ <;>
+      simp only [decide_eq_true_eq, Bool.false_eq_true] at h
+    obtain ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, h1, h2, h3, h4⟩ := h
+    intro I hI
+    exact hI.2.maxc1 _ _ (hk _ h1 I hI) (hk _ h2 I hI) _ _ (hk _ h3 I hI) (hk _ h4 I hI)
+  case clsMaxqc1 =>
+    rcases premises with
+      _ | ⟨⟨c, mq, z⟩, _ | ⟨⟨c1, op, p⟩, _ | ⟨⟨c2, oc, f⟩, _ | ⟨⟨u, t1, c3⟩, _ |
+        ⟨⟨u', p', v⟩, _ | ⟨⟨v', t2, f'⟩, _ | _⟩⟩⟩⟩⟩⟩ <;>
+      simp only [decide_eq_true_eq, Bool.false_eq_true] at h
+    obtain ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl,
+      h1, h2, h3, h4, h5, h6⟩ := h
+    intro I hI
+    exact hI.2.maxqc1 _ _ _ (hk _ h1 I hI) (hk _ h2 I hI) (hk _ h3 I hI) _ _
+      (hk _ h4 I hI) (hk _ h5 I hI) (hk _ h6 I hI)
+  case clsMaxqc2 =>
+    rcases premises with
+      _ | ⟨⟨c, mq, z⟩, _ | ⟨⟨c1, op, p⟩, _ | ⟨⟨c2, oc, th⟩, _ | ⟨⟨u, t1, c3⟩, _ |
+        ⟨⟨u', p', v⟩, _ | _⟩⟩⟩⟩⟩ <;>
+      simp only [decide_eq_true_eq, Bool.false_eq_true] at h
+    obtain ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl,
+      h1, h2, h3, h4, h5⟩ := h
+    intro I hI
+    exact hI.2.maxqc2 _ _ (hk _ h1 I hI) (hk _ h2 I hI) (hk _ h3 I hI) _ _
+      (hk _ h4 I hI) (hk _ h5 I hI)
 
 /-- **The theorem the refutation checker is trusted for.** An accepted
 refutation means no interpretation models `G` and respects disjointness.
@@ -401,9 +617,44 @@ def herbrandL (H : List Triple) : Interp := herbrandP (fun t => t ∈ H)
 theorem joint_model_of_closure {G : List Triple} {D : Triple → Prop}
     (hD : Model (herbrandP D) G)
     (hdw : ∀ c1 c2 x, D ⟨c1, RV.disjointWith, c2⟩ → D ⟨x, V.type, c1⟩ →
-      D ⟨x, V.type, c2⟩ → False) :
+      D ⟨x, V.type, c2⟩ → False)
+    (hcom : ∀ c1 c2 x, D ⟨c1, RV.complementOf, c2⟩ → D ⟨x, V.type, c1⟩ →
+      D ⟨x, V.type, c2⟩ → False)
+    (hnothing : ∀ x, D ⟨x, V.type, RV.nothing⟩ → False)
+    (hirp : ∀ p x, D ⟨p, V.type, RV.irreflexiveProperty⟩ → D ⟨x, p, x⟩ → False)
+    (hasyp : ∀ p x y, D ⟨p, V.type, RV.asymmetricProperty⟩ → D ⟨x, p, y⟩ →
+      D ⟨y, p, x⟩ → False)
+    (hpdw : ∀ p q x y, D ⟨p, RV.propertyDisjointWith, q⟩ → D ⟨x, p, y⟩ →
+      D ⟨x, q, y⟩ → False)
+    (hdiff : ∀ x y, D ⟨x, V.sameAs, y⟩ → D ⟨x, RV.differentFrom, y⟩ → False)
+    (hnpa1 : ∀ n i p j, D ⟨n, RV.sourceIndividual, i⟩ →
+      D ⟨n, RV.assertionProperty, p⟩ → D ⟨n, RV.targetIndividual, j⟩ →
+      D ⟨i, p, j⟩ → False)
+    (hnpa2 : ∀ n i p j, D ⟨n, RV.sourceIndividual, i⟩ →
+      D ⟨n, RV.assertionProperty, p⟩ → D ⟨n, RV.targetValue, j⟩ →
+      D ⟨i, p, j⟩ → False)
+    (hmaxc1 : ∀ c p u v, D ⟨c, RV.maxCardinality, RV.zero⟩ →
+      D ⟨c, V.onProperty, p⟩ → D ⟨u, V.type, c⟩ → D ⟨u, p, v⟩ → False)
+    (hmaxqc1 : ∀ c p f u v, D ⟨c, RV.maxQualifiedCardinality, RV.zero⟩ →
+      D ⟨c, V.onProperty, p⟩ → D ⟨c, RV.onClass, f⟩ → D ⟨u, V.type, c⟩ →
+      D ⟨u, p, v⟩ → D ⟨v, V.type, f⟩ → False)
+    (hmaxqc2 : ∀ c p u v, D ⟨c, RV.maxQualifiedCardinality, RV.zero⟩ →
+      D ⟨c, V.onProperty, p⟩ → D ⟨c, RV.onClass, RV.thing⟩ → D ⟨u, V.type, c⟩ →
+      D ⟨u, p, v⟩ → False) :
     ∃ I : Interp, Model I G ∧ RefuteConditions I :=
-  ⟨herbrandP D, hD, ⟨fun a b hab x h1 h2 => hdw a b x hab h1 h2⟩⟩
+  ⟨herbrandP D, hD,
+   ⟨fun a b hab x h1 h2 => hdw a b x hab h1 h2,
+    fun a b hab x h1 h2 => hcom a b x hab h1 h2,
+    fun x hx => hnothing x hx,
+    fun p hp x hx => hirp p x hp hx,
+    fun p hp x y h1 h2 => hasyp p x y hp h1 h2,
+    fun p q hpq x y h1 h2 => hpdw p q x y hpq h1 h2,
+    fun x y h1 h2 => hdiff x y h1 h2,
+    fun n i p j h1 h2 h3 h4 => hnpa1 n i p j h1 h2 h3 h4,
+    fun n i p j h1 h2 h3 h4 => hnpa2 n i p j h1 h2 h3 h4,
+    fun c p h1 h2 u v h3 h4 => hmaxc1 c p u v h1 h2 h3 h4,
+    fun c p f h1 h2 h3 u v h4 h5 h6 => hmaxqc1 c p f u v h1 h2 h3 h4 h5 h6,
+    fun c p h1 h2 h3 u v h4 h5 => hmaxqc2 c p u v h1 h2 h3 h4 h5⟩⟩
 
 /-- A graph with a joint model is not refutable, so `refutation_sound` is not a
 theorem about an empty model class.
