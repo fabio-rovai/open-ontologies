@@ -107,3 +107,139 @@ fn the_graph_states_the_counts_a_real_run_produces() {
     }
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+// ── The picture has to MOVE, and its first frame has to be the picture ──
+//
+// This file used to check only the counts, so it stayed green for as long as
+// the asset was a still image. The README calls it a graph of what was asserted,
+// what was derived and what was refused, and those are three things that happen
+// in an order; a still frame shows them side by side as though they were one
+// kind of fact. The counts were right and the argument was missing.
+
+fn animate_blocks(s: &str) -> Vec<(String, String)> {
+    // (the parent element's opening tag, the <animate ...> tag)
+    let mut out = vec![];
+    for (i, _) in s.match_indices("<animate ") {
+        let tag_end = s[i..].find('>').map(|e| i + e + 1).unwrap_or(s.len());
+        let animate = s[i..tag_end].to_string();
+        // The enclosing element is the nearest preceding opening tag that is
+        // not itself an <animate>. An element may carry several, and the second
+        // one's parent is the element, not its sibling.
+        let mut cut = i;
+        let parent = loop {
+            let before = &s[..cut];
+            let Some(open) = before.rfind('<') else { break None };
+            if before[open..].starts_with("<animate") {
+                cut = open;
+                continue;
+            }
+            let open_end = before[open..].find('>').map(|e| open + e + 1).unwrap_or(cut);
+            break Some(before[open..open_end].to_string());
+        };
+        let Some(parent) = parent else { continue };
+        out.push((parent, animate));
+    }
+    out
+}
+
+fn attr(tag: &str, name: &str) -> Option<String> {
+    let pat = format!("{name}=\"");
+    let i = tag.find(&pat)? + pat.len();
+    let j = tag[i..].find('"')? + i;
+    Some(tag[i..j].to_string())
+}
+
+#[test]
+fn the_graph_is_animated_and_the_animation_loops() {
+    let s = svg();
+    let blocks = animate_blocks(&s);
+    assert!(
+        blocks.len() >= 10,
+        "the asset carries {} animations; it is meant to play four beats and a still \
+         picture cannot make the argument the README makes with it",
+        blocks.len()
+    );
+    for (_, a) in &blocks {
+        assert_eq!(
+            attr(a, "repeatCount").as_deref(),
+            Some("indefinite"),
+            "an animation that runs once is a slideshow a reader arrives after: {a}"
+        );
+    }
+}
+
+/// The one that matters, and the one that caught a real bug.
+///
+/// The first version of this asset animated the graph INTO existence, from
+/// opacity 0. It played correctly in a browser and rendered as an empty
+/// rectangle under macOS Quick Look, because a still renderer samples the
+/// timeline at t=0 and t=0 was blank. Thumbnails, link previews and PDF exports
+/// all sample rather than play. So every animated attribute must already hold
+/// its t=0 value statically, and every t=0 value must be a visible one.
+#[test]
+fn sampling_the_first_frame_gives_the_whole_picture() {
+    let s = svg();
+    for (parent, a) in animate_blocks(&s) {
+        let Some(name) = attr(&a, "attributeName") else { continue };
+        let Some(values) = attr(&a, "values") else { continue };
+        let first = values.split(';').next().unwrap_or("").trim().to_string();
+        match attr(&parent, &name) {
+            Some(statik) => assert_eq!(
+                statik, first,
+                "<{name}> starts at {first} but the element carries {statik}, so a renderer \
+                 that samples t=0 draws something the animation never shows.\n  parent: \
+                 {parent}\n  animate: {a}"
+            ),
+            // Absent means the SVG default applies. Every property animated here
+            // defaults to 0, so the static frame agrees only if the animation
+            // also starts at 0.
+            None => assert_eq!(
+                first, "0",
+                "<{name}> is not set on the element, so it defaults to 0, but the animation \
+                 starts at {first}.\n  parent: {parent}"
+            ),
+        }
+        if name == "opacity" {
+            let v: f64 = first.parse().unwrap_or(1.0);
+            // Two things are allowed to be invisible in the still frame, and
+            // both are things a still frame SHOULD NOT show: a beat caption for
+            // a beat that is not running, and a transient sweep, which at rest
+            // would just be a stray ring drawn over the graph. Everything that
+            // carries content has to be there.
+            let is_caption = parent.starts_with("<text");
+            let is_sweep = parent.contains("fill=\"none\"");
+            assert!(
+                v > 0.0 || is_caption || is_sweep,
+                "a layer at opacity 0 in the first frame is invisible to every thumbnailer, \
+                 and only a caption or an unfilled sweep may start hidden.\n  parent: {parent}"
+            );
+        }
+    }
+}
+
+#[test]
+fn the_four_beats_are_captioned_in_order() {
+    let s = svg();
+    let beats = [
+        "1 · asserted by a person",
+        "2 · derived by the engine",
+        "3 · checked by Lean, and accepted",
+        "4 · forged, and refused",
+    ];
+    let mut at = 0usize;
+    for b in beats {
+        let Some(i) = s[at..].find(b) else {
+            panic!("the asset is missing the caption {b:?}; the motion is then decoration");
+        };
+        at += i + b.len();
+    }
+    // The resting caption is the first beat, so a still frame is captioned by
+    // what the reader is looking at rather than by whichever beat ran last.
+    let i = s.find("1 · asserted by a person").unwrap();
+    let open = s[..i].rfind("<text").unwrap();
+    assert_eq!(
+        attr(&s[open..i], "opacity").as_deref(),
+        Some("1"),
+        "the first beat's caption must be the one a still frame shows"
+    );
+}

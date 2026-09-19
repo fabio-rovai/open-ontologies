@@ -37,7 +37,7 @@
 ---
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.svg" alt="The IES core class hierarchy drawn as a graph. Grey edges were asserted by a person, green edges the engine derived and a Lean 4 proof accepted, and one red edge is a forged derivation the same checker refused." width="100%">
+  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.svg" alt="The IES core class hierarchy, animated in four beats: the subclass edges a person asserted, then the edges the engine derived, then a Lean 4 proof sweeping them, then one forged derivation that the same checker refuses." width="100%">
 </p>
 
 <p align="center">
