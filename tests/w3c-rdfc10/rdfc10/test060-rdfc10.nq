@@ -1,0 +1,43 @@
+<urn:ex:s:000:s⁰1> <urn:ex:000:p⁰> <urn:ex:000:o⁰> <urn:ex:000:g⁰> .
+<urn:ex:s:000:s⁰2> <urn:ex:000:p⁰> <urn:ex:000:o⁰> <urn:ex:000:g⁰> .
+<urn:ex:s:001> <urn:ex:000:empty> "" .
+<urn:ex:s:001> <urn:ex:001:simple> "simple" .
+<urn:ex:s:001> <urn:ex:002:quote> "\"" .
+<urn:ex:s:001> <urn:ex:003:backslash> "\\" .
+<urn:ex:s:001> <urn:ex:004:nl> "\n" .
+<urn:ex:s:001> <urn:ex:005:cr> "\r" .
+<urn:ex:s:001> <urn:ex:006:all> "\"\\\n\r" .
+<urn:ex:s:001> <urn:ex:007:uchar> "\"\\" .
+<urn:ex:s:001> <urn:ex:008:echar> "\t\b\n\r\f\"'\\" .
+<urn:ex:s:001> <urn:ex:009> "\\u0039" .
+<urn:ex:s:001> <urn:ex:010> "\\n" .
+<urn:ex:s:001> <urn:ex:011> "\\\\" .
+<urn:ex:s:001> <urn:ex:012> "\"\"" .
+<urn:ex:s:001> <urn:ex:013> "\\\\\\" .
+<urn:ex:s:001> <urn:ex:014> "\"\"\"" .
+<urn:ex:s:001> <urn:ex:015> "∞" .
+<urn:ex:s:001> <urn:ex:016> "∞" .
+<urn:ex:s:001> <urn:ex:017> <urn:ex:ex> .
+<urn:ex:s:001> <urn:ex:018> <urn:ex:∞> .
+<urn:ex:s:001> <urn:ex:019> <urn:ex:+> .
+<urn:ex:s:003> <urn:ex:020> <urn:ex: > .
+<urn:ex:s:003> <urn:ex:021> ""^^<urn:ex:ὃ> .
+<urn:ex:s:003> <urn:ex:022> "d"^^<urn:ex:dt> .
+<urn:ex:s:003> <urn:ex:023> "d"^^<urn:ex:d> .
+<urn:ex:s:004> <urn:ex:024> "\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000B\f\r\u000E\u000F" .
+<urn:ex:s:004> <urn:ex:025> "\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001A\u001B\u001C\u001D\u001E\u001F" .
+<urn:ex:s:004> <urn:ex:026> " !\"#$%&'()*+,-./" .
+<urn:ex:s:004> <urn:ex:027> "0123456789:;<=>?" .
+<urn:ex:s:004> <urn:ex:028> "@ABCDEFGHIJKLMNO" .
+<urn:ex:s:004> <urn:ex:029> "PQRSTUVWXYZ[\\]^_" .
+<urn:ex:s:004> <urn:ex:030> "`abcdefghijklmno" .
+<urn:ex:s:004> <urn:ex:031> "pqrstuvwxyz{|}~\u007F" .
+<urn:ex:s:004> <urn:ex:032> "" .
+<urn:ex:s:004> <urn:ex:033> "🌃" .
+<urn:ex:s:004> <urn:ex:034> "🌃" .
+<urn:ex:s:005> <urn:ex:035> <urn:ex:🌃> .
+<urn:ex:s:006> <urn:ex:036> "o" <urn:ex:∞> .
+<urn:ex:s:006> <urn:ex:037> "o" <urn:ex:∞> .
+<urn:ex:s:006> <urn:ex:038> "o" <urn:ex:∞> .
+<urn:ex:s:006> <urn:ex:039> "\t <>\"{}|^`\\" .
+<urn:ex:s:007> <urn:ex:040> "\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000B\f\r\u000E\u000F" .

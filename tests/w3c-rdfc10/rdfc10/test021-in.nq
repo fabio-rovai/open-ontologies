@@ -1,0 +1,2 @@
+_:e0 <http://example.org/vocab#next> _:e1 .
+_:e1 <http://example.org/vocab#next> _:e0 .

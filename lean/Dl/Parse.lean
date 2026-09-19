@@ -1,4 +1,5 @@
 import Dl.Check
+import Dl.Refute
 import Std.Data.HashMap
 
 /-!
@@ -128,5 +129,111 @@ def parseModel (content : String) : Except String Interp := do
     | ["ind", a, e] => t := { t with imap := t.imap.insert a e }
     | _ => throw s!"model line {n}: not a well-formed model fact"
   return t.toInterp
+
+/-! ## The refutation certificate
+
+One token stream in prefix order, exactly like the concept grammar and for the
+same reason: every constructor has a fixed arity, so there are no parentheses
+and nothing to get unbalanced. The two variable-length rules carry an explicit
+count before their name list, which is what keeps the arity fixed.
+
+Newlines are not significant. A producer that writes one step per line and a
+producer that writes the whole tree on one line are the same certificate, and
+the parser cannot tell them apart. That is deliberate: the tree structure is
+carried by the arities, so indentation can be for a human without any risk of
+becoming load-bearing. -/
+
+/-- Read exactly `k` names. -/
+def names? : Nat → List String → Option (List Name × List String)
+  | 0, ts => some ([], ts)
+  | k + 1, t :: ts => (names? k ts).map (fun p => (t :: p.1, p.2))
+  | _ + 1, [] => none
+
+/-- Prefix parser for a certificate. The fuel is the token count, which strictly
+bounds the recursion because every step consumes its own keyword first. -/
+def cert? : Nat → List String → Option (Cert × List String)
+  | 0, _ => none
+  | _ + 1, [] => none
+  | fuel + 1, t :: ts =>
+    match t, ts with
+    | "bot", x :: ts' => some (.botC x, ts')
+    | "diff", x :: ts' => some (.diffC x, ts')
+    | "disjoint", x :: ts' => do
+        let (c, ts1) ← concept? fuel ts'
+        let (d, ts2) ← concept? fuel ts1
+        some (.disjC x c d, ts2)
+    | "neg", x :: ts' => (concept? fuel ts').map (fun p => (.negC x p.1, p.2))
+    | "minmax", x :: r :: m :: n :: ts' => do
+        let m ← m.toNat?
+        let n ← n.toNat?
+        let (c, ts1) ← concept? fuel ts'
+        some (.minmaxC x r c m n, ts1)
+    | "maxclash", x :: r :: n :: k :: ts' => do
+        let n ← n.toNat?
+        let k ← k.toNat?
+        let (ys, ts1) ← names? k ts'
+        let (c, ts2) ← concept? fuel ts1
+        some (.maxC x r c n ys, ts2)
+    | "inst", a :: ts' => do
+        let (c, ts1) ← concept? fuel ts'
+        let (k, ts2) ← cert? fuel ts1
+        some (.instS a c k, ts2)
+    | "rel", a :: r :: b :: ts' => (cert? fuel ts').map (fun p => (.relS a r b p.1, p.2))
+    | "sub", x :: ts' => do
+        let (c, ts1) ← concept? fuel ts'
+        let (d, ts2) ← concept? fuel ts1
+        let (k, ts3) ← cert? fuel ts2
+        some (.subS x c d k, ts3)
+    | "domain", x :: y :: r :: ts' => do
+        let (c, ts1) ← concept? fuel ts'
+        let (k, ts2) ← cert? fuel ts1
+        some (.domS x y r c k, ts2)
+    | "range", x :: y :: r :: ts' => do
+        let (c, ts1) ← concept? fuel ts'
+        let (k, ts2) ← cert? fuel ts1
+        some (.rngS x y r c k, ts2)
+    | "subrole", x :: y :: r :: u :: ts' =>
+        (cert? fuel ts').map (fun p => (.subroleS x y r u p.1, p.2))
+    | "nonempty", y :: ts' => do
+        let (c, ts1) ← concept? fuel ts'
+        let (k, ts2) ← cert? fuel ts1
+        some (.nonemptyS y c k, ts2)
+    | "and", x :: ts' => do
+        let (c, ts1) ← concept? fuel ts'
+        let (d, ts2) ← concept? fuel ts1
+        let (k, ts3) ← cert? fuel ts2
+        some (.andS x c d k, ts3)
+    | "all", x :: y :: r :: ts' => do
+        let (c, ts1) ← concept? fuel ts'
+        let (k, ts2) ← cert? fuel ts1
+        some (.allS x y r c k, ts2)
+    | "some", x :: y :: r :: ts' => do
+        let (c, ts1) ← concept? fuel ts'
+        let (k, ts2) ← cert? fuel ts1
+        some (.exS x y r c k, ts2)
+    | "min", x :: r :: n :: k :: ts' => do
+        let n ← n.toNat?
+        let k ← k.toNat?
+        let (ys, ts1) ← names? k ts'
+        let (c, ts2) ← concept? fuel ts1
+        let (kid, ts3) ← cert? fuel ts2
+        some (.minS x r c n ys kid, ts3)
+    | "or", x :: ts' => do
+        let (c, ts1) ← concept? fuel ts'
+        let (d, ts2) ← concept? fuel ts1
+        let (l, ts3) ← cert? fuel ts2
+        let (r, ts4) ← cert? fuel ts3
+        some (.orS x c d l r, ts4)
+    | _, _ => none
+
+/-- A certificate is the WHOLE file. Trailing tokens are a parse error, not
+something to ignore: a producer that emitted a second tree, or truncated the
+first, must not be read as having emitted one good one. -/
+def parseCert (content : String) : Except String Cert :=
+  let ts := tokens ((content.replace "\r\n" " ").replace "\n" " " |>.replace "\t" " ")
+  match cert? (ts.length + 1) ts with
+  | some (c, []) => .ok c
+  | some (_, rest) => .error s!"certificate: {rest.length} tokens left over after the tree"
+  | none => .error "certificate: not a well-formed derivation"
 
 end Dl.Parse
