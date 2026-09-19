@@ -41,7 +41,7 @@
 </p>
 
 <p align="center">
-  <sub><b>150 asserted, 258 certified, 1 rejected.</b> Green edges the engine derived and a Lean 4
+  <sub><b>426 asserted, 258 certified, 1 rejected.</b> Green edges the engine derived and a Lean 4
   checker then <i>proved</i>. The red edge is a forged line the same checker refused, exit 1, with
   the rule named. Every count is taken from the run, not written into the caption.</sub>
 </p>

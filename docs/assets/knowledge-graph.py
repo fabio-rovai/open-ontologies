@@ -54,6 +54,15 @@ import random
 import sys
 
 SUBCLASS = "<http://www.w3.org/2000/01/rdf-schema#subClassOf>"
+TYPE = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
+DOMAIN = "<http://www.w3.org/2000/01/rdf-schema#domain>"
+RANGE = "<http://www.w3.org/2000/01/rdf-schema#range>"
+ONTOLOGY = "<http://www.w3.org/2002/07/owl#Ontology>"
+# The four that make ies-core ONE graph. Measured, not guessed:
+#   subClassOf                      6 pieces
+#   + rdf:type                      5
+#   + rdfs:domain, rdfs:range       1, and the file's own header
+LINKING = (SUBCLASS, TYPE, DOMAIN, RANGE)
 W, H = 1100, 760
 SEED = 20260919
 
@@ -82,7 +91,31 @@ def main(asserted_path, derivations_path, out_path):
 
     # Asserted subclass edges, and the conclusions the fixpoint derived. A
     # derivation line is: rule, conclusion s p o, then its premises.
-    a_edges = [(r[0], r[2]) for r in asserted if r[1] == SUBCLASS]
+    # Subclass edges, and the `rdf:type` edges that make the picture ONE graph.
+    #
+    # Drawing subClassOf alone, ies-core falls into six pieces, and a reader
+    # reasonably asks why a single file is six clouds. The answer was that the
+    # drawing was throwing away 87% of the file. `rdf:type` is its commonest
+    # predicate, 215 triples, and it is what ties the hierarchy together: 131
+    # of these classes are an `rdfs:Class`, so that node is a real hub and not
+    # a device invented to join things up.
+    #
+    # Nothing is fabricated to achieve this. `owl:Thing` would have been the
+    # textbook way to give the hierarchy one top, and it is NOT used, because
+    # this run derives no such edge: adding it would be drawing a claim the
+    # engine never made, in a figure whose whole argument is that it does not.
+    # The ontology HEADER is not a term. `<.../ies/core/v0/ont>` typed
+    # `owl:Ontology` is the file's record of itself, it stands in no hierarchy
+    # with anything, and it is the one thing that stays disconnected however
+    # many predicates are drawn. It is also already on the canvas: the file is
+    # the leftmost node of the pipeline. So it is dropped here rather than left
+    # floating as a two-dot island nobody can explain.
+    header = {r[0] for r in asserted if r[1] == TYPE and r[2] == ONTOLOGY}
+    header |= {r[2] for r in asserted if r[0] in header}
+
+    a_edges = [(r[0], r[2]) for r in asserted
+               if r[1] in LINKING and r[2].startswith("<")
+               and r[0] not in header and r[2] not in header]
     d_edges, by_rule = [], {}
     for r in derivations:
         rule = r[0]
@@ -173,6 +206,19 @@ def main(asserted_path, derivations_path, out_path):
     for i in range(len(ont)):
         groups.setdefault(find(i), []).append(i)
     comps = sorted(groups.values(), key=len, reverse=True)
+    # ONE graph, or say so and stop.
+    #
+    # The heading states "ONE CONNECTED GRAPH", and a figure that states its
+    # own structure has to be unable to state it falsely. If a future ies-core,
+    # or a different file, does not connect under LINKING, this raises instead
+    # of drawing several clouds under a caption that promises one.
+    if len(comps) != 1:
+        raise SystemExit(
+            f"the ontology is {len(comps)} pieces of sizes "
+            f"{[len(c) for c in comps]}, and the figure says ONE CONNECTED "
+            f"GRAPH. Either widen LINKING until it is one, or change the "
+            f"heading to say what is true. Do not draw it as it stands."
+        )
 
     # One ideal edge length for every component, so a big piece comes out as a
     # big cloud and a small piece as a small one. Scaling each component to
@@ -729,6 +775,43 @@ def main(asserted_path, derivations_path, out_path):
           + anim("opacity", "0;0;0.85;0;0", kt(0, t0, t0 + 0.18, t0 + 0.95, CYCLE)) +
           '</circle>')
 
+    # ── What an opinion is FOR ──────────────────────────────────────────
+    #
+    # The four provers hung off `problem.tsv` with nothing leaving them, so the
+    # drawing said their answers go nowhere. That is not what the code does.
+    # `src/fol_solve.rs` carries a `Disagreement` -- "a disagreement between two
+    # things that were supposed to agree; not a verdict about the ontology, and
+    # not a footnote either" -- and it is set "when a checker and the thing it
+    # checks disagreed. Stop the line."
+    #
+    # So an opinion never becomes warrant and can still halt the pipeline. That
+    # is a different arrow from the certified one and it is drawn differently:
+    # it leaves the provers, it arrives at the certificate, and it is dotted,
+    # because what travels along it is a question and not a proof.
+    pv = [idx[n] for n in ("Vampire", "E", "Z3", "Mace4")]
+    ci0 = idx["certificate"]
+    fx0 = min(pt[i][0] for i in pv) - 46.0
+    fy0 = sum(pt[i][1] for i in pv) / len(pv)
+    A(f'<g opacity="0.34">'
+      + anim("opacity", "0.34;0.34;0.9;0.9;0.34;0.34",
+             kt(0, 11.4, 11.9, 12.7, 13.0, CYCLE)))
+    for i in pv:
+        A(f'<path d="M{pt[i][0] - rad(i) - 4:.1f} {pt[i][1]:.1f} '
+          f'Q{fx0:.1f} {pt[i][1]:.1f} {fx0:.1f} {fy0:.1f}" fill="none" '
+          f'stroke="{C_TOOL}" stroke-width="0.9" stroke-dasharray="2 3" opacity="0.8"/>')
+    A(f'<path d="M{fx0:.1f} {fy0:.1f} Q{fx0:.1f} {pt[ci0][1] + 30:.1f} '
+      f'{pt[ci0][0]:.1f} {pt[ci0][1] + rad(ci0) + 6:.1f}" fill="none" '
+      f'stroke="{C_TOOL}" stroke-width="1.5" stroke-dasharray="4 4"/>')
+    dtxt = "disagreement · stops the line"
+    dw = len(dtxt) * 5.0 + 12
+    dx, dy = fx0 - dw - 8, fy0 + 4
+    placed.append((dx - 3, dy - 12, dx + dw + 3, dy + 5))
+    A(f'<rect x="{dx:.1f}" y="{dy - 10:.1f}" width="{dw:.1f}" height="14" rx="7" '
+      f'fill="#020617" stroke="{C_TOOL}" stroke-width="1" opacity="0.95"/>')
+    A(f'<text x="{dx + dw / 2:.1f}" y="{dy:.1f}" text-anchor="middle" font-size="8.8" '
+      f'font-weight="700" fill="{C_TOOL}">{dtxt}</text>')
+    A('</g>')
+
     # ── Beat five: the claim in the graph, and the refusal at the checker ─
     #
     # Two halves of one event, and both have to be visible or the beat says
@@ -887,6 +970,7 @@ def main(asserted_path, derivations_path, out_path):
     n_asserted = len(asserted)
     # Counted from the rows, because the heading states it.
     n_sub = sum(1 for r in asserted if r[1] == SUBCLASS)
+    n_type = sum(1 for r in asserted if r[1] == TYPE)
     n_derived = len(derivations)
     rules = ", ".join(f"{r} x{c}" for r, c in sorted(by_rule.items(), key=lambda kv: -kv[1]))
     A(f'<text x="34" y="44" font-size="17" font-weight="800" fill="#f8fafc">'
@@ -933,8 +1017,8 @@ def main(asserted_path, derivations_path, out_path):
     # the mistake this whole figure is supposed to be an argument against.
     A(f'<text x="{(OL + OR_) / 2:.0f}" y="108" text-anchor="middle" font-size="9" '
       f'font-weight="700" fill="#475569" letter-spacing="1.4">'
-      f'SUBCLASS HIERARCHY · {len(ont)} CLASSES, {n_sub} subClassOf EDGES, '
-      f'{len(comps)} TREES</text>')
+      f'{len(ont)} TERMS OF ies-core, ONE CONNECTED GRAPH · '
+      f'subClassOf, rdf:type, domain, range</text>')
 
     # ── The step rail ──────────────────────────────────────────────────
     #

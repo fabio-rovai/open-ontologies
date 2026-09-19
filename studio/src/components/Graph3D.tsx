@@ -24,7 +24,27 @@ import type { GraphView, Warrant } from '../lib/demo-source';
  * artifacts.
  */
 
-interface GNode { id: string; name: string; val: number; }
+interface GNode {
+  id: string;
+  name: string;
+  val: number;
+  /** Pinned position. Set for the verification layer, absent for classes. */
+  fx?: number;
+  fy?: number;
+  fz?: number;
+  /** Which connected piece of the ontology this class belongs to. */
+  comp?: number;
+}
+
+/** A node as the force simulation mutates it. */
+interface SimNode extends GNode {
+  x?: number;
+  y?: number;
+  z?: number;
+  vx?: number;
+  vy?: number;
+  vz?: number;
+}
 interface GLink { source: string; target: string; warrant: Warrant; }
 
 const NODE_COLOR = '#7dd3fc';
@@ -52,12 +72,108 @@ function short(iri: string): string {
   return h >= 0 ? iri.slice(h + 1) : iri.slice(iri.lastIndexOf('/') + 1);
 }
 
+/**
+ * Where each member of the verification layer is PINNED, in simulation units.
+ *
+ * The pipeline is a process, not a graph, and a force layout is the wrong tool
+ * for it: run free, the six judges land wherever repulsion puts them and the
+ * picture stops showing that anything flows. Three columns left to right --
+ * what was read, what it became, who judged it -- with the two that read the
+ * CERTIFICATE together and above, and the four that read `problem.tsv`, a
+ * different artefact, together and below. That grouping is the argument.
+ *
+ * `docs/assets/knowledge-graph.svg` is this layout, and the README calls that
+ * figure the Studio 3D view, so this is where the claim is kept true.
+ */
+const PIPELINE: Record<string, [number, number, number]> = {
+  'ies-core.ttl': [-300, 30, 0],
+  certificate: [-190, 70, 0],
+  'problem.tsv': [-190, -70, 0],
+  'Lean 4 · oo-cert': [-70, 105, 0],
+  'Isabelle/HOL': [-70, 45, 0],
+  Vampire: [-70, -25, 0],
+  E: [-70, -65, 0],
+  Z3: [-70, -105, 0],
+  Mace4: [-70, -145, 0],
+  'forged line': [-300, -110, 0],
+};
+
+/**
+ * Connected components of the ontology, and a centre for each.
+ *
+ * `ies-core`'s subclass graph is not connected. Laid out as one system the two
+ * big pieces end up in opposite corners and the small ones, which feel nothing
+ * but repulsion, sail off into the gap next to the pipeline. Each piece gets
+ * its own centre instead, placed on a ring whose radius grows with the piece,
+ * so the arrangement says something true about their sizes.
+ */
+function components(nodes: GNode[], links: GLink[]): Map<string, number> {
+  const parent = new Map<string, string>();
+  for (const n of nodes) parent.set(n.id, n.id);
+  const find = (x: string): string => {
+    let r = x;
+    while (parent.get(r) !== r) r = parent.get(r) as string;
+    while (parent.get(x) !== r) {
+      const nx = parent.get(x) as string;
+      parent.set(x, r);
+      x = nx;
+    }
+    return r;
+  };
+  for (const l of links) {
+    if (!parent.has(l.source) || !parent.has(l.target)) continue;
+    const a = find(l.source);
+    const b = find(l.target);
+    if (a !== b) parent.set(a, b);
+  }
+  const size = new Map<string, number>();
+  for (const n of nodes) {
+    const r = find(n.id);
+    size.set(r, (size.get(r) ?? 0) + 1);
+  }
+  const order = [...size.entries()].sort((a, b) => b[1] - a[1]).map(([r]) => r);
+  const rank = new Map(order.map((r, i) => [r, i]));
+  const out = new Map<string, number>();
+  for (const n of nodes) out.set(n.id, rank.get(find(n.id)) as number);
+  return out;
+}
+
+/** The centre each component is pulled towards, biggest nearest the middle. */
+export function componentCentres(count: number): [number, number, number][] {
+  const out: [number, number, number][] = [];
+  for (let i = 0; i < count; i += 1) {
+    if (i === 0) {
+      out.push([190, 0, 0]);
+      continue;
+    }
+    const a = (i - 1) * ((2 * Math.PI) / Math.max(1, count - 1));
+    const r = 230 + i * 26;
+    out.push([190 + Math.cos(a) * r, Math.sin(a) * r, Math.sin(a * 1.7) * 90]);
+  }
+  return out;
+}
+
 function toGraphData(graph: GraphView): { nodes: GNode[]; links: GLink[] } {
-  const nodes = graph.classes.map((c) => ({ id: c.iri, name: c.label || short(c.iri), val: 3 }));
+  const nodes: GNode[] = graph.classes.map((c) => {
+    const name = c.label || short(c.iri);
+    const pin = PIPELINE[name];
+    return pin
+      ? { id: c.iri, name, val: 3, fx: pin[0], fy: pin[1], fz: pin[2] }
+      : { id: c.iri, name, val: 3 };
+  });
   const known = new Set(nodes.map((n) => n.id));
   const links = graph.edges
     .filter((e) => known.has(e.source) && known.has(e.target))
     .map((e) => ({ source: e.source, target: e.target, warrant: (e.warrant ?? 'asserted') as Warrant }));
+  // Components are computed over the ONTOLOGY only. The pipeline is pinned, so
+  // letting it join a component would drag that component onto the pins.
+  const ontology = nodes.filter((n) => !TOOL_NODES.has(n.name));
+  const within = new Set(ontology.map((n) => n.id));
+  const comp = components(ontology, links.filter((l) => within.has(l.source) && within.has(l.target)));
+  for (const n of nodes) {
+    const c = comp.get(n.id);
+    if (c !== undefined && !TOOL_NODES.has(n.name)) n.comp = c;
+  }
   return { nodes, links };
 }
 
@@ -66,7 +182,13 @@ export function Graph3D({ graph, onNodeSelect }: {
   onNodeSelect: (n: { id: string; label: string; uri: string } | null) => void;
 }) {
   const data = toGraphData(graph);
-  const fgRef = useRef<{ d3Force: (name: string) => { distance?: (d: (l: GLink) => number) => void; strength?: (v: number) => void } | undefined; zoomToFit: (ms: number, px: number) => void } | null>(null);
+  const fgRef = useRef<{
+    d3Force: (
+      name: string,
+      force?: (alpha: number) => void,
+    ) => { distance?: (d: (l: GLink) => number) => void; strength?: (v: number) => void } | undefined;
+    zoomToFit: (ms: number, px: number) => void;
+  } | null>(null);
   const framed = useRef(false);
 
   useEffect(() => {
@@ -75,6 +197,27 @@ export function Graph3D({ graph, onNodeSelect }: {
     framed.current = false;
     fg.d3Force('link')?.distance?.(() => 30);
     fg.d3Force('charge')?.strength?.(-120);
+
+    // Each piece of the ontology is pulled towards its own centre.
+    //
+    // Without this the simulation has nothing to hold the pieces apart: a
+    // disconnected node feels only repulsion, so the small ones drift until
+    // they meet the pinned pipeline and sit on top of it. One force, one term
+    // per node, and the pinned nodes are skipped because d3 ignores velocity
+    // on a node that has fx/fy/fz anyway.
+    const centres = componentCentres(
+      data.nodes.reduce((m, n) => Math.max(m, (n.comp ?? -1) + 1), 0),
+    );
+    fg.d3Force('cluster', (alpha: number) => {
+      for (const n of data.nodes as SimNode[]) {
+        if (n.comp === undefined || n.fx !== undefined) continue;
+        const c = centres[n.comp];
+        if (!c) continue;
+        n.vx = (n.vx ?? 0) + (c[0] - (n.x ?? 0)) * alpha * 0.22;
+        n.vy = (n.vy ?? 0) + (c[1] - (n.y ?? 0)) * alpha * 0.22;
+        n.vz = (n.vz ?? 0) + (c[2] - (n.z ?? 0)) * alpha * 0.22;
+      }
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [graph]);
 

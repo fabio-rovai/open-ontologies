@@ -486,6 +486,24 @@ fn the_asset_is_well_formed_markup() {
 fn the_ontology_heading_names_the_predicate_it_drew() {
     let s = svg();
 
+    // The asset calls itself the Studio 3D view, so the Studio has to lay the
+    // graph out this way. It did not: `Graph3D.tsx` was a plain ForceGraph3D,
+    // one force run over everything, and the figure's placed pipeline and
+    // per-component packing existed only in the drawing. The claim was made
+    // true by changing the component, and this keeps it true.
+    if s.contains("the Studio 3D view") {
+        let studio = std::fs::read_to_string(repo().join("studio/src/components/Graph3D.tsx"))
+            .expect("studio/src/components/Graph3D.tsx");
+        for needed in ["PIPELINE", "componentCentres", "fx:", "comp"] {
+            assert!(
+                studio.contains(needed),
+                "the asset calls itself the Studio 3D view but Graph3D.tsx has no \
+                 {needed:?}. Either the Studio lays the graph out the way this \
+                 figure draws it, or the figure must stop saying it is the Studio."
+            );
+        }
+    }
+
     // Retracted wording, and anything else that claims the FILE is split.
     for gone in ["WHAT THE FILE CONTAINS", "DISJOINT PIECES", "DISJOINT"] {
         assert!(
@@ -506,9 +524,9 @@ fn the_ontology_heading_names_the_predicate_it_drew() {
     // Every node in the figure is either a class of the ontology or one of the
     // ten things in the pipeline, so the difference is fixed and a stale
     // literal on either side breaks it.
-    let nodes = drawn("view: ", " nodes and");
+    let nodes = drawn("Studio 3D view: ", " nodes and");
     let classes: u64 = s
-        .split(" CLASSES")
+        .split(" TERMS OF")
         .next()
         .and_then(|before| {
             before
@@ -516,7 +534,7 @@ fn the_ontology_heading_names_the_predicate_it_drew() {
                 .find(|t| !t.is_empty())
                 .and_then(|t| t.parse().ok())
         })
-        .expect("the heading states a class count");
+        .expect("the heading states a term count");
     // `E` is left out of the list: the name is one letter and appears inside
     // half the words in the file, so asserting on it would pass for the wrong
     // reason. It is still counted, because the count below counts it.
