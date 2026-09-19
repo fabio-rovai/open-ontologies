@@ -452,6 +452,13 @@ jobs:
         run: OO_REQUIRE_FIXTURES=1 cargo test --test shacl_core_verified_test -- --nocapture
       - name: Check the description-logic model certificates
         run: OO_REQUIRE_FIXTURES=1 cargo test --test dl_model_certificate_test -- --nocapture
+      - name: Check the description-logic refutation certificates
+        # The other half of the line above. That one certifies that an ontology
+        # HAS a model by exhibiting one; this certifies that it has NONE by
+        # exhibiting a closed tableau, and the verdicts are different sentences.
+        # Strict, because the emitter and the checker are both in this
+        # repository and a skip here would hide the whole loop.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test dl_refutation_certificate_test -- --nocapture
       - name: Pinpoint justifications, and check each one through the proved checker
         # Strict rather than excepted. The only thing this file skips on is
         # benchmark/reference/pizza-reference.owl, which ships with the

@@ -32,6 +32,8 @@ inductive Cert where
   | negC (x : Name) (c : Concept)
   /-- `x ≠ x`. -/
   | diffC (x : Name)
+  /-- `x` in two classes the ontology declares disjoint. -/
+  | disjC (x : Name) (c d : Concept)
   /-- `x : ≥m R.C` against `x : ≤n R.C`, `n < m`. Needs no witnesses. -/
   | minmaxC (x r : Name) (c : Concept) (m n : Nat)
   /-- `n+1` distinct successors against `x : ≤n R.C`. -/
@@ -74,6 +76,9 @@ def check (A : List Axiom) : Cert → List Constraint → Bool
   | .negC x c, Γ =>
       decide (Constraint.conc x c ∈ Γ) && decide (Constraint.conc x (.neg c) ∈ Γ)
   | .diffC x, Γ => decide (Constraint.diff x x ∈ Γ)
+  | .disjC x c d, Γ =>
+      decide (Axiom.disjoint c d ∈ A) && decide (Constraint.conc x c ∈ Γ)
+        && decide (Constraint.conc x d ∈ Γ)
   | .minmaxC x r c m n, Γ =>
       decide (Constraint.conc x (.min m r c) ∈ Γ)
         && decide (Constraint.conc x (.max n r c) ∈ Γ) && decide (n < m)
@@ -109,7 +114,7 @@ def check (A : List Axiom) : Cert → List Constraint → Bool
         && check A k (Constraint.conc x c :: Constraint.conc x d :: Γ)
   | .allS x y r c k, Γ =>
       decide (Constraint.conc x (.all r c) ∈ Γ) && decide (Constraint.role r x y ∈ Γ)
-        && hasConc Γ y && check A k (Constraint.conc y c :: Γ)
+        && decide (r ∈ roleNames A) && check A k (Constraint.conc y c :: Γ)
   | .exS x y r c k, Γ =>
       decide (Constraint.conc x (.ex r c) ∈ Γ) && decide (r ∈ roleNames A)
         && decide (y ∉ branchNames Γ) && decide (y ∉ indNames A)
@@ -139,6 +144,10 @@ theorem closed_of_check {A : List Axiom} :
       simp only [check, Bool.and_eq_true, decide_eq_true_eq] at h
       exact .neg h.1 h.2
   | diffC x => intro Γ h; exact .diff (by simpa [check] using h)
+  | disjC x c d =>
+      intro Γ h
+      simp only [check, Bool.and_eq_true, decide_eq_true_eq] at h
+      exact .disjointClash h.1.1 h.1.2 h.2
   | minmaxC x r c m n =>
       intro Γ h
       simp only [check, Bool.and_eq_true, decide_eq_true_eq] at h
@@ -182,7 +191,7 @@ theorem closed_of_check {A : List Axiom} :
   | allS x y r c k ih =>
       intro Γ h
       simp only [check, Bool.and_eq_true, decide_eq_true_eq] at h
-      exact .allR h.1.1.1 h.1.1.2 (hasConc_sound h.1.2) (ih _ h.2)
+      exact .allR h.1.1.1 h.1.1.2 h.1.2 (ih _ h.2)
   | exS x y r c k ih =>
       intro Γ h
       simp only [check, Bool.and_eq_true, decide_eq_true_eq] at h

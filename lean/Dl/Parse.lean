@@ -158,6 +158,10 @@ def cert? : Nat → List String → Option (Cert × List String)
     match t, ts with
     | "bot", x :: ts' => some (.botC x, ts')
     | "diff", x :: ts' => some (.diffC x, ts')
+    | "disjoint", x :: ts' => do
+        let (c, ts1) ← concept? fuel ts'
+        let (d, ts2) ← concept? fuel ts1
+        some (.disjC x c d, ts2)
     | "neg", x :: ts' => (concept? fuel ts').map (fun p => (.negC x p.1, p.2))
     | "minmax", x :: r :: m :: n :: ts' => do
         let m ← m.toNat?

@@ -207,6 +207,7 @@ impl RawConcept {
 
 // ── String Interner ─────────────────────────────────────────────────────
 
+#[derive(Clone)]
 pub struct Interner {
     to_id: HashMap<String, u32>,
     to_str: Vec<String>,
@@ -220,7 +221,7 @@ impl Interner {
         }
     }
 
-    fn intern(&mut self, s: &str) -> u32 {
+    pub(crate) fn intern(&mut self, s: &str) -> u32 {
         if let Some(&id) = self.to_id.get(s) {
             return id;
         }
@@ -3681,7 +3682,7 @@ use std::path::Path;
 
 /// An axiom in the fragment `lean/Dl/` covers, over interned identifiers.
 #[derive(Clone, Debug)]
-enum DlAxiom {
+pub(crate) enum DlAxiom {
     Sub(Concept, Concept),
     Disjoint(Concept, Concept),
     Domain(u32, Concept),
@@ -3774,7 +3775,7 @@ impl ModelOutcome {
 /// proptest below can only sample. All four are ASCII and no ASCII byte occurs
 /// inside a multi-byte UTF-8 sequence, so the byte-level test and
 /// `str::contains` over a `char` array agree on every `&str`.
-fn name_is_safe(s: &str) -> bool {
+pub(crate) fn name_is_safe(s: &str) -> bool {
     crate::boundary_core::name_is_safe_bytes(s.as_bytes())
 }
 
@@ -3795,7 +3796,7 @@ fn name_is_safe(s: &str) -> bool {
 /// certificate. It is a sink rather than a `Result` so the serialisers stay
 /// total and keep their shape; a certificate is written only after the caller
 /// has looked at it.
-fn push_name(out: &mut String, interner: &Interner, id: u32, bad: &mut Option<String>) {
+pub(crate) fn push_name(out: &mut String, interner: &Interner, id: u32, bad: &mut Option<String>) {
     let s = interner.resolve(id);
     if !name_is_safe(s) && bad.is_none() {
         *bad = Some(s.to_string());
@@ -3873,13 +3874,13 @@ fn write_nary(
     }
 }
 
-fn concept_string(interner: &Interner, c: &Concept, bad: &mut Option<String>) -> String {
+pub(crate) fn concept_string(interner: &Interner, c: &Concept, bad: &mut Option<String>) -> String {
     let mut s = String::new();
     write_concept(&mut s, interner, c, bad);
     s
 }
 
-fn axiom_line(interner: &Interner, a: &DlAxiom, bad: &mut Option<String>) -> String {
+pub(crate) fn axiom_line(interner: &Interner, a: &DlAxiom, bad: &mut Option<String>) -> String {
     // Every name in the line goes through `push_name`, including the ones that
     // are not inside a concept, so `bad` is set by the time the line exists.
     let cs = |c: &Concept, bad: &mut Option<String>| concept_string(interner, c, bad);
@@ -4630,6 +4631,111 @@ impl DlReasoner {
             Verdict::Satisfiable => {}
         }
         self.emit(&tableau, &HashMap::new(), self.tbox_axioms(), dir)
+    }
+
+    /// Certify that a class is UNSATISFIABLE, which is the answer `emit` cannot
+    /// certify and never could.
+    ///
+    /// `certify_class_satisfiable` hands over a model. There is no model to hand
+    /// over here, so what is handed over is a closed tableau, and the checker
+    /// that reads it is `oo-dlrefute` rather than `oo-dlmodel`. The two verdicts
+    /// are different sentences and the two files must never be confused.
+    ///
+    /// The search that writes the tableau is NOT this reasoner. It is the small
+    /// independent one in `crate::dl_refute`, over the certified rules only,
+    /// because blocking and merging are completeness devices a refutation does
+    /// not need and the certified calculus deliberately lacks. So this can fail
+    /// to certify an unsatisfiability this reasoner decided, and when it does,
+    /// the reasoner's answer is unchanged and uncertified, exactly as before.
+    pub fn certify_class_unsatisfiable(
+        &self,
+        class_iri: &str,
+        dir: &Path,
+    ) -> anyhow::Result<crate::dl_refute::RefuteOutcome> {
+        let Some(&cid) = self.interner.to_id.get(class_iri) else {
+            anyhow::bail!("no class named {class_iri} in this ontology");
+        };
+        let concept = Concept::Atom(cid);
+        let mut tableau = Tableau::with_deadline(Arc::clone(&self.tbox), self.phase_deadline());
+        match tableau.decide(&concept) {
+            Verdict::Unsatisfiable => {}
+            Verdict::Unknown => {
+                return Ok(crate::dl_refute::RefuteOutcome::NotFound(
+                    "the run was undetermined, so there is no negative answer to certify"
+                        .to_string(),
+                ))
+            }
+            Verdict::Satisfiable => {
+                return Ok(crate::dl_refute::RefuteOutcome::NotFound(
+                    "the class is satisfiable; certify the model instead".to_string(),
+                ))
+            }
+        }
+        let mut axioms = self.tbox_axioms();
+        axioms.push(DlAxiom::NonEmpty(concept));
+        let mut interner = self.interner.clone();
+        crate::dl_refute::certify_unsatisfiable(
+            &axioms,
+            &mut interner,
+            dir,
+            crate::dl_refute::DEFAULT_BUDGET,
+        )
+    }
+
+    /// Certify that the TBox is INCONSISTENT. The mirror of
+    /// `certify_tbox_consistent`, and the same caveats apply.
+    pub fn certify_tbox_inconsistent(
+        &self,
+        dir: &Path,
+    ) -> anyhow::Result<crate::dl_refute::RefuteOutcome> {
+        let mut tableau = Tableau::with_deadline(Arc::clone(&self.tbox), self.phase_deadline());
+        match tableau.decide(&Concept::Top) {
+            Verdict::Unsatisfiable => {}
+            Verdict::Unknown => {
+                return Ok(crate::dl_refute::RefuteOutcome::NotFound(
+                    "the run was undetermined".to_string(),
+                ))
+            }
+            Verdict::Satisfiable => {
+                return Ok(crate::dl_refute::RefuteOutcome::NotFound(
+                    "the TBox is consistent; certify the model instead".to_string(),
+                ))
+            }
+        }
+        let mut axioms = self.tbox_axioms();
+        axioms.push(DlAxiom::NonEmpty(Concept::Top));
+        let mut interner = self.interner.clone();
+        crate::dl_refute::certify_unsatisfiable(
+            &axioms,
+            &mut interner,
+            dir,
+            crate::dl_refute::DEFAULT_BUDGET,
+        )
+    }
+
+    /// Certify that the ABox is INCONSISTENT with the TBox.
+    pub fn certify_abox_inconsistent(
+        &self,
+        dir: &Path,
+    ) -> anyhow::Result<crate::dl_refute::RefuteOutcome> {
+        let (mut tableau, _, _) = self.build_abox_tableau(Self::global_deadline());
+        if tableau.expand(0) {
+            return Ok(crate::dl_refute::RefuteOutcome::NotFound(
+                "the ABox is consistent; certify the model instead".to_string(),
+            ));
+        }
+        if tableau.budget.exhausted {
+            return Ok(crate::dl_refute::RefuteOutcome::NotFound(
+                "the run was undetermined".to_string(),
+            ));
+        }
+        let mut interner = self.interner.clone();
+        crate::dl_refute::certify_unsatisfiable(
+            &self.abox_axioms(),
+            &mut interner,
+            dir,
+            crate::dl_refute::DEFAULT_BUDGET,
+        )
     }
 
     /// Certify that the ABox is consistent with the TBox.

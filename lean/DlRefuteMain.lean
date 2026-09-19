@@ -57,6 +57,7 @@ def stepKind : Cert → String
   | .botC .. => "bot-clash"
   | .negC .. => "negation-clash"
   | .diffC .. => "inequality-clash"
+  | .disjC .. => "disjointness-clash"
   | .minmaxC .. => "bound-clash"
   | .maxC .. => "cardinality-clash"
   | .instS .. => "assertion"
@@ -73,7 +74,7 @@ def stepKind : Cert → String
   | .orS .. => "disjunction"
 
 def steps : Cert → Nat
-  | .botC .. | .negC .. | .diffC .. | .minmaxC .. | .maxC .. => 1
+  | .botC .. | .negC .. | .diffC .. | .disjC .. | .minmaxC .. | .maxC .. => 1
   | .instS _ _ k | .relS _ _ _ k | .subS _ _ _ k | .domS _ _ _ _ k
   | .rngS _ _ _ _ k | .subroleS _ _ _ _ k | .nonemptyS _ _ k | .andS _ _ _ k
   | .allS _ _ _ _ k | .exS _ _ _ _ k | .minS _ _ _ _ _ k => 1 + steps k

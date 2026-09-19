@@ -103,7 +103,7 @@ what `GModels` gives for every role the axioms mention. -/
 theorem all_sound {A : List Axiom} {Γ : List Constraint} {x y r : Name} {c : Concept}
     (hall : Constraint.conc x (.all r c) ∈ Γ)
     (hedge : Constraint.role r x y ∈ Γ)
-    (hy : ∃ d, Constraint.conc y d ∈ Γ)
+    (hr : r ∈ roleNames A)
     (h : BranchSat A Γ) :
     BranchSat A (Constraint.conc y c :: Γ) := by
   obtain ⟨α, I, σ, hM, hag, hΓ⟩ := h
@@ -113,8 +113,11 @@ theorem all_sound {A : List Axiom} {Γ : List Constraint} {x y r : Name} {c : Co
   · have hx := hΓ _ hall
     have he := hΓ _ hedge
     simp only [CHolds, GSat] at hx he
-    obtain ⟨d, hd⟩ := hy
-    exact ⟨(hΓ _ hd).1, hx.2 (σ y) he⟩
+    -- The target is in the carrier because the edge is, which is what `hr` and
+    -- `rextDom` say together. Asking the branch for a concept entry on `y`
+    -- instead, as this used to, refuses to propagate into an individual the
+    -- ontology relates but never classifies, and those are common.
+    exact ⟨hM.rextDom r hr (σ x) (σ y) hx.1 he, hx.2 (σ y) he⟩
   · exact hΓ _ hκ
 
 /-- Disjunction. `x : C ⊔ D` licenses a split, and a model of the branch is a
@@ -642,6 +645,19 @@ theorem clash_minmax {A : List Axiom} {Γ : List Constraint} {x r : Name} {c : C
   have := hle ys hnd hmem
   omega
 
+/-- **The disjointness clash.** `C ⊓ D ⊑ ⊥` with an `x` in both.
+
+Worth a rule of its own rather than a translation to `C ⊑ ¬D`, even though the
+two say the same thing about every interpretation. The certificate has to cite
+an axiom that is IN the axiom file, and the axiom file is a transcription of the
+ontology. Rewriting disjointness on the way in would make the certificate be
+about a different axiom set from the one the reader was handed. -/
+theorem clash_disjoint {A : List Axiom} {Γ : List Constraint} {x : Name} {c d : Concept}
+    (hax : Axiom.disjoint c d ∈ A)
+    (hc : Constraint.conc x c ∈ Γ) (hd : Constraint.conc x d ∈ Γ) : ¬ BranchSat A Γ := by
+  rintro ⟨α, I, σ, hM, _, hΓ⟩
+  exact hM.holds _ hax (σ x) (hΓ _ hc).1 ⟨(hΓ _ hc).2, (hΓ _ hd).2⟩
+
 /-- `x ≠ x`. The inequality rule for number restrictions introduces these, and
 a branch that has asserted an individual differs from itself is closed. -/
 theorem clash_diff {A : List Axiom} {Γ : List Constraint} {x : Name}
@@ -667,11 +683,14 @@ inductive Closed (A : List Axiom) : List Constraint → Prop where
   | neg {Γ x c} (hp : Constraint.conc x c ∈ Γ)
         (hn : Constraint.conc x (.neg c) ∈ Γ) : Closed A Γ
   | diff {Γ x} (h : Constraint.diff x x ∈ Γ) : Closed A Γ
+  /-- Disjointness: an individual in two classes the ontology declares apart. -/
+  | disjointClash {Γ : List Constraint} {x : Name} {c d : Concept}
+        (hax : Axiom.disjoint c d ∈ A)
+        (hc : Constraint.conc x c ∈ Γ) (hd : Constraint.conc x d ∈ Γ) : Closed A Γ
   | andR {Γ x c d} (hmem : Constraint.conc x (.and c d) ∈ Γ)
         (next : Closed A (Constraint.conc x c :: Constraint.conc x d :: Γ)) : Closed A Γ
   | allR {Γ x y r c} (hall : Constraint.conc x (.all r c) ∈ Γ)
-        (hedge : Constraint.role r x y ∈ Γ)
-        (hy : ∃ d, Constraint.conc y d ∈ Γ)
+        (hedge : Constraint.role r x y ∈ Γ) (hr : r ∈ roleNames A)
         (next : Closed A (Constraint.conc y c :: Γ)) : Closed A Γ
   | orR {Γ x c d} (hmem : Constraint.conc x (.or c d) ∈ Γ)
         (left : Closed A (Constraint.conc x c :: Γ))
@@ -750,8 +769,9 @@ theorem closed_sound {A : List Axiom} {Γ : List Constraint} (h : Closed A Γ) :
   | bot hb => exact clash_bot hb
   | neg hp hn => exact clash_neg hp hn
   | diff hd => exact clash_diff hd
+  | disjointClash hax hc hd => exact clash_disjoint hax hc hd
   | andR hmem _ ih => exact fun hs => ih (and_sound hmem hs)
-  | allR hall hedge hy _ ih => exact fun hs => ih (all_sound hall hedge hy hs)
+  | allR hall hedge hr _ ih => exact fun hs => ih (all_sound hall hedge hr hs)
   | orR hmem _ _ ihl ihr =>
       intro hs
       rcases or_sound hmem hs with hl | hr

@@ -17,10 +17,13 @@ Exit codes, matching the convention `oo-cert` uses:
 
 What exit 0 does NOT say, and what a reader must not infer from it:
 
-* it says nothing about UNSATISFIABILITY. When `src/tableaux.rs` reports that a class is
-  unsatisfiable, or that an ontology is inconsistent, no certificate is produced and none is
-  checked here. That answer is still "trust the reasoner". Certifying it needs a closed
-  tableau with its blocking argument, which is a different problem and is not solved here;
+* it says nothing about UNSATISFIABILITY. That answer has its own certificate and its own
+  checker, `oo-dlrefute`, and the two must never be read for one another. This header used
+  to say certifying it "needs a closed tableau with its blocking argument". Half of that
+  was right. A closed tableau is what it needs. Blocking is a COMPLETENESS device, there so
+  that a SEARCH for a model terminates, and a refutation never needs one: a closed tableau
+  is already a finite tree whose every branch ended in a clash. `lean/Dl/Tableau.lean` is
+  the proof and it carries no blocking argument anywhere;
 * it says nothing about whether `AXIOMS.tsv` is the ontology. The OWL parser in
   `src/tableaux.rs` is outside the theorem, exactly as the N-Triples parser is outside
   `Shacl.validate_spec`. What is certified is a relation between the two files;
