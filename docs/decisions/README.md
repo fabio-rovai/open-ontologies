@@ -16,9 +16,15 @@ and whose benefit is not gets dropped the first time it is inconvenient.
 | [0010](0010-the-input-is-a-value-and-not-a-store.md) | The input is a value and not a store | Certifying a run against a store that can change under it |
 | [0011](0011-a-module-carries-a-theorem-and-a-slice-carries-a-measurement.md) | A module carries a theorem, a slice carries a measurement | Reading a measured slice as though it carried the theorem a module does |
 | [0012](0012-concurrency-lives-below-the-certificate.md) | Concurrency lives below the certificate, and a proof cannot follow it there | Adopting a program logic for a hazard that lives in a dependency, and calling the result assurance |
+| [0013](0013-a-second-oracle-can-contradict-and-cannot-confirm.md) | A second oracle can contradict, and cannot confirm | A second solver's agreement being read as corroboration of the one answer nothing can check |
 | [0014](0014-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md) | A verifier that cannot read the code verifies a rewrite | Counting a green verifier as evidence about code it never read |
 | [0015](0015-a-blank-line-is-a-line-or-it-is-not.md) | A blank line is a line, or it is not, and the format never said which | The same failure again, found by a third kernel and still OPEN: two checkers reading one file differently because nobody wrote down what an empty line is |
 | [0016](0016-a-conclusion-names-the-axioms-responsible-for-it.md) | A conclusion names the axioms responsible for it, and minimality is re-run | Presenting a justification as minimal when nothing re-ran it |
+
+This table is not the whole set. Decisions 0009, 0010 and 0011 are in this directory and have no row
+here, and the number 0009 was used twice by two records written in parallel. Both are stated rather
+than quietly left for a reader to discover, because an index that looks complete and is not is worse
+than one that admits the gap.
 
 There is no 0004. The decision now numbered 0006 was drafted as 0004 on a branch that never merged,
 so the number never reached `main`. It is left as a hole rather than reused, because a reused number
