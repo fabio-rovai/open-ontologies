@@ -963,13 +963,22 @@ fn the_bridge_refuses_what_it_cannot_check() {
         dup.raw
     );
 
-    // Six refusals, each naming what it refused. One per way the pipeline can
-    // decline: an unknown parameter, an unimplemented path form, a regular
-    // expression outside the proved subset, recursion, the extension mechanism, and
-    // a datatype whose lexical space is not implemented.
-    let refusals: [(&str, &str, &str); 6] = [
+    // Seven refusals, each naming what it refused. One per way the pipeline can
+    // decline: an unknown parameter, an unimplemented path form in each of its
+    // two SPELLINGS, a regular expression outside the proved subset, recursion,
+    // the extension mechanism, and a datatype whose lexical space is not
+    // implemented.
+    //
+    // The IRI-spelled path is #205 and it is the reason the pair is listed
+    // rather than one of them: the compiler tested the spelling before the path
+    // forms, so a named path node carrying `sh:zeroOrMorePath` was read as a
+    // plain predicate and answered with a verdict, while its blank-node twin was
+    // refused. Two shapes graphs saying the same thing, one checked and one not,
+    // and no way for the author to tell which they had written.
+    let refusals: [(&str, &str, &str); 7] = [
         ("conforming-data.nt", "unsupported-shapes.nt", "shacl#prefixes"),
         ("conforming-data.nt", "unsupported-path-shapes.nt", "zeroOrMorePath"),
+        ("conforming-data.nt", "unsupported-path-iri-shapes.nt", "zeroOrMorePath"),
         ("conforming-data.nt", "unsupported-regex-shapes.nt", "'+'"),
         ("conforming-data.nt", "recursive-shapes.nt", "recursive"),
         ("conforming-data.nt", "component-shapes.nt", "extension mechanism"),
@@ -990,6 +999,22 @@ fn the_bridge_refuses_what_it_cannot_check() {
             "{shp}: the refusal must name what was refused; expected {needle:?} in {reason:?}"
         );
     }
+
+    // The property behind the pair above, asserted directly: the two spellings
+    // must give the SAME answer. Listing both in the table would still pass if
+    // some future change made both of them answer rather than both refuse.
+    let by_bnode = run_bridge(&f.join("conforming-data.nt"), &f.join("unsupported-path-shapes.nt"));
+    let by_iri = run_bridge(&f.join("conforming-data.nt"), &f.join("unsupported-path-iri-shapes.nt"));
+    assert_eq!(
+        by_bnode.code, by_iri.code,
+        "the same shape spelled two ways gave exit {} and exit {}. Whichever is right, a \
+         shapes author cannot be expected to know that the spelling decided it.\n{}\n{}",
+        by_bnode.code, by_iri.code, by_bnode.raw, by_iri.raw
+    );
+    assert_eq!(
+        by_bnode.json["status"], by_iri.json["status"],
+        "{}\n{}", by_bnode.raw, by_iri.raw
+    );
 
     // A file that is not N-Triples is exit 2, which is a different answer again.
     let broken = run_bridge(&f.join("malformed.nt"), &shapes);
