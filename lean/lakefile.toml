@@ -1,6 +1,6 @@
 name = "oocert"
 version = "0.1.0"
-defaultTargets = ["OOCert", "oo-cert", "oo-horn", "Shacl", "oo-shacl", "oo-refute", "Dl", "oo-dlmodel", "Fol", "oo-folmodel", "Institution"]
+defaultTargets = ["OOCert", "oo-cert", "oo-horn", "Shacl", "oo-shacl", "oo-refute", "Dl", "oo-dlmodel", "oo-dlrefute", "Fol", "oo-folmodel", "Institution"]
 
 # Every library and executable here is in defaultTargets on purpose. A target
 # left out of the default set is not built by a bare `lake build`, which is what
@@ -50,6 +50,16 @@ name = "Dl"
 [[lean_exe]]
 name = "oo-dlmodel"
 root = "DlMain"
+
+# The refutation half. `oo-dlmodel` certifies that an ontology HAS a model by
+# exhibiting one; this certifies that it has NONE by exhibiting a closed
+# tableau. Its own executable for the same reason `oo-refute` is separate from
+# `oo-cert`: the verdicts are different sentences and must never be read for
+# one another. Exit 1 here means the certificate did not check, never that the
+# ontology is consistent.
+[[lean_exe]]
+name = "oo-dlrefute"
+root = "DlRefuteMain"
 
 # The first-order model certificate. A solver's `sat` answer plus the finite
 # structure it built, checked against the problem it was given. Separate from
