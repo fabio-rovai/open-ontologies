@@ -234,42 +234,59 @@ def compilePath (G : Graph) : Nat → Term → Except String Path
   | 0, node =>
       .error s!"the path at {node} nests deeper than the shapes graph is long, so it is cyclic"
   | fuel + 1, node =>
-    if isIriSpelling node then .ok (.pred node)
-    else
-      match pathForms G node with
-      | [] => .error s!"{node} is not a path this development understands"
-      | ["sh:inversePath"] =>
-          match objectsOf G node SH.inversePath with
-          | [inner] =>
-              if isIriSpelling inner then .ok (.inv inner)
-              else .error "sh:inversePath of something other than a predicate is not implemented"
-          | _ => .error "more than one sh:inversePath on a path node"
-      | ["sh:alternativePath"] =>
-          match objectsOf G node SH.alternativePath with
-          | [l] => do
-              let members ← readList G (G.length + 1) l
-              let mut ps : List Path := []
-              for m in members do
-                ps := ps ++ [← compilePath G fuel m]
-              foldAltPath ps
-          | _ => .error "more than one sh:alternativePath on a path node"
-      | ["sh:zeroOrOnePath"] =>
-          match objectsOf G node SH.zeroOrOnePath with
-          | [inner] => do
-              let p ← compilePath G fuel inner
-              .ok (.zeroOrOne p)
-          | _ => .error "more than one sh:zeroOrOnePath on a path node"
-      | ["a sequence path"] => do
-          let members ← readList G (G.length + 1) node
-          let mut ps : List Path := []
-          for m in members do
-            ps := ps ++ [← compilePath G fuel m]
-          foldSeq ps
-      | [one] => .error s!"{one} is not implemented"
-      | many =>
-          .error s!"the path node {node} carries more than one path form \
-            ({String.intercalate ", " many}); SHACL allows exactly one, so this shapes graph is \
-            ill formed and no reading of it is chosen"
+    -- The path FORMS are examined before the spelling, and the order is the
+    -- whole of #205.
+    --
+    -- This used to read `if isIriSpelling node then .ok (.pred node)` first, so
+    -- a path node spelled as a named IRI that carried `sh:zeroOrMorePath` was
+    -- compiled as a plain predicate. The evaluator then answered a question
+    -- nobody asked, exit 0, with a verdict: the same shape written with a blank
+    -- node was refused by name with exit 3. A shapes author chooses that
+    -- spelling freely and has no reason to think it matters.
+    --
+    -- That is the collapse the three-state verdict exists to prevent, reached
+    -- by a route the theorem cannot see: `Shacl.validate_spec` covers the
+    -- EVALUATOR, and the compiler had handed it a different shape from the one
+    -- that was written. A node carrying any path predicate now takes the same
+    -- branch whatever its spelling, so the two unimplemented forms are refused
+    -- by name either way, and only a node carrying NO path predicate is read as
+    -- a plain predicate.
+    match pathForms G node with
+    | [] =>
+        if isIriSpelling node then .ok (.pred node)
+        else .error s!"{node} is not a path this development understands"
+    | ["sh:inversePath"] =>
+        match objectsOf G node SH.inversePath with
+        | [inner] =>
+            if isIriSpelling inner then .ok (.inv inner)
+            else .error "sh:inversePath of something other than a predicate is not implemented"
+        | _ => .error "more than one sh:inversePath on a path node"
+    | ["sh:alternativePath"] =>
+        match objectsOf G node SH.alternativePath with
+        | [l] => do
+            let members ← readList G (G.length + 1) l
+            let mut ps : List Path := []
+            for m in members do
+              ps := ps ++ [← compilePath G fuel m]
+            foldAltPath ps
+        | _ => .error "more than one sh:alternativePath on a path node"
+    | ["sh:zeroOrOnePath"] =>
+        match objectsOf G node SH.zeroOrOnePath with
+        | [inner] => do
+            let p ← compilePath G fuel inner
+            .ok (.zeroOrOne p)
+        | _ => .error "more than one sh:zeroOrOnePath on a path node"
+    | ["a sequence path"] => do
+        let members ← readList G (G.length + 1) node
+        let mut ps : List Path := []
+        for m in members do
+          ps := ps ++ [← compilePath G fuel m]
+        foldSeq ps
+    | [one] => .error s!"{one} is not implemented"
+    | many =>
+        .error s!"the path node {node} carries more than one path form \
+          ({String.intercalate ", " many}); SHACL allows exactly one, so this shapes graph is \
+          ill formed and no reading of it is chosen"
 
 /-- Is this parameter present with the literal value `true`?
 
