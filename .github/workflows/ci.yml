@@ -347,9 +347,19 @@ jobs:
         run: cargo build --release --bin open-ontologies
       # shacl and align as well as dev. Those two extras are the whole reason
       # three more files skipped here, and they are small.
+      # `hnswlib` is built from source rather than taken as a wheel.
+      #
+      # The published wheel is compiled for a newer CPU than some of GitHub's
+      # runners provide, and it raises SIGILL on IMPORT. No `try`/`except`
+      # reaches that: the interpreter dies during collection and takes the
+      # whole suite with it, so the job fails with "Fatal Python error:
+      # Illegal instruction" and a core dump, on branches that touched no
+      # Python at all. Seen twice on 19 September 2026, on #211 (a docs-only
+      # change) and #219. Building it here compiles for the CPU the job is
+      # actually running on.
       - name: Install with the extras the tests need
         working-directory: python
-        run: uv pip install --system -e ".[dev,shacl,align]"
+        run: uv pip install --system --no-binary hnswlib -e ".[dev,shacl,align]"
       - name: Test
         working-directory: python
         run: python -m pytest -q

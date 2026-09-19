@@ -2,7 +2,38 @@
 
 Run: pip install -e ".[align,dev]" && pytest -q
 """
+import subprocess
+import sys
+
 import pytest
+
+
+def _import_survives_in_a_subprocess() -> bool:
+    """Import `hnswlib` in a SUBPROCESS before importing it here.
+
+    A wheel compiled for a newer CPU than the machine provides raises SIGILL on
+    import, and no `try`/`except` reaches that: the interpreter dies during
+    COLLECTION and takes every other test in the run with it. The job then
+    reports "Fatal Python error: Illegal instruction" and a core dump, with no
+    indication of which import did it. That happened twice on 19 September 2026,
+    on branches that touched no Python.
+
+    CI builds hnswlib from source so this should not fire. It is here so that if
+    it ever does, the run says which library and why instead of dying.
+    """
+    return subprocess.run(
+        [sys.executable, "-c", "import hnswlib"],
+        capture_output=True,
+    ).returncode == 0
+
+
+if not _import_survives_in_a_subprocess():
+    pytest.fail(
+        "hnswlib is installed but crashes the interpreter on import, which is "
+        "a wheel built for a CPU this machine does not have. Install it from "
+        "source: pip install --no-binary hnswlib hnswlib",
+        pytrace=False,
+    )
 
 hnswlib = pytest.importorskip("hnswlib")  # noqa: F841
 
