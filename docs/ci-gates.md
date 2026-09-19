@@ -58,6 +58,7 @@ job invokes the file at all.
 | `provenance_test.rs` | the same shipped ontology | `lean` job | **strict** |
 | `shacl_core_verified_test.rs` | lake + vendored W3C SHACL suite | `lean` job | **strict** |
 | `dl_model_certificate_test.rs` | lake + `oo-dlmodel` | `lean` job | **strict** |
+| `shacl_verified_tool_test.rs` | lake + `oo-shacl` | `lean` job | **strict** |
 | `dl_refutation_certificate_test.rs` | lake + `oo-dlrefute` | `lean` job | **strict** |
 | `lean_refutation_test.rs` | lake + `oo-refute` | `lean` job | **strict** |
 | `lean_refutation_producer_test.rs` | lake + `oo-refute` | `lean` job | **strict** |

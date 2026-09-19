@@ -1258,6 +1258,25 @@ impl OpenOntologiesServer {
                 Err(e) => return Self::err_json(format!("Cannot read shapes file: {}", e)),
             }
         };
+        if input.verified.unwrap_or(false) {
+            // Refused rather than ignored. The verified evaluator reads one
+            // N-Triples dump of the store and has no notion of a temporal
+            // scope, so honouring the argument is impossible and dropping it
+            // would answer a different question from the one that was asked.
+            if input.valid_at.is_some()
+                || input.as_of.is_some()
+                || input.all_versions.unwrap_or(false)
+            {
+                return Self::err_json(
+                    "verified: true cannot be combined with valid_at, as_of or all_versions.                      The verified evaluator reads the whole store and has no temporal scope,                      so the scope would be silently dropped. Run the scoped question on the                      default path, or the verified question without a scope."
+                        .to_string(),
+                );
+            }
+            return match crate::shacl_verified::validate_verified(&self.graph, &shapes) {
+                Ok(v) => v.to_string(),
+                Err(e) => Self::err_json(e.to_string()),
+            };
+        }
         let request = match crate::temporal::ScopeRequest::from_args(
             input.valid_at.as_deref(),
             input.as_of.as_deref(),
