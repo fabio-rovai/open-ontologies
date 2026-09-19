@@ -259,7 +259,7 @@ A disables it again.
 
 ### Defect D: the store can drift between hashing and reasoning. KNOWN, DOCUMENTED, OPEN.
 
-`Reasoner::run_horn` takes `&Arc<GraphStore>` (`src/reason.rs:2915`) and reads the store at line 2935.
+`Reasoner::run_horn` takes `&Arc<GraphStore>` (`src/reason.rs:3107`) and reads the store at line 3134.
 This is already
 [decision 0010](decisions/0010-the-input-is-a-value-and-not-a-store.md), which names it, calls the
 window a race in as many words, and specifies `CertifiedInput` to dissolve it by copying once. It is
