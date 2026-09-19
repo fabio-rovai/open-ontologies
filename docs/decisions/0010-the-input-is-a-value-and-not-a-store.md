@@ -32,9 +32,12 @@ The certified reasoner accepts an immutable `CertifiedInput` and has no second p
 `CertifiedInput` owns the canonical bytes of the assertions it was built from. Selection copies once;
 everything downstream reads an owned value. There are no phases that re-read the store, so there is
 no window in which the store can drift between hashing and reasoning. That matters here because
-`GraphStore::snapshot` is a serialiser that takes a format string, not an isolation primitive, and
-no transactional snapshot is available to lean on. Copying is the only honest option available and it
-is also the one that dissolves the race.
+`GraphStore::snapshot` is a serialiser that takes a format string, not an isolation primitive.
+
+This paragraph used to continue "and no transactional snapshot is available to lean on. Copying is
+the only honest option available". **That was false**, and the correction is below under *The
+premise was wrong and the decision survives it*. A transactional snapshot IS available. Copying is
+still what we do, for a reason that had to be measured rather than assumed.
 
 The invariant to enforce and then to prove:
 
@@ -141,6 +144,102 @@ Adjusted from the obvious order, because the canonical-bytes machinery is alread
    the reasoner's input and the certificate's input. Not Oxigraph, and not the hash primitive. Prove
    the correct bytes are constructed and handed to a conventional implementation.
 9. Attestation, only under the condition in the section above.
+
+## The premise was wrong and the decision survives it
+
+*Added 19 September 2026, closing #181.*
+
+The paragraph above rested on a claim about this repository's own dependency, and the claim did not
+hold. `oxigraph = "0.5"` is pinned; `Store::start_transaction` is public and the crate documents it
+as repeatable read. A decision record resting on a false statement about its dependency is worth
+correcting whether or not the decision changes. This one does not change, and the reason it does not
+is a cost the original text never weighed, because it believed there was nothing to weigh.
+
+Three things were measured rather than argued. `tests/transaction_isolation_test.rs` and
+`tests/transaction_memory_test.rs` are the measurements, and they are gates: each carries the
+assertion that would fail if a future Oxigraph changed the answer, worded so that the fix is to
+re-argue this section rather than to relax the assertion.
+
+**The two storage backends do not behave alike.** This is the finding that matters, because
+`GraphStore::new` builds the in-memory one and almost everything in this codebase uses it.
+
+| | in memory (`Store::new`) | on disk (`Store::open`) |
+|---|---|---|
+| a writer, while a read transaction is open | **blocked until the reader commits** | proceeds |
+| the reader's view, meanwhile | stable | stable |
+
+In memory, a concurrent `insert` does not return while a read transaction is open. It is a lock and
+not a deadlock: the writer proceeds the moment the reader commits, and a test asserts exactly that,
+because "blocked forever" and "blocked for the duration" are different defects. The block is inside
+`MemoryStorage::start_transaction`, reached from `Store::insert`, which opens a transaction of its
+own. On disk the same probe shows the writer completing while the reader's repeated scan returns
+the same count, which is what repeatable read is supposed to feel like.
+
+**A read-only transaction costs no memory.** Oxigraph warns that "the transaction keeps the complete
+set of changes into memory". That is a warning about writes. Over 20,000 triples, measuring NET LIVE
+bytes with a counting global allocator, one run on macOS in a debug build:
+
+| | net live bytes |
+|---|---|
+| held open, read-only transaction | **0** |
+| copied out, the owned value this decision builds | **4,417,076** |
+
+about 221 bytes per triple for the copy, against nothing for the transaction. The transaction's zero
+is net rather than churn: the scan allocates and frees, and keeps nothing, which is the claim that
+matters here.
+
+Those two constants are from one run and are not gated. What is gated is the inequality between
+them, by a factor of four in each direction, which is the shape the argument rests on and is not
+going to move with an allocator or a platform. A test that pinned 4,417,076 would fail on Linux for
+no reason anybody cares about, and would then be relaxed rather than read.
+
+**So the trade is the opposite way round from the one the original text implied.** It is not
+"copying is the only honest option". It is: copying spends about 221 bytes per triple in order to
+hold an exclusive window that is short rather than one that lasts the whole reasoning run. On the
+in-memory store a certified run that held its transaction open would stall every writer for as long
+as it reasoned, and a reasoning run is not bounded by anything the reader controls. Copy once,
+release, and reason on an owned value.
+
+**Phantoms do not occur, measured rather than inferred from the isolation level's name.**
+Repeatable read permits phantoms in general: a second evaluation of the same PATTERN may return rows
+a concurrent transaction inserted. The probe repeats one pattern scan twenty times while a writer
+commits between every pair of scans, into the very pattern being scanned, on the on-disk store
+because that is the only one where a writer can commit at all while a reader is open. Every scan
+returned the first count. The probe also asserts that the writer committed something, so a run in
+which the writer never got going fails rather than passing as a clean result.
+
+**The route this issue suggested for TCB-6 and TCB-7 does not exist in Oxigraph 0.5.** The
+suggestion was that a transaction plus a recorded store version would turn "the assertions the
+engine reasoned over" from a claim about an EXECUTION into a claim about a VALUE, which a checker
+could confirm. There is no version to record: `Store` exposes no revision, sequence number or
+snapshot handle, and the `Storage::snapshot` that exists internally is not reachable from the public
+API. So `store revision` stays in the attested half of the manifest, where this decision already put
+it, and TCB-6 and TCB-7 stay irreducible for this dependency at this version. That is settled, not
+deferred; it becomes live again only if Oxigraph exposes one.
+
+**Neither option is good enough, so the dependency is being changed.** The choice the original text
+thought it faced was between a copy and nothing. The choice it actually faced is between a copy that
+spends 221 bytes a triple and a transaction that stops the store for the length of a reasoning run.
+Both are bad, and they are bad for the same reason: Oxigraph 0.5 exposes no way to pin a read state
+without also taking a lock, even though `Storage::snapshot` does exactly that internally and is what
+`Store::len` and `Store::quads_for_pattern` already call for every single read.
+
+So the fix is a patch to Oxigraph rather than a better sentence here. `Store::snapshot` returns a
+read view pinned to one state that takes no lock, measured as:
+
+| | pins the state | writers keep running | memory over 20,000 triples |
+|---|---|---|---|
+| transaction, in memory | yes | **no, all blocked** | 0 |
+| the copy this decision makes | yes | yes | 4,417,076 bytes |
+| `Store::snapshot`, patched in | **yes** | **yes** | **0** |
+
+The reader is shared through an `Arc` rather than cloned per call, because
+`rocksdb_wrapper::Reader` owns a `*mut rocksdb_readoptions_t` and frees it in `Drop`; a derived
+`Clone` would double free. Oxigraph's own store suite passes against the patch.
+
+That work is a separate change and is not in this one, which corrects the record and leaves the copy
+in place. When the snapshot lands, the copy goes and this section is what says why it was ever
+there.
 
 ## Consequences
 
