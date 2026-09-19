@@ -6,6 +6,7 @@ import Dl.Count
 import Dl.Check
 import Dl.Parse
 import Dl.Witness
+import Dl.TableauDemo
 
 /-!
 # `Dl`: a model certificate for the SHIQ tableaux reasoner
