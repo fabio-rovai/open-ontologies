@@ -99,8 +99,9 @@ def main(asserted_path, derivations_path, out_path):
     # the reason the first-order provers hang off `problem.tsv` rather than off
     # anything in the ontology.
     LEAN = "Lean 4 · oo-cert"
-    TOOLS = ["certificate", "problem.tsv", "ies-core.ttl", "forged line",
-             LEAN, "Isabelle/HOL", "Vampire", "E", "Z3", "Mace4"]
+    FILES = ["ies-core.ttl", "certificate", "problem.tsv", "forged line"]
+    PROGRAMS = [LEAN, "Isabelle/HOL", "Vampire", "E", "Z3", "Mace4"]
+    TOOLS = FILES + PROGRAMS
     tool_edges = [
         ("ies-core.ttl", "certificate", "asserted"),
         ("certificate", LEAN, "certified"),
@@ -270,10 +271,36 @@ def main(asserted_path, derivations_path, out_path):
         return (split(left, (x0_, y0_, x1_, ym))
                 + split(right, (x0_, ym, x1_, y1_)))
 
-    # A floor on the weight, or the 2-node piece gets a sliver too thin to
-    # hold two dots and their names.
-    tiles = dict(split([(ci, len(c) + 4.0) for ci, c in enumerate(comps)],
-                       (OL, T, OR_, B)))
+    # Pieces of fewer than six classes share one tile rather than each taking
+    # their own. Given a tile apiece they were scaled up to fill it, so a
+    # two-class fragment drew as wide as the thirty-five-class piece beside it
+    # and the arrangement stopped saying anything about size.
+    BIG = [ci for ci, c in enumerate(comps) if len(c) >= 6]
+    SMALL = [ci for ci, c in enumerate(comps) if len(c) < 6]
+    items = [(("c", ci), float(len(comps[ci]))) for ci in BIG]
+    if SMALL:
+        items.append((("s", None), float(sum(len(comps[ci]) for ci in SMALL)) + 6.0))
+    rects = dict(split(items, (OL, T, OR_, B)))
+
+    tiles = {}
+    for key, rect in rects.items():
+        if key[0] == "c":
+            tiles[key[1]] = rect
+    if SMALL:
+        sx0, sy0, sx1, sy1 = rects[("s", None)]
+        # Side by side along the longer axis of the shared tile, biggest first.
+        horiz = (sx1 - sx0) >= (sy1 - sy0)
+        tot = float(sum(len(comps[ci]) for ci in SMALL))
+        run = 0.0
+        for ci in SMALL:
+            fr0, fr1 = run / tot, (run + len(comps[ci])) / tot
+            run += len(comps[ci])
+            if horiz:
+                tiles[ci] = (sx0 + (sx1 - sx0) * fr0, sy0,
+                             sx0 + (sx1 - sx0) * fr1, sy1)
+            else:
+                tiles[ci] = (sx0, sy0 + (sy1 - sy0) * fr0,
+                             sx1, sy0 + (sy1 - sy0) * fr1)
 
     pt = [[0.0, 0.0, 0.0] for _ in nodes]
     for ci, members in enumerate(comps):
@@ -296,9 +323,14 @@ def main(asserted_path, derivations_path, out_path):
         sc = min((tx1 - tx0) / (x1 - x0), (ty1 - ty0) / (y1 - y0))
         ox = tx0 + ((tx1 - tx0) - (x1 - x0) * sc) / 2.0
         oy = ty0 + ((ty1 - ty0) - (y1 - y0) * sc) / 2.0
+        # Clamped to the tile. The fit is on the 3rd and 97th percentiles, so by
+        # construction a few nodes land outside it; before the ontology had a
+        # drawn boundary that was invisible, and afterwards one class sat above
+        # the panel line, on the heading, looking like a mistake.
         for m, g in enumerate(members):
-            pt[idx[ont[g]]] = [ox + (pr[m][0] - x0) * sc,
-                               oy + (pr[m][1] - y0) * sc, pr[m][2]]
+            px_ = min(max(ox + (pr[m][0] - x0) * sc, tx0), tx1)
+            py_ = min(max(oy + (pr[m][1] - y0) * sc, ty0), ty1)
+            pt[idx[ont[g]]] = [px_, py_, pr[m][2]]
 
     # ── The pipeline, placed ────────────────────────────────────────────
     #
@@ -399,6 +431,13 @@ def main(asserted_path, derivations_path, out_path):
       '</defs>')
     A(f'<rect width="{W}" height="{H}" rx="14" fill="url(#bg)"/>')
 
+    # A boundary, because a cloud with no edge reads as spillage. The force
+    # layout is fitted inside this rectangle, so the line is where the drawing
+    # actually ends rather than a frame put round it afterwards.
+    A(f'<rect x="{OL - 16:.0f}" y="{T - 22:.0f}" width="{OR_ - OL + 32:.0f}" '
+      f'height="{B - T + 40:.0f}" rx="10" fill="#060e20" fill-opacity="0.55" '
+      f'stroke="#16283f" stroke-width="1"/>')
+
     def rad(i):
         """Node radius: degree for importance, depth for distance, and the
         verification layer drawn larger than the ontology it judges, exactly as
@@ -434,11 +473,21 @@ def main(asserted_path, derivations_path, out_path):
         # a bar, it says what actually happened, in the still frame as well as
         # in the animation.
         ax, ay, bx, by = pt[i][0], pt[i][1], pt[j][0], pt[j][1]
+        pipe = nodes[i] in TOOLS and nodes[j] in TOOLS
         if w == "rejected":
             gap = rad(j) + 17.0
             vx, vy = bx - ax, by - ay
             L = math.hypot(vx, vy) or 1.0
             bx, by = bx - vx / L * gap, by - vy / L * gap
+        elif pipe:
+            # Pipeline edges are a PROCESS and a process has a direction. Drawn
+            # as bare segments running under the dots at both ends, the three
+            # columns could be read right to left as easily as left to right.
+            vx, vy = bx - ax, by - ay
+            L = math.hypot(vx, vy) or 1.0
+            ux_, uy_ = vx / L, vy / L
+            ax, ay = ax + ux_ * (rad(i) + 4.0), ay + uy_ * (rad(i) + 4.0)
+            bx, by = bx - ux_ * (rad(j) + 8.5), by - uy_ * (rad(j) + 8.5)
         head = (f'<line x1="{ax:.1f}" y1="{ay:.1f}" x2="{bx:.1f}" y2="{by:.1f}" '
                 f'stroke="{COLOR[w]}" stroke-width="{WIDTH[w] * (0.7 + 0.8 * d):.2f}" '
                 f'opacity="{op:.2f}"')
@@ -449,6 +498,13 @@ def main(asserted_path, derivations_path, out_path):
                 'repeatCount="indefinite" values="0;-24"/></line>')
         else:
             layers[w].append(head + '/>')
+        if pipe and w != "rejected":
+            nx_, ny_ = -uy_, ux_
+            layers[w].append(
+                f'<path d="M{bx + ux_ * 7.0:.1f} {by + uy_ * 7.0:.1f} '
+                f'L{bx + nx_ * 3.4:.1f} {by + ny_ * 3.4:.1f} '
+                f'L{bx - nx_ * 3.4:.1f} {by - ny_ * 3.4:.1f} Z" '
+                f'fill="{COLOR[w]}" opacity="{min(1.0, op + 0.25):.2f}"/>')
         if w == "rejected":
             # The bar it stops against, square across the line.
             nx, ny = -vy / L, vx / L
@@ -513,6 +569,22 @@ def main(asserted_path, derivations_path, out_path):
               + anim("r", f"{r*3.0:.1f};{r*3.6:.1f};{r*3.0:.1f};{r*4.6:.1f};{r*3.4:.1f};{r*3.0:.1f}",
                      kt(0, 2.0, 4.0, 7.6, 9.6, CYCLE)) + '</circle>')
             A(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="{C_LEAN}"/>')
+        elif nodes[i] in FILES:
+            # Four of the ten things in the pipeline are FILES and six are
+            # PROGRAMS, and drawing all ten as identical dots hid the one
+            # distinction the picture is about: a certificate is a file you can
+            # hand to a checker, and a prover is a thing with an opinion. A
+            # sheet with a turned corner says file without a word of legend.
+            fwd, fht = r * 1.5, r * 1.85
+            fold = fwd * 0.42
+            A(f'<path d="M{x - fwd:.1f} {y - fht:.1f} '
+              f'H{x + fwd - fold:.1f} L{x + fwd:.1f} {y - fht + fold:.1f} '
+              f'V{y + fht:.1f} H{x - fwd:.1f} Z" fill="url(#tool)" '
+              f'stroke="#0b1428" stroke-width="0.8" '
+              f'opacity="{0.72 + 0.28 * depth[i]:.2f}"/>')
+            A(f'<path d="M{x + fwd - fold:.1f} {y - fht:.1f} '
+              f'V{y - fht + fold:.1f} H{x + fwd:.1f}" fill="none" '
+              f'stroke="#0b1428" stroke-width="0.9" opacity="0.9"/>')
         elif nodes[i] in TOOLS:
             A(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="url(#tool)" '
               f'opacity="{0.72 + 0.28 * depth[i]:.2f}"/>')
@@ -538,7 +610,9 @@ def main(asserted_path, derivations_path, out_path):
         last one regardless. Dropping `Isabelle/HOL` off the picture because a
         blue dot was in the way is not a tidier drawing, it is a wrong one."""
         w_ = len(label) * (size * 0.55) + 8
-        r_ = rad(i)
+        # A file is drawn as a sheet, which is wider and taller than the dot it
+        # replaced, so a label offset by the dot radius lands ON it.
+        r_ = rad(i) * (1.6 if nodes[i] in FILES else 1.0)
         candidates = [
             (pt[i][0] + r_ + 5, pt[i][1] + 3.5),
             (pt[i][0] - r_ - 5 - w_, pt[i][1] + 3.5),
@@ -738,13 +812,15 @@ def main(asserted_path, derivations_path, out_path):
     # they are columns. Without headings the left half read as a scatter of
     # pink dots that happened to line up.
     for hx, htxt in ((86, "the file"), (196, "what it becomes"), (318, "who reads it")):
-        A(f'<text x="{hx}" y="118" text-anchor="middle" font-size="9" '
+        A(f'<text x="{hx}" y="108" text-anchor="middle" font-size="9" '
           f'font-weight="700" fill="#475569" letter-spacing="1.4">{htxt.upper()}</text>')
     # And what the right-hand half is, which nothing said. A reader met a cloud
     # of unnamed dots and had to guess whether it was data, a result or decor.
-    A(f'<text x="{(OL + OR_) / 2:.0f}" y="118" text-anchor="middle" font-size="9" '
+    # The wording ties it to the file on the left, so the two halves are one
+    # picture rather than two drawings that happen to share a canvas.
+    A(f'<text x="{(OL + OR_) / 2:.0f}" y="108" text-anchor="middle" font-size="9" '
       f'font-weight="700" fill="#475569" letter-spacing="1.4">'
-      f'WHAT IT SAYS · {len(ont)} CLASSES IN {len(comps)} DISJOINT PIECES</text>')
+      f'WHAT THE FILE CONTAINS · {len(ont)} CLASSES IN {len(comps)} DISJOINT PIECES</text>')
 
     # ── The step rail ──────────────────────────────────────────────────
     #
@@ -797,13 +873,14 @@ def main(asserted_path, derivations_path, out_path):
     n_c = sum(1 for _, _, w in edges if w == "certified")
     n_r = sum(1 for _, _, w in edges if w == "rejected")
     ly = H - 132
-    A(f'<rect x="28" y="{ly}" width="700" height="112" rx="12" fill="#030a1c" opacity="0.94" '
-      f'stroke="#1e3a5f"/>')
+    lw = 560.0          # where the counting column ends and the meaning begins
+    A(f'<rect x="28" y="{ly}" width="{W - 56}" height="112" rx="12" fill="#030a1c" '
+      f'opacity="0.94" stroke="#1e3a5f"/>')
     A(f'<text x="46" y="{ly+24}" font-size="12" font-weight="800" fill="#34d399" '
       f'letter-spacing="1.4">PROOF-CARRYING INFERENCE</text>')
     A(f'<text x="300" y="{ly+24}" font-size="11.5" fill="#64748b">'
       f'ies-core.ttl · {n_asserted:,} triples</text>')
-    A(f'<line x1="40" y1="{ly+33}" x2="716" y2="{ly+33}" stroke="#1e3a5f"/>')
+    A(f'<line x1="40" y1="{ly+33}" x2="{lw - 12:.0f}" y2="{ly+33}" stroke="#1e3a5f"/>')
     rows = [(C_ASSERT, "ASSERTED", n_a, "read from ies-core.ttl. claimed by a person"),
             (C_CERT, "CERTIFIED", n_c, "derived, then PROVED. OOCert.certificate_sound"),
             (C_REJECT, "REJECTED", n_r, "forged. the checker exited 1 and named the rule")]
@@ -815,12 +892,29 @@ def main(asserted_path, derivations_path, out_path):
         A(f'<text x="168" y="{yy}" font-size="11" font-weight="700" fill="#e2e8f0" '
           f'text-anchor="end">{count}</text>')
         A(f'<text x="180" y="{yy}" font-size="11" fill="#94a3b8">{means}</text>')
-    A(f'<line x1="40" y1="{ly+94}" x2="716" y2="{ly+94}" stroke="#1e3a5f"/>')
-    A(f'<text x="46" y="{ly+106}" font-size="10.5" fill="#64748b">'
-      f'<tspan fill="#34d399" font-weight="700">● Lean 4</tspan> decides. '
-      f'<tspan fill="#f0abfc">● Isabelle/HOL</tspan> checks the same bytes independently. '
-      f'<tspan fill="#f0abfc">● Vampire, E, Z3, Mace4</tspan> read a different artefact; their '
-      f'verdicts are oracle opinions, never certificates.</text>')
+    # The distinction the whole figure exists to make used to be the tail of a
+    # single run-on line along the bottom of the card, which is where a reader
+    # stops reading. It is the argument, so it gets its own column, and that
+    # column also fills the third of the canvas the card was leaving empty.
+    A(f'<line x1="{lw + 12:.0f}" y1="{ly+14}" x2="{lw + 12:.0f}" y2="{ly+98}" '
+      f'stroke="#1e3a5f"/>')
+    A(f'<text x="{lw + 34:.0f}" y="{ly+24}" font-size="12" font-weight="800" '
+      f'fill="#94a3b8" letter-spacing="1.4">WHAT A VERDICT IS WORTH</text>')
+    verdicts = [
+        (C_CERT, "certificate",
+         "Lean 4 and Isabelle/HOL read the same bytes.",
+         "anyone can re-run the check and get the same answer."),
+        (C_TOOL, "opinion",
+         "Vampire, E, Z3 and Mace4 read a different file.",
+         "believe the program, or believe nothing. no object to check."),
+    ]
+    for m, (col, word, l1, l2) in enumerate(verdicts):
+        yy = ly + 48 + m * 30
+        A(f'<circle cx="{lw + 40:.0f}" cy="{yy - 4:.1f}" r="4" fill="{col}"/>')
+        A(f'<text x="{lw + 52:.0f}" y="{yy}" font-size="11" font-weight="700" '
+          f'fill="{col}">{word}</text>')
+        A(f'<text x="{lw + 130:.0f}" y="{yy - 5:.0f}" font-size="10" fill="#94a3b8">{l1}</text>')
+        A(f'<text x="{lw + 130:.0f}" y="{yy + 7:.0f}" font-size="10" fill="#64748b">{l2}</text>')
     A('</svg>')
 
     with open(out_path, "w") as f:
