@@ -199,7 +199,10 @@ def main(asserted_path, derivations_path, out_path):
     # version of this drew the whole ontology in the top right quarter with
     # three quarters of the canvas empty. Outliers are allowed to sit slightly
     # outside the frame instead.
-    L, R, T, B = 56, W - 56, 96, H - 190
+    # The bottom stops well above the step rail at H-176. It used to stop at
+    # H-190, which put the rail INSIDE the drawing and a cluster of classes sat
+    # on top of it.
+    L, R, T, B = 56, W - 56, 96, H - 232
     xs = sorted(p[0] for p in proj)
     ys = sorted(p[1] for p in proj)
     def band(v):
@@ -225,7 +228,19 @@ def main(asserted_path, derivations_path, out_path):
     # Every `values` list STARTS and ENDS at the layer's resting level, so the
     # frame at t=0 is the same complete picture as the frame at t=CYCLE. A
     # still renderer samples t=0; see the header.
-    CYCLE = 14.0
+    CYCLE = 18.0
+    # Five steps, and the prover step is its own rather than a footnote inside
+    # the Lean one. A reader was told the first-order family exists and never
+    # shown it do anything, and the difference between what Lean produces and
+    # what they produce is the single most important distinction on the page.
+    BEATS = [
+        ("#94a3b8", "1 · a person asserts", 0.6, 3.4),
+        ("#6ee7b7", "2 · the engine derives", 3.4, 6.4),
+        ("#34d399", "3 · Lean checks the certificate, and accepts", 6.4, 9.6),
+        ("#f0abfc", "4 · four provers read a different file, and only opine", 9.6, 13.0),
+        ("#fb3b53", "5 · a line is forged, and the same checker refuses", 13.0, 17.0),
+    ]
+
     REST_A, LIT_A = 0.45, 0.95   # asserted
     REST_D, LIT_D = 0.30, 0.85   # derived
     REST_F, LIT_F = 0.50, 1.0    # the forged edge
@@ -302,12 +317,12 @@ def main(asserted_path, derivations_path, out_path):
 
     A(f'<g opacity="{REST_D}">'
       + anim("opacity", f"{REST_D};{REST_D};{LIT_D};{LIT_D};{REST_D};{REST_D}",
-             kt(0, 3.0, 4.0, 9.0, 10.0, CYCLE)))
+             kt(0, 3.4, 4.2, 9.6, 10.4, CYCLE)))
     A("".join(layers["certified"]))
     A('</g>')
     A(f'<g opacity="{REST_A}">'
       + anim("opacity", f"{REST_A};{LIT_A};{LIT_A};{REST_A};{REST_A}",
-             kt(0, 0.6, 2.6, 3.6, CYCLE)))
+             kt(0, 0.6, 2.8, 3.4, CYCLE)))
     A("".join(layers["asserted"]))
     A('</g>')
 
@@ -333,7 +348,7 @@ def main(asserted_path, derivations_path, out_path):
                 f'path="M{pt[i][0]:.1f},{pt[i][1]:.1f} L{pt[j][0]:.1f},{pt[j][1]:.1f}"/>'
                 f'</circle>')
     A(f'<g opacity="0.85">'
-      + anim("opacity", "0.85;0.85;1;1;0.85;0.85", kt(0, 3.0, 4.0, 9.0, 10.0, CYCLE)))
+      + anim("opacity", "0.85;0.85;1;1;0.85;0.85", kt(0, 3.4, 4.2, 9.6, 10.4, CYCLE)))
     A("".join(parts))
     A('</g>')
 
@@ -346,8 +361,8 @@ def main(asserted_path, derivations_path, out_path):
             # other one. A still renderer samples t=0, so any disagreement here
             # draws a frame the animation never shows.
             A(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r * 3.0:.1f}" fill="url(#glow)">'
-              + anim("r", f"{r*3.0:.1f};{r*3.6:.1f};{r*3.0:.1f};{r*4.4:.1f};{r*3.4:.1f};{r*3.0:.1f}",
-                     kt(0, 2.0, 4.0, 7.4, 9.0, CYCLE)) + '</circle>')
+              + anim("r", f"{r*3.0:.1f};{r*3.6:.1f};{r*3.0:.1f};{r*4.6:.1f};{r*3.4:.1f};{r*3.0:.1f}",
+                     kt(0, 2.0, 4.0, 7.6, 9.6, CYCLE)) + '</circle>')
             A(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="{C_LEAN}"/>')
         elif nodes[i] in TOOLS:
             A(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="url(#tool)" '
@@ -406,6 +421,71 @@ def main(asserted_path, derivations_path, out_path):
         if chip(idx[n], short(n), "#cbd5e1", 10, 400):
             shown += 1
 
+    # ── The verification layer, working ────────────────────────────────
+    #
+    # The provers used to be four magenta dots with names. A reader was told the
+    # first-order family exists and never shown it do anything, which left the
+    # most important distinction on the page — Lean DECIDES, the provers OPINE —
+    # as a sentence in the legend rather than as something visible.
+    #
+    # Each judge now gets a verdict badge that arrives on its own beat, and the
+    # badge says which KIND of answer it is. The two that read the certificate
+    # say so in green. The four that read `problem.tsv`, a different artefact
+    # entirely, say `opinion` in magenta, and they arrive together in beat 4,
+    # because that is the point: four independent programs agreeing is still
+    # four opinions.
+    JUDGES = [
+        (LEAN, "certificate", C_LEAN, 6.8, 9.6),
+        ("Isabelle/HOL", "same bytes", C_LEAN, 7.4, 9.6),
+        ("Vampire", "opinion", C_TOOL, 10.0, 13.0),
+        ("E", "opinion", C_TOOL, 10.3, 13.0),
+        ("Z3", "opinion", C_TOOL, 10.6, 13.0),
+        ("Mace4", "opinion", C_TOOL, 10.9, 13.0),
+    ]
+    for jname, verdict, col, t0, t1 in JUDGES:
+        ji = idx[jname]
+        jr = rad(ji)
+        bw = len(verdict) * 5.4 + 12
+        # Badges go through the SAME collision list the labels use. Stacked
+        # straight above their nodes they piled on top of one another and on
+        # the names beside them, because the four provers sit close together:
+        # the badge saying which kind of answer this is was the thing hidden.
+        cands = [
+            (pt[ji][0] - bw / 2, pt[ji][1] - jr - 13),
+            (pt[ji][0] - bw / 2, pt[ji][1] + jr + 20),
+            (pt[ji][0] + jr + 7, pt[ji][1] - jr - 6),
+            (pt[ji][0] - jr - 7 - bw, pt[ji][1] - jr - 6),
+            (pt[ji][0] - bw / 2, pt[ji][1] - jr - 30),
+        ]
+        bx, by = cands[-1]
+        for n_, (cx_, cy_) in enumerate(cands):
+            box = (cx_ - 2, cy_ - 11, cx_ + bw + 2, cy_ + 4)
+            if all(box[2] < o[0] or box[0] > o[2] or box[3] < o[1] or box[1] > o[3]
+                   for o in placed) or n_ == len(cands) - 1:
+                bx, by = cx_, cy_
+                placed.append(box)
+                break
+        # Rested at 0.4 rather than hidden, like every other layer in this
+        # file. A still frame then shows `certificate` on Lean and `opinion` on
+        # the four provers, which is the whole argument of the picture and the
+        # thing a reader who never watches it would otherwise never see.
+        A('<g opacity="0.4">'
+          + anim("opacity", "0.4;0.4;1;1;0.4;0.4",
+                 kt(0, t0, t0 + 0.35, t1 - 0.3, t1, CYCLE)))
+        A(f'<rect x="{bx:.1f}" y="{by - 10:.1f}" width="{bw:.1f}" height="14" '
+          f'rx="7" fill="#020617" stroke="{col}" stroke-width="1.1" opacity="0.95"/>')
+        A(f'<text x="{bx + bw / 2:.1f}" y="{by:.1f}" text-anchor="middle" font-size="9.5" '
+          f'font-weight="700" fill="{col}">{verdict}</text>')
+        A('</g>')
+        # A ring on the judge itself, so the eye goes to the node and not only
+        # to the label beside it.
+        A(f'<circle cx="{pt[ji][0]:.1f}" cy="{pt[ji][1]:.1f}" r="{jr:.1f}" fill="none" '
+          f'stroke="{col}" stroke-width="2" opacity="0">'
+          + anim("r", f"{jr:.1f};{jr:.1f};{jr * 2.8:.1f};{jr * 2.8:.1f}",
+                 kt(0, t0, t0 + 0.55, CYCLE))
+          + anim("opacity", "0;0;0.85;0;0", kt(0, t0, t0 + 0.18, t0 + 0.95, CYCLE)) +
+          '</circle>')
+
     n_asserted = len(asserted)
     n_derived = len(derivations)
     rules = ", ".join(f"{r} x{c}" for r, c in sorted(by_rule.items(), key=lambda kv: -kv[1]))
@@ -415,20 +495,47 @@ def main(asserted_path, derivations_path, out_path):
       f'the Studio 3D view: {len(nodes)} nodes and {len(edges)} edges drawn, out of '
       f'{n_asserted} asserted triples and {n_derived} derived by {rules}</text>')
 
-    # Beat caption.
-    beats = [("#94a3b8", "1 · asserted by a person", 0.6, 3.6),
-             ("#6ee7b7", "2 · derived by the engine", 3.6, 6.6),
-             ("#34d399", "3 · checked by Lean, and accepted", 6.6, 9.0),
-             ("#fb3b53", "4 · forged, and refused", 9.0, 12.8)]
-    for n_, (col, text, t0, t1) in enumerate(beats):
-        first = n_ == 0
-        if first:
-            vals, times = "1;1;1;0;0;1", kt(0, t0, t1 - 0.3, t1, CYCLE - 0.4, CYCLE)
-        else:
-            vals, times = "0;0;1;1;0;0", kt(0, t0, t0 + 0.4, t1 - 0.3, t1, CYCLE)
-        A(f'<text x="34" y="{H-160}" font-size="13" font-weight="700" fill="{col}" '
-          f'opacity="{1 if first else 0}">'
-          + anim("opacity", vals, times) + f'{text}</text>')
+    # ── The step rail ──────────────────────────────────────────────────
+    #
+    # One caption line told a reader WHICH step was running and nothing about
+    # where it sat in the sequence: no sense of how many there were, what came
+    # before, or what was still to come. The rail shows all five at once with
+    # the running one lit, so the picture reads as a process rather than as a
+    # caption that keeps changing.
+    #
+    # Every stage is drawn at a resting opacity that is never zero, for the
+    # reason the header gives: a still renderer samples t=0, and a rail whose
+    # inactive stages are invisible degrades to one lonely word.
+    rail_y = H - 176
+    rail_x, rail_w = 34.0, W - 68.0
+    seg = rail_w / len(BEATS)
+    A(f'<line x1="{rail_x:.1f}" y1="{rail_y - 16:.1f}" x2="{rail_x + rail_w:.1f}" '
+      f'y2="{rail_y - 16:.1f}" stroke="#1e3a5f" stroke-width="1.5"/>')
+    # The travelling marker, one element, which is what makes the rail read as
+    # a clock rather than as five independent lamps.
+    marks = ";".join(f"{rail_x + seg * (n_ + 0.5):.1f}" for n_ in range(len(BEATS)))
+    times = ";".join(f"{(t0 - 0.3) / CYCLE:.4f}" for _, _, t0, _ in BEATS)
+    A(f'<circle cy="{rail_y - 16:.1f}" r="4.5" fill="#e2e8f0" cx="{rail_x + seg * 0.5:.1f}">'
+      f'<animate attributeName="cx" dur="{CYCLE}s" repeatCount="indefinite" '
+      f'values="{marks}" keyTimes="{times}" calcMode="linear"/></circle>')
+    for n_, (col, text, t0, t1) in enumerate(BEATS):
+        cx = rail_x + seg * (n_ + 0.5)
+        num = text.split(" · ")[0]
+        label = text.split(" · ", 1)[1]
+        # The tick, lit for its own window.
+        A(f'<circle cx="{cx:.1f}" cy="{rail_y - 16:.1f}" r="3" fill="{col}" opacity="0.30">'
+          + anim("opacity", "0.30;0.30;1;1;0.30;0.30",
+                 kt(0, t0, t0 + 0.3, t1 - 0.3, t1, CYCLE))
+          + anim("r", "3;3;5.5;5.5;3;3", kt(0, t0, t0 + 0.3, t1 - 0.3, t1, CYCLE)) +
+          '</circle>')
+        A(f'<text x="{cx:.1f}" y="{rail_y + 4:.1f}" text-anchor="middle" font-size="11" '
+          f'font-weight="800" fill="{col}" opacity="0.38">{num}</text>')
+        # The wording, which only the running stage carries, because five full
+        # sentences at once is a wall.
+        A(f'<text x="{cx:.1f}" y="{rail_y + 20:.1f}" text-anchor="middle" font-size="10.5" '
+          f'fill="{col}" opacity="0">'
+          + anim("opacity", "0;0;1;1;0;0", kt(0, t0, t0 + 0.3, t1 - 0.3, t1, CYCLE))
+          + f'{label}</text>')
 
     # ── The legend, which is the component's Legend ──────────────────────
     #

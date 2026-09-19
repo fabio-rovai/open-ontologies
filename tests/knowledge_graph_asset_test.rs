@@ -239,13 +239,18 @@ fn sampling_the_first_frame_gives_the_whole_picture() {
 }
 
 #[test]
-fn the_four_beats_are_captioned_in_order() {
+fn the_five_steps_are_captioned_in_order() {
     let s = svg();
+    // Five now, not four. The provers got a step of their own: a reader was
+    // told the first-order family exists and never shown it do anything, and
+    // the difference between what Lean produces and what they produce is the
+    // most important distinction on the page.
     let beats = [
-        "1 · asserted by a person",
-        "2 · derived by the engine",
-        "3 · checked by Lean, and accepted",
-        "4 · forged, and refused",
+        "a person asserts",
+        "the engine derives",
+        "Lean checks the certificate, and accepts",
+        "four provers read a different file, and only opine",
+        "a line is forged, and the same checker refuses",
     ];
     let mut at = 0usize;
     for b in beats {
@@ -254,15 +259,15 @@ fn the_four_beats_are_captioned_in_order() {
         };
         at += i + b.len();
     }
-    // The resting caption is the first beat, so a still frame is captioned by
-    // what the reader is looking at rather than by whichever beat ran last.
-    let i = s.find("1 · asserted by a person").unwrap();
-    let open = s[..i].rfind("<text").unwrap();
-    assert_eq!(
-        attr(&s[open..i], "opacity").as_deref(),
-        Some("1"),
-        "the first beat's caption must be the one a still frame shows"
-    );
+    // Every step is numbered on the rail, and the numbers are visible at rest
+    // so a still frame shows the sequence rather than one lonely word.
+    for n in 1..=beats.len() {
+        assert!(
+            s.contains(&format!(">{n}</text>")),
+            "the step rail is missing the number {n}; a reader cannot see where in the \
+             sequence the running step sits"
+        );
+    }
 }
 
 // ── The README's caption must match the asset it captions ──────────────
