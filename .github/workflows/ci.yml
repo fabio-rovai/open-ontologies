@@ -452,6 +452,13 @@ jobs:
         run: OO_REQUIRE_FIXTURES=1 cargo test --test shacl_core_verified_test -- --nocapture
       - name: Check the description-logic model certificates
         run: OO_REQUIRE_FIXTURES=1 cargo test --test dl_model_certificate_test -- --nocapture
+      - name: Check the description-logic refutation certificates
+        # The other half of the line above. That one certifies that an ontology
+        # HAS a model by exhibiting one; this certifies that it has NONE by
+        # exhibiting a closed tableau, and the verdicts are different sentences.
+        # Strict, because the emitter and the checker are both in this
+        # repository and a skip here would hide the whole loop.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test dl_refutation_certificate_test -- --nocapture
       - name: Pinpoint justifications, and check each one through the proved checker
         # Strict rather than excepted. The only thing this file skips on is
         # benchmark/reference/pizza-reference.owl, which ships with the
@@ -497,8 +504,8 @@ jobs:
         # reason every step above does.
         run: OO_REQUIRE_FIXTURES=1 cargo test --test demo_asset_claims_test -- --nocapture
       - name: Install the model finders
-        # Z3 reads SMT-LIB and is the only one of the two that can be asked the
-        # UNBOUNDED question, which is the only route to `unsatisfiable_oracle`.
+        # Z3 reads SMT-LIB and can be asked the UNBOUNDED question, which is the
+        # only route to `unsatisfiable_oracle`.
         # Mace4 ships in the LADR/Prover9 distribution: Prover9's refutations
         # are uncheckable and by decision 0005 an oracle opinion for ever, but
         # Mace4 is a FINITE MODEL FINDER and a finite model is exactly what
@@ -526,6 +533,30 @@ jobs:
           make -C /tmp/ladr/mace4.src all XFLAGS="-std=gnu89" >> /tmp/ladr-build.log 2>&1 || { tail -30 /tmp/ladr-build.log; exit 1; }
           sudo install -m 755 /tmp/ladr/bin/mace4 /usr/local/bin/mace4
           command -v z3 mace4
+      - name: Install cvc5, the second SMT oracle
+        # PINNED BY VERSION AND BY DIGEST, and the digest is the load-bearing
+        # half. The release asset URL is stable and the zip is not signed, so
+        # the hash is the only thing that says the bytes CI runs are the bytes
+        # that were checked by hand. This is the same rule the Poly/ML step
+        # below follows, and for the same reason.
+        #
+        # The version is pinned rather than tracked because the disagreement
+        # counts this repository publishes are a property of a VERSION PAIR.
+        # `latest` would silently change what the measurement is about, and the
+        # next person to read the number would have no way to know.
+        #
+        # NOT `apt-get install cvc5`: Ubuntu noble carries no such package, and
+        # `prover9` having no installation candidate on noble is exactly what
+        # broke this job the first time it ran on main, so the check was done
+        # rather than assumed.
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/cvc5.zip \
+            https://github.com/cvc5/cvc5/releases/download/cvc5-1.3.4/cvc5-Linux-x86_64-static.zip
+          echo "dcdbfada0ce493ee98259c0816e0daafc561c223aadb3af298c2968e73ea39c6  /tmp/cvc5.zip" | sha256sum -c -
+          unzip -q -o /tmp/cvc5.zip -d /tmp/cvc5
+          sudo install -m 755 /tmp/cvc5/cvc5-Linux-x86_64-static/bin/cvc5 /usr/local/bin/cvc5
+          cvc5 --version | head -1
       - name: Check the first-order model certificates end to end
         # `lake build` already compiles these proofs, because `Fol` and
         # `oo-folmodel` are both in defaultTargets. What this leg adds is the
@@ -542,6 +573,32 @@ jobs:
         run: OO_REQUIRE_FIXTURES=1 cargo test --test fol_solver_verdict_test -- --nocapture
       - name: Check the model ingestion, both front ends
         run: OO_REQUIRE_FIXTURES=1 cargo test --test fol_model_ingest_test -- --nocapture
+      - name: Build the release binary the SMT differential drives
+        # The differential compares the SMT-LIB THE PRODUCT EMITS, so it runs
+        # the real binary rather than linking the library. `cargo test` does not
+        # build it, and without this step the file would skip on a job that
+        # provides everything else it needs, which is the shape of hole
+        # `tests/ci_gate_coverage_test.rs` exists to close.
+        run: cargo build --release --bin open-ontologies
+      - name: Run Z3 and cvc5 over the same problems, and require them not to contradict
+        # The SECOND SMT ORACLE, and the reason it is here at all.
+        #
+        # Decision 0006 upgrades a `sat` to a certificate when the verified
+        # checker accepts the model, and leaves every `unsat` an oracle opinion,
+        # because checking a CDCL(T) refutation needs a mechanised calculus this
+        # repository does not have. So the `unsat` half of this layer has NO
+        # defence that runs inside the architecture: nothing can check it, and a
+        # wrong one would be published as `unsatisfiable_oracle` with a straight
+        # face. A second solver is the only thing that can contradict it.
+        #
+        # --nocapture because the corpus size and the agreement counts are
+        # PRINTED by the test and read out of this log. No document is allowed
+        # to carry them by hand.
+        #
+        # The last leg of this file puts a LYING z3 on PATH and requires the run
+        # to go red, so the gate is known to be able to fail rather than assumed
+        # to be.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test smt_second_oracle_test -- --nocapture
       - name: Check that a projection preserves the claims an answer rests on
         # Coverage is a proxy, and the first two legs here are the argument for
         # that sentence: a slice of a SHIPPED ontology at coverage 1.0 with
