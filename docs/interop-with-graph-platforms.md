@@ -122,18 +122,20 @@ reader told you there was no graph. Both behaviours are defensible; only one
 of them tells you something is wrong.
 
 That particular defect is fixed upstream. It was filed as
-[semantica#1099](https://github.com/semantica-agi/semantica/issues/1099) and
-closed, and on 0.7.0 the same input is percent-encoded into the declared
-namespace and comes out as `<https://semantica.dev/ns#Acme%20Corp>`, which
-both readers now accept.
+[semantica#1099](https://github.com/semantica-agi/semantica/issues/1099),
+closed on 23 August, and shipped in 0.6.7: `rdf_exporter` gained a
+percent-encoding pass that 0.6.6 does not have, so from 0.6.7 the same input
+comes out as `<https://semantica.dev/ns#Acme%20Corp>` and both readers accept
+it. Install 0.6.7 or later and the example above does not reproduce.
 
-The disagreement itself did not go away, because an id that already looks
-like an absolute IRI is still written through without validation. On 0.7.0,
-an entity id of `http://example.com/##` is emitted verbatim. RFC 3987 forbids
-the second `#`, and the two readers still split on it: rdflib accepts the file
-and hands back three triples with that malformed subject, while Oxigraph
-refuses the whole file with `Invalid IRI code point '#'`. The fixture had to
-be replaced; the reason for having a second reader did not.
+The disagreement itself did not go away, because an id that already **looks**
+absolute is handed through with `#` in the safe set rather than validated. On
+0.6.8, the newest release, an entity id of `http://example.com/##` is emitted
+verbatim. RFC 3987 forbids the second `#`, and the two readers still split on
+it: rdflib accepts the file and hands back three triples with that malformed
+subject, while Oxigraph refuses the whole file with `Invalid IRI code point
+'#'`. The fixture had to be replaced; the reason for having a second reader
+did not.
 
 **Silent partial reads are the same problem one level up.** Semantica's
 JSON-LD export put a top-level `@id` beside a top-level `@graph`, which makes
