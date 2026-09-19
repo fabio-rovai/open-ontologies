@@ -410,6 +410,15 @@ fn every_clash_this_engine_finds_is_now_one_the_checker_can_judge() {
         dir.join("refutation.tsv").exists(),
         "a refutation must now be written for a clash the checker can judge"
     );
+    // Everything above is about the ENGINE and runs wherever the suite runs.
+    // Only the line below needs the Lean toolchain, so the guard is here rather
+    // than at the top of the test: the old version of this test never called
+    // the checker, and hoisting a `skip()` to cover one call would stop the
+    // engine assertions running in the jobs that have no `lake` — which are the
+    // jobs where a producer regression is otherwise invisible.
+    if skip() {
+        return;
+    }
     let (code, out, err) =
         check_refutation(&dir.join("asserted.tsv"), &dir.join("refutation.tsv"));
     assert_eq!(code, 0, "the checker must accept it: {out}{err}");
