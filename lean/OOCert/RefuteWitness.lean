@@ -225,33 +225,125 @@ Conditional on the `owl:sameAs` hypothesis, which is stated and not buried. -/
 theorem no_violation_means_a_joint_model (G : List Triple)
     (hsame : ∀ a b : Term, Der G ⟨a, V.sameAs, b⟩ → a = b)
     (hdw : ∀ c1 c2 x : Term, Der G ⟨c1, RV.disjointWith, c2⟩ → Der G ⟨x, V.type, c1⟩ →
-      Der G ⟨x, V.type, c2⟩ → False) :
+      Der G ⟨x, V.type, c2⟩ → False)
+    (hcom : ∀ c1 c2 x : Term, Der G ⟨c1, RV.complementOf, c2⟩ → Der G ⟨x, V.type, c1⟩ →
+      Der G ⟨x, V.type, c2⟩ → False)
+    (hnothing : ∀ x : Term, Der G ⟨x, V.type, RV.nothing⟩ → False)
+    (hirp : ∀ p x : Term, Der G ⟨p, V.type, RV.irreflexiveProperty⟩ →
+      Der G ⟨x, p, x⟩ → False)
+    (hasyp : ∀ p x y : Term, Der G ⟨p, V.type, RV.asymmetricProperty⟩ →
+      Der G ⟨x, p, y⟩ → Der G ⟨y, p, x⟩ → False)
+    (hpdw : ∀ p q x y : Term, Der G ⟨p, RV.propertyDisjointWith, q⟩ →
+      Der G ⟨x, p, y⟩ → Der G ⟨x, q, y⟩ → False)
+    (hdiff : ∀ x y : Term, Der G ⟨x, V.sameAs, y⟩ →
+      Der G ⟨x, RV.differentFrom, y⟩ → False)
+    (hnpa1 : ∀ n i p j : Term, Der G ⟨n, RV.sourceIndividual, i⟩ →
+      Der G ⟨n, RV.assertionProperty, p⟩ → Der G ⟨n, RV.targetIndividual, j⟩ →
+      Der G ⟨i, p, j⟩ → False)
+    (hnpa2 : ∀ n i p j : Term, Der G ⟨n, RV.sourceIndividual, i⟩ →
+      Der G ⟨n, RV.assertionProperty, p⟩ → Der G ⟨n, RV.targetValue, j⟩ →
+      Der G ⟨i, p, j⟩ → False)
+    (hmaxc1 : ∀ c p u v : Term, Der G ⟨c, RV.maxCardinality, RV.zero⟩ →
+      Der G ⟨c, V.onProperty, p⟩ → Der G ⟨u, V.type, c⟩ → Der G ⟨u, p, v⟩ → False)
+    (hmaxqc1 : ∀ c p f u v : Term, Der G ⟨c, RV.maxQualifiedCardinality, RV.zero⟩ →
+      Der G ⟨c, V.onProperty, p⟩ → Der G ⟨c, RV.onClass, f⟩ → Der G ⟨u, V.type, c⟩ →
+      Der G ⟨u, p, v⟩ → Der G ⟨v, V.type, f⟩ → False)
+    (hmaxqc2 : ∀ c p u v : Term, Der G ⟨c, RV.maxQualifiedCardinality, RV.zero⟩ →
+      Der G ⟨c, V.onProperty, p⟩ → Der G ⟨c, RV.onClass, RV.thing⟩ →
+      Der G ⟨u, V.type, c⟩ → Der G ⟨u, p, v⟩ → False) :
     ∃ I : Interp, Model I G ∧ RefuteConditions I :=
-  joint_model_of_closure (closure_is_a_model G hsame) hdw
+  joint_model_of_closure (closure_is_a_model G hsame) hdw hcom hnothing hirp hasyp
+    hpdw hdiff hnpa1 hnpa2 hmaxc1 hmaxqc1 hmaxqc2
+
+/-- A violation of ONE OF the twelve conditions, in the closure of `G`.
+
+Written as a named predicate rather than inline, because the statement below
+used to be a single existential over a disjointness violation and is now a
+twelve-way disjunction. That is not a presentational change: with one condition
+the theorem said "the only way to be unsatisfiable here is a disjointness
+clash", and with twelve it cannot say that about any one of them. What it still
+says is that the twelve are jointly exhaustive OF THIS MODEL CLASS, which is the
+useful half. -/
+def Violation (G : List Triple) : Prop :=
+  (∃ c1 c2 x, Der G ⟨c1, RV.disjointWith, c2⟩ ∧ Der G ⟨x, V.type, c1⟩ ∧
+      Der G ⟨x, V.type, c2⟩) ∨
+  (∃ c1 c2 x, Der G ⟨c1, RV.complementOf, c2⟩ ∧ Der G ⟨x, V.type, c1⟩ ∧
+      Der G ⟨x, V.type, c2⟩) ∨
+  (∃ x, Der G ⟨x, V.type, RV.nothing⟩) ∨
+  (∃ p x, Der G ⟨p, V.type, RV.irreflexiveProperty⟩ ∧ Der G ⟨x, p, x⟩) ∨
+  (∃ p x y, Der G ⟨p, V.type, RV.asymmetricProperty⟩ ∧ Der G ⟨x, p, y⟩ ∧
+      Der G ⟨y, p, x⟩) ∨
+  (∃ p q x y, Der G ⟨p, RV.propertyDisjointWith, q⟩ ∧ Der G ⟨x, p, y⟩ ∧
+      Der G ⟨x, q, y⟩) ∨
+  (∃ x y, Der G ⟨x, V.sameAs, y⟩ ∧ Der G ⟨x, RV.differentFrom, y⟩) ∨
+  (∃ n i p j, Der G ⟨n, RV.sourceIndividual, i⟩ ∧ Der G ⟨n, RV.assertionProperty, p⟩ ∧
+      Der G ⟨n, RV.targetIndividual, j⟩ ∧ Der G ⟨i, p, j⟩) ∨
+  (∃ n i p j, Der G ⟨n, RV.sourceIndividual, i⟩ ∧ Der G ⟨n, RV.assertionProperty, p⟩ ∧
+      Der G ⟨n, RV.targetValue, j⟩ ∧ Der G ⟨i, p, j⟩) ∨
+  (∃ c p u v, Der G ⟨c, RV.maxCardinality, RV.zero⟩ ∧ Der G ⟨c, V.onProperty, p⟩ ∧
+      Der G ⟨u, V.type, c⟩ ∧ Der G ⟨u, p, v⟩) ∨
+  (∃ c p f u v, Der G ⟨c, RV.maxQualifiedCardinality, RV.zero⟩ ∧
+      Der G ⟨c, V.onProperty, p⟩ ∧ Der G ⟨c, RV.onClass, f⟩ ∧ Der G ⟨u, V.type, c⟩ ∧
+      Der G ⟨u, p, v⟩ ∧ Der G ⟨v, V.type, f⟩) ∨
+  (∃ c p u v, Der G ⟨c, RV.maxQualifiedCardinality, RV.zero⟩ ∧
+      Der G ⟨c, V.onProperty, p⟩ ∧ Der G ⟨c, RV.onClass, RV.thing⟩ ∧
+      Der G ⟨u, V.type, c⟩ ∧ Der G ⟨u, p, v⟩)
 
 /-- The converse, and the more useful direction in practice: if a graph IS
-refutable then its closure contains a disjointness violation. So `cax-dw` is not
-merely sound for this fragment, it is the only way to be unsatisfiable in it, and
-a consumer who finds no violation has a positive result rather than a failure to
-find one. Same `owl:sameAs` hypothesis.
+refutable then its closure contains a violation of one of the twelve conditions.
+A consumer who finds none has a positive result rather than a failure to find
+one. Same `owl:sameAs` hypothesis.
+
+**This statement got weaker when the rules got wider, and the direction is worth
+being explicit about.** With one condition it said the only way to be
+unsatisfiable here is a disjointness clash, which is a sharp claim about a
+single rule. With twelve it cannot say that about any one of them, because a
+graph can now be `Unsat` through `prp-irp` and carry no disjointness violation
+at all. What survives, and is the useful half, is that the twelve are jointly
+EXHAUSTIVE of this model class: `Unsat` and no violation of any of them is a
+contradiction.
 
 Read "unsatisfiable" here as `Unsat`, which is the whole content of the
 statement and is narrower than a consumer's word for it. `Unsat` quantifies over
-`RefuteConditions`, and `RefuteConditions` reads `owl:disjointWith` and nothing
-else, so this theorem says `cax-dw` is the only clash IN THAT MODEL CLASS. It
-does not say a graph with no disjointness violation is consistent under OWL 2
-RL: sixteen further rules of the profile conclude `false` and none of them has a
-condition here, so a graph refutable only by `prp-irp` or `cls-nothing2` passes
-this test and is contradictory anyway. The positive result is "no clash of the
-one kind this layer can see", and it is worth having for exactly that. -/
+`RefuteConditions`, and `RefuteConditions` now reads twelve of the seventeen
+rules of the profile that conclude `false`. The five it does not read are
+`cax-adc`, `prp-adp`, `eq-diff2` and `eq-diff3`, which need an `rdf:List` this
+step format cannot carry, and `dt-not-type`, which needs a datatype value space
+this development does not have. So a graph refutable only by one of those five
+still passes this test and is contradictory anyway, and the positive result is
+"no clash of the twelve kinds this layer can see". -/
 theorem unsat_means_a_violation (G : List Triple)
     (hsame : ∀ a b : Term, Der G ⟨a, V.sameAs, b⟩ → a = b) (h : Unsat G) :
-    ∃ c1 c2 x : Term, Der G ⟨c1, RV.disjointWith, c2⟩ ∧ Der G ⟨x, V.type, c1⟩ ∧
-      Der G ⟨x, V.type, c2⟩ :=
+    Violation G :=
   Classical.byContradiction fun hno =>
     not_unsat_of_joint_model
       (no_violation_means_a_joint_model G hsame
-        (fun c1 c2 x h1 h2 h3 => hno ⟨c1, c2, x, h1, h2, h3⟩)) h
+        (fun c1 c2 x h1 h2 h3 => hno (Or.inl ⟨c1, c2, x, h1, h2, h3⟩))
+        (fun c1 c2 x h1 h2 h3 => hno (.inr (.inl ⟨c1, c2, x, h1, h2, h3⟩)))
+        (fun x h1 => hno (.inr (.inr (.inl ⟨x, h1⟩))))
+        (fun p x h1 h2 => hno (.inr (.inr (.inr (.inl ⟨p, x, h1, h2⟩)))))
+        (fun p x y h1 h2 h3 =>
+          hno (.inr (.inr (.inr (.inr (.inl ⟨p, x, y, h1, h2, h3⟩))))))
+        (fun p q x y h1 h2 h3 =>
+          hno (.inr (.inr (.inr (.inr (.inr (.inl ⟨p, q, x, y, h1, h2, h3⟩)))))))
+        (fun x y h1 h2 =>
+          hno (.inr (.inr (.inr (.inr (.inr (.inr (.inl ⟨x, y, h1, h2⟩))))))))
+        (fun n i p j h1 h2 h3 h4 =>
+          hno (.inr (.inr (.inr (.inr (.inr (.inr (.inr (.inl
+            ⟨n, i, p, j, h1, h2, h3, h4⟩)))))))))
+        (fun n i p j h1 h2 h3 h4 =>
+          hno (.inr (.inr (.inr (.inr (.inr (.inr (.inr (.inr (.inl
+            ⟨n, i, p, j, h1, h2, h3, h4⟩))))))))))
+        (fun c p u v h1 h2 h3 h4 =>
+          hno (.inr (.inr (.inr (.inr (.inr (.inr (.inr (.inr (.inr (.inl
+            ⟨c, p, u, v, h1, h2, h3, h4⟩)))))))))))
+        (fun c p f u v h1 h2 h3 h4 h5 h6 =>
+          hno (.inr (.inr (.inr (.inr (.inr (.inr (.inr (.inr (.inr (.inr (.inl
+            ⟨c, p, f, u, v, h1, h2, h3, h4, h5, h6⟩))))))))))))
+        (fun c p u v h1 h2 h3 h4 h5 =>
+          hno (.inr (.inr (.inr (.inr (.inr (.inr (.inr (.inr (.inr (.inr (.inr
+            ⟨c, p, u, v, h1, h2, h3, h4, h5⟩)))))))))))))
+      h
 
 /-! ## A fragment in which a plain Herbrand model is easy to exhibit
 
@@ -516,19 +608,89 @@ was recorded only in `Semantics.lean`'s docstring, with a reason that turned out
 to be wrong, and this file was byte-identical to the one that predates
 `W3C.lean`. -/
 
+/-- `feed`'s closure carries no `rdf:type` to any of the three class or property
+names the new conditions read. Needed because `Plain.absent` rules out a
+PREDICATE outside the fragment, and these three premises use `rdf:type`, which is
+inside it: what has to be ruled out is the OBJECT. -/
+private theorem feed_closure_no_type_to :
+    ∀ t ∈ feedClosure, t.p = V.type →
+      t.o ≠ RV.nothing ∧ t.o ≠ RV.irreflexiveProperty ∧ t.o ≠ RV.asymmetricProperty := by
+  decide
+
 /-- **A graph with a disjointness axiom that is NOT refutable.** Without this the
 refutation layer would be consistent with a checker that accepts everything.
 
 Relative to `Conditions` and to `RefuteConditions`. The same sentence over the
 specification's model class is `feed_is_not_w3c_refuted` at the end of this
-file, which is strictly stronger and implies this one. -/
+file, which is strictly stronger and implies this one.
+
+**Now against all twelve conditions rather than one.**
+
+Eleven of them are discharged the same way and it is the dull way, which is the
+honest one to record: `feed` uses `rdf:type`, `rdfs:subClassOf` and
+`owl:disjointWith` and nothing else, so `Plain.absent` rules out every premise
+whose predicate is outside that fragment, and the three premises that do use
+`rdf:type` are ruled out by their object instead. No new mathematics; the cost
+of a wider rule set is paid here in bookkeeping, once. -/
 theorem feed_is_not_refuted : ¬ Unsat feed := by
-  refine not_unsat_of_joint_model (no_violation_means_a_joint_model feed feed_has_no_sameAs ?_)
-  intro c1 c2 x h1 h2 h3
-  have m1 := feed_closure_is_plain.der_mem feed_inside_its_closure h1
-  have m2 := feed_closure_is_plain.der_mem feed_inside_its_closure h2
-  have m3 := feed_closure_is_plain.der_mem feed_inside_its_closure h3
-  exact feed_closure_has_no_clash _ m1 _ m2 _ m3 ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩
+  refine not_unsat_of_joint_model (no_violation_means_a_joint_model feed feed_has_no_sameAs
+    ?dw ?com ?nothing ?irp ?asyp ?pdw ?diff ?npa1 ?npa2 ?maxc1 ?maxqc1 ?maxqc2)
+  case dw =>
+    intro c1 c2 x h1 h2 h3
+    have m1 := feed_closure_is_plain.der_mem feed_inside_its_closure h1
+    have m2 := feed_closure_is_plain.der_mem feed_inside_its_closure h2
+    have m3 := feed_closure_is_plain.der_mem feed_inside_its_closure h3
+    exact feed_closure_has_no_clash _ m1 _ m2 _ m3 ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩
+  case com =>
+    intro c1 c2 _ h1 _ _
+    exact absurd (feed_closure_is_plain.der_mem feed_inside_its_closure h1)
+      (feed_closure_is_plain.absent RV.complementOf (by decide) (by decide) (by decide) c1 c2)
+  case nothing =>
+    intro x h1
+    exact ((feed_closure_no_type_to _
+      (feed_closure_is_plain.der_mem feed_inside_its_closure h1) rfl).1) rfl
+  case irp =>
+    intro p _ h1 _
+    exact ((feed_closure_no_type_to _
+      (feed_closure_is_plain.der_mem feed_inside_its_closure h1) rfl).2.1) rfl
+  case asyp =>
+    intro p _ _ h1 _ _
+    exact ((feed_closure_no_type_to _
+      (feed_closure_is_plain.der_mem feed_inside_its_closure h1) rfl).2.2) rfl
+  case pdw =>
+    intro p q _ _ h1 _ _
+    exact absurd (feed_closure_is_plain.der_mem feed_inside_its_closure h1)
+      (feed_closure_is_plain.absent RV.propertyDisjointWith (by decide) (by decide)
+        (by decide) p q)
+  case diff =>
+    intro x y _ h2
+    exact absurd (feed_closure_is_plain.der_mem feed_inside_its_closure h2)
+      (feed_closure_is_plain.absent RV.differentFrom (by decide) (by decide) (by decide) x y)
+  case npa1 =>
+    intro n i _ _ h1 _ _ _
+    exact absurd (feed_closure_is_plain.der_mem feed_inside_its_closure h1)
+      (feed_closure_is_plain.absent RV.sourceIndividual (by decide) (by decide)
+        (by decide) n i)
+  case npa2 =>
+    intro n i _ _ h1 _ _ _
+    exact absurd (feed_closure_is_plain.der_mem feed_inside_its_closure h1)
+      (feed_closure_is_plain.absent RV.sourceIndividual (by decide) (by decide)
+        (by decide) n i)
+  case maxc1 =>
+    intro c _ _ _ h1 _ _ _
+    exact absurd (feed_closure_is_plain.der_mem feed_inside_its_closure h1)
+      (feed_closure_is_plain.absent RV.maxCardinality (by decide) (by decide)
+        (by decide) c RV.zero)
+  case maxqc1 =>
+    intro c _ _ _ _ h1 _ _ _ _ _
+    exact absurd (feed_closure_is_plain.der_mem feed_inside_its_closure h1)
+      (feed_closure_is_plain.absent RV.maxQualifiedCardinality (by decide) (by decide)
+        (by decide) c RV.zero)
+  case maxqc2 =>
+    intro c _ _ _ h1 _ _ _ _
+    exact absurd (feed_closure_is_plain.der_mem feed_inside_its_closure h1)
+      (feed_closure_is_plain.absent RV.maxQualifiedCardinality (by decide) (by decide)
+        (by decide) c RV.zero)
 
 /-- The attempt to refute the consistent graph, which differs from the accepted
 refutation only in that `leo rdf:type Herbivore` is not available. -/
@@ -888,14 +1050,96 @@ theorem grazeI_is_a_w3c_model : W3CModel (refI true) refIP graze where
   uni_eq := fun c l _ hc => absurd hc (not_mem_pred graze V.unionOf (by decide) c l)
   oneOf_eq := fun c l _ hc => absurd hc (not_mem_pred graze V.oneOf (by decide) c l)
 
+/-- The eleven further negative conditions, over the same concrete model.
+
+Each is stated in the `= true` form `ref_feed_dw` uses rather than through
+`Interp.cext`, and that is not decoration: `cext` unfolds to an application of
+`I.ι`, which instance search will not reduce, so `decide` cannot find a
+`Decidable` instance for the `Interp`-level statement. Written over `refIext`
+the kernel can just run them.
+
+They hold for the dull reason, which is the one worth stating: `feed` mentions
+none of this vocabulary, so every premise is unmet. What the theorem below needs
+is that ONE interpretation satisfies all twelve at once, and this is it. -/
+theorem ref_feed_com :
+    ∀ a b : RefD, refIext false (refι RV.complementOf) a b = true →
+      ∀ x, refIext false .ty x a = true → refIext false .ty x b = true → False := by decide
+
+theorem ref_feed_nothing :
+    ∀ x : RefD, refIext false .ty x (refι RV.nothing) = true → False := by decide
+
+theorem ref_feed_irp :
+    ∀ p : RefD, refIext false .ty p (refι RV.irreflexiveProperty) = true →
+      ∀ x, refIext false p x x = true → False := by decide
+
+theorem ref_feed_asyp :
+    ∀ p : RefD, refIext false .ty p (refι RV.asymmetricProperty) = true →
+      ∀ x y, refIext false p x y = true → refIext false p y x = true → False := by decide
+
+theorem ref_feed_pdw :
+    ∀ p q : RefD, refIext false (refι RV.propertyDisjointWith) p q = true →
+      ∀ x y, refIext false p x y = true → refIext false q x y = true → False := by decide
+
+theorem ref_feed_diff :
+    ∀ x y : RefD, refIext false (refι V.sameAs) x y = true →
+      refIext false (refι RV.differentFrom) x y = true → False := by decide
+
+theorem ref_feed_npa1 :
+    ∀ n i p j : RefD, refIext false (refι RV.sourceIndividual) n i = true →
+      refIext false (refι RV.assertionProperty) n p = true →
+      refIext false (refι RV.targetIndividual) n j = true →
+      refIext false p i j = true → False := by decide
+
+theorem ref_feed_npa2 :
+    ∀ n i p j : RefD, refIext false (refι RV.sourceIndividual) n i = true →
+      refIext false (refι RV.assertionProperty) n p = true →
+      refIext false (refι RV.targetValue) n j = true →
+      refIext false p i j = true → False := by decide
+
+theorem ref_feed_maxc1 :
+    ∀ c p : RefD, refIext false (refι RV.maxCardinality) c (refι RV.zero) = true →
+      refIext false (refι V.onProperty) c p = true →
+      ∀ u v, refIext false .ty u c = true → refIext false p u v = true → False := by decide
+
+theorem ref_feed_maxqc1 :
+    ∀ c p f : RefD, refIext false (refι RV.maxQualifiedCardinality) c (refι RV.zero) = true →
+      refIext false (refι V.onProperty) c p = true →
+      refIext false (refι RV.onClass) c f = true →
+      ∀ u v, refIext false .ty u c = true → refIext false p u v = true →
+        refIext false .ty v f = true → False := by decide
+
+theorem ref_feed_maxqc2 :
+    ∀ c p : RefD, refIext false (refι RV.maxQualifiedCardinality) c (refι RV.zero) = true →
+      refIext false (refι V.onProperty) c p = true →
+      refIext false (refι RV.onClass) c (refι RV.thing) = true →
+      ∀ u v, refIext false .ty u c = true → refIext false p u v = true → False := by decide
+
 theorem ref_feed_dw :
     ∀ a b : RefD, refIext false (refι RV.disjointWith) a b = true →
       ∀ x, refIext false .ty x a = true → refIext false .ty x b = true → False := by decide
 
-/-- And the `feed` model respects disjointness, which is what
-`RefuteConditions` asks and what `graze`'s model cannot do. -/
+/-- And the `feed` model respects every negative condition, which is what
+`RefuteConditions` asks and what `graze`'s model cannot do.
+
+Eleven of the twelve are `by decide`: `refI false` is a concrete interpretation
+over a finite carrier, and `feed` mentions none of the vocabulary those rules
+read, so each condition holds because its premise is never met. That is the
+cheap case and it is the honest one to state, because what this theorem has to
+establish is that SOMETHING satisfies all twelve at once, not that the eleven
+were hard. -/
 theorem feedI_respects_disjointness : RefuteConditions (refI false) where
   dw := ref_feed_dw
+  com := ref_feed_com
+  nothing := ref_feed_nothing
+  irp := ref_feed_irp
+  asyp := ref_feed_asyp
+  pdw := ref_feed_pdw
+  diff := ref_feed_diff
+  npa1 := ref_feed_npa1
+  npa2 := ref_feed_npa2
+  maxc1 := ref_feed_maxc1
+  maxqc1 := ref_feed_maxqc1
+  maxqc2 := ref_feed_maxqc2
 
 theorem ref_models_are_live_raw :
     (refIext false .ty .leo .lion = true ∧ refIext false .ty .leo .carn = true ∧
