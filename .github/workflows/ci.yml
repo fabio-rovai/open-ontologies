@@ -317,6 +317,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+        with:
+          cache-suffix: hnswlib-portable
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'   # the floor declared by requires-python
@@ -347,8 +349,18 @@ jobs:
         run: cargo build --release --bin open-ontologies
       # shacl and align as well as dev. Those two extras are the whole reason
       # three more files skipped here, and they are small.
+      # hnswlib ships no wheel and its setup.py compiles with `-march=native`
+      # unless told otherwise. uv then caches the built wheel, and the hosted
+      # runners are not one CPU: a wheel built on a machine with AVX-512 was
+      # restored on one without it and pytest died at import with "Illegal
+      # instruction" (main, 19 September 2026, alternating pass and fail run
+      # to run with no code change between them). HNSWLIB_NO_NATIVE makes the
+      # build portable; the cache suffix keeps the old native wheel from ever
+      # being restored again.
       - name: Install with the extras the tests need
         working-directory: python
+        env:
+          HNSWLIB_NO_NATIVE: "1"
         run: uv pip install --system -e ".[dev,shacl,align]"
       - name: Test
         working-directory: python
