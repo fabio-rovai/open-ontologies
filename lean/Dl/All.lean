@@ -1,9 +1,13 @@
 import Dl.Syntax
 import Dl.Semantics
+import Dl.General
+import Dl.Tableau
 import Dl.Count
 import Dl.Check
 import Dl.Parse
 import Dl.Witness
+import Dl.Refute
+import Dl.TableauDemo
 
 /-!
 # `Dl`: a model certificate for the SHIQ tableaux reasoner
