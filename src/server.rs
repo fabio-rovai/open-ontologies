@@ -1258,6 +1258,25 @@ impl OpenOntologiesServer {
                 Err(e) => return Self::err_json(format!("Cannot read shapes file: {}", e)),
             }
         };
+        if input.verified.unwrap_or(false) {
+            // Refused rather than ignored. The verified evaluator reads one
+            // N-Triples dump of the store and has no notion of a temporal
+            // scope, so honouring the argument is impossible and dropping it
+            // would answer a different question from the one that was asked.
+            if input.valid_at.is_some()
+                || input.as_of.is_some()
+                || input.all_versions.unwrap_or(false)
+            {
+                return Self::err_json(
+                    "verified: true cannot be combined with valid_at, as_of or all_versions.                      The verified evaluator reads the whole store and has no temporal scope,                      so the scope would be silently dropped. Run the scoped question on the                      default path, or the verified question without a scope."
+                        .to_string(),
+                );
+            }
+            return match crate::shacl_verified::validate_verified(&self.graph, &shapes) {
+                Ok(v) => v.to_string(),
+                Err(e) => Self::err_json(e.to_string()),
+            };
+        }
         let request = match crate::temporal::ScopeRequest::from_args(
             input.valid_at.as_deref(),
             input.as_of.as_deref(),
@@ -2303,7 +2322,25 @@ impl OpenOntologiesServer {
         // `onto_plan` receives the WHOLE proposed graph, so the mode is fixed
         // here rather than exposed: reading a replacement as a delta would
         // report a change that deletes half the ontology as an extension.
-        let conservativity = input.check_conservativity.unwrap_or(false).then(|| {
+        // DEFAULT ON, changed under #196.
+        //
+        // It was opt-in because it reasons both graphs to a fixpoint, and that
+        // is a real cost. Measured on this machine, adding one `rdfs:domain`
+        // triple to a store of N individuals of that property: 900 in 0.14s,
+        // 9,000 in 0.68s, 45,000 in 3.99s. Roughly linear, about 11
+        // microseconds an individual.
+        //
+        // A plan is a deliberate pre-production act, not an interactive query,
+        // and that cost buys the only part of a plan that is about MEANING. In
+        // the run above every shape number stayed at zero — no class added,
+        // none removed, blast radius zero, risk low — while 901 consequences
+        // appeared that were not there before. A safety check that is off by
+        // default is one most users never learn exists, and this one is the
+        // reason to use a plan at all.
+        //
+        // `check_conservativity: false` opts out, and is the thing to reach for
+        // on a store big enough that the fixpoint hurts.
+        let conservativity = input.check_conservativity.unwrap_or(true).then(|| {
             crate::conservativity::ConservativityOptions {
                 mode: crate::conservativity::ExtensionMode::Replacement,
                 profile: input.conservativity_profile.unwrap_or_else(|| "owl-rl".to_string()),

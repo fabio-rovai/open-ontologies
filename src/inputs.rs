@@ -235,6 +235,26 @@ pub struct OntoShaclInput {
     /// `valid_at` or `as_of`. On a store that uses no temporal vocabulary this
     /// changes nothing: every graph is read either way.
     pub all_versions: Option<bool>,
+    /// Run the VERIFIED evaluator instead of the SPARQL one.
+    ///
+    /// `Shacl/` is a mechanised SHACL Core evaluator whose soundness is a
+    /// machine-checked theorem, `Shacl.validate_spec`. Setting this runs
+    /// `oo-shacl` over the same store and shapes and returns its verdict,
+    /// which is covered by that theorem, together with the theorem's name and
+    /// what it does not cover.
+    ///
+    /// It answers a DIFFERENT set of questions from the default path, not a
+    /// larger one. This evaluator covers SHACL Core and REFUSES `sh:sparql`
+    /// and user-defined constraint components outright rather than skipping
+    /// them, so where the default path would list a `skipped_constraints`
+    /// entry this one returns `conforms: null` with a reason. That refusal is
+    /// the point: "everything conforms" and "I did not check everything" are
+    /// different answers and this path will not collapse them.
+    ///
+    /// Needs `oo-shacl` on disk: `cd lean && lake build`, or set `OO_SHACL`.
+    /// Temporal scoping is not applied on this path and a scope argument
+    /// alongside it is refused rather than silently ignored.
+    pub verified: Option<bool>,
 }
 
 #[derive(Deserialize, JsonSchema)]
@@ -544,9 +564,21 @@ pub struct OntoPlanInput {
     pub new_turtle: String,
     /// Also answer whether the change alters any consequence over the names the
     /// store ALREADY uses, under the rule table in `conservativity_profile`.
-    /// Default false: it reasons both graphs to a fixpoint, so it costs seconds
-    /// rather than milliseconds. When it is false the plan says so rather than
-    /// staying silent.
+    ///
+    /// DEFAULT TRUE since #196. Pass `false` to skip it, and the plan then says
+    /// it did not look rather than staying silent.
+    ///
+    /// This is the only part of a plan that is about MEANING. Everything else
+    /// is shape, and shape cannot see the change that matters most: adding one
+    /// `rdfs:domain` triple adds no class, removes nothing, has a blast radius
+    /// of zero and scores `low`, while retyping every existing individual of
+    /// that property.
+    ///
+    /// It reasons both graphs to a fixpoint, which is the reason it was opt-in.
+    /// Measured: 900 individuals in 0.14s, 9,000 in 0.68s, 45,000 in 3.99s,
+    /// roughly linear at about 11 microseconds an individual. A plan is a
+    /// deliberate pre-production act rather than an interactive query, so that
+    /// is worth paying by default; opt out on a store big enough that it hurts.
     #[serde(default)]
     pub check_conservativity: Option<bool>,
     /// Rule table for the conservativity check: `rdfs`, `owl-rl` (default) or

@@ -56,6 +56,7 @@
 
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Instant;
 
 use rayon::prelude::*;
@@ -1442,18 +1443,72 @@ impl Verdict {
 }
 
 /// Why a tableau run stopped short of a decision.
-#[derive(Debug, Clone, Copy, Default)]
+// Not `Copy` any more: the step counter is an `Arc` so that the branches of one
+// run share it. A `Copy` budget would hand every disjunct its own counter and
+// bound nothing.
+#[derive(Debug, Clone)]
 struct Budget {
     /// Wall-clock cut-off for a single satisfiability test.
+    ///
+    /// NONDETERMINISTIC by construction, which is why the step budget beside
+    /// it exists. A run bounded only by a clock gives different answers on a
+    /// fast machine and a loaded one, and `#161` is what that costs: a
+    /// soundness test that failed roughly three runs in five against an
+    /// unmodified baseline, which teaches a reader to discount red.
     deadline: Option<Instant>,
+    /// Steps taken, SHARED across the branches of one run.
+    ///
+    /// The clock is here because the node and depth budgets do not bound the
+    /// number of BRANCHES explored: a tableau can stay small and shallow while
+    /// backtracking exponentially. This counts that work directly. It is an
+    /// `Arc<AtomicU64>` and not a field because `Tableau` is cloned per
+    /// disjunct, and a per-clone counter would reset at every branch and bound
+    /// nothing at all.
+    steps: Arc<AtomicU64>,
+    /// The step ceiling, or `None` for no step bound.
+    max_steps: Option<u64>,
     /// Set when any budget was hit during expansion.
     exhausted: bool,
+    /// Which bound stopped the run, for the report. A run that ran out of
+    /// steps and a run that ran out of time are different facts, and a caller
+    /// deciding whether to retry with a bigger budget needs to know which.
+    stopped_by: Option<&'static str>,
+}
+
+impl Default for Budget {
+    fn default() -> Self {
+        Budget {
+            deadline: None,
+            steps: Arc::new(AtomicU64::new(0)),
+            max_steps: crate::runtime::tableaux_max_steps(),
+            exhausted: false,
+            stopped_by: None,
+        }
+    }
 }
 
 impl Budget {
-    fn expired(&self) -> bool {
-        self.deadline.is_some_and(|d| Instant::now() >= d)
+    /// Charge one step and report whether any bound has been reached.
+    ///
+    /// Charging and testing are one call, and there is deliberately no way to
+    /// do one without the other. A separate `expired()` invites a loop that
+    /// tests without charging, which is how a step budget quietly stops
+    /// bounding anything; this type had one and it is gone.
+    fn spend(&mut self) -> bool {
+        let n = self.steps.fetch_add(1, Ordering::Relaxed) + 1;
+        if let Some(max) = self.max_steps
+            && n >= max
+        {
+            self.stopped_by = Some("steps");
+            return true;
+        }
+        if self.deadline.is_some_and(|d| Instant::now() >= d) {
+            self.stopped_by = Some("time");
+            return true;
+        }
+        false
     }
+
 }
 
 #[derive(Clone)]
@@ -1793,7 +1848,10 @@ impl Tableau {
         // Hitting a budget is NOT a clash. Record it so the caller can report
         // Unknown instead of asserting unsatisfiability, then unwind. The
         // `false` return here means only "this branch produced no model".
-        if depth > max_depth || self.nodes.len() > max_nodes || self.budget.expired() {
+        // One step per call to `expand`, charged BEFORE the test, so the count
+        // measures work attempted rather than work that happened to finish.
+        let out_of_budget = self.budget.spend();
+        if depth > max_depth || self.nodes.len() > max_nodes || out_of_budget {
             self.budget.exhausted = true;
             return false;
         }
@@ -1805,7 +1863,9 @@ impl Tableau {
             // (every iteration re-runs blocking over every node), so a check
             // only at function entry lets one expansion overrun the budget
             // without bound.
-            if self.budget.expired() {
+            // And one per turn of the fixpoint, which is where the expensive
+            // work is: every iteration re-runs blocking over every node.
+            if self.budget.spend() {
                 self.budget.exhausted = true;
                 return false;
             }
@@ -1876,7 +1936,7 @@ impl Tableau {
                                 // unwind so the caller reports Unknown, not a fabricated answer.
                                 let max_nodes = crate::runtime::tableaux_max_nodes();
                                 for _ in 0..(n - matching) {
-                                    if self.nodes.len() > max_nodes || self.budget.expired() {
+                                    if self.nodes.len() > max_nodes || self.budget.spend() {
                                         self.budget.exhausted = true;
                                         return false;
                                     }
@@ -2046,6 +2106,9 @@ impl Tableau {
                             // Carry the budget flag back: a branch that ran out
                             // of room does not license "all merges clash".
                             self.budget.exhausted |= branch.budget.exhausted;
+                            if self.budget.stopped_by.is_none() {
+                                self.budget.stopped_by = branch.budget.stopped_by;
+                            }
                         }
                     }
                     return false; // All merges lead to clash
@@ -2112,6 +2175,9 @@ impl Tableau {
                         }
                         // Same here: an exhausted disjunct is not a refuted one.
                         self.budget.exhausted |= branch.budget.exhausted;
+                            if self.budget.stopped_by.is_none() {
+                                self.budget.stopped_by = branch.budget.stopped_by;
+                            }
                     }
                     return false; // All branches clash
                 }
@@ -3214,6 +3280,8 @@ impl DlReasoner {
                 consistent: true,
                 undecided: false,
                 individuals_checked: 0,
+                steps: 0,
+                stopped_by: None,
                 inferred_types: HashMap::new(),
             };
         }
@@ -3256,6 +3324,8 @@ impl DlReasoner {
             undecided: abox_undecided,
             individuals_checked,
             inferred_types: inferred,
+            steps: tableau.budget.steps.load(Ordering::Relaxed),
+            stopped_by: tableau.budget.stopped_by,
         }
     }
 
@@ -3690,6 +3760,18 @@ pub struct ABoxResult {
     pub undecided: bool,
     pub individuals_checked: usize,
     pub inferred_types: HashMap<u32, HashSet<u32>>,
+    /// Expansion steps this run took.
+    ///
+    /// The same ontology takes the same number on every machine, which is what
+    /// makes a step budget a budget rather than a race. A test can assert on
+    /// this; a clock-bounded run has no such number.
+    pub steps: u64,
+    /// Which budget stopped the run, if one did: `"steps"` or `"time"`.
+    ///
+    /// `undecided` alone says a run was cut short and not which bound cut it.
+    /// Those call for different responses, and a reader deciding whether to
+    /// raise a limit needs to know which limit.
+    pub stopped_by: Option<&'static str>,
 }
 
 pub struct ClassificationResult {
