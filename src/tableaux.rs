@@ -634,6 +634,68 @@ impl OwlParser {
             axioms.push((b_nnf, a_nnf));
         }
 
+        // A NAMED class that carries owl:unionOf, owl:intersectionOf or
+        // owl:complementOf is DEFINED by that expression, and the definition
+        // used to be dropped on the floor.
+        //
+        // `parse_class_expr` reaches `try_parse_complex` only for blank nodes,
+        // so the three set constructors were read out of anonymous class
+        // expressions and nowhere else. A named IRI carrying one came back as an
+        // opaque atom, the definition vanished, and nothing recorded the loss:
+        // `unmodelled_constructs` returned empty and the table at the top of
+        // this file claimed `unionOf ✅`. That is the UNSOUND direction. An
+        // ontology inconsistent through such a definition was reported
+        // consistent, and a class unsatisfiable through one was reported
+        // satisfiable. Missing an entailment is incompleteness and this codebase
+        // says where it is incomplete; calling a contradiction fine is telling
+        // the reader something false.
+        //
+        // The OWL 2 Mapping to RDF Graphs settles the reading. The pattern
+        // `*:x rdf:type owl:Class . *:x owl:unionOf T(SEQ CE1 ... CEn)` with
+        // `*:x` an IRI maps to `EquivalentClasses(*:x ObjectUnionOf(...))`, so
+        // both directions go in, exactly as the `owl:equivalentClass` pass above
+        // does. A one-way `subClassOf` would lose the half that puts each
+        // disjunct inside the union.
+        //
+        // The atom is kept as the head rather than being replaced by its
+        // expansion, because the satisfiability sweep and the certificate layer
+        // both address classes by name and a class rewritten into a disjunction
+        // is no longer a name they can ask about.
+        let mut defined_named: Vec<String> = self
+            .index
+            .by_subject
+            .iter()
+            .filter(|(s, pairs)| {
+                s.starts_with('<')
+                    && s.as_str() != OWL_THING
+                    && s.as_str() != OWL_NOTHING
+                    && pairs.iter().any(|(p, _)| {
+                        p == OWL_UNION || p == OWL_INTERSECTION || p == OWL_COMPLEMENT
+                    })
+            })
+            .map(|(s, _)| s.clone())
+            .collect();
+        // `by_subject` is a HashMap, so its iteration order is not the file's.
+        // Sorted for the same reason the node traversals are: the axiom list
+        // reaches the tableau in this order and two runs over one ontology must
+        // not differ.
+        defined_named.sort();
+        for subject in defined_named {
+            let Some(raw) = self.try_parse_complex(&subject) else {
+                continue;
+            };
+            let body = raw.to_nnf();
+            let id = self.interner.intern(&subject);
+            named_classes.insert(id);
+            let head = Concept::Atom(id);
+            // Realization needs the structural form, same as the equivalence
+            // pass, and for the same reason: it cannot be recovered once
+            // negation has been pushed through the GCI encoding.
+            definitions.entry(id).or_insert_with(|| body.clone());
+            axioms.push((head.clone(), body.clone()));
+            axioms.push((body, head));
+        }
+
         // Collect DisjointWith axioms
         let disjoint_raw: Vec<(String, String)> = self
             .index
