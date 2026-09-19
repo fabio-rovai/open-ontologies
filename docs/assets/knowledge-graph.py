@@ -2,11 +2,36 @@
 """Regenerate docs/assets/knowledge-graph.svg from a real certified run.
 
 Run:
-    open-ontologies reason --profile rdfs --certificate DIR benchmark/reference/ies-core.ttl
+    printf 'load benchmark/reference/ies-core.ttl\nreason --profile rdfs --certificate DIR\n' \
+        | open-ontologies batch - --no-connect
     python3 docs/assets/knowledge-graph.py DIR/asserted.tsv DIR/derivations.tsv \
         docs/assets/knowledge-graph.svg
 
+`reason` takes no positional file. It reasons over the loaded store, so the
+graph has to be loaded first and the two have to be one batch: a second process
+would start with an empty store. The old header here said otherwise and the
+command in it exits 2.
+
 Every figure in the legend is counted from those two files. Nothing is typed.
+
+The picture is ANIMATED, in four beats on one 14-second clock: the asserted
+graph arrives, the engine derives, Lean sweeps the derived edges, and a forged
+edge is drawn and then refused. That order is the argument the README makes, and
+a still image cannot make it: it shows the three colours side by side as though
+they were one kind of fact, when the whole point is that they are produced at
+different times by different parties with different warrants.
+
+SMIL rather than CSS or script, because the README embeds this through an
+`<img>` tag served by raw.githubusercontent.com. Script never runs there.
+
+NOTHING IS BUILT UP FROM NOTHING, and that constraint is the whole shape of the
+file. The first attempt animated the graph into existence: opacity 0 to 1, a
+mask opening from the checker. It looked right in a browser and rendered as an
+EMPTY RECTANGLE under macOS Quick Look, because a still renderer samples the
+timeline at t=0 and t=0 was blank. Thumbnails, link previews and PDF exports all
+do that. So every layer is drawn at a resting opacity that is never zero, and a
+beat BRIGHTENS its layer rather than revealing it. Sample this file at any
+instant and you get the whole graph; watch it and you get the argument.
 The layout is a plain spring embedder with a FIXED seed, so the same input
 gives the same picture and a regeneration is a diff a reader can check rather
 than a new arrangement of the same facts.
@@ -118,13 +143,39 @@ def main(asserted_path, derivations_path, out_path):
         pos[i][0] = ox + (pos[i][0] - min(xs)) * sc
         pos[i][1] = oy + (pos[i][1] - min(ys)) * sc
 
+    # ── The clock ───────────────────────────────────────────────────────
+    #
+    # One cycle, one set of keyTimes, every animation on it. Separate clocks
+    # drift apart over a long loop and the beats stop lining up with the
+    # captions, which is worse than no animation because the captions then
+    # describe the wrong thing.
+    #
+    # Every `values` list STARTS and ENDS at the layer's resting level, so the
+    # frame at t=0 is the same complete picture as the frame at t=CYCLE. A
+    # still renderer samples t=0; see the header.
+    CYCLE = 14.0
+    REST_A, LIT_A = 0.45, 0.95   # asserted
+    REST_D, LIT_D = 0.30, 0.85   # derived
+    REST_F, LIT_F = 0.50, 1.0    # the forged edge
+
+    def kt(*secs):
+        """Seconds to the keyTimes fraction SMIL wants."""
+        return ";".join(f"{x / CYCLE:.4f}" for x in secs)
+
+    def anim(attr, values, times, dur=None):
+        return (f'<animate attributeName="{attr}" dur="{dur or CYCLE}s" '
+                f'repeatCount="indefinite" values="{values}" keyTimes="{times}" '
+                f'calcMode="linear"/>')
+
     out = []
     A = out.append
     A(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" '
       f'font-family="ui-sans-serif,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif" '
-      f'role="img" aria-label="The IES core class hierarchy. Grey edges were asserted by a person. '
-      f'Green edges the engine derived and a Lean 4 proof accepted. One red edge is a forged '
-      f'derivation the same checker refused.">')
+      f'role="img" aria-label="The IES core class hierarchy, lit in four beats. The subclass '
+      f'edges a person asserted, then the edges the engine derived, then a Lean 4 proof sweeping '
+      f'them, then one forged derivation that the same checker refuses.">')
+
+    lx, ly = W - 150, 86
     A('<defs>'
       '<radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">'
       '<stop offset="0" stop-color="#34d399" stop-opacity="0.30"/>'
@@ -134,28 +185,43 @@ def main(asserted_path, derivations_path, out_path):
       '</defs>')
     A(f'<rect width="{W}" height="{H}" rx="14" fill="url(#bg)"/>')
 
-    for s, o in d_edges:
-        i, j = idx[s], idx[o]
+    # What the engine derived. Lit during beats 2 and 3.
+    A(f'<g opacity="{REST_D}">'
+      + anim("opacity", f"{REST_D};{REST_D};{LIT_D};{LIT_D};{REST_D};{REST_D}",
+             kt(0, 3.0, 4.0, 9.0, 10.0, CYCLE)))
+    for s_, o_ in d_edges:
+        i, j = idx[s_], idx[o_]
         A(f'<line x1="{pos[i][0]:.1f}" y1="{pos[i][1]:.1f}" x2="{pos[j][0]:.1f}" '
-          f'y2="{pos[j][1]:.1f}" stroke="#34d399" stroke-width="0.9" opacity="0.55"/>')
-    for s, o in a_edges:
-        i, j = idx[s], idx[o]
+          f'y2="{pos[j][1]:.1f}" stroke="#34d399" stroke-width="0.9"/>')
+    A('</g>')
+
+    # What a person claimed. Lit during beat 1, because nothing is derived
+    # until something is asserted and the order is the argument.
+    A(f'<g opacity="{REST_A}">'
+      + anim("opacity", f"{REST_A};{LIT_A};{LIT_A};{REST_A};{REST_A}",
+             kt(0, 0.6, 2.6, 3.6, CYCLE)))
+    for s_, o_ in a_edges:
+        i, j = idx[s_], idx[o_]
         A(f'<line x1="{pos[i][0]:.1f}" y1="{pos[i][1]:.1f}" x2="{pos[j][0]:.1f}" '
-          f'y2="{pos[j][1]:.1f}" stroke="#64748b" stroke-width="0.8" opacity="0.8"/>')
+          f'y2="{pos[j][1]:.1f}" stroke="#64748b" stroke-width="0.8"/>')
+    A('</g>')
 
-    # The forged derivation, drawn once, from the node the checker named.
-    if d_edges:
-        fi = idx[d_edges[0][0]]
-        A(f'<line x1="{pos[fi][0]:.1f}" y1="{pos[fi][1]:.1f}" x2="{W-210}" y2="{H-190}" '
-          f'stroke="#fb3b53" stroke-width="2.4" stroke-dasharray="7 4"/>')
-        A(f'<circle cx="{W-210}" cy="{H-190}" r="7" fill="#3b0710" stroke="#fb3b53" stroke-width="2"/>')
-        A(f'<text x="{W-222}" y="{H-172}" text-anchor="end" font-size="11.5" font-weight="700" fill="#fb3b53">'
-          f'forged, and refused</text>')
+    # The sweep. One expanding ring out of the checker, which is what makes
+    # beat 3 read as Lean going over the derived edges rather than the green
+    # simply getting brighter. One element, so it costs nothing.
+    A(f'<circle cx="{lx}" cy="{ly}" r="0" fill="none" stroke="#6ee7b7" stroke-width="2" '
+      f'opacity="0">'
+      + anim("r", "0;0;60;1250;1250", kt(0, 6.6, 6.9, 9.0, CYCLE))
+      + anim("opacity", "0;0;0.55;0;0", kt(0, 6.6, 7.0, 9.0, CYCLE)) +
+      f'</circle>')
 
+    # The classes themselves.
     for n in nodes:
         i = idx[n]
         r = 2.4 + min(5.0, deg[i] * 0.34)
-        A(f'<circle cx="{pos[i][0]:.1f}" cy="{pos[i][1]:.1f}" r="{r:.1f}" fill="#7dd3fc" opacity="0.92"/>')
+        A(f'<circle cx="{pos[i][0]:.1f}" cy="{pos[i][1]:.1f}" r="{r:.1f}" fill="#7dd3fc" '
+          f'opacity="0.92"/>')
+
     # Label only the busiest nodes, on a chip, and only where the chip does
     # not land on one already placed. A label per node is a grey wall, and
     # labels stacked on a hub are worse than none: they hide the structure
@@ -177,11 +243,45 @@ def main(asserted_path, derivations_path, out_path):
           f'fill="#050813" opacity="0.82"/>')
         A(f'<text x="{x:.1f}" y="{y:.1f}" font-size="10" fill="#cbd5e1">{label}</text>')
 
-    A(f'<circle cx="{W-150}" cy="86" r="52" fill="url(#glow)"/>')
-    A(f'<circle cx="{W-150}" cy="86" r="19" fill="#34d399"/>')
-    A(f'<text x="{W-150}" y="91" text-anchor="middle" font-size="12" font-weight="800" fill="#04180f">'
+    # The forged derivation. Its dashes march the whole time, so the edge reads
+    # as a claim being pushed rather than a line that is merely there, and the
+    # refusal lands on it in beat 4. The cross is present at rest, because a
+    # still frame of this picture must not show the forgery unanswered.
+    if d_edges:
+        fi = idx[d_edges[0][0]]
+        fx, fy = W - 210, H - 190
+        A(f'<g opacity="{REST_F}">'
+          + anim("opacity", f"{REST_F};{REST_F};{LIT_F};{LIT_F};{REST_F};{REST_F}",
+                 kt(0, 9.0, 9.6, 12.0, 12.8, CYCLE)))
+        A(f'<line x1="{pos[fi][0]:.1f}" y1="{pos[fi][1]:.1f}" x2="{fx}" y2="{fy}" '
+          f'stroke="#fb3b53" stroke-width="2.4" stroke-dasharray="7 4">'
+          f'<animate attributeName="stroke-dashoffset" dur="0.9s" '
+          f'repeatCount="indefinite" values="0;-22"/>'
+          + anim("stroke-width", "2.4;2.4;5.2;2.4;2.4", kt(0, 10.4, 10.8, 11.4, CYCLE)) +
+          f'</line>')
+        A(f'<circle cx="{fx}" cy="{fy}" r="7" fill="#3b0710" stroke="#fb3b53" stroke-width="2">'
+          + anim("r", "7;7;13;7;7", kt(0, 10.4, 10.8, 11.4, CYCLE)) +
+          f'</circle>')
+        A(f'<g stroke="#fb3b53" stroke-width="2.6" stroke-linecap="round">'
+          f'<line x1="{fx-6}" y1="{fy-6}" x2="{fx+6}" y2="{fy+6}"/>'
+          f'<line x1="{fx+6}" y1="{fy-6}" x2="{fx-6}" y2="{fy+6}"/></g>')
+        # Above the marker, not beside it. Beside it, the label lay along the
+        # edge it names and the two read as one smear.
+        A(f'<text x="{fx}" y="{fy-16}" text-anchor="middle" font-size="11.5" font-weight="700" '
+          f'fill="#fb3b53">forged, and refused</text>')
+        A('</g>')
+
+    # The checker. Its glow breathes for the whole cycle, because it is the one
+    # thing on the canvas that is never finished, and swells when it decides.
+    A(f'<circle cx="{lx}" cy="{ly}" r="52" fill="url(#glow)">'
+      + anim("r", "52;44;56;44;70;52;52", kt(0, 1.0, 3.0, 5.0, 7.4, 9.0, CYCLE)) +
+      f'</circle>')
+    A(f'<circle cx="{lx}" cy="{ly}" r="19" fill="#34d399">'
+      + anim("r", "19;19;23;19", kt(0, 6.8, 7.4, CYCLE)) +
+      f'</circle>')
+    A(f'<text x="{lx}" y="91" text-anchor="middle" font-size="12" font-weight="800" fill="#04180f">'
       f'Lean</text>')
-    A(f'<text x="{W-150}" y="124" text-anchor="middle" font-size="11" fill="#6ee7b7">'
+    A(f'<text x="{lx}" y="124" text-anchor="middle" font-size="11" fill="#6ee7b7">'
       f'oo-cert decides</text>')
 
     n_asserted = len(asserted)
@@ -192,6 +292,24 @@ def main(asserted_path, derivations_path, out_path):
     A(f'<text x="34" y="68" font-size="12" fill="#94a3b8">'
       f'{len(nodes)} classes and {len(a_edges) + len(d_edges)} subclass edges drawn, out of '
       f'{n_asserted} asserted triples and {n_derived} derived</text>')
+
+    # The beat caption. Without it a reader sees motion and no argument; with
+    # it the motion IS the argument. Each line shows only during its own beat.
+    # The first is also the resting caption, so a still frame is captioned
+    # correctly rather than captioned by whichever beat happened to be last.
+    beats = [("#94a3b8", "1 · asserted by a person", 0.6, 3.6),
+             ("#6ee7b7", "2 · derived by the engine", 3.6, 6.6),
+             ("#34d399", "3 · checked by Lean, and accepted", 6.6, 9.0),
+             ("#fb3b53", "4 · forged, and refused", 9.0, 12.8)]
+    for n_, (col, text, t0, t1) in enumerate(beats):
+        first = n_ == 0
+        if first:
+            vals, times = "1;1;1;0;0;1", kt(0, t0, t1 - 0.3, t1, CYCLE - 0.4, CYCLE)
+        else:
+            vals, times = "0;0;1;1;0;0", kt(0, t0, t0 + 0.4, t1 - 0.3, t1, CYCLE)
+        A(f'<text x="34" y="{H-128}" font-size="13" font-weight="700" fill="{col}" '
+          f'opacity="{1 if first else 0}">'
+          + anim("opacity", vals, times) + f'{text}</text>')
 
     y = H - 92
     A(f'<rect x="28" y="{y-26}" width="620" height="82" rx="10" fill="#0b1020" opacity="0.9" '
