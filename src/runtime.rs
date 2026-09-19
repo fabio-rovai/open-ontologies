@@ -23,6 +23,7 @@ use crate::config::{
 // ── Defaults match the previous hardcoded constants exactly ─────────────
 const DEFAULT_TABLEAUX_MAX_DEPTH: usize = 100;
 const DEFAULT_TABLEAUX_MAX_NODES: usize = 10_000;
+const DEFAULT_TABLEAUX_MAX_STEPS: usize = 5_000_000;
 /// 10s per satisfiability test. Generous for well-behaved ontologies, and the
 /// difference between a reported Unknown and an unbounded hang for the rest.
 const DEFAULT_TABLEAUX_TEST_TIMEOUT_MS: usize = 10_000;
@@ -43,6 +44,11 @@ const DEFAULT_WEBHOOK_TIMEOUT: u64 = 10;
 
 static TABLEAUX_MAX_DEPTH: AtomicUsize = AtomicUsize::new(DEFAULT_TABLEAUX_MAX_DEPTH);
 static TABLEAUX_MAX_NODES: AtomicUsize = AtomicUsize::new(DEFAULT_TABLEAUX_MAX_NODES);
+/// Generous by design. It is a backstop against exponential backtracking, not a
+/// working limit: every ontology in the benchmark set finishes far inside it,
+/// and a run that hits it should be read as "this needs more budget" rather
+/// than as an answer.
+static TABLEAUX_MAX_STEPS: AtomicUsize = AtomicUsize::new(DEFAULT_TABLEAUX_MAX_STEPS);
 static TABLEAUX_TEST_TIMEOUT_MS: AtomicUsize =
     AtomicUsize::new(DEFAULT_TABLEAUX_TEST_TIMEOUT_MS);
 static CLASSIFY_TIMEOUT_MS: AtomicUsize = AtomicUsize::new(DEFAULT_CLASSIFY_TIMEOUT_MS);
@@ -127,6 +133,23 @@ fn apply_webhook(w: &WebhookConfig) {
 
 pub fn tableaux_max_depth() -> usize { TABLEAUX_MAX_DEPTH.load(Ordering::Relaxed) }
 pub fn tableaux_max_nodes() -> usize { TABLEAUX_MAX_NODES.load(Ordering::Relaxed) }
+
+/// Deterministic ceiling on the WORK one satisfiability test may do, counted in
+/// expansion steps. `None` (value 0) means no step bound.
+///
+/// The node and depth budgets do not bound the number of BRANCHES explored, so
+/// before this existed the only thing that did was a wall clock. A clock makes
+/// the verdict depend on how fast the machine is, which is how a soundness test
+/// came to fail about three runs in five against an unmodified baseline (#161).
+/// This bounds the same work deterministically: the same ontology takes the
+/// same number of steps on every machine, so a run either finishes or does not,
+/// everywhere, and a budget that stops a run says which budget it was.
+pub fn tableaux_max_steps() -> Option<u64> {
+    match TABLEAUX_MAX_STEPS.load(Ordering::Relaxed) {
+        0 => None,
+        n => Some(n as u64),
+    }
+}
 
 /// Wall-clock cut-off for a single tableau satisfiability test, in
 /// milliseconds. `None` (value 0) means no time limit.
