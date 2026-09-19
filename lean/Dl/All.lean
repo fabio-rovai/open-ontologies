@@ -6,6 +6,7 @@ import Dl.Count
 import Dl.Check
 import Dl.Parse
 import Dl.Witness
+import Dl.Refute
 import Dl.TableauDemo
 
 /-!
