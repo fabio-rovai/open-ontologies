@@ -173,3 +173,63 @@ fn the_audit_is_well_formed_markup() {
     assert_eq!(opens, closes, "unbalanced <g> in the HQDM audit asset");
     assert!(s.starts_with("<svg") && s.ends_with("</svg>"));
 }
+
+/// The translated README must state the same numbers as the English one.
+///
+/// `README.zh-CN.md` carries the same two figures, and its captions repeat the
+/// counts. A translation is the easiest place in a repository for a number to
+/// go stale, because the person updating the English caption does not read the
+/// other file. This requires both to agree, without needing to read Chinese:
+/// the counts are digits in both.
+#[test]
+fn the_translated_readme_states_the_same_counts() {
+    let f = find();
+    let zh = std::fs::read_to_string(repo().join("README.zh-CN.md")).expect("README.zh-CN.md");
+    let en = std::fs::read_to_string(repo().join("README.md")).expect("README.md");
+
+    for (name, url) in [
+        ("the certificate figure", "knowledge-graph.svg"),
+        ("the HQDM audit", "hqdm-audit.svg"),
+    ] {
+        assert!(
+            zh.contains(url),
+            "README.zh-CN.md does not carry {name}. Both READMEs show the same \
+             front page, or the translation is a different product."
+        );
+    }
+
+    // The HQDM counts, recomputed from the rows, must appear in BOTH.
+    for n in [f.undeclared, f.bad_range, f.twins] {
+        let needle = format!("<b>{n}</b>");
+        assert!(
+            en.contains(&needle),
+            "README.md does not state {n} for the HQDM audit"
+        );
+        assert!(
+            zh.contains(&needle),
+            "README.zh-CN.md does not state {n} for the HQDM audit, and the \
+             English one does. A count that moved on one side only is the way \
+             a translation starts lying."
+        );
+    }
+
+    // And the legend counts of the certificate figure, whatever they are today.
+    let svg = std::fs::read_to_string(repo().join("docs/assets/knowledge-graph.svg"))
+        .expect("docs/assets/knowledge-graph.svg");
+    for word in ["ASSERTED", "CERTIFIED", "REJECTED"] {
+        let at = svg.find(word).unwrap_or_else(|| panic!("the legend lost {word}"));
+        let after = &svg[at..];
+        let n: String = after
+            .split('>')
+            .find_map(|seg| {
+                let d: String = seg.chars().take_while(|c| c.is_ascii_digit()).collect();
+                (!d.is_empty()).then_some(d)
+            })
+            .expect("a number follows the legend word");
+        assert!(
+            zh.contains(&n),
+            "the asset's legend says {n} for {word} and README.zh-CN.md does not \
+             mention it"
+        );
+    }
+}
