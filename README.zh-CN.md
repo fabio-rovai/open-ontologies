@@ -5,8 +5,9 @@
 <h1 align="center">Open Ontologies</h1>
 
 <p align="center">
-  <strong>面向知识图谱的 Terraforming MCP 服务器</strong><br>
-  校验、分类并治理 AI 生成的本体。使用 Rust 编写，以单一可执行文件发布。
+  <strong>规划对生产本体的变更，在应用之前看清每一项后果，<br>
+  并交给审阅者一份无需信任你即可自行核验的证明。</strong><br>
+  使用 Rust 编写，以单一可执行文件发布。
 </p>
 
 <p align="center">

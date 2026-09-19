@@ -2303,7 +2303,25 @@ impl OpenOntologiesServer {
         // `onto_plan` receives the WHOLE proposed graph, so the mode is fixed
         // here rather than exposed: reading a replacement as a delta would
         // report a change that deletes half the ontology as an extension.
-        let conservativity = input.check_conservativity.unwrap_or(false).then(|| {
+        // DEFAULT ON, changed under #196.
+        //
+        // It was opt-in because it reasons both graphs to a fixpoint, and that
+        // is a real cost. Measured on this machine, adding one `rdfs:domain`
+        // triple to a store of N individuals of that property: 900 in 0.14s,
+        // 9,000 in 0.68s, 45,000 in 3.99s. Roughly linear, about 11
+        // microseconds an individual.
+        //
+        // A plan is a deliberate pre-production act, not an interactive query,
+        // and that cost buys the only part of a plan that is about MEANING. In
+        // the run above every shape number stayed at zero — no class added,
+        // none removed, blast radius zero, risk low — while 901 consequences
+        // appeared that were not there before. A safety check that is off by
+        // default is one most users never learn exists, and this one is the
+        // reason to use a plan at all.
+        //
+        // `check_conservativity: false` opts out, and is the thing to reach for
+        // on a store big enough that the fixpoint hurts.
+        let conservativity = input.check_conservativity.unwrap_or(true).then(|| {
             crate::conservativity::ConservativityOptions {
                 mode: crate::conservativity::ExtensionMode::Replacement,
                 profile: input.conservativity_profile.unwrap_or_else(|| "owl-rl".to_string()),

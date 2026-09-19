@@ -30,18 +30,31 @@ fn exposed_tool_count() -> usize {
 /// identifies it as a total rather than a subgroup. Add a row when a new one is written.
 ///
 /// The architecture diagram left README.md for docs/architecture.md on 14 September 2026,
-/// when the README was cut from 1213 lines to 171, so it is checked in its new home. The
-/// tool-reference heading went with the section it belonged to and no longer exists.
+/// when the README was cut from 1213 lines to 171. On 19 September 2026 the total left the
+/// outward prose entirely, under #196, and the one row that remains guards it where it now
+/// lives. See the note at the end of this function.
 fn total_claims(n: usize) -> Vec<(&'static str, &'static str, String)> {
-    vec![
-        ("README.md", "the lead paragraph", format!("**{n} tools**")),
-        (
-            "README.md",
-            "the default-build sentence",
-            format!("A default build advertises {} tools.", n - gated_tool_count()),
-        ),
-        ("docs/architecture.md", "the architecture diagram", format!("ToolGroups[\"{n} Tools\"]")),
-    ]
+    vec![(
+        "docs/tool-reference.md",
+        "the reference page's own count",
+        format!("{n} tools."),
+    )]
+    // THE README NO LONGER STATES A TOTAL, and the architecture diagram no
+    // longer labels a subgraph with one. Removed under #196, deliberately.
+    //
+    // The reasoning is the issue's: surface area reads as insecurity, and a
+    // number where a purpose belongs tells a visitor nothing about what this is
+    // for. A reader who meets "120 tools" before meeting a verb cannot tell
+    // whether any of them is the one they need. The front page shows one loop
+    // instead, and the breadth moved to docs/tool-reference.md, linked once.
+    //
+    // The count did not stop being checked, it moved with the claim. The
+    // reference page is the catalogue, its job is to be exhaustive, and a
+    // catalogue that will not say how long it is is being coy. So the row above
+    // guards it there, and `tests/tool_reference_test.rs` additionally checks
+    // that the page lists EVERY registered tool and invents none, which is a
+    // stronger statement than the total ever was: a page can state 120 and list
+    // the wrong 120.
     // The MCP server's instructions string used to be checked here as a literal, and
     // that row is gone on purpose. It stated TWO totals, 114 and 112, and neither was
     // the number the router advertised: a hand-typed figure with a second hand-typed
