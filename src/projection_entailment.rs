@@ -822,12 +822,25 @@ pub fn run_checker(
     };
     let text = run.output();
     // The theorem name is handed to the evidence rather than to the report, so
-    // a status with no acceptance behind it has no way to name one.
-    let theorem = match kind {
-        CertKind::OoCert => "OOCert.certificate_sound",
-        CertKind::OoHorn => "OOCert.horn_certificate_sound",
+    // a status with no acceptance behind it has no way to name one. What is
+    // listed here is what this call site will ACCEPT; which of them the token
+    // ends up carrying is read out of the checker's own stdout.
+    //
+    // `oo-horn` has two. `lean/HMain.lean` earns the absolute
+    // `OOCert.entails_of_builtin_horn` when the rule table is exactly the
+    // built-ins, and the relativised `OOCert.horn_certificate_sound` for any
+    // other table, and it prints which. Naming one literal here reported the
+    // relativised statement for both, which is the safe direction to be wrong
+    // in and still wrong: the field that exists to distinguish an entailment
+    // from an entailment-under-supplied-rules did not distinguish them.
+    let theorems: &[&'static str] = match kind {
+        CertKind::OoCert => &["OOCert.certificate_sound"],
+        CertKind::OoHorn => &[
+            "OOCert.horn_certificate_sound",
+            "OOCert.entails_of_builtin_horn",
+        ],
     };
-    match run.accepted(theorem) {
+    match run.accepted_naming(theorems) {
         Some(cert) => CheckerStatus::Accepted(Accepted::from_run(cert, text)),
         // `lean/Main.lean` reserves 1 for a rejection and 2 for a file it
         // could not read. Anything else is not a verdict in either direction.
