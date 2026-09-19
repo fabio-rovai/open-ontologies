@@ -1,0 +1,14 @@
+# THE SAME SHAPE AS unsupported-path-shapes.nt, with the path node spelled as a
+# named IRI instead of a blank node. Nothing else differs.
+#
+# #205: the compiler tested the SPELLING before the path FORMS, so this one was
+# read as a plain predicate `<http://ex.org/thePath>` and answered with a verdict
+# and exit 0, while its blank-node twin was refused by name with exit 3. A shapes
+# author picks that spelling freely and has no reason to think it matters, and
+# the two answers are "I checked this" and "I did not check this".
+<http://ex.org/S> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/shacl#NodeShape> .
+<http://ex.org/S> <http://www.w3.org/ns/shacl#targetClass> <http://ex.org/Person> .
+<http://ex.org/S> <http://www.w3.org/ns/shacl#property> <http://ex.org/NameShape> .
+<http://ex.org/NameShape> <http://www.w3.org/ns/shacl#path> <http://ex.org/thePath> .
+<http://ex.org/thePath> <http://www.w3.org/ns/shacl#zeroOrMorePath> <http://ex.org/name> .
+<http://ex.org/NameShape> <http://www.w3.org/ns/shacl#minCount> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
