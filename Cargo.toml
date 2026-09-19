@@ -118,3 +118,19 @@ toml = "0.8"
 # derivation. DEV-ONLY on purpose. The shipped binary's dependency surface does
 # not grow by a single crate.
 proptest = "1"
+
+# A patched Oxigraph, pinned by revision.
+#
+# `Store::snapshot` is not in Oxigraph 0.5.9. It is a read view pinned to one
+# state that takes no lock, and decision 0010 explains at length why neither
+# thing the unpatched crate offers will do: a transaction pins the state but
+# stops every writer for the length of a reasoning run on the memory backend,
+# and copying the graph costs about 221 bytes a triple. The patch is a public
+# wrapper over `Storage::snapshot`, which `Store::len` and
+# `Store::quads_for_pattern` already call internally on every read.
+#
+# Pinned by REVISION and not by branch, so that what CI builds is what was
+# reviewed. Upstream at oxigraph/oxigraph; when it lands this stanza goes and
+# the version bound below is all that remains.
+[patch.crates-io]
+oxigraph = { git = "https://github.com/fabio-rovai/oxigraph.git", rev = "abf36ef22b61f9c4d810b94b647d500c05ee791c" }

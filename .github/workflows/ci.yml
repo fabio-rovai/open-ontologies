@@ -452,6 +452,12 @@ jobs:
         run: OO_REQUIRE_FIXTURES=1 cargo test --test shacl_core_verified_test -- --nocapture
       - name: Check the description-logic model certificates
         run: OO_REQUIRE_FIXTURES=1 cargo test --test dl_model_certificate_test -- --nocapture
+      - name: Reach the verified SHACL evaluator through the tool
+        # The point of this leg is reachability. `Shacl/` has been mechanised
+        # for a while and nothing in `src/` could call it, so the strongest
+        # claim in the repository was a lab result with a binary beside it.
+        # Strict, because a skip here would put it straight back.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test shacl_verified_tool_test -- --nocapture
       - name: Check the description-logic refutation certificates
         # The other half of the line above. That one certifies that an ontology
         # HAS a model by exhibiting one; this certifies that it has NONE by

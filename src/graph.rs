@@ -903,7 +903,7 @@ impl GraphStore {
         // write land between two of them and produce an asserted set that
         // existed at no instant, which is the defect this closes arriving one
         // level down.
-        self.read_in_one_transaction(|txn| {
+        self.read_one_state(|txn| {
         let mut triples = Vec::new();
         // The names actually read, in the order read, so a certificate records
         // what it was built from rather than what was asked for. The two differ
@@ -1022,18 +1022,24 @@ impl GraphStore {
     /// ever had. `serve-http` and `daemon` share one `Arc<GraphStore>` across
     /// every session, so the two writers are not hypothetical.
     ///
-    /// The transaction is committed rather than rolled back because it writes
-    /// nothing, and committing an empty transaction is how Oxigraph ends one.
-    /// A failure to end it is returned rather than swallowed: a reader that
-    /// leaked a transaction would be a worse defect than the one this closes.
-    fn read_in_one_transaction<T>(
+    /// This used to open a TRANSACTION, which was atomic and cost more than it
+    /// needed to. On the in-memory backend, which is what `GraphStore::new`
+    /// builds and what `serve-http` and `daemon` share, an open read
+    /// transaction blocks every writer until it commits: `Store::insert` opens
+    /// a transaction of its own and `MemoryStorage::start_transaction` waits.
+    /// A selection over a large graph therefore stopped every writer for the
+    /// length of the read. Measured in `tests/transaction_isolation_test.rs`.
+    ///
+    /// It now takes a SNAPSHOT, which pins the same one state and holds no
+    /// lock, so writers proceed while the read runs. `Store::snapshot` is not
+    /// in Oxigraph 0.5.9; it is the patch this repository carries and is
+    /// pinned by revision in `Cargo.toml`. See decision 0010 for why neither
+    /// the transaction nor the copy it was weighed against was good enough.
+    fn read_one_state<T>(
         &self,
-        f: impl FnOnce(&oxigraph::store::Transaction<'_>) -> anyhow::Result<T>,
+        f: impl FnOnce(&oxigraph::store::StoreSnapshot) -> anyhow::Result<T>,
     ) -> anyhow::Result<T> {
-        let txn = self.store.start_transaction()?;
-        let out = f(&txn);
-        txn.commit()?;
-        out
+        f(&self.store.snapshot())
     }
 
     /// Every triple in the store EXCEPT those in the named graphs listed, in
@@ -1056,7 +1062,7 @@ impl GraphStore {
     /// graphs it read is checkable against the store, and one that does not is
     /// not. `<default>` is the unnamed graph.
     pub fn triples_outside(&self, excluded: &[&str]) -> anyhow::Result<AssertedTriples> {
-        self.read_in_one_transaction(|txn| {
+        self.read_one_state(|txn| {
         let mut triples = Vec::new();
         let mut read: BTreeSet<String> = BTreeSet::new();
         for quad in txn.iter() {
