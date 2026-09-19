@@ -176,13 +176,24 @@ struct Capture {
 // the closure the fixpoint reached, and reported in the separate `oo-refute/1`
 // format.
 //
-// **Only `cax-dw` can be certified**, and the reason is not this file's.
-// `OOCert.RefuteConditions` in `lean/OOCert/Refute.lean` carries exactly one
-// semantic field, for `cax-dw`, and `oo-refute` refuses a refutation naming any
-// other rule with exit 2 rather than judging it. So a clash of any other rule
-// found here is an engine opinion with nothing behind it, it is reported under
-// a different word from the certified one, and no refutation file is written
-// for it.
+// **Twelve of the seventeen can now be certified, and this engine finds ten of
+// those twelve.** `OOCert.RefuteConditions` in `lean/OOCert/Refute.lean` carries
+// twelve semantic fields and `OOCert.checkRefuteStep` twelve arms, so a
+// refutation naming any of the twelve is CHECKED rather than refused. It used to
+// carry one.
+//
+// The two numbers differ and the difference is not a defect. `cls-maxqc1` and
+// `cls-maxqc2` have a condition in the Lean and no detector here: the checker
+// would accept a refutation naming them, and this engine never writes one,
+// because nothing looks for them. The five that have no condition at all are
+// `cax-adc`, `prp-adp`, `eq-diff2` and `eq-diff3`, which state their members in
+// an RDF list that the step format cannot carry, and `dt-not-type`, which needs
+// a datatype value space this development does not have. The first four are NOT
+// IMPLEMENTED and the fifth is NOT EXPRESSIBLE.
+//
+// A clash of a rule outside the twelve is still an engine opinion with nothing
+// behind it, still reported under a different word from the certified one, and
+// still written to no refutation file.
 
 /// One way the closure contradicts itself: the OWL 2 RL rule that concludes
 /// `false` from it, and the premises that rule reads, in the order the W3C
@@ -193,17 +204,28 @@ struct Clash {
     premises: Vec<Fact>,
 }
 
-/// The clash rules `lean/` holds a semantic condition for, so that a refutation
-/// naming one can be CHECKED rather than merely asserted.
+/// The clash rules `lean/` holds a semantic condition for AND this engine
+/// detects, so that a refutation naming one can be CHECKED rather than merely
+/// asserted.
 ///
-/// One rule, and the list is not this file's to extend: adding a name here
+/// Ten names, and the list is not this file's to extend: adding a name here
 /// without a matching field in `OOCert.RefuteConditions` and a matching arm in
 /// `OOCert.checkRefuteStep` would make the engine write a file the checker
 /// exits 2 on, which is the one failure mode this layer exists to prevent.
+/// `tests/refutation_producer_test.rs` asserts the two lists agree, so the
+/// mistake is a test failure rather than a bad file.
+///
+/// The Lean certifies TWELVE. `cls-maxqc1` and `cls-maxqc2` are absent here
+/// because nothing in this file looks for them, not because the checker would
+/// refuse them, and they are listed with that reason in
+/// `CLASH_RULES_NOT_DETECTED` below.
 ///
 /// One constant, read both by the emitter and by the report, so the two cannot
 /// drift into disagreeing about what was certified.
-const CLASH_RULES_CERTIFIABLE: &[&str] = &["cax-dw"];
+const CLASH_RULES_CERTIFIABLE: &[&str] = &[
+    "cax-dw", "cls-com", "cls-nothing2", "eq-diff1", "prp-irp", "prp-asyp",
+    "prp-pdw", "cls-maxc1", "prp-npa1", "prp-npa2",
+];
 
 fn clash_is_certifiable(rule: &str) -> bool {
     CLASH_RULES_CERTIFIABLE.contains(&rule)
@@ -226,8 +248,10 @@ pub const CLASH_RULES_NOT_DETECTED: &[(&str, &str)] = &[
                   spelling IS detected, by eq-diff1."),
     ("eq-diff3", "owl:AllDifferent with owl:distinctMembers is an RDF list, as above."),
     ("cls-maxqc1", "owl:maxQualifiedCardinality needs the qualifying owl:onClass and a type check \
-                    on the value. Not implemented; owl:maxCardinality 0 IS detected, by cls-maxc1."),
-    ("cls-maxqc2", "the owl:Thing case of the same rule, and not implemented for the same reason."),
+                    on the value. NOT DETECTED HERE, though the Lean checker does hold a condition \
+                    for it: a refutation naming it would be accepted, and this engine writes none \
+                    because nothing looks for it. owl:maxCardinality 0 IS detected, by cls-maxc1."),
+    ("cls-maxqc2", "the owl:Thing case of the same rule. Also certifiable and also not detected."),
     ("dt-not-type", "an ill-typed literal needs a datatype VALUE space. This engine, and the Lean \
                      semantics under it, read a literal as its N-Triples spelling and compare \
                      nothing by value, so there is no notion here of a literal outside its type."),

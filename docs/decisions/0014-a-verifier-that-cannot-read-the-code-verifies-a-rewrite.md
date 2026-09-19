@@ -83,7 +83,7 @@ nobody knows is load-bearing.
 **The hazard is latent and it is not live, and saying so is part of the finding.** Only two places
 construct a `RulePattern`, and both are closed:
 
-- `src/reason.rs:2740`, inside `parse_rules` itself. Its fields come from splitting a line on tabs,
+- `src/reason.rs:2858`, inside `parse_rules` itself. Its fields come from splitting a line on tabs,
   so none of them can contain a tab, and the line came from splitting on newlines.
 - `src/rulesyntax.rs:179`, in `Import::accept`, which is the front end a user's RIF, SWRL or Datalog
   reaches. It already renders the rule to a `rules.tsv` line, re-parses it with `parse_rules`, and
