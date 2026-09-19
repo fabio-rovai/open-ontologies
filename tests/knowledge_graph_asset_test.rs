@@ -116,6 +116,27 @@ fn the_graph_states_the_counts_a_real_run_produces() {
 // in an order; a still frame shows them side by side as though they were one
 // kind of fact. The counts were right and the argument was missing.
 
+/// Every animation element and the element it animates.
+///
+/// `<animateMotion>` counts. The particles travelling along the certified and
+/// rejected links are the Studio view's signature motion, they are animations
+/// by every meaning of the word, and a gate that ignored them would report the
+/// asset as barely animated while 265 things moved on it.
+fn animation_elements(s: &str) -> Vec<(String, String)> {
+    let mut out = animate_blocks(s);
+    out.extend(motion_blocks(s));
+    out
+}
+
+fn motion_blocks(s: &str) -> Vec<(String, String)> {
+    let mut out = vec![];
+    for (i, _) in s.match_indices("<animateMotion ") {
+        let tag_end = s[i..].find('>').map(|e| i + e + 1).unwrap_or(s.len());
+        out.push((String::new(), s[i..tag_end].to_string()));
+    }
+    out
+}
+
 fn animate_blocks(s: &str) -> Vec<(String, String)> {
     // (the parent element's opening tag, the <animate ...> tag)
     let mut out = vec![];
@@ -152,7 +173,7 @@ fn attr(tag: &str, name: &str) -> Option<String> {
 #[test]
 fn the_graph_is_animated_and_the_animation_loops() {
     let s = svg();
-    let blocks = animate_blocks(&s);
+    let blocks = animation_elements(&s);
     assert!(
         blocks.len() >= 10,
         "the asset carries {} animations; it is meant to play four beats and a still \
