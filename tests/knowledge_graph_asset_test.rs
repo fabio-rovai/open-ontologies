@@ -517,14 +517,20 @@ fn the_ontology_heading_names_the_predicate_it_drew() {
                 .and_then(|t| t.parse().ok())
         })
         .expect("the heading states a class count");
-    let pipeline = ["ies-core.ttl", "certificate", "problem.tsv", "forged line",
-                    "Lean 4", "Isabelle/HOL", "Vampire", "Z3", "Mace4"];
+    // `E` is left out of the list: the name is one letter and appears inside
+    // half the words in the file, so asserting on it would pass for the wrong
+    // reason. It is still counted, because the count below counts it.
+    let pipeline = ["ies-core.ttl", "certificate", "problem.tsv", "Lean 4",
+                    "Isabelle/HOL", "Vampire", "Z3", "Mace4"];
     for name in pipeline {
         assert!(s.contains(name), "the pipeline no longer names {name:?}");
     }
+    let in_pipeline = (pipeline.len() + 1) as u64;
     assert_eq!(
         nodes - classes,
-        10,
-        "the subtitle says {nodes} nodes and the heading says {classes} classes.          Every node is a class or one of the ten in the pipeline, so one of these          two numbers is stale."
+        in_pipeline,
+        "the subtitle says {nodes} nodes and the heading says {classes} classes, \
+         but the pipeline holds {in_pipeline}. Every node is a class or one of \
+         the pipeline's, so one of these numbers is stale."
     );
 }

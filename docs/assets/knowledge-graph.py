@@ -99,7 +99,7 @@ def main(asserted_path, derivations_path, out_path):
     # the reason the first-order provers hang off `problem.tsv` rather than off
     # anything in the ontology.
     LEAN = "Lean 4 · oo-cert"
-    FILES = ["ies-core.ttl", "certificate", "problem.tsv", "forged line"]
+    FILES = ["ies-core.ttl", "certificate", "problem.tsv"]
     PROGRAMS = [LEAN, "Isabelle/HOL", "Vampire", "E", "Z3", "Mace4"]
     TOOLS = FILES + PROGRAMS
     tool_edges = [
@@ -111,7 +111,6 @@ def main(asserted_path, derivations_path, out_path):
         ("problem.tsv", "E", "asserted"),
         ("problem.tsv", "Z3", "asserted"),
         ("problem.tsv", "Mace4", "asserted"),
-        ("forged line", LEAN, "rejected"),
     ]
 
     nodes = sorted({n for e in a_edges + d_edges for n in e}) + TOOLS
@@ -122,6 +121,8 @@ def main(asserted_path, derivations_path, out_path):
     edges = [(idx[a], idx[b], "asserted") for a, b in a_edges]
     edges += [(idx[a], idx[b], "certified") for a, b in d_edges]
     edges += [(idx[a], idx[b], w) for a, b, w in tool_edges]
+    # Which of the derived edges is the forged one is decided after the layout,
+    # in `forge_one`, because it is decided on where the edge LANDS.
 
     # ── Layout: a COMPOSITION, not one force run over everything ────────
     #
@@ -332,6 +333,41 @@ def main(asserted_path, derivations_path, out_path):
             py_ = min(max(oy + (pr[m][1] - y0) * sc, ty0), ty1)
             pt[idx[ont[g]]] = [px_, py_, pr[m][2]]
 
+    # ── Which claim is the forged one ───────────────────────────────────
+    #
+    # It used to be a node of its own, `forged line`, parked in the pipeline
+    # column with a red edge to Lean. Nothing about it was in the graph the
+    # viewer had spent four beats looking at, so the last beat refused a claim
+    # about nothing: the red line was the most important thing in the figure
+    # and the easiest thing to miss.
+    #
+    # The forged claim is now one of the DERIVED edges, drawn among the others
+    # and indistinguishable from them until the checker names it. That is what
+    # a forgery is: a line that looks like the rest.
+    #
+    # Chosen on where it lands, not on what it says, so it is chosen after the
+    # layout: long enough to read as a line, and as near the middle of the
+    # largest piece as a long one gets.
+    big = comps[0]
+    inbig = {idx[ont[g]] for g in big}
+    bx0, by0, bx1, by1 = tiles[0]
+    cxm, cym = (bx0 + bx1) / 2.0, (by0 + by1) / 2.0
+    best, best_score = None, None
+    for e, (i, j, w) in enumerate(edges):
+        if w != "certified" or i not in inbig or j not in inbig:
+            continue
+        L = math.hypot(pt[i][0] - pt[j][0], pt[i][1] - pt[j][1])
+        if L < 34.0:
+            continue
+        mx, my = (pt[i][0] + pt[j][0]) / 2.0, (pt[i][1] + pt[j][1]) / 2.0
+        score = math.hypot(mx - cxm, my - cym) - L * 0.55
+        if best_score is None or score < best_score:
+            best, best_score = e, score
+    forged = best
+    if forged is not None:
+        i, j, _ = edges[forged]
+        edges[forged] = (i, j, "rejected")
+
     # ── The pipeline, placed ────────────────────────────────────────────
     #
     # Three columns, left to right: what was read, what it became, who judged
@@ -340,7 +376,6 @@ def main(asserted_path, derivations_path, out_path):
     # That grouping is the argument, and no force layout would ever produce it.
     PIPE = {
         "ies-core.ttl": (86, 178),
-        "forged line": (86, 470),
         "certificate": (196, 214),
         "problem.tsv": (196, 396),
         LEAN: (318, 168),
@@ -466,20 +501,13 @@ def main(asserted_path, derivations_path, out_path):
               "rejected": 0.55 + 0.45 * d}[w]
         # The forged edge is dashed and the dashes march, so it reads as a
         # claim being PUSHED rather than a line that is merely there. Every
-        # other edge is a fact and stays still.
-        #
-        # It also stops short of the checker. Run into the node like the others
-        # and the drawing says the forged line got in; stopped at the rim under
-        # a bar, it says what actually happened, in the still frame as well as
-        # in the animation.
+        # other edge is a fact and stays still. It runs between two classes
+        # like all the others and is not pulled back from either: nothing is
+        # stopped HERE. What stops is the certificate carrying it, and that is
+        # drawn at the checker, further down.
         ax, ay, bx, by = pt[i][0], pt[i][1], pt[j][0], pt[j][1]
         pipe = nodes[i] in TOOLS and nodes[j] in TOOLS
-        if w == "rejected":
-            gap = rad(j) + 17.0
-            vx, vy = bx - ax, by - ay
-            L = math.hypot(vx, vy) or 1.0
-            bx, by = bx - vx / L * gap, by - vy / L * gap
-        elif pipe:
+        if pipe and w != "rejected":
             # Pipeline edges are a PROCESS and a process has a direction. Drawn
             # as bare segments running under the dots at both ends, the three
             # columns could be read right to left as easily as left to right.
@@ -505,14 +533,6 @@ def main(asserted_path, derivations_path, out_path):
                 f'L{bx + nx_ * 3.4:.1f} {by + ny_ * 3.4:.1f} '
                 f'L{bx - nx_ * 3.4:.1f} {by - ny_ * 3.4:.1f} Z" '
                 f'fill="{COLOR[w]}" opacity="{min(1.0, op + 0.25):.2f}"/>')
-        if w == "rejected":
-            # The bar it stops against, square across the line.
-            nx, ny = -vy / L, vx / L
-            layers[w].append(
-                f'<line x1="{bx + nx * 11:.1f}" y1="{by + ny * 11:.1f}" '
-                f'x2="{bx - nx * 11:.1f}" y2="{by - ny * 11:.1f}" '
-                f'stroke="{COLOR[w]}" stroke-width="3.4" stroke-linecap="round" '
-                f'opacity="{op:.2f}"/>')
 
     A(f'<g opacity="{REST_D}">'
       + anim("opacity", f"{REST_D};{REST_D};{LIT_D};{LIT_D};{REST_D};{REST_D}",
@@ -709,50 +729,133 @@ def main(asserted_path, derivations_path, out_path):
           + anim("opacity", "0;0;0.85;0;0", kt(0, t0, t0 + 0.18, t0 + 0.95, CYCLE)) +
           '</circle>')
 
-    # ── Beat five lands on Lean, not in the margin ──────────────────────
+    # ── Beat five: the claim in the graph, and the refusal at the checker ─
     #
-    # The forged line is only interesting because of what happens at the far
-    # end of it. Drawing a red edge and leaving it at that puts the whole
-    # claim in the reader's inference; the refusal has to be visible AT the
-    # checker, in the same place the `certificate` badge sat two beats
-    # earlier, so the two verdicts are read against each other.
-    # The badge goes on the LINE, not on the checker. Parked under Lean it sat
-    # a few pixels from the `certificate` badge, so at step three the picture
-    # showed one node carrying both `certificate` and `exit 1, refused` and the
-    # reader had to work out that they were verdicts on different inputs. On
-    # the forged line, beside the bar it stops against, it says what it is.
-    li, fi = idx[LEAN], idx["forged line"]
+    # Two halves of one event, and both have to be visible or the beat says
+    # nothing. The forged claim is an edge among the derived ones, so it is
+    # marked WHERE IT IS: a halo on it, and the badge beside it, in the cloud
+    # the viewer has been watching for four beats.
+    #
+    # The refusal is at the checker, on the certificate that carried the claim.
+    # The same `certificate -> Lean` segment that lit green in beat three now
+    # runs red and stops at a bar short of the node, which is the argument:
+    # same path, same reader, different content, different answer.
+    li = idx[LEAN]
     lr = rad(li)
-    fax, fay = pt[fi][0], pt[fi][1]
-    fvx, fvy = pt[li][0] - fax, pt[li][1] - fay
-    fL = math.hypot(fvx, fvy) or 1.0
-    ux, uy = fvx / fL, fvy / fL
-    stop = (pt[li][0] - ux * (lr + 17.0), pt[li][1] - uy * (lr + 17.0))
-    ftxt = "exit 1, refused"
-    fw = len(ftxt) * 5.4 + 12
-    # Walk back down the line looking for clear air on either side of it. A
-    # fixed offset put the badge straight through Isabelle/HOL's name.
-    cands = []
-    for along in (52.0, 96.0, 140.0, 188.0):
-        for side in (-30.0, 30.0, -52.0, 52.0):
-            cands.append((stop[0] - ux * along - uy * side,
-                          stop[1] - uy * along + ux * side))
-    fx, fy = cands[0][0] - fw / 2, cands[0][1]
-    for n_, (ccx, ccy) in enumerate(cands):
-        bx_, by_ = ccx - fw / 2, ccy
-        box = (bx_ - 3, by_ - 12, bx_ + fw + 3, by_ + 5)
+    ci = idx["certificate"]
+    cvx, cvy = pt[li][0] - pt[ci][0], pt[li][1] - pt[ci][1]
+    cL = math.hypot(cvx, cvy) or 1.0
+    ux, uy = cvx / cL, cvy / cL
+    sx = pt[ci][0] + ux * (rad(ci) + 4.0)
+    sy = pt[ci][1] + uy * (rad(ci) + 4.0)
+    ex = pt[li][0] - ux * (lr + 15.0)
+    ey = pt[li][1] - uy * (lr + 15.0)
+    # Rested at 0.32 rather than hidden. The green `certificate -> Lean`
+    # edge underneath rests too, and the pair at rest is the claim of the whole
+    # figure: this path carries both, and the reader is told which is which by
+    # which one is lit.
+    A('<g opacity="0.32">'
+      + anim("opacity", "0.32;0.32;1;1;0.32;0.32", kt(0, 13.2, 13.7, 16.6, 17.0, CYCLE)))
+    A(f'<line x1="{sx:.1f}" y1="{sy:.1f}" x2="{ex:.1f}" y2="{ey:.1f}" '
+      f'stroke="{C_REJECT}" stroke-width="2.6" stroke-dasharray="7 5">'
+      '<animate attributeName="stroke-dashoffset" dur="0.9s" '
+      'repeatCount="indefinite" values="0;-24"/></line>')
+    nx_, ny_ = -uy, ux
+    A(f'<line x1="{ex + nx_ * 11:.1f}" y1="{ey + ny_ * 11:.1f}" '
+      f'x2="{ex - nx_ * 11:.1f}" y2="{ey - ny_ * 11:.1f}" stroke="{C_REJECT}" '
+      f'stroke-width="3.4" stroke-linecap="round"/>')
+    A('</g>')
+
+    if forged is not None:
+        fi, fj, _ = edges[forged]
+        fmx = (pt[fi][0] + pt[fj][0]) / 2.0
+        fmy = (pt[fi][1] + pt[fj][1]) / 2.0
+        flen = math.hypot(pt[fi][0] - pt[fj][0], pt[fi][1] - pt[fj][1])
+        # A halo along the edge rather than a ring on a node: the forgery is
+        # the LINE, and a ring would point at a class that did nothing wrong.
+        A('<g opacity="0.3">'
+          + anim("opacity", "0.3;0.3;0.85;0.85;0.3;0.3",
+                 kt(0, 13.0, 13.5, 16.6, 17.0, CYCLE)))
+        A(f'<line x1="{pt[fi][0]:.1f}" y1="{pt[fi][1]:.1f}" '
+          f'x2="{pt[fj][0]:.1f}" y2="{pt[fj][1]:.1f}" stroke="{C_REJECT}" '
+          f'stroke-width="9" stroke-linecap="round" opacity="0.22"/>')
+        A(f'<circle cx="{fmx:.1f}" cy="{fmy:.1f}" r="{max(13.0, flen * 0.34):.1f}" '
+          f'fill="none" stroke="{C_REJECT}" stroke-width="1.4" opacity="0.7"/>')
+        A('</g>')
+
+        ftxt = "this line is forged"
+        fw = len(ftxt) * 5.4 + 12
+        cands = []
+        for dy_ in (-26.0, 26.0, -44.0, 44.0):
+            for dx_ in (0.0, -46.0, 46.0):
+                cands.append((fmx + dx_, fmy + dy_))
+        fx, fy = cands[0][0] - fw / 2, cands[0][1]
+        for n_, (ccx, ccy) in enumerate(cands):
+            bx_, by_ = ccx - fw / 2, ccy
+            box = (bx_ - 3, by_ - 12, bx_ + fw + 3, by_ + 5)
+            if all(box[2] < o[0] or box[0] > o[2] or box[3] < o[1] or box[1] > o[3]
+                   for o in placed) or n_ == len(cands) - 1:
+                fx, fy = bx_, by_
+                placed.append(box)
+                break
+        A('<g opacity="0.4">'
+          + anim("opacity", "0.4;0.4;1;1;0.4;0.4", kt(0, 13.2, 13.7, 16.6, 17.0, CYCLE)))
+        A(f'<rect x="{fx:.1f}" y="{fy - 10:.1f}" width="{fw:.1f}" height="14" rx="7" '
+          f'fill="#020617" stroke="{C_REJECT}" stroke-width="1.1" opacity="0.95"/>')
+        A(f'<text x="{fx + fw / 2:.1f}" y="{fy:.1f}" text-anchor="middle" font-size="9.5" '
+          f'font-weight="700" fill="{C_REJECT}">{ftxt}</text>')
+        A('</g>')
+
+    # And the verdict, at the checker.
+    rtxt = "exit 1, refused"
+    rw = len(rtxt) * 5.4 + 12
+    rx, ry = pt[li][0] - rw / 2, pt[li][1] + lr + 22
+    for ccx, ccy in [(pt[li][0] - rw / 2, pt[li][1] + lr + 22),
+                     (pt[li][0] + lr + 8, pt[li][1] + lr + 12),
+                     (pt[li][0] - rw / 2, pt[li][1] + lr + 40)]:
+        box = (ccx - 3, ccy - 12, ccx + rw + 3, ccy + 5)
         if all(box[2] < o[0] or box[0] > o[2] or box[3] < o[1] or box[1] > o[3]
-               for o in placed) or n_ == len(cands) - 1:
-            fx, fy = bx_, by_
+               for o in placed):
+            rx, ry = ccx, ccy
             placed.append(box)
             break
     A('<g opacity="0.4">'
-      + anim("opacity", "0.4;0.4;1;1;0.4;0.4", kt(0, 13.4, 13.8, 16.6, 17.0, CYCLE)))
-    A(f'<rect x="{fx:.1f}" y="{fy - 10:.1f}" width="{fw:.1f}" height="14" rx="7" '
+      + anim("opacity", "0.4;0.4;1;1;0.4;0.4", kt(0, 13.6, 14.0, 16.6, 17.0, CYCLE)))
+    A(f'<rect x="{rx:.1f}" y="{ry - 10:.1f}" width="{rw:.1f}" height="14" rx="7" '
       f'fill="#020617" stroke="{C_REJECT}" stroke-width="1.1" opacity="0.95"/>')
-    A(f'<text x="{fx + fw / 2:.1f}" y="{fy:.1f}" text-anchor="middle" font-size="9.5" '
-      f'font-weight="700" fill="{C_REJECT}">{ftxt}</text>')
+    A(f'<text x="{rx + rw / 2:.1f}" y="{ry:.1f}" text-anchor="middle" font-size="9.5" '
+      f'font-weight="700" fill="{C_REJECT}">{rtxt}</text>')
     A('</g>')
+
+    # ── One point becoming the graph ────────────────────────────────────
+    #
+    # Beat one used to brighten every asserted edge at once, which is true but
+    # says "here is a graph" rather than "here is a graph being read". A wave
+    # out of the busiest class says the second, and says it without hiding
+    # anything: the rings are drawn ON TOP of a cloud that is always there, so
+    # a renderer sampling t=0 still gets the whole picture. Unfilled, which is
+    # what makes them a sweep rather than a layer.
+    seed = max(
+        (idx[ont[g]] for g in comps[0]),
+        key=lambda i: deg[i],
+    )
+    sx0, sy0 = pt[seed][0], pt[seed][1]
+    reach = max(
+        math.hypot(pt[idx[ont[g]]][0] - sx0, pt[idx[ont[g]]][1] - sy0)
+        for g in comps[0]
+    )
+    for n_ in range(3):
+        t0 = 0.6 + n_ * 0.62
+        A(f'<circle cx="{sx0:.1f}" cy="{sy0:.1f}" r="4" fill="none" '
+          f'stroke="{C_ASSERT}" stroke-width="1.5" opacity="0">'
+          + anim("r", f"4;4;{reach:.0f};{reach:.0f}", kt(0, t0, t0 + 1.9, CYCLE))
+          + anim("opacity", "0;0;0.55;0;0", kt(0, t0, t0 + 0.25, t0 + 1.9, CYCLE))
+          + '</circle>')
+    # The seed itself, held for the beat, so the eye has somewhere to start.
+    A(f'<circle cx="{sx0:.1f}" cy="{sy0:.1f}" r="{rad(seed) + 4:.1f}" fill="none" '
+      f'stroke="{C_ASSERT}" stroke-width="1.6" opacity="0">'
+      + anim("opacity", "0;0;0.9;0.9;0;0", kt(0, 0.6, 0.9, 3.1, 3.4, CYCLE))
+      + '</circle>')
 
     # ── Each beat lights the nodes that are IN it ───────────────────────
     #
@@ -769,7 +872,6 @@ def main(asserted_path, derivations_path, out_path):
         (["certificate", "problem.tsv"], 1),
         ([LEAN, "Isabelle/HOL"], 2),
         (["Vampire", "E", "Z3", "Mace4"], 3),
-        (["forged line"], 4),
     ]
     for names, bn in SPOT:
         col, _, t0, t1 = BEATS[bn]
