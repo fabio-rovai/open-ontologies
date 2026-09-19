@@ -65,7 +65,9 @@ theorem conflict_sound {σ : Assign} {t : Trail} {c : Clause}
     (hsat : clauseHolds σ c) : False := by
   have hnil : unfalsified t c = [] := by
     unfold classify at hc
-    split at hc <;> simp_all
+    split at hc
+    · assumption
+    · split at hc <;> exact absurd hc (by simp)
   obtain ⟨l, hl, hval⟩ := hsat
   by_cases hf : isFalse t l
   · rw [false_of_isFalse hr hf] at hval; exact Bool.noConfusion hval
@@ -73,21 +75,37 @@ theorem conflict_sound {σ : Assign} {t : Trail} {c : Clause}
     rw [hnil] at this
     exact absurd this (by simp)
 
-/-- **Unit is sound.** -/
+/-- **Unit is sound.** Every literal of `c` is either false on the trail or is
+`l` itself, so a model respecting the trail has to make `l` true. -/
 theorem unit_sound {σ : Assign} {t : Trail} {c : Clause} {l : Lit}
     (hr : Respects σ t) (hc : classify t c = .unit l)
     (hsat : clauseHolds σ c) : litVal σ l = true := by
-  have hone : unfalsified t c = [l] := by
+  -- The shape the classifier saw: a non-empty remainder, every element of it
+  -- equal to the head.
+  have hshape : ∃ rest, unfalsified t c = l :: rest ∧ rest.all (· == l) = true := by
     unfold classify at hc
-    split at hc <;> simp_all
+    split at hc
+    · exact absurd hc (by simp)
+    · next hd rest heq =>
+      split at hc
+      · next hall =>
+        have : hd = l := by simpa using hc
+        subst this
+        exact ⟨rest, heq, hall⟩
+      · exact absurd hc (by simp)
+  obtain ⟨rest, heq, hall⟩ := hshape
   obtain ⟨m, hm, hval⟩ := hsat
   by_cases hf : isFalse t m
   · rw [false_of_isFalse hr hf] at hval; exact Bool.noConfusion hval
-  · have : m ∈ unfalsified t c := mem_unfalsified.mpr ⟨hm, by simpa using hf⟩
-    rw [hone] at this
-    have : m = l := by simpa using this
-    subst this
-    exact hval
+  · have hmem : m ∈ unfalsified t c := mem_unfalsified.mpr ⟨hm, by simpa using hf⟩
+    rw [heq] at hmem
+    rcases List.mem_cons.mp hmem with h | h
+    · subst h; exact hval
+    · have : m = l := by
+        have := List.all_eq_true.mp hall m h
+        simpa using this
+      subst this
+      exact hval
 
 /-- Extending a respected trail with a literal the model makes true keeps it
 respected. -/

@@ -104,12 +104,18 @@ def unfalsified (t : Trail) : Clause → Clause
   | [] => []
   | l :: rest => if isFalse t l then unfalsified t rest else l :: unfalsified t rest
 
-/-- Nothing left is a conflict; one thing left is a unit; anything else proves
-nothing and the check fails. -/
+/-- Nothing left is a conflict; one DISTINCT literal left is a unit; anything
+else proves nothing and the check fails.
+
+Distinct, not one element. A clause may repeat a literal -- DIMACS permits it
+and real files contain it -- and `[-3, 2, -3]` with `2` false leaves `[-3, -3]`,
+which is a unit clause written twice. Matching on `[l]` read that as stuck and
+refused proofs that were correct. Found by fuzzing against picosat with clauses
+drawn WITH replacement; the first fuzzer sampled distinct variables per clause
+and never reached it. -/
 def classify (t : Trail) (c : Clause) : Step :=
   match unfalsified t c with
   | []  => .conflict
-  | [l] => .unit l
-  | _   => .stuck
+  | l :: rest => if rest.all (· == l) then .unit l else .stuck
 
 end Lrat

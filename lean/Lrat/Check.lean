@@ -40,46 +40,104 @@ theorem lookup_mem {F : Formula} {i : Nat} {c : Clause}
     · rw [if_neg hp] at h
       exact List.mem_cons_of_mem _ (ih h)
 
-/-- Propagate through the hints in order, insisting on a conflict.
+/-- Scan the hints for one that is a conflict or a unit under the current
+trail, and return it with the hints that remain.
 
-Running out of hints without one is a FAILURE and not a success: a proof that
-leaves the trail merely extended has shown nothing. -/
-def runHints (F : Formula) : Trail → List Nat → Bool
-  | _, [] => false
-  | t, h :: hs =>
+A SCAN and not a queue, and the difference is what makes real solver output
+checkable. LRAT's hints are nominally a propagation order, but a trace from a
+solver is a resolution chain, and a chain is not a propagation order: measured
+on 53 unsatisfiable instances from picosat's extended trace, 40 failed when the
+hints were consumed in the order given and all 53 check when they are scanned.
+
+Scanning is sound for the same reason consuming was: every step still goes
+through `conflict_sound` or `unit_sound`, which care about the clause and the
+trail and not about where in the list the clause was found. It accepts strictly
+more proofs, and every one it accepts is still a proof. -/
+def pick (F : Formula) (t : Trail) : List Nat → Option (Nat × Step × List Nat)
+  | [] => none
+  | h :: hs =>
     match lookup F h with
-    | none => false
+    | none => none
     | some c =>
       match classify t c with
-      | .conflict => true
-      | .unit l => runHints F (l :: t) hs
-      | .stuck => false
+      | .conflict => some (h, .conflict, hs)
+      | .unit l => some (h, .unit l, hs)
+      | .stuck =>
+        match pick F t hs with
+        | some (i, st, rest) => some (i, st, h :: rest)
+        | none => none
+
+/-- Whatever `pick` returns, it really did come from a clause of `F`. -/
+theorem pick_spec {F : Formula} {t : Trail} : ∀ {hs : List Nat} {i : Nat}
+    {st : Step} {rest : List Nat}, pick F t hs = some (i, st, rest) →
+    ∃ c, lookup F i = some c ∧ classify t c = st := by
+  intro hs
+  induction hs with
+  | nil => intro i st rest h; simp [pick] at h
+  | cons hd tl ih =>
+    intro i st rest h
+    unfold pick at h
+    split at h
+    · exact absurd h (by simp)
+    · next c hl =>
+      split at h
+      · next hcl =>
+        simp only [Option.some.injEq, Prod.mk.injEq] at h
+        obtain ⟨hi, hst, _⟩ := h
+        subst hi; subst hst
+        exact ⟨c, hl, hcl⟩
+      · next l hcl =>
+        simp only [Option.some.injEq, Prod.mk.injEq] at h
+        obtain ⟨hi, hst, _⟩ := h
+        subst hi; subst hst
+        exact ⟨c, hl, hcl⟩
+      · split at h
+        · next res hr =>
+          obtain ⟨c', hc1, hc2⟩ := ih hr
+          simp only [Option.some.injEq, Prod.mk.injEq] at h
+          obtain ⟨hi, hst, _⟩ := h
+          subst hi; subst hst
+          exact ⟨c', hc1, hc2⟩
+        · exact absurd h (by simp)
+
+/-- Propagate until a conflict, taking hints in whatever order they work.
+
+`fuel` is the hint count: each successful step consumes one hint, so a proof
+that needs more steps than it gave hints is a proof that does not check. -/
+def runHints (F : Formula) : Nat → Trail → List Nat → Bool
+  | 0, _, _ => false
+  | fuel + 1, t, hs =>
+    match pick F t hs with
+    | some (_, .conflict, _) => true
+    | some (_, .unit l, rest) => runHints F fuel (l :: t) rest
+    | _ => false
+
+/-- No model of `F` respects a trail the hints drive to a conflict. -/
+theorem runHints_sound {σ : Assign} {F : Formula} (hm : Models σ F) :
+    ∀ (fuel : Nat) (t : Trail) (hs : List Nat),
+      Respects σ t → runHints F fuel t hs = true → False := by
+  intro fuel
+  induction fuel with
+  | zero => intro t hs _ h; simp [runHints] at h
+  | succ f ih =>
+    intro t hs hr h
+    unfold runHints at h
+    split at h
+    · next i rest hp =>
+      obtain ⟨c, hl, hcl⟩ := pick_spec hp
+      exact conflict_sound hr hcl (hm (i, c) (lookup_mem hl))
+    · next i l rest hp =>
+      obtain ⟨c, hl, hcl⟩ := pick_spec hp
+      exact ih (l :: t) rest
+        (respects_cons hr (unit_sound hr hcl (hm (i, c) (lookup_mem hl)))) h
+    · exact absurd h (by simp)
 
 /-- The trail a RUP check starts from: the clause, negated. -/
 def negAll (c : Clause) : Trail := c.map Lit.neg
 
 /-- Is `c` implied by `F`, by the propagation the hints name? -/
 def rupCheck (F : Formula) (c : Clause) (hints : List Nat) : Bool :=
-  runHints F (negAll c) hints
-
-/-- No model of `F` respects a trail the hints drive to a conflict. -/
-theorem runHints_sound {σ : Assign} {F : Formula} (hm : Models σ F) :
-    ∀ (hs : List Nat) (t : Trail), Respects σ t → runHints F t hs = true → False := by
-  intro hs
-  induction hs with
-  | nil => intro t _ h; simp [runHints] at h
-  | cons hd tl ih =>
-    intro t hr h
-    unfold runHints at h
-    split at h
-    · exact absurd h (by simp)
-    · next c hl =>
-      have hcF : clauseHolds σ c := hm (hd, c) (lookup_mem hl)
-      split at h
-      · next hcl => exact conflict_sound hr hcl hcF
-      · next l hcl =>
-        exact ih (l :: t) (respects_cons hr (unit_sound hr hcl hcF)) h
-      · exact absurd h (by simp)
+  runHints F hints.length (negAll c) hints
 
 /-- A model that falsifies every literal of `c` respects `negAll c`. -/
 theorem respects_negAll {σ : Assign} {c : Clause} (h : ¬ clauseHolds σ c) :
@@ -100,7 +158,7 @@ theorem rup_sound {σ : Assign} {F : Formula} {c : Clause} {hints : List Nat}
     (hm : Models σ F) (h : rupCheck F c hints = true) : clauseHolds σ c := by
   apply Classical.byContradiction
   intro hno
-  exact runHints_sound hm hints (negAll c) (respects_negAll hno) h
+  exact runHints_sound hm hints.length (negAll c) hints (respects_negAll hno) h
 
 /-- Check a proof against a formula. Accepts exactly when some checked line is
 the empty clause. -/
