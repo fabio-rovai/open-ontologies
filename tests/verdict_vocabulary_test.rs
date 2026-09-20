@@ -81,20 +81,6 @@ fn script_saying(code: i32, theorem: &str) -> PathBuf {
     p
 }
 
-fn shell_exiting(code: i32) -> (CheckerBinary, std::process::Command) {
-    #[cfg(unix)]
-    {
-        let mut c = std::process::Command::new("/bin/sh");
-        c.arg("-c").arg(format!("exit {code}"));
-        (CheckerBinary::found_at(PathBuf::from("/bin/sh")), c)
-    }
-    #[cfg(windows)]
-    {
-        let mut c = std::process::Command::new("cmd");
-        c.arg("/C").arg(format!("exit {code}"));
-        (CheckerBinary::found_at(PathBuf::from("cmd")), c)
-    }
-}
 
 /// A `Certified`, obtained the only way anything can obtain one: by running
 /// something that exits zero.
