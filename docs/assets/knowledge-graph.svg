@@ -336,8 +336,8 @@
 <path d="M305.3 432.0 Q272.0 432.0 272.0 408.0" fill="none" stroke="#f0abfc" stroke-width="0.9" stroke-dasharray="2 3" opacity="0.8"/>
 <path d="M305.3 480.0 Q272.0 480.0 272.0 408.0" fill="none" stroke="#f0abfc" stroke-width="0.9" stroke-dasharray="2 3" opacity="0.8"/>
 <path d="M272.0 408.0 Q272.0 244.0 196.0 228.7" fill="none" stroke="#f0abfc" stroke-width="1.5" stroke-dasharray="4 4"/>
-<rect x="107.0" y="402.0" width="157.0" height="14" rx="7" fill="#020617" stroke="#f0abfc" stroke-width="1" opacity="0.95"/>
-<text x="185.5" y="412.0" text-anchor="middle" font-size="8.8" font-weight="700" fill="#f0abfc">disagreement · stops the line</text>
+<rect x="107.0" y="428.0" width="157.0" height="14" rx="7" fill="#020617" stroke="#f0abfc" stroke-width="1" opacity="0.95"/>
+<text x="185.5" y="438.0" text-anchor="middle" font-size="8.8" font-weight="700" fill="#f0abfc">disagreement · stops the line</text>
 </g>
 <g opacity="0.32"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0.32;0.32;1;1;0.32;0.32" keyTimes="0.0000;0.6000;0.6227;0.7545;0.7727;1.0000" calcMode="linear"/>
 <line x1="207.9" y1="209.5" x2="288.9" y2="179.0" stroke="#fb3b53" stroke-width="2.6" stroke-dasharray="7 5"><animate attributeName="stroke-dashoffset" dur="0.9s" repeatCount="indefinite" values="0;-24"/></line>
