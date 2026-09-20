@@ -85,9 +85,19 @@ def read(path):
     return rows
 
 
-def main(asserted_path, derivations_path, out_path):
+def main(asserted_path, derivations_path, out_path, prove_path=None):
     asserted = read(asserted_path)
     derivations = read(derivations_path)
+    # The prover run's report. Which judge earned `certificate` and which only
+    # `opinion` is READ from here, never typed: `refutation_certified` is a
+    # word only `onto_fol_prove` can mint, from a token only `oo-fores`'s exit
+    # 0 can produce (decision 0005, second addendum).
+    import json as _json
+    prove = _json.load(open(prove_path)) if prove_path else None
+    vampire_certified = bool(prove and prove.get("verdict") == "refutation_certified"
+                             and prove.get("problem_form") == "cnf")
+    fo_theorem = (prove or {}).get("theorem", "")
+    fo_checker = "oo-fores"
 
     # Asserted subclass edges, and the conclusions the fixpoint derived. A
     # derivation line is: rule, conclusion s p o, then its premises.
@@ -133,7 +143,8 @@ def main(asserted_path, derivations_path, out_path):
     # anything in the ontology.
     LEAN = "Lean 4 · oo-cert"
     FILES = ["ies-core.ttl", "certificate", "problem.tsv"]
-    PROGRAMS = [LEAN, "Isabelle/HOL", "Vampire", "E", "Z3", "Mace4"]
+    FORES = "oo-fores"
+    PROGRAMS = [LEAN, "Isabelle/HOL", "Vampire", "E", "Z3", "Mace4", FORES]
     TOOLS = FILES + PROGRAMS
     tool_edges = [
         ("ies-core.ttl", "certificate", "asserted"),
@@ -145,6 +156,11 @@ def main(asserted_path, derivations_path, out_path):
         ("problem.tsv", "Z3", "asserted"),
         ("problem.tsv", "Mace4", "asserted"),
     ]
+    # Vampire's refutation goes to the Fo checker, and the edge is certified
+    # ONLY when the run says so. Not to `Lean 4 · oo-cert`: that binary checks
+    # derivation certificates, and drawing it as the checker of a resolution
+    # proof would be a new wrong claim.
+    tool_edges.append(("Vampire", FORES, "certified" if vampire_certified else "asserted"))
 
     nodes = sorted({n for e in a_edges + d_edges for n in e}) + TOOLS
     idx = {n: i for i, n in enumerate(nodes)}
@@ -427,6 +443,7 @@ def main(asserted_path, derivations_path, out_path):
         LEAN: (318, 168),
         "Isabelle/HOL": (318, 250),
         "Vampire": (318, 336),
+        FORES: (420, 336),
         "E": (318, 384),
         "Z3": (318, 432),
         "Mace4": (318, 480),
@@ -465,7 +482,9 @@ def main(asserted_path, derivations_path, out_path):
         ("#94a3b8", "1 · a person asserts", 0.6, 3.4),
         ("#6ee7b7", "2 · the engine derives", 3.4, 6.4),
         ("#34d399", "3 · Lean checks the certificate, and accepts", 6.4, 9.6),
-        ("#f0abfc", "4 · four provers read a different file, and only opine", 9.6, 13.0),
+        ("#f0abfc", ("4 · four provers read the clauses; Vampire's refutation is checked, the rest opine"
+                     if vampire_certified else
+                     "4 · four provers read a different file, and only opine"), 9.6, 13.0),
         ("#fb3b53", "5 · a line is forged, and the same checker refuses", 13.0, 17.0),
     ]
 
@@ -726,7 +745,10 @@ def main(asserted_path, derivations_path, out_path):
     JUDGES = [
         (LEAN, "certificate", C_LEAN, 6.8, 9.6),
         ("Isabelle/HOL", "same bytes", C_LEAN, 7.4, 9.6),
-        ("Vampire", "opinion", C_TOOL, 10.0, 13.0),
+        ("Vampire", "certificate" if vampire_certified else "opinion",
+         C_LEAN if vampire_certified else C_TOOL, 10.0, 13.0),
+        (FORES, "checks it" if vampire_certified else "no proof",
+         C_LEAN if vampire_certified else C_TOOL, 10.4, 13.0),
         ("E", "opinion", C_TOOL, 10.3, 13.0),
         ("Z3", "opinion", C_TOOL, 10.6, 13.0),
         ("Mace4", "opinion", C_TOOL, 10.9, 13.0),
@@ -954,7 +976,7 @@ def main(asserted_path, derivations_path, out_path):
         (["ies-core.ttl"], 0),
         (["certificate", "problem.tsv"], 1),
         ([LEAN, "Isabelle/HOL"], 2),
-        (["Vampire", "E", "Z3", "Mace4"], 3),
+        (["Vampire", "E", "Z3", "Mace4", FORES], 3),
     ]
     for names, bn in SPOT:
         col, _, t0, t1 = BEATS[bn]
@@ -1098,14 +1120,24 @@ def main(asserted_path, derivations_path, out_path):
       f'stroke="#1e3a5f"/>')
     A(f'<text x="{lw + 34:.0f}" y="{ly+24}" font-size="12" font-weight="800" '
       f'fill="#94a3b8" letter-spacing="1.4">WHAT A VERDICT IS WORTH</text>')
-    verdicts = [
-        (C_CERT, "certificate",
-         "Lean 4 and Isabelle/HOL read the same bytes.",
-         "anyone can re-run the check and get the same answer."),
-        (C_TOOL, "opinion",
-         "Vampire, E, Z3 and Mace4 read a different file.",
-         "believe the program, or believe nothing. no object to check."),
-    ]
+    if vampire_certified:
+        verdicts = [
+            (C_CERT, "certificate",
+             f"Lean 4 and Isabelle/HOL read the same bytes; Vampire's refutation is checked by {fo_checker}.",
+             f"re-runnable. {fo_theorem}: the clause set has no model, over any carrier."),
+            (C_TOOL, "opinion",
+             "E, Z3 and Mace4 read the clauses too, and print a word.",
+             "believe the program, or believe nothing. no object to check."),
+        ]
+    else:
+        verdicts = [
+            (C_CERT, "certificate",
+             "Lean 4 and Isabelle/HOL read the same bytes.",
+             "anyone can re-run the check and get the same answer."),
+            (C_TOOL, "opinion",
+             "Vampire, E, Z3 and Mace4 read a different file.",
+             "believe the program, or believe nothing. no object to check."),
+        ]
     for m, (col, word, l1, l2) in enumerate(verdicts):
         yy = ly + 48 + m * 30
         A(f'<circle cx="{lw + 40:.0f}" cy="{yy - 4:.1f}" r="4" fill="{col}"/>')
@@ -1122,4 +1154,4 @@ def main(asserted_path, derivations_path, out_path):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:4])
+    main(*sys.argv[1:5])

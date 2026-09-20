@@ -52,7 +52,7 @@ const NODE_COLOR = '#7dd3fc';
 /** The verification layer, drawn hotter than the ontology it judges. */
 const TOOL_NODES = new Set([
   'certificate', 'problem.tsv', 'ies-core.ttl', 'forged line',
-  'Lean 4 · oo-cert', 'Isabelle/HOL', 'Vampire', 'E', 'Z3', 'Mace4',
+  'Lean 4 · oo-cert', 'Isabelle/HOL', 'Vampire', 'E', 'Z3', 'Mace4', 'oo-fores',
 ]);
 const TOOL_COLOR = '#f0abfc';
 
@@ -95,6 +95,8 @@ const PIPELINE: Record<string, [number, number, number]> = {
   E: [-70, -65, 0],
   Z3: [-70, -105, 0],
   Mace4: [-70, -145, 0],
+  // The checker of Fo certificates, one rank out from Vampire whose proof it reads.
+  'oo-fores': [20, -25, 0],
   'forged line': [-300, -110, 0],
 };
 

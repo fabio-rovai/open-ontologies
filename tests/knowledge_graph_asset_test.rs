@@ -539,7 +539,7 @@ fn the_ontology_heading_names_the_predicate_it_drew() {
     // half the words in the file, so asserting on it would pass for the wrong
     // reason. It is still counted, because the count below counts it.
     let pipeline = ["ies-core.ttl", "certificate", "problem.tsv", "Lean 4",
-                    "Isabelle/HOL", "Vampire", "Z3", "Mace4"];
+                    "Isabelle/HOL", "Vampire", "Z3", "Mace4", "oo-fores"];
     for name in pipeline {
         assert!(s.contains(name), "the pipeline no longer names {name:?}");
     }
@@ -551,4 +551,36 @@ fn the_ontology_heading_names_the_predicate_it_drew() {
          but the pipeline holds {in_pipeline}. Every node is a class or one of \
          the pipeline's, so one of these numbers is stale."
     );
+}
+
+
+/// Which judge earned `certificate` is READ from the prover run, not typed.
+///
+/// `docs/assets/kgcert/prove.json` is `onto_fol_prove`'s result on the figure's
+/// own ontology. If it says `refutation_certified` on a `cnf` problem, the
+/// asset must show Vampire with a `certificate` badge, an edge to `oo-fores`,
+/// and a legend whose `opinion` row does NOT name Vampire; if it does not, the
+/// asset must show the older, weaker picture. Either way the asset agrees with
+/// the run, and a hand edit to one side fails here.
+#[test]
+fn the_judges_badges_come_from_the_prover_run() {
+    let s = svg();
+    let run: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(repo().join("docs/assets/kgcert/prove.json")).expect("prove.json"),
+    ).expect("json");
+    let certified = run["verdict"] == "refutation_certified" && run["problem_form"] == "cnf";
+    assert!(s.contains("oo-fores"), "the checker of Fo certificates must be drawn");
+    if certified {
+        assert!(s.contains("Vampire's refutation is checked"), "beat 4 must say the refutation was checked");
+        assert!(s.contains(run["theorem"].as_str().unwrap()), "the legend names the theorem the run named");
+        assert!(!s.contains("Vampire, E, Z3 and Mace4 read a different file"), "the opinion row may not name Vampire");
+        assert!(s.contains("E, Z3 and Mace4 read the clauses too"), "{}", "the opinion row lists the three that only opine");
+    } else {
+        assert!(s.contains("Vampire, E, Z3 and Mace4 read a different file"));
+        assert!(!s.contains("Vampire's refutation is checked"));
+    }
+    // And the committed certificate is the one the run produced: same step count.
+    let cert = std::fs::read_to_string(repo().join("docs/assets/kgcert/goal_00000.fo.cert")).expect("cert");
+    let steps = cert.lines().filter(|l| l.starts_with("r\t") || l.starts_with("f\t")).count() as u64;
+    assert_eq!(steps, run["certificate_steps"].as_u64().unwrap(), "prove.json and the .fo.cert disagree on step count");
 }
