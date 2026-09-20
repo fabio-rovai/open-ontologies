@@ -2225,6 +2225,260 @@ fn resolvent_matches(a: &Clause, b: &Clause, c: &Clause) -> Result<bool, &'stati
     Ok(false)
 }
 
+// ── Translating a derivation into an Fo certificate ────────────────────────
+//
+// `lean/Fo` checks a resolution refutation and proves `Fo.unsat_of_check`. This
+// turns the part of a prover's derivation that IS resolution into that
+// certificate format, so the part that can be checked by a machine-checked
+// theorem is checked by one rather than replayed by the unverified Rust above.
+//
+// What does NOT translate is named and counted, never skipped. Clausification,
+// Skolemisation, AVATAR splitting and every form of equality reasoning are
+// outside the calculus, and a certificate covering only some steps does not
+// reach the empty clause, so `oo-fores` refuses it. That refusal is the
+// correct answer and the honest one: a partial translation is not a proof.
+
+/// A certificate in `lean/Fo`'s format, and what had to be left out of it.
+#[derive(Debug, Clone)]
+pub struct FoCertificate {
+    /// The certificate text, ready for `oo-fores`.
+    pub text: String,
+    /// Steps turned into resolution inferences.
+    pub translated: usize,
+    /// Steps that are not resolution, by name and rule. Never silently dropped.
+    pub untranslated: Vec<(String, String)>,
+    /// Does the certificate reach the empty clause through translated steps
+    /// alone? Only then can `oo-fores` accept it.
+    pub reaches_false: bool,
+}
+
+/// Numbers for the names a derivation uses. `Fo` indexes its symbols, because
+/// a checker comparing terms should compare numbers rather than strings.
+#[derive(Default)]
+struct SymTab {
+    preds: std::collections::HashMap<String, usize>,
+    funs: std::collections::HashMap<String, usize>,
+    vars: std::collections::HashMap<String, usize>,
+}
+
+impl SymTab {
+    fn pred(&mut self, n: &str) -> usize {
+        let k = self.preds.len();
+        *self.preds.entry(n.to_string()).or_insert(k)
+    }
+    fn fun(&mut self, n: &str) -> usize {
+        let k = self.funs.len();
+        *self.funs.entry(n.to_string()).or_insert(k)
+    }
+    fn var(&mut self, n: &str) -> usize {
+        let k = self.vars.len();
+        *self.vars.entry(n.to_string()).or_insert(k)
+    }
+}
+
+/// The variable-renaming prefixes `resolvent_witness` uses, stripped back off
+/// when a substitution is split between the two parents.
+fn strip_tag(v: &str) -> &str {
+    v.strip_prefix("_a").or_else(|| v.strip_prefix("_b")).unwrap_or(v)
+}
+
+fn render_term(t: &Term, st: &mut SymTab) -> String {
+    match t {
+        Term::Var(v) => format!("v{}", st.var(strip_tag(v))),
+        Term::Fun(f, args) => {
+            let n = st.fun(f);
+            if args.is_empty() {
+                format!("f{n}")
+            } else {
+                let inner: Vec<String> = args.iter().map(|a| render_term(a, st)).collect();
+                format!("f{n}[{}]", inner.join(","))
+            }
+        }
+    }
+}
+
+fn render_lit(l: &Lit, st: &mut SymTab) -> String {
+    let sign = if l.positive { '+' } else { '-' };
+    match &l.atom {
+        Atom::Pred(p, args) => {
+            let n = st.pred(p);
+            if args.is_empty() {
+                format!("{sign}p{n}")
+            } else {
+                let inner: Vec<String> = args.iter().map(|a| render_term(a, st)).collect();
+                format!("{sign}p{n}[{}]", inner.join(","))
+            }
+        }
+        // Equality is rendered as an ordinary predicate. That is sound for
+        // RESOLUTION on equality atoms and says nothing about equality
+        // REASONING: paramodulation and equality resolution are not in this
+        // calculus, and steps using them are reported untranslated.
+        Atom::Eq(a, b) => {
+            let n = st.pred("$equals");
+            format!("{sign}p{n}[{},{}]", render_term(a, st), render_term(b, st))
+        }
+    }
+}
+
+fn render_clause(c: &Clause, st: &mut SymTab) -> String {
+    c.lits.iter().map(|l| render_lit(l, st)).collect::<Vec<_>>().join(" ")
+}
+
+fn render_subst(s: &Subst, tag: &str, st: &mut SymTab) -> String {
+    let mut parts: Vec<String> = Vec::new();
+    let mut keys: Vec<&String> = s.keys().collect();
+    keys.sort();
+    for k in keys {
+        if let Some(bare) = k.strip_prefix(tag) {
+            parts.push(format!("{}={}", st.var(bare), render_term(&walk(&s[k], s), st)));
+        }
+    }
+    parts.join(";")
+}
+
+/// Like `resolvent_matches`, but returns the witness instead of a verdict: the
+/// two literals resolved and the substitution that made them complementary.
+fn resolvent_witness(
+    a: &Clause,
+    b: &Clause,
+    c: &Clause,
+) -> Option<(Clause, Clause, usize, usize, Subst)> {
+    let ra = rename_apart(a, "_a");
+    let rb = rename_apart(b, "_b");
+    for (i, la) in ra.lits.iter().enumerate() {
+        for (j, lb) in rb.lits.iter().enumerate() {
+            if la.positive == lb.positive {
+                continue;
+            }
+            let Some(s) = unify_atoms(&la.atom, &lb.atom) else { continue };
+            let mut rest: Vec<Lit> = Vec::new();
+            rest.extend(ra.lits.iter().enumerate().filter(|(k, _)| *k != i).map(|(_, l)| l.clone()));
+            rest.extend(rb.lits.iter().enumerate().filter(|(k, _)| *k != j).map(|(_, l)| l.clone()));
+            let cand = Clause::normalise(apply_clause(&rest, &s), ra.tautology || rb.tautology);
+            if variant(&cand, c).unwrap_or(false) {
+                return Some((ra, rb, i, j, s));
+            }
+        }
+    }
+    None
+}
+
+/// Turn the resolution part of a derivation into an `Fo` certificate.
+pub fn to_fo_certificate(proof_text: &str) -> Result<FoCertificate, String> {
+    let nodes = parse_derivation(proof_text)?;
+    let mut clauses: std::collections::HashMap<String, Clause> = std::collections::HashMap::new();
+    let mut ids: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+    let mut st = SymTab::default();
+    let mut out = String::new();
+    let mut lines = String::new();
+    let mut translated = 0usize;
+    let mut untranslated: Vec<(String, String)> = Vec::new();
+    let mut next = 1usize;
+    let mut reaches_false = false;
+
+    for n in &nodes {
+        let Ok(cl) = clause_view(&n.formula) else {
+            untranslated.push((n.name.clone(), "not a clause".into()));
+            continue;
+        };
+        match &n.source {
+            Some(Source::File { .. }) => {
+                let id = next;
+                next += 1;
+                ids.insert(n.name.clone(), id);
+                clauses.insert(n.name.clone(), cl.clone());
+                out.push_str(&format!("c\t{id}\t{}\n", render_clause(&cl, &mut st)));
+            }
+            Some(Source::Inference(inf)) => {
+                let parents: Vec<&String> = inf
+                    .parents
+                    .iter()
+                    .filter_map(|p| match p {
+                        Parent::Named(s) => Some(s),
+                        _ => None,
+                    })
+                    .collect();
+                // The rule NAME is a hint and not a gate. E calls every
+                // inference `spm`, including ones that are ordinary binary
+                // resolution, and Vampire spells subsumption resolution four
+                // ways. Rather than keep a list of spellings, every two-parent
+                // step is offered to `resolvent_witness`, and a step is
+                // resolution exactly when a witness is found. That is a check
+                // rather than a belief about what a prover calls things.
+                //
+                // A ONE-parent step whose conclusion is a variant of its
+                // parent is a re-statement: E emits several per proof
+                // (`fof_simplification`, `cn`). It carries no inference, so it
+                // is recorded as an alias rather than a line.
+                if parents.len() == 1
+                    && let Some(pc) = clauses.get(parents[0])
+                    && variant(pc, &cl).unwrap_or(false)
+                    && let Some(&pid) = ids.get(parents[0])
+                {
+                    ids.insert(n.name.clone(), pid);
+                    clauses.insert(n.name.clone(), cl.clone());
+                    continue;
+                }
+                if parents.len() != 2 {
+                    untranslated.push((n.name.clone(), inf.rule.clone()));
+                    continue;
+                }
+                let (Some(a), Some(b)) = (clauses.get(parents[0]), clauses.get(parents[1])) else {
+                    untranslated.push((n.name.clone(), format!("{} (a parent is untranslated)", inf.rule)));
+                    continue;
+                };
+                let (Some(&ia), Some(&ib)) = (ids.get(parents[0]), ids.get(parents[1])) else {
+                    untranslated.push((n.name.clone(), format!("{} (a parent has no id)", inf.rule)));
+                    continue;
+                };
+                let Some((ra, rb, i, j, s)) = resolvent_witness(a, b, &cl) else {
+                    untranslated.push((n.name.clone(), format!("{} (no resolvent witness)", inf.rule)));
+                    continue;
+                };
+                let id = next;
+                next += 1;
+                ids.insert(n.name.clone(), id);
+                clauses.insert(n.name.clone(), cl.clone());
+
+                let restc: Vec<Lit> =
+                    ra.lits.iter().enumerate().filter(|(k, _)| *k != i).map(|(_, l)| l.clone()).collect();
+                let restd: Vec<Lit> =
+                    rb.lits.iter().enumerate().filter(|(k, _)| *k != j).map(|(_, l)| l.clone()).collect();
+                let lc = render_lit(&ra.lits[i], &mut st);
+                let ld = render_lit(&rb.lits[j], &mut st);
+                let sc = render_subst(&s, "_a", &mut st);
+                let sd = render_subst(&s, "_b", &mut st);
+                let rc = restc.iter().map(|l| render_lit(l, &mut st)).collect::<Vec<_>>().join(" ");
+                let rd = restd.iter().map(|l| render_lit(l, &mut st)).collect::<Vec<_>>().join(" ");
+                let concl = render_clause(&cl, &mut st);
+                lines.push_str(&format!(
+                    "r\t{id}\t{concl}\t{ia}\t{lc}\t{sc}\t{rc}\t{ib}\t{ld}\t{sd}\t{rd}\n"
+                ));
+                translated += 1;
+                if cl.lits.is_empty() && !cl.tautology {
+                    reaches_false = true;
+                }
+            }
+            // `cnf(c_0_7, …, c_0_5).` A bare name in the source position is a
+            // re-statement that some printers use; E emits them freely. Same
+            // clause, same identifier, no inference.
+            Some(Source::Name(parent)) => {
+                if let (Some(&pid), Some(pc)) = (ids.get(parent), clauses.get(parent))
+                    && variant(pc, &cl).unwrap_or(false)
+                {
+                    ids.insert(n.name.clone(), pid);
+                    clauses.insert(n.name.clone(), cl.clone());
+                    continue;
+                }
+                untranslated.push((n.name.clone(), format!("restated from {parent}")));
+            }
+            _ => untranslated.push((n.name.clone(), "introduced".into())),
+        }
+    }
+    out.push_str(&lines);
+    Ok(FoCertificate { text: out, translated, untranslated, reaches_false })
+}
+
 /// The JSON one check reports, with the vocabulary written out beside the
 /// verdict, the way `fol_solve::outcome_json` does.
 pub fn report_json(r: &Report) -> serde_json::Value {
