@@ -1,6 +1,6 @@
 name = "oocert"
 version = "0.1.0"
-defaultTargets = ["OOCert", "oo-cert", "oo-horn", "Shacl", "oo-shacl", "oo-refute", "Dl", "oo-dlmodel", "oo-dlrefute", "Fol", "oo-folmodel", "Institution", "Lrat", "oo-lrat"]
+defaultTargets = ["OOCert", "oo-cert", "oo-horn", "Shacl", "oo-shacl", "oo-refute", "Dl", "oo-dlmodel", "oo-dlrefute", "Fol", "oo-folmodel", "Institution", "Lrat", "oo-lrat", "Fo", "oo-fores"]
 
 # Every library and executable here is in defaultTargets on purpose. A target
 # left out of the default set is not built by a bare `lake build`, which is what
@@ -101,3 +101,23 @@ name = "Lrat"
 [[lean_exe]]
 name = "oo-lrat"
 root = "LratMain"
+
+# First-order resolution, checked.
+#
+# Decision 0005 says a superposition proof cannot be certified here because it
+# "needs a verified first-order calculus with unification that does not exist
+# in core Lean". The unification half of that is avoidable: a checker does not
+# need an algorithm that FINDS a most general unifier, it needs to confirm that
+# a substitution it was HANDED makes two literals complementary, which is an
+# equality on terms. The prover searches, the certificate carries the
+# substitution, the checker applies it and compares.
+#
+# Separate from `Fol`, which certifies SATISFIABILITY by exhibiting a finite
+# model. This certifies UNSATISFIABILITY by exhibiting a refutation, and the
+# two are different sentences.
+[[lean_lib]]
+name = "Fo"
+
+[[lean_exe]]
+name = "oo-fores"
+root = "FoMain"
