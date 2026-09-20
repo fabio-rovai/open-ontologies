@@ -408,10 +408,19 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path):
         (C_BAD, f"4 · right: HermiT, an opinion here, calls {len(hermit)} unsatisfiable, and they are the same {len(both)}", 12.0, 16.0),
         (C_WARN, f"5 · both: {len(t_pairs)} and {len(o_pairs)} names differ only by a trailing underscore", 16.0, 20.0),
     ]
+    # One caption at a time, fades included. Two defects here, both measured in
+    # a browser rather than reasoned about: the ramps overlapped, so every
+    # transition drew two sentences through each other (8 such moments), and
+    # the animation carried SIX values against FIVE keyTimes, which is not
+    # valid SMIL at all. A caption now fades out over [t1-0.3, t1] and the next
+    # fades in over [t0, t0+0.3], and consecutive beats share t1 == t0.
     for n_, (col, text, t0, t1) in enumerate(BEATS):
         first = "1" if n_ == 0 else "0"
+        values = "1;1;1;1;0;0" if n_ == 0 else "0;0;1;1;0;0"
+        times = (kt(0, 0, 0, t1 - 0.3, t1, CYCLE) if n_ == 0
+                 else kt(0, t0, t0 + 0.3, t1 - 0.3, t1, CYCLE))
         A(f'<text x="34" y="70" font-size="14" font-weight="700" fill="{col}" opacity="{first}">'
-          + anim("opacity", f"{first};0;1;1;0;0", kt(0, max(0.0, t0 - 0.3), t0 + 0.2, t1 - 0.3, t1, CYCLE))
+          + anim("opacity", values, times)
           + f'{text}</text>')
 
     # Per-panel titles and facts.
@@ -463,9 +472,13 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path):
               f'text-anchor="end">{count}</text>')
             A(f'<text x="{col_x + 224}" y="{yy}" font-size="9.4" fill="#94a3b8">{means}</text>')
     A(f'<line x1="40" y1="{ly + 108}" x2="{W - 40}" y2="{ly + 108}" stroke="#1e3a5f"/>')
-    A(f'<text x="46" y="{ly + 124}" font-size="10" fill="#64748b">'
-      f'Same ontology name, two files, and the defect you find depends on which you fetched; neither says which is '
-      f'canonical. {len(o_pairs)} of the {len(t_pairs)} underscore twins survive into the OWL rendering. '
+    # Two lines, because one ran to x=1095 while the panel ends at 1072: the
+    # sentence was printed outside the box that frames it.
+    A(f'<text x="46" y="{ly + 120}" font-size="10" fill="#64748b">'
+      f'Same ontology name, two files, and the defect you find depends on which you fetched; '
+      f'neither file says which is canonical.</text>')
+    A(f'<text x="46" y="{ly + 132}" font-size="10" fill="#64748b">'
+      f'{len(o_pairs)} of the {len(t_pairs)} underscore twins survive into the OWL rendering. '
       f'Every count here is recomputed from the rows by a test.</text>')
     A('</svg>')
 
