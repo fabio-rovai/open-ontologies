@@ -1599,6 +1599,12 @@ pub fn verdict_means(v: &str) -> &'static str {
                                    carrier. The leaves are the formulas this engine emitted \
                                    (leaves_match_problem), so that is a refutation of OUR problem. \
                                    This is the only word in this vocabulary that rests on a theorem",
+        "mu" => "the question was returned UNASKED. It puts in class position a term this ontology \
+                 never uses as a class: undeclared, or only ever an individual, or typed skos:Concept \
+                 and never classified with. Neither `entailed` nor `refuted` applies to a question \
+                 outside the file's language; a prover would still answer it, with a countermodel \
+                 to a symbol nobody constrained, and that answer would be about nothing. What is \
+                 refused is the presupposition, not the claim",
         "refutation_fully_replayed" => "the structure holds and EVERY step was recomputed. This \
                                         is the strongest word here and it is still NOT a proof \
                                         of unsatisfiability: the calculus's soundness is not \
@@ -2813,6 +2819,10 @@ pub fn prove_export(
         .to_string());
     }
     let triples = graph.all_triples()?;
+    // What the file declares and types, gathered before the triples are consumed:
+    // the unasked check below needs them and `ReadOntology` keeps neither.
+    let declared = crate::tptp::declared_classes(&triples);
+    let types = crate::tptp::types_of(&triples);
     let read = crate::tptp::read_graph(triples);
     std::fs::create_dir_all(dir)?;
 
@@ -2855,6 +2865,26 @@ pub fn prove_export(
                 cols[goals_skip_columns + 1],
                 cols[goals_skip_columns + 2],
             );
+            // Before the translation: a goal that puts in class position a term
+            // the ontology never uses as a class is returned UNASKED. The
+            // translator would accept it and the prover would answer, about a
+            // symbol no axiom constrains, and the answer would be filed as
+            // "not entailed" as if the file had said no.
+            if let Some(u) = crate::tptp::unasked(&read, &declared, &types, s, p, o) {
+                *counts.entry("mu").or_default() += 1;
+                goal_reports.push(serde_json::json!({
+                    "triple": [s, p, o],
+                    "report": {
+                        "verdict": "mu",
+                        "verdict_means": verdict_means("mu"),
+                        "term": u.term,
+                        "position": u.position,
+                        "kind": u.kind,
+                        "why": u.why,
+                    },
+                }));
+                continue;
+            }
             let ax = match crate::tptp::triple_as_axiom(&read, s, p, o) {
                 Ok(ax) => ax,
                 Err(why) => {
@@ -2882,6 +2912,7 @@ pub fn prove_export(
     let rejected = counts.get("derivation_rejected").copied().unwrap_or(0);
     let unreconstructed = counts.get("refutation_step_not_reconstructed").copied().unwrap_or(0);
     let certified = counts.get("refutation_certified").copied().unwrap_or(0);
+    let unasked = counts.get("mu").copied().unwrap_or(0);
 
     Ok(serde_json::json!({
         "prover": opts.prover.name(),
@@ -2903,6 +2934,13 @@ pub fn prove_export(
                                 derivation or a gap in this checker and needs a human. The \
                                 command exits non-zero on either",
         "problem_form": match &bform { ProblemForm::Cnf => "cnf", ProblemForm::Fof { .. } => "fof" },
+        "unasked": unasked,
+        "unasked_means": "goals returned with the verdict `mu`: each puts in class position a term \
+                          this ontology never uses as a class (undeclared, or only ever an individual, \
+                          or typed skos:Concept and nothing more). No prover was asked, because its \
+                          answer would have been about a symbol no axiom mentions and would have been \
+                          filed as `not entailed` as if the file had said no. The report names the \
+                          term, its position and what the file does call it",
         "certified": certified,
         "certified_means": if certified > 0 {
             "this many refutations were CHECKED BY A THEOREM: translated into lean/Fo's \
