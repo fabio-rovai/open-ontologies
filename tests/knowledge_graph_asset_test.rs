@@ -239,18 +239,20 @@ fn sampling_the_first_frame_gives_the_whole_picture() {
 }
 
 #[test]
-fn the_five_steps_are_captioned_in_order() {
+fn the_six_steps_are_captioned_in_order() {
     let s = svg();
-    // Five now, not four. The provers got a step of their own: a reader was
-    // told the first-order family exists and never shown it do anything, and
-    // the difference between what Lean produces and what they produce is the
-    // most important distinction on the page.
+    // Six. The provers got a step of their own (a reader was told the
+    // first-order family exists and never shown it do anything), and the
+    // unasked question got one too: the page showed yes and no, and the third
+    // answer, that the question is not in the file's language, was the one
+    // ies-core's 43 skos:Concept terms actually need.
     let beats = [
         "a person asserts",
         "the engine derives",
         "Lean checks the certificate, and accepts",
-        "four provers read a different file, and only opine",
+        "four provers read the clauses",
         "a line is forged, and the same checker refuses",
+        "a question the file cannot be asked is returned unasked",
     ];
     let mut at = 0usize;
     for b in beats {
@@ -539,7 +541,7 @@ fn the_ontology_heading_names_the_predicate_it_drew() {
     // half the words in the file, so asserting on it would pass for the wrong
     // reason. It is still counted, because the count below counts it.
     let pipeline = ["ies-core.ttl", "certificate", "problem.tsv", "Lean 4",
-                    "Isabelle/HOL", "Vampire", "Z3", "Mace4"];
+                    "Isabelle/HOL", "Vampire", "Z3", "Mace4", "oo-fores"];
     for name in pipeline {
         assert!(s.contains(name), "the pipeline no longer names {name:?}");
     }
@@ -550,5 +552,136 @@ fn the_ontology_heading_names_the_predicate_it_drew() {
         "the subtitle says {nodes} nodes and the heading says {classes} classes, \
          but the pipeline holds {in_pipeline}. Every node is a class or one of \
          the pipeline's, so one of these numbers is stale."
+    );
+}
+
+
+/// Which judge earned `certificate` is READ from the prover run, not typed.
+///
+/// `docs/assets/kgcert/prove.json` is `onto_fol_prove`'s result on the figure's
+/// own ontology. If it says `refutation_certified` on a `cnf` problem, the
+/// asset must show Vampire with a `certificate` badge, an edge to `oo-fores`,
+/// and a legend whose `opinion` row does NOT name Vampire; if it does not, the
+/// asset must show the older, weaker picture. Either way the asset agrees with
+/// the run, and a hand edit to one side fails here.
+#[test]
+fn the_judges_badges_come_from_the_prover_run() {
+    let s = svg();
+    let run: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(repo().join("docs/assets/kgcert/prove.json")).expect("prove.json"),
+    ).expect("json");
+    let certified = run["verdict"] == "refutation_certified" && run["problem_form"] == "cnf";
+    assert!(s.contains("oo-fores"), "the checker of Fo certificates must be drawn");
+    if certified {
+        assert!(s.contains("Vampire's refutation is checked"), "beat 4 must say the refutation was checked");
+        assert!(s.contains(run["theorem"].as_str().unwrap()), "the legend names the theorem the run named");
+        assert!(!s.contains("Vampire, E, Z3 and Mace4 read a different file"), "the opinion row may not name Vampire");
+        assert!(s.contains("E, Z3 and Mace4 read the clauses too"), "{}", "the opinion row lists the three that only opine");
+    } else {
+        assert!(s.contains("Vampire, E, Z3 and Mace4 read a different file"));
+        assert!(!s.contains("Vampire's refutation is checked"));
+    }
+    // And the committed certificate is the one the run produced: same step count.
+    let cert = std::fs::read_to_string(repo().join("docs/assets/kgcert/goal_00000.fo.cert")).expect("cert");
+    let steps = cert.lines().filter(|l| l.starts_with("r\t") || l.starts_with("f\t")).count() as u64;
+    assert_eq!(steps, run["certificate_steps"].as_u64().unwrap(), "prove.json and the .fo.cert disagree on step count");
+}
+
+/// The sixth beat is read from a run, like the fourth. `docs/assets/kgcert/mu.json`
+/// is one goal `onto_fol_prove` returned with the verdict `mu`, and the asset
+/// must name that goal's subject, say what the file calls it, and count it
+/// in the legend. A beat about an unasked question that no run returned
+/// would be the page inventing a verdict.
+#[test]
+fn the_unasked_beat_comes_from_the_mu_run() {
+    let s = svg();
+    let mu: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(repo().join("docs/assets/kgcert/mu.json")).expect("mu.json"),
+    )
+    .expect("mu.json is JSON");
+    assert_eq!(mu["report"]["verdict"], "mu", "the committed run is not an unasked question");
+    let subject = mu["goal"][0].as_str().expect("goal subject");
+    let local = subject.trim_matches(|c| c == '<' || c == '>').rsplit('/').next().unwrap();
+    let kind = mu["report"]["kind"].as_str().unwrap_or("");
+    assert!(
+        s.contains(&format!("returned unasked · {local} is")),
+        "the badge does not name {local}, the subject the run returned unasked"
+    );
+    // What the file calls the term comes from the run's own sentence.
+    let why = mu["report"]["why"].as_str().unwrap_or("");
+    if kind == "individual" && why.contains("skos/core#Concept") {
+        assert!(s.contains(&format!("{local} is a Concept, never a class")), "{why}");
+    }
+    assert!(s.contains(">UNASKED</text>"), "the legend has no UNASKED row");
+    assert!(s.contains("無"), "the glyph is the beat; without it the line just dims");
+    // And the question is never drawn as refuted: the two words stay apart.
+    assert!(!s.contains("unasked, refused") && !s.contains("refuted · Accent"));
+}
+
+/// Two pieces of writing may not sit in the same place.
+///
+/// Every label and badge on the drawing is a rounded `#020617` rectangle with
+/// text over it, placed by a routine that tries a handful of candidate
+/// positions and takes the first clear one. One of them did not: the
+/// "disagreement · stops the line" badge took a single computed point, and
+/// that point landed on the `problem.tsv` label. Both are visible in the same
+/// instant, so the drawing showed two sentences through each other, and no
+/// test could see it because every number on the page was still correct.
+///
+/// The rule here is stronger than it has to be: NO two label boxes overlap,
+/// even two that are never lit at once. A badge that shares its pixels with
+/// another is a badge whose position was not chosen, and the cost of the
+/// stricter rule is a few pixels of layout freedom.
+#[test]
+fn no_two_labels_sit_on_top_of_each_other() {
+    let s = svg();
+    let mut boxes: Vec<(f64, f64, f64, f64)> = Vec::new();
+    let mut at = 0usize;
+    while let Some(i) = s[at..].find("<rect x=\"") {
+        let start = at + i;
+        let Some(end) = s[start..].find("/>") else { break };
+        let tag = &s[start..start + end + 2];
+        at = start + end + 2;
+        // Label chips and badges only: the legend panel and the colour swatches
+        // are neither rounded nor this colour.
+        if !tag.contains("fill=\"#020617\"") || !tag.contains("rx=\"") {
+            continue;
+        }
+        let num = |k: &str| -> Option<f64> {
+            let i = tag.find(&format!("{k}=\""))? + k.len() + 2;
+            tag[i..].split('"').next()?.parse().ok()
+        };
+        if let (Some(x), Some(y), Some(w), Some(h)) =
+            (num("x"), num("y"), num("width"), num("height"))
+        {
+            boxes.push((x, y, x + w, y + h));
+        }
+    }
+    assert!(
+        boxes.len() > 20,
+        "only {} label boxes were found, so this test is not looking at the labels and \
+         cannot fail",
+        boxes.len()
+    );
+    let mut clashes = Vec::new();
+    for (i, a) in boxes.iter().enumerate() {
+        for b in &boxes[i + 1..] {
+            let ix = a.2.min(b.2) - a.0.max(b.0);
+            let iy = a.3.min(b.3) - a.1.max(b.1);
+            if ix > 0.5 && iy > 0.5 {
+                clashes.push(format!(
+                    "  {:?} and {:?} share {ix:.0}x{iy:.0} pixels",
+                    a, b
+                ));
+            }
+        }
+    }
+    assert!(
+        clashes.is_empty(),
+        "{} pair(s) of labels overlap, so the drawing prints two sentences through each \
+         other:\n{}\n\nEvery badge is placed by trying candidate positions against \
+         `placed`; one that overlaps is one that was placed blind.",
+        clashes.len(),
+        clashes.join("\n")
     );
 }

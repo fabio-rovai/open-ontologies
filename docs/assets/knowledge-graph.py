@@ -63,7 +63,7 @@ ONTOLOGY = "<http://www.w3.org/2002/07/owl#Ontology>"
 #   + rdf:type                      5
 #   + rdfs:domain, rdfs:range       1, and the file's own header
 LINKING = (SUBCLASS, TYPE, DOMAIN, RANGE)
-W, H = 1100, 760
+W, H = 1100, 780
 SEED = 20260919
 
 
@@ -85,9 +85,38 @@ def read(path):
     return rows
 
 
-def main(asserted_path, derivations_path, out_path):
+def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=None):
     asserted = read(asserted_path)
     derivations = read(derivations_path)
+    # The prover run's report. Which judge earned `certificate` and which only
+    # `opinion` is READ from here, never typed: `refutation_certified` is a
+    # word only `onto_fol_prove` can mint, from a token only `oo-fores`'s exit
+    # 0 can produce (decision 0005, second addendum).
+    import json as _json
+    import re
+    prove = _json.load(open(prove_path)) if prove_path else None
+    vampire_certified = bool(prove and prove.get("verdict") == "refutation_certified"
+                             and prove.get("problem_form") == "cnf")
+    fo_theorem = (prove or {}).get("theorem", "")
+    # The unasked question: one goal `onto_fol_prove` returned with the verdict
+    # `mu` before any prover ran, because it puts in class position a term the
+    # file never uses as a class. Read from the run, like the certificate.
+    mu = _json.load(open(mu_path)) if mu_path else None
+    if mu and (mu.get("report") or {}).get("verdict") != "mu":
+        raise SystemExit("mu.json is not an unasked question; the sixth beat would be a lie")
+    mu_s = mu["goal"][0] if mu else None
+    mu_o = mu["goal"][2] if mu else None
+    mu_kind = (mu or {}).get("report", {}).get("kind", "")
+    mu_typed = ""
+    if mu:
+        m_ = re.search(r"typed (\S+?)(?:,|\s|$)", mu["report"].get("why", ""))
+        mu_typed = short(m_.group(1)) if m_ else ""
+    mu_line = {
+        "individual": f"a {mu_typed}, never a class" if mu_typed else "an individual, never a class",
+        "typed_not_a_class": f"typed {mu_typed}, never a class",
+        "undeclared": "a name the file never uses",
+    }.get(mu_kind, "outside the file's language")
+    fo_checker = "oo-fores"
 
     # Asserted subclass edges, and the conclusions the fixpoint derived. A
     # derivation line is: rule, conclusion s p o, then its premises.
@@ -133,7 +162,8 @@ def main(asserted_path, derivations_path, out_path):
     # anything in the ontology.
     LEAN = "Lean 4 · oo-cert"
     FILES = ["ies-core.ttl", "certificate", "problem.tsv"]
-    PROGRAMS = [LEAN, "Isabelle/HOL", "Vampire", "E", "Z3", "Mace4"]
+    FORES = "oo-fores"
+    PROGRAMS = [LEAN, "Isabelle/HOL", "Vampire", "E", "Z3", "Mace4", FORES]
     TOOLS = FILES + PROGRAMS
     tool_edges = [
         ("ies-core.ttl", "certificate", "asserted"),
@@ -145,6 +175,11 @@ def main(asserted_path, derivations_path, out_path):
         ("problem.tsv", "Z3", "asserted"),
         ("problem.tsv", "Mace4", "asserted"),
     ]
+    # Vampire's refutation goes to the Fo checker, and the edge is certified
+    # ONLY when the run says so. Not to `Lean 4 · oo-cert`: that binary checks
+    # derivation certificates, and drawing it as the checker of a resolution
+    # proof would be a new wrong claim.
+    tool_edges.append(("Vampire", FORES, "certified" if vampire_certified else "asserted"))
 
     nodes = sorted({n for e in a_edges + d_edges for n in e}) + TOOLS
     idx = {n: i for i, n in enumerate(nodes)}
@@ -427,6 +462,7 @@ def main(asserted_path, derivations_path, out_path):
         LEAN: (318, 168),
         "Isabelle/HOL": (318, 250),
         "Vampire": (318, 336),
+        FORES: (420, 336),
         "E": (318, 384),
         "Z3": (318, 432),
         "Mace4": (318, 480),
@@ -456,7 +492,7 @@ def main(asserted_path, derivations_path, out_path):
     # Every `values` list STARTS and ENDS at the layer's resting level, so the
     # frame at t=0 is the same complete picture as the frame at t=CYCLE. A
     # still renderer samples t=0; see the header.
-    CYCLE = 18.0
+    CYCLE = 22.0 if mu else 18.0
     # Five steps, and the prover step is its own rather than a footnote inside
     # the Lean one. A reader was told the first-order family exists and never
     # shown it do anything, and the difference between what Lean produces and
@@ -465,9 +501,14 @@ def main(asserted_path, derivations_path, out_path):
         ("#94a3b8", "1 · a person asserts", 0.6, 3.4),
         ("#6ee7b7", "2 · the engine derives", 3.4, 6.4),
         ("#34d399", "3 · Lean checks the certificate, and accepts", 6.4, 9.6),
-        ("#f0abfc", "4 · four provers read a different file, and only opine", 9.6, 13.0),
+        ("#f0abfc", ("4 · four provers read the clauses; Vampire's refutation is checked, the rest opine"
+                     if vampire_certified else
+                     "4 · four provers read a different file, and only opine"), 9.6, 13.0),
         ("#fb3b53", "5 · a line is forged, and the same checker refuses", 13.0, 17.0),
     ]
+    C_MU = "#fbbf24"
+    if mu:
+        BEATS.append((C_MU, "6 · a question the file cannot be asked is returned unasked", 17.0, 21.0))
 
     REST_A, LIT_A = 0.45, 0.95   # asserted
     REST_D, LIT_D = 0.30, 0.85   # derived
@@ -487,8 +528,9 @@ def main(asserted_path, derivations_path, out_path):
     A(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" '
       f'font-family="ui-sans-serif,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif" '
       f'role="img" aria-label="The Studio 3D view of ies-core.ttl. Grey edges a person asserted, '
-      f'green edges the engine derived and Lean accepted, one red edge forged and refused, with '
-      f'the verification layer drawn as nodes.">')
+      f'green edges the engine derived and Lean accepted, one red edge forged and refused, '
+      + ('one amber question returned unasked because its subject is a concept and not a class, ' if mu else '')
+      + f'with the verification layer drawn as nodes.">')
 
     # Colours, widths and particle counts are `Graph3D.tsx`'s, not new ones.
     C_ASSERT, C_CERT, C_REJECT = "#475569", "#34d399", "#fb3b53"
@@ -726,7 +768,10 @@ def main(asserted_path, derivations_path, out_path):
     JUDGES = [
         (LEAN, "certificate", C_LEAN, 6.8, 9.6),
         ("Isabelle/HOL", "same bytes", C_LEAN, 7.4, 9.6),
-        ("Vampire", "opinion", C_TOOL, 10.0, 13.0),
+        ("Vampire", "certificate" if vampire_certified else "opinion",
+         C_LEAN if vampire_certified else C_TOOL, 10.0, 13.0),
+        (FORES, "checks it" if vampire_certified else "no proof",
+         C_LEAN if vampire_certified else C_TOOL, 10.4, 13.0),
         ("E", "opinion", C_TOOL, 10.3, 13.0),
         ("Z3", "opinion", C_TOOL, 10.6, 13.0),
         ("Mace4", "opinion", C_TOOL, 10.9, 13.0),
@@ -804,8 +849,27 @@ def main(asserted_path, derivations_path, out_path):
       f'stroke="{C_TOOL}" stroke-width="1.5" stroke-dasharray="4 4"/>')
     dtxt = "disagreement · stops the line"
     dw = len(dtxt) * 5.0 + 12
-    dx, dy = fx0 - dw - 8, fy0 + 4
-    placed.append((dx - 3, dy - 12, dx + dw + 3, dy + 5))
+    # Candidates, like every other badge on this drawing. This one used to take
+    # a single computed point, and that point sat on top of the `problem.tsv`
+    # label: two pieces of writing, both visible at the same instant, in the
+    # same place. Nothing else here places blind, and the overlap guard in
+    # `tests/knowledge_graph_asset_test.rs` now refuses the whole asset if one
+    # does.
+    dcands = [
+        (fx0 - dw - 8, fy0 + 4),
+        (fx0 - dw - 8, fy0 - 22),
+        (fx0 - dw - 8, fy0 + 30),
+        (fx0 + 10, fy0 + 30),
+        (fx0 - dw / 2, fy0 + 52),
+    ]
+    dx, dy = dcands[-1]
+    for n_, (ccx, ccy) in enumerate(dcands):
+        box = (ccx - 3, ccy - 12, ccx + dw + 3, ccy + 5)
+        if all(box[2] < o[0] or box[0] > o[2] or box[3] < o[1] or box[1] > o[3]
+               for o in placed) or n_ == len(dcands) - 1:
+            dx, dy = ccx, ccy
+            placed.append(box)
+            break
     A(f'<rect x="{dx:.1f}" y="{dy - 10:.1f}" width="{dw:.1f}" height="14" rx="7" '
       f'fill="#020617" stroke="{C_TOOL}" stroke-width="1" opacity="0.95"/>')
     A(f'<text x="{dx + dw / 2:.1f}" y="{dy:.1f}" text-anchor="middle" font-size="8.8" '
@@ -918,6 +982,47 @@ def main(asserted_path, derivations_path, out_path):
     # anything: the rings are drawn ON TOP of a cloud that is always there, so
     # a renderer sampling t=0 still gets the whole picture. Unfilled, which is
     # what makes them a sweep rather than a layer.
+    # ── The unasked question ────────────────────────────────────────────
+    #
+    # Beat 6. The question `mu_s subClassOf mu_o` is drawn as a dashed amber
+    # line between the two nodes, faint at rest because the still frame must
+    # show every content layer. When the beat runs it brightens (the question
+    # is asked), 無 appears over it (the engine returns it), and it dims again.
+    # It never turns red: nothing was refuted. The file said nothing.
+    if mu and mu_s in idx and mu_o in idx:
+        qi, qj = idx[mu_s], idx[mu_o]
+        qmx, qmy = (pt[qi][0] + pt[qj][0]) / 2.0, (pt[qi][1] + pt[qj][1]) / 2.0
+        A('<g opacity="0.3">'
+          + anim("opacity", "0.3;0.3;0.95;0.95;0.3;0.3", kt(0, 17.0, 17.4, 19.0, 19.8, CYCLE)))
+        A(f'<line x1="{pt[qi][0]:.1f}" y1="{pt[qi][1]:.1f}" x2="{pt[qj][0]:.1f}" '
+          f'y2="{pt[qj][1]:.1f}" stroke="{C_MU}" stroke-width="2.2" stroke-dasharray="3 4"/>')
+        A('</g>')
+        A(f'<text x="{qmx:.1f}" y="{qmy + 9:.1f}" text-anchor="middle" font-size="26" '
+          f'font-weight="800" fill="{C_MU}" opacity="0">'
+          + anim("opacity", "0;0;1;1;0;0", kt(0, 18.6, 19.0, 20.6, 21.0, CYCLE))
+          + '無</text>')
+        mtxt = f"returned unasked · {short(mu_s)} is {mu_line}"
+        mw = len(mtxt) * 5.4 + 12
+        mcands = [(qmx - mw / 2, qmy - 24), (qmx - mw / 2, qmy + 34), (qmx + 30, qmy - 6), (qmx - mw - 30, qmy - 6)]
+        mx, my = mcands[-1]
+        for n_, (ccx, ccy) in enumerate(mcands):
+            box = (ccx - 3, ccy - 12, ccx + mw + 3, ccy + 5)
+            if all(box[2] < o[0] or box[0] > o[2] or box[3] < o[1] or box[1] > o[3]
+                   for o in placed) or n_ == len(mcands) - 1:
+                mx, my = ccx, ccy
+                placed.append(box)
+                break
+        A('<g opacity="0.4">'
+          + anim("opacity", "0.4;0.4;1;1;0.4;0.4", kt(0, 18.6, 19.0, 20.6, 21.0, CYCLE)))
+        A(f'<rect x="{mx:.1f}" y="{my - 10:.1f}" width="{mw:.1f}" height="14" rx="7" '
+          f'fill="#020617" stroke="{C_MU}" stroke-width="1.1" opacity="0.95"/>')
+        A(f'<text x="{mx + mw / 2:.1f}" y="{my:.1f}" text-anchor="middle" font-size="9.5" '
+          f'font-weight="700" fill="{C_MU}">{mtxt}</text>')
+        A('</g>')
+        # "no judge is asked": the four provers and the checkers stay dark in this beat.
+    elif mu:
+        raise SystemExit(f"the unasked question names {mu_s} or {mu_o}, which the drawing does not carry")
+
     seed = max(
         (idx[ont[g]] for g in comps[0]),
         key=lambda i: deg[i],
@@ -954,8 +1059,10 @@ def main(asserted_path, derivations_path, out_path):
         (["ies-core.ttl"], 0),
         (["certificate", "problem.tsv"], 1),
         ([LEAN, "Isabelle/HOL"], 2),
-        (["Vampire", "E", "Z3", "Mace4"], 3),
+        (["Vampire", "E", "Z3", "Mace4", FORES], 3),
     ]
+    if mu and mu_s in idx:
+        SPOT.append(([mu_s], 5))
     for names, bn in SPOT:
         col, _, t0, t1 = BEATS[bn]
         for nm in names:
@@ -1031,7 +1138,7 @@ def main(asserted_path, derivations_path, out_path):
     # Every stage is drawn at a resting opacity that is never zero, for the
     # reason the header gives: a still renderer samples t=0, and a rail whose
     # inactive stages are invisible degrades to one lonely word.
-    rail_y = H - 176
+    rail_y = H - 196
     rail_x, rail_w = 34.0, W - 68.0
     seg = rail_w / len(BEATS)
     A(f'<line x1="{rail_x:.1f}" y1="{rail_y - 16:.1f}" x2="{rail_x + rail_w:.1f}" '
@@ -1057,7 +1164,14 @@ def main(asserted_path, derivations_path, out_path):
           f'font-weight="800" fill="{col}" opacity="0.38">{num}</text>')
         # The wording, which only the running stage carries, because five full
         # sentences at once is a wall.
-        A(f'<text x="{cx:.1f}" y="{rail_y + 20:.1f}" text-anchor="middle" font-size="10.5" '
+        # The first and last labels hug the rail's ends rather than centring
+        # on their segment, or a long last caption runs off the right edge.
+        lx, anchor = cx, "middle"
+        if n_ == 0:
+            lx, anchor = rail_x, "start"
+        elif n_ == len(BEATS) - 1:
+            lx, anchor = rail_x + rail_w, "end"
+        A(f'<text x="{lx:.1f}" y="{rail_y + 20:.1f}" text-anchor="{anchor}" font-size="10.5" '
           f'fill="{col}" opacity="0">'
           + anim("opacity", "0;0;1;1;0;0", kt(0, t0, t0 + 0.3, t1 - 0.3, t1, CYCLE))
           + f'{label}</text>')
@@ -1070,9 +1184,9 @@ def main(asserted_path, derivations_path, out_path):
     n_a = sum(1 for _, _, w in edges if w == "asserted")
     n_c = sum(1 for _, _, w in edges if w == "certified")
     n_r = sum(1 for _, _, w in edges if w == "rejected")
-    ly = H - 132
+    ly = H - 152
     lw = 560.0          # where the counting column ends and the meaning begins
-    A(f'<rect x="28" y="{ly}" width="{W - 56}" height="112" rx="12" fill="#030a1c" '
+    A(f'<rect x="28" y="{ly}" width="{W - 56}" height="132" rx="12" fill="#030a1c" '
       f'opacity="0.94" stroke="#1e3a5f"/>')
     A(f'<text x="46" y="{ly+24}" font-size="12" font-weight="800" fill="#34d399" '
       f'letter-spacing="1.4">PROOF-CARRYING INFERENCE</text>')
@@ -1082,6 +1196,8 @@ def main(asserted_path, derivations_path, out_path):
     rows = [(C_ASSERT, "ASSERTED", n_a, "read from ies-core.ttl. claimed by a person"),
             (C_CERT, "CERTIFIED", n_c, "derived, then PROVED. OOCert.certificate_sound"),
             (C_REJECT, "REJECTED", n_r, "forged. the checker exited 1 and named the rule")]
+    if mu:
+        rows.append((C_MU, "UNASKED", 1, "a question outside the file's language. no judge was asked"))
     for m, (col, label, count, means) in enumerate(rows):
         yy = ly + 51 + m * 18
         A(f'<rect x="46" y="{yy-4}" width="22" height="3" fill="{col}"/>')
@@ -1094,18 +1210,32 @@ def main(asserted_path, derivations_path, out_path):
     # single run-on line along the bottom of the card, which is where a reader
     # stops reading. It is the argument, so it gets its own column, and that
     # column also fills the third of the canvas the card was leaving empty.
-    A(f'<line x1="{lw + 12:.0f}" y1="{ly+14}" x2="{lw + 12:.0f}" y2="{ly+98}" '
+    A(f'<line x1="{lw + 12:.0f}" y1="{ly+14}" x2="{lw + 12:.0f}" y2="{ly+118}" '
       f'stroke="#1e3a5f"/>')
     A(f'<text x="{lw + 34:.0f}" y="{ly+24}" font-size="12" font-weight="800" '
       f'fill="#94a3b8" letter-spacing="1.4">WHAT A VERDICT IS WORTH</text>')
-    verdicts = [
-        (C_CERT, "certificate",
-         "Lean 4 and Isabelle/HOL read the same bytes.",
-         "anyone can re-run the check and get the same answer."),
-        (C_TOOL, "opinion",
-         "Vampire, E, Z3 and Mace4 read a different file.",
-         "believe the program, or believe nothing. no object to check."),
-    ]
+    if vampire_certified:
+        verdicts = [
+            (C_CERT, "certificate",
+             f"Lean 4 and Isabelle/HOL read the same bytes; Vampire's refutation is checked by {fo_checker}.",
+             f"re-runnable. {fo_theorem}: the clause set has no model, over any carrier."),
+            (C_TOOL, "opinion",
+             "E, Z3 and Mace4 read the clauses too, and print a word.",
+             "believe the program, or believe nothing. no object to check."),
+        ]
+    else:
+        verdicts = [
+            (C_CERT, "certificate",
+             "Lean 4 and Isabelle/HOL read the same bytes.",
+             "anyone can re-run the check and get the same answer."),
+            (C_TOOL, "opinion",
+             "Vampire, E, Z3 and Mace4 read a different file.",
+             "believe the program, or believe nothing. no object to check."),
+        ]
+    if mu:
+        verdicts.append((C_MU, "mu",
+                         f"{short(mu_s)} ⊑ {short(mu_o)} is returned unasked: {short(mu_s)} is {mu_line}.",
+                         "Zhaozhou's answer. the presupposition fails, not the claim; no judge is asked."))
     for m, (col, word, l1, l2) in enumerate(verdicts):
         yy = ly + 48 + m * 30
         A(f'<circle cx="{lw + 40:.0f}" cy="{yy - 4:.1f}" r="4" fill="{col}"/>')
@@ -1122,4 +1252,4 @@ def main(asserted_path, derivations_path, out_path):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:4])
+    main(*sys.argv[1:6])
