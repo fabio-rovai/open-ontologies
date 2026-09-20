@@ -501,7 +501,9 @@ enum Commands {
         /// checker `oo-folmodel` reads, with its digest in the report.
         #[arg(long)]
         out: String,
-        /// `tptp` (FOF, what provers read), `clif` or `cgif` (two of ISO/IEC
+        /// `tptp` (FOF, what provers read), `cnf` (the same theory already in clauses, so a
+        /// prover's refutation can be checked by `oo-fores`; refused outside OWL 2 RL's clausal
+        /// fragment), `clif` or `cgif` (two of ISO/IEC
         /// 24707 Common Logic's three dialects, both restricted to the
         /// first-order-equivalent fragment), `smtlib` (SMT-LIB 2, what Z3
         /// reads) or `ladr` (what Mace4 reads, with every symbol MANGLED and
