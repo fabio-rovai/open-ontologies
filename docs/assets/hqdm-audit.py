@@ -56,6 +56,61 @@ C_UND = "#f59e0b"
 CYCLE = 20.0
 
 
+# Every word on the drawing, in each language it is published in. The NUMBERS
+# are never in here: they are computed and formatted into these strings, so a
+# translation cannot state a count the data does not support.
+TEXT = {
+    "en": {
+        "headline": "HQDM, two shipped renderings: one is not well formed, the other is not coherent",
+        "beat1": "1 · left: {n} terms are used as a class and never declared",
+        "beat2": "2 · left: {n} rdfs:range declarations name a relation, not a class",
+        "beat3": "3 · right: this engine finds {sat} named classes satisfiable and cannot decide {und}",
+        "beat4": "4 · right: HermiT, an opinion here, calls {n} unsatisfiable, and they are the same {both}",
+        "beat5": "5 · both: {a} and {b} names differ only by a trailing underscore",
+        "ttl_sub": "· hqdmTop/hqdmFramework, vendored by MagmaCore · RDFS",
+        "owl_sub": "· gchq/HQDM · OWL, {n} disjointness axioms",
+        "facts1": "{t} triples, {d} declared classes, {n} terms in one connected graph.",
+        "ttl_facts2": "No owl: term and no disjointness axiom, so no named class can be unsatisfiable.",
+        "owl_facts2": "{u} undeclared terms, {b} ranges naming a relation: well formed by the same checks.",
+        "left_head": "WHAT A REASONER CANNOT SEE",
+        "right_head": "WHAT ONLY A REASONER CAN SEE",
+        "undeclared": ("UNDECLARED", "used as a class, never typed as one"),
+        "badrange": ("RANGE IS A RELATION", "rdfs:range naming part_of or participant_in"),
+        "twins": ("UNDERSCORE TWINS", "one trailing underscore apart; {n} identical in domain and range"),
+        "sat": ("SATISFIABLE", "named classes this engine's tableaux found a model for"),
+        "und": ("UNDECIDED", "budget ran out before a verdict either way"),
+        "oracle": ("ORACLE: UNSATISFIABLE", "HermiT, OM 2026 run; {n} of them are the undecided ones"),
+        "foot1": "Same ontology name, two files, and the defect you find depends on which you fetched; "
+                 "neither file says which is canonical.",
+        "foot2": "{o} of the {t} underscore twins survive into the OWL rendering. "
+                 "Every count here is recomputed from the rows by a test.",
+    },
+    "zh": {
+        "headline": "HQDM 的两个发布文件：一个不是良构的，另一个不是融贯的",
+        "beat1": "1 · 左：{n} 个术语被当作类使用，却从未声明",
+        "beat2": "2 · 左：{n} 条 rdfs:range 声明指向关系，而不是类",
+        "beat3": "3 · 右：本引擎判定 {sat} 个具名类可满足，另有 {und} 个无法判定",
+        "beat4": "4 · 右：HermiT（在此只是一种意见）判定 {n} 个不可满足，恰好就是同样的 {both} 个",
+        "beat5": "5 · 两者：{a} 对与 {b} 对名称仅相差一个尾部下划线",
+        "ttl_sub": "· hqdmTop/hqdmFramework，MagmaCore 逐字节收录 · RDFS",
+        "owl_sub": "· gchq/HQDM · OWL，{n} 条不相交公理",
+        "facts1": "{t} 条三元组，{d} 个已声明的类，{n} 个术语构成一个连通图。",
+        "ttl_facts2": "没有 owl: 术语，也没有不相交公理，因此没有具名类可能不可满足。",
+        "owl_facts2": "{u} 个未声明术语，{b} 条指向关系的值域：按同样的检查是良构的。",
+        "left_head": "推理机看不到的问题",
+        "right_head": "只有推理机才能看到的问题",
+        "undeclared": ("未声明", "被当作类使用，却从未被声明为类"),
+        "badrange": ("值域是关系", "rdfs:range 指向 part_of 或 participant_in"),
+        "twins": ("下划线孪生名", "仅相差一个尾部下划线；其中 {n} 对定义域与值域完全相同"),
+        "sat": ("可满足", "本引擎的 tableaux 为其找到了模型的具名类"),
+        "und": ("无法判定", "预算用尽，两个方向都没有结论"),
+        "oracle": ("外部意见：不可满足", "HermiT，OM 2026 运行；其中 {n} 个正是无法判定的那些"),
+        "foot1": "同一个本体名称，两个文件；你发现的缺陷取决于你取到了哪一个，两个文件都没有说明哪一个是规范版本。",
+        "foot2": "{t} 对下划线孪生名中有 {o} 对延续到了 OWL 版本。此处每个数字都由测试从数据行重新计算。",
+    },
+}
+
+
 def short(iri):
     body = iri.strip("<>")
     h = body.rfind("#")
