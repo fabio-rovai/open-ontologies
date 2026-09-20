@@ -259,17 +259,35 @@ fn an_unchecked_result_never_reports_the_certified_word() {
     assert_eq!(r3.checker_exit, None);
     assert!(r3.skipped.is_some(), "a missing checker must be reported: {r3:?}");
 
-    // And a checker that ACCEPTS does reach it, so the branch is live and the
-    // three results above are about the exit code rather than about the stub.
-    let accepting = stub(
+    // (d) A checker that exits zero but names NO theorem. Exit zero used to be
+    // the whole test; the theorem is now read off the checker's own report, so
+    // a report that does not carry one is not an acceptance, whatever the exit
+    // code said.
+    let unnamed = stub(
         &d,
-        "accept.sh",
+        "accept_unnamed.sh",
         "#!/bin/sh\necho '{\"verdict\":\"model_checked\",\"goal_negated_present\":false}'\nexit 0\n",
     );
     let mut o4 = opts(4);
-    o4.checker = Some(accepting);
+    o4.checker = Some(unnamed);
     let r4 = solve(&easy(), &o4, &d.join("d")).expect("runs");
-    assert_eq!(r4.verdict, "model_checked");
+    assert_ne!(r4.verdict, "model_checked", "{r4:?}");
+    assert_eq!(r4.checker_exit, Some(0));
+    assert!(r4.theorem.is_none(), "{r4:?}");
+
+    // And a checker that ACCEPTS, naming the theorem the way lean/FolMain.lean
+    // prints it, does reach it, so the branch is live and the results above are
+    // about the report rather than about the stub.
+    let accepting = stub(
+        &d,
+        "accept.sh",
+        "#!/bin/sh\necho '{\"verdict\":\"model_checked\",\"theorem\":\"Fol.satisfiable_of_check\",\"goal_negated_present\":false}'\nexit 0\n",
+    );
+    let mut o5 = opts(4);
+    o5.checker = Some(accepting);
+    let r5 = solve(&easy(), &o5, &d.join("e")).expect("runs");
+    assert_eq!(r5.verdict, "model_checked", "{r5:?}");
+    assert_eq!(r5.theorem.as_deref(), Some("Fol.satisfiable_of_check"));
 }
 
 // ── Rule 2: a bounded unsat is not unsatisfiability ─────────────────────────
@@ -395,7 +413,7 @@ fn the_owl_reading_is_read_off_the_checkers_own_report() {
     let silent = stub(
         &d,
         "accept_no_goal.sh",
-        "#!/bin/sh\necho '{\"verdict\":\"model_checked\",\"goal_negated_present\":false}'\nexit 0\n",
+        "#!/bin/sh\necho '{\"verdict\":\"model_checked\",\"theorem\":\"Fol.satisfiable_of_check\",\"goal_negated_present\":false}'\nexit 0\n",
     );
     let mut o2 = opts(3);
     o2.checker = Some(silent);

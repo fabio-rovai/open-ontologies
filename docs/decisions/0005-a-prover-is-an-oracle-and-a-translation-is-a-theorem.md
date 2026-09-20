@@ -468,17 +468,22 @@ in two SZS dialects. `tests/cnf_end_to_end_test.rs` is that run and its control.
 
 Decision 5 above said an ATP verdict is an oracle opinion everywhere it appears. It now reads:
 
-> An ATP verdict is an oracle opinion, **unless** the problem was exported in the clausal fragment
-> (`--format cnf` succeeded), every step of the derivation translated, and `oo-fores` exited 0. In
-> that case, and only that case, the refutation is certified by `Fo.unsat_of_check`, and the report
-> says so with the theorem's name read from the checker's own stdout. A single untranslated step,
-> a `tptp` export, or a refused `cnf` export leaves the verdict an opinion, and the report says
-> which of the three it was.
+> An ATP verdict is an oracle opinion, **unless** the problem reached the prover as clauses
+> (`onto_fol_prove` tries `to_cnf` first and falls back to FOF only outside the clausal fragment),
+> every step of the derivation translated, and `oo-fores` exited 0. In that case, and only that
+> case, the verdict is **`refutation_certified`**, resting on `Fo.unsat_of_check`, with the theorem's
+> name read from the checker's own stdout. Otherwise the verdict is one of the first addendum's
+> eight words, and the report's `certificate` field says which of five things stopped it:
+> `outside_clausal_fragment` (naming the axiom), `steps_untranslated` (naming the rules),
+> `does_not_reach_false`, `checker_absent`, or `checker_refused`.
 
-The verdict vocabulary of the first addendum is unchanged. `refutation_fully_replayed` is still
-the strongest word the Rust replayer can earn and is still not a certificate; the certified case is
-a different word, minted only through `CheckerRun::accepted_naming`, so it cannot be printed
-without a checker run that named the theorem.
+`refutation_certified` is the ninth word and the only one that rests on a theorem.
+`refutation_fully_replayed` is still the strongest word the Rust replayer can earn and is still not
+a certificate. The ninth word is set only when a `Certified` token exists, and that token is minted
+only by `CheckerRun::accepted_naming`, so it cannot be printed by any path that did not run the
+checker and read `Fo.unsat_of_check` back from it. `unsatisfiable`, the word `oo-fores` and
+`oo-lrat` print for themselves, joined `CHECKER_OWNED_WORDS`: Rust never says it. `problem_form` in
+the run report says whether the prover got `cnf` or `fof`, and no user action selects between them.
 
 ### What remains an oracle, in full
 

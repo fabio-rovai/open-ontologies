@@ -49,51 +49,38 @@ use open_ontologies::verdict::{
 /// its name is. CI failed that way twice. Writing before the parallel phase
 /// begins means there is no open write fd left to inherit.
 fn script_exiting(code: i32) -> PathBuf {
-    static SCRIPTS: std::sync::OnceLock<std::collections::HashMap<i32, PathBuf>> =
-        std::sync::OnceLock::new();
-    SCRIPTS
-        .get_or_init(|| {
-            let dir = std::env::temp_dir().join("oo-verdict-vocabulary-scripts");
-            std::fs::create_dir_all(&dir).unwrap();
-            let ext = if cfg!(windows) { "cmd" } else { "sh" };
-            (0..=3)
-                .map(|c| {
-                    let p = dir.join(format!("exit{c}.{ext}"));
-                    let body = if cfg!(windows) {
-                        format!("@echo off\r\nexit /b {c}\r\n")
-                    } else {
-                        format!("#!/bin/sh\nexit {c}\n")
-                    };
-                    std::fs::write(&p, body).unwrap();
-                    #[cfg(unix)]
-                    {
-                        use std::os::unix::fs::PermissionsExt as _;
-                        std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755))
-                            .unwrap();
-                    }
-                    (c, p)
-                })
-                .collect()
-        })
-        .get(&code)
-        .expect("only exit codes 0 to 3 are used")
-        .clone()
+    script_saying(code, "OOCert.certificate_sound")
 }
 
-fn shell_exiting(code: i32) -> (CheckerBinary, std::process::Command) {
+/// A fake checker that prints the theorem it is told to and then exits.
+///
+/// Keyed by BOTH, because which theorem a checker names is now part of what
+/// the mint reads: `oo-horn` legitimately names one of two depending on its
+/// rule table, and a checker naming a third mints nothing.
+fn script_saying(code: i32, theorem: &str) -> PathBuf {
+    let dir = std::env::temp_dir().join("oo-verdict-vocabulary-scripts");
+    std::fs::create_dir_all(&dir).unwrap();
+    let ext = if cfg!(windows) { "cmd" } else { "sh" };
+    let slug: String = theorem.chars().filter(|c| c.is_alphanumeric()).collect();
+    let p = dir.join(format!("exit{code}_{slug}.{ext}"));
+    // The fake PRINTS its theorem, because a real checker does and the mint now
+    // reads it. A script that exits zero in silence named nothing and correctly
+    // mints nothing; accepting with one would be testing the old contract.
+    let say = format!(r#"{{"ok":true,"theorem":"{theorem}"}}"#);
+    let body = if cfg!(windows) {
+        format!("@echo off\r\necho {say}\r\nexit /b {code}\r\n")
+    } else {
+        format!("#!/bin/sh\necho '{say}'\nexit {code}\n")
+    };
+    std::fs::write(&p, body).unwrap();
     #[cfg(unix)]
     {
-        let mut c = std::process::Command::new("/bin/sh");
-        c.arg("-c").arg(format!("exit {code}"));
-        (CheckerBinary::found_at(PathBuf::from("/bin/sh")), c)
+        use std::os::unix::fs::PermissionsExt as _;
+        std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
     }
-    #[cfg(windows)]
-    {
-        let mut c = std::process::Command::new("cmd");
-        c.arg("/C").arg(format!("exit {code}"));
-        (CheckerBinary::found_at(PathBuf::from("cmd")), c)
-    }
+    p
 }
+
 
 /// A `Certified`, obtained the only way anything can obtain one: by running
 /// something that exits zero.
@@ -103,10 +90,30 @@ fn shell_exiting(code: i32) -> (CheckerBinary, std::process::Command) {
 /// ran and exited zero, and that is exactly what this borrows in order to name
 /// the certified variants below.
 fn earned(theorem: &'static str) -> Certified {
-    let (bin, cmd) = shell_exiting(0);
+    // The fake has to PRINT the theorem, because that is now what the mint
+    // reads. A shell that exits zero in silence is a checker that named
+    // nothing, and it correctly mints nothing.
+    let (bin, cmd) = shell_naming(theorem);
     let run = CheckerRun::spawn(&bin, cmd).expect("the system shell must be runnable");
     assert_eq!(run.exit(), 0);
-    run.accepted(theorem).expect("exit 0 mints the token")
+    run.accepted_naming(&[theorem]).expect("exit 0 naming it mints the token")
+}
+
+fn shell_naming(theorem: &str) -> (CheckerBinary, std::process::Command) {
+    #[cfg(unix)]
+    {
+        let mut c = std::process::Command::new("/bin/sh");
+        c.arg("-c")
+            .arg(format!("echo '{{\"ok\":true,\"theorem\":\"{theorem}\"}}'"));
+        (CheckerBinary::found_at(PathBuf::from("/bin/sh")), c)
+    }
+    #[cfg(windows)]
+    {
+        let mut c = std::process::Command::new("cmd");
+        c.arg("/C")
+            .arg(format!("echo {{\"ok\":true,\"theorem\":\"{theorem}\"}}"));
+        (CheckerBinary::found_at(PathBuf::from("cmd")), c)
+    }
 }
 
 /// Every word this crate may print as a verdict, with the exact bytes it must
@@ -329,12 +336,33 @@ fn only_a_zero_exit_produces_an_acceptance() {
 
     // And the acceptance carries the theorem the KIND names, not one the
     // caller chose afterwards.
-    let script = script_exiting(0);
-    match pe::run_checker(CertKind::OoHorn, Some(script.as_path()), &a, &d, Some(a.as_path())) {
-        CheckerStatus::Accepted(acc) => {
-            assert_eq!(acc.theorem(), "OOCert.horn_certificate_sound");
-            assert_eq!(acc.certified().theorem(), "OOCert.horn_certificate_sound");
+    // `oo-horn` names ONE OF TWO, and the token carries whichever it named.
+    // `lean/HMain.lean` prints the absolute `OOCert.entails_of_builtin_horn`
+    // when the rule table is exactly the built-ins and the relativised
+    // `OOCert.horn_certificate_sound` for any other table. The Rust side used
+    // to hardcode the relativised name for both, so the field that exists to
+    // tell an entailment from an entailment-under-supplied-rules told neither.
+    for named in ["OOCert.horn_certificate_sound", "OOCert.entails_of_builtin_horn"] {
+        let script = script_saying(0, named);
+        match pe::run_checker(CertKind::OoHorn, Some(script.as_path()), &a, &d, Some(a.as_path())) {
+            CheckerStatus::Accepted(acc) => {
+                assert_eq!(acc.theorem(), named, "the token must carry what oo-horn printed");
+                assert_eq!(acc.certified().theorem(), named);
+            }
+            other => panic!("exit 0 naming {named} must be an acceptance: {other:?}"),
         }
-        other => panic!("exit 0 must be an acceptance: {other:?}"),
     }
+
+    // And a checker that exits zero while naming a statement this call site
+    // was not written against mints nothing. That is the case the old
+    // signature could not see: it would have minted a token labelled with
+    // whatever the Rust literal said.
+    let wrong = script_saying(0, "OOCert.something_else_entirely");
+    assert!(
+        !matches!(
+            pe::run_checker(CertKind::OoHorn, Some(wrong.as_path()), &a, &d, Some(a.as_path())),
+            CheckerStatus::Accepted(_)
+        ),
+        "a checker naming an unexpected theorem must not mint an acceptance"
+    );
 }

@@ -75,20 +75,20 @@ fn a_dl_ontology_stays_an_opinion_and_the_report_names_the_axiom_that_cost_it() 
 
 #[test]
 fn the_certified_word_cannot_appear_without_the_checker() {
-    // Same RL goal, but oo-fores is pointed at a path that does not exist.
-    // The replay still runs and still says what it says; the certificate
-    // field says the checker was absent; the WORD is not printed.
+    // Same RL goal, checker pointed at a path that does not exist. An explicit
+    // OO_FORES is an instruction, not a hint, so there is no fallback: the
+    // replay still runs, the certificate field says the checker was absent,
+    // and the WORD is not printed. This test is the sole writer of OO_FORES in
+    // its process.
     if !Prover::Vampire.available() { return; }
     let had = std::env::var("OO_FORES").ok();
-    // Use `std::env::set_var` only through a subprocess-safe pattern: this test
-    // is the sole writer of OO_FORES in its own process.
     unsafe { std::env::set_var("OO_FORES", "/nonexistent/oo-fores") };
     let j = run(RL, RL_GOAL);
     match had { Some(v) => unsafe { std::env::set_var("OO_FORES", v) }, None => unsafe { std::env::remove_var("OO_FORES") } }
     let g = &j["goals"][0]["report"];
-    // find_fores falls back to the built binary and PATH, so the only way to
-    // be sure the checker was NOT reachable is when neither exists either.
-    if g["certificate"]["status"] == "certified" { return; }
-    assert_ne!(g["verdict"], "refutation_certified", "{g}");
-    assert!(matches!(g["certificate"]["status"].as_str(), Some("checker_absent") | Some("steps_untranslated") | Some("does_not_reach_false")), "{g}");
+    assert_eq!(j["problem_form"], "cnf", "{j}");
+    assert_ne!(g["verdict"], "refutation_certified", "no checker ran, so the word may not appear: {g}");
+    assert_eq!(g["certificate"]["status"], "checker_absent", "{g}");
+    assert!(g["checked_by"].as_str().unwrap().contains("ORACLE OPINION"), "{g}");
+    assert_eq!(j["certified"], 0, "{j}");
 }

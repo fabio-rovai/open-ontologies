@@ -1383,6 +1383,13 @@ pub enum LeafMatch {
     Identical,
     AlphaEquivalent,
     AssociativityNormalised,
+    /// Both sides are clauses and are the same clause: the same SET of
+    /// literals up to a renaming of variables. Needed the day CNF input
+    /// arrived: a prover echoes a `cnf(` axiom back in ITS literal order and
+    /// under an explicit `![X]:`, so `~thing | ~A | B` comes back as
+    /// `![X0]: (~A | ~thing | B)`. That is the same clause, and it is exact
+    /// under clause semantics, not a leniency: a clause IS a set.
+    ClauseVariant,
 }
 
 impl LeafMatch {
@@ -1391,6 +1398,7 @@ impl LeafMatch {
             LeafMatch::Identical => "identical",
             LeafMatch::AlphaEquivalent => "alpha_equivalent",
             LeafMatch::AssociativityNormalised => "associativity_normalised",
+            LeafMatch::ClauseVariant => "clause_variant",
         }
     }
 }
@@ -1404,6 +1412,14 @@ fn leaf_match(proof: &Formula, problem: &Formula) -> Option<LeafMatch> {
     }
     if alpha_eq(&proof.assoc_normalised(), &problem.assoc_normalised()) {
         return Some(LeafMatch::AssociativityNormalised);
+    }
+    // Last: both read as clauses, and are the same clause as a SET of
+    // literals up to variable renaming. `variant` returns Err when its
+    // backtracking budget runs out; that is "not established", not "no".
+    if let (Ok(a), Ok(b)) = (clause_view(proof), clause_view(problem))
+        && variant(&a, &b).unwrap_or(false)
+    {
+        return Some(LeafMatch::ClauseVariant);
     }
     None
 }
@@ -2709,6 +2725,10 @@ fn prove_one(
 }
 
 fn find_fores() -> Option<PathBuf> {
+    // An explicit OO_FORES is an instruction. If it points nowhere the answer
+    // is "absent", not "fall back to whatever else is lying around": the same
+    // rule `shacl_verified::resolve_checker` applies, for the same reason. A
+    // test that sets it to a missing path is asking to see the absent branch.
     if let Ok(p) = std::env::var("OO_FORES") {
         let p = PathBuf::from(p);
         return p.exists().then_some(p);
