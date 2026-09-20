@@ -1383,6 +1383,13 @@ pub enum LeafMatch {
     Identical,
     AlphaEquivalent,
     AssociativityNormalised,
+    /// Both sides are clauses and are the same clause: the same SET of
+    /// literals up to a renaming of variables. Needed the day CNF input
+    /// arrived: a prover echoes a `cnf(` axiom back in ITS literal order and
+    /// under an explicit `![X]:`, so `~thing | ~A | B` comes back as
+    /// `![X0]: (~A | ~thing | B)`. That is the same clause, and it is exact
+    /// under clause semantics, not a leniency: a clause IS a set.
+    ClauseVariant,
 }
 
 impl LeafMatch {
@@ -1391,6 +1398,7 @@ impl LeafMatch {
             LeafMatch::Identical => "identical",
             LeafMatch::AlphaEquivalent => "alpha_equivalent",
             LeafMatch::AssociativityNormalised => "associativity_normalised",
+            LeafMatch::ClauseVariant => "clause_variant",
         }
     }
 }
@@ -1404,6 +1412,14 @@ fn leaf_match(proof: &Formula, problem: &Formula) -> Option<LeafMatch> {
     }
     if alpha_eq(&proof.assoc_normalised(), &problem.assoc_normalised()) {
         return Some(LeafMatch::AssociativityNormalised);
+    }
+    // Last: both read as clauses, and are the same clause as a SET of
+    // literals up to variable renaming. `variant` returns Err when its
+    // backtracking budget runs out; that is "not established", not "no".
+    if let (Ok(a), Ok(b)) = (clause_view(proof), clause_view(problem))
+        && variant(&a, &b).unwrap_or(false)
+    {
+        return Some(LeafMatch::ClauseVariant);
     }
     None
 }
@@ -1508,6 +1524,39 @@ pub struct Report {
 
     /// The one word. See [`verdict_means`].
     pub verdict: &'static str,
+    /// What became of the attempt to have the derivation CHECKED BY A THEOREM
+    /// rather than replayed. `None` when no attempt was made because the
+    /// structure did not hold or the leaves were not ours; otherwise says
+    /// either which theorem accepted it or exactly why none did.
+    pub certificate: Option<CertificateOutcome>,
+}
+
+/// The outcome of offering a derivation to `oo-fores`.
+///
+/// `Certified` can only be built from a [`crate::verdict::Certified`] token,
+/// and that token only exists after a checker exited zero naming the theorem,
+/// so the word `refutation_certified` cannot be printed by any path that did
+/// not run the checker.
+#[derive(Clone, Debug, serde::Serialize)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum CertificateOutcome {
+    /// `oo-fores` accepted. `theorem` is read from the token, which read it
+    /// from the checker's stdout.
+    Certified { theorem: &'static str, checker: String, steps: usize, certificate: String },
+    /// The problem was exported as FOF because it is outside the clausal
+    /// fragment, so the prover clausified and no resolution-only derivation
+    /// exists to translate. `why` is `to_cnf`'s refusal, naming the axiom.
+    OutsideClausalFragment { why: String },
+    /// Some step of the derivation is not resolution or factoring. Named, with
+    /// the rule, so a reader knows what kind of reasoning cost the certificate.
+    StepsUntranslated { untranslated: Vec<(String, String)>, translated: usize },
+    /// Every step translated but the chain does not reach the empty clause.
+    DoesNotReachFalse { translated: usize },
+    /// The certificate was written and `oo-fores` is not installed to read it.
+    CheckerAbsent { certificate: String },
+    /// `oo-fores` REFUSED a certificate this translator produced. Either a
+    /// defect in the translation or in the derivation; both stop the line.
+    CheckerRefused { exit: i32, output: String, certificate: String },
 }
 
 /// One sentence per word, so a report is readable without this file open
@@ -1544,6 +1593,12 @@ pub fn verdict_means(v: &str) -> &'static str {
                                             from their premises. The unchecked rules are named \
                                             and counted. This is the normal outcome, because \
                                             clausification and AVATAR splitting are not checked",
+        "refutation_certified" => "the derivation was translated into lean/Fo's certificate format \
+                                   and oo-fores ACCEPTED it, discharging Fo.unsat_of_check: the \
+                                   clause set in the derivation's leaves has no model, over any \
+                                   carrier. The leaves are the formulas this engine emitted \
+                                   (leaves_match_problem), so that is a refutation of OUR problem. \
+                                   This is the only word in this vocabulary that rests on a theorem",
         "refutation_fully_replayed" => "the structure holds and EVERY step was recomputed. This \
                                         is the strongest word here and it is still NOT a proof \
                                         of unsatisfiability: the calculus's soundness is not \
@@ -1606,6 +1661,7 @@ pub fn check(problem_text: &str, proof_text: &str) -> Report {
         steps_unchecked: Vec::new(),
         steps_not_reconstructed: Vec::new(),
         verdict: "problem_unparsed",
+        certificate: None,
     };
 
     // ── The problem ────────────────────────────────────────────────────────
@@ -2225,6 +2281,260 @@ fn resolvent_matches(a: &Clause, b: &Clause, c: &Clause) -> Result<bool, &'stati
     Ok(false)
 }
 
+// ── Translating a derivation into an Fo certificate ────────────────────────
+//
+// `lean/Fo` checks a resolution refutation and proves `Fo.unsat_of_check`. This
+// turns the part of a prover's derivation that IS resolution into that
+// certificate format, so the part that can be checked by a machine-checked
+// theorem is checked by one rather than replayed by the unverified Rust above.
+//
+// What does NOT translate is named and counted, never skipped. Clausification,
+// Skolemisation, AVATAR splitting and every form of equality reasoning are
+// outside the calculus, and a certificate covering only some steps does not
+// reach the empty clause, so `oo-fores` refuses it. That refusal is the
+// correct answer and the honest one: a partial translation is not a proof.
+
+/// A certificate in `lean/Fo`'s format, and what had to be left out of it.
+#[derive(Debug, Clone)]
+pub struct FoCertificate {
+    /// The certificate text, ready for `oo-fores`.
+    pub text: String,
+    /// Steps turned into resolution inferences.
+    pub translated: usize,
+    /// Steps that are not resolution, by name and rule. Never silently dropped.
+    pub untranslated: Vec<(String, String)>,
+    /// Does the certificate reach the empty clause through translated steps
+    /// alone? Only then can `oo-fores` accept it.
+    pub reaches_false: bool,
+}
+
+/// Numbers for the names a derivation uses. `Fo` indexes its symbols, because
+/// a checker comparing terms should compare numbers rather than strings.
+#[derive(Default)]
+struct SymTab {
+    preds: std::collections::HashMap<String, usize>,
+    funs: std::collections::HashMap<String, usize>,
+    vars: std::collections::HashMap<String, usize>,
+}
+
+impl SymTab {
+    fn pred(&mut self, n: &str) -> usize {
+        let k = self.preds.len();
+        *self.preds.entry(n.to_string()).or_insert(k)
+    }
+    fn fun(&mut self, n: &str) -> usize {
+        let k = self.funs.len();
+        *self.funs.entry(n.to_string()).or_insert(k)
+    }
+    fn var(&mut self, n: &str) -> usize {
+        let k = self.vars.len();
+        *self.vars.entry(n.to_string()).or_insert(k)
+    }
+}
+
+/// The variable-renaming prefixes `resolvent_witness` uses, stripped back off
+/// when a substitution is split between the two parents.
+fn strip_tag(v: &str) -> &str {
+    v.strip_prefix("_a").or_else(|| v.strip_prefix("_b")).unwrap_or(v)
+}
+
+fn render_term(t: &Term, st: &mut SymTab) -> String {
+    match t {
+        Term::Var(v) => format!("v{}", st.var(strip_tag(v))),
+        Term::Fun(f, args) => {
+            let n = st.fun(f);
+            if args.is_empty() {
+                format!("f{n}")
+            } else {
+                let inner: Vec<String> = args.iter().map(|a| render_term(a, st)).collect();
+                format!("f{n}[{}]", inner.join(","))
+            }
+        }
+    }
+}
+
+fn render_lit(l: &Lit, st: &mut SymTab) -> String {
+    let sign = if l.positive { '+' } else { '-' };
+    match &l.atom {
+        Atom::Pred(p, args) => {
+            let n = st.pred(p);
+            if args.is_empty() {
+                format!("{sign}p{n}")
+            } else {
+                let inner: Vec<String> = args.iter().map(|a| render_term(a, st)).collect();
+                format!("{sign}p{n}[{}]", inner.join(","))
+            }
+        }
+        // Equality is rendered as an ordinary predicate. That is sound for
+        // RESOLUTION on equality atoms and says nothing about equality
+        // REASONING: paramodulation and equality resolution are not in this
+        // calculus, and steps using them are reported untranslated.
+        Atom::Eq(a, b) => {
+            let n = st.pred("$equals");
+            format!("{sign}p{n}[{},{}]", render_term(a, st), render_term(b, st))
+        }
+    }
+}
+
+fn render_clause(c: &Clause, st: &mut SymTab) -> String {
+    c.lits.iter().map(|l| render_lit(l, st)).collect::<Vec<_>>().join(" ")
+}
+
+fn render_subst(s: &Subst, tag: &str, st: &mut SymTab) -> String {
+    let mut parts: Vec<String> = Vec::new();
+    let mut keys: Vec<&String> = s.keys().collect();
+    keys.sort();
+    for k in keys {
+        if let Some(bare) = k.strip_prefix(tag) {
+            parts.push(format!("{}={}", st.var(bare), render_term(&walk(&s[k], s), st)));
+        }
+    }
+    parts.join(";")
+}
+
+/// Like `resolvent_matches`, but returns the witness instead of a verdict: the
+/// two literals resolved and the substitution that made them complementary.
+fn resolvent_witness(
+    a: &Clause,
+    b: &Clause,
+    c: &Clause,
+) -> Option<(Clause, Clause, usize, usize, Subst)> {
+    let ra = rename_apart(a, "_a");
+    let rb = rename_apart(b, "_b");
+    for (i, la) in ra.lits.iter().enumerate() {
+        for (j, lb) in rb.lits.iter().enumerate() {
+            if la.positive == lb.positive {
+                continue;
+            }
+            let Some(s) = unify_atoms(&la.atom, &lb.atom) else { continue };
+            let mut rest: Vec<Lit> = Vec::new();
+            rest.extend(ra.lits.iter().enumerate().filter(|(k, _)| *k != i).map(|(_, l)| l.clone()));
+            rest.extend(rb.lits.iter().enumerate().filter(|(k, _)| *k != j).map(|(_, l)| l.clone()));
+            let cand = Clause::normalise(apply_clause(&rest, &s), ra.tautology || rb.tautology);
+            if variant(&cand, c).unwrap_or(false) {
+                return Some((ra, rb, i, j, s));
+            }
+        }
+    }
+    None
+}
+
+/// Turn the resolution part of a derivation into an `Fo` certificate.
+pub fn to_fo_certificate(proof_text: &str) -> Result<FoCertificate, String> {
+    let nodes = parse_derivation(proof_text)?;
+    let mut clauses: std::collections::HashMap<String, Clause> = std::collections::HashMap::new();
+    let mut ids: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+    let mut st = SymTab::default();
+    let mut out = String::new();
+    let mut lines = String::new();
+    let mut translated = 0usize;
+    let mut untranslated: Vec<(String, String)> = Vec::new();
+    let mut next = 1usize;
+    let mut reaches_false = false;
+
+    for n in &nodes {
+        let Ok(cl) = clause_view(&n.formula) else {
+            untranslated.push((n.name.clone(), "not a clause".into()));
+            continue;
+        };
+        match &n.source {
+            Some(Source::File { .. }) => {
+                let id = next;
+                next += 1;
+                ids.insert(n.name.clone(), id);
+                clauses.insert(n.name.clone(), cl.clone());
+                out.push_str(&format!("c\t{id}\t{}\n", render_clause(&cl, &mut st)));
+            }
+            Some(Source::Inference(inf)) => {
+                let parents: Vec<&String> = inf
+                    .parents
+                    .iter()
+                    .filter_map(|p| match p {
+                        Parent::Named(s) => Some(s),
+                        _ => None,
+                    })
+                    .collect();
+                // The rule NAME is a hint and not a gate. E calls every
+                // inference `spm`, including ones that are ordinary binary
+                // resolution, and Vampire spells subsumption resolution four
+                // ways. Rather than keep a list of spellings, every two-parent
+                // step is offered to `resolvent_witness`, and a step is
+                // resolution exactly when a witness is found. That is a check
+                // rather than a belief about what a prover calls things.
+                //
+                // A ONE-parent step whose conclusion is a variant of its
+                // parent is a re-statement: E emits several per proof
+                // (`fof_simplification`, `cn`). It carries no inference, so it
+                // is recorded as an alias rather than a line.
+                if parents.len() == 1
+                    && let Some(pc) = clauses.get(parents[0])
+                    && variant(pc, &cl).unwrap_or(false)
+                    && let Some(&pid) = ids.get(parents[0])
+                {
+                    ids.insert(n.name.clone(), pid);
+                    clauses.insert(n.name.clone(), cl.clone());
+                    continue;
+                }
+                if parents.len() != 2 {
+                    untranslated.push((n.name.clone(), inf.rule.clone()));
+                    continue;
+                }
+                let (Some(a), Some(b)) = (clauses.get(parents[0]), clauses.get(parents[1])) else {
+                    untranslated.push((n.name.clone(), format!("{} (a parent is untranslated)", inf.rule)));
+                    continue;
+                };
+                let (Some(&ia), Some(&ib)) = (ids.get(parents[0]), ids.get(parents[1])) else {
+                    untranslated.push((n.name.clone(), format!("{} (a parent has no id)", inf.rule)));
+                    continue;
+                };
+                let Some((ra, rb, i, j, s)) = resolvent_witness(a, b, &cl) else {
+                    untranslated.push((n.name.clone(), format!("{} (no resolvent witness)", inf.rule)));
+                    continue;
+                };
+                let id = next;
+                next += 1;
+                ids.insert(n.name.clone(), id);
+                clauses.insert(n.name.clone(), cl.clone());
+
+                let restc: Vec<Lit> =
+                    ra.lits.iter().enumerate().filter(|(k, _)| *k != i).map(|(_, l)| l.clone()).collect();
+                let restd: Vec<Lit> =
+                    rb.lits.iter().enumerate().filter(|(k, _)| *k != j).map(|(_, l)| l.clone()).collect();
+                let lc = render_lit(&ra.lits[i], &mut st);
+                let ld = render_lit(&rb.lits[j], &mut st);
+                let sc = render_subst(&s, "_a", &mut st);
+                let sd = render_subst(&s, "_b", &mut st);
+                let rc = restc.iter().map(|l| render_lit(l, &mut st)).collect::<Vec<_>>().join(" ");
+                let rd = restd.iter().map(|l| render_lit(l, &mut st)).collect::<Vec<_>>().join(" ");
+                let concl = render_clause(&cl, &mut st);
+                lines.push_str(&format!(
+                    "r\t{id}\t{concl}\t{ia}\t{lc}\t{sc}\t{rc}\t{ib}\t{ld}\t{sd}\t{rd}\n"
+                ));
+                translated += 1;
+                if cl.lits.is_empty() && !cl.tautology {
+                    reaches_false = true;
+                }
+            }
+            // `cnf(c_0_7, …, c_0_5).` A bare name in the source position is a
+            // re-statement that some printers use; E emits them freely. Same
+            // clause, same identifier, no inference.
+            Some(Source::Name(parent)) => {
+                if let (Some(&pid), Some(pc)) = (ids.get(parent), clauses.get(parent))
+                    && variant(pc, &cl).unwrap_or(false)
+                {
+                    ids.insert(n.name.clone(), pid);
+                    clauses.insert(n.name.clone(), cl.clone());
+                    continue;
+                }
+                untranslated.push((n.name.clone(), format!("restated from {parent}")));
+            }
+            _ => untranslated.push((n.name.clone(), "introduced".into())),
+        }
+    }
+    out.push_str(&lines);
+    Ok(FoCertificate { text: out, translated, untranslated, reaches_false })
+}
+
 /// The JSON one check reports, with the vocabulary written out beside the
 /// verdict, the way `fol_solve::outcome_json` does.
 pub fn report_json(r: &Report) -> serde_json::Value {
@@ -2258,10 +2568,22 @@ pub fn report_json(r: &Report) -> serde_json::Value {
         "steps_not_reconstructed": r.steps_not_reconstructed,
         "verdict": r.verdict,
         "verdict_means": verdict_means(r.verdict),
-        "checked_by": "src/tstp.rs, an UNVERIFIED Rust replayer. lean/ is not involved and no \
-                       theorem is cited. A refutation remains an ORACLE OPINION (decision \
-                       0005); what this adds is that the opinion is now about a derivation \
-                       somebody can read, over the problem this engine emitted",
+        "certificate": r.certificate,
+        "checked_by": if matches!(r.certificate, Some(CertificateOutcome::Certified { .. })) {
+            "lean/Fo via oo-fores, whose acceptance discharges Fo.unsat_of_check (axioms propext, \
+             Classical.choice, Quot.sound; no sorry). The replay in src/tstp.rs ran too and is \
+             reported above, but the verdict rests on the theorem and not on the replay. What is \
+             still Rust: the TSTP parser, the translation into the certificate, and the \
+             leaf-match that ties the certificate's clauses to the problem this engine emitted; \
+             a defect in any of them can fail to produce a certificate, never make an accepted \
+             one unsound"
+        } else {
+            "src/tstp.rs, an UNVERIFIED Rust replayer. lean/ is not involved and no \
+             theorem is cited. A refutation remains an ORACLE OPINION (decision \
+             0005); what this adds is that the opinion is now about a derivation \
+             somebody can read, over the problem this engine emitted. The `certificate` field \
+             says why no theorem was reached"
+        },
     })
 }
 
@@ -2371,8 +2693,20 @@ fn run_prover(prover: Prover, file: &Path, out: &Path, secs: u32) -> std::io::Re
 }
 
 /// One problem: write it, run the prover, check what comes back.
+/// How the problem reached the prover, which decides whether a certificate
+/// can even be attempted.
+#[derive(Clone, Debug)]
+pub enum ProblemForm {
+    /// `to_cnf` succeeded: clauses only, so the prover's derivation is
+    /// resolution end to end and can be translated.
+    Cnf,
+    /// `to_cnf` refused, naming the axiom; the prover got FOF and clausified.
+    Fof { why: String },
+}
+
 fn prove_one(
     problem_text: &str,
+    form: &ProblemForm,
     dir: &Path,
     stem: &str,
     opts: &ProveOptions,
@@ -2382,7 +2716,75 @@ fn prove_one(
     std::fs::write(&p, problem_text)?;
     let out = dir.join(format!("{stem}.tstp"));
     let text = run_prover(opts.prover, &p, &out, opts.timeout_secs)?;
-    Ok(check(problem_text, &text))
+    let mut r = check(problem_text, &text);
+    r.certificate = certify(&r, form, &text, dir, stem);
+    if matches!(r.certificate, Some(CertificateOutcome::Certified { .. })) {
+        r.verdict = "refutation_certified";
+    }
+    Ok(r)
+}
+
+fn find_fores() -> Option<PathBuf> {
+    // An explicit OO_FORES is an instruction. If it points nowhere the answer
+    // is "absent", not "fall back to whatever else is lying around": the same
+    // rule `shacl_verified::resolve_checker` applies, for the same reason. A
+    // test that sets it to a missing path is asking to see the absent branch.
+    if let Ok(p) = std::env::var("OO_FORES") {
+        let p = PathBuf::from(p);
+        return p.exists().then_some(p);
+    }
+    let built = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("lean/.lake/build/bin/oo-fores");
+    if built.exists() {
+        return Some(built);
+    }
+    std::env::split_paths(&std::env::var_os("PATH")?).map(|d| d.join("oo-fores")).find(|p| p.is_file())
+}
+
+/// Offer the derivation to `oo-fores`, and say exactly what happened.
+///
+/// Only when the replay found a well-founded refutation whose leaves are OUR
+/// formulas. A certificate over some other clause set would be a proof of
+/// something, and `leaves_match_problem` is what makes it a proof of the
+/// problem this engine emitted; that check is Rust, and the first addendum to
+/// decision 0005 says so.
+fn certify(r: &Report, form: &ProblemForm, proof_text: &str, dir: &Path, stem: &str) -> Option<CertificateOutcome> {
+    if !(r.root_is_false && r.leaves_match_problem && r.derivation_wellformed) {
+        return None;
+    }
+    if let ProblemForm::Fof { why } = form {
+        return Some(CertificateOutcome::OutsideClausalFragment { why: why.clone() });
+    }
+    let cert = match to_fo_certificate(proof_text) {
+        Ok(c) => c,
+        Err(e) => return Some(CertificateOutcome::CheckerRefused { exit: -1, output: e, certificate: String::new() }),
+    };
+    if !cert.untranslated.is_empty() {
+        return Some(CertificateOutcome::StepsUntranslated { untranslated: cert.untranslated, translated: cert.translated });
+    }
+    if !cert.reaches_false {
+        return Some(CertificateOutcome::DoesNotReachFalse { translated: cert.translated });
+    }
+    let path = dir.join(format!("{stem}.fo.cert"));
+    let _ = std::fs::write(&path, &cert.text);
+    let shown = path.display().to_string();
+    let Some(bin) = find_fores() else {
+        return Some(CertificateOutcome::CheckerAbsent { certificate: shown });
+    };
+    let mut cmd = Command::new(&bin);
+    cmd.arg(&path);
+    let run = match crate::verdict::CheckerRun::spawn(&crate::verdict::CheckerBinary::found_at(bin.clone()), cmd) {
+        Ok(run) => run,
+        Err(e) => return Some(CertificateOutcome::CheckerRefused { exit: -1, output: e.to_string(), certificate: shown }),
+    };
+    match run.accepted_naming(&["Fo.unsat_of_check"]) {
+        Some(tok) => Some(CertificateOutcome::Certified {
+            theorem: tok.theorem(),
+            checker: bin.display().to_string(),
+            steps: cert.translated,
+            certificate: shown,
+        }),
+        None => Some(CertificateOutcome::CheckerRefused { exit: run.exit(), output: run.output(), certificate: shown }),
+    }
 }
 
 /// Run the prover over the loaded ontology and, optionally, one problem per
@@ -2414,8 +2816,20 @@ pub fn prove_export(
     let read = crate::tptp::read_graph(triples);
     std::fs::create_dir_all(dir)?;
 
+    // CNF when the fragment allows it, FOF otherwise, and the report says
+    // which. A prover handed FOF clausifies before it resolves, and that
+    // derivation cannot be translated; handed clauses, it resolves from the
+    // first step and can be. Measured on one derived goal: FOF 18 steps, 13
+    // of them clausification, 0 translated; CNF 5 steps, 5 translated.
+    let render = |p: &crate::tptp::FolProblem| -> (String, ProblemForm) {
+        match p.to_cnf() {
+            Ok(t) => (t, ProblemForm::Cnf),
+            Err(e) => (p.to_tptp(), ProblemForm::Fof { why: e.to_string() }),
+        }
+    };
     let base = crate::tptp::FolProblem::build(&read.axioms, None)?;
-    let ontology = prove_one(&base.to_tptp(), &dir.join("ontology"), "ontology", opts)?;
+    let (btext, bform) = render(&base);
+    let ontology = prove_one(&btext, &bform, &dir.join("ontology"), "ontology", opts)?;
 
     let mut counts: BTreeMap<&'static str, usize> = BTreeMap::new();
     *counts.entry(ontology.verdict).or_default() += 1;
@@ -2449,8 +2863,10 @@ pub fn prove_export(
                 }
             };
             let gp = crate::tptp::FolProblem::build(&read.axioms, Some(&ax))?;
+            let (gtext, gform) = render(&gp);
             let rep = prove_one(
-                &gp.to_tptp(),
+                &gtext,
+                &gform,
                 &dir.join(format!("goal_{i:05}")),
                 &format!("goal_{i:05}"),
                 opts,
@@ -2465,6 +2881,7 @@ pub fn prove_export(
 
     let rejected = counts.get("derivation_rejected").copied().unwrap_or(0);
     let unreconstructed = counts.get("refutation_step_not_reconstructed").copied().unwrap_or(0);
+    let certified = counts.get("refutation_certified").copied().unwrap_or(0);
 
     Ok(serde_json::json!({
         "prover": opts.prover.name(),
@@ -2485,14 +2902,19 @@ pub fn prove_export(
                                 than what it was given; the second is either a defect in the \
                                 derivation or a gap in this checker and needs a human. The \
                                 command exits non-zero on either",
-        "not_certified": "NOTHING HERE IS CERTIFIED. A refutation is an ORACLE OPINION \
-                          (decision 0005) and stays one: the calculus's soundness is not \
-                          machine-checked anywhere in lean/, and this replayer is ordinary \
-                          Rust. What the check adds is that the opinion is now about a \
-                          derivation that was read, whose leaves are the formulas this engine \
-                          emitted, and some of whose steps were recomputed. The MODEL \
-                          direction is the one that can be certified; see decision 0006 and \
-                          onto_fol_model",
+        "problem_form": match &bform { ProblemForm::Cnf => "cnf", ProblemForm::Fof { .. } => "fof" },
+        "certified": certified,
+        "certified_means": if certified > 0 {
+            "this many refutations were CHECKED BY A THEOREM: translated into lean/Fo's \
+             certificate format and accepted by oo-fores (Fo.unsat_of_check). Every other \
+             refutation in this run is an oracle opinion and its `certificate` field says why"
+        } else {
+            "NOTHING HERE IS CERTIFIED. A refutation is an ORACLE OPINION (decision 0005) \
+             unless it was exported in the clausal fragment, every step translated, and \
+             oo-fores exited 0. None did; each report's `certificate` field says which of \
+             those failed. The MODEL direction is the other one that can be certified; see \
+             decision 0006 and onto_fol_model"
+        },
     })
     .to_string())
 }

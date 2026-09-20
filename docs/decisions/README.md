@@ -8,7 +8,7 @@ and whose benefit is not gets dropped the first time it is inconvenient.
 | [0001](0001-an-inference-is-not-an-assertion.md) | An inference is not an assertion | A materialised conclusion becoming the next run's premise, so the engine cites itself |
 | [0002](0002-an-inference-carries-a-certificate.md) | An inference carries a certificate, and the certificate has a proof | Trusting the engine's report of its own work |
 | [0003](0003-a-rule-is-data-and-an-assumption-is-not-a-fact.md) | A rule is data, and an assumption is not a fact | A user-supplied rule table earning the word reserved for the checked one |
-| [0005](0005-a-prover-is-an-oracle-and-a-translation-is-a-theorem.md) | A prover is an oracle, and a translation is a theorem | Reading a theorem prover's confident answer as evidence |
+| [0005](0005-a-prover-is-an-oracle-and-a-translation-is-a-theorem.md) | A prover is an oracle, and a translation is a theorem (amended 20 Sep 2026: certified on the clausal fragment) | Reading a theorem prover's confident answer as evidence |
 | [0006](0006-a-model-is-a-certificate-and-a-refutation-is-not.md) | A model is a certificate, and a refutation is not | Treating an exhausted bounded search as unsatisfiability |
 | [0007](0007-a-slice-preserves-a-conclusion-or-it-does-not.md) | A slice preserves a conclusion, or it does not | A retrieval slice quietly dropping the conclusion it was asked about |
 | [0008](0008-a-binding-is-data-and-evidence-admits-one-reading.md) | A binding is data, and evidence admits one reading | A certificate format admitting two readings, so two checkers disagree |

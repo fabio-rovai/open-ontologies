@@ -118,6 +118,9 @@ pub mod toolfilter;
 pub mod fol_model;
 pub mod fol_solve;
 pub mod tptp;
+/// Propositional refutation with the solver's proof CHECKED, which is what
+/// separates a certificate from two solvers agreeing.
+pub mod sat;
 /// Reading a prover's TSTP derivation and re-checking what can be re-checked.
 /// Decision 0005's addendum says exactly what this earns and what it does not.
 pub mod tstp;
