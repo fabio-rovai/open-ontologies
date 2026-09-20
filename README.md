@@ -47,19 +47,21 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/hqdm-audit.svg" alt="HQDM 0.0.1-alpha drawn as one connected graph of 490 terms. Twenty-three terms used as a class but never declared are drawn as hollow red rings; twelve rdfs:range declarations naming a relation are drawn as red edges converging on two hubs." width="100%">
+  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/hqdm-audit.svg" alt="HQDM as two shipped files side by side. Left, the RDFS rendering: 23 terms used as a class but never declared drawn as hollow red rings and 12 rdfs:range declarations naming a relation drawn as red edges. Right, the OWL rendering: 195 named classes this engine found satisfiable, 39 it could not decide drawn amber, and a red ring on the 39 of those that HermiT calls unsatisfiable." width="100%">
 </p>
 
 <p align="center">
-  <sub><b>The same machinery on someone else's file, and it is not clean.</b> HQDM as published by
-  <code>hqdmTop/hqdmFramework</code>, vendored byte for byte by MagmaCore, carries no
-  <code>owl:</code> term and no disjointness axiom, so <i>no named class can be unsatisfiable</i> and
-  a coherence check returns zero. It still has <b>23</b> terms used as a class and never declared,
-  <b>12</b> <code>rdfs:range</code> declarations naming a relation rather than a class, and
-  <b>13</b> pairs of names one trailing underscore apart, three of them identical in domain and
-  range. Nothing here was proved and the figure does not say it was; the counts are recomputed from
-  the rows by a test. Provenance and method in
-  <a href="docs/assets/hqdm/PROVENANCE.md"><code>docs/assets/hqdm/PROVENANCE.md</code></a>.</sub>
+  <sub><b>The same machinery on someone else's file, twice, because HQDM ships as two files.</b>
+  <code>hqdmTop/hqdmFramework</code> publishes an RDFS rendering, vendored byte for byte by MagmaCore, and
+  <code>gchq/HQDM</code> an OWL one, and they fail different checks. The RDFS file carries no
+  <code>owl:</code> term and no disjointness axiom, so <i>no named class in it can be unsatisfiable</i>; it has
+  <b>23</b> terms used as a class and never declared, <b>12</b> <code>rdfs:range</code> declarations naming a
+  relation rather than a class, and <b>13</b> pairs of names one trailing underscore apart, three of them
+  identical in domain and range. The OWL file passes all three checks and is not coherent: this engine's
+  tableaux finds <b>195</b> of its named classes satisfiable and cannot decide <b>39</b>, and HermiT, an opinion
+  in this repository's vocabulary, calls exactly those <b>39</b> unsatisfiable. Nothing here was proved and the
+  figure does not say it was; every count, including that intersection, is recomputed by a test. Provenance
+  and method in <a href="docs/assets/hqdm/PROVENANCE.md"><code>docs/assets/hqdm/PROVENANCE.md</code></a>.</sub>
 </p>
 
 ### One triple. Nothing added, nothing removed, blast radius zero. 901 consequences that were not there before.
