@@ -1,0 +1,18 @@
+{
+ "source": "open-ontologies batch: load benchmark/reference/ies-core.ttl; fol-prove --goals (one goal) --prover vampire",
+ "goal": [
+  "<http://purl.org/ies/core/v0/ont/Accent>",
+  "<http://www.w3.org/2000/01/rdf-schema#subClassOf>",
+  "<http://purl.org/ies/core/v0/ont/Characteristic>"
+ ],
+ "report": {
+  "kind": "individual",
+  "position": "subject",
+  "term": "http://purl.org/ies/core/v0/ont/Accent",
+  "verdict": "mu",
+  "verdict_means": "the question was returned UNASKED. It puts in class position a term this ontology never uses as a class: undeclared, or only ever an individual, or typed skos:Concept and never classified with. Neither `entailed` nor `refuted` applies to a question outside the file's language; a prover would still answer it, with a countermodel to a symbol nobody constrained, and that answer would be about nothing. What is refused is the presupposition, not the claim",
+  "why": "http://purl.org/ies/core/v0/ont/Accent appears in this ontology only as an INDIVIDUAL, in 2 assertion(s), typed http://www.w3.org/2004/02/skos/core#Concept, and never in class position. The question presupposes it is a class; the file never said so, and a prover would answer about a class symbol no axiom mentions"
+ },
+ "unasked": 1,
+ "unasked_means": "goals returned with the verdict `mu`: each puts in class position a term this ontology never uses as a class (undeclared, or only ever an individual, or typed skos:Concept and nothing more). No prover was asked, because its answer would have been about a symbol no axiom mentions and would have been filed as `not entailed` as if the file had said no. The report names the term, its position and what the file does call it"
+}
