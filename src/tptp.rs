@@ -4103,6 +4103,187 @@ pub fn read_graph(triples: Vec<(String, String, String)>) -> ReadOntology {
 /// A derived triple from `reason --certificate` is one of a handful of shapes.
 /// Anything else returns `None` and the caller must report it rather than
 /// quietly not asking the question.
+/// Every IRI an ontology uses in CLASS position: the atoms of every class
+/// expression in its axioms. What the file treats as a class, as opposed to
+/// what it declares one.
+pub fn class_positions(axioms: &[OwlAxiom]) -> BTreeSet<String> {
+    fn atoms(c: &Concept, out: &mut BTreeSet<String>) {
+        match c {
+            Concept::Atom(a) => {
+                out.insert(a.clone());
+            }
+            Concept::Inter(a, b) | Concept::Union(a, b) => {
+                atoms(a, out);
+                atoms(b, out);
+            }
+            Concept::Compl(a)
+            | Concept::Some_(_, a)
+            | Concept::All_(_, a)
+            | Concept::MinCard(_, _, a)
+            | Concept::MaxCard(_, _, a) => atoms(a, out),
+            Concept::Top
+            | Concept::Bot
+            | Concept::OneOf(_)
+            | Concept::HasVal(..)
+            | Concept::HasSelf(_)
+            | Concept::DataSome(..)
+            | Concept::DataAll(..) => {}
+        }
+    }
+    let mut out = BTreeSet::new();
+    for ax in axioms {
+        match ax {
+            OwlAxiom::SubClass(a, b) | OwlAxiom::EquivClass(a, b) | OwlAxiom::DisjointWith(a, b) => {
+                atoms(a, &mut out);
+                atoms(b, &mut out);
+            }
+            OwlAxiom::OPropDomain(_, c)
+            | OwlAxiom::OPropRange(_, c)
+            | OwlAxiom::DPropDomain(_, c)
+            | OwlAxiom::ClassAssert(c, _) => atoms(c, &mut out),
+            _ => {}
+        }
+    }
+    out
+}
+
+/// Every IRI an ontology uses as an INDIVIDUAL, with the number of assertions
+/// it stands in. A term here and not in [`class_positions`] is something the
+/// file talks about, never something it classifies with.
+pub fn individual_positions(axioms: &[OwlAxiom]) -> std::collections::BTreeMap<String, usize> {
+    let mut out = std::collections::BTreeMap::new();
+    let mut bump = |t: &String| *out.entry(t.clone()).or_insert(0) += 1;
+    for ax in axioms {
+        match ax {
+            OwlAxiom::ClassAssert(_, a) => bump(a),
+            OwlAxiom::OPropAssert(_, a, b) | OwlAxiom::SameAs(a, b) | OwlAxiom::DifferentFrom(a, b) => {
+                bump(a);
+                bump(b);
+            }
+            _ => {}
+        }
+    }
+    out
+}
+
+/// Subjects declared `owl:Class` or `rdfs:Class`, before the triples are
+/// consumed by [`read_graph`].
+pub fn declared_classes(triples: &[(String, String, String)]) -> BTreeSet<String> {
+    let (owl_class, rdfs_class) = (owl("Class"), "http://www.w3.org/2000/01/rdf-schema#Class");
+    triples
+        .iter()
+        .filter(|(_, p, o)| bare(p) == RDF_TYPE && (bare(o) == owl_class || bare(o) == rdfs_class))
+        .map(|(s, _, _)| bare(s).to_string())
+        .collect()
+}
+
+/// `rdf:type` objects per subject, so a refusal can say WHAT the file called
+/// the term instead of a class (a `skos:Concept`, most often).
+pub fn types_of(triples: &[(String, String, String)]) -> std::collections::BTreeMap<String, Vec<String>> {
+    let mut out: std::collections::BTreeMap<String, Vec<String>> = std::collections::BTreeMap::new();
+    for (s, p, o) in triples {
+        if bare(p) == RDF_TYPE && !is_literal(o) {
+            out.entry(bare(s).to_string()).or_default().push(bare(o).to_string());
+        }
+    }
+    out
+}
+
+/// A question returned unasked.
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct Unasked {
+    /// The term the question puts in class position.
+    pub term: String,
+    /// `subject` or `object`.
+    pub position: &'static str,
+    /// `undeclared` (the file never mentions it), `individual` (it appears
+    /// only in assertions about it), or `typed_not_a_class` (it has an
+    /// `rdf:type`, a `skos:Concept` say, and is never used as a class).
+    pub kind: &'static str,
+    pub why: String,
+}
+
+/// Zhaozhou's 無. A goal is refused UNASKED when it puts in class position a
+/// term the ontology never uses as a class. `triple_as_axiom` would accept it,
+/// `Concept::Atom` takes any IRI, and a prover would then answer about a symbol
+/// no axiom constrains: a countermodel to a question the file cannot be asked,
+/// reported as "not entailed" as if the file had said no. It said nothing.
+/// Neither `entailed` nor `refuted` applies; the presupposition is what fails.
+///
+/// The check is against USE, not declaration: an ontology that uses a class
+/// in `rdfs:subClassOf` without ever typing it `owl:Class` still means it as a
+/// class, and the HQDM audit shows how common that is. Declaration counts as
+/// use. `owl:Thing`, `owl:Nothing` and blank-node class expressions are never
+/// refused here; the translator handles them.
+pub fn unasked(
+    read: &ReadOntology,
+    declared: &BTreeSet<String>,
+    types: &std::collections::BTreeMap<String, Vec<String>>,
+    s: &str,
+    p: &str,
+    o: &str,
+) -> Option<Unasked> {
+    let (bs, bp, bo) = (bare(s), bare(p), bare(o));
+    let positions: Vec<(&str, &'static str)> = match bp {
+        RDFS_SUBCLASS => vec![(bs, "subject"), (bo, "object")],
+        RDF_TYPE | RDFS_DOMAIN => vec![(bo, "object")],
+        RDFS_RANGE if !read.data_properties.contains(bs) => vec![(bo, "object")],
+        _ if bp == owl("equivalentClass") || bp == owl("disjointWith") => {
+            vec![(bs, "subject"), (bo, "object")]
+        }
+        _ => return None,
+    };
+    let used = class_positions(&read.axioms);
+    let individuals = individual_positions(&read.axioms);
+    for (term, position) in positions {
+        if term.starts_with("_:")
+            || term == owl("Thing")
+            || term == owl("Nothing")
+            || term.starts_with(OWL)
+            || term.starts_with("http://www.w3.org/2000/01/rdf-schema#")
+            || is_literal(term)
+            || declared.contains(term)
+            || used.contains(term)
+        {
+            continue;
+        }
+        let typed = types.get(term).cloned().unwrap_or_default();
+        let typed_as = if typed.is_empty() {
+            String::new()
+        } else {
+            format!(", typed {}", typed.join(", "))
+        };
+        let (kind, why) = match individuals.get(term) {
+            Some(n) => (
+                "individual",
+                format!(
+                    "{term} appears in this ontology only as an INDIVIDUAL, in {n} assertion(s){typed_as}, \
+                     and never in class position. The question presupposes it is a class; the file never \
+                     said so, and a prover would answer about a class symbol no axiom mentions"
+                ),
+            ),
+            None if !typed.is_empty() => (
+                "typed_not_a_class",
+                format!(
+                    "{term} is typed {} and is never used as a class anywhere in this ontology. A \
+                     skos:Concept is not a class unless the file also says it is; asking whether it is a \
+                     subclass of anything is a question the file cannot be asked",
+                    typed.join(", ")
+                ),
+            ),
+            None => (
+                "undeclared",
+                format!(
+                    "{term} appears nowhere in this ontology, in any position. There is nothing to be \
+                     entailed and nothing to be refuted about a name the file has never used"
+                ),
+            ),
+        };
+        return Some(Unasked { term: term.to_string(), position, kind, why });
+    }
+    None
+}
+
 pub fn triple_as_axiom(
     read: &ReadOntology,
     s: &str,
