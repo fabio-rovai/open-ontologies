@@ -617,3 +617,71 @@ fn the_unasked_beat_comes_from_the_mu_run() {
     // And the question is never drawn as refuted: the two words stay apart.
     assert!(!s.contains("unasked, refused") && !s.contains("refuted · Accent"));
 }
+
+/// Two pieces of writing may not sit in the same place.
+///
+/// Every label and badge on the drawing is a rounded `#020617` rectangle with
+/// text over it, placed by a routine that tries a handful of candidate
+/// positions and takes the first clear one. One of them did not: the
+/// "disagreement · stops the line" badge took a single computed point, and
+/// that point landed on the `problem.tsv` label. Both are visible in the same
+/// instant, so the drawing showed two sentences through each other, and no
+/// test could see it because every number on the page was still correct.
+///
+/// The rule here is stronger than it has to be: NO two label boxes overlap,
+/// even two that are never lit at once. A badge that shares its pixels with
+/// another is a badge whose position was not chosen, and the cost of the
+/// stricter rule is a few pixels of layout freedom.
+#[test]
+fn no_two_labels_sit_on_top_of_each_other() {
+    let s = svg();
+    let mut boxes: Vec<(f64, f64, f64, f64)> = Vec::new();
+    let mut at = 0usize;
+    while let Some(i) = s[at..].find("<rect x=\"") {
+        let start = at + i;
+        let Some(end) = s[start..].find("/>") else { break };
+        let tag = &s[start..start + end + 2];
+        at = start + end + 2;
+        // Label chips and badges only: the legend panel and the colour swatches
+        // are neither rounded nor this colour.
+        if !tag.contains("fill=\"#020617\"") || !tag.contains("rx=\"") {
+            continue;
+        }
+        let num = |k: &str| -> Option<f64> {
+            let i = tag.find(&format!("{k}=\""))? + k.len() + 2;
+            tag[i..].split('"').next()?.parse().ok()
+        };
+        if let (Some(x), Some(y), Some(w), Some(h)) =
+            (num("x"), num("y"), num("width"), num("height"))
+        {
+            boxes.push((x, y, x + w, y + h));
+        }
+    }
+    assert!(
+        boxes.len() > 20,
+        "only {} label boxes were found, so this test is not looking at the labels and \
+         cannot fail",
+        boxes.len()
+    );
+    let mut clashes = Vec::new();
+    for (i, a) in boxes.iter().enumerate() {
+        for b in &boxes[i + 1..] {
+            let ix = a.2.min(b.2) - a.0.max(b.0);
+            let iy = a.3.min(b.3) - a.1.max(b.1);
+            if ix > 0.5 && iy > 0.5 {
+                clashes.push(format!(
+                    "  {:?} and {:?} share {ix:.0}x{iy:.0} pixels",
+                    a, b
+                ));
+            }
+        }
+    }
+    assert!(
+        clashes.is_empty(),
+        "{} pair(s) of labels overlap, so the drawing prints two sentences through each \
+         other:\n{}\n\nEvery badge is placed by trying candidate positions against \
+         `placed`; one that overlaps is one that was placed blind.",
+        clashes.len(),
+        clashes.join("\n")
+    );
+}
