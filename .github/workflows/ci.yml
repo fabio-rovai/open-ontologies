@@ -360,16 +360,19 @@ jobs:
       #
       # Two more things, learned from the first attempt, which built from
       # source and STILL crashed on import. hnswlib's setup.py compiles with
-      # `-march=native` unless HNSWLIB_NO_NATIVE is set, so a build cached by
-      # uv from one runner and reused on another carries the wrong
-      # instructions; the env var drops the flag, and --reinstall-package
-      # refuses the cache for this one package so the build is this
-      # machine's.
+      # `-march=native` unless HNSWLIB_NO_NATIVE is set, and setup-uv caches
+      # BUILT WHEELS across runners, keyed by requirements files and never by
+      # CPU, so a native build from one machine is handed to the next. The
+      # env var drops the flag. `--no-cache` is what forces the compile:
+      # measured locally, `--reinstall-package` and `--refresh-package` both
+      # still "Prepared 1 package in 0.39ms" from the wheel cache, while
+      # `--no-cache` logs "Building hnswlib" and the resulting compiler lines
+      # contain -march=native 0 times with the env var and 4 without.
       - name: Install with the extras the tests need
         working-directory: python
         env:
           HNSWLIB_NO_NATIVE: "1"
-        run: uv pip install --system --no-binary hnswlib --reinstall-package hnswlib -e ".[dev,shacl,align]"
+        run: uv pip install --system --no-cache --no-binary hnswlib -e ".[dev,shacl,align]"
       - name: Test
         working-directory: python
         run: python -m pytest -q
