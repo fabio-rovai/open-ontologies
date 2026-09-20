@@ -30,6 +30,10 @@
 </p>
 
 <p align="center">
+  <a href="https://open-ontologies-try.vercel.app/?sample=epc-sample.csv&auto=1"><strong>Try it in the browser</strong></a>: drop one spreadsheet, get one ontology with the evidence for every line, then break a cell and watch the shape catch it. The page runs the pinned release binary; nothing is reimplemented.
+</p>
+
+<p align="center">
   <a href="https://tesseractsemantics.com"><b>Building this into a platform &rarr; tesseractsemantics.com</b></a><br>
   <sub>The engine is MIT and stays that way. The platform is the hosted, governed version of it.</sub>
 </p>

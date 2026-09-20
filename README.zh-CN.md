@@ -23,6 +23,10 @@
   <a href="README.md">English</a> · <strong>简体中文</strong>
 </p>
 
+<p align="center">
+  <a href="https://open-ontologies-try.vercel.app/?sample=epc-sample.csv&auto=1"><strong>在浏览器里试一试</strong></a>：拖入一张表格，得到一个本体以及每一行的证据，再改坏一个单元格，看形状把它抓出来。页面运行的是固定版本的发布二进制，没有任何重新实现。
+</p>
+
 ---
 
 > 本文是英文 [README.md](README.md) 的中文版。英文版为准：当两者出现差异时，请以英文版为最新内容。
