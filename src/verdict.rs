@@ -498,24 +498,31 @@ mod tests {
     /// meant the mint could not be tested against the thing it now reads: the
     /// theorem the binary NAMED. `None` is the checker that prints nothing.
     fn shell_saying(code: i32, theorem: Option<&str>) -> (CheckerBinary, Command) {
-        let say = match theorem {
-            Some(t) => format!("echo '{{\"ok\":true,\"theorem\":\"{t}\"}}'; "),
-            None => String::new(),
-        };
         #[cfg(unix)]
         {
+            let say = match theorem {
+                Some(t) => format!("echo '{{\"ok\":true,\"theorem\":\"{t}\"}}'; "),
+                None => String::new(),
+            };
             let mut c = Command::new("/bin/sh");
             c.arg("-c").arg(format!("{say}exit {code}"));
             (CheckerBinary::found_at(PathBuf::from("/bin/sh")), c)
         }
         #[cfg(windows)]
         {
-            let mut c = Command::new("cmd");
+            // `arg` quotes for a C-runtime parser, turning every `"` into `\"`.
+            // cmd.exe has no such parser: it echoed the backslashes and the
+            // line was not JSON, so `named_theorem` saw nothing and all three
+            // minting tests failed on windows-latest. `raw_arg` hands cmd the
+            // line verbatim. The `&` follows the brace with no space so the
+            // echoed line carries no trailing blank either.
+            use std::os::windows::process::CommandExt;
             let say = match theorem {
-                Some(t) => format!("echo {{\"ok\":true,\"theorem\":\"{t}\"}} & "),
+                Some(t) => format!("echo {{\"ok\":true,\"theorem\":\"{t}\"}}& "),
                 None => String::new(),
             };
-            c.arg("/C").arg(format!("{say}exit {code}"));
+            let mut c = Command::new("cmd");
+            c.raw_arg(format!("/C {say}exit {code}"));
             (CheckerBinary::found_at(PathBuf::from("cmd")), c)
         }
     }

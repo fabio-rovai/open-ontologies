@@ -109,9 +109,13 @@ fn shell_naming(theorem: &str) -> (CheckerBinary, std::process::Command) {
     }
     #[cfg(windows)]
     {
+        // `raw_arg`, not `arg`: `arg` escapes the quotes for a C-runtime
+        // parser and cmd.exe has none, so it echoed the backslashes and the
+        // line was not JSON. Same defect, same fix as `shell_saying` in
+        // `src/verdict.rs`.
+        use std::os::windows::process::CommandExt;
         let mut c = std::process::Command::new("cmd");
-        c.arg("/C")
-            .arg(format!("echo {{\"ok\":true,\"theorem\":\"{theorem}\"}}"));
+        c.raw_arg(format!("/C echo {{\"ok\":true,\"theorem\":\"{theorem}\"}}"));
         (CheckerBinary::found_at(PathBuf::from("cmd")), c)
     }
 }
