@@ -357,9 +357,19 @@ jobs:
       # Python at all. Seen twice on 19 September 2026, on #211 (a docs-only
       # change) and #219. Building it here compiles for the CPU the job is
       # actually running on.
+      #
+      # Two more things, learned from the first attempt, which built from
+      # source and STILL crashed on import. hnswlib's setup.py compiles with
+      # `-march=native` unless HNSWLIB_NO_NATIVE is set, so a build cached by
+      # uv from one runner and reused on another carries the wrong
+      # instructions; the env var drops the flag, and --reinstall-package
+      # refuses the cache for this one package so the build is this
+      # machine's.
       - name: Install with the extras the tests need
         working-directory: python
-        run: uv pip install --system --no-binary hnswlib -e ".[dev,shacl,align]"
+        env:
+          HNSWLIB_NO_NATIVE: "1"
+        run: uv pip install --system --no-binary hnswlib --reinstall-package hnswlib -e ".[dev,shacl,align]"
       - name: Test
         working-directory: python
         run: python -m pytest -q

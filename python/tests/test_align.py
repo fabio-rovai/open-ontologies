@@ -8,6 +8,23 @@ import sys
 import pytest
 
 
+def _first_import_that_dies() -> str | None:
+    """Import numpy, then hnswlib, each in its own SUBPROCESS, and name the
+    first one that kills the interpreter.
+
+    Two, not one, because hnswlib imports numpy: a probe that imports only
+    hnswlib blames hnswlib for a numpy crash, and the fix for each is
+    different. numpy dispatches on the CPU at run time and should not do
+    this; hnswlib compiles with -march=native and does it whenever the wheel
+    was built on a newer CPU than the one running it.
+    """
+    for module in ("numpy", "hnswlib"):
+        r = subprocess.run([sys.executable, "-c", f"import {module}"], capture_output=True)
+        if r.returncode != 0:
+            return f"{module} (exit {r.returncode}{', SIGILL' if r.returncode in (-4, 132) else ''})"
+    return None
+
+
 def _import_survives_in_a_subprocess() -> bool:
     """Import `hnswlib` in a SUBPROCESS before importing it here.
 
@@ -27,11 +44,12 @@ def _import_survives_in_a_subprocess() -> bool:
     ).returncode == 0
 
 
-if not _import_survives_in_a_subprocess():
+_DEAD = _first_import_that_dies()
+if _DEAD is not None:
     pytest.fail(
-        "hnswlib is installed but crashes the interpreter on import, which is "
-        "a wheel built for a CPU this machine does not have. Install it from "
-        "source: pip install --no-binary hnswlib hnswlib",
+        f"{_DEAD} crashes the interpreter on import: a wheel built for a CPU this "
+        "machine does not have. For hnswlib, build it here without -march=native: "
+        "HNSWLIB_NO_NATIVE=1 pip install --no-binary hnswlib --force-reinstall hnswlib",
         pytrace=False,
     )
 
