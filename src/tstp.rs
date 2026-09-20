@@ -2410,16 +2410,14 @@ pub fn to_fo_certificate(proof_text: &str) -> Result<FoCertificate, String> {
                 // parent is a re-statement: E emits several per proof
                 // (`fof_simplification`, `cn`). It carries no inference, so it
                 // is recorded as an alias rather than a line.
-                if parents.len() == 1 {
-                    if let Some(pc) = clauses.get(parents[0]) {
-                        if variant(pc, &cl).unwrap_or(false) {
-                            if let Some(&pid) = ids.get(parents[0]) {
-                                ids.insert(n.name.clone(), pid);
-                                clauses.insert(n.name.clone(), cl.clone());
-                                continue;
-                            }
-                        }
-                    }
+                if parents.len() == 1
+                    && let Some(pc) = clauses.get(parents[0])
+                    && variant(pc, &cl).unwrap_or(false)
+                    && let Some(&pid) = ids.get(parents[0])
+                {
+                    ids.insert(n.name.clone(), pid);
+                    clauses.insert(n.name.clone(), cl.clone());
+                    continue;
                 }
                 if parents.len() != 2 {
                     untranslated.push((n.name.clone(), inf.rule.clone()));
@@ -2465,12 +2463,12 @@ pub fn to_fo_certificate(proof_text: &str) -> Result<FoCertificate, String> {
             // re-statement that some printers use; E emits them freely. Same
             // clause, same identifier, no inference.
             Some(Source::Name(parent)) => {
-                if let (Some(&pid), Some(pc)) = (ids.get(parent), clauses.get(parent)) {
-                    if variant(pc, &cl).unwrap_or(false) {
-                        ids.insert(n.name.clone(), pid);
-                        clauses.insert(n.name.clone(), cl.clone());
-                        continue;
-                    }
+                if let (Some(&pid), Some(pc)) = (ids.get(parent), clauses.get(parent))
+                    && variant(pc, &cl).unwrap_or(false)
+                {
+                    ids.insert(n.name.clone(), pid);
+                    clauses.insert(n.name.clone(), cl.clone());
+                    continue;
                 }
                 untranslated.push((n.name.clone(), format!("restated from {parent}")));
             }
