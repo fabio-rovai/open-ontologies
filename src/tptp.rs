@@ -992,6 +992,73 @@ impl FolProblem {
         s
     }
 
+    /// The one Skolem constant this renderer introduces.
+    ///
+    /// `background_2` is `∃X. thing(X)`, the non-empty-domain axiom, and it is
+    /// a CLOSED existential, so a single constant witnesses it. Every other
+    /// formula is relativised to `thing`, so the axiom cannot simply be
+    /// dropped: an empty `thing` would satisfy the rest vacuously. It is the
+    /// same constant in every export, it is named so that it reads as what it
+    /// is, and it is the ONLY Skolemisation in this file.
+    pub const DOMAIN_WITNESS: &'static str = "$domain_witness";
+
+    /// TPTP CNF, for the clausal fragment only.
+    ///
+    /// Refuses, naming the axioms, when any formula needs a Skolem function.
+    /// That is `someValuesFrom` in superclass position, which OWL 2 RL forbids
+    /// and OWL DL permits; measured over three real exports it was 0 of 1,423
+    /// formulas in an RL ontology and 126 of 426 in a DL one. Clausifying
+    /// those would need a Skolemisation theorem nobody has proved here, so
+    /// the FOF path stays the right one for them and this one says so.
+    ///
+    /// The conjecture is negated ONCE and emitted as `negated_conjecture`,
+    /// the way `checker_entries` negates it for the model direction.
+    pub fn to_cnf(&self) -> anyhow::Result<String> {
+        let witness = Term::Const(Self::DOMAIN_WITNESS.to_string());
+        let mut named: Vec<(String, String, Form)> = Vec::new();
+        for (name, role, f) in self.formulas() {
+            // `background_2` gets a readable witness name; every other closed
+            // existential, which in practice means the negated goal, gets a
+            // constant named after its formula by `skolem_constants`.
+            let f = match (name.as_str(), f) {
+                ("background_2", Form::Ex(n, body)) => subst_var(*n, &witness, body),
+                _ => f.clone(),
+            };
+            let (role, f) = if role == "conjecture" {
+                ("negated_conjecture".to_string(), Form::neg(f))
+            } else {
+                (role.to_string(), f)
+            };
+            named.push((name, role, f));
+        }
+        let plain: Vec<(String, Form)> = named.iter().map(|(n, _, f)| (n.clone(), f.clone())).collect();
+        if let Fragment::NeedsSkolem(axioms) = fragment(&plain) {
+            anyhow::bail!(
+                "this ontology is outside the clausal fragment: {} of its {} formulas need a \
+                 Skolem FUNCTION ({}{}), an existential under a universal. That is what \
+                 `someValuesFrom` in superclass position exports as, and OWL 2 RL forbids it. \
+                 A closed existential (the domain axiom, a negated universal goal) needs only a \
+                 constant and is handled; this needs a function of the bound variable, and \
+                 nothing here proves that Skolemisation. Export as `tptp` instead; a prover's \
+                 refutation of it is an oracle opinion, and `cnf` will not pretend otherwise.",
+                axioms.len(),
+                named.len(),
+                axioms.iter().take(3).cloned().collect::<Vec<_>>().join(", "),
+                if axioms.len() > 3 { ", …" } else { "" }
+            );
+        }
+        let mut s = String::new();
+        s.push_str(&header("%", self.conjecture.is_some(), TPTP_STYLE));
+        s.push_str("% CNF. Every formula is a clause, so a prover's refutation of this file is\n");
+        s.push_str("% resolution end to end and can be checked by oo-fores (Fo.unsat_of_check).\n");
+        s.push_str(&format!(
+            "% One Skolem constant, '{}', witnesses the non-empty domain (background_2).\n",
+            sym::constant(Self::DOMAIN_WITNESS)
+        ));
+        s.push_str(&cnf_records(&named).expect("fragment() said every formula is clausal"));
+        Ok(s)
+    }
+
     /// ISO/IEC 24707 CLIF, restricted to the first-order-equivalent fragment.
     ///
     /// Everything in the file is CLIF: there are no lexical comments, because
@@ -1514,6 +1581,225 @@ pub mod fof {
             Form::Ex(n, g) => format!("? [X{n}] : {}", unit(g)),
         }
     }
+}
+
+// ── The clausal fragment, and CNF for it ────────────────────────────────────
+//
+// Decision 0005 says a superposition refutation cannot be certified because it
+// needs a verified first-order calculus with unification. `lean/Fo` now has the
+// resolution half of one, and `tstp::to_fo_certificate` feeds it a prover's
+// derivation. The gap that remained was CLAUSIFICATION: a prover handed `fof`
+// clausifies before it resolves, and clausification is not resolution, so the
+// translation reached nothing. Measured on real exports, a FOF problem
+// translated 0 of 8 steps and the same problem as CNF translated 2 of 2.
+//
+// The fix is not to clausify better. It is to NOT MAKE THE PROVER DO IT, and
+// the measurement says when that is free.
+//
+// ## What needs a Skolem function, and what does not
+//
+// Measured over three exported ontologies, 1,905 formulas:
+//
+//   * `? [X0] : thing(X0)` — the non-empty-domain axiom. Exactly one per
+//     export, always the same formula, never derived from an ontology axiom.
+//   * `someValuesFrom` in SUPERCLASS position, `A ⊑ ∃r.B`. 126 in an OWL DL
+//     ontology, ZERO in both OWL 2 RL ones.
+//   * Everything else — 1,422 of 1,423 in one of them — has no existential at
+//     all, so there is nothing to Skolemise.
+//
+// That zero is not luck. **OWL 2 RL forbids an existential restriction in
+// superclass position**, because it is not clausal. So for the profile this
+// engine's certificate layer already covers, clausification is NNF plus
+// distribution: a truth-preserving EQUIVALENCE, needing no Skolemisation
+// theorem and no argument about choice over models.
+//
+// So the exporter asks which fragment it is in and says so, rather than
+// promising CNF it cannot always give.
+
+/// Which fragment an axiom set falls in, and therefore whether a refutation
+/// over it can be certified end to end.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Fragment {
+    /// No existential survives negation-normalisation, so the axioms are
+    /// clauses after distribution and no Skolem function is needed.
+    Clausal,
+    /// At least one axiom needs a Skolem function. Named, because a reader is
+    /// entitled to know WHICH axiom cost them the certificate.
+    NeedsSkolem(Vec<String>),
+}
+
+/// Push negations inward. The result uses `Neg` only on atoms, and `Imp` not
+/// at all.
+fn nnf(f: &Form) -> Form {
+    match f {
+        Form::App1(..) | Form::App2(..) | Form::Eq(..) | Form::Tru | Form::Fls => f.clone(),
+        Form::And(a, b) => Form::and(nnf(a), nnf(b)),
+        Form::Or(a, b) => Form::or(nnf(a), nnf(b)),
+        Form::Imp(a, b) => Form::or(nnf_neg(a), nnf(b)),
+        Form::All(n, g) => Form::All(*n, Box::new(nnf(g))),
+        Form::Ex(n, g) => Form::Ex(*n, Box::new(nnf(g))),
+        Form::Neg(g) => nnf_neg(g),
+    }
+}
+
+/// The negation of `f`, in negation normal form.
+fn nnf_neg(f: &Form) -> Form {
+    match f {
+        Form::App1(..) | Form::App2(..) | Form::Eq(..) => Form::neg(f.clone()),
+        Form::Tru => Form::Fls,
+        Form::Fls => Form::Tru,
+        Form::Neg(g) => nnf(g),
+        Form::And(a, b) => Form::or(nnf_neg(a), nnf_neg(b)),
+        Form::Or(a, b) => Form::and(nnf_neg(a), nnf_neg(b)),
+        // ¬(a ⇒ b) is a ∧ ¬b.
+        Form::Imp(a, b) => Form::and(nnf(a), nnf_neg(b)),
+        Form::All(n, g) => Form::Ex(*n, Box::new(nnf_neg(g))),
+        Form::Ex(n, g) => Form::All(*n, Box::new(nnf_neg(g))),
+    }
+}
+
+fn has_ex(f: &Form) -> bool {
+    match f {
+        Form::Ex(..) => true,
+        Form::App1(..) | Form::App2(..) | Form::Eq(..) | Form::Tru | Form::Fls => false,
+        Form::Neg(g) | Form::All(_, g) => has_ex(g),
+        Form::And(a, b) | Form::Or(a, b) | Form::Imp(a, b) => has_ex(a) || has_ex(b),
+    }
+}
+
+/// A literal of a clause, kept as a `Form` that is an atom or a negated atom.
+type CnfLit = Form;
+
+/// Distribute `∨` over `∧` on a quantifier-free NNF matrix.
+///
+/// Returns one `Vec<CnfLit>` per clause. `$true` makes a clause a tautology and
+/// the clause is dropped; `$false` is dropped from a clause, and a clause with
+/// nothing left is the EMPTY clause, which is kept because it means something.
+fn distribute(f: &Form) -> Vec<Vec<CnfLit>> {
+    match f {
+        Form::And(a, b) => {
+            let mut out = distribute(a);
+            out.extend(distribute(b));
+            out
+        }
+        Form::Or(a, b) => {
+            let (l, r) = (distribute(a), distribute(b));
+            let mut out = Vec::with_capacity(l.len() * r.len());
+            for x in &l {
+                for y in &r {
+                    let mut c = x.clone();
+                    c.extend(y.iter().cloned());
+                    out.push(c);
+                }
+            }
+            out
+        }
+        Form::All(_, g) => distribute(g),
+        Form::Fls => vec![vec![]],
+        Form::Tru => vec![vec![Form::Tru]],
+        atom => vec![vec![atom.clone()]],
+    }
+}
+
+/// Is this clause a tautology, by carrying `$true` or a complementary pair?
+fn tautological(c: &[CnfLit]) -> bool {
+    if c.iter().any(|l| matches!(l, Form::Tru)) {
+        return true;
+    }
+    for l in c {
+        if let Form::Neg(inner) = l
+            && c.iter().any(|m| m == inner.as_ref())
+        {
+            return true;
+        }
+    }
+    false
+}
+
+/// Strip a CLOSED existential prefix, one fresh constant per variable.
+///
+/// This is the whole of the Skolemisation this file performs, and the line it
+/// draws is the line between a Skolem CONSTANT and a Skolem FUNCTION. An
+/// existential at the top of a closed formula depends on nothing, so a fresh
+/// constant witnesses it, and the argument is one sentence: any model of
+/// `∃X. φ` interprets the constant as the witness. An existential UNDER a
+/// universal depends on that universal's variable and needs a function of it,
+/// and that argument is the one nobody has proved here, so it is refused.
+///
+/// Two things in an export are closed existentials: `background_2`, which is
+/// `∃X. thing(X)`, and every NEGATED universal conjecture, because
+/// `¬∀X.(A ⇒ B)` is `∃X.(A ∧ ¬B)`. Measured on a real refutation, Vampire's own
+/// proof of the FOF form carried exactly one `skolemize` step, and it was this.
+fn skolem_constants(name: &str, f: Form) -> Form {
+    let mut f = f;
+    loop {
+        match f {
+            Form::Ex(n, body) => {
+                let c = Term::Const(format!("$sk_{name}_X{n}"));
+                f = subst_var(n, &c, &body);
+            }
+            other => return other,
+        }
+    }
+}
+
+/// Turn one formula into clauses, or say it needs a Skolem function.
+///
+/// No Skolemisation at all here: this is the pure question "is it already
+/// clausal". `clauses_of_closed` is the one that introduces constants.
+pub fn clauses_of(f: &Form) -> Option<Vec<Vec<Form>>> {
+    let n = nnf(f);
+    if has_ex(&n) {
+        return None;
+    }
+    let mut out: Vec<Vec<Form>> = Vec::new();
+    for mut c in distribute(&n) {
+        if tautological(&c) {
+            continue;
+        }
+        c.retain(|l| !matches!(l, Form::Fls));
+        c.dedup();
+        out.push(c);
+    }
+    Some(out)
+}
+
+/// Clauses of a closed formula, introducing constants for a leading
+/// existential prefix and refusing only an existential that survives under a
+/// universal.
+pub fn clauses_of_closed(name: &str, f: &Form) -> Option<Vec<Vec<Form>>> {
+    clauses_of(&skolem_constants(name, nnf(f)))
+}
+
+/// Which fragment a whole problem is in.
+pub fn fragment(named: &[(String, Form)]) -> Fragment {
+    let bad: Vec<String> = named
+        .iter()
+        .filter(|(n, f)| clauses_of_closed(n, f).is_none())
+        .map(|(n, _)| n.clone())
+        .collect();
+    if bad.is_empty() { Fragment::Clausal } else { Fragment::NeedsSkolem(bad) }
+}
+
+/// Render clauses as TPTP `cnf(...)` records.
+///
+/// Every clause is separately universally quantified, which is what `cnf` means,
+/// so the quantifier prefix is dropped rather than rewritten.
+pub fn cnf_records(named: &[(String, String, Form)]) -> Option<String> {
+    let mut s = String::new();
+    for (name, role, f) in named {
+        let cs = clauses_of_closed(name, f)?;
+        for (i, c) in cs.iter().enumerate() {
+            let body = if c.is_empty() {
+                "$false".to_string()
+            } else {
+                c.iter().map(fof::form).collect::<Vec<_>>().join(" | ")
+            };
+            let nm = if cs.len() == 1 { name.clone() } else { format!("{name}_{i}") };
+            s.push_str(&format!("cnf({nm}, {role}, ({body})).\n"));
+        }
+    }
+    Some(s)
 }
 
 // ── Serialiser 2: ISO/IEC 24707 CLIF ────────────────────────────────────────
@@ -3991,6 +4277,13 @@ pub enum Syntax {
     Smtlib(smtlib::SmtEncoding),
     /// LADR, for Mace4. Mangled symbols, the table beside the file.
     Ladr,
+    /// TPTP CNF: the same theory as `Tptp`, already in clauses, so a prover
+    /// never clausifies and its refutation is resolution end to end, which is
+    /// what `tstp::to_fo_certificate` and `oo-fores` can check. Available ONLY
+    /// in the clausal fragment; an ontology with a superclass existential is
+    /// refused by name rather than clausified by a Skolemisation nobody
+    /// proved.
+    Cnf,
 }
 
 impl Syntax {
@@ -4005,6 +4298,7 @@ impl Syntax {
     ) -> anyhow::Result<Syntax> {
         match s.to_ascii_lowercase().as_str() {
             "tptp" | "fof" | "tptp-fof" => Ok(Syntax::Tptp),
+            "cnf" | "tptp-cnf" => Ok(Syntax::Cnf),
             "clif" | "cl" | "common-logic" => Ok(Syntax::Clif(
                 ClifDialect::parse(dialect.unwrap_or("iso"))?,
                 ClifComments::parse(comments.unwrap_or("standalone"))?,
@@ -4020,14 +4314,15 @@ impl Syntax {
             })),
             "ladr" | "mace4" | "prover9" => Ok(Syntax::Ladr),
             other => anyhow::bail!(
-                "unknown first-order syntax {other:?}; expected `tptp`, `clif`, `cgif`, \
-                 `smtlib` or `ladr`"
+                "unknown first-order syntax {other:?}; expected `tptp`, `cnf`, `clif`, \
+                 `cgif`, `smtlib` or `ladr`"
             ),
         }
     }
     pub fn extension(self) -> &'static str {
         match self {
             Syntax::Tptp => "p",
+            Syntax::Cnf => "p",
             Syntax::Clif(..) => "clif",
             Syntax::Cgif => "cgif",
             Syntax::Smtlib(_) => "smt2",
@@ -4037,6 +4332,7 @@ impl Syntax {
     pub fn name(self) -> &'static str {
         match self {
             Syntax::Tptp => "tptp",
+            Syntax::Cnf => "cnf",
             Syntax::Clif(..) => "clif",
             Syntax::Cgif => "cgif",
             Syntax::Smtlib(_) => "smtlib",
@@ -4066,6 +4362,7 @@ impl Syntax {
     fn render(self, problem: &FolProblem, name: &str) -> anyhow::Result<String> {
         Ok(match self {
             Syntax::Tptp => problem.to_tptp(),
+            Syntax::Cnf => problem.to_cnf()?,
             Syntax::Clif(d, c) => problem.to_clif(d, c, name),
             Syntax::Cgif => problem.to_cgif(name)?,
             Syntax::Smtlib(e) => problem.to_smtlib(e)?,
