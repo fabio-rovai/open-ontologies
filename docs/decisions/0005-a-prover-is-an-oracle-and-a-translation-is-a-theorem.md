@@ -6,6 +6,11 @@
   `OwlLean/Translation.lean` in the sibling `owl-lean` project, whose `OwlLean.adequacy` is
   machine-checked with axioms `propext`, `Classical.choice`, `Quot.sound` · **the Rust-to-Lean
   correspondence is pinned by tests and is NOT proved**
+- **Amended**: 2026-09-20 · the resolution half of the missing calculus now exists in core Lean
+  (`lean/Fo`, `Fo.unsat_of_check`), a prover's derivation is translated into it
+  (`tstp::to_fo_certificate`), and `fol --format cnf` keeps the prover from clausifying, so on
+  the clausal fragment a refutation is CHECKED BY A THEOREM. Outside that fragment, and for
+  equality, everything below still holds. See the second addendum.
 - **Written**: 2026-09-14
 - **Related**: decision 0002 (an inference carries a certificate), which this decision is the
   boundary of; `tools/shacl_differential.py`, whose treatment of pyshacl this copies exactly
@@ -369,3 +374,132 @@ is visible rather than absorbed.
 - **The variant check is backtracking with a budget.** A clause larger than the budget is reported
   as unchecked with that reason, which is honest and is also a place a forger could aim at. The
   budget is 200,000 pairings and no real step has come near it.
+
+## Addendum, 20 September 2026 · The resolution half is a theorem, and the clausal fragment is certified end to end
+
+The problem statement above says a superposition refutation cannot be certified because checking
+one "needs a verified first-order calculus with unification, which does not exist in core Lean."
+Half of that sentence was avoidable, and avoiding it is what changed.
+
+### What was avoidable
+
+A checker does not need an algorithm that FINDS a most general unifier. It needs to confirm that
+a substitution it was HANDED makes two literals complementary, and that is an equality on terms.
+The prover searches; the certificate carries the substitution it used; the checker applies it and
+compares. Resolving on a unifier that is not most general is still sound, it merely proves less,
+and proving less is the prover's problem. So there is no `mgu` in `lean/Fo` and no theorem about
+one.
+
+`Fo.unsat_of_check`: a refutation the checker accepts is a proof that the clause set it was handed
+has no model, over any carrier, finite or infinite. Axioms `propext`, `Classical.choice`,
+`Quot.sound`; no `sorry`; core Lean, no Mathlib, like everything else in `lean/`. Three choices in
+it are load-bearing. Two substitutions per step, one per parent, which removes standardising apart
+entirely. Covering rather than deletion for the remainder, because soundness needs no more and
+exact deletion put list arithmetic in every proof. And a domain element carried in the structure,
+because over an EMPTY carrier there are no environments, the empty clause is vacuously satisfied,
+and every refutation would prove nothing.
+
+`oo-fores REFUTATION.cert` exits 0, 1, 2 on the usual convention and exit 1 names no theorem.
+`Fo/Demo.lean` runs the textbook refutation of `∀x. P(x) → Q(x)`, `P(a)`, `¬Q(a)`, the smallest one
+that actually needs unification, six forgeries that each fail for a different reason, and
+`no_refutation_of_a_satisfiable_set`, a theorem over EVERY refutation rather than an example.
+
+### A real prover's derivation is now checked by it
+
+`tstp::to_fo_certificate` turns the part of a TSTP derivation that IS resolution into that
+certificate. The rule NAME is a hint and the witness is the check: E calls every inference `spm`,
+including ones that are plain binary resolution, and a translator keyed on names translated
+nothing from E; every two-parent step is offered to the resolvent witness instead, and a step is
+resolution exactly when a witness exists. What does not translate is named with its rule and
+counted, never skipped, and a certificate that does not reach the empty clause is refused.
+
+Measured, the day it was written, with Vampire 5.1.0 and E 3.2.5:
+
+| input | translated | `oo-fores` |
+|---|---|---|
+| Vampire, pure CNF, modus ponens | 2 of 2 | exit 0 |
+| Vampire, pure CNF, four-link chain | 4 of 4 | exit 0 |
+| Vampire, the same content as FOF | 0 of 8 (3 `cnf_transformation`, `ennf_transformation`, `flattening`, `negated_conjecture`) | refused |
+| Vampire, with equality | 0 of 2 (`definition_unfolding`) | refused |
+| E, pure CNF, four-link chain | 2 of 3 | refused |
+
+E's last step is `cn(rw(spm(c_0_13, c_0_14), c_0_15))`, three inferences in one node with NO
+intermediate formulas printed. That is the `Parent::Inline` case the first addendum already calls
+unreconstructable; it is a limit of E's output and not of the translation.
+
+### Clausification was the gap, and the fix is not to clausify better
+
+A prover handed `fof` clausifies before it resolves, and clausification is not resolution. The
+FOF row above is the whole problem in one line. The fix is to stop making the prover do it, and to
+say exactly when that is free. Measured over three exported ontologies, 1,905 formulas, an
+existential occurs in exactly two shapes and they are nothing alike:
+
+- `? [X0] : thing(X0)`, the non-empty-domain axiom: one per export, CLOSED, witnessed by a single
+  constant.
+- `someValuesFrom` in SUPERCLASS position, `A ⊑ ∃r.B`: 126 of 426 formulas in an OWL DL ontology
+  (pizza), and ZERO in both OWL 2 RL ones (1,422 of 1,423 formulas in `ies-building-extension`
+  have no existential at all).
+
+That zero is not luck: OWL 2 RL forbids an existential restriction in superclass position, because
+it is not clausal. And a third shape only the refutation revealed: a NEGATED universal conjecture
+is itself a closed existential, `¬∀X.(A ⇒ B)` being `∃X.(A ∧ ¬B)`; it is the one `skolemize` in
+Vampire's FOF proof.
+
+So the line is **constant versus function**. `fol --format cnf` strips a closed existential prefix
+with one fresh constant per variable, `$domain_witness` and `$sk_<goal>_X<n>`, and the argument is
+one sentence: any model interprets the constant as the witness. An existential UNDER a universal
+needs a function of that variable, nothing here proves that Skolemisation, and the export REFUSES
+it by name rather than clausifying it:
+
+```
+this ontology is outside the clausal fragment: 1 of its 1424 formulas need a Skolem FUNCTION
+(owl_2_subClassOf), an existential under a universal. ... Export as `tptp` instead; a prover's
+refutation of it is an oracle opinion, and `cnf` will not pretend otherwise.
+```
+
+On the fragment, the chain closes. `ies-building-extension.ttl`, 1,423 axioms; goal
+`Building ⊑ ies:Entity`, two subclass steps deep, so derived and not asserted; `--format cnf`;
+Vampire, 5 steps, all resolution; `to_fo_certificate`, 5 of 5; `oo-fores` exit 0,
+`Fo.unsat_of_check`. The FOF encoding of the SAME goal is 18 steps, 13 of them clausification, and
+translates nothing. Vampire says `Unsatisfiable` of the one and `Theorem` of the other, one verdict
+in two SZS dialects. `tests/cnf_end_to_end_test.rs` is that run and its control.
+
+### The rule, amended rather than reversed
+
+Decision 5 above said an ATP verdict is an oracle opinion everywhere it appears. It now reads:
+
+> An ATP verdict is an oracle opinion, **unless** the problem was exported in the clausal fragment
+> (`--format cnf` succeeded), every step of the derivation translated, and `oo-fores` exited 0. In
+> that case, and only that case, the refutation is certified by `Fo.unsat_of_check`, and the report
+> says so with the theorem's name read from the checker's own stdout. A single untranslated step,
+> a `tptp` export, or a refused `cnf` export leaves the verdict an opinion, and the report says
+> which of the three it was.
+
+The verdict vocabulary of the first addendum is unchanged. `refutation_fully_replayed` is still
+the strongest word the Rust replayer can earn and is still not a certificate; the certified case is
+a different word, minted only through `CheckerRun::accepted_naming`, so it cannot be printed
+without a checker run that named the theorem.
+
+### What remains an oracle, in full
+
+- **Equality reasoning.** Paramodulation, demodulation, `definition_unfolding`. `Fo` has no
+  equality; the next piece is to interpret the equality predicate as Lean's `=` on the carrier, at
+  which point congruence is free and paramodulation's soundness is `subst`. `owl:sameAs` makes
+  this unavoidable for real data.
+- **Superclass existentials**, and with them every OWL DL ontology. The export refuses them; the
+  FOF path and the first addendum's replayer are what they get.
+- **Compressed derivations**, E's inline inferences. Prefer Vampire's format.
+- **The TSTP parser and the translator**, which are Rust. What is proved is that the CERTIFICATE
+  is a proof of the clause set in its leaves. That those leaves are the exported clauses is the
+  first addendum's leaf-match check, still Rust and still pinned by tests rather than proved. A
+  wrong translation cannot make an accepted certificate unsound; it can only fail to produce one.
+- **The correspondence between `src/tptp.rs` and `OwlLean.adequacy`**, exactly as before.
+
+### Measured, in the negative
+
+The first version of the translator keyed on rule names and translated 0 of E's steps; the first
+propositional checker consumed hints in order and failed 40 of 53 real picosat traces; the first
+CNF export refused every goal because a negated universal is a closed existential. Each is a
+test now. None of them could have made an accepted certificate unsound, since soundness is the
+theorem's and not the pipeline's; each of them would have made the checker refuse correct proofs,
+and a checker that refuses correct proofs teaches its users to stop running it.
