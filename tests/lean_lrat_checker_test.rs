@@ -153,7 +153,9 @@ fn a_solvers_own_refutations_check() {
     if checker().is_none() || !solver_present() {
         return;
     }
-    let (mut refuted, mut sat, mut undetermined) = (0, 0, 0);
+    // No `undetermined` counter: an undetermined outcome panics below, so a
+    // count of them could never be read, and `-D warnings` says so.
+    let (mut refuted, mut sat) = (0, 0);
     for seed in 1..60u64 {
         let clauses = random_cnf(seed);
         let dir = scratch("fuzz");
@@ -168,7 +170,6 @@ fn a_solvers_own_refutations_check() {
             }
             SatOutcome::Satisfiable => sat += 1,
             SatOutcome::Undetermined(why) => {
-                undetermined += 1;
                 // A solver that says unsat and whose proof does not check is a
                 // DISAGREEMENT, and the one thing that must never be silent.
                 panic!("seed {seed}: {why}\n{}", to_dimacs(&clauses));
@@ -179,7 +180,7 @@ fn a_solvers_own_refutations_check() {
     assert!(
         refuted > 0 && sat > 0,
         "the corpus must contain both answers or it is measuring nothing: \
-         refuted {refuted}, satisfiable {sat}, undetermined {undetermined}"
+         refuted {refuted}, satisfiable {sat}"
     );
 }
 
