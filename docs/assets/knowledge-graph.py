@@ -54,6 +54,15 @@ import random
 import sys
 
 SUBCLASS = "<http://www.w3.org/2000/01/rdf-schema#subClassOf>"
+TYPE = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
+DOMAIN = "<http://www.w3.org/2000/01/rdf-schema#domain>"
+RANGE = "<http://www.w3.org/2000/01/rdf-schema#range>"
+ONTOLOGY = "<http://www.w3.org/2002/07/owl#Ontology>"
+# The four that make ies-core ONE graph. Measured, not guessed:
+#   subClassOf                      6 pieces
+#   + rdf:type                      5
+#   + rdfs:domain, rdfs:range       1, and the file's own header
+LINKING = (SUBCLASS, TYPE, DOMAIN, RANGE)
 W, H = 1100, 760
 SEED = 20260919
 
@@ -82,7 +91,31 @@ def main(asserted_path, derivations_path, out_path):
 
     # Asserted subclass edges, and the conclusions the fixpoint derived. A
     # derivation line is: rule, conclusion s p o, then its premises.
-    a_edges = [(r[0], r[2]) for r in asserted if r[1] == SUBCLASS]
+    # Subclass edges, and the `rdf:type` edges that make the picture ONE graph.
+    #
+    # Drawing subClassOf alone, ies-core falls into six pieces, and a reader
+    # reasonably asks why a single file is six clouds. The answer was that the
+    # drawing was throwing away 87% of the file. `rdf:type` is its commonest
+    # predicate, 215 triples, and it is what ties the hierarchy together: 131
+    # of these classes are an `rdfs:Class`, so that node is a real hub and not
+    # a device invented to join things up.
+    #
+    # Nothing is fabricated to achieve this. `owl:Thing` would have been the
+    # textbook way to give the hierarchy one top, and it is NOT used, because
+    # this run derives no such edge: adding it would be drawing a claim the
+    # engine never made, in a figure whose whole argument is that it does not.
+    # The ontology HEADER is not a term. `<.../ies/core/v0/ont>` typed
+    # `owl:Ontology` is the file's record of itself, it stands in no hierarchy
+    # with anything, and it is the one thing that stays disconnected however
+    # many predicates are drawn. It is also already on the canvas: the file is
+    # the leftmost node of the pipeline. So it is dropped here rather than left
+    # floating as a two-dot island nobody can explain.
+    header = {r[0] for r in asserted if r[1] == TYPE and r[2] == ONTOLOGY}
+    header |= {r[2] for r in asserted if r[0] in header}
+
+    a_edges = [(r[0], r[2]) for r in asserted
+               if r[1] in LINKING and r[2].startswith("<")
+               and r[0] not in header and r[2] not in header]
     d_edges, by_rule = [], {}
     for r in derivations:
         rule = r[0]
@@ -99,8 +132,9 @@ def main(asserted_path, derivations_path, out_path):
     # the reason the first-order provers hang off `problem.tsv` rather than off
     # anything in the ontology.
     LEAN = "Lean 4 · oo-cert"
-    TOOLS = ["certificate", "problem.tsv", "ies-core.ttl", "forged line",
-             LEAN, "Isabelle/HOL", "Vampire", "E", "Z3", "Mace4"]
+    FILES = ["ies-core.ttl", "certificate", "problem.tsv"]
+    PROGRAMS = [LEAN, "Isabelle/HOL", "Vampire", "E", "Z3", "Mace4"]
+    TOOLS = FILES + PROGRAMS
     tool_edges = [
         ("ies-core.ttl", "certificate", "asserted"),
         ("certificate", LEAN, "certified"),
@@ -110,7 +144,6 @@ def main(asserted_path, derivations_path, out_path):
         ("problem.tsv", "E", "asserted"),
         ("problem.tsv", "Z3", "asserted"),
         ("problem.tsv", "Mace4", "asserted"),
-        ("forged line", LEAN, "rejected"),
     ]
 
     nodes = sorted({n for e in a_edges + d_edges for n in e}) + TOOLS
@@ -121,100 +154,295 @@ def main(asserted_path, derivations_path, out_path):
     edges = [(idx[a], idx[b], "asserted") for a, b in a_edges]
     edges += [(idx[a], idx[b], "certified") for a, b in d_edges]
     edges += [(idx[a], idx[b], w) for a, b, w in tool_edges]
+    # Which of the derived edges is the forged one is decided after the layout,
+    # in `forge_one`, because it is decided on where the edge LANDS.
 
-    # ── Layout, in three dimensions ─────────────────────────────────────
+    # ── Layout: a COMPOSITION, not one force run over everything ────────
     #
-    # The same Fruchterman and Reingold as before with a z axis added, because
-    # the view this illustrates is a 3D force graph and a flat plot of it is a
-    # different picture. Seeded, so a regeneration is a diff a reader can check.
+    # The force layout used to lay out the ontology and the verification layer
+    # together, and the result was a scatter: the six judges landed wherever
+    # repulsion put them, so the picture had no shape and a reader could not see
+    # that this is a PIPELINE. A force layout is the right tool for a graph
+    # nobody designed and the wrong one for a diagram of a process.
+    #
+    # So the two halves are laid out differently, because they are different
+    # kinds of thing. The ontology is a graph and gets a force layout, in three
+    # dimensions, projected through a perspective camera. The pipeline is a
+    # process and is PLACED: the file on the left, the two artefacts it becomes
+    # in the middle, the six judges that read them on the right, flowing the way
+    # the reader already reads.
+    ont = [n for n in nodes if n not in TOOLS]
+    oidx = {n: i for i, n in enumerate(ont)}
+    oedges = [(oidx[a], oidx[b]) for a, b in a_edges + d_edges]
+
     rng = random.Random(SEED)
-    pos = [[rng.uniform(-300, 300), rng.uniform(-300, 300), rng.uniform(-300, 300)]
-           for _ in nodes]
+
+    # ── ies-core is six pieces, not one cloud ───────────────────────────
+    #
+    # The subclass graph is not connected: 87 classes, then 35, then four
+    # small pieces of 7, 5, 3 and 2. One force system over all 139 put the two
+    # big pieces in opposite corners and, because a disconnected node feels
+    # nothing but repulsion, flung the small ones into the gap between the
+    # ontology and the pipeline, which is the one place in the picture where
+    # stray dots do the most damage.
+    #
+    # So each component is laid out in its OWN force system and the systems are
+    # packed into the region, area by size. The reader gets a fact out of the
+    # arrangement rather than a scatter: the file is six disjoint pieces, and
+    # two of them carry almost everything.
+    parent = list(range(len(ont)))
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    for i, j in oedges:
+        ri, rj = find(i), find(j)
+        if ri != rj:
+            parent[ri] = rj
+    groups = {}
+    for i in range(len(ont)):
+        groups.setdefault(find(i), []).append(i)
+    comps = sorted(groups.values(), key=len, reverse=True)
+    # ONE graph, or say so and stop.
+    #
+    # The heading states "ONE CONNECTED GRAPH", and a figure that states its
+    # own structure has to be unable to state it falsely. If a future ies-core,
+    # or a different file, does not connect under LINKING, this raises instead
+    # of drawing several clouds under a caption that promises one.
+    if len(comps) != 1:
+        raise SystemExit(
+            f"the ontology is {len(comps)} pieces of sizes "
+            f"{[len(c) for c in comps]}, and the figure says ONE CONNECTED "
+            f"GRAPH. Either widen LINKING until it is one, or change the "
+            f"heading to say what is true. Do not draw it as it stands."
+        )
+
+    # One ideal edge length for every component, so a big piece comes out as a
+    # big cloud and a small piece as a small one. Scaling each component to
+    # fill its own tile instead would make a 2-node fragment as visually loud
+    # as the 87-node core, which is the opposite of true.
+    K = (W * H * 260.0 / max(1, len(ont))) ** (1.0 / 3.0) * 1.25
+
+    # The camera. One camera for all six, so they read as pieces of a single
+    # space rather than six unrelated drawings.
+    YAW, PITCH = 0.62, 0.30
+    cy_, sy_ = math.cos(YAW), math.sin(YAW)
+    cp_, sp_ = math.cos(PITCH), math.sin(PITCH)
+
+    def lay(members):
+        """Force-lay one component in 3D, then turn it to face the camera."""
+        local = {g: m for m, g in enumerate(members)}
+        ed = [(local[a], local[b]) for a, b in oedges if a in local and b in local]
+        n = len(members)
+        p = [[rng.uniform(-K, K) for _ in range(3)] for _ in range(n)]
+        for step in range(420):
+            t = 1.0 - step / 420.0
+            disp = [[0.0, 0.0, 0.0] for _ in range(n)]
+            for a in range(n):
+                for b in range(a + 1, n):
+                    d = [p[a][c] - p[b][c] for c in range(3)]
+                    d2 = d[0] * d[0] + d[1] * d[1] + d[2] * d[2]
+                    if d2 < 1e-6:
+                        d = [rng.uniform(-1, 1) for _ in range(3)]
+                        d2 = 1.0
+                    f = (K * K) / d2
+                    for c in range(3):
+                        disp[a][c] += d[c] * f
+                        disp[b][c] -= d[c] * f
+            for a, b in ed:
+                d = [p[a][c] - p[b][c] for c in range(3)]
+                dist = math.sqrt(d[0] ** 2 + d[1] ** 2 + d[2] ** 2) or 1.0
+                f = (dist * dist) / K / 16.0
+                for c in range(3):
+                    disp[a][c] -= d[c] / dist * f
+                    disp[b][c] += d[c] / dist * f
+            for a in range(n):
+                for c in range(3):
+                    disp[a][c] += (0.0 - p[a][c]) * 0.016
+                mag = math.sqrt(sum(x * x for x in disp[a])) or 1.0
+                for c in range(3):
+                    p[a][c] += disp[a][c] / mag * min(mag, 22 * t)
+        out = []
+        for x, y, z in p:
+            x1, z1 = x * cy_ + z * sy_, -x * sy_ + z * cy_
+            y2, z2 = y * cp_ - z1 * sp_, y * sp_ + z1 * cp_
+            out.append([x1, y2, z2])
+        return out
+
+    cams = [lay(c) for c in comps]
+
+    # Depth is normalised ACROSS the six, not within each. Normalising per
+    # component would make the nearest node of a two-node fragment as bright
+    # as the nearest node of the core, and depth would stop meaning depth.
+    allz = [c[2] for cam in cams for c in cam]
+    zmin, zmax = min(allz), max(allz)
+    DIST = (zmax - zmin) * 0.75 + 190.0
+
+    projs = []
+    for cam in cams:
+        pr = []
+        for x, y, z in cam:
+            f = DIST / (DIST + (z - zmin))
+            pr.append([x * f, y * f, (z - zmin) / max(1e-6, zmax - zmin)])
+        projs.append(pr)
+
+    # ── Packing the six ─────────────────────────────────────────────────
+    #
+    # Recursive proportional split: cut the list where the weight halves, cut
+    # the rectangle the same way along its longer side, recurse. It fills the
+    # region with no leftover, which is the point — the earlier layout left the
+    # bottom-right of the canvas empty while fragments crowded the middle.
+    OL, OR_, T, B = 470, W - 34, 138, H - 246
+
+    def split(items, rect):
+        if len(items) == 1:
+            return [(items[0][0], rect)]
+        x0_, y0_, x1_, y1_ = rect
+        tot = sum(w for _, w in items)
+        acc, cut = 0.0, 1
+        for m in range(1, len(items)):
+            acc += items[m - 1][1]
+            if acc >= tot / 2.0:
+                cut = m
+                break
+        left, right = items[:cut], items[cut:]
+        fr = sum(w for _, w in left) / tot
+        if (x1_ - x0_) >= (y1_ - y0_):
+            xm = x0_ + (x1_ - x0_) * fr
+            return (split(left, (x0_, y0_, xm, y1_))
+                    + split(right, (xm, y0_, x1_, y1_)))
+        ym = y0_ + (y1_ - y0_) * fr
+        return (split(left, (x0_, y0_, x1_, ym))
+                + split(right, (x0_, ym, x1_, y1_)))
+
+    # Pieces of fewer than six classes share one tile rather than each taking
+    # their own. Given a tile apiece they were scaled up to fill it, so a
+    # two-class fragment drew as wide as the thirty-five-class piece beside it
+    # and the arrangement stopped saying anything about size.
+    BIG = [ci for ci, c in enumerate(comps) if len(c) >= 6]
+    SMALL = [ci for ci, c in enumerate(comps) if len(c) < 6]
+    items = [(("c", ci), float(len(comps[ci]))) for ci in BIG]
+    if SMALL:
+        items.append((("s", None), float(sum(len(comps[ci]) for ci in SMALL)) + 6.0))
+    rects = dict(split(items, (OL, T, OR_, B)))
+
+    tiles = {}
+    for key, rect in rects.items():
+        if key[0] == "c":
+            tiles[key[1]] = rect
+    if SMALL:
+        sx0, sy0, sx1, sy1 = rects[("s", None)]
+        # Side by side along the longer axis of the shared tile, biggest first.
+        horiz = (sx1 - sx0) >= (sy1 - sy0)
+        tot = float(sum(len(comps[ci]) for ci in SMALL))
+        run = 0.0
+        for ci in SMALL:
+            fr0, fr1 = run / tot, (run + len(comps[ci])) / tot
+            run += len(comps[ci])
+            if horiz:
+                tiles[ci] = (sx0 + (sx1 - sx0) * fr0, sy0,
+                             sx0 + (sx1 - sx0) * fr1, sy1)
+            else:
+                tiles[ci] = (sx0, sy0 + (sy1 - sy0) * fr0,
+                             sx1, sy0 + (sy1 - sy0) * fr1)
+
+    pt = [[0.0, 0.0, 0.0] for _ in nodes]
+    for ci, members in enumerate(comps):
+        pr = projs[ci]
+        tx0, ty0, tx1, ty1 = tiles[ci]
+        pad = min(30.0, (tx1 - tx0) * 0.10, (ty1 - ty0) * 0.10)
+        tx0, ty0, tx1, ty1 = tx0 + pad, ty0 + pad, tx1 - pad, ty1 - pad
+        xs = sorted(p[0] for p in pr)
+        ys = sorted(p[1] for p in pr)
+
+        def band(v):
+            lo = v[max(0, int(len(v) * 0.03))]
+            hi = v[min(len(v) - 1, int(len(v) * 0.97))]
+            return lo, (hi if hi > lo else lo + 1.0)
+
+        x0, x1 = band(xs)
+        y0, y1 = band(ys)
+        # Aspect preserved. Stretching a component to fill its tile would bend
+        # the perspective the whole 3D layout exists to show.
+        sc = min((tx1 - tx0) / (x1 - x0), (ty1 - ty0) / (y1 - y0))
+        ox = tx0 + ((tx1 - tx0) - (x1 - x0) * sc) / 2.0
+        oy = ty0 + ((ty1 - ty0) - (y1 - y0) * sc) / 2.0
+        # Clamped to the tile. The fit is on the 3rd and 97th percentiles, so by
+        # construction a few nodes land outside it; before the ontology had a
+        # drawn boundary that was invisible, and afterwards one class sat above
+        # the panel line, on the heading, looking like a mistake.
+        for m, g in enumerate(members):
+            px_ = min(max(ox + (pr[m][0] - x0) * sc, tx0), tx1)
+            py_ = min(max(oy + (pr[m][1] - y0) * sc, ty0), ty1)
+            pt[idx[ont[g]]] = [px_, py_, pr[m][2]]
+
+    # ── Which claim is the forged one ───────────────────────────────────
+    #
+    # It used to be a node of its own, `forged line`, parked in the pipeline
+    # column with a red edge to Lean. Nothing about it was in the graph the
+    # viewer had spent four beats looking at, so the last beat refused a claim
+    # about nothing: the red line was the most important thing in the figure
+    # and the easiest thing to miss.
+    #
+    # The forged claim is now one of the DERIVED edges, drawn among the others
+    # and indistinguishable from them until the checker names it. That is what
+    # a forgery is: a line that looks like the rest.
+    #
+    # Chosen on where it lands, not on what it says, so it is chosen after the
+    # layout: long enough to read as a line, and as near the middle of the
+    # largest piece as a long one gets.
+    big = comps[0]
+    inbig = {idx[ont[g]] for g in big}
+    bx0, by0, bx1, by1 = tiles[0]
+    cxm, cym = (bx0 + bx1) / 2.0, (by0 + by1) / 2.0
+    best, best_score = None, None
+    for e, (i, j, w) in enumerate(edges):
+        if w != "certified" or i not in inbig or j not in inbig:
+            continue
+        L = math.hypot(pt[i][0] - pt[j][0], pt[i][1] - pt[j][1])
+        if L < 34.0:
+            continue
+        mx, my = (pt[i][0] + pt[j][0]) / 2.0, (pt[i][1] + pt[j][1]) / 2.0
+        score = math.hypot(mx - cxm, my - cym) - L * 0.55
+        if best_score is None or score < best_score:
+            best, best_score = e, score
+    forged = best
+    if forged is not None:
+        i, j, _ = edges[forged]
+        edges[forged] = (i, j, "rejected")
+
+    # ── The pipeline, placed ────────────────────────────────────────────
+    #
+    # Three columns, left to right: what was read, what it became, who judged
+    # it. The two that read the CERTIFICATE sit together and above; the four
+    # that read `problem.tsv`, a different artefact, sit together and below.
+    # That grouping is the argument, and no force layout would ever produce it.
+    PIPE = {
+        "ies-core.ttl": (86, 178),
+        "certificate": (196, 214),
+        "problem.tsv": (196, 396),
+        LEAN: (318, 168),
+        "Isabelle/HOL": (318, 250),
+        "Vampire": (318, 336),
+        "E": (318, 384),
+        "Z3": (318, 432),
+        "Mace4": (318, 480),
+    }
+    for n, (px, py) in PIPE.items():
+        # z = 0 is the NEAR plane: `depth` below is `1 - z`, so zero here means
+        # depth 1, which is full size and full opacity and drawn last. Setting
+        # it to 1 put the whole pipeline at the far plane and its edges came out
+        # at opacity 0.20, which is why they were invisible.
+        pt[idx[n]] = [float(px), float(py), 0.0]
+
     deg = [0] * len(nodes)
     for i, j, _ in edges:
         deg[i] += 1
         deg[j] += 1
 
-    k = (W * H * 260.0 / max(1, len(nodes))) ** (1.0 / 3.0) * 1.45
-    for step in range(420):
-        t = 1.0 - step / 420.0
-        disp = [[0.0, 0.0, 0.0] for _ in nodes]
-        for i in range(len(nodes)):
-            for j in range(i + 1, len(nodes)):
-                d = [pos[i][a] - pos[j][a] for a in range(3)]
-                d2 = d[0] * d[0] + d[1] * d[1] + d[2] * d[2]
-                if d2 < 1e-6:
-                    d = [rng.uniform(-1, 1) for _ in range(3)]
-                    d2 = 1.0
-                f = (k * k) / d2
-                for a in range(3):
-                    disp[i][a] += d[a] * f
-                    disp[j][a] -= d[a] * f
-        for i, j, _ in edges:
-            d = [pos[i][a] - pos[j][a] for a in range(3)]
-            dist = math.sqrt(d[0] ** 2 + d[1] ** 2 + d[2] ** 2) or 1.0
-            f = (dist * dist) / k / 16.0
-            for a in range(3):
-                disp[i][a] -= d[a] / dist * f
-                disp[j][a] += d[a] / dist * f
-        for i in range(len(nodes)):
-            for a in range(3):
-                # Gravity, and it has to be strong. A force layout gives
-                # disconnected components nothing but repulsion, so the several
-                # small pieces of ies-core sail away from the hub and the
-                # drawing becomes one dense corner and three empty quarters.
-                disp[i][a] += (0.0 - pos[i][a]) * 0.016
-            mag = math.sqrt(sum(x * x for x in disp[i])) or 1.0
-            for a in range(3):
-                pos[i][a] += disp[i][a] / mag * min(mag, 22 * t)
-
-    # ── The camera ──────────────────────────────────────────────────────
-    #
-    # One perspective projection, so nearer nodes are larger and the whole
-    # thing has the depth the Studio view has. The rotation is fixed: an
-    # orbiting camera cannot be expressed as a 2D transform without rotating
-    # the labels with it, and a legible still frame matters more than a spin.
-    YAW, PITCH = 0.62, 0.28
-    cy_, sy_ = math.cos(YAW), math.sin(YAW)
-    cp_, sp_ = math.cos(PITCH), math.sin(PITCH)
-    cam = []
-    for x, y, z in pos:
-        x1, z1 = x * cy_ + z * sy_, -x * sy_ + z * cy_
-        y2, z2 = y * cp_ - z1 * sp_, y * sp_ + z1 * cp_
-        cam.append([x1, y2, z2])
-
-    zs = [c[2] for c in cam]
-    zmin, zmax = min(zs), max(zs)
-    DIST = (zmax - zmin) * 1.9 + 420.0
-    proj = []
-    for x, y, z in cam:
-        f = DIST / (DIST + (z - zmin))
-        proj.append([x * f, y * f, (z - zmin) / max(1e-6, zmax - zmin)])
-
-    # Fit into the area left free by the title and the legend.
-    #
-    # Fitted on the 3rd and 97th percentiles rather than the extremes. A force
-    # layout always throws a couple of weakly connected nodes a long way out,
-    # and fitting to those shrinks everything else into a corner: the first
-    # version of this drew the whole ontology in the top right quarter with
-    # three quarters of the canvas empty. Outliers are allowed to sit slightly
-    # outside the frame instead.
-    # The bottom stops well above the step rail at H-176. It used to stop at
-    # H-190, which put the rail INSIDE the drawing and a cluster of classes sat
-    # on top of it.
-    L, R, T, B = 56, W - 56, 96, H - 232
-    xs = sorted(p[0] for p in proj)
-    ys = sorted(p[1] for p in proj)
-    def band(v):
-        lo = v[max(0, int(len(v) * 0.03))]
-        hi = v[min(len(v) - 1, int(len(v) * 0.97))]
-        return lo, hi if hi > lo else lo + 1.0
-    x0, x1 = band(xs)
-    y0, y1 = band(ys)
-    sc = min((R - L) / (x1 - x0), (B - T) / (y1 - y0))
-    ox = L + ((R - L) - (x1 - x0) * sc) / 2.0
-    oy = T + ((B - T) - (y1 - y0) * sc) / 2.0
-    pt = [[ox + (p[0] - x0) * sc, oy + (p[1] - y0) * sc, p[2]] for p in proj]
     # depth: 0 is farthest, 1 nearest
     depth = [1.0 - p[2] for p in pt]
 
@@ -284,6 +512,13 @@ def main(asserted_path, derivations_path, out_path):
       '</defs>')
     A(f'<rect width="{W}" height="{H}" rx="14" fill="url(#bg)"/>')
 
+    # A boundary, because a cloud with no edge reads as spillage. The force
+    # layout is fitted inside this rectangle, so the line is where the drawing
+    # actually ends rather than a frame put round it afterwards.
+    A(f'<rect x="{OL - 16:.0f}" y="{T - 22:.0f}" width="{OR_ - OL + 32:.0f}" '
+      f'height="{B - T + 40:.0f}" rx="10" fill="#060e20" fill-opacity="0.55" '
+      f'stroke="#16283f" stroke-width="1"/>')
+
     def rad(i):
         """Node radius: degree for importance, depth for distance, and the
         verification layer drawn larger than the ontology it judges, exactly as
@@ -310,10 +545,40 @@ def main(asserted_path, derivations_path, out_path):
         op = {"asserted": 0.20 + 0.45 * d,
               "certified": 0.22 + 0.50 * d,
               "rejected": 0.55 + 0.45 * d}[w]
-        layers[w].append(
-            f'<line x1="{pt[i][0]:.1f}" y1="{pt[i][1]:.1f}" x2="{pt[j][0]:.1f}" '
-            f'y2="{pt[j][1]:.1f}" stroke="{COLOR[w]}" stroke-width="{WIDTH[w] * (0.7 + 0.8 * d):.2f}" '
-            f'opacity="{op:.2f}"/>')
+        # The forged edge is dashed and the dashes march, so it reads as a
+        # claim being PUSHED rather than a line that is merely there. Every
+        # other edge is a fact and stays still. It runs between two classes
+        # like all the others and is not pulled back from either: nothing is
+        # stopped HERE. What stops is the certificate carrying it, and that is
+        # drawn at the checker, further down.
+        ax, ay, bx, by = pt[i][0], pt[i][1], pt[j][0], pt[j][1]
+        pipe = nodes[i] in TOOLS and nodes[j] in TOOLS
+        if pipe and w != "rejected":
+            # Pipeline edges are a PROCESS and a process has a direction. Drawn
+            # as bare segments running under the dots at both ends, the three
+            # columns could be read right to left as easily as left to right.
+            vx, vy = bx - ax, by - ay
+            L = math.hypot(vx, vy) or 1.0
+            ux_, uy_ = vx / L, vy / L
+            ax, ay = ax + ux_ * (rad(i) + 4.0), ay + uy_ * (rad(i) + 4.0)
+            bx, by = bx - ux_ * (rad(j) + 8.5), by - uy_ * (rad(j) + 8.5)
+        head = (f'<line x1="{ax:.1f}" y1="{ay:.1f}" x2="{bx:.1f}" y2="{by:.1f}" '
+                f'stroke="{COLOR[w]}" stroke-width="{WIDTH[w] * (0.7 + 0.8 * d):.2f}" '
+                f'opacity="{op:.2f}"')
+        if w == "rejected":
+            layers[w].append(
+                head + ' stroke-dasharray="7 5">'
+                '<animate attributeName="stroke-dashoffset" dur="0.9s" '
+                'repeatCount="indefinite" values="0;-24"/></line>')
+        else:
+            layers[w].append(head + '/>')
+        if pipe and w != "rejected":
+            nx_, ny_ = -uy_, ux_
+            layers[w].append(
+                f'<path d="M{bx + ux_ * 7.0:.1f} {by + uy_ * 7.0:.1f} '
+                f'L{bx + nx_ * 3.4:.1f} {by + ny_ * 3.4:.1f} '
+                f'L{bx - nx_ * 3.4:.1f} {by - ny_ * 3.4:.1f} Z" '
+                f'fill="{COLOR[w]}" opacity="{min(1.0, op + 0.25):.2f}"/>')
 
     A(f'<g opacity="{REST_D}">'
       + anim("opacity", f"{REST_D};{REST_D};{LIT_D};{LIT_D};{REST_D};{REST_D}",
@@ -324,6 +589,12 @@ def main(asserted_path, derivations_path, out_path):
       + anim("opacity", f"{REST_A};{LIT_A};{LIT_A};{REST_A};{REST_A}",
              kt(0, 0.6, 2.8, 3.4, CYCLE)))
     A("".join(layers["asserted"]))
+    A('</g>')
+    # The forged edge last of the three, so nothing is drawn over it.
+    A(f'<g opacity="{REST_F}">'
+      + anim("opacity", f"{REST_F};{REST_F};{LIT_F};{LIT_F};{REST_F};{REST_F}",
+             kt(0, 13.0, 13.5, 16.4, 17.0, CYCLE)))
+    A("".join(layers["rejected"]))
     A('</g>')
 
     # ── The particles ───────────────────────────────────────────────────
@@ -364,6 +635,22 @@ def main(asserted_path, derivations_path, out_path):
               + anim("r", f"{r*3.0:.1f};{r*3.6:.1f};{r*3.0:.1f};{r*4.6:.1f};{r*3.4:.1f};{r*3.0:.1f}",
                      kt(0, 2.0, 4.0, 7.6, 9.6, CYCLE)) + '</circle>')
             A(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="{C_LEAN}"/>')
+        elif nodes[i] in FILES:
+            # Four of the ten things in the pipeline are FILES and six are
+            # PROGRAMS, and drawing all ten as identical dots hid the one
+            # distinction the picture is about: a certificate is a file you can
+            # hand to a checker, and a prover is a thing with an opinion. A
+            # sheet with a turned corner says file without a word of legend.
+            fwd, fht = r * 1.5, r * 1.85
+            fold = fwd * 0.42
+            A(f'<path d="M{x - fwd:.1f} {y - fht:.1f} '
+              f'H{x + fwd - fold:.1f} L{x + fwd:.1f} {y - fht + fold:.1f} '
+              f'V{y + fht:.1f} H{x - fwd:.1f} Z" fill="url(#tool)" '
+              f'stroke="#0b1428" stroke-width="0.8" '
+              f'opacity="{0.72 + 0.28 * depth[i]:.2f}"/>')
+            A(f'<path d="M{x + fwd - fold:.1f} {y - fht:.1f} '
+              f'V{y - fht + fold:.1f} H{x + fwd:.1f}" fill="none" '
+              f'stroke="#0b1428" stroke-width="0.9" opacity="0.9"/>')
         elif nodes[i] in TOOLS:
             A(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="url(#tool)" '
               f'opacity="{0.72 + 0.28 * depth[i]:.2f}"/>')
@@ -389,7 +676,9 @@ def main(asserted_path, derivations_path, out_path):
         last one regardless. Dropping `Isabelle/HOL` off the picture because a
         blue dot was in the way is not a tidier drawing, it is a wrong one."""
         w_ = len(label) * (size * 0.55) + 8
-        r_ = rad(i)
+        # A file is drawn as a sheet, which is wider and taller than the dot it
+        # replaced, so a label offset by the dot radius lands ON it.
+        r_ = rad(i) * (1.6 if nodes[i] in FILES else 1.0)
         candidates = [
             (pt[i][0] + r_ + 5, pt[i][1] + 3.5),
             (pt[i][0] - r_ - 5 - w_, pt[i][1] + 3.5),
@@ -486,14 +775,250 @@ def main(asserted_path, derivations_path, out_path):
           + anim("opacity", "0;0;0.85;0;0", kt(0, t0, t0 + 0.18, t0 + 0.95, CYCLE)) +
           '</circle>')
 
+    # ── What an opinion is FOR ──────────────────────────────────────────
+    #
+    # The four provers hung off `problem.tsv` with nothing leaving them, so the
+    # drawing said their answers go nowhere. That is not what the code does.
+    # `src/fol_solve.rs` carries a `Disagreement` -- "a disagreement between two
+    # things that were supposed to agree; not a verdict about the ontology, and
+    # not a footnote either" -- and it is set "when a checker and the thing it
+    # checks disagreed. Stop the line."
+    #
+    # So an opinion never becomes warrant and can still halt the pipeline. That
+    # is a different arrow from the certified one and it is drawn differently:
+    # it leaves the provers, it arrives at the certificate, and it is dotted,
+    # because what travels along it is a question and not a proof.
+    pv = [idx[n] for n in ("Vampire", "E", "Z3", "Mace4")]
+    ci0 = idx["certificate"]
+    fx0 = min(pt[i][0] for i in pv) - 46.0
+    fy0 = sum(pt[i][1] for i in pv) / len(pv)
+    A(f'<g opacity="0.34">'
+      + anim("opacity", "0.34;0.34;0.9;0.9;0.34;0.34",
+             kt(0, 11.4, 11.9, 12.7, 13.0, CYCLE)))
+    for i in pv:
+        A(f'<path d="M{pt[i][0] - rad(i) - 4:.1f} {pt[i][1]:.1f} '
+          f'Q{fx0:.1f} {pt[i][1]:.1f} {fx0:.1f} {fy0:.1f}" fill="none" '
+          f'stroke="{C_TOOL}" stroke-width="0.9" stroke-dasharray="2 3" opacity="0.8"/>')
+    A(f'<path d="M{fx0:.1f} {fy0:.1f} Q{fx0:.1f} {pt[ci0][1] + 30:.1f} '
+      f'{pt[ci0][0]:.1f} {pt[ci0][1] + rad(ci0) + 6:.1f}" fill="none" '
+      f'stroke="{C_TOOL}" stroke-width="1.5" stroke-dasharray="4 4"/>')
+    dtxt = "disagreement · stops the line"
+    dw = len(dtxt) * 5.0 + 12
+    dx, dy = fx0 - dw - 8, fy0 + 4
+    placed.append((dx - 3, dy - 12, dx + dw + 3, dy + 5))
+    A(f'<rect x="{dx:.1f}" y="{dy - 10:.1f}" width="{dw:.1f}" height="14" rx="7" '
+      f'fill="#020617" stroke="{C_TOOL}" stroke-width="1" opacity="0.95"/>')
+    A(f'<text x="{dx + dw / 2:.1f}" y="{dy:.1f}" text-anchor="middle" font-size="8.8" '
+      f'font-weight="700" fill="{C_TOOL}">{dtxt}</text>')
+    A('</g>')
+
+    # ── Beat five: the claim in the graph, and the refusal at the checker ─
+    #
+    # Two halves of one event, and both have to be visible or the beat says
+    # nothing. The forged claim is an edge among the derived ones, so it is
+    # marked WHERE IT IS: a halo on it, and the badge beside it, in the cloud
+    # the viewer has been watching for four beats.
+    #
+    # The refusal is at the checker, on the certificate that carried the claim.
+    # The same `certificate -> Lean` segment that lit green in beat three now
+    # runs red and stops at a bar short of the node, which is the argument:
+    # same path, same reader, different content, different answer.
+    li = idx[LEAN]
+    lr = rad(li)
+    ci = idx["certificate"]
+    cvx, cvy = pt[li][0] - pt[ci][0], pt[li][1] - pt[ci][1]
+    cL = math.hypot(cvx, cvy) or 1.0
+    ux, uy = cvx / cL, cvy / cL
+    sx = pt[ci][0] + ux * (rad(ci) + 4.0)
+    sy = pt[ci][1] + uy * (rad(ci) + 4.0)
+    ex = pt[li][0] - ux * (lr + 15.0)
+    ey = pt[li][1] - uy * (lr + 15.0)
+    # Rested at 0.32 rather than hidden. The green `certificate -> Lean`
+    # edge underneath rests too, and the pair at rest is the claim of the whole
+    # figure: this path carries both, and the reader is told which is which by
+    # which one is lit.
+    A('<g opacity="0.32">'
+      + anim("opacity", "0.32;0.32;1;1;0.32;0.32", kt(0, 13.2, 13.7, 16.6, 17.0, CYCLE)))
+    A(f'<line x1="{sx:.1f}" y1="{sy:.1f}" x2="{ex:.1f}" y2="{ey:.1f}" '
+      f'stroke="{C_REJECT}" stroke-width="2.6" stroke-dasharray="7 5">'
+      '<animate attributeName="stroke-dashoffset" dur="0.9s" '
+      'repeatCount="indefinite" values="0;-24"/></line>')
+    nx_, ny_ = -uy, ux
+    A(f'<line x1="{ex + nx_ * 11:.1f}" y1="{ey + ny_ * 11:.1f}" '
+      f'x2="{ex - nx_ * 11:.1f}" y2="{ey - ny_ * 11:.1f}" stroke="{C_REJECT}" '
+      f'stroke-width="3.4" stroke-linecap="round"/>')
+    A('</g>')
+
+    if forged is not None:
+        fi, fj, _ = edges[forged]
+        fmx = (pt[fi][0] + pt[fj][0]) / 2.0
+        fmy = (pt[fi][1] + pt[fj][1]) / 2.0
+        flen = math.hypot(pt[fi][0] - pt[fj][0], pt[fi][1] - pt[fj][1])
+        # A halo along the edge rather than a ring on a node: the forgery is
+        # the LINE, and a ring would point at a class that did nothing wrong.
+        A('<g opacity="0.3">'
+          + anim("opacity", "0.3;0.3;0.85;0.85;0.3;0.3",
+                 kt(0, 13.0, 13.5, 16.6, 17.0, CYCLE)))
+        A(f'<line x1="{pt[fi][0]:.1f}" y1="{pt[fi][1]:.1f}" '
+          f'x2="{pt[fj][0]:.1f}" y2="{pt[fj][1]:.1f}" stroke="{C_REJECT}" '
+          f'stroke-width="9" stroke-linecap="round" opacity="0.22"/>')
+        A(f'<circle cx="{fmx:.1f}" cy="{fmy:.1f}" r="{max(13.0, flen * 0.34):.1f}" '
+          f'fill="none" stroke="{C_REJECT}" stroke-width="1.4" opacity="0.7"/>')
+        A('</g>')
+
+        ftxt = "this line is forged"
+        fw = len(ftxt) * 5.4 + 12
+        cands = []
+        for dy_ in (-26.0, 26.0, -44.0, 44.0):
+            for dx_ in (0.0, -46.0, 46.0):
+                cands.append((fmx + dx_, fmy + dy_))
+        fx, fy = cands[0][0] - fw / 2, cands[0][1]
+        for n_, (ccx, ccy) in enumerate(cands):
+            bx_, by_ = ccx - fw / 2, ccy
+            box = (bx_ - 3, by_ - 12, bx_ + fw + 3, by_ + 5)
+            if all(box[2] < o[0] or box[0] > o[2] or box[3] < o[1] or box[1] > o[3]
+                   for o in placed) or n_ == len(cands) - 1:
+                fx, fy = bx_, by_
+                placed.append(box)
+                break
+        A('<g opacity="0.4">'
+          + anim("opacity", "0.4;0.4;1;1;0.4;0.4", kt(0, 13.2, 13.7, 16.6, 17.0, CYCLE)))
+        A(f'<rect x="{fx:.1f}" y="{fy - 10:.1f}" width="{fw:.1f}" height="14" rx="7" '
+          f'fill="#020617" stroke="{C_REJECT}" stroke-width="1.1" opacity="0.95"/>')
+        A(f'<text x="{fx + fw / 2:.1f}" y="{fy:.1f}" text-anchor="middle" font-size="9.5" '
+          f'font-weight="700" fill="{C_REJECT}">{ftxt}</text>')
+        A('</g>')
+
+    # And the verdict, at the checker.
+    rtxt = "exit 1, refused"
+    rw = len(rtxt) * 5.4 + 12
+    rx, ry = pt[li][0] - rw / 2, pt[li][1] + lr + 22
+    for ccx, ccy in [(pt[li][0] - rw / 2, pt[li][1] + lr + 22),
+                     (pt[li][0] + lr + 8, pt[li][1] + lr + 12),
+                     (pt[li][0] - rw / 2, pt[li][1] + lr + 40)]:
+        box = (ccx - 3, ccy - 12, ccx + rw + 3, ccy + 5)
+        if all(box[2] < o[0] or box[0] > o[2] or box[3] < o[1] or box[1] > o[3]
+               for o in placed):
+            rx, ry = ccx, ccy
+            placed.append(box)
+            break
+    A('<g opacity="0.4">'
+      + anim("opacity", "0.4;0.4;1;1;0.4;0.4", kt(0, 13.6, 14.0, 16.6, 17.0, CYCLE)))
+    A(f'<rect x="{rx:.1f}" y="{ry - 10:.1f}" width="{rw:.1f}" height="14" rx="7" '
+      f'fill="#020617" stroke="{C_REJECT}" stroke-width="1.1" opacity="0.95"/>')
+    A(f'<text x="{rx + rw / 2:.1f}" y="{ry:.1f}" text-anchor="middle" font-size="9.5" '
+      f'font-weight="700" fill="{C_REJECT}">{rtxt}</text>')
+    A('</g>')
+
+    # ── One point becoming the graph ────────────────────────────────────
+    #
+    # Beat one used to brighten every asserted edge at once, which is true but
+    # says "here is a graph" rather than "here is a graph being read". A wave
+    # out of the busiest class says the second, and says it without hiding
+    # anything: the rings are drawn ON TOP of a cloud that is always there, so
+    # a renderer sampling t=0 still gets the whole picture. Unfilled, which is
+    # what makes them a sweep rather than a layer.
+    seed = max(
+        (idx[ont[g]] for g in comps[0]),
+        key=lambda i: deg[i],
+    )
+    sx0, sy0 = pt[seed][0], pt[seed][1]
+    reach = max(
+        math.hypot(pt[idx[ont[g]]][0] - sx0, pt[idx[ont[g]]][1] - sy0)
+        for g in comps[0]
+    )
+    for n_ in range(3):
+        t0 = 0.6 + n_ * 0.62
+        A(f'<circle cx="{sx0:.1f}" cy="{sy0:.1f}" r="4" fill="none" '
+          f'stroke="{C_ASSERT}" stroke-width="1.5" opacity="0">'
+          + anim("r", f"4;4;{reach:.0f};{reach:.0f}", kt(0, t0, t0 + 1.9, CYCLE))
+          + anim("opacity", "0;0;0.55;0;0", kt(0, t0, t0 + 0.25, t0 + 1.9, CYCLE))
+          + '</circle>')
+    # The seed itself, held for the beat, so the eye has somewhere to start.
+    A(f'<circle cx="{sx0:.1f}" cy="{sy0:.1f}" r="{rad(seed) + 4:.1f}" fill="none" '
+      f'stroke="{C_ASSERT}" stroke-width="1.6" opacity="0">'
+      + anim("opacity", "0;0;0.9;0.9;0;0", kt(0, 0.6, 0.9, 3.1, 3.4, CYCLE))
+      + '</circle>')
+
+    # ── Each beat lights the nodes that are IN it ───────────────────────
+    #
+    # The beats used to light EDGE LAYERS, and the asserted and certified
+    # layers live almost entirely in the ontology on the right. So during the
+    # first two steps the pipeline on the left, which is what the captions are
+    # talking about, did not change at all. A reader watching the named actors
+    # saw nothing happen and then a red line at the end.
+    #
+    # A held ring, not a one-off pulse: the ring is up for as long as the step
+    # is running, so at any instant the picture answers "who is acting now".
+    SPOT = [
+        (["ies-core.ttl"], 0),
+        (["certificate", "problem.tsv"], 1),
+        ([LEAN, "Isabelle/HOL"], 2),
+        (["Vampire", "E", "Z3", "Mace4"], 3),
+    ]
+    for names, bn in SPOT:
+        col, _, t0, t1 = BEATS[bn]
+        for nm in names:
+            si = idx[nm]
+            sr = rad(si) + 4.0
+            A(f'<circle cx="{pt[si][0]:.1f}" cy="{pt[si][1]:.1f}" r="{sr:.1f}" '
+              f'fill="none" stroke="{col}" stroke-width="1.6" opacity="0">'
+              + anim("opacity", "0;0;0.9;0.9;0;0",
+                     kt(0, t0, t0 + 0.3, t1 - 0.35, t1, CYCLE)) +
+              '</circle>')
+
     n_asserted = len(asserted)
+    # Counted from the rows, because the heading states it.
+    n_sub = sum(1 for r in asserted if r[1] == SUBCLASS)
+    n_type = sum(1 for r in asserted if r[1] == TYPE)
     n_derived = len(derivations)
     rules = ", ".join(f"{r} x{c}" for r, c in sorted(by_rule.items(), key=lambda kv: -kv[1]))
-    A(f'<text x="34" y="46" font-size="17" font-weight="800" fill="#f8fafc">'
+    A(f'<text x="34" y="44" font-size="17" font-weight="800" fill="#f8fafc">'
       f'ies-core.ttl, reasoned over and proved</text>')
-    A(f'<text x="34" y="68" font-size="12" fill="#94a3b8">'
+
+    # The running step, said in words, at the top. It used to be said only on
+    # the rail at the bottom of the canvas: ten-point type, six hundred pixels
+    # below the thing it described, while the reader's eye was on the pipeline.
+    # A viewer could watch the whole loop and never learn what the five stages
+    # WERE. The rail still shows where you are in the sequence; this says what
+    # is happening, and it says it next to the title.
+    for n_, (col, text, t0, t1) in enumerate(BEATS):
+        first = "1" if n_ == 0 else "0"
+        A(f'<text x="34" y="68" font-size="14.5" font-weight="700" fill="{col}" '
+          f'opacity="{first}">'
+          + anim("opacity", f"{first};0;1;1;0;0",
+                 kt(0, max(0.0, t0 - 0.35), t0 + 0.15, t1 - 0.3, t1, CYCLE))
+          + f'{text}</text>')
+
+    A(f'<text x="34" y="88" font-size="10.5" fill="#64748b">'
       f'the Studio 3D view: {len(nodes)} nodes and {len(edges)} edges drawn, out of '
       f'{n_asserted} asserted triples and {n_derived} derived by {rules}</text>')
+
+    # ── B. what each column of the pipeline IS ──────────────────────────
+    #
+    # Three placed columns carry an argument only if the reader can see that
+    # they are columns. Without headings the left half read as a scatter of
+    # pink dots that happened to line up.
+    for hx, htxt in ((86, "the file"), (196, "what it becomes"), (318, "who reads it")):
+        A(f'<text x="{hx}" y="108" text-anchor="middle" font-size="9" '
+          f'font-weight="700" fill="#475569" letter-spacing="1.4">{htxt.upper()}</text>')
+    # And what the right-hand half is, which nothing said. A reader met a cloud
+    # of unnamed dots and had to guess whether it was data, a result or decor.
+    #
+    # It says SUBCLASS HIERARCHY and it counts TREES, and both words are the
+    # correction of a claim this heading used to make. It read "WHAT THE FILE
+    # CONTAINS - 139 CLASSES IN 6 DISJOINT PIECES", which is false. The file
+    # holds 1,083 triples over 22 predicates and this picture draws exactly one
+    # of them, the 144 `rdfs:subClassOf`. On that one predicate ies-core does
+    # fall into six pieces; on the file's own other relations three of them
+    # join up and it falls into four. The six are the top branches of one class
+    # hierarchy, each a tree with a single root except the largest, which has
+    # four. Reporting a consequence of the drawing as a property of the data is
+    # the mistake this whole figure is supposed to be an argument against.
+    A(f'<text x="{(OL + OR_) / 2:.0f}" y="108" text-anchor="middle" font-size="9" '
+      f'font-weight="700" fill="#475569" letter-spacing="1.4">'
+      f'{len(ont)} TERMS OF ies-core, ONE CONNECTED GRAPH · '
+      f'subClassOf, rdf:type, domain, range</text>')
 
     # ── The step rail ──────────────────────────────────────────────────
     #
@@ -546,13 +1071,14 @@ def main(asserted_path, derivations_path, out_path):
     n_c = sum(1 for _, _, w in edges if w == "certified")
     n_r = sum(1 for _, _, w in edges if w == "rejected")
     ly = H - 132
-    A(f'<rect x="28" y="{ly}" width="700" height="112" rx="12" fill="#030a1c" opacity="0.94" '
-      f'stroke="#1e3a5f"/>')
+    lw = 560.0          # where the counting column ends and the meaning begins
+    A(f'<rect x="28" y="{ly}" width="{W - 56}" height="112" rx="12" fill="#030a1c" '
+      f'opacity="0.94" stroke="#1e3a5f"/>')
     A(f'<text x="46" y="{ly+24}" font-size="12" font-weight="800" fill="#34d399" '
       f'letter-spacing="1.4">PROOF-CARRYING INFERENCE</text>')
     A(f'<text x="300" y="{ly+24}" font-size="11.5" fill="#64748b">'
       f'ies-core.ttl · {n_asserted:,} triples</text>')
-    A(f'<line x1="40" y1="{ly+33}" x2="716" y2="{ly+33}" stroke="#1e3a5f"/>')
+    A(f'<line x1="40" y1="{ly+33}" x2="{lw - 12:.0f}" y2="{ly+33}" stroke="#1e3a5f"/>')
     rows = [(C_ASSERT, "ASSERTED", n_a, "read from ies-core.ttl. claimed by a person"),
             (C_CERT, "CERTIFIED", n_c, "derived, then PROVED. OOCert.certificate_sound"),
             (C_REJECT, "REJECTED", n_r, "forged. the checker exited 1 and named the rule")]
@@ -564,12 +1090,29 @@ def main(asserted_path, derivations_path, out_path):
         A(f'<text x="168" y="{yy}" font-size="11" font-weight="700" fill="#e2e8f0" '
           f'text-anchor="end">{count}</text>')
         A(f'<text x="180" y="{yy}" font-size="11" fill="#94a3b8">{means}</text>')
-    A(f'<line x1="40" y1="{ly+94}" x2="716" y2="{ly+94}" stroke="#1e3a5f"/>')
-    A(f'<text x="46" y="{ly+106}" font-size="10.5" fill="#64748b">'
-      f'<tspan fill="#34d399" font-weight="700">● Lean 4</tspan> decides. '
-      f'<tspan fill="#f0abfc">● Isabelle/HOL</tspan> checks the same bytes independently. '
-      f'<tspan fill="#f0abfc">● Vampire, E, Z3, Mace4</tspan> read a different artefact; their '
-      f'verdicts are oracle opinions, never certificates.</text>')
+    # The distinction the whole figure exists to make used to be the tail of a
+    # single run-on line along the bottom of the card, which is where a reader
+    # stops reading. It is the argument, so it gets its own column, and that
+    # column also fills the third of the canvas the card was leaving empty.
+    A(f'<line x1="{lw + 12:.0f}" y1="{ly+14}" x2="{lw + 12:.0f}" y2="{ly+98}" '
+      f'stroke="#1e3a5f"/>')
+    A(f'<text x="{lw + 34:.0f}" y="{ly+24}" font-size="12" font-weight="800" '
+      f'fill="#94a3b8" letter-spacing="1.4">WHAT A VERDICT IS WORTH</text>')
+    verdicts = [
+        (C_CERT, "certificate",
+         "Lean 4 and Isabelle/HOL read the same bytes.",
+         "anyone can re-run the check and get the same answer."),
+        (C_TOOL, "opinion",
+         "Vampire, E, Z3 and Mace4 read a different file.",
+         "believe the program, or believe nothing. no object to check."),
+    ]
+    for m, (col, word, l1, l2) in enumerate(verdicts):
+        yy = ly + 48 + m * 30
+        A(f'<circle cx="{lw + 40:.0f}" cy="{yy - 4:.1f}" r="4" fill="{col}"/>')
+        A(f'<text x="{lw + 52:.0f}" y="{yy}" font-size="11" font-weight="700" '
+          f'fill="{col}">{word}</text>')
+        A(f'<text x="{lw + 130:.0f}" y="{yy - 5:.0f}" font-size="10" fill="#94a3b8">{l1}</text>')
+        A(f'<text x="{lw + 130:.0f}" y="{yy + 7:.0f}" font-size="10" fill="#64748b">{l2}</text>')
     A('</svg>')
 
     with open(out_path, "w") as f:

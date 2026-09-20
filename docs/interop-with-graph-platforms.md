@@ -102,8 +102,10 @@ the raw output files, and the issues that came out of it are at
 [semantica-contrib](https://github.com/fabio-rovai/semantica-contrib).
 
 **A strict second reader disagrees with a lenient one, and the disagreement
-is the finding.** `GraphBuilder` defaults an entity's id to its surface text
-and its type to the NER label, so the canonical path produces this Turtle:
+is the finding.** On 0.6.5 and 0.6.6, `GraphBuilder` defaulted an entity's id
+to its surface text and its type to the NER label, and nothing validated
+either before writing it between angle brackets, so the canonical path
+produced this Turtle:
 
 ```turtle
 <Acme Corp> a <ORG> ;
@@ -111,13 +113,29 @@ and its type to the NER label, so the canonical path produces this Turtle:
     semantica:confidence 0.91 .
 ```
 
-rdflib parses it. It resolves `<Acme Corp>` against the current working
-directory, gives you `file:///home/you/project/Acme%20Corp`, and warns. Load
-the same file through `open-ontologies validate` and Oxigraph refuses it:
-`Invalid IRI code point ' '`. The lenient reader hands you a graph whose
-identifiers depend on which directory you were standing in. The strict reader
-tells you there is no graph. Both behaviours are defensible; only one of them
-tells you something is wrong.
+rdflib parsed it. It resolved `<Acme Corp>` against the current working
+directory, gave you `file:///home/you/project/Acme%20Corp`, and warned. The
+same file through `open-ontologies validate` was refused by Oxigraph:
+`Invalid IRI code point ' '`. The lenient reader handed you a graph whose
+identifiers depended on which directory you were standing in. The strict
+reader told you there was no graph. Both behaviours are defensible; only one
+of them tells you something is wrong.
+
+That particular defect is fixed upstream. It was filed as
+[semantica#1099](https://github.com/semantica-agi/semantica/issues/1099),
+closed on 23 August, and shipped in 0.6.7: `rdf_exporter` gained a
+percent-encoding pass that 0.6.6 does not have, so from 0.6.7 the same input
+comes out as `<https://semantica.dev/ns#Acme%20Corp>` and both readers accept
+it. Install 0.6.7 or later and the example above does not reproduce.
+
+The disagreement itself did not go away, because an id that already **looks**
+absolute is handed through with `#` in the safe set rather than validated. On
+0.6.8, the newest release, an entity id of `http://example.com/##` is emitted
+verbatim. RFC 3987 forbids the second `#`, and the two readers still split on
+it: rdflib accepts the file and hands back three triples with that malformed
+subject, while Oxigraph refuses the whole file with `Invalid IRI code point
+'#'`. The fixture had to be replaced; the reason for having a second reader
+did not.
 
 **Silent partial reads are the same problem one level up.** Semantica's
 JSON-LD export put a top-level `@id` beside a top-level `@graph`, which makes
@@ -139,13 +157,15 @@ defect: not whether the data satisfies the shapes, but which terms in the
 graph were never declared anywhere. A vocabulary that nothing matches shows up
 immediately as terms with no home.
 
-**What the round trip produced.** Seventeen issues, of which the four fixed so
-far are upstream in Semantica: deterministic entity IRIs replacing a per-process
-`hash()`, a declared vocabulary at
-`semantica/ontology/vocabulary/semantica-ns.ttl` where the namespace had
-returned 404, JSON-LD `@id`s minted the same way the RDF serializers mint
-them, and timezone-aware timestamps with `sem:exportedAt` tightened to
-`xsd:dateTimeStamp`. That last one is the clearest single argument for this
+**What the round trip produced.** Seventeen issues, all of which are now
+closed. Ten of the fixes landed upstream as pull requests from this work, and
+an eleventh added `integrations/open_ontologies`, which routes Semantica's own
+RDF export through this engine before the written file is trusted. Among the
+fixes: deterministic entity IRIs replacing a per-process `hash()`, a declared
+vocabulary at `semantica/ontology/vocabulary/semantica-ns.ttl` where the
+namespace had returned 404, JSON-LD `@id`s minted the same way the RDF
+serializers mint them, and timezone-aware timestamps with `sem:exportedAt`
+tightened to `xsd:dateTimeStamp`. That last one is the clearest single argument for this
 layer. Timestamps were written naive, in two idioms that mean different
 things, and a `FILTER(?t < "...Z"^^xsd:dateTime)` over them in Oxigraph drops
 every affected row through XSD 1.1's indeterminate comparison. The query
