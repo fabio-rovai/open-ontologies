@@ -150,13 +150,45 @@ impl CheckerRun {
         format!("{}{}", self.stdout, self.stderr)
     }
 
+    /// The theorem this run named in its own stdout, if it named one.
+    ///
+    /// Every `lean/` entry point that mints a verdict prints a `theorem` field
+    /// saying which statement its acceptance discharges. Reading it here is
+    /// what lets a report quote the checker rather than describe it.
+    pub fn named_theorem(&self) -> Option<String> {
+        let v: serde_json::Value = serde_json::from_str(&self.stdout).ok()?;
+        Some(v.get("theorem")?.as_str()?.to_string())
+    }
+
     /// The one function in this crate that returns a [`Certified`].
     ///
-    /// `Some` exactly when the checker exited zero. `theorem` is the Lean
-    /// statement that binary's acceptance discharges, and it travels inside
-    /// the token so that no report can name a theorem without an acceptance.
-    pub fn accepted(&self, theorem: &'static str) -> Option<Certified> {
-        (self.exit == 0).then_some(Certified { theorem })
+    /// `Some` exactly when the checker exited zero AND its own stdout named one
+    /// of `allowed` as the theorem it discharged. The returned token carries
+    /// the name the CHECKER printed, not the caller's guess at it, so no report
+    /// can name a theorem without an acceptance that named the same one.
+    ///
+    /// The list is a list because one checker legitimately proves one of two
+    /// statements depending on its input: `lean/HMain.lean` earns the absolute
+    /// `OOCert.entails_of_builtin_horn` when the rule table is exactly the
+    /// built-ins and the relativised `OOCert.horn_certificate_sound` for any
+    /// other table. Passing a single literal made the Rust side report the
+    /// relativised name for both, so a caller could not tell an entailment from
+    /// an entailment-under-supplied-rules by reading the field that exists to
+    /// tell them.
+    ///
+    /// A checker that exits zero while naming a statement NOT on the list mints
+    /// nothing. That is the case worth refusing: a renamed or weakened theorem
+    /// would otherwise keep the label this call site was written against.
+    pub fn accepted_naming(&self, allowed: &[&'static str]) -> Option<Certified> {
+        if self.exit != 0 {
+            return None;
+        }
+        let named = self.named_theorem()?;
+        allowed
+            .iter()
+            .copied()
+            .find(|t| *t == named.as_str())
+            .map(|theorem| Certified { theorem })
     }
 }
 
@@ -164,7 +196,8 @@ impl CheckerRun {
 /// theorem its acceptance discharges.
 ///
 /// The field is private to this module. A value of this type exists only
-/// because [`CheckerRun::accepted`] read a zero exit code, so a variant that
+/// because [`CheckerRun::accepted_naming`] read a zero exit code and a matching
+/// theorem name, so a variant that
 /// carries one is unreachable on any path that did not run a checker.
 ///
 /// ```compile_fail
@@ -452,16 +485,40 @@ mod tests {
     /// it, so the exec fails with ETXTBSY no matter how unique the filename is.
     /// Both were observed in CI. `/bin/sh` and `cmd` are already there.
     fn shell_exiting(code: i32) -> (CheckerBinary, Command) {
+        shell_saying(code, Some("OOCert.certificate_sound"))
+    }
+
+    /// A shell that prints a checker's JSON line and then exits.
+    ///
+    /// The fake used to exit in silence, which no real checker does, and which
+    /// meant the mint could not be tested against the thing it now reads: the
+    /// theorem the binary NAMED. `None` is the checker that prints nothing.
+    fn shell_saying(code: i32, theorem: Option<&str>) -> (CheckerBinary, Command) {
         #[cfg(unix)]
         {
+            let say = match theorem {
+                Some(t) => format!("echo '{{\"ok\":true,\"theorem\":\"{t}\"}}'; "),
+                None => String::new(),
+            };
             let mut c = Command::new("/bin/sh");
-            c.arg("-c").arg(format!("exit {code}"));
+            c.arg("-c").arg(format!("{say}exit {code}"));
             (CheckerBinary::found_at(PathBuf::from("/bin/sh")), c)
         }
         #[cfg(windows)]
         {
+            // `arg` quotes for a C-runtime parser, turning every `"` into `\"`.
+            // cmd.exe has no such parser: it echoed the backslashes and the
+            // line was not JSON, so `named_theorem` saw nothing and all three
+            // minting tests failed on windows-latest. `raw_arg` hands cmd the
+            // line verbatim. The `&` follows the brace with no space so the
+            // echoed line carries no trailing blank either.
+            use std::os::windows::process::CommandExt;
+            let say = match theorem {
+                Some(t) => format!("echo {{\"ok\":true,\"theorem\":\"{t}\"}}& "),
+                None => String::new(),
+            };
             let mut c = Command::new("cmd");
-            c.arg("/C").arg(format!("exit {code}"));
+            c.raw_arg(format!("/C {say}exit {code}"));
             (CheckerBinary::found_at(PathBuf::from("cmd")), c)
         }
     }
@@ -472,17 +529,57 @@ mod tests {
         let (bin, c) = shell_exiting(1);
         let run = CheckerRun::spawn(&bin, c).expect("the system shell runs");
         assert_eq!(run.exit(), 1);
-        assert!(run.accepted("OOCert.certificate_sound").is_none());
+        assert!(run.accepted_naming(&["OOCert.certificate_sound"]).is_none());
     }
 
     #[test]
-    fn a_zero_exit_mints_the_theorem_it_was_given() {
+    fn a_zero_exit_mints_the_theorem_the_checker_named() {
         let (bin, c) = shell_exiting(0);
         let run = CheckerRun::spawn(&bin, c).expect("the system shell runs");
-        let cert = run.accepted("OOCert.certificate_sound").expect("exit 0");
+        let cert = run.accepted_naming(&["OOCert.certificate_sound"]).expect("exit 0");
         assert_eq!(cert.theorem(), "OOCert.certificate_sound");
         assert_eq!(FolVerdict::ModelChecked(cert).word(), "model_checked");
         assert_eq!(FolVerdict::ModelChecked(cert).theorem(), Some("OOCert.certificate_sound"));
+    }
+
+    /// The case the old signature could not see. A checker that exits zero
+    /// while discharging a DIFFERENT statement used to mint a token labelled
+    /// with whatever the Rust call site had typed, which is the one thing the
+    /// field is supposed to rule out.
+    #[test]
+    fn a_zero_exit_naming_another_theorem_mints_nothing() {
+        let (bin, c) = shell_saying(0, Some("OOCert.something_weaker"));
+        let run = CheckerRun::spawn(&bin, c).expect("the system shell runs");
+        assert_eq!(run.exit(), 0);
+        assert_eq!(run.named_theorem().as_deref(), Some("OOCert.something_weaker"));
+        assert!(run.accepted_naming(&["OOCert.certificate_sound"]).is_none());
+    }
+
+    /// And a checker that names nothing at all mints nothing, rather than
+    /// having a name supplied for it.
+    #[test]
+    fn a_zero_exit_naming_no_theorem_mints_nothing() {
+        let (bin, c) = shell_saying(0, None);
+        let run = CheckerRun::spawn(&bin, c).expect("the system shell runs");
+        assert_eq!(run.exit(), 0);
+        assert_eq!(run.named_theorem(), None);
+        assert!(run.accepted_naming(&["OOCert.certificate_sound"]).is_none());
+    }
+
+    /// Two statements, and the token carries the one that was printed.
+    #[test]
+    fn a_checker_with_two_theorems_reports_the_one_it_proved() {
+        let allowed = ["OOCert.horn_certificate_sound", "OOCert.entails_of_builtin_horn"];
+        for named in allowed {
+            let (bin, c) = shell_saying(0, Some(named));
+            let run = CheckerRun::spawn(&bin, c).expect("the system shell runs");
+            let cert = run.accepted_naming(&allowed).expect("exit 0 naming an allowed theorem");
+            assert_eq!(
+                cert.theorem(),
+                named,
+                "the token must carry what the checker printed, not the first entry in the list"
+            );
+        }
     }
 
     /// A checker that could not be started is an error, not a run, so it can
