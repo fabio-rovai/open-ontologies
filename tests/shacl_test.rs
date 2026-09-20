@@ -397,9 +397,13 @@ fn skipped_names(v: &serde_json::Value, shape: &str, constraint: &str) -> bool {
 
 #[test]
 fn test_node_shape_constraints_reach_the_tri_state_verdict() {
-    // sh:closed, a node-level sh:not and sh:nodeKind are not implemented. Each
-    // must be recorded as skipped under its own IRI, and the verdict must be
-    // null, not a pass. Data: ex:a carries ex:mech, undeclared by any shape.
+    // sh:closed and a node-level sh:not are not implemented. Each must be
+    // recorded as skipped under its own IRI, and the verdict must be null,
+    // not a pass. Data: ex:a carries ex:mech, undeclared by any shape.
+    //
+    // sh:nodeKind used to be in this list. A node shape's own value
+    // constraints are now EVALUATED against the focus node, so it is asserted
+    // below as a verdict in each direction rather than as a recorded gap.
     let store = store_with(NOT_DATA);
     let cases = [
         ("sh:closed true", "closed"),
@@ -407,7 +411,6 @@ fn test_node_shape_constraints_reach_the_tri_state_verdict() {
             "sh:not [ sh:property [ sh:path ex:mech ; sh:hasValue ex:bad ] ]",
             "not",
         ),
-        ("sh:nodeKind sh:IRI", "nodeKind"),
     ];
     for (constraint_ttl, local) in cases {
         let shapes = format!(
@@ -426,6 +429,23 @@ fn test_node_shape_constraints_reach_the_tri_state_verdict() {
         assert!(
             skipped_names(&v, "http://example.org/S", &format!("{SH_NS}{local}")),
             "{local}: must be recorded as skipped on ex:S: {v}"
+        );
+    }
+    // Evaluated, both ways: ex:a is an IRI.
+    for (constraint_ttl, want) in [("sh:nodeKind sh:IRI", true), ("sh:nodeKind sh:Literal", false)] {
+        let shapes = format!(
+            r#"
+            @prefix sh: <http://www.w3.org/ns/shacl#> .
+            @prefix ex: <http://example.org/> .
+            ex:S a sh:NodeShape ; sh:targetClass ex:Thing ; {constraint_ttl} .
+        "#
+        );
+        let v: serde_json::Value =
+            serde_json::from_str(&ShaclValidator::validate(&store, &shapes).unwrap()).unwrap();
+        assert_eq!(v["conforms"], want, "{constraint_ttl} is evaluated on the focus node: {v}");
+        assert!(
+            !skipped_names(&v, "http://example.org/S", &format!("{SH_NS}nodeKind")),
+            "{constraint_ttl}: evaluated AND recorded as skipped: {v}"
         );
     }
 }
