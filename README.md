@@ -46,6 +46,22 @@
   the rule named. Every count is taken from the run, not written into the caption.</sub>
 </p>
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/hqdm-audit.svg" alt="HQDM 0.0.1-alpha drawn as one connected graph of 490 terms. Twenty-three terms used as a class but never declared are drawn as hollow red rings; twelve rdfs:range declarations naming a relation are drawn as red edges converging on two hubs." width="100%">
+</p>
+
+<p align="center">
+  <sub><b>The same machinery on someone else's file, and it is not clean.</b> HQDM as published by
+  <code>hqdmTop/hqdmFramework</code>, vendored byte for byte by MagmaCore, carries no
+  <code>owl:</code> term and no disjointness axiom, so <i>no named class can be unsatisfiable</i> and
+  a coherence check returns zero. It still has <b>23</b> terms used as a class and never declared,
+  <b>12</b> <code>rdfs:range</code> declarations naming a relation rather than a class, and
+  <b>13</b> pairs of names one trailing underscore apart, three of them identical in domain and
+  range. Nothing here was proved and the figure does not say it was; the counts are recomputed from
+  the rows by a test. Provenance and method in
+  <a href="docs/assets/hqdm/PROVENANCE.md"><code>docs/assets/hqdm/PROVENANCE.md</code></a>.</sub>
+</p>
+
 ### One triple. Nothing added, nothing removed, blast radius zero. 901 consequences that were not there before.
 
 ```

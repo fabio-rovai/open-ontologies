@@ -347,9 +347,32 @@ jobs:
         run: cargo build --release --bin open-ontologies
       # shacl and align as well as dev. Those two extras are the whole reason
       # three more files skipped here, and they are small.
+      # `hnswlib` is built from source rather than taken as a wheel.
+      #
+      # The published wheel is compiled for a newer CPU than some of GitHub's
+      # runners provide, and it raises SIGILL on IMPORT. No `try`/`except`
+      # reaches that: the interpreter dies during collection and takes the
+      # whole suite with it, so the job fails with "Fatal Python error:
+      # Illegal instruction" and a core dump, on branches that touched no
+      # Python at all. Seen twice on 19 September 2026, on #211 (a docs-only
+      # change) and #219. Building it here compiles for the CPU the job is
+      # actually running on.
+      #
+      # Two more things, learned from the first attempt, which built from
+      # source and STILL crashed on import. hnswlib's setup.py compiles with
+      # `-march=native` unless HNSWLIB_NO_NATIVE is set, and setup-uv caches
+      # BUILT WHEELS across runners, keyed by requirements files and never by
+      # CPU, so a native build from one machine is handed to the next. The
+      # env var drops the flag. `--no-cache` is what forces the compile:
+      # measured locally, `--reinstall-package` and `--refresh-package` both
+      # still "Prepared 1 package in 0.39ms" from the wheel cache, while
+      # `--no-cache` logs "Building hnswlib" and the resulting compiler lines
+      # contain -march=native 0 times with the env var and 4 without.
       - name: Install with the extras the tests need
         working-directory: python
-        run: uv pip install --system -e ".[dev,shacl,align]"
+        env:
+          HNSWLIB_NO_NATIVE: "1"
+        run: uv pip install --system --no-cache --no-binary hnswlib -e ".[dev,shacl,align]"
       - name: Test
         working-directory: python
         run: python -m pytest -q

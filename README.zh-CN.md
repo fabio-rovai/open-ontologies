@@ -35,6 +35,34 @@ Open Ontologies 是一个 **Rust 编写的 MCP 服务器**与**桌面版 Studio*
 
 ---
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.svg" alt="ies-core.ttl 的 Studio 三维视图：类与子类边在三维空间中布局，验证层作为节点绘制在旁边。" width="100%">
+</p>
+
+<p align="center">
+  <sub><b>426 条断言，258 条已认证，1 条被拒绝。</b>绿色边是引擎推导出、并由 Lean 4 检查器<i>证明</i>过的。
+  红色边是一条伪造的推导，同一个检查器拒绝了它：退出码 1，并指明了规则。
+  所有计数都取自实际运行，而不是写死在说明文字里。</sub>
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/hqdm-audit.svg" alt="HQDM 0.0.1-alpha 绘制为一个包含 490 个术语的连通图。23 个被当作类使用却从未声明的术语画作空心红环；12 条以关系而非类作为 rdfs:range 的声明画作汇聚到两个枢纽的红边。" width="100%">
+</p>
+
+<p align="center">
+  <sub><b>同一套机制用在别人的文件上，结果并不干净。</b>
+  <code>hqdmTop/hqdmFramework</code> 发布的 HQDM（MagmaCore 逐字节原样收录）不含任何
+  <code>owl:</code> 术语，也没有任何不相交公理，因此<i>没有任何具名类可能不可满足</i>，
+  一致性检查必然返回零。但它仍然有 <b>23</b> 个被当作类使用却从未声明的术语、
+  <b>12</b> 条把关系而不是类写成 <code>rdfs:range</code> 的声明，以及
+  <b>13</b> 对仅差一个尾部下划线的名称，其中 3 对的定义域与值域完全相同。
+  这里没有任何东西被证明过，图上也没有这样声称；所有计数都由测试从原始三元组重新算出。
+  来源与方法见 <a href="docs/assets/hqdm/PROVENANCE.md"><code>docs/assets/hqdm/PROVENANCE.md</code></a>。</sub>
+</p>
+
+
+---
+
 ## 核心能力
 
 | 层 | 内容 |
