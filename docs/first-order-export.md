@@ -193,7 +193,7 @@ variables. **Everything else is named and counted as unchecked**, with a reason:
 Skolemisation, AVATAR splitting, every SAT-solver step, and every step of E's whose premise is an
 inline inference record and therefore carries no formula.
 
-### The verdict is one of eight words
+### The verdict is one of ten words
 
 | verdict | means |
 |---|---|
@@ -205,6 +205,8 @@ inline inference record and therefore carries no formula.
 | `refutation_structure_checked` | structure holds, no step replayed |
 | `refutation_partially_replayed` | structure holds, some steps replayed. The normal outcome |
 | `refutation_fully_replayed` | structure holds, EVERY step replayed. Still not unsatisfiability |
+| `refutation_certified` | the derivation was translated into `lean/Fo`'s certificate and `oo-fores` accepted it: `Fo.unsat_of_check`. The one word that rests on a theorem; earned by itself for any goal in the clausal fragment, which every OWL 2 RL ontology is |
+| `mu` | returned UNASKED. The goal puts in class position a term the ontology never uses as a class: undeclared, or only an individual, or typed `skos:Concept` and never classified with. No prover is asked; its answer would be about a symbol no axiom mentions. The report names the term, its position and what the file calls it |
 
 **An unchecked step prevents the strongest word**, and so does a leaf the prover invented. That is
 mechanical and it is the reason the ladder has three rungs rather than a boolean. Even

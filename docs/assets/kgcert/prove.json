@@ -1,0 +1,20 @@
+{
+ "source": "open-ontologies fol-prove on benchmark/reference/ies-core.ttl, goal below; the certificate file is committed beside this",
+ "goal": [
+  "<http://purl.org/ies/core/v0/ont/ICalRepresentation>",
+  "<http://www.w3.org/2000/01/rdf-schema#subClassOf>",
+  "<http://purl.org/ies/core/v0/ont/SetOfSigns>"
+ ],
+ "prover": "vampire",
+ "problem_form": "cnf",
+ "verdict": "refutation_certified",
+ "theorem": "Fo.unsat_of_check",
+ "checker": "oo-fores",
+ "certificate_steps": 5,
+ "certificate_clauses": 5,
+ "others": {
+  "E": "opinion",
+  "Z3": "opinion",
+  "Mace4": "opinion"
+ }
+}

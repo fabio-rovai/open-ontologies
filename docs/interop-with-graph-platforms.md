@@ -15,7 +15,7 @@ entities and relationships, and assemble a graph. They are pipelines, written
 in Python, with orchestration, storage, and retrieval included.
 
 Open Ontologies **verifies and governs**: it is a single Rust binary with no
-model client inside it, exposing 112 MCP tools over a formal store. Its job
+model client inside it, exposing 113 MCP tools over a formal store. Its job
 starts where extraction ends.
 
 ```

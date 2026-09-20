@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open Ontologies: try it here</title>
+<meta name="description" content="Drop one spreadsheet. Get one ontology, one shape, and the evidence for every line, from the same engine you would download. Then break a cell and watch the shape catch it.">
+<style>
+:root{--bg:#fafafa;--panel:#fff;--ink:#1a1a1a;--muted:#505a5f;--dim:#7a8288;--line:#e5e7eb;--code:#f6f8fa;--accent:#0b5fff;--ok:#0a7d3e;--bad:#c81e1e;--warn:#9a6700;--focus:#ffdd00;
+--sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans)}
+a{color:var(--accent)}code,pre,textarea.code{font-family:var(--mono);font-size:12.5px}
+header{border-bottom:1px solid var(--line);background:var(--panel)}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+header .wrap{display:flex;align-items:baseline;gap:18px;padding:14px 20px}
+header h1{font-size:17px;margin:0;font-weight:800;letter-spacing:.2px}header h1 span{color:var(--muted);font-weight:500}
+header nav{margin-left:auto;font-size:13px;color:var(--muted)}header nav a{margin-left:14px}
+main{padding:26px 0 60px}
+h2{font-size:15px;margin:0 0 10px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:18px;max-width:820px;margin:0 0 6px}.lede b{font-weight:800}
+.sub{color:var(--muted);max-width:820px;margin:0 0 22px}
+.grid{display:grid;grid-template-columns:1fr;gap:18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.drop{display:block;border:2px dashed #c9ced3;border-radius:10px;padding:22px;text-align:center;color:var(--muted);cursor:pointer;transition:.15s}
+.drop.on{border-color:var(--accent);background:#eef4ff;color:var(--ink)}
+.drop input{display:none}
+.samples{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+button{font:inherit;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:#9aa3ab}button.primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
+button:disabled{opacity:.5;cursor:default}button:focus-visible,.drop:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+textarea.code{width:100%;min-height:150px;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--code);resize:vertical}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.status{font-size:13px;color:var(--muted)}.status.err{color:var(--bad)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:14px 0 10px;flex-wrap:wrap}
+.tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;padding:6px 10px;background:none;color:var(--muted)}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--accent);font-weight:700}
+pre{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;max-height:520px;margin:0;white-space:pre}
+table{border-collapse:collapse;width:100%;font-size:13px;table-layout:fixed}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
+.ev th:nth-child(1){width:11%}.ev th:nth-child(2){width:12%}.ev th:nth-child(3){width:9%}.ev th:nth-child(4),.ev th:nth-child(5),.ev th:nth-child(6){width:5.5%}.ev th:nth-child(7){width:15%}.ev td:last-child{font-size:12px;color:var(--muted)}
+.gridwrap table{table-layout:auto}
+th{font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}td.mono{font-family:var(--mono);font-size:12px}
+.pill{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:700;letter-spacing:.3px}
+.pill.ok{background:#e6f4ea;color:var(--ok)}.pill.bad{background:#fde8e8;color:var(--bad)}.pill.warn{background:#fff4d6;color:var(--warn)}.pill.dim{background:#eef0f2;color:var(--muted)}
+.summary{font-size:16px;margin:0 0 4px}.summary b{font-weight:800}
+.means{font-size:13px;color:var(--muted);border-left:3px solid var(--line);padding:6px 12px;margin:10px 0 0}
+.gridwrap{overflow:auto;max-height:420px;border:1px solid var(--line);border-radius:8px}
+.gridwrap td[contenteditable]{outline:none;font-family:var(--mono);font-size:12px;min-width:60px}
+.gridwrap td[contenteditable]:focus{background:#fffbe6}.gridwrap td.changed{background:#fff4d6}
+.viol{border-left:3px solid var(--bad);padding:6px 10px;margin:8px 0;background:#fff;border-radius:0 6px 6px 0;font-size:13px}
+.viol code{background:var(--code);padding:1px 4px;border-radius:4px}
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px;padding:18px 0 40px}
+.hidden{display:none}
+.kv{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;font-size:13px;margin:8px 0}
+.kv dt{color:var(--muted)}.kv dd{margin:0}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>open-ontologies <span>· try it here</span></h1>
+  <nav><a href="https://github.com/fabio-rovai/open-ontologies">repository</a><a href="https://github.com/fabio-rovai/open-ontologies/blob/main/docs/tool-reference.md">tool reference</a><a href="#what">what this is</a></nav>
+</div></header>
+
+<main class="wrap">
+  <p class="lede"><b>One sheet in, one ontology out</b>, with the evidence for every line. Then break a cell and watch the shape catch it.</p>
+  <p class="sub">Everything below is the output of the engine you would download, run in batch mode on this page's server: <code>induce</code>, then <code>shacl</code>, then <code>reason owl-rl</code>. The page draws; it does not decide. Engine <span id="engine">…</span>.</p>
+
+  <div class="grid">
+    <section class="card">
+      <h2>1 · A sheet</h2>
+      <div style="display:grid;grid-template-columns:minmax(220px,1fr) 2fr;gap:14px"><div><label class="drop" id="drop" tabindex="0">Drop a CSV here, or click to choose one (up to 1 MB)<input type="file" id="file" accept=".csv,text/csv,.json,.ndjson"></label>
+      <div class="samples" id="samples"><span class="status">loading samples…</span></div></div>
+      <textarea class="code" id="csv" spellcheck="false" placeholder="…or paste CSV with a header row" style="min-height:190px"></textarea></div>
+      <div class="row">
+        <button class="primary" id="go">Induce the ontology</button>
+        <label class="status">class name <input id="cls" placeholder="from the file name" style="font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;width:150px"></label>
+        <span class="status" id="st1"></span>
+      </div>
+    </section>
+
+    <section class="card" id="out" hidden>
+      <h2>2 · What the engine induced</h2>
+      <p class="summary" id="summary"></p>
+      <dl class="kv" id="kv"></dl>
+      <div class="tabs" id="tabs">
+        <button data-t="evidence" class="on">Evidence</button><button data-t="ontology">Ontology (Turtle)</button><button data-t="shapes">Shapes (Turtle)</button><button data-t="mapping">Mapping</button><button data-t="engine">Engine output</button>
+      </div>
+      <div id="t-evidence"></div>
+      <pre id="t-ontology" class="hidden"></pre>
+      <pre id="t-shapes" class="hidden"></pre>
+      <pre id="t-mapping" class="hidden"></pre>
+      <pre id="t-engine" class="hidden"></pre>
+      <p class="means" id="means"></p>
+    </section>
+  </div>
+
+  <section class="card" id="play" hidden style="margin-top:18px">
+    <h2>3 · Break it</h2>
+    <p class="sub" style="margin-bottom:8px">The rows satisfy their own induced shape <i>by construction</i>, so the clean report above proves nothing. The shape constrains the <b>next</b> row. Edit any cell below (a word where a number was, a value outside an enumeration, a second value where there was one, an empty required cell) and re-check. The violation you get is the engine's SHACL validator over the induced shapes, not a page rule.</p>
+    <div class="gridwrap" id="gridwrap"></div>
+    <div class="row">
+      <button class="primary" id="recheck">Re-check the edited rows</button>
+      <button id="reset">Reset rows</button>
+      <span class="status" id="st2"></span>
+    </div>
+    <div id="viols"></div>
+  </section>
+
+  <section id="what" style="margin-top:26px">
+    <h2>What this is, and is not</h2>
+    <p class="sub" style="margin-bottom:8px">An induced ontology is a <b>hypothesis about the sheet</b>, not a truth about the domain. Three choices are deliberate: cardinality becomes a <i>shape</i> and never <code>owl:FunctionalProperty</code>, because under OWL RL a functional property with two values does not reject the second row, it identifies the two objects (<code>prp-fp</code>); observed numeric ranges are reported and never made <code>sh:minInclusive</code>; numbered columns (<code>topping1…topping7</code>) become one multi-valued property, and the group is reported so a false merge is visible. Strike what your domain does not support; the evidence column says what each line rests on.</p>
+    <p class="sub">Same thing from an MCP client, on your own files: <code>onto_induce {"path": "sheet.csv"}</code>. From the shell: <code>open-ontologies batch</code> with <code>induce sheet.csv --out ./induced</code>.</p>
+  </section>
+</main>
+<footer><div class="wrap">Nothing you upload is kept: each request runs in a fresh scratch directory that is deleted when the response is sent. Limits: 1 MB per sheet, 40 s per run. <a href="https://github.com/fabio-rovai/open-ontologies">fabio-rovai/open-ontologies</a>, Apache-2.0.</div></footer>
+
+<script>
+const $=s=>document.querySelector(s);
+const api=(p,opt)=>fetch('/api/'+p,opt).then(async r=>{const j=await r.json().catch(()=>({error:'not JSON: '+r.status}));if(!r.ok&&!j.error)j.error='HTTP '+r.status;return j});
+let current={name:'sheet.csv',csv:'',induced:null,mapping:null,rows:[],headers:[]};
+
+api('engine').then(j=>{$('#engine').textContent=j.tag?`${j.tag}, sha256 ${String(j.sha256).slice(0,12)}…`:'unavailable'}).catch(()=>{$('#engine').textContent='unavailable'});
+api('samples').then(j=>{const box=$('#samples');box.innerHTML='<span class="status">samples:</span>';(j.samples||[]).forEach(s=>{const b=document.createElement('button');b.textContent=`${s.name} (${s.rows} rows)`;b.onclick=()=>{$('#csv').value=s.csv;current.name=s.name;$('#cls').value='';$('#st1').textContent=`loaded ${s.name}`};box.appendChild(b)});
+  // ?sample=epc-sample.csv&auto=1 loads a bundled sheet and runs it, so a link can carry a worked example.
+  const q=new URLSearchParams(location.search),want=q.get('sample');const hit=(j.samples||[]).find(s=>s.name===want);if(hit){$('#csv').value=hit.csv;current.name=hit.name;$('#st1').textContent=`loaded ${hit.name}`;if(q.get('auto')==='1')$('#go').click()}});
+
+const drop=$('#drop'),file=$('#file');
+drop.onclick=()=>file.click();drop.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')file.click()};
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('on')}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('on')}));
+drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)readFile(f)});
+file.onchange=()=>{if(file.files[0])readFile(file.files[0])};
+function readFile(f){if(f.size>1_000_000){$('#st1').textContent='that file is over 1 MB; run the engine locally for it';$('#st1').className='status err';return}
+  const r=new FileReader();r.onload=()=>{$('#csv').value=r.result;current.name=f.name;$('#st1').className='status';$('#st1').textContent=`loaded ${f.name}`};r.readAsText(f)}
+
+// A small CSV parser for the editable grid only; the ENGINE parses the sheet it is sent.
+function parseCsv(t){const rows=[];let row=[],cell='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){cell+='"';i++}else q=false}else cell+=c}
+  else if(c==='"')q=true;else if(c===','){row.push(cell);cell=''}else if(c==='\n'){row.push(cell);rows.push(row);row=[];cell=''}else if(c!=='\r')cell+=c}
+  if(cell.length||row.length){row.push(cell);rows.push(row)}return rows.filter(r=>r.length>1||(r.length===1&&r[0]!==''))}
+function toCsv(headers,rows){const esc=v=>/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;return [headers,...rows].map(r=>r.map(esc).join(',')).join('\n')+'\n'}
+
+$('#tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;[...$('#tabs').children].forEach(x=>x.classList.toggle('on',x===b));['evidence','ontology','shapes','mapping','engine'].forEach(t=>$('#t-'+t).classList.toggle('hidden',t!==b.dataset.t))};
+
+$('#go').onclick=async()=>{const csv=$('#csv').value;if(!csv.trim()){$('#st1').textContent='paste or choose a sheet first';return}
+  current.csv=csv;$('#go').disabled=true;$('#st1').className='status';$('#st1').textContent='running the engine…';
+  const j=await api('induce',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:current.name,csv,class:$('#cls').value})});
+  $('#go').disabled=false;
+  if(j.error){$('#st1').className='status err';$('#st1').textContent=j.error;if(j.engine)console.log(j.engine);return}
+  $('#st1').textContent=`done in ${j.meta?.seconds ?? '?'} s`;render(j)};
+
+function render(j){const ind=j.induced;current.induced=ind;current.mapping=j.mapping_json||JSON.stringify(ind.mapping);
+  $('#out').hidden=false;$('#play').hidden=false;
+  const props=ind.columns.length,obj=ind.columns.filter(c=>c.refers_to).length,enums=ind.columns.filter(c=>c.values).length,groups=ind.columns.filter(c=>c.columns.length>1).length;
+  $('#summary').innerHTML=`<b>${esc(ind.class)}</b>: ${ind.rows} rows → 1 class, ${props} propert${props===1?'y':'ies'}${obj?` (${obj} object)`:''}${groups?`, ${groups} numbered group${groups>1?'s':''} merged`:''}${enums?`, ${enums} enumeration${enums>1?'s':''}`:''}.`;
+  const sh=j.shacl||{},rs=j.reason||{};
+  const conf=sh.conforms===true?'<span class="pill ok">conforms</span>':sh.conforms===false?'<span class="pill bad">violations</span>':'<span class="pill warn">undetermined</span>';
+  $('#kv').innerHTML=`<dt>identifier</dt><dd><code>${esc(ind.id_column)}</code>${ind.id_synthesised?' <span class="pill dim">row number: no column was filled and unique</span>':''}</dd>
+    <dt>shape over its own rows</dt><dd>${conf} ${sh.violation_count??0} violation(s), ${sh.focus_nodes??'?'} focus nodes. Expected: the rows satisfy the shape by construction.</dd>
+    <dt>owl-rl closure</dt><dd>${rs.inferred_count!=null?`${rs.inferred_count} inferred triples over ${rs.initial_triples??'?'} asserted`:(rs.error||'not run')}</dd>
+    <dt>loaded</dt><dd>${ind.loaded?`${ind.loaded.schema_triples} schema + ${ind.loaded.instance_triples} instance triples`:'—'}</dd>`;
+  let t='<table class="ev"><thead><tr><th>property</th><th>columns</th><th>type</th><th>filled</th><th>distinct</th><th>per row</th><th>decision</th><th>evidence</th></tr></thead><tbody>';
+  ind.columns.forEach(c=>{const dec=[];if(c.refers_to)dec.push(`<span class="pill ok">object → ${esc(c.refers_to)}</span>`);if(c.values)dec.push(`<span class="pill warn">sh:in (${c.values.length})</span>`);if(c.columns.length>1)dec.push(`<span class="pill dim">group of ${c.columns.length}</span>`);if(c.filled===c.rows)dec.push('<span class="pill dim">minCount 1</span>');dec.push(`<span class="pill dim">maxCount ${Math.max(1,c.max_per_row)}</span>`);
+    t+=`<tr><td class="mono">${esc(c.property)}</td><td class="mono">${esc(c.columns.join(', '))}</td><td class="mono">${c.refers_to?'IRI':'xsd:'+esc(c.datatype)}</td><td>${c.filled}/${c.rows}</td><td>${c.distinct}</td><td>${c.max_per_row}</td><td>${dec.join(' ')}</td><td style="color:var(--muted)">${esc(c.evidence)}${Object.keys(c.observed||{}).length?'; observed '+esc(Object.entries(c.observed).map(([k,v])=>k+' '+v).join(', '))+' (reported, not constrained)':''}</td></tr>`});
+  $('#t-evidence').innerHTML=t+'</tbody></table>';
+  $('#t-ontology').textContent=ind.ontology_ttl;$('#t-shapes').textContent=ind.shapes_ttl;$('#t-mapping').textContent=pretty(current.mapping);
+  $('#t-engine').textContent=JSON.stringify({induce:{...ind,ontology_ttl:'(see tab)',shapes_ttl:'(see tab)',mapping:'(see tab)'},shacl:j.shacl,reason:j.reason,stats:j.stats,meta:j.meta},null,1);
+  $('#means').textContent='The engine says: '+ind.means;
+  const rows=parseCsv(current.csv);current.headers=rows[0]||[];current.rows=rows.slice(1);grid()}
+
+function grid(){const h=current.headers,rows=current.rows.slice(0,40);let t='<table><thead><tr><th>#</th>'+h.map(x=>`<th>${esc(x)}</th>`).join('')+'</tr></thead><tbody>';
+  rows.forEach((r,i)=>{t+=`<tr><td style="color:var(--dim)">${i+1}</td>`+h.map((_,k)=>`<td contenteditable data-r="${i}" data-c="${k}">${esc(r[k]??'')}</td>`).join('')+'</tr>'});
+  $('#gridwrap').innerHTML=t+'</tbody></table>'+(current.rows.length>40?`<div class="status" style="padding:6px 8px">showing 40 of ${current.rows.length} rows; all rows are re-checked</div>`:'');
+  $('#gridwrap').oninput=e=>{const td=e.target.closest('td[contenteditable]');if(!td)return;const r=+td.dataset.r,c=+td.dataset.c;current.rows[r][c]=td.textContent;td.classList.add('changed')};$('#viols').innerHTML='';$('#st2').textContent=''}
+$('#reset').onclick=()=>{const rows=parseCsv(current.csv);current.rows=rows.slice(1);grid()};
+$('#recheck').onclick=async()=>{if(!current.induced)return;$('#recheck').disabled=true;$('#st2').className='status';$('#st2').textContent='running the engine…';
+  const csv=toCsv(current.headers,current.rows);
+  const j=await api('check',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:current.name,csv,ontology_ttl:current.induced.ontology_ttl,shapes_ttl:current.induced.shapes_ttl,mapping:current.mapping})});
+  $('#recheck').disabled=false;if(j.error){$('#st2').className='status err';$('#st2').textContent=j.error;return}
+  const sh=j.shacl||{};$('#st2').textContent=`${j.meta?.seconds??'?'} s · ${j.ingest?.triples_loaded??'?'} triples loaded`;
+  const v=sh.violations||[];let html=sh.conforms===true?'<p class="status"><span class="pill ok">conforms</span> the edited rows still satisfy the induced shape. Try a word in a numeric column, or a value outside an enumeration.</p>':sh.conforms===false?`<p class="status"><span class="pill bad">${v.length} violation${v.length===1?'':'s'}</span> reported by the engine's SHACL validator:</p>`:`<p class="status"><span class="pill warn">undetermined</span> ${esc(JSON.stringify(sh.skipped_constraints||sh))}</p>`;
+  v.slice(0,50).forEach(x=>{html+=`<div class="viol"><code>${esc(short(x.focus_node))}</code> · <code>${esc(short(x.result_path||x.path||''))}</code> · ${esc(short(x.source_constraint_component||x.constraint||''))}<br>${esc(x.message||'')}</div>`});
+  if(v.length>50)html+=`<p class="status">…and ${v.length-50} more</p>`;$('#viols').innerHTML=html};
+
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function short(s){s=String(s||'');const i=Math.max(s.lastIndexOf('#'),s.lastIndexOf('/'));return i>=0&&i<s.length-1?s.slice(i+1):s}
+function pretty(s){try{return JSON.stringify(typeof s==='string'?JSON.parse(s):s,null,1)}catch{return String(s)}}
+</script>
+</body>
+</html>

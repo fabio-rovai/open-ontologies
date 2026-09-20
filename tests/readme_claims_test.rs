@@ -44,7 +44,7 @@ fn total_claims(n: usize) -> Vec<(&'static str, &'static str, String)> {
     //
     // The reasoning is the issue's: surface area reads as insecurity, and a
     // number where a purpose belongs tells a visitor nothing about what this is
-    // for. A reader who meets "120 tools" before meeting a verb cannot tell
+    // for. A reader who meets "121 tools" before meeting a verb cannot tell
     // whether any of them is the one they need. The front page shows one loop
     // instead, and the breadth moved to docs/tool-reference.md, linked once.
     //

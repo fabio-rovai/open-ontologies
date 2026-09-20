@@ -90,7 +90,7 @@ fn the_front_page_sells_the_loop_and_not_the_surface_area() {
     let readme = read("README.md");
     let fold = &readme[..readme.len().min(9000)];
 
-    for banned in ["120 tools", "112 tools", "Terraforming MCP"] {
+    for banned in ["121 tools", "113 tools", "Terraforming MCP"] {
         assert!(
             !readme.contains(banned),
             "the README still says {banned:?}. Surface area reads as insecurity, and a \
@@ -146,7 +146,7 @@ fn the_retired_words_do_not_come_back() {
         {
             let lower = t.to_lowercase();
             let is_catalogue = p.ends_with("tool-reference.md");
-            for w in ["120 tools", "112 tools", "terraforming mcp", "trustworthy"] {
+            for w in ["121 tools", "113 tools", "terraforming mcp", "trustworthy"] {
                 let counts_only = w.ends_with(" tools");
                 if is_catalogue && counts_only {
                     continue;

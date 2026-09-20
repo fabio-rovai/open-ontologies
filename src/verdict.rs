@@ -405,6 +405,10 @@ pub const CHECKER_OWNED_WORDS: &[&str] = &[
     "entailed_under_supplied_rules",
     // `oo-refute`, lean/OOCert/Refute.lean.
     "unsatisfiable_under_disjointness",
+    // `oo-fores`, lean/FoMain.lean, and `oo-lrat`, lean/LratMain.lean. Both
+    // print this for an accepted refutation. The Rust side says
+    // `refutation_certified` and `refuted`, never this.
+    "unsatisfiable",
 ];
 
 /// The word a SUPPLIED Horn table can earn from `oo-horn`, for the one place
