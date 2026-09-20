@@ -1,0 +1,9 @@
+emp_id,name,manager_id,grade,salary,started
+1,Ann Adair,,A,100000,2019-03-01
+2,Bob Baines,1,B,80000,2020-06-15
+3,Cy Chen,1,B,80500,2020-09-01
+4,Di Duarte,2,A,90000,2021-01-11
+5,Ed Evans,2,B,70000,2021-02-01
+6,Fi Fischer,3,A,60000,2022-05-23
+7,Gus Gray,3,C,52000,2022-08-08
+8,Hal Hume,4,C,51000,2023-01-09

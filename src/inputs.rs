@@ -1596,3 +1596,17 @@ pub struct OntoTemporalQueryInput {
     /// retired by then (temporal:recordedUntil closes the interval)
     pub as_of: Option<String>,
 }
+
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoInduceInput {
+    /// Path to one data sheet (CSV, JSON, NDJSON, XML, YAML, XLSX, Parquet)
+    pub path: String,
+    /// Base IRI for everything minted (default: http://example.org/data/). The
+    /// class and properties live under `{base_iri}ont#`, the instances under `{base_iri}`.
+    pub base_iri: Option<String>,
+    /// Class name (default: derived from the file stem, `pizza-menu.csv` -> `PizzaMenu`)
+    pub class_name: Option<String>,
+    /// Load the induced ontology, its shapes and the rows into the store (default: true).
+    /// With false the result is returned and nothing in the store changes.
+    pub load: Option<bool>,
+}

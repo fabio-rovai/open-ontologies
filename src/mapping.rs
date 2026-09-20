@@ -87,8 +87,18 @@ impl MappingConfig {
                 // Lookup field: produce an IRI object
                 format!("<{}{}>", self.base_iri, sanitize_iri(value))
             } else if let Some(ref dt) = mapping.datatype {
-                // Typed literal
-                format!("\"{}\"^^<{}>", escape_ntriples(value), dt)
+                // Typed literal, when the cell is in the datatype's lexical
+                // space. A cell that is not is minted as a plain string rather
+                // than an ill-typed literal: `"cheap"^^xsd:integer` answers
+                // xsd:integer to DATATYPE() and slips past every sh:datatype
+                // check, `"cheap"` is caught by the first one. Datatypes this
+                // crate cannot parse keep the declared type.
+                let ok = crate::induce::Dt::from_iri(dt).is_none_or(|d| d.accepts(value));
+                if ok {
+                    format!("\"{}\"^^<{}>", escape_ntriples(value), dt)
+                } else {
+                    format!("\"{}\"", escape_ntriples(value))
+                }
             } else {
                 // Plain literal
                 format!("\"{}\"", escape_ntriples(value))

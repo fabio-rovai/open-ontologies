@@ -11,7 +11,7 @@ who meets a catalogue first cannot tell what it is for. Everything below keeps
 its code and its own documentation; it loses its place above the fold.
 
 
-120 tools.
+121 tools.
 
 | Tool | What it does |
 | --- | --- |
@@ -68,6 +68,7 @@ its code and its own documentation; it loses its place above the fold.
 | `onto_hnsw_build` | Build (or rebuild) the HNSW cosine index over the loaded text embeddings with explicit `ef_construction` and `ef_search` parameters. |
 | `onto_import` | Resolve and load all owl:imports from the currently loaded ontology |
 | `onto_import_schema` | Import a relational database schema as an OWL ontology. |
+| `onto_induce` | ONE SHEET IN, ONE ONTOLOGY OUT: induce an OWL class, typed properties, a SHACL shape and a loading mapping from one data sheet, with the evidence for every line. |
 | `onto_ingest` | Parse a structured data file (CSV, JSON, NDJSON, XML, YAML, XLSX, Parquet) into RDF triples and load into the ontology store. |
 | `onto_invariant_check` | Evaluate every registered BC+ invariant against the current graph and return the names + descriptions of any that fail. |
 | `onto_invariant_list` | List all registered BC+ static causal laws (invariants). |
