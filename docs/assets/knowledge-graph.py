@@ -849,8 +849,27 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
       f'stroke="{C_TOOL}" stroke-width="1.5" stroke-dasharray="4 4"/>')
     dtxt = "disagreement · stops the line"
     dw = len(dtxt) * 5.0 + 12
-    dx, dy = fx0 - dw - 8, fy0 + 4
-    placed.append((dx - 3, dy - 12, dx + dw + 3, dy + 5))
+    # Candidates, like every other badge on this drawing. This one used to take
+    # a single computed point, and that point sat on top of the `problem.tsv`
+    # label: two pieces of writing, both visible at the same instant, in the
+    # same place. Nothing else here places blind, and the overlap guard in
+    # `tests/knowledge_graph_asset_test.rs` now refuses the whole asset if one
+    # does.
+    dcands = [
+        (fx0 - dw - 8, fy0 + 4),
+        (fx0 - dw - 8, fy0 - 22),
+        (fx0 - dw - 8, fy0 + 30),
+        (fx0 + 10, fy0 + 30),
+        (fx0 - dw / 2, fy0 + 52),
+    ]
+    dx, dy = dcands[-1]
+    for n_, (ccx, ccy) in enumerate(dcands):
+        box = (ccx - 3, ccy - 12, ccx + dw + 3, ccy + 5)
+        if all(box[2] < o[0] or box[0] > o[2] or box[3] < o[1] or box[1] > o[3]
+               for o in placed) or n_ == len(dcands) - 1:
+            dx, dy = ccx, ccy
+            placed.append(box)
+            break
     A(f'<rect x="{dx:.1f}" y="{dy - 10:.1f}" width="{dw:.1f}" height="14" rx="7" '
       f'fill="#020617" stroke="{C_TOOL}" stroke-width="1" opacity="0.95"/>')
     A(f'<text x="{dx + dw / 2:.1f}" y="{dy:.1f}" text-anchor="middle" font-size="8.8" '
