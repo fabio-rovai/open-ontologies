@@ -12,7 +12,7 @@ class H(api):
     def do_GET(self):
         if self.path.startswith("/api/"):
             return api.do_GET(self)
-        p = PUBLIC / (self.path.strip("/") or "index.html")
+        p = PUBLIC / (self.path.split("?")[0].strip("/") or "index.html")
         if not p.exists():
             self.send_response(404); self.end_headers(); return
         data = p.read_bytes(); self.send_response(200)

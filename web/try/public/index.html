@@ -19,9 +19,9 @@ main{padding:26px 0 60px}
 h2{font-size:15px;margin:0 0 10px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted)}
 .lede{font-size:18px;max-width:820px;margin:0 0 6px}.lede b{font-weight:800}
 .sub{color:var(--muted);max-width:820px;margin:0 0 22px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.grid{display:grid;grid-template-columns:1fr;gap:18px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
-.drop{border:2px dashed #c9ced3;border-radius:10px;padding:22px;text-align:center;color:var(--muted);cursor:pointer;transition:.15s}
+.drop{display:block;border:2px dashed #c9ced3;border-radius:10px;padding:22px;text-align:center;color:var(--muted);cursor:pointer;transition:.15s}
 .drop.on{border-color:var(--accent);background:#eef4ff;color:var(--ink)}
 .drop input{display:none}
 .samples{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
@@ -35,7 +35,9 @@ textarea.code{width:100%;min-height:150px;border:1px solid var(--line);border-ra
 .tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;padding:6px 10px;background:none;color:var(--muted)}
 .tabs button.on{color:var(--ink);border-bottom-color:var(--accent);font-weight:700}
 pre{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;max-height:520px;margin:0;white-space:pre}
-table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+table{border-collapse:collapse;width:100%;font-size:13px;table-layout:fixed}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
+.ev th:nth-child(1){width:11%}.ev th:nth-child(2){width:12%}.ev th:nth-child(3){width:9%}.ev th:nth-child(4),.ev th:nth-child(5),.ev th:nth-child(6){width:5.5%}.ev th:nth-child(7){width:15%}.ev td:last-child{font-size:12px;color:var(--muted)}
+.gridwrap table{table-layout:auto}
 th{font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}td.mono{font-family:var(--mono);font-size:12px}
 .pill{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:700;letter-spacing:.3px}
 .pill.ok{background:#e6f4ea;color:var(--ok)}.pill.bad{background:#fde8e8;color:var(--bad)}.pill.warn{background:#fff4d6;color:var(--warn)}.pill.dim{background:#eef0f2;color:var(--muted)}
@@ -65,9 +67,9 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px;paddin
   <div class="grid">
     <section class="card">
       <h2>1 · A sheet</h2>
-      <label class="drop" id="drop" tabindex="0">Drop a CSV here, or click to choose one (up to 1 MB)<input type="file" id="file" accept=".csv,text/csv,.json,.ndjson"></label>
-      <div class="samples" id="samples"><span class="status">loading samples…</span></div>
-      <textarea class="code" id="csv" spellcheck="false" placeholder="…or paste CSV with a header row"></textarea>
+      <div style="display:grid;grid-template-columns:minmax(220px,1fr) 2fr;gap:14px"><div><label class="drop" id="drop" tabindex="0">Drop a CSV here, or click to choose one (up to 1 MB)<input type="file" id="file" accept=".csv,text/csv,.json,.ndjson"></label>
+      <div class="samples" id="samples"><span class="status">loading samples…</span></div></div>
+      <textarea class="code" id="csv" spellcheck="false" placeholder="…or paste CSV with a header row" style="min-height:190px"></textarea></div>
       <div class="row">
         <button class="primary" id="go">Induce the ontology</button>
         <label class="status">class name <input id="cls" placeholder="from the file name" style="font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;width:150px"></label>
@@ -117,7 +119,9 @@ const api=(p,opt)=>fetch('/api/'+p,opt).then(async r=>{const j=await r.json().ca
 let current={name:'sheet.csv',csv:'',induced:null,mapping:null,rows:[],headers:[]};
 
 api('engine').then(j=>{$('#engine').textContent=j.tag?`${j.tag}, sha256 ${String(j.sha256).slice(0,12)}…`:'unavailable'}).catch(()=>{$('#engine').textContent='unavailable'});
-api('samples').then(j=>{const box=$('#samples');box.innerHTML='<span class="status">samples:</span>';(j.samples||[]).forEach(s=>{const b=document.createElement('button');b.textContent=`${s.name} (${s.rows} rows)`;b.onclick=()=>{$('#csv').value=s.csv;current.name=s.name;$('#cls').value='';$('#st1').textContent=`loaded ${s.name}`};box.appendChild(b)})});
+api('samples').then(j=>{const box=$('#samples');box.innerHTML='<span class="status">samples:</span>';(j.samples||[]).forEach(s=>{const b=document.createElement('button');b.textContent=`${s.name} (${s.rows} rows)`;b.onclick=()=>{$('#csv').value=s.csv;current.name=s.name;$('#cls').value='';$('#st1').textContent=`loaded ${s.name}`};box.appendChild(b)});
+  // ?sample=epc-sample.csv&auto=1 loads a bundled sheet and runs it, so a link can carry a worked example.
+  const q=new URLSearchParams(location.search),want=q.get('sample');const hit=(j.samples||[]).find(s=>s.name===want);if(hit){$('#csv').value=hit.csv;current.name=hit.name;$('#st1').textContent=`loaded ${hit.name}`;if(q.get('auto')==='1')$('#go').click()}});
 
 const drop=$('#drop'),file=$('#file');
 drop.onclick=()=>file.click();drop.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')file.click()};
@@ -153,7 +157,7 @@ function render(j){const ind=j.induced;current.induced=ind;current.mapping=j.map
     <dt>shape over its own rows</dt><dd>${conf} ${sh.violation_count??0} violation(s), ${sh.focus_nodes??'?'} focus nodes. Expected: the rows satisfy the shape by construction.</dd>
     <dt>owl-rl closure</dt><dd>${rs.inferred_count!=null?`${rs.inferred_count} inferred triples over ${rs.initial_triples??'?'} asserted`:(rs.error||'not run')}</dd>
     <dt>loaded</dt><dd>${ind.loaded?`${ind.loaded.schema_triples} schema + ${ind.loaded.instance_triples} instance triples`:'—'}</dd>`;
-  let t='<table><thead><tr><th>property</th><th>columns</th><th>type</th><th>filled</th><th>distinct</th><th>per row</th><th>decision</th><th>evidence</th></tr></thead><tbody>';
+  let t='<table class="ev"><thead><tr><th>property</th><th>columns</th><th>type</th><th>filled</th><th>distinct</th><th>per row</th><th>decision</th><th>evidence</th></tr></thead><tbody>';
   ind.columns.forEach(c=>{const dec=[];if(c.refers_to)dec.push(`<span class="pill ok">object → ${esc(c.refers_to)}</span>`);if(c.values)dec.push(`<span class="pill warn">sh:in (${c.values.length})</span>`);if(c.columns.length>1)dec.push(`<span class="pill dim">group of ${c.columns.length}</span>`);if(c.filled===c.rows)dec.push('<span class="pill dim">minCount 1</span>');dec.push(`<span class="pill dim">maxCount ${Math.max(1,c.max_per_row)}</span>`);
     t+=`<tr><td class="mono">${esc(c.property)}</td><td class="mono">${esc(c.columns.join(', '))}</td><td class="mono">${c.refers_to?'IRI':'xsd:'+esc(c.datatype)}</td><td>${c.filled}/${c.rows}</td><td>${c.distinct}</td><td>${c.max_per_row}</td><td>${dec.join(' ')}</td><td style="color:var(--muted)">${esc(c.evidence)}${Object.keys(c.observed||{}).length?'; observed '+esc(Object.entries(c.observed).map(([k,v])=>k+' '+v).join(', '))+' (reported, not constrained)':''}</td></tr>`});
   $('#t-evidence').innerHTML=t+'</tbody></table>';

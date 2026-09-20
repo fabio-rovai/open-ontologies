@@ -411,11 +411,15 @@ pub fn induce(rows: &[HashMap<String, String>], headers: &[String], stem: &str, 
             && cols.iter().all(|c| c != &id_column))
         .then(|| class.clone());
 
+        // A closed set needs more than a short column: at least two values
+        // (one value is a constant, not an enumeration), at most twelve, and
+        // each seen five times over on average. Thirty rows of a four-letter
+        // code qualify; thirty rows of names do not.
         let values = (refers_to.is_none()
             && datatype == Dt::String
-            && !distinct.is_empty()
+            && distinct.len() >= 2
             && distinct.len() <= 12
-            && all.len() >= 3 * distinct.len())
+            && all.len() >= 5 * distinct.len())
         .then(|| distinct.iter().map(|v| v.to_string()).collect::<Vec<_>>());
 
         let mut observed = BTreeMap::new();
@@ -668,7 +672,7 @@ mod tests {
     #[test]
     fn a_self_reference_is_an_object_property_and_a_small_set_is_an_enumeration() {
         let (r, h) = rows(
-            "emp_id,name,manager_id,grade,salary\n1,Ann,,A,100\n2,Bob,1,B,80\n3,Cy,1,B,80.5\n4,Di,2,A,90\n5,Ed,2,B,70\n6,Fi,3,A,60\n",
+            "emp_id,name,manager_id,grade,salary\n1,Ann,,A,100\n2,Bob,1,B,80\n3,Cy,1,B,80.5\n4,Di,2,A,90\n5,Ed,2,B,70\n6,Fi,3,A,60\n7,Gus,3,A,55\n8,Hal,4,B,50\n9,Ida,4,A,45\n10,Jo,5,B,40\n",
         );
         let i = induce(&r, &h, "staff", "http://ex.org/");
         let by = |p: &str| i.columns.iter().find(|c| c.property == p).unwrap_or_else(|| panic!("{p}: {:?}", i.columns));
@@ -678,10 +682,10 @@ mod tests {
         assert_eq!(by("grade").values.as_ref().map(|v| v.len()), Some(2));
         assert!(i.shapes_ttl.contains("sh:in ( \"A\" \"B\" )"));
         assert_eq!(by("salary").datatype, Dt::Decimal);
-        assert_eq!(by("salary").observed.get("min").map(String::as_str), Some("60"));
+        assert_eq!(by("salary").observed.get("min").map(String::as_str), Some("40"));
         assert!(!i.shapes_ttl.contains("sh:minInclusive"), "observed ranges are evidence, not constraints");
-        assert!(by("manager_id").filled < 6 && !i.shapes_ttl.contains("sh:path :manager_id ;\n        sh:class <http://ex.org/ont#Staff> ;\n        sh:nodeKind sh:IRI ;\n        sh:maxCount 1 ;\n        sh:minCount 1"));
-        // name is not an enumeration: six distinct over six values.
+        assert!(by("manager_id").filled < 10 && !i.shapes_ttl.contains("sh:path :manager_id ;\n        sh:class <http://ex.org/ont#Staff> ;\n        sh:nodeKind sh:IRI ;\n        sh:maxCount 1 ;\n        sh:minCount 1"));
+        // name is not an enumeration: ten distinct over ten values.
         assert!(by("name").values.is_none());
     }
 
