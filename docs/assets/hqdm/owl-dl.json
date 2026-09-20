@@ -1,0 +1,84 @@
+{
+ "agents": {
+  "parallel_workers": 16,
+  "satisfiability_agent": {
+   "classes_checked": 234,
+   "satisfiable_found": 195,
+   "time_ms": 1068,
+   "undetermined": 39
+  },
+  "subsumption_agent": {
+   "pairs_tested": 52013,
+   "subsumptions_found": 172,
+   "time_ms": 10073
+  },
+  "total_time_ms": 11142
+ },
+ "algorithm": "tableaux",
+ "budget": {
+  "binding_bound": "phase",
+  "classify_timeout_ms": 180000,
+  "note": "classify_timeout_ms (180000 ms) cannot be the bound that stops this run: 5 phases at 10000 ms each cap it at 50000 ms. It is enforced as a ceiling over every phase and will not fire at this setting. The bound in force is the phase budget; lower classify_timeout_ms below 50000 to make it the binding one.",
+  "phase_timeout_ms": 10000,
+  "phase_worst_case_ms": 50000,
+  "phases": [
+   "consistency",
+   "satisfiability",
+   "subsumption",
+   "abox",
+   "explanation"
+  ]
+ },
+ "budget_exhausted_in": [
+  "satisfiability"
+ ],
+ "complete": false,
+ "consistent": true,
+ "description_logic": "SHIQ",
+ "named_classes": 235,
+ "profile_used": "owl-dl",
+ "source": "open-ontologies batch: load docs/assets/hqdm/hqdm.owl; reason owl-dl, with [reasoner] tableaux_test_timeout_ms = 120000, classify_timeout_ms = 900000",
+ "tbox_consistent": true,
+ "undetermined_classes": [
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#sign>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#asset>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#transferor>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#offer_and_acceptance_for_goods>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#agree_contract>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#definition>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#agreement_process>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#kind_of_association>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#defined_relationship>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#description>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#acceptance_of_offer_for_goods>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#agreement_execution>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#contract_execution>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#sale_of_goods>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#money_asset>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#physical_quantity>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#physical_quantity_range>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#identification_of_physical_quantity>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#ownership>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#representation_by_pattern>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#participant>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#representation_by_sign>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#offer_for_goods>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#recognizing_language_community>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#transfer_of_ownership_of_money>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#transferee>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#employment>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#association>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#employer>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#identification>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#acceptance_of_offer>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#owner>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#employee>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#physical_property_range>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#transfer_of_ownership>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#physical_property>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#reaching_agreement>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#contract_process>",
+  "<http://www.semanticweb.org/magma-core/ontologies/hqdm#exchange_of_goods_and_money>"
+ ],
+ "unsatisfiable_classes": []
+}
