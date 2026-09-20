@@ -1,0 +1,8 @@
+{
+  "buildCommand": "sh build.sh",
+  "outputDirectory": "public",
+  "rewrites": [{ "source": "/api/(.*)", "destination": "/api/index?p=$1" }],
+  "functions": {
+    "api/index.py": { "memory": 1024, "maxDuration": 60, "includeFiles": "api/_bin/**,api/_samples/**" }
+  }
+}

@@ -418,6 +418,34 @@ impl DataIngester {
     }
 
     /// Collect unique keys from all rows, sorted alphabetically.
+    /// Column names in the order the FILE gives them, when the format has an
+    /// order (CSV: the header row), else sorted. `extract_headers` sorts,
+    /// which loses which column came first, and the first column is the
+    /// identifier candidate for induction.
+    pub fn headers_in_order(path: &str, rows: &[HashMap<String, String>]) -> Vec<String> {
+        let ordered: Option<Vec<String>> = match Self::detect_format(path) {
+            "csv" => std::fs::read_to_string(path).ok().and_then(|c| {
+                let mut r = csv::ReaderBuilder::new().has_headers(true).from_reader(c.as_bytes());
+                r.headers().ok().map(|h| h.iter().map(|x| x.to_string()).collect())
+            }),
+            _ => None,
+        };
+        match ordered {
+            Some(h) if !h.is_empty() => {
+                // The file's order for the columns it names, then any key a
+                // row carries that the header did not.
+                let mut out = h;
+                for k in Self::extract_headers(rows) {
+                    if !out.contains(&k) {
+                        out.push(k);
+                    }
+                }
+                out
+            }
+            _ => Self::extract_headers(rows),
+        }
+    }
+
     pub fn extract_headers(rows: &[HashMap<String, String>]) -> Vec<String> {
         let mut keys: Vec<String> = rows
             .iter()
