@@ -1042,6 +1042,44 @@ impl OpenOntologiesServer {
         }
     }
 
+    #[tool(name = "onto_induce", description = "ONE SHEET IN, ONE ONTOLOGY OUT, WITH THE EVIDENCE FOR EVERY LINE. Reads one data sheet (CSV, JSON, NDJSON, XML, YAML, XLSX, Parquet) and induces an OWL class with typed properties, a SHACL shape the rows satisfy by construction, and a mapping that loads the rows as instances; then loads all three unless load=false. WHAT IS DECIDED, AND FROM WHAT: the identifier is the first column if it is filled and unique in every row, else an id-like column that is, else a row number (and the report says which); each property's xsd datatype is the narrowest every value parses as (boolean, integer, decimal, date, dateTime, anyURI, string); a column whose every value is an identifier of a row becomes an object property ranging over the class; numbered columns (topping1..topping7) become ONE multi-valued property with sh:maxCount = the group size; a string column with two to twelve distinct values, each seen five times over on average, becomes an sh:in enumeration. Every induced statement carries a sentence of evidence (rows filled, distinct values, values per row, the parse) in rdfs:comment or sh:description. THREE DELIBERATE CHOICES, STATED: cardinality is a SHAPE and never owl:FunctionalProperty (under OWL RL a functional property with two values identifies the objects, prp-fp, instead of rejecting the row); observed numeric ranges are reported and never made sh:minInclusive/sh:maxInclusive; a numbered group is reported so a false merge is visible. WHAT THIS IS: a HYPOTHESIS about the sheet, not a truth about the domain, and the `means` field says so; a clean validation of this sheet against its own induced shapes says nothing, the shapes constrain the NEXT row. Returns class, columns with their profiles and evidence, ontology_ttl, shapes_ttl, mapping, and what was loaded.")]
+    async fn onto_induce(&self, Parameters(input): Parameters<OntoInduceInput>) -> String {
+        use crate::ingest::DataIngester;
+        let base_iri = input.base_iri.clone().unwrap_or_else(|| "http://example.org/data/".to_string());
+        let stem = input.class_name.clone().unwrap_or_else(|| {
+            std::path::Path::new(&input.path).file_stem().and_then(|s| s.to_str()).unwrap_or("Row").to_string()
+        });
+        let rows = match DataIngester::parse_file(&input.path) {
+            Ok(r) => r,
+            Err(e) => return Self::err_json(format!("Failed to parse {}: {}", input.path, e)),
+        };
+        if rows.is_empty() {
+            return Self::err_json("no data rows found; nothing to induce from");
+        }
+        let headers = DataIngester::headers_in_order(&input.path, &rows);
+        let induced = crate::induce::induce(&rows, &headers, &stem, &base_iri);
+        let mut v = match serde_json::to_value(&induced) {
+            Ok(v) => v,
+            Err(e) => return Self::err_json(e),
+        };
+        if input.load.unwrap_or(true) {
+            let loaded = self
+                .graph
+                .load_turtle(&induced.ontology_ttl, None)
+                .and_then(|a| self.graph.load_turtle(&induced.shapes_ttl, None).map(|b| a + b))
+                .and_then(|ab| self.graph.load_ntriples(&induced.mapping.rows_to_ntriples(&rows)).map(|c| (ab, c)));
+            match loaded {
+                Ok((schema, data)) => {
+                    v["loaded"] = serde_json::json!({"schema_triples": schema, "instance_triples": data});
+                    self.lineage().record(&self.session_id, "IN", "induce", &format!("{} rows -> {}", rows.len(), induced.class));
+                }
+                Err(e) => return Self::err_json(format!("induced, but loading failed: {e}")),
+            }
+        }
+        v["ok"] = serde_json::json!(true);
+        v.to_string()
+    }
+
     #[tool(name = "onto_temporal_snapshot", description = "Which named graphs are in scope at a point in time, and which are excluded and why. Two independent clocks: valid_at asks what was TRUE then, as_of asks what was KNOWN then. Assertions live in named graphs described in the default graph with temporal:validFrom, validTo, recordedAt and recordedUntil; a graph with no description is timeless and always in scope. Both intervals are half-open, so an assertion whose recordedUntil has passed is excluded as no longer believed instead of being carried forward beside the correction that replaced it. Bounds on all four axes are read as instants on the UTC timeline from xsd:date, xsd:dateTime, xsd:gYearMonth or xsd:gYear; a less precise bound names the FIRST instant of its period, and a value with no timezone offset is UTC. A bound matching none of those, or two different instants on one axis, makes the graph INVALID: reported in `invalid` with a reason, never in scope and never timeless. A graph whose validFrom and validTo both read but together hold at no instant (the same instant twice, or validTo before validFrom) is not invalid: it is excluded at every instant asked about, with a reason naming which of the two it is; with no valid_at it is in scope like any other graph. The scans are capped: `complete` says whether they finished, and a run that was cut short also carries `truncated` and a `warning`, because a truncated validity scan makes this partition wrong rather than merely short. Lineage is asserted, never inferred: temporal:supersedes on the NEWER graph names the graph it replaces, and where the replaced graph carries no recordedUntil its closing bound is derived from the successor's recordedAt (the earliest, where there are several), so an excluded row closed that way carries `superseded_by`; an explicit recordedUntil always governs and a disagreement with the successor is reported, not reconciled. temporal:retracts names a graph withdrawn without replacement: from the retraction's recordedAt the retracted graph leaves in_scope and is listed under `retracted` with the retracting graph and instant; with no as_of the recorded axis is not consulted, for a retraction no more than for a recordedUntil, and the graph takes the ordinary path. `lineage`, present only when non-empty, reports what the links could not settle: a disagreement, a transaction interval that closes before it opens (a successor recorded before its predecessor, reported as inverted and believed at no instant, never clamped), an undated successor or retractor, more than one successor, a cycle, or a link that names nothing readable or is asserted by a graph whose own description could not be read.")]
     async fn onto_temporal_snapshot(&self, Parameters(input): Parameters<OntoTemporalSnapshotInput>) -> String {
         use crate::temporal::Temporal;

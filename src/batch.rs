@@ -150,6 +150,7 @@ impl BatchRunner {
             "pull" => self.exec_pull(&cmd.args).await,
             "push" => self.exec_push(&cmd.args).await,
             "ingest" => self.exec_ingest(&cmd.args),
+            "induce" => self.exec_induce(&cmd.args),
             "drift" => self.exec_drift(&cmd.args),
             "lock" => self.exec_lock(&cmd.args),
             "monitor" => self.exec_monitor(),
@@ -822,6 +823,59 @@ impl BatchRunner {
             Ok(count) => json!({"ok": true, "triples_loaded": count, "rows": rows.len()}),
             Err(e) => json!({"error": e.to_string()}),
         }
+    }
+
+    /// `induce FILE [--base-iri B] [--class NAME] [--out DIR] [--no-load]`:
+    /// one sheet in, one ontology out. Writes `ontology.ttl`, `shapes.ttl`,
+    /// `mapping.json` and `induced.json` under `--out` when given, loads the
+    /// ontology, the shapes and the rows into the store unless `--no-load`,
+    /// and returns the report with the Turtle inline.
+    fn exec_induce(&self, args: &[String]) -> Value {
+        use crate::ingest::DataIngester;
+        let path = match args.first().filter(|a| !a.starts_with("--")) {
+            Some(p) => p.clone(),
+            None => return json!({"error": "induce requires a data file path"}),
+        };
+        let base = Self::flag_value(args, "--base-iri").unwrap_or("http://example.org/data/".to_string());
+        let stem = Self::flag_value(args, "--class").unwrap_or_else(|| {
+            std::path::Path::new(&path).file_stem().and_then(|s| s.to_str()).unwrap_or("Row").to_string()
+        });
+        let rows = match DataIngester::parse_file(&path) {
+            Ok(r) => r,
+            Err(e) => return json!({"error": e.to_string()}),
+        };
+        if rows.is_empty() {
+            return json!({"error": "no data rows found; nothing to induce from"});
+        }
+        let headers = DataIngester::headers_in_order(&path, &rows);
+        let induced = crate::induce::induce(&rows, &headers, &stem, &base);
+        if let Some(out) = Self::flag_value(args, "--out") {
+            let dir = std::path::Path::new(&out);
+            if let Err(e) = std::fs::create_dir_all(dir)
+                .and_then(|_| std::fs::write(dir.join("ontology.ttl"), &induced.ontology_ttl))
+                .and_then(|_| std::fs::write(dir.join("shapes.ttl"), &induced.shapes_ttl))
+                .and_then(|_| std::fs::write(dir.join("mapping.json"), serde_json::to_string_pretty(&induced.mapping).unwrap_or_default()))
+                .and_then(|_| std::fs::write(dir.join("induced.json"), serde_json::to_string_pretty(&induced).unwrap_or_default()))
+            {
+                return json!({"error": format!("cannot write {out}: {e}")});
+            }
+        }
+        let mut v = serde_json::to_value(&induced).unwrap_or_else(|e| json!({"error": e.to_string()}));
+        if !args.iter().any(|a| a == "--no-load") {
+            let loaded = self
+                .graph
+                .load_turtle(&induced.ontology_ttl, None)
+                .and_then(|a| self.graph.load_turtle(&induced.shapes_ttl, None).map(|b| a + b))
+                .and_then(|ab| self.graph.load_ntriples(&induced.mapping.rows_to_ntriples(&rows)).map(|c| (ab, c)));
+            match loaded {
+                Ok((schema, data)) => {
+                    v["loaded"] = json!({"schema_triples": schema, "instance_triples": data});
+                }
+                Err(e) => return json!({"error": format!("induced, but loading failed: {e}")}),
+            }
+        }
+        v["ok"] = json!(true);
+        v
     }
 
     fn exec_drift(&self, args: &[String]) -> Value {

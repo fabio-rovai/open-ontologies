@@ -62,6 +62,7 @@ pub mod feedback;
 pub mod graph;
 #[cfg(feature = "embeddings")]
 pub mod hnsw_index;
+pub mod induce;
 pub mod ingest;
 pub mod inputs;
 pub mod kgcl;
