@@ -28,6 +28,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Only on a tag push, where this workflow publishes an image. A tag that
+      # does not carry its own version produces an image whose binary reports
+      # the previous release, and nothing downstream can tell.
+      - name: Verify the tag carries the version it claims
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: scripts/check-release-version.sh "${{ github.ref_name }}"
+
       - name: Free disk space
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/powershell /usr/local/share/chromium /usr/local/share/edge
