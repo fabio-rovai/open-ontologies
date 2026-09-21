@@ -370,7 +370,7 @@ fn the_owl_reading_is_read_off_the_checkers_own_report() {
     // the presence of the value is what says the checker reported a negated
     // goal on a run it accepted.
     assert_eq!(
-        withgoal.owl_reading.map(|r| r.word()),
+        withgoal.owl_reading.as_ref().map(|r| r.word()),
         Some("not_entailed_under_unproved_translation")
     );
     assert!(

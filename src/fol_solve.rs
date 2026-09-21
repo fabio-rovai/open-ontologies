@@ -661,22 +661,30 @@ pub fn solve(problem: &FolProblem, opts: &SolveOptions, dir: &Path) -> anyhow::R
                 // is the only constructor of the evidence `FolVerdict::
                 // ModelChecked` requires, so this is the only place it CAN be
                 // reached, and a second one would have to run a checker too.
+                let problem_path = dir.join("problem.tsv");
                 let mut cmd = Command::new(&checker);
-                cmd.arg(dir.join("problem.tsv")).arg(&model_path);
-                let run = CheckerRun::spawn(&CheckerBinary::found_at(checker.clone()), cmd)?;
+                cmd.arg(&problem_path).arg(&model_path);
+                let run = CheckerRun::spawn(
+                    &CheckerBinary::found_at(checker.clone()),
+                    cmd,
+                    &[&problem_path, &model_path],
+                )?;
                 let report = run.stdout().trim().to_string();
                 std::fs::write(dir.join("checker.json"), &report)?;
                 let exit = run.exit();
                 out.checker_exit = Some(exit);
                 out.checker_report = Some(report.clone());
                 if let Some(cert) = run.accepted_naming(&[FOL_THEOREM]) {
-                    out.verdict = FolVerdict::ModelChecked(cert);
+                    // Both read off the token before it moves into the verdict.
                     out.theorem = Some(cert.theorem().to_string());
                     // Read the goal flag back off the CHECKER's report, not
                     // off this side's intention. The `cert` argument is the
                     // "and the verdict is model_checked" half of the rule,
-                    // carried by the signature instead of by this comment.
-                    out.owl_reading = run.owl_reading(cert);
+                    // carried by the signature instead of by this comment. It
+                    // is cloned because the token also has to reach the
+                    // verdict, and both uses are the same acceptance.
+                    out.owl_reading = run.owl_reading(cert.clone());
+                    out.verdict = FolVerdict::ModelChecked(cert);
                 } else {
                     out.verdict = FolVerdict::SatisfiableOracle;
                     out.disagreement = Some(Disagreement {

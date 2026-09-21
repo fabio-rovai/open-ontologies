@@ -111,14 +111,35 @@ fn script_saying(code: i32, theorem: &str) -> PathBuf {
 /// type system cannot tell the two apart. What it CAN say is that a process
 /// ran and exited zero, and that is exactly what this borrows in order to name
 /// the certified variants below.
+/// A file for the fake checker run to be ABOUT. A run must name its inputs,
+/// because a token bound to nothing would be interchangeable with every other.
+fn input_file() -> std::path::PathBuf {
+    // A fresh path per call. Several tests in this file call `earned()` at
+    // once, in parallel threads of one process, and a shared path means one
+    // thread rewriting a file while another reads it to compute the run's
+    // subject digest. Nothing here asserts on that digest, so the worst case
+    // today is a torn read nobody notices, which is precisely the kind of
+    // latent race that becomes a mystery the day somebody does assert on it.
+    static NEXT_INPUT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let serial = NEXT_INPUT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let p = std::env::temp_dir()
+        .join(format!("oo-vocab-{}-{serial}.txt", std::process::id()));
+    std::fs::write(&p, "the artefact this fake run is about").expect("write it");
+    p
+}
+
 fn earned(theorem: &'static str) -> Certified {
     // The fake has to PRINT the theorem, because that is now what the mint
     // reads. A shell that exits zero in silence is a checker that named
     // nothing, and it correctly mints nothing.
     let (bin, cmd) = shell_naming(theorem);
+    // Both halves belong. The gate is main's, so no fork is in flight while a
+    // file is being written; the named input is this change's, because a run
+    // must say what it is about. `input_file()` writes, so it is called INSIDE
+    // the gate rather than before it.
     let run = {
         let _gate = common::exec_gate();
-        CheckerRun::spawn(&bin, cmd)
+        CheckerRun::spawn(&bin, cmd, &[&input_file()])
     }
     .expect("the system shell must be runnable");
     assert_eq!(run.exit(), 0);
@@ -152,23 +173,23 @@ fn every_word() -> Vec<(&'static str, String)> {
     let cert = earned("OOCert.certificate_sound");
     vec![
         // decision 0006, `onto_fol_model`
-        ("FolVerdict::ModelChecked", FolVerdict::ModelChecked(cert).word().to_string()),
+        ("FolVerdict::ModelChecked", FolVerdict::ModelChecked(cert.clone()).word().to_string()),
         ("FolVerdict::SatisfiableOracle", FolVerdict::SatisfiableOracle.word().to_string()),
         ("FolVerdict::NoModelUpToSizeK", FolVerdict::NoModelUpToSizeK.word().to_string()),
         ("FolVerdict::UnsatisfiableOracle", FolVerdict::UnsatisfiableOracle.word().to_string()),
         ("FolVerdict::UnknownOracle", FolVerdict::UnknownOracle.word().to_string()),
         // decision 0002 / 0007, the closure certificate
-        ("ClosureVerdict::Checked", ClosureVerdict::Checked(cert).word().to_string()),
+        ("ClosureVerdict::Checked", ClosureVerdict::Checked(cert.clone()).word().to_string()),
         ("ClosureVerdict::Rejected", ClosureVerdict::Rejected.word().to_string()),
         ("ClosureVerdict::EngineOpinion", ClosureVerdict::EngineOpinion.word().to_string()),
-        ("Warrant::Checked", Warrant::Checked(cert).name().to_string()),
+        ("Warrant::Checked", Warrant::Checked(cert.clone()).name().to_string()),
         ("Warrant::AssertedInSource", Warrant::AssertedInSource.name().to_string()),
         ("Warrant::EngineOpinion", Warrant::EngineOpinion.name().to_string()),
         // decision 0007, per goal
-        ("GoalVerdict::PreservedChecked", GoalVerdict::PreservedChecked(cert).word().to_string()),
+        ("GoalVerdict::PreservedChecked", GoalVerdict::PreservedChecked(cert.clone()).word().to_string()),
         (
             "GoalVerdict::PreservedUnderSuppliedRulesChecked",
-            GoalVerdict::PreservedUnderSuppliedRulesChecked(cert).word().to_string(),
+            GoalVerdict::PreservedUnderSuppliedRulesChecked(cert.clone()).word().to_string(),
         ),
         ("GoalVerdict::PreservedAsserted", GoalVerdict::PreservedAsserted.word().to_string()),
         ("GoalVerdict::PreservedUnchecked", GoalVerdict::PreservedUnchecked.word().to_string()),
@@ -244,20 +265,20 @@ fn the_wire_words_are_exactly_these() {
 fn serde_writes_the_bare_word_and_never_an_object() {
     let cert = earned("OOCert.certificate_sound");
     let cases: Vec<(String, &str)> = vec![
-        (serde_json::to_string(&FolVerdict::ModelChecked(cert)).unwrap(), "\"model_checked\""),
+        (serde_json::to_string(&FolVerdict::ModelChecked(cert.clone())).unwrap(), "\"model_checked\""),
         (
             serde_json::to_string(&FolVerdict::SatisfiableOracle).unwrap(),
             "\"satisfiable_oracle\"",
         ),
-        (serde_json::to_string(&ClosureVerdict::Checked(cert)).unwrap(), "\"checked\""),
-        (serde_json::to_string(&Warrant::Checked(cert)).unwrap(), "\"checked\""),
+        (serde_json::to_string(&ClosureVerdict::Checked(cert.clone())).unwrap(), "\"checked\""),
+        (serde_json::to_string(&Warrant::Checked(cert.clone())).unwrap(), "\"checked\""),
         (serde_json::to_string(&Warrant::AssertedInSource).unwrap(), "\"asserted_in_source\""),
         (
-            serde_json::to_string(&GoalVerdict::PreservedChecked(cert)).unwrap(),
+            serde_json::to_string(&GoalVerdict::PreservedChecked(cert.clone())).unwrap(),
             "\"preserved_checked\"",
         ),
         (
-            serde_json::to_string(&GoalVerdict::PreservedUnderSuppliedRulesChecked(cert)).unwrap(),
+            serde_json::to_string(&GoalVerdict::PreservedUnderSuppliedRulesChecked(cert.clone())).unwrap(),
             "\"preserved_under_supplied_rules_checked\"",
         ),
         (
@@ -296,9 +317,9 @@ fn no_word_the_engine_states_is_a_word_a_lean_checker_states() {
 #[test]
 fn a_theorem_is_named_only_where_the_evidence_is() {
     let cert = earned("OOCert.certificate_sound");
-    assert_eq!(GoalVerdict::PreservedChecked(cert).warrant(), "OOCert.certificate_sound");
-    assert_eq!(Warrant::Checked(cert).theorem(), Some("OOCert.certificate_sound"));
-    assert_eq!(ClosureVerdict::Checked(cert).theorem(), Some("OOCert.certificate_sound"));
+    assert_eq!(GoalVerdict::PreservedChecked(cert.clone()).warrant(), "OOCert.certificate_sound");
+    assert_eq!(Warrant::Checked(cert.clone()).theorem(), Some("OOCert.certificate_sound"));
+    assert_eq!(ClosureVerdict::Checked(cert.clone()).theorem(), Some("OOCert.certificate_sound"));
 
     for v in [
         GoalVerdict::PreservedAsserted,
