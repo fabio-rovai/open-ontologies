@@ -445,6 +445,22 @@ enum Commands {
         /// refused together with --valid-at or --as-of.
         #[arg(long)]
         all_versions: bool,
+        /// Run the VERIFIED evaluator, `oo-shacl`, whose agreement with the
+        /// SHACL Recommendation is the machine-checked theorem
+        /// `Shacl.validate_spec`, instead of the SPARQL-compiling one.
+        ///
+        /// A different question, not a better setting on the same one. It
+        /// covers SHACL Core and refuses `sh:sparql` and user-defined
+        /// components outright; the default path runs those and skips others,
+        /// so neither is a superset. Its report carries a `verified` key the
+        /// default path never emits, and `undetermined` is a first-class
+        /// answer there rather than a silent omission.
+        ///
+        /// Refused together with --valid-at, --as-of and --all-versions: the
+        /// verified evaluator has no temporal scope, so honouring one is
+        /// impossible and dropping it would answer a different question.
+        #[arg(long)]
+        verified: bool,
     },
     /// Closed-world vocab check: flag data terms not declared in the loaded ontology
     VocabCheck { data: String },
@@ -1144,6 +1160,7 @@ impl Commands {
                 valid_at,
                 as_of,
                 all_versions,
+                verified,
             } => {
                 let mut a = vec![absolutize(shapes)];
                 if let Some(v) = valid_at {
@@ -1156,6 +1173,9 @@ impl Commands {
                 }
                 if *all_versions {
                     a.push("--all-versions".into());
+                }
+                if *verified {
+                    a.push("--verified".into());
                 }
                 cmd("shacl", a)
             }
@@ -2855,10 +2875,30 @@ async fn async_main() -> anyhow::Result<()> {
             valid_at,
             as_of,
             all_versions,
+            verified,
         } => {
             use open_ontologies::shacl::ShaclValidator;
             let (_db, graph) = setup(&cli.data_dir)?;
             let shapes_content = std::fs::read_to_string(&shapes)?;
+            if verified {
+                // Refused rather than ignored: the verified evaluator reads one
+                // N-Triples dump of the store and has no temporal scope, so a
+                // scope could only be dropped, and dropping it would answer a
+                // different question from the one that was asked.
+                let result = if valid_at.is_some() || as_of.is_some() || all_versions {
+                    serde_json::json!({"error":
+                        "--verified cannot be combined with --valid-at, --as-of or \
+                         --all-versions. The verified evaluator reads the whole store and \
+                         has no temporal scope, so the scope would be silently dropped. Run \
+                         the scoped question without --verified, or the verified question \
+                         without a scope."})
+                } else {
+                    open_ontologies::shacl_verified::validate_verified(&graph, &shapes_content)
+                        .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}))
+                };
+                output_result(&result.to_string(), cli.pretty);
+                return Ok(());
+            }
             let result = match open_ontologies::temporal::ScopeRequest::from_args(
                 valid_at.as_deref(),
                 as_of.as_deref(),
@@ -3651,8 +3691,13 @@ mod proxy_serialization_tests {
             Commands::Fol { out: "/tmp/fol".into(), format: "tptp".into(), smt_domain: None, clif_dialect: "iso".into(), clif_comments: "standalone".into(), goals: None, goals_skip_columns: 0 },
             Commands::FolModel { out: "/tmp/folmodel".into(), solver: "z3".into(), max_domain: 16, timeout_secs: 30, unbounded_probe: true, goals: None, goals_skip_columns: 0, checker: None },
             Commands::FolProve { out: Some("/tmp/folprove".into()), prover: "vampire".into(), timeout_secs: 30, goals: None, goals_skip_columns: 0, problem: None, proof: None },
-            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: false },
-            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: true },
+            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: false, verified: false },
+            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: true, verified: false },
+            // The verified form proxies too, for the reason the scoped `reason`
+            // form above is here: a daemon-backed `shacl --verified` that
+            // silently dropped the flag would run the UNVERIFIED evaluator and
+            // answer with a conformance verdict that no theorem stands behind.
+            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: false, verified: true },
             Commands::Status,
             Commands::Pull { url: "http://example.org".into(), sparql: false, query: None },
             Commands::Push { endpoint: "http://example.org".into(), graph: None },

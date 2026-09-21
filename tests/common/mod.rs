@@ -27,3 +27,45 @@ pub fn skip_unless(available: bool, what: &str, how_to_get_it: &str) -> bool {
     eprintln!("SKIPPED_FIXTURE: {msg}");
     true
 }
+
+/// Writing a file and forking a process must not overlap in one test binary.
+///
+/// Confirmed from a CI log rather than guessed at. On 21 September 2026 a lean
+/// job printed
+///
+/// ```text
+/// runs: Os { code: 26, kind: ExecutableFileBusy, message: "Text file busy" }
+/// ```
+///
+/// A thread writing a script holds a write file descriptor to it. If another
+/// thread forks in that instant, the child inherits that descriptor. The writer
+/// closes its own copy and execs the script, but the child still holds one
+/// until it reaches its own exec, and Linux refuses to exec a file any process
+/// has open for writing. The spawn returns `ExecutableFileBusy`.
+///
+/// Giving each script its own path does NOT fix it, and that was tried: the
+/// race is between ANY write and ANY fork, not between two writers of one
+/// file. It never reproduces on macOS, which does not raise this error here,
+/// so it looks like a CI defect and is not one.
+///
+/// Only threads of one process matter, because a descriptor is inherited by a
+/// fork and is not shared between unrelated processes, so a mutex per test
+/// binary is the whole fix. It lives here because the same defect has now
+/// appeared in two test files and the next one should reach for this instead
+/// of rediscovering it.
+///
+/// Hold it across the write AND across the spawn. Both are short.
+///
+/// ```ignore
+/// let script = { let _gate = common::exec_gate(); write_script() };
+/// let out = { let _gate = common::exec_gate(); Command::new(&script).output() };
+/// ```
+///
+/// `unwrap_or_else(|e| e.into_inner())`: a test that panics holding this lock
+/// poisons it, and the next test would then fail for a reason unrelated to
+/// what it checks.
+#[allow(dead_code)]
+pub fn exec_gate() -> std::sync::MutexGuard<'static, ()> {
+    static GATE: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    GATE.lock().unwrap_or_else(|e| e.into_inner())
+}
