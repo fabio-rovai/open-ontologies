@@ -56,34 +56,35 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px;paddin
 </head>
 <body>
 <header><div class="wrap">
-  <h1>open-ontologies <span>· try it here</span></h1>
-  <nav><a href="https://github.com/fabio-rovai/open-ontologies">repository</a><a href="https://github.com/fabio-rovai/open-ontologies/blob/main/docs/tool-reference.md">tool reference</a><a href="#what">what this is</a></nav>
+  <h1>open-ontologies <span id="i-tag">· try it here</span></h1>
+  <nav><a href="https://github.com/fabio-rovai/open-ontologies" id="i-nav0">repository</a><a href="https://github.com/fabio-rovai/open-ontologies/blob/main/docs/tool-reference.md" id="i-nav1">tool reference</a><a href="#what" id="i-nav2">what this is</a><a href="#" id="i-lang">简体中文</a></nav>
 </div></header>
 
 <main class="wrap">
-  <p class="lede"><b>One sheet in, one ontology out</b>, with the evidence for every line. Then break a cell and watch the shape catch it.</p>
-  <p class="sub">Everything below is the output of the engine you would download, run in batch mode on this page's server: <code>induce</code>, then <code>shacl</code>, then <code>reason owl-rl</code>. The page draws; it does not decide. Engine <span id="engine">…</span>.</p>
+  <p class="lede"><b id="i-lede1">One sheet in, one ontology out</b><span id="i-lede2">, with the evidence for every line.</span></p>
+  <p class="sub" id="i-sub">Engine <span id="engine">…</span>.</p>
 
   <div class="grid">
     <section class="card">
-      <h2>1 · A sheet</h2>
-      <div style="display:grid;grid-template-columns:minmax(220px,1fr) 2fr;gap:14px"><div><label class="drop" id="drop" tabindex="0">Drop a CSV here, or click to choose one (up to 1 MB)<input type="file" id="file" accept=".csv,text/csv,.json,.ndjson"></label>
+      <h2 id="i-step1">1 · A sheet</h2>
+      <div style="display:grid;grid-template-columns:minmax(220px,1fr) 2fr;gap:14px"><div><label class="drop" id="drop" tabindex="0"><span id="i-drop">Drop a CSV here, or click to choose one (up to 1 MB)</span><input type="file" id="file" accept=".csv,text/csv,.json,.ndjson"></label>
       <div class="samples" id="samples"><span class="status">loading samples…</span></div></div>
-      <textarea class="code" id="csv" spellcheck="false" placeholder="…or paste CSV with a header row" style="min-height:190px"></textarea></div>
+      <textarea class="code" id="csv" spellcheck="false" placeholder="…or paste CSV with a header row" id="csv-ta" style="min-height:190px"></textarea></div>
       <div class="row">
         <button class="primary" id="go">Induce the ontology</button>
-        <label class="status">class name <input id="cls" placeholder="from the file name" style="font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;width:150px"></label>
+        <label class="status"><span id="i-cls">class name</span> <input id="cls" placeholder="from the file name" style="font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;width:150px"></label>
         <span class="status" id="st1"></span>
       </div>
     </section>
 
     <section class="card" id="out" hidden>
-      <h2>2 · What the engine induced</h2>
+      <h2 id="i-step2">2 · What the engine induced</h2>
       <p class="summary" id="summary"></p>
       <dl class="kv" id="kv"></dl>
       <div class="tabs" id="tabs">
         <button data-t="evidence" class="on">Evidence</button><button data-t="ontology">Ontology (Turtle)</button><button data-t="shapes">Shapes (Turtle)</button><button data-t="mapping">Mapping</button><button data-t="engine">Engine output</button>
       </div>
+      <p class="status" id="i-verbatim" hidden style="margin:0 0 6px"></p>
       <div id="t-evidence"></div>
       <pre id="t-ontology" class="hidden"></pre>
       <pre id="t-shapes" class="hidden"></pre>
@@ -94,8 +95,8 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px;paddin
   </div>
 
   <section class="card" id="play" hidden style="margin-top:18px">
-    <h2>3 · Break it</h2>
-    <p class="sub" style="margin-bottom:8px">The rows satisfy their own induced shape <i>by construction</i>, so the clean report above proves nothing. The shape constrains the <b>next</b> row. Edit any cell below (a word where a number was, a value outside an enumeration, a second value where there was one, an empty required cell) and re-check. The violation you get is the engine's SHACL validator over the induced shapes, not a page rule.</p>
+    <h2 id="i-step3">3 · Break it</h2>
+    <p class="sub" style="margin-bottom:8px" id="i-step3p"></p>
     <div class="gridwrap" id="gridwrap"></div>
     <div class="row">
       <button class="primary" id="recheck">Re-check the edited rows</button>
@@ -106,22 +107,142 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px;paddin
   </section>
 
   <section id="what" style="margin-top:26px">
-    <h2>What this is, and is not</h2>
-    <p class="sub" style="margin-bottom:8px">An induced ontology is a <b>hypothesis about the sheet</b>, not a truth about the domain. Three choices are deliberate: cardinality becomes a <i>shape</i> and never <code>owl:FunctionalProperty</code>, because under OWL RL a functional property with two values does not reject the second row, it identifies the two objects (<code>prp-fp</code>); observed numeric ranges are reported and never made <code>sh:minInclusive</code>; numbered columns (<code>topping1…topping7</code>) become one multi-valued property, and the group is reported so a false merge is visible. Strike what your domain does not support; the evidence column says what each line rests on.</p>
-    <p class="sub">Same thing from an MCP client, on your own files: <code>onto_induce {"path": "sheet.csv"}</code>. From the shell: <code>open-ontologies batch</code> with <code>induce sheet.csv --out ./induced</code>.</p>
+    <h2 id="i-what">What this is, and is not</h2>
+    <p class="sub" style="margin-bottom:8px" id="i-what1"></p>
+    <p class="sub" id="i-what2"></p>
   </section>
 </main>
-<footer><div class="wrap">Nothing you upload is kept: each request runs in a fresh scratch directory that is deleted when the response is sent. Limits: 1 MB per sheet, 40 s per run. <a href="https://github.com/fabio-rovai/open-ontologies">fabio-rovai/open-ontologies</a>, MIT.</div></footer>
+<footer><div class="wrap"><span id="i-foot"></span> <a href="https://github.com/fabio-rovai/open-ontologies">fabio-rovai/open-ontologies</a>, MIT.</div></footer>
 
 <script>
+
+// Every visible string, in each language the page is published in. The page
+// follows the writing rules of ASD-STE100 Simplified Technical English: one
+// idea for each sentence, the active voice, simple tenses, and a maximum of 25
+// words in a descriptive sentence. The approved-word dictionary is a licensed
+// document this project does not hold, so the page claims the writing rules and
+// not approved-word compliance, exactly as the README does.
+//
+// NUMBERS are not in this table. Each number on this page comes from the engine
+// run and is formatted into these sentences, so a translation cannot state a
+// count the run did not produce.
+const STR = {
+  en: {
+    tag: '· try it here',
+    nav: ['repository', 'tool reference', 'what this is'],
+    lede1: 'One sheet in, one ontology out', lede2: ', with the evidence for each line. Then change one cell, and see the shape find the error.',
+    sub: 'The engine does the work. This page runs it in batch mode on the server: <code>induce</code>, then <code>shacl</code>, then <code>reason owl-rl</code>. The page draws the answer. The page does not decide it. Engine <span id="engine">…</span>.',
+    step1: '1 · A sheet',
+    drop: 'Put a CSV file here, or click to choose one. The limit is 1 MB.',
+    samples: 'samples:',
+    paste: '…or paste a CSV file with a header row',
+    go: 'Induce the ontology', cls: 'class name', clsph: 'from the file name',
+    step2: '2 · What the engine induced',
+    tabs: ['Evidence', 'Ontology (Turtle)', 'Shapes (Turtle)', 'Mapping', 'Engine output'],
+    k_id: 'identifier', k_shape: 'the shape over its own rows', k_rl: 'owl-rl closure', k_loaded: 'loaded',
+    rowsyn: 'row number: no column was filled and unique',
+    conforms: 'conforms', violations: 'violations', undetermined: 'undetermined',
+    focus: 'focus nodes. This is expected: the rows satisfy the shape by construction.',
+    inferred: 'inferred triples over', asserted: 'asserted', notrun: 'not run',
+    schema: 'schema triples and', instance: 'instance triples',
+    th: ['property', 'columns', 'type', 'filled', 'distinct', 'per row', 'decision', 'evidence'],
+    p_object: 'object →', p_in: 'in', p_group: 'group of', p_min: 'minCount 1', p_max: 'maxCount',
+    observed: '; observed', notconstrained: '(reported, and not constrained)',
+    engine_says: 'The engine says: ',
+    summary: '{c}: {r} rows → 1 class, {p} {pw}{obj}{grp}{enu}.',
+    prop1: 'property', propn: 'properties', obj: ' object', grp: ' numbered group merged', grpn: ' numbered groups merged', enu: ' enumeration', enun: ' enumerations',
+    verbatim: '',
+    step3: '3 · Change it',
+    step3p: 'The rows satisfy their own induced shape <i>by construction</i>. Thus the clean report above shows nothing. The shape constrains the <b>next</b> row. Change any cell below, and check the rows again. Put a word where a number was. Put a value outside an enumeration. Empty a cell that each row filled. The violation comes from the SHACL validator of the engine. It does not come from a rule in this page.',
+    recheck: 'Check the changed rows again', reset: 'Reset the rows',
+    showing: 'The table shows 40 rows of', showing2: '. The check uses each row.',
+    stillok: 'The changed rows still satisfy the induced shape. Try a word in a numeric column, or a value outside an enumeration.',
+    found: 'The SHACL validator of the engine reports:', violation: 'violation', violations_n: 'violations',
+    andmore: '…and', more: 'more',
+    what: 'What this is, and what it is not',
+    what1: 'An induced ontology is a <b>hypothesis about the sheet</b>. It is not a truth about the domain. Three choices are deliberate. First, cardinality becomes a <i>shape</i>, and never an <code>owl:FunctionalProperty</code>: under OWL RL a functional property with two values does not reject the second row, it makes the two objects the same (<code>prp-fp</code>). Second, the page reports an observed numeric range, and it never makes that range a <code>sh:minInclusive</code>. Third, numbered columns (<code>topping1…topping7</code>) become one property with many values, and the page reports the group, so that a wrong merge is visible. Remove each line that your domain does not support. The evidence column tells you what each line rests on.',
+    what2: 'The same work from an MCP client, on your own files: <code>onto_induce {"path": "sheet.csv"}</code>. From a shell: <code>open-ontologies batch</code> with <code>induce sheet.csv --out ./induced</code>.',
+    foot: 'This page keeps nothing that you send. Each request runs in a new scratch directory, and the page deletes that directory when it sends the response. The limits are 1 MB for each sheet and 40 seconds for each run.',
+    err_big: 'That file is larger than 1 MB. Run the engine on your own machine for a file of that size.',
+    err_first: 'Paste a sheet first, or choose one.',
+    running: 'the engine is running…', done: 'done in', loaded_s: 'loaded',
+    lang_other: '简体中文', lang_code: 'zh',
+  },
+  zh: {
+    tag: '· 在这里试一试',
+    nav: ['代码仓库', '工具参考', '这是什么'],
+    lede1: '放入一张表格，得到一个本体', lede2: '，并且每一行都有证据。然后改动一个单元格，看形状把错误找出来。',
+    sub: '工作由引擎完成。本页面在服务器上以批处理方式运行它：<code>induce</code>，然后 <code>shacl</code>，然后 <code>reason owl-rl</code>。页面只负责把答案画出来。页面不作判断。引擎 <span id="engine">…</span>。',
+    step1: '1 · 一张表格',
+    drop: '把 CSV 文件拖到这里，或者点击选择一个。上限是 1 MB。',
+    samples: '示例：',
+    paste: '……或者粘贴一个带表头行的 CSV 文件',
+    go: '归纳出本体', cls: '类名', clsph: '来自文件名',
+    step2: '2 · 引擎归纳出了什么',
+    tabs: ['证据', '本体（Turtle）', '形状（Turtle）', '映射', '引擎输出'],
+    k_id: '标识列', k_shape: '形状作用于它自己的数据行', k_rl: 'owl-rl 闭包', k_loaded: '已载入',
+    rowsyn: '行号：没有任何一列既填满又唯一',
+    conforms: '符合', violations: '存在违规', undetermined: '无法判定',
+    focus: '个焦点节点。这是预期结果：这些数据行按构造就满足该形状。',
+    inferred: '条推论，基于', asserted: '条断言', notrun: '未运行',
+    schema: '条模式三元组与', instance: '条实例三元组',
+    th: ['属性', '列', '类型', '已填充', '不同值', '每行个数', '判定', '证据'],
+    p_object: '对象属性 →', p_in: '取值集合', p_group: '合并了', p_min: 'minCount 1', p_max: 'maxCount',
+    observed: '；观察到', notconstrained: '（只报告，不作为约束）',
+    engine_says: '引擎说：',
+    summary: '{c}：{r} 行 → 1 个类，{p} 个{pw}{obj}{grp}{enu}。',
+    prop1: '属性', propn: '属性', obj: '（其中 1 个是对象属性）', grp: '（合并了 1 组编号列）', grpn: '（合并了多组编号列）', enu: '（含取值集合）', enun: '（含取值集合）',
+    verbatim: '下表“证据”列与上面“引擎说”的句子，是引擎自己的输出，原样显示，未经翻译。本页面不改写引擎的措辞。',
+    step3: '3 · 改动它',
+    step3p: '这些数据行按构造就满足它们自己归纳出的形状。因此上面那份干净的报告什么也说明不了。形状约束的是<b>下一行</b>。改动下面任意一个单元格，然后重新检查。在数字列里放一个词。放一个不在取值集合里的值。把每行都填了的单元格清空。违规来自引擎的 SHACL 校验器。它不来自本页面里的规则。',
+    recheck: '重新检查改动后的数据行', reset: '重置数据行',
+    showing: '表格显示 40 行，共', showing2: ' 行。检查使用全部数据行。',
+    stillok: '改动后的数据行仍然满足归纳出的形状。试试在数字列里放一个词，或者放一个不在取值集合里的值。',
+    found: '引擎的 SHACL 校验器报告：', violation: '条违规', violations_n: '条违规',
+    andmore: '……还有', more: '条',
+    what: '这是什么，不是什么',
+    what1: '归纳出的本体是<b>关于这张表格的一个假设</b>。它不是关于该领域的真理。有三个选择是刻意的。第一，基数变成<i>形状</i>，绝不变成 <code>owl:FunctionalProperty</code>：在 OWL RL 下，一个有两个值的函数性属性不会拒绝第二行，而是把这两个对象判为同一个（<code>prp-fp</code>）。第二，页面报告观察到的数值范围，并且绝不把该范围变成 <code>sh:minInclusive</code>。第三，带编号的列（<code>topping1…topping7</code>）合并成一个多值属性，页面会报告这个分组，好让错误的合并可见。请删掉你的领域不支持的每一行。证据列会告诉你每一行依据什么。',
+    what2: '在 MCP 客户端中对你自己的文件做同样的事：<code>onto_induce {"path": "sheet.csv"}</code>。在 shell 中：<code>open-ontologies batch</code>，命令为 <code>induce sheet.csv --out ./induced</code>。',
+    foot: '本页面不保留你发送的任何内容。每个请求都在一个新的临时目录中运行，页面在发送响应时删除该目录。上限是每张表格 1 MB，每次运行 40 秒。',
+    err_big: '该文件大于 1 MB。这种大小的文件请在你自己的机器上运行引擎。',
+    err_first: '请先粘贴一张表格，或者选择一张。',
+    running: '引擎正在运行……', done: '用时', loaded_s: '已载入',
+    lang_other: 'English', lang_code: 'en',
+  },
+};
+const LANG = (new URLSearchParams(location.search).get('lang') === 'zh') ? 'zh' : 'en';
+const L = STR[LANG];
+document.documentElement.lang = (LANG === 'zh') ? 'zh-CN' : 'en';
 const $=s=>document.querySelector(s);
+
+// One paint, at load. Every string above comes from the table, so a language is
+// a table entry and not a second copy of the page.
+function paint(){
+  const set=(id,v,html)=>{const e=document.getElementById(id); if(e){ if(html) e.innerHTML=v; else e.textContent=v; }};
+  set('i-tag', L.tag); L.nav.forEach((t,i)=>set('i-nav'+i, t));
+  set('i-lede1', L.lede1); set('i-lede2', L.lede2);
+  const sub=document.getElementById('i-sub'); if(sub) sub.innerHTML = L.sub;
+  set('i-step1', L.step1); set('i-drop', L.drop); set('i-cls', L.cls);
+  set('i-step2', L.step2); set('i-step3', L.step3); set('i-step3p', L.step3p, true);
+  set('i-what', L.what); set('i-what1', L.what1, true); set('i-what2', L.what2, true);
+  set('i-foot', L.foot);
+  const ta=document.getElementById('csv-ta'); if(ta) ta.placeholder=L.paste;
+  const cls=document.getElementById('cls'); if(cls) cls.placeholder=L.clsph;
+  $('#go').textContent=L.go; $('#recheck').textContent=L.recheck; $('#reset').textContent=L.reset;
+  [...$('#tabs').children].forEach((b,i)=>{ if(L.tabs[i]) b.textContent=L.tabs[i]; });
+  const sw=document.getElementById('i-lang');
+  if(sw){ sw.textContent=L.lang_other;
+    const q=new URLSearchParams(location.search); q.set('lang', L.lang_code); sw.href='?'+q.toString(); }
+  document.title = (LANG==='zh') ? 'Open Ontologies：在这里试一试' : 'Open Ontologies: try it here';
+}
+paint();
 const api=(p,opt)=>fetch('/api/'+p,opt).then(async r=>{const j=await r.json().catch(()=>({error:'not JSON: '+r.status}));if(!r.ok&&!j.error)j.error='HTTP '+r.status;return j});
 let current={name:'sheet.csv',csv:'',induced:null,mapping:null,rows:[],headers:[]};
 
 api('engine').then(j=>{$('#engine').textContent=j.tag?`${j.tag}, sha256 ${String(j.sha256).slice(0,12)}…`:'unavailable'}).catch(()=>{$('#engine').textContent='unavailable'});
-api('samples').then(j=>{const box=$('#samples');box.innerHTML='<span class="status">samples:</span>';(j.samples||[]).forEach(s=>{const b=document.createElement('button');b.textContent=`${s.name} (${s.rows} rows)`;b.onclick=()=>{$('#csv').value=s.csv;current.name=s.name;$('#cls').value='';$('#st1').textContent=`loaded ${s.name}`};box.appendChild(b)});
+api('samples').then(j=>{const box=$('#samples');box.innerHTML='<span class="status">'+L.samples+'</span>';(j.samples||[]).forEach(s=>{const b=document.createElement('button');b.textContent=`${s.name} (${s.rows} rows)`;b.onclick=()=>{$('#csv').value=s.csv;current.name=s.name;$('#cls').value='';$('#st1').textContent=`${L.loaded_s} ${s.name}`};box.appendChild(b)});
   // ?sample=epc-sample.csv&auto=1 loads a bundled sheet and runs it, so a link can carry a worked example.
-  const q=new URLSearchParams(location.search),want=q.get('sample');const hit=(j.samples||[]).find(s=>s.name===want);if(hit){$('#csv').value=hit.csv;current.name=hit.name;$('#st1').textContent=`loaded ${hit.name}`;if(q.get('auto')==='1')$('#go').click()}});
+  const q=new URLSearchParams(location.search),want=q.get('sample');const hit=(j.samples||[]).find(s=>s.name===want);if(hit){$('#csv').value=hit.csv;current.name=hit.name;$('#st1').textContent=`${L.loaded_s} ${hit.name}`;if(q.get('auto')==='1')$('#go').click()}});
 
 const drop=$('#drop'),file=$('#file');
 drop.onclick=()=>file.click();drop.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')file.click()};
@@ -129,8 +250,8 @@ drop.onclick=()=>file.click();drop.onkeydown=e=>{if(e.key==='Enter'||e.key===' '
 ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('on')}));
 drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)readFile(f)});
 file.onchange=()=>{if(file.files[0])readFile(file.files[0])};
-function readFile(f){if(f.size>1_000_000){$('#st1').textContent='that file is over 1 MB; run the engine locally for it';$('#st1').className='status err';return}
-  const r=new FileReader();r.onload=()=>{$('#csv').value=r.result;current.name=f.name;$('#st1').className='status';$('#st1').textContent=`loaded ${f.name}`};r.readAsText(f)}
+function readFile(f){if(f.size>1_000_000){$('#st1').textContent=L.err_big;$('#st1').className='status err';return}
+  const r=new FileReader();r.onload=()=>{$('#csv').value=r.result;current.name=f.name;$('#st1').className='status';$('#st1').textContent=`${L.loaded_s} ${f.name}`};r.readAsText(f)}
 
 // A small CSV parser for the editable grid only; the ENGINE parses the sheet it is sent.
 function parseCsv(t){const rows=[];let row=[],cell='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){cell+='"';i++}else q=false}else cell+=c}
@@ -140,45 +261,57 @@ function toCsv(headers,rows){const esc=v=>/[",\n]/.test(v)?'"'+v.replace(/"/g,'"
 
 $('#tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;[...$('#tabs').children].forEach(x=>x.classList.toggle('on',x===b));['evidence','ontology','shapes','mapping','engine'].forEach(t=>$('#t-'+t).classList.toggle('hidden',t!==b.dataset.t))};
 
-$('#go').onclick=async()=>{const csv=$('#csv').value;if(!csv.trim()){$('#st1').textContent='paste or choose a sheet first';return}
-  current.csv=csv;$('#go').disabled=true;$('#st1').className='status';$('#st1').textContent='running the engine…';
+$('#go').onclick=async()=>{const csv=$('#csv').value;if(!csv.trim()){$('#st1').textContent=L.err_first;return}
+  current.csv=csv;$('#go').disabled=true;$('#st1').className='status';$('#st1').textContent=L.running;
   const j=await api('induce',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:current.name,csv,class:$('#cls').value})});
   $('#go').disabled=false;
   if(j.error){$('#st1').className='status err';$('#st1').textContent=j.error;if(j.engine)console.log(j.engine);return}
-  $('#st1').textContent=`done in ${j.meta?.seconds ?? '?'} s`;render(j)};
+  $('#st1').textContent=`${L.done} ${j.meta?.seconds ?? '?'} s`;render(j)};
 
 function render(j){const ind=j.induced;current.induced=ind;current.mapping=j.mapping_json||JSON.stringify(ind.mapping);
   $('#out').hidden=false;$('#play').hidden=false;
   const props=ind.columns.length,obj=ind.columns.filter(c=>c.refers_to).length,enums=ind.columns.filter(c=>c.values).length,groups=ind.columns.filter(c=>c.columns.length>1).length;
-  $('#summary').innerHTML=`<b>${esc(ind.class)}</b>: ${ind.rows} rows → 1 class, ${props} propert${props===1?'y':'ies'}${obj?` (${obj} object)`:''}${groups?`, ${groups} numbered group${groups>1?'s':''} merged`:''}${enums?`, ${enums} enumeration${enums>1?'s':''}`:''}.`;
+  $('#summary').innerHTML = L.summary
+    .replace('{c}', `<b>${esc(ind.class)}</b>`)
+    .replace('{r}', ind.rows)
+    .replace('{p}', props)
+    .replace('{pw}', props === 1 ? L.prop1 : L.propn)
+    .replace('{obj}', obj ? (LANG === 'zh' ? L.obj : ` (${obj} object)`) : '')
+    .replace('{grp}', groups ? (LANG === 'zh' ? (groups > 1 ? L.grpn : L.grp) : `, ${groups} numbered group${groups > 1 ? 's' : ''} merged`) : '')
+    .replace('{enu}', enums ? (LANG === 'zh' ? L.enu : `, ${enums} enumeration${enums > 1 ? 's' : ''}`) : '');
+  // The evidence column and `means` below are the ENGINE's own sentences,
+  // shown verbatim. The page does not paraphrase the engine, so in a
+  // translated page they stay in English and the page says why.
+  const vb = document.getElementById('i-verbatim');
+  if (vb) { vb.textContent = L.verbatim; vb.hidden = !L.verbatim; }
   const sh=j.shacl||{},rs=j.reason||{};
-  const conf=sh.conforms===true?'<span class="pill ok">conforms</span>':sh.conforms===false?'<span class="pill bad">violations</span>':'<span class="pill warn">undetermined</span>';
-  $('#kv').innerHTML=`<dt>identifier</dt><dd><code>${esc(ind.id_column)}</code>${ind.id_synthesised?' <span class="pill dim">row number: no column was filled and unique</span>':''}</dd>
-    <dt>shape over its own rows</dt><dd>${conf} ${sh.violation_count??0} violation(s), ${sh.focus_nodes??'?'} focus nodes. Expected: the rows satisfy the shape by construction.</dd>
-    <dt>owl-rl closure</dt><dd>${rs.inferred_count!=null?`${rs.inferred_count} inferred triples over ${rs.initial_triples??'?'} asserted`:(rs.error||'not run')}</dd>
-    <dt>loaded</dt><dd>${ind.loaded?`${ind.loaded.schema_triples} schema + ${ind.loaded.instance_triples} instance triples`:'—'}</dd>`;
-  let t='<table class="ev"><thead><tr><th>property</th><th>columns</th><th>type</th><th>filled</th><th>distinct</th><th>per row</th><th>decision</th><th>evidence</th></tr></thead><tbody>';
-  ind.columns.forEach(c=>{const dec=[];if(c.refers_to)dec.push(`<span class="pill ok">object → ${esc(c.refers_to)}</span>`);if(c.values)dec.push(`<span class="pill warn">sh:in (${c.values.length})</span>`);if(c.columns.length>1)dec.push(`<span class="pill dim">group of ${c.columns.length}</span>`);if(c.filled===c.rows)dec.push('<span class="pill dim">minCount 1</span>');dec.push(`<span class="pill dim">maxCount ${Math.max(1,c.max_per_row)}</span>`);
-    t+=`<tr><td class="mono">${esc(c.property)}</td><td class="mono">${esc(c.columns.join(', '))}</td><td class="mono">${c.refers_to?'IRI':'xsd:'+esc(c.datatype)}</td><td>${c.filled}/${c.rows}</td><td>${c.distinct}</td><td>${c.max_per_row}</td><td>${dec.join(' ')}</td><td style="color:var(--muted)">${esc(c.evidence)}${Object.keys(c.observed||{}).length?'; observed '+esc(Object.entries(c.observed).map(([k,v])=>k+' '+v).join(', '))+' (reported, not constrained)':''}</td></tr>`});
+  const conf=sh.conforms===true?`<span class="pill ok">${L.conforms}</span>`:sh.conforms===false?`<span class="pill bad">${L.violations}</span>`:`<span class="pill warn">${L.undetermined}</span>`;
+  $('#kv').innerHTML=`<dt>${L.k_id}</dt><dd><code>${esc(ind.id_column)}</code>${ind.id_synthesised?` <span class="pill dim">${L.rowsyn}</span>`:''}</dd>
+    <dt>${L.k_shape}</dt><dd>${conf} ${sh.violation_count??0} ${sh.violation_count===1?L.violation:L.violations_n}, ${sh.focus_nodes??'?'} ${L.focus}</dd>
+    <dt>${L.k_rl}</dt><dd>${rs.inferred_count!=null?`${rs.inferred_count} ${L.inferred} ${rs.initial_triples??'?'} ${L.asserted}`:(rs.error||L.notrun)}</dd>
+    <dt>${L.k_loaded}</dt><dd>${ind.loaded?`${ind.loaded.schema_triples} ${L.schema} ${ind.loaded.instance_triples} ${L.instance}`:'—'}</dd>`;
+  let t='<table class="ev"><thead><tr>'+L.th.map(h=>`<th>${h}</th>`).join('')+'</tr></thead><tbody>';
+  ind.columns.forEach(c=>{const dec=[];if(c.refers_to)dec.push(`<span class="pill ok">${L.p_object} ${esc(c.refers_to)}</span>`);if(c.values)dec.push(`<span class="pill warn">${L.p_in} (${c.values.length})</span>`);if(c.columns.length>1)dec.push(`<span class="pill dim">${L.p_group} ${c.columns.length}</span>`);if(c.filled===c.rows)dec.push(`<span class="pill dim">${L.p_min}</span>`);dec.push(`<span class="pill dim">${L.p_max} ${Math.max(1,c.max_per_row)}</span>`);
+    t+=`<tr><td class="mono">${esc(c.property)}</td><td class="mono">${esc(c.columns.join(', '))}</td><td class="mono">${c.refers_to?'IRI':'xsd:'+esc(c.datatype)}</td><td>${c.filled}/${c.rows}</td><td>${c.distinct}</td><td>${c.max_per_row}</td><td>${dec.join(' ')}</td><td style="color:var(--muted)">${esc(c.evidence)}${Object.keys(c.observed||{}).length?L.observed+' '+esc(Object.entries(c.observed).map(([k,v])=>k+' '+v).join(', '))+' '+L.notconstrained:''}</td></tr>`});
   $('#t-evidence').innerHTML=t+'</tbody></table>';
   $('#t-ontology').textContent=ind.ontology_ttl;$('#t-shapes').textContent=ind.shapes_ttl;$('#t-mapping').textContent=pretty(current.mapping);
   $('#t-engine').textContent=JSON.stringify({induce:{...ind,ontology_ttl:'(see tab)',shapes_ttl:'(see tab)',mapping:'(see tab)'},shacl:j.shacl,reason:j.reason,stats:j.stats,meta:j.meta},null,1);
-  $('#means').textContent='The engine says: '+ind.means;
+  $('#means').textContent=L.engine_says+ind.means;
   const rows=parseCsv(current.csv);current.headers=rows[0]||[];current.rows=rows.slice(1);grid()}
 
 function grid(){const h=current.headers,rows=current.rows.slice(0,40);let t='<table><thead><tr><th>#</th>'+h.map(x=>`<th>${esc(x)}</th>`).join('')+'</tr></thead><tbody>';
   rows.forEach((r,i)=>{t+=`<tr><td style="color:var(--dim)">${i+1}</td>`+h.map((_,k)=>`<td contenteditable data-r="${i}" data-c="${k}">${esc(r[k]??'')}</td>`).join('')+'</tr>'});
-  $('#gridwrap').innerHTML=t+'</tbody></table>'+(current.rows.length>40?`<div class="status" style="padding:6px 8px">showing 40 of ${current.rows.length} rows; all rows are re-checked</div>`:'');
+  $('#gridwrap').innerHTML=t+'</tbody></table>'+(current.rows.length>40?`<div class="status" style="padding:6px 8px">${L.showing} ${current.rows.length}${L.showing2}</div>`:'');
   $('#gridwrap').oninput=e=>{const td=e.target.closest('td[contenteditable]');if(!td)return;const r=+td.dataset.r,c=+td.dataset.c;current.rows[r][c]=td.textContent;td.classList.add('changed')};$('#viols').innerHTML='';$('#st2').textContent=''}
 $('#reset').onclick=()=>{const rows=parseCsv(current.csv);current.rows=rows.slice(1);grid()};
-$('#recheck').onclick=async()=>{if(!current.induced)return;$('#recheck').disabled=true;$('#st2').className='status';$('#st2').textContent='running the engine…';
+$('#recheck').onclick=async()=>{if(!current.induced)return;$('#recheck').disabled=true;$('#st2').className='status';$('#st2').textContent=L.running;
   const csv=toCsv(current.headers,current.rows);
   const j=await api('check',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:current.name,csv,ontology_ttl:current.induced.ontology_ttl,shapes_ttl:current.induced.shapes_ttl,mapping:current.mapping})});
   $('#recheck').disabled=false;if(j.error){$('#st2').className='status err';$('#st2').textContent=j.error;return}
   const sh=j.shacl||{};$('#st2').textContent=`${j.meta?.seconds??'?'} s · ${j.ingest?.triples_loaded??'?'} triples loaded`;
-  const v=sh.violations||[];let html=sh.conforms===true?'<p class="status"><span class="pill ok">conforms</span> the edited rows still satisfy the induced shape. Try a word in a numeric column, or a value outside an enumeration.</p>':sh.conforms===false?`<p class="status"><span class="pill bad">${v.length} violation${v.length===1?'':'s'}</span> reported by the engine's SHACL validator:</p>`:`<p class="status"><span class="pill warn">undetermined</span> ${esc(JSON.stringify(sh.skipped_constraints||sh))}</p>`;
+  const v=sh.violations||[];let html=sh.conforms===true?`<p class="status"><span class="pill ok">${L.conforms}</span> ${L.stillok}</p>`:sh.conforms===false?`<p class="status"><span class="pill bad">${v.length} ${v.length===1?L.violation:L.violations_n}</span> ${L.found}</p>`:`<p class="status"><span class="pill warn">${L.undetermined}</span> ${esc(JSON.stringify(sh.skipped_constraints||sh))}</p>`;
   v.slice(0,50).forEach(x=>{html+=`<div class="viol"><code>${esc(short(x.focus_node))}</code> · <code>${esc(short(x.result_path||x.path||''))}</code> · ${esc(short(x.source_constraint_component||x.constraint||''))}<br>${esc(x.message||'')}</div>`});
-  if(v.length>50)html+=`<p class="status">…and ${v.length-50} more</p>`;$('#viols').innerHTML=html};
+  if(v.length>50)html+=`<p class="status">${L.andmore} ${v.length-50} ${L.more}</p>`;$('#viols').innerHTML=html};
 
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function short(s){s=String(s||'');const i=Math.max(s.lastIndexOf('#'),s.lastIndexOf('/'));return i>=0&&i<s.length-1?s.slice(i+1):s}
