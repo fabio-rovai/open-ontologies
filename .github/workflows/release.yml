@@ -4,7 +4,20 @@ on:
     tags: ['v*']
 
 jobs:
+  # The tag and the Cargo.toml version are set by separate commits, so a tag can
+  # land before the bump. When it does the release builds and publishes cleanly
+  # while the binary reports the previous version, which is a silent failure that
+  # flatters the release. Checked before anything is built, so no artifact
+  # carrying the wrong number is ever produced.
+  verify-version:
+    timeout-minutes: 5
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/check-release-version.sh "${{ github.ref_name }}"
+
   build:
+    needs: verify-version
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -67,6 +80,12 @@ jobs:
   # certificate at all, so a visitor met a front page whose central claim the
   # page itself could not demonstrate. These binaries are a few MB each.
   checkers:
+    # The same gate `build` has. Without it this job builds the whole Lean
+    # development on a tag that is already known to be wrong: nothing is
+    # PUBLISHED, because `release` needs `build` which needs the gate, but
+    # the work is done anyway and the claim that nothing is built before
+    # the check was not true of this job.
+    needs: verify-version
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
@@ -134,6 +153,33 @@ jobs:
               mv "${dir}open-ontologies" "${dir}open-ontologies-${target}"
             fi
           done
+      # THE BINARY ITSELF, ASKED WHAT IT IS.
+      #
+      # `verify-version` compares the tag to Cargo.toml before anything builds,
+      # which catches the cause. This catches the HARM, and they are not the
+      # same check: a correct tag can still ship a stale binary if a cache
+      # returns an object built from another tree, and nothing upstream of here
+      # would notice. `status` is the only version the engine reports about
+      # itself, so running it is the one question that cannot be answered
+      # wrongly by accident.
+      #
+      # The Linux build runs on this runner, so this is a real execution and
+      # not a second reading of the same file.
+      - name: The published binary reports the version of its tag
+        run: |
+          set -euo pipefail
+          want="${GITHUB_REF_NAME#v}"
+          bin="open-ontologies-x86_64-unknown-linux-gnu/open-ontologies-x86_64-unknown-linux-gnu"
+          chmod +x "$bin"
+          got=$("./$bin" status | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')
+          echo "tag $GITHUB_REF_NAME wants $want; the binary reports $got"
+          if [ "$got" != "$want" ]; then
+            echo "::error::the binary about to be published reports $got and the tag claims $want."
+            echo "Nothing downstream can tell these apart: status is the only version the engine"
+            echo "reports about itself, so an artifact recorded against this release would carry"
+            echo "the wrong engine. Refusing to publish."
+            exit 1
+          fi
       - name: Generate SHASUMS.txt
         run: |
           # Strip the artifact directory so the listed names match the asset

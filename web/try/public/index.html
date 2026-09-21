@@ -6,9 +6,11 @@
 <title>Open Ontologies: try it here</title>
 <meta name="description" content="Drop one spreadsheet. Get one ontology, one shape, and the evidence for every line, from the same engine you would download. Then break a cell and watch the shape catch it.">
 <style>
-:root{--bg:#fafafa;--panel:#fff;--ink:#1a1a1a;--muted:#505a5f;--dim:#7a8288;--line:#e5e7eb;--code:#f6f8fa;--accent:#0b5fff;--ok:#0a7d3e;--bad:#c81e1e;--warn:#9a6700;--focus:#ffdd00;
+:root{--bg:#020617;--bg2:#070d20;--panel:#0b1428;--ink:#e2e8f0;--muted:#94a3b8;--dim:#64748b;--line:#1e3a5f;--code:#060e20;--accent:#7dd3fc;--ok:#34d399;--bad:#fb3b53;--warn:#fbbf24;--focus:#fbbf24;--tool:#f0abfc;--asserted:#475569;
 --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans)}
+*{box-sizing:border-box}html,body{margin:0;color:var(--ink);font:15px/1.55 var(--sans)}
+html{background:var(--bg)}
+body{background:linear-gradient(135deg,var(--bg),var(--bg2));background-attachment:fixed;min-height:100vh}
 a{color:var(--accent)}code,pre,textarea.code{font-family:var(--mono);font-size:12.5px}
 header{border-bottom:1px solid var(--line);background:var(--panel)}
 .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
@@ -21,13 +23,16 @@ h2{font-size:15px;margin:0 0 10px;letter-spacing:.4px;text-transform:uppercase;c
 .sub{color:var(--muted);max-width:820px;margin:0 0 22px}
 .grid{display:grid;grid-template-columns:1fr;gap:18px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
-.drop{display:block;border:2px dashed #c9ced3;border-radius:10px;padding:22px;text-align:center;color:var(--muted);cursor:pointer;transition:.15s}
-.drop.on{border-color:var(--accent);background:#eef4ff;color:var(--ink)}
+.drop{display:block;border:2px dashed var(--line);border-radius:10px;padding:22px;text-align:center;color:var(--muted);cursor:pointer;transition:.15s}
+.drop.on{border-color:var(--accent);background:rgba(125,211,252,.10);color:var(--ink)}
 .drop input{display:none}
 .samples{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 button{font:inherit;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 12px;cursor:pointer}
-button:hover{border-color:#9aa3ab}button.primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
+button:hover{border-color:var(--dim)}button.primary{background:var(--accent);color:#020617;border-color:var(--accent);font-weight:700}
 button:disabled{opacity:.5;cursor:default}button:focus-visible,.drop:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+input,select{font:inherit;background:var(--code);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+input::placeholder,textarea::placeholder{color:var(--dim)}
+input[type=file]{color:var(--muted)}
 textarea.code{width:100%;min-height:150px;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--code);resize:vertical}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
 .status{font-size:13px;color:var(--muted)}.status.err{color:var(--bad)}
@@ -40,12 +45,12 @@ table{border-collapse:collapse;width:100%;font-size:13px;table-layout:fixed}th,t
 .gridwrap table{table-layout:auto}
 th{font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}td.mono{font-family:var(--mono);font-size:12px}
 .pill{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:700;letter-spacing:.3px}
-.pill.ok{background:#e6f4ea;color:var(--ok)}.pill.bad{background:#fde8e8;color:var(--bad)}.pill.warn{background:#fff4d6;color:var(--warn)}.pill.dim{background:#eef0f2;color:var(--muted)}
+.pill.ok{background:rgba(52,211,153,.14);color:var(--ok)}.pill.bad{background:rgba(251,59,83,.14);color:var(--bad)}.pill.warn{background:rgba(251,191,36,.14);color:var(--warn)}.pill.dim{background:rgba(148,163,184,.14);color:var(--muted)}
 .summary{font-size:16px;margin:0 0 4px}.summary b{font-weight:800}
 .means{font-size:13px;color:var(--muted);border-left:3px solid var(--line);padding:6px 12px;margin:10px 0 0}
 .gridwrap{overflow:auto;max-height:420px;border:1px solid var(--line);border-radius:8px}
 .gridwrap td[contenteditable]{outline:none;font-family:var(--mono);font-size:12px;min-width:60px}
-.gridwrap td[contenteditable]:focus{background:#fffbe6}.gridwrap td.changed{background:#fff4d6}
+.gridwrap td[contenteditable]:focus{background:rgba(251,191,36,.10)}.gridwrap td.changed{background:rgba(251,191,36,.14)}
 .viol{border-left:3px solid var(--bad);padding:6px 10px;margin:8px 0;background:#fff;border-radius:0 6px 6px 0;font-size:13px}
 .viol code{background:var(--code);padding:1px 4px;border-radius:4px}
 footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px;padding:18px 0 40px}
