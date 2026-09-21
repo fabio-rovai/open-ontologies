@@ -153,6 +153,33 @@ jobs:
               mv "${dir}open-ontologies" "${dir}open-ontologies-${target}"
             fi
           done
+      # THE BINARY ITSELF, ASKED WHAT IT IS.
+      #
+      # `verify-version` compares the tag to Cargo.toml before anything builds,
+      # which catches the cause. This catches the HARM, and they are not the
+      # same check: a correct tag can still ship a stale binary if a cache
+      # returns an object built from another tree, and nothing upstream of here
+      # would notice. `status` is the only version the engine reports about
+      # itself, so running it is the one question that cannot be answered
+      # wrongly by accident.
+      #
+      # The Linux build runs on this runner, so this is a real execution and
+      # not a second reading of the same file.
+      - name: The published binary reports the version of its tag
+        run: |
+          set -euo pipefail
+          want="${GITHUB_REF_NAME#v}"
+          bin="open-ontologies-x86_64-unknown-linux-gnu/open-ontologies-x86_64-unknown-linux-gnu"
+          chmod +x "$bin"
+          got=$("./$bin" status | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')
+          echo "tag $GITHUB_REF_NAME wants $want; the binary reports $got"
+          if [ "$got" != "$want" ]; then
+            echo "::error::the binary about to be published reports $got and the tag claims $want."
+            echo "Nothing downstream can tell these apart: status is the only version the engine"
+            echo "reports about itself, so an artifact recorded against this release would carry"
+            echo "the wrong engine. Refusing to publish."
+            exit 1
+          fi
       - name: Generate SHASUMS.txt
         run: |
           # Strip the artifact directory so the listed names match the asset
