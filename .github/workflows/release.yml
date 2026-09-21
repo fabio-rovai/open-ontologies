@@ -4,7 +4,20 @@ on:
     tags: ['v*']
 
 jobs:
+  # The tag and the Cargo.toml version are set by separate commits, so a tag can
+  # land before the bump. When it does the release builds and publishes cleanly
+  # while the binary reports the previous version, which is a silent failure that
+  # flatters the release. Checked before anything is built, so no artifact
+  # carrying the wrong number is ever produced.
+  verify-version:
+    timeout-minutes: 5
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/check-release-version.sh "${{ github.ref_name }}"
+
   build:
+    needs: verify-version
     timeout-minutes: 60
     strategy:
       fail-fast: false
