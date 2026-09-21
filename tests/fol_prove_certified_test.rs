@@ -3,11 +3,33 @@
 
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Mutex, MutexGuard};
 
 use open_ontologies::graph::GraphStore;
 use open_ontologies::tstp::{prove_export, ProveOptions, Prover};
 
 static NEXT: AtomicU64 = AtomicU64::new(0);
+
+/// Cargo runs the tests in this file as parallel THREADS of one process, and
+/// `$OO_RESOLUTION` is process-wide. One test sets it to a path that does not
+/// exist, on purpose, to see the absent branch; the others read it to find the
+/// checker. Being the sole WRITER does not make that safe when the readers are
+/// its own siblings: the writer's window overlapped a reader twice on 21
+/// September 2026, and the reader reported `checker_absent` and a verdict of
+/// `refutation_fully_replayed` where `refutation_certified` was expected.
+///
+/// So every test that depends on how the checker is found takes this lock.
+/// They then run one at a time, which costs a few seconds and removes a flake
+/// that looks exactly like a real regression in the certified path.
+///
+/// `lock().unwrap_or_else(|e| e.into_inner())`: a test that panics while
+/// holding the lock poisons it, and the next test would then fail for a
+/// reason that has nothing to do with what it checks.
+static CHECKER_ENV: Mutex<()> = Mutex::new(());
+
+fn checker_env() -> MutexGuard<'static, ()> {
+    CHECKER_ENV.lock().unwrap_or_else(|e| e.into_inner())
+}
 
 fn scratch() -> PathBuf {
     let d = std::env::temp_dir().join(format!("oo-prove-cert-{}-{}", std::process::id(), NEXT.fetch_add(1, Ordering::Relaxed)));
@@ -42,6 +64,7 @@ const RL_GOAL: &str = "<http://example.org/ontology/ies-building#Building>\t<htt
 
 #[test]
 fn an_rl_goal_is_certified_by_the_theorem_with_no_user_action() {
+    let _env = checker_env();
     if !tools() { return; }
     let j = run(RL, RL_GOAL);
     assert_eq!(j["problem_form"], "cnf", "an RL ontology must go to the prover as clauses: {j}");
@@ -60,6 +83,7 @@ const DL_GOAL: &str = "<http://www.co-ode.org/ontologies/pizza/pizza.owl#America
 
 #[test]
 fn a_dl_ontology_stays_an_opinion_and_the_report_names_the_axiom_that_cost_it() {
+    let _env = checker_env();
     if !Prover::Vampire.available() { return; }
     let j = run(DL, DL_GOAL);
     assert_eq!(j["problem_form"], "fof", "a superclass existential forces FOF: {j}");
@@ -75,11 +99,13 @@ fn a_dl_ontology_stays_an_opinion_and_the_report_names_the_axiom_that_cost_it() 
 
 #[test]
 fn the_certified_word_cannot_appear_without_the_checker() {
+    let _env = checker_env();
     // Same RL goal, checker pointed at a path that does not exist. An explicit
     // OO_RESOLUTION is an instruction, not a hint, so there is no fallback: the
     // replay still runs, the certificate field says the checker was absent,
     // and the WORD is not printed. This test is the sole writer of OO_RESOLUTION in
-    // its process.
+    // its process, and it holds `checker_env()` so no sibling can read the
+    // variable while it is pointed at nothing.
     if !Prover::Vampire.available() { return; }
     let had = std::env::var("OO_RESOLUTION").ok();
     unsafe { std::env::set_var("OO_RESOLUTION", "/nonexistent/oo-resolution") };

@@ -26,6 +26,7 @@
 //! `run_checker`. There is no other way to get one, which is the point.
 
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use open_ontologies::closure_diff::Warrant;
 use open_ontologies::projection_entailment::{self as pe, CertKind, CheckerStatus, GoalVerdict};
@@ -62,7 +63,22 @@ fn script_saying(code: i32, theorem: &str) -> PathBuf {
     std::fs::create_dir_all(&dir).unwrap();
     let ext = if cfg!(windows) { "cmd" } else { "sh" };
     let slug: String = theorem.chars().filter(|c| c.is_alphanumeric()).collect();
-    let p = dir.join(format!("exit{code}_{slug}.{ext}"));
+    // A FRESH path per call, not one keyed on (code, theorem).
+    //
+    // Cargo runs these tests as parallel threads of one process, and two of
+    // them ask for the same (0, "OOCert.certificate_sound") script. Keyed on
+    // the pair they got the same FILE, so one thread rewrote a script while
+    // the other was executing it. On Linux that is ETXTBSY: the spawn fails,
+    // `run_checker` reports the checker as absent, and
+    // `only_a_zero_exit_produces_an_acceptance` fails an assertion about exit
+    // codes for a reason that has nothing to do with exit codes. It passed on
+    // macOS every time, which is why it read as a CI defect.
+    //
+    // A counter costs one file per call and removes the class rather than the
+    // instance: no future pair of callers can collide either.
+    static NEXT_SCRIPT: AtomicU64 = AtomicU64::new(0);
+    let serial = NEXT_SCRIPT.fetch_add(1, Ordering::Relaxed);
+    let p = dir.join(format!("exit{code}_{slug}_{serial}.{ext}"));
     // The fake PRINTS its theorem, because a real checker does and the mint now
     // reads it. A script that exits zero in silence named nothing and correctly
     // mints nothing; accepting with one would be testing the old contract.
