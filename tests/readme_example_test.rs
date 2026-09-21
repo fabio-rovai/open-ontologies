@@ -34,15 +34,30 @@ fn readme() -> String {
     std::fs::read_to_string(repo().join("README.md")).expect("read README.md")
 }
 
-/// The fenced block under "Try the checker itself".
+/// The fenced block that runs the checker.
+///
+/// Found by what it CONTAINS, not by the heading above it. Anchoring on the
+/// title meant that renaming the section broke this test, which is the one test
+/// whose job is to notice the example drifting from the checker; a heading is
+/// prose and prose is allowed to change. What may not change without failing
+/// here is that the README still shows somebody running `oo-horn check`.
 fn example_block() -> String {
     let r = readme();
-    let start = r.find("## Try the checker itself").expect("the README section still exists");
-    let after = &r[start..];
-    let open = after.find("```bash").expect("the section still has a bash block");
-    let rest = &after[open + 7..];
-    let close = rest.find("```").expect("the bash block is closed");
-    rest[..close].to_string()
+    let mut at = 0usize;
+    while let Some(i) = r[at..].find("```bash") {
+        let open = at + i + 7;
+        let Some(len) = r[open..].find("```") else { break };
+        let block = &r[open..open + len];
+        if block.contains("lake exe oo-horn check") {
+            return block.to_string();
+        }
+        at = open + len + 3;
+    }
+    panic!(
+        "no fenced bash block in README.md runs `lake exe oo-horn check`. The runnable \
+         example is the one part of the page a reader can paste, and this test exists so \
+         that it cannot drift from the checker unnoticed."
+    );
 }
 
 /// Each `oo-horn check` line in the block, as its three fixture arguments.
