@@ -37,7 +37,7 @@
 </p>
 
 <p align="center">
-  <a href="https://tesseractsemantics.com"><b>我们把它建成一个平台 &rarr; tesseractsemantics.com</b></a><br>
+  <a href="https://tesseractsemantics.com"><b>需要企业支持？tesseractsemantics.com</b></a><br>
   <sub>引擎采用 MIT 许可，并且保持 MIT。平台是该引擎的托管版本。</sub>
 </p>
 
