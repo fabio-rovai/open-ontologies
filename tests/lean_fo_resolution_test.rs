@@ -1,4 +1,4 @@
-//! `oo-fores` end to end.
+//! `oo-resolution` end to end.
 //!
 //! Decision 0005 names the missing piece: certifying a superposition proof
 //! "needs a verified first-order calculus with unification that does not exist
@@ -14,11 +14,11 @@ use std::sync::atomic::{AtomicU64, Ordering};
 static NEXT: AtomicU64 = AtomicU64::new(0);
 
 fn checker() -> Option<PathBuf> {
-    if let Ok(p) = std::env::var("OO_FORES") {
+    if let Ok(p) = std::env::var("OO_RESOLUTION") {
         let p = PathBuf::from(p);
         return p.exists().then_some(p);
     }
-    let built = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("lean/.lake/build/bin/oo-fores");
+    let built = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("lean/.lake/build/bin/oo-resolution");
     built.exists().then_some(built)
 }
 
@@ -32,14 +32,14 @@ fn run(cert: &str) -> Option<Run> {
     // One directory per call. These run in parallel and a shared path makes
     // two tests read each other's certificate.
     let dir = std::env::temp_dir().join(format!(
-        "oo-fores-{}-{}",
+        "oo-resolution-{}-{}",
         std::process::id(),
         NEXT.fetch_add(1, Ordering::Relaxed)
     ));
     std::fs::create_dir_all(&dir).unwrap();
     let f = dir.join("r.cert");
     std::fs::write(&f, cert).unwrap();
-    let o = Command::new(bin).arg(&f).output().expect("oo-fores runs");
+    let o = Command::new(bin).arg(&f).output().expect("oo-resolution runs");
     let _ = std::fs::remove_dir_all(&dir);
     Some(Run {
         code: o.status.code().unwrap_or(-1),

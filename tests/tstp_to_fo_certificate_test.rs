@@ -1,5 +1,5 @@
 //! A prover's derivation, translated into `lean/Fo`'s certificate format and
-//! checked by `oo-fores`, whose acceptance discharges `Fo.unsat_of_check`.
+//! checked by `oo-resolution`, whose acceptance discharges `Fo.unsat_of_check`.
 //!
 //! These tests record a MEASURED boundary rather than a hoped-for one. Pure
 //! CNF without equality translates and checks. Clausification and equality
@@ -31,11 +31,11 @@ fn on_path(name: &str) -> Option<PathBuf> {
 }
 
 fn fores() -> Option<PathBuf> {
-    if let Ok(p) = std::env::var("OO_FORES") {
+    if let Ok(p) = std::env::var("OO_RESOLUTION") {
         let p = PathBuf::from(p);
         return p.exists().then_some(p);
     }
-    let built = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("lean/.lake/build/bin/oo-fores");
+    let built = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("lean/.lake/build/bin/oo-resolution");
     built.exists().then_some(built)
 }
 
@@ -50,7 +50,7 @@ fn vampire(problem: &str) -> Option<String> {
     Some(String::from_utf8_lossy(&o.stdout).into_owned())
 }
 
-/// Hand the certificate to `oo-fores` and return its exit code and output.
+/// Hand the certificate to `oo-resolution` and return its exit code and output.
 fn check(cert: &str) -> Option<(i32, String)> {
     let bin = fores()?;
     let d = scratch();
@@ -86,7 +86,7 @@ fn a_vampire_refutation_of_pure_cnf_is_checked_by_the_lean_theorem() {
     );
     assert!(cert.reaches_false, "the certificate must reach the empty clause");
     let Some((code, out)) = check(&cert.text) else { return };
-    assert_eq!(code, 0, "oo-fores refused a real Vampire proof:\n{}\n{out}", cert.text);
+    assert_eq!(code, 0, "oo-resolution refused a real Vampire proof:\n{}\n{out}", cert.text);
     assert!(out.contains(r#""theorem":"Fo.unsat_of_check""#), "{out}");
 }
 

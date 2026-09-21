@@ -33,7 +33,7 @@ below, which cover everything since 1.3.0. New in this tag:
   lexical space as a plain string, so an ill-typed literal cannot slip past `sh:datatype`. (#233)
 - **`web/try/`, the "try it here" page**: one function running the pinned release binary in batch
   mode; drop a sheet, read the evidence, edit a cell, re-check. (#233)
-- **A verified first-order resolution calculus, `lean/Fo`, and `oo-fores`.** `onto_fol_prove`
+- **A verified first-order resolution calculus, `lean/Fo`, and `oo-resolution`.** `onto_fol_prove`
   sends OWL 2 RL ontologies to the prover as clauses, translates Vampire's refutation into the
   certificate format and has it checked: the ninth verdict word `refutation_certified` rests on
   `Fo.unsat_of_check`. (#224, #225, #226, #227; decision 0005, second addendum)

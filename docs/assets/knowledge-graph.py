@@ -90,7 +90,7 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     derivations = read(derivations_path)
     # The prover run's report. Which judge earned `certificate` and which only
     # `opinion` is READ from here, never typed: `refutation_certified` is a
-    # word only `onto_fol_prove` can mint, from a token only `oo-fores`'s exit
+    # word only `onto_fol_prove` can mint, from a token only `oo-resolution`'s exit
     # 0 can produce (decision 0005, second addendum).
     import json as _json
     import re
@@ -116,7 +116,7 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
         "typed_not_a_class": f"typed {mu_typed}, never a class",
         "undeclared": "a name the file never uses",
     }.get(mu_kind, "outside the file's language")
-    fo_checker = "oo-fores"
+    fo_checker = "oo-resolution"
 
     # Asserted subclass edges, and the conclusions the fixpoint derived. A
     # derivation line is: rule, conclusion s p o, then its premises.
@@ -162,7 +162,7 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     # anything in the ontology.
     LEAN = "Lean 4 · oo-cert"
     FILES = ["ies-core.ttl", "certificate", "problem.tsv"]
-    FORES = "oo-fores"
+    FORES = "oo-resolution"
     PROGRAMS = [LEAN, "Isabelle/HOL", "Vampire", "E", "Z3", "Mace4", FORES]
     TOOLS = FILES + PROGRAMS
     tool_edges = [

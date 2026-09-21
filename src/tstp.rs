@@ -1531,7 +1531,7 @@ pub struct Report {
     pub certificate: Option<CertificateOutcome>,
 }
 
-/// The outcome of offering a derivation to `oo-fores`.
+/// The outcome of offering a derivation to `oo-resolution`.
 ///
 /// `Certified` can only be built from a [`crate::verdict::Certified`] token,
 /// and that token only exists after a checker exited zero naming the theorem,
@@ -1540,7 +1540,7 @@ pub struct Report {
 #[derive(Clone, Debug, serde::Serialize)]
 #[serde(tag = "status", rename_all = "snake_case")]
 pub enum CertificateOutcome {
-    /// `oo-fores` accepted. `theorem` is read from the token, which read it
+    /// `oo-resolution` accepted. `theorem` is read from the token, which read it
     /// from the checker's stdout.
     Certified { theorem: &'static str, checker: String, steps: usize, certificate: String },
     /// The problem was exported as FOF because it is outside the clausal
@@ -1552,9 +1552,9 @@ pub enum CertificateOutcome {
     StepsUntranslated { untranslated: Vec<(String, String)>, translated: usize },
     /// Every step translated but the chain does not reach the empty clause.
     DoesNotReachFalse { translated: usize },
-    /// The certificate was written and `oo-fores` is not installed to read it.
+    /// The certificate was written and `oo-resolution` is not installed to read it.
     CheckerAbsent { certificate: String },
-    /// `oo-fores` REFUSED a certificate this translator produced. Either a
+    /// `oo-resolution` REFUSED a certificate this translator produced. Either a
     /// defect in the translation or in the derivation; both stop the line.
     CheckerRefused { exit: i32, output: String, certificate: String },
 }
@@ -1594,7 +1594,7 @@ pub fn verdict_means(v: &str) -> &'static str {
                                             and counted. This is the normal outcome, because \
                                             clausification and AVATAR splitting are not checked",
         "refutation_certified" => "the derivation was translated into lean/Fo's certificate format \
-                                   and oo-fores ACCEPTED it, discharging Fo.unsat_of_check: the \
+                                   and oo-resolution ACCEPTED it, discharging Fo.unsat_of_check: the \
                                    clause set in the derivation's leaves has no model, over any \
                                    carrier. The leaves are the formulas this engine emitted \
                                    (leaves_match_problem), so that is a refutation of OUR problem. \
@@ -2297,20 +2297,20 @@ fn resolvent_matches(a: &Clause, b: &Clause, c: &Clause) -> Result<bool, &'stati
 // What does NOT translate is named and counted, never skipped. Clausification,
 // Skolemisation, AVATAR splitting and every form of equality reasoning are
 // outside the calculus, and a certificate covering only some steps does not
-// reach the empty clause, so `oo-fores` refuses it. That refusal is the
+// reach the empty clause, so `oo-resolution` refuses it. That refusal is the
 // correct answer and the honest one: a partial translation is not a proof.
 
 /// A certificate in `lean/Fo`'s format, and what had to be left out of it.
 #[derive(Debug, Clone)]
 pub struct FoCertificate {
-    /// The certificate text, ready for `oo-fores`.
+    /// The certificate text, ready for `oo-resolution`.
     pub text: String,
     /// Steps turned into resolution inferences.
     pub translated: usize,
     /// Steps that are not resolution, by name and rule. Never silently dropped.
     pub untranslated: Vec<(String, String)>,
     /// Does the certificate reach the empty clause through translated steps
-    /// alone? Only then can `oo-fores` accept it.
+    /// alone? Only then can `oo-resolution` accept it.
     pub reaches_false: bool,
 }
 
@@ -2576,7 +2576,7 @@ pub fn report_json(r: &Report) -> serde_json::Value {
         "verdict_means": verdict_means(r.verdict),
         "certificate": r.certificate,
         "checked_by": if matches!(r.certificate, Some(CertificateOutcome::Certified { .. })) {
-            "lean/Fo via oo-fores, whose acceptance discharges Fo.unsat_of_check (axioms propext, \
+            "lean/Fo via oo-resolution, whose acceptance discharges Fo.unsat_of_check (axioms propext, \
              Classical.choice, Quot.sound; no sorry). The replay in src/tstp.rs ran too and is \
              reported above, but the verdict rests on the theorem and not on the replay. What is \
              still Rust: the TSTP parser, the translation into the certificate, and the \
@@ -2731,22 +2731,22 @@ fn prove_one(
 }
 
 fn find_fores() -> Option<PathBuf> {
-    // An explicit OO_FORES is an instruction. If it points nowhere the answer
+    // An explicit OO_RESOLUTION is an instruction. If it points nowhere the answer
     // is "absent", not "fall back to whatever else is lying around": the same
     // rule `shacl_verified::resolve_checker` applies, for the same reason. A
     // test that sets it to a missing path is asking to see the absent branch.
-    if let Ok(p) = std::env::var("OO_FORES") {
+    if let Ok(p) = std::env::var("OO_RESOLUTION") {
         let p = PathBuf::from(p);
         return p.exists().then_some(p);
     }
-    let built = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("lean/.lake/build/bin/oo-fores");
+    let built = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("lean/.lake/build/bin/oo-resolution");
     if built.exists() {
         return Some(built);
     }
-    std::env::split_paths(&std::env::var_os("PATH")?).map(|d| d.join("oo-fores")).find(|p| p.is_file())
+    std::env::split_paths(&std::env::var_os("PATH")?).map(|d| d.join("oo-resolution")).find(|p| p.is_file())
 }
 
-/// Offer the derivation to `oo-fores`, and say exactly what happened.
+/// Offer the derivation to `oo-resolution`, and say exactly what happened.
 ///
 /// Only when the replay found a well-founded refutation whose leaves are OUR
 /// formulas. A certificate over some other clause set would be a proof of
@@ -2944,12 +2944,12 @@ pub fn prove_export(
         "certified": certified,
         "certified_means": if certified > 0 {
             "this many refutations were CHECKED BY A THEOREM: translated into lean/Fo's \
-             certificate format and accepted by oo-fores (Fo.unsat_of_check). Every other \
+             certificate format and accepted by oo-resolution (Fo.unsat_of_check). Every other \
              refutation in this run is an oracle opinion and its `certificate` field says why"
         } else {
             "NOTHING HERE IS CERTIFIED. A refutation is an ORACLE OPINION (decision 0005) \
              unless it was exported in the clausal fragment, every step translated, and \
-             oo-fores exited 0. None did; each report's `certificate` field says which of \
+             oo-resolution exited 0. None did; each report's `certificate` field says which of \
              those failed. The MODEL direction is the other one that can be certified; see \
              decision 0006 and onto_fol_model"
         },

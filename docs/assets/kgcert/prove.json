@@ -9,7 +9,7 @@
  "problem_form": "cnf",
  "verdict": "refutation_certified",
  "theorem": "Fo.unsat_of_check",
- "checker": "oo-fores",
+ "checker": "oo-resolution",
  "certificate_steps": 5,
  "certificate_clauses": 5,
  "others": {
