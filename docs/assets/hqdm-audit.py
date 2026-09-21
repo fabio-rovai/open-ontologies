@@ -67,7 +67,7 @@ TEXT = {
         "beat3": "3 · right: this engine finds {sat} named classes satisfiable and cannot decide {und}",
         "beat4": "4 · right: HermiT, an opinion here, calls {n} unsatisfiable, and they are the same {both}",
         "beat5": "5 · both: {a} and {b} names differ only by a trailing underscore",
-        "ttl_sub": "· hqdmTop/hqdmFramework, vendored by MagmaCore · RDFS",
+        "ttl_sub": "· hqdmTop/hqdmFramework · MagmaCore · RDFS",
         "owl_sub": "· gchq/HQDM · OWL, {n} disjointness axioms",
         "facts1": "{t} triples, {d} declared classes, {n} terms in one connected graph.",
         "ttl_facts2": "No owl: term and no disjointness axiom, so no named class can be unsatisfiable.",
@@ -92,7 +92,7 @@ TEXT = {
         "beat3": "3 · 右：本引擎判定 {sat} 个具名类可满足，另有 {und} 个无法判定",
         "beat4": "4 · 右：HermiT（在此只是一种意见）判定 {n} 个不可满足，恰好就是同样的 {both} 个",
         "beat5": "5 · 两者：{a} 对与 {b} 对名称仅相差一个尾部下划线",
-        "ttl_sub": "· hqdmTop/hqdmFramework，MagmaCore 逐字节收录 · RDFS",
+        "ttl_sub": "· hqdmTop/hqdmFramework · MagmaCore · RDFS",
         "owl_sub": "· gchq/HQDM · OWL，{n} 条不相交公理",
         "facts1": "{t} 条三元组，{d} 个已声明的类，{n} 个术语构成一个连通图。",
         "ttl_facts2": "没有 owl: 术语，也没有不相交公理，因此没有具名类可能不可满足。",
@@ -452,6 +452,30 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path, lang="en"):
           + f'{text}</text>')
 
     # Per-panel titles and facts.
+    #
+    # THESE WERE NEVER MEASURED. `must_fit` guarded the legend rows and the
+    # footer and not the two column headings, so the left one grew until it
+    # ended 50 units short of the right column in Chrome and overlapped it in
+    # a browser whose fonts render a little wider. Nothing caught that because
+    # nothing was looking.
+    #
+    # GUTTER is the headroom the estimator does not have. `text_width` is an
+    # estimate, measured against Chrome at 6 per cent OVER the truth for this
+    # string, which is the safe direction; the gutter covers the other
+    # direction, a font that renders wider than the estimate.
+    GUTTER = 30
+    left_budget = (MID + 22) - 34 - GUTTER
+    right_budget = (W - 34) - (MID + 22) - GUTTER
+    must_fit(f'hqdm-0.0.1-alpha.ttl {T["ttl_sub"]}', 13, left_budget, "left panel heading")
+    must_fit(T["facts1"].format(t=len(ttl), d=len(t_declared), n=len(t_names)),
+             10.5, left_budget, "left panel facts")
+    must_fit(T["ttl_facts2"], 10.5, left_budget, "left panel second fact")
+    must_fit(f'hqdm.owl {T["owl_sub"].format(n=disjoint_n)}', 13, right_budget,
+             "right panel heading")
+    must_fit(T["facts1"].format(t=len(owl), d=len(o_declared), n=len(o_names)),
+             10.5, right_budget, "right panel facts")
+    must_fit(T["owl_facts2"].format(u=len(o_undeclared), b=len(o_bad)),
+             10.5, right_budget, "right panel second fact")
     A(f'<text x="34" y="{GT - 42}" font-size="13" font-weight="800" fill="#e2e8f0">'
       f'hqdm-0.0.1-alpha.ttl <tspan fill="#64748b" font-weight="500">{T["ttl_sub"]}</tspan></text>')
     A(f'<text x="34" y="{GT - 26}" font-size="10.5" fill="#64748b">'
