@@ -30,6 +30,11 @@ What that theorem does NOT cover, and what a reader must therefore not assume:
   outside the theorem, and it refuses rather than guesses;
 * that the N-Triples parser is correct. Also outside, and a parse error is exit 2;
 * `sh:resultSeverity`. Never emitted; `sh:severity` in the shapes graph is ignored.
+  It is no longer ignored in SILENCE: the verdict carries an `ignored` list naming
+  every `(subject, predicate)` pair whose predicate this compiler waves through, so
+  a reader learns from the output that a severity or a message was present and had
+  no effect. The list says nothing about what those predicates MEAN; the theorem is
+  about conformance and is silent on both.
 -/
 open Shacl
 
@@ -68,6 +73,21 @@ def readOrFail (path : String) : IO (Except String String) := do
   catch e =>
     return .error s!"cannot read {path}: {e}"
 
+/-- One `(shape, predicate)` pair the compiler ignored. -/
+def showIgnored (pair : Shacl.Term × Shacl.Term) : String :=
+  "{\"subject\":" ++ jsonStr pair.1 ++ ",\"predicate\":" ++ jsonStr pair.2 ++ "}"
+
+/-- What the `ignored` list means, carried beside it so a consumer reading the
+JSON alone cannot mistake it for a list of violations. -/
+def ignoredMeans : String :=
+  "these SHACL predicates are present in the shapes graph and had NO effect on the verdict \
+   or on any field of any result. sh:severity and sh:message are the two that carry meaning \
+   to a reader: a shapes graph marking a constraint sh:Warning produces the same verdict \
+   here as one marking it sh:Violation, and sh:resultSeverity is never emitted. \
+   Shacl.validate_spec is about conformance and says NOTHING about either of them. Listed \
+   rather than dropped in silence, because the rest of this compiler refuses what it cannot \
+   do and this was the one place it discarded instead."
+
 def emitError (reason : String) : IO UInt32 := do
   IO.println ("{\"status\":\"error\",\"reason\":" ++ jsonStr reason ++ "}")
   return 2
@@ -97,10 +117,13 @@ def run (dataPath shapesPath : String) : IO UInt32 := do
       emitUndetermined s!"the evaluator declined: {refusal.describe}"
   | .ok results =>
       let conforms := results.isEmpty
+      let ignored := Compile.ignoredPairs shapesG
       IO.println ("{\"status\":\"verdict\",\"conforms\":" ++ (if conforms then "true" else "false") ++
         ",\"shapes\":" ++ toString decls.length ++
         ",\"data_triples\":" ++ toString dataG.length ++
         ",\"results\":[" ++ String.intercalate "," (results.map showResult) ++ "]" ++
+        ",\"ignored\":[" ++ String.intercalate "," (ignored.map showIgnored) ++ "]" ++
+        ",\"ignored_means\":" ++ jsonStr ignoredMeans ++
         ",\"theorem\":\"Shacl.validate_spec\"}")
       return 0
 
