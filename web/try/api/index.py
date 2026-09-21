@@ -48,6 +48,46 @@ def engine() -> Path:
     return dst
 
 
+def checker() -> Path | None:
+    """The Lean certificate checker, executable, or None when the release did
+    not carry one. The page says which; it never implies a check that did not
+    happen."""
+    override = os.environ.get("OO_CERT")
+    src = Path(override) if override else (HERE / "_bin" / "oo-cert")
+    if not src.exists():
+        return None
+    dst = Path(tempfile.gettempdir()) / "oo-engine" / "oo-cert"
+    if not dst.exists() or dst.stat().st_size != src.stat().st_size:
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src, dst)
+        dst.chmod(dst.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    return dst
+
+
+def run_checker(cert_dir: Path) -> dict:
+    """Run the Lean checker over a certificate directory and return what it said.
+
+    The exit code is part of the answer, not an error: exit 1 with a named rule
+    is the whole point of the third panel.
+    """
+    c = checker()
+    if c is None:
+        return {"absent": True, "means": "this release carries no oo-cert, so nothing was checked here"}
+    proc = subprocess.run(
+        [str(c), str(cert_dir / "asserted.tsv"), str(cert_dir / "derivations.tsv")],
+        capture_output=True, text=True, timeout=TIMEOUT_S,
+    )
+    line = next((l for l in proc.stdout.splitlines() if l.startswith("{")), "")
+    try:
+        out = json.loads(line) if line else {}
+    except json.JSONDecodeError:
+        out = {}
+    out["exit"] = proc.returncode
+    if not line:
+        out["stderr_tail"] = proc.stderr[-300:]
+    return out
+
+
 def engine_info() -> dict:
     tag_file = HERE / "_bin" / "TAG"
     tag = tag_file.read_text().strip() if tag_file.exists() else os.environ.get("OO_ENGINE_TAG", "local build")
@@ -55,7 +95,20 @@ def engine_info() -> dict:
         h = hashlib.sha256(engine().read_bytes()).hexdigest()
     except Exception as e:  # noqa: BLE001
         h = f"unavailable: {e}"
-    return {"tag": tag, "sha256": h, "means": "every answer on this page is the output of this binary in batch mode; the page draws, it does not decide"}
+    c = checker()
+    ch = None
+    if c is not None:
+        try:
+            ch = hashlib.sha256(c.read_bytes()).hexdigest()
+        except Exception as e:  # noqa: BLE001
+            ch = f"unavailable: {e}"
+    return {
+        "tag": tag,
+        "sha256": h,
+        "checker_sha256": ch,
+        "checker": "oo-cert" if ch else None,
+        "means": "every answer on this page is the output of these binaries; the page draws, it does not decide",
+    }
 
 
 def run_batch(workdir: Path, script: str) -> list[dict]:
@@ -150,6 +203,80 @@ def do_check(body: dict) -> dict:
         return {"ingest": by.get("ingest"), "shacl": by.get("shacl"), "meta": by.get("_meta")}
 
 
+def do_plan(body: dict) -> dict:
+    """The whole loop, on the sheet the visitor brought.
+
+    An induced ontology is flat, so a reasoner derives nothing from it: measured,
+    0 derivations under both rdfs and owl-rl, because the mapping already asserts
+    the class of every row and `rdfs:domain` can then only re-derive it. That is
+    a true fact about a flat sheet, and manufacturing consequences to hide it
+    would make the demo a lie.
+
+    So the visitor adds one line, which is the front page's own argument: plan a
+    change to an ontology and see what follows. One `rdfs:subClassOf` over the
+    induced class gives one derived type for each row, and the certificate over
+    those derivations is the thing the checker then accepts, and refuses when a
+    conclusion in it is forged.
+    """
+    csv = body.get("csv") or ""
+    extra = (body.get("axiom") or "").strip()
+    for k in ("ontology_ttl", "mapping"):
+        if not body.get(k):
+            return {"error": f"missing {k}; induce first"}
+    if len(csv.encode()) > MAX_BYTES:
+        return {"error": "too large"}
+    if len(extra) > 2000:
+        return {"error": "the added axioms are longer than 2000 characters"}
+    name = safe_name(body.get("name", "sheet.csv"))
+    with tempfile.TemporaryDirectory(prefix="oo-try-") as td:
+        wd = Path(td)
+        (wd / name).write_text(csv)
+        (wd / "plan.ttl").write_text(body["ontology_ttl"] + "\n" + extra + "\n")
+        mapping = body["mapping"]
+        (wd / "mapping.json").write_text(mapping if isinstance(mapping, str) else json.dumps(mapping))
+        cert = wd / "cert"
+        base = "http://example.org/try/"
+        script = (
+            f"load {wd / 'plan.ttl'}\n"
+            f"ingest {wd / name} --mapping {wd / 'mapping.json'} --base-iri {base}\n"
+            f"reason --profile owl-rl --certificate {cert}\n"
+        )
+        lines = run_batch(wd, script)
+        by = {l.get("command"): l.get("result") for l in lines}
+        reason = by.get("reason") or {}
+        if "error" in reason:
+            return {"error": reason["error"], "engine": lines}
+        c = (reason.get("certificate") or {})
+
+        accepted = run_checker(cert)
+
+        # Now forge one conclusion and hand the SAME checker the SAME premises.
+        forged = None
+        derivations = (cert / "derivations.tsv").read_text() if (cert / "derivations.tsv").exists() else ""
+        rows = [r for r in derivations.splitlines() if r.strip()]
+        if rows and not accepted.get("absent"):
+            f = wd / "forged"
+            f.mkdir(exist_ok=True)
+            (f / "asserted.tsv").write_text((cert / "asserted.tsv").read_text())
+            fields = rows[0].split("\t")
+            original = "\t".join(fields[:4])
+            if len(fields) >= 4:
+                fields[3] = "<http://example.org/try/ont#NotDerivable>"
+            rows_forged = ["\t".join(fields)] + rows[1:]
+            (f / "derivations.tsv").write_text("\n".join(rows_forged) + "\n")
+            forged = run_checker(f)
+            forged["line_before"] = original
+            forged["line_after"] = "\t".join(fields[:4])
+        return {
+            "reason": reason,
+            "certificate": c,
+            "accepted": accepted,
+            "forged": forged,
+            "derivations_sample": rows[:6],
+            "meta": by.get("_meta"),
+        }
+
+
 def do_samples() -> dict:
     items = []
     for p in sorted(SAMPLES.glob("*.csv")):
@@ -197,6 +324,8 @@ class handler(BaseHTTPRequestHandler):  # noqa: N801  (Vercel's expected name)
                 res = do_induce(body)
             elif r == "check":
                 res = do_check(body)
+            elif r == "plan":
+                res = do_plan(body)
             else:
                 return self._send(404, {"error": f"no such route: {r}"})
             return self._send(400 if "error" in res else 200, res)
