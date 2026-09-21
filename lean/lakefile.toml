@@ -1,6 +1,6 @@
 name = "oocert"
 version = "0.1.0"
-defaultTargets = ["SelfId", "OOCert", "oo-cert", "oo-horn", "Shacl", "oo-shacl", "oo-refute", "Dl", "oo-dlmodel", "oo-dlrefute", "Fol", "oo-folmodel", "Institution", "Lrat", "oo-lrat", "Fo", "oo-resolution"]
+defaultTargets = ["SelfId", "MatCert", "oo-matcert", "OOCert", "oo-cert", "oo-horn", "Shacl", "oo-shacl", "oo-refute", "Dl", "oo-dlmodel", "oo-dlrefute", "Fol", "oo-folmodel", "Institution", "Lrat", "oo-lrat", "Fo", "oo-resolution"]
 
 # Every library and executable here is in defaultTargets on purpose. A target
 # left out of the default set is not built by a bare `lake build`, which is what
@@ -131,3 +131,23 @@ root = "FoMain"
 name = "SelfId"
 roots = ["SelfId.All"]
 globs = ["SelfId.+"]
+
+
+# A numeric claim, checked. Matrix multiplication over the INTEGERS, recomputed
+# against the textbook definition, with `MatCert.mul_of_check` saying what an
+# acceptance means.
+#
+# Integers only, and that is the whole design. Freivalds' O(n^2) check is sound
+# only probabilistically, which needs probability theory this development does
+# not have and will not take a dependency for; and a proof over the reals says
+# NOTHING about IEEE-754, where rounding makes a correct product compare unequal
+# and an incorrect one compare equal. Both of those live in Rust as this
+# engine's opinion, with their bounds printed and the certified word withheld.
+[[lean_lib]]
+name = "MatCert"
+roots = ["MatCert.All"]
+globs = ["MatCert.+"]
+
+[[lean_exe]]
+name = "oo-matcert"
+root = "MatCertMain"
