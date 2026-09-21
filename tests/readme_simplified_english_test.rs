@@ -51,8 +51,7 @@ fn paragraphs(md: &str) -> Vec<String> {
             continue;
         }
         // HTML blocks: the centred banners, figures and captions.
-        in_html += line.matches("<p").count() as i32 + line.matches("<h1").count() as i32
-            + line.matches("<a href").count() as i32 * 0;
+        in_html += line.matches("<p").count() as i32 + line.matches("<h1").count() as i32;
         if line.starts_with('<') || in_html > 0 {
             if line.contains("</p>") || line.contains("</h1>") {
                 in_html = 0;

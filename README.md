@@ -297,12 +297,23 @@ checker share bytes on a disk, and they share no protocol. This is what makes th
 last two rows possible. An auditor who checks a claim next year needs the two
 files and a Lean build. That auditor does not need an instance of this software.
 
-The certificate does **not** record the graph that it came from. The certificate
-proves that the conclusions follow from the assertions in the certificate. It
-cannot tell you that those assertions are the assertions in your database. That
-gap is [issue #158](https://github.com/fabio-rovai/open-ontologies/issues/158),
-and the gap is open. A green result would prove nothing, because any program can
-print `ok`. The important behaviour is that the checker goes red.
+The certificate records a digest of the assertions that the run used. The file
+`asserted.sha256` holds that digest, next to the two other files. A holder of a
+store runs `certificate-check <dir>`. The command reads the digest, computes the
+same digest from the store, and reports whether the two agree.
+
+That answer has a limit, and the command states the limit. A digest binds a
+certificate to bytes. It does not bind a certificate to a state of the world. A
+store that changed and then changed back gives the same answer. The type-level
+form of this work is [decision
+0010](docs/decisions/0010-the-input-is-a-value-and-not-a-store.md), and that
+work is open.
+
+One case needs a word, because you will meet it. `reason` writes its inferences
+into the store by default. A check after such a run finds more triples in the
+store than the certificate lists. The report names that cause, and it does not
+call the store a different graph. It says *different graph* only when a triple
+in the store is not a conclusion of the run.
 
 Two defaults can cause you trouble. First, storage is in-memory, unless you set
 `OPEN_ONTOLOGIES_STORAGE_MODE=persistent`. Thus a `load` and then a `reason`
