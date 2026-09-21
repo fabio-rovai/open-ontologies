@@ -59,6 +59,8 @@ job invokes the file at all.
 | `shacl_core_verified_test.rs` | lake + vendored W3C SHACL suite | `lean` job | **strict** |
 | `dl_model_certificate_test.rs` | lake + `oo-dlmodel` | `lean` job | **strict** |
 | `shacl_verified_tool_test.rs` | lake + `oo-shacl` | `lean` job | **strict** |
+| `matcert_numeric_test.rs` | lake + `oo-matcert` | `lean` job | **strict** |
+| `certified_claims_asset_test.rs` | lake + `oo-matcert` | `lean` job | **strict** |
 | `shacl_ignored_is_named_test.rs` | lake + `oo-shacl` | `lean` job | **strict** |
 | `checker_self_identification_test.rs` | lake + every checker | `lean` job | **strict** |
 | `cli_verified_shacl_test.rs` | lake + `oo-shacl` | `lean` job | **strict** |
