@@ -154,7 +154,7 @@ TEXT = {
         "worth_head": "WHAT A VERDICT IS WORTH",
         "w_cert": "certificate",
         "w_cert1_fo": "One file, all {n} lines. Lean 4 and Isabelle/HOL read it.",
-        "w_cert2_fo": "OOCert.certificate_sound. Vampire's is checked by {c}.",
+        "w_cert2_fo": "OOCert.certificate_sound; Vampire's, {t}.",
         "w_cert1": "One file, all {n} lines. Lean 4 and Isabelle/HOL read it.",
         "w_cert2": "OOCert.certificate_sound. Anyone can re-run it.",
         "w_op": "opinion",
@@ -197,7 +197,7 @@ TEXT = {
         "worth_head": "一个结论值多少",
         "w_cert": "证书",
         "w_cert1_fo": "一个文件，涵盖全部 {n} 条。Lean 4 与 Isabelle/HOL 读取它。",
-        "w_cert2_fo": "OOCert.certificate_sound。Vampire 的反驳由 {c} 检查。",
+        "w_cert2_fo": "OOCert.certificate_sound；Vampire 的反驳，{t}。",
         "w_cert1": "一个文件，涵盖全部 {n} 条。Lean 4 与 Isabelle/HOL 读取它。",
         "w_cert2": "OOCert.certificate_sound。任何人都可以重新运行。",
         "w_op": "意见",
@@ -1380,7 +1380,7 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
         verdicts = [
             (C_CERT, TX["w_cert"],
              TX["w_cert1_fo"].format(n=n_certified_edges),
-             TX["w_cert2_fo"].format(c=fo_checker)),
+             TX["w_cert2_fo"].format(t=fo_theorem)),
             (C_TOOL, TX["w_op"], TX["w_op1_fo"], TX["w_op2"]),
         ]
     else:
