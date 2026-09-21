@@ -4,6 +4,62 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-09-21
+
+A major number because the engine now answers three questions it could not
+answer before, and because every checker it ships can say which binary it is.
+
+### Added
+
+- **A crosswalk's match type is checked, not asserted.** `crosswalk-certify`
+  reasons over each side alone, translates the entailed ancestors through the
+  mapping itself, and reports the tightest SKOS predicate the evidence supports.
+  An `exactMatch` the entailments do not support comes back downgraded with the
+  reason. Output is valid SSSOM with extra columns, so existing tooling reads it
+  unchanged.
+- **What cannot map is named.** A source term with no row, and an ancestor with
+  no image in the target, both travel in the same file. That second case is the
+  one that disappears from every crosswalk export today.
+- **A contradiction probe.** The translated claims are carried into the target
+  and reasoned over. A clash means the target denies what the mapping carried
+  in, which is a disagreement and not a granularity gap.
+- **Modules that reason alone, with k-of-n promotion.** Each module keeps its
+  own store, so two contexts may disagree without either becoming inconsistent.
+  A fact earns "true everywhere" when k of n modules entail it independently.
+  The report states that agreement is a count and not a proof.
+- **A numeric certificate.** `oo-matcert` recomputes a matrix product from the
+  definition and discharges `MatCert.mul_of_check`. Integers only, in core Lean,
+  under the no-dependency rule. Freivalds is offered as an O(n²) opinion with
+  its bound printed, and the floating-point path reports a tolerance and names
+  no theorem, because a proof over the reals says nothing about IEEE-754.
+- **Every checker names the binary that is running** (#204). `--version` and a
+  `checker` block carrying the name, the Lean toolchain and the SHA-256 of the
+  file the process is running from, matchable against the release `SHASUMS.txt`.
+- **The certified token says which artefact was accepted** (#164). It carries
+  the digest of the inputs the accepting run was handed, and is no longer `Copy`.
+- **The verified SHACL evaluator is reachable from the command line** (#203).
+- **The SHACL compiler names what it ignores** (#206), instead of discarding
+  `sh:severity` and `sh:message` in silence.
+- **Ten clash fixtures with near-miss twins** (#160), so every detector is
+  exercised by a graph written to trip it and a control that must stay clean.
+
+### Changed
+
+- The release refuses a tag that does not carry the version it claims, and
+  refuses to publish a binary whose `status` disagrees with its tag. Eleven
+  historical tags did not, including v1.6.0, which reports 1.5.0.
+- The try page uses the palette of the figures beside it.
+- The front-page graph uses the width of its panel, and no two labels overlap.
+
+### Fixed
+
+- `Cargo.toml` said 1.5.0 under the v1.6.0 tag (#248).
+- Two tests raced over shared files; one wrote a script while a sibling forked,
+  which Linux answers with `ETXTBSY`.
+- The HQDM panel heading overlapped the right column in browsers whose fonts
+  render wider than Chrome's.
+
+
 ## [1.6.0] - 2026-09-21
 
 ### Added

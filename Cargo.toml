@@ -1,6 +1,6 @@
 [package]
 name = "open-ontologies"
-version = "1.6.0"
+version = "2.0.0"
 edition = "2024"
 description = "AI-native ontology engine: an MCP server and CLI for building, validating, querying and reasoning over RDF and OWL, with a native SHIQ tableaux reasoner, SHACL validation and SPARQL. Single binary, no JVM."
 license = "MIT"
