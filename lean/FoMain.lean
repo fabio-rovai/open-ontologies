@@ -1,7 +1,7 @@
 import Fo
 
 /-!
-`oo-fores REFUTATION.cert`
+`oo-resolution REFUTATION.cert`
 
 Reads a clause set and a resolution refutation, replays it, and prints one JSON
 object.
@@ -169,5 +169,5 @@ def main (args : List String) : IO UInt32 := do
 whether the clause set is satisfiable\"}"
         return 1
   | _ =>
-    IO.println "usage: oo-fores REFUTATION.cert"
+    IO.println "usage: oo-resolution REFUTATION.cert"
     return 2

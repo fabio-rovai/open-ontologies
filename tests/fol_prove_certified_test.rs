@@ -1,4 +1,4 @@
-//! `onto_fol_prove`'s certified path: CNF first, `oo-fores` after the replay,
+//! `onto_fol_prove`'s certified path: CNF first, `oo-resolution` after the replay,
 //! and the word `refutation_certified` only from a minted token.
 
 use std::path::PathBuf;
@@ -16,8 +16,8 @@ fn scratch() -> PathBuf {
 }
 
 fn tools() -> bool {
-    let fores = std::env::var("OO_FORES").map(|p| PathBuf::from(p).exists()).unwrap_or(false)
-        || PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("lean/.lake/build/bin/oo-fores").exists();
+    let fores = std::env::var("OO_RESOLUTION").map(|p| PathBuf::from(p).exists()).unwrap_or(false)
+        || PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("lean/.lake/build/bin/oo-resolution").exists();
     fores && Prover::Vampire.available()
 }
 
@@ -76,15 +76,15 @@ fn a_dl_ontology_stays_an_opinion_and_the_report_names_the_axiom_that_cost_it() 
 #[test]
 fn the_certified_word_cannot_appear_without_the_checker() {
     // Same RL goal, checker pointed at a path that does not exist. An explicit
-    // OO_FORES is an instruction, not a hint, so there is no fallback: the
+    // OO_RESOLUTION is an instruction, not a hint, so there is no fallback: the
     // replay still runs, the certificate field says the checker was absent,
-    // and the WORD is not printed. This test is the sole writer of OO_FORES in
+    // and the WORD is not printed. This test is the sole writer of OO_RESOLUTION in
     // its process.
     if !Prover::Vampire.available() { return; }
-    let had = std::env::var("OO_FORES").ok();
-    unsafe { std::env::set_var("OO_FORES", "/nonexistent/oo-fores") };
+    let had = std::env::var("OO_RESOLUTION").ok();
+    unsafe { std::env::set_var("OO_RESOLUTION", "/nonexistent/oo-resolution") };
     let j = run(RL, RL_GOAL);
-    match had { Some(v) => unsafe { std::env::set_var("OO_FORES", v) }, None => unsafe { std::env::remove_var("OO_FORES") } }
+    match had { Some(v) => unsafe { std::env::set_var("OO_RESOLUTION", v) }, None => unsafe { std::env::remove_var("OO_RESOLUTION") } }
     let g = &j["goals"][0]["report"];
     assert_eq!(j["problem_form"], "cnf", "{j}");
     assert_ne!(g["verdict"], "refutation_certified", "no checker ran, so the word may not appear: {g}");

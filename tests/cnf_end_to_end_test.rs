@@ -2,7 +2,7 @@
 //!
 //! `ies-building-extension.ttl` is exported as CNF with a goal that is two
 //! subclass steps deep, Vampire refutes it, the refutation is translated into
-//! `lean/Fo`'s format, and `oo-fores` accepts it, discharging
+//! `lean/Fo`'s format, and `oo-resolution` accepts it, discharging
 //! `Fo.unsat_of_check`. Every link is a real tool on real output; the test
 //! skips cleanly when a tool is absent and asserts hard when it is present.
 
@@ -31,11 +31,11 @@ fn on_path(name: &str) -> Option<PathBuf> {
 }
 
 fn fores() -> Option<PathBuf> {
-    if let Ok(p) = std::env::var("OO_FORES") {
+    if let Ok(p) = std::env::var("OO_RESOLUTION") {
         let p = PathBuf::from(p);
         return p.exists().then_some(p);
     }
-    let built = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("lean/.lake/build/bin/oo-fores");
+    let built = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("lean/.lake/build/bin/oo-resolution");
     built.exists().then_some(built)
 }
 
@@ -115,7 +115,7 @@ fn vampires_refutation_of_the_cnf_export_is_checked_by_the_lean_theorem() {
     std::fs::write(&cert_path, &cert.text).unwrap();
     let o = Command::new(f).arg(&cert_path).output().unwrap();
     let out = String::from_utf8_lossy(&o.stdout);
-    assert_eq!(o.status.code(), Some(0), "oo-fores refused a real refutation:\n{out}\n{}", cert.text);
+    assert_eq!(o.status.code(), Some(0), "oo-resolution refused a real refutation:\n{out}\n{}", cert.text);
     assert!(out.contains(r#""theorem":"Fo.unsat_of_check""#), "{out}");
     let _ = std::fs::remove_dir_all(&dir);
 }

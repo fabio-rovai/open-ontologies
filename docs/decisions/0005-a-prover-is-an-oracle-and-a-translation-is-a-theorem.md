@@ -399,7 +399,7 @@ exact deletion put list arithmetic in every proof. And a domain element carried 
 because over an EMPTY carrier there are no environments, the empty clause is vacuously satisfied,
 and every refutation would prove nothing.
 
-`oo-fores REFUTATION.cert` exits 0, 1, 2 on the usual convention and exit 1 names no theorem.
+`oo-resolution REFUTATION.cert` exits 0, 1, 2 on the usual convention and exit 1 names no theorem.
 `Fo/Demo.lean` runs the textbook refutation of `∀x. P(x) → Q(x)`, `P(a)`, `¬Q(a)`, the smallest one
 that actually needs unification, six forgeries that each fail for a different reason, and
 `no_refutation_of_a_satisfiable_set`, a theorem over EVERY refutation rather than an example.
@@ -415,7 +415,7 @@ counted, never skipped, and a certificate that does not reach the empty clause i
 
 Measured, the day it was written, with Vampire 5.1.0 and E 3.2.5:
 
-| input | translated | `oo-fores` |
+| input | translated | `oo-resolution` |
 |---|---|---|
 | Vampire, pure CNF, modus ponens | 2 of 2 | exit 0 |
 | Vampire, pure CNF, four-link chain | 4 of 4 | exit 0 |
@@ -459,7 +459,7 @@ refutation of it is an oracle opinion, and `cnf` will not pretend otherwise.
 
 On the fragment, the chain closes. `ies-building-extension.ttl`, 1,423 axioms; goal
 `Building ⊑ ies:Entity`, two subclass steps deep, so derived and not asserted; `--format cnf`;
-Vampire, 5 steps, all resolution; `to_fo_certificate`, 5 of 5; `oo-fores` exit 0,
+Vampire, 5 steps, all resolution; `to_fo_certificate`, 5 of 5; `oo-resolution` exit 0,
 `Fo.unsat_of_check`. The FOF encoding of the SAME goal is 18 steps, 13 of them clausification, and
 translates nothing. Vampire says `Unsatisfiable` of the one and `Theorem` of the other, one verdict
 in two SZS dialects. `tests/cnf_end_to_end_test.rs` is that run and its control.
@@ -470,7 +470,7 @@ Decision 5 above said an ATP verdict is an oracle opinion everywhere it appears.
 
 > An ATP verdict is an oracle opinion, **unless** the problem reached the prover as clauses
 > (`onto_fol_prove` tries `to_cnf` first and falls back to FOF only outside the clausal fragment),
-> every step of the derivation translated, and `oo-fores` exited 0. In that case, and only that
+> every step of the derivation translated, and `oo-resolution` exited 0. In that case, and only that
 > case, the verdict is **`refutation_certified`**, resting on `Fo.unsat_of_check`, with the theorem's
 > name read from the checker's own stdout. Otherwise the verdict is one of the first addendum's
 > eight words, and the report's `certificate` field says which of five things stopped it:
@@ -481,7 +481,7 @@ Decision 5 above said an ATP verdict is an oracle opinion everywhere it appears.
 `refutation_fully_replayed` is still the strongest word the Rust replayer can earn and is still not
 a certificate. The ninth word is set only when a `Certified` token exists, and that token is minted
 only by `CheckerRun::accepted_naming`, so it cannot be printed by any path that did not run the
-checker and read `Fo.unsat_of_check` back from it. `unsatisfiable`, the word `oo-fores` and
+checker and read `Fo.unsat_of_check` back from it. `unsatisfiable`, the word `oo-resolution` and
 `oo-lrat` print for themselves, joined `CHECKER_OWNED_WORDS`: Rust never says it. `problem_form` in
 the run report says whether the prover got `cnf` or `fof`, and no user action selects between them.
 
