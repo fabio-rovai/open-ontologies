@@ -366,10 +366,10 @@ fn a_claim_entailed_by_neither_is_not_lost() {
         &format!("{PREFIXES}:a a :Ghost .\n"),
         &opts("cell-ungrounded", &[]),
     );
-    let v = r.per_goal[0].verdict;
-    assert_eq!(v, GoalVerdict::UngroundedInSource, "{}", r.headline);
+    let v = &r.per_goal[0].verdict;
+    assert_eq!(*v, GoalVerdict::UngroundedInSource, "{}", r.headline);
     assert!(!v.is_preserved(), "an ungrounded claim is not preserved");
-    assert_ne!(v, GoalVerdict::LostUnderProfileUnchecked, "and it is not lost either");
+    assert_ne!(*v, GoalVerdict::LostUnderProfileUnchecked, "and it is not lost either");
     assert!(
         r.per_goal[0].means.contains("generator"),
         "the report must send this to the right team: {}",
@@ -649,12 +649,12 @@ fn a_rejected_slice_never_downgrades_to_preserved_unchecked() {
         &format!("{PREFIXES}:a a :C .\n"),
         &o,
     );
-    let v = r.per_goal[0].verdict;
-    assert_ne!(v, GoalVerdict::PreservedUnchecked, "a rejection must NOT downgrade: {v:?}");
-    assert_ne!(v, "preserved_checked");
+    let v = &r.per_goal[0].verdict;
+    assert_ne!(*v, GoalVerdict::PreservedUnchecked, "a rejection must NOT downgrade: {v:?}");
+    assert_ne!(*v, "preserved_checked");
     assert!(!v.is_preserved(), "a rejected sub-certificate is not a preserved goal: {v:?}");
     assert_eq!(
-        v,
+        *v,
         GoalVerdict::CertificateRejected,
         "and it gets its own word rather than borrowing projection_only's, whose `means` would \
          say the source does not derive the goal, which is false here"

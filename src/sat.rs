@@ -144,7 +144,7 @@ pub fn refute(clauses: &[Clause], dir: &Path) -> anyhow::Result<SatOutcome> {
 
     let mut cmd = Command::new(checker.clone());
     cmd.arg(&cnf).arg(&lrat);
-    let checked = CheckerRun::spawn(&CheckerBinary::found_at(checker), cmd)?;
+    let checked = CheckerRun::spawn(&CheckerBinary::found_at(checker), cmd, &[&cnf, &lrat])?;
     match checked.accepted_naming(&["Lrat.unsat_of_check"]) {
         Some(cert) => Ok(SatOutcome::Refuted(cert)),
         None => Ok(SatOutcome::Undetermined(format!(

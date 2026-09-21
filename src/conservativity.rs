@@ -385,7 +385,7 @@ pub fn conservativity_check(
             rows.push(NewConsequence {
                 triple: lost.triple.clone(),
                 over_old_signature: true,
-                warrant: lost.warrant,
+                warrant: lost.warrant.clone(),
                 warrant_word: lost.warrant_word,
                 theorem: lost.theorem,
                 rule: lost.rule.clone(),

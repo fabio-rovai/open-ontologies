@@ -48,12 +48,21 @@
 //!    against the `SHASUMS.txt` a release publishes. What that buys is a way
 //!    for an HONEST build to say which build it is; a hostile binary can print
 //!    the same block with any numbers in it, and nothing here would notice.
-//! 2. **Which artefact was accepted.** A [`Certified`] is `Copy`. Code that
-//!    ran the checker over goal A could attach the token to goal B. Callers
-//!    mint one token per run, inside the arm that owns that run's output, and
-//!    the token carries the theorem name so at least the WARRANT cannot drift
-//!    from the run that earned it. Binding the token to an artefact digest is
-//!    the obvious next tightening and is not done here.
+//! 2. **Which artefact was accepted.** Mostly closed, and what remains is
+//!    named rather than rounded off. A [`Certified`] now carries the digest of
+//!    the inputs the accepting run was handed, computed by
+//!    [`CheckerRun::spawn`] from those files before it spawned, and
+//!    [`Certified::is_about`] lets a holder of an artefact ask whether the
+//!    token is about the thing in their hand. The token is no longer `Copy`,
+//!    so a value earned over goal A cannot silently reappear on goal B.
+//!
+//!    What is left: it is still `Clone`, so duplication is possible, and the
+//!    difference is only that `.clone()` is visible where an implicit copy was
+//!    not. And the digest is over the files the CALLER named as the run's
+//!    inputs; a caller that names the wrong files gets a token bound to the
+//!    wrong thing. That is a lie a reader can see in the argument list next to
+//!    the command, which is where it should be, and it is not a lie the type
+//!    system prevents.
 //! 3. **Deserialisation.** None of these verdict types implements
 //!    `Deserialize`, deliberately. Reading `"model_checked"` out of somebody
 //!    else's JSON is not the same act as earning it, and a `Deserialize` impl
@@ -102,10 +111,50 @@ impl CheckerBinary {
 #[derive(Clone, Debug)]
 pub struct CheckerRun {
     binary: PathBuf,
+    subject: [u8; 32],
     code: Option<i32>,
     exit: i32,
     stdout: String,
     stderr: String,
+}
+
+/// The digest of a set of files, in the framing [`CheckerRun::spawn`] uses.
+///
+/// Public because the comparison is the point: a holder of an artefact asks
+/// whether a [`Certified`] is about THAT artefact, and both sides of that
+/// question have to be computed the same way. This is the one function that
+/// computes it, so the two sides cannot drift.
+///
+/// Each file contributes its base name, its length and its bytes, each
+/// length-prefixed, so no two different sets of inputs can frame to the same
+/// bytes by running together at the seam. The base name is included because
+/// `oo-cert A D` handed `derivations.tsv` as the asserted file and
+/// `asserted.tsv` as the derivations file is a different run from the right
+/// one, and the digest should say so. The full path is NOT included: it
+/// differs between machines, and a digest that changes when a directory moves
+/// is a digest nobody can compare.
+///
+/// An unreadable input is an error and never a digest. A run whose inputs
+/// could not be read cannot mint a token bound to them.
+pub fn subject_digest(inputs: &[&Path]) -> std::io::Result<[u8; 32]> {
+    use sha2::{Digest, Sha256};
+    let mut h = Sha256::new();
+    h.update(b"oo-checker-subject/1\n");
+    h.update((inputs.len() as u64).to_le_bytes());
+    for p in inputs {
+        let name = p.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+        h.update((name.len() as u64).to_le_bytes());
+        h.update(name.as_bytes());
+        let bytes = std::fs::read(p)?;
+        h.update((bytes.len() as u64).to_le_bytes());
+        h.update(&bytes);
+    }
+    Ok(h.finalize().into())
+}
+
+/// A digest as the lower-case hex a report prints.
+pub fn hex32(d: &[u8; 32]) -> String {
+    d.iter().map(|b| format!("{b:02x}")).collect()
 }
 
 impl CheckerRun {
@@ -116,10 +165,26 @@ impl CheckerRun {
     /// code is read here and nowhere else. An error from the spawn itself is
     /// returned as an error and never as a run: a checker that could not be
     /// started did not accept anything.
-    pub fn spawn(binary: &CheckerBinary, mut cmd: Command) -> std::io::Result<CheckerRun> {
+    pub fn spawn(
+        binary: &CheckerBinary,
+        mut cmd: Command,
+        inputs: &[&Path],
+    ) -> std::io::Result<CheckerRun> {
+        // BEFORE the spawn, so the digest is of what the checker is about to
+        // read rather than of whatever is on disk once it has finished. A
+        // checker that writes into its own input directory would otherwise be
+        // hashed after the fact.
+        if inputs.is_empty() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "a checker run must name the files it is about. A token bound to no inputs                  is bound to nothing, and every such token would be interchangeable with                  every other, which is the drift this binding exists to stop",
+            ));
+        }
+        let subject = subject_digest(inputs)?;
         let out = cmd.output()?;
         Ok(CheckerRun {
             binary: binary.path().to_path_buf(),
+            subject,
             // Kept as the `Option` the OS gave, because `None` (killed by a
             // signal) and `Some(n)` are different facts and one report prints
             // the difference.
@@ -219,7 +284,7 @@ impl CheckerRun {
             .iter()
             .copied()
             .find(|t| *t == named.as_str())
-            .map(|theorem| Certified { theorem })
+            .map(|theorem| Certified { theorem, subject: self.subject })
     }
 }
 
@@ -232,23 +297,64 @@ impl CheckerRun {
 /// carries one is unreachable on any path that did not run a checker.
 ///
 /// ```compile_fail
-/// // A struct literal: the field is private.
-/// let c = open_ontologies::verdict::Certified { theorem: "OOCert.certificate_sound" };
+/// // A struct literal: the fields are private.
+/// let c = open_ontologies::verdict::Certified {
+///     theorem: "OOCert.certificate_sound",
+///     subject: [0u8; 32],
+/// };
 /// ```
 ///
 /// ```compile_fail
 /// // And there is no constructor function to reach for either.
 /// let c = open_ontologies::verdict::Certified::new("OOCert.certificate_sound");
 /// ```
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+///
+/// ```compile_fail
+/// // NOT `Copy`, so a token earned over goal A cannot silently reappear on
+/// // goal B. Restoring the derive would make this compile, and a
+/// // `compile_fail` doctest that compiles is a failure.
+/// fn assert_copy<T: Copy>() {}
+/// assert_copy::<open_ontologies::verdict::Certified>();
+/// ```
+/// # Which artefact, and what `Clone` still allows
+///
+/// The token carries the digest of the inputs the accepting run was handed,
+/// computed by [`CheckerRun::spawn`] before it spawned. So a token proves
+/// acceptance OF SOMETHING NAMED rather than acceptance in the abstract, and
+/// [`Certified::is_about`] lets a holder of an artefact ask whether this token
+/// is about the artefact in their hand.
+///
+/// It is deliberately NOT `Copy`. While it was, a token earned over goal A
+/// could be attached to goal B by any use of the value, silently, with nothing
+/// in the source to see. It is still `Clone`, so a determined caller can still
+/// duplicate one — but `.clone()` is a visible act that a reader and a grep
+/// can both find, which an implicit copy was not. That is the whole of the
+/// difference and it is not more than that.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Certified {
     theorem: &'static str,
+    subject: [u8; 32],
 }
 
 impl Certified {
     /// The machine-checked statement behind the word.
-    pub fn theorem(self) -> &'static str {
+    pub fn theorem(&self) -> &'static str {
         self.theorem
+    }
+
+    /// The digest of what the accepting run was handed, as hex.
+    pub fn subject_sha256(&self) -> String {
+        hex32(&self.subject)
+    }
+
+    /// Is this token about the artefact the caller is holding?
+    ///
+    /// The caller computes their side with [`subject_digest`] over the same
+    /// files in the same order. A `false` here means the token was earned over
+    /// something else, which is exactly the drift this type could not detect
+    /// before.
+    pub fn is_about(&self, digest: &[u8; 32]) -> bool {
+        &self.subject == digest
     }
 }
 
@@ -265,9 +371,9 @@ impl Certified {
 /// ```compile_fail
 /// use open_ontologies::verdict::{Certified, FolVerdict};
 /// // The laundering line, as it would have to be written today.
-/// let v = FolVerdict::ModelChecked(Certified { theorem: "Fol.satisfiable_of_check" });
+/// let v = FolVerdict::ModelChecked(Certified { theorem: "Fol.satisfiable_of_check", subject: [0u8; 32] });
 /// ```
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum FolVerdict {
     /// CERTIFIED. `oo-folmodel` accepted the structure. Requires exit 0.
     ModelChecked(Certified),
@@ -283,7 +389,7 @@ pub enum FolVerdict {
 
 impl FolVerdict {
     /// The wire word. Byte-identical to the string literals this replaced.
-    pub fn word(self) -> &'static str {
+    pub fn word(&self) -> &'static str {
         match self {
             FolVerdict::ModelChecked(_) => "model_checked",
             FolVerdict::SatisfiableOracle => "satisfiable_oracle",
@@ -293,7 +399,7 @@ impl FolVerdict {
         }
     }
     /// The theorem, named only where one stands behind the word.
-    pub fn theorem(self) -> Option<&'static str> {
+    pub fn theorem(&self) -> Option<&'static str> {
         match self {
             FolVerdict::ModelChecked(c) => Some(c.theorem()),
             _ => None,
@@ -320,7 +426,7 @@ impl FolVerdict {
 /// `goal_negated_present` AND the verdict is `model_checked`. Both conditions
 /// are now arguments that cannot be faked — the report is read off
 /// [`CheckerRun::output`], and the `Certified` is the verdict's own evidence.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct OwlReading(Certified);
 
 impl OwlReading {
@@ -328,7 +434,7 @@ impl OwlReading {
     /// `OwlLean.adequacy` in a sibling project AND on a Rust-to-Lean
     /// correspondence that decision 0005 item 2 says is pinned by tests and
     /// NOT proved.
-    pub fn word(self) -> &'static str {
+    pub fn word(&self) -> &'static str {
         "not_entailed_under_unproved_translation"
     }
 }
@@ -355,9 +461,9 @@ impl CheckerRun {
 ///
 /// ```compile_fail
 /// use open_ontologies::verdict::{Certified, ClosureVerdict};
-/// let v = ClosureVerdict::Checked(Certified { theorem: "OOCert.certificate_sound" });
+/// let v = ClosureVerdict::Checked(Certified { theorem: "OOCert.certificate_sound", subject: [0u8; 32] });
 /// ```
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum ClosureVerdict {
     /// CERTIFIED. `oo-cert` or `oo-horn` accepted the whole certificate.
     Checked(Certified),
@@ -369,14 +475,14 @@ pub enum ClosureVerdict {
 }
 
 impl ClosureVerdict {
-    pub fn word(self) -> &'static str {
+    pub fn word(&self) -> &'static str {
         match self {
             ClosureVerdict::Checked(_) => "checked",
             ClosureVerdict::Rejected => "rejected",
             ClosureVerdict::EngineOpinion => "engine_opinion",
         }
     }
-    pub fn theorem(self) -> Option<&'static str> {
+    pub fn theorem(&self) -> Option<&'static str> {
         match self {
             ClosureVerdict::Checked(c) => Some(c.theorem()),
             _ => None,
@@ -499,10 +605,10 @@ mod tests {
     fn no_engine_word_is_a_checker_word() {
         let mut ours: Vec<&str> = Vec::new();
         ours.extend(FolVerdict::WORDS);
-        ours.push(OwlReading::word(OwlReading(Certified { theorem: "x" })));
+        ours.push(OwlReading(Certified { theorem: "x", subject: [0u8; 32] }).word());
         ours.push(ClosureVerdict::Rejected.word());
         ours.push(ClosureVerdict::EngineOpinion.word());
-        ours.push(ClosureVerdict::Checked(Certified { theorem: "x" }).word());
+        ours.push(ClosureVerdict::Checked(Certified { theorem: "x", subject: [0u8; 32] }).word());
         ours.push(EngineRefutation::ClashFoundByThisEngine.word());
         ours.push(EngineRefutation::RefutationWrittenNotYetChecked.word());
         for w in ours {
@@ -558,11 +664,20 @@ mod tests {
         }
     }
 
+    /// A file for the shell runs to be ABOUT. They test exit codes and theorem
+    /// names, not content, but a run must name its inputs, so they name this.
+    fn a_file(tag: &str, body: &str) -> PathBuf {
+        let p = std::env::temp_dir()
+            .join(format!("oo-verdict-{tag}-{}.txt", std::process::id()));
+        std::fs::write(&p, body).expect("write the scratch input");
+        p
+    }
+
     /// A non-zero exit mints nothing, and there is no other route to a token.
     #[test]
     fn a_non_zero_exit_yields_no_certificate() {
         let (bin, c) = shell_exiting(1);
-        let run = CheckerRun::spawn(&bin, c).expect("the system shell runs");
+        let run = CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]).expect("the system shell runs");
         assert_eq!(run.exit(), 1);
         assert!(run.accepted_naming(&["OOCert.certificate_sound"]).is_none());
     }
@@ -570,10 +685,10 @@ mod tests {
     #[test]
     fn a_zero_exit_mints_the_theorem_the_checker_named() {
         let (bin, c) = shell_exiting(0);
-        let run = CheckerRun::spawn(&bin, c).expect("the system shell runs");
+        let run = CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]).expect("the system shell runs");
         let cert = run.accepted_naming(&["OOCert.certificate_sound"]).expect("exit 0");
         assert_eq!(cert.theorem(), "OOCert.certificate_sound");
-        assert_eq!(FolVerdict::ModelChecked(cert).word(), "model_checked");
+        assert_eq!(FolVerdict::ModelChecked(cert.clone()).word(), "model_checked");
         assert_eq!(FolVerdict::ModelChecked(cert).theorem(), Some("OOCert.certificate_sound"));
     }
 
@@ -584,7 +699,7 @@ mod tests {
     #[test]
     fn a_zero_exit_naming_another_theorem_mints_nothing() {
         let (bin, c) = shell_saying(0, Some("OOCert.something_weaker"));
-        let run = CheckerRun::spawn(&bin, c).expect("the system shell runs");
+        let run = CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]).expect("the system shell runs");
         assert_eq!(run.exit(), 0);
         assert_eq!(run.named_theorem().as_deref(), Some("OOCert.something_weaker"));
         assert!(run.accepted_naming(&["OOCert.certificate_sound"]).is_none());
@@ -595,7 +710,7 @@ mod tests {
     #[test]
     fn a_zero_exit_naming_no_theorem_mints_nothing() {
         let (bin, c) = shell_saying(0, None);
-        let run = CheckerRun::spawn(&bin, c).expect("the system shell runs");
+        let run = CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]).expect("the system shell runs");
         assert_eq!(run.exit(), 0);
         assert_eq!(run.named_theorem(), None);
         assert!(run.accepted_naming(&["OOCert.certificate_sound"]).is_none());
@@ -607,7 +722,7 @@ mod tests {
         let allowed = ["OOCert.horn_certificate_sound", "OOCert.entails_of_builtin_horn"];
         for named in allowed {
             let (bin, c) = shell_saying(0, Some(named));
-            let run = CheckerRun::spawn(&bin, c).expect("the system shell runs");
+            let run = CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]).expect("the system shell runs");
             let cert = run.accepted_naming(&allowed).expect("exit 0 naming an allowed theorem");
             assert_eq!(
                 cert.theorem(),
@@ -623,7 +738,7 @@ mod tests {
     fn a_checker_that_cannot_start_is_not_a_run() {
         let bin = CheckerBinary::found_at(PathBuf::from("/nonexistent/oo-cert"));
         let c = Command::new("/nonexistent/oo-cert");
-        assert!(CheckerRun::spawn(&bin, c).is_err());
+        assert!(CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]).is_err());
     }
 
     /// The wire words, pinned as literals. A rename that changed one of these
@@ -640,9 +755,17 @@ mod tests {
             serde_json::to_string(&EngineRefutation::ClashFoundByThisEngine).unwrap(),
             "\"clash_found_by_this_engine\""
         );
-        let cert = Certified { theorem: "Fol.satisfiable_of_check" };
-        assert_eq!(serde_json::to_string(&FolVerdict::ModelChecked(cert)).unwrap(), "\"model_checked\"");
-        assert_eq!(serde_json::to_string(&ClosureVerdict::Checked(cert)).unwrap(), "\"checked\"");
+        let cert = Certified { theorem: "Fol.satisfiable_of_check", subject: [0u8; 32] };
+        // `.clone()` three times where a `Copy` token needed none. That is the
+        // change this issue asked for, visible at its first call site.
+        assert_eq!(
+            serde_json::to_string(&FolVerdict::ModelChecked(cert.clone())).unwrap(),
+            "\"model_checked\""
+        );
+        assert_eq!(
+            serde_json::to_string(&ClosureVerdict::Checked(cert.clone())).unwrap(),
+            "\"checked\""
+        );
         assert_eq!(
             serde_json::to_string(&OwlReading(cert)).unwrap(),
             "\"not_entailed_under_unproved_translation\""

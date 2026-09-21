@@ -667,8 +667,11 @@ impl Accepted {
     }
     /// The evidence, so a downstream verdict carries the token this run
     /// earned rather than re-asserting the acceptance on its own authority.
+    /// A clone, because this is where the token travels from the run that
+    /// earned it to the verdict that will carry it. That is the one move the
+    /// token is for, and it is now written down rather than implicit.
     pub fn certified(&self) -> Certified {
-        self.certified
+        self.certified.clone()
     }
     pub fn theorem(&self) -> &'static str {
         self.certified.theorem()
@@ -796,9 +799,13 @@ pub fn run_checker(
         }
     };
     let mut cmd = std::process::Command::new(&bin);
+    // The files this run is about, collected in the same arm that puts them on
+    // the command line so the two cannot disagree.
+    let mut inputs: Vec<&Path> = Vec::new();
     match kind {
         CertKind::OoCert => {
             cmd.arg(asserted).arg(derivations);
+            inputs.extend_from_slice(&[asserted, derivations]);
         }
         CertKind::OoHorn => {
             let Some(r) = rules else {
@@ -809,9 +816,10 @@ pub fn run_checker(
                 };
             };
             cmd.arg("check").arg(r).arg(asserted).arg(derivations);
+            inputs.extend_from_slice(&[r, asserted, derivations]);
         }
     }
-    let run = match CheckerRun::spawn(&CheckerBinary::found_at(bin.clone()), cmd) {
+    let run = match CheckerRun::spawn(&CheckerBinary::found_at(bin.clone()), cmd, &inputs) {
         Ok(r) => r,
         Err(e) => {
             return CheckerStatus::Absent {
@@ -871,9 +879,12 @@ pub fn run_checker(
 /// ```compile_fail
 /// use open_ontologies::projection_entailment::GoalVerdict;
 /// use open_ontologies::verdict::Certified;
-/// let v = GoalVerdict::PreservedChecked(Certified { theorem: "OOCert.certificate_sound" });
+/// let v = GoalVerdict::PreservedChecked(Certified {
+///     theorem: "OOCert.certificate_sound",
+///     subject: [0u8; 32],
+/// });
 /// ```
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GoalVerdict {
     /// `P` entails `q`, machine-checked over `P`'s own asserted graph.
     PreservedChecked(Certified),
@@ -908,7 +919,7 @@ impl GoalVerdict {
     /// "snake_case")]` used to derive, and the single source of the string now
     /// that the two checked variants carry a payload serde would otherwise
     /// have wrapped in an object.
-    pub fn word(self) -> &'static str {
+    pub fn word(&self) -> &'static str {
         match self {
             GoalVerdict::PreservedChecked(_) => "preserved_checked",
             GoalVerdict::PreservedUnderSuppliedRulesChecked(_) => {
@@ -929,17 +940,17 @@ impl GoalVerdict {
     /// enum is where the discipline is easy and the serialisation is where it
     /// leaks. The name now comes OUT OF THE EVIDENCE rather than out of a
     /// match arm, so a run that never ran the checker cannot name a theorem.
-    pub fn warrant(self) -> &'static str {
+    pub fn warrant(&self) -> &'static str {
         match self {
             GoalVerdict::PreservedChecked(c)
             | GoalVerdict::PreservedUnderSuppliedRulesChecked(c) => c.theorem(),
             _ => "none",
         }
     }
-    pub fn is_checked(self) -> bool {
+    pub fn is_checked(&self) -> bool {
         self.warrant() != "none"
     }
-    pub fn is_preserved(self) -> bool {
+    pub fn is_preserved(&self) -> bool {
         matches!(
             self,
             GoalVerdict::PreservedChecked(_)
@@ -948,7 +959,7 @@ impl GoalVerdict {
                 | GoalVerdict::PreservedUnchecked
         )
     }
-    pub fn means(self) -> &'static str {
+    pub fn means(&self) -> &'static str {
         match self {
             GoalVerdict::PreservedChecked(_) =>
                 "the projection entails this goal: true in every model of the projection under the \
@@ -1572,12 +1583,16 @@ pub fn check_entailment_preservation(
             goal: format!("{} {} {}", g.triple.0, g.triple.1, g.triple.2),
             source,
             projection,
-            verdict,
+            // All three read before the move. The verdict may carry a token,
+            // and this row is the one place it belongs.
             warrant: verdict.warrant(),
             means: verdict.means(),
             certificate,
             bounded_by_iteration_cap: bounded && !verdict.is_preserved(),
             goal_outside_seed_neighbourhood: outside,
+            // Last, because it MOVES: the token this verdict may carry belongs
+            // to this row and to nothing after it.
+            verdict,
         });
     }
 
@@ -1609,19 +1624,19 @@ pub fn check_entailment_preservation(
     let coverage_proxy = coverage_proxy(graph, &opts.seed_iris, &projected_ttl);
 
     // ── Counts and the verdict on the run ───────────────────────────────
-    let count = |f: fn(GoalVerdict) -> bool| per_goal.iter().filter(|g| f(g.verdict)).count();
+    let count = |f: fn(&GoalVerdict) -> bool| per_goal.iter().filter(|g| f(&g.verdict)).count();
     let preserved_checked = count(|v| {
         matches!(
             v,
             GoalVerdict::PreservedChecked(_) | GoalVerdict::PreservedUnderSuppliedRulesChecked(_)
         )
     });
-    let preserved_asserted = count(|v| v == GoalVerdict::PreservedAsserted);
-    let preserved_unchecked = count(|v| v == GoalVerdict::PreservedUnchecked);
-    let lost = count(|v| v == GoalVerdict::LostUnderProfileUnchecked);
-    let ungrounded = count(|v| v == GoalVerdict::UngroundedInSource);
-    let projection_only = count(|v| v == GoalVerdict::ProjectionOnly);
-    let certificate_rejected = count(|v| v == GoalVerdict::CertificateRejected);
+    let preserved_asserted = count(|v| *v == GoalVerdict::PreservedAsserted);
+    let preserved_unchecked = count(|v| *v == GoalVerdict::PreservedUnchecked);
+    let lost = count(|v| *v == GoalVerdict::LostUnderProfileUnchecked);
+    let ungrounded = count(|v| *v == GoalVerdict::UngroundedInSource);
+    let projection_only = count(|v| *v == GoalVerdict::ProjectionOnly);
+    let certificate_rejected = count(|v| *v == GoalVerdict::CertificateRejected);
 
     let exit_code = if stop_the_line.is_some() {
         2

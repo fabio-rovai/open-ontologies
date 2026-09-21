@@ -1,0 +1,9 @@
+# cax-dw   T(?c1, owl:disjointWith, ?c2) T(?x, rdf:type, ?c1) T(?x, rdf:type, ?c2) -> false
+# One individual in two classes an axiom says share no member.
+@prefix : <http://ex.org/clash#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:Herbivore owl:disjointWith :Carnivore .
+:leo a :Herbivore , :Carnivore .
