@@ -80,6 +80,12 @@ jobs:
   # certificate at all, so a visitor met a front page whose central claim the
   # page itself could not demonstrate. These binaries are a few MB each.
   checkers:
+    # The same gate `build` has. Without it this job builds the whole Lean
+    # development on a tag that is already known to be wrong: nothing is
+    # PUBLISHED, because `release` needs `build` which needs the gate, but
+    # the work is done anyway and the claim that nothing is built before
+    # the check was not true of this job.
+    needs: verify-version
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
