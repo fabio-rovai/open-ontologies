@@ -33,22 +33,31 @@ use std::process::Command;
 
 const THEOREM: &str = "OOCert.certificate_sound";
 
-fn dir() -> PathBuf {
-    let d = std::env::temp_dir().join(format!("oo-token-binding-{}", std::process::id()));
+/// ONE DIRECTORY PER TEST, and the reason is worth writing down.
+///
+/// These tests first shared a single directory keyed on the process id, and
+/// two of them wrote a file called `asserted.tsv` into it. Cargo runs tests in
+/// parallel threads of one process, so one test's write landed between
+/// another's run and its recomputation, and the digests disagreed. It passed
+/// on my machine and failed on CI, which is the signature of exactly this.
+/// The script the fake checker runs lives here too: writing over a file
+/// another thread is executing is `ETXTBSY` on Linux.
+fn dir(tag: &str) -> PathBuf {
+    let d = std::env::temp_dir().join(format!("oo-token-binding-{}-{tag}", std::process::id()));
     std::fs::create_dir_all(&d).unwrap();
     d
 }
 
-fn file(name: &str, body: &str) -> PathBuf {
-    let p = dir().join(name);
+fn file(tag: &str, name: &str, body: &str) -> PathBuf {
+    let p = dir(tag).join(name);
     std::fs::write(&p, body).unwrap();
     p
 }
 
 /// A script that exits zero and prints a theorem, which is all the mint reads.
-fn fake_checker() -> PathBuf {
+fn fake_checker(tag: &str) -> PathBuf {
     let ext = if cfg!(windows) { "cmd" } else { "sh" };
-    let p = dir().join(format!("accepts.{ext}"));
+    let p = dir(tag).join(format!("accepts.{ext}"));
     let say = format!(r#"{{"ok":true,"theorem":"{THEOREM}"}}"#);
     let body = if cfg!(windows) {
         format!("@echo off\r\necho {say}\r\nexit /b 0\r\n")
@@ -64,8 +73,8 @@ fn fake_checker() -> PathBuf {
     p
 }
 
-fn run_over(inputs: &[&Path]) -> std::io::Result<CheckerRun> {
-    let bin = fake_checker();
+fn run_over(tag: &str, inputs: &[&Path]) -> std::io::Result<CheckerRun> {
+    let bin = fake_checker(tag);
     let mut cmd = Command::new(&bin);
     for i in inputs {
         cmd.arg(i);
@@ -75,8 +84,8 @@ fn run_over(inputs: &[&Path]) -> std::io::Result<CheckerRun> {
 
 #[test]
 fn a_token_is_about_the_artefact_its_run_was_handed() {
-    let a = file("asserted.tsv", "s\tp\to\n");
-    let run = run_over(&[&a]).expect("the script runs");
+    let a = file("about", "asserted.tsv", "s\tp\to\n");
+    let run = run_over("about", &[&a]).expect("the script runs");
     let token = run.accepted_naming(&[THEOREM]).expect("exit 0 naming the theorem");
 
     let mine = subject_digest(&[&a]).expect("the caller hashes the same file");
@@ -89,9 +98,9 @@ fn a_token_is_about_the_artefact_its_run_was_handed() {
 
 #[test]
 fn a_token_earned_over_one_artefact_is_not_about_another() {
-    let a = file("goal-a.tsv", "a\tp\to\n");
-    let b = file("goal-b.tsv", "b\tp\to\n");
-    let token = run_over(&[&a]).unwrap().accepted_naming(&[THEOREM]).expect("minted");
+    let a = file("other", "goal-a.tsv", "a\tp\to\n");
+    let b = file("other", "goal-b.tsv", "b\tp\to\n");
+    let token = run_over("other", &[&a]).unwrap().accepted_naming(&[THEOREM]).expect("minted");
 
     let other = subject_digest(&[&b]).unwrap();
     assert!(
@@ -105,8 +114,8 @@ fn a_token_earned_over_one_artefact_is_not_about_another() {
 fn the_digest_is_of_the_bytes_and_not_of_the_path() {
     // The same content under two directories is the same subject: a digest that
     // changed when a directory moved would be a digest nobody could compare.
-    let one = dir().join("one");
-    let two = dir().join("two");
+    let one = dir("bytes").join("one");
+    let two = dir("bytes").join("two");
     std::fs::create_dir_all(&one).unwrap();
     std::fs::create_dir_all(&two).unwrap();
     let p1 = one.join("asserted.tsv");
@@ -125,8 +134,8 @@ fn the_digest_knows_which_file_played_which_part() {
     // `oo-cert A D` handed the derivations as the asserted file is a different
     // run from the right one, and the digest has to say so. The base name is in
     // the framing for exactly this.
-    let a = file("asserted.tsv", "same bytes\n");
-    let d = file("derivations.tsv", "same bytes\n");
+    let a = file("parts", "asserted.tsv", "same bytes\n");
+    let d = file("parts", "derivations.tsv", "same bytes\n");
     assert_ne!(
         subject_digest(&[&a, &d]).unwrap(),
         subject_digest(&[&d, &a]).unwrap(),
@@ -136,7 +145,7 @@ fn the_digest_knows_which_file_played_which_part() {
 
 #[test]
 fn a_run_that_names_no_inputs_mints_nothing_because_it_cannot_start() {
-    let e = run_over(&[]).expect_err("a run about nothing is refused");
+    let e = run_over("empty", &[]).expect_err("a run about nothing is refused");
     assert_eq!(e.kind(), std::io::ErrorKind::InvalidInput);
     assert!(
         e.to_string().contains("must name the files it is about"),
@@ -146,10 +155,10 @@ fn a_run_that_names_no_inputs_mints_nothing_because_it_cannot_start() {
 
 #[test]
 fn an_unreadable_input_is_an_error_and_never_a_digest() {
-    let missing = dir().join("was-never-written.tsv");
+    let missing = dir("missing").join("was-never-written.tsv");
     assert!(subject_digest(&[&missing]).is_err());
     assert!(
-        run_over(&[&missing]).is_err(),
+        run_over("missing", &[&missing]).is_err(),
         "a run whose inputs could not be read must not mint a token bound to them"
     );
 }
