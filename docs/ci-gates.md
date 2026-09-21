@@ -61,6 +61,7 @@ job invokes the file at all.
 | `shacl_verified_tool_test.rs` | lake + `oo-shacl` | `lean` job | **strict** |
 | `shacl_ignored_is_named_test.rs` | lake + `oo-shacl` | `lean` job | **strict** |
 | `checker_self_identification_test.rs` | lake + every checker | `lean` job | **strict** |
+| `cli_verified_shacl_test.rs` | lake + `oo-shacl` | `lean` job | **strict** |
 | `dl_refutation_certificate_test.rs` | lake + `oo-dlrefute` | `lean` job | **strict** |
 | `lean_refutation_test.rs` | lake + `oo-refute` | `lean` job | **strict** |
 | `lean_refutation_producer_test.rs` | lake + `oo-refute` | `lean` job | **strict** |
