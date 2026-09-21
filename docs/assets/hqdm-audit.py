@@ -347,7 +347,8 @@ def panel(A, rows, box, label, undeclared, bad_range, undecided, hermit, disjoin
     return names, edges
 
 
-def main(ttl_path, owl_path, dl_path, hermit_path, out_path):
+def main(ttl_path, owl_path, dl_path, hermit_path, out_path, lang="en"):
+    T = TEXT[lang]
     ttl = read(ttl_path)
     owl = read(owl_path)
     dl = json.load(open(dl_path))
@@ -400,13 +401,13 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path):
 
     # Headline, then the beats in order.
     A(f'<text x="34" y="44" font-size="17" font-weight="800" fill="#f8fafc">'
-      f'HQDM, two shipped renderings: one is not well formed, the other is not coherent</text>')
+      f'{T["headline"]}</text>')
     BEATS = [
-        (C_BAD, f"1 · left: {len(t_undeclared)} terms are used as a class and never declared", 0.0, 4.0),
-        (C_BAD, f"2 · left: {len(t_bad)} rdfs:range declarations name a relation, not a class", 4.0, 8.0),
-        (C_UND, f"3 · right: this engine finds {sat_found} named classes satisfiable and cannot decide {len(undecided)}", 8.0, 12.0),
-        (C_BAD, f"4 · right: HermiT, an opinion here, calls {len(hermit)} unsatisfiable, and they are the same {len(both)}", 12.0, 16.0),
-        (C_WARN, f"5 · both: {len(t_pairs)} and {len(o_pairs)} names differ only by a trailing underscore", 16.0, 20.0),
+        (C_BAD, T["beat1"].format(n=len(t_undeclared)), 0.0, 4.0),
+        (C_BAD, T["beat2"].format(n=len(t_bad)), 4.0, 8.0),
+        (C_UND, T["beat3"].format(sat=sat_found, und=len(undecided)), 8.0, 12.0),
+        (C_BAD, T["beat4"].format(n=len(hermit), both=len(both)), 12.0, 16.0),
+        (C_WARN, T["beat5"].format(a=len(t_pairs), b=len(o_pairs)), 16.0, 20.0),
     ]
     # One caption at a time, fades included. Two defects here, both measured in
     # a browser rather than reasoned about: the ramps overlapped, so every
@@ -425,42 +426,36 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path):
 
     # Per-panel titles and facts.
     A(f'<text x="34" y="{GT - 42}" font-size="13" font-weight="800" fill="#e2e8f0">'
-      f'hqdm-0.0.1-alpha.ttl <tspan fill="#64748b" font-weight="500">· hqdmTop/hqdmFramework, vendored by MagmaCore · RDFS</tspan></text>')
+      f'hqdm-0.0.1-alpha.ttl <tspan fill="#64748b" font-weight="500">{T["ttl_sub"]}</tspan></text>')
     A(f'<text x="34" y="{GT - 26}" font-size="10.5" fill="#64748b">'
-      f'{len(ttl)} triples, {len(t_declared)} declared classes, {len(t_names)} terms in one connected graph.</text>')
+      f'{T["facts1"].format(t=len(ttl), d=len(t_declared), n=len(t_names))}</text>')
     A(f'<text x="34" y="{GT - 12}" font-size="10.5" fill="#64748b">'
-      f'No owl: term and no disjointness axiom, so no named class can be unsatisfiable.</text>')
+      f'{T["ttl_facts2"]}</text>')
     A(f'<text x="{MID + 22}" y="{GT - 42}" font-size="13" font-weight="800" fill="#e2e8f0">'
-      f'hqdm.owl <tspan fill="#64748b" font-weight="500">· gchq/HQDM · OWL, {disjoint_n} disjointness axioms</tspan></text>')
+      f'hqdm.owl <tspan fill="#64748b" font-weight="500">{T["owl_sub"].format(n=disjoint_n)}</tspan></text>')
     A(f'<text x="{MID + 22}" y="{GT - 26}" font-size="10.5" fill="#64748b">'
-      f'{len(owl)} triples, {len(o_declared)} declared classes, {len(o_names)} terms in one connected graph.</text>')
+      f'{T["facts1"].format(t=len(owl), d=len(o_declared), n=len(o_names))}</text>')
     A(f'<text x="{MID + 22}" y="{GT - 12}" font-size="10.5" fill="#64748b">'
-      f'{len(o_undeclared)} undeclared terms, {len(o_bad)} ranges naming a relation: well formed by the same checks.</text>')
+      f'{T["owl_facts2"].format(u=len(o_undeclared), b=len(o_bad))}</text>')
 
     # Legend: the two columns.
     ly = GB + 22
     A(f'<rect x="28" y="{ly}" width="{W - 56}" height="{H - ly - 18}" rx="12" fill="#030a1c" '
       f'opacity="0.94" stroke="#1e3a5f"/>')
     A(f'<text x="46" y="{ly + 24}" font-size="12" font-weight="800" fill="{C_BAD}" '
-      f'letter-spacing="1.4">WHAT A REASONER CANNOT SEE</text>')
+      f'letter-spacing="1.4">{T["left_head"]}</text>')
     A(f'<text x="{MID + 18}" y="{ly + 24}" font-size="12" font-weight="800" fill="{C_UND}" '
-      f'letter-spacing="1.4">WHAT ONLY A REASONER CAN SEE</text>')
+      f'letter-spacing="1.4">{T["right_head"]}</text>')
     A(f'<line x1="40" y1="{ly + 33}" x2="{W - 40}" y2="{ly + 33}" stroke="#1e3a5f"/>')
     left = [
-        (C_BAD, "UNDECLARED", len(t_undeclared),
-         "used as a class, never typed as one"),
-        (C_BAD, "RANGE IS A RELATION", len(t_bad),
-         "rdfs:range naming part_of or participant_in"),
-        (C_WARN, "UNDERSCORE TWINS", len(t_pairs),
-         f"one trailing underscore apart; {len(t_identical)} identical in domain and range"),
+        (C_BAD, T["undeclared"][0], len(t_undeclared), T["undeclared"][1]),
+        (C_BAD, T["badrange"][0], len(t_bad), T["badrange"][1]),
+        (C_WARN, T["twins"][0], len(t_pairs), T["twins"][1].format(n=len(t_identical))),
     ]
     right = [
-        (C_OK, "SATISFIABLE", sat_found,
-         "named classes this engine's tableaux found a model for"),
-        (C_UND, "UNDECIDED", len(undecided),
-         "budget ran out before a verdict either way"),
-        (C_BAD, "ORACLE: UNSATISFIABLE", len(hermit),
-         f"HermiT, OM 2026 run; {len(both)} of them are the undecided ones"),
+        (C_OK, T["sat"][0], sat_found, T["sat"][1]),
+        (C_UND, T["und"][0], len(undecided), T["und"][1]),
+        (C_BAD, T["oracle"][0], len(hermit), T["oracle"][1].format(n=len(both))),
     ]
     for col_x, rows_ in ((46, left), (MID + 18, right)):
         for m, (col, label, count, means) in enumerate(rows_):
@@ -475,11 +470,9 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path):
     # Two lines, because one ran to x=1095 while the panel ends at 1072: the
     # sentence was printed outside the box that frames it.
     A(f'<text x="46" y="{ly + 120}" font-size="10" fill="#64748b">'
-      f'Same ontology name, two files, and the defect you find depends on which you fetched; '
-      f'neither file says which is canonical.</text>')
+      f'{T["foot1"]}</text>')
     A(f'<text x="46" y="{ly + 132}" font-size="10" fill="#64748b">'
-      f'{len(o_pairs)} of the {len(t_pairs)} underscore twins survive into the OWL rendering. '
-      f'Every count here is recomputed from the rows by a test.</text>')
+      f'{T["foot2"].format(o=len(o_pairs), t=len(t_pairs))}</text>')
     A('</svg>')
 
     with open(out_path, "w") as f:
@@ -493,4 +486,4 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:6])
+    main(*sys.argv[1:7])

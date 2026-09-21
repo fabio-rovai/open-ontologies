@@ -286,11 +286,50 @@ fn the_translated_page_carries_the_same_structure() {
          translation is a different product, not the same one in another language."
     );
 
-    for figure in ["knowledge-graph.svg", "hqdm-audit.svg", "demo-certify.svg", "logo.png"] {
+    // Each figure, by stem: the translated page is expected to use the
+    // TRANSLATED variant where one exists, and the same file where it does not.
+    for (stem, translated) in [
+        ("knowledge-graph", true),
+        ("hqdm-audit", true),
+        ("demo-certify", false),
+        ("logo.png", false),
+    ] {
         assert!(
-            zh.contains(figure),
-            "the translated page is missing the figure {figure:?}. Both pages show the same \
+            zh.contains(stem),
+            "the translated page is missing the figure {stem:?}. Both pages show the same \
              front page, or the translation is a different product."
+        );
+        if translated {
+            let zh_file = format!("{stem}.zh-CN.svg");
+            assert!(
+                std::path::Path::new(&repo().join("docs/assets").join(&zh_file)).exists(),
+                "{zh_file} does not exist, and the translated page is expected to use it"
+            );
+            assert!(
+                zh.contains(&zh_file),
+                "the translated page uses the English {stem:?} figure. The generator emits a \
+                 Chinese one, and a page that shows English words inside a Chinese figure is \
+                 the translation that was not finished."
+            );
+            assert!(
+                !en.contains(&zh_file),
+                "the English page uses the Chinese figure {zh_file:?}"
+            );
+        }
+    }
+    // The translated figure must carry the SAME computed numbers as the English
+    // one. The words are translated; the counts come from the run.
+    let (en_svg, zh_svg) = (
+        std::fs::read_to_string(repo().join("docs/assets/hqdm-audit.svg")).expect("en figure"),
+        std::fs::read_to_string(repo().join("docs/assets/hqdm-audit.zh-CN.svg")).expect("zh figure"),
+    );
+    for n in ["23", "12", "13", "195", "39"] {
+        let needle = format!(">{n}</text>");
+        assert_eq!(
+            en_svg.matches(&needle).count(),
+            zh_svg.matches(&needle).count(),
+            "the two language versions of the HQDM figure disagree about how many times {n} \
+             appears. Only the words are translated; every count is computed from the same rows."
         );
     }
     for link in ["docs/tool-reference.md", "open-ontologies-try.vercel.app"] {

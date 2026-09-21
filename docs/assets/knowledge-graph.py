@@ -85,7 +85,103 @@ def read(path):
     return rows
 
 
-def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=None):
+
+# Every word on the drawing, in each language it is published in. The NUMBERS
+# stay out of this table: they are computed from the run and formatted into
+# these strings, so a translation cannot state a count the data does not carry.
+TEXT = {
+    "en": {
+        "headline": "ies-core.ttl, reasoned over and proved",
+        "sub": "the Studio 3D view: {n} nodes and {e} edges drawn, out of {a} asserted triples and {d} derived by {rules}",
+        "cols": ("the file", "what it becomes", "who reads it"),
+        "graphhead": "{n} TERMS OF ies-core, ONE CONNECTED GRAPH · subClassOf, rdf:type, domain, range",
+        "beat1": "1 · a person asserts",
+        "beat2": "2 · the engine derives",
+        "beat3": "3 · Lean checks the one certificate covering all {n}, and accepts",
+        "beat4_cert": "4 · four provers read the clauses; Vampire's refutation is checked, the rest opine",
+        "beat4_plain": "4 · four provers read a different file, and only opine",
+        "beat5": "5 · a line is forged, and the same checker refuses",
+        "beat6": "6 · a question the file cannot be asked is returned unasked",
+        "legend_head": "PROOF-CARRYING INFERENCE",
+        "legend_file": "ies-core.ttl · {n:,} triples",
+        "asserted": ("ASSERTED", "read from ies-core.ttl. claimed by a person"),
+        "certified": ("CERTIFIED", "derived, then PROVED. one certificate, one run, OOCert.certificate_sound"),
+        "rejected": ("REJECTED", "forged. the checker exited 1 and named the rule"),
+        "unasked": ("UNASKED", "a question outside the file's language. no judge was asked"),
+        "worth_head": "WHAT A VERDICT IS WORTH",
+        "w_cert": "certificate",
+        "w_cert1_fo": "ONE file for all {n}: Lean 4 and Isabelle/HOL read the same bytes, {c} checks Vampire's.",
+        "w_cert2_fo": "re-runnable. {t}: the clause set has no model, over any carrier.",
+        "w_cert1": "ONE file for all {n}: Lean 4 and Isabelle/HOL read the same bytes.",
+        "w_cert2": "anyone can re-run the check and get the same answer.",
+        "w_op": "opinion",
+        "w_op1_fo": "E, Z3 and Mace4 read the clauses too, and print a word.",
+        "w_op1": "Vampire, E, Z3 and Mace4 read a different file.",
+        "w_op2": "believe the program, or believe nothing. no object to check.",
+        "w_mu": "mu",
+        "w_mu1": "{s} \u2291 {o} is returned unasked: {s} is {why}.",
+        "w_mu2": "Zhaozhou's answer. the presupposition fails, not the claim; no judge is asked.",
+        "j_cert": "certificate", "j_same": "same bytes", "j_op": "opinion",
+        "j_checks": "checks it", "j_noproof": "no proof",
+        "disagree": "disagreement · stops the line",
+        "forged": "this line is forged",
+        "refused": "exit 1, refused",
+        "mu_badge": "returned unasked · {s} is {why}",
+        "mu_individual": "a {t}, never a class",
+        "mu_individual_plain": "an individual, never a class",
+        "mu_typed": "typed {t}, never a class",
+        "mu_undeclared": "a name the file never uses",
+        "mu_other": "outside the file's language",
+    },
+    "zh": {
+        "headline": "ies-core.ttl：经过推理，并且得到证明",
+        "sub": "Studio 三维视图：绘制了 {n} 个节点与 {e} 条边，来自 {a} 条断言三元组和由 {rules} 推出的 {d} 条",
+        "cols": ("文件", "它变成什么", "谁来阅读"),
+        "graphhead": "ies-core 的 {n} 个术语，一个连通图 · subClassOf、rdf:type、domain、range",
+        "beat1": "1 · 有人作出断言",
+        "beat2": "2 · 引擎进行推导",
+        "beat3": "3 · Lean 检查涵盖全部 {n} 条的那一份证书，并且接受",
+        "beat4_cert": "4 · 四个证明器读取子句；Vampire 的反驳被检查，其余只给出意见",
+        "beat4_plain": "4 · 四个证明器读取另一个文件，只给出意见",
+        "beat5": "5 · 有一行被伪造，同一个检查器拒绝了它",
+        "beat6": "6 · 一个该文件无法回答的问题，被原样退回",
+        "legend_head": "带证明的推理",
+        "legend_file": "ies-core.ttl · {n:,} 条三元组",
+        "asserted": ("断言", "读自 ies-core.ttl，由人作出的声称"),
+        "certified": ("已认证", "推导得出，并且已证明。一份证书，一次运行，OOCert.certificate_sound"),
+        "rejected": ("被拒绝", "伪造。检查器以 exit 1 退出，并指出规则"),
+        "unasked": ("未提问", "超出该文件语言范围的问题。没有询问任何裁判"),
+        "worth_head": "一个结论值多少",
+        "w_cert": "证书",
+        "w_cert1_fo": "全部 {n} 条只有一个文件：Lean 4 与 Isabelle/HOL 读取同样的字节，{c} 检查 Vampire 的反驳。",
+        "w_cert2_fo": "可重新运行。{t}：该子句集在任何论域上都没有模型。",
+        "w_cert1": "全部 {n} 条只有一个文件：Lean 4 与 Isabelle/HOL 读取同样的字节。",
+        "w_cert2": "任何人都可以重新运行检查，并得到同样的答案。",
+        "w_op": "意见",
+        "w_op1_fo": "E、Z3 与 Mace4 也读取这些子句，并给出一个词。",
+        "w_op1": "Vampire、E、Z3 与 Mace4 读取的是另一个文件。",
+        "w_op2": "要么相信这个程序，要么什么都不信。没有可检查的对象。",
+        "w_mu": "无",
+        "w_mu1": "{s} \u2291 {o} 被原样退回：{s} 是{why}。",
+        "w_mu2": "赵州的回答。失败的是预设，而不是主张；没有询问任何裁判。",
+        "j_cert": "证书", "j_same": "同样的字节", "j_op": "意见",
+        "j_checks": "检查它", "j_noproof": "没有证明",
+        "disagree": "分歧 · 停止这条流水线",
+        "forged": "这一行是伪造的",
+        "refused": "exit 1，已拒绝",
+        "mu_badge": "原样退回 · {s} 是{why}",
+        "mu_individual": "一个 {t}，从来不是类",
+        "mu_individual_plain": "一个个体，从来不是类",
+        "mu_typed": "被标注为 {t}，从来不是类",
+        "mu_undeclared": "该文件从未使用过的名称",
+        "mu_other": "超出该文件的语言范围",
+    },
+}
+
+
+def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=None, lang="en"):
+    # `T` is already a box coordinate in this file, so the text table is `TX`.
+    TX = TEXT[lang]
     asserted = read(asserted_path)
     derivations = read(derivations_path)
     # The prover run's report. Which judge earned `certificate` and which only
@@ -112,10 +208,10 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
         m_ = re.search(r"typed (\S+?)(?:,|\s|$)", mu["report"].get("why", ""))
         mu_typed = short(m_.group(1)) if m_ else ""
     mu_line = {
-        "individual": f"a {mu_typed}, never a class" if mu_typed else "an individual, never a class",
-        "typed_not_a_class": f"typed {mu_typed}, never a class",
-        "undeclared": "a name the file never uses",
-    }.get(mu_kind, "outside the file's language")
+        "individual": TX["mu_individual"].format(t=mu_typed) if mu_typed else TX["mu_individual_plain"],
+        "typed_not_a_class": TX["mu_typed"].format(t=mu_typed),
+        "undeclared": TX["mu_undeclared"],
+    }.get(mu_kind, TX["mu_other"])
     fo_checker = "oo-fores"
 
     # Asserted subclass edges, and the conclusions the fixpoint derived. A
@@ -506,17 +602,15 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     # shown it do anything, and the difference between what Lean produces and
     # what they produce is the single most important distinction on the page.
     BEATS = [
-        ("#94a3b8", "1 · a person asserts", 0.6, 3.4),
-        ("#6ee7b7", "2 · the engine derives", 3.4, 6.4),
-        ("#34d399", f"3 · Lean checks the one certificate covering all {n_certified_edges}, and accepts", 6.4, 9.6),
-        ("#f0abfc", ("4 · four provers read the clauses; Vampire's refutation is checked, the rest opine"
-                     if vampire_certified else
-                     "4 · four provers read a different file, and only opine"), 9.6, 13.0),
-        ("#fb3b53", "5 · a line is forged, and the same checker refuses", 13.0, 17.0),
+        ("#94a3b8", TX["beat1"], 0.6, 3.4),
+        ("#6ee7b7", TX["beat2"], 3.4, 6.4),
+        ("#34d399", TX["beat3"].format(n=n_certified_edges), 6.4, 9.6),
+        ("#f0abfc", (TX["beat4_cert"] if vampire_certified else TX["beat4_plain"]), 9.6, 13.0),
+        ("#fb3b53", TX["beat5"], 13.0, 17.0),
     ]
     C_MU = "#fbbf24"
     if mu:
-        BEATS.append((C_MU, "6 · a question the file cannot be asked is returned unasked", 17.0, 21.0))
+        BEATS.append((C_MU, TX["beat6"], 17.0, 21.0))
 
     REST_A, LIT_A = 0.45, 0.95   # asserted
     REST_D, LIT_D = 0.30, 0.85   # derived
@@ -774,15 +868,15 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     # because that is the point: four independent programs agreeing is still
     # four opinions.
     JUDGES = [
-        (LEAN, "certificate", C_LEAN, 6.8, 9.6),
-        ("Isabelle/HOL", "same bytes", C_LEAN, 7.4, 9.6),
-        ("Vampire", "certificate" if vampire_certified else "opinion",
+        (LEAN, TX["j_cert"], C_LEAN, 6.8, 9.6),
+        ("Isabelle/HOL", TX["j_same"], C_LEAN, 7.4, 9.6),
+        ("Vampire", TX["j_cert"] if vampire_certified else TX["j_op"],
          C_LEAN if vampire_certified else C_TOOL, 10.0, 13.0),
-        (FORES, "checks it" if vampire_certified else "no proof",
+        (FORES, TX["j_checks"] if vampire_certified else TX["j_noproof"],
          C_LEAN if vampire_certified else C_TOOL, 10.4, 13.0),
-        ("E", "opinion", C_TOOL, 10.3, 13.0),
-        ("Z3", "opinion", C_TOOL, 10.6, 13.0),
-        ("Mace4", "opinion", C_TOOL, 10.9, 13.0),
+        ("E", TX["j_op"], C_TOOL, 10.3, 13.0),
+        ("Z3", TX["j_op"], C_TOOL, 10.6, 13.0),
+        ("Mace4", TX["j_op"], C_TOOL, 10.9, 13.0),
     ]
     for jname, verdict, col, t0, t1 in JUDGES:
         ji = idx[jname]
@@ -855,7 +949,7 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     A(f'<path d="M{fx0:.1f} {fy0:.1f} Q{fx0:.1f} {pt[ci0][1] + 30:.1f} '
       f'{pt[ci0][0]:.1f} {pt[ci0][1] + rad(ci0) + 6:.1f}" fill="none" '
       f'stroke="{C_TOOL}" stroke-width="1.5" stroke-dasharray="4 4"/>')
-    dtxt = "disagreement · stops the line"
+    dtxt = TX["disagree"]
     dw = len(dtxt) * 5.0 + 12
     # Candidates, like every other badge on this drawing. This one used to take
     # a single computed point, and that point sat on top of the `problem.tsv`
@@ -938,7 +1032,7 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
           f'fill="none" stroke="{C_REJECT}" stroke-width="1.4" opacity="0.7"/>')
         A('</g>')
 
-        ftxt = "this line is forged"
+        ftxt = TX["forged"]
         fw = len(ftxt) * 5.4 + 12
         cands = []
         for dy_ in (-26.0, 26.0, -44.0, 44.0):
@@ -962,7 +1056,7 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
         A('</g>')
 
     # And the verdict, at the checker.
-    rtxt = "exit 1, refused"
+    rtxt = TX["refused"]
     rw = len(rtxt) * 5.4 + 12
     rx, ry = pt[li][0] - rw / 2, pt[li][1] + lr + 22
     for ccx, ccy in [(pt[li][0] - rw / 2, pt[li][1] + lr + 22),
@@ -1009,7 +1103,7 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
           f'font-weight="800" fill="{C_MU}" opacity="0">'
           + anim("opacity", "0;0;1;1;0;0", kt(0, 18.6, 19.0, 20.6, 21.0, CYCLE))
           + '無</text>')
-        mtxt = f"returned unasked · {short(mu_s)} is {mu_line}"
+        mtxt = TX["mu_badge"].format(s=short(mu_s), why=mu_line)
         mw = len(mtxt) * 5.4 + 12
         mcands = [(qmx - mw / 2, qmy - 24), (qmx - mw / 2, qmy + 34), (qmx + 30, qmy - 6), (qmx - mw - 30, qmy - 6)]
         mx, my = mcands[-1]
@@ -1089,7 +1183,7 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     n_derived = len(derivations)
     rules = ", ".join(f"{r} x{c}" for r, c in sorted(by_rule.items(), key=lambda kv: -kv[1]))
     A(f'<text x="34" y="44" font-size="17" font-weight="800" fill="#f8fafc">'
-      f'ies-core.ttl, reasoned over and proved</text>')
+      f'{TX["headline"]}</text>')
 
     # The running step, said in words, at the top. It used to be said only on
     # the rail at the bottom of the canvas: ten-point type, six hundred pixels
@@ -1120,15 +1214,14 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
           + f'{text}</text>')
 
     A(f'<text x="34" y="88" font-size="10.5" fill="#64748b">'
-      f'the Studio 3D view: {len(nodes)} nodes and {len(edges)} edges drawn, out of '
-      f'{n_asserted} asserted triples and {n_derived} derived by {rules}</text>')
+      f'{TX["sub"].format(n=len(nodes), e=len(edges), a=n_asserted, d=n_derived, rules=rules)}</text>')
 
     # ── B. what each column of the pipeline IS ──────────────────────────
     #
     # Three placed columns carry an argument only if the reader can see that
     # they are columns. Without headings the left half read as a scatter of
     # pink dots that happened to line up.
-    for hx, htxt in ((86, "the file"), (196, "what it becomes"), (318, "who reads it")):
+    for hx, htxt in zip((86, 196, 318), TX["cols"]):
         A(f'<text x="{hx}" y="108" text-anchor="middle" font-size="9" '
           f'font-weight="700" fill="#475569" letter-spacing="1.4">{htxt.upper()}</text>')
     # And what the right-hand half is, which nothing said. A reader met a cloud
@@ -1146,8 +1239,7 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     # the mistake this whole figure is supposed to be an argument against.
     A(f'<text x="{(OL + OR_) / 2:.0f}" y="108" text-anchor="middle" font-size="9" '
       f'font-weight="700" fill="#475569" letter-spacing="1.4">'
-      f'{len(ont)} TERMS OF ies-core, ONE CONNECTED GRAPH · '
-      f'subClassOf, rdf:type, domain, range</text>')
+      f'{TX["graphhead"].format(n=len(ont))}</text>')
 
     # ── The step rail ──────────────────────────────────────────────────
     #
@@ -1211,16 +1303,15 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     A(f'<rect x="28" y="{ly}" width="{W - 56}" height="132" rx="12" fill="#030a1c" '
       f'opacity="0.94" stroke="#1e3a5f"/>')
     A(f'<text x="46" y="{ly+24}" font-size="12" font-weight="800" fill="#34d399" '
-      f'letter-spacing="1.4">PROOF-CARRYING INFERENCE</text>')
+      f'letter-spacing="1.4">{TX["legend_head"]}</text>')
     A(f'<text x="300" y="{ly+24}" font-size="11.5" fill="#64748b">'
-      f'ies-core.ttl · {n_asserted:,} triples</text>')
+      f'{TX["legend_file"].format(n=n_asserted)}</text>')
     A(f'<line x1="40" y1="{ly+33}" x2="{lw - 12:.0f}" y2="{ly+33}" stroke="#1e3a5f"/>')
-    rows = [(C_ASSERT, "ASSERTED", n_a, "read from ies-core.ttl. claimed by a person"),
-            (C_CERT, "CERTIFIED", n_c,
-             "derived, then PROVED. one certificate, one run, OOCert.certificate_sound"),
-            (C_REJECT, "REJECTED", n_r, "forged. the checker exited 1 and named the rule")]
+    rows = [(C_ASSERT, TX["asserted"][0], n_a, TX["asserted"][1]),
+            (C_CERT, TX["certified"][0], n_c, TX["certified"][1]),
+            (C_REJECT, TX["rejected"][0], n_r, TX["rejected"][1])]
     if mu:
-        rows.append((C_MU, "UNASKED", 1, "a question outside the file's language. no judge was asked"))
+        rows.append((C_MU, TX["unasked"][0], 1, TX["unasked"][1]))
     for m, (col, label, count, means) in enumerate(rows):
         yy = ly + 51 + m * 18
         A(f'<rect x="46" y="{yy-4}" width="22" height="3" fill="{col}"/>')
@@ -1236,29 +1327,23 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     A(f'<line x1="{lw + 12:.0f}" y1="{ly+14}" x2="{lw + 12:.0f}" y2="{ly+118}" '
       f'stroke="#1e3a5f"/>')
     A(f'<text x="{lw + 34:.0f}" y="{ly+24}" font-size="12" font-weight="800" '
-      f'fill="#94a3b8" letter-spacing="1.4">WHAT A VERDICT IS WORTH</text>')
+      f'fill="#94a3b8" letter-spacing="1.4">{TX["worth_head"]}</text>')
     if vampire_certified:
         verdicts = [
-            (C_CERT, "certificate",
-             f"ONE file for all {n_certified_edges}: Lean 4 and Isabelle/HOL read the same bytes, {fo_checker} checks Vampire's.",
-             f"re-runnable. {fo_theorem}: the clause set has no model, over any carrier."),
-            (C_TOOL, "opinion",
-             "E, Z3 and Mace4 read the clauses too, and print a word.",
-             "believe the program, or believe nothing. no object to check."),
+            (C_CERT, TX["w_cert"],
+             TX["w_cert1_fo"].format(n=n_certified_edges, c=fo_checker),
+             TX["w_cert2_fo"].format(t=fo_theorem)),
+            (C_TOOL, TX["w_op"], TX["w_op1_fo"], TX["w_op2"]),
         ]
     else:
         verdicts = [
-            (C_CERT, "certificate",
-             f"ONE file for all {n_certified_edges}: Lean 4 and Isabelle/HOL read the same bytes.",
-             "anyone can re-run the check and get the same answer."),
-            (C_TOOL, "opinion",
-             "Vampire, E, Z3 and Mace4 read a different file.",
-             "believe the program, or believe nothing. no object to check."),
+            (C_CERT, TX["w_cert"], TX["w_cert1"].format(n=n_certified_edges), TX["w_cert2"]),
+            (C_TOOL, TX["w_op"], TX["w_op1"], TX["w_op2"]),
         ]
     if mu:
-        verdicts.append((C_MU, "mu",
-                         f"{short(mu_s)} ⊑ {short(mu_o)} is returned unasked: {short(mu_s)} is {mu_line}.",
-                         "Zhaozhou's answer. the presupposition fails, not the claim; no judge is asked."))
+        verdicts.append((C_MU, TX["w_mu"],
+                         TX["w_mu1"].format(s=short(mu_s), o=short(mu_o), why=mu_line),
+                         TX["w_mu2"]))
     for m, (col, word, l1, l2) in enumerate(verdicts):
         yy = ly + 48 + m * 30
         A(f'<circle cx="{lw + 40:.0f}" cy="{yy - 4:.1f}" r="4" fill="{col}"/>')
@@ -1275,4 +1360,4 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:6])
+    main(*sys.argv[1:7])
