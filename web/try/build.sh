@@ -2,7 +2,7 @@
 # Fetch the PINNED engine release for the function. The page runs the same
 # binary a user would download; nothing here is a reimplementation of it.
 set -eu
-TAG="${OO_ENGINE_TAG:-v1.5.0}"
+TAG="${OO_ENGINE_TAG:-v1.6.0}"
 mkdir -p api/_bin
 URL="https://github.com/fabio-rovai/open-ontologies/releases/download/${TAG}/open-ontologies-x86_64-unknown-linux-gnu"
 echo "engine: ${URL}"

@@ -481,6 +481,12 @@ jobs:
         # claim in the repository was a lab result with a binary beside it.
         # Strict, because a skip here would put it straight back.
         run: OO_REQUIRE_FIXTURES=1 cargo test --test shacl_verified_tool_test -- --nocapture
+      - name: The SHACL compiler names what it ignores
+        # #206. Strict because four of the five tests need `oo-shacl`, and the
+        # thing they protect is that a predicate the compiler waves through
+        # still REACHES the report. A skip here restores the silence the issue
+        # was about and nothing would go red.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test shacl_ignored_is_named_test -- --nocapture
       - name: Check the description-logic refutation certificates
         # The other half of the line above. That one certifies that an ontology
         # HAS a model by exhibiting one; this certifies that it has NONE by

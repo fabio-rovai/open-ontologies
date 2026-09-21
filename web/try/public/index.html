@@ -115,6 +115,10 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px;paddin
     </div>
     <div class="row"><span class="status" id="st3"></span></div>
     <div id="planout"></div>
+    <div id="graphwrap" hidden>
+      <p class="sub" style="margin:14px 0 6px" id="i-graphp"></p>
+      <div id="graph" style="background:#030a1c;border:1px solid #1e3a5f;border-radius:10px;overflow:hidden"></div>
+    </div>
   </section>
 
   <section id="what" style="margin-top:26px">
@@ -168,6 +172,8 @@ const STR = {
     p_theorem: 'theorem', p_exit: 'exit', p_rule: 'rule', p_absent: 'This release carries no checker, so nothing was checked here.',
     p_nothing: 'That line derives nothing. Try a subClassOf over the induced class.',
     p_forgedline: 'One conclusion was changed, and both premises were left exactly as they were:',
+    graphp: 'Your sheet, drawn the way the front page draws ies-core. Grey is what you asserted. Green is what the engine derived and the checker accepted. Red is the line that was forged and refused. Literals are not drawn, because a node for each cell hides the shape.',
+    g_asserted: 'ASSERTED', g_certified: 'CERTIFIED', g_rejected: 'REJECTED', g_more: 'edges drawn, of',
     summary: '{c}: {r} rows → 1 class, {p} {pw}{obj}{grp}{enu}.',
     prop1: 'property', propn: 'properties', obj: ' object', grp: ' numbered group merged', grpn: ' numbered groups merged', enu: ' enumeration', enun: ' enumerations',
     verbatim: '',
@@ -217,6 +223,8 @@ const STR = {
     p_theorem: '定理', p_exit: '退出码', p_rule: '规则', p_absent: '本次发布不含检查器，因此这里没有检查任何东西。',
     p_nothing: '这一行推不出任何东西。试试在归纳出的类上写一条 subClassOf。',
     p_forgedline: '一条结论被改动，两条前提原样保留：',
+    graphp: '你的表格，用首页绘制 ies-core 的同一种方式画出来。灰色是你断言的，绿色是引擎推导并被检查器接受的，红色是被伪造并遭拒绝的那一行。字面量不绘制，因为给每个单元格一个节点会掩盖结构。',
+    g_asserted: '断言', g_certified: '已认证', g_rejected: '被拒绝', g_more: '条边已绘制，共',
     summary: '{c}：{r} 行 → 1 个类，{p} 个{pw}{obj}{grp}{enu}。',
     prop1: '属性', propn: '属性', obj: '（其中 1 个是对象属性）', grp: '（合并了 1 组编号列）', grpn: '（合并了多组编号列）', enu: '（含取值集合）', enun: '（含取值集合）',
     verbatim: '下表“证据”列与上面“引擎说”的句子，是引擎自己的输出，原样显示，未经翻译。本页面不改写引擎的措辞。',
@@ -251,7 +259,7 @@ function paint(){
   const sub=document.getElementById('i-sub'); if(sub) sub.innerHTML = L.sub;
   set('i-step1', L.step1); set('i-drop', L.drop); set('i-cls', L.cls);
   set('i-step2', L.step2); set('i-step3', L.step3); set('i-step3p', L.step3p, true);
-  set('i-step4', L.step4); set('i-step4p', L.step4p);
+  set('i-step4', L.step4); set('i-step4p', L.step4p); set('i-graphp', L.graphp);
   const gp=document.getElementById('goplan'); if(gp) gp.textContent=L.goplan;
   set('i-what', L.what); set('i-what1', L.what1, true); set('i-what2', L.what2, true);
   set('i-foot', L.foot);
@@ -374,7 +382,85 @@ $('#goplan').onclick=async()=>{
     if(f&&f.line_before)h+=`<p class="status">${L.p_forgedline}</p><pre>${esc(f.line_before)}\n${esc(f.line_after)}</pre>`;
   }
   $('#planout').innerHTML=h;
+  drawGraph(j.graph);
 };
+
+// A force layout small enough to read. The palette is the front page's, so a
+// visitor who scrolled past those figures meets the same three colours meaning
+// the same three things on their own data.
+const GC={asserted:'#475569',certified:'#34d399',rejected:'#fb3b53'};
+function drawGraph(g){
+  const wrap=$('#graphwrap'); if(!g||!g.edges||!g.edges.length){wrap.hidden=true;return}
+  wrap.hidden=false;
+  const W=1040,H=440,PAD=26;
+  const idx=new Map(g.nodes.map((n,i)=>[n,i]));
+  const N=g.nodes.length;
+  // deterministic start, so the same sheet draws the same picture twice
+  let seed=N*2654435761%2147483647;
+  const rnd=()=>((seed=seed*16807%2147483647)/2147483647);
+  const px=[],py=[];
+  for(let i=0;i<N;i++){const a=2*Math.PI*i/N+rnd()*0.4;const r=(0.25+0.75*rnd())*Math.min(W,H)*0.42;
+    px.push(W/2+r*Math.cos(a));py.push(H/2+r*Math.sin(a));}
+  const E=g.edges.map(e=>[idx.get(e.s),idx.get(e.o)]).filter(([a,b])=>a!=null&&b!=null);
+  const K=Math.sqrt(W*H/Math.max(1,N))*0.62;
+  for(let step=0;step<260;step++){
+    const t=1-step/260, dx=new Float64Array(N), dy=new Float64Array(N);
+    for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){
+      let ux=px[a]-px[b],uy=py[a]-py[b];let d2=ux*ux+uy*uy;
+      if(d2<0.01){ux=rnd()-0.5;uy=rnd()-0.5;d2=0.01}
+      const f=K*K/d2; dx[a]+=ux*f;dy[a]+=uy*f;dx[b]-=ux*f;dy[b]-=uy*f;
+    }
+    for(const [a,b] of E){
+      const ux=px[a]-px[b],uy=py[a]-py[b];const d=Math.hypot(ux,uy)||1;const f=d*d/K/18;
+      dx[a]-=ux/d*f;dy[a]-=uy/d*f;dx[b]+=ux/d*f;dy[b]+=uy/d*f;
+    }
+    for(let i=0;i<N;i++){
+      dx[i]+=(W/2-px[i])*0.012; dy[i]+=(H/2-py[i])*0.012;
+      const m=Math.hypot(dx[i],dy[i])||1, s=Math.min(m,20*t);
+      px[i]+=dx[i]/m*s; py[i]+=dy[i]/m*s;
+    }
+  }
+  // Fit to the BAND the nodes occupy, not to their extremes. A couple of
+  // loosely attached nodes drift far out, and scaling to min/max let them
+  // stretch the frame until everything else collapsed into one corner, which is
+  // what the first version drew. The front-page generator bands at 2/98 for the
+  // same reason; anything outside the band is clamped to the edge rather than
+  // dropped, because a node that exists should be visible.
+  // Frame the nodes that are actually together, and clamp the stragglers to the
+  // edge. Two earlier attempts failed for the same underlying reason: a handful
+  // of loosely attached nodes drift far from everything else, and any framing
+  // that includes them shrinks the real cluster to a corner. A 2/98 percentile
+  // excludes nothing below fifty nodes, and an interquartile band is generous
+  // on a star, where most nodes sit almost on top of the hub.
+  //
+  // So: take the centroid, take the MEDIAN distance to it, and frame what lies
+  // within 2.5 of those. That is scale free and it targets the actual problem.
+  const cx0=px.reduce((a,b)=>a+b,0)/N, cy0=py.reduce((a,b)=>a+b,0)/N;
+  const dist=px.map((_,i)=>Math.hypot(px[i]-cx0, py[i]-cy0)).sort((a,b)=>a-b);
+  const med=dist[Math.floor(dist.length/2)] || 1;
+  const keep=[...Array(N).keys()].filter(i=>Math.hypot(px[i]-cx0,py[i]-cy0) <= 2.5*med);
+  const inn = keep.length >= 3 ? keep : [...Array(N).keys()];
+  const x0=Math.min(...inn.map(i=>px[i])), x1=Math.max(...inn.map(i=>px[i]));
+  const y0=Math.min(...inn.map(i=>py[i])), y1=Math.max(...inn.map(i=>py[i]));
+  const sc=Math.min((W-2*PAD)/Math.max(1,x1-x0),(H-2*PAD-20)/Math.max(1,y1-y0));
+  const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const X=i=>cl(PAD+(px[i]-x0)*sc, PAD, W-PAD), Y=i=>cl(PAD+(py[i]-y0)*sc, PAD, H-PAD-18);
+  const deg=new Array(N).fill(0); for(const [a,b] of E){deg[a]++;deg[b]++}
+  const order={asserted:0,certified:1,rejected:2};
+  const lines=g.edges.map((e,i)=>({e,i})).sort((a,b)=>order[a.e.kind]-order[b.e.kind])
+    .map(({e})=>{const a=idx.get(e.s),b=idx.get(e.o); if(a==null||b==null)return '';
+      const w=e.kind==='rejected'?2.6:(e.kind==='certified'?1.1:0.6);
+      const o=e.kind==='asserted'?0.34:0.9;
+      return `<line x1="${X(a).toFixed(1)}" y1="${Y(a).toFixed(1)}" x2="${X(b).toFixed(1)}" y2="${Y(b).toFixed(1)}" stroke="${GC[e.kind]}" stroke-width="${w}" opacity="${o}"${e.kind==='rejected'?' stroke-dasharray="6 4"':''}/>`}).join('');
+  const dots=g.nodes.map((n,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(i).toFixed(1)}" r="${(2.2+Math.min(4.4,deg[i]*0.26)).toFixed(1)}" fill="#7dd3fc" opacity="0.85"><title>${esc(n)}</title></circle>`).join('');
+  // label only the busiest few, or the picture becomes a word cloud
+  const top=[...g.nodes.keys()].sort((a,b)=>deg[b]-deg[a]).slice(0,7);
+  const labels=top.map(i=>`<text x="${(X(i)+7).toFixed(1)}" y="${(Y(i)+4).toFixed(1)}" font-size="10.5" fill="#cbd5e1">${esc(g.nodes[i])}</text>`).join('');
+  const c=g.counts||{};
+  const key=[['asserted',L.g_asserted],['certified',L.g_certified],['rejected',L.g_rejected]]
+    .map(([k,lab],m)=>`<rect x="${20+m*186}" y="${H-24}" width="20" height="3" fill="${GC[k]}"/><text x="${48+m*186}" y="${H-20}" font-size="11" font-weight="700" fill="${GC[k]}">${lab}</text><text x="${130+m*186}" y="${H-20}" font-size="11" fill="#94a3b8" text-anchor="end">${c[k]??0}</text>`).join('');
+  $('#graph').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(L.graphp)}">${lines}${dots}${labels}${key}</svg>`;
+}
 
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function short(s){s=String(s||'');const i=Math.max(s.lastIndexOf('#'),s.lastIndexOf('/'));return i>=0&&i<s.length-1?s.slice(i+1):s}
