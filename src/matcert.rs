@@ -105,9 +105,10 @@ pub fn check(a: &IntMatrix, b: &IntMatrix, c: &IntMatrix, dir: &Path) -> anyhow:
     };
     let mut cmd = Command::new(&bin);
     cmd.arg(&path);
-    // #164 adds a third argument naming the files a run is about; when that lands
-    // the compiler will ask for `&[&path]` here and the answer is that path.
-    let run = CheckerRun::spawn(&CheckerBinary::found_at(bin), cmd)?;
+    // The run names the file it is about (#164). It is the certificate, which
+    // is also the only thing on the command line, so the digest the token
+    // carries is a digest of exactly the claim that was checked.
+    let run = CheckerRun::spawn(&CheckerBinary::found_at(bin), cmd, &[&path])?;
     match run.accepted_naming(&["MatCert.mul_of_check"]) {
         Some(token) => Ok(Checked::Accepted(token, run.output())),
         None => Ok(Checked::Refused { exit: run.exit(), output: run.output() }),
