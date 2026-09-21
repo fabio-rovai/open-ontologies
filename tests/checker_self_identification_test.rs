@@ -204,9 +204,11 @@ fn the_rust_side_reads_the_block_and_invents_nothing() {
     let bin = bin_dir().join("oo-cert");
     let mut cmd = Command::new(&bin);
     cmd.arg(&a).arg(&der);
+    // Gated, and naming the files it is about (#164): the same two the command
+    // line carries.
     let run = {
         let _gate = common::exec_gate();
-        CheckerRun::spawn(&CheckerBinary::found_at(bin.clone()), cmd)
+        CheckerRun::spawn(&CheckerBinary::found_at(bin.clone()), cmd, &[&a, &der])
     }
     .expect("runs");
     let block = run.checker_block().expect("an oo-cert since #204 prints one");
@@ -239,10 +241,16 @@ fn something_that_prints_no_block_yields_none() {
             std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755)).unwrap();
         }
     }
+    // A file for the run to be ABOUT. Since #164 a run must name its inputs,
+    // because a token bound to nothing would be interchangeable with every
+    // other one. This fake reads it no more than a real checker would read an
+    // argument it ignores; what matters here is what it PRINTS.
+    let about = d.join("about.tsv");
+    std::fs::write(&about, "<a>\t<b>\t<c>\n").unwrap();
     let cmd = Command::new(&script);
     let run = {
         let _gate = common::exec_gate();
-        CheckerRun::spawn(&CheckerBinary::found_at(script), cmd)
+        CheckerRun::spawn(&CheckerBinary::found_at(script), cmd, &[&about])
     }
     .expect("runs");
     assert_eq!(run.named_theorem().as_deref(), Some("OOCert.certificate_sound"));
