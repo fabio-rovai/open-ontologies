@@ -64,9 +64,12 @@ pub type NtTriple = Spelled;
 /// ```compile_fail
 /// use open_ontologies::closure_diff::Warrant;
 /// use open_ontologies::verdict::Certified;
-/// let w = Warrant::Checked(Certified { theorem: "OOCert.certificate_sound" });
+/// let w = Warrant::Checked(Certified {
+///     theorem: "OOCert.certificate_sound",
+///     subject: [0u8; 32],
+/// });
 /// ```
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Warrant {
     /// The triple IS in the asserted graph. No rule fired, nothing was proved,
     /// and nothing needed to be: a lookup, not an entailment claim. Listed
@@ -84,7 +87,7 @@ pub enum Warrant {
 }
 
 impl Warrant {
-    pub fn name(self) -> &'static str {
+    pub fn name(&self) -> &'static str {
         match self {
             Warrant::AssertedInSource => "asserted_in_source",
             Warrant::Checked(_) => "checked",
@@ -94,13 +97,13 @@ impl Warrant {
     /// The theorem, named only where one stands behind the word. It comes out
     /// of the evidence now, not out of a match arm, so an unchecked run has no
     /// way to print it.
-    pub fn theorem(self) -> Option<&'static str> {
+    pub fn theorem(&self) -> Option<&'static str> {
         match self {
             Warrant::Checked(c) => Some(c.theorem()),
             _ => None,
         }
     }
-    pub fn is_checked(self) -> bool {
+    pub fn is_checked(&self) -> bool {
         matches!(self, Warrant::Checked(_))
     }
 }
@@ -218,9 +221,12 @@ impl CertificateVerdict {
             // new status silently becomes "checked" one refactor later.
             CheckerStatus::NotNeeded { what } => (ClosureVerdict::EngineOpinion, None, Some(what.clone())),
         };
+        // Read before the move, because the verdict is no longer `Copy`: the
+        // token it may carry belongs to one report and not to two.
+        let theorem = verdict.theorem();
         CertificateVerdict {
             verdict,
-            theorem: verdict.theorem(),
+            theorem,
             asserted,
             derivations,
             checker_report: match status {
@@ -236,8 +242,11 @@ impl CertificateVerdict {
     }
 
     fn warrant_for_derived(&self) -> Warrant {
-        match self.verdict {
-            ClosureVerdict::Checked(c) => Warrant::Checked(c),
+        match &self.verdict {
+            // The one intended duplication: the row's warrant is the same
+            // acceptance the certificate verdict carries, so it is the same
+            // token, and `.clone()` says so where a `Copy` said nothing.
+            ClosureVerdict::Checked(c) => Warrant::Checked(c.clone()),
             _ => Warrant::EngineOpinion,
         }
     }
@@ -756,11 +765,15 @@ impl SourceClosure {
                 });
             }
             if lost.len() < opts.max_rows {
+                // Read before the move: a warrant that carries a token is no
+                // longer `Copy`, and this row owns the one it was given.
+                let warrant_word = warrant.name();
+                let warrant_theorem = warrant.theorem();
                 lost.push(LostEntailment {
                     triple: t.clone(),
                     warrant,
-                    warrant_word: warrant.name(),
-                    theorem: warrant.theorem(),
+                    warrant_word,
+                    theorem: warrant_theorem,
                     rule: derivation.map(|(r, _)| r.clone()),
                     blocking_premises: blocking,
                     in_projection_vocabulary: in_vocab,

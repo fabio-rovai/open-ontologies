@@ -148,7 +148,7 @@ pub fn validate_verified(
 
     let mut cmd = Command::new(checker.path());
     cmd.arg("validate").arg(&data_path).arg(&shapes_path);
-    let run = CheckerRun::spawn(&checker, cmd)?;
+    let run = CheckerRun::spawn(&checker, cmd, &[&data_path, &shapes_path])?;
     let _ = std::fs::remove_dir_all(&dir);
 
     // The checker's own JSON, echoed rather than restated. Its verdict words

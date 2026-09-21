@@ -2778,7 +2778,11 @@ fn certify(r: &Report, form: &ProblemForm, proof_text: &str, dir: &Path, stem: &
     };
     let mut cmd = Command::new(&bin);
     cmd.arg(&path);
-    let run = match crate::verdict::CheckerRun::spawn(&crate::verdict::CheckerBinary::found_at(bin.clone()), cmd) {
+    let run = match crate::verdict::CheckerRun::spawn(
+        &crate::verdict::CheckerBinary::found_at(bin.clone()),
+        cmd,
+        &[&path],
+    ) {
         Ok(run) => run,
         Err(e) => return Some(CertificateOutcome::CheckerRefused { exit: -1, output: e.to_string(), certificate: shown }),
     };
