@@ -1,4 +1,5 @@
 import Dl.All
+import SelfId.All
 
 /-!
 `oo-dlrefute AXIOMS.tsv REFUTATION.cert`
@@ -123,7 +124,7 @@ def run (axPath cPath : String) : IO UInt32 := do
   match Parse.parseAxioms axTxt, Parse.parseCert cTxt with
   | .ok A, .ok t =>
     if check A t [] then
-      IO.println ("{\"ok\":true,\"axioms\":" ++ toString A.length ++
+      SelfId.println ("{\"ok\":true,\"axioms\":" ++ toString A.length ++
         ",\"steps\":" ++ toString (steps t) ++
         ",\"verdict\":\"unsatisfiable\"" ++
         ",\"theorem\":\"Dl.unsatisfiable_of_check\"}")
@@ -143,6 +144,9 @@ def run (axPath cPath : String) : IO UInt32 := do
 
 def main (args : List String) : IO UInt32 := do
   match args with
+  -- FIRST, because `oo-resolution` and friends take a single positional
+  -- argument and a later arm would swallow `--version` as a path (#204).
+  | ["--version"] => SelfId.emitVersion
   | [a, c] => run a c
   | _ =>
     IO.eprintln "usage: oo-dlrefute AXIOMS.tsv REFUTATION.cert"

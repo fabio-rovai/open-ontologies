@@ -40,6 +40,14 @@
 //!    What it does guarantee is that SOMETHING was executed and exited zero,
 //!    which is strictly more than a string literal guarantees, and it is the
 //!    property the tests were checking by hand.
+//!
+//!    Narrowed, not closed, by #204. Every checker now prints a `checker`
+//!    block naming itself, the Lean toolchain that built it, and the SHA-256
+//!    of the file it is running from, and
+//!    [`CheckerRun::checker_block`] reads it. A reader matches that digest
+//!    against the `SHASUMS.txt` a release publishes. What that buys is a way
+//!    for an HONEST build to say which build it is; a hostile binary can print
+//!    the same block with any numbers in it, and nothing here would notice.
 //! 2. **Which artefact was accepted.** A [`Certified`] is `Copy`. Code that
 //!    ran the checker over goal A could attach the token to goal B. Callers
 //!    mint one token per run, inside the arm that owns that run's output, and
@@ -158,6 +166,29 @@ impl CheckerRun {
     pub fn named_theorem(&self) -> Option<String> {
         let v: serde_json::Value = serde_json::from_str(&self.stdout).ok()?;
         Some(v.get("theorem")?.as_str()?.to_string())
+    }
+
+    /// The `checker` block this run printed about ITSELF, if it printed one.
+    ///
+    /// Read out of the checker's stdout and never constructed here, for the
+    /// reason [`named_theorem`](CheckerRun::named_theorem) is read rather than
+    /// asserted: a Rust literal describing which binary ran would be exactly
+    /// the string a reader cannot check.
+    ///
+    /// `None` when the run printed no such block, which is the honest answer
+    /// for a checker older than #204 and for anything that is not a checker at
+    /// all. A report that shows nothing where this is `None` is telling the
+    /// truth; a report that filled it in would not be.
+    ///
+    /// What it does NOT establish: that the process was the binary it names.
+    /// A hostile executable can print any block it likes, and residual hole 1
+    /// in this module's header is narrowed by this rather than closed. What an
+    /// HONEST build gets is a way to say which build it is, matchable by
+    /// someone who does not trust it against the `SHASUMS.txt` a release
+    /// publishes.
+    pub fn checker_block(&self) -> Option<serde_json::Value> {
+        let v: serde_json::Value = serde_json::from_str(&self.stdout).ok()?;
+        v.get("checker").cloned()
     }
 
     /// The one function in this crate that returns a [`Certified`].

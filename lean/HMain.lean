@@ -1,5 +1,6 @@
 import OOCert
 import OOCert.HornParse
+import SelfId.All
 
 /-!
 `oo-horn rules`                              prints the built-in rules as data
@@ -61,6 +62,9 @@ def jsonStr (s : String) : String :=
 
 def main (args : List String) : IO UInt32 := do
   match args with
+  -- FIRST, because `oo-resolution` and friends take a single positional
+  -- argument and a later arm would swallow `--version` as a path (#204).
+  | ["--version"] => SelfId.emitVersion
   | ["rules"] =>
     for r in Builtin.asHorn do
       IO.println (HornParse.ruleStr r)
@@ -86,7 +90,7 @@ def main (args : List String) : IO UInt32 := do
           else
             "every conclusion is true in every model of the asserted graph THAT ALSO SATISFIES \
              the supplied rules; the rules themselves are assumed, not checked"
-        IO.println s!"\{\"ok\":true,\"verdict\":{jsonStr verdict},\"rules\":{R.length},\
+        SelfId.println s!"\{\"ok\":true,\"verdict\":{jsonStr verdict},\"rules\":{R.length},\
           \"asserted\":{G.length},\"derivations\":{steps.length},\
           \"rules_digest\":\"{tableDigest R}\",\"builtin_rules_digest\":\"{tableDigest Builtin.asHorn}\",\
           \"theorem\":{jsonStr thm},\"means\":{jsonStr means}}"

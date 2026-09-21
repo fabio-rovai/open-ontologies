@@ -1,6 +1,6 @@
 name = "oocert"
 version = "0.1.0"
-defaultTargets = ["OOCert", "oo-cert", "oo-horn", "Shacl", "oo-shacl", "oo-refute", "Dl", "oo-dlmodel", "oo-dlrefute", "Fol", "oo-folmodel", "Institution", "Lrat", "oo-lrat", "Fo", "oo-resolution"]
+defaultTargets = ["SelfId", "OOCert", "oo-cert", "oo-horn", "Shacl", "oo-shacl", "oo-refute", "Dl", "oo-dlmodel", "oo-dlrefute", "Fol", "oo-folmodel", "Institution", "Lrat", "oo-lrat", "Fo", "oo-resolution"]
 
 # Every library and executable here is in defaultTargets on purpose. A target
 # left out of the default set is not built by a bare `lake build`, which is what
@@ -121,3 +121,13 @@ name = "Fo"
 [[lean_exe]]
 name = "oo-resolution"
 root = "FoMain"
+
+
+# SHA-256, so a checker can report the digest of the binary that is running.
+# Core Lean only, like everything here. NOT verified and the module header says
+# so: what stands behind it is the published test vectors and agreement with
+# `sha256sum`, both checked from the Rust side.
+[[lean_lib]]
+name = "SelfId"
+roots = ["SelfId.All"]
+globs = ["SelfId.+"]

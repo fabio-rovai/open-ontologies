@@ -1,4 +1,5 @@
 import Fol.All
+import SelfId.All
 
 /-!
 `oo-folmodel PROBLEM.tsv MODEL.tsv`
@@ -134,7 +135,7 @@ def run (pPath mPath : String) : IO UInt32 := do
           ",\"symbol\":" ++ jsonStr sym ++ ",\"arity\":" ++ jsonStr kind ++ "}")
         return 1
       if check pm.model forms then
-        IO.println ("{\"verdict\":\"model_checked\"," ++ common ++
+        SelfId.println ("{\"verdict\":\"model_checked\"," ++ common ++
           ",\"problem_digest\":" ++ jsonStr expected ++
           ",\"theorem\":\"Fol.satisfiable_of_check\"" ++
           (if goal then ",\"non_entailment_theorem\":\"Fol.not_entails_of_check\"" else "") ++
@@ -144,14 +145,14 @@ def run (pPath mPath : String) : IO UInt32 := do
         let thm := if closed then "Fol.check_complete_closed" else "Fol.check_complete"
         match firstFailure pm.model entries with
         | some (i, e) =>
-          IO.println ("{\"verdict\":\"rejected\"," ++ common ++
+          SelfId.println ("{\"verdict\":\"rejected\"," ++ common ++
             ",\"theorem\":" ++ jsonStr thm ++
             ",\"first_rejected\":" ++ toString i ++
             ",\"label\":" ++ jsonStr e.label ++
             ",\"role\":" ++ jsonStr e.role ++
             ",\"formula\":" ++ jsonStr (showForm e.form) ++ "}")
         | none =>
-          IO.println ("{\"verdict\":\"rejected\"," ++ common ++
+          SelfId.println ("{\"verdict\":\"rejected\"," ++ common ++
             ",\"theorem\":" ++ jsonStr thm ++
             ",\"error\":\"the verified checker rejected the structure and the diagnostic pass " ++
             "could not name a formula\"}")
@@ -159,6 +160,9 @@ def run (pPath mPath : String) : IO UInt32 := do
 
 def main (args : List String) : IO UInt32 := do
   match args with
+  -- FIRST, because `oo-resolution` and friends take a single positional
+  -- argument and a later arm would swallow `--version` as a path (#204).
+  | ["--version"] => SelfId.emitVersion
   | [p, m] => run p m
   | _ =>
     IO.eprintln "usage: oo-folmodel PROBLEM.tsv MODEL.tsv"

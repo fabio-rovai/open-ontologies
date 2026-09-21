@@ -1,4 +1,5 @@
 import Fo
+import SelfId.All
 
 /-!
 `oo-resolution REFUTATION.cert`
@@ -147,6 +148,9 @@ def parseFile (text : String) : Option Parsed := do
 
 def main (args : List String) : IO UInt32 := do
   match args with
+  -- FIRST, because `oo-resolution` and friends take a single positional
+  -- argument and a later arm would swallow `--version` as a path (#204).
+  | ["--version"] => SelfId.emitVersion
   | [path] =>
     let text ← try IO.FS.readFile path catch _ =>
       IO.println s!"\{\"ok\":false,\"error\":\"could not read {path}\"}"
@@ -157,7 +161,7 @@ def main (args : List String) : IO UInt32 := do
       return 2
     | some p =>
       if check p.clauses p.lines then
-        IO.println s!"\{\"ok\":true,\"verdict\":\"unsatisfiable\",\
+        SelfId.println s!"\{\"ok\":true,\"verdict\":\"unsatisfiable\",\
           \"clauses\":{p.clauses.length},\"steps\":{p.lines.length},\
           \"theorem\":\"Fo.unsat_of_check\",\
           \"means\":\"this clause set has no model, over any carrier\"}"
