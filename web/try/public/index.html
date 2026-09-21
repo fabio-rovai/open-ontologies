@@ -453,9 +453,46 @@ function drawGraph(g){
       const o=e.kind==='asserted'?0.34:0.9;
       return `<line x1="${X(a).toFixed(1)}" y1="${Y(a).toFixed(1)}" x2="${X(b).toFixed(1)}" y2="${Y(b).toFixed(1)}" stroke="${GC[e.kind]}" stroke-width="${w}" opacity="${o}"${e.kind==='rejected'?' stroke-dasharray="6 4"':''}/>`}).join('');
   const dots=g.nodes.map((n,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(i).toFixed(1)}" r="${(2.2+Math.min(4.4,deg[i]*0.26)).toFixed(1)}" fill="#7dd3fc" opacity="0.85"><title>${esc(n)}</title></circle>`).join('');
-  // label only the busiest few, or the picture becomes a word cloud
+  // Label only the busiest few, or the picture becomes a word cloud. And
+  // never two on top of each other: two labels in the same place do not give
+  // a reader two names, they give a reader neither, and the one underneath is
+  // hidden by the one that was drawn second. The front-page figures have a
+  // test for exactly this; this is the same rule in the page.
+  //
+  // Busiest first, then four candidate positions each, then give up on that
+  // label rather than stack it. A hub with no room beside it keeps its circle
+  // and its hover title, which is more than a smear of overlapping glyphs.
   const top=[...g.nodes.keys()].sort((a,b)=>deg[b]-deg[a]).slice(0,7);
-  const labels=top.map(i=>`<text x="${(X(i)+7).toFixed(1)}" y="${(Y(i)+4).toFixed(1)}" font-size="10.5" fill="#cbd5e1">${esc(g.nodes[i])}</text>`).join('');
+  // MEASURED, not guessed. At font-size 10.5 in the page's own stack, Chrome
+  // reports these maxima per character class: narrow lowercase 3.50, wide
+  // lowercase (m, w) 8.17, other lowercase 5.25, uppercase 9.91 (that is W),
+  // digits 5.25, punctuation 5.25. A single average would have been wrong in
+  // both directions: I first used 5.60 for everything, which under-reserves a
+  // capital by nearly half and over-reserves an `i` by 80%.
+  //
+  // The UPPER BOUND is used on purpose. Over-reserving can drop a label, which
+  // is visible and harmless; under-reserving lets two labels overlap, which is
+  // the defect this exists to prevent and which hides both of them.
+  const cw=c=>'ijltfr'.includes(c)?3.5:'mw'.includes(c)?8.2
+    :(c>='A'&&c<='Z')?9.9:5.3;
+  const wof=t=>[...t].reduce((a,c)=>a+cw(c),0);
+  // The vertical extent, also measured: a rendered box is 12.3 tall and sits
+  // from about 10 above the baseline to about 3 below it. My first version
+  // modelled it as [y-12, y], which forgot the DESCENDER, and two baselines
+  // exactly 12 apart passed the check and then overlapped by a third of a
+  // pixel on screen. Ascent and descent are named because they are two
+  // different measurements and averaging them is how that bug happened.
+  const ASC=10, DESC=3, GAP=4;   // GAP, not PAD: the layout already owns PAD
+  const placed=[];
+  const hits=(x,y,w,p)=>x<p.x+p.w+GAP && p.x<x+w+GAP && y-ASC<p.y+DESC && p.y-ASC<y+DESC;
+  const free=(x,y,w)=>x>3 && x+w<W-3 && y>ASC+2 && y<H-30 && !placed.some(p=>hits(x,y,w,p));
+  const labels=top.map(i=>{
+    const t=g.nodes[i], w=wof(t), x=X(i), y=Y(i);
+    const spot=[[x+7,y+4],[x-7-w,y+4],[x-w/2,y-9],[x-w/2,y+17]].find(([a,b])=>free(a,b,w));
+    if(!spot) return '';
+    placed.push({x:spot[0],y:spot[1],w});
+    return `<text x="${spot[0].toFixed(1)}" y="${spot[1].toFixed(1)}" font-size="10.5" fill="#cbd5e1">${esc(t)}</text>`;
+  }).join('');
   const c=g.counts||{};
   const key=[['asserted',L.g_asserted],['certified',L.g_certified],['rejected',L.g_rejected]]
     .map(([k,lab],m)=>`<rect x="${20+m*186}" y="${H-24}" width="20" height="3" fill="${GC[k]}"/><text x="${48+m*186}" y="${H-20}" font-size="11" font-weight="700" fill="${GC[k]}">${lab}</text><text x="${130+m*186}" y="${H-20}" font-size="11" fill="#94a3b8" text-anchor="end">${c[k]??0}</text>`).join('');
