@@ -487,6 +487,13 @@ jobs:
         # still REACHES the report. A skip here restores the silence the issue
         # was about and nothing would go red.
         run: OO_REQUIRE_FIXTURES=1 cargo test --test shacl_ignored_is_named_test -- --nocapture
+      - name: Every checker names the binary that is running
+        # #204. Strict: the point of the leg is that what a checker SAYS about
+        # itself matches what sha2 computes over the same file, and a skip
+        # would let an unverified SHA-256 in lean/SelfId/ go unmeasured on
+        # three-megabyte inputs. The published vectors are checked at compile
+        # time by #guard; this is the other half.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test checker_self_identification_test -- --nocapture
       - name: Check the description-logic refutation certificates
         # The other half of the line above. That one certifies that an ontology
         # HAS a model by exhibiting one; this certifies that it has NONE by

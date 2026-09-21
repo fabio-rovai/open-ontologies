@@ -1,4 +1,5 @@
 import OOCert
+import SelfId.All
 
 /-!
 `oo-cert ASSERTED.tsv DERIVATIONS.tsv`
@@ -49,6 +50,9 @@ def readOrFail (path : String) : IO (Except UInt32 String) := do
 
 def main (args : List String) : IO UInt32 := do
   match args with
+  -- FIRST, because `oo-resolution` and friends take a single positional
+  -- argument and a later arm would swallow `--version` as a path (#204).
+  | ["--version"] => SelfId.emitVersion
   | [gPath, dPath] =>
     let g ← match ← readOrFail gPath with
       | .ok s => pure s
@@ -59,7 +63,7 @@ def main (args : List String) : IO UInt32 := do
     match Parse.parseTriples g, Parse.parseSteps d with
     | .ok G, .ok steps =>
       if checkCert G steps then
-        IO.println s!"\{\"ok\":true,\"asserted\":{G.length},\"derivations\":{steps.length},\"theorem\":\"OOCert.certificate_sound\"}"
+        SelfId.println s!"\{\"ok\":true,\"asserted\":{G.length},\"derivations\":{steps.length},\"theorem\":\"OOCert.certificate_sound\"}"
         return 0
       else
         match firstFailure G steps with

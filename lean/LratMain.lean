@@ -1,4 +1,5 @@
 import Lrat
+import SelfId.All
 
 /-!
 `oo-lrat PROBLEM.cnf PROOF.lrat`
@@ -133,6 +134,9 @@ def jsonStr (s : String) : String :=
 
 def main (args : List String) : IO UInt32 := do
   match args with
+  -- FIRST, because `oo-resolution` and friends take a single positional
+  -- argument and a later arm would swallow `--version` as a path (#204).
+  | ["--version"] => SelfId.emitVersion
   | [cnfPath, prfPath] =>
     let cnfText ← try IO.FS.readFile cnfPath catch _ =>
       IO.println s!"\{\"ok\":false,\"error\":\"could not read {cnfPath}\"}"
@@ -143,7 +147,7 @@ def main (args : List String) : IO UInt32 := do
     match parseCnf cnfText, parseLrat prfText with
     | some F, some prf =>
       if check F prf then
-        IO.println s!"\{\"ok\":true,\"verdict\":\"unsatisfiable\",\
+        SelfId.println s!"\{\"ok\":true,\"verdict\":\"unsatisfiable\",\
           \"clauses\":{F.length},\"lines\":{prf.length},\
           \"theorem\":\"Lrat.unsat_of_check\",\
           \"means\":\"the formula in this CNF has no model, of any size\"}"

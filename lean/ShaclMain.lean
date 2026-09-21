@@ -1,4 +1,5 @@
 import Shacl.All
+import SelfId.All
 
 /-!
 `oo-shacl validate DATA.nt SHAPES.nt`
@@ -118,7 +119,7 @@ def run (dataPath shapesPath : String) : IO UInt32 := do
   | .ok results =>
       let conforms := results.isEmpty
       let ignored := Compile.ignoredPairs shapesG
-      IO.println ("{\"status\":\"verdict\",\"conforms\":" ++ (if conforms then "true" else "false") ++
+      SelfId.println ("{\"status\":\"verdict\",\"conforms\":" ++ (if conforms then "true" else "false") ++
         ",\"shapes\":" ++ toString decls.length ++
         ",\"data_triples\":" ++ toString dataG.length ++
         ",\"results\":[" ++ String.intercalate "," (results.map showResult) ++ "]" ++
@@ -129,6 +130,9 @@ def run (dataPath shapesPath : String) : IO UInt32 := do
 
 def main (args : List String) : IO UInt32 := do
   match args with
+  -- FIRST, because `oo-resolution` and friends take a single positional
+  -- argument and a later arm would swallow `--version` as a path (#204).
+  | ["--version"] => SelfId.emitVersion
   | ["validate", d, s] => run d s
   | _ =>
       IO.eprintln "usage: oo-shacl validate DATA.nt SHAPES.nt"
