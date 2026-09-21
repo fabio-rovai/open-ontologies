@@ -114,7 +114,16 @@ fn script_saying(code: i32, theorem: &str) -> PathBuf {
 /// A file for the fake checker run to be ABOUT. A run must name its inputs,
 /// because a token bound to nothing would be interchangeable with every other.
 fn input_file() -> std::path::PathBuf {
-    let p = std::env::temp_dir().join(format!("oo-vocab-{}.txt", std::process::id()));
+    // A fresh path per call. Several tests in this file call `earned()` at
+    // once, in parallel threads of one process, and a shared path means one
+    // thread rewriting a file while another reads it to compute the run's
+    // subject digest. Nothing here asserts on that digest, so the worst case
+    // today is a torn read nobody notices, which is precisely the kind of
+    // latent race that becomes a mystery the day somebody does assert on it.
+    static NEXT_INPUT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let serial = NEXT_INPUT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let p = std::env::temp_dir()
+        .join(format!("oo-vocab-{}-{serial}.txt", std::process::id()));
     std::fs::write(&p, "the artefact this fake run is about").expect("write it");
     p
 }
