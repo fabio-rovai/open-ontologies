@@ -134,9 +134,6 @@ checker again. The test fails if the figure and the checker do not agree.
 
 ## With a proof, and without a proof
 
-Here is the same question. An ordinary reasoner answers first, and then this
-engine answers.
-
 | | An ordinary reasoner | Open Ontologies |
 | --- | --- | --- |
 | The answer | `Northwind needs enhanced due diligence` | the same answer |
@@ -148,8 +145,7 @@ engine answers.
 | What an auditor receives | a screenshot | a file that the auditor can check again |
 | Guarantee on an unsatisfiability answer | asserted | **none, and the tool says so** |
 
-The last row is the purpose of this project. If the tool measures a property, the
-tool says *measured*. If a prover gives an opinion, that opinion never takes the
+If the tool measures a property, the tool says *measured*. If a prover gives an opinion, that opinion never takes the
 vocabulary of the checker. Read [what the tool proves, and what it does not
 prove](#what-the-tool-proves).
 
@@ -170,8 +166,7 @@ prove](#what-the-tool-proves).
 
 ## Run the checker yourself
 
-The repository holds the three files. The output below is the output of the
-checker. It shows only the important fields.
+The repository holds the three files. The output shows only the important fields.
 
 ```bash
 $ cd lean && lake build            # builds the checkers, core Lean 4, no Mathlib
@@ -205,7 +200,7 @@ flowchart LR
 ## Run the tool on your own ontology
 
 The repository ships those fixtures. Now do the same steps with a file that you
-write. The [Install](#install) section is below. These steps take one minute.
+write. These steps take one minute.
 
 ```bash
 mkdir /tmp/oo-demo && cd /tmp/oo-demo
@@ -355,8 +350,7 @@ open-ontologies batch plan.json   # crosswalk-certify, modules --threshold k, ma
 | Does this data fit the shapes | A validation report | `Shacl.validate_spec` |
 | Does a retrieval slice still support the answer | Preservation for each claim | `OOCert.certificate_sound` |
 
-Read that last row two times. A retrieval slice with 99% coverage can lose the one
-triple that an answer needs. A slice with 60% coverage can keep each claim that
+A retrieval slice with 99% coverage can lose the one triple that an answer needs. A slice with 60% coverage can keep each claim that
 matters. Coverage is a proxy, and the proxy rises as the slice grows.
 
 Thus a retriever that you tune on coverage learns to fetch more, and not to fetch
