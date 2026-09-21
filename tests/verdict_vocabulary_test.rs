@@ -328,7 +328,11 @@ fn a_theorem_is_named_only_where_the_evidence_is() {
 /// and neither is an acceptance. A run that could not start is `Absent`.
 #[test]
 fn only_a_zero_exit_produces_an_acceptance() {
-    let dir = std::env::temp_dir().join("oo-verdict-vocabulary");
+    // Per PROCESS, not per machine. A fixed name under the system temp
+    // directory is shared by every concurrent run on the box, and these two
+    // files are truncated on entry, so a second run could empty them under the
+    // first one's feet.
+    let dir = std::env::temp_dir().join(format!("oo-verdict-vocabulary-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let a = dir.join("asserted.tsv");
     let d = dir.join("derivations.tsv");
@@ -340,10 +344,27 @@ fn only_a_zero_exit_produces_an_acceptance() {
         pe::run_checker(CertKind::OoCert, Some(script.as_path()), &a, &d, None)
     };
 
-    assert!(matches!(run(0), CheckerStatus::Accepted(_)));
-    assert!(matches!(run(1), CheckerStatus::Rejected { .. }));
-    assert!(matches!(run(2), CheckerStatus::Unreadable { .. }));
-    assert!(matches!(run(3), CheckerStatus::Unreadable { .. }));
+    // `assert!(matches!(...))` prints nothing but the line number, and this
+    // test went red twice on CI and green everywhere else. A failure has to
+    // say WHICH status it got, or the next person reads a line number and
+    // guesses, which is what happened.
+    let got = |st: &CheckerStatus| -> String {
+        match st {
+            CheckerStatus::Accepted(_) => "accepted".to_string(),
+            CheckerStatus::Rejected { stdout } => format!("rejected, stdout {stdout:?}"),
+            CheckerStatus::Unreadable { stdout } => format!("unreadable, stdout {stdout:?}"),
+            CheckerStatus::Absent { what, .. } => format!("ABSENT: {what}"),
+            CheckerStatus::NotNeeded { what } => format!("not needed: {what}"),
+        }
+    };
+    let r0 = run(0);
+    assert!(matches!(r0, CheckerStatus::Accepted(_)), "exit 0 must accept, got {}", got(&r0));
+    let r1 = run(1);
+    assert!(matches!(r1, CheckerStatus::Rejected { .. }), "exit 1 must reject, got {}", got(&r1));
+    let r2 = run(2);
+    assert!(matches!(r2, CheckerStatus::Unreadable { .. }), "exit 2 unreadable, got {}", got(&r2));
+    let r3 = run(3);
+    assert!(matches!(r3, CheckerStatus::Unreadable { .. }), "exit 3 unreadable, got {}", got(&r3));
 
     let absent = pe::run_checker(
         CertKind::OoCert,
