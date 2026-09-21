@@ -1050,7 +1050,7 @@ impl FolProblem {
         let mut s = String::new();
         s.push_str(&header("%", self.conjecture.is_some(), TPTP_STYLE));
         s.push_str("% CNF. Every formula is a clause, so a prover's refutation of this file is\n");
-        s.push_str("% resolution end to end and can be checked by oo-fores (Fo.unsat_of_check).\n");
+        s.push_str("% resolution end to end and can be checked by oo-resolution (Fo.unsat_of_check).\n");
         s.push_str(&format!(
             "% One Skolem constant, '{}', witnesses the non-empty domain (background_2).\n",
             sym::constant(Self::DOMAIN_WITNESS)
@@ -4460,7 +4460,7 @@ pub enum Syntax {
     Ladr,
     /// TPTP CNF: the same theory as `Tptp`, already in clauses, so a prover
     /// never clausifies and its refutation is resolution end to end, which is
-    /// what `tstp::to_fo_certificate` and `oo-fores` can check. Available ONLY
+    /// what `tstp::to_fo_certificate` and `oo-resolution` can check. Available ONLY
     /// in the clausal fragment; an ontology with a superclass existential is
     /// refused by name rather than clausified by a Skolemisation nobody
     /// proved.

@@ -279,8 +279,8 @@
 <text x="331.7" y="435.5" font-size="10.5" font-weight="700" fill="#f0abfc">Z3</text>
 <rect x="327.7" y="472.5" width="36.9" height="15" rx="3.5" fill="#020617" opacity="0.88"/>
 <text x="331.7" y="483.5" font-size="10.5" font-weight="700" fill="#f0abfc">Mace4</text>
-<rect x="429.7" y="328.5" width="54.2" height="15" rx="3.5" fill="#020617" opacity="0.88"/>
-<text x="433.7" y="339.5" font-size="10.5" font-weight="700" fill="#f0abfc">oo-fores</text>
+<rect x="429.7" y="328.5" width="83.1" height="15" rx="3.5" fill="#020617" opacity="0.88"/>
+<text x="433.7" y="339.5" font-size="10.5" font-weight="700" fill="#f0abfc">oo-resolution</text>
 <rect x="575.3" y="274.4" width="35.5" height="15" rx="3.5" fill="#020617" opacity="0.88"/>
 <text x="579.3" y="285.4" font-size="10" font-weight="400" fill="#cbd5e1">Class</text>
 <rect x="585.8" y="250.5" width="35.5" height="15" rx="3.5" fill="#020617" opacity="0.88"/>
@@ -434,7 +434,7 @@
 <text x="594" y="652" font-size="12" font-weight="800" fill="#94a3b8" letter-spacing="1.4">一个结论值多少</text>
 <circle cx="600" cy="672.0" r="4" fill="#34d399"/>
 <text x="612" y="676" font-size="11" font-weight="700" fill="#34d399">证书</text>
-<text x="690" y="671" font-size="10" fill="#94a3b8">全部 259 条只有一个文件：Lean 4 与 Isabelle/HOL 读取同样的字节，oo-fores 检查 Vampire 的反驳。</text>
+<text x="690" y="671" font-size="10" fill="#94a3b8">全部 259 条只有一个文件：Lean 4 与 Isabelle/HOL 读取同样的字节，oo-resolution 检查 Vampire 的反驳。</text>
 <text x="690" y="683" font-size="10" fill="#64748b">可重新运行。Fo.unsat_of_check：该子句集在任何论域上都没有模型。</text>
 <circle cx="600" cy="702.0" r="4" fill="#f0abfc"/>
 <text x="612" y="706" font-size="11" font-weight="700" fill="#f0abfc">意见</text>
