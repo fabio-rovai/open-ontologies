@@ -3691,8 +3691,13 @@ mod proxy_serialization_tests {
             Commands::Fol { out: "/tmp/fol".into(), format: "tptp".into(), smt_domain: None, clif_dialect: "iso".into(), clif_comments: "standalone".into(), goals: None, goals_skip_columns: 0 },
             Commands::FolModel { out: "/tmp/folmodel".into(), solver: "z3".into(), max_domain: 16, timeout_secs: 30, unbounded_probe: true, goals: None, goals_skip_columns: 0, checker: None },
             Commands::FolProve { out: Some("/tmp/folprove".into()), prover: "vampire".into(), timeout_secs: 30, goals: None, goals_skip_columns: 0, problem: None, proof: None },
-            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: false },
-            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: true },
+            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: false, verified: false },
+            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: true, verified: false },
+            // The verified form proxies too, for the reason the scoped `reason`
+            // form above is here: a daemon-backed `shacl --verified` that
+            // silently dropped the flag would run the UNVERIFIED evaluator and
+            // answer with a conformance verdict that no theorem stands behind.
+            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: false, verified: true },
             Commands::Status,
             Commands::Pull { url: "http://example.org".into(), sparql: false, query: None },
             Commands::Push { endpoint: "http://example.org".into(), graph: None },
