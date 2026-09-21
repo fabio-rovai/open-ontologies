@@ -4,7 +4,7 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
-## [2.0.0] - 2026-09-21
+## [2.0.0] - 2026-09-22
 
 A major number because the engine now answers three questions it could not
 answer before, and because every checker it ships can say which binary it is.
