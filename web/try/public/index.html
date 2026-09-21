@@ -106,6 +106,17 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px;paddin
     <div id="viols"></div>
   </section>
 
+  <section class="card" id="plan" hidden style="margin-top:18px">
+    <h2 id="i-step4">4 · Add one line, and get a proof</h2>
+    <p class="sub" style="margin-bottom:8px" id="i-step4p"></p>
+    <div class="row" style="align-items:flex-start">
+      <textarea class="code" id="axiom" spellcheck="false" style="flex:1;min-height:56px"></textarea>
+      <button class="primary" id="goplan"></button>
+    </div>
+    <div class="row"><span class="status" id="st3"></span></div>
+    <div id="planout"></div>
+  </section>
+
   <section id="what" style="margin-top:26px">
     <h2 id="i-what">What this is, and is not</h2>
     <p class="sub" style="margin-bottom:8px" id="i-what1"></p>
@@ -149,6 +160,14 @@ const STR = {
     p_object: 'object →', p_in: 'in', p_group: 'group of', p_min: 'minCount 1', p_max: 'maxCount',
     observed: '; observed', notconstrained: '(reported, and not constrained)',
     engine_says: 'The engine says: ',
+    step4: '4 · Add one line, and get a proof',
+    step4p: 'An induced ontology is flat, so a reasoner derives nothing from it. That is measured, not assumed: 0 derivations under rdfs and under owl-rl, because the mapping already gives each row its class. So add one line. This is the front page\u2019s own argument: plan a change to an ontology, and see every consequence before you apply it. The engine writes a certificate for what follows, the Lean checker accepts it, and then the page forges one conclusion and hands the same checker the same premises.',
+    goplan: 'Add the line and reason',
+    p_new: 'consequences that were not there before',
+    p_cert: 'The certificate', p_acc: 'The checker accepted it', p_ref: 'The checker refused the forged one',
+    p_theorem: 'theorem', p_exit: 'exit', p_rule: 'rule', p_absent: 'This release carries no checker, so nothing was checked here.',
+    p_nothing: 'That line derives nothing. Try a subClassOf over the induced class.',
+    p_forgedline: 'One conclusion was changed, and both premises were left exactly as they were:',
     summary: '{c}: {r} rows → 1 class, {p} {pw}{obj}{grp}{enu}.',
     prop1: 'property', propn: 'properties', obj: ' object', grp: ' numbered group merged', grpn: ' numbered groups merged', enu: ' enumeration', enun: ' enumerations',
     verbatim: '',
@@ -190,6 +209,14 @@ const STR = {
     p_object: '对象属性 →', p_in: '取值集合', p_group: '合并了', p_min: 'minCount 1', p_max: 'maxCount',
     observed: '；观察到', notconstrained: '（只报告，不作为约束）',
     engine_says: '引擎说：',
+    step4: '4 · 加一行，然后得到一份证明',
+    step4p: '归纳出的本体是扁平的，推理机从它推不出东西。这是测得的，不是假设的：在 rdfs 和 owl-rl 下都是 0 条推论，因为映射已经给每一行赋予了类。所以请加一行。这正是首页自己的论点：为本体规划一次变更，在应用之前看清每一项后果。引擎为随之而来的结论写一份证书，Lean 检查器接受它；随后页面伪造一条结论，把同样的前提交给同一个检查器。',
+    goplan: '加上这一行并推理',
+    p_new: '条此前不存在的后果',
+    p_cert: '证书', p_acc: '检查器接受了它', p_ref: '检查器拒绝了伪造的那一份',
+    p_theorem: '定理', p_exit: '退出码', p_rule: '规则', p_absent: '本次发布不含检查器，因此这里没有检查任何东西。',
+    p_nothing: '这一行推不出任何东西。试试在归纳出的类上写一条 subClassOf。',
+    p_forgedline: '一条结论被改动，两条前提原样保留：',
     summary: '{c}：{r} 行 → 1 个类，{p} 个{pw}{obj}{grp}{enu}。',
     prop1: '属性', propn: '属性', obj: '（其中 1 个是对象属性）', grp: '（合并了 1 组编号列）', grpn: '（合并了多组编号列）', enu: '（含取值集合）', enun: '（含取值集合）',
     verbatim: '下表“证据”列与上面“引擎说”的句子，是引擎自己的输出，原样显示，未经翻译。本页面不改写引擎的措辞。',
@@ -224,6 +251,8 @@ function paint(){
   const sub=document.getElementById('i-sub'); if(sub) sub.innerHTML = L.sub;
   set('i-step1', L.step1); set('i-drop', L.drop); set('i-cls', L.cls);
   set('i-step2', L.step2); set('i-step3', L.step3); set('i-step3p', L.step3p, true);
+  set('i-step4', L.step4); set('i-step4p', L.step4p);
+  const gp=document.getElementById('goplan'); if(gp) gp.textContent=L.goplan;
   set('i-what', L.what); set('i-what1', L.what1, true); set('i-what2', L.what2, true);
   set('i-foot', L.foot);
   const ta=document.getElementById('csv-ta'); if(ta) ta.placeholder=L.paste;
@@ -242,7 +271,11 @@ let current={name:'sheet.csv',csv:'',induced:null,mapping:null,rows:[],headers:[
 api('engine').then(j=>{$('#engine').textContent=j.tag?`${j.tag}, sha256 ${String(j.sha256).slice(0,12)}…`:'unavailable'}).catch(()=>{$('#engine').textContent='unavailable'});
 api('samples').then(j=>{const box=$('#samples');box.innerHTML='<span class="status">'+L.samples+'</span>';(j.samples||[]).forEach(s=>{const b=document.createElement('button');b.textContent=`${s.name} (${s.rows} rows)`;b.onclick=()=>{$('#csv').value=s.csv;current.name=s.name;$('#cls').value='';$('#st1').textContent=`${L.loaded_s} ${s.name}`};box.appendChild(b)});
   // ?sample=epc-sample.csv&auto=1 loads a bundled sheet and runs it, so a link can carry a worked example.
-  const q=new URLSearchParams(location.search),want=q.get('sample');const hit=(j.samples||[]).find(s=>s.name===want);if(hit){$('#csv').value=hit.csv;current.name=hit.name;$('#st1').textContent=`${L.loaded_s} ${hit.name}`;if(q.get('auto')==='1')$('#go').click()}});
+  const q=new URLSearchParams(location.search),want=q.get('sample');const hit=(j.samples||[]).find(s=>s.name===want);if(hit){$('#csv').value=hit.csv;current.name=hit.name;$('#st1').textContent=`${L.loaded_s} ${hit.name}`;
+    // `&plan=1` carries the whole loop in a link: induce, then add the line and
+    // reason, so a reader who follows the link from the README sees the
+    // certificate and the refusal without touching anything.
+    if(q.get('auto')==='1'){ current.autoplan = q.get('plan')==='1'; $('#go').click(); }}});
 
 const drop=$('#drop'),file=$('#file');
 drop.onclick=()=>file.click();drop.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')file.click()};
@@ -297,7 +330,12 @@ function render(j){const ind=j.induced;current.induced=ind;current.mapping=j.map
   $('#t-ontology').textContent=ind.ontology_ttl;$('#t-shapes').textContent=ind.shapes_ttl;$('#t-mapping').textContent=pretty(current.mapping);
   $('#t-engine').textContent=JSON.stringify({induce:{...ind,ontology_ttl:'(see tab)',shapes_ttl:'(see tab)',mapping:'(see tab)'},shacl:j.shacl,reason:j.reason,stats:j.stats,meta:j.meta},null,1);
   $('#means').textContent=L.engine_says+ind.means;
-  const rows=parseCsv(current.csv);current.headers=rows[0]||[];current.rows=rows.slice(1);grid()}
+  const rows=parseCsv(current.csv);current.headers=rows[0]||[];current.rows=rows.slice(1);grid();
+  // The one line, prefilled with the class the engine just induced.
+  $('#plan').hidden=false;
+  $('#axiom').value=`:${ind.class} rdfs:subClassOf :Thing${'\n'}:Thing a owl:Class .`.replace(':Thing\n', ':Thing .\n');
+  $('#planout').innerHTML='';$('#st3').textContent='';
+  if(current.autoplan){current.autoplan=false;setTimeout(()=>$('#goplan').click(),60)}}
 
 function grid(){const h=current.headers,rows=current.rows.slice(0,40);let t='<table><thead><tr><th>#</th>'+h.map(x=>`<th>${esc(x)}</th>`).join('')+'</tr></thead><tbody>';
   rows.forEach((r,i)=>{t+=`<tr><td style="color:var(--dim)">${i+1}</td>`+h.map((_,k)=>`<td contenteditable data-r="${i}" data-c="${k}">${esc(r[k]??'')}</td>`).join('')+'</tr>'});
@@ -312,6 +350,31 @@ $('#recheck').onclick=async()=>{if(!current.induced)return;$('#recheck').disable
   const v=sh.violations||[];let html=sh.conforms===true?`<p class="status"><span class="pill ok">${L.conforms}</span> ${L.stillok}</p>`:sh.conforms===false?`<p class="status"><span class="pill bad">${v.length} ${v.length===1?L.violation:L.violations_n}</span> ${L.found}</p>`:`<p class="status"><span class="pill warn">${L.undetermined}</span> ${esc(JSON.stringify(sh.skipped_constraints||sh))}</p>`;
   v.slice(0,50).forEach(x=>{html+=`<div class="viol"><code>${esc(short(x.focus_node))}</code> · <code>${esc(short(x.result_path||x.path||''))}</code> · ${esc(short(x.source_constraint_component||x.constraint||''))}<br>${esc(x.message||'')}</div>`});
   if(v.length>50)html+=`<p class="status">${L.andmore} ${v.length-50} ${L.more}</p>`;$('#viols').innerHTML=html};
+
+$('#goplan').onclick=async()=>{
+  if(!current.induced)return;
+  $('#goplan').disabled=true;$('#st3').className='status';$('#st3').textContent=L.running;
+  const j=await api('plan',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
+    name:current.name,csv:current.csv,ontology_ttl:current.induced.ontology_ttl,mapping:current.mapping,axiom:$('#axiom').value})});
+  $('#goplan').disabled=false;
+  if(j.error){$('#st3').className='status err';$('#st3').textContent=j.error;return}
+  $('#st3').textContent=`${L.done} ${j.meta?.seconds??'?'} s`;
+  const c=j.certificate||{},a=j.accepted||{},f=j.forged;
+  const n=c.derivations??0;
+  let h=`<p class="summary" style="margin-top:10px"><b>${n}</b> ${L.p_new}.</p>`;
+  if(!n){h+=`<p class="status">${L.p_nothing}</p>`;}
+  else{
+    h+=`<dl class="kv"><dt>${L.p_cert}</dt><dd><code>${esc(c.asserted)} asserted, ${esc(c.derivations)} derivations</code> · ${esc(JSON.stringify(c.by_rule||{}))}</dd>`;
+    if(a.absent){h+=`<dt>${L.p_acc}</dt><dd><span class="pill warn">${L.p_absent}</span></dd>`;}
+    else{
+      h+=`<dt>${L.p_acc}</dt><dd><span class="pill ${a.ok?'ok':'bad'}">${L.p_exit} ${esc(a.exit)}</span> ${a.theorem?`${L.p_theorem} <code>${esc(a.theorem)}</code>`:''}</dd>`;
+      if(f)h+=`<dt>${L.p_ref}</dt><dd><span class="pill ${f.ok?'bad':'ok'}">${L.p_exit} ${esc(f.exit)}</span> ${f.rule?`${L.p_rule} <code>${esc(f.rule)}</code>`:''}</dd>`;
+    }
+    h+='</dl>';
+    if(f&&f.line_before)h+=`<p class="status">${L.p_forgedline}</p><pre>${esc(f.line_before)}\n${esc(f.line_after)}</pre>`;
+  }
+  $('#planout').innerHTML=h;
+};
 
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function short(s){s=String(s||'');const i=Math.max(s.lastIndexOf('#'),s.lastIndexOf('/'));return i>=0&&i<s.length-1?s.slice(i+1):s}

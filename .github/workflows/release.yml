@@ -58,9 +58,60 @@ jobs:
           name: open-ontologies-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
 
+  # The checkers, for the one platform that has to run them without a Lean
+  # toolchain: the hosted demo.
+  #
+  # Until this job existed the release shipped the engine and not the thing that
+  # checks the engine. "Hand the reviewer a proof they can check" required that
+  # reviewer to install elan and build Lean first, and the demo could not show a
+  # certificate at all, so a visitor met a front page whose central claim the
+  # page itself could not demonstrate. These binaries are a few MB each.
+  checkers:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: lean
+          build: true
+          test: false
+          lint: false
+          use-github-cache: true
+      - name: Name them for the platform they were built on
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          # oo-cert and oo-horn are required: the demo runs the first and the
+          # repository's own front page quotes the second. The rest are taken
+          # when present, and the first-order checker is accepted under either
+          # of its names so this job survives the rename either way. A missing
+          # REQUIRED checker fails the release rather than publishing a release
+          # that silently lost half of the argument.
+          for b in oo-cert oo-horn; do
+            src="lean/.lake/build/bin/$b"
+            [ -x "$src" ] || { echo "::error::$b was not built"; exit 1; }
+            cp "$src" "out/${b}-x86_64-unknown-linux-gnu"
+          done
+          fo=0
+          for b in oo-lrat oo-resolution oo-fores oo-shacl; do
+            src="lean/.lake/build/bin/$b"
+            if [ -x "$src" ]; then
+              cp "$src" "out/${b}-x86_64-unknown-linux-gnu"
+              case "$b" in oo-resolution|oo-fores) fo=1 ;; esac
+            fi
+          done
+          [ "$fo" = 1 ] || { echo "::error::no first-order resolution checker under either name"; exit 1; }
+          ls -la out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: checkers-x86_64-unknown-linux-gnu
+          path: out/*
+
   release:
     timeout-minutes: 20
-    needs: build
+    needs: [build, checkers]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -88,14 +139,17 @@ jobs:
           # Strip the artifact directory so the listed names match the asset
           # names as downloaded, and keep sha256sum's two-space separator so
           # `sha256sum -c SHASUMS.txt` works as-is next to the binaries.
-          sha256sum open-ontologies-*/open-ontologies-* | sed 's|  .*/|  |' > SHASUMS.txt
+          sha256sum open-ontologies-*/open-ontologies-* checkers-*/oo-* \
+            | sed 's|  .*/|  |' > SHASUMS.txt
           cat SHASUMS.txt
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v4
         with:
           # Runs after the rename so each attested subject name is the name the
           # asset is published under.
-          subject-path: 'open-ontologies-*/open-ontologies-*'
+          subject-path: |
+            open-ontologies-*/open-ontologies-*
+            checkers-*/oo-*
       - name: Extract release notes from CHANGELOG
         run: |
           version="${GITHUB_REF_NAME#v}"
@@ -109,4 +163,5 @@ jobs:
           body_path: release-notes.md
           files: |
             open-ontologies-*/open-ontologies-*
+            checkers-*/oo-*
             SHASUMS.txt

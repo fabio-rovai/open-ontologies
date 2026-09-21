@@ -4,6 +4,21 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-09-21
+
+### Added
+- **The release ships the checkers.** `oo-cert`, `oo-horn`, the first-order resolution checker and
+  `oo-lrat` are built for `x86_64-unknown-linux-gnu` and published as release assets, with their
+  digests in `SHASUMS.txt` and build provenance attested alongside the engine. Until now the
+  release carried the engine and not the thing that checks it, so "hand the reviewer a proof they
+  can check" required that reviewer to install elan and build Lean first.
+- **The hosted demo runs the whole loop.** `web/try` induces an ontology from a sheet, then lets a
+  visitor add one line to it, reasons, writes a certificate, has `oo-cert` accept it, and then
+  forges one conclusion and hands the same checker the same premises. Measured on the bundled
+  `staff.csv`: one `rdfs:subClassOf` gives 14 derivations, `oo-cert` exits 0 with
+  `OOCert.certificate_sound`, and the forged copy exits 1 naming `rdfs9`.
+
+
 ## [1.5.0] - 2026-09-20
 
 1.4.0 and 1.4.1 were tagged without a section of their own; their entries are among the ones
