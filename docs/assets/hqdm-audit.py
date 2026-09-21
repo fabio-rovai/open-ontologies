@@ -76,10 +76,10 @@ TEXT = {
         "right_head": "WHAT ONLY A REASONER CAN SEE",
         "undeclared": ("UNDECLARED", "used as a class, never typed as one"),
         "badrange": ("RANGE IS A RELATION", "rdfs:range naming part_of or participant_in"),
-        "twins": ("UNDERSCORE TWINS", "one trailing underscore apart; {n} identical in domain and range"),
+        "twins": ("UNDERSCORE TWINS", "one underscore apart; {n} share domain and range"),
         "sat": ("SATISFIABLE", "named classes this engine's tableaux found a model for"),
         "und": ("UNDECIDED", "budget ran out before a verdict either way"),
-        "oracle": ("ORACLE: UNSATISFIABLE", "HermiT, OM 2026 run; {n} of them are the undecided ones"),
+        "oracle": ("ORACLE: UNSATISFIABLE", "HermiT, OM 2026 run; {n} are the undecided ones"),
         "foot1": "Same ontology name, two files, and the defect you find depends on which you fetched; "
                  "neither file says which is canonical.",
         "foot2": "{o} of the {t} underscore twins survive into the OWL rendering. "
@@ -109,6 +109,33 @@ TEXT = {
         "foot2": "{t} 对下划线孪生名中有 {o} 对延续到了 OWL 版本。此处每个数字都由测试从数据行重新计算。",
     },
 }
+
+
+def text_width(s, size):
+    """Conservative width of a string at `size`. CJK is one em, Latin about
+    half. The companion figure carries the same function and the same reason:
+    a line that fits in English can run past the panel in Chinese."""
+    w = 0.0
+    for ch in s:
+        o = ord(ch)
+        if 0x2E80 <= o <= 0x9FFF or 0xAC00 <= o <= 0xD7AF or 0xFF00 <= o <= 0xFF60:
+            w += size
+        elif o < 0x2000 and ch.islower():
+            w += size * 0.50
+        else:
+            w += size * 0.60
+    return w
+
+
+def must_fit(s, size, budget, where):
+    """Refuse to draw a line that will not fit where it is drawn."""
+    w = text_width(s, size)
+    if w > budget:
+        raise SystemExit(
+            f"{where}: {w:.0f} units of text at font-size {size} in {budget:.0f} units of "
+            f"space. Shorten it or widen the column.\n  {s}"
+        )
+    return s
 
 
 def short(iri):
@@ -465,10 +492,15 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path, lang="en"):
               f'letter-spacing="0.6">{label}</text>')
             A(f'<text x="{col_x + 214}" y="{yy}" font-size="11" font-weight="700" fill="#e2e8f0" '
               f'text-anchor="end">{count}</text>')
-            A(f'<text x="{col_x + 224}" y="{yy}" font-size="9.4" fill="#94a3b8">{means}</text>')
+            # Each column ends where the other begins, or at the panel edge.
+        limit = (MID - 10) if col_x < MID else (W - 28 - 6)
+        must_fit(means, 9.4, limit - (col_x + 224), f"legend row {label!r}")
+        A(f'<text x="{col_x + 224}" y="{yy}" font-size="9.4" fill="#94a3b8">{means}</text>')
     A(f'<line x1="40" y1="{ly + 108}" x2="{W - 40}" y2="{ly + 108}" stroke="#1e3a5f"/>')
     # Two lines, because one ran to x=1095 while the panel ends at 1072: the
     # sentence was printed outside the box that frames it.
+    must_fit(T["foot1"], 10, (W - 28) - 46 - 6, "footer line 1")
+    must_fit(T["foot2"].format(o=len(o_pairs), t=len(t_pairs)), 10, (W - 28) - 46 - 6, "footer line 2")
     A(f'<text x="46" y="{ly + 120}" font-size="10" fill="#64748b">'
       f'{T["foot1"]}</text>')
     A(f'<text x="46" y="{ly + 132}" font-size="10" fill="#64748b">'

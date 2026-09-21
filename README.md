@@ -39,7 +39,7 @@
 </p>
 
 <p align="center">
-  <a href="https://tesseractsemantics.com"><b>We build this into a platform &rarr; tesseractsemantics.com</b></a><br>
+  <a href="https://tesseractsemantics.com"><b>Look for enterprise support? tesseractsemantics.com</b></a><br>
   <sub>The engine is MIT, and it stays MIT. The platform is the hosted version of the engine.</sub>
 </p>
 

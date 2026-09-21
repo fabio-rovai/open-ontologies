@@ -190,10 +190,7 @@ fn the_rdfs_rendering_states_the_counts_the_rows_produce() {
             "{} triples, {} declared classes, {} terms in one connected graph",
             f.triples, f.declared, f.terms
         ),
-        format!(
-            "one trailing underscore apart; {} identical in domain and range",
-            f.identical
-        ),
+        format!("one underscore apart; {} share domain and range", f.identical),
     ] {
         assert!(
             s.contains(&want),
@@ -268,7 +265,7 @@ fn the_reasoner_counts_and_the_intersection_are_derived() {
             "HermiT, an opinion here, calls {} unsatisfiable, and they are the same {both}",
             oracle.len()
         ),
-        format!("{both} of them are the undecided ones"),
+        format!("{both} are the undecided ones"),
     ] {
         assert!(s.contains(&want), "the asset does not say {want:?}");
     }
