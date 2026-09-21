@@ -42,6 +42,14 @@ measurement, which counts it separately from a pass and from a failure.
 ignored, so every result this validator produces is a violation with no severity
 recorded. That is a real gap and it is named here rather than discovered: a report
 consumer that acts on severity must not use this validator.
+
+What is no longer true is that the gap is INVISIBLE from the output.
+`ignoredPairs` collects every `(subject, predicate)` pair in the shapes graph
+whose predicate this list waves through, and the verdict carries it, so a reader
+of the JSON alone learns that a severity or a message was present and dropped.
+That is the defect issue #206 named: not the ignoring, which is honest, but the
+silence, in the one place a compiler whose rule is refuse rather than guess
+discarded instead.
 -/
 namespace Shacl.Compile
 
@@ -140,10 +148,44 @@ def knownParams : List Term :=
 
 /-- Parameters with no effect on the verdict or on the result fields this
 validator reports. `sh:severity` is the one that is a real gap; see the module
-header. -/
+header.
+
+Adding a predicate here is enough to make it appear in the report's `ignored`
+list, because `ignoredPairs` reads THIS list. There is no second place to
+update, and `tests/shacl_ignored_is_named_test.rs` reads this list out of the
+source rather than typing the IRIs, so a predicate added here without reaching
+the report turns that file red. -/
 def ignoredParams : List Term :=
   [ SH.message, SH.name, SH.description, SH.order, SH.group, SH.defaultValue,
     SH.severity ]
+
+/-- Every `(subject, predicate)` pair in the shapes graph whose predicate this
+compiler IGNORES: present, read past, and with no effect on the verdict or on
+any result field.
+
+This exists because discarding in silence is the one place the compiler broke
+the rule the rest of it keeps. A predicate in neither `knownParams` nor
+`ignoredParams` is REFUSED with a reason; a predicate in `ignoredParams`
+vanished, and a shapes graph that marked a constraint `sh:Warning` produced
+byte-identical output to one that marked it `sh:Violation`. A reader could not
+learn from the output that anything had been dropped. Now they can.
+
+It is a filter over the graph and NOT a trace of the compiler's reads, and the
+difference is worth stating rather than glossing. The compiler visits targeted
+nodes and the shapes nested inside them, so a pair sitting on a node nothing
+targets appears here and was never read. It had no effect either, which is the
+fact a reader of this list wants, so both readings of "ignored" agree on the
+answer while disagreeing on the route.
+
+It reads `ignoredParams`, the same list `compileShape` waves through, so the
+report and the compiler cannot drift apart: a predicate added to that list
+starts appearing here on the same build.
+
+Nothing here touches `Shacl.validate_spec`. The verdict is unchanged, because
+none of these predicates ever affected it; what changes is that the report now
+says so. -/
+def ignoredPairs (G : Graph) : List (Term × Term) :=
+  dedup ((G.filter (fun t => ignoredParams.contains t.p)).map (fun t => (t.s, t.p)))
 
 def isShaclPred (p : Term) : Bool := p.startsWith ("<" ++ SH.ns)
 
