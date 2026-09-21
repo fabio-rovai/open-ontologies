@@ -249,7 +249,9 @@ fn the_six_steps_are_captioned_in_order() {
     let beats = [
         "a person asserts",
         "the engine derives",
-        "Lean checks the certificate, and accepts",
+        // The count in this caption is the legend's CERTIFIED number, asserted
+        // below rather than written here, so the caption cannot drift from it.
+        "Lean checks the one certificate covering all",
         "four provers read the clauses",
         "a line is forged, and the same checker refuses",
         "a question the file cannot be asked is returned unasked",
@@ -261,6 +263,15 @@ fn the_six_steps_are_captioned_in_order() {
         };
         at += i + b.len();
     }
+    // The arity in beat 3 is the legend's own number. A caption that said a
+    // different count from the legend under it would be the figure arguing
+    // with itself.
+    let (_, certified, _) = legend_counts();
+    assert!(
+        s.contains(&format!("covering all {certified}, and accepts")),
+        "beat 3 states a certificate count that is not the legend's CERTIFIED {certified}"
+    );
+
     // Every step is numbered on the rail, and the numbers are visible at rest
     // so a still frame shows the sequence rather than one lonely word.
     for n in 1..=beats.len() {

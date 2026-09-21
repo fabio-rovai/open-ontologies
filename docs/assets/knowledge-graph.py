@@ -492,6 +492,14 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     # Every `values` list STARTS and ENDS at the layer's resting level, so the
     # frame at t=0 is the same complete picture as the frame at t=CYCLE. A
     # still renderer samples t=0; see the header.
+    # How many edges one certificate covers, computed here because beat 3 says
+    # it. A reader could not tell from the drawing whether there was one
+    # certificate or 259 of them, and the answer matters: `reason
+    # --certificate` writes ONE (asserted.tsv + derivations.tsv, one line per
+    # derived triple with its rule and premises), `oo-cert` reads it in ONE
+    # run, and what it discharges is ONE theorem over the whole set.
+    n_certified_edges = sum(1 for _, _, w in edges if w == "certified")
+
     CYCLE = 22.0 if mu else 18.0
     # Five steps, and the prover step is its own rather than a footnote inside
     # the Lean one. A reader was told the first-order family exists and never
@@ -500,7 +508,7 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     BEATS = [
         ("#94a3b8", "1 · a person asserts", 0.6, 3.4),
         ("#6ee7b7", "2 · the engine derives", 3.4, 6.4),
-        ("#34d399", "3 · Lean checks the certificate, and accepts", 6.4, 9.6),
+        ("#34d399", f"3 · Lean checks the one certificate covering all {n_certified_edges}, and accepts", 6.4, 9.6),
         ("#f0abfc", ("4 · four provers read the clauses; Vampire's refutation is checked, the rest opine"
                      if vampire_certified else
                      "4 · four provers read a different file, and only opine"), 9.6, 13.0),
@@ -1089,12 +1097,26 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     # A viewer could watch the whole loop and never learn what the five stages
     # WERE. The rail still shows where you are in the sequence; this says what
     # is happening, and it says it next to the title.
+    # The captions all sit at one position, so only one may be visible at a
+    # time, INCLUDING while it is fading. The previous ramps overlapped: a
+    # caption began fading in 0.35s before the one before it had finished
+    # fading out, so every transition drew two sentences through each other for
+    # about a third of a second, forever. Measured in a browser by sampling
+    # setCurrentTime: 15 such moments, the outgoing text at opacity 0.67 under
+    # the incoming one at 0.20.
+    #
+    # Now a caption fades out over [t1-0.3, t1] and the next fades in over
+    # [t0, t0+0.3], and consecutive beats share t1 == t0, so the ramps touch at
+    # a point where both are 0 and never overlap. The first one is simply on
+    # from t=0, because a still frame samples t=0 and must show a caption.
     for n_, (col, text, t0, t1) in enumerate(BEATS):
         first = "1" if n_ == 0 else "0"
+        values = "1;1;1;1;0;0" if n_ == 0 else "0;0;1;1;0;0"
+        times = (kt(0, 0, 0, t1 - 0.3, t1, CYCLE) if n_ == 0
+                 else kt(0, t0, t0 + 0.3, t1 - 0.3, t1, CYCLE))
         A(f'<text x="34" y="68" font-size="14.5" font-weight="700" fill="{col}" '
           f'opacity="{first}">'
-          + anim("opacity", f"{first};0;1;1;0;0",
-                 kt(0, max(0.0, t0 - 0.35), t0 + 0.15, t1 - 0.3, t1, CYCLE))
+          + anim("opacity", values, times)
           + f'{text}</text>')
 
     A(f'<text x="34" y="88" font-size="10.5" fill="#64748b">'
@@ -1194,7 +1216,8 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
       f'ies-core.ttl · {n_asserted:,} triples</text>')
     A(f'<line x1="40" y1="{ly+33}" x2="{lw - 12:.0f}" y2="{ly+33}" stroke="#1e3a5f"/>')
     rows = [(C_ASSERT, "ASSERTED", n_a, "read from ies-core.ttl. claimed by a person"),
-            (C_CERT, "CERTIFIED", n_c, "derived, then PROVED. OOCert.certificate_sound"),
+            (C_CERT, "CERTIFIED", n_c,
+             "derived, then PROVED. one certificate, one run, OOCert.certificate_sound"),
             (C_REJECT, "REJECTED", n_r, "forged. the checker exited 1 and named the rule")]
     if mu:
         rows.append((C_MU, "UNASKED", 1, "a question outside the file's language. no judge was asked"))
@@ -1217,7 +1240,7 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     if vampire_certified:
         verdicts = [
             (C_CERT, "certificate",
-             f"Lean 4 and Isabelle/HOL read the same bytes; Vampire's refutation is checked by {fo_checker}.",
+             f"ONE file for all {n_certified_edges}: Lean 4 and Isabelle/HOL read the same bytes, {fo_checker} checks Vampire's.",
              f"re-runnable. {fo_theorem}: the clause set has no model, over any carrier."),
             (C_TOOL, "opinion",
              "E, Z3 and Mace4 read the clauses too, and print a word.",
@@ -1226,7 +1249,7 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     else:
         verdicts = [
             (C_CERT, "certificate",
-             "Lean 4 and Isabelle/HOL read the same bytes.",
+             f"ONE file for all {n_certified_edges}: Lean 4 and Isabelle/HOL read the same bytes.",
              "anyone can re-run the check and get the same answer."),
             (C_TOOL, "opinion",
              "Vampire, E, Z3 and Mace4 read a different file.",

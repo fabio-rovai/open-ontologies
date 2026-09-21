@@ -379,12 +379,12 @@
 <circle cx="420.0" cy="336.0" r="12.7" fill="none" stroke="#f0abfc" stroke-width="1.6" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;0.9;0.9;0;0" keyTimes="0.0000;0.4364;0.4500;0.5750;0.5909;1.0000" calcMode="linear"/></circle>
 <circle cx="952.5" cy="467.8" r="6.8" fill="none" stroke="#fbbf24" stroke-width="1.6" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;0.9;0.9;0;0" keyTimes="0.0000;0.7727;0.7864;0.9386;0.9545;1.0000" calcMode="linear"/></circle>
 <text x="34" y="44" font-size="17" font-weight="800" fill="#f8fafc">ies-core.ttl, reasoned over and proved</text>
-<text x="34" y="68" font-size="14.5" font-weight="700" fill="#94a3b8" opacity="1"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="1;0;1;1;0;0" keyTimes="0.0000;0.0114;0.0341;0.1409;0.1545;1.0000" calcMode="linear"/>1 · a person asserts</text>
-<text x="34" y="68" font-size="14.5" font-weight="700" fill="#6ee7b7" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0.0000;0.1386;0.1614;0.2773;0.2909;1.0000" calcMode="linear"/>2 · the engine derives</text>
-<text x="34" y="68" font-size="14.5" font-weight="700" fill="#34d399" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0.0000;0.2750;0.2977;0.4227;0.4364;1.0000" calcMode="linear"/>3 · Lean checks the certificate, and accepts</text>
-<text x="34" y="68" font-size="14.5" font-weight="700" fill="#f0abfc" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0.0000;0.4205;0.4432;0.5773;0.5909;1.0000" calcMode="linear"/>4 · four provers read the clauses; Vampire's refutation is checked, the rest opine</text>
-<text x="34" y="68" font-size="14.5" font-weight="700" fill="#fb3b53" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0.0000;0.5750;0.5977;0.7591;0.7727;1.0000" calcMode="linear"/>5 · a line is forged, and the same checker refuses</text>
-<text x="34" y="68" font-size="14.5" font-weight="700" fill="#fbbf24" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0.0000;0.7568;0.7795;0.9409;0.9545;1.0000" calcMode="linear"/>6 · a question the file cannot be asked is returned unasked</text>
+<text x="34" y="68" font-size="14.5" font-weight="700" fill="#94a3b8" opacity="1"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="1;1;1;1;0;0" keyTimes="0.0000;0.0000;0.0000;0.1409;0.1545;1.0000" calcMode="linear"/>1 · a person asserts</text>
+<text x="34" y="68" font-size="14.5" font-weight="700" fill="#6ee7b7" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0.0000;0.1545;0.1682;0.2773;0.2909;1.0000" calcMode="linear"/>2 · the engine derives</text>
+<text x="34" y="68" font-size="14.5" font-weight="700" fill="#34d399" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0.0000;0.2909;0.3045;0.4227;0.4364;1.0000" calcMode="linear"/>3 · Lean checks the one certificate covering all 259, and accepts</text>
+<text x="34" y="68" font-size="14.5" font-weight="700" fill="#f0abfc" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0.0000;0.4364;0.4500;0.5773;0.5909;1.0000" calcMode="linear"/>4 · four provers read the clauses; Vampire's refutation is checked, the rest opine</text>
+<text x="34" y="68" font-size="14.5" font-weight="700" fill="#fb3b53" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0.0000;0.5909;0.6045;0.7591;0.7727;1.0000" calcMode="linear"/>5 · a line is forged, and the same checker refuses</text>
+<text x="34" y="68" font-size="14.5" font-weight="700" fill="#fbbf24" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0.0000;0.7727;0.7864;0.9409;0.9545;1.0000" calcMode="linear"/>6 · a question the file cannot be asked is returned unasked</text>
 <text x="34" y="88" font-size="10.5" fill="#64748b">the Studio 3D view: 243 nodes and 686 edges drawn, out of 1083 asserted triples and 265 derived by rdfs11 x257, rdfs5 x8</text>
 <text x="86" y="108" text-anchor="middle" font-size="9" font-weight="700" fill="#475569" letter-spacing="1.4">THE FILE</text>
 <text x="196" y="108" text-anchor="middle" font-size="9" font-weight="700" fill="#475569" letter-spacing="1.4">WHAT IT BECOMES</text>
@@ -400,7 +400,7 @@
 <text x="292.0" y="604.0" text-anchor="middle" font-size="10.5" fill="#6ee7b7" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0.0000;0.1545;0.1682;0.2773;0.2909;1.0000" calcMode="linear"/>the engine derives</text>
 <circle cx="464.0" cy="568.0" r="3" fill="#34d399" opacity="0.30"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0.30;0.30;1;1;0.30;0.30" keyTimes="0.0000;0.2909;0.3045;0.4227;0.4364;1.0000" calcMode="linear"/><animate attributeName="r" dur="22.0s" repeatCount="indefinite" values="3;3;5.5;5.5;3;3" keyTimes="0.0000;0.2909;0.3045;0.4227;0.4364;1.0000" calcMode="linear"/></circle>
 <text x="464.0" y="588.0" text-anchor="middle" font-size="11" font-weight="800" fill="#34d399" opacity="0.38">3</text>
-<text x="464.0" y="604.0" text-anchor="middle" font-size="10.5" fill="#34d399" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0.0000;0.2909;0.3045;0.4227;0.4364;1.0000" calcMode="linear"/>Lean checks the certificate, and accepts</text>
+<text x="464.0" y="604.0" text-anchor="middle" font-size="10.5" fill="#34d399" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0.0000;0.2909;0.3045;0.4227;0.4364;1.0000" calcMode="linear"/>Lean checks the one certificate covering all 259, and accepts</text>
 <circle cx="636.0" cy="568.0" r="3" fill="#f0abfc" opacity="0.30"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0.30;0.30;1;1;0.30;0.30" keyTimes="0.0000;0.4364;0.4500;0.5773;0.5909;1.0000" calcMode="linear"/><animate attributeName="r" dur="22.0s" repeatCount="indefinite" values="3;3;5.5;5.5;3;3" keyTimes="0.0000;0.4364;0.4500;0.5773;0.5909;1.0000" calcMode="linear"/></circle>
 <text x="636.0" y="588.0" text-anchor="middle" font-size="11" font-weight="800" fill="#f0abfc" opacity="0.38">4</text>
 <text x="636.0" y="604.0" text-anchor="middle" font-size="10.5" fill="#f0abfc" opacity="0"><animate attributeName="opacity" dur="22.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0.0000;0.4364;0.4500;0.5773;0.5909;1.0000" calcMode="linear"/>four provers read the clauses; Vampire's refutation is checked, the rest opine</text>
@@ -421,7 +421,7 @@
 <rect x="46" y="693" width="22" height="3" fill="#34d399"/>
 <text x="78" y="697" font-size="11" font-weight="700" fill="#34d399" letter-spacing="0.7">CERTIFIED</text>
 <text x="168" y="697" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="end">259</text>
-<text x="180" y="697" font-size="11" fill="#94a3b8">derived, then PROVED. OOCert.certificate_sound</text>
+<text x="180" y="697" font-size="11" fill="#94a3b8">derived, then PROVED. one certificate, one run, OOCert.certificate_sound</text>
 <rect x="46" y="711" width="22" height="3" fill="#fb3b53"/>
 <text x="78" y="715" font-size="11" font-weight="700" fill="#fb3b53" letter-spacing="0.7">REJECTED</text>
 <text x="168" y="715" font-size="11" font-weight="700" fill="#e2e8f0" text-anchor="end">1</text>
@@ -434,7 +434,7 @@
 <text x="594" y="652" font-size="12" font-weight="800" fill="#94a3b8" letter-spacing="1.4">WHAT A VERDICT IS WORTH</text>
 <circle cx="600" cy="672.0" r="4" fill="#34d399"/>
 <text x="612" y="676" font-size="11" font-weight="700" fill="#34d399">certificate</text>
-<text x="690" y="671" font-size="10" fill="#94a3b8">Lean 4 and Isabelle/HOL read the same bytes; Vampire's refutation is checked by oo-resolution.</text>
+<text x="690" y="671" font-size="10" fill="#94a3b8">ONE file for all 259: Lean 4 and Isabelle/HOL read the same bytes, oo-resolution checks Vampire's.</text>
 <text x="690" y="683" font-size="10" fill="#64748b">re-runnable. Fo.unsat_of_check: the clause set has no model, over any carrier.</text>
 <circle cx="600" cy="702.0" r="4" fill="#f0abfc"/>
 <text x="612" y="706" font-size="11" font-weight="700" fill="#f0abfc">opinion</text>
