@@ -294,6 +294,14 @@ fn corpus() -> Vec<PathBuf> {
     let mut files: Vec<PathBuf> = String::from_utf8_lossy(&out.stdout)
         .split('\0')
         .filter(|p| !p.is_empty())
+        // `tests/fixtures/clash-coverage/` holds one contradictory graph per clash
+        // detector, each written to make exactly that detector fire (#160), plus a
+        // near-miss twin. They are test data and not ontologies: swept as corpus they
+        // would turn a measurement of the shipped corpus into a statement about this
+        // repository's own fixtures, which is measuring the ruler. The same reasoning
+        // and the same treatment as `tests/fixtures/horn-coverage/`.
+        // `tests/clash_detector_coverage_test.rs` asserts this exclusion is still here.
+        .filter(|p| !p.starts_with("tests/fixtures/clash-coverage/"))
         .filter(|p| !SKIP_DIRS.iter().any(|d| p.split('/').any(|seg| seg == *d)))
         .map(|p| repo().join(p))
         .collect();

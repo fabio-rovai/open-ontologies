@@ -1,0 +1,14 @@
+# prp-npa2   T(?x, owl:sourceIndividual, ?i) T(?x, owl:assertionProperty, ?p)
+#             T(?x, owl:targetValue, ?lt) T(?i, ?p, ?lt) -> false
+# The same denial over a literal value rather than an individual. A separate
+# detector because the target sits under a different predicate.
+@prefix : <http://ex.org/clash#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:denial a owl:NegativePropertyAssertion ;
+    owl:sourceIndividual :bob ;
+    owl:assertionProperty :nickname ;
+    owl:targetValue "Bobby" .
+:bob :nickname "Bobby" .
