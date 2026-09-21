@@ -40,7 +40,7 @@ mod common;
 use open_ontologies::graph::GraphStore;
 use open_ontologies::reason::{InferenceTarget, Reasoner};
 use std::collections::BTreeSet;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 fn repo() -> PathBuf {
@@ -96,7 +96,7 @@ fn detectors_in_the_source() -> BTreeSet<String> {
 ///
 /// `owl-rl` because a clash needs the OWL vocabulary, and `materialize` is
 /// false so the fixture on disk is never written back into.
-fn rules_that_fire(path: &PathBuf) -> BTreeSet<String> {
+fn rules_that_fire(path: &Path) -> BTreeSet<String> {
     let store = Arc::new(GraphStore::new());
     store
         .load_file(&path.display().to_string())
