@@ -56,6 +56,61 @@ C_UND = "#f59e0b"
 CYCLE = 20.0
 
 
+# Every word on the drawing, in each language it is published in. The NUMBERS
+# are never in here: they are computed and formatted into these strings, so a
+# translation cannot state a count the data does not support.
+TEXT = {
+    "en": {
+        "headline": "HQDM, two shipped renderings: one is not well formed, the other is not coherent",
+        "beat1": "1 · left: {n} terms are used as a class and never declared",
+        "beat2": "2 · left: {n} rdfs:range declarations name a relation, not a class",
+        "beat3": "3 · right: this engine finds {sat} named classes satisfiable and cannot decide {und}",
+        "beat4": "4 · right: HermiT, an opinion here, calls {n} unsatisfiable, and they are the same {both}",
+        "beat5": "5 · both: {a} and {b} names differ only by a trailing underscore",
+        "ttl_sub": "· hqdmTop/hqdmFramework, vendored by MagmaCore · RDFS",
+        "owl_sub": "· gchq/HQDM · OWL, {n} disjointness axioms",
+        "facts1": "{t} triples, {d} declared classes, {n} terms in one connected graph.",
+        "ttl_facts2": "No owl: term and no disjointness axiom, so no named class can be unsatisfiable.",
+        "owl_facts2": "{u} undeclared terms, {b} ranges naming a relation: well formed by the same checks.",
+        "left_head": "WHAT A REASONER CANNOT SEE",
+        "right_head": "WHAT ONLY A REASONER CAN SEE",
+        "undeclared": ("UNDECLARED", "used as a class, never typed as one"),
+        "badrange": ("RANGE IS A RELATION", "rdfs:range naming part_of or participant_in"),
+        "twins": ("UNDERSCORE TWINS", "one trailing underscore apart; {n} identical in domain and range"),
+        "sat": ("SATISFIABLE", "named classes this engine's tableaux found a model for"),
+        "und": ("UNDECIDED", "budget ran out before a verdict either way"),
+        "oracle": ("ORACLE: UNSATISFIABLE", "HermiT, OM 2026 run; {n} of them are the undecided ones"),
+        "foot1": "Same ontology name, two files, and the defect you find depends on which you fetched; "
+                 "neither file says which is canonical.",
+        "foot2": "{o} of the {t} underscore twins survive into the OWL rendering. "
+                 "Every count here is recomputed from the rows by a test.",
+    },
+    "zh": {
+        "headline": "HQDM 的两个发布文件：一个不是良构的，另一个不是融贯的",
+        "beat1": "1 · 左：{n} 个术语被当作类使用，却从未声明",
+        "beat2": "2 · 左：{n} 条 rdfs:range 声明指向关系，而不是类",
+        "beat3": "3 · 右：本引擎判定 {sat} 个具名类可满足，另有 {und} 个无法判定",
+        "beat4": "4 · 右：HermiT（在此只是一种意见）判定 {n} 个不可满足，恰好就是同样的 {both} 个",
+        "beat5": "5 · 两者：{a} 对与 {b} 对名称仅相差一个尾部下划线",
+        "ttl_sub": "· hqdmTop/hqdmFramework，MagmaCore 逐字节收录 · RDFS",
+        "owl_sub": "· gchq/HQDM · OWL，{n} 条不相交公理",
+        "facts1": "{t} 条三元组，{d} 个已声明的类，{n} 个术语构成一个连通图。",
+        "ttl_facts2": "没有 owl: 术语，也没有不相交公理，因此没有具名类可能不可满足。",
+        "owl_facts2": "{u} 个未声明术语，{b} 条指向关系的值域：按同样的检查是良构的。",
+        "left_head": "推理机看不到的问题",
+        "right_head": "只有推理机才能看到的问题",
+        "undeclared": ("未声明", "被当作类使用，却从未被声明为类"),
+        "badrange": ("值域是关系", "rdfs:range 指向 part_of 或 participant_in"),
+        "twins": ("下划线孪生名", "仅相差一个尾部下划线；其中 {n} 对定义域与值域完全相同"),
+        "sat": ("可满足", "本引擎的 tableaux 为其找到了模型的具名类"),
+        "und": ("无法判定", "预算用尽，两个方向都没有结论"),
+        "oracle": ("外部意见：不可满足", "HermiT，OM 2026 运行；其中 {n} 个正是无法判定的那些"),
+        "foot1": "同一个本体名称，两个文件；你发现的缺陷取决于你取到了哪一个，两个文件都没有说明哪一个是规范版本。",
+        "foot2": "{t} 对下划线孪生名中有 {o} 对延续到了 OWL 版本。此处每个数字都由测试从数据行重新计算。",
+    },
+}
+
+
 def short(iri):
     body = iri.strip("<>")
     h = body.rfind("#")
@@ -292,7 +347,8 @@ def panel(A, rows, box, label, undeclared, bad_range, undecided, hermit, disjoin
     return names, edges
 
 
-def main(ttl_path, owl_path, dl_path, hermit_path, out_path):
+def main(ttl_path, owl_path, dl_path, hermit_path, out_path, lang="en"):
+    T = TEXT[lang]
     ttl = read(ttl_path)
     owl = read(owl_path)
     dl = json.load(open(dl_path))
@@ -345,13 +401,13 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path):
 
     # Headline, then the beats in order.
     A(f'<text x="34" y="44" font-size="17" font-weight="800" fill="#f8fafc">'
-      f'HQDM, two shipped renderings: one is not well formed, the other is not coherent</text>')
+      f'{T["headline"]}</text>')
     BEATS = [
-        (C_BAD, f"1 · left: {len(t_undeclared)} terms are used as a class and never declared", 0.0, 4.0),
-        (C_BAD, f"2 · left: {len(t_bad)} rdfs:range declarations name a relation, not a class", 4.0, 8.0),
-        (C_UND, f"3 · right: this engine finds {sat_found} named classes satisfiable and cannot decide {len(undecided)}", 8.0, 12.0),
-        (C_BAD, f"4 · right: HermiT, an opinion here, calls {len(hermit)} unsatisfiable, and they are the same {len(both)}", 12.0, 16.0),
-        (C_WARN, f"5 · both: {len(t_pairs)} and {len(o_pairs)} names differ only by a trailing underscore", 16.0, 20.0),
+        (C_BAD, T["beat1"].format(n=len(t_undeclared)), 0.0, 4.0),
+        (C_BAD, T["beat2"].format(n=len(t_bad)), 4.0, 8.0),
+        (C_UND, T["beat3"].format(sat=sat_found, und=len(undecided)), 8.0, 12.0),
+        (C_BAD, T["beat4"].format(n=len(hermit), both=len(both)), 12.0, 16.0),
+        (C_WARN, T["beat5"].format(a=len(t_pairs), b=len(o_pairs)), 16.0, 20.0),
     ]
     # One caption at a time, fades included. Two defects here, both measured in
     # a browser rather than reasoned about: the ramps overlapped, so every
@@ -370,42 +426,36 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path):
 
     # Per-panel titles and facts.
     A(f'<text x="34" y="{GT - 42}" font-size="13" font-weight="800" fill="#e2e8f0">'
-      f'hqdm-0.0.1-alpha.ttl <tspan fill="#64748b" font-weight="500">· hqdmTop/hqdmFramework, vendored by MagmaCore · RDFS</tspan></text>')
+      f'hqdm-0.0.1-alpha.ttl <tspan fill="#64748b" font-weight="500">{T["ttl_sub"]}</tspan></text>')
     A(f'<text x="34" y="{GT - 26}" font-size="10.5" fill="#64748b">'
-      f'{len(ttl)} triples, {len(t_declared)} declared classes, {len(t_names)} terms in one connected graph.</text>')
+      f'{T["facts1"].format(t=len(ttl), d=len(t_declared), n=len(t_names))}</text>')
     A(f'<text x="34" y="{GT - 12}" font-size="10.5" fill="#64748b">'
-      f'No owl: term and no disjointness axiom, so no named class can be unsatisfiable.</text>')
+      f'{T["ttl_facts2"]}</text>')
     A(f'<text x="{MID + 22}" y="{GT - 42}" font-size="13" font-weight="800" fill="#e2e8f0">'
-      f'hqdm.owl <tspan fill="#64748b" font-weight="500">· gchq/HQDM · OWL, {disjoint_n} disjointness axioms</tspan></text>')
+      f'hqdm.owl <tspan fill="#64748b" font-weight="500">{T["owl_sub"].format(n=disjoint_n)}</tspan></text>')
     A(f'<text x="{MID + 22}" y="{GT - 26}" font-size="10.5" fill="#64748b">'
-      f'{len(owl)} triples, {len(o_declared)} declared classes, {len(o_names)} terms in one connected graph.</text>')
+      f'{T["facts1"].format(t=len(owl), d=len(o_declared), n=len(o_names))}</text>')
     A(f'<text x="{MID + 22}" y="{GT - 12}" font-size="10.5" fill="#64748b">'
-      f'{len(o_undeclared)} undeclared terms, {len(o_bad)} ranges naming a relation: well formed by the same checks.</text>')
+      f'{T["owl_facts2"].format(u=len(o_undeclared), b=len(o_bad))}</text>')
 
     # Legend: the two columns.
     ly = GB + 22
     A(f'<rect x="28" y="{ly}" width="{W - 56}" height="{H - ly - 18}" rx="12" fill="#030a1c" '
       f'opacity="0.94" stroke="#1e3a5f"/>')
     A(f'<text x="46" y="{ly + 24}" font-size="12" font-weight="800" fill="{C_BAD}" '
-      f'letter-spacing="1.4">WHAT A REASONER CANNOT SEE</text>')
+      f'letter-spacing="1.4">{T["left_head"]}</text>')
     A(f'<text x="{MID + 18}" y="{ly + 24}" font-size="12" font-weight="800" fill="{C_UND}" '
-      f'letter-spacing="1.4">WHAT ONLY A REASONER CAN SEE</text>')
+      f'letter-spacing="1.4">{T["right_head"]}</text>')
     A(f'<line x1="40" y1="{ly + 33}" x2="{W - 40}" y2="{ly + 33}" stroke="#1e3a5f"/>')
     left = [
-        (C_BAD, "UNDECLARED", len(t_undeclared),
-         "used as a class, never typed as one"),
-        (C_BAD, "RANGE IS A RELATION", len(t_bad),
-         "rdfs:range naming part_of or participant_in"),
-        (C_WARN, "UNDERSCORE TWINS", len(t_pairs),
-         f"one trailing underscore apart; {len(t_identical)} identical in domain and range"),
+        (C_BAD, T["undeclared"][0], len(t_undeclared), T["undeclared"][1]),
+        (C_BAD, T["badrange"][0], len(t_bad), T["badrange"][1]),
+        (C_WARN, T["twins"][0], len(t_pairs), T["twins"][1].format(n=len(t_identical))),
     ]
     right = [
-        (C_OK, "SATISFIABLE", sat_found,
-         "named classes this engine's tableaux found a model for"),
-        (C_UND, "UNDECIDED", len(undecided),
-         "budget ran out before a verdict either way"),
-        (C_BAD, "ORACLE: UNSATISFIABLE", len(hermit),
-         f"HermiT, OM 2026 run; {len(both)} of them are the undecided ones"),
+        (C_OK, T["sat"][0], sat_found, T["sat"][1]),
+        (C_UND, T["und"][0], len(undecided), T["und"][1]),
+        (C_BAD, T["oracle"][0], len(hermit), T["oracle"][1].format(n=len(both))),
     ]
     for col_x, rows_ in ((46, left), (MID + 18, right)):
         for m, (col, label, count, means) in enumerate(rows_):
@@ -420,11 +470,9 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path):
     # Two lines, because one ran to x=1095 while the panel ends at 1072: the
     # sentence was printed outside the box that frames it.
     A(f'<text x="46" y="{ly + 120}" font-size="10" fill="#64748b">'
-      f'Same ontology name, two files, and the defect you find depends on which you fetched; '
-      f'neither file says which is canonical.</text>')
+      f'{T["foot1"]}</text>')
     A(f'<text x="46" y="{ly + 132}" font-size="10" fill="#64748b">'
-      f'{len(o_pairs)} of the {len(t_pairs)} underscore twins survive into the OWL rendering. '
-      f'Every count here is recomputed from the rows by a test.</text>')
+      f'{T["foot2"].format(o=len(o_pairs), t=len(t_pairs))}</text>')
     A('</svg>')
 
     with open(out_path, "w") as f:
@@ -438,4 +486,4 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:6])
+    main(*sys.argv[1:7])

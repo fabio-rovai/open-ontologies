@@ -653,6 +653,221 @@ fn writable_triple(subject: &str, predicate: &str) -> bool {
 /// the path it always was.
 pub use crate::boundary_core::Position;
 
+/// The canonical bytes of `asserted.tsv` for a selection of triples.
+///
+/// Issue #158: `asserted.tsv` is a list of triples with nothing in it that says
+/// which graph they came from, so a certificate proves that its conclusions
+/// follow from the assertions IN it, and cannot tell a reader those assertions
+/// are the ones in their database. Closing that needs one thing a reader can
+/// recompute, so there is exactly ONE function that turns a selection into
+/// bytes. The writer uses it, and [`asserted_digest`] uses it. Two
+/// implementations would be two answers.
+pub fn asserted_bytes(triples: &[(String, String, String)]) -> anyhow::Result<Vec<u8>> {
+    let mut out: Vec<u8> = Vec::with_capacity(triples.len() * 96);
+    for (s, p, o) in triples {
+        push_asserted_line(&mut out, s, p, o).map_err(|pos| {
+            anyhow::anyhow!(
+                "{} cannot be written to asserted.tsv",
+                match pos {
+                    Position::Subject => s,
+                    Position::Predicate => p,
+                    Position::Object => o,
+                }
+            )
+        })?;
+    }
+    Ok(out)
+}
+
+/// The digest of the assertions a store yields under `request`, and how many
+/// there were.
+///
+/// This is the number a certificate records. A reader who holds a store can
+/// recompute it and learn whether the certificate in front of them is about
+/// that store. It is not a proof of anything: a digest binds a certificate to a
+/// SELECTION OF BYTES, not to a state of the world, and a store that changed
+/// and changed back gives the same answer.
+pub fn asserted_digest(
+    graph: &Arc<GraphStore>,
+    request: &ScopeRequest,
+) -> anyhow::Result<(String, usize)> {
+    use sha2::{Digest, Sha256};
+    let (scope, _) = crate::temporal::resolve(graph, request)?;
+    let (triples, _) = graph.triples_in_scope(&scope)?;
+    let bytes = asserted_bytes(&triples)?;
+    let mut h = Sha256::new();
+    h.update(&bytes);
+    Ok((format!("{:x}", h.finalize()), triples.len()))
+}
+
+/// Does the certificate in `dir` describe the assertions this store yields?
+///
+/// Reads `asserted.sha256` from the certificate directory, recomputes the
+/// digest from `graph` under `request`, and reports both. The answer is
+/// `matches: false` when the certificate is about a different selection, which
+/// is the case issue #158 is about: a correct proof over the wrong graph.
+/// The scope a certificate RECORDED, read back from its own `scope.tsv`.
+///
+/// Issue #159: `scope.tsv` is written into every certificate directory and no
+/// checker reads it, so a run can record a scope that has nothing to do with
+/// the graph it actually read and nothing catches it. Reading it here turns the
+/// manifest from ATTESTED into DERIVED for anyone holding the store: apply the
+/// recorded scope to that store, and the digest either reproduces or it does
+/// not. A scope that was invented cannot select the triples the run hashed.
+///
+/// `None` when the file is absent or carries no `graph` line, which is the
+/// certificate this check cannot speak about.
+pub fn scope_from_manifest(text: &str) -> Option<crate::graph::ReadScope> {
+    use crate::graph::ReadScope;
+    let mut default_graph = true;
+    let mut named: Vec<String> = Vec::new();
+    let mut all = false;
+    let mut saw_graph_line = false;
+    for line in text.lines() {
+        let mut f = line.split('\t');
+        match (f.next(), f.next()) {
+            (Some("default_graph"), Some(v)) => default_graph = v.trim() == "true",
+            (Some("graph"), Some("*")) => {
+                all = true;
+                saw_graph_line = true;
+            }
+            (Some("graph"), Some(g)) => {
+                named.push(g.trim().to_string());
+                saw_graph_line = true;
+            }
+            _ => {}
+        }
+    }
+    if !saw_graph_line {
+        return None;
+    }
+    Some(if all {
+        ReadScope::AllGraphs
+    } else {
+        ReadScope::Graphs { default_graph, named }
+    })
+}
+
+pub fn certificate_binds_to_store(
+    graph: &Arc<GraphStore>,
+    dir: &std::path::Path,
+    request: &ScopeRequest,
+) -> anyhow::Result<serde_json::Value> {
+    use sha2::{Digest, Sha256};
+    let recorded_path = dir.join("asserted.sha256");
+    let recorded = std::fs::read_to_string(&recorded_path)
+        .map_err(|e| {
+            anyhow::anyhow!(
+                "cannot read {}: {e}. A certificate written before this check existed \
+                 does not carry a digest, and nothing can bind it to a store after the fact",
+                recorded_path.display()
+            )
+        })?
+        .split_whitespace()
+        .next()
+        .unwrap_or_default()
+        .to_string();
+
+    // Prefer the scope the CERTIFICATE recorded over the one the caller asked
+    // for (issue #159). The caller's scope is a second opinion about what the
+    // run did; the certificate's is the run's own claim, and applying it is what
+    // turns that claim into something the digest can refute.
+    let manifest_text = std::fs::read_to_string(dir.join("scope.tsv")).unwrap_or_default();
+    let (scope, scope_source) = match scope_from_manifest(&manifest_text) {
+        Some(s) => (s, "certificate"),
+        None => (crate::temporal::resolve(graph, request)?.0, "caller"),
+    };
+    let (triples, _) = graph.triples_in_scope(&scope)?;
+    let bytes = asserted_bytes(&triples)?;
+    let mut h = Sha256::new();
+    h.update(&bytes);
+    let actual = format!("{:x}", h.finalize());
+    let matches = recorded == actual;
+
+    // A boolean is not enough, and the first end-to-end run showed why: `reason`
+    // MATERIALISES its inferences into the store by default, so re-reading the
+    // same store afterwards yields the assertions plus the derivations, and a
+    // bare "no" would send a reader looking for a wrong graph they do not have.
+    // So the two selections are compared as sets, and the report says which way
+    // they differ.
+    let in_store: std::collections::BTreeSet<String> = String::from_utf8_lossy(&bytes)
+        .lines()
+        .map(|l| l.to_string())
+        .collect();
+    let in_cert: std::collections::BTreeSet<String> = std::fs::read_to_string(dir.join("asserted.tsv"))
+        .unwrap_or_default()
+        .lines()
+        .map(|l| l.to_string())
+        .collect();
+    let extra: Vec<&String> = in_store.difference(&in_cert).collect();
+    let missing: Vec<&String> = in_cert.difference(&in_store).collect();
+
+    // "The store is a superset" is NOT enough to call it materialisation: a
+    // genuinely different graph can be a superset too, and the first version of
+    // this said "materialised" for one that merely added a triple the run
+    // happened to derive. So the extra triples are checked against the
+    // conclusions this very certificate recorded. If every one of them is a
+    // conclusion of THIS run, materialisation explains the difference; if even
+    // one is not, it does not, whatever the sizes are.
+    let concluded: std::collections::BTreeSet<String> =
+        std::fs::read_to_string(dir.join("derivations.tsv"))
+            .unwrap_or_default()
+            .lines()
+            .filter_map(|l| {
+                let f: Vec<&str> = l.split('\t').collect();
+                (f.len() >= 4).then(|| format!("{}\t{}\t{}", f[1], f[2], f[3]))
+            })
+            .collect();
+    let materialised =
+        !extra.is_empty() && missing.is_empty() && extra.iter().all(|t| concluded.contains(*t));
+
+    Ok(serde_json::json!({
+        "matches": matches,
+        "recorded": recorded,
+        "recomputed": actual,
+        "asserted_in_store": triples.len(),
+        "scope_source": scope_source,
+        "scope_means": if scope_source == "certificate" {
+            "the scope came from the certificate's own scope.tsv and was APPLIED to this store. \
+             A run that recorded a scope unrelated to the graph it read cannot reproduce the \
+             digest, so the manifest is checked here rather than trusted (issue #159)"
+        } else {
+            "this certificate carries no readable scope.tsv, so the scope came from the caller. \
+             Nothing here checks what the run actually read"
+        },
+        "asserted_in_certificate": in_cert.len(),
+        "in_store_only": extra.len(),
+        "in_certificate_only": missing.len(),
+        "sample_in_store_only": extra.iter().take(3).collect::<Vec<_>>(),
+        "sample_in_certificate_only": missing.iter().take(3).collect::<Vec<_>>(),
+        "in_store_only_are_all_conclusions_of_this_run": !extra.is_empty()
+            && extra.iter().all(|t| concluded.contains(*t)),
+        "means": if matches {
+            "the assertions this store yields under this scope hash to the digest the \
+             certificate recorded. The certificate is about THIS selection of triples"
+        } else if materialised {
+            "the store CONTAINS every assertion the certificate lists, and more. The usual \
+             cause is that the run materialised its inferences into this store, so what you \
+             are comparing is the graph AFTER reasoning against the assertions BEFORE it. \
+             Re-run the check against the store as it was, or reason with materialisation off"
+        } else {
+            "THE CERTIFICATE IS ABOUT A DIFFERENT GRAPH. Its derivations may well follow from \
+             the assertions listed inside it, and a checker will say so; those assertions are \
+             not the ones this store yields under this scope"
+        },
+        "likely_cause": if matches {
+            serde_json::Value::Null
+        } else if materialised {
+            serde_json::json!("materialised_inferences")
+        } else {
+            serde_json::json!("different_graph")
+        },
+        "does_not_mean": "a digest binds a certificate to bytes, not to a state of the world. \
+                          It cannot tell you the store was right, only that it is the one the \
+                          certificate describes",
+    }))
+}
+
 impl Position {
     fn name(self) -> &'static str {
         match self {
@@ -2385,7 +2600,19 @@ impl Reasoner {
                     Position::Object => o,
                 })))?;
             }
+            // Issue #158. The digest of exactly these bytes, beside them, so a
+            // reader who holds a store can ask whether this certificate is
+            // about it. `asserted_digest` rebuilds the same bytes from a store
+            // through `asserted_bytes`, which is the function this loop is the
+            // inlined form of; the test pins that the two agree.
+            let asserted_sha256 = {
+                use sha2::{Digest, Sha256};
+                let mut h = Sha256::new();
+                h.update(&asserted);
+                format!("{:x}", h.finalize())
+            };
             std::fs::write(dir.join("asserted.tsv"), asserted)?;
+            std::fs::write(dir.join("asserted.sha256"), format!("{asserted_sha256}\n"))?;
 
             let mut by_rule: std::collections::BTreeMap<&str, usize> = std::collections::BTreeMap::new();
             let mut lines: Vec<u8> = Vec::with_capacity(derivations.len() * 256);
@@ -2440,6 +2667,13 @@ impl Reasoner {
                 "graphs_read": graphs_read,
                 "graphs_excluded": [INFERRED_GRAPH],
                 "check_with": "cd lean && lake exe oo-cert <dir>/asserted.tsv <dir>/derivations.tsv",
+                "asserted_sha256": asserted_sha256,
+                "asserted_sha256_means": "the digest of asserted.tsv, written beside it as \
+                                          asserted.sha256. A holder of a store recomputes it \
+                                          with `certificate-check <dir>` and learns whether \
+                                          this certificate is about that store (issue #158). \
+                                          It binds the certificate to a selection of BYTES, \
+                                          not to a state of the world",
                 "scope": manifest.to_json(),
                 "scope_file": dir.join("scope.tsv").display().to_string(),
                 "scope_means": "oo-cert verifies that every derivation follows from the triples \

@@ -127,6 +127,7 @@ impl BatchRunner {
             "validate" => self.exec_validate(&cmd.args),
             "lint" => self.exec_lint(&cmd.args),
             "reason" => self.exec_reason(&cmd.args),
+            "certificate-check" | "certificate_check" => self.exec_certificate_check(&cmd.args),
             "fol" => self.exec_fol(&cmd.args),
             "rules-import" | "rules_import" => self.exec_rules_import(&cmd.args),
             "fol-model" | "fol_model" => self.exec_fol_model(&cmd.args),
@@ -876,6 +877,42 @@ impl BatchRunner {
         }
         v["ok"] = json!(true);
         v
+    }
+
+    /// `certificate-check DIR [--valid-at T] [--as-of T] [--all-versions]`:
+    /// is the certificate in DIR about the graph in this store?
+    ///
+    /// Issue #158. `oo-cert` verifies that the derivations follow from the
+    /// assertions listed in the certificate. It cannot verify that those
+    /// assertions are the ones in your database, because nothing in
+    /// `asserted.tsv` says where the triples came from. This recomputes the
+    /// digest of the assertions the loaded store yields and compares it with
+    /// the one the run recorded.
+    fn exec_certificate_check(&self, args: &[String]) -> Value {
+        let dir = match args.first().filter(|a| !a.starts_with("--")) {
+            Some(d) => d.clone(),
+            None => return json!({"error": "certificate-check requires a certificate directory"}),
+        };
+        let request = match crate::temporal::ScopeRequest::from_args(
+            Self::flag_value(args, "--valid-at").as_deref(),
+            Self::flag_value(args, "--as-of").as_deref(),
+            args.iter().any(|a| a == "--all-versions"),
+        ) {
+            Ok(r) => r,
+            Err(e) => return json!({"error": e.to_string()}),
+        };
+        match crate::reason::certificate_binds_to_store(
+            &self.graph,
+            std::path::Path::new(&dir),
+            &request,
+        ) {
+            Ok(mut v) => {
+                v["dir"] = json!(dir);
+                v["ok"] = json!(v["matches"].as_bool().unwrap_or(false));
+                v
+            }
+            Err(e) => json!({"error": e.to_string()}),
+        }
     }
 
     fn exec_drift(&self, args: &[String]) -> Value {
