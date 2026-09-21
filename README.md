@@ -134,9 +134,6 @@ checker again. The test fails if the figure and the checker do not agree.
 
 ## With a proof, and without a proof
 
-Here is the same question. An ordinary reasoner answers first, and then this
-engine answers.
-
 | | An ordinary reasoner | Open Ontologies |
 | --- | --- | --- |
 | The answer | `Northwind needs enhanced due diligence` | the same answer |
@@ -148,8 +145,7 @@ engine answers.
 | What an auditor receives | a screenshot | a file that the auditor can check again |
 | Guarantee on an unsatisfiability answer | asserted | **none, and the tool says so** |
 
-The last row is the purpose of this project. If the tool measures a property, the
-tool says *measured*. If a prover gives an opinion, that opinion never takes the
+If the tool measures a property, the tool says *measured*. If a prover gives an opinion, that opinion never takes the
 vocabulary of the checker. Read [what the tool proves, and what it does not
 prove](#what-the-tool-proves).
 
@@ -170,8 +166,7 @@ prove](#what-the-tool-proves).
 
 ## Run the checker yourself
 
-The repository holds the three files. The output below is the output of the
-checker. It shows only the important fields.
+The repository holds the three files. The output shows only the important fields.
 
 ```bash
 $ cd lean && lake build            # builds the checkers, core Lean 4, no Mathlib
@@ -205,7 +200,7 @@ flowchart LR
 ## Run the tool on your own ontology
 
 The repository ships those fixtures. Now do the same steps with a file that you
-write. The [Install](#install) section is below. These steps take one minute.
+write. These steps take one minute.
 
 ```bash
 mkdir /tmp/oo-demo && cd /tmp/oo-demo
@@ -325,6 +320,24 @@ environment variable. Thus a demonstration without that flag writes into
 The discipline behind this work has a cost, and the discipline has earned that
 cost: [what the rules are, and what each rule caught](docs/decisions/).
 
+## Three claims that used to travel on trust
+
+![Three claims, each one checked against a real run](docs/assets/certified-claims.svg)
+
+A crosswalk states a match type. Nothing checked that statement. The engine now reasons over each side alone. It compares what each side entails, through the mapping itself. It then reports the tightest match type the evidence supports.
+
+An `exactMatch` that the entailments do not support comes back downgraded. The report gives the reason. It also names every term the crosswalk does not carry. That second list is the one that disappears from most crosswalk files. The output is valid SSSOM, so your tools read it today.
+
+A second question is sharper than a downgrade. The engine carries the translated claims into the target and reasons again. A clash means the target denies what the mapping carried in. That is a disagreement, and a person must settle it.
+
+Contexts can disagree. Birds fly. Penguins are birds, and penguins do not fly. One graph that holds both is inconsistent, and this engine finds the clash. Each module reasons alone instead. A fact earns "true everywhere" when k modules of n entail it.
+
+A number can now carry a certificate. `oo-matcert` recomputes a matrix product from the definition. It prints `MatCert.mul_of_check` when it accepts. Integers only, and that is the condition for the sentence to hold. Freivalds costs less and gives a probability, so it stays an opinion with its bound printed. Floating point reports a tolerance, because a proof over the real numbers says nothing about IEEE-754.
+
+```bash
+open-ontologies batch plan.json   # crosswalk-certify, modules --threshold k, matcert
+```
+
 ## What the tool proves
 
 | You ask | You get back | Checked against |
@@ -337,8 +350,7 @@ cost: [what the rules are, and what each rule caught](docs/decisions/).
 | Does this data fit the shapes | A validation report | `Shacl.validate_spec` |
 | Does a retrieval slice still support the answer | Preservation for each claim | `OOCert.certificate_sound` |
 
-Read that last row two times. A retrieval slice with 99% coverage can lose the one
-triple that an answer needs. A slice with 60% coverage can keep each claim that
+A retrieval slice with 99% coverage can lose the one triple that an answer needs. A slice with 60% coverage can keep each claim that
 matters. Coverage is a proxy, and the proxy rises as the slice grows.
 
 Thus a retriever that you tune on coverage learns to fetch more, and not to fetch

@@ -502,6 +502,17 @@ jobs:
         # batch executor and the single-command path, which are different code
         # that have already differed once.
         run: OO_REQUIRE_FIXTURES=1 cargo test --test cli_verified_shacl_test -- --nocapture
+      - name: A numeric claim, checked in Lean
+        # The integer path earns MatCert.mul_of_check, and the two cheaper
+        # paths must NOT. Strict, because a skip here would let the three
+        # verdict words drift together unnoticed, and the whole design is that
+        # they stay apart.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test matcert_numeric_test -- --nocapture
+      - name: The certified-claims figure says what a fresh run says
+        # Strict for the reason the figure exists: it is generated, so it can
+        # go stale while the generator stays right. A skip would let the
+        # drawing and the code disagree in a release.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test certified_claims_asset_test -- --nocapture
       - name: Check the description-logic refutation certificates
         # The other half of the line above. That one certifies that an ontology
         # HAS a model by exhibiting one; this certifies that it has NONE by

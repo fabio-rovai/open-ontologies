@@ -1,0 +1,9 @@
+# The other side. It has Person and Organisation, but it does NOT put them
+# under a common responsible-actor class: both hang straight off the top.
+@prefix hqdm: <http://hqdm.example/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+hqdm:Person       a owl:Class ; rdfs:subClassOf hqdm:Thing .
+hqdm:Organisation a owl:Class ; rdfs:subClassOf hqdm:Thing .
+hqdm:Thing        a owl:Class .
+hqdm:Activity     a owl:Class ; rdfs:subClassOf hqdm:Thing .

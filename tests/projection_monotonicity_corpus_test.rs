@@ -99,6 +99,12 @@ fn corpus() -> Vec<PathBuf> {
         // and the same treatment as `tests/fixtures/horn-coverage/`.
         // `tests/clash_detector_coverage_test.rs` asserts this exclusion is still here.
         .filter(|p| !p.starts_with("tests/fixtures/clash-coverage/"))
+        // `docs/assets/claims/` holds the tiny ontologies the certified-claims
+        // figure is drawn from. They exist to demonstrate a downgrade and a
+        // disagreement, not to be ontologies, and counted as corpus they would
+        // dilute a measurement of what this repository actually ships. Same
+        // reasoning and same treatment as `tests/fixtures/horn-coverage/`.
+        .filter(|p| !p.starts_with("docs/assets/claims/"))
         .filter(|p| !SKIP_DIRS.iter().any(|d| p.split('/').any(|seg| seg == *d)))
         .map(|p| repo().join(p))
         .collect();
