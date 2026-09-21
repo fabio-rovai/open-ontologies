@@ -1,6 +1,7 @@
 import OOCert.Parse
 import OOCert.Refute
 import OOCert.RefuteWitness
+import SelfId.All
 
 /-!
 `oo-refute check ASSERTED.tsv REFUTATION.tsv`
@@ -97,7 +98,7 @@ def runCheck (gPath rPath : String) : IO UInt32 := do
   match Parse.parseTriples gTxt, RefuteParse.parseRefutation rTxt with
   | .ok G, .ok r =>
     if checkRefutationFast G r then
-      IO.println s!"\{\"ok\":true,\"format\":\"oo-refute/1\",\"asserted\":{G.length},\
+      SelfId.println s!"\{\"ok\":true,\"format\":\"oo-refute/1\",\"asserted\":{G.length},\
         \"prefix\":{r.steps.length},\"rule\":{jsonStr r.final.rule.name},\
         \"verdict\":\"unsatisfiable_under_disjointness\",\
         \"theorem\":\"OOCert.refutation_fast_sound\",\"means\":{jsonStr meansRefuted}}"
@@ -122,7 +123,7 @@ def runGuard (gPath dPath rPath : String) : IO UInt32 := do
     let certOk := checkCert G steps
     let refuted := checkRefutationFast G r
     if refuted then
-      IO.println s!"\{\"ok\":false,\"certificate_ok\":{certOk},\"refuted\":true,\
+      SelfId.println s!"\{\"ok\":false,\"certificate_ok\":{certOk},\"refuted\":true,\
         \"asserted\":{G.length},\"derivations\":{steps.length},\
         \"verdict\":\"certificate_refused_graph_is_unsatisfiable\",\
         \"theorem\":\"OOCert.a_certificate_adds_nothing_when_the_graph_is_refuted\",\
@@ -131,7 +132,7 @@ def runGuard (gPath dPath rPath : String) : IO UInt32 := do
         for it, and that verdict quantifies over a model class that ignores disjointness.\"}"
       return 1
     else if certOk then
-      IO.println s!"\{\"ok\":true,\"certificate_ok\":true,\"refuted\":false,\
+      SelfId.println s!"\{\"ok\":true,\"certificate_ok\":true,\"refuted\":false,\
         \"asserted\":{G.length},\"derivations\":{steps.length},\
         \"verdict\":\"entailed_and_no_disjointness_clash_found\",\
         \"theorem\":\"OOCert.certificate_sound\",\
@@ -152,6 +153,9 @@ def runGuard (gPath dPath rPath : String) : IO UInt32 := do
 
 def main (args : List String) : IO UInt32 := do
   match args with
+  -- FIRST, because `oo-resolution` and friends take a single positional
+  -- argument and a later arm would swallow `--version` as a path (#204).
+  | ["--version"] => SelfId.emitVersion
   | ["check", gPath, rPath] => runCheck gPath rPath
   | ["guard", gPath, dPath, rPath] => runGuard gPath dPath rPath
   | _ =>
