@@ -511,6 +511,14 @@ fn the_new_rules_earn_their_place_on_the_shipped_corpus() {
     let mut files: Vec<PathBuf> = tracked
         .iter()
         .filter(|p| !p.starts_with(COVERAGE_FIXTURES))
+        // `tests/fixtures/clash-coverage/` holds one contradictory graph per clash
+        // detector, each written to make exactly that detector fire (#160), plus a
+        // near-miss twin. They are test data and not ontologies: swept as corpus they
+        // would turn a measurement of the shipped corpus into a statement about this
+        // repository's own fixtures, which is measuring the ruler. The same reasoning
+        // and the same treatment as `tests/fixtures/horn-coverage/`.
+        // `tests/clash_detector_coverage_test.rs` asserts this exclusion is still here.
+        .filter(|p| !p.starts_with("tests/fixtures/clash-coverage/"))
         .filter(|p| !SKIP_DIRS.iter().any(|d| p.split('/').any(|seg| seg == *d)))
         .map(|p| repo().join(p))
         .collect();

@@ -1,0 +1,9 @@
+# cls-nothing2   T(?x, rdf:type, owl:Nothing) -> false
+# The whole contradiction is one asserted triple: owl:Nothing has no members by
+# definition, so anything typed with it is a contradiction on its own.
+@prefix : <http://ex.org/clash#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:ghost a owl:Nothing .

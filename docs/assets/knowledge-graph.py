@@ -406,7 +406,21 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
 
     # The camera. One camera for all six, so they read as pieces of a single
     # space rather than six unrelated drawings.
-    YAW, PITCH = 0.62, 0.30
+    # Yaw chosen by MEASUREMENT, not by eye. This cloud is a dense core with a
+    # long arm, and at the old +0.62 the arm pointed away from the camera, so
+    # the core piled into the left third of the panel and the right third held
+    # almost nothing: 59 / 24 / 16 per cent of the 233 terms across the three
+    # thirds, with a horizontal interquartile spread of 28 per cent of the
+    # panel. Turning the camera to -0.45 presents the arm across the view
+    # instead of into it: 33 / 37 / 30, and the interquartile spread rises to
+    # 45 per cent. Same layout, same distances, a different place to stand.
+    #
+    # A camera move was the right lever because it distorts nothing. Gravity
+    # was tried first and changed the balance by two points at four times its
+    # value, because the skew is the shape of the graph and not a parameter.
+    # Stretching the fit to fill the tile would have worked and is refused
+    # above, for the reason written there.
+    YAW, PITCH = -0.45, 0.30
     cy_, sy_ = math.cos(YAW), math.sin(YAW)
     cp_, sp_ = math.cos(PITCH), math.sin(PITCH)
 
@@ -1153,14 +1167,38 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
         mtxt = TX["mu_badge"].format(s=short(mu_s), why=mu_line)
         mw = len(mtxt) * 5.4 + 12
         mcands = [(qmx - mw / 2, qmy - 24), (qmx - mw / 2, qmy + 34), (qmx + 30, qmy - 6), (qmx - mw - 30, qmy - 6)]
-        mx, my = mcands[-1]
-        for n_, (ccx, ccy) in enumerate(mcands):
-            box = (ccx - 3, ccy - 12, ccx + mw + 3, ccy + 5)
-            if all(box[2] < o[0] or box[0] > o[2] or box[3] < o[1] or box[1] > o[3]
-                   for o in placed) or n_ == len(mcands) - 1:
-                mx, my = ccx, ccy
-                placed.append(box)
-                break
+
+        # INSIDE THE PANEL, always. The candidates used to be filtered on label
+        # overlap alone, and the last one was taken unconditionally when none
+        # was clear. That was invisible until the camera moved: the badge
+        # follows the node it is about, the node moved right, and half the
+        # badge ran off the edge of the drawing.
+        PX0, PY0, PX1, PY1 = OL - 12, T - 18, OR_ + 12, B + 34
+
+        def _box(cx_, cy_):
+            return (cx_ - 3, cy_ - 12, cx_ + mw + 3, cy_ + 5)
+
+        def _inside(b):
+            return b[0] >= PX0 and b[2] <= PX1 and b[1] >= PY0 and b[3] <= PY1
+
+        def _clear(b):
+            return all(b[2] < o[0] or b[0] > o[2] or b[3] < o[1] or b[1] > o[3] for o in placed)
+
+        # Clear AND inside first; then merely inside; then slid back inside,
+        # which is better than drawn off the edge.
+        pick = next((c for c in mcands if _inside(_box(*c)) and _clear(_box(*c))), None)
+        if pick is None:
+            pick = next((c for c in mcands if _inside(_box(*c))), None)
+        if pick is None:
+            cx_, cy_ = mcands[0]
+            pick = (min(max(cx_, PX0 + 3), PX1 - mw - 3), min(max(cy_, PY0 + 12), PY1 - 5))
+        mx, my = pick
+        final = _box(mx, my)
+        if not _inside(final):
+            raise SystemExit(
+                f"the unasked-question badge lands at {final} and the panel is "
+                f"{(PX0, PY0, PX1, PY1)}. It would be drawn off the edge of the figure.")
+        placed.append(final)
         A('<g opacity="0.4">'
           + anim("opacity", "0.4;0.4;1;1;0.4;0.4", kt(0, 18.6, 19.0, 20.6, 21.0, CYCLE)))
         A(f'<rect x="{mx:.1f}" y="{my - 10:.1f}" width="{mw:.1f}" height="14" rx="7" '

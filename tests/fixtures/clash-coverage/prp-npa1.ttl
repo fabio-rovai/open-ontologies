@@ -1,0 +1,13 @@
+# prp-npa1   T(?x, owl:sourceIndividual, ?i1) T(?x, owl:assertionProperty, ?p)
+#             T(?x, owl:targetIndividual, ?i2) T(?i1, ?p, ?i2) -> false
+# A graph that denies a relation between two individuals and then asserts it.
+@prefix : <http://ex.org/clash#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:denial a owl:NegativePropertyAssertion ;
+    owl:sourceIndividual :bob ;
+    owl:assertionProperty :parentOf ;
+    owl:targetIndividual :carol .
+:bob :parentOf :carol .
