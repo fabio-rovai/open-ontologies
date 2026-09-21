@@ -358,15 +358,27 @@ fn the_translated_readme_states_the_same_counts() {
     let zh = std::fs::read_to_string(repo().join("README.zh-CN.md")).expect("README.zh-CN.md");
     let en = std::fs::read_to_string(repo().join("README.md")).expect("README.md");
 
-    for (name, url) in [
-        ("the certificate figure", "knowledge-graph.svg"),
-        ("the HQDM audit", "hqdm-audit.svg"),
+    // By stem, because each figure now has a Chinese variant and the translated
+    // page is expected to use it. `knowledge-graph.zh-CN.svg` does not contain
+    // the string `knowledge-graph.svg`, so a substring check on the English
+    // file name fails on a translation that is MORE complete, not less.
+    for (name, stem) in [
+        ("the certificate figure", "knowledge-graph"),
+        ("the HQDM audit", "hqdm-audit"),
     ] {
         assert!(
-            zh.contains(url),
+            zh.contains(stem),
             "README.zh-CN.md does not carry {name}. Both READMEs show the same \
              front page, or the translation is a different product."
         );
+        let translated = format!("{stem}.zh-CN.svg");
+        if repo().join("docs/assets").join(&translated).exists() {
+            assert!(
+                zh.contains(&translated),
+                "a Chinese {name} exists at {translated} and the translated page shows the \
+                 English one instead"
+            );
+        }
     }
 
     // The HQDM counts, recomputed from the rows and the run, must appear in BOTH.
