@@ -165,3 +165,68 @@ fn a_certificate_without_a_digest_is_an_error_and_not_a_mismatch() {
         "the error must explain that nothing can bind it after the fact: {msg}"
     );
 }
+
+/// Issue #159: the scope the certificate recorded is APPLIED, not trusted.
+///
+/// `scope.tsv` is written into every certificate directory, and before this
+/// nothing read it, so a run could record a scope with no relation to the graph
+/// it read. The check now applies the recorded scope to the store. A manifest
+/// naming a graph the run never read selects different triples, and the digest
+/// refuses it.
+#[test]
+fn a_recorded_scope_is_applied_and_a_forged_one_is_caught() {
+    let dir = scratch("scope");
+    let g = store(TTL);
+    Reasoner::run_full(
+        &g,
+        "rdfs",
+        false,
+        open_ontologies::reason::InferenceTarget::DefaultGraph,
+        Some(dir.as_path()),
+    )
+    .expect("reason");
+
+    let honest = certificate_binds_to_store(&g, &dir, &ScopeRequest::Unscoped).expect("check");
+    assert_eq!(honest["matches"], true, "{honest}");
+    assert_eq!(
+        honest["scope_source"], "certificate",
+        "the recorded scope must be the one applied, or scope.tsv is still only attested: {honest}"
+    );
+
+    // Forge the manifest: claim the run read one named graph that does not exist.
+    let manifest = std::fs::read_to_string(dir.join("scope.tsv")).expect("scope.tsv");
+    assert!(manifest.contains("oo-scope/1"));
+    std::fs::write(
+        dir.join("scope.tsv"),
+        manifest.replace("graph\t*", "default_graph\tfalse\ngraph\thttp://example.org/never-read"),
+    )
+    .unwrap();
+    let forged = certificate_binds_to_store(&g, &dir, &ScopeRequest::Unscoped).expect("check");
+    assert_eq!(
+        forged["matches"], false,
+        "a scope naming a graph the run never read reproduced the digest: {forged}"
+    );
+    assert_eq!(forged["scope_source"], "certificate");
+    assert_eq!(forged["asserted_in_store"], 0, "the forged scope selects nothing: {forged}");
+}
+
+/// The parser reads what the writer wrote, including the whole-store form.
+#[test]
+fn the_scope_parser_round_trips_the_manifest_the_writer_produces() {
+    use open_ontologies::reason::scope_from_manifest;
+    let whole = "oo-scope/1\nselector\twhole-store\ndefault_graph\ttrue\ngraph\t*\n";
+    assert!(matches!(
+        scope_from_manifest(whole),
+        Some(open_ontologies::graph::ReadScope::AllGraphs)
+    ));
+    let named = "oo-scope/1\ndefault_graph\tfalse\ngraph\thttp://example.org/g1\ngraph\thttp://example.org/g2\n";
+    match scope_from_manifest(named) {
+        Some(open_ontologies::graph::ReadScope::Graphs { default_graph, named }) => {
+            assert!(!default_graph);
+            assert_eq!(named.len(), 2);
+        }
+        other => panic!("{other:?}"),
+    }
+    // A manifest with no graph line is one this check cannot speak about.
+    assert!(scope_from_manifest("oo-scope/1\nselector\twhole-store\n").is_none());
+}

@@ -706,6 +706,48 @@ pub fn asserted_digest(
 /// digest from `graph` under `request`, and reports both. The answer is
 /// `matches: false` when the certificate is about a different selection, which
 /// is the case issue #158 is about: a correct proof over the wrong graph.
+/// The scope a certificate RECORDED, read back from its own `scope.tsv`.
+///
+/// Issue #159: `scope.tsv` is written into every certificate directory and no
+/// checker reads it, so a run can record a scope that has nothing to do with
+/// the graph it actually read and nothing catches it. Reading it here turns the
+/// manifest from ATTESTED into DERIVED for anyone holding the store: apply the
+/// recorded scope to that store, and the digest either reproduces or it does
+/// not. A scope that was invented cannot select the triples the run hashed.
+///
+/// `None` when the file is absent or carries no `graph` line, which is the
+/// certificate this check cannot speak about.
+pub fn scope_from_manifest(text: &str) -> Option<crate::graph::ReadScope> {
+    use crate::graph::ReadScope;
+    let mut default_graph = true;
+    let mut named: Vec<String> = Vec::new();
+    let mut all = false;
+    let mut saw_graph_line = false;
+    for line in text.lines() {
+        let mut f = line.split('\t');
+        match (f.next(), f.next()) {
+            (Some("default_graph"), Some(v)) => default_graph = v.trim() == "true",
+            (Some("graph"), Some("*")) => {
+                all = true;
+                saw_graph_line = true;
+            }
+            (Some("graph"), Some(g)) => {
+                named.push(g.trim().to_string());
+                saw_graph_line = true;
+            }
+            _ => {}
+        }
+    }
+    if !saw_graph_line {
+        return None;
+    }
+    Some(if all {
+        ReadScope::AllGraphs
+    } else {
+        ReadScope::Graphs { default_graph, named }
+    })
+}
+
 pub fn certificate_binds_to_store(
     graph: &Arc<GraphStore>,
     dir: &std::path::Path,
@@ -726,7 +768,15 @@ pub fn certificate_binds_to_store(
         .unwrap_or_default()
         .to_string();
 
-    let (scope, _) = crate::temporal::resolve(graph, request)?;
+    // Prefer the scope the CERTIFICATE recorded over the one the caller asked
+    // for (issue #159). The caller's scope is a second opinion about what the
+    // run did; the certificate's is the run's own claim, and applying it is what
+    // turns that claim into something the digest can refute.
+    let manifest_text = std::fs::read_to_string(dir.join("scope.tsv")).unwrap_or_default();
+    let (scope, scope_source) = match scope_from_manifest(&manifest_text) {
+        Some(s) => (s, "certificate"),
+        None => (crate::temporal::resolve(graph, request)?.0, "caller"),
+    };
     let (triples, _) = graph.triples_in_scope(&scope)?;
     let bytes = asserted_bytes(&triples)?;
     let mut h = Sha256::new();
@@ -776,6 +826,15 @@ pub fn certificate_binds_to_store(
         "recorded": recorded,
         "recomputed": actual,
         "asserted_in_store": triples.len(),
+        "scope_source": scope_source,
+        "scope_means": if scope_source == "certificate" {
+            "the scope came from the certificate's own scope.tsv and was APPLIED to this store. \
+             A run that recorded a scope unrelated to the graph it read cannot reproduce the \
+             digest, so the manifest is checked here rather than trusted (issue #159)"
+        } else {
+            "this certificate carries no readable scope.tsv, so the scope came from the caller. \
+             Nothing here checks what the run actually read"
+        },
         "asserted_in_certificate": in_cert.len(),
         "in_store_only": extra.len(),
         "in_certificate_only": missing.len(),
