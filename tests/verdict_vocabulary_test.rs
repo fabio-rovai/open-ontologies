@@ -27,6 +27,7 @@
 
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Mutex, MutexGuard};
 
 use open_ontologies::closure_diff::Warrant;
 use open_ontologies::projection_entailment::{self as pe, CertKind, CheckerStatus, GoalVerdict};
@@ -49,6 +50,36 @@ use open_ontologies::verdict::{
 /// inherit it, so a later exec of that file fails with ETXTBSY however unique
 /// its name is. CI failed that way twice. Writing before the parallel phase
 /// begins means there is no open write fd left to inherit.
+/// Writing a file and forking a process must not overlap in THIS binary.
+///
+/// The defect, identified from the failure line rather than guessed at. A
+/// thread writing a script holds a write file descriptor to it. If another
+/// thread forks in that instant, the child inherits that descriptor. The
+/// writer then closes its own copy and execs the script, but the child still
+/// holds one until it reaches its own exec, and Linux refuses to exec a file
+/// any process has open for writing: ETXTBSY, "Text file busy". The spawn
+/// returns an error, `run_checker` reports the checker as ABSENT, and an
+/// assertion about exit codes fails for a reason that has nothing to do with
+/// exit codes.
+///
+/// Giving every script its own path did NOT fix this, and could not: the race
+/// is between ANY write and ANY fork, not between two writers of one file.
+/// That is why the same test failed on `run(0)` once and on `run(1)` the next
+/// time, and why it has never failed on macOS, which does not raise ETXTBSY
+/// here.
+///
+/// Only threads of one process matter, because a descriptor is inherited by a
+/// fork and not shared between unrelated processes, so a mutex in this file is
+/// the whole fix. Writes and spawns are both short; the cost is nil.
+static EXEC_GATE: Mutex<()> = Mutex::new(());
+
+/// `unwrap_or_else(|e| e.into_inner())`: a test that panics holding this lock
+/// poisons it, and the next test would then fail for a reason unrelated to
+/// what it checks.
+fn exec_gate() -> MutexGuard<'static, ()> {
+    EXEC_GATE.lock().unwrap_or_else(|e| e.into_inner())
+}
+
 fn script_exiting(code: i32) -> PathBuf {
     script_saying(code, "OOCert.certificate_sound")
 }
@@ -88,11 +119,15 @@ fn script_saying(code: i32, theorem: &str) -> PathBuf {
     } else {
         format!("#!/bin/sh\necho '{say}'\nexit {code}\n")
     };
-    std::fs::write(&p, body).unwrap();
-    #[cfg(unix)]
     {
-        use std::os::unix::fs::PermissionsExt as _;
-        std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+        // The write and the chmod happen with no fork in flight; see EXEC_GATE.
+        let _gate = exec_gate();
+        std::fs::write(&p, body).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt as _;
+            std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
     }
     p
 }
@@ -110,7 +145,11 @@ fn earned(theorem: &'static str) -> Certified {
     // reads. A shell that exits zero in silence is a checker that named
     // nothing, and it correctly mints nothing.
     let (bin, cmd) = shell_naming(theorem);
-    let run = CheckerRun::spawn(&bin, cmd).expect("the system shell must be runnable");
+    let run = {
+        let _gate = exec_gate();
+        CheckerRun::spawn(&bin, cmd)
+    }
+    .expect("the system shell must be runnable");
     assert_eq!(run.exit(), 0);
     run.accepted_naming(&[theorem]).expect("exit 0 naming it mints the token")
 }
@@ -341,6 +380,7 @@ fn only_a_zero_exit_produces_an_acceptance() {
 
     let run = |code: i32| {
         let script = script_exiting(code);
+        let _gate = exec_gate();
         pe::run_checker(CertKind::OoCert, Some(script.as_path()), &a, &d, None)
     };
 
@@ -366,13 +406,16 @@ fn only_a_zero_exit_produces_an_acceptance() {
     let r3 = run(3);
     assert!(matches!(r3, CheckerStatus::Unreadable { .. }), "exit 3 unreadable, got {}", got(&r3));
 
-    let absent = pe::run_checker(
-        CertKind::OoCert,
-        Some(Path::new("/nonexistent/oo-cert")),
-        &a,
-        &d,
-        None,
-    );
+    let absent = {
+        let _gate = exec_gate();
+        pe::run_checker(
+            CertKind::OoCert,
+            Some(Path::new("/nonexistent/oo-cert")),
+            &a,
+            &d,
+            None,
+        )
+    };
     assert!(absent.is_absent(), "a checker that cannot be found accepted nothing");
 
     // And the acceptance carries the theorem the KIND names, not one the
@@ -385,7 +428,11 @@ fn only_a_zero_exit_produces_an_acceptance() {
     // tell an entailment from an entailment-under-supplied-rules told neither.
     for named in ["OOCert.horn_certificate_sound", "OOCert.entails_of_builtin_horn"] {
         let script = script_saying(0, named);
-        match pe::run_checker(CertKind::OoHorn, Some(script.as_path()), &a, &d, Some(a.as_path())) {
+        let status = {
+            let _gate = exec_gate();
+            pe::run_checker(CertKind::OoHorn, Some(script.as_path()), &a, &d, Some(a.as_path()))
+        };
+        match status {
             CheckerStatus::Accepted(acc) => {
                 assert_eq!(acc.theorem(), named, "the token must carry what oo-horn printed");
                 assert_eq!(acc.certified().theorem(), named);
@@ -401,7 +448,10 @@ fn only_a_zero_exit_produces_an_acceptance() {
     let wrong = script_saying(0, "OOCert.something_else_entirely");
     assert!(
         !matches!(
-            pe::run_checker(CertKind::OoHorn, Some(wrong.as_path()), &a, &d, Some(a.as_path())),
+            {
+                let _gate = exec_gate();
+                pe::run_checker(CertKind::OoHorn, Some(wrong.as_path()), &a, &d, Some(a.as_path()))
+            },
             CheckerStatus::Accepted(_)
         ),
         "a checker naming an unexpected theorem must not mint an acceptance"
