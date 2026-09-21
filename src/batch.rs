@@ -576,12 +576,47 @@ impl BatchRunner {
         }
     }
 
+    /// SHACL, on either of the two evaluators.
+    ///
+    /// `--verified` runs `oo-shacl`, whose agreement with the Recommendation is
+    /// the machine-checked theorem `Shacl.validate_spec`. Until this flag
+    /// existed that evaluator was reachable from the MCP tool `onto_shacl` and
+    /// from nothing else, so a user of the command line could not obtain the
+    /// repository's strongest SHACL answer at all (#203).
+    ///
+    /// The two are NOT the same question and the reports say so: the verified
+    /// one carries a `verified` key that the unverified one never emits, and
+    /// `undetermined` is a first-class answer there rather than a silent
+    /// omission from a `skipped_constraints` list.
     fn exec_shacl(&self, args: &[String]) -> Value {
         use crate::shacl::ShaclValidator;
         let shapes_path = match args.first() {
             Some(p) => p,
             None => return json!({"error": "shacl requires a shapes file path"}),
         };
+        if args.iter().any(|a| a == "--verified") {
+            // Refused rather than ignored, the same answer `onto_shacl` gives.
+            // The verified evaluator reads one N-Triples dump of the store and
+            // has no notion of a temporal scope, so honouring the argument is
+            // impossible and dropping it would answer a different question
+            // from the one that was asked.
+            if Self::flag_value(args, "--valid-at").is_some()
+                || Self::flag_value(args, "--as-of").is_some()
+                || args.iter().any(|a| a == "--all-versions")
+            {
+                return json!({"error":
+                    "--verified cannot be combined with --valid-at, --as-of or \
+                     --all-versions. The verified evaluator reads the whole store and has \
+                     no temporal scope, so the scope would be silently dropped. Run the \
+                     scoped question without --verified, or the verified question without \
+                     a scope."});
+            }
+            return match std::fs::read_to_string(shapes_path) {
+                Ok(shapes) => crate::shacl_verified::validate_verified(&self.graph, &shapes)
+                    .unwrap_or_else(|e| json!({"error": e.to_string()})),
+                Err(e) => json!({"error": e.to_string()}),
+            };
+        }
         let request = match crate::temporal::ScopeRequest::from_args(
             Self::flag_value(args, "--valid-at").as_deref(),
             Self::flag_value(args, "--as-of").as_deref(),

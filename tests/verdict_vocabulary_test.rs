@@ -25,6 +25,8 @@
 //! the engine does: it runs a process that exits zero through the crate's own
 //! `run_checker`. There is no other way to get one, which is the point.
 
+mod common;
+
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -88,11 +90,15 @@ fn script_saying(code: i32, theorem: &str) -> PathBuf {
     } else {
         format!("#!/bin/sh\necho '{say}'\nexit {code}\n")
     };
-    std::fs::write(&p, body).unwrap();
-    #[cfg(unix)]
     {
-        use std::os::unix::fs::PermissionsExt as _;
-        std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+        // The write and the chmod happen with no fork in flight; see EXEC_GATE.
+        let _gate = common::exec_gate();
+        std::fs::write(&p, body).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt as _;
+            std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
     }
     p
 }
@@ -110,7 +116,11 @@ fn earned(theorem: &'static str) -> Certified {
     // reads. A shell that exits zero in silence is a checker that named
     // nothing, and it correctly mints nothing.
     let (bin, cmd) = shell_naming(theorem);
-    let run = CheckerRun::spawn(&bin, cmd).expect("the system shell must be runnable");
+    let run = {
+        let _gate = common::exec_gate();
+        CheckerRun::spawn(&bin, cmd)
+    }
+    .expect("the system shell must be runnable");
     assert_eq!(run.exit(), 0);
     run.accepted_naming(&[theorem]).expect("exit 0 naming it mints the token")
 }
@@ -328,7 +338,11 @@ fn a_theorem_is_named_only_where_the_evidence_is() {
 /// and neither is an acceptance. A run that could not start is `Absent`.
 #[test]
 fn only_a_zero_exit_produces_an_acceptance() {
-    let dir = std::env::temp_dir().join("oo-verdict-vocabulary");
+    // Per PROCESS, not per machine. A fixed name under the system temp
+    // directory is shared by every concurrent run on the box, and these two
+    // files are truncated on entry, so a second run could empty them under the
+    // first one's feet.
+    let dir = std::env::temp_dir().join(format!("oo-verdict-vocabulary-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let a = dir.join("asserted.tsv");
     let d = dir.join("derivations.tsv");
@@ -337,21 +351,42 @@ fn only_a_zero_exit_produces_an_acceptance() {
 
     let run = |code: i32| {
         let script = script_exiting(code);
+        let _gate = common::exec_gate();
         pe::run_checker(CertKind::OoCert, Some(script.as_path()), &a, &d, None)
     };
 
-    assert!(matches!(run(0), CheckerStatus::Accepted(_)));
-    assert!(matches!(run(1), CheckerStatus::Rejected { .. }));
-    assert!(matches!(run(2), CheckerStatus::Unreadable { .. }));
-    assert!(matches!(run(3), CheckerStatus::Unreadable { .. }));
+    // `assert!(matches!(...))` prints nothing but the line number, and this
+    // test went red twice on CI and green everywhere else. A failure has to
+    // say WHICH status it got, or the next person reads a line number and
+    // guesses, which is what happened.
+    let got = |st: &CheckerStatus| -> String {
+        match st {
+            CheckerStatus::Accepted(_) => "accepted".to_string(),
+            CheckerStatus::Rejected { stdout } => format!("rejected, stdout {stdout:?}"),
+            CheckerStatus::Unreadable { stdout } => format!("unreadable, stdout {stdout:?}"),
+            CheckerStatus::Absent { what, .. } => format!("ABSENT: {what}"),
+            CheckerStatus::NotNeeded { what } => format!("not needed: {what}"),
+        }
+    };
+    let r0 = run(0);
+    assert!(matches!(r0, CheckerStatus::Accepted(_)), "exit 0 must accept, got {}", got(&r0));
+    let r1 = run(1);
+    assert!(matches!(r1, CheckerStatus::Rejected { .. }), "exit 1 must reject, got {}", got(&r1));
+    let r2 = run(2);
+    assert!(matches!(r2, CheckerStatus::Unreadable { .. }), "exit 2 unreadable, got {}", got(&r2));
+    let r3 = run(3);
+    assert!(matches!(r3, CheckerStatus::Unreadable { .. }), "exit 3 unreadable, got {}", got(&r3));
 
-    let absent = pe::run_checker(
-        CertKind::OoCert,
-        Some(Path::new("/nonexistent/oo-cert")),
-        &a,
-        &d,
-        None,
-    );
+    let absent = {
+        let _gate = common::exec_gate();
+        pe::run_checker(
+            CertKind::OoCert,
+            Some(Path::new("/nonexistent/oo-cert")),
+            &a,
+            &d,
+            None,
+        )
+    };
     assert!(absent.is_absent(), "a checker that cannot be found accepted nothing");
 
     // And the acceptance carries the theorem the KIND names, not one the
@@ -364,7 +399,11 @@ fn only_a_zero_exit_produces_an_acceptance() {
     // tell an entailment from an entailment-under-supplied-rules told neither.
     for named in ["OOCert.horn_certificate_sound", "OOCert.entails_of_builtin_horn"] {
         let script = script_saying(0, named);
-        match pe::run_checker(CertKind::OoHorn, Some(script.as_path()), &a, &d, Some(a.as_path())) {
+        let status = {
+            let _gate = common::exec_gate();
+            pe::run_checker(CertKind::OoHorn, Some(script.as_path()), &a, &d, Some(a.as_path()))
+        };
+        match status {
             CheckerStatus::Accepted(acc) => {
                 assert_eq!(acc.theorem(), named, "the token must carry what oo-horn printed");
                 assert_eq!(acc.certified().theorem(), named);
@@ -380,7 +419,10 @@ fn only_a_zero_exit_produces_an_acceptance() {
     let wrong = script_saying(0, "OOCert.something_else_entirely");
     assert!(
         !matches!(
-            pe::run_checker(CertKind::OoHorn, Some(wrong.as_path()), &a, &d, Some(a.as_path())),
+            {
+                let _gate = common::exec_gate();
+                pe::run_checker(CertKind::OoHorn, Some(wrong.as_path()), &a, &d, Some(a.as_path()))
+            },
             CheckerStatus::Accepted(_)
         ),
         "a checker naming an unexpected theorem must not mint an acceptance"

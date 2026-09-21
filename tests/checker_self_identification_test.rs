@@ -87,10 +87,11 @@ fn skip() -> bool {
 }
 
 fn version_block(exe: &str) -> serde_json::Value {
-    let out = Command::new(bin_dir().join(exe))
-        .arg("--version")
-        .output()
-        .unwrap_or_else(|e| panic!("run {exe} --version: {e}"));
+    let out = {
+        let _gate = common::exec_gate();
+        Command::new(bin_dir().join(exe)).arg("--version").output()
+    }
+    .unwrap_or_else(|e| panic!("run {exe} --version: {e}"));
     assert_eq!(out.status.code(), Some(0), "{exe} --version must exit 0");
     let text = String::from_utf8_lossy(&out.stdout).to_string();
     let v: serde_json::Value = serde_json::from_str(&text)
@@ -165,11 +166,11 @@ fn the_verdict_carries_the_same_block_as_version() {
     std::fs::write(&a, "<a>\t<b>\t<c>\n").unwrap();
     std::fs::write(&der, "").unwrap();
 
-    let out = Command::new(bin_dir().join("oo-cert"))
-        .arg(&a)
-        .arg(&der)
-        .output()
-        .expect("run oo-cert");
+    let out = {
+        let _gate = common::exec_gate();
+        Command::new(bin_dir().join("oo-cert")).arg(&a).arg(&der).output()
+    }
+    .expect("run oo-cert");
     let text = String::from_utf8_lossy(&out.stdout).to_string();
     let v: serde_json::Value = serde_json::from_str(&text).expect("oo-cert prints JSON");
     assert_eq!(v["theorem"], "OOCert.certificate_sound", "{text}");
@@ -203,7 +204,11 @@ fn the_rust_side_reads_the_block_and_invents_nothing() {
     let bin = bin_dir().join("oo-cert");
     let mut cmd = Command::new(&bin);
     cmd.arg(&a).arg(&der);
-    let run = CheckerRun::spawn(&CheckerBinary::found_at(bin.clone()), cmd).expect("runs");
+    let run = {
+        let _gate = common::exec_gate();
+        CheckerRun::spawn(&CheckerBinary::found_at(bin.clone()), cmd)
+    }
+    .expect("runs");
     let block = run.checker_block().expect("an oo-cert since #204 prints one");
     assert_eq!(block["self_sha256"].as_str().unwrap(), sha256_of(&bin));
 }
@@ -222,14 +227,24 @@ fn something_that_prints_no_block_yields_none() {
         "#!/bin/sh\necho '{\"ok\":true,\"theorem\":\"OOCert.certificate_sound\"}'\nexit 0\n"
             .to_string()
     };
-    std::fs::write(&script, body).unwrap();
-    #[cfg(unix)]
     {
-        use std::os::unix::fs::PermissionsExt as _;
-        std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755)).unwrap();
+        // Written with no fork in flight. This test wrote a script and executed
+        // it while four siblings were forking `--version`, and CI answered
+        // `ExecutableFileBusy`. See `common::exec_gate`.
+        let _gate = common::exec_gate();
+        std::fs::write(&script, body).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt as _;
+            std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
     }
     let cmd = Command::new(&script);
-    let run = CheckerRun::spawn(&CheckerBinary::found_at(script), cmd).expect("runs");
+    let run = {
+        let _gate = common::exec_gate();
+        CheckerRun::spawn(&CheckerBinary::found_at(script), cmd)
+    }
+    .expect("runs");
     assert_eq!(run.named_theorem().as_deref(), Some("OOCert.certificate_sound"));
     assert!(
         run.checker_block().is_none(),
