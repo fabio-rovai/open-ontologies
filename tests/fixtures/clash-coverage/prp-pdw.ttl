@@ -1,0 +1,10 @@
+# prp-pdw   T(?p1, owl:propertyDisjointWith, ?p2) T(?x, ?p1, ?y) T(?x, ?p2, ?y) -> false
+# One pair of individuals joined by two properties an axiom says never share a pair.
+@prefix : <http://ex.org/clash#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:parentOf owl:propertyDisjointWith :siblingOf .
+:bob :parentOf :carol .
+:bob :siblingOf :carol .

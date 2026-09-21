@@ -1,0 +1,9 @@
+# eq-diff1   T(?x, owl:sameAs, ?y) T(?x, owl:differentFrom, ?y) -> false
+# Two names asserted to be the same thing and to be different things.
+@prefix : <http://ex.org/clash#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:alice owl:sameAs :bob .
+:alice owl:differentFrom :bob .
