@@ -325,6 +325,24 @@ environment variable. Thus a demonstration without that flag writes into
 The discipline behind this work has a cost, and the discipline has earned that
 cost: [what the rules are, and what each rule caught](docs/decisions/).
 
+## Three claims that used to travel on trust
+
+![Three claims, each one checked against a real run](docs/assets/certified-claims.svg)
+
+A crosswalk states a match type. Nothing checked that statement. The engine now reasons over each side alone. It compares what each side entails, through the mapping itself. It then reports the tightest match type the evidence supports.
+
+An `exactMatch` that the entailments do not support comes back downgraded. The report gives the reason. It also names every term the crosswalk does not carry. That second list is the one that disappears from most crosswalk files. The output is valid SSSOM, so your tools read it today.
+
+A second question is sharper than a downgrade. The engine carries the translated claims into the target and reasons again. A clash means the target denies what the mapping carried in. That is a disagreement, and a person must settle it.
+
+Contexts can disagree. Birds fly. Penguins are birds, and penguins do not fly. One graph that holds both is inconsistent, and this engine finds the clash. Each module reasons alone instead. A fact earns "true everywhere" when k modules of n entail it.
+
+A number can now carry a certificate. `oo-matcert` recomputes a matrix product from the definition. It prints `MatCert.mul_of_check` when it accepts. Integers only, and that is the condition for the sentence to hold. Freivalds costs less and gives a probability, so it stays an opinion with its bound printed. Floating point reports a tolerance, because a proof over the real numbers says nothing about IEEE-754.
+
+```bash
+open-ontologies batch plan.json   # crosswalk-certify, modules --threshold k, matcert
+```
+
 ## What the tool proves
 
 | You ask | You get back | Checked against |

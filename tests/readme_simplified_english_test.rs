@@ -290,6 +290,7 @@ fn the_translated_page_carries_the_same_structure() {
     for (stem, translated) in [
         ("knowledge-graph", true),
         ("hqdm-audit", true),
+        ("certified-claims", true),
         ("demo-certify", false),
         ("logo.png", false),
     ] {

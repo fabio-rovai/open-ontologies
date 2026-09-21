@@ -1,0 +1,9 @@
+# A small, real-shaped slice: a vocabulary with a three-deep hierarchy.
+@prefix ies:  <http://ies.example/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+ies:Person        a owl:Class ; rdfs:subClassOf ies:ResponsibleActor .
+ies:Organisation  a owl:Class ; rdfs:subClassOf ies:ResponsibleActor .
+ies:ResponsibleActor a owl:Class ; rdfs:subClassOf ies:Entity .
+ies:Entity        a owl:Class .
+ies:Event         a owl:Class ; rdfs:subClassOf ies:Entity .

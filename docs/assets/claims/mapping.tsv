@@ -1,0 +1,5 @@
+subject_id	predicate_id	object_id
+http://ies.example/Person	skos:exactMatch	http://hqdm.example/Person
+http://ies.example/Organisation	skos:exactMatch	http://hqdm.example/Organisation
+http://ies.example/Entity	skos:exactMatch	http://hqdm.example/Thing
+http://ies.example/Event	skos:exactMatch	http://hqdm.example/Activity

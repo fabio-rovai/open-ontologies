@@ -677,8 +677,27 @@ impl BatchRunner {
             Some(Err(_)) => return json!({"error": "--threshold takes a whole number"}),
             None => return json!({"error": "modules needs --threshold k"}),
         };
+        // `--threshold 2` is TWO arguments, so a naive "not a flag" filter reads
+        // the 2 as a module name. Skip the value that follows a flag which
+        // takes one.
+        let mut positional: Vec<&String> = Vec::new();
+        let mut skip = false;
+        for a in args {
+            if skip {
+                skip = false;
+                continue;
+            }
+            if a == "--threshold" {
+                skip = true;
+                continue;
+            }
+            if a.starts_with("--") {
+                continue;
+            }
+            positional.push(a);
+        }
         let mut mods = Vec::new();
-        for a in args.iter().filter(|a| !a.starts_with("--")) {
+        for a in positional {
             let Some((name, path)) = a.split_once('=') else {
                 return json!({"error": format!("expected NAME=FILE, found {a}")});
             };
