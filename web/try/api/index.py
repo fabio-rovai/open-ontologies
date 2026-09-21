@@ -267,14 +267,98 @@ def do_plan(body: dict) -> dict:
             forged = run_checker(f)
             forged["line_before"] = original
             forged["line_after"] = "\t".join(fields[:4])
+        # The three edge kinds the front-page figure draws, for the visitor's
+        # own sheet: what a person asserted, what the engine derived and the
+        # checker accepted, and the one line that was forged and refused. The
+        # page draws them; it does not decide which is which, and the kind of
+        # every edge here comes from which file the engine wrote it to.
+        graph = build_graph(cert, rows, forged)
         return {
             "reason": reason,
             "certificate": c,
             "accepted": accepted,
             "forged": forged,
             "derivations_sample": rows[:6],
+            "graph": graph,
             "meta": by.get("_meta"),
         }
+
+
+# A budget for each kind, not one pool. The first version used a single cap and
+# the asserted edges ate all of it: 260 asserted, 0 certified, 0 rejected, on a
+# sheet whose run produced 134 derivations and one forged line. The picture
+# exists to show those three together, so the two that are scarce are drawn
+# first and the plentiful one fills what is left.
+BUDGET = {"rejected": 8, "certified": 130, "asserted": 170}
+
+
+def _local(term: str) -> str:
+    """The readable tail of an IRI, for a label."""
+    t = term.strip().strip("<>")
+    if t.startswith('"'):
+        return t.split('"')[1][:24] if '"' in t[1:] else t[:24]
+    for sep in ("#", "/"):
+        if sep in t:
+            t = t.rsplit(sep, 1)[-1] or t
+    return t[:24]
+
+
+def build_graph(cert: Path, derivation_rows: list, forged: dict | None) -> dict:
+    """The asserted, certified and rejected edges, ready to draw.
+
+    Literals are dropped: a value node per cell turns the picture into a
+    hairball and says nothing about structure. What is left is the shape of the
+    ontology and the data as the engine saw it.
+    """
+    edges: list = []
+    seen: set = set()
+    used = {k: 0 for k in BUDGET}
+    total = {k: 0 for k in BUDGET}
+
+    def add(s: str, p: str, o: str, kind: str) -> None:
+        total[kind] += 1
+        if used[kind] >= BUDGET[kind]:
+            return
+        if o.strip().startswith('"') or s.strip().startswith('"'):
+            return
+        key = (s, o, kind)
+        if key in seen:
+            return
+        seen.add(key)
+        used[kind] += 1
+        edges.append({"s": _local(s), "o": _local(o), "p": _local(p), "kind": kind})
+
+    # Scarce first. A forged line looks like the rest, which is what makes a
+    # checker worth having, so it is never the edge that gets dropped.
+    if forged and forged.get("line_after"):
+        f = forged["line_after"].split("\t")
+        if len(f) >= 4:
+            add(f[1], f[2], f[3], "rejected")
+    for line in derivation_rows:
+        f = line.split("\t")
+        if len(f) >= 4:
+            add(f[1], f[2], f[3], "certified")
+    asserted = (cert / "asserted.tsv").read_text() if (cert / "asserted.tsv").exists() else ""
+    for line in asserted.splitlines():
+        f = line.split("\t")
+        if len(f) >= 3:
+            add(f[0], f[1], f[2], "asserted")
+
+    nodes = sorted({n for e in edges for n in (e["s"], e["o"])})
+    return {
+        "nodes": nodes,
+        "edges": edges,
+        "counts": {
+            k: sum(1 for e in edges if e["kind"] == k)
+            for k in ("asserted", "certified", "rejected")
+        },
+        "drawn": dict(used),
+        "total": dict(total),
+        "truncated": any(used[k] < total[k] for k in used),
+        "means": "grey is what a person asserted, green is what the engine derived and the "
+                 "checker accepted, red is the line that was forged and refused. Literals are "
+                 "not drawn",
+    }
 
 
 def do_samples() -> dict:
