@@ -10,6 +10,19 @@ pub struct MarketplaceEntry {
     pub format: RdfFormat,
 }
 
+/// Whether a freshly loaded pack actually defines anything.
+///
+/// "It parsed" is not "it installed". Four catalogue URLs pointed at an
+/// ontology's metadata header rather than its vocabulary: each returned
+/// HTTP 200, parsed without a single error, and reported a successful
+/// install of forty-odd triples that declared no class and no property.
+/// Anything aligning or reasoning against such a pack then matched nothing,
+/// silently. A pack that declares neither a class nor a property is empty,
+/// whatever its triple count says.
+pub fn declares_terms(classes: u64, properties: u64) -> bool {
+    classes > 0 || properties > 0
+}
+
 /// Curated catalogue of 33 standard W3C/ISO/industry ontologies.
 pub static CATALOGUE: &[MarketplaceEntry] = &[
     // ── Foundational ──────────────────────────────────────────────
@@ -192,7 +205,7 @@ pub static CATALOGUE: &[MarketplaceEntry] = &[
         name: "SSN (Semantic Sensor Network)",
         description: "W3C/OGC ontology for sensors, actuators, observations, and sampling",
         domain: "iot",
-        url: "https://raw.githubusercontent.com/w3c/sdw-sosa-ssn/gh-pages/ssn/rdf/ontology/core/ssn.ttl",
+        url: "http://www.w3.org/ns/ssn/",
         format: RdfFormat::Turtle,
     },
     MarketplaceEntry {
@@ -200,7 +213,7 @@ pub static CATALOGUE: &[MarketplaceEntry] = &[
         name: "SOSA (Sensor, Observation, Sample, Actuator)",
         description: "Lightweight core of SSN for sensors and observations",
         domain: "iot",
-        url: "https://raw.githubusercontent.com/w3c/sdw-sosa-ssn/gh-pages/ssn/rdf/ontology/core/sosa.ttl",
+        url: "http://www.w3.org/ns/sosa/",
         format: RdfFormat::Turtle,
     },
 
@@ -210,8 +223,8 @@ pub static CATALOGUE: &[MarketplaceEntry] = &[
         name: "GeoSPARQL",
         description: "OGC ontology for spatial objects, geometries, and topological relations",
         domain: "geospatial",
-        url: "https://opengeospatial.github.io/ogc-geosparql/geosparql11/geo.ttl",
-        format: RdfFormat::Turtle,
+        url: "http://schemas.opengis.net/geosparql/1.0/geosparql_vocab_all.rdf",
+        format: RdfFormat::RdfXml,
     },
     MarketplaceEntry {
         id: "locn",
@@ -296,8 +309,8 @@ pub static CATALOGUE: &[MarketplaceEntry] = &[
         name: "FIBO (Financial Industry Business Ontology)",
         description: "EDM Council ontology for financial industry concepts",
         domain: "finance",
-        url: "https://spec.edmcouncil.org/fibo/ontology/master/latest/MetadataFIBO.rdf",
-        format: RdfFormat::RdfXml,
+        url: "https://spec.edmcouncil.org/fibo/ontology/master/latest/prod.fibo-quickstart.ttl",
+        format: RdfFormat::Turtle,
     },
 
     // ── Science / Measurement ─────────────────────────────────────
@@ -640,5 +653,61 @@ mod tests {
         let (packs, shadowed) = parse_community_registry(&json).expect("shipped registry invalid");
         assert!(shadowed.is_empty(), "shipped registry shadows curated ids: {shadowed:?}");
         assert!(!packs.is_empty(), "shipped registry should seed at least one pack");
+    }
+}
+
+#[cfg(test)]
+mod empty_install_tests {
+    use super::*;
+
+    #[test]
+    fn a_pack_with_no_class_and_no_property_is_empty() {
+        // The exact shape the four broken entries produced.
+        assert!(!declares_terms(0, 0));
+    }
+
+    #[test]
+    fn a_pack_that_declares_anything_is_not_empty() {
+        assert!(declares_terms(1, 0));
+        assert!(declares_terms(0, 1));
+        assert!(declares_terms(17, 23));
+    }
+
+    /// The URLs that pointed at metadata headers must never come back.
+    /// A fix that lives only in a commit message is one careless revert from
+    /// being undone, and the failure it causes is silent.
+    #[test]
+    fn no_catalogue_entry_points_at_a_known_metadata_document() {
+        const GONE: &[&str] = &[
+            "sdw-sosa-ssn/gh-pages/ssn/rdf/ontology/core/ssn.ttl",
+            "sdw-sosa-ssn/gh-pages/ssn/rdf/ontology/core/sosa.ttl",
+            "opengeospatial.github.io/ogc-geosparql/geosparql11/geo.ttl",
+            "MetadataFIBO.rdf",
+        ];
+        for entry in CATALOGUE {
+            for bad in GONE {
+                assert!(
+                    !entry.url.contains(bad),
+                    "catalogue entry '{}' points at {}, which serves an ontology \
+                     header with no classes and no properties",
+                    entry.id,
+                    entry.url
+                );
+            }
+        }
+    }
+
+    /// Every curated entry must at least look like a vocabulary document.
+    #[test]
+    fn every_curated_entry_has_a_url() {
+        for entry in CATALOGUE {
+            assert!(!entry.url.is_empty(), "entry '{}' has no url", entry.id);
+            assert!(
+                entry.url.starts_with("http"),
+                "entry '{}' url is not fetchable: {}",
+                entry.id,
+                entry.url
+            );
+        }
     }
 }

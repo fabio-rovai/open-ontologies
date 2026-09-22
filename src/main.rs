@@ -2638,13 +2638,46 @@ async fn async_main() -> anyhow::Result<()> {
                     match graph.load_content_with_base(&content, entry_format, Some(&entry_url)) {
                         Ok(count) => {
                             let stats = graph.get_stats().unwrap_or_default();
+                            let stats_v = serde_json::from_str::<serde_json::Value>(&stats)
+                                .unwrap_or_default();
+                            let classes = stats_v.get("classes")
+                                .and_then(serde_json::Value::as_u64).unwrap_or(0);
+                            let properties = stats_v.get("properties")
+                                .and_then(serde_json::Value::as_u64).unwrap_or(0);
+                            // A document can parse cleanly and still define nothing.
+                            // Four catalogue URLs pointed at an ontology's METADATA
+                            // header instead of its vocabulary: each returned HTTP 200,
+                            // parsed without error, and reported a successful install
+                            // of forty-odd triples containing no term at all. Anything
+                            // that then aligned or reasoned against the pack silently
+                            // matched nothing. A pack that declares no class and no
+                            // property is not installed, it is empty, and saying so is
+                            // the only way the next broken URL gets noticed.
+                            if !marketplace::declares_terms(classes, properties) {
+                                output_json(
+                                    &serde_json::json!({
+                                        "ok": false,
+                                        "error": format!(
+                                            "'{}' parsed {} triples from {} but declares no classes \
+                                             and no properties, so there is nothing to install. The \
+                                             URL probably points at the ontology's metadata header \
+                                             rather than its vocabulary.",
+                                            entry_id, count, entry_url),
+                                        "installed": false,
+                                        "triples_loaded": count,
+                                        "url": entry_url,
+                                    }),
+                                    cli.pretty,
+                                );
+                                std::process::exit(1);
+                            }
                             output_json(
                                 &serde_json::json!({
                                     "ok": true,
                                     "installed": entry_id,
                                     "name": entry_name,
                                     "triples_loaded": count,
-                                    "stats": serde_json::from_str::<serde_json::Value>(&stats).unwrap_or_default(),
+                                    "stats": stats_v,
                                 }),
                                 cli.pretty,
                             );
