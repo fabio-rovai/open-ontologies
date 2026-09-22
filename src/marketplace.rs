@@ -216,6 +216,14 @@ pub static CATALOGUE: &[MarketplaceEntry] = &[
         url: "http://www.w3.org/ns/sosa/",
         format: RdfFormat::Turtle,
     },
+    MarketplaceEntry {
+        id: "saref",
+        name: "SAREF (Smart Applications REFerence ontology)",
+        description: "ETSI core ontology for IoT devices, measurements, commands and services (v3.2.1)",
+        domain: "iot",
+        url: "https://saref.etsi.org/core/v3.2.1/saref.ttl",
+        format: RdfFormat::Turtle,
+    },
 
     // ── Geospatial ────────────────────────────────────────────────
     MarketplaceEntry {
@@ -320,6 +328,23 @@ pub static CATALOGUE: &[MarketplaceEntry] = &[
         description: "Ontology for physical quantities, units of measure, and dimensions",
         domain: "science",
         url: "http://qudt.org/2.1/schema/qudt",
+        format: RdfFormat::Turtle,
+    },
+    // ── Cultural heritage / Bibliography ────────────────────────
+    MarketplaceEntry {
+        id: "cidoc-crm",
+        name: "CIDOC CRM (Conceptual Reference Model)",
+        description: "ISO 21127 reference model for cultural heritage documentation (v7.1.3)",
+        domain: "cultural-heritage",
+        url: "https://cidoc-crm.org/rdfs/7.1.3/CIDOC_CRM_v7.1.3.rdf",
+        format: RdfFormat::RdfXml,
+    },
+    MarketplaceEntry {
+        id: "bibo",
+        name: "BIBO (Bibliographic Ontology)",
+        description: "Documents, citations and publication metadata",
+        domain: "bibliographic",
+        url: "http://purl.org/ontology/bibo/",
         format: RdfFormat::Turtle,
     },
 ];
