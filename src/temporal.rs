@@ -73,10 +73,14 @@
 //! not consulted, for a retraction no more than for a `recordedUntil`, and
 //! the graph takes the ordinary path: one rule for every recorded-time fact,
 //! a closing bound asserted or derived and a withdrawal alike. In
-//! `conflicts` a disjointness
-//! pair where one graph supersedes the other, directly or through a chain, is
-//! a correction whatever its periods, and lands in `corrections` rather than
-//! `contradictions`. A successor recorded before its predecessor produces a
+//! `conflicts`, which takes no `as_of`, an asserted fact about standing
+//! pre-empts the period comparison: a disjointness pair one side of which a
+//! `retracts` link has withdrawn lands in `retracted`, and a pair where one
+//! graph supersedes the other, directly or through a chain, lands in
+//! `corrections`, retraction checked first as the snapshot does; neither is
+//! a contradiction whatever its periods. With no `as_of` "retracted" there
+//! means a retraction is recorded, whenever it was, and the note says so.
+//! A successor recorded before its predecessor produces a
 //! transaction interval that closes before it opens: it is reported as
 //! inverted and believed at no instant, never clamped.
 //!
@@ -2519,6 +2523,7 @@ impl Temporal {
         };
 
         let mut conflicts = Vec::new();
+        let mut retracted = Vec::new();
         let mut corrections = Vec::new();
         let mut non_overlapping = Vec::new();
         let mut undecided = Vec::new();
@@ -2551,9 +2556,43 @@ impl Temporal {
                 "periods": [va.shown.describe(), vb.shown.describe()],
                 "graphs": [&ga, &gb],
             });
-            // Asserted lineage first: a pair one side of which replaces the
-            // other is a correction whatever the periods say, and the
-            // overlap test is never reached for it.
+            // Asserted facts about standing first, and the overlap test is
+            // never reached for a pair one of them settles. Retraction before
+            // supersession, the snapshot's order: two tools disagreeing about
+            // precedence would be a defect of its own.
+            //
+            // A retracted side (#128). `retracted_by` holds the EFFECTIVE
+            // retractors `derive_lineage` kept, earliest recorded first and
+            // the undated ones last, so the first is the one to name. There
+            // is no `as_of` here, so no instant on the recorded axis is asked
+            // about, and "retracted" can only mean that a retraction is
+            // RECORDED, whenever it was: one recorded after every period in
+            // the store withdraws, and an undated one withdraws full stop,
+            // as it does at every `as_of` the snapshot is given. That is a
+            // different question from the snapshot's, which asks whether the
+            // retraction stood at `as_of`, and the note names the difference
+            // next to the count. The pair MOVES to a bucket of its own rather
+            // than leaving the answer: dropping the withdrawn graph from the
+            // comparison would make `contradiction_count` smaller for a
+            // reason the output never states.
+            let withdrawn: Vec<serde_json::Value> = [(&ga, va), (&gb, vb)]
+                .into_iter()
+                .filter_map(|(g, p)| {
+                    let r = p.lineage.retracted_by.first()?;
+                    Some(serde_json::json!({
+                        "graph": g,
+                        "retracted_by": r.graph.as_str(),
+                        "retracted_at": r.recorded_lexical.as_deref(),
+                    }))
+                })
+                .collect();
+            if !withdrawn.is_empty() {
+                entry["retracted"] = serde_json::Value::Array(withdrawn);
+                retracted.push(entry);
+                continue;
+            }
+            // Then a pair one side of which replaces the other: a correction
+            // whatever the periods say.
             let link = if supersedes(&ga, &gb) {
                 Some([&ga, &gb])
             } else if supersedes(&gb, &ga) {
@@ -2602,6 +2641,16 @@ impl Temporal {
                      other, directly or through a chain of supersedes links, lineage that is \
                      asserted and never inferred, and such a pair is never a contradiction \
                      whatever its periods. \
+                     retracted are pairs where a retracts link has withdrawn one side, or \
+                     both, checked before corrections and before the overlap test, in the \
+                     order onto_temporal_snapshot uses; each row names the withdrawn side, \
+                     the graph that retracts it and the recordedAt that was recorded, and \
+                     such a pair is never a contradiction whatever its periods. This tool \
+                     takes no as_of, so no instant on the recorded axis is asked about, and \
+                     retracted here means that a retraction is recorded, whenever it was: \
+                     one recorded after every period in the store withdraws, and an undated \
+                     retractor withdraws full stop. That is not the snapshot's question, \
+                     where a retraction stands only from its recordedAt on. \
                      superseded is the same set as non_overlapping under a name that claimed \
                      more than was proven; it is deprecated and will be dropped at 2.0.",
         });
@@ -2616,9 +2665,9 @@ impl Temporal {
                 "validities",
                 "pairs whose validity rows fell past the limit were compared as timeless, and \
                  a timeless period overlaps everything: superseded corrections can appear here \
-                 as contradictions; a supersedes row that fell past the limit while its \
-                 asserter's bounds did not was never seen, so the pair it links was compared \
-                 on its periods and can appear here as a contradiction too",
+                 as contradictions; a supersedes or retracts row that fell past the limit \
+                 while its asserter's bounds did not was never seen, so the pair it links \
+                 was compared on its periods and can appear here as a contradiction too",
             ),
             scan.capped.report(
                 "conflict_pairs",
@@ -2630,6 +2679,10 @@ impl Temporal {
         .flatten()
         .collect();
 
+        if !retracted.is_empty() {
+            out["retracted"] = serde_json::Value::Array(retracted.clone());
+            out["retracted_count"] = serde_json::Value::from(retracted.len());
+        }
         if !corrections.is_empty() {
             out["corrections"] = serde_json::Value::Array(corrections.clone());
             out["corrections_count"] = serde_json::Value::from(corrections.len());
@@ -2644,9 +2697,10 @@ impl Temporal {
         if validity_scan.hit {
             out["warning"] = serde_json::Value::String(
                 "UNSOUND CLASSIFICATION: the validity scan hit its row limit, so some pairs \
-                 were compared without their periods, or without the supersedes link that \
-                 would have pre-empted the comparison. A correction can be reported here as \
-                 a contradiction, which is the one thing this tool exists to prevent; \
+                 were compared without their periods, or without the supersedes or retracts \
+                 link that would have pre-empted the comparison. A correction or a withdrawn \
+                 claim can be reported here as a contradiction, which is the one thing this \
+                 tool exists to prevent; \
                  contradiction_count is an upper bound over the pairs that were examined, and \
                  says nothing about any pair the candidate scan did not reach. See truncated."
                     .to_string(),
@@ -3137,17 +3191,21 @@ ex:g1 { ex:X ex:p ex:one . }
         );
         assert_eq!(cut["truncated"][0]["scan"], "validities");
         assert_eq!(cut["truncated"][0]["limit"], 1);
-        // The supersedes rows share the cap with the bounds, so a link can be
-        // cut while both periods survive: the pair is then compared on
-        // periods the link was meant to pre-empt. Both texts say so, and
-        // neither names a graph.
+        // The supersedes and retracts rows share the cap with the bounds, so
+        // a link can be cut while both periods survive: the pair is then
+        // compared on periods the link was meant to pre-empt. Both texts say
+        // so, name both links, and neither names a graph.
         let consequence = cut["truncated"][0]["consequence"].as_str().unwrap();
         assert!(
-            consequence.contains("supersedes row") && consequence.contains("never seen"),
-            "a cut link is a second way a correction reads as a contradiction: {consequence}"
+            consequence.contains("supersedes or retracts row") && consequence.contains("never seen"),
+            "a cut link is a second way a correction or a withdrawal reads as a \
+             contradiction: {consequence}"
         );
         let warning = cut["warning"].as_str().unwrap();
-        assert!(warning.contains("without the supersedes link"), "{warning}");
+        assert!(
+            warning.contains("without the supersedes or retracts link"),
+            "{warning}"
+        );
         assert!(
             !consequence.contains("http") && !warning.contains("http"),
             "{cut}"

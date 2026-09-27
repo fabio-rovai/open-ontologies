@@ -4,6 +4,40 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`onto_temporal_conflicts` no longer files a withdrawn assertion as a live
+  contradiction partner** (#128). The tool takes no `as_of` and read the
+  validity map after the lineage pass, so a retracted graph carried its
+  retractors, but the pair classification never looked at them: a graph a
+  `temporal:retracts` link had withdrawn was compared on its valid period
+  like any live one, and the disjointness pair it belonged to landed in
+  `contradictions` or in `non_overlapping`, history reported as news, while
+  `onto_temporal_snapshot` at any `as_of` from the retraction on filed the
+  same graph under `retracted`. Same shape as the two defects fixed before
+  it: an empty period was a contradiction partner before #118, and a
+  correction was one before #109. The rule those two applied applies here,
+  an asserted fact about standing pre-empts the period comparison. Such a
+  pair now lands in `retracted`, with `retracted_count`, present only when
+  non-empty like `corrections`; each row keeps the subject, types, periods
+  and graphs every bucket carries and names the withdrawn side, the graph
+  that retracts it and the `recordedAt` that was recorded, in the snapshot's
+  own row shape. The pair moves, it does not leave: dropping the retracted
+  graph from the comparison would make `contradiction_count` smaller for a
+  reason the output never states. Retraction is checked before supersession,
+  the snapshot's order, so a graph both superseded and retracted is retracted
+  in both tools. With no `as_of` no instant on the recorded axis is asked
+  about, so "retracted" here means a retraction is RECORDED, whenever it
+  was: one recorded after every period in the store withdraws, and an
+  undated retractor withdraws full stop, as it does at every `as_of` the
+  snapshot is given. That is a different question from the snapshot's, and
+  the `note` says so next to the count. Four tests pin the four decisions,
+  the first of them the issue's own example, which answered
+  `contradiction_count: 1` before this change. `semantics_version` stays
+  `temporal/2`: a store that writes no `retracts` link answers exactly as it
+  did. Found and analysed on #128 by nicolas-geysse, who also framed the four
+  decisions this takes.
+
 ## [2.0.0] - 2026-09-22
 
 A major number because the engine now answers three questions it could not

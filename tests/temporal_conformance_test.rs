@@ -585,6 +585,12 @@ fn the_note_claims_only_what_the_code_checks() {
         "and must say what puts a pair in corrections, which is an asserted link and \
          nothing about its periods: {note}"
     );
+    assert!(
+        note.contains("retracted") && note.contains("whenever it was"),
+        "and must say what puts a pair in retracted, and that with no as_of a recorded \
+         retraction counts whenever it was recorded, which is not the snapshot's \
+         question: {note}"
+    );
 }
 
 /// Two periods that DO share an hour, written with different timezone offsets.
@@ -2495,4 +2501,242 @@ fn a_link_the_lineage_pass_rejected_puts_no_pair_in_corrections() {
     assert!(out.get("corrections").is_none(), "{out}");
     assert!(out.get("corrections_count").is_none(), "{out}");
     assert_eq!(out["complete"], true, "{out}");
+}
+
+// ---------------------------------------------------------------------------
+// Section six: a retracted assertion is not a contradiction partner (#128).
+//
+// `conflicts()` takes no `as_of`, and until this section it never read the
+// retractors the lineage pass had derived: a graph a `retracts` link had
+// withdrawn was compared on its valid period like any live one, and the
+// disjointness pair it belonged to landed in `contradictions` or in
+// `non_overlapping`, history reported as news, while the snapshot at any
+// `as_of` from the retraction on filed the same graph under `retracted`. The
+// rule that already puts a superseded pair in `corrections` applies here: an
+// asserted fact about standing pre-empts the period comparison. Four
+// decisions, taken on the issue. The pair MOVES to a bucket of its own rather
+// than leaving, because a count that shrinks for a reason the output never
+// states is the failure mode this module exists to prevent. With no `as_of`
+// "retracted" means a retraction is RECORDED, whenever it was, and the note
+// says so, since that is not the snapshot's question. An undated retractor
+// withdraws, full stop. And retraction is checked before supersession, the
+// snapshot's order, so the two tools cannot disagree about precedence.
+// ---------------------------------------------------------------------------
+
+/// Issue #128's own example: two overlapping disjoint assertions, the earlier
+/// one withdrawn a year later by a graph that puts nothing in its place.
+const ISSUE_128: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+
+ex:g_a { ex:X a ex:Adherent . }
+ex:g_b { ex:X a ex:Suspension . }
+ex:r   { ex:X ex:note "withdrawn" . }
+
+{
+  ex:Adherent owl:disjointWith ex:Suspension .
+  ex:g_a t:validFrom "2024-01-01" ; t:recordedAt "2024-01-05" .
+  ex:g_b t:validFrom "2024-01-01" ; t:recordedAt "2024-02-01" .
+  ex:r   t:retracts ex:g_a ; t:recordedAt "2025-01-01" .
+}
+"#;
+
+/// The withdrawn sides named on one row of the `retracted` bucket.
+fn withdrawn(out: &serde_json::Value, row: usize) -> Vec<serde_json::Value> {
+    out["retracted"][row]["retracted"]
+        .as_array()
+        .unwrap_or_else(|| panic!("retracted row {row} names no withdrawn side: {out}"))
+        .clone()
+}
+
+#[test]
+fn a_retracted_side_moves_the_pair_out_of_contradictions_into_its_own_bucket() {
+    let t = temporal(ISSUE_128);
+    // The snapshot has said so since #109: from the retraction on, g_a is
+    // withdrawn and never in scope.
+    let snap = snapshot(&t, None, Some("2026-01-01"));
+    assert_eq!(
+        bucket_row(&snap, "retracted", "g_a")["reason"],
+        "retracted",
+        "{snap}"
+    );
+    assert!(!graphs(&snap, "in_scope").contains("g_a"), "{snap}");
+    assert!(graphs(&snap, "in_scope").contains("g_b"), "{snap}");
+    // The conflict check agrees. Before this it filed the pair as a live
+    // contradiction: two overlapping disjoint types, one of them withdrawn.
+    let out = conflicts(&t);
+    assert_eq!(
+        out["contradiction_count"], 0,
+        "a withdrawn claim is history reported as news here: {out}"
+    );
+    assert_eq!(out["non_overlapping_count"], 0, "{out}");
+    assert_eq!(out["retracted_count"], 1, "{out}");
+    assert_eq!(partners(&out, "retracted"), set(&["g_a", "g_b"]), "{out}");
+    // The row says WHICH side was withdrawn, by what, and when, in the shape
+    // of the snapshot's own retracted row, so the two answers read together.
+    let w = withdrawn(&out, 0);
+    assert_eq!(w.len(), 1, "{out}");
+    assert!(w[0]["graph"].as_str().unwrap().ends_with("/g_a"), "{out}");
+    assert!(
+        w[0]["retracted_by"].as_str().unwrap().ends_with("/r"),
+        "{out}"
+    );
+    assert_eq!(w[0]["retracted_at"], "2025-01-01", "{out}");
+    // The pair moved, it did not leave: the row keeps the subject, the types
+    // and the periods every other bucket carries, so nothing about it has to
+    // be looked up elsewhere to see what it would have been.
+    let row = &out["retracted"][0];
+    assert_eq!(row["subject"], "X", "{row}");
+    assert_eq!(row["types"].as_array().unwrap().len(), 2, "{row}");
+    assert_eq!(row["periods"].as_array().unwrap().len(), 2, "{row}");
+    assert_eq!(out["complete"], true, "{out}");
+    // A store with no retraction has no bucket at all, like corrections.
+    let plain = conflicts(&temporal(ISSUE_109));
+    assert!(plain.get("retracted").is_none(), "{plain}");
+    assert!(plain.get("retracted_count").is_none(), "{plain}");
+}
+
+/// Both periods closed, and the retraction recorded in a year neither of them
+/// reaches: the case that separates "a retraction is recorded" from "a
+/// retraction stands at as_of".
+const ISSUE_128_LATE_RETRACTION: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+
+ex:g_a { ex:X a ex:Adherent . }
+ex:g_b { ex:X a ex:Suspension . }
+ex:r   { ex:X ex:note "withdrawn" . }
+
+{
+  ex:Adherent owl:disjointWith ex:Suspension .
+  ex:g_a t:validFrom "2024-01-01" ; t:validTo "2025-01-01" ; t:recordedAt "2024-01-05" .
+  ex:g_b t:validFrom "2024-01-01" ; t:validTo "2026-01-01" ; t:recordedAt "2024-02-01" .
+  ex:r   t:retracts ex:g_a ; t:recordedAt "2099-01-01" .
+}
+"#;
+
+#[test]
+fn with_no_as_of_a_recorded_retraction_withdraws_whenever_it_was_recorded_and_the_note_says_so() {
+    let t = temporal(ISSUE_128_LATE_RETRACTION);
+    // The snapshot asks whether the retraction STOOD at as_of, and in 2030 it
+    // did not: g_a takes the ordinary path there and is excluded on its
+    // bounds, not retracted.
+    let snap = snapshot(&t, None, Some("2030-01-01"));
+    assert!(snap.get("retracted").is_none(), "{snap}");
+    assert!(graphs(&snap, "in_scope").contains("g_a"), "{snap}");
+    // The conflict check has no as_of and asks a different question: is a
+    // retraction recorded, whenever it was. It is, so the pair is retracted
+    // here although at every instant either period holds the withdrawal had
+    // not yet been recorded.
+    let out = conflicts(&t);
+    assert_eq!(out["contradiction_count"], 0, "{out}");
+    assert_eq!(out["retracted_count"], 1, "{out}");
+    assert_eq!(withdrawn(&out, 0)[0]["retracted_at"], "2099-01-01", "{out}");
+    // Two notions under one word is exactly what has to be written down next
+    // to the count, in the tool's own words, or a reader infers the
+    // snapshot's meaning and gets a different answer from the two tools for
+    // reasons the output never states.
+    let note = out["note"].as_str().unwrap();
+    assert!(
+        note.contains("whenever it was"),
+        "the note must name the instant rule with no as_of: {note}"
+    );
+}
+
+/// A retractor that carries no `recordedAt`: the withdrawal cannot be dated.
+const ISSUE_128_UNDATED_RETRACTOR: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+
+ex:g_a { ex:X a ex:Adherent . }
+ex:g_b { ex:X a ex:Suspension . }
+ex:r   { ex:X ex:note "withdrawn" . }
+
+{
+  ex:Adherent owl:disjointWith ex:Suspension .
+  ex:g_a t:validFrom "2024-01-01" ; t:recordedAt "2024-01-05" .
+  ex:g_b t:validFrom "2024-01-01" ; t:recordedAt "2024-02-01" .
+  ex:r   t:retracts ex:g_a .
+}
+"#;
+
+#[test]
+fn an_undated_retractor_withdraws_in_conflicts_full_stop() {
+    let t = temporal(ISSUE_128_UNDATED_RETRACTOR);
+    // Since #125 an undated retractor stands at every as_of asked about, and
+    // the snapshot reports that it could not be dated.
+    let snap = snapshot(&t, None, Some("2000-01-01"));
+    assert_eq!(
+        bucket_row(&snap, "retracted", "g_a")["reason"],
+        "retracted",
+        "{snap}"
+    );
+    assert!(
+        lineage_about(&snap, "g_a")
+            .iter()
+            .any(|r| r["reason"].as_str().unwrap().contains("no recordedAt")),
+        "{snap}"
+    );
+    // Here no instant is asked about at all, so it withdraws, full stop, and
+    // the row carries no instant because the data carries none. The
+    // consistency between the two tools is the only thing that makes them
+    // legible together, which is why it is pinned.
+    let out = conflicts(&t);
+    assert_eq!(out["contradiction_count"], 0, "{out}");
+    assert_eq!(out["retracted_count"], 1, "{out}");
+    let w = withdrawn(&out, 0);
+    assert!(
+        w[0]["retracted_by"].as_str().unwrap().ends_with("/r"),
+        "{out}"
+    );
+    assert!(w[0]["retracted_at"].is_null(), "{out}");
+}
+
+/// The successor supersedes the predecessor AND a third graph retracts the
+/// predecessor: two asserted facts about one graph's standing.
+const ISSUE_128_SUPERSEDED_AND_RETRACTED: &str = r#"
+@prefix ex:  <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix t:   <https://open-ontologies.org/temporal#> .
+
+ex:g_a { ex:X a ex:Adherent . }
+ex:g_b { ex:X a ex:Suspension . }
+ex:r   { ex:X ex:note "withdrawn" . }
+
+{
+  ex:Adherent owl:disjointWith ex:Suspension .
+  ex:g_a t:validFrom "2024-01-01" ; t:recordedAt "2024-01-05" .
+  ex:g_b t:validFrom "2024-01-01" ; t:recordedAt "2024-02-01" ; t:supersedes ex:g_a .
+  ex:r   t:retracts ex:g_a ; t:recordedAt "2025-01-01" .
+}
+"#;
+
+#[test]
+fn superseded_and_retracted_at_once_is_retracted_first_as_in_the_snapshot() {
+    let t = temporal(ISSUE_128_SUPERSEDED_AND_RETRACTED);
+    // The snapshot checks retraction before the bounds, a derived closing
+    // bound included, so after both are recorded g_a is retracted and not
+    // excluded as superseded.
+    let snap = snapshot(&t, None, Some("2026-01-01"));
+    assert_eq!(
+        bucket_row(&snap, "retracted", "g_a")["reason"],
+        "retracted",
+        "{snap}"
+    );
+    assert!(!graphs(&snap, "excluded").contains("g_a"), "{snap}");
+    // The conflict check takes the same order. Two tools disagreeing about
+    // precedence between retraction and supersession would be a defect of
+    // its own, and the snapshot is the one a reader meets first.
+    let out = conflicts(&t);
+    assert_eq!(out["contradiction_count"], 0, "{out}");
+    assert_eq!(out["retracted_count"], 1, "{out}");
+    assert_eq!(partners(&out, "retracted"), set(&["g_a", "g_b"]), "{out}");
+    assert!(
+        out.get("corrections").is_none(),
+        "retracted is checked before corrections, so the pair is filed once: {out}"
+    );
+    assert!(out.get("corrections_count").is_none(), "{out}");
 }
