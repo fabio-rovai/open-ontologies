@@ -9,7 +9,14 @@
 :root{--bg:#020617;--bg2:#070d20;--panel:#0b1428;--ink:#e2e8f0;--muted:#94a3b8;--dim:#64748b;--line:#1e3a5f;--code:#060e20;--accent:#7dd3fc;--ok:#34d399;--bad:#fb3b53;--warn:#fbbf24;--focus:#fbbf24;--tool:#f0abfc;--asserted:#475569;
 --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 *{box-sizing:border-box}html,body{margin:0;color:var(--ink);font:15px/1.55 var(--sans)}
-html{background:var(--bg)}
+/* Tell the browser the page is dark BEFORE it styles a control of its own.
+   Without this a <button> and a <textarea> that name no colour are painted
+   with the UA's `buttontext` and `fieldtext`, which is BLACK, and the sample
+   buttons and the paste box came out black on #0b1428 at 1.18:1 and 1.10:1.
+   The rules below also name the colour outright, because a UA default is a
+   thing to stop depending on, not a thing to re-aim. This also hands the
+   scrollbars inside the code panes to the dark scheme. */
+html{background:var(--bg);color-scheme:dark}
 body{background:linear-gradient(135deg,var(--bg),var(--bg2));background-attachment:fixed;min-height:100vh}
 a{color:var(--accent)}code,pre,textarea.code{font-family:var(--mono);font-size:12.5px}
 header{border-bottom:1px solid var(--line);background:var(--panel)}
@@ -27,10 +34,10 @@ h2{font-size:15px;margin:0 0 10px;letter-spacing:.4px;text-transform:uppercase;c
 .drop.on{border-color:var(--accent);background:rgba(125,211,252,.10);color:var(--ink)}
 .drop input{display:none}
 .samples{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-button{font:inherit;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 12px;cursor:pointer}
+button{font:inherit;color:var(--ink);border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 12px;cursor:pointer}
 button:hover{border-color:var(--dim)}button.primary{background:var(--accent);color:#020617;border-color:var(--accent);font-weight:700}
 button:disabled{opacity:.5;cursor:default}button:focus-visible,.drop:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
-input,select{font:inherit;background:var(--code);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+input,select,textarea{font:inherit;background:var(--code);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
 input::placeholder,textarea::placeholder{color:var(--dim)}
 input[type=file]{color:var(--muted)}
 textarea.code{width:100%;min-height:150px;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--code);resize:vertical}
@@ -51,7 +58,12 @@ th{font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--mut
 .gridwrap{overflow:auto;max-height:420px;border:1px solid var(--line);border-radius:8px}
 .gridwrap td[contenteditable]{outline:none;font-family:var(--mono);font-size:12px;min-width:60px}
 .gridwrap td[contenteditable]:focus{background:rgba(251,191,36,.10)}.gridwrap td.changed{background:rgba(251,191,36,.14)}
-.viol{border-left:3px solid var(--bad);padding:6px 10px;margin:8px 0;background:#fff;border-radius:0 6px 6px 0;font-size:13px}
+/* A WHITE slab carrying the page's own light ink: 1.32:1, measured on
+   production. This box holds the sentence the whole demo is built to reach,
+   the validator naming the cell it caught, and it was the least readable
+   thing on the page. The tint is `.pill.bad`'s, so the violation reads as the
+   same red event in both places. */
+.viol{border-left:3px solid var(--bad);padding:6px 10px;margin:8px 0;background:rgba(251,59,83,.10);border-radius:0 6px 6px 0;font-size:13px}
 .viol code{background:var(--code);padding:1px 4px;border-radius:4px}
 footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px;padding:18px 0 40px}
 .hidden{display:none}
@@ -99,6 +111,15 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px;paddin
     </section>
   </div>
 
+  <section class="card" id="graphcard" hidden style="margin-top:18px">
+    <h2 id="i-stepg">Your sheet, drawn</h2>
+    <div id="graphwrap">
+      <p class="sub" style="margin:0 0 8px" id="i-graphp"></p>
+      <div id="graph" style="background:#030a1c;border:1px solid #1e3a5f;border-radius:10px;overflow:hidden"></div>
+      <p class="status" id="graphnote" style="margin:8px 0 0" hidden></p>
+    </div>
+  </section>
+
   <section class="card" id="play" hidden style="margin-top:18px">
     <h2 id="i-step3">3 · Break it</h2>
     <p class="sub" style="margin-bottom:8px" id="i-step3p"></p>
@@ -120,10 +141,6 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px;paddin
     </div>
     <div class="row"><span class="status" id="st3"></span></div>
     <div id="planout"></div>
-    <div id="graphwrap" hidden>
-      <p class="sub" style="margin:14px 0 6px" id="i-graphp"></p>
-      <div id="graph" style="background:#030a1c;border:1px solid #1e3a5f;border-radius:10px;overflow:hidden"></div>
-    </div>
   </section>
 
   <section id="what" style="margin-top:26px">
@@ -155,6 +172,7 @@ const STR = {
     step1: '1 · A sheet',
     drop: 'Put a CSV file here, or click to choose one. The limit is 1 MB.',
     samples: 'samples:',
+    samples_hint: 'Each one runs the whole loop: induce, then reason, then a certificate the Lean checker accepts, then one conclusion forged and refused by that same checker.',
     paste: '…or paste a CSV file with a header row',
     go: 'Induce the ontology', cls: 'class name', clsph: 'from the file name',
     step2: '2 · What the engine induced',
@@ -177,8 +195,16 @@ const STR = {
     p_theorem: 'theorem', p_exit: 'exit', p_rule: 'rule', p_absent: 'This release carries no checker, so nothing was checked here.',
     p_nothing: 'That line derives nothing. Try a subClassOf over the induced class.',
     p_forgedline: 'One conclusion was changed, and both premises were left exactly as they were:',
-    graphp: 'Your sheet, drawn the way the front page draws ies-core. Grey is what you asserted. Green is what the engine derived and the checker accepted. Red is the line that was forged and refused. Literals are not drawn, because a node for each cell hides the shape.',
+    stepg: 'Your sheet, drawn',
+    graphp: 'Your sheet, drawn the way the front page draws ies-core. Grey is what you asserted. Green is what the engine derived and the checker accepted. Red is the line that was forged and refused. Literals, blank nodes and list cells are not drawn, because a node for each of them hides the shape.',
+    graphp_flat: 'Your sheet, drawn the way the front page draws ies-core. Every edge is grey, and grey is what a person asserted. Nothing is green yet, because an induced ontology is flat and a reasoner derives nothing from it. Step 4 below is where the engine writes a certificate, the Lean checker accepts it, and one forged line is refused: watch this picture gain a green layer and one red edge. Literals, blank nodes and list cells are not drawn, because a node for each of them hides the shape.',
+    g_empty: 'This run drew no edges: nothing was asserted, derived or refused over a term this picture can name. The tables above are the answer; the picture is only a way of looking at it.',
+    g_missing: 'This run returned no picture. The induced ontology and its evidence above are unaffected.',
+    g_repainted: 'The picture above now carries all three colours:',
     g_asserted: 'ASSERTED', g_certified: 'CERTIFIED', g_rejected: 'REJECTED', g_more: 'edges drawn, of',
+    g_drawn: 'Drawn:', g_of: 'of', g_undrawn: 'Not drawn:',
+    g_lit: 'with a literal at one end', g_plumb: 'a blank node or a list cell',
+    g_dup: 'a repeat of an edge already drawn', g_budget: 'past the drawing budget for its kind',
     summary: '{c}: {r} rows → 1 class, {p} {pw}{obj}{grp}{enu}.',
     prop1: 'property', propn: 'properties', obj: ' object', grp: ' numbered group merged', grpn: ' numbered groups merged', enu: ' enumeration', enun: ' enumerations',
     verbatim: '',
@@ -206,6 +232,7 @@ const STR = {
     step1: '1 · 一张表格',
     drop: '把 CSV 文件拖到这里，或者点击选择一个。上限是 1 MB。',
     samples: '示例：',
+    samples_hint: '每一个都会跑完整条链路：先归纳，再推理，然后生成一份 Lean 检查器接受的证书，最后伪造一条结论并由同一个检查器将其拒绝。',
     paste: '……或者粘贴一个带表头行的 CSV 文件',
     go: '归纳出本体', cls: '类名', clsph: '来自文件名',
     step2: '2 · 引擎归纳出了什么',
@@ -228,8 +255,16 @@ const STR = {
     p_theorem: '定理', p_exit: '退出码', p_rule: '规则', p_absent: '本次发布不含检查器，因此这里没有检查任何东西。',
     p_nothing: '这一行推不出任何东西。试试在归纳出的类上写一条 subClassOf。',
     p_forgedline: '一条结论被改动，两条前提原样保留：',
-    graphp: '你的表格，用首页绘制 ies-core 的同一种方式画出来。灰色是你断言的，绿色是引擎推导并被检查器接受的，红色是被伪造并遭拒绝的那一行。字面量不绘制，因为给每个单元格一个节点会掩盖结构。',
+    stepg: '你的表格，画出来',
+    graphp: '你的表格，用首页绘制 ies-core 的同一种方式画出来。灰色是你断言的，绿色是引擎推导并被检查器接受的，红色是被伪造并遭拒绝的那一行。字面量、空节点和列表单元都不绘制，因为给它们每一个都配一个节点会掩盖结构。',
+    graphp_flat: '你的表格，用首页绘制 ies-core 的同一种方式画出来。现在每条边都是灰色的，灰色就是人断言的部分。还没有绿色，因为归纳出的本体是扁平的，推理机从它推不出东西。下面的第 4 步才是引擎写出证书、Lean 检查器接受它、并有一条被伪造的结论遭到拒绝的地方：请看这幅图长出绿色的一层和一条红边。字面量、空节点和列表单元都不绘制，因为给它们每一个都配一个节点会掩盖结构。',
+    g_empty: '这次运行没有画出任何边：没有任何断言、推论或拒绝落在这幅图能命名的词项上。上面的表格才是答案，图只是看它的一种方式。',
+    g_missing: '这次运行没有返回图。上面归纳出的本体及其证据不受影响。',
+    g_repainted: '上面那幅图现在带着全部三种颜色：',
     g_asserted: '断言', g_certified: '已认证', g_rejected: '被拒绝', g_more: '条边已绘制，共',
+    g_drawn: '已绘制：', g_of: '/', g_undrawn: '未绘制：',
+    g_lit: '有一端是字面量', g_plumb: '是空节点或列表单元',
+    g_dup: '与已绘制的某条边重复', g_budget: '超出该类别的绘制上限',
     summary: '{c}：{r} 行 → 1 个类，{p} 个{pw}{obj}{grp}{enu}。',
     prop1: '属性', propn: '属性', obj: '（其中 1 个是对象属性）', grp: '（合并了 1 组编号列）', grpn: '（合并了多组编号列）', enu: '（含取值集合）', enun: '（含取值集合）',
     verbatim: '下表“证据”列与上面“引擎说”的句子，是引擎自己的输出，原样显示，未经翻译。本页面不改写引擎的措辞。',
@@ -264,7 +299,7 @@ function paint(){
   const sub=document.getElementById('i-sub'); if(sub) sub.innerHTML = L.sub;
   set('i-step1', L.step1); set('i-drop', L.drop); set('i-cls', L.cls);
   set('i-step2', L.step2); set('i-step3', L.step3); set('i-step3p', L.step3p, true);
-  set('i-step4', L.step4); set('i-step4p', L.step4p); set('i-graphp', L.graphp);
+  set('i-step4', L.step4); set('i-step4p', L.step4p); set('i-stepg', L.stepg); set('i-graphp', L.graphp);
   const gp=document.getElementById('goplan'); if(gp) gp.textContent=L.goplan;
   set('i-what', L.what); set('i-what1', L.what1, true); set('i-what2', L.what2, true);
   set('i-foot', L.foot);
@@ -282,13 +317,24 @@ const api=(p,opt)=>fetch('/api/'+p,opt).then(async r=>{const j=await r.json().ca
 let current={name:'sheet.csv',csv:'',induced:null,mapping:null,rows:[],headers:[]};
 
 api('engine').then(j=>{$('#engine').textContent=j.tag?`${j.tag}, sha256 ${String(j.sha256).slice(0,12)}…`:'unavailable'}).catch(()=>{$('#engine').textContent='unavailable'});
-api('samples').then(j=>{const box=$('#samples');box.innerHTML='<span class="status">'+L.samples+'</span>';(j.samples||[]).forEach(s=>{const b=document.createElement('button');b.textContent=`${s.name} (${s.rows} rows)`;b.onclick=()=>{$('#csv').value=s.csv;current.name=s.name;$('#cls').value='';$('#st1').textContent=`${L.loaded_s} ${s.name}`};box.appendChild(b)});
+api('samples').then(j=>{const box=$('#samples');box.innerHTML='<span class="status">'+L.samples+'</span>';(j.samples||[]).forEach(s=>{const b=document.createElement('button');b.textContent=`${s.name} (${s.rows} rows)`;b.onclick=()=>{$('#csv').value=s.csv;current.name=s.name;$('#cls').value='';$('#st1').textContent=`${L.loaded_s} ${s.name}`;
+  // A prefilled example runs the WHOLE loop, not just induce. Induce alone
+  // leaves the picture entirely grey and the checker unrun, so the page's own
+  // argument -- a certificate, a checker that accepts it, and the same checker
+  // refusing a forged line -- was behind a button most readers never reached.
+  current.autoplan=true;$('#go').click()};box.appendChild(b)});
+  // Say what the button does before it is pressed. A control that runs a
+  // forty-second pipeline should not look like one that fills a text box.
+  const hint=document.createElement('span');hint.className='status';hint.style.flexBasis='100%';hint.textContent=L.samples_hint;box.appendChild(hint);
   // ?sample=epc-sample.csv&auto=1 loads a bundled sheet and runs it, so a link can carry a worked example.
   const q=new URLSearchParams(location.search),want=q.get('sample');const hit=(j.samples||[]).find(s=>s.name===want);if(hit){$('#csv').value=hit.csv;current.name=hit.name;$('#st1').textContent=`${L.loaded_s} ${hit.name}`;
-    // `&plan=1` carries the whole loop in a link: induce, then add the line and
-    // reason, so a reader who follows the link from the README sees the
-    // certificate and the refusal without touching anything.
-    if(q.get('auto')==='1'){ current.autoplan = q.get('plan')==='1'; $('#go').click(); }}});
+    // `&auto=1` now carries the WHOLE loop: induce, then add the line and
+    // reason, so a reader arriving from the README's badge sees the
+    // certificate, the checker's acceptance and the refusal of the forged line
+    // without touching anything. `&plan=0` opts out and stops after induce.
+    // This reverses the old default, where the loop needed `&plan=1` and the
+    // badge link therefore showed a grey picture and no checker at all.
+    if(q.get('auto')==='1'){ current.autoplan = q.get('plan')!=='0'; $('#go').click(); }}});
 
 const drop=$('#drop'),file=$('#file');
 drop.onclick=()=>file.click();drop.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')file.click()};
@@ -316,6 +362,10 @@ $('#go').onclick=async()=>{const csv=$('#csv').value;if(!csv.trim()){$('#st1').t
 
 function render(j){const ind=j.induced;current.induced=ind;current.mapping=j.mapping_json||JSON.stringify(ind.mapping);
   $('#out').hidden=false;$('#play').hidden=false;
+  // The picture is drawn HERE, on induce, and not only after step 4. Until
+  // this it existed solely in the step-4 handler, so a reader who induced a
+  // sheet and stopped never learned the page could draw one at all.
+  drawGraph(j.graph);
   const props=ind.columns.length,obj=ind.columns.filter(c=>c.refers_to).length,enums=ind.columns.filter(c=>c.values).length,groups=ind.columns.filter(c=>c.columns.length>1).length;
   $('#summary').innerHTML = L.summary
     .replace('{c}', `<b>${esc(ind.class)}</b>`)
@@ -388,15 +438,49 @@ $('#goplan').onclick=async()=>{
   }
   $('#planout').innerHTML=h;
   drawGraph(j.graph);
+  // The picture sits ABOVE this button, so a repaint is off screen from where
+  // the reader just clicked. Say what changed, and say it with the run's own
+  // counts rather than a sentence that would still read well if they were 0.
+  const gc=(j.graph||{}).counts;
+  if(gc){const n=document.createElement('p');n.className='status';n.style.marginTop='8px';
+    n.textContent=`${L.g_repainted} ${gc.asserted??0} ${L.g_asserted.toLowerCase()}, ${gc.certified??0} ${L.g_certified.toLowerCase()}, ${gc.rejected??0} ${L.g_rejected.toLowerCase()}.`;
+    $('#planout').appendChild(n)}
 };
 
 // A force layout small enough to read. The palette is the front page's, so a
 // visitor who scrolled past those figures meets the same three colours meaning
 // the same three things on their own data.
 const GC={asserted:'#475569',certified:'#34d399',rejected:'#fb3b53'};
+// TEXT is not a line, and the asserted slate does not survive being set as
+// type. Measured against this panel's #030a1c: #475569 gives 2.78:1, which
+// fails WCAG AA for the 11px legend and reads on screen as a word that is
+// almost not there, while the green and the red clear 7:1 beside it, so the
+// key looked like two entries and a smudge. #94a3b8 is the page's own --muted
+// and gives 7.71:1 on the same ground. The EDGES keep #475569: a line at 0.55
+// opacity is a texture behind the argument, and the point of the grey is that
+// it stays subordinate to the green.
+const GT={asserted:'#94a3b8',certified:'#34d399',rejected:'#fb3b53'};
 function drawGraph(g){
-  const wrap=$('#graphwrap'); if(!g||!g.edges||!g.edges.length){wrap.hidden=true;return}
-  wrap.hidden=false;
+  const card=$('#graphcard'), note=$('#graphnote'), svg=$('#graph'), cap=$('#i-graphp');
+  // An empty picture used to hide the whole section, which made "the run drew
+  // nothing" and "this page never had a picture" look exactly the same to a
+  // reader. Now the card stays, the box goes, and the note says which of the
+  // two happened.
+  if(!g||!g.edges||!g.edges.length){
+    card.hidden=false; svg.innerHTML=''; svg.style.display='none';
+    cap.textContent=''; note.hidden=false; note.textContent=g?L.g_empty:L.g_missing;
+    return;
+  }
+  card.hidden=false; svg.style.display=''; note.hidden=true;
+  // The caption states the picture's ACTUAL state. Before step 4 every edge is
+  // grey, and a caption that promised green and red beside a grey hairball
+  // would be describing a different run.
+  const proved=((g.counts||{}).certified||0)+((g.counts||{}).rejected||0)>0;
+  cap.textContent=proved?L.graphp:L.graphp_flat;
+  // A reader who asked the system for less motion gets the still picture. It
+  // loses the direction of travel and nothing else: every edge, colour, count
+  // and label below is drawn either way.
+  const still=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const W=1040,H=440,PAD=26;
   const idx=new Map(g.nodes.map((n,i)=>[n,i]));
   const N=g.nodes.length;
@@ -449,14 +533,58 @@ function drawGraph(g){
   const y0=Math.min(...inn.map(i=>py[i])), y1=Math.max(...inn.map(i=>py[i]));
   const sc=Math.min((W-2*PAD)/Math.max(1,x1-x0),(H-2*PAD-20)/Math.max(1,y1-y0));
   const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
-  const X=i=>cl(PAD+(px[i]-x0)*sc, PAD, W-PAD), Y=i=>cl(PAD+(py[i]-y0)*sc, PAD, H-PAD-18);
+  const rawX=i=>cl(PAD+(px[i]-x0)*sc, PAD, W-PAD), rawY=i=>cl(PAD+(py[i]-y0)*sc, PAD, H-PAD-18);
+  // Then CENTRE what was actually drawn. Framing to the band and clamping the
+  // stragglers is right, but it leaves the content wherever the band happened
+  // to sit: the induced sheet drew from x=80 to x=760 of 1040 and left a third
+  // of the canvas empty beside it. This is a pure translation of the finished
+  // coordinates. It moves nothing relative to anything else, it cannot push a
+  // point out of the frame because the content already fitted, and the band
+  // framing above still decides the SCALE.
+  const RX=g.nodes.map((_,i)=>rawX(i)), RY=g.nodes.map((_,i)=>rawY(i));
+  const offX=(W-(Math.max(...RX)+Math.min(...RX)))/2;
+  const offY=((H-18)-(Math.max(...RY)+Math.min(...RY)))/2;
+  const FX=RX.map(v=>v+offX), FY=RY.map(v=>v+offY);
+  const X=i=>FX[i], Y=i=>FY[i];
   const deg=new Array(N).fill(0); for(const [a,b] of E){deg[a]++;deg[b]++}
   const order={asserted:0,certified:1,rejected:2};
   const lines=g.edges.map((e,i)=>({e,i})).sort((a,b)=>order[a.e.kind]-order[b.e.kind])
     .map(({e})=>{const a=idx.get(e.s),b=idx.get(e.o); if(a==null||b==null)return '';
       const w=e.kind==='rejected'?2.6:(e.kind==='certified'?1.1:0.6);
-      const o=e.kind==='asserted'?0.34:0.9;
-      return `<line x1="${X(a).toFixed(1)}" y1="${Y(a).toFixed(1)}" x2="${X(b).toFixed(1)}" y2="${Y(b).toFixed(1)}" stroke="${GC[e.kind]}" stroke-width="${w}" opacity="${o}"${e.kind==='rejected'?' stroke-dasharray="6 4"':''}/>`}).join('');
+      // 0.34 put the grey layer at roughly (26,36,54) against this panel,
+      // which is a web you cannot see rather than a web drawn faintly. The
+      // README figure pulses its asserted edges between 0.45 and 0.95, so 0.55
+      // sits inside that band and is a step TOWARDS the front page, not away.
+      const o=e.kind==='asserted'?0.55:0.9;
+      const head=`<line x1="${X(a).toFixed(1)}" y1="${Y(a).toFixed(1)}" x2="${X(b).toFixed(1)}" y2="${Y(b).toFixed(1)}" stroke="${GC[e.kind]}" stroke-width="${w}" opacity="${o}"`;
+      // The refused line marches, at the figure's own 0.9s and 0;-24.
+      return e.kind==='rejected'&&!still
+        ? head+' stroke-dasharray="7 5"><animate attributeName="stroke-dashoffset" dur="0.9s" repeatCount="indefinite" values="0;-24"/></line>'
+        : head+(e.kind==='rejected'?' stroke-dasharray="7 5"':'')+'/>'}).join('');
+  // The motion is the front page figure's, not a new one: one particle along a
+  // certified link, six along a rejected one, none along an asserted one, at
+  // 3.4s and 1.5s. Those numbers are `Graph3D.tsx`'s, by way of
+  // docs/assets/knowledge-graph.py, which draws the same three things for
+  // ies-core. A particle carries the DIRECTION of a claim, which a line cannot,
+  // and direction is the whole difference between a premise and a conclusion.
+  const PARTS={asserted:0,certified:1,rejected:6};
+  // A particle per certified edge is 130 elements on the sample sheet, against
+  // the 265 the README figure already carries, so the common case needs no
+  // thinning. A big sheet does: past the budget the certified particles drop
+  // to every Nth edge, and the six rejected ones always stay, because the
+  // refused line is what this section exists to show.
+  const nc=g.edges.reduce((n,e)=>n+(e.kind==='certified'?1:0),0);
+  const stride=Math.max(1,Math.ceil(nc/240));
+  let ci=0;
+  const parts=still?'':g.edges.map(e=>{
+    const n=PARTS[e.kind]||0; if(!n)return '';
+    if(e.kind==='certified'&&(ci++%stride))return '';
+    const a=idx.get(e.s),b=idx.get(e.o); if(a==null||b==null)return '';
+    const dur=e.kind==='certified'?3.4:1.5, r=e.kind==='rejected'?1.8:1.2;
+    const p=`M${X(a).toFixed(1)},${Y(a).toFixed(1)} L${X(b).toFixed(1)},${Y(b).toFixed(1)}`;
+    let s='';
+    for(let q=0;q<n;q++)s+=`<circle r="${r}" fill="${GC[e.kind]}" opacity="0.9"><animateMotion dur="${dur}s" repeatCount="indefinite" begin="-${(q*dur/n).toFixed(2)}s" path="${p}"/></circle>`;
+    return s}).join('');
   const dots=g.nodes.map((n,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(i).toFixed(1)}" r="${(2.2+Math.min(4.4,deg[i]*0.26)).toFixed(1)}" fill="#7dd3fc" opacity="0.85"><title>${esc(n)}</title></circle>`).join('');
   // Label only the busiest few, or the picture becomes a word cloud. And
   // never two on top of each other: two labels in the same place do not give
@@ -500,8 +628,24 @@ function drawGraph(g){
   }).join('');
   const c=g.counts||{};
   const key=[['asserted',L.g_asserted],['certified',L.g_certified],['rejected',L.g_rejected]]
-    .map(([k,lab],m)=>`<rect x="${20+m*186}" y="${H-24}" width="20" height="3" fill="${GC[k]}"/><text x="${48+m*186}" y="${H-20}" font-size="11" font-weight="700" fill="${GC[k]}">${lab}</text><text x="${130+m*186}" y="${H-20}" font-size="11" fill="#94a3b8" text-anchor="end">${c[k]??0}</text>`).join('');
-  $('#graph').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(L.graphp)}">${lines}${dots}${labels}${key}</svg>`;
+    .map(([k,lab],m)=>`<rect x="${20+m*186}" y="${H-24}" width="20" height="3" fill="${GT[k]}"/><text x="${48+m*186}" y="${H-20}" font-size="11" font-weight="700" fill="${GT[k]}">${lab}</text><text x="${130+m*186}" y="${H-20}" font-size="11" fill="#94a3b8" text-anchor="end">${c[k]??0}</text>`).join('');
+  $('#graph').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(proved?L.graphp:L.graphp_flat)}">${lines}${parts}${dots}${labels}${key}</svg>`;
+  // The legend prints what was DRAWN. On the EPC sample that is 170 of 3,607
+  // asserted, so a reader who takes the legend for the run's own count is out
+  // by a factor of twenty. The API already counted the difference and named a
+  // reason for every missing edge; this is the line that says so. The numbers
+  // come from the run, and the reasons are only listed when they are non-zero,
+  // so the sentence cannot claim a category that did not happen.
+  const t=g.total||{}, d=g.drawn||{}, sk=g.skipped||{};
+  const n=v=>Number(v||0).toLocaleString();
+  const drawn=['asserted','certified','rejected']
+    .filter(k=>(t[k]||0)>0)
+    .map(k=>`${n(d[k])} ${L.g_of} ${n(t[k])} ${L[k==='asserted'?'g_asserted':k==='certified'?'g_certified':'g_rejected'].toLowerCase()}`)
+    .join(', ');
+  const why=[['literal',L.g_lit],['plumbing',L.g_plumb],['duplicate',L.g_dup],['over_budget',L.g_budget]]
+    .filter(([k])=>(sk[k]||0)>0).map(([k,lab])=>`${n(sk[k])} ${lab}`).join(', ');
+  note.hidden=false;
+  note.textContent=`${L.g_drawn} ${drawn}.` + (why?` ${L.g_undrawn} ${why}.`:'');
 }
 
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
