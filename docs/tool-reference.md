@@ -11,6 +11,69 @@ who meets a catalogue first cannot tell what it is for. Everything below keeps
 its code and its own documentation; it loses its place above the fold.
 
 
+## Tool profiles
+
+A profile is a named subset of this catalogue sized for one job. A client that
+is aligning two vocabularies has no use for most of what is listed below, and
+every tool it has no use for is one more chance to call the wrong one. Select
+one with `--tool-profile <name>` on `serve` or `serve-http`, with
+`OPEN_ONTOLOGIES_TOOL_PROFILE`, or with `profile` under `[tools]` in
+`config.toml`, in that order of precedence. The default is `full`, which is
+every tool this build can serve, so a deployment that selects nothing keeps
+exactly the surface it has today.
+
+- `full`: every tool this build can serve. The default.
+- `authoring`: write and edit an ontology. Validate, lint, enforce patterns,
+  version, extract modules, and pull in vocabularies to build on.
+- `validation`: judge data against an ontology. SHACL shapes, closed-world
+  vocabulary checks, shape induction, what the rule table can see, and the
+  provenance of what the graph claims.
+- `reasoning`: derive consequences and produce the artefacts that can be
+  checked. Certificates, justifications, first-order export and proof checking,
+  DL tableaux, model finding.
+- `alignment`: relate two vocabularies. Alignment candidates and their feedback
+  loop, clinical crosswalks, and the embeddings the scorer uses.
+- `governance`: change an ontology in production and answer for it afterwards.
+  Plan, apply, lock, drift, monitor, policy, packs, conservativity and the
+  lineage trail.
+- `data`: land external data in the graph and keep it there. File and SQL
+  ingest, schema induction, mapping, CDC watermarks, and the two temporal
+  clocks.
+- `planning`: act on the graph under laws. Registered actions, BC+ invariants
+  and defaults, PDDL compilation and plan validation.
+- `retrieval`: ground a model on the graph. Neighbourhood slices, modules,
+  community skeletons, schema-guided extraction, and whether a slice kept what
+  the answer rests on.
+- `evaluation`: score the thing rather than run it. Competency questions, mmRAG
+  and OAEI metrics, and the borderline-verdict loop.
+
+Every profile carries the same floor: `onto_status`, `onto_validate`,
+`onto_load`, `onto_query`, `onto_stats` and `onto_clear`. Nothing else in any
+profile can do anything until a graph is loaded, and a client that cannot check
+what it loaded or clear a bad load is stuck inside its own profile.
+
+An unknown profile name refuses to start rather than falling back to `full`.
+Publishing the whole catalogue to a deployment that asked for one job's worth of
+it, silently, because someone mistyped a flag, is the one failure worth
+declining to boot over.
+
+The older `--tools-allow` and `--tools-deny` axis still works and is applied
+after the profile. Both axes only ever narrow, so naming a tool in
+`--tools-allow` that the selected profile does not carry does not bring it back.
+The two ask different questions: a profile asks what a client is here to do, and
+the allow/deny groups ask what a caller may be trusted to do.
+
+The profiles are defined in `src/toolfilter.rs`. No size is written on this
+page, and that is deliberate: `tests/toolfilter_profiles_test.rs` measures them
+from the router and fails if any registered tool belongs to no profile, so the
+next tool added to `src/server.rs` carries a failing test until its author files
+it. A size typed here would be a second copy of a number nothing derives.
+Selecting a profile and calling `onto_status` reports the one in force and what
+it withheld.
+
+## Every tool
+
+
 121 tools.
 
 | Tool | What it does |

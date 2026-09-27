@@ -46,12 +46,23 @@ data_dir = "~/.open-ontologies"
 # mode = "memory"
 
 # [tools]
-# Restrict which MCP tools are exposed by this server.
+# Restrict which MCP tools this server advertises. Two axes, both of which only
+# ever narrow.
+#
+# profile - a named subset sized for one job, so a client sees the tools it
+# needs instead of the whole catalogue. Default "full" (everything this build
+# can serve), which is what every existing client already gets. Override with
+# --tool-profile or OPEN_ONTOLOGIES_TOOL_PROFILE. An unknown name refuses to
+# start rather than quietly falling back to "full".
+# profile = "full"   # authoring | validation | reasoning | alignment |
+#                    # governance | data | planning | retrieval | evaluation
+#
+# mode/list/groups - the older allow/deny axis, which asks what a caller may be
+# trusted to do rather than what it is here to do. Applied after the profile.
 # mode = "all" | "allow" | "deny"
 # list = ["onto_status", "onto_query", "onto_load"]
-# # Groups: read_only, mutating, governance, remote, embeddings.
+# # Groups: read_only, mutating, governance, remote, embeddings, sql.
 # groups = ["read_only"]
-# mode = "all"
 
 # [embeddings]
 # Provider selects how text embeddings are computed. Override at runtime
@@ -236,6 +247,13 @@ enum Commands {
         /// Comma-separated list of tools (or `@group`) to deny.
         #[arg(long)]
         tools_deny: Option<String>,
+        /// Task profile: the named subset of the tool surface to advertise.
+        /// `full` (default, every tool) or one of `authoring`, `validation`,
+        /// `reasoning`, `alignment`, `governance`, `data`, `planning`,
+        /// `retrieval`, `evaluation`. An unknown name refuses to start.
+        /// CLI > `OPEN_ONTOLOGIES_TOOL_PROFILE` env > `[tools] profile`.
+        #[arg(long)]
+        tool_profile: Option<String>,
         /// Idle TTL in seconds before the active ontology is unloaded from memory. 0 disables eviction.
         #[arg(long)]
         idle_ttl_secs: Option<u64>,
@@ -281,6 +299,13 @@ enum Commands {
         /// Comma-separated list of tools (or `@group`) to deny.
         #[arg(long)]
         tools_deny: Option<String>,
+        /// Task profile: the named subset of the tool surface to advertise.
+        /// `full` (default, every tool) or one of `authoring`, `validation`,
+        /// `reasoning`, `alignment`, `governance`, `data`, `planning`,
+        /// `retrieval`, `evaluation`. An unknown name refuses to start.
+        /// CLI > `OPEN_ONTOLOGIES_TOOL_PROFILE` env > `[tools] profile`.
+        #[arg(long)]
+        tool_profile: Option<String>,
         /// Idle TTL in seconds before the active ontology is unloaded from memory.
         #[arg(long)]
         idle_ttl_secs: Option<u64>,
@@ -1554,24 +1579,46 @@ fn init_tracing(cfg: &open_ontologies::config::LoggingConfig) {
     let _ = result;
 }
 
-/// Compose the effective tool filter from `[tools]` in config + CLI flags.
-/// CLI `--tools-allow` / `--tools-deny` override `[tools]` when present.
+/// Compose the effective tool filter from `[tools]` in config + env + CLI flags.
+///
+/// Two independent axes, resolved separately and then combined. The PROFILE
+/// comes from `--tool-profile`, then `OPEN_ONTOLOGIES_TOOL_PROFILE`, then
+/// `[tools] profile`, then `full`. The allow/deny MODE comes from
+/// `--tools-allow` / `--tools-deny` when present and from `[tools]` otherwise,
+/// exactly as before.
+///
+/// An unknown profile name is a startup ERROR. Falling back to `full` on a typo
+/// would publish the whole catalogue to a deployment that asked for one job's
+/// worth of it, silently, which is the one failure worth refusing to boot over.
 fn build_tool_filter(
     cfg: &Config,
     cli_allow: Option<&str>,
     cli_deny: Option<&str>,
+    cli_profile: Option<&str>,
 ) -> anyhow::Result<open_ontologies::toolfilter::ToolFilter> {
-    use open_ontologies::toolfilter::{Mode, ToolFilter, parse_csv};
+    use open_ontologies::toolfilter::{self, Mode, ToolFilter, parse_csv};
 
     if cli_allow.is_some() && cli_deny.is_some() {
         anyhow::bail!("--tools-allow and --tools-deny are mutually exclusive");
     }
+
+    let name = open_ontologies::config::resolve_tool_profile(&cfg.tools, cli_profile);
+    if !toolfilter::is_profile(&name) {
+        anyhow::bail!(
+            "unknown tool profile {:?}; known: {}",
+            name,
+            toolfilter::profiles().join(", ")
+        );
+    }
+    let profile = Some(name);
+
     if let Some(spec) = cli_allow {
         let (list, groups) = parse_csv(spec);
         return Ok(ToolFilter {
             mode: Mode::Allow,
             list,
             groups,
+            profile,
         });
     }
     if let Some(spec) = cli_deny {
@@ -1580,6 +1627,7 @@ fn build_tool_filter(
             mode: Mode::Deny,
             list,
             groups,
+            profile,
         });
     }
     // Fall back to config file.
@@ -1592,6 +1640,7 @@ fn build_tool_filter(
         mode,
         list: cfg.tools.list.clone(),
         groups: cfg.tools.groups.clone(),
+        profile,
     })
 }
 
@@ -1781,6 +1830,7 @@ async fn async_main() -> anyhow::Result<()> {
             watch_interval,
             tools_allow,
             tools_deny,
+            tool_profile,
             idle_ttl_secs,
             auto_refresh,
             storage_mode,
@@ -1842,8 +1892,12 @@ async fn async_main() -> anyhow::Result<()> {
             };
 
             let cache_config = build_cache_config(&cfg, idle_ttl_secs, auto_refresh);
-            let tool_filter =
-                build_tool_filter(&cfg, tools_allow.as_deref(), tools_deny.as_deref())?;
+            let tool_filter = build_tool_filter(
+                &cfg,
+                tools_allow.as_deref(),
+                tools_deny.as_deref(),
+                tool_profile.as_deref(),
+            )?;
             let ontology_dirs =
                 open_ontologies::config::resolve_ontology_dirs(&cfg.general.ontology_dirs);
             for d in &ontology_dirs {
@@ -1886,6 +1940,7 @@ async fn async_main() -> anyhow::Result<()> {
             watch_interval,
             tools_allow,
             tools_deny,
+            tool_profile,
             idle_ttl_secs,
             auto_refresh,
             storage_mode,
@@ -2006,8 +2061,12 @@ async fn async_main() -> anyhow::Result<()> {
             let gw_for_service = governance_webhook.clone();
             let embed_config = cfg.embeddings.clone();
             let cache_config = build_cache_config(&cfg, idle_ttl_secs, auto_refresh);
-            let tool_filter =
-                build_tool_filter(&cfg, tools_allow.as_deref(), tools_deny.as_deref())?;
+            let tool_filter = build_tool_filter(
+                &cfg,
+                tools_allow.as_deref(),
+                tools_deny.as_deref(),
+                tool_profile.as_deref(),
+            )?;
             let ontology_dirs =
                 open_ontologies::config::resolve_ontology_dirs(&cfg.general.ontology_dirs);
             for d in &ontology_dirs {

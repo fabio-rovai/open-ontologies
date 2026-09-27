@@ -365,6 +365,35 @@ pub fn resolve_storage_mode_from(
     }
 }
 
+/// The tool profile in force.
+///
+/// Precedence is the one every other setting in this file uses: CLI > env >
+/// config > default. An empty string at any level means "not set" and falls
+/// through, and the default is `full`, so an untouched deployment is unaffected.
+pub fn resolve_tool_profile(cfg: &ToolsConfig, cli: Option<&str>) -> String {
+    let from_env = std::env::var("OPEN_ONTOLOGIES_TOOL_PROFILE").ok();
+    resolve_tool_profile_from(cfg, cli, from_env.as_deref())
+}
+
+/// The pure half of [`resolve_tool_profile`], for the same reason
+/// [`resolve_storage_mode_from`] exists: the environment is shared mutable
+/// state, `set_var` is `unsafe` in edition 2024, and cargo runs the tests in
+/// one binary on parallel threads. Every branch is exercised through this
+/// function so no test has to touch the process environment.
+pub fn resolve_tool_profile_from(
+    cfg: &ToolsConfig,
+    cli: Option<&str>,
+    env: Option<&str>,
+) -> String {
+    [cli, env, Some(cfg.profile.as_str())]
+        .into_iter()
+        .flatten()
+        .map(str::trim)
+        .find(|s| !s.is_empty())
+        .unwrap_or(crate::toolfilter::FULL)
+        .to_string()
+}
+
 /// Configuration for limiting which MCP tools are exposed.
 #[derive(Debug, Deserialize, Clone, Default)]
 #[serde(default)]
@@ -375,6 +404,10 @@ pub struct ToolsConfig {
     pub list: Vec<String>,
     /// Group names (e.g. "read_only") expanded into tool names.
     pub groups: Vec<String>,
+    /// Task profile: `full` (default) or one of the names `toolfilter::profiles()`
+    /// lists. Empty means `full`. Override with `--tool-profile` or
+    /// `OPEN_ONTOLOGIES_TOOL_PROFILE`.
+    pub profile: String,
 }
 
 /// Expand a leading `~` in a path to the user's home directory.
