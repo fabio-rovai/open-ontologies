@@ -73,6 +73,10 @@ pub mod language;
 pub mod lineage;
 pub mod mapping;
 pub mod marketplace;
+/// Tolerating a request that arrives before `initialize` instead of exiting.
+/// Issue #260: one such request ended the process before the handshake was
+/// answered, on rmcp 1.4.0 and on 1.8.0 alike.
+pub mod mcp_handshake;
 pub mod monitor;
 pub mod ontology;
 pub mod ossie;
