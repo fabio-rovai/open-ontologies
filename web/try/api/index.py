@@ -156,10 +156,18 @@ def do_induce(body: dict) -> dict:
         cls = body.get("class") or ""
         cls_arg = f" --class {''.join(c for c in cls if c.isalnum() or c in '-_')}" if cls.strip() else ""
         base = "http://example.org/try/"
+        # The certificate is asked for here too, and not only in `plan`. It is
+        # how the picture gets drawn as soon as a sheet is induced: `reason`
+        # writes `asserted.tsv`, and the asserted edges ARE the sheet. A flat
+        # ontology derives nothing, so `derivations.tsv` is empty and the graph
+        # comes back all grey with certified 0 and rejected 0, which is the
+        # true state and is what makes step 4 legible: the reader watches grey
+        # turn green. Same flag `plan` already passes, so no new engine path.
+        cert = wd / "cert"
         script = (
             f"induce {wd / name} --out {out} --base-iri {base}{cls_arg}\n"
             f"shacl {out / 'shapes.ttl'}\n"
-            "reason owl-rl\n"
+            f"reason --profile owl-rl --certificate {cert}\n"
             "stats\n"
         )
         lines = run_batch(wd, script)
@@ -167,12 +175,23 @@ def do_induce(body: dict) -> dict:
         ind = by.get("induce") or {}
         if "error" in ind:
             return {"error": ind["error"], "engine": lines}
+        # A picture that cannot be built must not take the induce report down
+        # with it: the tables and the shape are the answer, the graph is a way
+        # of looking at it. `graph_error` is carried so the page can SAY the
+        # picture is missing instead of hiding an empty box.
+        graph, graph_error = None, None
+        try:
+            graph = build_graph(cert, [], None)
+        except Exception as e:  # noqa: BLE001
+            graph_error = f"{type(e).__name__}: {e}"
         return {
             "induced": ind,
             "shacl": by.get("shacl"),
             "reason": by.get("reason"),
             "stats": by.get("stats"),
             "meta": by.get("_meta"),
+            "graph": graph,
+            "graph_error": graph_error,
             "mapping_json": (out / "mapping.json").read_text() if (out / "mapping.json").exists() else None,
         }
 
@@ -315,14 +334,41 @@ def build_graph(cert: Path, derivation_rows: list, forged: dict | None) -> dict:
     used = {k: 0 for k in BUDGET}
     total = {k: 0 for k in BUDGET}
 
+    # A blank node and a list cell are dropped for the SAME reason a literal is:
+    # they are plumbing, and a node for each of them hides the thing the picture
+    # exists to show. Measured on the 30-row EPC sample at induce time: of 170
+    # asserted edges the shapes graph contributed a clump of `_:a2a433bc…` and
+    # `rdf:nil` nodes that filled the top-left corner and pushed the sheet's own
+    # structure into a separate clump at the bottom. The reader was looking at
+    # an RDF list, labelled with hashes.
+    LIST_P = {"first", "rest"}
+
+    def _plumbing(term: str) -> bool:
+        t = term.strip()
+        return t.startswith("_:") or t.strip("<>").endswith("22-rdf-syntax-ns#nil")
+
+    # WHY each edge is missing, counted. The legend prints what was DRAWN, and
+    # on the 30-row EPC sample that is 170 of 3,607 asserted: a reader who takes
+    # the legend for the run's count is out by a factor of twenty. The page is
+    # not allowed to round that off, so every skipped edge lands in exactly one
+    # bucket, the first rule that rejected it, and the buckets plus the drawn
+    # count equal the total by construction.
+    skipped = {"literal": 0, "plumbing": 0, "duplicate": 0, "over_budget": 0}
+
     def add(s: str, p: str, o: str, kind: str) -> None:
         total[kind] += 1
-        if used[kind] >= BUDGET[kind]:
-            return
         if o.strip().startswith('"') or s.strip().startswith('"'):
+            skipped["literal"] += 1
+            return
+        if _plumbing(s) or _plumbing(o) or _local(p) in LIST_P:
+            skipped["plumbing"] += 1
             return
         key = (s, o, kind)
         if key in seen:
+            skipped["duplicate"] += 1
+            return
+        if used[kind] >= BUDGET[kind]:
+            skipped["over_budget"] += 1
             return
         seen.add(key)
         used[kind] += 1
@@ -354,10 +400,11 @@ def build_graph(cert: Path, derivation_rows: list, forged: dict | None) -> dict:
         },
         "drawn": dict(used),
         "total": dict(total),
+        "skipped": dict(skipped),
         "truncated": any(used[k] < total[k] for k in used),
         "means": "grey is what a person asserted, green is what the engine derived and the "
-                 "checker accepted, red is the line that was forged and refused. Literals are "
-                 "not drawn",
+                 "checker accepted, red is the line that was forged and refused. Literals, "
+                 "blank nodes and list cells are not drawn",
     }
 
 
