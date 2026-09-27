@@ -4,6 +4,29 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-09-28
+
+### Fixed
+
+- **A request sent before `initialize` no longer ends the MCP server** (#260).
+  rmcp's handshake reads messages itself until it sees `initialize`, answers a
+  pre-initialize `ping` and turns away everything else
+  (rmcp-1.4.0/src/service/server.rs:191 and :200), so `serve` returned
+  `ExpectedInitializeRequest`, `main.rs:1867` propagated it with `?`, and the
+  client read the exit as EOF while waiting on its own `initialize`. One line
+  was enough: a client whose first message was
+  `{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{}}` never got
+  as far as the handshake. That same request one message later is answered
+  -32601 by rmcp's default `on_custom_request` and costs nothing, so arrival
+  order was the whole difference between a reply and a dead process. The stdio
+  transport is now wrapped: a pre-initialize request is answered with a
+  JSON-RPC error, -32601 for an unknown method so the reply matches what the
+  post-handshake path already returns and -32600 for a known MCP method sent
+  out of order, and a pre-initialize notification is dropped. Nothing changes
+  after `initialize`. Measured on both rmcp versions in the registry, 1.4.0 and
+  1.8.0: unguarded, both reject the reported byte sequence; guarded, both
+  complete the handshake, so the version bump was not the fix it looked like.
+
 ## [2.0.0] - 2026-09-22
 
 A major number because the engine now answers three questions it could not
