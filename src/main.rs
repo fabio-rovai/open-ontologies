@@ -1864,7 +1864,16 @@ async fn async_main() -> anyhow::Result<()> {
                 ontology_dirs,
             );
             let _evictor = open_ontologies::registry::spawn_evictor(server.registry());
-            let service = server.serve(rmcp::transport::stdio()).await?;
+            // A request that arrives before `initialize` is answered with a
+            // JSON-RPC error rather than ending the process. Issue #260: one
+            // `server/discover` probe sent ahead of `initialize` made rmcp
+            // return `ExpectedInitializeRequest` here, and `?` turned that
+            // into an exit the client read as EOF on `initialize`.
+            let service = server
+                .serve(open_ontologies::mcp_handshake::guard(
+                    rmcp::transport::stdio(),
+                ))
+                .await?;
             service.waiting().await?;
         }
         Commands::ServeHttp {
