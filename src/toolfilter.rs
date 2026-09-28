@@ -302,7 +302,8 @@ const PROFILES: &[(&str, &str, &[&str])] = &[
          DL tableaux, model finding.",
         &[
             "onto_reason", "onto_reason_incremental", "onto_rules_import", "onto_defects",
-            "onto_dlp_boundary", "onto_justify", "onto_provenance", "onto_classify_el",
+            "onto_dlp_boundary", "onto_trace_label", "onto_justify", "onto_provenance",
+            "onto_classify_el",
             "onto_dl_check", "onto_dl_explain", "onto_fol_export", "onto_fol_model",
             "onto_fol_prove", "onto_closure_diff", "onto_module_extract",
             "graph_projection_entailment_check", "graph_projection_lossy_check", "onto_extend",
