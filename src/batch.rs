@@ -134,6 +134,7 @@ impl BatchRunner {
             "fol-prove" | "fol_prove" => self.exec_fol_prove(&cmd.args),
             "preserve" => self.exec_preserve(&cmd.args),
             "closure-diff" | "closure_diff" => self.exec_closure_diff(&cmd.args),
+            "trace-label" | "trace_label" => self.exec_trace_label(&cmd.args),
             "shacl" => self.exec_shacl(&cmd.args),
             // The CLI subcommand is spelled with a hyphen and this arm accepted
             // only the underscore, so every documented invocation was rejected
@@ -367,6 +368,40 @@ impl BatchRunner {
         )
         .unwrap_or_else(|e| json!({"error": e.to_string()}).to_string());
         serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
+    }
+
+    /// In-process for the reason `reason --certificate` is: the store is
+    /// in-memory per process, so loading and labelling have to happen in one
+    /// run.
+    fn exec_trace_label(&self, args: &[String]) -> Value {
+        let Some(trace) = Self::flag_value(args, "--trace") else {
+            return json!({"error": "trace-label requires --trace FILE (oo-trace/1)"});
+        };
+        let Some(out) = Self::flag_value(args, "--out") else {
+            return json!({
+                "error": "trace-label requires --out DIR: the per-step certificates are the \
+                          output, and the Lean checker is what pronounces"
+            });
+        };
+        let text = match std::fs::read_to_string(&trace) {
+            Ok(t) => t,
+            Err(e) => return json!({"error": format!("cannot read {trace}: {e}")}),
+        };
+        let steps = match crate::trace_label::parse_trace(&text) {
+            Ok(s) => s,
+            Err(e) => return json!({"error": e.to_string()}),
+        };
+        let opts = crate::trace_label::Opts {
+            profile: Self::flag_value(args, "--profile").unwrap_or_else(|| "owl-rl".into()),
+            rules: Self::flag_value(args, "--rules").map(std::path::PathBuf::from),
+            work_dir: std::path::PathBuf::from(&out),
+            checker: Self::flag_value(args, "--checker").map(std::path::PathBuf::from),
+            require_checker: args.iter().any(|a| a == "--require-checker"),
+        };
+        match crate::trace_label::label_trace(&self.graph, &steps, &opts) {
+            Ok(r) => serde_json::to_value(&r).unwrap_or_else(|e| json!({"error": e.to_string()})),
+            Err(e) => json!({"error": e.to_string()}),
+        }
     }
 
     /// `--from swrl` with no `--file` reads the loaded graph, which is why
