@@ -179,34 +179,56 @@ impl OpenOntologiesServer {
 
         #[cfg(feature = "embeddings")]
         let (vecstore, text_embedder) = {
+            // The model and the fingerprint over it are built ONCE PER PROCESS
+            // and cloned into every session, not rebuilt here (#262). This
+            // constructor is what the HTTP arm hands `StreamableHttpService` as
+            // a per-session factory, so what it builds, every connecting
+            // session builds again: a tract optimize pass over a 470 MB ONNX
+            // graph, a second resident copy of that graph, and a sha256 over
+            // the same file. None of it can differ between sessions that were
+            // handed the same configuration. See `embed::shared_embeddings` for
+            // why the fingerprint has to be taken at the same instant as the
+            // model rather than recomputed here.
+            //
+            // The vector store is deliberately NOT shared. It is per-session
+            // mutable state: `onto_embed` upserts into it and `onto_hnsw_build`
+            // rebuilds its index, so one store behind one mutex would make one
+            // session's embeddings appear inside another's and let one session's
+            // index parameters govern everybody's searches. That is a change to
+            // what the server does, not an optimisation, and it belongs to its
+            // own issue.
+            let shared = crate::embed::shared_embeddings(&_embed_config);
+
             // Set the fingerprint BEFORE `load_from_db`: the load path is where
             // a configuration change is detected, and detecting it afterwards
             // would mean the incompatible vectors are already in memory and
             // about to be searched.
             let mut vs = crate::vecstore::VecStore::new(db.clone())
-                .with_embeddings_fingerprint(crate::embed_fingerprint::fingerprint(&_embed_config));
+                .with_embeddings_fingerprint(shared.fingerprint.clone());
             tracing::debug!(
                 "embedding configuration fingerprint: {}",
-                crate::embed_fingerprint::describe(&_embed_config)
+                shared.description
             );
             let _ = vs.load_from_db();
 
-            let embedder = match crate::embed::TextEmbedderProvider::from_config(&_embed_config) {
-                Ok(Some(e)) => {
+            // One line per session, exactly as before. Only the work behind the
+            // line moved.
+            let embedder = match (&shared.provider, &shared.init_error) {
+                (Some(e), _) => {
                     tracing::info!(
                         "embeddings enabled (provider = {})",
                         e.provider_name()
                     );
-                    Some(Arc::new(e))
+                    Some(e.clone())
                 }
-                Ok(None) => {
+                (None, None) => {
                     tracing::info!(
                         "embeddings configured but no provider available (model files missing or provider disabled)"
                     );
                     None
                 }
-                Err(e) => {
-                    tracing::warn!("failed to initialise embedding provider: {}", e);
+                (None, Some(err)) => {
+                    tracing::warn!("failed to initialise embedding provider: {}", err);
                     None
                 }
             };
@@ -259,6 +281,18 @@ impl OpenOntologiesServer {
     /// Access the ontology registry (for tests and the HTTP server eviction loop).
     pub fn registry(&self) -> Arc<crate::registry::OntologyRegistry> {
         self.registry.clone()
+    }
+
+    /// The embedding provider this session was given, if it has one.
+    ///
+    /// Exposed so a test can hold two sessions' providers side by side and ask
+    /// whether they are the same allocation. Counting builds says the expensive
+    /// work happened once; `Arc::ptr_eq` over this says the second session is
+    /// actually served by the first session's model rather than by a second
+    /// copy that merely cost nothing to make.
+    #[cfg(feature = "embeddings")]
+    pub fn text_embedder(&self) -> Option<Arc<crate::embed::TextEmbedderProvider>> {
+        self.text_embedder.clone()
     }
 
     fn lineage(&self) -> crate::lineage::LineageLog {

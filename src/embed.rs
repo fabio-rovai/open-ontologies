@@ -3,6 +3,7 @@
 
 use anyhow::{Context, Result};
 use std::path::Path;
+use std::sync::Arc;
 use tokenizers::Tokenizer;
 use tract_onnx::prelude::*;
 
@@ -263,6 +264,187 @@ impl TextEmbedderProvider {
             Self::OpenAI(_) => "openai",
         }
     }
+}
+
+// ─── One provider per process, not one per session (#262) ───────────────────
+
+/// Everything a server session needs out of the embedding configuration, built
+/// once per process instead of once per session.
+///
+/// # Why this is shared
+///
+/// The HTTP arm hands `OpenOntologiesServer::new_with_repo_options` to
+/// `StreamableHttpService::new` as a per-session factory, so everything that
+/// constructor builds is built again for every MCP session that connects. Two
+/// of those things are expensive and neither can legitimately differ between
+/// sessions handed the same configuration:
+///
+///   * the provider, whose local arm runs the tract optimize pass over a 470 MB
+///     ONNX graph and then holds that graph resident for as long as it lives,
+///     and
+///   * the configuration fingerprint, whose local arm is a sha256 over that
+///     same file plus the tokenizer.
+///
+/// Sharing them turns "N sessions, N copies of the model" into one copy behind
+/// an `Arc`. Nothing in the shared value is mutable: `TextEmbedderProvider`
+/// takes `&self` all the way down to `SimplePlan::run` and `Tokenizer::encode`,
+/// and the `OpenAIEmbedder` arm keeps its only interior mutability in an
+/// `AtomicUsize`. That is what makes one instance servable to every session at
+/// once, and it is worth stating rather than assuming, because a provider
+/// holding per-session state could not be shared at all.
+///
+/// # Why the fingerprint travels with it
+///
+/// `embed_fingerprint` exists to notice that the model behind a set of stored
+/// vectors changed, and it answers by reading the file on disk. If the provider
+/// were shared but the fingerprint recomputed per session, a model file
+/// replaced in place while the process ran would hand a later session the NEW
+/// fingerprint while it embeds with the OLD model still resident in the shared
+/// `Arc`. That stamps one model's identity onto another model's vectors, which
+/// is the exact corruption the fingerprint was added to prevent. Taking both at
+/// the same instant and caching them together keeps the label attached to the
+/// thing it labels.
+///
+/// `embed_fingerprint::fingerprint` itself is deliberately left uncached. A
+/// direct caller is asking what is on disk now, and that module's own tests
+/// replace a model in place and require the answer to change.
+#[derive(Clone)]
+pub struct SharedEmbeddings {
+    /// The provider, or `None` when the configuration produced no usable one,
+    /// which is the ordinary case for a deployment whose local model files were
+    /// never downloaded.
+    pub provider: Option<Arc<TextEmbedderProvider>>,
+    /// The error [`TextEmbedderProvider::from_config`] returned, if it returned
+    /// one. A string because `anyhow::Error` is not `Clone`, and separate from
+    /// `provider: None` because "no model on disk" and "this configuration is
+    /// wrong" are different things to tell an operator.
+    pub init_error: Option<String>,
+    /// [`crate::embed_fingerprint::describe`] over the same configuration, read
+    /// at the same moment as the provider.
+    pub description: String,
+    /// The hash of [`Self::description`], which is what
+    /// [`crate::embed_fingerprint::fingerprint`] returns for this
+    /// configuration.
+    pub fingerprint: String,
+}
+
+type SharedCache = std::sync::Mutex<std::collections::HashMap<String, SharedEmbeddings>>;
+
+static SHARED: std::sync::OnceLock<SharedCache> = std::sync::OnceLock::new();
+
+/// How many times the expensive build has actually run, as opposed to being
+/// served from the cache.
+static BUILD_COUNT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Identity of a configuration, for cache purposes.
+///
+/// Keyed rather than held in a single process-wide cell because
+/// `new_with_repo_options` takes a configuration per call. One cell would hand
+/// the second, differently configured server the first one's model and report
+/// it as that server's own, and serving vectors from silently the wrong model
+/// is a worse failure than the one being fixed here. The crate's own tests
+/// build differently configured servers inside one process, so this is not a
+/// hypothetical.
+///
+/// Built from RESOLVED values rather than from the struct, because every
+/// resolver consults an environment variable before the config field. All of it
+/// is cheap: environment reads, string work, and the `exists()` calls that
+/// choose between the default and legacy model filenames. Nothing here opens
+/// the model.
+fn cache_key(cfg: &crate::config::EmbeddingsConfig) -> String {
+    let provider = crate::config::resolve_embeddings_provider(cfg);
+    match provider.as_str() {
+        "openai" | "openai-compatible" | "remote" | "http" => {
+            let api_base = crate::config::resolve_embeddings_api_base(cfg);
+            let model = crate::config::resolve_embeddings_model(cfg);
+            let dimensions = cfg
+                .dimensions
+                .map(|d| d.to_string())
+                .unwrap_or_else(|| "default".to_string());
+            let timeout = cfg.request_timeout_secs.unwrap_or(30).max(1);
+            // Two deployments differing only by credential do need separate
+            // clients, so the key has to cover the key. It is hashed rather
+            // than stored so that the credential does not sit in a map key
+            // which any future `Debug` over this cache would print.
+            let api_key_hash = {
+                use std::hash::{Hash, Hasher};
+                let mut h = std::collections::hash_map::DefaultHasher::new();
+                crate::config::resolve_embeddings_api_key(cfg).hash(&mut h);
+                h.finish()
+            };
+            format!(
+                "openai\u{1f}{api_base}\u{1f}{model}\u{1f}{dimensions}\u{1f}{timeout}\u{1f}{api_key_hash}"
+            )
+        }
+        "local" | "" | "onnx" => {
+            let model = resolve_local_model_path(cfg)
+                .map(|p| p.to_string_lossy().into_owned())
+                .unwrap_or_default();
+            let tokenizer = resolve_local_tokenizer_path(cfg)
+                .map(|p| p.to_string_lossy().into_owned())
+                .unwrap_or_default();
+            format!("local\u{1f}{model}\u{1f}{tokenizer}")
+        }
+        // `from_config` refuses this one. The refusal is cached like any other
+        // outcome so that a misconfigured deployment does not re-derive the
+        // same error for every session that connects.
+        other => format!("unsupported\u{1f}{other}"),
+    }
+}
+
+/// Build the shared embedding state for `cfg`, or return the copy this process
+/// already built for an identical configuration.
+///
+/// This is the whole of the fix for #262. Every session gets a clone of one
+/// `Arc`, so the ONNX optimize pass runs once and one copy of the model is
+/// resident however many sessions are open.
+pub fn shared_embeddings(cfg: &crate::config::EmbeddingsConfig) -> SharedEmbeddings {
+    let key = cache_key(cfg);
+    let cache = SHARED.get_or_init(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+    // A poisoned lock here means an earlier build panicked. This map is a plain
+    // cache and a panic cannot have left it half written, so take the data back
+    // rather than turning one panic into a server that can never embed again.
+    let mut guard = cache.lock().unwrap_or_else(|e| e.into_inner());
+    if let Some(hit) = guard.get(&key) {
+        return hit.clone();
+    }
+
+    // Built with the lock held, so a second session arriving during the optimize
+    // pass waits for that pass instead of starting a second one. It waits no
+    // longer than it would have spent doing its own load, and it does not end up
+    // holding a second copy of the model.
+    BUILD_COUNT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+
+    // Described before the provider is loaded, which is the order this ran in
+    // when it ran per session: the fingerprint was taken before `from_config`.
+    let description = crate::embed_fingerprint::describe(cfg);
+    let fingerprint = crate::cache::sha256_hex(description.as_bytes());
+    let (provider, init_error) = match TextEmbedderProvider::from_config(cfg) {
+        Ok(Some(p)) => (Some(Arc::new(p)), None),
+        Ok(None) => (None, None),
+        Err(e) => (None, Some(e.to_string())),
+    };
+
+    let built = SharedEmbeddings {
+        provider,
+        init_error,
+        description,
+        fingerprint,
+    };
+    guard.insert(key, built.clone());
+    built
+}
+
+/// How many times [`shared_embeddings`] has actually built a provider over the
+/// life of this process, rather than serving one it already had.
+///
+/// This is the test signal for #262, and it is public because the test that
+/// needs it drives whole `OpenOntologiesServer` constructions from outside the
+/// crate. One session cannot distinguish shared from per-session, because the
+/// first session builds under either arrangement. Two sessions over one
+/// configuration must move this counter by exactly one.
+pub fn shared_embeddings_builds() -> u64 {
+    BUILD_COUNT.load(std::sync::atomic::Ordering::Relaxed)
 }
 
 /// Download a file from URL to a local path.

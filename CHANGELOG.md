@@ -46,6 +46,38 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **The embedding model is loaded once per process rather than once per HTTP
+  session** (#262). The HTTP arm hands the same server constructor to
+  `StreamableHttpService::new` as a per-session factory, so everything that
+  constructor built, every connecting session built again: a tract optimize
+  pass over a 470 MB ONNX graph, a second resident copy of that graph, and a
+  sha256 over the same file for the configuration fingerprint. Session count
+  multiplied both the latency and the resident memory, and nothing about any of
+  it can legitimately differ between two sessions handed the same
+  configuration. The provider is now built once behind a process-level cache
+  and cloned into each session as an `Arc`. Measured on this repository's own
+  debug build with the real multilingual MiniLM model, three sessions went from
+  43.6 s, 36.5 s and 32.8 s to 46.4 s, 8 ms and 12 ms, and peak resident memory
+  for the three went from 2.84 GiB to 1.26 GiB. Sharing is safe because nothing
+  in the provider is per-session state: `TextEmbedderProvider` takes `&self`
+  down to `SimplePlan::run` and `Tokenizer::encode`, and the OpenAI arm keeps
+  its only interior mutability in an atomic. The fingerprint is cached in the
+  same value and taken at the same instant as the model, because a shared model
+  with a per-session fingerprint would stamp a replaced file's identity onto
+  vectors the old resident model produced, which is the corruption the
+  fingerprint exists to catch. `embed_fingerprint::fingerprint` itself stays
+  uncached, since a direct caller is asking what is on disk now. The cache is
+  keyed by the resolved configuration rather than held in one process-wide
+  cell, so a second server configured for a different model is not handed the
+  first one's. The load stays eager: it is what lets the fingerprint and the
+  model be read at one instant, and the vector store needs the fingerprint
+  before `load_from_db` runs. The vector store itself is deliberately not
+  shared, because `onto_embed` and `onto_hnsw_build` mutate it and one store
+  across all sessions would change what the server does rather than what it
+  costs. Behaviour is otherwise unchanged: the same log line per session, the
+  same `Ok(None)` when the model files are absent, and no effect at all on a
+  build without the `embeddings` feature.
+
 - **`onto_temporal_conflicts` no longer files a withdrawn assertion as a live
   contradiction partner** (#128). The tool takes no `as_of` and read the
   validity map after the lineage pass, so a retracted graph carried its
