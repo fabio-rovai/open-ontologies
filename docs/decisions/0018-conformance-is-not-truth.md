@@ -1,6 +1,9 @@
 # 0018. Conformance is not truth, and a report must say which shapes ran
 
-**Status:** accepted, 28 September 2026.
+**Status:** accepted, 28 September 2026. **Amended 28 September 2026: engine defect E1 is
+fixed.** The amendment is in place rather than appended, because a record whose table says a defect
+is open is read by the table and not by a footnote. Every sentence that changed is marked, and the
+deferral argument is kept rather than deleted, because it is the reason the fix has the shape it has.
 
 ## The thesis
 
@@ -34,7 +37,7 @@ invites the reply that the tool is simply being used wrongly, and that reply is 
 
 | fixture | bucket | fixed here | what it shows |
 | --- | --- | --- | --- |
-| E1, impossible date | engine defect | **no** | `"2026-02-31"^^xsd:date` conforms to `sh:datatype xsd:date` on both evaluation paths |
+| E1, impossible date | engine defect | **yes, in the amendment** | `"2026-02-31"^^xsd:date` conformed to `sh:datatype xsd:date` on both evaluation paths |
 | E2, two answers to one constraint | engine defect | **yes** | `sh:datatype` under `sh:property` skipped the lexical test the node-shape path ran |
 | E3, inference read as assertion | engine defect | **no** | materialising into the inference graph flips a verdict from violated to conforming |
 | S1, decorative shape | standard limitation, plus a report gap | report gap only | a shape selecting one node buys a `true` verdict for a shapes graph whose load-bearing shape selected none |
@@ -43,17 +46,17 @@ invites the reply that the tool is simply being used wrongly, and that reply is 
 | `owl:sameAs` cardinality | NEITHER | not applicable | rejected as an overclaim; see below |
 | control, `xsd:byte` | not an attack | not applicable | a probe the existing defence turns into an undetermined verdict rather than a pass |
 
-## Engine defect E1, the impossible date, recorded and deliberately not fixed
+## Engine defect E1, the impossible date, FIXED in the amendment
 
 SHACL 4.1.2 makes a literal whose lexical form falls outside its datatype's lexical space a violation
 of `sh:datatype`. XSD 1.1 section 3.3.9 puts the day-of-month constraint IN the lexical space of
-`xsd:date`, so `"2026-02-31"^^xsd:date` is ill formed and must be reported. This engine reports
-nothing. `ill_typed_test` in `src/shacl.rs` implements the lexical test as a regex, and for
-`xsd:date` that regex is positional and counts digits:
-`^-?[0-9]{4}-[0-9]{2}-[0-9]{2}(Z|[+-][0-9]{2}:[0-9]{2})?$`. Both `2026-02-31` and `2026-13-01` match
-it, so both conform on both evaluation paths.
+`xsd:date`, so `"2026-02-31"^^xsd:date` is ill formed and must be reported. This engine reported
+nothing. `ill_typed_test` in `src/shacl.rs` implemented the lexical test as a regex, and for
+`xsd:date` that regex was positional and counted digits:
+`^-?[0-9]{4}-[0-9]{2}-[0-9]{2}(Z|[+-][0-9]{2}:[0-9]{2})?$`. Both `2026-02-31` and `2026-13-01` matched
+it, so both conformed on both evaluation paths.
 
-The verified evaluator disagrees, and that is what makes this a defect rather than a reading of an
+The verified evaluator disagreed, and that is what made this a defect rather than a reading of an
 ambiguous specification. Run on 28 September 2026:
 
 ```
@@ -71,24 +74,128 @@ $ ./lean/.lake/build/bin/oo-shacl validate date_data.nt date_shapes.nt
    "toolchain":"4.33.1"}}
 ```
 
-The Lean development checks the day against `daysInMonth` in `parseDateBody`. The Rust does not. Two
-evaluators in one repository give opposite answers to the same constraint over the same store, and
-the one carrying the theorem is the one saying `false`.
+The Lean development checks the day against `daysInMonth` in `parseDateBody`. The Rust did not. Two
+evaluators in one repository gave opposite answers to the same constraint over the same store, and
+the one carrying the theorem was the one saying `false`.
 
-**The fix is deferred, and the reason is the W3C baseline.** Closing this means implementing the XSD
-date lexical space in Rust. A hand-written regex approximating it fails in the direction that reports
-violations on VALID dates, which is the failure mode a conformance suite exists to catch, and
+### The deferral argument, which was right, and what it settles about the fix
+
+The fix was deferred here on the following reasoning, kept verbatim in substance because it is what
+decides the SHAPE the fix ended up having. Closing this means implementing the XSD date lexical space
+in Rust. A hand-written regex approximating it fails in the direction that reports violations on
+VALID dates, which is the failure mode a conformance suite exists to catch, and
 `tests/w3c_shacl_baseline.json` is the ratchet that would catch it. The sequencing rule is therefore
 that the baseline is measured before any datatype change lands and re-measured after, and the
 measurement is the gate on the fix rather than a formality after it.
 
-That measurement was taken on this branch and is recorded below. It covers the E2 change, which did
-land. It does not cover an E1 fix, which did not, and the next agent to attempt one owes a fresh
-measurement rather than a citation of this one.
+That reasoning is why the fix is NOT a cleverer regex.
 
-`a_day_that_does_not_exist_conforms_to_sh_datatype_on_both_paths` records the defect as an
-expectation. When the lexical space is implemented that test will FAIL, and the correct response is
-to change the expectation and amend this record, never to weaken the test.
+### What was actually built, and why it is not a regex
+
+Month lengths are regex work and they are in the regex. Two things are not.
+
+The first is 29 February, which is the only day whose existence depends on the year, under the
+proleptic Gregorian rule `(y mod 4 = 0 and y mod 100 != 0) or y mod 400 = 0`, over a year XSD does not
+bound in length. A regex CAN encode that: divisibility by 400 depends only on a decimal number's last
+four digits, so the automaton is finite. It is also unreadable, unreviewable, and wrong in the
+direction the paragraph above says is the dangerous one if a single alternative is mistyped.
+
+The second is `xsd:dateTime`, which carries the whole date portion and three more fields the old
+regex never ranged at all: `[0-9]{2}:[0-9]{2}:[0-9]{2}` accepted `99:99:99`, and
+`[+-][0-9]{2}:[0-9]{2}` accepted a `+99:99` timezone. Closing only the day would have left two more
+fields open in the same helper, which is the shape of E2 wearing a different datatype.
+
+So the regex became an UNDER-approximation and is now a PRE-FILTER rather than a verdict. `CERTAIN_DATE`
+matches only forms that are certainly in the lexical space: 31-day months to 31, 30-day months to 30,
+February to 28, four-digit year, and a timezone up to 13:59. Everything it cannot vouch for is handed
+to `xsd_temporal_lex`, which parses the form the way `parseDateBody`, `parseTimeBody` and `parseTzEnd`
+in `lean/Shacl/Term.lean` do. The pre-filter earns its place on volume: over a store of dates the
+parser sees the ill-formed ones plus 29 February and nothing else.
+
+**Both evaluation paths run it.** E2 below is what happens when they do not, so the node-shape path
+and the `sh:property` path were changed together and
+`tests/shacl_xsd_date_lexical_test.rs` asserts every fixture through both. Two mutations were run to
+prove that is not decoration: fixing only the `sh:property` path and fixing only the node-shape path
+each redden the table, and each failure message names the path left behind.
+
+**The century rule is the real one, and 1900 and 2000 are the test.** 1900 is divisible by 100 and not
+by 400, so it is not a leap year and `1900-02-29` is reported. 2000 is divisible by 400, so it is, and
+`2000-02-29` is not reported. 1600 and 2100 are in the table for the same reason.
+`the_leap_rule_is_gregorian_so_1900_is_not_a_leap_year_and_2000_is` exists because a rule of
+"divisible by four" passes every other fixture in the file.
+
+**Only the year modulo 400 is ever computed**, folded digit by digit, so a forty-digit year overflows
+nothing. That is the one place the Rust differs mechanically from the Lean's arbitrary-precision
+`Nat`, and it agrees with it on every input, because 400 is a multiple of both 4 and 100.
+
+### The Lean and the Rust answers, measured rather than asserted
+
+The headline is that the two evaluators in this repository no longer give opposite answers to one
+calendar constraint, and that is a measurement. `the_two_evaluators_agree_on_every_xsd_date_fixture`
+and `the_two_evaluators_agree_on_every_xsd_date_time_fixture` in
+`tests/shacl_verified_tool_test.rs` build ONE store carrying every fixture as its own subject, run
+`ShaclValidator::validate` and `validate_verified` over it, and compare the SET of focus nodes each
+report names, not the conformance boolean, because a boolean over twenty-nine subjects agrees as soon
+as both sides report anything at all. Over `xsd:date` both name the same 18 of 29 subjects; over
+`xsd:dateTime` both name the same 7 of 11. Both sets are then compared against the fixture table, so
+this is not two engines being wrong together. The Lean verdict is only accepted when it carries
+`Shacl.validate_spec`, which the test asserts before comparing anything.
+
+Twelve mutations were run against those two tests and the rest of the corpus. The table is at the end
+of this record.
+
+### `xsd:dateTime` was fixed at the same time, and this says so rather than implying it
+
+It carries the same date portion. Leaving it would have meant `"2026-02-31"^^xsd:date` reported and
+`"2026-02-31T00:00:00"^^xsd:dateTime` not. The hour, minute, second, fractional-second and timezone
+ranges are implemented too, including `24:00:00`, which XSD allows and which denotes midnight starting
+the next day, and which therefore admits no other non-zero field.
+
+Two `xsd:dateTime` fixtures are NOT in the table and the reason is recorded rather than left as a
+hole. Oxigraph canonicalises the 24-hour form on the way in: `2026-01-01T24:00:00` is stored as
+`2026-01-02T00:00:00`, and the ill-formed `2026-01-01T24:00:01` is stored as the well-formed
+`2026-01-02T00:00:01`. No verdict over this store is a verdict about the form that was written, in
+either direction. `the_store_rewrites_the_twenty_four_hour_forms` pins that measurement, and
+`verdict()` in the same file asserts every other fixture survives the store, so a future Oxigraph
+that starts rewriting one fails loudly instead of quietly changing what is measured.
+
+### The residual gap, which is narrower and is NOT closed
+
+A negative year, and the year `0000`, are well formed XSD 1.1. `lean/Shacl/Term.lean` declines to read
+either, in `yearJudgeable`, because every day-number convention it relies on agrees only on
+non-negative years. Measured on 28 September 2026: handed `"-0044-03-15"^^xsd:date`, `oo-shacl`
+answers
+
+```
+{"status":"undetermined","reason":"the evaluator declined: sh:datatype: the lexical space of
+ <http://www.w3.org/2001/XMLSchema#date> is not implemented, so \"-0044-03-15\" cannot be judged
+ well formed"}
+```
+
+and declines the WHOLE validation run, not the one value. This engine reports no violation over those
+forms instead, which is exactly what the old regex did, so nothing about them changed here. The two
+answers are not opposite, because `undetermined` is not a verdict, and they are not the same answer
+either. `the_lean_evaluator_declines_the_years_this_one_declines` measures both sides so this
+paragraph cannot go stale. Closing it would mean per-VALUE entries in `skipped_constraints`, which
+turns `conforms` to `null` for any store holding one BCE date, and that is a decision about what a
+validation report is for rather than a bug fix. It is stated as open rather than quietly carried.
+
+### The test that recorded the defect, flipped and not weakened
+
+`a_day_that_does_not_exist_conforms_to_sh_datatype_on_both_paths` recorded the defect as an
+expectation, and this record said that when the lexical space was implemented that test would FAIL and
+the correct response would be to change the expectation and amend this record, never to weaken the
+test. That is what happened. It is now
+`a_day_that_does_not_exist_violates_sh_datatype_on_both_paths`, because the old name states something
+false. Nothing was relaxed: both paths are still asserted, the violation count is still asserted, the
+focus-node count is still asserted, and the constraint component is now asserted as well.
+
+`the_lexical_test_runs_and_is_a_strict_under_approximation_of_the_date_space` is renamed to
+`the_lexical_test_reaches_the_calendar_and_not_only_the_spelling` for the same reason, and its second
+half now measures the direction that would make the fix worse than the defect: a real 29 February, a
+five-digit year and a negative year must all still conform. The five-digit year is a defect the old
+regex had in that direction and nothing had noticed: `^-?[0-9]{4}-` did not match `12026-01-01`, so a
+valid XSD date was reported as a violation. It is not any more.
 
 ## Engine defect E2, one evaluator giving two answers, fixed here
 
@@ -100,8 +207,10 @@ author wrote the constraint, and almost every real shapes graph writes it under 
 
 The fix splices the same lexical test into the property path.
 `an_ill_formed_literal_violates_sh_datatype_wherever_the_constraint_is_written` is the regression
-gate. This closes the divergence and NOT the wider gap: the test is still a regex, so E1 stands on
-both paths.
+gate. **Amended:** that sentence used to end "this closes the divergence and NOT the wider gap: the
+test is still a regex, so E1 stands on both paths". E1 no longer stands on either, and the reason this
+section still matters is that the divergence it names is the reason the E1 fix was made to both paths
+in one change rather than to the one that was easier to reach.
 
 ## Engine defect E3, the engine's own conclusion satisfying the constraint that asked for one
 
@@ -236,8 +345,10 @@ different reports. Nothing computes that. `the_report_cannot_tell_an_asserted_cl
 asserts that the two reports are still EQUAL, so the day the binding is built that test fails, which
 is the intended way to find out.
 
-**E1 and E3 are open defects, not designs.** They have fixes that are understood and deferred for the
-reasons above.
+**E3 is an open defect, not a design.** It has a fix that is understood and deferred for the reason
+above. **Amended:** this paragraph used to read "E1 and E3 are open defects". E1 is fixed; what is
+left of it is the narrower residual on years neither evaluator will read, which is stated in its own
+section and is not the same defect.
 
 A reader who takes away "this engine now detects assurance laundering" has read this document
 backwards. It detects none of it. It reports one more number than it used to.
@@ -277,6 +388,89 @@ place, over suite commit `94d8bc2bd4fc4fdc6f2964d1ec4a892329e05f06`:
 named outcomes moved. The E2 fix is therefore measured as neutral on the suite rather than assumed to
 be, which is the whole reason for taking the measurement before touching datatype evaluation again.
 
+**That measurement covers the E2 change only, and the next agent to attempt an E1 fix owes a fresh one
+rather than a citation of this one.** The amendment below is that fresh measurement.
+
+## The W3C measurement for the E1 fix
+
+Taken on the E1 branch, over the same suite commit `94d8bc2bd4fc4fdc6f2964d1ec4a892329e05f06`, before
+the change and again after it.
+
+BEFORE, at `dab66383`:
+
+```
+  total 120, PASS 61 (50.8%), FAIL 15 (12.5%), UNDETERMINED 44 (36.7%), ERROR 0
+  partial compliance 61 of 120
+  ratchet ok: PASS 61 (baseline 61, +0), FAIL 15 (baseline 15), partial compliance 61 (baseline 61)
+```
+
+AFTER, with the calendar lexical spaces implemented on both paths:
+
+```
+  total 120, PASS 61 (50.8%), FAIL 15 (12.5%), UNDETERMINED 44 (36.7%), ERROR 0
+  partial compliance 61 of 120
+  ratchet ok: PASS 61 (baseline 61, +0), FAIL 15 (baseline 15), partial compliance 61 (baseline 61)
+```
+
+`tests/w3c_shacl_baseline.json` was regenerated under `OO_W3C_SHACL_UPDATE_BASELINE=1` after the
+change and came back BYTE-IDENTICAL to the committed file, so not one of the 120 named outcomes moved
+and no fixture needs justifying. The baseline in the commit is the one that was already there.
+
+**And the ratchet is not blind to this change, which is the part a zero delta does not establish on its
+own.** The suite carries `sh:datatype xsd:date` over two well-formed values in
+`core/property/datatype-001`. A mutation was run that does exactly what the deferral argument was
+afraid of, namely a hand-written regex reporting a violation on a VALID date: the thirty-day-month
+alternative was narrowed to days 10 to 30 and the parser was taken out of the loop, so `2014-09-01`
+became a violation. The ratchet caught it:
+
+```
+  1 test(s) that passed in the baseline no longer pass: core/property/datatype-001
+  core/property/datatype-001 -> FAIL (results: verdict agrees (conforms=false) but the result set
+    differs; 0 missing [], 1 unexpected [(ValidResource, TestShape-dateProperty,
+    DatatypeConstraintComponent)])
+```
+
+The mutation was reverted and the suite went green again. A zero delta from a gate proved able to move
+is a measurement; a zero delta from a gate nobody tried to move is not.
+
+## Every gate in the E1 amendment was proved able to fail
+
+Twelve mutations, each applied, run, recorded and reverted. The three columns count FAILING tests in
+`tests/shacl_xsd_date_lexical_test.rs`, `tests/adversarial_shacl_test.rs` and
+`tests/shacl_verified_tool_test.rs`, which are 6, 15 and 9 tests green.
+
+| mutation | lexical | adversarial | verified |
+| --- | --- | --- | --- |
+| drop the century rule from `is_leap_year`, leaving `y mod 4 = 0` | 3 | 0 | 2 |
+| make the regex the verdict again, with no parser behind it | 4 | 1 | 3 |
+| stop checking the day against the month | 3 | 2 | 2 |
+| fix ONLY the `sh:property` path | 3 | | |
+| fix ONLY the node-shape path | 4 | | |
+| stop ranging the `xsd:dateTime` hour, minute and second | 1 | | 1 |
+| stop ranging the timezone offset | 1 | | 1 |
+| report the years this engine declines, instead of declining | 1 | | 1 |
+| widen the `xsd:integer` lexical test to `^.*$` | 1 | 1 | |
+| add a fixture to one of the two copies of the list | | | 1 |
+| claim the store keeps the 24-hour form | 1 | | |
+| feed the store-survival guard `"1."^^xsd:decimal`, which Oxigraph rewrites | 1 | | |
+
+The single-path mutations are the E2-shaped ones and each failure message names the path that was
+left behind, "the node shape path said otherwise" in one direction and "the sh:property path said
+otherwise" in the other. The two path mutations differ by one test because the leap-rule test is
+written through the property path only.
+
+The last one was not planned. It fired on its own while the fixture table was being written, which is
+the only kind of evidence that a guard against a store rewrite is live rather than decorative:
+
+```
+the store rewrote 1., so nothing below is about the validator:
+{"results":[{"o":"\"1\"^^<http://www.w3.org/2001/XMLSchema#decimal>"}],"variables":["o"]}
+```
+
+The adversarial file's own E1 test stays GREEN under the leap-rule mutation, because its two fixtures
+are both in 2026 and neither is 29 February. That is a statement about what that file covers rather
+than a defect in it, and it is why the leap rule has a fixture table of its own.
+
 ## Every gate in this corpus was proved able to fail
 
 A test that cannot fail is worse than no test, because it is read as evidence. Each of the fourteen
@@ -296,13 +490,24 @@ was renamed from `no_attack_gets_past_a_datatype_the_store_cannot_preserve` to
 `a_datatype_the_store_cannot_preserve_yields_no_verdict_rather_than_a_pass`, which is what it proves,
 and the consumer claim is now pinned to a read of `src/server.rs` that fails if the gate moves.
 
-The mutations worth re-running are these. Tightening the `xsd:date` regex to reject impossible
-calendar dates reddens both E1 tests, which is the proof that E1 is a live defect record rather than
-a comment. Restricting the SHACL evaluator to the default graph reddens the E3 verdict test and the
-S3 equality test, which is the proof that both are live regression gates on the inference-graph
-defect. Removing `"byte"` from `datatype_is_indistinguishable_in_store` turns the control's `null`
-into a `false`, which is the proof that the existing defence is doing the work the control credits it
-with.
+The mutations worth re-running are these. Restricting the SHACL evaluator to the default graph
+reddens the E3 verdict test and the S3 equality test, which is the proof that both are live regression
+gates on the inference-graph defect. Removing `"byte"` from `datatype_is_indistinguishable_in_store`
+turns the control's `null` into a `false`, which is the proof that the existing defence is doing the
+work the control credits it with.
+
+**Amended.** The E1 mutation named here was "tightening the `xsd:date` regex to reject impossible
+calendar dates reddens both E1 tests, which is the proof that E1 is a live defect record rather than a
+comment". That mutation has been performed for real and is now the fix, so the E1 entry is replaced by
+its inverse: loosening the calendar check reddens the same two tests, and the twelve mutations run
+against the fix are listed under the amendment's own measurement below.
+
+**One of those mutations found a gate that could not fail, and it was strengthened.** Dropping the
+day-versus-month check while keeping the month-range check left
+`the_lexical_test_reaches_the_calendar_and_not_only_the_spelling` GREEN, because the E1 fixture holds
+two literals and `2026-13-01` alone is enough to make the conformance boolean false. A boolean over
+two fixtures cannot say which of them was caught. The test now asserts `violation_count` is 2 and
+reddens against that mutation.
 
 **One mutation was inert and that is a note about this codebase rather than about the tests.** Adding
 a row to `BUILTIN_RULES` in `src/reason.rs` changes nothing about what the reasoner derives. The

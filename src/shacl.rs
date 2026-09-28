@@ -477,6 +477,12 @@ impl ShaclValidator {
 
                 // (constraint, SPARQL test that is TRUE for a violating focus node, default message)
                 let mut checks: Vec<(String, String, String)> = Vec::new();
+                // The `sh:datatype` test for `xsd:date` and `xsd:dateTime` is a
+                // PRE-FILTER and not a verdict, so a row it returns is judged
+                // again in Rust before it becomes a violation. Keyed by the
+                // test text, which is unique per datatype, so a node shape
+                // carrying two datatype constraints keeps them apart.
+                let mut calendar_by_test: HashMap<String, (String, bool)> = HashMap::new();
                 for (pred, obj) in &own {
                     match pred.as_str() {
                         "class" => {
@@ -508,9 +514,15 @@ impl ShaclValidator {
                             let ill = ill_typed_test(&dt, "focus")
                                 .map(|t| format!(" || {t}"))
                                 .unwrap_or_default();
+                            let test =
+                                format!("(!isLiteral(?focus) || DATATYPE(?focus) != <{dt}>{ill})");
+                            if let Some(with_time) = calendar_datatype(&dt) {
+                                calendar_by_test
+                                    .insert(test.clone(), (dt.clone(), with_time));
+                            }
                             checks.push((
                                 "datatype".into(),
-                                format!("(!isLiteral(?focus) || DATATYPE(?focus) != <{dt}>{ill})"),
+                                test,
                                 format!("Value does not have datatype <{dt}>"),
                             ));
                         }
@@ -593,6 +605,7 @@ impl ShaclValidator {
                     ));
                 }
                 for (constraint, test, default_msg) in checks {
+                    let calendar = calendar_by_test.get(&test).cloned();
                     let query = format!(
                         r#"SELECT DISTINCT ?focus WHERE {{
                             {focus_pattern}
@@ -601,6 +614,14 @@ impl ShaclValidator {
                     );
                     for row in &graph_sparql_select(graph, scope, &query)? {
                         if let Some(focus) = row.get("focus") {
+                            // A calendar pre-filter returns every form it could
+                            // not vouch for, well formed ones included. This is
+                            // where the day is actually judged.
+                            if let Some((dt, with_time)) = &calendar
+                                && !calendar_violation(focus, dt, *with_time)
+                            {
+                                continue;
+                            }
                             let msg = if own_message.is_empty() { default_msg.clone() } else { own_message.clone() };
                             violations.push(attribute(&shape_iri, &shape_iri, serde_json::json!({
                                 "severity": own_severity,
@@ -1396,16 +1417,20 @@ impl ShaclValidator {
                     // shapes graph got was decided by where its author wrote
                     // the constraint.
                     //
-                    // This closes the divergence and NOT the wider gap.
-                    // `ill_typed_test` tests a REGEX, and the date regex is
-                    // syntactic: `"2026-02-31"^^xsd:date` matches it, so a day
-                    // that does not exist still conforms on both paths. The
-                    // verified evaluator in `lean/Shacl/Term.lean` checks the
-                    // day against `daysInMonth` and reports it, so Lean and
-                    // Rust disagree there. See decision 0018.
+                    // This closed the divergence and, at the time, NOT the
+                    // wider gap: the test was a regex, and the date regex was
+                    // syntactic, so `"2026-02-31"^^xsd:date` matched it and a
+                    // day that does not exist conformed on both paths. That is
+                    // engine defect E1 and it is closed now. For the two
+                    // calendar datatypes the regex is a PRE-FILTER, and
+                    // `calendar_violation` below judges the form the way
+                    // `parseDateBody` in `lean/Shacl/Term.lean` does. Both
+                    // paths run it, because E2 exists precisely because the two
+                    // diverged once. See decision 0018.
                     let ill = ill_typed_test(&dt, "val")
                         .map(|t| format!(" || {t}"))
                         .unwrap_or_default();
+                    let calendar = calendar_datatype(&dt).map(|with_time| (dt.clone(), with_time));
                     let query = format!(
                         r#"SELECT ?focus ?val WHERE {{
                             {focus_pattern}
@@ -1415,6 +1440,18 @@ impl ShaclValidator {
                     );
                     let results = graph_sparql_select(graph, scope, &query)?;
                     for row in &results {
+                        // A calendar pre-filter returns every form it could not
+                        // vouch for, well-formed ones included, so this is where
+                        // the day is actually judged. A row with no `?val` cannot
+                        // be judged and stays a violation, which is what it was
+                        // before this ran; the pattern always binds it, so that
+                        // branch is unreachable rather than a silent pass.
+                        if let Some((cdt, with_time)) = &calendar
+                            && let Some(val) = row.get("val")
+                            && !calendar_violation(val, cdt, *with_time)
+                        {
+                            continue;
+                        }
                         if let Some(focus) = row.get("focus") {
                             let msg = if message.is_empty() {
                                 format!(
@@ -3078,9 +3115,19 @@ fn constraint_component(constraint: &str) -> String {
 }
 
 /// `Some(test)` that is TRUE when `?var` is a literal of `datatype` whose
-/// lexical form is outside that datatype's lexical space, for the datatypes
-/// whose lexical space is written down here. `None` for any other datatype,
-/// where an ill-typed literal cannot be told from a well-typed one.
+/// lexical form MIGHT be outside that datatype's lexical space, for the
+/// datatypes whose lexical space is written down here. `None` for any other
+/// datatype, where an ill-typed literal cannot be told from a well-typed one.
+///
+/// MIGHT, and not IS, for `xsd:date` and `xsd:dateTime`. For every other
+/// datatype here the regex IS the lexical space and a match is the verdict. For
+/// the two calendar datatypes the regex is an UNDER-approximation of the
+/// lexical space, deliberately: every form it matches is certainly well formed,
+/// and everything else is handed to `xsd_temporal_lex` to be judged properly.
+/// `calendar_datatype` says which datatypes work that way, and every call site
+/// that splices one of these tests in has to run that second judgement or it
+/// will report violations on valid dates. See `xsd_temporal_lex` for why the
+/// decision cannot live in the regex.
 ///
 /// The patterns are the XSD lexical spaces, not the value spaces: `01` is a
 /// valid integer lexical form and `1.` a valid decimal one. Backslashes are
@@ -3089,12 +3136,14 @@ fn ill_typed_test(datatype: &str, var: &str) -> Option<String> {
     const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
     let local = datatype.strip_prefix(XSD)?;
     let re = match local {
-        "integer" => "^[+-]?[0-9]+$",
-        "decimal" => "^[+-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)$",
-        "double" | "float" => "^([+-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)([eE][+-]?[0-9]+)?|[+-]?INF|NaN)$",
-        "boolean" => "^(true|false|1|0)$",
-        "date" => "^-?[0-9]{4}-[0-9]{2}-[0-9]{2}(Z|[+-][0-9]{2}:[0-9]{2})?$",
-        "dateTime" => "^-?[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?$",
+        "integer" => "^[+-]?[0-9]+$".to_string(),
+        "decimal" => "^[+-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)$".to_string(),
+        "double" | "float" => {
+            "^([+-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)([eE][+-]?[0-9]+)?|[+-]?INF|NaN)$".to_string()
+        }
+        "boolean" => "^(true|false|1|0)$".to_string(),
+        "date" => format!("^{CERTAIN_DATE}{CERTAIN_TZ}?$"),
+        "dateTime" => format!("^{CERTAIN_DATE}T{CERTAIN_TIME}{CERTAIN_TZ}?$"),
         _ => return None,
     };
     // The regex goes inside a SPARQL string literal, where the only legal
@@ -3111,6 +3160,252 @@ fn ill_typed_test(datatype: &str, var: &str) -> Option<String> {
     // at all.
     let escaped = re.replace('\\', "\\\\");
     Some(format!("(DATATYPE(?{var}) = <{datatype}> && !REGEX(STR(?{var}), \"{escaped}\"))"))
+}
+
+/// A `yyyy-mm-dd` whose day is certainly IN the calendar, whatever the year.
+///
+/// Thirty-one-day months take 01 to 31, thirty-day months stop at 30, and
+/// February stops at 28, which is a day every February has. The one form this
+/// leaves out is 29 February, which is the only day whose existence depends on
+/// the year, and which therefore has to be decided somewhere a regex cannot
+/// reach. The year is four digits because a longer one has a leading-zero rule
+/// and a negative one is not judged at all, and both of those are the parser's
+/// business rather than this filter's.
+const CERTAIN_DATE: &str = concat!(
+    "[0-9]{4}-(",
+    "(0[13578]|1[02])-(0[1-9]|[12][0-9]|3[01])",
+    "|(0[469]|11)-(0[1-9]|[12][0-9]|30)",
+    "|02-(0[1-9]|1[0-9]|2[0-8])",
+    ")"
+);
+
+/// `hh:mm:ss` with optional fractional seconds, restricted to the hours that
+/// need no special case. XSD also allows `24:00:00`, which denotes midnight
+/// starting the next day; that form falls through to the parser.
+const CERTAIN_TIME: &str = "([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?";
+
+/// `Z` or an offset XSD certainly allows. The cap is fourteen hours and the
+/// fourteenth is minutes-zero only, so stopping at 13:59 needs no special case
+/// and `+14:00` falls through to the parser.
+const CERTAIN_TZ: &str = "(Z|[+-](0[0-9]|1[0-3]):[0-5][0-9])";
+
+/// True for the datatypes whose `ill_typed_test` regex is a pre-filter rather
+/// than a verdict, so a row it returns still has to be judged by
+/// `xsd_temporal_lex` before it becomes a violation.
+fn calendar_datatype(datatype: &str) -> Option<bool> {
+    match datatype.strip_prefix("http://www.w3.org/2001/XMLSchema#")? {
+        "date" => Some(false),
+        "dateTime" => Some(true),
+        _ => None,
+    }
+}
+
+/// The three answers `lean/Shacl/Term.lean` gives about a calendar lexical
+/// form, and this engine gives the same three for the same forms.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum TemporalLex {
+    /// In the datatype's lexical space.
+    WellFormed,
+    /// Outside it. This is the one that is a `sh:datatype` violation.
+    IllFormed,
+    /// Declined. The year is negative, or is written as four or more zeros.
+    /// Both are well-formed XSD 1.1 and the Lean development refuses to read
+    /// either, because every day-number convention it relies on agrees only on
+    /// non-negative years. Answering `WellFormed` here would be a claim this
+    /// engine cannot back, and `IllFormed` would be false, so the third answer
+    /// is the honest one and it reports nothing.
+    NotJudged,
+}
+
+/// Is `lex` in the lexical space of `xsd:date` (`with_time` false) or of
+/// `xsd:dateTime` (`with_time` true)?
+///
+/// **Why this is not a regex.** The old `xsd:date` test was
+/// `^-?[0-9]{4}-[0-9]{2}-[0-9]{2}(Z|[+-][0-9]{2}:[0-9]{2})?$`, which counts
+/// digits and checks no range at all, so `2026-02-31` and `2026-13-01` both
+/// conformed. XSD 1.1 section 3.3.9 puts the day-of-month constraint IN the
+/// lexical space, so both are ill formed and must be reported. A regex CAN
+/// encode the month lengths, and `CERTAIN_DATE` does, but 29 February needs the
+/// proleptic Gregorian leap rule over a year of unbounded length, which is a
+/// divisibility test the regex would have to spell out as an automaton over
+/// digit suffixes, unreadable and unreviewable. `xsd:dateTime` makes it worse:
+/// the old regex accepted `99:99:99` and a `+99:99` timezone, so closing the
+/// day would have left two more fields open. A parser costs one function and
+/// says exactly what the Lean says.
+///
+/// **Leap years are the real rule, not the approximation.** `isLeapYear` in the
+/// Lean is `(y % 4 == 0 && y % 100 != 0) || y % 400 == 0`, and this is that.
+/// So 1900 is NOT a leap year and `1900-02-29` is reported; 2000 IS and
+/// `2000-02-29` is not. Both are checked in `tests/shacl_xsd_date_lexical_test.rs`.
+/// Only the year modulo 400 is ever needed, and folding the digits into that
+/// residue is what keeps a forty-digit year from overflowing anything, which is
+/// the one place this differs mechanically from the Lean's arbitrary-precision
+/// `Nat` while agreeing with it on every input.
+fn xsd_temporal_lex(lex: &str, with_time: bool) -> TemporalLex {
+    let cs: Vec<char> = lex.chars().collect();
+
+    // `yearJudgeable`. A negative year is declined, and so is a year of four or
+    // more zeros, which is `0000` in XSD 1.1 and not a year at all in 1.0.
+    if cs.first() == Some(&'-') {
+        return TemporalLex::NotJudged;
+    }
+    let digits = cs.iter().take_while(|c| c.is_ascii_digit()).count();
+    if digits >= 4 && cs[..digits].iter().all(|c| *c == '0') {
+        return TemporalLex::NotJudged;
+    }
+
+    // `parseDateBody`. Four digits at least, and a longer year may not carry a
+    // leading zero.
+    if digits < 4 || (digits > 4 && cs[0] == '0') {
+        return TemporalLex::IllFormed;
+    }
+    let year_mod_400 = cs[..digits]
+        .iter()
+        .fold(0u32, |acc, c| (acc * 10 + (*c as u32 - '0' as u32)) % 400);
+
+    let rest = &cs[digits..];
+    let Some((month, rest)) = dashed_two_digits(rest) else {
+        return TemporalLex::IllFormed;
+    };
+    let Some((day, rest)) = dashed_two_digits(rest) else {
+        return TemporalLex::IllFormed;
+    };
+    if !(1..=12).contains(&month) || day < 1 || day > days_in_month(year_mod_400, month) {
+        return TemporalLex::IllFormed;
+    }
+
+    let rest = if with_time {
+        match rest.split_first() {
+            Some(('T', after)) => match parse_time_body(after) {
+                Some(r) => r,
+                None => return TemporalLex::IllFormed,
+            },
+            _ => return TemporalLex::IllFormed,
+        }
+    } else {
+        rest
+    };
+
+    if parse_tz_end(rest) {
+        TemporalLex::WellFormed
+    } else {
+        TemporalLex::IllFormed
+    }
+}
+
+/// `-dd`, exactly two digits after the separator. Two digits EXACTLY, so
+/// `2026-2-31` is ill formed rather than read as February.
+fn dashed_two_digits(cs: &[char]) -> Option<(u32, &[char])> {
+    match cs.split_first() {
+        Some(('-', rest)) => two_digits(rest),
+        _ => None,
+    }
+}
+
+fn two_digits(cs: &[char]) -> Option<(u32, &[char])> {
+    if cs.len() < 2 || !cs[0].is_ascii_digit() || !cs[1].is_ascii_digit() {
+        return None;
+    }
+    Some((
+        (cs[0] as u32 - '0' as u32) * 10 + (cs[1] as u32 - '0' as u32),
+        &cs[2..],
+    ))
+}
+
+/// The proleptic Gregorian leap rule, read off the year's residue modulo 400.
+/// That residue determines the year modulo 4 and modulo 100 as well, because
+/// 400 is a multiple of both, so nothing is lost by folding.
+fn is_leap_year(year_mod_400: u32) -> bool {
+    (year_mod_400.is_multiple_of(4) && !year_mod_400.is_multiple_of(100)) || year_mod_400 == 0
+}
+
+fn days_in_month(year_mod_400: u32, month: u32) -> u32 {
+    match month {
+        2 => {
+            if is_leap_year(year_mod_400) {
+                29
+            } else {
+                28
+            }
+        }
+        4 | 6 | 9 | 11 => 30,
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        _ => 0,
+    }
+}
+
+/// `hh:mm:ss` with optional fractional seconds, returning what follows.
+/// `24:00:00` is allowed and denotes midnight starting the next day, which is
+/// why the hour bound is 24 and not 23; any other field on a 24 hour is ill
+/// formed. Mirrors `parseTimeBody`.
+fn parse_time_body(cs: &[char]) -> Option<&[char]> {
+    let (hour, rest) = two_digits(cs)?;
+    let (minute, rest) = colon_two_digits(rest)?;
+    let (second, rest) = colon_two_digits(rest)?;
+    let (fraction, rest) = match rest.split_first() {
+        Some(('.', after)) => {
+            let n = after.iter().take_while(|c| c.is_ascii_digit()).count();
+            // A dot with no digit after it is ill formed, not a dot.
+            if n == 0 {
+                return None;
+            }
+            (&after[..n], &after[n..])
+        }
+        _ => (&cs[..0], rest),
+    };
+    if hour > 24 || minute > 59 || second > 59 {
+        return None;
+    }
+    if hour == 24 && (minute != 0 || second != 0 || !fraction.iter().all(|c| *c == '0')) {
+        return None;
+    }
+    Some(rest)
+}
+
+fn colon_two_digits(cs: &[char]) -> Option<(u32, &[char])> {
+    match cs.split_first() {
+        Some((':', rest)) => two_digits(rest),
+        _ => None,
+    }
+}
+
+/// Absent, `Z`, or a signed offset, and nothing may follow it. XSD caps the
+/// offset at fourteen hours and allows no minutes on the fourteenth. Mirrors
+/// `parseTzEnd` and `parseOffset`.
+fn parse_tz_end(cs: &[char]) -> bool {
+    match cs.split_first() {
+        None => true,
+        Some(('Z', rest)) => rest.is_empty(),
+        Some(('+' | '-', rest)) => match two_digits(rest) {
+            Some((hour, rest)) => match colon_two_digits(rest) {
+                Some((minute, rest)) => {
+                    rest.is_empty() && hour <= 14 && minute <= 59 && !(hour == 14 && minute != 0)
+                }
+                None => false,
+            },
+            None => false,
+        },
+        _ => false,
+    }
+}
+
+/// Does `term`, a row the calendar pre-filter returned, actually violate
+/// `sh:datatype <datatype>`?
+///
+/// The SPARQL filter that produced the row is an OVER-approximation for the
+/// calendar datatypes: it returns a value whose datatype is wrong, a value that
+/// is not a literal at all, and any literal of the right datatype whose form
+/// `CERTAIN_DATE` could not vouch for, which includes every well-formed
+/// 29 February. Only the last of those needs deciding here, and the other two
+/// are violations exactly as they always were.
+fn calendar_violation(term: &str, datatype: &str, with_time: bool) -> bool {
+    let Ok(Term::Literal(lit)) = term.trim().parse::<Term>() else {
+        return true;
+    };
+    if lit.datatype().as_str() != datatype {
+        return true;
+    }
+    xsd_temporal_lex(lit.value(), with_time) == TemporalLex::IllFormed
 }
 
 /// `<http://www.w3.org/ns/shacl#class>` -> `class`, for the node-level rows.
