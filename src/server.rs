@@ -33,6 +33,11 @@ pub struct OpenOntologiesServer {
     /// Empty when none are configured. Used by `onto_repo_list` /
     /// `onto_repo_load`.
     ontology_dirs: Arc<Vec<std::path::PathBuf>>,
+    /// What the operator's filter did to this server's surface, so `onto_status`
+    /// can name the profile in force and the count it withheld. A user hunting a
+    /// tool that is not advertised has to be able to read the reason out of the
+    /// server rather than infer it from the deployment.
+    tool_surface: Arc<crate::toolfilter::ToolSurface>,
     #[cfg(feature = "embeddings")]
     vecstore: Arc<std::sync::Mutex<crate::vecstore::VecStore>>,
     #[cfg(feature = "embeddings")]
@@ -136,6 +141,7 @@ impl OpenOntologiesServer {
         // behind a Cargo feature whose absence turns every call into
         // "Compiled without X feature". See `toolfilter::FEATURE_GATED_TOOLS`.
         let mut tool_router = Self::tool_router();
+        let compiled_in = tool_router.list_all().len();
         let unavailable = crate::toolfilter::remove_unavailable(&mut tool_router);
         if !unavailable.is_empty() {
             tracing::info!(
@@ -149,10 +155,26 @@ impl OpenOntologiesServer {
             );
         }
 
+        // Counted after the feature gate and before the operator's filter, so
+        // `withheld_by_filter` is about the filter and nothing else.
+        let servable = tool_router.list_all().len();
+
         // Apply tool filter by removing routes from the router.
         let removed = tool_filter.apply(&mut tool_router);
+        let tool_surface = Arc::new(tool_filter.describe(
+            compiled_in,
+            servable,
+            servable.saturating_sub(removed.len()),
+        ));
         if !removed.is_empty() {
-            tracing::info!("tool filter removed {} tools: {:?}", removed.len(), removed);
+            tracing::info!(
+                "tool profile {:?}: advertising {} of {} servable tools, {} withheld: {:?}",
+                tool_surface.profile,
+                tool_surface.exposed,
+                tool_surface.servable_in_this_build,
+                tool_surface.withheld_by_filter,
+                removed
+            );
         }
 
         #[cfg(feature = "embeddings")]
@@ -200,6 +222,7 @@ impl OpenOntologiesServer {
             governance_webhook,
             registry,
             ontology_dirs: Arc::new(ontology_dirs),
+            tool_surface,
             #[cfg(feature = "embeddings")]
             vecstore,
             #[cfg(feature = "embeddings")]
@@ -210,6 +233,27 @@ impl OpenOntologiesServer {
     /// Return the list of all registered tool definitions.
     pub fn list_tool_definitions(&self) -> Vec<Tool> {
         self.tool_router.list_all()
+    }
+
+    /// The body of `onto_status`, callable without going through MCP.
+    ///
+    /// `onto_status` is a private `#[tool]` method, so a test that wants to
+    /// assert on what a client is TOLD would otherwise assert on the fields one
+    /// by one and could pass while the JSON said something else.
+    pub fn status_json(&self) -> String {
+        serde_json::json!({
+            "status": "ok",
+            "version": env!("CARGO_PKG_VERSION"),
+            "tools": self.tool_router.list_all().len(),
+            "triples_loaded": self.graph.triple_count(),
+            // Always present and always naming the profile, even under `full`.
+            // Reporting it only when something was withheld would mean the
+            // absence of the field had to be read as "nothing was withheld",
+            // and a field that must be read by its absence gets missed.
+            "tool_surface": &*self.tool_surface,
+            "tool_profiles_available": crate::toolfilter::profiles(),
+        })
+        .to_string()
     }
 
     /// Access the ontology registry (for tests and the HTTP server eviction loop).
@@ -237,17 +281,9 @@ impl OpenOntologiesServer {
 
     // ── Status ──────────────────────────────────────────────────────────────
 
-    #[tool(name = "onto_status", description = "Returns health status of the Open Ontologies server")]
+    #[tool(name = "onto_status", description = "Returns health status of the Open Ontologies server, including which tool profile is in force and how many tools it withheld. If a tool you expected is missing from tools/list, `tool_surface` is where the reason is: the operator can re-run with `--tool-profile full` (the default) or name the profile that carries it.")]
     fn onto_status(&self) -> String {
-        let tool_count = self.tool_router.list_all().len();
-        let triple_count = self.graph.triple_count();
-        serde_json::json!({
-            "status": "ok",
-            "version": env!("CARGO_PKG_VERSION"),
-            "tools": tool_count,
-            "triples_loaded": triple_count,
-        })
-        .to_string()
+        self.status_json()
     }
 
     // ── Ontology ────────────────────────────────────────────────────────────
@@ -3369,11 +3405,24 @@ impl ServerHandler for OpenOntologiesServer {
                     .join(", ")
             )
         };
+        // Telling a client it has every tool while advertising one profile's
+        // worth is a false claim to the one reader that cannot check.
+        let s = &*self.tool_surface;
+        let profile_tail = if s.withheld_by_filter > 0 {
+            format!(
+                " This server is running the \"{}\" tool profile, so {} of the {} tools this \
+                 build can serve are NOT advertised. Call onto_status for the profile and the \
+                 counts; the operator can select another profile or \"full\".",
+                s.profile, s.withheld_by_filter, s.servable_in_this_build
+            )
+        } else {
+            String::new()
+        };
         ServerInfo::new(ServerCapabilities::builder().enable_tools().enable_prompts().build())
             .with_instructions(format!(
                 "Open Ontologies: AI-native ontology engine, an RDF/OWL/SPARQL MCP server with \
                  {advertised} tools and 6 workflow prompts for ontology engineering, validation, \
-                 comparison, alignment, data ingestion, and exploration.{tail}"
+                 comparison, alignment, data ingestion, and exploration.{tail}{profile_tail}"
             ))
     }
 }

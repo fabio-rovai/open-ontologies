@@ -127,6 +127,7 @@ fn allow_filter_with_read_only_group() {
         mode: Mode::Allow,
         list: vec![],
         groups: vec!["read_only".to_string()],
+        profile: None,
     };
     let (_tmp, server) = build_server(filter);
     let names = tool_names(&server);
@@ -144,6 +145,7 @@ fn deny_filter_with_governance_group() {
         mode: Mode::Deny,
         list: vec![],
         groups: vec!["governance".to_string()],
+        profile: None,
     };
     let (_tmp, server) = build_server(filter);
     let names = tool_names(&server);
