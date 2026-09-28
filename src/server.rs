@@ -1769,6 +1769,42 @@ impl OpenOntologiesServer {
         }
     }
 
+    #[tool(name = "onto_trace_label", description = "Label each step of a reasoning trace against the rule table, with a machine-checked verdict per step rather than a model's opinion. Supply the trace as oo-trace/1: one step per line, `rule TAB conclusion TAB premise*`, each triple three tab-separated N-Triples terms. That is the same line a derivations.tsv from onto_reason carries, so a certificate this engine wrote is itself a valid trace. THREE FAMILIES AND THE THIRD IS THE PRODUCT. `entailed`: a Lean checker accepted a certificate slice of the run that concludes the triple, so it is true in every model of the store (OOCert.certificate_sound). `not_entailed`: some rule head in the table could conclude a triple of this shape, every axiom the step cites is inside the Horn fragment, and the graph still does not support it. `outside_the_fragment`: no rule in this table could EVER derive it, and the two reasons are never merged, exactly as onto_dlp_boundary never merges them. `outside_the_fragment` means an axiom the step cites is one the Horn fragment cannot express (a disjunction in the consequent, an existential in the head, a cardinality restriction, a negation in the antecedent) and only a rewrite of the ontology helps; `no_rule_in_this_table_concludes_this_shape` means no head in the table unifies with the conclusion, decided from the table alone with no reference to any data, and a different engine would see it. TWO ANSWERS PER STEP, NEVER MERGED. `local` is a one-line certificate over the step's OWN cited premises, so a step whose reasoning is valid over triples the graph does not hold reads local=locally_sound_checked with premises_in_store=false and label=locally_sound_but_premises_not_in_the_store. That is a step reasoning from premises it invented and it is half of what a per-step labeller is for. A THIRD FIELD: `rule_claim` says whether the cited rule is what licenses the step. rule_not_in_table is reported and the step is still labelled on its conclusion, because saying not_entailed for a mistyped rule name would be a false statement about the ontology, and because an unknown rule name makes the Lean parser exit 2 (unreadable) rather than 1 (rejected). With rules_file the table is YOURS and nothing discharges it: every checked step then earns entailed_under_supplied_rules_checked under OOCert.horn_certificate_sound, true in every model of the store THAT ALSO SATISFIES your rules, the family word carries the same qualification, and the report carries rules_tsv_sha256 and conditional_on. That word is read off the theorem name the checker printed and is not chosen here, so it cannot be shortened. `not_entailed` is bounded by a table implementing 29 of OWL 2 RL's 78 rules and RDF entailment is open-world, so it is never 'false'. Every label writes a labels.jsonl record naming the exact command that reproduces it.")]
+    async fn onto_trace_label(&self, Parameters(input): Parameters<OntoTraceLabelInput>) -> String {
+        use crate::trace_label as tl;
+        if input.trace_tsv.is_some() == input.trace_file.is_some() {
+            return Self::err_json(
+                "pass exactly one of trace_tsv and trace_file. A trace inline and a trace on disk \
+                 are the same format, and reading both would leave which one was labelled up to \
+                 this code rather than to you",
+            );
+        }
+        let text = match (&input.trace_tsv, &input.trace_file) {
+            (Some(t), _) => t.clone(),
+            (_, Some(p)) => match std::fs::read_to_string(p) {
+                Ok(t) => t,
+                Err(e) => return Self::err_json(format!("cannot read {p}: {e}")),
+            },
+            _ => unreachable!("the exclusivity check above covers both-absent"),
+        };
+        let steps = match tl::parse_trace(&text) {
+            Ok(s) => s,
+            Err(e) => return Self::err_json(e.to_string()),
+        };
+        let opts = tl::Opts {
+            profile: input.profile.unwrap_or_else(|| "owl-rl".to_string()),
+            rules: input.rules_file.map(std::path::PathBuf::from),
+            work_dir: std::path::PathBuf::from(&input.out_dir),
+            checker: None,
+            require_checker: input.require_checker.unwrap_or(false),
+        };
+        match tl::label_trace(&self.graph, &steps, &opts) {
+            Ok(r) => serde_json::to_string(&r)
+                .unwrap_or_else(|e| Self::err_json(format!("serialization: {}", e))),
+            Err(e) => Self::err_json(e),
+        }
+    }
+
     #[tool(name = "onto_module_extract", description = "A MODULE over a signature, not a slice: the smallest subset of the axioms syntactic locality can justify, such that every entailment of the WHOLE ontology over those IRIs is still an entailment of the subset. Where onto_segment_retrieve retrieves a neighbourhood and onto_closure_diff then MEASURES what it lost, this cannot lose anything over the signature, and the difference is a theorem rather than a metric: Cuenca Grau, Horrocks, Kazakov and Sattler, JAIR 31 (2008), for ⊥-locality, ⊤-locality and the iterated ⊥⊤*. THAT THEOREM IS CITED, NOT MACHINE-CHECKED: nothing under lean/ is about locality, so this names a paper and never names a Lean theorem — pass verify_out_dir to have the consequence measured instead, which reasons the ontology and the module to a fixpoint and reports every conclusion over the signature the module does not reach (which must be none). THE GUARANTEE COVERS these axiom types, each with a locality test written for it: SubClassOf, EquivalentClasses, DisjointClasses, DisjointUnion, SubPropertyOf, property chains, EquivalentProperties, DisjointProperties, domain, range, InverseProperties, the seven property characteristics (transitive, symmetric, asymmetric, reflexive, irreflexive, functional, inverse-functional), HasKey, class assertions, property assertions, negative property assertions, declarations and annotations, over class expressions built from intersection, union, complement, oneOf, someValuesFrom, allValuesFrom, hasValue, hasSelf and the six cardinality forms. INCLUDED CONSERVATIVELY, with no locality test, because no replacement can make them tautologies: owl:sameAs, owl:differentFrom, owl:AllDifferent, every unrecognised predicate in the RDF/RDFS/OWL/XSD namespaces, every blank-node structure whose shape is not one of the above, and every malformed rdf:List. Those are COUNTED AND NAMED in the report, so a module that is small and a module that was unreadable cannot look the same. Datatypes are never treated as class names, because replacing xsd:integer by ⊥ would make ∃hasAge.xsd:integer look local and drop the axiom. TWO PLACES WHERE OWL 2 AND THIS ENGINE'S RULE TABLE DISAGREE, both resolved towards the rule table: a declaration (X rdf:type owl:Class) is logically vacuous in OWL 2 and is a PREMISE of OWL 2 RL's scm-cls, and X rdf:type owl:Thing is a tautology in OWL 2 that the rule table does not regenerate, so both are kept whenever the term is in the signature. Annotation assertions (rdfs:label, rdfs:comment and the rest) are NOT in the logical module; the vacuity is checked rather than assumed, so an annotation predicate the ontology gives a domain, range, superproperty or equivalent is kept as a property assertion instead, and annotation_predicates_treated_as_vacuous lists what was dropped. Pass include_annotations to carry the labels along for reading; the logical module is the same either way.")]
     async fn onto_module_extract(&self, Parameters(input): Parameters<OntoModuleExtractInput>) -> String {
         use crate::module_extract as me;

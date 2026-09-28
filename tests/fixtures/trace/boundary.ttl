@@ -1,0 +1,31 @@
+# Fixture for tests/trace_label_test.rs.
+#
+# Four things, and each one is there for one label.
+#
+#  * `:B rdfs:subClassOf :C` with `:a a :B`. The rule table sees both, so
+#    `rdfs9` derives `:a a :C` and a step claiming it is entailed.
+#  * `:D` is absent on purpose, so a step concluding `:a a :D` is a bogus step
+#    with every cited axiom inside the fragment.
+#  * `:Adult rdfs:subClassOf [ owl:unionOf ( :Man :Woman ) ]`, the textbook
+#    non-Horn axiom. tests/dlp_boundary_test.rs already establishes that
+#    src/dlp.rs reports it outside the fragment, with the reason
+#    "disjunction in the consequent".
+#  * `:p1 :parent :p2`, which the supplied Horn table in supplied_rules.tsv
+#    reads. Kept here rather than in a second file so both halves of the suite
+#    label steps over one ontology.
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix :     <http://e/> .
+
+:B a owl:Class .
+:C a owl:Class .
+:B rdfs:subClassOf :C .
+:a a :B .
+
+:Adult a owl:Class ; rdfs:subClassOf [ owl:unionOf ( :Man :Woman ) ] .
+:Man a owl:Class .
+:Woman a owl:Class .
+:s a :Adult .
+
+:p1 :parent :p2 .

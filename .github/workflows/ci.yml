@@ -550,6 +550,17 @@ jobs:
         # fact, and it is the reason this job exists rather than being folded
         # into the line above.
         run: OO_REQUIRE_FIXTURES=1 cargo test --test lean_horn_certificate_test -- --nocapture
+      - name: Label a reasoning trace step by step, and check a user rule cannot earn the absolute word there either
+        # The per-step form of the leg above. Every label a step can carry comes
+        # out of an exit code this job's binaries produced, so without them the
+        # file skips and reports `ok`, which is exactly what
+        # OO_REQUIRE_FIXTURES=1 is here to stop. Two of its gates are the ones
+        # this job exists for: a step licensed by a rule the user wrote reaches
+        # `entailed_under_supplied_rules_checked` and nothing stronger, asserted
+        # over the SERIALISED report; and a step whose own reasoning is sound
+        # over premises the store does not hold is reported as exactly that
+        # rather than as entailed.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test trace_label_test -- --nocapture
       - name: Run the README's own example and check it says what the README says
         # Issue #162. "Try the checker itself" prints three commands and the
         # JSON each returned, and until now nothing re-ran them, so the page

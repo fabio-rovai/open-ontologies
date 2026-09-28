@@ -39,6 +39,7 @@ pub mod flora_pipeline;
 pub mod pack;
 pub mod support;
 pub mod temporal;
+pub mod trace_label;
 pub mod policy;
 /// Certified verdicts that cannot be spelled without the evidence. Every
 /// module that prints a verdict word takes its vocabulary from here.

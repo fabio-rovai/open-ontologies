@@ -1269,6 +1269,34 @@ pub struct GraphProjectionEntailmentCheckInput {
     pub require_checker: Option<bool>,
 }
 
+/// Input for `onto_trace_label`. The per-step form: the caller supplies a trace
+/// that CLAIMS inference steps and each step is labelled against the rule table.
+#[derive(Deserialize, JsonSchema)]
+pub struct OntoTraceLabelInput {
+    /// The trace as `oo-trace/1` text. Exactly one of this and `trace_file`.
+    #[serde(default)]
+    pub trace_tsv: Option<String>,
+    /// A file holding the trace. A `derivations.tsv` written by `onto_reason`
+    /// with a certificate directory is a valid input.
+    #[serde(default)]
+    pub trace_file: Option<String>,
+    /// `rdfs`, `owl-rl` or `owl-rl-ext`. `owl-dl` is refused: the tableaux path
+    /// records no rule applications, so there is nothing to label a step
+    /// against.
+    #[serde(default)]
+    pub profile: Option<String>,
+    /// A supplied Horn table. Every checked step then earns
+    /// `entailed_under_supplied_rules_checked` and nothing stronger.
+    #[serde(default)]
+    pub rules_file: Option<String>,
+    /// Where the certificates and `labels.jsonl` land.
+    pub out_dir: String,
+    /// Turn an absent Lean checker into an error instead of an honest unchecked
+    /// label.
+    #[serde(default)]
+    pub require_checker: Option<bool>,
+}
+
 /// Input for `onto_closure_diff` — entailment preservation under projection,
 /// with no goals supplied.
 #[derive(Deserialize, JsonSchema)]

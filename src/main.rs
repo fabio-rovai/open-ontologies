@@ -771,6 +771,38 @@ enum Commands {
         #[arg(long)]
         seed: Vec<String>,
     },
+
+    /// Label each step of a reasoning trace against the rule table
+    ///
+    /// Three answers per step and the third is the one to read: `entailed`,
+    /// `not_entailed`, and `outside_the_fragment`, which says the rule table
+    /// could never have produced that conclusion however much data arrived. A
+    /// trace over a SUPPLIED rule table can only ever earn
+    /// `entailed_under_supplied_rules_checked`, and the report carries the
+    /// digest of the table that was in force. Exits 1 when any step is not
+    /// entailed, 2 when a certificate was rejected.
+    TraceLabel {
+        /// The trace, in `oo-trace/1`: one step per line, `rule TAB conclusion
+        /// TAB premise*`, each triple three tab-separated N-Triples terms. A
+        /// `derivations.tsv` from `reason --certificate` is a valid trace.
+        #[arg(long)]
+        trace: String,
+        #[arg(long, default_value = "owl-rl")]
+        profile: String,
+        /// A supplied Horn table in the `rules.tsv` format `oo-horn` reads.
+        #[arg(long)]
+        rules: Option<String>,
+        /// Where the run certificate, the per-step certificates and
+        /// `labels.jsonl` land. Every file stays, so a label is reproducible.
+        #[arg(long)]
+        out: String,
+        #[arg(long)]
+        checker: Option<String>,
+        /// Turn an absent Lean checker into an error instead of an honest
+        /// `entailed_unchecked` label.
+        #[arg(long, default_value_t = false)]
+        require_checker: bool,
+    },
     /// Full pipeline: ingest → SHACL → reason
     Extend {
         data_path: String,
@@ -1179,6 +1211,35 @@ impl Commands {
                     a.push(absolutize(c));
                 }
                 cmd("closure-diff", a)
+            }
+            Commands::TraceLabel {
+                trace,
+                profile,
+                rules,
+                out,
+                checker,
+                require_checker,
+            } => {
+                let mut a = vec![
+                    "--trace".into(),
+                    absolutize(trace),
+                    "--profile".into(),
+                    profile.clone(),
+                    "--out".into(),
+                    absolutize(out),
+                ];
+                if let Some(r) = rules {
+                    a.push("--rules".into());
+                    a.push(absolutize(r));
+                }
+                if let Some(c) = checker {
+                    a.push("--checker".into());
+                    a.push(absolutize(c));
+                }
+                if *require_checker {
+                    a.push("--require-checker".into());
+                }
+                cmd("trace-label", a)
             }
             Commands::Shacl {
                 shapes,
@@ -3215,9 +3276,9 @@ async fn async_main() -> anyhow::Result<()> {
             output_result_checked(&result, cli.pretty);
         }
 
-        Commands::Preserve { .. } | Commands::ClosureDiff { .. } => {
-            // Both need a loaded source and are reached through `batch` in the
-            // normal case, exactly as `reason --certificate` is: the store is
+        Commands::Preserve { .. } | Commands::ClosureDiff { .. } | Commands::TraceLabel { .. } => {
+            // All three need a loaded source and are reached through `batch` in
+            // the normal case, exactly as `reason --certificate` is: the store is
             // in-memory per process. Running them locally still works against
             // whatever the configured store holds, and says so when it is
             // empty rather than reporting a perfect run over nothing.

@@ -74,7 +74,7 @@ it withheld.
 ## Every tool
 
 
-121 tools.
+122 tools.
 
 | Tool | What it does |
 | --- | --- |
@@ -192,6 +192,7 @@ it withheld.
 | `onto_temporal_conflicts` | Disjointness violations that claim OVERLAPPING validity, separated from those that do not. |
 | `onto_temporal_query` | Run a SPARQL graph pattern against only the graphs in temporal scope: what the graph said at a given valid time, as known at a given recorded time. |
 | `onto_temporal_snapshot` | Which named graphs are in scope at a point in time, and which are excluded and why. |
+| `onto_trace_label` | Label each step of a reasoning trace against the rule table, with a machine-checked verdict per step: entailed, not_entailed, or outside_the_fragment, plus the local answer over the premises the step itself cited. |
 | `onto_unload` | Unload an ontology from memory. |
 | `onto_unpack` | Load a pack written by onto_pack, refusing it if the checksum does not match. |
 | `onto_validate` | Validate RDF/OWL syntax. |

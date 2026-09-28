@@ -1125,6 +1125,38 @@ impl DlpBoundary {
         Ok(serde_json::to_string(&report)?)
     }
 
+    /// Where the NAMED triples stand against the fragment, with the whole store
+    /// as context.
+    ///
+    /// [`check`](Self::check) classifies every triple and folds the result into
+    /// a report. [`crate::trace_label`] needs the classification of the handful
+    /// of triples one reasoning step cited, unfolded, so that a step can be
+    /// labelled `outside_the_fragment` carrying this classifier's own
+    /// `outside_because` rows rather than a second opinion written beside it.
+    /// Two classifiers would be two answers to one question, and
+    /// `an_unimplemented_rule_is_not_reported_as_outside_the_fragment` guards
+    /// only one of them.
+    ///
+    /// The whole store is indexed, not just `of`: the classifier resolves
+    /// restriction nodes and list chains by lookup, so a triple classified
+    /// against an index of itself alone would come back `inside` for want of
+    /// the nodes that put it outside.
+    ///
+    /// `None` at a position whose triple is not an axiom this classifier
+    /// recognises, which is the same silence `check` counts under
+    /// `not_classified`. The store is read and indexed ONCE, so a caller with
+    /// many steps passes every premise of every step in one call rather than
+    /// paying O(store) per step.
+    pub fn standing_of(
+        graph: &Arc<GraphStore>,
+        of: &[(String, String, String)],
+    ) -> anyhow::Result<Vec<Option<Classified>>> {
+        let triples = graph.all_triples()?;
+        let index = TripleIndex::new(&triples);
+        let cl = Classifier { index: &index };
+        Ok(of.iter().map(|(s, p, o)| Self::axiom(&cl, s, p, o)).collect())
+    }
+
     /// The axiom a triple states, classified, or `None` when the triple is not
     /// a schema axiom this tool reads.
     fn axiom(cl: &Classifier, s: &str, p: &str, o: &str) -> Option<Classified> {
