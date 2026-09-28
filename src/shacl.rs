@@ -3097,7 +3097,20 @@ fn ill_typed_test(datatype: &str, var: &str) -> Option<String> {
         "dateTime" => "^-?[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?$",
         _ => return None,
     };
-    Some(format!("(DATATYPE(?{var}) = <{datatype}> && !REGEX(STR(?{var}), \"{re}\"))"))
+    // The regex goes inside a SPARQL string literal, where the only legal
+    // escapes are \t \b \n \r \f \" \' and \\. Every one of these patterns
+    // carries `\.` to mean a literal dot, and `\.` is not on that list, so
+    // embedding it raw makes the whole query unparseable. The `pattern`
+    // branch above has always doubled its backslashes for this reason; this
+    // helper never did, and nothing caught it because the two datatypes whose
+    // regex has no backslash at all, integer and boolean, are the ones the
+    // tests reached. Measured: an induced shape over a sheet with a decimal
+    // column produced `error at 4:198: expected ['t' | 'b' | 'n' | 'r' | 'f'
+    // | '"' | '\'' | '\\']` and the validator returned Err, so a shapes graph
+    // that named a decimal, double, float or dateTime could not be evaluated
+    // at all.
+    let escaped = re.replace('\\', "\\\\");
+    Some(format!("(DATATYPE(?{var}) = <{datatype}> && !REGEX(STR(?{var}), \"{escaped}\"))"))
 }
 
 /// `<http://www.w3.org/ns/shacl#class>` -> `class`, for the node-level rows.

@@ -758,3 +758,76 @@ fn a_datatype_the_store_cannot_preserve_yields_no_verdict_rather_than_a_pass() {
          an undetermined verdict passes through it is stale and decision 0018 must be amended"
     );
 }
+
+// ---------------------------------------------------------------------------
+// A regression the E2 fix exposed, and which was latent on main before it.
+//
+// `ill_typed_test` builds a SPARQL fragment `!REGEX(STR(?v), "<pattern>")`, and
+// the pattern goes inside a SPARQL string literal. The only escapes legal there
+// are \t \b \n \r \f \" \' and \\. Four of the six patterns carry `\.` to mean a
+// literal dot, which is not on that list, so embedding one raw makes the whole
+// query unparseable and the validator returns Err rather than a verdict.
+//
+// Nothing caught it because the two datatypes whose regex contains no backslash
+// at all, integer and boolean, are the ones every existing fixture reached. The
+// node-shape path has spliced this fragment in since it was written, so main
+// carries the same defect; giving the property path the same splice is what
+// made it reachable from an induced shape and turned it red.
+// ---------------------------------------------------------------------------
+
+/// `xsd:decimal`, whose lexical-space regex contains `\.` twice.
+const BACKSLASH_DATA: &str = r#"
+ex:receipt ex:total "12.50"^^xsd:decimal ; ex:when "2026-01-02T03:04:05"^^xsd:dateTime .
+"#;
+
+const BACKSLASH_PROPERTY_SHAPES: &str = r#"
+ex:ReceiptShape a sh:NodeShape ;
+  sh:targetNode ex:receipt ;
+  sh:property [ sh:path ex:total ; sh:datatype xsd:decimal ] ;
+  sh:property [ sh:path ex:when  ; sh:datatype xsd:dateTime ] .
+"#;
+
+const BACKSLASH_NODE_SHAPES: &str = r#"
+ex:TotalShape a sh:NodeShape ;
+  sh:targetObjectsOf ex:total ;
+  sh:datatype xsd:decimal .
+"#;
+
+#[test]
+fn a_datatype_whose_regex_contains_a_backslash_still_produces_a_verdict() {
+    let store = loaded(&format!("{PREFIXES}{BACKSLASH_DATA}"));
+
+    // The bug was not a wrong answer, it was NO answer: the query failed to
+    // parse and `validate` returned Err, so `report` panicked before any
+    // assertion about conformance could run. Both paths are checked because
+    // the node path carried this latently and the property path is what
+    // exposed it.
+    let property_path = report(&store, &format!("{PREFIXES}{BACKSLASH_PROPERTY_SHAPES}"));
+    let node_path = report(&store, &format!("{PREFIXES}{BACKSLASH_NODE_SHAPES}"));
+
+    // These values are well typed, so the honest verdict is that they conform.
+    assert_eq!(
+        property_path["conforms"],
+        serde_json::json!(true),
+        "a well-typed decimal and dateTime conform through sh:property: {property_path}"
+    );
+    assert_eq!(
+        node_path["conforms"],
+        serde_json::json!(true),
+        "and through a node shape: {node_path}"
+    );
+
+    // And the constraint is genuinely being evaluated rather than skipped,
+    // which is the failure mode that would make the assertions above vacuous:
+    // an ill-typed decimal through the same shape must be caught.
+    let ill = loaded(&format!(
+        "{PREFIXES}\nex:receipt ex:total \"twelve fifty\"^^xsd:decimal .\n"
+    ));
+    let caught = report(&ill, &format!("{PREFIXES}{BACKSLASH_PROPERTY_SHAPES}"));
+    assert_eq!(
+        caught["conforms"],
+        serde_json::json!(false),
+        "a decimal outside its lexical space is still a violation, so the regex ran \
+         rather than being quietly dropped: {caught}"
+    );
+}
