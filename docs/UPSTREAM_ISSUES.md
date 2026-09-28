@@ -116,3 +116,71 @@ up here rather than attempted blind.
 `sh:datatype` constraint naming one of these as unevaluated rather than answering
 it wrongly. `tests/datatype_preservation_test.rs` pins the exact affected set and
 fails in both directions, so the workaround is removed when this is fixed.
+
+---
+
+## 2. A request that arrives before `initialize` ends the server without a reply
+
+**Repository:** `modelcontextprotocol/rust-sdk` (`rmcp`) · **Versions:** 1.4.0 and
+1.8.0, both measured · **Severity: high.** A conformant-enough client that opens
+with any request other than `initialize` cannot use an rmcp server at all, and
+the failure carries no diagnostic to the client because nothing is written back.
+
+### Reproduction
+
+Feed a server built with `serve(stdio())` two lines, in this order:
+
+```json
+{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{}}
+{"jsonrpc":"2.0","id":2,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"probe","version":"0"}}}
+```
+
+Observed: the process exits non-zero with `ExpectedInitializeRequest` and writes
+**zero bytes** to stdout. The client sees the stream close while it waits on its
+own `initialize` and reports EOF.
+
+Reverse the two lines and everything works: the same `server/discover` is
+answered `-32601` by the default `on_custom_request` and the handshake completes.
+**Arrival order is the whole difference between a routine error reply and a dead
+process.**
+
+### Where it happens
+
+`src/service/server.rs`. The handshake loop reads messages itself until it sees
+`initialize`, answers a pre-initialize `ping`, and turns everything else away
+(1.4.0 at :191 and :200; 1.8.0 at :212 and :221). `serve` then returns the error
+and the caller's `?` ends the process.
+
+Measured on both versions in the local registry: unguarded, both reject the
+sequence above; wrapped in a transport that answers the early request, both
+complete the handshake. **The version bump is not the fix it looks like.**
+
+### Why we think this is a defect and not strictness
+
+JSON-RPC 2.0 obliges a server to respond to every request carrying an `id`.
+Exiting without a reply is itself a protocol violation, so the current behaviour
+is the *less* conformant of the two available ones, not the stricter. MCP's
+lifecycle says a client SHOULD NOT send non-ping requests before the initialize
+response, and SHOULD NOT is not MUST NOT.
+
+rmcp already reasons this way one screen further down: the comment at 1.4.0
+`src/service/server.rs:250-256` explains why a message arriving before the
+`initialized` notification is processed rather than rejected. The suggestion here
+is to apply that same rule one message earlier, replying with a JSON-RPC error
+instead of ending the connection.
+
+### It is not hypothetical
+
+Reported against us in fabio-rovai/open-ontologies#260 by a user whose client
+opens with `server/discover`. The same reporter notes the current release of
+Goose triggers it as well, so this reaches an MCP client with a real user base
+and would affect every rmcp-based server equally.
+
+### Our workaround
+
+`src/mcp_handshake.rs` wraps the stdio transport and answers a pre-initialize
+request with a JSON-RPC error, `-32601` for an unknown method so the reply
+matches what the post-handshake path already returns and `-32600` for a known
+MCP method sent out of order, then becomes transparent. A pre-initialize
+notification is dropped. `tests/mcp_handshake_guard_test.rs` pins it and fails
+in both directions. The wrapper is removed if upstream takes this.
