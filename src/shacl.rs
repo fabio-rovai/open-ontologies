@@ -176,6 +176,33 @@ impl ShaclValidator {
         }
         let mut unmatched: Vec<serde_json::Value> = Vec::new();
         let mut focus_nodes_total: u64 = 0;
+        // One row per TARGET DECLARATION, carrying the number
+        // `count_focus_nodes` returned for it. The number was already computed
+        // and only the report threw it away: `focus_nodes_total` is a sum, and
+        // a sum cannot be un-added.
+        //
+        // That matters because `conforms` is decided from the sum. A shapes
+        // graph whose load-bearing shape selects nothing gets a `true` verdict
+        // as soon as any other shape selects one node, since `nothing_matched`
+        // compares the TOTAL against zero. `unmatched_shapes` names the empty
+        // shape, so the evidence was already in the report, but a reader had
+        // to know to go and look for a key that is empty on every ordinary
+        // run. This gives every target its own number, so "which shapes
+        // actually ran" is answered by reading one field rather than by
+        // inferring it from the absence of another. Fixture A1 in
+        // `tests/adversarial_shacl_test.rs` is the attack it makes visible.
+        //
+        // Per TARGET and not per SHAPE, deliberately. A shape carrying two
+        // target declarations is walked twice by the loop below, and these
+        // rows are what the loop did. Adding them up per shape would produce a
+        // number that is not a count of distinct focus nodes, for exactly the
+        // reason `focus_nodes` is documented as inflatable further down.
+        //
+        // The verdict is NOT computed from this. `conforms` keeps SHACL's
+        // meaning, and a gate that wants to refuse a vacuous load-bearing
+        // shape needs a word of its own rather than a second writer on that
+        // field. See decision 0018.
+        let mut focus_by_target: Vec<serde_json::Value> = Vec::new();
 
         // A constraint asserted on the node shape itself (`sh:closed`, a
         // node-level `sh:not`, `sh:nodeKind`, `sh:and`, `sh:or`, `sh:xone`,
@@ -348,6 +375,12 @@ impl ShaclValidator {
             // its nodes and found them sound.
             let focus_count = count_focus_nodes(graph, scope, &focus_pattern)?;
             focus_nodes_total += focus_count;
+            focus_by_target.push(serde_json::json!({
+                "shape": strip_angle_brackets(shape_term),
+                "target_form": kind,
+                "target": strip_angle_brackets(target_value),
+                "focus_nodes": focus_count,
+            }));
             if focus_count == 0 {
                 let mut entry = serde_json::json!({
                     "shape": strip_angle_brackets(shape_term),
@@ -1351,11 +1384,33 @@ impl ShaclValidator {
                         }));
                         continue;
                     }
+                    // One evaluator gave two answers to one constraint. SHACL
+                    // 4.1.2 makes a literal whose lexical form is outside its
+                    // datatype's lexical space a violation, `DATATYPE()` alone
+                    // cannot see that, and `ill_typed_test` is the helper that
+                    // can. The node-shape path above has spliced it in since it
+                    // was written; this path never did. Measured over one
+                    // store: `"aldi"^^xsd:integer` and `"31/02/2026"^^xsd:date`
+                    // each reported one violation through a node shape and
+                    // `conforms: true` through `sh:property`, so which answer a
+                    // shapes graph got was decided by where its author wrote
+                    // the constraint.
+                    //
+                    // This closes the divergence and NOT the wider gap.
+                    // `ill_typed_test` tests a REGEX, and the date regex is
+                    // syntactic: `"2026-02-31"^^xsd:date` matches it, so a day
+                    // that does not exist still conforms on both paths. The
+                    // verified evaluator in `lean/Shacl/Term.lean` checks the
+                    // day against `daysInMonth` and reports it, so Lean and
+                    // Rust disagree there. See decision 0018.
+                    let ill = ill_typed_test(&dt, "val")
+                        .map(|t| format!(" || {t}"))
+                        .unwrap_or_default();
                     let query = format!(
                         r#"SELECT ?focus ?val WHERE {{
                             {focus_pattern}
                             ?focus {path_expr} ?val .
-                            FILTER(DATATYPE(?val) != <{dt}>)
+                            FILTER(DATATYPE(?val) != <{dt}>{ill})
                         }}"#
                     );
                     let results = graph_sparql_select(graph, scope, &query)?;
@@ -2080,6 +2135,8 @@ impl ShaclValidator {
             "violation_count": violations.len(),
             "violations": violations,
             "focus_nodes": focus_nodes_total,
+            // The sum above, un-summed. See where it is built.
+            "focus_nodes_by_target": focus_by_target,
             "unmatched_shapes": unmatched,
             // A verdict that does not say what it selected over cannot be
             // replayed or compared against the next one. This used to be the
