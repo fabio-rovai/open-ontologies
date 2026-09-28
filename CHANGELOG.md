@@ -4,26 +4,47 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
-### Fixed
+### Added
 
-- **A request sent before `initialize` no longer ends the MCP server** (#260).
-  rmcp's handshake reads messages itself until it sees `initialize`, answers a
-  pre-initialize `ping` and turns away everything else
-  (rmcp-1.4.0/src/service/server.rs:191 and :200), so `serve` returned
-  `ExpectedInitializeRequest`, `main.rs:1867` propagated it with `?`, and the
-  client read the exit as EOF while waiting on its own `initialize`. One line
-  was enough: a client whose first message was
-  `{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{}}` never got
-  as far as the handshake. That same request one message later is answered
-  -32601 by rmcp's default `on_custom_request` and costs nothing, so arrival
-  order was the whole difference between a reply and a dead process. The stdio
-  transport is now wrapped: a pre-initialize request is answered with a
-  JSON-RPC error, -32601 for an unknown method so the reply matches what the
-  post-handshake path already returns and -32600 for a known MCP method sent
-  out of order, and a pre-initialize notification is dropped. Nothing changes
-  after `initialize`. Measured on both rmcp versions in the registry, 1.4.0 and
-  1.8.0: unguarded, both reject the reported byte sequence; guarded, both
-  complete the handshake, so the version bump was not the fix it looked like.
+- **A named profile hands a client one job's worth of the tool surface** (#263).
+  A client aligning two vocabularies has no use for most of what this server
+  registers, and every tool it has no use for is one more chance to call the
+  wrong one. Nine profiles, selected with `--tool-profile`, with
+  `OPEN_ONTOLOGIES_TOOL_PROFILE`, or with `profile` under `[tools]`, in that
+  order of precedence. The profile narrows first and the older allow/deny axis
+  narrows what is left, so neither can widen the other and naming a tool in
+  `--tools-allow` that the profile dropped does not bring it back. The default
+  does not move: no profile means every tool this build can serve. An unknown
+  name refuses to start rather than falling back to the full surface, because
+  publishing the whole catalogue to a deployment that asked for one job's worth
+  of it, silently, because someone mistyped a flag, is worth declining to boot
+  over. Three counters are reported rather than one, since `remove_unavailable`
+  strips feature-gated tools before the operator filter and a single counter
+  would report the Cargo feature set as something the profile withheld:
+  `compiled_in`, `servable_in_this_build` and `exposed`. Coverage is a gate, not
+  a claim: every registered tool must belong to some profile and no profile may
+  name a tool that does not exist, both measured from the router, so the next
+  tool added carries a failing test until its author files it.
+
+- **Each step of a claimed reasoning trace is labelled** (#264). `onto_trace_label`
+  and the `trace-label` verb take a trace in `oo-trace/1`, which is the line a
+  `derivations.tsv` from `onto_reason` already carries, so a certificate this
+  engine wrote is itself a valid trace. Each step is labelled `entailed` when a
+  Lean checker accepted a certificate concluding it, `not_entailed` when a rule
+  head could conclude that shape and the graph still does not support it, or
+  `outside_the_fragment` when no rule in the table could ever derive it. The
+  last two are never merged, exactly as `onto_dlp_boundary` never merges them,
+  because they send a reader to different places. Two answers travel per step
+  and are also never merged: a step whose reasoning is valid over triples the
+  graph does not hold reads `locally_sound_but_premises_not_in_the_store`, which
+  is a step reasoning from premises it invented. A supplied rule table earns
+  `entailed_under_supplied_rules` and the qualification survives into the family
+  word, so a consumer filtering on the family cannot collect conclusions that
+  hold only in models satisfying rules nobody checked. `not_entailed` is bounded
+  by a table implementing 29 of OWL 2 RL's 78 rules over an open world and the
+  report says so, so it never means false.
+
+### Fixed
 
 - **`onto_temporal_conflicts` no longer files a withdrawn assertion as a live
   contradiction partner** (#128). The tool takes no `as_of` and read the
@@ -56,6 +77,29 @@ All notable changes to Open Ontologies are documented here.
   `temporal/2`: a store that writes no `retracts` link answers exactly as it
   did. Found and analysed on #128 by nicolas-geysse, who also framed the four
   decisions this takes.
+
+## [2.0.1] - 2026-09-28
+
+### Fixed
+
+- **A request sent before `initialize` no longer ends the MCP server** (#260).
+  rmcp's handshake reads messages itself until it sees `initialize`, answers a
+  pre-initialize `ping` and turns away everything else
+  (rmcp-1.4.0/src/service/server.rs:191 and :200), so `serve` returned
+  `ExpectedInitializeRequest`, `main.rs:1867` propagated it with `?`, and the
+  client read the exit as EOF while waiting on its own `initialize`. One line
+  was enough: a client whose first message was
+  `{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{}}` never got
+  as far as the handshake. That same request one message later is answered
+  -32601 by rmcp's default `on_custom_request` and costs nothing, so arrival
+  order was the whole difference between a reply and a dead process. The stdio
+  transport is now wrapped: a pre-initialize request is answered with a
+  JSON-RPC error, -32601 for an unknown method so the reply matches what the
+  post-handshake path already returns and -32600 for a known MCP method sent
+  out of order, and a pre-initialize notification is dropped. Nothing changes
+  after `initialize`. Measured on both rmcp versions in the registry, 1.4.0 and
+  1.8.0: unguarded, both reject the reported byte sequence; guarded, both
+  complete the handshake, so the version bump was not the fix it looked like.
 
 ## [2.0.0] - 2026-09-22
 
