@@ -848,6 +848,36 @@ enum Commands {
         #[arg(default_value = "generic")]
         pack: String,
     },
+    /// Load a pack, refusing it if a digest does not match, and re-run the Lean
+    /// checker over the certificate the pack carries.
+    ///
+    /// The four answers this can give are kept apart: the pack carries no
+    /// certificate; the certificate was accepted; it was REFUSED, which stops
+    /// the load; or this build has no checker, so nothing was checked. The last
+    /// one is not a pass.
+    ///
+    /// `pack` stays MCP-only and this does not, on purpose. The receiver is the
+    /// party this exists for, and requiring them to run an MCP client to audit
+    /// a pack would defeat it.
+    Unpack {
+        /// Pack to read
+        path: String,
+        /// Report without loading
+        #[arg(long)]
+        verify_only: bool,
+        /// Skip the checker. Reports `checker_absent_nothing_was_checked`.
+        #[arg(long)]
+        no_check: bool,
+        /// Path to oo-cert or oo-horn
+        #[arg(long)]
+        checker: Option<String>,
+        /// Keep the unpacked certificate here so the check can be repeated
+        #[arg(long)]
+        certificate_out: Option<String>,
+        /// Load the graph even when its certificate was refused
+        #[arg(long)]
+        load_even_if_refused: bool,
+    },
     /// Run active SPARQL watchers
     Monitor,
     /// Clear monitor block state
@@ -3421,6 +3451,27 @@ async fn async_main() -> anyhow::Result<()> {
             let result = enforcer
                 .enforce_with_feedback(&pack, Some(&db))
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            output_result(&result, cli.pretty);
+        }
+        Commands::Unpack {
+            path,
+            verify_only,
+            no_check,
+            checker,
+            certificate_out,
+            load_even_if_refused,
+        } => {
+            let (_db, graph) = setup(&cli.data_dir)?;
+            let opts = open_ontologies::pack::UnpackOptions {
+                verify_only,
+                check_certificate: !no_check,
+                checker: checker.map(std::path::PathBuf::from),
+                certificate_out_dir: certificate_out.map(std::path::PathBuf::from),
+                load_even_if_refused,
+            };
+            let result = open_ontologies::pack::Packer::new(graph)
+                .unpack(&path, &opts)
+                .unwrap_or_else(|e| format!(r#"{{"error":"{e}"}}"#));
             output_result(&result, cli.pretty);
         }
         Commands::Monitor => {

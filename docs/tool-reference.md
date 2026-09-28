@@ -151,7 +151,7 @@ it withheld.
 | `onto_ossie_import` | Compile an Apache Ossie (incubating, formerly Open Semantic Interchange) ontology document into OWL 2 DL + SHACL, and optionally load it into the active store so every other tool here works on it. |
 | `onto_owl_shacl_coevolve_check` | Combined OWL+SHACL validation (#33, K-CAP 2025). |
 | `onto_owl_shacl_coevolve_incremental` | Incremental coevolve check (#33 follow-on, K-CAP 2025). |
-| `onto_pack` | Write the loaded graph and its verification evidence to a portable, versioned pack: sorted N-Triples plus a manifest (name, version, counts, timestamp, sha256, and the lint/enforce results recorded at pack time). |
+| `onto_pack` | Write the loaded graph, its verification evidence and, optionally, its derivation certificate to a portable, versioned pack: sorted N-Triples plus a manifest (name, version, counts, timestamp, sha256, the lint/enforce results recorded at pack time, and a content_sha256 covering the graph AND the certificate together). Pass `certificate_dir` to carry the proof. |
 | `onto_plan` | Terraform-style plan: diff current store against proposed Turtle. |
 | `onto_plan_classical` | Invoke Fast Downward as a subprocess on a precompiled PDDL domain + problem (#50). |
 | `onto_plan_compile_pddl` | Compile a PDDL domain from registered Dynamics action schemas (#43) plus a problem instance from the loaded graph and a goal Turtle slice (#45 Planner stub). |
@@ -194,7 +194,7 @@ it withheld.
 | `onto_temporal_snapshot` | Which named graphs are in scope at a point in time, and which are excluded and why. |
 | `onto_trace_label` | Label each step of a reasoning trace against the rule table, with a machine-checked verdict per step: entailed, not_entailed, or outside_the_fragment, plus the local answer over the premises the step itself cited. |
 | `onto_unload` | Unload an ontology from memory. |
-| `onto_unpack` | Load a pack written by onto_pack, refusing it if the checksum does not match. |
+| `onto_unpack` | Load a pack written by onto_pack, refusing it if either digest does not match, and re-run this machine's Lean checker over the certificate the pack carries. A refused certificate blocks the load; an absent checker reports that nothing was checked, which is not a pass. |
 | `onto_validate` | Validate RDF/OWL syntax. |
 | `onto_validate_clinical` | Validate all class labels in the loaded ontology against clinical crosswalk data. |
 | `onto_verify_cq` | Persist an LLM-supplied (or human-supplied) verdict on a CQ result (#39, ISWC 2025 Lippolis). |

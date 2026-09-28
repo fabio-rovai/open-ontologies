@@ -143,6 +143,7 @@ impl BatchRunner {
             "diff" => self.exec_diff(&cmd.args),
             "convert" => self.exec_convert(&cmd.args),
             "enforce" => self.exec_enforce(&cmd.args),
+            "unpack" => self.exec_unpack(&cmd.args),
             "plan" => self.exec_plan(&cmd.args),
             "apply" => self.exec_apply(&cmd.args),
             "version" => self.exec_version(&cmd.args),
@@ -854,6 +855,38 @@ impl BatchRunner {
         let result = enforcer.enforce_with_feedback(pack, Some(&self.db))
             .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
         serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
+    }
+
+    /// `unpack PATH [--verify-only] [--no-check] [--checker P] [--certificate-out D]
+    /// [--load-even-if-refused]`
+    ///
+    /// Present so a batch script reaches the same verify-and-refuse loop the
+    /// MCP tool does. `web/try/api/index.py` drives the engine in batch mode,
+    /// so a route that exists only under MCP is a route that demo cannot show.
+    /// `pack` has no arm here: the sender is already in a session, and the
+    /// receiver is the party this feature is for.
+    fn exec_unpack(&self, args: &[String]) -> Value {
+        let Some(path) = args.first() else {
+            return json!({"error": "unpack requires a pack path"});
+        };
+        let flag = |name: &str| args.iter().any(|a| a == name);
+        let value = |name: &str| {
+            args.iter()
+                .position(|a| a == name)
+                .and_then(|i| args.get(i + 1))
+                .cloned()
+        };
+        let opts = crate::pack::UnpackOptions {
+            verify_only: flag("--verify-only"),
+            check_certificate: !flag("--no-check"),
+            checker: value("--checker").map(std::path::PathBuf::from),
+            certificate_out_dir: value("--certificate-out").map(std::path::PathBuf::from),
+            load_even_if_refused: flag("--load-even-if-refused"),
+        };
+        match crate::pack::Packer::new(self.graph.clone()).unpack(path, &opts) {
+            Ok(result) => serde_json::from_str(&result).unwrap_or(json!({"raw": result})),
+            Err(e) => json!({"error": e.to_string()}),
+        }
     }
 
     fn exec_plan(&self, args: &[String]) -> Value {

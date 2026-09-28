@@ -1555,14 +1555,37 @@ pub struct OntoPackInput {
     pub version: Option<String>,
     /// Record lint and enforce results in the manifest as evidence (default true)
     pub include_evidence: Option<bool>,
+    /// A certificate directory written by a previous `onto_reason` with
+    /// `certificate_dir`. Its files travel inside the pack and the manifest's
+    /// content digest covers them, so the receiver re-runs the Lean checker
+    /// over them instead of trusting this engine. Refused at pack time when the
+    /// certificate rests on assertions the graph being packed does not contain.
+    pub certificate_dir: Option<String>,
+    /// The profile the certificate came from, recorded as a SENDER'S CLAIM. No
+    /// checker reads it: `oo-cert` checks each step against the rule the step
+    /// names.
+    pub profile: Option<String>,
 }
 
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoUnpackInput {
     /// Pack to read
     pub path: String,
-    /// Verify the checksum and report the manifest without loading (default false)
+    /// Verify the digests and the certificate and report, without loading
+    /// (default false)
     pub verify_only: Option<bool>,
+    /// Run the Lean checker over the packed certificate (default true). Off
+    /// reports `checker_absent_nothing_was_checked`; there is no setting that
+    /// makes an unchecked run print a checked word.
+    pub check_certificate: Option<bool>,
+    /// Path to `oo-cert` or `oo-horn`. Default: $OO_CERT / $OO_HORN, then
+    /// lean/.lake/build/bin, then $PATH.
+    pub checker: Option<String>,
+    /// Keep the unpacked certificate files here so the check can be repeated by
+    /// hand. Default: a scratch directory that is removed.
+    pub certificate_out_dir: Option<String>,
+    /// Load the graph even when its certificate was refused (default false)
+    pub load_even_if_refused: Option<bool>,
 }
 
 #[derive(Deserialize, JsonSchema)]

@@ -541,6 +541,14 @@ jobs:
         run: OO_REQUIRE_FIXTURES=1 cargo test --test lean_refutation_producer_test -- --nocapture
       - name: Check the mixed certificate layer
         run: OO_REQUIRE_FIXTURES=1 cargo test --test lean_mixed_certificate_test -- --nocapture
+      - name: Re-run the checker over a certificate carried inside a pack, and refuse a forged one
+        # Two of this file's legs need a real oo-cert and the rest do not, so
+        # without this step the forgery leg would skip for ever in the `build`
+        # job and nothing would count the skip. The leg that matters is the one
+        # that forges a conclusion INSIDE the packed certificate, repairs every
+        # digest so only the proof can object, and requires the receiver to
+        # refuse the load.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test pack_certificate_test -- --nocapture
       - name: Check the generic Horn-rule layer, and that a user rule cannot earn the absolute verdict
         # The five legs here are not interchangeable. Four of them prove the
         # checker rejects a specific forgery; the fifth proves that a

@@ -20,6 +20,7 @@ and whose benefit is not gets dropped the first time it is inconvenient.
 | [0014](0014-a-verifier-that-cannot-read-the-code-verifies-a-rewrite.md) | A verifier that cannot read the code verifies a rewrite | Counting a green verifier as evidence about code it never read |
 | [0015](0015-a-blank-line-is-a-line-or-it-is-not.md) | A blank line is a line, or it is not, and the format never said which | The same failure again, found by a third kernel and still OPEN: two checkers reading one file differently because nobody wrote down what an empty line is |
 | [0016](0016-a-conclusion-names-the-axioms-responsible-for-it.md) | A conclusion names the axioms responsible for it, and minimality is re-run | Presenting a justification as minimal when nothing re-ran it |
+| [0017](0017-a-pack-carries-its-own-proof.md) | A pack carries its own proof, and the receiver re-runs it | Promoting a graph between environments on the strength of what the sender's engine said about it |
 
 This table is not the whole set. Decisions 0009, 0010 and 0011 are in this directory and have no row
 here, and the number 0009 was used twice by two records written in parallel. Both are stated rather

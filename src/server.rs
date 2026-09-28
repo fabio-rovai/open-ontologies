@@ -1209,7 +1209,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_pack", description = "Write the loaded graph and its verification evidence to a portable, versioned pack: sorted N-Triples plus a manifest (name, version, counts, timestamp, sha256, and the lint/enforce results recorded at pack time). Use to promote a verified graph between environments as one auditable artifact.")]
+    #[tool(name = "onto_pack", description = "Write the loaded graph, its verification evidence and, optionally, its derivation certificate to a portable, versioned pack: sorted N-Triples plus a manifest (name, version, counts, timestamp, sha256, the lint/enforce results recorded at pack time, and a content_sha256 covering the graph AND the certificate together). Pass certificate_dir to carry the proof: the evidence is what this engine SAID, the certificate is what the receiver's own Lean checker can re-derive. A certificate resting on assertions the packed graph does not contain is refused here rather than at the auditor's end.")]
     async fn onto_pack(&self, Parameters(input): Parameters<OntoPackInput>) -> String {
         use crate::pack::Packer;
         let name = input.name.unwrap_or_else(|| {
@@ -1230,19 +1230,32 @@ impl OpenOntologiesServer {
         } else {
             None
         };
-        match Packer::new(self.graph.clone()).pack(
-            &input.path, &name,
-            &input.version.unwrap_or_else(|| "1.0.0".into()), evidence,
-        ) {
+        let version = input.version.unwrap_or_else(|| "1.0.0".into());
+        let cert_dir = input.certificate_dir.as_deref().map(std::path::Path::new);
+        match Packer::new(self.graph.clone()).pack(&crate::pack::PackRequest {
+            path: &input.path,
+            name: &name,
+            version: &version,
+            evidence,
+            certificate_dir: cert_dir,
+            profile_claimed: input.profile.as_deref(),
+        }) {
             Ok(json) => json,
             Err(e) => Self::err_json(e),
         }
     }
 
-    #[tool(name = "onto_unpack", description = "Load a pack written by onto_pack, refusing it if the checksum does not match. Pass verify_only to inspect the manifest and evidence without loading.")]
+    #[tool(name = "onto_unpack", description = "Load a pack written by onto_pack, refusing it if either digest does not match, and re-run THIS machine's Lean checker over the certificate the pack carries. Four answers are kept apart: the pack carries no certificate; the certificate was accepted; it was REFUSED, which blocks the load unless load_even_if_refused is passed; or this build has no checker, so nothing was checked, which is not a pass. An acceptance proves the materialised triples follow from the asserted ones under the rules that ran; it proves nothing about whether the asserted triples are true.")]
     async fn onto_unpack(&self, Parameters(input): Parameters<OntoUnpackInput>) -> String {
         use crate::pack::Packer;
-        match Packer::new(self.graph.clone()).unpack(&input.path, input.verify_only.unwrap_or(false)) {
+        let opts = crate::pack::UnpackOptions {
+            verify_only: input.verify_only.unwrap_or(false),
+            check_certificate: input.check_certificate.unwrap_or(true),
+            checker: input.checker.map(std::path::PathBuf::from),
+            certificate_out_dir: input.certificate_out_dir.map(std::path::PathBuf::from),
+            load_even_if_refused: input.load_even_if_refused.unwrap_or(false),
+        };
+        match Packer::new(self.graph.clone()).unpack(&input.path, &opts) {
             Ok(json) => json,
             Err(e) => Self::err_json(e),
         }

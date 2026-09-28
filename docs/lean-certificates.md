@@ -87,6 +87,76 @@ inside one.
   then the derivation steps that reached the clash in the same spelling as `derivations.tsv`, then
   one `refute TAB rule` line with the clash rule's premises. See the refutation section below.
 
+## Carrying a certificate inside a pack
+
+`onto_pack` writes a graph, a `sha256` over it, and the lint and enforce results recorded at pack
+time. That evidence is what the SENDER'S engine said. Pass `certificate_dir` and the pack also
+carries the certificate for the run that produced the graph, and `onto_unpack` writes those files out
+and runs THIS machine's checker over them. The receiver then learns whether the derivations hold
+without trusting the engine that wrote the pack. See
+[decision 0017](decisions/0017-a-pack-carries-its-own-proof.md).
+
+**Which files travel.** Only the names a run of this engine writes: `asserted.tsv`,
+`asserted.sha256`, `derivations.tsv`, `horn.tsv`, `rules.tsv`, `scope.tsv` and `refutation.tsv`. The
+list is a whitelist in both directions. At pack time it stops whatever an earlier run left in the
+directory going under the digest; at unpack time the names come from the sender, and a pack naming
+`../../.ssh/authorized_keys` would otherwise be written wherever the receiver's scratch directory
+resolves that to. The files travel as TEXT, not base64, so a pack stays diffable for the same reason
+the graph is sorted.
+
+Which checker reads it is decided by the files present and never by the pack's `format` string:
+`derivations.tsv` means `oo-cert`, `horn.tsv` plus `rules.tsv` means `oo-horn check`. Reading the
+sender's string would let the sender choose the receiver's checker. A directory holding both is
+refused, because the two earn different verdicts.
+
+**What `content_sha256` covers.** `sha256` still covers the graph text and nothing else.
+`content_sha256` covers the tag `oo-pack-content/1\n`, the length and bytes of the graph, a presence
+byte for the certificate and, when one is present, the length-prefixed `format`, the length-prefixed
+`profile_claimed_by_sender`, the `asserted` and `derivations` counts, the number of files, then every
+(name, body) pair in `BTreeMap` order with both halves length-prefixed. Everything is
+length-prefixed so two different (graph, certificate) pairs cannot frame to the same bytes at a seam.
+A pack that carries a certificate and no `content_sha256` is REFUSED rather than checked: without
+that rule, stripping the field and pasting in a certificate sound over another graph passes the old,
+weaker verification.
+
+**The seven verdicts, and none collapses into another.**
+
+| verdict | what happened | loads? |
+| --- | --- | --- |
+| `certificate_accepted` | `oo-cert` accepted it under `OOCert.certificate_sound` | yes |
+| `certificate_accepted_under_supplied_rules` | `oo-horn` accepted it over a table the SENDER supplied | yes |
+| `certificate_refused` | the checker named a step it would not accept | **no** |
+| `certificate_unreadable` | exit 2, an unknown file name, or files that form no certificate | **no** |
+| `certificate_not_about_this_pack` | the checker accepted it and its premises are not all in the graph | **no** |
+| `checker_absent_nothing_was_checked` | no checker here, or the caller turned the check off | yes |
+| `no_certificate_in_pack` | the pack carries no proof, which every pack written before this does | yes |
+
+`certificate_not_about_this_pack` is the gate the checker cannot be. `oo-cert` verifies the steps
+against the triples inside `asserted.tsv` and has no way to ask where they came from, so a
+certificate that is internally sound over somebody else's premises checks green. `onto_unpack`
+compares the certificate's `asserted.tsv` against the packed graph in the one spelling both sides
+use, `reason::asserted_bytes`, and refuses the load when the proof rests on assertions the pack does
+not contain. `onto_pack` refuses the same thing at pack time, so the sender learns rather than the
+auditor, and the receiver-side refusal stays either way.
+
+**What an acceptance does not settle.** A certificate proves the materialised triples follow from the
+asserted ones under the rules that RAN. It proves nothing about whether the asserted triples are
+true, and it is silent about axioms outside the fragment: an axiom no rule fires on contributed
+nothing and is invisible here. Run `onto_dlp_boundary` over the loaded graph to see which of its
+axioms the rule table can read. Those sentences are in the receiver's report, under `does_not_mean`,
+because a limit stated only in documentation is a limit the person reading the verdict does not see.
+
+**Two limits that are named rather than closed.** The receiver's checker is still a binary somebody
+chose: `$OO_CERT` pointing at a script that exits zero and prints the right theorem name earns the
+accepted word. That is now the receiver's own foot rather than the sender's, which is an improvement
+and not a closure; the report prints the `checker` block the binary says about itself so a reader can
+match its SHA-256 against a release's `SHASUMS.txt`. And the pack is built in memory with no
+streaming path. Measured on 28 September 2026: `benchmark/reference/ies4.ttl`, 3,976 asserted triples
+reasoned under `owl-rl-ext` with materialisation, packs to 4,514,931 bytes of which 3,015,113 are the
+certificate; `benchmark/reference/pizza-reference.owl`, 2,332 triples, packs to 1,422,749 bytes with
+a 843,870-byte certificate. `onto_pack` reports `graph_bytes`, the certificate's `bytes` and
+`pack_json_bytes` so the cost is visible.
+
 ## What the file is NOT enough for
 
 `derivations.tsv` is a derivation DAG and it is tempting to read explanations out of it. Do not.
