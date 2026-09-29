@@ -826,6 +826,32 @@ pub fn verdict_means(v: &str) -> &'static str {
     }
 }
 
+/// Does a verdict about the exported problem hold of the ontology too?
+///
+/// The export drops constructs and never adds any, so the ontology's
+/// translation entails the export's. A verdict that there is NO model (or no
+/// model up to k) therefore carries over, and a verdict that there IS one does
+/// not. A goal problem is the axioms plus the negated goal, so the same holds
+/// for it: a countermodel of the weaker theory is not a non-entailment.
+fn transfers(o: &Outcome, weaker: bool) -> bool {
+    !weaker
+        || !matches!(
+            o.verdict,
+            FolVerdict::ModelChecked(_) | FolVerdict::SatisfiableOracle
+        )
+}
+
+/// `owl_reading` is the OWL-level sentence "not entailed". Over a weaker
+/// export it can be false of the ontology, so it is not minted into the
+/// report. The verdict itself stays: it is a true, checked statement about
+/// the problem the checker was handed, and `transfers_to_the_ontology` says
+/// what it is not.
+fn withhold_owl_reading(o: &mut Outcome, weaker: bool) {
+    if weaker {
+        o.owl_reading = None;
+    }
+}
+
 /// Run the pipeline over the loaded ontology and, optionally, one problem per
 /// goal. Returns the report JSON.
 pub fn solve_export(
@@ -839,8 +865,19 @@ pub fn solve_export(
     let read = crate::tptp::read_graph(triples);
     std::fs::create_dir_all(dir)?;
 
+    // What the reader could not translate. `tptp::export` has always put this
+    // ledger in its report; this pipeline did not, and so a model of the
+    // WEAKER exported theory came back as `model_checked` with `owl_reading`
+    // set and nothing anywhere to say the checked problem was not the
+    // ontology. It was found by running inconsistent ontologies through here:
+    // `owl:AllDisjointProperties`, `owl:NegativePropertyAssertion`,
+    // `owl:hasKey` and a functional datatype property each produced a
+    // certified model of a graph with no models at all.
+    let weaker = !read.dropped.is_empty();
+
     let base = FolProblem::build(&read.axioms, None)?;
-    let ontology = solve(&base, opts, &dir.join("ontology"))?;
+    let mut ontology = solve(&base, opts, &dir.join("ontology"))?;
+    withhold_owl_reading(&mut ontology, weaker);
 
     let mut goal_reports = Vec::new();
     // A goal the fragment cannot express is NAMED, not skipped. `tptp::export`
@@ -886,24 +923,42 @@ pub fn solve_export(
                 }
             };
             let gp = FolProblem::build(&read.axioms, Some(&ax))?;
-            let g = solve(&gp, opts, &dir.join(format!("goal_{i:05}")))?;
+            let mut g = solve(&gp, opts, &dir.join(format!("goal_{i:05}")))?;
+            withhold_owl_reading(&mut g, weaker);
             *counts.entry(g.verdict.word()).or_default() += 1;
             if g.disagreement.is_some() {
                 stop_the_line += 1;
             }
+            let mut outcome = outcome_json(&g);
+            outcome["transfers_to_the_ontology"] = transfers(&g, weaker).into();
             goal_reports.push(serde_json::json!({
                 "triple": [s, p, o],
-                "outcome": outcome_json(&g),
+                "outcome": outcome,
             }));
         }
     }
+
+    let mut ontology_json = outcome_json(&ontology);
+    ontology_json["transfers_to_the_ontology"] = transfers(&ontology, weaker).into();
 
     Ok(serde_json::json!({
         "solver": opts.solver.name(),
         "max_domain": opts.max_domain,
         "timeout_secs": opts.timeout_secs,
         "dir": dir.display().to_string(),
-        "ontology": outcome_json(&ontology),
+        "ontology": ontology_json,
+        "exports_a_weaker_axiom_set": weaker,
+        "constructs_not_exported": read.dropped,
+        "reduced_to_fragment": read.reduced,
+        "transfers_to_the_ontology_means": "whether the verdict, which is about the EXPORTED \
+                                            problem, also holds of the ontology. Dropping a \
+                                            construct only removes constraints, so every model \
+                                            of the ontology is a model of the export and not \
+                                            the reverse: when exports_a_weaker_axiom_set is \
+                                            true, `model_checked` and `satisfiable_oracle` \
+                                            say NOTHING about the ontology and `owl_reading` \
+                                            is withheld, while `unsatisfiable_oracle` and \
+                                            `no_model_up_to_size_k` still carry over",
         "goals": goal_reports,
         "goals_not_asked": not_asked.len(),
         "not_asked": not_asked,

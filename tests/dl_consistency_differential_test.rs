@@ -153,3 +153,117 @@ fn an_inconsistent_ontology_never_gets_a_checked_model() {
         );
     }
 }
+
+/// Inconsistent ontologies whose inconsistency rests on a construct the FOL
+/// reader cannot translate. Each is the smallest witness from the 29 Sep 2026
+/// reproduction: the export is a strictly weaker theory, and it HAS a model.
+fn out_of_fragment_inconsistent_cases() -> Vec<(&'static str, &'static str)> {
+    vec![
+        ("owl:AllDisjointProperties", "ex:p a owl:ObjectProperty . ex:q a owl:ObjectProperty . \
+                                 [] a owl:AllDisjointProperties ; owl:members ( ex:p ex:q ) . \
+                                 ex:a ex:p ex:b ; ex:q ex:b ."),
+        ("owl:NegativePropertyAssertion", "ex:p a owl:ObjectProperty . ex:a ex:p ex:b . \
+                                 [] a owl:NegativePropertyAssertion ; \
+                                 owl:sourceIndividual ex:a ; owl:assertionProperty ex:p ; \
+                                 owl:targetIndividual ex:b ."),
+        ("a functional datatype property with two values", "ex:d a owl:DatatypeProperty , \
+                                 owl:FunctionalProperty . ex:a ex:d 1 , 2 ."),
+    ]
+}
+
+/// The report is about the EXPORT, and must say when that is not the ontology.
+///
+/// Before this, `solve_export` never read the reader's drop ledger. Each case
+/// below came back `model_checked`, with `not_asked: []` and no flag, for a
+/// graph with no models at all: a certified verdict about a different problem.
+/// The verdict word may stay, because it is a true statement about the problem
+/// the checker was handed. What may not happen is a report that lets it be
+/// read as a statement about the ontology.
+#[test]
+fn a_model_of_a_weaker_export_is_never_reported_as_a_model_of_the_ontology() {
+    if skip() {
+        return;
+    }
+    for (name, body) in out_of_fragment_inconsistent_cases() {
+        let g = store(body);
+        let dir = std::env::temp_dir().join(format!(
+            "oo-dl-weaker-{}-{}",
+            std::process::id(),
+            name.len()
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).expect("scratch dir");
+        let opts = SolveOptions {
+            solver: Solver::Z3,
+            max_domain: 4,
+            timeout_secs: 20,
+            unbounded_probe: false,
+            checker: None,
+        };
+        let report = solve_export(&g, &dir, &opts, None, 0).expect("solve_export");
+        let _ = std::fs::remove_dir_all(&dir);
+        let v: serde_json::Value = serde_json::from_str(&report).expect("report is JSON");
+        let o = &v["ontology"];
+        assert_eq!(
+            v["exports_a_weaker_axiom_set"], true,
+            "{name}: the reader dropped the construct the inconsistency rests on, and the \
+             report does not say so: {v}"
+        );
+        assert!(
+            v["constructs_not_exported"]
+                .as_array()
+                .is_some_and(|a| !a.is_empty()),
+            "{name}: the flag without the list names nothing a reader can act on: {v}"
+        );
+        // The case is only a test of the report if the weaker export really
+        // does have a model. If a later change makes the reader translate the
+        // construct, the verdict stops being model_checked and this case has
+        // to be replaced rather than silently passing.
+        assert_eq!(
+            o["verdict"], "model_checked",
+            "{name}: expected the weaker export to have a checked model. If the construct is \
+             now translated, move this case to inconsistent_cases(): {v}"
+        );
+        assert_eq!(
+            o["transfers_to_the_ontology"], false,
+            "{name}: a model of a weaker theory was reported as carrying over to an \
+             ontology that has no model: {v}"
+        );
+        assert_eq!(
+            o["owl_reading"],
+            serde_json::Value::Null,
+            "{name}: an OWL-level reading was minted over a weaker export: {v}"
+        );
+    }
+}
+
+/// The control: in the fragment, nothing is dropped and a checked model does
+/// transfer. Without this, `transfers_to_the_ontology: false` everywhere would
+/// pass the test above.
+#[test]
+fn a_model_of_a_faithful_export_transfers() {
+    if skip() {
+        return;
+    }
+    let (name, body) = consistent_cases()[1];
+    let g = store(body);
+    let dir = std::env::temp_dir().join(format!("oo-dl-faithful-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("scratch dir");
+    let opts = SolveOptions {
+        solver: Solver::Z3,
+        max_domain: 4,
+        timeout_secs: 20,
+        unbounded_probe: false,
+        checker: None,
+    };
+    let report = solve_export(&g, &dir, &opts, None, 0).expect("solve_export");
+    let _ = std::fs::remove_dir_all(&dir);
+    let v: serde_json::Value = serde_json::from_str(&report).expect("report is JSON");
+    assert_eq!(v["exports_a_weaker_axiom_set"], false, "{name}: {v}");
+    assert_eq!(v["ontology"]["verdict"], "model_checked", "{name}: {v}");
+    assert_eq!(
+        v["ontology"]["transfers_to_the_ontology"], true,
+        "{name}: {v}"
+    );
+}
