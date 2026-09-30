@@ -14,6 +14,12 @@ command in it exits 2.
 
 Every figure in the legend is counted from those two files. Nothing is typed.
 
+The same run also writes `<out>.scene.json`: the layout, the warrant of every
+edge, the beats and every sentence with its counts filled in. The README shows
+the hand-drawn animation `docs/assets/hand-drawn/hero.js` draws from that file, so
+after regenerating the SVG, re-render it:
+    node docs/assets/hand-drawn/render.js knowledge-graph.scene.json knowledge-graph.webp
+
 This is a picture OF THE STUDIO'S 3D VIEW, not a diagram invented for the
 README. `studio/src/components/Graph3D.tsx` is the thing a person actually uses
 to build an ontology here, and every colour, width, particle and legend line
@@ -909,11 +915,13 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
         chip(idx[name], name, C_LEAN if name == LEAN else C_TOOL,
              11.5 if name == LEAN else 10.5, 800 if name == LEAN else 700, insist=True)
     shown = 0
+    shown_names = []
     for n in sorted((n for n in nodes if n not in TOOLS), key=lambda n: -deg[idx[n]]):
         if shown >= 7:
             break
         if chip(idx[n], short(n), "#cbd5e1", 10, 400):
             shown += 1
+            shown_names.append(n)
 
     # ── The verification layer, working ────────────────────────────────
     #
@@ -1461,6 +1469,62 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
 
     with open(out_path, "w") as f:
         f.write(svg_text)
+
+    # ── The same picture as data, for the hand-drawn README animation ───
+    #
+    # `docs/assets/hand-drawn/hero.html` draws the front-page animation in the
+    # paper style, and it must not type a single number or place a single node
+    # itself. So everything it draws is written here, from the variables that
+    # drew the SVG above: the layout, the warrant of every edge, which edge is
+    # the forged one, the beats and every sentence with its counts already
+    # formatted in. The drawing and this file cannot disagree, because they are
+    # one run of one function.
+    import os as _os
+    beat_keys = ["asserted", "derived", "lean", "provers", "forged", "unasked"]
+    scene = {
+        "source": "docs/assets/knowledge-graph.py",
+        "lang": lang,
+        "box": {"w": W, "h": H, "graph": [OL, T, OR_, B]},
+        "headline": TX["headline"],
+        "sub": TX["sub"].format(n=len(nodes), e=len(edges), a=n_asserted, d=n_derived, rules=rules),
+        "cols": list(TX["cols"]),
+        "graphhead": TX["graphhead"].format(n=len(ont)),
+        "nodes": [{"name": n, "label": n if n in TOOLS else short(n),
+                   "kind": ("lean" if n == LEAN else "file" if n in FILES
+                            else "program" if n in TOOLS else "class"),
+                   "x": round(pt[i][0], 2), "y": round(pt[i][1], 2),
+                   "depth": round(depth[i], 4), "deg": deg[i],
+                   "labelled": n in TOOLS or n in shown_names}
+                  for i, n in enumerate(nodes)],
+        "edges": [[i, j, w] for i, j, w in edges],
+        "forged": forged,
+        "mu": ({"s": idx[mu_s], "o": idx[mu_o],
+                "badge": TX["mu_badge"].format(s=short(mu_s), why=mu_line)} if mu else None),
+        "beats": [{"key": beat_keys[k], "text": text, "t0": t0, "t1": t1}
+                  for k, (_, text, t0, t1) in enumerate(BEATS)],
+        "cycle": CYCLE,
+        "judges": [{"node": idx[jn], "verdict": v,
+                    "kind": "certificate" if col == C_LEAN else "opinion", "t0": t0, "t1": t1}
+                   for jn, v, col, t0, t1 in JUDGES],
+        "spot": [{"nodes": [idx[n] for n in names], "beat": bn} for names, bn in SPOT],
+        "legend": {"head": TX["legend_head"], "file": TX["legend_file"].format(n=n_asserted),
+                   "rows": [{"key": k, "label": label, "count": count, "means": means}
+                            for k, (_, label, count, means) in
+                            zip(["asserted", "certified", "rejected", "unasked"], rows)]},
+        "worth": {"head": TX["worth_head"],
+                  "rows": [{"key": k, "word": word, "l1": l1, "l2": l2}
+                           for k, (_, word, l1, l2) in
+                           zip(["certificate", "opinion", "unasked"], verdicts)]},
+        "labels": {"forged": TX["forged"], "refused": TX["refused"],
+                   "disagree": TX["disagree"], "disagree_t": [11.4, 13.0]},
+    }
+    stray = _re.findall(r"\{[a-z_]+\}", _json.dumps(scene, ensure_ascii=False))
+    if stray:
+        raise SystemExit(f"the scene carries unsubstituted placeholders: {sorted(set(stray))}")
+    scene_path = _os.path.splitext(out_path)[0] + ".scene.json"
+    with open(scene_path, "w") as f:
+        _json.dump(scene, f, ensure_ascii=False, indent=1)
+        f.write("\n")
     print(f"wrote {out_path}: {len(nodes)} nodes, {len(a_edges)} asserted and "
           f"{len(d_edges)} derived edges, from {n_asserted} asserted and {n_derived} derived triples")
 

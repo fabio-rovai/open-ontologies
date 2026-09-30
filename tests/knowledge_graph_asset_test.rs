@@ -696,3 +696,86 @@ fn no_two_labels_sit_on_top_of_each_other() {
         clashes.join("\n")
     );
 }
+
+// ── The hand-drawn animation on the front page ──────────────────────────
+//
+// The README shows `knowledge-graph.webp`, drawn in the paper style by
+// `docs/assets/hand-drawn/hero.js` from `knowledge-graph.scene.json`, and links
+// the SVG for anyone who wants the exact figure. A raster carries no number a
+// test can read, so the chain is checked one link at a time: the first test
+// ties the SVG to a live run, this one ties the scene to the SVG, and the WebP
+// carries the digest of the scene that drew it. Regenerating one without the
+// others fails here.
+
+fn scene_bytes() -> Vec<u8> {
+    std::fs::read(repo().join("docs/assets/knowledge-graph.scene.json"))
+        .expect("docs/assets/knowledge-graph.scene.json")
+}
+
+#[test]
+fn the_hand_drawn_animation_is_drawn_from_the_svgs_own_scene() {
+    let scene: serde_json::Value =
+        serde_json::from_slice(&scene_bytes()).expect("the scene is JSON");
+    let text = svg();
+
+    // The legend counts, row by row, are the SVG's.
+    let (a, c, r) = legend_counts();
+    let rows = scene["legend"]["rows"].as_array().expect("legend rows");
+    for (label, want) in [("ASSERTED", a), ("CERTIFIED", c), ("REJECTED", r)] {
+        let row = rows
+            .iter()
+            .find(|x| x["label"] == label)
+            .unwrap_or_else(|| panic!("the scene's legend has no {label} row"));
+        assert_eq!(
+            row["count"].as_u64(),
+            Some(want),
+            "the animation's legend says {} for {label} and the SVG says {want}. Both come \
+             from one run of knowledge-graph.py; regenerate them together.",
+            row["count"]
+        );
+    }
+
+    // The sub-heading carries the run's totals, and it is the SVG's own sentence.
+    let sub = scene["sub"].as_str().expect("sub-heading");
+    assert!(
+        text.contains(sub),
+        "the animation's sub-heading {sub:?} is not the SVG's. They were drawn from \
+         different runs."
+    );
+    let nodes = scene["nodes"].as_array().expect("nodes").len();
+    let edges = scene["edges"].as_array().expect("edges");
+    assert!(
+        sub.contains(&format!("{nodes} nodes and {} edges drawn", edges.len())),
+        "the scene draws {nodes} nodes and {} edges and its sub-heading says otherwise",
+        edges.len()
+    );
+    let forged: Vec<_> = edges.iter().filter(|e| e[2] == "rejected").collect();
+    assert_eq!(forged.len() as u64, r, "the scene forges {} lines and the legend says {r}", forged.len());
+
+    // The WebP is animated and was drawn from THIS scene.
+    let webp = std::fs::read(repo().join("docs/assets/knowledge-graph.webp"))
+        .expect("docs/assets/knowledge-graph.webp");
+    assert!(
+        webp.len() > 12 && &webp[0..4] == b"RIFF" && &webp[8..12] == b"WEBP",
+        "knowledge-graph.webp is not a WebP file"
+    );
+    assert!(
+        webp.windows(4).any(|w| w == b"ANIM"),
+        "knowledge-graph.webp is a still. The front page argues in six steps, in order."
+    );
+    use sha2::{Digest, Sha256};
+    let stamp = format!("scene-sha256={:x}", Sha256::digest(scene_bytes()));
+    assert!(
+        webp.windows(stamp.len()).any(|w| w == stamp.as_bytes()),
+        "knowledge-graph.webp was not drawn from the scene in the repository. Re-render it: \
+         node docs/assets/hand-drawn/render.js knowledge-graph.scene.json knowledge-graph.webp"
+    );
+
+    // The front page shows the animation and links the exact figure.
+    let md = readme();
+    assert!(md.contains("docs/assets/knowledge-graph.webp"), "the README no longer shows the animation");
+    assert!(
+        md.contains("href=\"docs/assets/knowledge-graph.svg\""),
+        "the README shows the drawing and no longer links the exact figure it was drawn from"
+    );
+}
