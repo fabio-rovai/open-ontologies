@@ -43,7 +43,7 @@
 ---
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.zh-CN.svg" alt="ies-core.ttl 的 Studio 三维视图：类与子类边在三维空间中布局，验证层作为节点绘制在旁边。灰色边由人作出断言，绿色边由引擎推导并经 Lean 接受，一条红色边是伪造并被拒绝的，粒子沿每条被裁定的连接移动。" width="100%">
+  <a href="docs/assets/knowledge-graph.zh-CN.svg"><img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.zh-CN.webp" alt="ies-core.ttl 的手绘动画。有人断言灰色边。引擎推导出绿色边，Lean 4 检查涵盖它们的那一份证书。四个证明器读取子句，只给出意见。一条伪造的红线被拒绝，一个该文件无法回答的问题被原样退回。" width="100%"></a>
 </p>
 
 <p align="center">
@@ -483,7 +483,8 @@ Tauri 2、React 19 和 Tailwind 4 用于 Studio。完整表格见
 同样的章节，同样的图，同样的数字。
 
 两张图各有一个中文版本，由同一个生成器产生：`knowledge-graph.zh-CN.svg` 和
-`hqdm-audit.zh-CN.svg`。图中的数字不来自翻译。它们由运行结果计算得出，然后填入翻译好的句子，
+`hqdm-audit.zh-CN.svg`。首页的手绘动画 `knowledge-graph.zh-CN.webp` 由同一次运行写出的
+`knowledge-graph.zh-CN.scene.json` 绘制。图中的数字不来自翻译。它们由运行结果计算得出，然后填入翻译好的句子，
 因此中文版本不可能说出数据不支持的数字。`tests/readme_simplified_english_test.rs` 要求本页面
 与英文页面在结构上一致。
 

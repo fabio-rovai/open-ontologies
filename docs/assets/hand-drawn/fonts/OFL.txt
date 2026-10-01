@@ -5,4 +5,7 @@ published under the SIL Open Font License 1.1, https://openfontlicense.org
   PatrickHand.ttf    Patrick Hand, Copyright (c) 2012 Patrick Wagesreiter
   JetBrainsMono.ttf  JetBrains Mono, Copyright 2020 The JetBrains Mono Project Authors
 
-They are used only to render docs/assets/knowledge-graph.webp and docs/assets/logo.png.
+They are used only to render the knowledge-graph WebPs and docs/assets/logo.png.
+
+  LXGWWenKai.ttf     LXGW WenKai, Copyright 2021-2025 LXGW, and 2020 The Klee Project
+                     Authors. Subset to the characters the Chinese figure uses.

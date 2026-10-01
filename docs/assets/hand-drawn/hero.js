@@ -17,7 +17,7 @@
      text against text only, and three labels sat under arrows with the gate
      reporting clean. `?probe=1` plants a collision so the gate can be seen to
      fail (render.js --prove-gate). */
-import {W,H,PAL,paper,grainOver,ink,wash,blob,ring,hand,seedFrame} from './engine.js';
+import {W,H,PAL,paper,grainOver,ink,wash,blob,ring,hand as engineHand,seedFrame} from './engine.js';
 
 const ctx=document.getElementById('c').getContext('2d');
 const HUE={asserted:PAL.ink2,derived:PAL.teal,lean:PAL.teal,provers:PAL.ink2,
@@ -25,6 +25,13 @@ const HUE={asserted:PAL.ink2,derived:PAL.teal,lean:PAL.teal,provers:PAL.ink2,
 const WARRANT={asserted:PAL.grey,certified:PAL.teal,rejected:PAL.red,unasked:PAL.amber};
 const VERDICT={certificate:PAL.teal,opinion:PAL.ink2};
 const FONT={title:'CaveatBrush',body:'PatrickHand',mono:'JetBrainsMono'};
+/* The Latin hands have no Chinese glyphs. A string with any CJK in it is set in
+   the Chinese hand whatever slot it sits in, and `measure` applies the same rule,
+   so the layout gate measures what is actually drawn. */
+const CJK=/[\u2e80-\u9fff\u3000-\u303f\uff00-\uffef]/;
+let ZH='LXGWWenKai';
+const face=(str,font)=>CJK.test(str)?ZH:font;
+const hand=(c,str,x,y,size,o={})=>engineHand(c,str,x,y,size,{...o,font:face(str,o.font||'Caveat')});
 const LAYOUT_ERRORS=[];
 
 let S,P,R,BEAT,ORDER,NODE_ORDER;
@@ -33,7 +40,7 @@ const byLabel=l=>S.nodes.findIndex(n=>n.label===l);
 
 /* ---------- where things go ---------- */
 function measure(str,size,font){
-  ctx.save();ctx.font=`700 ${size}px "${font}"`;const w=ctx.measureText(str).width;ctx.restore();
+  ctx.save();ctx.font=`700 ${size}px "${face(str,font)}"`;const w=ctx.measureText(str).width;ctx.restore();
   return w;
 }
 function place(){
@@ -410,12 +417,12 @@ function drawAt(t){
 
 /* ---------- boot ---------- */
 (async()=>{
-  for(const [n,f] of [['CaveatBrush','CaveatBrush.ttf'],['PatrickHand','PatrickHand.ttf'],['JetBrainsMono','JetBrainsMono.ttf']]){
-    const face=new FontFace(n,`url(fonts/${f})`); await face.load(); document.fonts.add(face);
-  }
-  await document.fonts.ready;
   const q=new URLSearchParams(location.search);
   S=await (await fetch(q.get('scene')||'../knowledge-graph.scene.json')).json();
+  const fonts=[['CaveatBrush','CaveatBrush.ttf'],['PatrickHand','PatrickHand.ttf'],['JetBrainsMono','JetBrainsMono.ttf']];
+  if(S.lang==='zh') fonts.push([ZH,'LXGWWenKai.ttf']);
+  for(const [n,f] of fonts){ const ff=new FontFace(n,`url(fonts/${f})`); await ff.load(); document.fonts.add(ff); }
+  await document.fonts.ready;
   place(); layout();
   window.TRACE=TRACE; window.CYCLE=S.cycle; window.LAYOUT_ERRORS=LAYOUT_ERRORS; window.drawAt=drawAt;
   drawAt(Number(q.get('t')||0));
